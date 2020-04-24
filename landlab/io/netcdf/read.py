@@ -25,9 +25,6 @@ from landlab.io.netcdf._constants import (
 )
 from landlab.io.netcdf.errors import NotRasterGridError
 from landlab.utils import add_halo
-from ...grid.hex import HexModelGrid
-from ...grid.radial import RadialModelGrid
-from ...grid.raster import RasterModelGrid
 
 
 def _length_of_axis_dimension(root, axis_name):
@@ -199,8 +196,7 @@ def _read_netcdf_structured_data(root):
         dont_use.append(grid_mapping)
     for (name, var) in root.variables.items():
         if name not in dont_use:
-            fields[name] = var[:].copy()
-            fields[name].shape = (fields[name].size,)
+            fields[name] = var.values.reshape((-1,))
 
     if grid_mapping_exists:
         grid_mapping_variable = root.variables[grid_mapping]
@@ -274,6 +270,10 @@ def from_netcdf(filename_or_obj, include="*", exclude=None):
     :class:`~.ModelGrid`
         A newly-created :class:`~.ModelGrid`.
     """
+    from ...grid.hex import HexModelGrid
+    from ...grid.radial import RadialModelGrid
+    from ...grid.raster import RasterModelGrid
+
     include = include or []
     if isinstance(include, str):
         include = [include]
@@ -453,7 +453,7 @@ def read_netcdf(
         )
 
     if not just_grid:
-        fields, grid_mapping_dict = _read_netcdf_structured_data(root)
+        fields, grid_mapping_dict = _read_netcdf_structured_data(dataset)
         for (field_name, values) in fields.items():
 
             # add halo if necessary
@@ -475,7 +475,6 @@ def read_netcdf(
             raise ValueError(
                 "Specified field {name} was not in provided NetCDF.".format(name=name)
             )
-        )
 
     ignore = {"x", "y"}
     for name in names - ignore:
