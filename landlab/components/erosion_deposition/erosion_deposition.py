@@ -349,6 +349,26 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         self._erosion_term = omega - self._sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
+    def depressions_are_handled(self):
+        """Return True if a depression-handling component is present."""
+        return "flood_status_code" in self._grid.at_node
+
+    def get_flooded_core_nodes(self):
+        """Return boolean node array:True where core node is flooded or 
+        self-draining.
+        """
+        if self.depressions_are_handled():
+            is_flooded_core = np.logical_and(
+                self._grid.at_node["flood_status_code"] == _FLOODED,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+            )
+        else:
+            is_flooded_core = np.logical_and(
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+                self._slope <= 0.0,
+            )
+        return is_flooded_core
+
     def run_one_step_basic(self, dt=1.0):
         """Calculate change in rock and alluvium thickness for a time period
         'dt'.
@@ -362,14 +382,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._calc_hydrology()
         self._calc_erosion_rates()
 
-        if not self._erode_flooded_nodes:
-            flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
-        else:
-            flooded_nodes = []
+        is_flooded_core_node = self.get_flooded_core_nodes()
+        self._erosion_term[is_flooded_core_node] = 0.0
 
-        self._erosion_term[flooded_nodes] = 0.0
         self._qs_in[:] = 0.0
+        self._depo_rate[:] = 0.0
 
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -385,10 +402,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._F_f,
         )
 
-        self._depo_rate[:] = 0.0
         self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
             self._v_s / self._q[self._q > 0]
         )
+        if not self.depressions_are_handled():  # all sed dropped here
+            self._depo_rate[is_flooded_core_node] = (
+                self._qs_in[is_flooded_core_node]
+                / self._cell_area_at_node[is_flooded_core_node]
+            )
 
         # topo elev is old elev + deposition - erosion
         cores = self._grid.core_nodes
