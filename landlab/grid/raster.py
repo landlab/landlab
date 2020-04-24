@@ -8,6 +8,7 @@ files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy as np
+import xarray as xr
 
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import make_return_array_immutable
