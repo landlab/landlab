@@ -225,4 +225,4 @@ class _GeneralizedErosionDeposition(Component):
                 self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
                 self._slope <= 0.0,
             )
-        return is_flooded_core
+        return np.array(is_flooded_core)
