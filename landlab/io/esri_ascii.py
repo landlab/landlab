@@ -535,18 +535,21 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     os.chdir(tmpdirname)
-    ...     files = write_esri_ascii('test.asc', grid)
-    >>> files
-    ['test.asc']
+    ...     fname = os.path.join(tmpdirname, 'test.asc')
+    ...     files = write_esri_ascii(fname, grid)
+    >>> for file in files:
+    ...     print(os.path.basename(file))
+    test.asc
 
     >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     os.chdir(tmpdirname)
-    ...     files = write_esri_ascii('test.asc', grid)
+    ...     fname = os.path.join(tmpdirname, 'test.asc')
+    ...     files = write_esri_ascii(fname, grid)
     >>> files.sort()
-    >>> files
-    ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
+    >>> for file in files:
+    ...     print(os.path.basename(file))
+    test_air__temperature.asc
+    test_land_surface__elevation.asc
     """
     if os.path.exists(path) and not clobber:
         raise ValueError("file exists")

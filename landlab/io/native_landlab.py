@@ -45,8 +45,8 @@ def save_grid(grid, path, clobber=False):
     >>> import tempfile
     >>> grid_out = RasterModelGrid((4, 5), xy_spacing=2.)
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     os.chdir(tmpdirname)
-    ...     save_grid(grid_out, 'testsavedgrid.grid', clobber=True)
+    ...     fname = os.path.join(tmpdirname, 'testsavedgrid.grid')
+    ...     save_grid(grid_out, fname, clobber=True)
     """
     if os.path.exists(path) and not clobber:
         raise ValueError("file exists")
@@ -89,9 +89,9 @@ def load_grid(path):
     >>> y = np.random.rand(20)
     >>> grid_out = VoronoiDelaunayGrid(x, y)
     >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     os.chdir(tmpdirname)
-    ...     save_grid(grid_out, 'testsavedgrid.grid', clobber=True)
-    ...     grid_in = load_grid('testsavedgrid.grid')
+    ...     fname = os.path.join(tmpdirname, 'testsavedgrid.grid')
+    ...     save_grid(grid_out, fname, clobber=True)
+    ...     grid_in = load_grid(fname)
     """
     (base, ext) = os.path.splitext(path)
     if ext != ".grid":
