@@ -73,8 +73,8 @@ def test_calc_moisture_deficit(si):
 
 def test_run_one_step():
     grid = RasterModelGrid((10, 10), xy_spacing=25)
-    grid.add_ones("node", "soil_water_infiltration__depth", dtype=float)
-    grid.add_ones("node", "surface_water__depth")
+    grid.add_ones("soil_water_infiltration__depth", at="node", dtype=float)
+    grid.add_ones("surface_water__depth", at="node")
     hydraulic_conductivity = 2.5 * (10 ** -6)
     grid["node"]["surface_water__depth"] *= 5.0
     grid["node"]["soil_water_infiltration__depth"] *= 10 ** -5

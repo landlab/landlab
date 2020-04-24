@@ -71,7 +71,7 @@ def test_sed_dep_new():
     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge):
         mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
 
     fr = FlowAccumulator(mg, flow_director="D8")
     sde = SedDepEroder(

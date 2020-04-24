@@ -8,18 +8,20 @@ files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy as np
-import xarray as xr
 
-from landlab.field.scalar_data_fields import FieldError
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
+from ..field import FieldError
 from ..graph import DualUniformRectilinearGraph
+from ..io import write_esri_ascii
+from ..io.netcdf import write_netcdf
 from . import raster_funcs as rfuncs
-from .base import CORE_NODE, FIXED_VALUE_BOUNDARY, LOOPED_BOUNDARY, ModelGrid
+from .base import ModelGrid
 from .decorators import return_id_array
 from .diagonals import DiagonalsMixIn
+from .nodestatus import NodeStatus
 
 
 def _node_has_boundary_neighbor(mg, id, method="d8"):
@@ -43,14 +45,14 @@ def _node_has_boundary_neighbor(mg, id, method="d8"):
     """
     for neighbor in mg.active_adjacent_nodes_at_node[id]:
         try:
-            if mg.status_at_node[neighbor] != CORE_NODE:
+            if mg.status_at_node[neighbor] != NodeStatus.CORE:
                 return True
         except IndexError:
             return True
     if method == "d8":
         for neighbor in mg.diagonal_adjacent_nodes_at_node[id]:
             try:
-                if mg.status_at_node[neighbor] != CORE_NODE:
+                if mg.status_at_node[neighbor] != NodeStatus.CORE:
                     return True
             except IndexError:
                 return True
@@ -245,9 +247,9 @@ class RasterModelGrid(
         )
 
         self._node_status = np.full(
-            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
+            self.number_of_nodes, NodeStatus.CORE, dtype=np.uint8
         )
-        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
+        self._node_status[self.perimeter_nodes] = NodeStatus.FIXED_VALUE
 
         if bc is None:
             bc = {"right": "open", "top": "open", "left": "open", "bottom": "open"}
@@ -817,7 +819,7 @@ class RasterModelGrid(
         --------
         The following example sets the top and left boundaries as closed in a
         four-row by five-column grid that initially has all boundaries open
-        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
+        and all boundary nodes coded as BC_NODE_IS_FIXED_VALUE (=1):
 
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
@@ -861,7 +863,7 @@ class RasterModelGrid(
         """Create fixed values boundaries.
 
         Sets the status of nodes along the specified side(s) of a raster
-        grid---bottom, right, top, and/or left---to FIXED_VALUE_BOUNDARY.
+        grid---bottom, right, top, and/or left---to NODE_IS_FIXED_VALUE
 
         Arguments are booleans indicating whether the bottom, right, top, and
         left sides are to be set (True) or not (False).
@@ -957,23 +959,23 @@ class RasterModelGrid(
         )
 
         if bottom_is_fixed_val:
-            self._node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[bottom_edge] = NodeStatus.FIXED_VALUE
 
         if right_is_fixed_val:
-            self._node_status[right_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[right_edge] = NodeStatus.FIXED_VALUE
 
         if top_is_fixed_val:
-            self._node_status[top_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[top_edge] = NodeStatus.FIXED_VALUE
 
         if left_is_fixed_val:
-            self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
+            self._node_status[left_edge] = NodeStatus.FIXED_VALUE
 
         self.reset_status_at_node()
 
         # save some internal data to speed updating:
         self.fixed_value_node_properties = {}
         self.fixed_value_node_properties["boundary_node_IDs"] = as_id_array(
-            np.where(self._node_status == FIXED_VALUE_BOUNDARY)[0]
+            np.where(self._node_status == NodeStatus.FIXED_VALUE)[0]
         )
 
         if value:
@@ -1101,8 +1103,8 @@ class RasterModelGrid(
         these_linked_nodes = np.array([])
 
         if top_bottom_are_looped:
-            self._node_status[bottom_edge] = LOOPED_BOUNDARY
-            self._node_status[top_edge] = LOOPED_BOUNDARY
+            self._node_status[bottom_edge] = NodeStatus.LOOPED
+            self._node_status[top_edge] = NodeStatus.LOOPED
             these_boundary_IDs = np.concatenate(
                 (these_boundary_IDs, bottom_edge, top_edge)
             )
@@ -1115,8 +1117,8 @@ class RasterModelGrid(
             )
 
         if sides_are_looped:
-            self._node_status[right_edge] = LOOPED_BOUNDARY
-            self._node_status[left_edge] = LOOPED_BOUNDARY
+            self._node_status[right_edge] = NodeStatus.LOOPED
+            self._node_status[left_edge] = NodeStatus.LOOPED
             these_boundary_IDs = np.concatenate(
                 (these_boundary_IDs, left_edge, right_edge)
             )
@@ -1925,7 +1927,7 @@ class RasterModelGrid(
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> _ = rmg.add_field('node', 'topographic__elevation', node_data)
+        >>> _ = rmg.add_field("topographic__elevation", node_data, at="node")
         >>> out_id = rmg.set_watershed_boundary_condition('topographic__elevation',
         ...                                               -9999.,
         ...                                               True)
@@ -2023,7 +2025,7 @@ class RasterModelGrid(
                 not_found = False
 
         # set outlet boundary condition
-        self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
+        self.status_at_node[outlet_loc] = NodeStatus.FIXED_VALUE
 
         if remove_disconnected:
             self.set_open_nodes_disconnected_from_watershed_to_closed(
@@ -2116,17 +2118,19 @@ class RasterModelGrid(
 
         if outlet_id is None:
             # verify that there is one and only one node with the status
-            # FIXED_VALUE_BOUNDARY.
-            possible_outlets = np.where(self.status_at_node == FIXED_VALUE_BOUNDARY)[0]
+            # BC_NODE_IS_FIXED_VALUE.
+            possible_outlets = np.where(self.status_at_node == NodeStatus.FIXED_VALUE)[
+                0
+            ]
 
             if len(possible_outlets) > 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has %r"
+                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has %r"
                     % len(possible_outlets)
                 )
             if len(possible_outlets) < 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of FIXED_VALUE_BOUNDARY. This grid has none"
+                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has none"
                 )
 
             outlet_id = possible_outlets
@@ -2213,7 +2217,7 @@ class RasterModelGrid(
         nodata_value are set to ``BC_NODE_IS_CLOSED`` (grid.status_at_node == 4). All
         nodes with data values are set to CORE_NODES (grid.status_at_node ==
         0), with the exception that the outlet node is set to a
-        FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+        BC_NODE_IS_FIXED_VALUE (grid.status_at_node == 1).
 
         Note that the outer ring of the raster is set to ``BC_NODE_IS_CLOSED``, even
         if there are nodes that have values.  The only exception to this would
@@ -2275,7 +2279,7 @@ class RasterModelGrid(
         # find the id of the outlet node
         outlet_node = self.grid_coords_to_node_id(outlet_coords[0], outlet_coords[1])
         # set the boundary condition (fixed value) at the outlet_node
-        self.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
+        self.status_at_node[outlet_node] = NodeStatus.FIXED_VALUE
 
     def set_watershed_boundary_condition_outlet_id(
         self, outlet_id, node_data, nodata_value=-9999.0
@@ -2340,7 +2344,7 @@ class RasterModelGrid(
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
         # set the boundary condition (fixed value) at the outlet_node
-        self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+        self.status_at_node[outlet_id] = NodeStatus.FIXED_VALUE
 
 
 def _guess_format_from_name(path):

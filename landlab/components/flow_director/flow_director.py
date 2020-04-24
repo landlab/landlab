@@ -42,10 +42,10 @@ class _FlowDirector(Component):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
-    ...     )
+    ...     at="node",
+    ... )
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
@@ -66,6 +66,8 @@ class _FlowDirector(Component):
 
     _name = "_FlowDirector"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__sink_flag": {
             "dtype": bool,
@@ -80,7 +82,7 @@ class _FlowDirector(Component):
     def __init__(self, grid, surface):
         """Initialize the _FlowDirector class."""
         # We keep a local reference to the grid
-        super(_FlowDirector, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
 

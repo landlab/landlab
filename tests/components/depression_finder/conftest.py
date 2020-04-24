@@ -1,8 +1,10 @@
 import numpy as np
 import pytest
 
-from landlab import BAD_INDEX_VALUE as XX, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
+
+XX = RasterModelGrid.BAD_INDEX
 
 
 @pytest.fixture
@@ -120,7 +122,7 @@ def dans_grid3():
         ]
     ).flatten()
 
-    mg.add_field("node", "topographic__elevation", z, units="-")
+    mg.add_field("topographic__elevation", z, at="node", units="-")
 
     fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
@@ -170,8 +172,8 @@ def d4_grid():
     z = mg1.node_x.copy() + 1.0
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
     z[lake_nodes] = 0.0
-    mg1.add_field("node", "topographic__elevation", z, units="-")
-    mg2.add_field("node", "topographic__elevation", z, units="-")
+    mg1.add_field("topographic__elevation", z, at="node", units="-")
+    mg2.add_field("topographic__elevation", z, at="node", units="-")
 
     frD8 = FlowAccumulator(mg1, flow_director="D8")
     frD4 = FlowAccumulator(mg2, flow_director="D4")

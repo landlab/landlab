@@ -10,10 +10,13 @@ function names and ways of doing things. In order to minimize the impact
 of these changes on your work, we've provided here a simple guide to
 some of the major changes.
 
-##Quick summary: how to make your Landlab programs work with version
-1.0beta
+Quick summary
+-------------
 
-###Grid element and attribute names
+how to make your Landlab programs work with version 1.0beta
+
+Grid element and attribute names
+````````````````````````````````
 
 Old: ``link_length``
 New: ``length_of_link``
@@ -31,7 +34,7 @@ Old: ``face_width``
 New: ``width_of_face``
 
 Common grid functions
----------------------
+`````````````````````
 
 Old: ``calculate_gradients_at_active_links``,
 ``calculate_gradients_at_links``
@@ -43,11 +46,6 @@ Old: ``calculate_flux_divergence_at_nodes``
 
 New: ``calc_flux_div_at_node`` (input is a *link-based array* [**not**
 just active links])
-
-Creating and running components
--------------------------------
-
-[TO BE ADDED]
 
 New standardized function usage and syntax
 ------------------------------------------

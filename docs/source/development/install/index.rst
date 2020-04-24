@@ -38,9 +38,9 @@ replacing with Anaconda is probably the more stress-free way to go.*
 
 *Either way, you'll need a working C++ compiler running alongside Python
 to be able to perform a full developer install. You'll see errors
-referring to :ref:`Cython<cython>` if you
-don't have working compiler when calling ``python setup.py develop``
-(see :ref:`Section 2 <dev_install_install>`.*
+referring to* :ref:`Cython <cython>` *if you
+don't have working compiler when calling* ``python setup.py develop``
+*(see* :ref:`the developer install instructions <dev_install_install>` *).*
 
 Working with your local version of Landlab
 ------------------------------------------

@@ -8,7 +8,7 @@
 
 import numpy as np
 
-from landlab import INACTIVE_LINK, Component
+from landlab import Component, LinkStatus
 
 
 class DepthDependentTaylorDiffuser(Component):
@@ -24,34 +24,17 @@ class DepthDependentTaylorDiffuser(Component):
 
     .. math::
 
-        q_s = DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( H / H^*)
+        q_s = - DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`S_c`
-    is the critical slope, :math:`n` is the number of terms, :math:`H` is the
-    soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`S_c` is the critical slope, :math:`n` is the
+    number of terms, :math:`H` is the soil depth on links, and :math:`H^*` is
+    the soil transport decay depth.
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).
 
     This component will ignore soil thickness located at non-core nodes.
-
-    Parameters
-    ----------
-    grid: ModelGrid
-        Landlab ModelGrid object
-    linear_diffusivity: float, optional.
-        Hillslope diffusivity, m**2/yr
-        Default = 1.0
-    slope_crit: float, optional
-        Critical gradient parameter, m/m
-        Default = 1.0
-    soil_transport_decay_depth: float, optional
-        characteristic transport soil depth, m
-        Default = 1.0
-    nterms: int, optional. default = 2
-        number of terms in the Taylor expansion.
-        Two terms (default) gives the behavior
-        described in Ganti et al. (2012).
 
     Examples
     --------
@@ -70,7 +53,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
     >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
@@ -94,7 +77,7 @@ class DepthDependentTaylorDiffuser(Component):
     ...     mg.at_node['soil_production__rate'][mg.core_nodes],
     ...     np.array([ 0.60653066, 0.36787944, 0.22313016]))
     True
-    >>> DDdiff.soilflux(0.1)
+    >>> DDdiff.run_one_step(0.1)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'][mg.core_nodes],
     ...     np.array([ 1.04773024, 2.02894986, 3.01755898]))
@@ -137,7 +120,7 @@ class DepthDependentTaylorDiffuser(Component):
     (dynamic_dt = False).
 
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn')
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -169,7 +152,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=False)
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10)
+    >>> DDdiff.run_one_step(10)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -189,7 +172,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=True)
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10)
+    >>> DDdiff.run_one_step(10)
     >>> np.any(np.isnan(z))
     False
 
@@ -204,20 +187,54 @@ class DepthDependentTaylorDiffuser(Component):
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 0.1)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1)
     >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> z[:] = 0
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 1.0)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1)
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Ganti, V., Passalacqua, P., Foufoula-Georgiou, E. (2012). A sub-grid scale
+    closure for nonlinear hillslope sediment transport models Journal of
+    Geophysical Research: Earth Surface  117(F2).
+    https://dx.doi.org/10.1029/2011jf002181
+
+    Johnstone, S., Hilley, G. (2015). Lithologic control on the form of
+    soil-mantled hillslopes Geology  43(1), 83-86.
+    https://dx.doi.org/10.1130/g36052.1
+
     """
 
-    _name = "DepthDependentTaylorDiffuser"
+    _unit_agnostic = True
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "bedrock__elevation": {
@@ -300,13 +317,15 @@ class DepthDependentTaylorDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (default) gives the behavior
             described in Ganti et al. (2012).
-        dynamic_dt :
-            False,
-        if_unstable:
-        "pass",
-        courant_factor=0.2
+        dynamic_dt : bool
+            Whether internal timestepping is used.
+        if_unstable : str
+            What to do if unstable (options are "pass",
+            "raise", "warn")
+        courant_factor : float
+            Courant factor for timestep calculation.
         """
-        super(DepthDependentTaylorDiffuser, self).__init__(grid)
+        super().__init__(grid)
         # Store grid and parameters
 
         self._K = linear_diffusivity
@@ -318,29 +337,16 @@ class DepthDependentTaylorDiffuser(Component):
         self._if_unstable = if_unstable
         self._courant_factor = courant_factor
 
-        # create fields
-        # elevation
+        # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         self._depth = self._grid.at_node["soil__depth"]
 
-        # slope
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("link", "topographic__slope")
-
-        # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("link", "soil__flux")
-
-        # bedrock elevation
-        if "bedrock__elevation" in self._grid.at_node:
-            self._bedrock = self._grid.at_node["bedrock__elevation"]
-        else:
-            self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+        # create outputs if necessary and get reference.
+        self.initialize_output_fields()
+        self._slope = self._grid.at_link["topographic__slope"]
+        self._flux = self._grid.at_link["soil__flux"]
+        self._bedrock = self._grid.at_node["bedrock__elevation"]
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
@@ -349,15 +355,6 @@ class DepthDependentTaylorDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
-            Factor to identify stable time-step duration when using dynamic
-            timestepping.
         """
         # establish time left as all of dt
         time_left = dt
@@ -378,7 +375,7 @@ class DepthDependentTaylorDiffuser(Component):
 
             # Calculate gradients
             self._slope = self._grid.calc_grad_at_link(self._elev)
-            self._slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._slope[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
             # Test for time stepping courant condition
             # Test for time stepping courant condition

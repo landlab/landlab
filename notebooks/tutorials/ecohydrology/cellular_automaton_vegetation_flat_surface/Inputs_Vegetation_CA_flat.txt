@@ -1,0 +1,330 @@
+
+### All inputs for Vegetation Cellular Automaton Model built on The Landlab
+### can be given here.
+### 14Feb2015 - Sai Nudurupati & Erkan Istanbulluoglu
+### 15Jul2016 - Updated to comply with Landlab Version 1 naming conventions.
+
+### There are some rules to use this input file:
+###    1) The variable's identifier should not be changed, for e.g. 'mean_storm_dry'  is
+###       the model input parameter. The code only understands this variable this way.
+###       Anything following '#' can be changed (commented part).
+###    2) A separator ':'  is used to define the end of the variable name.
+###    3) Input value/string should be entered in the following (immediate) line of the variable name.
+###    4) Nothing other than the input values should  be entered in this line (where value is entered).
+###    5) A float value should always have a number in front of the decimal '.', e.g  '0.1' instead of '.1'
+###       If not, the input will be read as a string value.
+###    6) Any numeric input will be identified as a float if it contains '.'  . If a decimal point is not present,
+###       the input will be read in as an int.
+###    7) String inputs are also recognized.
+
+### Vegetation Cellular Automaton Model Input File:
+
+n_short:                 # Number of storms for short simulation that plots hydrologic parameters
+6600
+n_long_DEM:              # Number of storms for long simulation that operates on single grid for sloped surface
+1320
+n_long_flat:             # Number of storms for long simulation that operates on two grids - flat surface
+660000
+
+## Initial Plant Functional Types (PFT) distribution
+percent_bare_initial:   # Initial percentage of cells occupied by bare soil
+0.7
+percent_grass_initial:  # Initial percentage of cells occupied by grass
+0.1
+percent_shrub_initial:  # Initial percentage of cells occupied by shrubs
+0.1
+percent_tree_initial:   # Initial percentage of cells occupied by trees
+0.1
+
+## Precipitation:
+
+# Dry Season
+mean_storm_dry:          # Mean storm duration (hours)
+2.016
+mean_interstorm_dry:     # Mean interstorm duration (hours)
+159.36
+mean_storm_depth_dry:    # Mean storm depth (mm)
+3.07
+# Wet Season
+mean_storm_wet:          # Mean storm duration (hours)
+1.896
+mean_interstorm_wet:     # Mean interstorm duration (hours)
+84.24
+mean_storm_depth_wet:    # Mean storm depth (mm)
+4.79
+doy__start_of_monsoon:   # Day of the year when the monsoon starts
+182
+doy__end_of_monsoon:     # Day of the year when the monsoon ends
+273
+
+## PotentialEvapotranspiration:
+# Cosine Method
+PET_method:
+Cosine
+LT:                     # Lag between peak TmaxF estimated by cosine method and solar forcing (days)
+0
+DeltaD:                 # Calibrated difference between
+7.
+ND:                     # Number of days in the year (days)
+365.
+MeanTmaxF_grass:        # Mean annual rate of TmaxF (mm/d)
+5.15
+MeanTmaxF_shrub:        # Mean annual rate of TmaxF (mm/d)
+3.77
+MeanTmaxF_tree:         # Mean annual rate of TmaxF (mm/d)
+4.96
+
+# TmaxF - Estimated maximum evapotranspiration as a function of DOY using Penman Monteith method for historical weather
+
+## Soil Moisture:
+
+runon:                  # Runon from higher elevations (mm)
+0.
+f_bare:                 # Fraction to partition PET for bare soil (None)
+0.7
+
+# Grass
+
+VEGTYPE_grass:          # Integer value to infer Vegetation Type
+0
+intercept_cap_grass:    # Full canopy interception capacity  (mm)
+1.
+zr_grass:               # Root depth (m)
+0.3
+I_B_grass:              # Infiltration capacity of bare soil (mm/h)
+20.
+I_V_grass:              # Infiltration capacity of vegetated soil (mm/h)
+24.
+pc_grass:               # Soil porosity (None)
+0.43
+fc_grass:               # Soil saturation degree at field capacity (None)
+0.56
+sc_grass:               # Soil saturation degree at stomatal closure (None)
+0.33
+wp_grass:               # Soil saturation degree at wilting point (None)
+0.13
+hgw_grass:              # Soil saturation degree at hygroscopic point (None)
+0.1
+beta_grass:             # Deep percolation constant = 2*b+4  where b is water retention parameter
+13.8
+
+# Shrub
+
+VEGTYPE_shrub:          # Integer value to infer Vegetation Type
+1
+intercept_cap_shrub:    # Full canopy interception capacity  (mm)
+1.5
+zr_shrub:               # Root depth (m)
+0.5
+I_B_shrub:              # Infiltration capacity of bare soil (mm/h)
+20.
+I_V_shrub:              # Infiltration capacity of vegetated soil (mm/h)
+40.
+pc_shrub:               # Soil porosity (None)
+0.43
+fc_shrub:               # Soil saturation degree at field capacity (None)
+0.56
+sc_shrub:               # Soil saturation degree at stomatal closure (None)
+0.24
+wp_shrub:               # Soil saturation degree at wilting point (None)
+0.13
+hgw_shrub:              # Soil saturation degree at hygroscopic point (None)
+0.1
+beta_shrub:             # Deep percolation constant = 2*b+4  where b is water retention parameter
+13.8
+
+# Tree
+
+VEGTYPE_tree:           # Integer value to infer Vegetation Type
+2
+intercept_cap_tree:     # Full canopy interception capacity  (mm)
+2.
+zr_tree:                # Root depth (m)
+1.3
+I_B_tree:               # Infiltration capacity of bare soil (mm/h)
+20.
+I_V_tree:               # Infiltration capacity of vegetated soil (mm/h)
+40.
+pc_tree:                # Soil porosity (None)
+0.43
+fc_tree:                # Soil saturation degree at field capacity (None)
+0.56
+sc_tree:                # Soil saturation degree at stomatal closure (None)
+0.22
+wp_tree:                # Soil saturation degree at wilting point (None)
+0.15
+hgw_tree:               # Soil saturation degree at hygroscopic point (None)
+0.1
+beta_tree:              # Deep percolation constant = 2*b+4  where b is water retention parameter
+13.8
+
+# Bare Soil
+
+VEGTYPE_bare:          # Integer value to infer Vegetation Type
+3
+intercept_cap_bare:    # Full canopy interception capacity  (mm)
+1.
+zr_bare:               # Root depth (m)
+0.15
+I_B_bare:              # Infiltration capacity of bare soil (mm/h)
+20.
+I_V_bare:              # Infiltration capacity of vegetated soil (mm/h)
+20.
+pc_bare:               # Soil porosity (None)
+0.43
+fc_bare:               # Soil saturation degree at field capacity (None)
+0.56
+sc_bare:               # Soil saturation degree at stomatal closure (None)
+0.33
+wp_bare:               # Soil saturation degree at wilting point (None)
+0.13
+hgw_bare:              # Soil saturation degree at hygroscopic point (None)
+0.1
+beta_bare:             # Deep percolation constant
+13.8
+
+
+## Vegetation Dynamics:
+
+Blive_init:
+102.
+Bdead_init:
+450.
+PET_growth_threshold:    # PET threshold for growing season (mm/d)
+3.8
+PET_dormancy_threshold:  # PET threshold for dormant season (mm/d)
+6.8
+Tdmax:					# Constant for dead biomass loss adjustment (mm/d)
+10.
+w:						# Conversion factor of CO2 to dry biomass (Kg DM/Kg CO2)
+0.55
+
+# Grass
+
+WUE_grass:              # Water use efficiency KgCO2Kg-1H2O
+0.01
+cb_grass:               # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+0.0047
+cd_grass:               # Specific leaf area for dead biomass (m2 leaf g-1 DM)
+0.009
+ksg_grass:              # Senescence coefficient of green/live biomass (d-1)
+0.012
+kdd_grass:              # Decay coefficient of aboveground dead biomass (d-1)
+0.013
+kws_grass:              # Maximum drought induced foliage loss rate (d-1)
+0.02
+LAI_max_grass:          # Maximum leaf area index (m2/m2)
+2.
+LAIR_max_grass:         # Reference leaf area index (m2/m2)
+2.88
+
+# Shrub
+
+WUE_shrub:              # Water use efficiency KgCO2Kg-1H2O
+0.0025
+cb_shrub:               # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+0.004
+cd_shrub:               # Specific leaf area for dead biomass (m2 leaf g-1 DM)
+0.01
+ksg_shrub:              # Senescence coefficient of green/live biomass (d-1)
+0.002
+kdd_shrub:              # Decay coefficient of aboveground dead biomass (d-1)
+0.013
+kws_shrub:              # Maximum drought induced foliage loss rate (d-1)
+0.02
+LAI_max_shrub:          # Maximum leaf area index (m2/m2)
+2.
+LAIR_max_shrub:         # Reference leaf area index (m2/m2)
+2.
+
+# Tree
+
+WUE_tree:               # Water use efficiency KgCO2Kg-1H2O
+0.0045
+cb_tree:                # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+0.004
+cd_tree:                # Specific leaf area for dead biomass (m2 leaf g-1 DM)
+0.01
+ksg_tree:               # Senescence coefficient of green/live biomass (d-1)
+0.002
+kdd_tree:               # Decay coefficient of aboveground dead biomass (d-1)
+0.013
+kws_tree:               # Maximum drought induced foliage loss rate (d-1)
+0.01
+LAI_max_tree:          # Maximum leaf area index (m2/m2)
+4.
+LAIR_max_tree:          # Reference leaf area index (m2/m2)
+4.
+
+# Bare
+
+WUE_bare:              # Water use efficiency KgCO2Kg-1H2O
+0.01
+cb_bare:               # Specific leaf area for green/live biomass (m2 leaf g-1 DM)
+0.0047
+cd_bare:               # Specific leaf area for dead biomass (m2 leaf g-1 DM)
+0.009
+ksg_bare:              # Senescence coefficient of green/live biomass (d-1)
+0.012
+kdd_bare:              # Decay coefficient of aboveground dead biomass (d-1)
+0.013
+kws_bare:              # Maximum drought induced foliage loss rate (d-1)
+0.02
+LAI_max_bare:          # Maximum leaf area index (m2/m2)
+0.01
+LAIR_max_bare:         # Reference leaf area index (m2/m2)
+0.01
+
+
+## Cellular Automaton Vegetation:
+
+# Grass
+
+Pemaxg:                 # Maximal establishment probability
+0.35
+ING:                    # Parameter to define allelopathic effect on grass from cresotebush
+2
+ThetaGrass:             # Drought resistant threshold
+0.62
+PmbGrass:               # Background mortality probability
+0.05
+
+# Shrub
+
+Pemaxsh:                # Maximal establishment probability
+0.2
+ThetaShrub:             # Drought resistant threshold
+0.75
+PmbShrub:               # Background mortality probability
+0.03
+tpmaxShrub:             # Maximum age (yr)
+600
+
+# Tree
+
+Pemaxtr:                # Maximal establishment probability
+0.3
+ThetaTree:              # Drought resistant threshold
+0.75
+PmbTree:                # Background mortality probability
+0.01
+tpmaxTree:              # Maximum age (yr)
+350
+
+# ShrubSeedling
+
+ThetaShrubSeedling:     # Drought resistant threshold
+0.64
+PmbShrubSeedling:       # Background mortality probability
+0.03
+tpmaxShrubSeedling:     # Maximum age (yr)
+18
+
+# TreeSeedling
+
+ThetaTreeSeedling:      # Drought resistant threshold
+0.64
+PmbTreeSeedling:        # Background mortality probability
+0.03
+tpmaxTreeSeedling:      # Maximum age (yr)
+18

@@ -94,9 +94,25 @@ class Vegetation(Component):
 
     >>> np.all(grid.at_cell['vegetation__live_leaf_area_index'] == 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Zhou, X., Istanbulluoglu, E., and Vivoni, E. R.: Modeling the
+    ecohydrological role of aspect-controlled radiation on tree-grass-shrub
+    coexistence in a semiarid climate, Water Resour. Res., 49, 2872– 2895,
+    doi:10.1002/wrcr.20259, 2013.
+
     """
 
     _name = "Vegetation"
+
+    _unit_agnostic = False
 
     _info = {
         "surface__evapotranspiration": {
@@ -266,7 +282,7 @@ class Vegetation(Component):
             Flag to indiate the PET threshold. This controls whether the
             threshold is for growth (1) or dormancy (any other value).
         """
-        super(Vegetation, self).__init__(grid)
+        super().__init__(grid)
 
         self.Tb = Tb
         self.Tr = Tr

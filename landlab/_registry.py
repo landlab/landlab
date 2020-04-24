@@ -29,13 +29,30 @@ Examples
     year={2017},
     publisher={Copernicus GmbH}
     }
+    @article{barnhart2020short,
+    author = {Barnhart, K. R. and Hutton, E. W. H. and Tucker, G. E.
+        and Gasparini, N. M. and Istanbulluoglu, E. and Hobley,
+        D. E. J. and Lyons, N. J. and Mouchene, M. and Nudurupati,
+        S. S. and Adams, J. M. and Bandaragoda, C.},
+    title = {Short communication: Landlab v2.0: A software package
+        for Earth surface dynamics},
+    journal = {Earth Surface Dynamics Discussions},
+    volume = {2020},
+    year = {2020},
+    pages = {1--25},
+    url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
+    doi = {10.5194/esurf-2020-12}
+    }
+
+When a component contains citation information, and the component has been
+instantiated (not just imported) the component citation is also included.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components import Flexure
 
 >>> grid = RasterModelGrid((4, 5))
->>> _ = grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
->>> _ = grid.add_zeros("node", "lithosphere_surface__elevation_increment")
+>>> _ = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+>>> _ = grid.add_zeros("lithosphere_surface__elevation_increment", at="node")
 >>> flexure = Flexure(grid)
 >>> print(registry.format_citations())
 # Citations
@@ -54,6 +71,20 @@ Examples
     year={2017},
     publisher={Copernicus GmbH}
     }
+    @article{barnhart2020short,
+    author = {Barnhart, K. R. and Hutton, E. W. H. and Tucker, G. E.
+        and Gasparini, N. M. and Istanbulluoglu, E. and Hobley,
+        D. E. J. and Lyons, N. J. and Mouchene, M. and Nudurupati,
+        S. S. and Adams, J. M. and Bandaragoda, C.},
+    title = {Short communication: Landlab v2.0: A software package
+        for Earth surface dynamics},
+    journal = {Earth Surface Dynamics Discussions},
+    volume = {2020},
+    year = {2020},
+    pages = {1--25},
+    url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
+    doi = {10.5194/esurf-2020-12}
+    }
 <BLANKLINE>
 ## Flexure
     @article{hutton2008sedflux,
@@ -67,6 +98,23 @@ Examples
     year={2008},
     publisher={Pergamon}
     }
+
+Finally, the component's citation information is accessible through an
+attribute called ``cite_as``:
+
+>>> print(Flexure.cite_as)
+    @article{hutton2008sedflux,
+    title={Sedflux 2.0: An advanced process-response model that
+        generates three-dimensional stratigraphy},
+    author={Hutton, Eric WH and Syvitski, James PM},
+    journal={Computers \& Geosciences},
+    volume={34},
+    number={10},
+    pages={1319--1337},
+    year={2008},
+    publisher={Pergamon}
+    }
+
 """
 
 import os
@@ -181,6 +229,7 @@ class ComponentRegistry(object):
         """Get the display name for an object.
 
         Examples
+        --------
         >>> from landlab._registry import ComponentRegistry
         >>> class MontyPython(object):
         ...     name = "Eric Idle"
@@ -195,7 +244,6 @@ class ComponentRegistry(object):
         >>> ComponentRegistry.get_name(MontyPython)
         'MontyPython'
 
-        --------
         """
         name = "Unknown"
         for attr in ("name", "_name", "__name__"):

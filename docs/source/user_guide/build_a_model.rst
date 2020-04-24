@@ -285,7 +285,7 @@ This means producing a storm series in Landlab is also very easy:
 Notice that the advantage of the generator is that it just stops when the
 desired number of events/time duration has expired! See the end of `this
 tutorial
-<https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb>`_
+<https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/component_tutorial/component_tutorial.ipynb>`_
 for an example of this generator in action.
 
 What exactly "…do the thing" consists of is up to you. You can either design
@@ -403,7 +403,7 @@ at the desired frame interval using the matplotlib ``savefig`` command, then
 stitching these images together into a video file externally.
 
 DEJH has had a lot of success doing this in Preview on a Mac (which has the great
-advantage that it is always available). Simply open the first image, goto ``Export...``
+advantage that it is always available). Simply open the first image, go to ``Export...``
 under file, then **while holding down alt** click on the ``Format`` button to gain
 access to a list of extra formats, including ``.gif``. Open your new gif file, also
 in preview, then just drag the remaining image files into the sidebar onto the first

@@ -11,7 +11,7 @@ use FlowDirectorD8.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab import NodeStatus, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_mfd
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -60,9 +60,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
 
     The MFD flow director can be uses for raster and irregular grids. For
@@ -153,9 +153,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorMFD(mg, 'topographic__elevation')
     >>> fd.run_one_step()
@@ -197,9 +197,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid((5, 3))
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + numpy.round(mg.node_y),
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorMFD(
     ...      mg,
@@ -318,9 +318,29 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            1, 0, 0, 0, 1,
            1, 0, 0, 1,
            1, 1, 1])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Freeman, T. (1991). Calculating catchment area with divergent flow based on
+    a regular grid. Computers and Geosciences  17(3), 413 - 422.
+    https://dx.doi.org/10.1016/0098-3004(91)90048-i
+
+    Quinn, P., Beven, K., Chevallier, P., Planchon, O. (1991). The prediction
+    of hillslope flow paths for distributed hydrological modelling using
+    digital terrain models Hydrological Processes  5(1), 59-79.
+    https://dx.doi.org/10.1002/hyp.3360050106
+
     """
 
     _name = "FlowDirectorMFD"
+
+    _unit_agnostic = True
 
     _info = {
         "flow__link_to_receiver_node": {
@@ -405,7 +425,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         else:
             self._max_receivers = grid.adjacent_nodes_at_node.shape[1]
 
-        super(FlowDirectorMFD, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):
@@ -482,8 +502,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 

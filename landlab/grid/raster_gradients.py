@@ -16,7 +16,6 @@ import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
 from landlab.grid import gradients
-from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_field_name_or_array
 
 
@@ -220,7 +219,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
     >>> grid.calc_grad_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
-    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> _ = grid.add_field("elevation", node_values, at="node")
     >>> grid.calc_grad_at_link('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
 
@@ -294,17 +293,17 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     LLCATS: FINF GRAD
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
-    padded_node_values[-1] = BAD_INDEX_VALUE
+    padded_node_values[-1] = grid.BAD_INDEX
     padded_node_values[:-1] = node_values
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
     neighbors = grid.active_adjacent_nodes_at_node[node_ids]
-    if BAD_INDEX_VALUE != -1:
-        neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
+    if grid.BAD_INDEX != -1:
+        neighbors = np.where(neighbors == grid.BAD_INDEX, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=neighbors == BAD_INDEX_VALUE
+        values_at_neighbors, mask=neighbors == grid.BAD_INDEX
     )
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
@@ -476,14 +475,14 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     LLCATS: NINF LINF GRAD
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
-    padded_node_values[-1] = BAD_INDEX_VALUE
+    padded_node_values[-1] = grid.BAD_INDEX
     padded_node_values[:-1] = node_values
     node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
     neighbors = grid.active_adjacent_nodes_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE
+        values_at_neighbors, mask=values_at_neighbors == grid.BAD_INDEX
     )
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
@@ -1029,9 +1028,16 @@ def _calc_subtriangle_slopes_at_node(
         else:
             ValueError("Subtriangles must be of lenght nnodes or ncells")
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
-            grid, elevs
-        )
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = _calc_subtriangle_unit_normals_at_node(grid, elevs)
         reshape_size = grid.number_of_nodes
 
     # combine z direction element of all eight so that the arccosine portion
@@ -1277,9 +1283,16 @@ def _calc_subtriangle_aspect_at_node(
 
     # otherwise create it.
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
-            grid, elevs
-        )
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = _calc_subtriangle_unit_normals_at_node(grid, elevs)
         reshape_size = grid.number_of_nodes
     # calculate the aspect as an angle ccw from the x axis (math angle)
     angle_from_x_ccw_ENE = np.reshape(
@@ -1522,7 +1535,6 @@ def calc_slope_at_patch(
            [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
            [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
 
-    >>> from landlab import FIXED_VALUE_BOUNDARY
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
@@ -1844,7 +1856,7 @@ def calc_slope_at_node(
         orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):
-            dirs[dirs == BAD_INDEX_VALUE] = -1  # indexing to work
+            dirs[dirs == grid.BAD_INDEX] = -1  # indexing to work
         # now make an array like patches_at_node to store the interim calcs
         patch_slopes_x = np.ma.zeros(patches_at_node.shape, dtype=float)
         patch_slopes_y = np.ma.zeros(patches_at_node.shape, dtype=float)

@@ -9,7 +9,6 @@ import numpy as np
 
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
-from landlab.grid.base import BAD_INDEX_VALUE
 
 # TODO: this should probably follow Barnes et al., 2014 for max efficiency
 
@@ -31,7 +30,6 @@ class SinkFiller(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab import BAD_INDEX_VALUE as XX
     >>> from landlab.components import FlowAccumulator, SinkFiller
     >>> import numpy as np
     >>> lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
@@ -43,8 +41,13 @@ class SinkFiller(Component):
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
     >>> z[lake] = 0.
-    >>> field = mg.add_field('node', 'topographic__elevation', z,
-    ...                      units='-', copy=True)
+    >>> field = mg.add_field(
+    ...     "topographic__elevation",
+    ...     z,
+    ...     at="node",
+    ...     units="-",
+    ...     copy=True,
+    ... )
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fr.run_one_step()
     >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
@@ -72,9 +75,25 @@ class SinkFiller(Component):
     >>> fr.run_one_step()
     >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
     0
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Tucker, G., Lancaster, S., Gasparini, N., Bras, R., Rybarczyk, S. (2001).
+    An object-oriented framework for distributed hydrologic and geomorphic
+    modeling using triangulated irregular networks. Computers & Geosciences
+    27(8), 959-973. https://dx.doi.org/10.1016/s0098-3004(00)00134-5
+
     """
 
     _name = "SinkFiller"
+
+    _unit_agnostic = True
 
     _info = {
         "sediment_fill__depth": {
@@ -116,7 +135,7 @@ class SinkFiller(Component):
             The slope added to the top surface of filled pits to allow flow
             routing across them, if apply_slope.
         """
-        super(SinkFiller, self).__init__(grid)
+        super().__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
@@ -253,7 +272,7 @@ class SinkFiller(Component):
         else:
             all_poss = np.unique(self._grid.active_adjacent_nodes_at_node[lake_nodes])
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
-        return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
+        return lake_ext_edge[lake_ext_edge != self._grid.BAD_INDEX]
 
     def _get_lake_int_margin(self, lake_nodes, lake_ext_edge):
         """Returns the nodes forming the internal margin of the lake, honoring
@@ -267,7 +286,7 @@ class SinkFiller(Component):
         else:
             all_poss_int = np.unique(self._grid.active_adjacent_nodes_at_node[lee])
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
-        return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
+        return lake_int_edge[lake_int_edge != self._grid.BAD_INDEX]
 
     def _apply_slope_current_lake(self, apply_slope, outlet_node, lake_code, sublake):
         """Wraps the _add_slopes method to allow handling of conditions where
@@ -306,7 +325,7 @@ class SinkFiller(Component):
             )
         else:
             edge_neighbors = self._grid.active_adjacent_nodes_at_node[ext_edge].copy()
-        edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
+        edge_neighbors[edge_neighbors == self._grid.BAD_INDEX] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]
         new_neighbor_elevs = new_elevs[edge_neighbors]

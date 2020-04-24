@@ -66,9 +66,23 @@ class Radiation(Component):
     >>> rad.update()
     >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Bras, R. L.: Hydrology: an introduction to hydrologic science, Addison
+    Wesley Publishing Company, Boston, Mass., USA, 643 pp., 1990.
+
     """
 
     _name = "Radiation"
+
+    _unit_agnostic = False
 
     _info = {
         "radiation__incoming_shortwave_flux": {
@@ -142,7 +156,7 @@ class Radiation(Component):
         hour: float, optional
               Hour of the day. Default is 12 (solar noon)
         """
-        super(Radiation, self).__init__(grid)
+        super().__init__(grid)
 
         self.current_time = current_time
         self.hour = hour

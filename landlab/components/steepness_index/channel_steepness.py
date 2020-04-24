@@ -25,7 +25,7 @@ class SteepnessFinder(Component):
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
     ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-    >>> _ = mg.add_zeros('node', 'topographic__elevation')
+    >>> _ = mg.add_zeros("topographic__elevation", at="node")
     >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
     ...     mg.core_nodes]/1000.
     >>> fr = FlowAccumulator(mg, flow_director='D8')
@@ -57,9 +57,27 @@ class SteepnessFinder(Component):
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
             1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Wobus, C. W., Whipple, K. X., Kirby, E., Snyder, N. P., Johnson, J.,
+    Spyropolou, K., Crosby, B. T., and Sheenan, D.: Tectonics from topography:
+    Procedures, promise, and pitfalls, in: Tectonics, Climate, and Landscape
+    Evolution, edited by: Willett, S. D., Hovius, N., Brandon, M. T., and
+    Fisher, D., Geological Society of America Special Paper 398, Geological
+    Society of America, Boulder, CO, USA, 55–74, 2006.
+
     """
 
     _name = "SteepnessFinder"
+
+    _unit_agnostic = True
 
     _info = {
         "channel__steepness_index": {
@@ -150,7 +168,7 @@ class SteepnessFinder(Component):
             segment, it will be lumped together with the next segment.
             If zero, one value is assigned to each channel node.
         """
-        super(SteepnessFinder, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
@@ -168,7 +186,7 @@ class SteepnessFinder(Component):
         self._elev_step = elev_step
         self._discretization = discretization_length
         self._ksn = self._grid.add_zeros(
-            "node", "channel__steepness_index", clobber=True
+            "channel__steepness_index", at="node", clobber=True
         )
         self._mask = self._grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
@@ -296,7 +314,7 @@ class SteepnessFinder(Component):
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> mg.status_at_node[[6, 12, 13, 14]] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
@@ -342,7 +360,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
+        >>> _ = mg.add_field("topographic__elevation", mg.node_x**1.1, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
@@ -422,7 +440,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
@@ -524,7 +542,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_zeros('node', 'topographic__elevation')
+        >>> _ = mg.add_zeros("topographic__elevation", at="node")
         >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
         ...     mg.core_nodes]/1000.
         >>> np.random.seed(0)

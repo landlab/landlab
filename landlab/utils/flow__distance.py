@@ -2,7 +2,7 @@
 """Functions to calculate flow distance."""
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
+from landlab import FieldError, RasterModelGrid
 
 
 def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
@@ -39,7 +39,7 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     ...                  0., 31., 20., 0.,
     ...                  0., 32., 30., 0.,
     ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node','topographic__elevation', elev)
+    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
     ...                                        left_is_closed=True,
     ...                                        right_is_closed=True,
@@ -66,11 +66,13 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     ...                  0., 31., 20., 0.,
     ...                  0., 32., 30., 0.,
     ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node','topographic__elevation', elev)
-    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-    ...                                        left_is_closed=True,
-    ...                                        right_is_closed=True,
-    ...                                        top_is_closed=True)
+    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.set_closed_boundaries_at_grid_edges(
+    ...     bottom_is_closed=True,
+    ...     left_is_closed=True,
+    ...     right_is_closed=True,
+    ...     top_is_closed=True,
+    ... )
     >>> fr = FlowAccumulator(mg, flow_director = 'D4')
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
@@ -90,9 +92,11 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> dx = 1
     >>> hmg = HexModelGrid((5, 3), spacing=dx)
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x + np.round(hmg.node_y),
-    ...                   at = 'node')
+    >>> _ = hmg.add_field(
+    ...     "topographic__elevation",
+    ...     hmg.node_x + np.round(hmg.node_y),
+    ...     at="node",
+    ... )
     >>> hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
     >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
     >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
@@ -177,7 +181,7 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
 
             else:
                 # non-existant links are coded with -1
-                useable_receivers = np.where(reciever != BAD_INDEX_VALUE)[0]
+                useable_receivers = np.where(reciever != grid.BAD_INDEX)[0]
 
                 # we will have the stream flow to the downstream node with the
                 # shortest distance to the outlet.

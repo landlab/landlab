@@ -12,7 +12,7 @@ working copy. This is also important to keep your branch up to date with
 improvements/bug elimination happening as part of core Landlab development.
 
 Before you begin, we recommend you review this `GitHub page describing syncing
-a fork <https://help.github.com/en/articles/syncing-a-fork>`_.
+a fork <https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork>`_.
 
 Through the command line, you should be able to update your Landlab repository
 from master using the following command
@@ -23,22 +23,23 @@ from master using the following command
 
 A common reason why this might not work is if you haven't set the remotes
 correctly. This
-`GitHub page <https://help.github.com/en/articles/managing-remote-repositories>`_ on
+`GitHub page <https://help.github.com/en/github/using-git/managing-remote-repositories>`_ on
 managing remotes might be helpful.
 
 If we have added a dependency, you may see an import error. Similarly, if we
 have added a dependency, you may see some tests break. A likely fix is to
-ensure you have all the requirements specified in the
-`requirements-dev.txt` file
+ensure you have all the requirements specified in the Landlab development
+environment described by the `environment-dev.yml` file
 
 .. code-block:: bash
 
-   $ conda install --yes --file=requirements-dev.txt
+   $ conda env update landlab_dev  --file environment-dev.yml
+   $ conda activate landlab_dev
    $ pip install -e .
 
-The first of these installs any new requirements for development (in
-requirements-dev.txt). The second will install any additional requirements for
-landlab (which are indicated in the setup.py file used by pip install).
+The first of these installs any new requirements for development. The second
+line activates the environment (called "landlab_dev").  The third will verify
+that all requirements are met and recompile Landlab.
 
 If the Cython code has changed since you last updated, you will probably see
 errors associated with files named `cfuncs.pyx` (or similar). These changes
@@ -120,11 +121,11 @@ packages
 
      $ conda update --all -c landlab
 
-If you prefer to remain with pip, try another pip install::
+If you prefer to remain with pip, try another pip install
 
 .. code-block:: bash
 
-    $ pip install landlab
+     $ pip install landlab
 
 This should now take.
 

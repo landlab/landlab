@@ -12,9 +12,7 @@ Create a grid on which we will run the flexure calculations.
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
 >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
->>> lith_press = grid.add_zeros(
-...     "node",
-...     "lithosphere__overlying_pressure_increment")
+>>> lith_press = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
 
 Check the fields that are used as input to the flexure component.
 
@@ -34,6 +32,7 @@ name: lithosphere__overlying_pressure_increment
 description:
   Applied pressure to the lithosphere over a time step
 units: Pa
+unit agnostic: True
 at: node
 intent: in
 
@@ -80,8 +79,8 @@ class Flexure(Component):
     >>> from landlab.components.flexure import Flexure
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
     >>> lith_press = grid.add_zeros(
-    ...     "node",
-    ...     "lithosphere__overlying_pressure_increment")
+    ...     "lithosphere__overlying_pressure_increment", at="node"
+    ... )
 
     >>> flex = Flexure(grid)
     >>> flex.name
@@ -119,9 +118,26 @@ class Flexure(Component):
     >>> flex.update()
     >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Hutton, E., Syvitski, J. (2008). Sedflux 2.0: An advanced process-response
+    model that generates three-dimensional stratigraphy. Computers &
+    Geosciences.  34(10), 1319-1337.
+    https://dx.doi.org/10.1016/j.cageo.2008.02.013
+
+    **Additional References**
+
+    Lambeck, K.: Geophysical Geodesy, The Slow Deformations of the Earth,
+    Clarendon Press, Oxford, UK, 718 pp., 1988.
+
     """
 
     _name = "Flexure"
+
+    _unit_agnostic = True
 
     _cite_as = r"""@article{hutton2008sedflux,
         title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
@@ -185,7 +201,7 @@ class Flexure(Component):
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
 
-        super(Flexure, self).__init__(grid)
+        super().__init__(grid)
 
         self._youngs = youngs
         self._method = method

@@ -67,7 +67,7 @@ def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
 def test_pickle():
     # Make a simple-ish grid
     mg1 = RasterModelGrid((10, 10), xy_spacing=2.0)
-    z = mg1.add_zeros("node", "topographic__elevation")
+    z = mg1.add_zeros("topographic__elevation", at="node")
     z += mg1.node_x.copy()
     fa = FlowAccumulator(mg1, flow_director="D8")
     fa.run_one_step()

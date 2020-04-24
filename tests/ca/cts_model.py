@@ -126,7 +126,7 @@ class CTSModel(object):
                 node_layout=node_layout,
             )
 
-        self.grid.add_zeros("node", "node_state", dtype=int)
+        self.grid.add_zeros("node_state", at="node", dtype=int)
 
     def node_state_dictionary(self):
         """Create and return a dictionary of all possible node (cell) states.

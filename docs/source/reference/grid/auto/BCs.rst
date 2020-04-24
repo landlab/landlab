@@ -73,7 +73,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
-    ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed

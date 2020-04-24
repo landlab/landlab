@@ -43,9 +43,21 @@ class NormalFault(Component):
     the **run_one_step** and **run_one_earthquake** methods. It is encumbent
     upon the user, however, to ensure that these two methods are used in
     combination correctly for their specific use case.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
     """
 
     _name = "NormalFault"
+
+    _unit_agnostic = True
 
     _info = {
         "topographic__elevation": {
@@ -123,7 +135,7 @@ class NormalFault(Component):
 
         Add an elevation field.
 
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
 
         Set the parameter values for the NormalFault component.
 
@@ -185,7 +197,7 @@ class NormalFault(Component):
 
         >>> from landlab.components import FastscapeEroder, FlowAccumulator
         >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> param_dict = {'faulted_surface': 'topographic__elevation',
         ...               'fault_dip_angle': 90.0,
         ...               'fault_throw_rate_through_time': {'time': [0, 900, 1000],
@@ -224,7 +236,7 @@ class NormalFault(Component):
         timestep (or some more seismogenically reasonable set of times).
 
         >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> nf = NormalFault(grid, **param_dict)
         >>> fr = FlowAccumulator(grid)
         >>> fs = FastscapeEroder(grid, K_sp=0.01)
@@ -241,7 +253,7 @@ class NormalFault(Component):
         >>> nf.current_time
         30000.0
         """
-        super(NormalFault, self).__init__(grid)
+        super().__init__(grid)
 
         # save a reference to the grid
 

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
 
+
 import pytest
 from numpy.testing import assert_array_equal
 

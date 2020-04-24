@@ -12,7 +12,7 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import FIXED_LINK, INACTIVE_LINK, Component, RasterModelGrid
+from landlab import Component, LinkStatus, RasterModelGrid
 
 
 class PotentialityFlowRouter(Component):
@@ -71,9 +71,22 @@ class PotentialityFlowRouter(Component):
     >>> mg.at_node['surface_water__discharge'][mg.core_nodes]
     array([ 11.70706863,  11.5709712 ,  10.41329927,   9.24959728,
              6.65448576,   6.39262702,   5.71410162,   5.04743495])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "PotentialityFlowRouter"
+
+    _unit_agnostic = False
 
     _info = {
         "flow__potential": {
@@ -143,7 +156,7 @@ class PotentialityFlowRouter(Component):
         Mannings_n : float (optional)
             Required if flow_equation == 'Manning'.
         """
-        super(PotentialityFlowRouter, self).__init__(grid)
+        super().__init__(grid)
 
         if isinstance(grid, RasterModelGrid):
             assert grid.number_of_node_rows >= 3
@@ -222,7 +235,7 @@ class PotentialityFlowRouter(Component):
 
             upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
             self._discharges_at_link[:] = upwind_K * g
-            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._discharges_at_link[grid.status_at_link == LinkStatus.INACTIVE] = 0.0
         else:
             # grad on diags:
             gwd = np.empty(grid.number_of_d8, dtype=float)
@@ -259,7 +272,7 @@ class PotentialityFlowRouter(Component):
             )
             self._discharges_at_link[: grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links :] = upwind_diag_K * gd
-            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.0
+            self._discharges_at_link[grid.status_at_d8 == LinkStatus.FIXED] = 0.0
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
         # there is no sensible way to save discharges at links, if we route

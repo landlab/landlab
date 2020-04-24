@@ -4,4 +4,4 @@
 Release Notes
 *************
 
-This is the list of changes to landlab between each release.
+When active, this page will provide a compilation of release notes.

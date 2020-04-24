@@ -18,13 +18,9 @@ Created on Sat Nov 26 08:36:49 2016
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
-
 from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import smooth_stream_power_eroder_solver
 from .fastscape_stream_power import FastscapeEroder
-
-UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
@@ -83,9 +79,41 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> sp.run_one_step(dt=1.0)
     >>> np.round(z[5:7], 3)
     array([ 1.754,  0.164])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "StreamPowerSmoothThresholdEroder"
+
+    _unit_agnostic = True
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "drainage_area": {
@@ -153,7 +181,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                 raise NotImplementedError(msg)
 
         if not erode_flooded_nodes:
-            if "flood_status_code" not in self._grid.at_node:
+            if "flood_status_code" not in grid.at_node:
                 msg = (
                     "In order to not erode flooded nodes another component "
                     "must create the field *flood_status_code*. You want to "
@@ -167,7 +195,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             )
 
         # Call base-class init
-        super(StreamPowerSmoothThresholdEroder, self).__init__(
+        super().__init__(
             grid,
             K_sp=K_sp,
             m_sp=m_sp,
@@ -265,7 +293,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Get an array of flow-link length for each node that has a defined
         # receiver (i.e., that drains to another node).
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"], UNDEFINED_INDEX
+            self._grid["node"]["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
         defined_flow_receivers[flow_receivers == node_id] = False
 
@@ -305,7 +333,9 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                 * self._A_to_the_m[defined_flow_receivers]
             ) / (self._thresholds[defined_flow_receivers] * flow_link_lengths)
 
-            self._delta[defined_flow_receivers][self._thresholds == 0.0] = 0.0
+            self._delta[defined_flow_receivers][
+                self._thresholds[defined_flow_receivers] == 0.0
+            ] = 0.0
         else:
             self._gamma[defined_flow_receivers] = dt * self._thresholds
             if self._thresholds == 0:

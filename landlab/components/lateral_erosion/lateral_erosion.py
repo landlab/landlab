@@ -29,37 +29,6 @@ class LateralEroder(Component):
     Earth Surface Dynamics, 6, 1-27,
     `https://doi.org/10.5194/esurf-6-1-2018 <https://www.earth-surf-dynam.net/6/1/2018/>`_
 
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab square cell raster grid object
-    latero_mech : string, optional (defaults to UC)
-        Lateral erosion algorithm, choices are "UC" for undercutting-slump
-        model and "TB" for total block erosion
-    alph : float, optional (defaults to 0.8)
-        Parameter describing potential for deposition, dimensionless
-    Kv : float, node array, or field name
-        Bedrock erodibility in vertical direction, 1/years
-    Kl_ratio : float, optional (defaults to 1.0)
-        Ratio of lateral to vertical bedrock erodibility, dimensionless
-    solver : string
-        Solver options:
-            (1) 'basic' (default): explicit forward-time extrapolation.
-                Simple but will become unstable if time step is too large or
-                if bedrock erodibility is vry high.
-            (2) 'adaptive': subdivides global time step as needed to
-                prevent slopes from reversing.
-    inlet_node : integer, optional
-        Node location of inlet (source of water and sediment)
-    inlet_area : float, optional
-        Drainage area at inlet node, must be specified if inlet node is "on", m^2
-    qsinlet : float, optional
-        Sediment flux supplied at inlet, optional. m3/year
-    flow_accumulator : Instantiated Landlab FlowAccumulator, optional
-        When solver is set to "adaptive", then a valid Landlab FlowAccumulator
-        must be passed. It will be run within sub-timesteps in order to update
-        the flow directions and drainage area.
-
     Examples
     --------
     >>> import numpy as np
@@ -177,10 +146,39 @@ class LateralEroder(Component):
             0.  ,  0.  ,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ,  0. ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Langston, A., Tucker, G. (2018). Developing and exploring a theory for the
+    lateral erosion of bedrock channels for use in landscape evolution models.
+    Earth Surface Dynamics  6(1), 1--27.
+    https://dx.doi.org/10.5194/esurf-6-1-2018
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "LateralEroder"
 
+    _unit_agnostic = False
+
+    _cite_as = """
+    @article{langston2018developing,
+      author = {Langston, A. L. and Tucker, G. E.},
+      title = {{Developing and exploring a theory for the lateral erosion of
+      bedrock channels for use in landscape evolution models}},
+      doi = {10.5194/esurf-6-1-2018},
+      pages = {1---27},
+      number = {1},
+      volume = {6},
+      journal = {Earth Surface Dynamics},
+      year = {2018}
+    }
+    """
     _info = {
         "drainage_area": {
             "dtype": float,
@@ -262,7 +260,39 @@ class LateralEroder(Component):
         qsinlet=0.0,
         flow_accumulator=None,
     ):
-        super(LateralEroder, self).__init__(grid)
+        """
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab square cell raster grid object
+        latero_mech : string, optional (defaults to UC)
+            Lateral erosion algorithm, choices are "UC" for undercutting-slump
+            model and "TB" for total block erosion
+        alph : float, optional (defaults to 0.8)
+            Parameter describing potential for deposition, dimensionless
+        Kv : float, node array, or field name
+            Bedrock erodibility in vertical direction, 1/years
+        Kl_ratio : float, optional (defaults to 1.0)
+            Ratio of lateral to vertical bedrock erodibility, dimensionless
+        solver : string
+            Solver options:
+                (1) 'basic' (default): explicit forward-time extrapolation.
+                    Simple but will become unstable if time step is too large or
+                    if bedrock erodibility is vry high.
+                (2) 'adaptive': subdivides global time step as needed to
+                    prevent slopes from reversing.
+        inlet_node : integer, optional
+            Node location of inlet (source of water and sediment)
+        inlet_area : float, optional
+            Drainage area at inlet node, must be specified if inlet node is "on", m^2
+        qsinlet : float, optional
+            Sediment flux supplied at inlet, optional. m3/year
+        flow_accumulator : Instantiated Landlab FlowAccumulator, optional
+            When solver is set to "adaptive", then a valid Landlab FlowAccumulator
+            must be passed. It will be run within sub-timesteps in order to update
+            the flow directions and drainage area.
+        """
+        super().__init__(grid)
 
         assert isinstance(
             grid, RasterModelGrid
@@ -396,8 +426,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", clobber=True)
-        qs = grid.add_zeros("node", "qs", clobber=True)
+        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
@@ -517,8 +547,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", clobber=True)
-        qs = grid.add_zeros("node", "qs", clobber=True)
+        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)

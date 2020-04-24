@@ -6,7 +6,7 @@
 
 import numpy as np
 
-from landlab import INACTIVE_LINK, Component
+from landlab import Component, LinkStatus
 
 
 class DepthDependentDiffuser(Component):
@@ -19,21 +19,13 @@ class DepthDependentDiffuser(Component):
 
     .. math::
 
-        q_s = D S H^* (1.0 - exp( H / H^*)
+        q_s = - D S H^* (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
-    the soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`H` is the soil depth on links, and :math:`H^*`
+    is the soil transport decay depth.
 
     This component will ignore soil thickness located at non-core nodes.
-
-    Parameters
-    ----------
-    grid: ModelGrid
-        Landlab ModelGrid object
-    linear_diffusivity: float
-        Hillslope diffusivity, m**2/yr
-    soil_transport_decay_depth: float
-        Characteristic transport soil depth, m
 
     Examples
     --------
@@ -42,15 +34,15 @@ class DepthDependentDiffuser(Component):
     >>> from landlab.components import ExponentialWeatherer
     >>> from landlab.components import DepthDependentDiffuser
     >>> mg = RasterModelGrid((5, 5))
-    >>> soilTh = mg.add_zeros('node', 'soil__depth')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
     >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
@@ -61,9 +53,9 @@ class DepthDependentDiffuser(Component):
     Now with a slope:
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros('node', 'soil__depth')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy()
     >>> BRz += mg.node_x/2.
     >>> soilTh[:] = z - BRz
@@ -74,7 +66,7 @@ class DepthDependentDiffuser(Component):
     ...     mg.at_node['soil_production__rate'][mg.core_nodes],
     ...     np.array([ 0.60653066,  0.36787944,  0.22313016]))
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'][mg.core_nodes],
     ...     np.array([ 1.47730244,  2.28949856,  3.17558975]))
@@ -88,28 +80,57 @@ class DepthDependentDiffuser(Component):
     Now, we'll test that changing the transport decay depth behaves as expected.
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros('node', 'soil__depth')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 0.1)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1)
     >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> z[:] = 0
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 1.0)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1)
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Johnstone, S., Hilley, G. (2015). Lithologic control on the form of
+    soil-mantled hillslopes Geology  43(1), 83-86.
+    https://dx.doi.org/10.1130/g36052.1
+
     """
 
-    _name = "DepthDependentDiffuser"
+    _unit_agnostic = True
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "bedrock__elevation": {
@@ -163,36 +184,32 @@ class DepthDependentDiffuser(Component):
     }
 
     def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):
-        """Initialize the DepthDependentDiffuser."""
-        super(DepthDependentDiffuser, self).__init__(grid)
+        """
+        Parameters
+        ----------
+        grid: ModelGrid
+            Landlab ModelGrid object
+        linear_diffusivity: float
+            Hillslope diffusivity, m**2/yr
+        soil_transport_decay_depth: float
+            Characteristic transport soil depth, m
+        """
+        super().__init__(grid)
         # Store grid and parameters
 
         self._K = linear_diffusivity
         self._soil_transport_decay_depth = soil_transport_decay_depth
 
-        # create fields
-        # elevation
+        # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
-        self._depth = self._grid.at_node["soil__depth"]
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
+        self._depth = self._grid.at_node["soil__depth"]
 
-        # slope
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("link", "topographic__slope")
-
-        # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("link", "soil__flux")
-
-        # bedrock elevation
-        if "bedrock__elevation" in self._grid.at_node:
-            self._bedrock = self._grid.at_node["bedrock__elevation"]
-        else:
-            self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+        # create outputs if necessary and get reference.
+        self.initialize_output_fields()
+        self._slope = self._grid.at_link["topographic__slope"]
+        self._flux = self._grid.at_link["soil__flux"]
+        self._bedrock = self._grid.at_node["bedrock__elevation"]
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
@@ -217,7 +234,7 @@ class DepthDependentDiffuser(Component):
 
         # Calculate gradients
         slope = self._grid.calc_grad_at_link(self._elev)
-        slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+        slope[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Calculate flux
         self._flux[:] = (

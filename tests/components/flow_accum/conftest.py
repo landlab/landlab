@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.grid.base import BAD_INDEX_VALUE as XX
+
+XX = RasterModelGrid.BAD_INDEX
 
 
 @pytest.fixture
@@ -68,7 +69,7 @@ def dans_grid1():
         ]
     ).flatten()
 
-    mg.add_field("node", "topographic__elevation", z, units="-")
+    mg.add_field("topographic__elevation", z, at="node", units="-")
 
     class DansGrid(object):
         pass
@@ -144,7 +145,7 @@ def internal_closed():
 
     steepest_target[np.array([8, 17])] = 1.0 / np.sqrt(2.0)
 
-    mg.add_field("node", "topographic__elevation", z, units="-")
+    mg.add_field("topographic__elevation", z, at="node", units="-")
 
     class DansGrid(object):
         pass
@@ -268,7 +269,7 @@ def dans_grid2():
         ]
     ).flatten()
 
-    mg.add_field("node", "topographic__elevation", z, units="-")
+    mg.add_field("topographic__elevation", z, at="node", units="-")
 
     class DansGrid(object):
         pass

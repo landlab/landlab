@@ -54,14 +54,14 @@ def test_MS_params():
     # gauge_elev = np.loadtxt(os.path.join(_THIS_DIR, 'model_input', 'gauge_elev.csv'))
     # # This is the list of gauge numbers. It will be sampled below.
     # # put the elevs on the grid. Mind the ordering
-    # vdg_z = vdg.add_field('node', 'topographic__elevation',
-    #                       gauge_elev[np.argsort(Northing)])
+    # vdg_z = vdg.add_field("topographic__elevation",
+    #                       gauge_elev[np.argsort(Northing)], at="node")
     # numgauges = len(gauges)
     #
     # mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
     # mg.status_at_node[:] = 4
     # mg.status_at_node[isin.flatten()] = 0
-    # z = mg.add_zeros('node', 'topographic__elevation')
+    # z = mg.add_zeros("topographic__elevation", at="node")
     #
     # closest_core_node_in_vdg = []
     # for E, N in zip(Xin, Yin):
@@ -72,9 +72,9 @@ def test_MS_params():
     mg = RasterModelGrid((12, 26), xy_spacing=(1102.0973, 1042.3713))
     mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, "BCs_Singer.txt"))
     mg.add_field(
-        "node",
         "topographic__elevation",
         np.loadtxt(os.path.join(_THIS_DIR, "elevs_Singer.txt")),
+        at="node",
     )
 
     np.random.seed(10)
@@ -119,7 +119,7 @@ def test_MS_params():
     # z = XYZ[:, 2]
     # vdg = VoronoiDelaunayGrid(X+np.random.rand(len(X)), Y+np.random.rand(len(Y)))
     # vdg = RasterModelGrid((12, 25), (1042.3713, 1102.0973))
-    # z = vdg.add_field('node', 'topographic__elevation', z)
+    # z = vdg.add_field("topographic__elevation", z, at="node")
     # rain = SpatialPrecipitationDistribution(vdg, number_of_years=1,
     #                                         orographic_scenario='Singer')
     #

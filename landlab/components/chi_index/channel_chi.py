@@ -7,7 +7,7 @@
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, Component, RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 try:
     from itertools import izip
@@ -32,7 +32,7 @@ class ChiFinder(Component):
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
     ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-    >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
+    >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> cf = ChiFinder(mg,
     ...     min_drainage_area=1.,
@@ -92,9 +92,24 @@ class ChiFinder(Component):
            [ True,  True, False,  True,  True],
            [False, False, False,  True,  True],
            [ True,  True,  True,  True,  True]], dtype=bool)
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Perron, J., Royden, L. (2012). An integral approach to bedrock river
+    profile analysis Earth Surface Processes and Landforms  38(6), 570-576.
+    https://dx.doi.org/10.1002/esp.3302
+
     """
 
     _name = "ChiFinder"
+
+    _unit_agnostic = True
 
     _info = {
         "channel__chi_index": {
@@ -186,7 +201,7 @@ class ChiFinder(Component):
             Raise an exception if adding an already existing field.
 
         """
-        super(ChiFinder, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
@@ -294,7 +309,7 @@ class ChiFinder(Component):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.node_x.copy()
         >>> z[[5, 13]] = z[6]  # guard nodes
-        >>> _ = mg.add_field('node', 'topographic__elevation', z)
+        >>> _ = mg.add_field("topographic__elevation", z, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> cf = ChiFinder(mg)
         >>> fr.run_one_step()
@@ -347,7 +362,7 @@ class ChiFinder(Component):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.node_x.copy()
         >>> z[[5, 13]] = z[6]  # guard nodes
-        >>> _ = mg.add_field('node', 'topographic__elevation', z)
+        >>> _ = mg.add_field("topographic__elevation", z, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> cf = ChiFinder(mg)
         >>> fr.run_one_step()
@@ -402,7 +417,7 @@ class ChiFinder(Component):
         for node in valid_upstr_order:
             dstr_node = receivers[node]
             dstr_link = links[node]
-            if dstr_link != BAD_INDEX_VALUE:
+            if dstr_link != self._grid.BAD_INDEX:
                 dstr_length = self._link_lengths[dstr_link]
                 half_head_val = half_integrand[node]
                 half_tail_val = half_integrand[dstr_node]
@@ -435,7 +450,7 @@ class ChiFinder(Component):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.node_x.copy()
         >>> z[[5, 13]] = z[6]  # guard nodes
-        >>> _ = mg.add_field('node', 'topographic__elevation', z)
+        >>> _ = mg.add_field("topographic__elevation", z, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> cf = ChiFinder(mg)
         >>> fr.run_one_step()
@@ -444,7 +459,7 @@ class ChiFinder(Component):
         2.2761423749153966
         """
         ch_links = self._grid.at_node["flow__link_to_receiver_node"][ch_nodes]
-        ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
+        ch_links_valid = ch_links[ch_links != self._grid.BAD_INDEX]
 
         valid_link_lengths = self._link_lengths[ch_links_valid]
         return valid_link_lengths.mean()
@@ -488,8 +503,7 @@ class ChiFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_field('node', 'topographic__elevation',
-        ...                  mg.node_x.copy())
+        >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
         >>> z[4:8] = np.array([0.5, 1., 2., 0.])
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> cf = ChiFinder(
@@ -530,8 +544,7 @@ class ChiFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_field('node', 'topographic__elevation',
-        ...                  mg.node_x.copy())
+        >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
         >>> z[4:8] = np.array([0.5, 1., 2., 0.])
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> fr.run_one_step()

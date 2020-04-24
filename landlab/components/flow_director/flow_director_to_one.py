@@ -8,7 +8,6 @@ grid fields are set up correctly.
 """
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
 
 
@@ -55,9 +54,9 @@ class _FlowDirectorToOne(_FlowDirector):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = _FlowDirectorToOne(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -71,6 +70,8 @@ class _FlowDirectorToOne(_FlowDirector):
     """
 
     _name = "FlowDirectorToOne"
+
+    _unit_agnostic = True
 
     _info = {
         "flow__link_to_receiver_node": {
@@ -119,7 +120,7 @@ class _FlowDirectorToOne(_FlowDirector):
         """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
 
-        super(_FlowDirectorToOne, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self.initialize_output_fields()
 
         self._to_n_receivers = "one"
@@ -128,11 +129,11 @@ class _FlowDirectorToOne(_FlowDirector):
 
         self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
         if np.all(self._links_to_receiver == 0):
-            self._links_to_receiver.fill(BAD_INDEX_VALUE)
+            self._links_to_receiver.fill(self._grid.BAD_INDEX)
 
         self._receiver = grid.at_node["flow__receiver_node"]
         if np.all(self._receiver == 0):
-            self._receiver.fill(BAD_INDEX_VALUE)
+            self._receiver.fill(self._grid.BAD_INDEX)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
@@ -157,9 +158,9 @@ class _FlowDirectorToOne(_FlowDirector):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()

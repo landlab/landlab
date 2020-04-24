@@ -9,7 +9,7 @@ Tarboton 1997.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
+from landlab import NodeStatus
 from landlab.components.flow_director import flow_direction_dinf
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -56,9 +56,9 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x**2 + mg.node_y**2,
-    ...     at = 'node'
+    ...     at="node",
     ... )
 
     The DINF flow director can be uses for raster grids only.
@@ -200,6 +200,19 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> proportions.sum(axis=1)
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
             1.,  1.,  1.])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Tarboton, D. (1997). A new method for the determination of flow directions
+    and upslope areas in grid digital elevation models. Water Resources
+    Research  33(2), 309-319. https://dx.doi.org/10.1029/96wr03137
+
     """
 
     _name = "FlowDirectorDINF"
@@ -271,7 +284,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
         self._method = "DINF"
         self._max_receivers = 2
-        super(FlowDirectorDINF, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         try:
             self._grid.nodes_at_d8
         except AttributeError:
@@ -326,8 +339,8 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         # Step 1. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 

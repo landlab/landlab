@@ -472,7 +472,7 @@ def test_field_name_array_float_case1():
             0.0,
         ]
     )
-    mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("topographic__elevation", topographic__elevation, at="node")
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     fa = LossyFlowAccumulator(mg, "topographic__elevation", runoff_rate=10.0)
@@ -591,8 +591,8 @@ def test_field_name_array_float_case2():
         5.0,
     ]
 
-    mg.add_field("node", "topographic__elevation", topographic__elevation)
-    mg.add_field("node", "runoff_rate", runoff_rate)
+    mg.add_field("topographic__elevation", topographic__elevation, at="node")
+    mg.add_field("runoff_rate", runoff_rate, at="node")
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -709,7 +709,7 @@ def test_field_name_array_float_case3():
         5.0,
     ]
 
-    mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("topographic__elevation", topographic__elevation, at="node")
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -802,7 +802,7 @@ def test_field_name_array_float_case4():
             0.0,
         ]
     )
-    mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("topographic__elevation", topographic__elevation, at="node")
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     fa = LossyFlowAccumulator(mg, topographic__elevation, runoff_rate=10.0)
@@ -921,8 +921,8 @@ def test_field_name_array_float_case5():
         5.0,
     ]
 
-    mg.add_field("node", "topographic__elevation", topographic__elevation)
-    mg.add_field("node", "runoff_rate", runoff_rate)
+    mg.add_field("topographic__elevation", topographic__elevation, at="node")
+    mg.add_field("runoff_rate", runoff_rate, at="node")
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -1039,7 +1039,7 @@ def test_field_name_array_float_case6():
         5.0,
     ]
 
-    mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("topographic__elevation", topographic__elevation, at="node")
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 

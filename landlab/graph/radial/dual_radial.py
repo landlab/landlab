@@ -53,3 +53,19 @@ class DualRadialGraph(DualGraph, RadialGraph):
 
         if sort:
             self.sort()
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @property
+    def origin(self):
+        return self._xy_of_center
+
+    @property
+    def xy_of_center(self):
+        return self._xy_of_center

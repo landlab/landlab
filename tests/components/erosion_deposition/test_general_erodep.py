@@ -17,7 +17,7 @@ def test_Ff_too_high_vals():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -63,7 +63,7 @@ def test_Ff_too_low_vals():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -109,7 +109,7 @@ def test_phi_too_high_vals():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -155,7 +155,7 @@ def test_phi_too_low_vals():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -201,8 +201,8 @@ def test_q_as_field():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
-    q = mg.add_zeros("node", "user_imposed_discharge")
+    mg.add_zeros("topographic__elevation", at="node")
+    q = mg.add_zeros("user_imposed_discharge", at="node")
     q[:] += 1.0  # add 1.0 m3/yr of water
 
     mg["node"]["topographic__elevation"] += (
@@ -257,7 +257,7 @@ def test_q_as_array():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     q = np.zeros(mg.number_of_nodes)
     q[:] += 1.0  # add 1.0 m3/yr of water
 
@@ -313,8 +313,8 @@ def test_sediment__flux_already_created():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
-    qs = mg.add_zeros("node", "sediment__flux")
+    mg.add_zeros("topographic__elevation", at="node")
+    qs = mg.add_zeros("sediment__flux", at="node")
     qs[:] += 1.0  # add 1.0 m3/yr of flux
 
     mg["node"]["topographic__elevation"] += (

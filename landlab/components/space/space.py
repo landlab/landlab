@@ -27,49 +27,6 @@ class Space(_GeneralizedErosionDeposition):
     subdivide timesteps. Compare Es and H arrays to determine whether
     timesteps are appropriate or too large for the 'basic' solver.
 
-    Parameters
-    ----------
-    grid : ModelGrid
-        Landlab ModelGrid object
-    K_sed : float, field name, or array
-        Erodibility for sediment (units vary).
-    K_br : float, field name, or array
-        Erodibility for bedrock (units vary).
-    F_f : float
-        Fraction of permanently suspendable fines in bedrock [-].
-    phi : float
-        Sediment porosity [-].
-    H_star : float
-        Sediment thickness required for full entrainment [L].
-    v_s : float
-        Effective settling velocity for chosen grain size metric [L/T].
-    m_sp : float
-        Drainage area exponent (units vary)
-    n_sp : float
-        Slope exponent (units vary)
-    sp_crit_sed : float, field name, or array
-        Critical stream power to erode sediment [E/(TL^2)]
-    sp_crit_br : float, field name, or array
-        Critical stream power to erode rock [E/(TL^2)]
-    discharge_field : float, field name, or array
-        Discharge [L^2/T]. The default is to use the grid field
-        'surface_water__discharge', which is simply drainage area
-        multiplied by the default rainfall rate (1 m/yr). To use custom
-        spatially/temporally varying rainfall, use 'water__unit_flux_in'
-        to specify water input to the FlowAccumulator.
-    erode_flooded_nodes : bool (optional)
-        Whether erosion occurs in flooded nodes identified by a
-        depression/lake mapper (e.g., DepressionFinderAndRouter). When set
-        to false, the field *flood_status_code* must be present on the grid
-        (this is created by the DepressionFinderAndRouter). Default True.
-    solver : string
-        Solver to use. Options at present include:
-            (1) 'basic' (default): explicit forward-time extrapolation.
-                Simple but will become unstable if time step is too large.
-            (2) 'adaptive': subdivides global time step as needed to
-                prevent slopes from reversing and alluvium from going
-                negative.
-
     Examples
     ---------
     >>> import numpy as np
@@ -162,9 +119,25 @@ class Space(_GeneralizedErosionDeposition):
             0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
             0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
             8.51 ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Shobe, C., Tucker, G., Barnhart, K. (2017). The SPACE 1.0 model: a Landlab
+    component for 2-D calculation of sediment transport, bedrock erosion, and
+    landscape evolution. Geoscientific Model Development  10(12), 4577 - 4604.
+    https://dx.doi.org/10.5194/gmd-10-4577-2017
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "Space"
+
+    _unit_agnostic = True
 
     _info = {
         "flow__link_to_receiver_node": {
@@ -263,7 +236,52 @@ class Space(_GeneralizedErosionDeposition):
         erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
-        """Initialize the Space model."""
+        """Initialize the Space model.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            Landlab ModelGrid object
+        K_sed : float, field name, or array
+            Erodibility for sediment (units vary).
+        K_br : float, field name, or array
+            Erodibility for bedrock (units vary).
+        F_f : float
+            Fraction of permanently suspendable fines in bedrock [-].
+        phi : float
+            Sediment porosity [-].
+        H_star : float
+            Sediment thickness required for full entrainment [L].
+        v_s : float
+            Effective settling velocity for chosen grain size metric [L/T].
+        m_sp : float
+            Drainage area exponent (units vary)
+        n_sp : float
+            Slope exponent (units vary)
+        sp_crit_sed : float, field name, or array
+            Critical stream power to erode sediment [E/(TL^2)]
+        sp_crit_br : float, field name, or array
+            Critical stream power to erode rock [E/(TL^2)]
+        discharge_field : float, field name, or array
+            Discharge [L^2/T]. The default is to use the grid field
+            'surface_water__discharge', which is simply drainage area
+            multiplied by the default rainfall rate (1 m/yr). To use custom
+            spatially/temporally varying rainfall, use 'water__unit_flux_in'
+            to specify water input to the FlowAccumulator.
+        erode_flooded_nodes : bool (optional)
+            Whether erosion occurs in flooded nodes identified by a
+            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+            to false, the field *flood_status_code* must be present on the grid
+            (this is created by the DepressionFinderAndRouter). Default True.
+        solver : string
+            Solver to use. Options at present include:
+                (1) 'basic' (default): explicit forward-time extrapolation.
+                    Simple but will become unstable if time step is too large.
+                (2) 'adaptive': subdivides global time step as needed to
+                    prevent slopes from reversing and alluvium from going
+                    negative.
+
+        """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
                 "A route-to-multiple flow director has been "
@@ -274,7 +292,7 @@ class Space(_GeneralizedErosionDeposition):
             )
             raise NotImplementedError(msg)
 
-        super(Space, self).__init__(
+        super().__init__(
             grid,
             m_sp=m_sp,
             n_sp=n_sp,
@@ -305,8 +323,9 @@ class Space(_GeneralizedErosionDeposition):
         self._Er = np.zeros(grid.number_of_nodes)
 
         # K's and critical values can be floats, grid fields, or arrays
-        self._K_sed = return_array_at_node(grid, K_sed)
-        self._K_br = return_array_at_node(grid, K_br)
+        # use setters defined below
+        self.K_sed = K_sed
+        self.K_br = K_br
 
         self._sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
         self._sp_crit_br = return_array_at_node(grid, sp_crit_br)
@@ -322,6 +341,24 @@ class Space(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
+
+    @property
+    def K_br(self):
+        """Erodibility of bedrock(units depend on m_sp)."""
+        return self._K_br
+
+    @K_br.setter
+    def K_br(self, new_val):
+        self._K_br = return_array_at_node(self._grid, new_val)
+
+    @property
+    def K_sed(self):
+        """Erodibility of sediment(units depend on m_sp)."""
+        return self._K_sed
+
+    @K_sed.setter
+    def K_sed(self, new_val):
+        self._K_sed = return_array_at_node(self._grid, new_val)
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

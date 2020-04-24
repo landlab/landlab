@@ -52,8 +52,8 @@ Shallow water hydrodynamics
 
    overland_flow
 
-Land surface and groundwater hydrology
---------------------------------------
+Land surface hydrology
+----------------------
 
 .. toctree::
   :maxdepth: 2
@@ -62,6 +62,13 @@ Land surface and groundwater hydrology
   pet
   soil_moisture
   greenampt
+
+Groundwater hydrology
+---------------------
+
+.. toctree::
+  :maxdepth: 2
+
   groundwater
 
 Landslides
@@ -80,6 +87,14 @@ Vegetation
 
   vegetation_dynamics
   plant_competition_ca
+
+Biota
+-----
+
+.. toctree::
+  :maxdepth: 2
+
+  species_evolution
 
 Precipitation
 -------------
@@ -107,7 +122,9 @@ Terrain Analysis
   steepness_index
   chi_index
   drainage_density
+  profile
   channel_profiler
+  trickle_down_profiler
   hack_calculator
 
 Tectonics
@@ -199,6 +216,7 @@ Alphabetical Listing of Modules
    soil_moisture
    space
    spatial_precip
+   species_evolution
    steepness_index
    stream_power
    taylor_nonlinear_hillslope_flux

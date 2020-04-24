@@ -50,9 +50,24 @@ class Lithology(Component):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Hutton, E., Gasparini, N., Tucker, G. (2018). Lithology: A
+    Landlab submodule for spatially variable rock properties. Journal of Open
+    Source Software  3(30), 979 - 2. https://dx.doi.org/10.21105/joss.00979
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "Lithology"
+
+    _unit_agnostic = True
 
     _cite_as = """@article{barnhart2018lithology,
                     title = "Lithology: A Landlab submodule for spatially variable rock properties",
@@ -112,7 +127,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
 
         Create a Lithology with uniform thicknesses that alternates between
         layers of type 1 and type 2 rock.
@@ -171,7 +186,7 @@ class Lithology(Component):
                [ 2. ,  3. ,  4. ,  2. ,  3. ,  4. ,  2. ,  3. ,  4. ],
                [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])
         """
-        super(Lithology, self).__init__(grid)
+        super().__init__(grid)
 
         try:
             self._last_elevation = self._grid["node"]["topographic__elevation"][
@@ -252,11 +267,11 @@ class Lithology(Component):
         # assert that attrs are pointing to fields (or create them)
         for at in self._properties:
             if at not in grid.at_node:
-                self._grid.add_empty("node", at)
+                self._grid.add_empty(at, at="node")
 
         # add a field for the rock type id
         if self._rock_id_name not in self._grid.at_node:
-            self._grid.add_empty("node", self._rock_id_name)
+            self._grid.add_empty(self._rock_id_name, at="node")
 
         # verify that all IDs have attributes.
         self._check_property_dictionary()
@@ -347,7 +362,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -368,7 +383,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -388,7 +403,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -411,7 +426,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -437,7 +452,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -464,7 +479,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -520,7 +535,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
 
@@ -611,7 +626,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -652,7 +667,7 @@ class Lithology(Component):
 
         for at in attrs:
             if at not in self._grid.at_node:
-                self._grid.add_empty("node", at)
+                self._grid.add_empty(at, at="node")
             self._attrs[at] = attrs[at]
             self._properties.append(at)
 
@@ -672,7 +687,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -736,7 +751,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -855,7 +870,7 @@ class Lithology(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_ones('node', 'topographic__elevation')
+        >>> z = mg.add_ones("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,
@@ -916,7 +931,7 @@ class Lithology(Component):
         use to store the layer information.
 
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_ones('node', 'topographic__elevation')
+        >>> z = mg.add_ones("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
         >>> attrs = {'K_sp': {1: 0.001,

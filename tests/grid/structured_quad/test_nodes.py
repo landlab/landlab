@@ -1,6 +1,6 @@
 from numpy.testing import assert_array_equal
 
-from landlab.grid.base import CLOSED_BOUNDARY, CORE_NODE, FIXED_VALUE_BOUNDARY
+from landlab.grid.nodestatus import NodeStatus
 from landlab.grid.structured_quad import nodes
 from landlab.testing.tools import assert_array_is_int
 
@@ -13,7 +13,7 @@ def test_perimeter_nodes():
 
 def test_perimeter_status_default():
     node_status = nodes.status_with_perimeter_as_boundary((4, 5))
-    F, C = CLOSED_BOUNDARY, CORE_NODE
+    F, C = NodeStatus.CLOSED, NodeStatus.CORE
     assert_array_equal(
         node_status,
         [[F, F, F, F, F], [F, C, C, C, F], [F, C, C, C, F], [F, F, F, F, F]],
@@ -23,9 +23,9 @@ def test_perimeter_status_default():
 
 def test_perimeter_status_status_as_scalar():
     node_status = nodes.status_with_perimeter_as_boundary(
-        (4, 5), node_status=CLOSED_BOUNDARY
+        (4, 5), node_status=NodeStatus.CLOSED
     )
-    B, C = CLOSED_BOUNDARY, CORE_NODE
+    B, C = NodeStatus.CLOSED, NodeStatus.CORE
     assert_array_equal(
         node_status,
         [[B, B, B, B, B], [B, C, C, C, B], [B, C, C, C, B], [B, B, B, B, B]],
@@ -34,7 +34,7 @@ def test_perimeter_status_status_as_scalar():
 
 
 def test_perimeter_status_status_as_array():
-    F, B, C = FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY, CORE_NODE
+    F, B, C = NodeStatus.FIXED_VALUE, NodeStatus.CLOSED, NodeStatus.CORE
     status = [F, F, F, F, F, F, B, F, B, B, B, B, B, B]
     node_status = nodes.status_with_perimeter_as_boundary((4, 5), node_status=status)
     assert_array_equal(

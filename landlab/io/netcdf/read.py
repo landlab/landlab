@@ -447,11 +447,33 @@ def read_netcdf(
         if grid.xy_of_lower_left != xy_of_lower_left:
             raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
-    missing_names = names - set(dataset.variables)
-    if missing_names:
-        raise ValueError(
-            "requested names not found in netcdf file ({0})".format(
-                ", ".join(sorted(missing_names))
+    if grid is None:
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
+
+    if not just_grid:
+        fields, grid_mapping_dict = _read_netcdf_structured_data(root)
+        for (field_name, values) in fields.items():
+
+            # add halo if necessary
+            if halo > 0:
+                values = add_halo(
+                    values.reshape(shape), halo=halo, halo_value=nodata_value
+                ).reshape((-1,))
+
+            # add only the requested fields.
+            if (name is None) or (field_name == name):
+                add_field = True
+            else:
+                add_field = False
+
+            if add_field:
+                grid.add_field(field_name, values, at="node", clobber=True)
+
+        if (name is not None) and (name not in grid.at_node):
+            raise ValueError(
+                "Specified field {name} was not in provided NetCDF.".format(name=name)
             )
         )
 

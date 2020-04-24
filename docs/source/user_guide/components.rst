@@ -12,7 +12,7 @@ enable the sharing of data between the components, and we aim to have a
 relatively standardized way of interacting with and using each different one.
 
 Landlab components exist as classes, and can be imported from
-*landlab.components*.
+``landlab.components``.
 
     We emphasize that at the moment most Landlab components are under active
     development, and it is possible that    changes may occur to things such as
@@ -25,12 +25,12 @@ Landlab components exist as classes, and can be imported from
 To develop your own Landlab component, see
 :ref:`this page <dev_contributing>`
 and
-`this tutorial <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=making_components/making_components.ipynb>`_.
+`this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_.
 
 Component Library Tutorial
 ----------------------------
 For a tutorial introduction to using the component library, see
-`here <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/component_tutorial/component_tutorial.ipynb>`_.
 
 Available Landlab components
 ----------------------------
@@ -40,7 +40,7 @@ command prompt:
 
 ``landlab list``
 
-See the :ref: `Components section <api.components>` of the Landlab reference
+See the :ref:`Components section <api.components>` of the Landlab reference
 manual for a list of all Landlab components currently available.
 
 Landlab component classes, their import, and their instantiation
@@ -108,8 +108,6 @@ the component you are using**! You can get at this documentation either on this
 website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
 following would work::
-
-.. code-block:: python
 
     help(LinearDiffuser)
     help(dfn)

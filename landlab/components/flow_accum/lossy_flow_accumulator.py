@@ -59,7 +59,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             *flow__data_structure_delta*. The first element is always zero.
 
     The FlowDirector component will add additional ModelGrid fields; see the
-    `FlowAccumulator component <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_
+    `FlowAccumulator component <https://landlab.readthedocs.io/en/release/reference/components/flow_accum.html>`_
     for full details. These are:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
@@ -71,57 +71,6 @@ class LossyFlowAccumulator(FlowAccumulator):
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
-
-    `run_one_step` takes the optional argument update_flow_director (default is
-    True) that determines if the flow_director is re-run before flow is
-    accumulated.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab grid.
-    surface : field name at node or array of length node
-        The surface to direct flow across.
-    flow_director : string, class, instance of class.
-        A string of method or class name (e.g. 'D8' or 'FlowDirectorD8'), an
-        uninstantiated FlowDirector class, or an instance of a FlowDirector
-        class. This sets the method used to calculate flow directions.
-        Default is 'FlowDirectorSteepest'
-    runoff_rate : field name, array, or float, optional (m/time)
-        If provided, sets the runoff rate and will be assigned to the grid
-        field 'water__unit_flux_in'. If a spatially and and temporally variable
-        runoff rate is desired, pass this field name and update the field
-        through model run time. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field. If
-        neither are set, defaults to spatially constant unit input.
-    depression_finder : string, class, instance of class, optional
-        A string of class name (e.g., 'DepressionFinderAndRouter'), an
-        uninstantiated DepressionFinder class, or an instance of a
-        DepressionFinder class.
-        This sets the method for depression finding.
-    loss_function : Python function, optional
-        A function of the form f(Qw, [node_ID, [linkID, [grid]]]), where Qw is
-        the discharge at a node, node_ID the ID of the node at which the loss
-        is to be calculated, linkID is the ID of the link down which the
-        outflow drains (or a d8 ID if the routing is d8), and grid is a Landlab
-        ModelGrid. The function then returns the new discharge at the node
-        after the function is applied.
-        Note that if a linkID is needed, a nodeID must also be specified, even
-        if only as a dummy parameter; similarly, if a grid is to be passed, all
-        of the preceding parameters must be specified. Both nodeID and linkID
-        are required to permit spatially variable losses, and also losses
-        dependent on flow path geometry (e.g., flow length). The grid is passed
-        to allow fields or grid properties describing values across the grid
-        to be accessed for the loss calculation (see examples).
-        This function expects (float, [int, [int, [ModelGrid]]]), and
-        return a single float, the new discharge value. This behavior is
-        verified during component instantiation.
-    **kwargs : optional
-        Any additional parameters to pass to a FlowDirector or
-        DepressionFinderAndRouter instance (e.g., partion_method for
-        FlowDirectorMFD). This will have no effect if an instantiated
-        component is passed using the flow_director or depression_finder
-        keywords.
 
     Examples
     --------
@@ -138,9 +87,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    >>> z = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at='node')
+    >>> z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     >>> def mylossfunction(qw):
     ...     return 0.5 * qw
@@ -168,9 +115,11 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
     >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.))
-    >>> z = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                   at = 'node')
+    >>> z = hmg.add_field(
+    ...     "topographic__elevation",
+    ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...     at="node",
+    ... )
     >>> z[9] = -10.  # poke a hole
     >>> lossy = hmg.add_zeros('node', 'mylossterm', dtype=float)
     >>> lossy[14] = 1.  # suppress all flow from node 14
@@ -236,7 +185,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> from landlab.components import FlowDirectorMFD
     >>> mg = RasterModelGrid((4, 6), xy_spacing=(1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    >>> z = mg.add_field('node', 'topographic__elevation', 2.*mg.node_x)
+    >>> z = mg.add_field("topographic__elevation", 2.0 * mg.node_x, at="node")
     >>> z[9] = 8.
     >>> z[16] = 6.5  # force the first node sideways
 
@@ -267,6 +216,20 @@ class LossyFlowAccumulator(FlowAccumulator):
            [ 4. ,  4. ,  2. ,  2. ,  2. ,  0. ],
            [ 0. ,  8.5,  6.5,  4.5,  2.5,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "LossyFlowAccumulator"
@@ -346,6 +309,54 @@ class LossyFlowAccumulator(FlowAccumulator):
         compatability for the flow_director and depression_finder
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab grid.
+        surface : field name at node or array of length node
+            The surface to direct flow across.
+        flow_director : string, class, instance of class.
+            A string of method or class name (e.g. 'D8' or 'FlowDirectorD8'), an
+            uninstantiated FlowDirector class, or an instance of a FlowDirector
+            class. This sets the method used to calculate flow directions.
+            Default is 'FlowDirectorSteepest'
+        runoff_rate : field name, array, or float, optional (m/time)
+            If provided, sets the runoff rate and will be assigned to the grid
+            field 'water__unit_flux_in'. If a spatially and and temporally variable
+            runoff rate is desired, pass this field name and update the field
+            through model run time. If both the field and argument are present at
+            the time of initialization, runoff_rate will *overwrite* the field. If
+            neither are set, defaults to spatially constant unit input.
+        depression_finder : string, class, instance of class, optional
+            A string of class name (e.g., 'DepressionFinderAndRouter'), an
+            uninstantiated DepressionFinder class, or an instance of a
+            DepressionFinder class.
+            This sets the method for depression finding.
+        loss_function : Python function, optional
+            A function of the form f(Qw, [node_ID, [linkID, [grid]]]), where Qw is
+            the discharge at a node, node_ID the ID of the node at which the loss
+            is to be calculated, linkID is the ID of the link down which the
+            outflow drains (or a d8 ID if the routing is d8), and grid is a Landlab
+            ModelGrid. The function then returns the new discharge at the node
+            after the function is applied.
+            Note that if a linkID is needed, a nodeID must also be specified, even
+            if only as a dummy parameter; similarly, if a grid is to be passed, all
+            of the preceding parameters must be specified. Both nodeID and linkID
+            are required to permit spatially variable losses, and also losses
+            dependent on flow path geometry (e.g., flow length). The grid is passed
+            to allow fields or grid properties describing values across the grid
+            to be accessed for the loss calculation (see examples).
+            This function expects (float, [int, [int, [ModelGrid]]]), and
+            return a single float, the new discharge value. This behavior is
+            verified during component instantiation.
+        **kwargs : optional
+            Any additional parameters to pass to a FlowDirector or
+            DepressionFinderAndRouter instance (e.g., partion_method for
+            FlowDirectorMFD). This will have no effect if an instantiated
+            component is passed using the flow_director or depression_finder
+            keywords.
+
         """
 
         # add the new loss discharge field if necessary:
@@ -354,7 +365,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                 "node", "surface_water__discharge_loss", dtype=float, clobber=True
             )
 
-        super(LossyFlowAccumulator, self).__init__(
+        super().__init__(
             grid,
             surface=surface,
             flow_director=flow_director,

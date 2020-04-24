@@ -65,7 +65,7 @@ class TransportLengthHillslopeDiffuser(Component):
     ...               0., 1., 1., 1., 0.,
     ...               0., 1., 1., 1., 0.,
     ...               0., 0., 0., 0., 0.])
-    >>> _ = mg.add_field('node', 'topographic__elevation', z)
+    >>> _ = mg.add_field("topographic__elevation", z, at="node")
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 
@@ -92,9 +92,27 @@ class TransportLengthHillslopeDiffuser(Component):
     ...                0.,  0.        ,  0.        ,  0.        ,  0.]))
     True
 
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Carretier, S., Martinod, P., Reich, M., Godderis, Y. (2016). Modelling
+    sediment clasts transport during landscape evolution. Earth Surface Dynamics
+    4(1), 237-251. https://dx.doi.org/10.5194/esurf-4-237-2016
+
+    Davy, P., Lague, D. (2009). Fluvial erosion/transport equation of landscape
+    evolution models revisited. Journal of Geophysical Research  114(F3),
+    F03007. https://dx.doi.org/10.1029/2008jf001146
+
     """
 
     _name = "TransportLengthHillslopeDiffuser"
+
+    _unit_agnostic = True
 
     _info = {
         "flow__receiver_node": {
@@ -184,7 +202,7 @@ class TransportLengthHillslopeDiffuser(Component):
         slope_crit: float (default=1.)
             Critical slope [L/L]
         """
-        super(TransportLengthHillslopeDiffuser, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (

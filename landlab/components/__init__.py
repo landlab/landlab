@@ -35,12 +35,13 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
-from .profiler import ChannelProfiler, Profiler
+from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
 from .space import Space
 from .spatial_precip import SpatialPrecipitationDistribution
+from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
 from .stream_power import (
     FastscapeEroder,
@@ -104,11 +105,13 @@ COMPONENTS = [
     SoilInfiltrationGreenAmpt,
     Space,
     SpatialPrecipitationDistribution,
+    SpeciesEvolver,
     SteepnessFinder,
     StreamPowerEroder,
     StreamPowerSmoothThresholdEroder,
     TaylorNonLinearDiffuser,
     TransportLengthHillslopeDiffuser,
+    TrickleDownProfiler,
     VegCA,
     Vegetation,
 ]

@@ -23,8 +23,8 @@ def test_4x7_grid_vs_analytical_solution():
     mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
 
     # Create an elevation field, initially zero
-    z = mg.add_zeros("node", "topographic__elevation")
-    _ = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
 
     # Instantiate components, and set their parameters. Note that traditional
     # diffusivity, D, is D = SCE x H*, where SCE is soil-creep efficiency.
@@ -70,9 +70,9 @@ def test_4x7_grid_vs_analytical_solution():
 
 def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
-    soilTh = mg.add_zeros("node", "soil__depth")
-    z = mg.add_zeros("node", "topographic__elevation")
-    BRz = mg.add_zeros("node", "bedrock__elevation")
+    soilTh = mg.add_zeros("soil__depth", at="node")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    BRz = mg.add_zeros("bedrock__elevation", at="node")
     z += mg.node_x.copy() ** 2
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
@@ -85,9 +85,9 @@ def test_raise_stability_error():
 
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
-    soilTh = mg.add_zeros("node", "soil__depth")
-    z = mg.add_zeros("node", "topographic__elevation")
-    BRz = mg.add_zeros("node", "bedrock__elevation")
+    soilTh = mg.add_zeros("soil__depth", at="node")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    BRz = mg.add_zeros("bedrock__elevation", at="node")
     z += mg.node_x.copy() ** 2
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
@@ -98,9 +98,9 @@ def test_raise_kwargs_error():
 def test_infinite_taylor_error():
 
     mg = RasterModelGrid((5, 5))
-    soilTh = mg.add_zeros("node", "soil__depth")
-    z = mg.add_zeros("node", "topographic__elevation")
-    BRz = mg.add_zeros("node", "bedrock__elevation")
+    soilTh = mg.add_zeros("soil__depth", at="node")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    BRz = mg.add_zeros("bedrock__elevation", at="node")
     z += mg.node_x.copy() ** 4
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
@@ -113,9 +113,9 @@ def test_infinite_taylor_error():
 
 # def test_warn():
 #    mg = RasterModelGrid((5, 5))
-#    soilTh = mg.add_zeros('node', 'soil__depth')
-#    z = mg.add_zeros('node', 'topographic__elevation')
-#    BRz = mg.add_zeros('node', 'bedrock__elevation')
+#    soilTh = mg.add_zeros("soil__depth", at="node")
+#    z = mg.add_zeros("topographic__elevation", at="node")
+#    BRz = mg.add_zeros("bedrock__elevation", at="node")
 #    z += mg.node_x.copy()**2
 #    BRz = z.copy() - 1.0
 #    soilTh[:] = z - BRz

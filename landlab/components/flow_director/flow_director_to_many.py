@@ -8,7 +8,6 @@ grid fields are set up correctly.
 """
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
 
 
@@ -44,9 +43,9 @@ class _FlowDirectorToMany(_FlowDirector):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = _FlowDirectorToMany(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -56,6 +55,8 @@ class _FlowDirectorToMany(_FlowDirector):
     """
 
     _name = "FlowDirectorToMany"
+
+    _unit_agnostic = True
 
     _info = {
         "flow__link_to_receiver_node": {
@@ -113,7 +114,7 @@ class _FlowDirectorToMany(_FlowDirector):
     def __init__(self, grid, surface):
         """Initialize the _FlowDirectorToMany class."""
         # run init for the inherited class
-        super(_FlowDirectorToMany, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self._to_n_receivers = "many"
 
         # set the number of recievers, proportions, and receiver links with the
@@ -121,11 +122,11 @@ class _FlowDirectorToMany(_FlowDirector):
         self.initialize_output_fields(values_per_element=self._max_receivers)
         self._receivers = grid.at_node["flow__receiver_node"]
         if np.all(self._receivers == 0):
-            self._receivers.fill(BAD_INDEX_VALUE)
+            self._receivers.fill(self._grid.BAD_INDEX)
 
         self._receiver_links = grid.at_node["flow__link_to_receiver_node"]
         if np.all(self._receiver_links == 0):
-            self._receiver_links.fill(BAD_INDEX_VALUE)
+            self._receiver_links.fill(self._grid.BAD_INDEX)
 
         self._proportions = grid.at_node["flow__receiver_proportions"]
         self._steepest_slope = grid.at_node["topographic__steepest_slope"]

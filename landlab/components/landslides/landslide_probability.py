@@ -146,6 +146,7 @@ class LandslideProbability(Component):
       mode rate of water transmitted through a unit width of saturated
       soil - either provided or calculated with Ksat and soil depth
     units: m2/day
+    unit agnostic: False
     at: node
     intent: in
 
@@ -194,11 +195,45 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = ls_prob.grid.core_nodes
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Strauch, R., Istanbulluoglu, E., Nudurupati, S., Bandaragoda, C.,
+    Gasparini, N., Tucker, G. (2018). A hydroclimatological approach to
+    predicting regional landslide probability using Landlab Earth Surface
+    Dynamics  6(1), 49-75. https://dx.doi.org/10.5194/esurf-6-49-2018
+
+    **Additional References**
+
+    None Listed
+
     """
 
     # component name
     _name = "Landslide Probability"
+
+    _unit_agnostic = False
+
     __version__ = "1.0"
+
+    _cite_as = """
+    @article{strauch2018hydroclimatological,
+      author = {Strauch, Ronda and Istanbulluoglu, Erkan and Nudurupati,
+      Sai Siddhartha and Bandaragoda, Christina and Gasparini, Nicole M and
+      Tucker, Gregory E},
+      title = {{A hydroclimatological approach to predicting regional landslide
+      probability using Landlab}},
+      issn = {2196-6311},
+      doi = {10.5194/esurf-6-49-2018},
+      pages = {49--75},
+      number = {1},
+      volume = {6},
+      journal = {Earth Surface Dynamics},
+      year = {2018}
+    }
+    """
     _info = {
         "landslide__probability_of_failure": {
             "dtype": float,
@@ -359,7 +394,7 @@ class LandslideProbability(Component):
         # Initialize seeded random number generation
         self._seed_generator(seed)
 
-        super(LandslideProbability, self).__init__(grid)
+        super().__init__(grid)
 
         # Store parameters and do unit conversions
         self._n = int(number_of_iterations)

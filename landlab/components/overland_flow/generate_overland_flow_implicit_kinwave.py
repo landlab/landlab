@@ -137,7 +137,7 @@ class KinwaveImplicitOverlandFlow(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> kw = KinwaveImplicitOverlandFlow(rg)
     >>> round(kw.runoff_rate * 1.0e7, 2)
     2.78
@@ -145,9 +145,22 @@ class KinwaveImplicitOverlandFlow(Component):
     100.0
     >>> rg.at_node['surface_water__depth'][6:9]
     array([ 0.,  0.,  0.])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "KinwaveImplicitOverlandFlow"
+
+    _unit_agnostic = False
 
     _info = {
         "surface_water__depth": {
@@ -213,7 +226,7 @@ class KinwaveImplicitOverlandFlow(Component):
             Weighting on depth at new time step versus old time step (1 = all
             implicit; 0 = explicit)
         """
-        super(KinwaveImplicitOverlandFlow, self).__init__(grid)
+        super().__init__(grid)
         # Store parameters and do unit conversion
 
         self._runoff_rate = runoff_rate / 3600000.0  # convert to m/s

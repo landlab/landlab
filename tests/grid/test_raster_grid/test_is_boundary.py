@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import FIXED_GRADIENT_BOUNDARY, RasterModelGrid
+from landlab import NodeStatus, RasterModelGrid
 
 
 def test_id_as_int():
@@ -53,7 +53,7 @@ def test_id_as_list():
 
 def test_boundary_flag():
     rmg = RasterModelGrid((4, 5))
-    rmg.status_at_node[0] = FIXED_GRADIENT_BOUNDARY
+    rmg.status_at_node[0] = NodeStatus.FIXED_GRADIENT
     assert_array_equal(
         rmg.node_is_boundary(np.arange(20)),
         np.array(
@@ -84,7 +84,7 @@ def test_boundary_flag():
     )
 
     assert_array_equal(
-        rmg.node_is_boundary(np.arange(20), boundary_flag=FIXED_GRADIENT_BOUNDARY),
+        rmg.node_is_boundary(np.arange(20), boundary_flag=NodeStatus.FIXED_GRADIENT),
         np.array(
             [
                 True,

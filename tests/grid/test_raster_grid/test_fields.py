@@ -5,6 +5,31 @@ from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid
 
 
+def test_add_full(at):
+    grid = RasterModelGrid((4, 5))
+    grid.add_full("temperature", 3, at=at)
+    assert_array_equal(
+        getattr(grid, "at_{0}".format(at))["temperature"],
+        np.full(grid.number_of_elements(at), 3),
+    )
+
+
+def test_add_field_with_units(at):
+    grid = RasterModelGrid((4, 5))
+    grid.add_empty("temperature", at=at, units="C")
+    assert getattr(grid, "at_{0}".format(at)).units["temperature"] == "C"
+
+
+def test_field_keys_is_list(at):
+    grid = RasterModelGrid((4, 5))
+    expected = []
+    assert getattr(grid, "at_{0}".format(at)).keys() == expected
+    for name in ["temperature", "elevation"]:
+        grid.add_empty(name, at=at)
+        expected.append(name)
+        assert sorted(getattr(grid, "at_{0}".format(at)).keys()) == sorted(expected)
+
+
 def test_add_field_at_node():
     """Add field at nodes."""
     grid = RasterModelGrid((4, 5))

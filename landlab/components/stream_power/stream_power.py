@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, MissingKeyError
+from landlab import Component, MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
@@ -50,7 +50,7 @@ class StreamPowerEroder(Component):
     ...               7.,  2.,  3.,  5.,  7.,
     ...               7.,  1., 1.9,  4.,  7.,
     ...               7.,  0.,  7.,  7.,  7.])
-    >>> z = mg.add_field('node', 'topographic__elevation', z)
+    >>> z = mg.add_field("topographic__elevation", z, at="node")
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sp = StreamPowerEroder(mg, K_sp=1.)
     >>> fr.run_one_step()
@@ -64,7 +64,7 @@ class StreamPowerEroder(Component):
 
     >>> mg2 = RasterModelGrid((3, 7))
     >>> z = np.array(mg2.node_x**2.)
-    >>> z = mg2.add_field('node', 'topographic__elevation', z)
+    >>> z = mg2.add_field("topographic__elevation", z, at="node")
     >>> mg2.status_at_node[mg2.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
     >>> mg2.status_at_node[mg2.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED
@@ -80,7 +80,7 @@ class StreamPowerEroder(Component):
 
     >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.)
     >>> z = mg.node_x/100.
-    >>> z = mg3.add_field('node', 'topographic__elevation', z)
+    >>> z = mg3.add_field("topographic__elevation", z, at="node")
     >>> mg3.status_at_node[mg3.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
     >>> mg3.status_at_node[mg3.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED
@@ -103,9 +103,25 @@ class StreamPowerEroder(Component):
             0.        ,  0.02240092,  0.06879049,  0.14586033,  0.4       ,
             0.        ,  0.01907436,  0.05960337,  0.12929386,  0.4       ,
             0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "StreamPowerEroder"
+
+    _unit_agnostic = True
 
     _info = {
         "drainage_area": {
@@ -222,7 +238,7 @@ class StreamPowerEroder(Component):
             to false, the field *flood_status_code* must be present on the grid
             (this is created by the DepressionFinderAndRouter). Default True.
         """
-        super(StreamPowerEroder, self).__init__(grid)
+        super().__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
@@ -248,8 +264,10 @@ class StreamPowerEroder(Component):
 
         self._A = return_array_at_node(grid, discharge_field)
         self._elevs = return_array_at_node(grid, "topographic__elevation")
-        self._K_unit_time = return_array_at_node(grid, K_sp)
         self._sp_crit = return_array_at_node(grid, threshold_sp)
+
+        # use setter for K defined below
+        self.K = K_sp
 
         assert np.all(self._sp_crit >= 0.0)
 
@@ -324,6 +342,15 @@ class StreamPowerEroder(Component):
         self._stream_power_erosion = self._grid.zeros(centering="node")
         self._alpha = self._grid.zeros("node")
 
+    @property
+    def K(self):
+        """Erodibility (units depend on m_sp)."""
+        return self._K
+
+    @K.setter
+    def K(self, new_val):
+        self._K = return_array_at_node(self._grid, new_val)
+
     def run_one_step(self, dt):
         """A simple, explicit implementation of a stream power algorithm.
 
@@ -347,7 +374,7 @@ class StreamPowerEroder(Component):
         upstream_order_IDs = self._grid["node"]["flow__upstream_node_order"]
 
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"], UNDEFINED_INDEX
+            self._grid["node"]["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
 
         try:
@@ -363,7 +390,7 @@ class StreamPowerEroder(Component):
         # Operate the main function:
         if self._use_W:
             self._alpha[defined_flow_receivers] = (
-                self._K_unit_time[defined_flow_receivers]
+                self._K[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / self._W[defined_flow_receivers]
@@ -372,7 +399,7 @@ class StreamPowerEroder(Component):
 
         else:
             self._alpha[defined_flow_receivers] = (
-                self._K_unit_time[defined_flow_receivers]
+                self._K[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / (flow_link_lengths ** self._n)

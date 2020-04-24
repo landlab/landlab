@@ -38,9 +38,24 @@ class LithoLayers(Lithology):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Hutton, E., Gasparini, N., Tucker, G. (2018). Lithology: A
+    Landlab submodule for spatially variable rock properties. Journal of Open
+    Source Software  3(30), 979 - 2. https://dx.doi.org/10.21105/joss.00979
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "LithoLayers"
+
+    _unit_agnostic = True
 
     _cite_as = """@article{barnhart2018lithology,
                     title = "Lithology: A Landlab submodule for spatially variable rock properties",
@@ -193,7 +208,7 @@ class LithoLayers(Lithology):
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
-        super(LithoLayers, self).__init__(
+        super().__init__(
             grid,
             layer_thicknesses,
             layer_ids,

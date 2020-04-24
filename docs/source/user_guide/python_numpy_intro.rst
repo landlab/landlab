@@ -7,7 +7,7 @@ Introduction to Python
 Why Python?
 -----------
 
-Landlab is coded in Python and exploits and includes as dependencies a number
+Landlab is coded in Python and includes as dependencies a number
 of widely used scientific Python packages—in particular, NumPy and SciPy. The
 decision to code in Python was explicitly made to lower the bar to entry for
 Landlab; to increase the flexibility and reusability of the code base; and to
@@ -76,15 +76,15 @@ the block. e.g.,
 Lines don't need to end with the semicolon to suppress output; Python won't
 print output unless you explicitly call ``print``.
 
-Finally, but importantly, Python doesn't use the hat ``^`` as its r
-aise-to-the-power symbol. Instead, it uses a double star ``**``. Simple, but
+Finally, but importantly, Python doesn't use the hat ``^`` as its
+raise-to-the-power symbol. Instead, it uses a double star ``**``. Simple, but
 typically very frustrating for a day or two during transition! There's also the
 NumPy method, ``np.square``, which if you're using arrays typically outperforms
 the ``**`` operator.
 
 We have a very short tutorial on Python and NumPy from the point of view of
 Landlab (and the key differences with Matlab)
-`here <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=python_intro/python_intro.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/python_intro/python_intro.ipynb>`_.
 
 NumPy, SciPy, and Efficient Coding Style
 ----------------------------------------
@@ -96,7 +96,7 @@ faster and easier.
 
 In particular, Landlab makes extensive use of the NumPy array data structure.
 Almost all data input and output from Landlab is in the form of an array (see
-:ref:` Landlab Fields <fields>` for more information).
+:ref:`Landlab Fields <fields>` for more information).
 These arrays allow operations to happen much faster on the data than would be
 possible in a pure Python data structure like a list or a dictionary. (This is
 possible because NumPy arrays suppress some of Python's inbuilt type checking
@@ -136,9 +136,8 @@ which will be really slow. Do this:
 
     myarray[myarray < 0] = 0
 
-There is much more information about writing efficient NumPy code online. For
-example, `UW's astronomy department has a great online intro
-<http://depts.washington.edu/astron/>`_.
+There is much more information about writing efficient NumPy code online.
+
 We also strongly recommend the book "High Performance Python" by Gorelick and
 Ozsvald, published by O'Reilly, if you're looking for a more comprehensive
 treatment.

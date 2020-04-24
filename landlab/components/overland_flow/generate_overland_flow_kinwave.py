@@ -29,17 +29,30 @@ class KinwaveOverlandFlowModel(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
-    >>> z = rg.add_zeros("node", "topographic__elevation")
-    >>> s = rg.add_zeros("link", "topographic__gradient")
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
+    >>> s = rg.add_zeros("topographic__gradient", at="link")
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0
     >>> rg.at_node['surface_water__depth']
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
             0.,  0.,  0.,  0.,  0.,  0.,  0.])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "KinwaveOverlandFlowModel"
+
+    _unit_agnostic = False
 
     _info = {
         "surface_water__depth": {
@@ -107,7 +120,7 @@ class KinwaveOverlandFlowModel(Component):
         roughness : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
         """
-        super(KinwaveOverlandFlowModel, self).__init__(grid)
+        super().__init__(grid)
 
         # Store parameters and do unit conversion
         self._current_time = 0
@@ -162,7 +175,7 @@ class KinwaveOverlandFlowModel(Component):
         )
 
         # Calculate discharge
-        self._disch = H_link * self._vel
+        self._disch[:] = H_link * self._vel
 
         # Flux divergence
         dqda = self._grid.calc_flux_div_at_node(self._disch)

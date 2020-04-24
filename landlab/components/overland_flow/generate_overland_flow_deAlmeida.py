@@ -166,9 +166,29 @@ class OverlandFlow(Component):
     landlab.components.overland_flow folder.
 
     The primary method of this class is :func:`run_one_step`.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Adams, J., Gasparini, N., Hobley, D., Tucker, G., Hutton, E., Nudurupati,
+    S., Istanbulluoglu, E. (2017). The Landlab v1. 0 OverlandFlow component:
+    a Python tool for computing shallow-water flow across watersheds.
+    Geoscientific Model Development  10(4), 1645.
+    https://dx.doi.org/10.5194/gmd-10-1645-2017
+
+    **Additional References**
+
+    de Almeida, G., Bates, P., Freer, J., Souvignet, M. (2012). Improving the
+    stability of a simple formulation of the shallow water equations for 2-D
+    flood modeling. Water Resources Research 48(5)
+    https://dx.doi.org/10.1029/2011wr011570
+
     """
 
     _name = "OverlandFlow"
+
+    _unit_agnostic = False
 
     _cite_as = """@article{adams2017landlab,
         title={The Landlab v1. 0 OverlandFlow component: a Python
@@ -185,8 +205,6 @@ class OverlandFlow(Component):
         publisher={Copernicus GmbH}
         }
     """
-
-    _name = "OverlandFlow"
 
     _info = {
         "surface_water__depth": {
@@ -259,7 +277,7 @@ class OverlandFlow(Component):
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
         """
-        super(OverlandFlow, self).__init__(grid)
+        super().__init__(grid)
 
         # First we copy our grid
 
@@ -856,14 +874,12 @@ def find_active_neighbors_for_fixed_links(grid):
     Examples
     --------
     >>> from landlab.grid.structured_quad.links import neighbors_at_link
-    >>> from landlab import RasterModelGrid
+    >>> from landlab import NodeStatus, RasterModelGrid
     >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
 
-    >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
-
     >>> grid = RasterModelGrid((4, 5))
-    >>> grid.status_at_node[:5] = FIXED_GRADIENT_BOUNDARY
-    >>> grid.status_at_node[::5] = FIXED_GRADIENT_BOUNDARY
+    >>> grid.status_at_node[:5] = NodeStatus.FIXED_GRADIENT
+    >>> grid.status_at_node[::5] = NodeStatus.FIXED_GRADIENT
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 1,

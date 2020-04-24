@@ -1,0 +1,8 @@
+- file: animate-landlab-output.ipynb
+  reason: "requires ffmpeg, imagemagick"
+- file: cellular_automaton_vegetation_flat_domain.ipynb
+  reason: "not v2 compatible"
+- file: cellular_automaton_vegetation_DEM.ipynb
+  reason: "not v2 compatible"
+- file: lithology_and_litholayers.ipynb
+  reason: "stalls travis builds"

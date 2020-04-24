@@ -4,7 +4,6 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component, MissingKeyError
-from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
 
 
@@ -69,9 +68,24 @@ class SedDepEroder(Component):
     *flooded_depths* be passed to the run method. A flooded depression
     acts as a perfect sediment trap, and will be filled sequentially
     from the inflow points towards the outflow points.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Hobley, D. E. J., Sinclair, H. D., Mudd, S. M., and Cowie, P. A.: Field
+    calibration of sediment ﬂux dependent river incision, J. Geophys. Res.,
+    116, F04017, doi:10.1029/2010JF001935, 2011.
+
     """
 
     _name = "SedDepEroder"
+
+    _unit_agnostic = False
 
     _info = {
         "channel__bed_shear_stress": {
@@ -338,7 +352,7 @@ class SedDepEroder(Component):
             with sediment (...but does NOT update any other related lake
             fields).
         """
-        super(SedDepEroder, self).__init__(grid)
+        super().__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
@@ -701,7 +715,7 @@ class SedDepEroder(Component):
         steepest_link = "flow__link_to_receiver_node"
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
-        draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
+        draining_nodes = np.not_equal(grid.at_node[steepest_link], self._grid.BAD_INDEX)
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
         )

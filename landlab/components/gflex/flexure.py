@@ -53,26 +53,6 @@ class gFlex(Component):
     This component will modify the topographic__elevation field only if one
     already exists. Note that the gFlex component **demands lengths in
     meters**, including the grid dimensions.
-
-    Parameters
-    ----------
-    Youngs_modulus : float
-        Young's modulus for the lithosphere.
-    Poissons_ratio : float
-        Poisson's ratio for the lithosphere.
-    rho_mantle : float (kg*m**-3)
-        The density of the mantle.
-    rho_fill : float (kg*m**-3)
-        The density of the infilling material (air, water...)
-    elastic_thickness : float (m)
-        The elastic thickness of the lithosphere.
-    BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
-                              'Periodic'}
-        The boundary condition status of each grid edge, following gFlex's
-        definitions. Periodic boundaries must be paired (obviously).
-    g : float (m*s**-2)
-        The acceleration due to gravity.
-
     The component also recognises the gFlex specific parameters 'Method',
     'PlateSolutionType', 'Solver', and 'Quiet'. See the gFlex software
     documentation for more details.
@@ -104,10 +84,38 @@ class gFlex(Component):
     >>> z.reshape(mg.shape)[5, :] # doctest: +SKIP
     array([-0.43536739, -1.19197738, -2.164915  , -3.2388464 , -4.2607558 ,
            -5.15351385, -5.89373366, -6.50676947, -7.07880156, -7.63302576])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Wickert, A. (2016). Open-source modular solutions for flexural isostasy:
+    gFlex v1.0. Geoscientific Model Development  9(3), 997-1017.
+    https://dx.doi.org/10.5194/gmd-9-997-2016
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "gFlex"
 
+    _unit_agnostic = True
+
+    _cite_as = """
+    @article{wickert2016open,
+      author = {Wickert, A. D.},
+      title = {{Open-source modular solutions for flexural isostasy: gFlex v1.0}},
+      issn = {1991-959X},
+      doi = {10.5194/gmd-9-997-2016},
+      pages = {997--1017},
+      number = {3},
+      volume = {9},
+      journal = {Geoscientific Model Development},
+      year = {2016}
+    }
+    """
     _info = {
         "lithosphere_surface__elevation_increment": {
             "dtype": float,
@@ -153,8 +161,28 @@ class gFlex(Component):
         BC_S="0Displacement0Slope",
         g=scipy.constants.g,
     ):
-        """Constructor for Wickert's gFlex in Landlab."""
-        super(gFlex, self).__init__(grid)
+        """Constructor for Wickert's gFlex in Landlab.
+
+        Parameters
+        ----------
+        Youngs_modulus : float
+            Young's modulus for the lithosphere.
+        Poissons_ratio : float
+            Poisson's ratio for the lithosphere.
+        rho_mantle : float (kg*m**-3)
+            The density of the mantle.
+        rho_fill : float (kg*m**-3)
+            The density of the infilling material (air, water...)
+        elastic_thickness : float (m)
+            The elastic thickness of the lithosphere.
+        BC_W, BC_E, BC_N, BC_S : {'0Displacement0Slope', '0Moment0Shear',
+                                  'Periodic'}
+            The boundary condition status of each grid edge, following gFlex's
+            definitions. Periodic boundaries must be paired (obviously).
+        g : float (m*s**-2)
+            The acceleration due to gravity.
+        """
+        super().__init__(grid)
 
         assert isinstance(grid, RasterModelGrid)
 

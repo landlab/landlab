@@ -119,6 +119,8 @@ class DepthSlopeProductErosion(Component):
 
     _name = "DepthSlopeProductErosion"
 
+    _unit_agnostic = True
+
     _info = {
         "surface_water__depth": {
             "dtype": float,
@@ -186,7 +188,7 @@ class DepthSlopeProductErosion(Component):
         slope : str
             Field name of an at-node field that contains the slope.
         """
-        super(DepthSlopeProductErosion, self).__init__(grid)
+        super().__init__(grid)
 
         assert slope in grid.at_node
 
@@ -219,8 +221,8 @@ class DepthSlopeProductErosion(Component):
 
         self._tau = self._rho * self._g * h * S
 
-        greater_than_tc, = np.where(self._tau >= self._tau_crit)
-        less_than_tc, = np.where(self._tau < self._tau_crit)
+        (greater_than_tc,) = np.where(self._tau >= self._tau_crit)
+        (less_than_tc,) = np.where(self._tau < self._tau_crit)
 
         self._E[less_than_tc] = 0.0
 

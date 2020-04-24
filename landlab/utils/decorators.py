@@ -197,7 +197,7 @@ class use_field_name_or_array(object):
 
     The array of values can be a field name.
 
-    >>> _ = grid.add_field('cell', 'elevation', [0, 1, 2, 3, 4, 5])
+    >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
     >>> my_func(grid, 'elevation')
     array([  0.,   2.,   4.,   6.,   8.,  10.])
     """
@@ -286,7 +286,7 @@ class use_field_name_array_or_value(object):
 
     The array of values can be a field name.
 
-    >>> _ = grid.add_field('cell', 'elevation', [0, 1, 2, 3, 4, 5])
+    >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
     >>> my_func(grid, 'elevation')
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 

@@ -8,8 +8,11 @@ Testing Your Installation
 -------------------------
 
 In order to test your installation you'll need to install the
-```pytest`` <https://docs.pytest.org/en/latest/>`_ package that is used
-to run the tests. This is included in the conda environment described above.
+`pytest <https://docs.pytest.org/en/latest/>`_ package that is used to run the
+tests. This is included in the conda environment in the
+:ref:`developer_install <dev_install_install>`.
+
+Alternatively, you can install pytest with conda:
 
 .. code-block:: bash
 
@@ -22,17 +25,44 @@ directory (the one with ``setup.py`` in it) and type into a terminal:
 
    $ pytest
 
-This command will collect and run all of the tests. If you want to only
-want to test one part of Landlab (perhaps a component you are working
-on), you would run:
+This command will collect and run all of the tests.
+
+More Advanced Testing Options
+`````````````````````````````
+
+If you want to only want to test one part of Landlab:
 
 .. code-block:: bash
 
-   $ pytest path\to\directory\you\want\to\test
+   $ pytest path/to/directory/you/want/to/test
+
+Landlab's code (and thus docstring tests) are located in the directory
+``landlab/landlab`` and the Landlab unit tests are located in the directory
+``landlab/tests``. The directory structure is the same for both directories, so
+to run the doctests and the unit tests for a particular part of landlab, one
+can use the ``*`` wildcard. For example, to test one particular component:
+
+.. code-block:: bash
+
+   $ pytest */components/<name of component directory>
+
+Testing the Notebooks
+`````````````````````
+
+Because the Landlab notebooks take a lot longer to test, the default
+configuration of pytest does not evaluate them. To test the entire package,
+including the notebooks, evaluate:
+
+.. code-block:: bash
+
+   $ pytest --run-notebook
+
+Testing with Coverage
+`````````````````````
 
 You may also want to see the code coverage of different parts of
 Landlab. To do this, you'll first need to install
-```pytest-cov`` <https://pytest-cov.readthedocs.io/en/latest/readme.html>`_.
+`pytest-cov <https://pytest-cov.readthedocs.io/en/latest/readme.html>`_.
 
 .. code-block:: bash
 

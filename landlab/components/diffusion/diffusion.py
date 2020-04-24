@@ -8,13 +8,7 @@ style
 
 import numpy as np
 
-from landlab import (
-    FIXED_GRADIENT_BOUNDARY,
-    INACTIVE_LINK,
-    Component,
-    FieldError,
-    RasterModelGrid,
-)
+from landlab import Component, FieldError, LinkStatus, NodeStatus, RasterModelGrid
 
 _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
@@ -47,7 +41,7 @@ class LinearDiffuser(Component):
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
     >>> mg = RasterModelGrid((9, 9))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> z.reshape((9, 9))[4, 4] = 1.
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
@@ -56,7 +50,7 @@ class LinearDiffuser(Component):
     >>> np.isclose(z[mg.core_nodes].sum(), 1.)
     True
     >>> mg2 = RasterModelGrid((5, 30))
-    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
     >>> z2.reshape((5, 30))[2, 8] = 1.
     >>> z2.reshape((5, 30))[2, 22] = 1.
     >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -73,11 +67,11 @@ class LinearDiffuser(Component):
 
     >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
     >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> z1 = mg1.add_zeros('node', 'topographic__elevation')
-    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    >>> z1 = mg1.add_zeros("topographic__elevation", at="node")
+    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
     >>> dt = 1.
     >>> nt = 10
-    >>> kappa_links = mg2.add_ones('link', 'surface_water__discharge')
+    >>> kappa_links = mg2.add_ones("surface_water__discharge", at="link")
     >>> kappa_links *= 10000.
     >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
     >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge')
@@ -96,9 +90,23 @@ class LinearDiffuser(Component):
     ...     dfn2.run_one_step(dt)
     >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])
     True
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Culling, W. (1963). Soil Creep and the Development of Hillside Slopes.
+    The Journal of Geology  71(2), 127-161. https://dx.doi.org/10.1086/626891
+
     """
 
     _name = "LinearDiffuser"
+
+    _unit_agnostic = True
 
     _info = {
         "hillslope_sediment__unit_volume_flux": {
@@ -164,7 +172,7 @@ class LinearDiffuser(Component):
             will not reach the predicted analytical solution unless deposit is set
             to False.
         """
-        super(LinearDiffuser, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
         assert method in ("simple", "resolve_on_patches", "on_diagonals")
@@ -332,7 +340,7 @@ class LinearDiffuser(Component):
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
         >>> mg = RasterModelGrid((4, 5))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
         >>> ld.fixed_grad_nodes.size == 0
@@ -356,7 +364,7 @@ class LinearDiffuser(Component):
         True
         """
         fixed_grad_nodes = np.where(
-            self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY
+            self._grid.status_at_node == NodeStatus.FIXED_GRADIENT
         )[0]
         heads = self._grid.node_at_link_head[self._grid.fixed_links]
         tails = self._grid.node_at_link_tail[self._grid.fixed_links]
@@ -389,11 +397,11 @@ class LinearDiffuser(Component):
                 mg.node_at_link_tail[self._vert], 0:3:2
             ]
             self._vert_link_badlinks = np.logical_or(
-                mg.status_at_link[self._vert_link_neighbors] == INACTIVE_LINK,
+                mg.status_at_link[self._vert_link_neighbors] == LinkStatus.INACTIVE,
                 self._vert_link_neighbors == -1,
             )
             self._hoz_link_badlinks = np.logical_or(
-                mg.status_at_link[self._hoz_link_neighbors] == INACTIVE_LINK,
+                mg.status_at_link[self._hoz_link_neighbors] == LinkStatus.INACTIVE,
                 self._hoz_link_neighbors == -1,
             )
 
@@ -445,7 +453,7 @@ class LinearDiffuser(Component):
             # need this else diffusivities on inactive links deform off-angle
             # calculations
             kd_links = kd_links.copy()
-            kd_links[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+            kd_links[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Take the smaller of delt or built-in time-step size self._dt
         self._tstep_ratio = dt / self._dt

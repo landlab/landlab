@@ -195,6 +195,8 @@ def wrap_as_bmi(cls):
     >>> flexure = BmiFlexure()
     >>> sorted(flexure.get_input_var_names())
     ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
+    >>> flexure.get_var_units("lithosphere__overlying_pressure_increment")
+    'Pa'
 
     >>> config = \"\"\"
     ... flexure:
@@ -256,7 +258,7 @@ def wrap_as_bmi(cls):
         def __init__(self):
             self._base = None
             self._clock = None
-            super(BmiWrapper, self).__init__()
+            super().__init__()
 
             self._input_var_names = tuple(
                 set(self._cls.input_var_names) | {"boundary_condition_flag"}
@@ -413,7 +415,7 @@ def wrap_as_bmi(cls):
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
-            return self.var_units[name]
+            return self._info[name]["units"]
 
         def get_value_ref(self, name):
             """Get a reference to a variable's data."""

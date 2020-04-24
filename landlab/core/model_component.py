@@ -8,6 +8,7 @@ Base component class methods
 
     ~landlab.core.model_component.Component.name
     ~landlab.core.model_component.Component.from_path
+    ~landlab.core.model_component.Component.unit_agnostic
     ~landlab.core.model_component.Component.units
     ~landlab.core.model_component.Component.definitions
     ~landlab.core.model_component.Component.input_var_names
@@ -32,7 +33,7 @@ import textwrap
 import numpy as np
 
 from .. import registry
-from ..field.scalar_data_fields import FieldError
+from ..field import FieldError
 from .model_parameter_loader import load_params
 
 _VAR_HELP_MESSAGE = """
@@ -40,6 +41,7 @@ name: {name}
 description:
 {desc}
 units: {units}
+unit agnostic: {unit_agnostic}
 at: {loc}
 intent: {intent}
 """
@@ -55,6 +57,8 @@ class Component:
 
     _info = {}
     _name = None
+    _cite_as = ""
+    _unit_agnostic = None
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
@@ -133,6 +137,42 @@ class Component:
         else:
             params = load_params(path)
         return cls(grid, **params)
+
+    @property
+    def current_time(self):
+        """Current time.
+
+        Some components may keep track of the current time. In this case, the
+        ``current_time`` attribute is incremented. Otherwise it is set to None.
+
+        Returns
+        -------
+        current_time
+        """
+        return self._current_time
+
+    @current_time.setter
+    def current_time(self, new_time):
+        if self._current_time is not None:
+            assert new_time > self._current_time
+        self._current_time = new_time
+
+    @classproperty
+    @classmethod
+    def cite_as(cls):
+        """Citation information for component.
+
+        Return required software citation, if any. An empty string indicates
+        that no citations other than the standard Landlab package citations are
+        needed for the component.
+
+        Citations are provided in BibTeX format.
+
+        Returns
+        -------
+        cite_as
+        """
+        return cls._cite_as
 
     @property
     def current_time(self):
@@ -234,6 +274,25 @@ class Component:
 
     @classproperty
     @classmethod
+    def unit_agnostic(cls):
+        """Whether the component is unit agnostic.
+
+        If True, then the component is unit agnostic. Under this condition a
+        user must still provide consistent units across all input arguments,
+        keyword arguments, and fields. However, when ``unit_agnostic`` is True
+        the units specified can be interpreted as dimensions.
+
+        When False, then the component requires inputs in the specified units.
+
+        Returns
+        -------
+        bool
+
+        """
+        return cls._unit_agnostic
+
+    @classproperty
+    @classmethod
     def units(cls):
         """Get the units for all field values.
 
@@ -311,7 +370,12 @@ class Component:
         intent = cls._info[name]["intent"]
 
         help = _VAR_HELP_MESSAGE.format(
-            name=name, desc=desc, units=units, loc=loc, intent=intent
+            name=name,
+            desc=desc,
+            units=units,
+            loc=loc,
+            intent=intent,
+            unit_agnostic=cls._unit_agnostic,
         )
 
         print(help.strip())
@@ -380,7 +444,7 @@ class Component:
                 init_vals = np.zeros(size, dtype=type_in)
                 units_in = self.var_units(name)
 
-                self.grid.add_field(at, name, init_vals, units=units_in, copy=False)
+                self.grid.add_field(name, init_vals, at=at, units=units_in, copy=False)
 
     def initialize_optional_output_fields(self):
         """Create fields for a component based on its optional field outputs,
@@ -403,7 +467,7 @@ class Component:
                 init_vals = self.grid.zeros(at, dtype=type_in)
                 units_in = self.var_units(name)
 
-                self.grid.add_field(at, name, init_vals, units=units_in, copy=False)
+                self.grid.add_field(name, init_vals, at=at, units=units_in, copy=False)
 
     @property
     def shape(self):

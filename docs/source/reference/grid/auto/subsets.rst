@@ -29,7 +29,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
-    ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
 

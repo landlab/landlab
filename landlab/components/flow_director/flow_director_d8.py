@@ -12,6 +12,7 @@ FlowDirectorSteepest instead.
 
 import numpy
 
+from landlab import LinkStatus
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -52,9 +53,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorD8(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -76,9 +77,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
+    ...     "topographic__elevation",
+    ...     topographic__elevation,
+    ...     at="node",
     ... )
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorD8(mg_2)
@@ -97,6 +98,19 @@ class FlowDirectorD8(_FlowDirectorToOne):
     array([0, 1, 2,
            3, 0, 5,
            6, 7, 8])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    O'Callaghan, J., Mark, D. (1984). The extraction of drainage networks from
+    digital elevation data. Computer Vision, Graphics, and Image Processing
+    28(3), 323 - 344. https://dx.doi.org/10.1016/s0734-189x(84)80011-0
+
     """
 
     _name = "FlowDirectorD8"
@@ -155,7 +169,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             topographic__elevation,.
         """
         self._method = "D8"
-        super(FlowDirectorD8, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         try:
             self._grid.nodes_at_d8
         except AttributeError:
@@ -215,7 +229,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         # step 1. Calculate link slopes.
         link_slope = -self._grid.calc_grad_at_d8(self._surface_values)
-        link_slope[self._grid.status_at_d8 != self._grid.BC_LINK_IS_ACTIVE] = 0
+        link_slope[self._grid.status_at_d8 != LinkStatus.ACTIVE] = 0
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(

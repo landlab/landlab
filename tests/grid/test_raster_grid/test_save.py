@@ -10,7 +10,7 @@ from landlab.io.netcdf import read_netcdf
 
 def test_save_esri_ascii(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=2.0)
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         grid.save("test.asc", format="esri-ascii")
@@ -19,7 +19,7 @@ def test_save_esri_ascii(tmpdir):
 
 def test_add_extension(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=2.0)
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         grid.save("test", format="esri-ascii")
@@ -32,7 +32,7 @@ def test_add_extension(tmpdir):
 
 def test_replace_extension(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=2.0)
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         grid.save("test.nc", format="esri-ascii")
@@ -45,7 +45,7 @@ def test_replace_extension(tmpdir):
 
 def test_guess_format(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=2.0)
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         grid.save("test.asc")

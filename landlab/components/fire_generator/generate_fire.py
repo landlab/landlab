@@ -43,6 +43,19 @@ To get a time to next fire:
 
 >>> fg.generate_fire_recurrence()  # doctest: +SKIP
 10.68
+
+References
+----------
+**Required Software Citation(s) Specific to this Component**
+
+None Listed
+
+**Additional References**
+
+Polakow, D., Dunne, T. (1999). Modelling fire-return interval T: stochasticity
+and censoring in the two-parameter Weibull model Ecological Modelling  121(1),
+79-102. https://dx.doi.org/10.1016/s0304-3800(99)00074-5
+
 """
 
 from random import weibullvariate
@@ -75,6 +88,8 @@ class FireGenerator(Component):
 
     _name = "FireGenerator"
 
+    _unit_agnostic = True
+
     _info = {}
 
     def __init__(
@@ -98,7 +113,7 @@ class FireGenerator(Component):
             it can be found using mean fire recurrence value and the
             get_scale_parameter().
         """
-        super(FireGenerator, self).__init__(grid)
+        super().__init__(grid)
         self._mean_fire_recurrence = mean_fire_recurrence
 
         self._shape_parameter = shape_parameter

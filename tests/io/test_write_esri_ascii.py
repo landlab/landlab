@@ -20,7 +20,7 @@ def test_grid_with_no_fields(tmpdir):
 
 def test_grid_with_one_field(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
     with tmpdir.as_cwd():
         files = write_esri_ascii("test.asc", grid)
         assert files == ["test.asc"]
@@ -30,8 +30,8 @@ def test_grid_with_one_field(tmpdir):
 
 def test_grid_with_two_fields(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    grid.add_field("node", "air__temperature", np.arange(20.0))
-    grid.add_field("node", "land_surface__elevation", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
+    grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
     with tmpdir.as_cwd():
         files = write_esri_ascii("test.asc", grid)
         files.sort()
@@ -67,8 +67,8 @@ def test_names_keyword_as_list(tmpdir):
 
 def test_names_keyword_multiple_names(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    grid.add_field("node", "air__temperature", np.arange(20.0))
-    grid.add_field("node", "land_surface__elevation", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
+    grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         files = write_esri_ascii(
@@ -85,7 +85,7 @@ def test_names_keyword_multiple_names(tmpdir):
 
 def test_names_keyword_with_bad_name(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         with pytest.raises(ValueError):
@@ -94,7 +94,7 @@ def test_names_keyword_with_bad_name(tmpdir):
 
 def test_clobber_keyword(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         write_esri_ascii("test.asc", grid)
@@ -107,7 +107,7 @@ def test_clobber_keyword(tmpdir):
 
 def test_write_then_read(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0), xy_of_lower_left=(15.0, 10.0))
-    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         write_esri_ascii("test.asc", grid)

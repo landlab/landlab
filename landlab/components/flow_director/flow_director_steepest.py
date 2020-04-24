@@ -11,12 +11,7 @@ use FlowDirectorD8.
 
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    VoronoiDelaunayGrid,
-)
+from landlab import NodeStatus, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -37,7 +32,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     -  Node array of steepest downhill slopes:
        *'topographic__steepest_slope'*
     -  Node array containing ID of link that leads from each node to its
-       receiver, or BAD_INDEX_VALUE if no link:
+       receiver, or grid.BAD_INDEX if no link:
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
@@ -57,9 +52,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -80,9 +75,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
+    ...     "topographic__elevation",
+    ...     topographic__elevation,
+    ...     at="node",
     ... )
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorSteepest(mg_2)
@@ -206,9 +201,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid((5, 3))
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + np.round(mg.node_y),
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -249,9 +244,22 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         7,  3,  4,  5, 11,
          12,  8,  9, 15,
           16, 17, 18])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "FlowDirectorSteepest"
+
+    _unit_agnostic = True
 
     _info = {
         "flow__link_direction": {
@@ -315,7 +323,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             topographic__elevation,.
         """
         self._method = "D4"
-        super(FlowDirectorSteepest, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
         # get 'flow__link_direction' field
@@ -372,8 +380,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = np.where(
             np.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 
@@ -412,7 +420,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._flow_link_direction[:] = 0
 
         # identify where flow is active on links
-        is_active_flow_link = self._links_to_receiver != BAD_INDEX_VALUE
+        is_active_flow_link = self._links_to_receiver != self._grid.BAD_INDEX
 
         # make an array that says which link ID is active
         active_flow_links = self._links_to_receiver[is_active_flow_link]
@@ -463,9 +471,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -487,9 +495,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> from landlab.components import FlowAccumulator
         >>> mg1 = RasterModelGrid((5, 5))
         >>> z1 = mg1.add_field(
-        ...      'node',
-        ...      'topographic__elevation',
-        ...      mg1.x_of_node+2 * mg1.y_of_node
+        ...     "topographic__elevation",
+        ...     mg1.x_of_node+2 * mg1.y_of_node,
+        ...     at="node",
         ... )
         >>> z1[12] -= 5
         >>> mg1.set_closed_boundaries_at_grid_edges(True, True, True, False)
@@ -532,9 +540,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         >>> mg2 = RasterModelGrid((5, 5))
         >>> z2 = mg2.add_field(
-        ...      'node',
-        ...      'topographic__elevation',
-        ...      mg2.x_of_node+2 * mg2.y_of_node
+        ...     "topographic__elevation",
+        ...     mg2.x_of_node+2 * mg2.y_of_node,
+        ...     at="node",
         ... )
         >>> z2[12] -= 5
         >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
@@ -581,7 +589,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         flow_link_direction_at_node = self._flow_link_direction[
             self._grid.links_at_node
         ]
-        flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
+        flow_to_bad = self._grid.links_at_node == self._grid.BAD_INDEX
         flow_link_direction_at_node[flow_to_bad] = 0
 
         return flow_link_direction_at_node
@@ -602,9 +610,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -654,9 +662,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -677,9 +685,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -707,9 +715,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()

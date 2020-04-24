@@ -24,7 +24,6 @@ Base class
     ~landlab.grid.base.ModelGrid.number_of_fixed_links
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
     ~landlab.grid.base.ModelGrid.patches_present_at_link
-    ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.status_at_link
     ~landlab.grid.base.ModelGrid.upwind_links_at_node
@@ -58,7 +57,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
     ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
-    ~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_links
     ~landlab.grid.raster.RasterModelGrid.status_at_link
     ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
@@ -90,7 +88,6 @@ Irregular Voronoi-cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
@@ -121,7 +118,6 @@ Hexagonal
     ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
     ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
     ~landlab.grid.hex.HexModelGrid.patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.resolve_values_on_active_links
     ~landlab.grid.hex.HexModelGrid.resolve_values_on_links
     ~landlab.grid.hex.HexModelGrid.status_at_link
     ~landlab.grid.hex.HexModelGrid.upwind_links_at_node
@@ -153,7 +149,6 @@ Radial
     ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
-    ~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_links
     ~landlab.grid.radial.RadialModelGrid.status_at_link
     ~landlab.grid.radial.RadialModelGrid.upwind_links_at_node

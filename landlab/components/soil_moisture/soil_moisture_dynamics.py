@@ -85,9 +85,26 @@ class SoilMoisture(Component):
     >>> current_time = SM.update()
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Laio, F., Porporato, A., Ridolfi, L., Rodriguez-Iturbe, I. (2001). Plants
+    in water-controlled ecosystems: active role in hydrologic processes and
+    response to water stress II. Probabilistic soil moisture dynamics. Advances
+    in Water Resources  24(7), 707-723.
+    https://dx.doi.org/10.1016/s0309-1708(01)00005-7
+
     """
 
     _name = "Soil Moisture"
+
+    _unit_agnostic = False
 
     _info = {
         "rainfall__daily_depth": {
@@ -285,7 +302,7 @@ class SoilMoisture(Component):
         current_time: float
               Current time (years).
         """
-        super(SoilMoisture, self).__init__(grid)
+        super().__init__(grid)
 
         self.current_time = 0
         self._method = method

@@ -1,22 +1,7 @@
 name: landlab_dev
-channels:
-  - conda-forge
 dependencies:
-  # for development
-- black
-- flake8
-- isort
-- pytest
-- pytest-cov
-- pytest-datadir
-# for the package
-- matplotlib
-- netcdf4
-- pyshp
-- pyyaml
-- scipy
-- statsmodels
-- pandas
-- xarray
 - pip:
-    - bmipy<1
+  - -r file:requirements.txt
+  - -r file:requirements-testing.txt
+  - -r file:requirements-dev.txt
+  - -r file:requirements-notebooks.txt
