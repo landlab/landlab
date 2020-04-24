@@ -2,6 +2,7 @@ import numpy as np
 
 from landlab import Component, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
+from ..depression_finder.lake_mapper import _FLOODED
 
 DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
@@ -205,3 +206,23 @@ class _GeneralizedErosionDeposition(Component):
 
     def _calc_hydrology(self):
         self._Q_to_the_m[:] = np.power(self._q, self._m_sp)
+
+    def _depressions_are_handled(self):
+        """Return True if a depression-handling component is present."""
+        return "flood_status_code" in self._grid.at_node
+
+    def _get_flooded_core_nodes(self):
+        """Return boolean node array:True where core node is flooded or 
+        self-draining.
+        """
+        if self._depressions_are_handled():
+            is_flooded_core = np.logical_and(
+                self._grid.at_node["flood_status_code"] == _FLOODED,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+            )
+        else:
+            is_flooded_core = np.logical_and(
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+                self._slope <= 0.0,
+            )
+        return is_flooded_core
