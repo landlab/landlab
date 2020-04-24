@@ -144,6 +144,8 @@ class Flexure1D(Component):
 
     _name = "1D Flexure Equation"
 
+    _unit_agnostic = True
+
     _info = {
         "lithosphere__increment_of_overlying_pressure": {
             "dtype": float,
@@ -201,7 +203,7 @@ class Flexure1D(Component):
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
 
-        super(Flexure1D, self).__init__(grid)
+        super().__init__(grid)
 
         self._method = method
         self.youngs = youngs

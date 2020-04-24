@@ -81,7 +81,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.node_is_boundary
     ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes

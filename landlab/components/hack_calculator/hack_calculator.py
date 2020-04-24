@@ -171,6 +171,8 @@ class HackCalculator(Component):
 
     _name = "HackCalculator"
 
+    _unit_agnostic = True
+
     _info = {
         "distance_to_divide": {
             "dtype": float,
@@ -232,7 +234,7 @@ class HackCalculator(Component):
         **kwds :
             Values to pass to the ChannelProfiler.
         """
-        super(HackCalculator, self).__init__(grid)
+        super().__init__(grid)
 
         self._profiler = ChannelProfiler(grid, **kwds)
         self._save_full_df = save_full_df

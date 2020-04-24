@@ -26,6 +26,7 @@ class Record(object):
     ``advance_time``. Variables can be added to the record with the method,
     ``set_value``. Variable values not set at a time have a value of `nan`.
     """
+
     def __init__(self, initial_time=0):
         """Instantiate Record.
 
@@ -34,12 +35,12 @@ class Record(object):
         initial_time : float or int
             The initial time in the record.
         """
-        self._dict = OrderedDict([('time', [initial_time])])
+        self._dict = OrderedDict([("time", [initial_time])])
 
     @property
     def times(self):
         """The times stored in the record."""
-        return self._dict['time']
+        return self._dict["time"]
 
     @property
     def prior_time(self):
@@ -65,13 +66,13 @@ class Record(object):
     @property
     def count_of_time_steps(self):
         """The count of record time steps."""
-        return len(self._dict['time'])
+        return len(self._dict["time"])
 
     @property
     def variables(self):
         """The variables in the record."""
         variables = list(self._dict.keys())
-        variables.remove('time')
+        variables.remove("time")
         return variables
 
     @property
@@ -96,7 +97,7 @@ class Record(object):
         dt : float or int
             The time step duration to advance time in the record.
         """
-        self._dict['time'].append(self.latest_time + dt)
+        self._dict["time"].append(self.latest_time + dt)
 
         for var in self.variables:
             self._dict[var].append(np.nan)
@@ -185,6 +186,6 @@ class Record(object):
         if np.isnan(time):
             time = self.latest_time
         elif time not in self.times:
-            raise ValueError('the time, {} not in record'.format(time))
+            raise ValueError("the time, {} not in record".format(time))
 
         return time

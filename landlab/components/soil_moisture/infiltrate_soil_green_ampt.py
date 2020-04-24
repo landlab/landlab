@@ -60,6 +60,8 @@ class SoilInfiltrationGreenAmpt(Component):
 
     _name = "SoilInfiltrationGreenAmpt"
 
+    _unit_agnostic = False
+
     _cite_as = """
     @article{rengers2016model,
       author = {Rengers, F K and McGuire, L A and Kean, J W and Staley, D M and Hobley, D E J},
@@ -166,7 +168,7 @@ class SoilInfiltrationGreenAmpt(Component):
             bubbling pressure, following Brooks and Corey.
 
         """
-        super(SoilInfiltrationGreenAmpt, self).__init__(grid)
+        super().__init__(grid)
 
         self._min_water = surface_water_minimum_depth
         self._hydraulic_conductivity = hydraulic_conductivity

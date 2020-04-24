@@ -251,7 +251,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-# class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
     """Base class for 2D structured or unstructured grids for numerical models.
@@ -390,7 +389,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         axis_units = kwds.pop("xy_axis_units", "-")
         axis_name = kwds.pop("xy_axis_name", ("x", "y"))
 
-        super(ModelGrid, self).__init__()
+        super().__init__()
 
         self.new_field_location("node", self.number_of_nodes)
         self.new_field_location("link", self.number_of_links)

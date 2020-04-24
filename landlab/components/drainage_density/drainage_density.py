@@ -144,6 +144,8 @@ class DrainageDensity(Component):
 
     _name = "DrainageDensity"
 
+    _unit_agnostic = True
+
     _info = {
         "area_coefficient": {
             "dtype": float,
@@ -263,7 +265,7 @@ class DrainageDensity(Component):
         channelization_threshold : threshold value above
             which channels exist
         """
-        super(DrainageDensity, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             self._MFD = True

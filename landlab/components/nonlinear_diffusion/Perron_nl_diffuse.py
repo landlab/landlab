@@ -67,6 +67,8 @@ class PerronNLDiffuse(Component):
 
     _name = "PerronNLDiffuse"
 
+    _unit_agnostic = True
+
     _info = {
         "topographic__elevation": {
             "dtype": float,
@@ -100,7 +102,7 @@ class PerronNLDiffuse(Component):
         sed_density : float (kg*m**-3)
             The density of the mobile (sediment) layer
         """
-        super(PerronNLDiffuse, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
         self._values_to_diffuse = "topographic__elevation"

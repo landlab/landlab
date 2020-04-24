@@ -22,8 +22,8 @@ jobs:
   - stage: docs
     os: linux
     install:
-    - conda env create --file docs/environment.yml
-    - conda activate landlab_docs
+    - pip install -r requirements-docs.txt
+    - pip install numpy
     - pip install -e .
     script:
     - make -C docs clean html linkcheck
@@ -72,9 +72,9 @@ before_install:
   echo "backend: Agg" > $HOME/.matplotlib/matplotlibrc
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > $HOME/miniconda.sh
+    curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > $HOME/miniconda.sh
   else
-    curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
+    curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
   fi
 - bash $HOME/miniconda.sh -b -p $(pwd)/anaconda
 - export PATH="$(pwd)/anaconda/bin:$PATH"
@@ -88,5 +88,5 @@ install:
 - pip install -e .
 script:
 - pip install -r requirements-testing.txt -r requirements-notebooks.txt
-- pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --run-notebook -vvv
+- travis_wait 50 pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --run-notebook -vvv
 after_success: coveralls

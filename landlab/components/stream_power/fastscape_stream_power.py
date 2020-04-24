@@ -142,6 +142,8 @@ class FastscapeEroder(Component):
 
     _name = "FastscapeEroder"
 
+    _unit_agnostic = True
+
     _info = {
         "drainage_area": {
             "dtype": float,
@@ -231,7 +233,7 @@ class FastscapeEroder(Component):
             to false, the field *flood_status_code* must be present on the grid
             (this is created by the DepressionFinderAndRouter). Default True.
         """
-        super(FastscapeEroder, self).__init__(grid)
+        super().__init__(grid)
 
         # save a flag for MFD.
         self._MFD = grid.at_node["flow__receiver_node"].size != grid.size("node")

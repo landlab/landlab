@@ -14,6 +14,8 @@ class _GeneralizedErosionDeposition(Component):
 
     _name = "_GeneralizedErosionDeposition"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -114,7 +116,7 @@ class _GeneralizedErosionDeposition(Component):
             to false, the field *flood_status_code* must be present on the grid
             (this is created by the DepressionFinderAndRouter). Default True.
         """
-        super(_GeneralizedErosionDeposition, self).__init__(grid)
+        super().__init__(grid)
 
         if not erode_flooded_nodes:
             if "flood_status_code" not in self._grid.at_node:
