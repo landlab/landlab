@@ -432,11 +432,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         first_iteration = True
 
-        if not self._erode_flooded_nodes:
-            flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
-        else:
-            flooded_nodes = []
+        is_flooded_core_node = self.get_flooded_core_nodes()
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
@@ -449,11 +445,17 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             if not first_iteration:
                 # update the link slopes
                 self._update_flow_link_slopes()
-                # update where nodes are flooded. This shouuldn't happen bc
-                # of the dynamic timestepper, but just incase, we update here.
-                new_flooded_nodes = np.where(self._slope < 0)[0]
-                flooded_nodes = np.asarray(
-                    np.unique(np.concatenate((flooded_nodes, new_flooded_nodes))),
+                # update where nodes are flooded. This shouldn't happen bc
+                # of the dynamic timestepper, but just in case, we update here.
+                new_flooded_nodes = np.where(
+                    np.logical_and(
+                        self._slope < 0, self._grid.status_at_node == _FLOODED
+                    )
+                )[0]
+                is_flooded_core_node = np.asarray(
+                    np.unique(
+                        np.concatenate((is_flooded_core_node, new_flooded_nodes))
+                    ),
                     dtype=np.int64,
                 )
             else:
@@ -462,7 +464,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             # Calculate rates of entrainment
             self._calc_hydrology()
             self._calc_erosion_rates()
-            self._erosion_term[flooded_nodes] = 0.0
+            self._erosion_term[is_flooded_core_node] = 0.0
             self._qs_in[:] = 0.0
 
             # Sweep through nodes from upstream to downstream, calculating Qs.
@@ -483,6 +485,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
                 self._v_s / self._q[self._q > 0]
             )
+            if not self.depressions_are_handled():  # all sed dropped here
+                self._depo_rate[is_flooded_core_node] = (
+                    self._qs_in[is_flooded_core_node]
+                    / self._cell_area_at_node[is_flooded_core_node]
+                )
 
             # Rate of change of elevation at core nodes:
             dzdt[cores] = (self._depo_rate[cores] - self._erosion_term[cores]) / (
@@ -516,7 +523,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             # Here, masking out means simply assigning the remaining time in
             # the global time step.
             self._time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
-            self._time_to_flat[flooded_nodes] = remaining_time
+            self._time_to_flat[is_flooded_core_node] = remaining_time
 
             # From this, find the maximum stable time step. If it is smaller
             # than our tolerance, report and quit.
