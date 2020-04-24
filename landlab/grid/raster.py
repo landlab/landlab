@@ -16,8 +16,6 @@ from landlab.utils.decorators import make_return_array_immutable
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..field import FieldError
 from ..graph import DualUniformRectilinearGraph
-from ..io import write_esri_ascii
-from ..io.netcdf import write_netcdf
 from . import raster_funcs as rfuncs
 from .base import ModelGrid
 from .decorators import return_id_array
