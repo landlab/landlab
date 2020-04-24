@@ -124,7 +124,7 @@ class Space(_GeneralizedErosionDeposition):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    Shobe, C., Tucker, G., Barnhart, K. (2017). The SPACE 1.0 model: a Landlab
+    Shobe, C., Tucker, G., Barnhart, K. (2017). The SPACE 1.0 model: a Landlab
     component for 2-D calculation of sediment transport, bedrock erosion, and
     landscape evolution. Geoscientific Model Development  10(12), 4577 - 4604.
     https://dx.doi.org/10.5194/gmd-10-4577-2017
@@ -466,7 +466,7 @@ class Space(_GeneralizedErosionDeposition):
         )
         # positive slopes, flooded
         pos_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (flooded)
-        self._soil__depth[pos_flood] = (
+        self._soil__depth[pos_flood] += (
             self._depo_rate[pos_flood] / (1 - self._phi)
         ) * dt
 
