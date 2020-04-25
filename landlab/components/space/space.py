@@ -228,8 +228,8 @@ class Space(_GeneralizedErosionDeposition):
     def __init__(
         self,
         grid,
-        K_sed=0.02,
-        K_br=0.02,
+        K_sed=0.002,
+        K_br=0.002,
         F_f=0.0,
         phi=0.3,
         H_star=0.1,
