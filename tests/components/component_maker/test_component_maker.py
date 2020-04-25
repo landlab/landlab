@@ -29,14 +29,14 @@ def test_simple():
 
 def test_spam_type():
     """Test that passing a bad variable type to spam raises a ValueError"""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     with pytest.raises(ValueError):
         ComponentMaker(mg, spam=1.0, eggs=1.0)
 
 
 def test_eggs_type():
     """Test that passing a bad variable type to eggs raises a ValueError"""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     with pytest.raises(ValueError):
         ComponentMaker(mg, spam=True, eggs=False)
 
@@ -46,6 +46,8 @@ def test_that_component_works_with_non_raster_grids():
     # This is especially important if your component behaves differently when
     # flow directing is done with our without the raster diagonals (called d8s
     # in landlab).
+    HexModelGrid((3, 3))
+
     pass
 
 
@@ -61,4 +63,5 @@ def test_correct_solution_found():
     # you then have your component calculate the answer, and create a value or
     # array that has the known correct values, and then assert that these two
     # things are equal.
-    pass
+    assert_array_equal(1, 1)
+    assert_array_almost_equal(1.000001, 1.0)

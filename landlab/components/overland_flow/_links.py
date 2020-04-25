@@ -1,7 +1,7 @@
 import numpy as np
 
-from ...graph.structured_quad.structured_quad import StructuredQuadGraphTopology
 from ...core.utils import as_id_array
+from ...graph.structured_quad.structured_quad import StructuredQuadGraphTopology
 from . import _neighbors_at_link
 
 

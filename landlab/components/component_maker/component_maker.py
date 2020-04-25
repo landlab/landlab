@@ -43,7 +43,7 @@ an overall example of using your component.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components import ComponentMaker
->>> mg = RasterModelGrid(3,3)
+>>> mg = RasterModelGrid((3,3))
 >>> cm = ComponentMaker(mg, spam=True, eggs=1.0)
 >>> cm.spam
 True
@@ -84,17 +84,23 @@ class ComponentMaker(Component):
 
     _cite_as = """Insert a BibTeX formatted reference here"""
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = ("component_maker__field",)
-
-    _var_units = {"topographic__elevation": "m", "component_maker__field": "-"}
-
-    _var_mapping = {"topographic__elevation": "node", "component_maker__field": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "component_maker__field": "A description of the fields made by the component",
+    _info = {
+        "component_maker__field": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "put units here",
+            "mapping": "node",
+            "doc": "A description of the fields made by the component",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(self, grid, spam, eggs=True, **kwds):
@@ -116,10 +122,7 @@ class ComponentMaker(Component):
         """
         # In this line, we call the init method of Component, the class from
         # which this component is derived.
-        super(ComponentMaker, self).__init__(grid)
-
-        # Then we save an reference to the grid.
-        self._grid = grid
+        super().__init__(grid)
 
         # the rest of initialization goes here.
         # if you have specific types or shapes, you should check that they have

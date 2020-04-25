@@ -7,6 +7,12 @@ Components
 This section contains documentation and API reference information for the
 following categories of components:
 
+Section Header If Relevant
+--------------------------
+.. toctree::
+   :maxdepth: 2
+
+   component_maker
 
 Hillslope geomorphology
 -----------------------
