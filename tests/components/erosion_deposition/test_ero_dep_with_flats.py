@@ -6,7 +6,8 @@ Created on Thu Apr 23 09:09:49 2020
 @author: gtucker
 """
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+
 from landlab import RasterModelGrid
 from landlab.components import ErosionDeposition, FlowAccumulator
 
@@ -171,7 +172,7 @@ def test_adaptive_solver_without_depression_handling():
     z[grid.x_of_node < 15.0] = 10.0
 
     fa = FlowAccumulator(grid)
-    ed = ErosionDeposition(grid, solver='adaptive')
+    ed = ErosionDeposition(grid, solver="adaptive")
 
     fa.run_one_step()
     ed.run_one_step(1.0)
@@ -224,7 +225,7 @@ def test_adaptive_solver_with_depression_handling():
     fa = FlowAccumulator(
         grid, routing="D4", depression_finder="DepressionFinderAndRouter"
     )
-    ed = ErosionDeposition(grid, solver='adaptive')
+    ed = ErosionDeposition(grid, solver="adaptive")
 
     fa.run_one_step()
     ed.run_one_step(1.0)

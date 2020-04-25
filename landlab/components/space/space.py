@@ -441,26 +441,34 @@ class Space(_GeneralizedErosionDeposition):
 
         # first, potential blowup case:
         # positive slopes, not flooded
-        pos_not_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (~is_flooded_core_node)
+        pos_not_flood = (
+            (self._q > 0) & (blowup) & (self._slope > 0) & (~is_flooded_core_node)
+        )
         self._soil__depth[pos_not_flood] = self._H_star * np.log(
             ((self._sed_erosion_term[pos_not_flood] / (1 - self._phi)) / self._H_star)
             * dt
             + np.exp(self._soil__depth[pos_not_flood] / self._H_star)
         )
         # positive slopes, flooded
-        pos_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (is_flooded_core_node)
+        pos_flood = (
+            (self._q > 0) & (blowup) & (self._slope > 0) & (is_flooded_core_node)
+        )
         self._soil__depth[pos_flood] += (
             self._depo_rate[pos_flood] / (1 - self._phi)
         ) * dt
 
         # non-positive slopes, not flooded
-        non_pos_not_flood = (self._q > 0) & (blowup) & (self._slope <= 0) & (~is_flooded_core_node)
+        non_pos_not_flood = (
+            (self._q > 0) & (blowup) & (self._slope <= 0) & (~is_flooded_core_node)
+        )
         self._soil__depth[non_pos_not_flood] += (
             self._depo_rate[non_pos_not_flood] / (1 - self._phi) * dt
         )
 
         # more general case:
-        pos_not_flood = (self._q > 0) & (~blowup) & (self._slope > 0) & (~is_flooded_core_node)
+        pos_not_flood = (
+            (self._q > 0) & (~blowup) & (self._slope > 0) & (~is_flooded_core_node)
+        )
 
         self._soil__depth[pos_not_flood] = self._H_star * np.log(
             (
