@@ -32,7 +32,7 @@ def test_mass_conserve_all_closed(grid, Component, solver, phi):
     fa.run_one_step()
 
     ed = Component(grid, solver=solver, phi=phi)
-    ed.run_one_step(1)
+    ed.run_one_step(2)
 
     dz = grid.at_node["topographic__elevation"] - z_init
 
@@ -74,7 +74,7 @@ def test_mass_conserve_with_depression_finder(
     fa.run_one_step()
 
     ed = Component(grid2, solver=solver, phi=phi)
-    ed.run_one_step(1)
+    ed.run_one_step(2)
 
     dz = grid2.at_node["topographic__elevation"] - z_init
 
