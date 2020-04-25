@@ -23,7 +23,7 @@ def grid():
 
 
 @pytest.mark.parametrize("Component", [ErosionDeposition, Space])
-@pytest.mark.parametrize("phi", [0.])
+@pytest.mark.parametrize("phi", [0., 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 def test_mass_conserve_all_closed(grid, Component, solver, phi):
     z_init = grid.at_node["topographic__elevation"].copy()
@@ -32,7 +32,7 @@ def test_mass_conserve_all_closed(grid, Component, solver, phi):
     fa.run_one_step()
 
     ed = Component(grid, solver=solver, phi=phi)
-    ed.run_one_step(1.0)
+    ed.run_one_step(1)
 
     dz = grid.at_node["topographic__elevation"] - z_init
 
@@ -40,7 +40,8 @@ def test_mass_conserve_all_closed(grid, Component, solver, phi):
     # this because only one timestep. (I think, but not sure, even with adaptive.)
     dz[dz>0] *= (1 - phi)
 
-    assert_array_almost_equal(dz.mean(), 0.0)
+    mass_change = dz.mean()
+    assert_array_almost_equal(mass_change, 0.0, decimal=10)
 
 
 # Note that we can't make an equivalent test for with a depression finder yet
@@ -54,7 +55,7 @@ def grid2(grid):
     return grid
 
 @pytest.mark.parametrize("Component", [ErosionDeposition, Space])
-@pytest.mark.parametrize("phi", [0.])
+@pytest.mark.parametrize("phi", [0., 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
 def test_mass_conserve_with_depression_finder(grid2, Component, solver, depression_finder, phi):
@@ -70,7 +71,7 @@ def test_mass_conserve_with_depression_finder(grid2, Component, solver, depressi
     fa.run_one_step()
 
     ed = Component(grid2, solver=solver, phi=phi)
-    ed.run_one_step(1.0)
+    ed.run_one_step(1)
 
     dz = grid2.at_node["topographic__elevation"] - z_init
 
@@ -82,4 +83,4 @@ def test_mass_conserve_with_depression_finder(grid2, Component, solver, depressi
     # outlet.
     mass_change = dz[grid2.core_nodes].sum() + ed._qs_in[1]/grid2.cell_area_at_node[11]
 
-    assert_array_almost_equal(mass_change, 0.0)
+    assert_array_almost_equal(mass_change, 0.0, decimal=10)
