@@ -5,7 +5,6 @@ Landlab utilities
 +++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.core.utils.radians_to_degrees
     ~landlab.core.utils.extend_array
@@ -20,7 +19,7 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
-from __future__ import print_function
+
 
 import numpy as np
 
@@ -544,7 +543,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
         >>> sortorder = anticlockwise_argsort_points(pts)
         >>> np.all(sortorder == np.array([2, 0, 3, 1]))
         True
-        """
+    """
     if midpt is None:
         midpt = pts.mean(axis=0)
     assert len(midpt) == 2
@@ -604,8 +603,7 @@ def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
 
 
 def get_categories_from_grid_methods(grid_type):
-    """
-    Create a dict of category:[method_names] for a LL grid type.
+    """Create a dict of category:[method_names] for a LL grid type.
 
     Looks in the final line of the docstrings
     of class methods and properties for a catgory declaration, "LLCATS: ".
@@ -613,33 +611,35 @@ def get_categories_from_grid_methods(grid_type):
     values that are lists of the names of methods that have that category.
 
     Currently defined LLCATS are:
-        DEPR : deprecated
-        GINF : information about the grid as a whole
-        NINF : information about nodes
-        LINF : information about links
-        PINF : information about patches
-        CINF : information about cells
-        FINF : information about faces
-        CNINF : information about corners
-        FIELDIO : methods to access and change fields
-        FIELDADD : methods to create new fields/delete old fields
-        FIELDINF : information about fields (keys, names, etc)
-        GRAD : methods for gradients, fluxes, divergences and slopes
-        MAP : methods to map from one element type to another
-        BC : methods to interact with BCs
-        SURF : methods for surface analysis (slope, aspect, hillshade)
-        SUBSET : methods to indentify part of the grid based on conditions
-        CONN : method describing the connectivity of one element to another
-               (i.e., 'links_at_node')
-        MEAS : method describing a quantity defined on an element (i.e.,
-               'length_of_link')
-        OTHER : anything else
+
+        - DEPR : deprecated
+        - GINF : information about the grid as a whole
+        - NINF : information about nodes
+        - LINF : information about links
+        - PINF : information about patches
+        - CINF : information about cells
+        - FINF : information about faces
+        - CNINF : information about corners
+        - FIELDIO : methods to access and change fields
+        - FIELDADD : methods to create new fields/delete old fields
+        - FIELDINF : information about fields (keys, names, etc)
+        - GRAD : methods for gradients, fluxes, divergences and slopes
+        - MAP : methods to map from one element type to another
+        - BC : methods to interact with BCs
+        - SURF : methods for surface analysis (slope, aspect, hillshade)
+        - SUBSET : methods to indentify part of the grid based on conditions
+        - CONN : method describing the connectivity of one element to another
+          (i.e., 'links_at_node')
+        - MEAS : method describing a quantity defined on an element (i.e.,
+          'length_of_link')
+        - OTHER : anything else
 
     Parameters
     ----------
-    grid_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
-                 'RadialModelGrid', 'VoronoiDelaunayGrid', 'NetworkModelGrid'}
-        String of raster to inspect.
+    grid_type : str
+        String of grid to inspect. Options are 'ModelGrid', 'RasterModelGrid',
+        'HexModelGrid', 'RadialModelGrid', 'VoronoiDelaunayGrid', or
+        'NetworkModelGrid'.
 
     Returns
     -------

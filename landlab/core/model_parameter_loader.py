@@ -1,10 +1,7 @@
 import os
 import re
 
-import six
 import yaml
-
-from .model_parameter_dictionary import ModelParameterDictionary
 
 _loader = yaml.SafeLoader
 _loader.add_implicit_resolver(
@@ -50,7 +47,7 @@ def load_file_contents(file_like):
 
 
 def load_params(file_like):
-    """Load parameters from a file.
+    """Load parameters from a YAML style file.
 
     Parameters
     ----------
@@ -76,28 +73,10 @@ def load_params(file_like):
     True
     >>> params['start'], params['stop'], params['step']
     (0.0, 10.0, 2.0)
-
-    >>> contents = \"\"\"
-    ... start: Start time
-    ... 0.
-    ... stop: Stop time
-    ... 10.
-    ... step: Step time
-    ... 2.
-    ... \"\"\"
-    >>> params = load_params(contents)
-    >>> isinstance(params, dict)
-    True
-    >>> params['start'], params['stop'], params['step']
-    (0.0, 10.0, 2.0)
     """
     contents = load_file_contents(file_like)
 
-    try:
-        params = yaml.load(contents, Loader=_loader)
-    except yaml.YAMLError:
-        file_like = six.StringIO(contents)
-        params = ModelParameterDictionary(from_file=file_like, auto_type=True)
+    params = yaml.load(contents, Loader=_loader)
 
     if not isinstance(params, dict):
         raise ValueError("parsing of parameter file did not produce a dict-like object")

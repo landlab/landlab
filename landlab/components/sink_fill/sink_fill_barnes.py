@@ -1,27 +1,20 @@
 #!/usr/env/python
 
-"""
-fill_sinks_barnes.py
+"""fill_sinks_barnes.py.
 
-Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
-algorithms.
+Fill sinks in a landscape to the brim, following the Barnes et al.
+(2014) algorithms.
 """
 
-from __future__ import print_function
 
 import numpy as np
-from six import iteritems
 
-from landlab import BAD_INDEX_VALUE
 from landlab.components import LakeMapperBarnes
 from landlab.utils.return_array import return_array_at_node
 
-LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
-
 
 class SinkFillerBarnes(LakeMapperBarnes):
-    """
-    Uses the Barnes et al (2014) algorithms to replace pits in a topography
+    """Uses the Barnes et al (2014) algorithms to replace pits in a topography
     with flats, or optionally with very shallow gradient surfaces to allow
     continued draining.
 
@@ -34,41 +27,55 @@ class SinkFillerBarnes(LakeMapperBarnes):
     The locations and depths etc. of the fills will be tracked, and properties
     are provided to access this information.
 
-    Parameters
+    References
     ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node
-        The surface to fill.
-    method : {'Steepest', 'D8'}
-        Whether or not to recognise diagonals as valid flow paths, if a raster.
-        Otherwise, no effect.
-    fill_flat : bool
-        If True, pits will be filled to perfectly horizontal. If False, the new
-        surface will be slightly inclined (at machine precision) to give
-        steepest descent flow paths to the outlet, once they are calculated.
-    ignore_overfill : bool
-        If True, suppresses the Error that would normally be raised during
-        creation of a gentle incline on a fill surface (i.e., if not
-        fill_flat). Typically this would happen on a synthetic DEM where more
-        than one outlet is possible at the same elevation. If True, the
-        was_there_overfill property can still be used to see if this has
-        occurred.
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnes, R., Lehman, C., Mulla, D. (2014). Priority-flood: An optimal
+    depression-filling and watershed-labeling algorithm for digital elevation
+    models. Computers and Geosciences  62(C), 117 - 127.
+    https://dx.doi.org/10.1016/j.cageo.2013.04.024
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "SinkFillerBarnes"
 
-    _input_var_names = ("topographic__elevation",)
+    _unit_agnostic = True
 
-    _output_var_names = ("topographic__elevation", "sediment_fill__depth")
+    _cite_as = """@article{BARNES2014117,
+        title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
+        journal = "Computers & Geosciences",
+        volume = "62",
+        pages = "117 - 127",
+        year = "2014",
+        issn = "0098-3004",
+        doi = "https://doi.org/10.1016/j.cageo.2013.04.024",
+        url = "http://www.sciencedirect.com/science/article/pii/S0098300413001337",
+        author = "Richard Barnes and Clarence Lehman and David Mulla",
+        keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
+        }"""
 
-    _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
-
-    _var_mapping = {"topographic__elevation": "node", "sediment_fill__depth": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Surface topographic elevation",
-        "sediment_fill__depth": "Depth of sediment added at each" + "node",
+    _info = {
+        "sediment_fill__depth": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of sediment added at eachnode",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(
@@ -79,8 +86,29 @@ class SinkFillerBarnes(LakeMapperBarnes):
         fill_flat=False,
         ignore_overfill=False,
     ):
-        """
-        Initialise the component.
+        """Initialise the component.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node
+            The surface to fill.
+        method : {'Steepest', 'D8'}
+            Whether or not to recognise diagonals as valid flow paths, if a raster.
+            Otherwise, no effect.
+        fill_flat : bool
+            If True, pits will be filled to perfectly horizontal. If False, the new
+            surface will be slightly inclined (at machine precision) to give
+            steepest descent flow paths to the outlet, once they are calculated.
+        ignore_overfill : bool
+            If True, suppresses the Error that would normally be raised during
+            creation of a gentle incline on a fill surface (i.e., if not
+            fill_flat). Typically this would happen on a synthetic DEM where more
+            than one outlet is possible at the same elevation. If True, the
+            was_there_overfill property can still be used to see if this has
+            occurred.
+
         """
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
@@ -95,7 +123,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
         # Most of the functionality of this component is directly inherited
         # from SinkFillerBarnes, so
-        super(SinkFillerBarnes, self).__init__(
+        super().__init__(
             grid,
             surface=surface,
             method=method,
@@ -111,22 +139,21 @@ class SinkFillerBarnes(LakeMapperBarnes):
         # get used dynamically.
         self._supplied_surface = return_array_at_node(grid, surface).copy()
         # create the only new output field:
-        self._sed_fill_depth = self.grid.add_zeros(
-            "node", "sediment_fill__depth", noclobber=False
+        self._sed_fill_depth = self._grid.add_zeros(
+            "node", "sediment_fill__depth", clobber=True
         )
 
     def run_one_step(self):
-        """
-        Fills the surface to remove all pits.
+        """Fills the surface to remove all pits.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import SinkFillerBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -233,71 +260,70 @@ class SinkFillerBarnes(LakeMapperBarnes):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
-        super(SinkFillerBarnes, self).run_one_step()
+
+        super().run_one_step()
+
         self._sed_fill_depth[:] = self._surface - self._supplied_surface
 
     @property
     def fill_dict(self):
+        """Return a dictionary where the keys are the outlet nodes of each
+        filled area, and the values are deques of nodes within each.
+
+        Items are not returned in ID order.
         """
-        Return a dictionary where the keys are the outlet nodes of each filled
-        area, and the values are deques of nodes within each. Items are not
-        returned in ID order.
-        """
-        return super(SinkFillerBarnes, self).lake_dict
+        return super().lake_dict
 
     @property
     def fill_outlets(self):
-        """
-        Returns the outlet for each filled area, not necessarily in ID order.
-        """
-        return super(SinkFillerBarnes, self).lake_outlets
+        """Returns the outlet for each filled area, not necessarily in ID
+        order."""
+        return super().lake_outlets
 
     @property
     def number_of_fills(self):
-        """
-        Return the number of individual filled areas.
-        """
-        return super(SinkFillerBarnes, self).number_of_lakes
+        """Return the number of individual filled areas."""
+        return super().number_of_lakes
 
     @property
     def fill_map(self):
+        """Return an array of ints, where each filled node is labelled with its
+        outlet node ID.
+
+        Nodes not in a filled area are labelled with
+        BAD_INDEX_VALUE (default -1).
         """
-        Return an array of ints, where each filled node is labelled
-        with its outlet node ID.
-        Nodes not in a filled area are labelled with LOCAL_BAD_INDEX_VALUE
-        (default -1).
-        """
-        return super(SinkFillerBarnes, self).lake_map
+        return super().lake_map
 
     @property
     def fill_at_node(self):
-        """
-        Return a boolean array, True if the node is filled, False otherwise.
-        """
-        return super(SinkFillerBarnes, self).lake_at_node
+        """Return a boolean array, True if the node is filled, False
+        otherwise."""
+        return super().lake_at_node
 
     @property
     def fill_depths(self):
-        """Return the change in surface elevation at each node this step.
-        """
+        """Return the change in surface elevation at each node this step."""
         return self._sed_fill_depth
 
     @property
     def fill_areas(self):
+        """A nlakes-long array of the area of each fill.
+
+        The order is the same as that of the keys in fill_dict, and of
+        fill_outlets.
         """
-        A nlakes-long array of the area of each fill. The order is the same as
-        that of the keys in fill_dict, and of fill_outlets.
-        """
-        return super(SinkFillerBarnes, self).lake_areas
+        return super().lake_areas
 
     @property
     def fill_volumes(self):
-        """
-        A nlakes-long array of the volume of each fill. The order is the same
-        as that of the keys in fill_dict, and of fill_outlets.
+        """A nlakes-long array of the volume of each fill.
+
+        The order is the same as that of the keys in fill_dict, and of
+        fill_outlets.
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
-        col_vols = self.grid.cell_area_at_node * self.fill_depths
-        for (i, (outlet, fillnodes)) in enumerate(iteritems(self.fill_dict)):
+        col_vols = self._grid.cell_area_at_node * self._sed_fill_depth
+        for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols

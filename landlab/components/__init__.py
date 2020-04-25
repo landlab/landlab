@@ -1,13 +1,14 @@
 from .chi_index import ChiFinder
-from .component_maker import ComponentMaker
+from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
 from .diffusion import LinearDiffuser
+from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
-from .flexure import Flexure
+from .flexure import Flexure, Flexure1D
 from .flow_accum import FlowAccumulator, LossyFlowAccumulator
 from .flow_director import (
     FlowDirectorD8,
@@ -15,11 +16,13 @@ from .flow_director import (
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-from .flow_routing import DepressionFinderAndRouter, FlowRouter
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .groundwater import GroundwaterDupuitPercolator
+from .hack_calculator import HackCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
+from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
@@ -32,11 +35,13 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
 from .space import Space
 from .spatial_precip import SpatialPrecipitationDistribution
+from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
 from .stream_power import (
     FastscapeEroder,
@@ -51,57 +56,64 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
-    ComponentMaker,
+    ChannelProfiler,
     ChiFinder,
-    LinearDiffuser,
-    Flexure,
-    FlowRouter,
     DepressionFinderAndRouter,
-    PerronNLDiffuse,
-    OverlandFlowBates,
-    OverlandFlow,
+    DepthDependentDiffuser,
+    DepthDependentTaylorDiffuser,
+    DepthSlopeProductErosion,
+    DetachmentLtdErosion,
+    DischargeDiffuser,
+    DrainageDensity,
+    ErosionDeposition,
+    ExponentialWeatherer,
+    FastscapeEroder,
+    FireGenerator,
+    Flexure,
+    Flexure1D,
+    FlowAccumulator,
+    FlowDirectorD8,
+    FlowDirectorDINF,
+    FlowDirectorMFD,
+    FlowDirectorSteepest,
+    FractureGridGenerator,
+    gFlex,
+    GroundwaterDupuitPercolator,
+    HackCalculator,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
+    LakeMapperBarnes,
+    LandslideProbability,
+    LateralEroder,
+    LinearDiffuser,
+    LithoLayers,
+    Lithology,
+    LossyFlowAccumulator,
+    NormalFault,
+    OverlandFlow,
+    OverlandFlowBates,
+    PerronNLDiffuse,
     PotentialEvapotranspiration,
     PotentialityFlowRouter,
+    PrecipitationDistribution,
+    Profiler,
     Radiation,
+    SedDepEroder,
     SinkFiller,
     SinkFillerBarnes,
-    LakeMapperBarnes,
+    SoilMoisture,
+    SoilInfiltrationGreenAmpt,
+    Space,
+    SpatialPrecipitationDistribution,
+    SpeciesEvolver,
+    SteepnessFinder,
     StreamPowerEroder,
     StreamPowerSmoothThresholdEroder,
-    FastscapeEroder,
-    SedDepEroder,
-    PrecipitationDistribution,
-    SpatialPrecipitationDistribution,
-    SteepnessFinder,
-    DetachmentLtdErosion,
-    gFlex,
-    SoilInfiltrationGreenAmpt,
-    FireGenerator,
-    SoilMoisture,
-    Vegetation,
-    VegCA,
-    DrainageDensity,
-    ExponentialWeatherer,
-    DepthDependentDiffuser,
     TaylorNonLinearDiffuser,
-    DepthSlopeProductErosion,
-    FlowDirectorD8,
-    FlowDirectorSteepest,
-    FlowDirectorMFD,
-    FlowDirectorDINF,
-    FlowAccumulator,
-    FractureGridGenerator,
-    LossyFlowAccumulator,
-    Space,
-    ErosionDeposition,
-    LandslideProbability,
-    DepthDependentTaylorDiffuser,
-    NormalFault,
-    Lithology,
-    LithoLayers,
     TransportLengthHillslopeDiffuser,
+    TrickleDownProfiler,
+    VegCA,
+    Vegetation,
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
