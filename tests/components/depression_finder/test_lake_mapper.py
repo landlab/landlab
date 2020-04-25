@@ -2000,11 +2000,13 @@ def test_find_lowest_node_on_lake_perimeter_c():
 
 
 def test_all_boundaries_are_closed():
-    grid = RasterModelGrid((10,10), xy_spacing=10.0)
+    grid = RasterModelGrid((10, 10), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     z = grid.add_zeros("node", "topographic__elevation")
-    z+=grid.x_of_node.copy() + grid.y_of_node.copy()
-    z[25]-=40
-    fa = FlowAccumulator(grid, depression_finder="DepressionFinderAndRouter", routing='D4')
+    z += grid.x_of_node.copy() + grid.y_of_node.copy()
+    z[25] -= 40
+    fa = FlowAccumulator(
+        grid, depression_finder="DepressionFinderAndRouter", routing="D4"
+    )
     with pytest.raises(ValueError):
         fa.run_one_step()

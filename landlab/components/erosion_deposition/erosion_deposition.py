@@ -399,7 +399,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     def run_with_adaptive_time_step_solver(self, dt=1.0):
         """CHILD-like solver that adjusts time steps to prevent slope
-        flattening."""
+        flattening.
+
+
+        Parameters
+        ----------
+        dt : float
+            Model timestep [T]
+        """
 
         # Initialize remaining_time, which records how much of the global time
         # step we have yet to use up.
@@ -455,6 +462,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
                 self._v_s / self._q[self._q > 0]
             )
+
             if not self._depressions_are_handled():  # all sed dropped here
                 self._depo_rate[is_flooded_core_node] = (
                     self._qs_in[is_flooded_core_node]
