@@ -415,7 +415,7 @@ class Space(_GeneralizedErosionDeposition):
         is_flooded_core_node = self._get_flooded_core_nodes()
 
         self._qs_in[:] = 0
-
+        self._depo_rate[:] = 0.0
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
         calculate_qs_in(
