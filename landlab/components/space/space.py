@@ -407,15 +407,7 @@ class Space(_GeneralizedErosionDeposition):
         """Sediment thickness."""
         return self._H
 
-    def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for a time period
-        'dt'.
-
-        Parameters
-        ----------
-        dt : float
-            Model timestep [T]
-        """
+    def _calc_qs_in_and_depo_rate(self):
         # Choose a method for calculating erosion:
         self._calc_hydrology()
         self._calc_erosion_rates()
@@ -448,6 +440,18 @@ class Space(_GeneralizedErosionDeposition):
                 self._qs_in[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
+        return is_flooded_core_node
+
+    def run_one_step_basic(self, dt=1.0):
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
+
+        Parameters
+        ----------
+        dt : float
+            Model timestep [T]
+        """
+        is_flooded_core_node = self._calc_qs_in_and_depo_rate()
 
         # now, the analytical solution to soil thickness in time:
         # need to distinguish D=kqS from all other cases to save from blowup!
@@ -619,38 +623,7 @@ class Space(_GeneralizedErosionDeposition):
             else:
                 first_iteration = False
 
-            # Calculate rates of entrainment
-            self._calc_hydrology()
-            self._calc_erosion_rates()
-
-            # No erosion at flooded nodes / pits
-            self._Es[is_flooded_core_node] = 0.0
-            self._Er[is_flooded_core_node] = 0.0
-
-            # Zero out sediment influx for new iteration
-            self._qs_in[:] = 0
-
-            calculate_qs_in(
-                np.flipud(self._stack),
-                self._flow_receivers,
-                self._cell_area_at_node,
-                self._q,
-                self._qs,
-                self._qs_in,
-                self._Es,
-                self._Er,
-                self._v_s,
-                self._F_f,
-            )
-
-            self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
-                self._v_s / self._q[self._q > 0]
-            )
-            if not self._depressions_are_handled():  # all sed dropped here
-                self._depo_rate[is_flooded_core_node] = (
-                    self._qs_in[is_flooded_core_node]
-                    / self._cell_area_at_node[is_flooded_core_node]
-                )
+            is_flooded_core_node = self._calc_qs_in_and_depo_rate()
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.

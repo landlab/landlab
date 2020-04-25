@@ -351,16 +351,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         self._erosion_term = omega - self._sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
-    def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for a time period
-        'dt'.
-
-        Parameters
-        ----------
-        dt : float
-            Model timestep [T]
-        """
-
+    def _calc_qs_in_and_depo_rate(self):
         self._calc_hydrology()
         self._calc_erosion_rates()
 
@@ -392,6 +383,17 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 self._qs_in[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
+
+    def run_one_step_basic(self, dt=1.0):
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
+
+        Parameters
+        ----------
+        dt : float
+            Model timestep [T]
+        """
+        self._calc_qs_in_and_depo_rate()
 
         # topo elev is old elev + deposition - erosion
         cores = self._grid.core_nodes
@@ -440,36 +442,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             else:
                 first_iteration = False
 
-            # Calculate rates of entrainment
-            self._calc_hydrology()
-            self._calc_erosion_rates()
-            self._erosion_term[is_flooded_core_node] = 0.0
-            self._qs_in[:] = 0.0
-
-            # Sweep through nodes from upstream to downstream, calculating Qs.
-            calculate_qs_in(
-                np.flipud(self._stack),
-                self._flow_receivers,
-                self._cell_area_at_node,
-                self._q,
-                self._qs,
-                self._qs_in,
-                self._erosion_term,
-                self._v_s,
-                self._F_f,
-            )
-
-            # Use Qs to calculate deposition rate at each node.
-            self._depo_rate[:] = 0.0
-            self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
-                self._v_s / self._q[self._q > 0]
-            )
-
-            if not self._depressions_are_handled():  # all sed dropped here
-                self._depo_rate[is_flooded_core_node] = (
-                    self._qs_in[is_flooded_core_node]
-                    / self._cell_area_at_node[is_flooded_core_node]
-                )
+            self._calc_qs_in_and_depo_rate()
 
             # Rate of change of elevation at core nodes:
             dzdt[cores] = (self._depo_rate[cores] - self._erosion_term[cores]) / (
