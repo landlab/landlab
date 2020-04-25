@@ -22,8 +22,8 @@ def grid():
     return grid
 
 
-@pytest.mark.parametrize("Component", [ErosionDeposition, Space])
-@pytest.mark.parametrize("phi", [0.0, 0.3])
+@pytest.mark.parameterize("Component", [ErosionDeposition, Space])
+@pytest.mark.parametrize("phi", [0., 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 def test_mass_conserve_all_closed(grid, Component, solver, phi):
     z_init = grid.at_node["topographic__elevation"].copy()
@@ -37,7 +37,7 @@ def test_mass_conserve_all_closed(grid, Component, solver, phi):
     dz = grid.at_node["topographic__elevation"] - z_init
 
     # unpoof by (1-phi) where deposition occured.
-    dz[dz > 0] *= 1 - phi
+    dz[dz>0] *= (1 - phi)
 
     assert_array_almost_equal(dz.mean(), 0.0)
 
@@ -52,14 +52,11 @@ def grid2(grid):
     grid.status_at_node[1] = grid.BC_NODE_IS_FIXED_VALUE
     return grid
 
-
 @pytest.mark.parametrize("Component", [ErosionDeposition, Space])
-@pytest.mark.parametrize("phi", [0.0, 0.3])
+@pytest.mark.parametrize("phi", [0., 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
-def test_mass_conserve_with_depression_finder(
-    grid2, Component, solver, depression_finder, phi
-):
+def test_mass_conserve_with_depression_finder(grid2, Component, solver, depression_finder, phi):
 
     assert grid2.status_at_node[1] == grid2.BC_NODE_IS_FIXED_VALUE
 
@@ -77,12 +74,10 @@ def test_mass_conserve_with_depression_finder(
     dz = grid2.at_node["topographic__elevation"] - z_init
 
     # unpoof by phi.
-    dz[dz > 0] *= 1 - phi
+    dz[dz>0] *= (1 - phi)
 
     # assert that the mass loss over the surface is exported through the one
     # outlet.
-    mass_change = (
-        dz[grid2.core_nodes].sum() + ed._qs_in[1] / grid2.cell_area_at_node[11]
-    )
+    mass_change = dz[grid2.core_nodes].sum() + ed._qs_in[1]/grid2.cell_area_at_node[11]
 
     assert_array_almost_equal(mass_change, 0.0)
