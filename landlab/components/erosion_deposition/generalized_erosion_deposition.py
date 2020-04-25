@@ -206,8 +206,9 @@ class _GeneralizedErosionDeposition(Component):
                 self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
             )
         else:
+            is_pit = self._flow_receivers == self._grid.nodes.flatten()
             is_flooded_core = np.logical_and(
                 self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
-                self._slope <= 0.0,
+                is_pit,
             )
         return np.array(is_flooded_core)
