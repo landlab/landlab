@@ -90,8 +90,8 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component, FieldError
-from . import _links as links
 
+from . import _links as links
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
