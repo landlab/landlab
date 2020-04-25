@@ -4,8 +4,9 @@
 Congratulations on wanting to make a Landlab component! This file is part of a
 set of files meant to make it easier for you to do this.
 
-See also the `Develop your own component <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`_
-page on the Landlab Wiki and the `Creating a Component Tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_.
+See also the :ref:`Develop your own component or utility <landlab_component_dev_page>`
+page and the
+`Creating a Component Tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_.
 
 The Creating a Component Tutorial has information about many many parts of your
 component. This file is not meant to replace this, but to provide a concrete
@@ -18,22 +19,26 @@ component has.
 The name of the class should be in CamelCase, and should make sense when used in
 the sentence: "A (component-name) is a...".
 
-This docstring is written in ReStructuredText and will be parsed by `Sphinx <http://www.sphinx-doc.org/en/master/index.html>`_ to
-make the API documentation. `Here is information <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_
+This docstring is written in ReStructuredText and will be parsed by
+`Sphinx <http://www.sphinx-doc.org/en/master/index.html>`_
+to make the API documentation.
+`Here is information <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_
 about how ReStructuredText works.
 
 Recommendations on coding style
 -------------------------------
-- Please stick to the coding style described by `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_.
-- Also read `PEP 257 <https://www.python.org/dev/peps/pep-0257/>`_ which
-describes general python docstring conventions.
-- Class and function docstrings should follow the `numpydoc conventions <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
-- See `Standard Naming conventions <https://github.com/landlab/landlab/wiki/Standard-names>`_
-for good practice on parameters and variables naming.
+- Please stick to the coding style described by
+  `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_.
+- Also read `PEP 257 <https://www.python.org/dev/peps/pep-0257/>`_
+  which describes general python docstring conventions.
+- Class and function docstrings should follow the
+  `numpydoc conventions <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
+- See the :ref:`Standard Naming conventions <component_standard_names>` for
+  good practice on parameters and variables naming.
 - If you have any questions about the process after you have finished reading the
-documentation, consider making an `Issue
-<https://github.com/landlab/landlab/issues/new/>`_ to ask the development team
-for help.
+  documentation, consider making an
+  `Issue <https://github.com/landlab/landlab/issues/new/>`_
+  to ask the development team for help.
 
 Examples
 --------
