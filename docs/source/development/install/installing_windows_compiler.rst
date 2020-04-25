@@ -6,9 +6,8 @@ Installing compilers for building Landlab on a Windows machine
 
 On a Mac, all the necessary C++ compilers needed by Python to build new C++
 modules from source code are provided simply by installing the Xcode app from
-the app store. However, on a PC, things are a bit more involved. This document
-will guide you through the process of getting the necessary compilers, and
-getting Python talking to them.
+the app store. On a PC you will get these compilers from Build Tools for Visual
+Studio.
 
 This process is only necessary if you want to build Landlab directly from its
 source code on your PC. Some parts of Landlab use compiled C++ code to
@@ -23,19 +22,22 @@ Anaconda provides some of the necessary compilers. Install it first.
 The easiest way to discover if you have other compiler issues is to attempt an
 install! Follow the
 :ref:`developer installation instructions <developer_install>`
-until you attempt to perform the developer installation ::
+until you attempt to perform the developer installation
 
 .. code-block:: bash
 
-   $ python setup.py develop
+ $ python setup.py develop
 
-If you have compiler issues, you will see the message::
+If you have compiler issues, you will see an error message. On April 24, 2019
+on a clean install on Windows 10 this error message said: ::
 
-  ...building 'landlab.components.flexure.cfuncs' extension
-  error: MS VisualC++ 9.0 is required (Unable to find vcvarsall.bat).
-  Get it from https://www.microsoft.com/en-us/download/details.aspx?id=44266
+  building 'landlab.ca.cfuncs' extension
+  error: Microsoft Visual C++ 14.0 is required. Get it with "Build Tools for
+  Visual Studio": https://visualstudio.microsoft.com/downloads/
 
-Simply go to `that specified Microsoft website <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_ and from
-there download the software needed using the obvious download button.
-
-Once you have it, the above install command should then work fine.
+Go to the `specified website <https://visualstudio.microsoft.com/downloads/>`_
+and download the Microsoft Visual C++ compiler. In April 2019 this was done by
+first downloading "Build Tools for Visual Studio". Then when installing Build
+Tools there were options for what exactly should be installed. One of these was
+the Visual Studio C++ compilers. Once installed, a restart was required and
+landlab compiled as expected. 

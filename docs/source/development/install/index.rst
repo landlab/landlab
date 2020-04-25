@@ -21,6 +21,7 @@ Installation Steps and Resources
    test
    updating
    troubleshooting_install
+   installing_windows_compiler
 
 **Note:** For dev work, we actively recommend Anaconda over the
 Enthought Python Distribution, especially on Windows machines. This is
