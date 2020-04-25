@@ -88,7 +88,7 @@ class _GeneralizedErosionDeposition(Component):
         discharge_field="surface_water__discharge",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
-        """Initialize the ErosionDeposition model.
+        """Initialize the GeneralizedErosionDeposition model.
 
         Parameters
         ----------

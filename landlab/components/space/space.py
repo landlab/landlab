@@ -21,6 +21,16 @@ class Space(_GeneralizedErosionDeposition):
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
     `https://doi.org/10.5194/gmd-10-4577-2017 <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
 
+    Unlike other some other fluvial erosion componets in Landlab, in this
+    component (and :py:class:`~landlab.components.ErosionDeposition`) no
+    erosion occurs in depressions or in areas with adverse slopes. There is no
+    ability to pass a keyword argument ``erode_flooded_nodes``.
+
+    If a depressions are handled (as indicated by the presence of the field
+    "flood_status_code" at nodes), then deposition occurs throughout the
+    depression and sediment is passed out of the depression. Where pits are
+    encountered, then all sediment is deposited at that node only.
+
     Note: If timesteps are large enough that Es*dt (sediment erosion)
     exceeds sediment thickness H, the 'adaptive' solver is necessary to
     subdivide timesteps. Compare Es and H arrays to determine whether
