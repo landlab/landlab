@@ -330,13 +330,13 @@ class Space(_GeneralizedErosionDeposition):
         self._sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
         self._sp_crit_br = return_array_at_node(grid, sp_crit_br)
 
+        self._porosity_factor = 1.0 / (1.0 - self._phi)
         # Handle option for solver
         if solver == "basic":
             self.run_one_step = self.run_one_step_basic
         elif solver == "adaptive":
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
-            self._porosity_factor = 1.0 / (1.0 - self._phi)
         else:
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
