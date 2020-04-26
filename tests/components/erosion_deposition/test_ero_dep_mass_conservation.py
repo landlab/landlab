@@ -22,10 +22,12 @@ def grid():
     return grid
 
 
+# consider full combinitorics of solver, two phi, ED and Space, and (if space)
+# initial soil depth of very large and zero.
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize(
-    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 3)]
+    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 1000)]
 )
 def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
     Component, H = Component_SoilThickness
@@ -47,11 +49,9 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
         # conservation.
         dH = grid.at_node["soil__depth"][:] - H
 
-        # in this test, when we start with thick soils, then space picks up
-        # and then deposits material with the same porosity. Only when the
-        # sed is thin to start do we need to poof.
-        if H < 0.1:
-            dH[dH > 0] *= 1 - phi
+        # sediment is defined as having a porosity so all changes (up or down )
+        # must be adjusted to mass.
+        dH *= 1 - phi
 
         dBr = grid.at_node["bedrock__elevation"] - (z_init - H)
         mass_change = dH + dBr
@@ -77,11 +77,13 @@ def grid2(grid):
     return grid
 
 
+# consider full combinitorics of solver, two phi, depression finding or not,
+#  ED and Space, and (if space) initial soil depth of very large and zero.
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
 @pytest.mark.parametrize(
-    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 3)]
+    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 1000)]
 )
 def test_mass_conserve_with_depression_finder(
     grid2, Component_SoilThickness, solver, depression_finder, phi
@@ -104,14 +106,12 @@ def test_mass_conserve_with_depression_finder(
 
     dz = grid2.at_node["topographic__elevation"] - z_init
 
-    # unpoof by phi where deposition occured so we can compare mass. We can do
-    # this because only one timestep. (I think, but not sure, even with adaptive.)
     where_depo = dz > 0
 
     if Component.name == "Space":
+        # see above test for notes.
         dH = grid2.at_node["soil__depth"][:] - H
-        if H < 0.1:
-            dH[dH > 0] *= 1 - phi
+        dH *= 1 - phi
         dBr = grid2.at_node["bedrock__elevation"] - (z_init - H)
         mass_change = dH + dBr
 

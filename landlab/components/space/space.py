@@ -383,7 +383,10 @@ class Space(_GeneralizedErosionDeposition):
 
         self._sed_erosion_term = omega_sed - self._sp_crit_sed * (
             1.0 - np.exp(-omega_sed_over_sp_crit)
-        )
+        ) / (
+            1 - self._phi
+        )  # convert from a volume to a mass flux.
+
         self._br_erosion_term = omega_br - self._sp_crit_br * (
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
@@ -391,6 +394,7 @@ class Space(_GeneralizedErosionDeposition):
         self._Es = self._sed_erosion_term * (
             1.0 - np.exp(-self._soil__depth / self._H_star)
         )
+
         self._Er = self._br_erosion_term * np.exp(-self._soil__depth / self._H_star)
 
     @property
@@ -478,10 +482,9 @@ class Space(_GeneralizedErosionDeposition):
 
         H_over_H_star[too_thick] = 100
 
-
         no_entrainment = self._sed_erosion_term <= 0.0  # this will include pits.
         blowup = (
-            (self._depo_rate / (1-self._phi) == self._sed_erosion_term)
+            (self._depo_rate == self._sed_erosion_term)
             & (self._sed_erosion_term > 0.0)
             & (~no_entrainment)
         )
@@ -490,7 +493,7 @@ class Space(_GeneralizedErosionDeposition):
         # First do blowup.
         # this is Space paper Eq 34. This example has the same issues with
         # very thick sed. If sed is very thick AND ero=depo, there is no change.
-        self._soil__depth[blowup*(~too_thick)] = self._H_star * np.log(
+        self._soil__depth[blowup * (~too_thick)] = self._H_star * np.log(
             ((self._sed_erosion_term[blowup]) / self._H_star) * dt
             + np.exp(H_over_H_star[blowup])
         )
@@ -501,38 +504,51 @@ class Space(_GeneralizedErosionDeposition):
         ) * dt
 
         # Treat the case of very thick sediments and ero != depo.
-        self._soil__depth[full_equation*too_thick] += (
-            (self._depo_rate[full_equation*(full_equation*too_thick)] / (1 - self._phi))
-            - (self._sed_erosion_term[full_equation*too_thick] / (1 - self._phi)))*dt
-            
+        self._soil__depth[full_equation * too_thick] += (
+            (
+                self._depo_rate[full_equation * (full_equation * too_thick)]
+                / (1 - self._phi)
+            )
+            - (self._sed_erosion_term[full_equation * too_thick] / (1 - self._phi))
+        ) * dt
+
         # Finally do the full equation (Eq 32) when not too thick.
-        self._soil__depth[full_equation*(~too_thick)] = self._H_star * np.log(
+        self._soil__depth[full_equation * (~too_thick)] = self._H_star * np.log(
             (
                 1
                 / (
-                    (self._depo_rate[full_equation*(~too_thick)] / (1 - self._phi))
-                    / (self._sed_erosion_term[full_equation*(~too_thick)] / (1 - self._phi))
+                    (self._depo_rate[full_equation * (~too_thick)] / (1 - self._phi))
+                    / (
+                        self._sed_erosion_term[full_equation * (~too_thick)]
+                        / (1 - self._phi)
+                    )
                     - 1
                 )
             )
             * (
                 np.exp(
                     (
-                        self._depo_rate[full_equation*(~too_thick)] / (1 - self._phi)
-                        - (self._sed_erosion_term[full_equation*(~too_thick)] / (1 - self._phi))
+                        self._depo_rate[full_equation * (~too_thick)] / (1 - self._phi)
+                        - (
+                            self._sed_erosion_term[full_equation * (~too_thick)]
+                            / (1 - self._phi)
+                        )
                     )
                     * (dt / self._H_star)
                 )
                 * (
                     (
                         (
-                            self._depo_rate[full_equation*(~too_thick)]
+                            self._depo_rate[full_equation * (~too_thick)]
                             / (1 - self._phi)
-                            / (self._sed_erosion_term[full_equation*(~too_thick)] / (1 - self._phi))
+                            / (
+                                self._sed_erosion_term[full_equation * (~too_thick)]
+                                / (1 - self._phi)
+                            )
                         )
                         - 1
                     )
-                    * np.exp(H_over_H_star[full_equation*(~too_thick)])
+                    * np.exp(H_over_H_star[full_equation * (~too_thick)])
                     + 1
                 )
                 - 1
@@ -550,11 +566,13 @@ class Space(_GeneralizedErosionDeposition):
 
         dR = self._grid.zeros(at="node")
         for idx in self.grid.core_nodes:
-            args = (self._br_erosion_term[idx],
-                    1./self._H_star,
-                    self._depo_rate[idx]/(1.0-self._phi),
-                    self._sed_erosion_term[idx]/(1.0-self._phi),
-                    H0[idx])
+            args = (
+                self._br_erosion_term[idx],
+                1.0 / self._H_star,
+                self._depo_rate[idx] / (1.0 - self._phi),
+                self._sed_erosion_term[idx] / (1.0 - self._phi),
+                H0[idx],
+            )
 
             dR[idx] = quad(_dRdt, 0, dt, args)[0]
 
@@ -683,6 +701,7 @@ class Space(_GeneralizedErosionDeposition):
             # Update remaining time and continue
             remaining_time -= dt_max
 
+
 def _dRdt(t, a, b, c, d, H0):
     """
     dRdt = a * exp(-b * H (t))
@@ -698,34 +717,34 @@ def _dRdt(t, a, b, c, d, H0):
 
     """
     # truncate H/H*
-    if b*H0>100:
+    if b * H0 > 100:
         too_thick = True
     else:
         too_thick = False
-    bH0 = min(b*H0, 100)
+    bH0 = min(b * H0, 100)
 
     # set cases for H depending on values of constants.
 
     # deposition only case.
-    if d <=0:
+    if d <= 0:
         H = H0 + (c * t)
     else:
         # sediment deposition = sediment entrainment.
-        if c  ==  d:
+        if c == d:
             if too_thick:
                 H = H0
             else:
-                H = (1/b) * np.log( (d*b*t) + np.exp(bH0))
+                H = (1 / b) * np.log((d * b * t) + np.exp(bH0))
         # full equation 32
         else:
             if too_thick:
                 H = H0 + (c - d) * t
             else:
-                term1 = 1.0/((c/d) -1)
-                term2 = np.exp((c-d)*t*b)
-                term3 = (c/d -1) * np.exp(bH0) + 1
+                term1 = 1.0 / ((c / d) - 1)
+                term2 = np.exp((c - d) * t * b)
+                term3 = (c / d - 1) * np.exp(bH0) + 1
                 interior = term1 * (term2 * (term3) - 1)
-                H = (1/b) * np.log(interior)
+                H = (1 / b) * np.log(interior)
 
     # calculate dRdt
     dRdt = -a * np.exp(-b * H)
