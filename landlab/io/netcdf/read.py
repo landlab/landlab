@@ -364,11 +364,6 @@ def read_netcdf(
         if grid.xy_of_lower_left != xy_of_lower_left:
             raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
-    if grid is None:
-        grid = RasterModelGrid(
-            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
-        )
-
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(dataset)
         for (field_name, values) in fields.items():
