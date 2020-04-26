@@ -417,6 +417,9 @@ class Space(_GeneralizedErosionDeposition):
         self._Es[is_flooded_core_node] = 0.0
         self._Er[is_flooded_core_node] = 0.0
 
+        self._sed_erosion_term[is_flooded_core_node] = 0.0
+        self._br_erosion_term[is_flooded_core_node] = 0.0
+
         self._qs_in[:] = 0
         self._depo_rate[:] = 0.0
 
@@ -456,90 +459,7 @@ class Space(_GeneralizedErosionDeposition):
             Model timestep [T]
         """
         is_flooded_core_node = self._calc_qs_in_and_depo_rate()
-
-        # now, the analytical solution to soil thickness in time:
-        # need to distinguish D=kqS from all other cases to save from blowup!
-
-        # distinguish cases:
-        blowup = self._depo_rate == self._K_sed * self._Q_to_the_m * self._slope
-
-        # first, potential blowup case:
-        # positive slopes, not flooded
-        pos_not_flood = (
-            (self._q > 0) & (blowup) & (self._slope > 0) & (~is_flooded_core_node)
-        )
-        self._soil__depth[pos_not_flood] = self._H_star * np.log(
-            ((self._sed_erosion_term[pos_not_flood] / (1 - self._phi)) / self._H_star)
-            * dt
-            + np.exp(self._soil__depth[pos_not_flood] / self._H_star)
-        )
-        # positive slopes, flooded
-        pos_flood = (
-            (self._q > 0) & (blowup) & (self._slope > 0) & (is_flooded_core_node)
-        )
-        self._soil__depth[pos_flood] += (
-            self._depo_rate[pos_flood] / (1 - self._phi)
-        ) * dt
-
-        # non-positive slopes, not flooded
-        non_pos_not_flood = (
-            (self._q > 0) & (blowup) & (self._slope <= 0) & (~is_flooded_core_node)
-        )
-        self._soil__depth[non_pos_not_flood] += (
-            self._depo_rate[non_pos_not_flood] / (1 - self._phi) * dt
-        )
-
-        # more general case:
-        pos_not_flood = (
-            (self._q > 0) & (~blowup) & (self._slope > 0) & (~is_flooded_core_node)
-        )
-
-        self._soil__depth[pos_not_flood] = self._H_star * np.log(
-            (
-                1
-                / (
-                    (self._depo_rate[pos_not_flood] / (1 - self._phi))
-                    / (self._sed_erosion_term[pos_not_flood] / (1 - self._phi))
-                    - 1
-                )
-            )
-            * (
-                np.exp(
-                    (
-                        self._depo_rate[pos_not_flood] / (1 - self._phi)
-                        - (self._sed_erosion_term[pos_not_flood] / (1 - self._phi))
-                    )
-                    * (dt / self._H_star)
-                )
-                * (
-                    (
-                        (
-                            self._depo_rate[pos_not_flood]
-                            / (1 - self._phi)
-                            / (self._sed_erosion_term[pos_not_flood] / (1 - self._phi))
-                        )
-                        - 1
-                    )
-                    * np.exp(self._soil__depth[pos_not_flood] / self._H_star)
-                    + 1
-                )
-                - 1
-            )
-        )
-
-        # places where slope <= 0 but not flooded:
-        neg_slope_not_flooded = (
-            (self._q > 0) & (~blowup) & (self._slope <= 0) & (~is_flooded_core_node)
-        )
-        self._soil__depth[neg_slope_not_flooded] += (
-            self._depo_rate[neg_slope_not_flooded] / (1 - self._phi) * dt
-        )
-
-        # flooded nodes:
-        flooded_nodes = (self._q > 0) & (~blowup) & (is_flooded_core_node)
-        self._soil__depth[flooded_nodes] += (
-            self._depo_rate[flooded_nodes] / (1 - self._phi) * dt
-        )
+        cores = self._grid.core_nodes
 
         # where discharge exists
         discharge_exists = self._q > 0
@@ -548,8 +468,64 @@ class Space(_GeneralizedErosionDeposition):
             * (np.exp(-self._soil__depth[discharge_exists] / self._H_star))
         )
 
+        # now, the analytical solution to soil thickness in time:
+        # need to distinguish D=kqS from all other cases to save from blowup!
+
+
+        # distinguish cases:
+        no_entrainment = self._sed_erosion_term <= 0.0  # this will include pits.
+        blowup = (self._depo_rate == self._sed_erosion_term) & (~no_entrainment)
+        full_equation = (~blowup) & (~no_entrainment)
+
+        # First do blowup.
+        # this is Space paper Eq 34
+        self._soil__depth[blowup] = self._H_star * np.log(
+            ((self._sed_erosion_term[blowup]) / self._H_star)
+            * dt
+            + np.exp(self._soil__depth[blowup] / self._H_star)
+        )
+
+        # Second, do no entrainment of sediment. This is equation 35.
+        self._soil__depth[no_entrainment] += (
+            self._depo_rate[no_entrainment] / (1 - self._phi)
+        ) * dt
+
+
+        # Finally do the full equation (Eq 32)
+        self._soil__depth[full_equation] = self._H_star * np.log(
+            (
+                1
+                / (
+                    (self._depo_rate[full_equation] / (1 - self._phi))
+                    / (self._sed_erosion_term[full_equation] / (1 - self._phi))
+                    - 1
+                )
+            )
+            * (
+                np.exp(
+                    (
+                        self._depo_rate[full_equation] / (1 - self._phi)
+                        - (self._sed_erosion_term[full_equation] / (1 - self._phi))
+                    )
+                    * (dt / self._H_star)
+                )
+                * (
+                    (
+                        (
+                            self._depo_rate[full_equation]
+                            / (1 - self._phi)
+                            / (self._sed_erosion_term[full_equation] / (1 - self._phi))
+                        )
+                        - 1
+                    )
+                    * np.exp(self._soil__depth[full_equation] / self._H_star)
+                    + 1
+                )
+                - 1
+            )
+        )
+
         # finally, determine topography by summing bedrock and soil
-        cores = self._grid.core_nodes
         self._topographic__elevation[cores] = (
             self._bedrock__elevation[cores] + self._soil__depth[cores]
         )
