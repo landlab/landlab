@@ -182,7 +182,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         K : float, field name, or array
             Erodibility for substrate (units vary).
         phi : float
-            Sediment porosity [-].
+            Sediment porosity [-]. NOTE: This parameter is retained for backward
+            compatibility, but has no impact on the solution because all
+            calculations are performed in terms of bulk equivalent volume
+            or depth.
         v_s : float
             Effective settling velocity for chosen grain size metric [L/T].
         m_sp : float
@@ -272,7 +275,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         >>> ed = ErosionDeposition(
         ...     mg,
         ...     K=0.00001,
-        ...     phi=0.0,
         ...     v_s=0.001,
         ...     m_sp=0.5,
         ...     n_sp = 1.0,
@@ -396,11 +398,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._calc_qs_in_and_depo_rate()
 
         # topo elev is old elev + deposition - erosion
-        # where deposition occurs, poof by phi.
-
         cores = self._grid.core_nodes
         dzdt = self._depo_rate - self._erosion_term
-        dzdt[dzdt > 0] /= 1 - self._phi
         self._topographic__elevation[cores] += dzdt[cores] * dt
 
     def run_with_adaptive_time_step_solver(self, dt=1.0):
@@ -447,9 +446,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._calc_qs_in_and_depo_rate()
 
             # Rate of change of elevation at core nodes:
-            # where deposition occurs, poof by phi.
             net_dzdt = self._depo_rate - self._erosion_term
-            net_dzdt[net_dzdt > 0] /= 1 - self._phi
 
             dzdt[cores] = net_dzdt[cores]
 
