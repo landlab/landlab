@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
