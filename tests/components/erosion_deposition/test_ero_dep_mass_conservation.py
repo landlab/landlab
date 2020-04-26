@@ -42,23 +42,20 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
 
     dz = grid.at_node["topographic__elevation"] - z_init
 
-    # unpoof by phi where deposition occured so we can compare mass. We can do
-    # this because only one timestep. (I think, but not sure, even with adaptive.)
-    where_depo = dz > 0
-    mass_change = dz.copy()
-    mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
+    if (Component.name == "Space"):
+        if H < 0.1:
+            assert 1==2
+        elif H > 0.1:
+            # in space, if everything that was picked up and dropped was sediment.
+            # then no poofing necessary.
+            assert_array_almost_equal(dz.sum(), 0.0, decimal=10)
 
-    if (Component.name == "Space") and (phi > 0) and (H == 0.0):
-        # When using Space to erode bedrock into sediment. Calculating mass
-        # change is doen differently.
-        # instead assert that all sediment that has been eroded from bedrock
-        # has been turned into soil.
-        adjusted_erosion_rate = ed._Er.sum() * ed._porosity_factor
-        adjusted_deposition_rate = grid.at_node["soil__depth"].sum() / dt
-        assert_array_almost_equal(
-            adjusted_erosion_rate, adjusted_deposition_rate, decimal=10
-        )
     else:
+        # unpoof by phi where deposition occured so we can compare mass. We can do
+        # this because only one timestep. (I think, but not sure, even with adaptive.)
+        where_depo = dz > 0
+        mass_change = dz.copy()
+        mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
         assert_array_almost_equal(mass_change.sum(), 0.0, decimal=10)
 
 
@@ -104,15 +101,18 @@ def test_mass_conserve_with_depression_finder(
     # this because only one timestep. (I think, but not sure, even with adaptive.)
     where_depo = dz > 0
     mass_change = dz.copy()
-    mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
 
-    # assert that the mass loss over the surface is exported through the one
-    # outlet.
-    net_change = mass_change[grid2.core_nodes].sum() + (
-        ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
-    )
 
-    if (Component.name == "Space") and (phi > 0) and (H == 0.0):
-        pass
+    if (Component.name == "Space"):
+        if H < 0.1:
+            assert 1==2
+        elif H > 0.1:
+            assert 1==2
     else:
-        assert_array_almost_equal(net_change, 0.0, decimal=10)
+        mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
+
+        # assert that the mass loss over the surface is exported through the one
+        # outlet.
+        net_change = mass_change[grid2.core_nodes].sum() + (
+            ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
+        )
