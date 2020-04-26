@@ -163,7 +163,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self,
         grid,
         K=0.002,
-        phi=0.3,
+        phi=0.0,
         v_s=1.0,
         m_sp=0.5,
         n_sp=1.0,
