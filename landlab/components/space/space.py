@@ -447,7 +447,6 @@ class Space(_GeneralizedErosionDeposition):
                 self._qs_in[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
-        return is_flooded_core_node
 
     def run_one_step_basic(self, dt=1.0):
         """Calculate change in rock and alluvium thickness for a time period
@@ -458,31 +457,41 @@ class Space(_GeneralizedErosionDeposition):
         dt : float
             Model timestep [T]
         """
-        is_flooded_core_node = self._calc_qs_in_and_depo_rate()
+        self._calc_qs_in_and_depo_rate()
         cores = self._grid.core_nodes
 
-        # where discharge exists
-        discharge_exists = self._q > 0
-        self._bedrock__elevation[discharge_exists] += dt * (
-            -self._br_erosion_term[discharge_exists]
-            * (np.exp(-self._soil__depth[discharge_exists] / self._H_star))
+        # calculate bedrock elevation change.
+        self._bedrock__elevation[cores] += dt * (
+            -self._br_erosion_term[cores]
+            * (np.exp(-self._soil__depth[cores] / self._H_star))
         )
 
         # now, the analytical solution to soil thickness in time:
         # need to distinguish D=kqS from all other cases to save from blowup!
 
-
         # distinguish cases:
+
+        # there is a numerical blow up as well, which is not discussed in the
+        # paper. when H>>H* the analytical solution (Eq 34) has a term that is
+        # exp (H/H*) This can becom infinite. We will consider the case of
+        # H/H*>50 as distinct.
+        H_over_H_star = self._soil__depth / self._H_star
+        H_over_H_star[H_over_H_star > 100] = 100
+
         no_entrainment = self._sed_erosion_term <= 0.0  # this will include pits.
-        blowup = (self._depo_rate == self._sed_erosion_term) & (~no_entrainment)
+        blowup = (
+            (self._depo_rate == self._sed_erosion_term)
+            & (self._sed_erosion_term > 0.0)
+            & (~no_entrainment)
+        )
         full_equation = (~blowup) & (~no_entrainment)
 
         # First do blowup.
-        # this is Space paper Eq 34
+        # this is Space paper Eq 34. This example has the same issues with
+        # very thick sed. If sed is very thick AND ero=depo, there is no change.
         self._soil__depth[blowup] = self._H_star * np.log(
-            ((self._sed_erosion_term[blowup]) / self._H_star)
-            * dt
-            + np.exp(self._soil__depth[blowup] / self._H_star)
+            ((self._sed_erosion_term[blowup]) / self._H_star) * dt
+            + np.exp(H_over_H_star[blowup])
         )
 
         # Second, do no entrainment of sediment. This is equation 35.
@@ -490,6 +499,7 @@ class Space(_GeneralizedErosionDeposition):
             self._depo_rate[no_entrainment] / (1 - self._phi)
         ) * dt
 
+        # Treat the case of very thick sediments and ero != depo.
 
         # Finally do the full equation (Eq 32)
         self._soil__depth[full_equation] = self._H_star * np.log(
@@ -518,7 +528,7 @@ class Space(_GeneralizedErosionDeposition):
                         )
                         - 1
                     )
-                    * np.exp(self._soil__depth[full_equation] / self._H_star)
+                    * np.exp(H_over_H_star[full_equation])
                     + 1
                 )
                 - 1
