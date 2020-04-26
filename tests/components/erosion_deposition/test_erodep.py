@@ -22,7 +22,7 @@ def test_route_to_multiple_error_raised():
     fa.run_one_step()
 
     with pytest.raises(NotImplementedError):
-        ErosionDeposition(mg, K=0.01, phi=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0)
+        ErosionDeposition(mg, K=0.01, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0)
 
 
 def test_bad_solver_name():
@@ -58,7 +58,6 @@ def test_bad_solver_name():
         ErosionDeposition(
             mg,
             K=0.01,
-            phi=0.0,
             v_s=0.001,
             m_sp=0.5,
             n_sp=1.0,
@@ -111,14 +110,12 @@ def test_steady_state_with_basic_solver_option():
     m_sp = 0.5
     n_sp = 1.0
     v_s = 0.5
-    phi = 0.5
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(
         mg,
         K=K,
         F_f=F_f,
-        phi=phi,
         v_s=v_s,
         m_sp=m_sp,
         n_sp=n_sp,
@@ -182,7 +179,7 @@ def test_can_run_with_hex():
 
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(
-        mg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+        mg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
     )
 
     # ... and run it to steady state.
@@ -201,63 +198,3 @@ def test_can_run_with_hex():
     s28 = sa_factor * (a28 ** -0.5)
     testing.assert_equal(np.round(s[18], 3), np.round(s18, 3))
     testing.assert_equal(np.round(s[28], 3), np.round(s28, 3))
-
-
-def test_phi_does_not_impact_transience():
-    """Test that different porosity values do not impact the results."""
-
-    # Set up one 5x5 grid with open boundaries and low initial elevations.
-    mg1 = HexModelGrid((7, 7))
-    z1 = mg1.add_zeros("topographic__elevation", at="node")
-    z1[:] = 0.01 * mg1.x_of_node
-
-    # Create a D8 flow handler
-    fa1 = FlowAccumulator(mg1, flow_director="FlowDirectorSteepest")
-
-    # Parameter values for test 1
-    K1 = 0.001
-    vs1 = 0.0001
-    U1 = 0.001
-    dt1 = 10.0
-    phi1 = 0.1
-
-    # Create the ErosionDeposition component...
-    ed1 = ErosionDeposition(
-        mg1, K=K1, phi=phi1, v_s=vs1, m_sp=0.5, n_sp=1.0, solver="basic"
-    )
-
-    # ... and run it to steady state.
-    for i in range(200):
-        fa1.run_one_step()
-        ed1.run_one_step(dt=dt1)
-        z1[mg1.core_nodes] += U1 * dt1
-
-    # Set up a second 5x5 grid with open boundaries and low initial elevations.
-    mg2 = HexModelGrid((7, 7))
-    z2 = mg2.add_zeros("topographic__elevation", at="node")
-    z2[:] = 0.01 * mg2.x_of_node
-
-    # Create a D8 flow handler
-    fa2 = FlowAccumulator(mg2, flow_director="FlowDirectorSteepest")
-
-    # Parameter values for test 1
-    K2 = 0.001
-    vs2 = 0.0001
-    U2 = 0.001
-    dt2 = 10.0
-    phi2 = 0.9
-
-    # Create the ErosionDeposition component...
-    ed2 = ErosionDeposition(
-        mg2, K=K2, phi=phi2, v_s=vs2, m_sp=0.5, n_sp=1.0, solver="basic"
-    )
-
-    # ... and run it to steady state.
-    for i in range(200):
-        fa2.run_one_step()
-        ed2.run_one_step(dt=dt2)
-        z2[mg2.core_nodes] += U2 * dt2
-
-    s1 = mg1.at_node["topographic__steepest_slope"][mg1.core_nodes]
-    s2 = mg2.at_node["topographic__steepest_slope"][mg2.core_nodes]
-    testing.assert_array_almost_equal(s2, s1)
