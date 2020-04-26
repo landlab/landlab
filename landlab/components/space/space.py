@@ -461,11 +461,7 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_qs_in_and_depo_rate()
         cores = self._grid.core_nodes
 
-        self._bedrock__elevation[cores] += dt * (
-            -self._br_erosion_term[cores]
-            * (np.exp(-self._soil__depth[cores] / self._H_star))
-        )
-
+        soil_depth_init = self._soil__depth.copy()
         # now, the analytical solution to soil thickness in time:
         # need to distinguish D=kqS from all other cases to save from blowup!
 
@@ -533,6 +529,17 @@ class Space(_GeneralizedErosionDeposition):
                 )
                 - 1
             )
+        )
+
+        # Equation 12 gives dRdt, and Equation 36 gives R. However, we don't
+        # include dH/dt within timestep in integrating for R.
+        # This matters when we are starting with very little soil and increasing.
+
+        dHdt = (self._soil__depth - soil_depth_init)/dt
+
+        self._bedrock__elevation[cores] += dt * (
+            -self._br_erosion_term[cores]
+            * (np.exp(-self._soil__depth[cores] / self._H_star))
         )
 
         # finally, determine topography by summing bedrock and soil
