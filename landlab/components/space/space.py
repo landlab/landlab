@@ -617,7 +617,7 @@ class Space(_GeneralizedErosionDeposition):
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
-            dzdt[cores] = self._depo_rate[cores] - (self._Es[cores] + self._Er[cores])
+            dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (self._Es[cores] + self._Er[cores])
             rocdif = dzdt - dzdt[r]
             zdif = z - z[r]
             time_to_flat[:] = remaining_time
@@ -635,9 +635,8 @@ class Space(_GeneralizedErosionDeposition):
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
 
-            # poof by phi soil only where net depositon.
-            dHdt = self._depo_rate - self._Es
-            dHdt[dHdt > 0.0] *= self._porosity_factor
+            # poof deposition by phi
+            dHdt = self._porosity_factor * (self._depo_rate - self._Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = -(
                 TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
