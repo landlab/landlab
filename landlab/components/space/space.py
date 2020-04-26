@@ -447,6 +447,7 @@ class Space(_GeneralizedErosionDeposition):
                 self._qs_in[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
+        return is_flooded_core_node
 
     def run_one_step_basic(self, dt=1.0):
         """Calculate change in rock and alluvium thickness for a time period
@@ -460,7 +461,6 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_qs_in_and_depo_rate()
         cores = self._grid.core_nodes
 
-        # calculate bedrock elevation change.
         self._bedrock__elevation[cores] += dt * (
             -self._br_erosion_term[cores]
             * (np.exp(-self._soil__depth[cores] / self._H_star))
