@@ -23,7 +23,127 @@ Mapping functions unique to raster grids
 
 import numpy as np
 
-from landlab.grid.structured_quad import links
+
+def _node_out_link_ids(shape):
+    """Links leaving each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    tuple :
+        Tuple of array of link IDs as (vertical_links, horizontal_links).
+
+    Examples
+    --------
+    >>> from landlab.grid.raster_mappers import _node_out_link_ids
+    >>> (vert, horiz) = _node_out_link_ids((3, 4))
+    >>> vert
+    array([[ 3,  4,  5,  6],
+           [10, 11, 12, 13],
+           [-1, -1, -1, -1]])
+    >>> horiz
+    array([[ 0,  1,  2, -1],
+           [ 7,  8,  9, -1],
+           [14, 15, 16, -1]])
+    """
+    from ..graph.structured_quad.structured_quad import StructuredQuadGraphTopology
+
+    layout = StructuredQuadGraphTopology(shape)
+
+    node_horizontal_link_ids = np.empty(shape, np.int)
+    node_horizontal_link_ids[:, :-1] = layout.horizontal_links.reshape(
+        (shape[0], shape[1] - 1)
+    )
+    node_horizontal_link_ids[:, -1] = -1
+
+    node_vertical_link_ids = np.empty(shape, np.int)
+    node_vertical_link_ids[:-1, :] = layout.vertical_links.reshape(
+        (shape[0] - 1, shape[1])
+    )
+    node_vertical_link_ids[-1, :] = -1
+
+    return node_vertical_link_ids, node_horizontal_link_ids
+
+
+def _node_in_link_ids(shape):
+    """Links entering each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    tuple :
+        Tuple of array of link IDs as (vertical_links, horizontal_links).
+
+    Examples
+    --------
+    >>> from landlab.grid.raster_mappers import _node_in_link_ids
+    >>> (vert, horiz) = _node_in_link_ids((3, 4))
+    >>> vert
+    array([[-1, -1, -1, -1],
+           [ 3,  4,  5,  6],
+           [10, 11, 12, 13]])
+    >>> horiz
+    array([[-1,  0,  1,  2],
+           [-1,  7,  8,  9],
+           [-1, 14, 15, 16]])
+    """
+    from ..graph.structured_quad.structured_quad import StructuredQuadGraphTopology
+
+    layout = StructuredQuadGraphTopology(shape)
+
+    node_horizontal_link_ids = np.empty(shape, np.int)
+    node_horizontal_link_ids[:, 1:] = layout.horizontal_links.reshape(
+        (shape[0], shape[1] - 1)
+    )
+    node_horizontal_link_ids[:, 0] = -1
+
+    node_vertical_link_ids = np.empty(shape, np.int)
+    node_vertical_link_ids[1:, :] = layout.vertical_links.reshape(
+        (shape[0] - 1, shape[1])
+    )
+    node_vertical_link_ids[0, :] = -1
+
+    return node_vertical_link_ids, node_horizontal_link_ids
+
+
+def _number_of_links_per_node(shape):
+    """Number of links touching each node.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        Array of number of links per node.
+
+    Examples
+    --------
+    >>> from landlab.grid.raster_mappers import _number_of_links_per_node
+    >>> _number_of_links_per_node((3, 4))
+    array([[2, 3, 3, 2],
+           [3, 4, 4, 3],
+           [2, 3, 3, 2]])
+    """
+    from ..graph.structured_quad.structured_quad import StructuredQuadGraphTopology
+
+    layout = StructuredQuadGraphTopology(shape)
+
+    n_links_at_node = np.full(shape[0] * shape[1], 4, np.int)
+    n_links_at_node[layout.perimeter_nodes] = 3
+    n_links_at_node[layout.corner_nodes] = 2
+
+    return n_links_at_node.reshape(shape)
 
 
 def map_sum_of_inlinks_to_node(grid, var_name, out=None):
@@ -74,7 +194,7 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
 
-    south, west = links._node_in_link_ids(grid.shape)
+    south, west = _node_in_link_ids(grid.shape)
     south, west = south.reshape(south.size), west.reshape(west.size)
     out[:] = values_at_links[south] + values_at_links[west]
 
@@ -126,7 +246,7 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    south, west = links._node_in_link_ids(grid.shape)
+    south, west = _node_in_link_ids(grid.shape)
     south, west = south.reshape(south.size), west.reshape(west.size)
     out[:] = 0.5 * (values_at_links[south] + values_at_links[west])
 
@@ -181,7 +301,7 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    south, west = links._node_in_link_ids(grid.shape)
+    south, west = _node_in_link_ids(grid.shape)
     south, west = south.reshape(south.size), west.reshape(west.size)
     out[:] = np.maximum(values_at_links[south], values_at_links[west])
 
@@ -235,7 +355,7 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    south, west = links._node_in_link_ids(grid.shape)
+    south, west = _node_in_link_ids(grid.shape)
     south, west = south.reshape(south.size), west.reshape(west.size)
     out[:] = np.minimum(values_at_links[south], values_at_links[west])
 
@@ -289,7 +409,7 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    north, east = links._node_out_link_ids(grid.shape)
+    north, east = _node_out_link_ids(grid.shape)
     north, east = north.reshape(north.size), east.reshape(east.size)
     out[:] = values_at_links[north] + values_at_links[east]
 
@@ -343,7 +463,7 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    north, east = links._node_out_link_ids(grid.shape)
+    north, east = _node_out_link_ids(grid.shape)
     north, east = north.reshape(north.size), east.reshape(east.size)
     out[:] = 0.5 * (values_at_links[north] + values_at_links[east])
 
@@ -397,7 +517,7 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    north, east = links._node_out_link_ids(grid.shape)
+    north, east = _node_out_link_ids(grid.shape)
     north, east = north.reshape(north.size), east.reshape(east.size)
     np.maximum(values_at_links[north], values_at_links[east], out=out)
 
@@ -450,7 +570,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     else:
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
-    north, east = links._node_out_link_ids(grid.shape)
+    north, east = _node_out_link_ids(grid.shape)
     north, east = north.reshape(north.size), east.reshape(east.size)
     np.minimum(values_at_links[north], values_at_links[east], out=out)
 
@@ -506,12 +626,12 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
         values_at_links = var_name
     values_at_links = np.append(values_at_links, 0)
 
-    north, east = links._node_out_link_ids(grid.shape)
+    north, east = _node_out_link_ids(grid.shape)
     north, east = north.reshape(north.size), east.reshape(east.size)
-    south, west = links._node_in_link_ids(grid.shape)
+    south, west = _node_in_link_ids(grid.shape)
     south, west = south.reshape(south.size), west.reshape(west.size)
 
-    number_of_links = links.number_of_links_per_node(grid.shape)
+    number_of_links = _number_of_links_per_node(grid.shape)
     number_of_links = number_of_links.reshape(number_of_links.size)
     number_of_links.astype(float, copy=False)
     out[:] = (

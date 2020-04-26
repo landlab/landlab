@@ -164,7 +164,7 @@ def fill_xy_of_node_rect_horizontal(
     np.ndarray[np.double_t, ndim=1] y_of_node,
 ):
     """Get x and y coordinates for each node."""
-    cdef int n_nodes = x_of_node.size
+    cdef int n_nodes = x_of_node.shape[0]
     cdef int stride = 2 * shape[1]
     cdef int n_cols = shape[1]
     cdef int row
@@ -189,7 +189,7 @@ def get_xy_of_node(shape,
                    np.ndarray[np.double_t, ndim=1] x_of_node,
                    np.ndarray[np.double_t, ndim=1] y_of_node):
     """Get x and y coordinates for each node."""
-    cdef int n_nodes = x_of_node.size
+    cdef int n_nodes = x_of_node.shape[0]
     cdef int stride = 2 * shape[1] + 1
     cdef int n_cols = shape[1]
     cdef int row

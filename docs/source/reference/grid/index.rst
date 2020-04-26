@@ -71,5 +71,4 @@ Additional Grid Base Classes
 
 .. toctree::
 
-  structured_quad
   unstructured

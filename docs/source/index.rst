@@ -194,6 +194,8 @@ by the following grants:
    * A Collaborative NSF SI2-SSE proposal to
      University of Colorado (Greg Tucker,
      `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
+     Tulane University (Nicole Gasparini,
+     `1147519 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147519&HistoricalAwards=false>`_),
      and the University of Washington (Erkan Istanbulluoglu,
      `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
    * A Collaborative NSF SI2-SSI proposal to

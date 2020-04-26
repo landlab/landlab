@@ -32,6 +32,31 @@ LINKS_AT_PATCH = ((3, 2, 0, 1), (3, 5, 6, 4))
 # LINKS_AT_PATCH = ([3, 2, 0, 1, 3, 5, 4], [4, 3])
 
 
+def test_graph_is_frozen():
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
+
+    assert_array_equal(
+        graph.nodes_at_link, [[0, 1], [1, 2], [0, 3], [1, 4], [2, 5], [3, 4], [4, 5]]
+    )
+
+    with pytest.raises(ValueError):
+        graph.nodes_at_link[0] = [1, 0]
+
+
+def test_graph_can_thaw():
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
+
+    assert_array_equal(
+        graph.nodes_at_link, [[0, 1], [1, 2], [0, 3], [1, 4], [2, 5], [3, 4], [4, 5]]
+    )
+
+    with graph.thawed():
+        graph.nodes_at_link[0] = [1, 0]
+    assert_array_equal(
+        graph.nodes_at_link, [[1, 0], [1, 2], [0, 3], [1, 4], [2, 5], [3, 4], [4, 5]]
+    )
+
+
 def test_create_graph_with_nodes():
     """Create a graph of unconnected nodes."""
     graph = Graph((NODE_Y, NODE_X), sort=True)

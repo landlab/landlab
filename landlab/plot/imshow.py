@@ -12,9 +12,10 @@ Plotting functions
 """
 import numpy as np
 
-from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.raster import RasterModelGrid
 from landlab.plot.event_handler import query_grid_on_button_press
+
+from ..field import FieldError
 
 try:
     import matplotlib.pyplot as plt

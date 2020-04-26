@@ -10,6 +10,89 @@ from landlab.graph.structured_quad.structured_quad import (
 )
 
 
+def test_graph_is_frozen():
+    graph = UniformRectilinearGraph((3, 4))
+
+    assert_array_equal(
+        graph.nodes_at_link,
+        [
+            [0, 1],
+            [1, 2],
+            [2, 3],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+            [4, 5],
+            [5, 6],
+            [6, 7],
+            [4, 8],
+            [5, 9],
+            [6, 10],
+            [7, 11],
+            [8, 9],
+            [9, 10],
+            [10, 11],
+        ],
+    )
+
+    with raises(ValueError):
+        graph.nodes_at_link[0] = [1, 0]
+
+
+def test_graph_can_thaw():
+    graph = UniformRectilinearGraph((3, 4))
+
+    assert_array_equal(
+        graph.nodes_at_link,
+        [
+            [0, 1],
+            [1, 2],
+            [2, 3],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+            [4, 5],
+            [5, 6],
+            [6, 7],
+            [4, 8],
+            [5, 9],
+            [6, 10],
+            [7, 11],
+            [8, 9],
+            [9, 10],
+            [10, 11],
+        ],
+    )
+
+    with graph.thawed():
+        graph.nodes_at_link[0] = [1, 0]
+
+    assert_array_equal(
+        graph.nodes_at_link,
+        [
+            [1, 0],
+            [1, 2],
+            [2, 3],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+            [4, 5],
+            [5, 6],
+            [6, 7],
+            [4, 8],
+            [5, 9],
+            [6, 10],
+            [7, 11],
+            [8, 9],
+            [9, 10],
+            [10, 11],
+        ],
+    )
+
+
 @mark.parametrize("layout", (StructuredQuadLayoutCython, StructuredQuadLayoutPython))
 def test_layout_links_at_patch(layout):
     assert_array_equal(
