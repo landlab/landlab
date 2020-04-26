@@ -396,10 +396,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._calc_qs_in_and_depo_rate()
 
         # topo elev is old elev + deposition - erosion
+        # where deposition occurs, poof by phi.
+
         cores = self._grid.core_nodes
-        self._topographic__elevation[cores] += (
-            (self._depo_rate[cores] - self._erosion_term[cores]) / (1 - self._phi)
-        ) * dt
+        dzdt = self._depo_rate - self._erosion_term
+        dzdt[dzdt > 0] /= 1 - self._phi
+        self._topographic__elevation[cores] += dzdt[cores] * dt
 
     def run_with_adaptive_time_step_solver(self, dt=1.0):
         """CHILD-like solver that adjusts time steps to prevent slope
@@ -445,9 +447,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._calc_qs_in_and_depo_rate()
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = (self._depo_rate[cores] - self._erosion_term[cores]) / (
-                1 - self._phi
-            )
+            # where deposition occurs, poof by phi.
+            net_dzdt = self._depo_rate - self._erosion_term
+            net_dzdt[net_dzdt > 0] /= 1 - self._phi
+
+            dzdt[cores] = net_dzdt[cores]
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]
@@ -463,7 +467,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             # Find locations where the upstream and downstream node elevations
             # are converging (e.g., the upstream one is eroding faster than its
             # downstream neighbor)
-            converging = np.where(rocdif < 0.0)[0]
+            converging = np.nonzero(rocdif < 0.0)[0]
 
             # Find the time to (almost) flat by dividing difference by rate of
             # change of difference, and then multiplying by a "safety factor"
@@ -475,7 +479,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             # as its downstream neighbor (e.g., because it's a pit or a lake).
             # Here, masking out means simply assigning the remaining time in
             # the global time step.
-            self._time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
+            self._time_to_flat[np.nonzero(zdif <= 0.0)[0]] = remaining_time
             self._time_to_flat[is_flooded_core_node] = remaining_time
 
             # From this, find the maximum stable time step. If it is smaller

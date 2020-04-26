@@ -22,16 +22,21 @@ def grid():
     return grid
 
 
-@pytest.mark.parametrize("Component", [ErosionDeposition, Space])
+@pytest.mark.parametrize(
+    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 100)]
+)
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
-def test_mass_conserve_all_closed(grid, Component, solver, phi):
+def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
+    Component, H = Component_SoilThickness
+    grid.at_node["soil__depth"][:] = H
+
     z_init = grid.at_node["topographic__elevation"].copy()
 
     fa = FlowAccumulator(grid)
     fa.run_one_step()
 
-    ed = Component(grid, solver=solver, phi=phi)
+    ed = Component(grid, solver=solver, phi=phi, v_s=1.5)
     ed.run_one_step(2)
 
     dz = grid.at_node["topographic__elevation"] - z_init
@@ -55,14 +60,18 @@ def grid2(grid):
     return grid
 
 
-@pytest.mark.parametrize("Component", [ErosionDeposition, Space])
+@pytest.mark.parametrize(
+    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 100)]
+)
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
 def test_mass_conserve_with_depression_finder(
-    grid2, Component, solver, depression_finder, phi
+    grid2, Component_SoilThickness, solver, depression_finder, phi
 ):
-
+    Component, H = Component_SoilThickness
+    dt = 2
+    grid2.at_node["soil__depth"][:] = H
     assert grid2.status_at_node[1] == grid2.BC_NODE_IS_FIXED_VALUE
 
     z_init = grid2.at_node["topographic__elevation"].copy()
@@ -73,8 +82,8 @@ def test_mass_conserve_with_depression_finder(
         fa = FlowAccumulator(grid2, depression_finder=depression_finder, routing="D4")
     fa.run_one_step()
 
-    ed = Component(grid2, solver=solver, phi=phi)
-    ed.run_one_step(2)
+    ed = Component(grid2, solver=solver, phi=phi, v_s=1.5)
+    ed.run_one_step(dt)
 
     dz = grid2.at_node["topographic__elevation"] - z_init
 
@@ -86,8 +95,8 @@ def test_mass_conserve_with_depression_finder(
 
     # assert that the mass loss over the surface is exported through the one
     # outlet.
-    net_change = (
-        mass_change[grid2.core_nodes].sum() + ed._qs_in[1] / grid2.cell_area_at_node[11]
+    net_change = mass_change[grid2.core_nodes].sum() + (
+        ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
     )
 
     assert_array_almost_equal(net_change, 0.0, decimal=10)

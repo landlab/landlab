@@ -644,7 +644,10 @@ class Space(_GeneralizedErosionDeposition):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self._porosity_factor * (self._depo_rate - self._Es)
+
+            # poof by phi soil only where net depositon.
+            dHdt = self._depo_rate - self._Es
+            dHdt[dHdt > 0] *= self._porosity_factor
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = -(
                 TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
