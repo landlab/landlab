@@ -25,7 +25,7 @@ def grid():
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize(
-    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 10)]
+    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 3)]
 )
 def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
     Component, H = Component_SoilThickness
@@ -40,23 +40,30 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
     ed = Component(grid, solver=solver, phi=phi, v_s=1.5)
     ed.run_one_step(dt)
 
-    dz = grid.at_node["topographic__elevation"] - z_init
+    dz =  z_init - grid.at_node["topographic__elevation"]
 
     if (Component.name == "Space"):
+        # in space, everything is either bedrock or sediment. check for
+        # conservation.
+        dH = grid.at_node["soil__depth"][:] - H
+
+        # in this test, when we start with thick soils, then space picks up
+        # and then deposits material with the same porosity. Only when the
+        # sed is thin to start do we need to poof.
         if H < 0.1:
-            assert 1==2
-        elif H > 0.1:
-            # in space, if everything that was picked up and dropped was sediment.
-            # then no poofing necessary.
-            assert_array_almost_equal(dz.sum(), 0.0, decimal=10)
+            dH[dH>0] *= (1-phi)
+
+        dBr = grid.at_node["bedrock__elevation"]-(z_init - H)
+        mass_change = dH + dBr
 
     else:
+        # For Erosion Deposition, just
         # unpoof by phi where deposition occured so we can compare mass. We can do
         # this because only one timestep. (I think, but not sure, even with adaptive.)
-        where_depo = dz > 0
+        where_depo = dz < 0
         mass_change = dz.copy()
-        mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
-        assert_array_almost_equal(mass_change.sum(), 0.0, decimal=10)
+        mass_change[where_depo] = dz[where_depo] * (1 - phi)
+    assert_array_almost_equal(mass_change.sum(), 0.0, decimal=10)
 
 
 # Note that we can't make an equivalent test for with a depression finder yet
@@ -74,7 +81,7 @@ def grid2(grid):
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
 @pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
 @pytest.mark.parametrize(
-    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 10)]
+    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 3)]
 )
 def test_mass_conserve_with_depression_finder(
     grid2, Component_SoilThickness, solver, depression_finder, phi
@@ -100,19 +107,22 @@ def test_mass_conserve_with_depression_finder(
     # unpoof by phi where deposition occured so we can compare mass. We can do
     # this because only one timestep. (I think, but not sure, even with adaptive.)
     where_depo = dz > 0
-    mass_change = dz.copy()
-
 
     if (Component.name == "Space"):
-        if H < 0.1:
-            assert 1==2
-        elif H > 0.1:
-            assert 1==2
+        dH = grid2.at_node["soil__depth"][:] - H
+        if H<0.1:
+            dH[dH>0] *= (1-phi)
+        dBr = grid2.at_node["bedrock__elevation"]-(z_init - H)
+        mass_change = dH + dBr
+
     else:
+        # For ErosionDeposition
+        mass_change = dz.copy()
         mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
 
-        # assert that the mass loss over the surface is exported through the one
-        # outlet.
-        net_change = mass_change[grid2.core_nodes].sum() + (
-            ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
-        )
+    # assert that the mass loss over the surface is exported through the one
+    # outlet.
+    net_change = mass_change[grid2.core_nodes].sum() + (
+        ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
+    )
+    assert_array_almost_equal(net_change.sum(), 0.0, decimal=10)
