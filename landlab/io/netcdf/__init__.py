@@ -1,6 +1,8 @@
 from .errors import NotRasterGridError
-from .read import from_netcdf, read_netcdf
-from .write import to_netcdf, write_netcdf, write_raster_netcdf
+from .read import read_netcdf
+from .write import write_netcdf, write_raster_netcdf
+from .load import from_netcdf
+from .dump import to_netcdf
 
 
 __all__ = [
