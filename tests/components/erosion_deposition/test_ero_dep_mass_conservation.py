@@ -57,12 +57,10 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
         mass_change = dH + dBr
 
     else:
-        # For Erosion Deposition, just
-        # unpoof by phi where deposition occured so we can compare mass. We can do
-        # this because only one timestep. (I think, but not sure, even with adaptive.)
-        where_depo = dz < 0
-        mass_change = dz.copy()
-        mass_change[where_depo] = dz[where_depo] * (1 - phi)
+        # For Erosion Deposition, porosity should not have any effect, because
+        # the component operates in terms of bulk-equivalent sediment flux,
+        # erosion, and deposition.
+        mass_change = dz
     assert_array_almost_equal(mass_change.sum(), 0.0, decimal=10)
 
 
@@ -106,8 +104,6 @@ def test_mass_conserve_with_depression_finder(
 
     dz = grid2.at_node["topographic__elevation"] - z_init
 
-    where_depo = dz > 0
-
     if Component.name == "Space":
         # see above test for notes.
         dH = grid2.at_node["soil__depth"][:] - H
@@ -116,9 +112,7 @@ def test_mass_conserve_with_depression_finder(
         mass_change = dH + dBr
 
     else:
-        # For ErosionDeposition
-        mass_change = dz.copy()
-        mass_change[where_depo > 0] = dz[where_depo] * (1 - phi)
+        mass_change = dz
 
     # assert that the mass loss over the surface is exported through the one
     # outlet.
