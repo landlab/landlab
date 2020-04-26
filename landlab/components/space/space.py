@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.integrate import quad
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
@@ -461,7 +462,8 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_qs_in_and_depo_rate()
         cores = self._grid.core_nodes
 
-        soil_depth_init = self._soil__depth.copy()
+        H0 = self._soil__depth.copy()
+
         # now, the analytical solution to soil thickness in time:
         # need to distinguish D=kqS from all other cases to save from blowup!
 
@@ -476,7 +478,7 @@ class Space(_GeneralizedErosionDeposition):
 
         no_entrainment = self._sed_erosion_term <= 0.0  # this will include pits.
         blowup = (
-            (self._depo_rate == self._sed_erosion_term)
+            (self._depo_rate / (1-self._phi) == self._sed_erosion_term)
             & (self._sed_erosion_term > 0.0)
             & (~no_entrainment)
         )
@@ -535,12 +537,20 @@ class Space(_GeneralizedErosionDeposition):
         # include dH/dt within timestep in integrating for R.
         # This matters when we are starting with very little soil and increasing.
 
-        dHdt = (self._soil__depth - soil_depth_init)/dt
+        # to do this right I think we need a numerical integral for
+        # R(t). Unfortunately we have three cases for H(t).
 
-        self._bedrock__elevation[cores] += dt * (
-            -self._br_erosion_term[cores]
-            * (np.exp(-self._soil__depth[cores] / self._H_star))
-        )
+        dR = self._grid.zeros(at="node")
+        for idx in self.grid.core_nodes:
+            args = (self._br_erosion_term[idx],
+                    1./self._H_star,
+                    self._depo_rate[idx]/(1.0-self._phi),
+                    self._sed_erosion_term[idx],
+                    H0[idx])
+
+            dR[idx] = quad(_dRdt, 0, dt, args)[0]
+
+        self._bedrock__elevation += dR
 
         # finally, determine topography by summing bedrock and soil
         self._topographic__elevation[cores] = (
@@ -624,7 +634,9 @@ class Space(_GeneralizedErosionDeposition):
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
-            dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (self._Es[cores] + self._Er[cores])
+            dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (
+                self._Es[cores] + self._Er[cores]
+            )
             rocdif = dzdt - dzdt[r]
             zdif = z - z[r]
             time_to_flat[:] = remaining_time
@@ -662,3 +674,41 @@ class Space(_GeneralizedErosionDeposition):
 
             # Update remaining time and continue
             remaining_time -= dt_max
+
+def _dRdt(t, a, b, c, d, H0):
+    """
+    dRdt = a * exp(-b * H (t))
+
+    a =  Kr q S*n
+    b = 1/H*
+
+    c = VQs/(Q * (1-phi))
+    d = Ks q Sn
+
+    if d <= 0:
+        H (t) = (1/b) ln [ d*b*t + exp(H0/H*) ]
+
+    """
+    # truncate H/H*
+    if b*H0 >100:
+        H = b*100
+
+    # set cases for H depending on values of constants.
+
+    # deposition only case.
+    if d <=0:
+        H = H0 + (c * t)
+    else:
+        # sediment deposition = sediment entrainment.
+        if c  ==  d:
+            H = (1/b) * np.log( (d*b*t) + np.exp(b*H0))
+        # full equation 32
+        else:
+            term1 = 1.0/((c/d) -1)
+            term2 = np.exp((c-d)*t*b)
+            term3 = (c/d -1) * np.exp(b*H0) + 1
+            interior = term1 * (term2 * (term3) - 1)
+            H = (1/b) * np.log(interior)
+
+    dRdt = -a * np.exp(-b * H)
+    return dRdt

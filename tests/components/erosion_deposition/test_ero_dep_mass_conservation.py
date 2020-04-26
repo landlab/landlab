@@ -40,9 +40,9 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
     ed = Component(grid, solver=solver, phi=phi, v_s=1.5)
     ed.run_one_step(dt)
 
-    dz =  z_init - grid.at_node["topographic__elevation"]
+    dz = z_init - grid.at_node["topographic__elevation"]
 
-    if (Component.name == "Space"):
+    if Component.name == "Space":
         # in space, everything is either bedrock or sediment. check for
         # conservation.
         dH = grid.at_node["soil__depth"][:] - H
@@ -51,9 +51,9 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
         # and then deposits material with the same porosity. Only when the
         # sed is thin to start do we need to poof.
         if H < 0.1:
-            dH[dH>0] *= (1-phi)
+            dH[dH > 0] *= 1 - phi
 
-        dBr = grid.at_node["bedrock__elevation"]-(z_init - H)
+        dBr = grid.at_node["bedrock__elevation"] - (z_init - H)
         mass_change = dH + dBr
 
     else:
@@ -108,11 +108,11 @@ def test_mass_conserve_with_depression_finder(
     # this because only one timestep. (I think, but not sure, even with adaptive.)
     where_depo = dz > 0
 
-    if (Component.name == "Space"):
+    if Component.name == "Space":
         dH = grid2.at_node["soil__depth"][:] - H
-        if H<0.1:
-            dH[dH>0] *= (1-phi)
-        dBr = grid2.at_node["bedrock__elevation"]-(z_init - H)
+        if H < 0.1:
+            dH[dH > 0] *= 1 - phi
+        dBr = grid2.at_node["bedrock__elevation"] - (z_init - H)
         mass_change = dH + dBr
 
     else:
@@ -125,4 +125,4 @@ def test_mass_conserve_with_depression_finder(
     net_change = mass_change[grid2.core_nodes].sum() + (
         ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
     )
-    assert_array_almost_equal(net_change.sum(), 0.0, decimal=10)
+    assert_array_almost_equal(net_change, 0.0, decimal=10)
