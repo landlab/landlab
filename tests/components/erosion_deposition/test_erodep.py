@@ -135,14 +135,8 @@ def test_steady_state_with_basic_solver_option():
     # compare numerical and analytical slope solutions
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
     analytical_slope = np.power(
-        (
-            (U * v_s * (1 - phi))
-            / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
-        )
-        + (
-            (U * (1 - phi))
-            / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
-        ),
+        ((U * v_s) / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp)))
+        + ((U) / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
         1.0 / n_sp,
     )
 
@@ -157,7 +151,7 @@ def test_steady_state_with_basic_solver_option():
 
     # compare numerical and analytical sediment flux solutions
     num_sedflux = mg.at_node["sediment__flux"][mg.core_nodes]
-    analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes] * (1 - phi)
+    analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes]
 
     # test for match with anakytical sediment flux
     testing.assert_array_almost_equal(
@@ -209,8 +203,8 @@ def test_can_run_with_hex():
     testing.assert_equal(np.round(s[28], 3), np.round(s28, 3))
 
 
-def test_phi_affects_transience():
-    """Test that different porosity values affect the transient case."""
+def test_phi_does_not_impact_transience():
+    """Test that different porosity values do not impact the results."""
 
     # Set up one 5x5 grid with open boundaries and low initial elevations.
     mg1 = HexModelGrid((7, 7))
@@ -264,7 +258,6 @@ def test_phi_affects_transience():
         ed2.run_one_step(dt=dt2)
         z2[mg2.core_nodes] += U2 * dt2
 
-    # Test the results: higher phi should be lower slope
     s1 = mg1.at_node["topographic__steepest_slope"][mg1.core_nodes]
     s2 = mg2.at_node["topographic__steepest_slope"][mg2.core_nodes]
-    testing.assert_array_less(s2, s1)
+    testing.assert_array_almost_equal(s2, s1)
