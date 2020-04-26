@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
@@ -310,7 +311,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             grid,
             m_sp=m_sp,
             n_sp=n_sp,
-            phi=phi,
+            phi=0.0,
             F_f=F_f,
             v_s=v_s,
             dt_min=dt_min,
