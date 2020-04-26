@@ -96,8 +96,6 @@ def test_Ff_too_low_vals():
         )
 
 
-
-
 def test_q_as_field():
     """
     Test that passing in water discharge as a grid field results in self.q
@@ -243,14 +241,7 @@ def test_sediment__flux_already_created():
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(
-        mg,
-        K=0.01,
-        F_f=0.0,
-        v_s=0.001,
-        m_sp=0.5,
-        n_sp=1.0,
-        sp_crit=0.0,
-        solver="basic",
+        mg, K=0.01, F_f=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0.0, solver="basic",
     )
 
     # ensure that 'sediment__flux' field is everywhere equal to 1.0 m3/yr.

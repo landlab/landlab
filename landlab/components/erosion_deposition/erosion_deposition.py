@@ -1,5 +1,6 @@
-import numpy as np
 import warnings
+
+import numpy as np
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
@@ -447,9 +448,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._calc_qs_in_and_depo_rate()
 
             # Rate of change of elevation at core nodes:
-            net_dzdt = self._depo_rate - self._erosion_term
-
-            dzdt[cores] = net_dzdt[cores]
+            dzdt[cores] = self._depo_rate[cores] - self._erosion_term[cores]
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]

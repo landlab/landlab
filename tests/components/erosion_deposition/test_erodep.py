@@ -113,14 +113,7 @@ def test_steady_state_with_basic_solver_option():
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(
-        mg,
-        K=K,
-        F_f=F_f,
-        v_s=v_s,
-        m_sp=m_sp,
-        n_sp=n_sp,
-        sp_crit=0,
-        solver="basic",
+        mg, K=K, F_f=F_f, v_s=v_s, m_sp=m_sp, n_sp=n_sp, sp_crit=0, solver="basic",
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
@@ -178,9 +171,7 @@ def test_can_run_with_hex():
     dt = 10.0
 
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(
-        mg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
-    )
+    ed = ErosionDeposition(mg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
     for i in range(2000):
