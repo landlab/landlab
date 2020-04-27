@@ -10,15 +10,15 @@ authors:
 
   - name: Katherine R. Barnhart
     orcid: 0000-0001-5682-455X
-    affiliation: 2, 3
+    affiliation: 2, 3, 4
 
   - name: Jonathan A. Czuba
     orcid: 0000-0002-9485-2604
-    affiliation: 4
+    affiliation: 5
 
   - name: Eric Hutton
     orcid: 0000-0002-5864-6459
-    affiliation: 3, 5
+    affiliation: 4, 6
 
 affiliations:
   - name: Western Washington University, Geology Department
@@ -27,11 +27,13 @@ affiliations:
     index: 2
   - name: University of Colorado at Boulder, Cooperative Institute for Research in Environmental Sciences
     index: 3
-  - name: Virginia Tech, Department of Biological Systems Engineering and The Global Change Center
+  - name: Present affiliation: U.S. Geological Survey, Landslide Hazards Program, 1711 Illinois St., Golden, CO 80401
     index: 4
-  - name: University of Colorado at Boulder, Community Surface Dynamics Modeling System Integration Facility
+  - name: Virginia Tech, Department of Biological Systems Engineering and The Global Change Center
     index: 5
-date: 0 November 2019
+  - name: University of Colorado at Boulder, Community Surface Dynamics Modeling System Integration Facility
+    index: 6
+date: 27 Apr 2020
 bibliography: papers.bib
 ---
 
