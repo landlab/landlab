@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 This code was designed to plot outputs of the NetworkSedimentTransporter
-landlab component. 
+landlab component.
 
 This code plots:
     - the network, with option to color each link according to a link attribute.
-    - the parcels, with option to color and size each parcel according to 
+    - the parcels, with option to color and size each parcel according to
     parcel attributes.
 
 Authors: Katy Barnhart, Jon Czuba, Allison Pfeiffer
@@ -47,74 +47,74 @@ def plot_network_and_parcels(
     fig=None,
     **kwargs
 ):
-    """Plot a river network and parcels on the river network. Intended to 
-    display the results of the NetworkSedimentTransporter component. 
-    
-    The river network (an instance of NetworkModelGrid) is plotted either as 
+    """Plot a river network and parcels on the river network. Intended to
+    display the results of the NetworkSedimentTransporter component.
+
+    The river network (an instance of NetworkModelGrid) is plotted either as
     straight links between grid nodes, or (if the network was created using a
-    shapefile to set network topology) as sinuous lines representing the actual 
-    link geometry. 
-    
-    The parcels (an instance of DataRecord) are represented as dot markers 
-    along the links, with the marker location set by parcel attribute 
+    shapefile to set network topology) as sinuous lines representing the actual
+    link geometry.
+
+    The parcels (an instance of DataRecord) are represented as dot markers
+    along the links, with the marker location set by parcel attribute
     `location_at_link`. The default is to plot the parcel locations at the
-    last timestep in DataRecord, though any time index may be specified. 
-    
-    Use of this plotting tool is described in detail in a landlab tutorial. 
+    last timestep in DataRecord, though any time index may be specified.
+
+    Use of this plotting tool is described in detail in a landlab tutorial.
 
     Parameters
     ----------
     grid : NetworkModelGrid
         Instance of NetworkModelGrid.
     parcels : DataRecord
-        Instance of Landlab DataRecord, with the same attribute requirements as 
-        NetworkSedimentTransporter. 
+        Instance of Landlab DataRecord, with the same attribute requirements as
+        NetworkSedimentTransporter.
     parcel_time_index : int, time index of parcels DataRecord
-        Parcel time index to plot. Default is last timestep in parcels 
+        Parcel time index to plot. Default is last timestep in parcels
         DataRecord.
     map_buffer : 0.1
-        Increase the plot extent by at least this much (default 0.1). Note, 
+        Increase the plot extent by at least this much (default 0.1). Note,
         b/c of axis equal, may be more.
     parcel_filter : boolean array of shape (number_of_parcels, )
         Filter to plot only a selection of the parcels.
 
-    ######################## 
+    ########################
     ## Part 1: Network. To set the link colors provide either:
-    
+
     network_color="k"
-        Uniform color for network links. 
-   
+        Uniform color for network links.
+
     # or
-    
+
     link_attribute : array or field name at link
-        Value used to set link color. Categorical options not supported. Must 
+        Value used to set link color. Categorical options not supported. Must
         be continuous.
     link_attribute_title : str
         String to use as the title, if link_attribute is a string, it is
         used as the default.
     network_cmap : "cividis"
-        Name of colormap for network. 
+        Name of colormap for network.
     network_norm : matplotlib color normalizer.
         https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
         Default is linear between min and max of link_attribute.
-    
+
     # linewidth will be recognized by either link coloring option.
-    
+
     network_linewidth : float
         Width of network lines (default 0.5).
 
-    ######################## 
+    ########################
     ## Part 2: Parcels. To set the parcel color, provide either:
-        
+
     parcel_color : color str
-        Constant color used for parcel markers (default "k"). 
-        
+        Constant color used for parcel markers (default "k").
+
     # or
-    
+
     parcel_color_attribute : parcel attribute name.
         Categorical options not supported. Must be continuous.
     parcel_color_attribute_title : str
-        String to use as the legend title. If parcel_color_attribute is a 
+        String to use as the legend title. If parcel_color_attribute is a
         string, it is used as the default.
     parcel_color_cmap : cmap str
         Name of colormap for variable parcel color (default "plasma").
@@ -125,7 +125,7 @@ def plot_network_and_parcels(
     # for parcel size use either:
 
     parcel_size : float
-        Marker size, in points. 
+        Marker size, in points.
 
     # or
 
@@ -139,12 +139,12 @@ def plot_network_and_parcels(
         https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
         Default is linear between min and max of parcel_size_attribute.,
     parcel_size_min : float
-        Specify the smallest size of the dot markers plotted, in 
-        units of points (default 5). Use with parcel_size_max. They will be 
+        Specify the smallest size of the dot markers plotted, in
+        units of points (default 5). Use with parcel_size_max. They will be
         aligned with the limits of parcel_size_norm.
     parcel_size_max : float
-        Specify the largest size of the dot markers plotted, in 
-        units of points (default 40). Use with parcel_size_min. They will be 
+        Specify the largest size of the dot markers plotted, in
+        units of points (default 40). Use with parcel_size_min. They will be
         aligned with the limits of parcel_size_norm.
 
     # with constant or attribute, can set parcel transparency
@@ -162,7 +162,7 @@ def plot_network_and_parcels(
     Returns
     -------
     fig :
-        Figure object. 
+        Figure object.
 
     """
     # part 0 checking and default setting.
