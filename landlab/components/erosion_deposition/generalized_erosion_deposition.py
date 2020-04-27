@@ -82,7 +82,6 @@ class _GeneralizedErosionDeposition(Component):
         grid,
         m_sp,
         n_sp,
-        phi,
         F_f,
         v_s,
         discharge_field="surface_water__discharge",
@@ -98,8 +97,6 @@ class _GeneralizedErosionDeposition(Component):
             Discharge exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
-        phi : float
-            Sediment porosity [-].
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
@@ -141,19 +138,12 @@ class _GeneralizedErosionDeposition(Component):
         # store other constants
         self._m_sp = float(m_sp)
         self._n_sp = float(n_sp)
-        self._phi = float(phi)
         self._v_s = float(v_s)
         self._dt_min = dt_min
         self._F_f = float(F_f)
 
-        if phi >= 1.0:
-            raise ValueError("Porosity must be < 1.0")
-
         if F_f > 1.0:
             raise ValueError("Fraction of fines must be <= 1.0")
-
-        if phi < 0.0:
-            raise ValueError("Porosity must be > 0.0")
 
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
@@ -176,7 +166,7 @@ class _GeneralizedErosionDeposition(Component):
         >>> fa.run_one_step()
         >>> rg.at_node['topographic__steepest_slope'][5:7]
         array([ 1.41421356,  1.41421356])
-        >>> sp = _GeneralizedErosionDeposition(rg, phi=0.1, v_s=0.001,
+        >>> sp = _GeneralizedErosionDeposition(rg, v_s=0.001,
         ...                                    m_sp=0.5, n_sp=1.0, F_f=0)
         >>> z *= 0.1
         >>> sp._update_flow_link_slopes()

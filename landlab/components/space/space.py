@@ -298,12 +298,19 @@ class Space(_GeneralizedErosionDeposition):
             grid,
             m_sp=m_sp,
             n_sp=n_sp,
-            phi=phi,
             F_f=F_f,
             v_s=v_s,
             dt_min=dt_min,
             discharge_field=discharge_field,
         )
+
+        if phi >= 1.0:
+            raise ValueError("Porosity must be < 1.0")
+        if phi < 0.0:
+            raise ValueError("Porosity must be > 0.0")
+
+        self._phi = float(phi)
+        self._porosity_factor = 1.0 / (1.0 - self._phi)
 
         # space specific inits
         self._H_star = H_star
@@ -331,7 +338,6 @@ class Space(_GeneralizedErosionDeposition):
         self._sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
         self._sp_crit_br = return_array_at_node(grid, sp_crit_br)
 
-        self._porosity_factor = 1.0 / (1.0 - self._phi)
         # Handle option for solver
         if solver == "basic":
             self.run_one_step = self.run_one_step_basic
