@@ -66,9 +66,7 @@ def from_netcdf(filename_or_obj, include="*", exclude=None):
         else:
             grid = from_dataset(dataset)
 
-        qualified_names = [
-            name for name in dataset.variables if name.startswith("at_")
-        ]
+        qualified_names = [name for name in dataset.variables if name.startswith("at_")]
         names = set()
         for pattern in include:
             names.update(fnmatch.filter(qualified_names, pattern))

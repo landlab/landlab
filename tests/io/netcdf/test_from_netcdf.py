@@ -1,8 +1,8 @@
 import pytest
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.io.netcdf import from_netcdf, to_netcdf
-from numpy.testing import assert_array_equal
 
 
 @pytest.mark.parametrize("include", ((), [], set(), None))

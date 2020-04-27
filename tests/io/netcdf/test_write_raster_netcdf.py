@@ -171,7 +171,7 @@ def test_append_without_time_netcdf3(tmpdir):
                 [
                     [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]],
                     [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2]],
-                ]
+                ],
             )
             assert "nt" in root.dimensions
             assert len(root.dimensions["nt"]) == 2

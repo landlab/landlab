@@ -152,7 +152,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                 "grid_type": "triangular",
                 "node_layout": self.node_layout,
                 "orientation": self.orientation,
-            }
+            },
         )
         return dataset.update(
             super(HexModelGrid, self).as_dataset(include=include, exclude=exclude)

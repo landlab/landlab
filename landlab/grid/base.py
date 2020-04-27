@@ -451,9 +451,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         canonical_names = set()
         for at in self.groups | set(["layer"]):
-            canonical_names.update(
-                ["at_{0}:{1}".format(at, name) for name in self[at]]
-            )
+            canonical_names.update(["at_{0}:{1}".format(at, name) for name in self[at]])
 
         names = set()
         for pattern in include:
@@ -485,11 +483,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         data = {}
         for name in names:
-            dim, field_name = name[len("at_"):].split(":")
+            dim, field_name = name[len("at_") :].split(":")
             data[name] = ((dim,), getattr(self, "at_" + dim)[field_name])
 
         for name in layer_names:
-            dim, field_name = name[len("at_"):].split(":")
+            dim, field_name = name[len("at_") :].split(":")
             data[name] = (("layer", "cell"), self.at_layer[field_name])
 
         data["status_at_node"] = (("node",), self.status_at_node)

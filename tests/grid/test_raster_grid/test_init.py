@@ -3,7 +3,6 @@ import pytest
 
 from landlab import RasterModelGrid
 
-
 X = RasterModelGrid.BAD_INDEX
 
 
