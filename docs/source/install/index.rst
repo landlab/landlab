@@ -65,7 +65,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip install --pre landlab
+  $ pip install landlab
 
 Updating
 ````````
@@ -74,7 +74,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip install --upgrade --pre landlab
+  $ pip install --upgrade landlab
 
 Uninstall
 `````````
