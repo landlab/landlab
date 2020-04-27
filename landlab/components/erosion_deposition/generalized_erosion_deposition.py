@@ -3,6 +3,8 @@ import numpy as np
 from landlab import Component, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
+from ..depression_finder.lake_mapper import _FLOODED
+
 DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 
@@ -80,14 +82,12 @@ class _GeneralizedErosionDeposition(Component):
         grid,
         m_sp,
         n_sp,
-        phi,
         F_f,
         v_s,
         discharge_field="surface_water__discharge",
-        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
-        """Initialize the ErosionDeposition model.
+        """Initialize the GeneralizedErosionDeposition model.
 
         Parameters
         ----------
@@ -97,8 +97,6 @@ class _GeneralizedErosionDeposition(Component):
             Discharge exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
-        phi : float
-            Sediment porosity [-].
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
@@ -110,24 +108,8 @@ class _GeneralizedErosionDeposition(Component):
             Only applies when adaptive solver is used. Minimum timestep that
             adaptive solver will use when subdividing unstable timesteps.
             Default values is 0.001. [T].
-        erode_flooded_nodes : bool (optional)
-            Whether erosion occurs in flooded nodes identified by a
-            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
-            to false, the field *flood_status_code* must be present on the grid
-            (this is created by the DepressionFinderAndRouter). Default True.
         """
         super().__init__(grid)
-
-        if not erode_flooded_nodes:
-            if "flood_status_code" not in self._grid.at_node:
-                msg = (
-                    "In order to not erode flooded nodes another component "
-                    "must create the field *flood_status_code*. You want to "
-                    "run a lake mapper/depression finder."
-                )
-                raise ValueError(msg)
-
-        self._erode_flooded_nodes = erode_flooded_nodes
 
         self._flow_receivers = grid.at_node["flow__receiver_node"]
         self._stack = grid.at_node["flow__upstream_node_order"]
@@ -156,19 +138,12 @@ class _GeneralizedErosionDeposition(Component):
         # store other constants
         self._m_sp = float(m_sp)
         self._n_sp = float(n_sp)
-        self._phi = float(phi)
         self._v_s = float(v_s)
         self._dt_min = dt_min
         self._F_f = float(F_f)
 
-        if phi >= 1.0:
-            raise ValueError("Porosity must be < 1.0")
-
         if F_f > 1.0:
             raise ValueError("Fraction of fines must be <= 1.0")
-
-        if phi < 0.0:
-            raise ValueError("Porosity must be > 0.0")
 
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
@@ -191,7 +166,7 @@ class _GeneralizedErosionDeposition(Component):
         >>> fa.run_one_step()
         >>> rg.at_node['topographic__steepest_slope'][5:7]
         array([ 1.41421356,  1.41421356])
-        >>> sp = _GeneralizedErosionDeposition(rg, phi=0.1, v_s=0.001,
+        >>> sp = _GeneralizedErosionDeposition(rg, v_s=0.001,
         ...                                    m_sp=0.5, n_sp=1.0, F_f=0)
         >>> z *= 0.1
         >>> sp._update_flow_link_slopes()
@@ -205,3 +180,24 @@ class _GeneralizedErosionDeposition(Component):
 
     def _calc_hydrology(self):
         self._Q_to_the_m[:] = np.power(self._q, self._m_sp)
+
+    def _depressions_are_handled(self):
+        """Return True if a depression-handling component is present."""
+        return "flood_status_code" in self._grid.at_node
+
+    def _get_flooded_core_nodes(self):
+        """Return boolean node array
+
+        True where core node is flooded or self-draining.
+        """
+        if self._depressions_are_handled():
+            is_flooded_core = np.logical_and(
+                self._grid.at_node["flood_status_code"] == _FLOODED,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+            )
+        else:
+            is_pit = self._flow_receivers == self._grid.nodes.flatten()
+            is_flooded_core = np.logical_and(
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE, is_pit,
+            )
+        return np.array(is_flooded_core)
