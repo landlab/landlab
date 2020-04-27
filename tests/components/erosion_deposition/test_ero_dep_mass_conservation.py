@@ -24,14 +24,34 @@ def grid():
 
 # consider full combinitorics of solver, two phi, ED and Space, and (if space)
 # initial soil depth of very large and zero.
+@pytest.mark.parametrize("solver", ["basic", "adaptive"])
+@pytest.mark.parametrize("v_s", [1.5])
+@pytest.mark.parametrize("dt", [2])
+def test_mass_conserve_all_closed_ErosionDeposition(grid, solver, v_s, dt):
+    z_init = grid.at_node["topographic__elevation"].copy()
+
+    fa = FlowAccumulator(grid)
+    fa.run_one_step()
+
+    ed = ErosionDeposition(grid, solver=solver, v_s=v_s)
+    ed.run_one_step(dt)
+
+    dz = z_init - grid.at_node["topographic__elevation"]
+
+    # For Erosion Deposition, porosity should not have any effect, because
+    # the component operates in terms of bulk-equivalent sediment flux,
+    # erosion, and deposition.
+
+    assert_array_almost_equal(dz.sum(), 0.0, decimal=10)
+
+
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
-@pytest.mark.parametrize(
-    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 1000)]
-)
-def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
-    Component, H = Component_SoilThickness
-    dt = 2
+@pytest.mark.parametrize("H", [0, 1, 1000])
+@pytest.mark.parametrize("v_s", [1.5])
+@pytest.mark.parametrize("H_star", [0.1])
+@pytest.mark.parametrize("dt", [2])
+def test_mass_conserve_all_closed_Space(grid, H, solver, phi, v_s, H_star, dt):
     grid.at_node["soil__depth"][:] = H
 
     z_init = grid.at_node["topographic__elevation"].copy()
@@ -39,28 +59,20 @@ def test_mass_conserve_all_closed(grid, Component_SoilThickness, solver, phi):
     fa = FlowAccumulator(grid)
     fa.run_one_step()
 
-    ed = Component(grid, solver=solver, phi=phi, v_s=1.5)
+    ed = Space(grid, solver=solver, phi=phi, v_s=v_s, H_star=H_star)
     ed.run_one_step(dt)
 
-    dz = z_init - grid.at_node["topographic__elevation"]
+    # in space, everything is either bedrock or sediment. check for
+    # conservation.
+    dH = grid.at_node["soil__depth"][:] - H
 
-    if Component.name == "Space":
-        # in space, everything is either bedrock or sediment. check for
-        # conservation.
-        dH = grid.at_node["soil__depth"][:] - H
+    # sediment is defined as having a porosity so all changes (up or down )
+    # must be adjusted to mass.
+    dH *= 1 - phi
 
-        # sediment is defined as having a porosity so all changes (up or down )
-        # must be adjusted to mass.
-        dH *= 1 - phi
+    dBr = grid.at_node["bedrock__elevation"] - (z_init - H)
+    mass_change = dH + dBr
 
-        dBr = grid.at_node["bedrock__elevation"] - (z_init - H)
-        mass_change = dH + dBr
-
-    else:
-        # For Erosion Deposition, porosity should not have any effect, because
-        # the component operates in terms of bulk-equivalent sediment flux,
-        # erosion, and deposition.
-        mass_change = dz
     assert_array_almost_equal(mass_change.sum(), 0.0, decimal=10)
 
 
@@ -77,17 +89,48 @@ def grid2(grid):
 
 # consider full combinitorics of solver, two phi, depression finding or not,
 #  ED and Space, and (if space) initial soil depth of very large and zero.
+
+
+@pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
+@pytest.mark.parametrize("solver", ["basic", "adaptive"])
+@pytest.mark.parametrize("v_s", [1.5])
+@pytest.mark.parametrize("dt", [2])
+def test_mass_conserve_with_depression_finder_ErosionDeposition(
+    grid2, solver, depression_finder, v_s, dt
+):
+    assert grid2.status_at_node[1] == grid2.BC_NODE_IS_FIXED_VALUE
+
+    z_init = grid2.at_node["topographic__elevation"].copy()
+
+    if depression_finder is None:
+        fa = FlowAccumulator(grid2)
+    else:
+        fa = FlowAccumulator(grid2, depression_finder=depression_finder, routing="D4")
+    fa.run_one_step()
+
+    ed = ErosionDeposition(grid2, solver=solver, v_s=v_s)
+    ed.run_one_step(dt)
+
+    dz = grid2.at_node["topographic__elevation"] - z_init
+
+    # assert that the mass loss over the surface is exported through the one
+    # outlet.
+    net_change = dz[grid2.core_nodes].sum() + (
+        ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
+    )
+    assert_array_almost_equal(net_change, 0.0, decimal=10)
+
+
+@pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
 @pytest.mark.parametrize("phi", [0.0, 0.3])
 @pytest.mark.parametrize("solver", ["basic", "adaptive"])
-@pytest.mark.parametrize("depression_finder", [None, "DepressionFinderAndRouter"])
-@pytest.mark.parametrize(
-    "Component_SoilThickness", [(ErosionDeposition, 0), (Space, 0), (Space, 1000)]
-)
-def test_mass_conserve_with_depression_finder(
-    grid2, Component_SoilThickness, solver, depression_finder, phi
+@pytest.mark.parametrize("H", [0, 1000])
+@pytest.mark.parametrize("v_s", [1.5])
+@pytest.mark.parametrize("H_star", [0.1])
+@pytest.mark.parametrize("dt", [2])
+def test_mass_conserve_with_depression_finder_Space(
+    grid2, H, solver, depression_finder, phi, v_s, H_star, dt
 ):
-    Component, H = Component_SoilThickness
-    dt = 2
     grid2.at_node["soil__depth"][:] = H
     assert grid2.status_at_node[1] == grid2.BC_NODE_IS_FIXED_VALUE
 
@@ -99,20 +142,14 @@ def test_mass_conserve_with_depression_finder(
         fa = FlowAccumulator(grid2, depression_finder=depression_finder, routing="D4")
     fa.run_one_step()
 
-    ed = Component(grid2, solver=solver, phi=phi, v_s=1.5)
+    ed = Space(grid2, solver=solver, phi=phi, v_s=v_s, H_star=H_star)
     ed.run_one_step(dt)
 
-    dz = grid2.at_node["topographic__elevation"] - z_init
-
-    if Component.name == "Space":
-        # see above test for notes.
-        dH = grid2.at_node["soil__depth"][:] - H
-        dH *= 1 - phi
-        dBr = grid2.at_node["bedrock__elevation"] - (z_init - H)
-        mass_change = dH + dBr
-
-    else:
-        mass_change = dz
+    # see above test for notes.
+    dH = grid2.at_node["soil__depth"][:] - H
+    dH *= 1 - phi
+    dBr = grid2.at_node["bedrock__elevation"] - (z_init - H)
+    mass_change = dH + dBr
 
     # assert that the mass loss over the surface is exported through the one
     # outlet.
