@@ -23,8 +23,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     This implementation is close to the Davy & Lague scheme, with a few
     deviations:
 
-        - Sediment porosity is handled explicitly in this implementation.
-
         - A fraction of the eroded sediment is permitted to enter the wash load,
           and lost to the mass balance (`F_f`).
 
@@ -63,6 +61,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     "flood_status_code" at nodes), then deposition occurs throughout the
     depression and sediment is passed out of the depression. Where pits are
     encountered, then all sediment is deposited at that node only.
+
+    A note about sediment porosity: Prior to Landlab v2.0 this component took a
+    porositiy keyworkd argument ``phi``. For an explaination of why it no
+    longer does (including a mathematical derivation), see
+    `Pull Request 1186 <https://github.com/landlab/landlab/pull/1186>`_.
+    If ``phi`` is passed to this component a value error will be raised.
 
     Component written by C. Shobe, K. Barnhart, and G. Tucker.
 
@@ -163,7 +167,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self,
         grid,
         K=0.002,
-        phi=0.0,
         v_s=1.0,
         m_sp=0.5,
         n_sp=1.0,
@@ -172,6 +175,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         discharge_field="surface_water__discharge",
         solver="basic",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
+        **kwds
     ):
         """Initialize the ErosionDeposition model.
 
@@ -181,11 +185,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             Landlab ModelGrid object
         K : float, field name, or array
             Erodibility for substrate (units vary).
-        phi : float
-            Sediment porosity [-]. NOTE: This parameter is retained for backward
-            compatibility, but has no impact on the solution because all
-            calculations are performed in terms of bulk equivalent volume
-            or depth.
         v_s : float
             Effective settling velocity for chosen grain size metric [L/T].
         m_sp : float
@@ -306,11 +305,18 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
             raise NotImplementedError(msg)
 
+        if "phi" in kwds:
+            msg = "As of Landlab v2 ErosionDeposition no longer takes the keyword argument phi. This is because without distingishing between previously transported material (as is done in SPACE) and unerodeded material, this componnent cannot conserve mass with values of phi>0. The following pull request describes why this is the case in more depth. https://github.com/landlab/landlab/pull/1186."
+            raise ValueError(msg)
+        elif len(kwds) > 0:
+            kwdstr = " ".join(list(kwds.keys()))
+            raise ValueError(
+                "Extra kwds passed to ErosionDeposition:{kwds}".format(kwds=kwdstr)
+            )
         super().__init__(
             grid,
             m_sp=m_sp,
             n_sp=n_sp,
-            phi=0.0,
             F_f=F_f,
             v_s=v_s,
             dt_min=dt_min,
