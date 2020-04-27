@@ -306,7 +306,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             raise NotImplementedError(msg)
 
         if "phi" in kwds:
-            msg = "As of Landlab v2 ErosionDeposition no longer takes the keyword argument phi. This is because without distingishing between previously transported material (as is done in SPACE) and unerodeded material, this componnent cannot conserve mass with values of phi>0. The following pull request describes why this is the case in more depth. https://github.com/landlab/landlab/pull/1186."
+            msg = "As of Landlab v2 ErosionDeposition no longer takes the keyword argument phi. The sediment flux is considered to represent bulk deposit volume rather than mineral volume, and therefore porosity does not impact the dynamics. The following pull request explains the math behind this: https://github.com/landlab/landlab/pull/1186."
             raise ValueError(msg)
         elif len(kwds) > 0:
             kwdstr = " ".join(list(kwds.keys()))
