@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.integrate import quad
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
@@ -6,7 +7,6 @@ from landlab.components.erosion_deposition.generalized_erosion_deposition import
 )
 from landlab.utils.return_array import return_array_at_node
 
-from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
@@ -21,6 +21,16 @@ class Space(_GeneralizedErosionDeposition):
     Landlab component for 2-D calculation of sediment transport, bedrock
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
     `https://doi.org/10.5194/gmd-10-4577-2017 <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
+
+    Unlike other some other fluvial erosion componets in Landlab, in this
+    component (and :py:class:`~landlab.components.ErosionDeposition`) no
+    erosion occurs in depressions or in areas with adverse slopes. There is no
+    ability to pass a keyword argument ``erode_flooded_nodes``.
+
+    If a depressions are handled (as indicated by the presence of the field
+    "flood_status_code" at nodes), then deposition occurs throughout the
+    depression and sediment is passed out of the depression. Where pits are
+    encountered, then all sediment is deposited at that node only.
 
     Note: If timesteps are large enough that Es*dt (sediment erosion)
     exceeds sediment thickness H, the 'adaptive' solver is necessary to
@@ -65,8 +75,7 @@ class Space(_GeneralizedErosionDeposition):
     ...     mg,
     ...     K_sp=.001,
     ...     m_sp=.5,
-    ...     n_sp=1,
-    ...     erode_flooded_nodes=False)
+    ...     n_sp=1)
 
     Burn in an initial drainage network using the Fastscape eroder:
 
@@ -95,8 +104,7 @@ class Space(_GeneralizedErosionDeposition):
     ...     m_sp=0.5,
     ...     n_sp = 1.0,
     ...     sp_crit_sed=0,
-    ...     sp_crit_br=0,
-    ...     erode_flooded_nodes=False)
+    ...     sp_crit_br=0)
 
     Now run the Space component for 2000 short timesteps:
 
@@ -124,7 +132,7 @@ class Space(_GeneralizedErosionDeposition):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    Shobe, C., Tucker, G., Barnhart, K. (2017). The SPACE 1.0 model: a Landlab
+    Shobe, C., Tucker, G., Barnhart, K. (2017). The SPACE 1.0 model: a Landlab
     component for 2-D calculation of sediment transport, bedrock erosion, and
     landscape evolution. Geoscientific Model Development  10(12), 4577 - 4604.
     https://dx.doi.org/10.5194/gmd-10-4577-2017
@@ -221,8 +229,8 @@ class Space(_GeneralizedErosionDeposition):
     def __init__(
         self,
         grid,
-        K_sed=0.02,
-        K_br=0.02,
+        K_sed=0.002,
+        K_br=0.002,
         F_f=0.0,
         phi=0.3,
         H_star=0.1,
@@ -233,7 +241,6 @@ class Space(_GeneralizedErosionDeposition):
         sp_crit_br=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
-        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the Space model.
@@ -268,11 +275,6 @@ class Space(_GeneralizedErosionDeposition):
             multiplied by the default rainfall rate (1 m/yr). To use custom
             spatially/temporally varying rainfall, use 'water__unit_flux_in'
             to specify water input to the FlowAccumulator.
-        erode_flooded_nodes : bool (optional)
-            Whether erosion occurs in flooded nodes identified by a
-            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
-            to false, the field *flood_status_code* must be present on the grid
-            (this is created by the DepressionFinderAndRouter). Default True.
         solver : string
             Solver to use. Options at present include:
                 (1) 'basic' (default): explicit forward-time extrapolation.
@@ -296,13 +298,19 @@ class Space(_GeneralizedErosionDeposition):
             grid,
             m_sp=m_sp,
             n_sp=n_sp,
-            phi=phi,
             F_f=F_f,
             v_s=v_s,
             dt_min=dt_min,
             discharge_field=discharge_field,
-            erode_flooded_nodes=erode_flooded_nodes,
         )
+
+        if phi >= 1.0:
+            raise ValueError("Porosity must be < 1.0")
+        if phi < 0.0:
+            raise ValueError("Porosity must be > 0.0")
+
+        self._phi = float(phi)
+        self._porosity_factor = 1.0 / (1.0 - self._phi)
 
         # space specific inits
         self._H_star = H_star
@@ -336,7 +344,6 @@ class Space(_GeneralizedErosionDeposition):
         elif solver == "adaptive":
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
-            self._porosity_factor = 1.0 / (1.0 - self._phi)
         else:
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
@@ -382,7 +389,10 @@ class Space(_GeneralizedErosionDeposition):
 
         self._sed_erosion_term = omega_sed - self._sp_crit_sed * (
             1.0 - np.exp(-omega_sed_over_sp_crit)
-        )
+        ) / (
+            1 - self._phi
+        )  # convert from a volume to a mass flux.
+
         self._br_erosion_term = omega_br - self._sp_crit_br * (
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
@@ -390,6 +400,7 @@ class Space(_GeneralizedErosionDeposition):
         self._Es = self._sed_erosion_term * (
             1.0 - np.exp(-self._soil__depth / self._H_star)
         )
+
         self._Er = self._br_erosion_term * np.exp(-self._soil__depth / self._H_star)
 
     @property
@@ -407,29 +418,21 @@ class Space(_GeneralizedErosionDeposition):
         """Sediment thickness."""
         return self._H
 
-    def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for a time period
-        'dt'.
-
-        Parameters
-        ----------
-        dt : float
-            Model timestep [T]
-        """
+    def _calc_qs_in_and_depo_rate(self):
         # Choose a method for calculating erosion:
         self._calc_hydrology()
         self._calc_erosion_rates()
 
-        if not self._erode_flooded_nodes:
-            flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
-        else:
-            flooded_nodes = []
+        is_flooded_core_node = self._get_flooded_core_nodes()
 
-        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        flooded[flooded_nodes] = True
+        self._Es[is_flooded_core_node] = 0.0
+        self._Er[is_flooded_core_node] = 0.0
+
+        self._sed_erosion_term[is_flooded_core_node] = 0.0
+        self._br_erosion_term[is_flooded_core_node] = 0.0
 
         self._qs_in[:] = 0
+        self._depo_rate[:] = 0.0
 
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -450,91 +453,138 @@ class Space(_GeneralizedErosionDeposition):
             self._v_s / self._q[self._q > 0]
         )
 
+        if not self._depressions_are_handled():  # all sed dropped here
+            self._depo_rate[is_flooded_core_node] = (
+                self._qs_in[is_flooded_core_node]
+                / self._cell_area_at_node[is_flooded_core_node]
+            )
+        return is_flooded_core_node
+
+    def run_one_step_basic(self, dt=1.0):
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
+
+        Parameters
+        ----------
+        dt : float
+            Model timestep [T]
+        """
+        self._calc_qs_in_and_depo_rate()
+        cores = self._grid.core_nodes
+
+        H0 = self._soil__depth.copy()
+
         # now, the analytical solution to soil thickness in time:
         # need to distinguish D=kqS from all other cases to save from blowup!
 
         # distinguish cases:
-        blowup = self._depo_rate == self._K_sed * self._Q_to_the_m * self._slope
 
-        # first, potential blowup case:
-        # positive slopes, not flooded
-        pos_not_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (~flooded)
-        self._soil__depth[pos_not_flood] = self._H_star * np.log(
-            ((self._sed_erosion_term[pos_not_flood] / (1 - self._phi)) / self._H_star)
-            * dt
-            + np.exp(self._soil__depth[pos_not_flood] / self._H_star)
+        # there is a numerical blow up as well, which is not discussed in the
+        # paper. when H>>H* the analytical solution (Eq 34) has a term that is
+        # exp (H/H*) This can becom infinite. We will consider the case of
+        # H/H*>50 as distinct.
+        H_over_H_star = self._soil__depth / self._H_star
+        too_thick = H_over_H_star > 100
+
+        H_over_H_star[too_thick] = 100
+
+        no_entrainment = self._sed_erosion_term <= 0.0  # this will include pits.
+        blowup = (
+            (self._depo_rate == self._sed_erosion_term)
+            & (self._sed_erosion_term > 0.0)
+            & (~no_entrainment)
         )
-        # positive slopes, flooded
-        pos_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (flooded)
-        self._soil__depth[pos_flood] = (
-            self._depo_rate[pos_flood] / (1 - self._phi)
+        full_equation = (~blowup) & (~no_entrainment)
+
+        # First do blowup.
+        # this is Space paper Eq 34. This example has the same issues with
+        # very thick sed. If sed is very thick AND ero=depo, there is no change.
+        self._soil__depth[blowup * (~too_thick)] = self._H_star * np.log(
+            ((self._sed_erosion_term[blowup]) / self._H_star) * dt
+            + np.exp(H_over_H_star[blowup])
+        )
+
+        # Second, do no entrainment of sediment. This is equation 35.
+        self._soil__depth[no_entrainment] += (
+            self._depo_rate[no_entrainment] / (1 - self._phi)
         ) * dt
 
-        # non-positive slopes, not flooded
-        non_pos_not_flood = (self._q > 0) & (blowup) & (self._slope <= 0) & (~flooded)
-        self._soil__depth[non_pos_not_flood] += (
-            self._depo_rate[non_pos_not_flood] / (1 - self._phi) * dt
-        )
+        # Treat the case of very thick sediments and ero != depo.
+        self._soil__depth[full_equation * too_thick] += (
+            (
+                self._depo_rate[full_equation * (full_equation * too_thick)]
+                / (1 - self._phi)
+            )
+            - (self._sed_erosion_term[full_equation * too_thick] / (1 - self._phi))
+        ) * dt
 
-        # more general case:
-        pos_not_flood = (self._q > 0) & (~blowup) & (self._slope > 0) & (~flooded)
-
-        self._soil__depth[pos_not_flood] = self._H_star * np.log(
+        # Finally do the full equation (Eq 32) when not too thick.
+        self._soil__depth[full_equation * (~too_thick)] = self._H_star * np.log(
             (
                 1
                 / (
-                    (self._depo_rate[pos_not_flood] / (1 - self._phi))
-                    / (self._sed_erosion_term[pos_not_flood] / (1 - self._phi))
+                    (self._depo_rate[full_equation * (~too_thick)] / (1 - self._phi))
+                    / (
+                        self._sed_erosion_term[full_equation * (~too_thick)]
+                        / (1 - self._phi)
+                    )
                     - 1
                 )
             )
             * (
                 np.exp(
                     (
-                        self._depo_rate[pos_not_flood] / (1 - self._phi)
-                        - (self._sed_erosion_term[pos_not_flood] / (1 - self._phi))
+                        self._depo_rate[full_equation * (~too_thick)] / (1 - self._phi)
+                        - (
+                            self._sed_erosion_term[full_equation * (~too_thick)]
+                            / (1 - self._phi)
+                        )
                     )
                     * (dt / self._H_star)
                 )
                 * (
                     (
                         (
-                            self._depo_rate[pos_not_flood]
+                            self._depo_rate[full_equation * (~too_thick)]
                             / (1 - self._phi)
-                            / (self._sed_erosion_term[pos_not_flood] / (1 - self._phi))
+                            / (
+                                self._sed_erosion_term[full_equation * (~too_thick)]
+                                / (1 - self._phi)
+                            )
                         )
                         - 1
                     )
-                    * np.exp(self._soil__depth[pos_not_flood] / self._H_star)
+                    * np.exp(H_over_H_star[full_equation * (~too_thick)])
                     + 1
                 )
                 - 1
             )
         )
 
-        # places where slope <= 0 but not flooded:
-        neg_slope_not_flooded = (
-            (self._q > 0) & (~blowup) & (self._slope <= 0) & (~flooded)
-        )
-        self._soil__depth[neg_slope_not_flooded] += (
-            self._depo_rate[neg_slope_not_flooded] / (1 - self._phi) * dt
-        )
+        # Equation 12 gives dRdt, and Equation 36 gives R. However, we don't
+        # include dH/dt within timestep in integrating for R.
+        # This matters when we are starting with very little soil and increasing.
 
-        # flooded nodes:
-        flooded_nodes = (self._q > 0) & (~blowup) & (flooded)
-        self._soil__depth[flooded_nodes] += (
-            self._depo_rate[flooded_nodes] / (1 - self._phi) * dt
-        )
+        # to do this right I think we need a numerical integral for
+        # R(t). Unfortunately we have three cases for H(t). These are now
+        # implemented in the function _dRdt. This loop and the solver can be
+        # cythonized. But not today.
 
-        # where discharge exists
-        discharge_exists = self._q > 0
-        self._bedrock__elevation[discharge_exists] += dt * (
-            -self._br_erosion_term[discharge_exists]
-            * (np.exp(-self._soil__depth[discharge_exists] / self._H_star))
-        )
+        dR = self._grid.zeros(at="node")
+        for idx in self.grid.core_nodes:
+            args = (
+                self._br_erosion_term[idx],
+                1.0 / self._H_star,
+                self._depo_rate[idx] / (1.0 - self._phi),
+                self._sed_erosion_term[idx] / (1.0 - self._phi),
+                H0[idx],
+            )
+
+            dR[idx] = quad(_dRdt, 0, dt, args)[0]
+
+        self._bedrock__elevation += dR
 
         # finally, determine topography by summing bedrock and soil
-        cores = self._grid.core_nodes
         self._topographic__elevation[cores] = (
             self._bedrock__elevation[cores] + self._soil__depth[cores]
         )
@@ -542,6 +592,11 @@ class Space(_GeneralizedErosionDeposition):
     def run_with_adaptive_time_step_solver(self, dt=1.0):
         """Run step with CHILD-like solver that adjusts time steps to prevent
         slope flattening.
+
+        Parameters
+        ----------
+        dt : float
+            Model timestep [T]
 
         Examples
         --------
@@ -588,14 +643,7 @@ class Space(_GeneralizedErosionDeposition):
 
         first_iteration = True
 
-        if not self._erode_flooded_nodes:
-            flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
-        else:
-            flooded_nodes = []
-
-        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        flooded[flooded_nodes] = True
+        is_flooded_core_node = self._get_flooded_core_nodes()
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
@@ -610,46 +658,17 @@ class Space(_GeneralizedErosionDeposition):
                 self._update_flow_link_slopes()
                 # update where nodes are flooded. This shouuldn't happen because
                 # of the dynamic timestepper, but just in case, we update here.
-                new_flooded_nodes = np.where(self._slope < 0)[0]
-                flooded_nodes = np.asarray(
-                    np.unique(np.concatenate((flooded_nodes, new_flooded_nodes))),
-                    dtype=np.int64,
-                )
+                is_flooded_core_node[self._slope < 0] = True
             else:
                 first_iteration = False
 
-            # Calculate rates of entrainment
-            self._calc_hydrology()
-            self._calc_erosion_rates()
-
-            # CORRECTION HERE?
-            self._Es[flooded_nodes] = 0.0
-            self._Er[flooded_nodes] = 0.0
-
-            # Zero out sediment influx for new iteration
-            self._qs_in[:] = 0
-
-            calculate_qs_in(
-                np.flipud(self._stack),
-                self._flow_receivers,
-                self._cell_area_at_node,
-                self._q,
-                self._qs,
-                self._qs_in,
-                self._Es,
-                self._Er,
-                self._v_s,
-                self._F_f,
-            )
-
-            self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
-                self._v_s / self._q[self._q > 0]
-            )
-            # TODO handle flooded nodes in the above fn
+            is_flooded_core_node = self._calc_qs_in_and_depo_rate()
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
-            dzdt[cores] = self._depo_rate[cores] - (self._Es[cores] + self._Er[cores])
+            dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (
+                self._Es[cores] + self._Er[cores]
+            )
             rocdif = dzdt - dzdt[r]
             zdif = z - z[r]
             time_to_flat[:] = remaining_time
@@ -666,6 +685,8 @@ class Space(_GeneralizedErosionDeposition):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
+
+            # poof deposition by phi
             dHdt = self._porosity_factor * (self._depo_rate - self._Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = -(
@@ -685,3 +706,52 @@ class Space(_GeneralizedErosionDeposition):
 
             # Update remaining time and continue
             remaining_time -= dt_max
+
+
+def _dRdt(t, a, b, c, d, H0):
+    """
+    dRdt = a * exp(-b * H (t))
+
+    a =  Kr q S*n
+    b = 1/H*
+
+    c = VQs/(Q * (1-phi))
+    d = Ks q Sn
+
+    if d <= 0:
+        H (t) = (1/b) ln [ d*b*t + exp(H0/H*) ]
+
+    """
+    # truncate H/H*
+    if b * H0 > 100:
+        too_thick = True
+    else:
+        too_thick = False
+    bH0 = min(b * H0, 100)
+
+    # set cases for H depending on values of constants.
+
+    # deposition only case.
+    if d <= 0:
+        H = H0 + (c * t)
+    else:
+        # sediment deposition = sediment entrainment.
+        if c == d:
+            if too_thick:
+                H = H0
+            else:
+                H = (1 / b) * np.log((d * b * t) + np.exp(bH0))
+        # full equation 32
+        else:
+            if too_thick:
+                H = H0 + (c - d) * t
+            else:
+                term1 = 1.0 / ((c / d) - 1)
+                term2 = np.exp((c - d) * t * b)
+                term3 = (c / d - 1) * np.exp(bH0) + 1
+                interior = term1 * (term2 * (term3) - 1)
+                H = (1 / b) * np.log(interior)
+
+    # calculate dRdt
+    dRdt = -a * np.exp(-b * H)
+    return dRdt
