@@ -138,25 +138,6 @@ class Component:
             params = load_params(path)
         return cls(grid, **params)
 
-    @property
-    def current_time(self):
-        """Current time.
-
-        Some components may keep track of the current time. In this case, the
-        ``current_time`` attribute is incremented. Otherwise it is set to None.
-
-        Returns
-        -------
-        current_time
-        """
-        return self._current_time
-
-    @current_time.setter
-    def current_time(self, new_time):
-        if self._current_time is not None:
-            assert new_time > self._current_time
-        self._current_time = new_time
-
     @classproperty
     @classmethod
     def cite_as(cls):
