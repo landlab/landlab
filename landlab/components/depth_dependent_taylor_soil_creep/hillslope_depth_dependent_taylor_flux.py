@@ -221,6 +221,8 @@ class DepthDependentTaylorDiffuser(Component):
 
     """
 
+    _name = "DepthDependentTaylorDiffuser"
+
     _unit_agnostic = True
 
     _cite_as = """

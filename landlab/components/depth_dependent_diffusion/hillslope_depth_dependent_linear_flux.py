@@ -117,6 +117,8 @@ class DepthDependentDiffuser(Component):
 
     """
 
+    _name = "DepthDependentDiffuser"
+
     _unit_agnostic = True
 
     _cite_as = """
