@@ -76,8 +76,7 @@ Supported Python Versions
 Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
 binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
 and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 and 3.7
-(3.8 coming soon). Note that on  PyPI, the ``--pre`` flag is necessary while
-Landlab v2.0 is in beta release.
+(3.8 coming soon). 
 
 Conda Environment with Pre-packaged Binary Distribution
 ```````````````````````````````````````````````````````
