@@ -1,5 +1,6 @@
 name: landlab_dev
 dependencies:
+- pip
 - pip:
   - -r file:requirements.txt
   - -r file:requirements-testing.txt
