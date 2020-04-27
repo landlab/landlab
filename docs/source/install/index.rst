@@ -129,6 +129,5 @@ python 2.7. We do not recommend installing a python 2.x version.
    rough_guide_to_python
    anaconda_install
    installing_grass
-   installing_windows_compiler
    correcting_paths
    troubleshooting

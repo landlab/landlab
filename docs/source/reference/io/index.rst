@@ -11,11 +11,9 @@ output to a file.
   :maxdepth: 2
 
   esri_ascii
-  gebco
   native_landlab
   netcdf
   shapefile
-  vtk
 
 Module contents
 ---------------
