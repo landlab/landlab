@@ -89,6 +89,8 @@ class ComponentMaker(Component):
 
     _cite_as = """Insert a BibTeX formatted reference here"""
 
+    _unit_agnostic = True
+
     _info = {
         "component_maker__field": {
             "dtype": float,
@@ -108,7 +110,7 @@ class ComponentMaker(Component):
         },
     }
 
-    def __init__(self, grid, spam, eggs=True, **kwds):
+    def __init__(self, grid, spam=True, eggs=1.0, **kwds):
         """Initialize NetworkSedimentTransporter component.
 
         Parameters
