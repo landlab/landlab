@@ -66,6 +66,11 @@ class NetworkSedimentTransporter(Component):
                     transport_method="WilcockCrowe",
                 )
 
+    There is a function that assists in plotting the output of this component.
+    It is called :py:func:`~landlab.plot.network_sediment_transporter.plot_network_and_parcels>`.
+    Examples of its usage can be found in the NetworkSedimentTransporter
+    notebooks. 
+
     Examples
     ----------
     >>> import numpy as np
