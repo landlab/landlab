@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from ...core.utils import as_id_array
@@ -126,8 +124,6 @@ def sort_links_at_node_by_angle(
             raise ValueError(
                 "links_at_node and link_dirs_at_node arrays must be ndarray for in-place sort"
             )
-            # inplace = False
-            # warnings.warn("input must be ndarray of int for in-place sort")
 
     if not inplace:
         if out[0] is links_at_node:

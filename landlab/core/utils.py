@@ -22,6 +22,7 @@ Landlab utilities
 import importlib
 import inspect
 import os
+import re
 
 
 import numpy as np
@@ -231,9 +232,6 @@ def get_functions_from_module(mod, pattern=None, exclude=None):
         Dictionary of functions contained in the module. Keys are the
         function names, values are the functions themselves.
     """
-    import inspect
-    import re
-
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
         if pattern is None or re.search(pattern, name):
@@ -272,9 +270,6 @@ def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
 
     *Note* if both pattern and exclude are provided both conditions must be met.
     """
-    caller = inspect.stack()[1]
-    path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
-
     (module, _) = os.path.splitext(os.path.basename(module))
 
     mod = importlib.import_module("." + module, package="landlab.grid")
