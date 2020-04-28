@@ -448,6 +448,11 @@ class EventLayersMixIn:
         finally:
             return self._event_layers
 
+    @property
+    def at_layer(self):
+        """EventLayers for each cell."""
+        return self.event_layers
+
 
 class EventLayers:
 
@@ -553,6 +558,9 @@ class EventLayers:
         values = np.broadcast_to(values, (self.number_of_layers, self.number_of_stacks))
         self._attrs[name] = _allocate_layers_for(values.flatten()[0], *dims)
         self._attrs[name][: self.number_of_layers] = values
+
+    def __iter__(self):
+        return (name for name in self._attrs if not name.startswith("_"))
 
     def __str__(self):
         lines = [

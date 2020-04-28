@@ -683,21 +683,9 @@ class HexGraphExtras:
         >>> graph = TriGraph((3, 4), node_layout='rect')
         >>> graph.nodes_at_right_edge
         array([ 3,  7, 11])
-        >>> graph = TriGraph((5, 5), node_layout='rect', orientation='vertical')
-        >>> graph.nodes_at_right_edge
-        array([ 2,  7, 12, 17, 22])
         """
-
-        shift = (
-            (self.orientation[0] == "v")  # if vertical orientation...
-            * (self.shape[1] % 2)  # ...and odd number of columns...
-            * (self.shape[1] // 2)
-        )  # ...then shift by nc//2 (else 0)
         return np.arange(
-            self.shape[1] - (1 + shift),
-            self.shape[0] * self.shape[1],
-            self.shape[1],
-            dtype=int,
+            self.shape[1] - 1, self.shape[0] * self.shape[1], self.shape[1], dtype=int
         )
 
     @property
