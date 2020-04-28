@@ -8,16 +8,8 @@ Read netcdf
 
     ~landlab.io.netcdf.read.read_netcdf
 """
-
-try:
-    import netCDF4 as nc4
-except ImportError:
-    import warnings
-
-    warnings.warn("Unable to import netCDF4.", ImportWarning)
-
 import numpy as np
-from scipy.io import netcdf as nc
+import xarray as xr
 
 from landlab.io import (
     MismatchGridDataSizeError,
@@ -202,8 +194,7 @@ def _read_netcdf_structured_data(root):
         dont_use.append(grid_mapping)
     for (name, var) in root.variables.items():
         if name not in dont_use:
-            fields[name] = var[:].copy()
-            fields[name].shape = (fields[name].size,)
+            fields[name] = var.values.reshape((-1,))
 
     if grid_mapping_exists:
         grid_mapping_variable = root.variables[grid_mapping]
@@ -334,39 +325,35 @@ def read_netcdf(
     """
     from landlab import RasterModelGrid
 
-    try:
-        root = nc.netcdf_file(nc_file, "r", version=2)
-    except TypeError:
-        root = nc4.Dataset(nc_file, "r", format="NETCDF4")
+    dataset = xr.open_dataset(nc_file)
 
-    try:
-        node_coords = _read_netcdf_structured_grid(root)
-    except ValueError:
-        if (len(root.variables["x"].dimensions) == 1) and (
-            len(root.variables["y"].dimensions) == 1
-        ):
+    if isinstance(name, str):
+        names = {name}
+    elif name is None:
+        names = set(dataset.variables)
+    else:
+        names = set(name)
 
-            node_coords = _read_netcdf_raster_structured_grid(root)
-        else:
-            assert ValueError(
-                "x and y dimensions must both either be 2D "
-                "(nj, ni) or 1D (ni,) and (nj)."
-            )
+    dx = np.diff(dataset["x"], axis=1)
+    dy = np.diff(dataset["y"], axis=0)
 
-    assert len(node_coords) == 2
+    if np.all(dx == dx[0, 0]) and np.all(dy == dy[0, 0]):
+        xy_spacing = (dx[0, 0], dy[0, 0])
+    else:
+        raise NotRasterGridError()
 
-    dx = _get_raster_spacing(node_coords)
-    xy_spacing = (dx, dx)
-    shape = node_coords[0].shape
+    shape = dataset["x"].shape
     xy_of_lower_left = (
-        node_coords[0].min() - halo * dx,
-        node_coords[1].min() - halo * dx,
+        dataset["x"][0, 0] - halo * xy_spacing[0],
+        dataset["y"][0, 0] - halo * xy_spacing[1],
     )
 
-    if grid is not None:
-        if (grid.number_of_node_rows != shape[0] + 2 * halo) or (
-            grid.number_of_node_columns != shape[1] + 2 * halo
-        ):
+    if grid is None:
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
+    else:
+        if grid.shape != (shape[0] + 2 * halo, shape[1] + 2 * halo):
             raise MismatchGridDataSizeError(
                 shape[0] + 2 * halo * shape[1] + 2 * halo,
                 grid.number_of_node_rows * grid.number_of_node_columns,
@@ -377,13 +364,8 @@ def read_netcdf(
         if grid.xy_of_lower_left != xy_of_lower_left:
             raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
-    if grid is None:
-        grid = RasterModelGrid(
-            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
-        )
-
     if not just_grid:
-        fields, grid_mapping_dict = _read_netcdf_structured_data(root)
+        fields, grid_mapping_dict = _read_netcdf_structured_data(dataset)
         for (field_name, values) in fields.items():
 
             # add halo if necessary
@@ -406,10 +388,13 @@ def read_netcdf(
                 "Specified field {name} was not in provided NetCDF.".format(name=name)
             )
 
-    # save grid mapping
-    if grid_mapping_dict is not None:
-        grid.grid_mapping = grid_mapping_dict
-
-    root.close()
+    ignore = {"x", "y"}
+    for name in names - ignore:
+        values = dataset.variables[name].values
+        if halo > 0:
+            values = add_halo(
+                values.reshape(shape), halo=halo, halo_value=nodata_value
+            ).reshape((-1,))
+        grid.add_field(name, values, at="node", clobber=True)
 
     return grid

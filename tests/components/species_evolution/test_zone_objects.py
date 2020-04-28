@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Tests for SpeciesEvolver zone objects."""
-from collections import Counter
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -189,7 +187,7 @@ def test_one_to_one(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=1)), 1)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=1)), 1)
 
 
 def test_one_to_many(zone_example_grid):
@@ -216,7 +214,7 @@ def test_one_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 1)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=0)), 1)
 
     # Break the zone in two for time 1.
 
@@ -242,7 +240,7 @@ def test_one_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(extant_at_latest_time=True)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects()), 2)
 
 
 def test_many_to_one(zone_example_grid):
@@ -269,7 +267,7 @@ def test_many_to_one(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -293,7 +291,7 @@ def test_many_to_one(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=1)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=1)), 2)
 
 
 def test_many_to_many(zone_example_grid):
@@ -320,7 +318,7 @@ def test_many_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -331,8 +329,8 @@ def test_many_to_many(zone_example_grid):
     se.run_one_step(1)
 
     np.testing.assert_equal(len(sc.zones), 2)
-    for z in sc.zones:
-        np.testing.assert_equal(z._conn_type, zn.Connection.MANY_TO_MANY)
+    for zone in sc.zones:
+        np.testing.assert_equal(zone._conn_type, zn.Connection.MANY_TO_MANY)
 
     expected_df = pd.DataFrame(
         {
@@ -346,7 +344,7 @@ def test_many_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(extant_at_latest_time=True)), 4)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects()), 4)
 
 
 def test_one_to_many_to_one(zone_example_grid):
@@ -356,7 +354,7 @@ def test_one_to_many_to_one(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    taxa = sc.populate_zones_uniformly(1, allopatric_wait_time=1)
+    taxa = sc.populate_zones_uniformly(1, time_to_allopatric_speciation=1)
     se.track_taxa(taxa)
 
     z[11] = 0
@@ -367,7 +365,7 @@ def test_one_to_many_to_one(zone_example_grid):
     sc.run_one_step(1)
     se.run_one_step(1)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(extant_at_latest_time=True)), 1)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects()), 1)
 
 
 def test_min_area(zone_example_grid):
@@ -478,7 +476,7 @@ def test_zone_taxon_range_mask(zone_example_grid):
     np.testing.assert_array_equal(taxa[0].range_mask, expected_mask)
 
 
-def test_allopatric_wait_time(zone_example_grid):
+def test_time_to_allopatric_speciation(zone_example_grid):
     mg, z = zone_example_grid
 
     # Create a zone for time 0.
@@ -487,7 +485,7 @@ def test_allopatric_wait_time(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    taxa = sc.populate_zones_uniformly(1, allopatric_wait_time=20)
+    taxa = sc.populate_zones_uniformly(1, time_to_allopatric_speciation=20)
     se.track_taxa(taxa)
 
     z[[11]] = 0
@@ -498,22 +496,56 @@ def test_allopatric_wait_time(zone_example_grid):
 
     expected_df = pd.DataFrame(
         {
-            "appeared": [0, 30, 30],
-            "latest_time": [30, 30, 30],
-            "extant": [False, True, True],
+            "pid": [np.nan, 0],
+            "type": 2 * [ZoneTaxon.__name__],
+            "t_first": [0, 30],
+            "t_final": 2 * [np.nan],
         },
-        index=[0, 1, 2],
+        index=[0, 1],
     )
+    expected_df.index.name = "tid"
+    expected_df["pid"] = expected_df["pid"].astype("Int64")
+    expected_df["t_final"] = expected_df["t_final"].astype("Int64")
+
     pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
 
 
-def test_zone_taxa_setter():
-    mask = np.array([])
-    zone = zn.Zone(mask)
-    zt0 = ZoneTaxon([zone])
-    zt1 = ZoneTaxon([zone])
+def test_pseudoextinction(zone_example_grid):
+    mg, z = zone_example_grid
 
-    np.testing.assert_equal(Counter(zone.taxa), Counter([zt0, zt1]))
+    z[[9, 10, 11, 12]] = 1
 
-    zone.taxa = [zt0, zt0]
-    np.testing.assert_equal([zt0], [zt0])
+    se = SpeciesEvolver(mg)
+    sc = ZoneController(mg, zone_func)
+    taxa = sc.populate_zones_uniformly(1, persists_post_speciation=False)
+    se.track_taxa(taxa)
+
+    z[11] = 0
+    sc.run_one_step(1)
+    se.run_one_step(1)
+
+    expected_df = pd.DataFrame(
+        {
+            "pid": [np.nan, 0, 0],
+            "type": 3 * [ZoneTaxon.__name__],
+            "t_first": [0, 1, 1],
+            "t_final": [1, np.nan, np.nan],
+        },
+        index=[0, 1, 2],
+    )
+    expected_df.index.name = "tid"
+    expected_df["pid"] = expected_df["pid"].astype("Int64")
+    expected_df["t_final"] = expected_df["t_final"].astype("Int64")
+
+    pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
+
+    expected_df = pd.DataFrame(
+        {
+            "time": [0, 1],
+            "taxa": [1, 2],
+            "speciations": [np.nan, 2],
+            "extinctions": [np.nan, 0],
+            "pseudoextinctions": [np.nan, 1],
+        }
+    )
+    pd.testing.assert_frame_equal(se.record_data_frame, expected_df, check_like=True)

@@ -51,7 +51,7 @@ def create_patches_at_element(
     for i in range(number_of_elements):
         np.equal(elements_at_patch, i, out=element_with_value)
         patches_with_element = np.argwhere(element_with_value)[:, 0]
-        num_elements_here = patches_with_element.size
+        num_elements_here = patches_with_element.shape[0]
         out[i, :num_elements_here] = patches_with_element
 
 

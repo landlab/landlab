@@ -65,7 +65,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip install --pre landlab
+  $ pip install landlab
 
 Updating
 ````````
@@ -74,7 +74,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip install --upgrade --pre landlab
+  $ pip install --upgrade landlab
 
 Uninstall
 `````````
@@ -85,13 +85,19 @@ In a terminal type:
 
     $ pip uninstall landlab
 
+.. _conda_environment:
+
 Conda Environment
 -----------------
 
 We have specified a conda environment which will install Landlab and everything
-else you need to run the notebooks. To use it you will first need to have conda
-installed on your machine. Then create the environment with the following
-command.
+else you need to run the Landlab Notebooks. First get a compressed copy of the
+latest release `here <https://github.com/landlab/landlab/releases>`_, or you can
+clone the github repo.
+
+Next you will need to have conda installed on your machine. In a terminal
+window/command prompt, navigate to the Landlab directory. Then create the
+environment with the following command.
 
 .. code-block:: bash
 
@@ -105,7 +111,8 @@ the dependencies you just installed.
 
    $ conda activate landlab_notebooks
 
-You will need to activate this environment every time you want to use it.
+You will need to activate this environment every time you want to use it. See
+:ref:`tutorials <tutorials>` for more about Landlab Notebooks.
 
 Additional Resources
 --------------------
@@ -122,6 +129,5 @@ python 2.7. We do not recommend installing a python 2.x version.
    rough_guide_to_python
    anaconda_install
    installing_grass
-   installing_windows_compiler
    correcting_paths
    troubleshooting

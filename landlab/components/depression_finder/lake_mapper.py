@@ -11,10 +11,13 @@ import numpy as np
 import landlab
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.components.flow_accum import flow_accum_bw
-from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 
+from .cfuncs import find_lowest_node_on_lake_perimeter_c
+
 # Codes for depression status
+# Note these are also hard-coded in the cfuncs, so if changed here be sure to
+# change there as well
 _UNFLOODED = 0
 _PIT = 1
 _CURRENT_LAKE = 2
@@ -142,6 +145,8 @@ class DepressionFinderAndRouter(Component):
 
     _name = "DepressionFinderAndRouter"
 
+    _unit_agnostic = True
+
     _info = {
         "depression__depth": {
             "dtype": float,
@@ -212,7 +217,7 @@ class DepressionFinderAndRouter(Component):
             will modify the existing flow fields to route the flow across the
             lake surface(s).
         """
-        super(DepressionFinderAndRouter, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
 
@@ -432,64 +437,6 @@ class DepressionFinderAndRouter(Component):
         # Record the number of pits and the IDs of pit nodes.
         self._number_of_pits = np.count_nonzero(self._is_pit)
         self._pit_node_ids = as_id_array(np.where(self._is_pit)[0])
-
-    def find_lowest_node_on_lake_perimeter(self, nodes_this_depression):
-        """Locate the lowest node on the margin of the "lake".
-
-        Parameters
-        ----------
-        nodes_this_depression : array_like of int
-            Nodes that form a pit.
-
-        Returns
-        -------
-        lowest_node : int
-            The lowest node on the perimeter of a depression.
-        """
-        # Start with the first node on the list, and an arbitrarily large elev
-        lowest_node = nodes_this_depression[0]
-        lowest_elev = self._BIG_ELEV
-
-        for n in nodes_this_depression:
-
-            for nbr in self._node_nbrs[n]:
-                if nbr != -1:
-                    if self._flood_status[nbr] == _UNFLOODED:
-                        if self._elev[nbr] < lowest_elev:
-                            lowest_node = nbr
-                            lowest_elev = self._elev[nbr]
-                    elif (
-                        self._flood_status[nbr] == _PIT
-                        or self._flood_status[nbr] == _FLOODED
-                    ):
-                        nodes_this_depression.append(nbr)
-                        self._flood_status[nbr] = _CURRENT_LAKE
-        if lowest_elev == self._BIG_ELEV:
-            print("Unable to find drainage outlet for a lake.")
-            print("In lake with " + str(len(nodes_this_depression)), "nodes:")
-            print(str(nodes_this_depression))
-
-            for i in nodes_this_depression:
-                print("Node ID: ", i)
-                print("Node Elevation: ", self._elev[i])
-                print("Node Flood Status: ", self._flood_status[i])
-                print("Node Grid Status: ", self._grid.status_at_node[i])
-                print("Node Neigbors: ", self._node_nbrs[i])
-                print("Neighbor Elevations: ", self._elev[self._node_nbrs[i]])
-                print("Neigbor Flood Status: ", self._flood_status[self._node_nbrs[i]])
-                print("Neigbor Status: ", self._grid.status_at_node[self._node_nbrs[i]])
-            warning_message(
-                """If you see no data values in any of the elevation terms
-                this may because you have disconnected open nodes (which
-                sometimes occurs during raster clipping.
-
-                Consider running
-                set_open_nodes_disconnected_from_watershed_to_closed
-                which will remove isolated open nodes."""
-            )
-
-        assert lowest_elev < self._BIG_ELEV, "failed to find lowest perim node"
-        return lowest_node
 
     def _links_and_nbrs_at_node(self, the_node):
         """Compile and return arrays with IDs of neighbor links and nodes.
@@ -800,11 +747,6 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-
-        # Place pit_node at top of depression list
-        nodes_this_depression = []
-        nodes_this_depression.insert(0, pit_node)
-
         # Flag the pit as being _CURRENT_LAKE (it's the first node in the
         # current lake)
         self._flood_status[pit_node] = _CURRENT_LAKE
@@ -816,9 +758,19 @@ class DepressionFinderAndRouter(Component):
         count = 0
         max_count = self._grid.number_of_nodes + 1
 
+        # Place pit_node at top of depression list
+        nodes_this_depression = self.grid.zeros("node", dtype=int)
+        nodes_this_depression[0] = pit_node
+        pit_count = 1
+
         while not found_outlet:
-            lowest_node_on_perimeter = self.find_lowest_node_on_lake_perimeter(
-                nodes_this_depression
+            lowest_node_on_perimeter, pit_count = find_lowest_node_on_lake_perimeter_c(
+                self._node_nbrs,
+                self.flood_status,
+                self._elev,
+                nodes_this_depression,
+                pit_count,
+                self._BIG_ELEV,
             )
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all self._grid.BAD_INDEX
@@ -828,8 +780,9 @@ class DepressionFinderAndRouter(Component):
             # If we haven't found an outlet, add lowest_node to the lake list
             # and flag it as being part of the current lake/depression
             if not found_outlet:
-                nodes_this_depression.append(lowest_node_on_perimeter)
+                nodes_this_depression[pit_count] = lowest_node_on_perimeter
                 self._flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
+                pit_count += 1
 
             # If we HAVE found an outlet, and we are re-routing flow, then
             # assign the proper flow direction to the outlet node. If it is an
@@ -855,7 +808,7 @@ class DepressionFinderAndRouter(Component):
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
         self._record_depression_depth_and_outlet(
-            nodes_this_depression, lowest_node_on_perimeter, pit_node
+            nodes_this_depression[:pit_count], lowest_node_on_perimeter, pit_node
         )
 
         # TODO: ideally we need a way to keep track of the number, area extent,
@@ -916,6 +869,15 @@ class DepressionFinderAndRouter(Component):
         if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self._grid.bc_set_code
+
+        # verify that there is an outlet to the grid and
+        if not np.any(
+            self._grid.status_at_node[self._grid.boundary_nodes]
+            != self._grid.BC_NODE_IS_CLOSED
+        ):
+            msg = "DepressionFinderAndRouter requires that there is at least one open boundary node."
+            raise ValueError(msg)
+
         self._lake_map.fill(self._grid.BAD_INDEX)
         self._depression_outlet_map.fill(self._grid.BAD_INDEX)
         self._depression_depth.fill(0.0)
@@ -1073,10 +1035,8 @@ class DepressionFinderAndRouter(Component):
         counter = 0  # counts # of times thru loop as fail-safe
         done = False
         while not done:
-
             # Get unresolved "regular" neighbors of the current nodes
             for cn in nodes_being_processed:
-
                 # Get active and unresolved neighbors of cn
                 (nbrs, lnks) = self._find_unresolved_neighbors_new(
                     self._grid.adjacent_nodes_at_node[cn],
@@ -1100,19 +1060,13 @@ class DepressionFinderAndRouter(Component):
             # If we're working with a raster that has diagonals, do the same
             # for the diagonal neighbors
             if self._D8:
-
                 # Get unresolved "regular" neighbors of the current nodes
                 for cn in nodes_being_processed:
-
-                    # Get active and unresolved diagonal neighbors of cn
-                    #                    nbrs = self._find_unresolved_neighbors(
-                    #                            self._grid._get_diagonal_list(cn), self._receivers)
                     (nbrs, diags) = self._find_unresolved_neighbors_new(
                         self._grid.diagonal_adjacent_nodes_at_node[cn],
                         self._grid.d8s_at_node[cn, 4:],
                         self._receivers,
                     )
-
                     # They will now flow to cn
                     if nbrs.size > 0:
                         self._receivers[nbrs] = cn

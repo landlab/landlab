@@ -146,6 +146,7 @@ class LandslideProbability(Component):
       mode rate of water transmitted through a unit width of saturated
       soil - either provided or calculated with Ksat and soil depth
     units: m2/day
+    unit agnostic: False
     at: node
     intent: in
 
@@ -212,6 +213,8 @@ class LandslideProbability(Component):
 
     # component name
     _name = "Landslide Probability"
+
+    _unit_agnostic = False
 
     __version__ = "1.0"
 
@@ -391,7 +394,7 @@ class LandslideProbability(Component):
         # Initialize seeded random number generation
         self._seed_generator(seed)
 
-        super(LandslideProbability, self).__init__(grid)
+        super().__init__(grid)
 
         # Store parameters and do unit conversions
         self._n = int(number_of_iterations)

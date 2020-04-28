@@ -13,5 +13,19 @@ cite_as = [
     pages={21},
     year={2017},
     publisher={Copernicus GmbH}
+    }
+    @article{barnhart2020short,
+    author = {Barnhart, K. R. and Hutton, E. W. H. and Tucker, G. E.
+        and Gasparini, N. M. and Istanbulluoglu, E. and Hobley,
+        D. E. J. and Lyons, N. J. and Mouchene, M. and Nudurupati,
+        S. S. and Adams, J. M. and Bandaragoda, C.},
+    title = {Short communication: Landlab v2.0: A software package
+        for Earth surface dynamics},
+    journal = {Earth Surface Dynamics Discussions},
+    volume = {2020},
+    year = {2020},
+    pages = {1--25},
+    url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
+    doi = {10.5194/esurf-2020-12}
     }"""
 ]

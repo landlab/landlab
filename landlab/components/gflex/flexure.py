@@ -101,6 +101,8 @@ class gFlex(Component):
 
     _name = "gFlex"
 
+    _unit_agnostic = True
+
     _cite_as = """
     @article{wickert2016open,
       author = {Wickert, A. D.},
@@ -180,7 +182,7 @@ class gFlex(Component):
         g : float (m*s**-2)
             The acceleration due to gravity.
         """
-        super(gFlex, self).__init__(grid)
+        super().__init__(grid)
 
         assert isinstance(grid, RasterModelGrid)
 

@@ -12,6 +12,7 @@ cdef extern from "math.h":
 from .spoke_sort import sort_spokes_at_wheel
 from .argsort cimport argsort_int
 
+
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
 ctypedef np.uint8_t uint8
@@ -20,7 +21,7 @@ ctypedef np.uint8_t uint8
 @cython.boundscheck(False)
 def reverse_one_to_one(np.ndarray[DTYPE_t, ndim=1] mapping,
                        np.ndarray[DTYPE_t, ndim=1] out):
-    cdef int n_elements = mapping.size
+    cdef int n_elements = mapping.shape[0]
     cdef int index
     cdef int id_
 
@@ -66,7 +67,7 @@ def remap_graph_element(np.ndarray[DTYPE_t, ndim=1] elements,
     old_to_new : ndarray of int
         Mapping from the old identifier to the new identifier.
     """
-    cdef int n_elements = elements.size
+    cdef int n_elements = elements.shape[0]
     cdef int i
 
     for i in range(n_elements):
@@ -88,7 +89,7 @@ def remap_graph_element_ignore(np.ndarray[DTYPE_t, ndim=1] elements,
     bad_val : int
         Ignore values in the input array when remapping.
     """
-    cdef int n_elements = elements.size
+    cdef int n_elements = elements.shape[0]
     cdef int i
 
     for i in range(n_elements):
@@ -170,13 +171,14 @@ def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 cdef _argsort_links(long * links, int n_links, long * nodes, long * ordered):
     cdef int n_nodes = 2 * n_links
     cdef int * index = <int *>malloc(n_nodes * sizeof(int))
+    cdef int i
 
     try:
         argsort_int(nodes, n_nodes, index)
 
         i = 0
         for link in range(n_links):
-            ordered[i / 2] = index[i] / 2
+            ordered[i // 2] = index[i] // 2
             i += 2
     finally:
         free(index)
@@ -185,7 +187,7 @@ cdef _argsort_links(long * links, int n_links, long * nodes, long * ordered):
 @cython.boundscheck(False)
 def connect_links(np.ndarray[long, ndim=1, mode="c"] links,
                   np.ndarray[long, ndim=2] nodes_at_link):
-    cdef long n_links = links.size
+    cdef long n_links = links.shape[0]
     cdef long * nodes = <long *>malloc(2 * n_links * sizeof(long))
     cdef long * ordered = <long *>malloc(n_links * sizeof(long))
     cdef long * buff = <long *>malloc(n_links * sizeof(long))
@@ -217,7 +219,7 @@ cdef reverse_order(long * array, long size):
     cdef long i
     cdef long temp
 
-    for i in range(size / 2):
+    for i in range(size // 2):
         temp = array[i]
         array[i] = array[(size - 1) - i]
         array[(size - 1) - i] = temp

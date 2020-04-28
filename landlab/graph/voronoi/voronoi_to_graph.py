@@ -163,7 +163,7 @@ class VoronoiDelaunay(object):
 
 class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def __init__(self, xy_of_node, perimeter_links=None):
-        super(VoronoiDelaunayToGraph, self).__init__(xy_of_node)
+        super().__init__(xy_of_node)
 
         if perimeter_links is not None:
             perimeter_links = np.asarray(perimeter_links, dtype=int)

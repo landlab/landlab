@@ -333,7 +333,6 @@ def test_matches_transport_solution():
         n_sp=n_sp,
         sp_crit_sed=0,
         sp_crit_br=0,
-        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
@@ -449,7 +448,6 @@ def test_matches_bedrock_alluvial_solution():
         n_sp=n_sp,
         sp_crit_sed=0,
         sp_crit_br=0,
-        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (10000x1-year timesteps).

@@ -56,6 +56,8 @@ class _FlowDirectorToMany(_FlowDirector):
 
     _name = "FlowDirectorToMany"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -112,7 +114,7 @@ class _FlowDirectorToMany(_FlowDirector):
     def __init__(self, grid, surface):
         """Initialize the _FlowDirectorToMany class."""
         # run init for the inherited class
-        super(_FlowDirectorToMany, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self._to_n_receivers = "many"
 
         # set the number of recievers, proportions, and receiver links with the

@@ -88,9 +88,9 @@ are of the correct size but a new field will not be added to the field:
 .. autosummary::
     :nosignatures:
 
-    ~landlab.field.grouped.ModelDataFields.empty
-    ~landlab.field.grouped.ModelDataFields.ones
-    ~landlab.field.grouped.ModelDataFields.zeros
+    ~landlab.field.graph_field.GraphFields.empty
+    ~landlab.field.graph_field.GraphFields.ones
+    ~landlab.field.graph_field.GraphFields.zeros
 
 Add Fields to a ModelGrid
 +++++++++++++++++++++++++
@@ -127,13 +127,13 @@ fields:
 .. autosummary::
     :nosignatures:
 
-    ~landlab.field.grouped.ModelDataFields.size
-    ~landlab.field.grouped.ModelDataFields.keys
-    ~landlab.field.grouped.ModelDataFields.has_group
-    ~landlab.field.grouped.ModelDataFields.has_field
+    ~landlab.field.graph_field.GraphFields.size
+    ~landlab.field.graph_field.GraphFields.keys
+    ~landlab.field.graph_field.GraphFields.has_group
+    ~landlab.field.graph_field.GraphFields.has_field
     ~landlab.grid.network.NetworkModelGrid.field_units
     ~landlab.grid.network.NetworkModelGrid.field_values
-    ~landlab.field.grouped.ModelDataFields.groups
+    ~landlab.field.graph_field.GraphFields.groups
 
 i.e., call, e.g. mg.has_field('node', 'my_field_name')
 

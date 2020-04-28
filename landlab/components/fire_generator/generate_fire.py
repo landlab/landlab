@@ -88,6 +88,8 @@ class FireGenerator(Component):
 
     _name = "FireGenerator"
 
+    _unit_agnostic = True
+
     _info = {}
 
     def __init__(
@@ -111,7 +113,7 @@ class FireGenerator(Component):
             it can be found using mean fire recurrence value and the
             get_scale_parameter().
         """
-        super(FireGenerator, self).__init__(grid)
+        super().__init__(grid)
         self._mean_fire_recurrence = mean_fire_recurrence
 
         self._shape_parameter = shape_parameter

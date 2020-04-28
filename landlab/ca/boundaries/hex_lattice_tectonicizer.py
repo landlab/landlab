@@ -277,9 +277,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         """
 
         # Do the base class init
-        super(LatticeNormalFault, self).__init__(
-            grid, node_state, propid, prop_data, prop_reset_value
-        )
+        super().__init__(grid, node_state, propid, prop_data, prop_reset_value)
         # Set up data structures:
         #   Make sure the footwall location is such that the fault actually
         #   cuts across the grid. This means the x intercept has to be, at
@@ -810,9 +808,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         array([1, 2, 3, 4])
         """
         # Do the base class init
-        super(LatticeUplifter, self).__init__(
-            grid, node_state, propid, prop_data, prop_reset_value
-        )
+        super().__init__(grid, node_state, propid, prop_data, prop_reset_value)
 
         # Remember the IDs of nodes on the bottom row
         self.inner_base_row_nodes = zeros(self.nc - 2, dtype=int)
