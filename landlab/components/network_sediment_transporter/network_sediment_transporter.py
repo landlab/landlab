@@ -96,13 +96,13 @@ class NetworkSedimentTransporter(Component):
     >>> _ = nmg.add_field("bedrock__elevation", [3., 2., 1., 0.], at="node") # m
     >>> _ = nmg.add_field("reach_length", [100., 100., 100.], at="link")  # m
     >>> _ = nmg.add_field(
-    >>>     "channel_width",
-    >>>     (15 * np.ones(nmg.size("link"))),
-    >>>     at="link")
+    ...     "channel_width",
+    ...     (15 * np.ones(nmg.size("link"))),
+    ...     at="link")
     >>> _ = nmg.add_field(
-    >>>     "flow_depth",
-    >>>     (2 * np.ones(nmg.size("link"))),
-    >>>     at="link") # m
+    ...     "flow_depth",
+    ...     (2 * np.ones(nmg.size("link"))),
+    ...     at="link") # m
 
     Add ``topographic__elevation`` to the grid because the
     :py:class:`~landlab.components.FlowDirectorSteepest` will look to it to determine the direction of
