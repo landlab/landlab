@@ -33,7 +33,7 @@ import textwrap
 import numpy as np
 
 from .. import registry
-from ..field.scalar_data_fields import FieldError
+from ..field import FieldError
 from .model_parameter_loader import load_params
 
 _VAR_HELP_MESSAGE = """

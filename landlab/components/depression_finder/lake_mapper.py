@@ -869,6 +869,15 @@ class DepressionFinderAndRouter(Component):
         if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self._grid.bc_set_code
+
+        # verify that there is an outlet to the grid and
+        if not np.any(
+            self._grid.status_at_node[self._grid.boundary_nodes]
+            != self._grid.BC_NODE_IS_CLOSED
+        ):
+            msg = "DepressionFinderAndRouter requires that there is at least one open boundary node."
+            raise ValueError(msg)
+
         self._lake_map.fill(self._grid.BAD_INDEX)
         self._depression_outlet_map.fill(self._grid.BAD_INDEX)
         self._depression_depth.fill(0.0)

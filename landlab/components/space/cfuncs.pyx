@@ -42,7 +42,8 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
         # Because calculation of qs requires qs_in, this operation must be done
         # in an upstream to downstream loop, and cannot be vectorized.
 
-        if q[node_id] > 0:
+        # there is water flux (q) and this node is not a pit then calculate qs.
+        if q[node_id] > 0 and (flow_receivers[node_id] != node_id):
             qs[node_id] = (qs_in[node_id] + ((Es[node_id]) + ((1.0 - F_f) * (Er[node_id]))) * cell_area_at_node[node_id]) / \
                             (1.0 + (v_s * cell_area_at_node[node_id] / (q[node_id])))
 

@@ -90,7 +90,8 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component, FieldError
-from landlab.grid.structured_quad import links
+
+from . import _links as links
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
@@ -873,7 +874,6 @@ def find_active_neighbors_for_fixed_links(grid):
 
     Examples
     --------
-    >>> from landlab.grid.structured_quad.links import neighbors_at_link
     >>> from landlab import NodeStatus, RasterModelGrid
     >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
 

@@ -8,15 +8,14 @@ files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy as np
+import xarray as xr
 
-from landlab.field.scalar_data_fields import FieldError
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
+from ..field import FieldError
 from ..graph import DualUniformRectilinearGraph
-from ..io import write_esri_ascii
-from ..io.netcdf import write_netcdf
 from . import raster_funcs as rfuncs
 from .base import ModelGrid
 from .decorators import return_id_array
@@ -363,6 +362,27 @@ class RasterModelGrid(
         """
         shape = params.pop("shape", None)
         return cls(shape, **params)
+
+    @classmethod
+    def from_dataset(cls, dataset):
+        return cls(
+            dataset["shape"],
+            xy_spacing=dataset["xy_spacing"],
+            xy_of_lower_left=dataset["xy_of_lower_left"],
+        )
+
+    def as_dataset(self, include="*", exclude=None):
+        dataset = xr.Dataset(
+            {
+                "shape": (("dim",), list(self.shape)),
+                "xy_spacing": (("dim",), [self.dx, self.dy]),
+                "xy_of_lower_left": (("dim",), list(self.xy_of_lower_left)),
+            },
+            attrs={"grid_type": "uniform_rectilinear"},
+        )
+        return dataset.update(
+            super(RasterModelGrid, self).as_dataset(include=include, exclude=exclude)
+        )
 
     @property
     def xy_of_lower_left(self):
@@ -1523,6 +1543,9 @@ class RasterModelGrid(
 
         LLCATS: GINF
         """
+        from ..io import write_esri_ascii
+        from ..io.netcdf import write_netcdf
+
         format = format or _guess_format_from_name(path)
         path = _add_format_extension(path, format)
 

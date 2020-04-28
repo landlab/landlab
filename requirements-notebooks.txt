@@ -1,4 +1,4 @@
-dask
+dask[array]
 jupyter
 holoviews
 nbformat
