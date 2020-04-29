@@ -727,6 +727,13 @@ def write_raster_netcdf(
     This method is for Raster Grids only and takes advantage of regular x and
     y spacing to save memory.
 
+    Rather that writing x and y of node locations at all (nr x nc) locations,
+    it writes a 1D array each for x and y.
+
+    A more modern version of this might write x and y location as a netcdf
+    coordinate. However, the original version of this function wrote x and y
+    as data variables rather than coordinates.
+
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
 
