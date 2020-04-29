@@ -7,7 +7,6 @@ Landlab utilities
 .. autosummary::
 
     ~landlab.core.utils.radians_to_degrees
-    ~landlab.core.utils.extend_array
     ~landlab.core.utils.as_id_array
     ~landlab.core.utils.make_optional_arg_into_id_array
     ~landlab.core.utils.get_functions_from_module
