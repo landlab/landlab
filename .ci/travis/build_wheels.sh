@@ -14,7 +14,7 @@ done
 
 # Bundle external shared libraries into the wheels
 for whl in /io/wheelhouse/*.whl; do
-    auditwheel repair "$whl" --plat $PLAT -w /io/wheelhouse/
+    auditwheel repair "$whl" --plat $PLAT -w /io/wheelhouse/ || echo "NOT A PLATFORM WHEEL"
 done
 
 ls /io/wheelhouse
