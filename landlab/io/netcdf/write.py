@@ -754,6 +754,8 @@ def write_raster_netcdf(
     some data fields to it.
 
     >>> rmg = RasterModelGrid((4, 3))
+    >>> rmg.shape
+    (4, 3)
     >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
     >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
@@ -782,6 +784,24 @@ def write_raster_netcdf(
     >>> 'topographic__elevation' in fp.variables
     False
     >>> fp.variables['uplift_rate'][:].flatten()
+    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+            22.])
+    >>> fp.variables['x'][:]
+    array([ 0.,  1.,  2.])
+    >>> fp.variables['y'][:]
+    array([ 0.,  1.,  2.,  3.])
+
+    Read now with read_netcdf
+
+    >>> from landlab.io.netcdf import read_netcdf
+    >>> grid = read_netcdf("test.nc")
+    >>> grid.shape
+    (4, 3)
+    >>> grid.x_of_node
+    array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+    >>> grid.y_of_node
+    array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
+    >>> grid.at_node["uplift_rate"]
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
     """
