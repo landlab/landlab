@@ -236,7 +236,7 @@ def _get_raster_spacing(coords):
 
 
 def read_netcdf(
-    nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_value=-9999.0
+    nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_value=-9999.0,
 ):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 
@@ -334,18 +334,25 @@ def read_netcdf(
     else:
         names = set(name)
 
-    dx = np.diff(dataset["x"], axis=1)
-    dy = np.diff(dataset["y"], axis=0)
+    # test if the input is a raster (x and y) are only 1-D instead of 2D.
+    if len(dataset["x"].shape) == 1:
+        y, x = np.meshgrid(dataset["y"], dataset["x"], indexing="ij")
+    else:
+        x = dataset["x"]
+        y = dataset["y"]
+
+    dx = np.diff(x, axis=1)
+    dy = np.diff(y, axis=0)
 
     if np.all(dx == dx[0, 0]) and np.all(dy == dy[0, 0]):
         xy_spacing = (dx[0, 0], dy[0, 0])
     else:
         raise NotRasterGridError()
 
-    shape = dataset["x"].shape
+    shape = x.shape
     xy_of_lower_left = (
-        dataset["x"][0, 0] - halo * xy_spacing[0],
-        dataset["y"][0, 0] - halo * xy_spacing[1],
+        x[0, 0] - halo * xy_spacing[0],
+        y[0, 0] - halo * xy_spacing[1],
     )
 
     if grid is None:

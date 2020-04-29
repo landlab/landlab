@@ -564,6 +564,7 @@ def write_netcdf(
     names=None,
     at=None,
     time=None,
+    raster=False,
 ):
     """Write landlab fields to netcdf.
 
@@ -588,6 +589,9 @@ def write_netcdf(
         write all fields.
     at : {'node', 'cell'}, optional
         The location where values are defined.
+    raster : bool, optional
+        Indicate whether spatial dimensions are written as full value arrays
+        (default) or just as coordinate dimensions.
 
     Examples
     --------
@@ -684,8 +688,12 @@ def write_netcdf(
             grid.y_of_corner[grid.corners_at_cell].reshape(shape + (4,)),
         )
     else:
-        data["x"] = (("nj", "ni"), grid.x_of_node.reshape(shape))
-        data["y"] = (("nj", "ni"), grid.y_of_node.reshape(shape))
+        if raster:
+            data["x"] = (("ni"), grid.x_of_node.reshape(shape)[0, :])
+            data["y"] = (("nj"), grid.y_of_node.reshape(shape)[:, 0])
+        else:
+            data["x"] = (("nj", "ni"), grid.x_of_node.reshape(shape))
+            data["y"] = (("nj", "ni"), grid.y_of_node.reshape(shape))
 
     if not append:
         if time is not None:
@@ -814,4 +822,5 @@ def write_raster_netcdf(
         names=names,
         at=at,
         time=time,
+        raster=True,
     )
