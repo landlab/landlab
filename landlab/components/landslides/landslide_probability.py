@@ -25,12 +25,12 @@ https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComp
 Created on Thu Aug 20, 2015
 Last feature edits June 7, 2017
 Landlab v2 and PEP8 updates by mcflugen and kbarnhart 2018-2019
-Component Changes: Add depth to water table as an optional hydrology input; an alternative to recharge; April 3, 2020
+Component Changes: April 28, 2020
+Add depth to water table as an optional hydrology input (alternative to recharge)
 
 """
 
 import copy
-
 import pandas as pd
 import numpy as np
 import scipy.constants
@@ -481,7 +481,6 @@ class LandslideProbability(Component):
         # parameters for recharge hydrologic forcing
         # Recharge Uniform distribution
         if self._groundwater__recharge_distribution == "uniform":
-            print('Using Uniform distribution')
             self._recharge_min = groundwater__recharge_min_value
             self._recharge_max = groundwater__recharge_max_value
             self._Re = np.random.uniform(
@@ -490,7 +489,6 @@ class LandslideProbability(Component):
             self._Re /= 1000.0  # Convert mm to m
         # Recharge Lognormal Distribution - Uniform in space
         elif self._groundwater__recharge_distribution == "lognormal":
-            print('Using Recharge Lognormal distribution')
             assert (
                 groundwater__recharge_mean is not None
             ), "Input groundwater__recharge_mean and try again!"
@@ -512,7 +510,6 @@ class LandslideProbability(Component):
             self._Re /= 1000.0  # Convert mm to m
         # Recharge Lognormal Distribution - Variable in space
         elif self._groundwater__recharge_distribution == "lognormal_spatial":
-            print('Using Recharge Lognormal-Spatial distribution')
             assert groundwater__recharge_mean.shape[0] == (
                 self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
@@ -523,7 +520,6 @@ class LandslideProbability(Component):
             self._recharge_stdev = groundwater__recharge_standard_deviation
         # Recharge Custom HSD inputs - Hydrologic Source Domain -> Model Domain
         elif self._groundwater__recharge_distribution == "data_driven_spatial":
-            print('Using Recharge Data Driven Spatial distribution')
             self._HSD_dict = groundwater__recharge_HSD_inputs[0]
             self._HSD_id_dict = groundwater__recharge_HSD_inputs[1]
             self._fract_dict = groundwater__recharge_HSD_inputs[2]
@@ -533,13 +529,11 @@ class LandslideProbability(Component):
         # parameters for depth to water table hydrologic forcing
         # Depth to water table - Uniform distribution
         if self._groundwater__depth_distribution == "uniform":
-            print('Using Depth Forcing with Uniform distribution') 
             self._depth_min = groundwater__depth_min_value
             self._depth_max = groundwater__depth_max_value
             self._De = np.random.uniform(self._depth_min, self._depth_max, size=self._n)
          # Depth to water table - Lognormal Distribution - Uniform in space
         elif self._groundwater__depth_distribution == "lognormal":
-            print('Using Depth Lognormal distribution')
             assert (
                 groundwater__depth_mean is not None
             ), "Input mean of the distribution!"
@@ -561,7 +555,6 @@ class LandslideProbability(Component):
     
     # Depth to water table - Lognormal Distribution - Variable in space                                  
         elif self._groundwater__depth_distribution == "lognormal_spatial":
-            print('Using Depth Lognormal Spatial distribution')
             #assert groundwater__depth_mean.shape[0] == (
             #    self._grid.number_of_nodes
             #), "Input array should be of the length of grid.number_of_nodes!"
@@ -573,9 +566,7 @@ class LandslideProbability(Component):
             
     # Depth to water table - Hydrologic Source Domain -> Model Domain
         elif self._groundwater__depth_distribution == "data_driven_spatial":
-            print('Using Depth Data Driven Spatial distribution')
             self._HSD_dict = groundwater__depth_HSD_inputs
-            #print(type(self._HSD_dict))
             
     # Check if all output fields are initialized
         self.initialize_output_fields()
@@ -625,16 +616,7 @@ class LandslideProbability(Component):
             
             # Depth to water table distribution based on distribution type
             if self._groundwater__depth_distribution == "data_driven_spatial":
-                
-                print('Start node loop')
-                print(i)
-                #print('Depth input')
-                #print(self._HSD_dict)
-                #print(self._HSD_dict[i])
-                #print(type(self._HSD_dict))
-                #print('Go to calculate_HSD_groundwater_depth')    
-
-                
+          
                 self._calculate_HSD_groundwater_depth(i)
 
             elif self._groundwater__depth_distribution == 'lognormal_spatial':  
@@ -649,24 +631,14 @@ class LandslideProbability(Component):
                 self._De = np.random.lognormal(mu_lognormal, sigma_lognormal, self._n)
                 
             self._hw_dist= self._hs_mode - self._De  
-            print('hw_dist')
-            print(self._hw_dist)
             self._hw_dist[np.where(self._hw_dist<0)] = 0  #no water in soil column when De input > soil thickness 
-            #print('hw_dist limited to soil thickness')
-            print(self._hw_dist)  
             
             # depth of water
-            print('self._De')
-            print(self._De)
             self._soil__mean_watertable_depth = np.mean(self._De)
-            print(self._soil__mean_watertable_depth) 
                     
         # recharge distribution based on distribution type
         if self._groundwater__recharge_distribution == "data_driven_spatial":
             self._calculate_HSD_recharge(i)
-            print('Recharge node loop')
-            print(i)
-            print(self._Re)
             self._Re /= 1000.0  # mm->m
         elif self._groundwater__recharge_distribution == "lognormal_spatial":
             mu_lognormal = np.log(
@@ -728,36 +700,16 @@ class LandslideProbability(Component):
        
         # relative wetness
         if self._groundwater__recharge_distribution is not None:
-            print('Relative Wetness calculated with Recharge Distribution = ' + self._groundwater__recharge_distribution)
             self._rel_wetness = (
                 (self._Re)/self._T)*(self._a/np.sin(np.arctan(self._theta))
             )
             
         elif self._groundwater__depth_distribution is not None:
-            print('Relative Wetness calculated with Depth Distribution = ' + self._groundwater__depth_distribution)
             self._rel_wetness = ((self._hs_mode - self._De) / self._hs_mode)           
          
         if self._groundwater__depth_distribution == 'data_driven_spatial':
-            print(self._groundwater__depth_distribution)
-            print('in depth data driven spatial rw calc')
             self._rel_wetness = ((self._interp_hw_dist) / self._hs_mode)
-            print(' _interp_hw_dist')
-            print(self._interp_hw_dist)
-            print('rel wetness')
-            print(self._rel_wetness)
-            
- 
-          
-        
-        print('rel wetness')
-        print(self._rel_wetness)
-        #print('interp_hw_dist')
-        #print(self._interp_hw_dist) 
-        #print('_De')
-        #print(self._De) 
-        #print('_Re')
-        #print(self._Re) 
-        
+
         # calculate probability of saturation 
         #if self._groundwater__recharge_distribution is not None:
         countr = 0
@@ -768,13 +720,6 @@ class LandslideProbability(Component):
         # probability: No. high RW values/total No. of values (n)
 
         self._soil__probability_of_saturation = np.float32(countr) / self._n
-        
-        print('Countr')
-        print(countr)
-        print('Self._n')
-        print(n)
-        print(self._soil__probability_of_saturation)
-        
         
         # Maximum Rel_wetness = 1.0
         np.place(self._rel_wetness, self._rel_wetness > 1, 1.0)
@@ -820,11 +765,6 @@ class LandslideProbability(Component):
             self._prob_sat[i] = self._soil__probability_of_saturation
             if self._groundwater__depth_distribution is not None:
                 self._mean_watertable_depth[i]=self._soil__mean_watertable_depth
-                
-            print('Core node in calc land prob loop')
-            print(i)
-            print(self._prob_sat[i])
-            print(self._prob_sat)
             
         # Values can't be negative
         self._mean_Relative_Wetness[self._mean_Relative_Wetness < 0.0] = 0.0
@@ -888,8 +828,6 @@ class LandslideProbability(Component):
         Yrand = np.sort(np.random.rand(self._n))
         Fx = ECDF(self._hw_dist)
         Fx_ = Fx(self._hw_dist)
-        print('Probabilities of Height of Water Input Value (hw=hs-dtw)')
-        print(Fx_)
         f = interpolate.interp1d(
             Fx_, self._hw_dist, bounds_error=False,
             fill_value=min(self._hw_dist)
@@ -916,8 +854,6 @@ class LandslideProbability(Component):
             Re_adj = Re_temp * fract_temp
             store_Re = np.vstack((store_Re, np.array(Re_adj)))
         self._Re = np.sum(store_Re, 0)
-        print('Inside calculate recharge loop interpolation')
-        print(self._Re)
 
     def _calculate_HSD_groundwater_depth(self,i):
         """Method to calculate groundwater depth.
@@ -926,28 +862,9 @@ class LandslideProbability(Component):
         model domain, using depth to water table. Output is a numpy array
         of depth to groundwater at node i.        
         """
-        #print('Depth input')
-        #print(self._HSD_dict)
-        #print(self._HSD_dict[i])
-        #print(type(self._HSD_dict))
         self._hw_dist=self._hs_mode - self._HSD_dict[i]
-        #self._hw_dist= self._hs_mode - self._De    this is the variable from uniform, lognormal, lognormal-spatial
-        print('hw_dist')
-        print(self._hw_dist)
         self._hw_dist[np.where(self._hw_dist<0)] = 0  #no water in soil column when De input > soil thickness 
-        print('hw_dist limited to soil thickness')
-        print(self._hw_dist)  
-            
-        #print(i)
+
         #interpolate
         self._interpolate_HSD_array()
-        #replace values for depth with interpolated depth
-        #self._hw_dist=self._interp_hw_dist
-        print('interp hw dist for rel.wetness calc')
-        print(self._interp_hw_dist)
-        
-        #print('Depth output for mean calculation')
         self._De = self._HSD_dict[i]
-        print(self._De)
-        print(self._De.shape)
-        print('End calculate_HSD_groundwater_depth')
