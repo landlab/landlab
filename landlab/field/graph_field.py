@@ -292,14 +292,14 @@ class FieldDataset(dict):
             dims = (self._name, name + "_per_" + self._name)
 
         if name in self._ds:
-            self._ds = self._ds.drop(name)
+            self._ds = self._ds.drop_vars(name)
 
         self._ds.update({name: xr.DataArray(value_array, dims=dims, attrs=attrs)})
         self._units[name] = attrs["units"]
 
     def pop(self, name):
         array = self._ds[name].values
-        self._ds = self._ds.drop(name)
+        self._ds = self._ds.drop_vars(name)
         return array
 
     def __getitem__(self, name):
@@ -1083,7 +1083,7 @@ class GraphFields:
             ds = getattr(self, "at_" + loc)
         except AttributeError:
             raise KeyError(loc)
-        ds._ds = ds._ds.drop(name)
+        ds._ds = ds._ds.drop_vars(name)
 
     def add_empty(self, *args, **kwds):
         """add_empty(name, at='node', units='-', clobber=False)

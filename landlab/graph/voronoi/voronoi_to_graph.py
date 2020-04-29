@@ -309,7 +309,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
                 },
                 dims=(at,),
             )
-            self._mesh = self._mesh.drop(
+            self._mesh = self._mesh.drop_vars(
                 ["x_of_{at}".format(at=at), "y_of_{at}".format(at=at)]
             )
 
@@ -317,7 +317,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             var = self._mesh[name]
             at_[name] = xr.DataArray(var.values[is_a_keeper], dims=var.dims)
 
-        self._mesh = self._mesh.drop(list(at_))
+        self._mesh = self._mesh.drop_vars(list(at_))
         self._mesh.update(at_)
 
         for name in self.ids_with_prefix(at):
