@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from ...core.utils import as_id_array
@@ -46,7 +44,7 @@ def get_links_at_node(graph, sort=False):
 
 
 def sort_links_at_node_by_angle(
-    links_at_node, link_dirs_at_node, angle_of_link, inplace=True
+    links_at_node, link_dirs_at_node, angle_of_link, inplace=False
 ):
     """Sort links as spokes about a hub.
 
@@ -108,7 +106,7 @@ def sort_links_at_node_by_angle(
     >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
 
     >>> _ = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-    ...     angle_of_link)
+    ...     angle_of_link, inplace=True)
     >>> links_at_node # doctest: +NORMALIZE_WHITESPACE
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
     >>> link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -123,8 +121,9 @@ def sort_links_at_node_by_angle(
 
     if inplace:
         if out[0] is not links_at_node or out[1] is not link_dirs_at_node:
-            inplace = False
-            warnings.warn("input must be ndarray of int for in-place sort")
+            raise ValueError(
+                "links_at_node and link_dirs_at_node arrays must be ndarray for in-place sort"
+            )
 
     if not inplace:
         if out[0] is links_at_node:
