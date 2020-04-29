@@ -870,6 +870,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     """
     if out is None:
         out = grid.empty(at="node")
+    out[:] = 0.0
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -879,8 +880,8 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     vals_above_zero = vals_in_positive > 0.0
     total_vals = np.sum(vals_in_positive * vals_above_zero, axis=1)
     link_count = np.sum(vals_above_zero, axis=1)
-    np.divide(total_vals, link_count, out=out)
-    out[np.isnan(out)] = 0.0
+    np.divide(total_vals, link_count, out=out, where=link_count != 0)
+    out[link_count == 0] = 0.0
 
     return out
 
@@ -940,6 +941,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     """
     if out is None:
         out = grid.empty(at="node")
+    out[:] = 0.0
 
     if type(var_name) is str:
         var_name = grid.at_link[var_name]
@@ -949,8 +951,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     vals_above_zero = vals_in_positive > 0.0
     total_vals = np.sum(vals_in_positive * vals_above_zero, axis=1)
     link_count = np.sum(vals_above_zero, axis=1)
-    np.divide(total_vals, link_count, out=out)
-    out[np.isnan(out)] = 0.0
+    np.divide(total_vals, link_count, out=out, where=link_count != 0)
 
     return out
 

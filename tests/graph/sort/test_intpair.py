@@ -164,13 +164,7 @@ def test_map_pairs_big_data():
     pairs = src[ids]
     out = map_pairs_to_values((src, data), pairs)
 
-    mismatch = np.where(out != ids)[0]
-    if mismatch:
-        print(mismatch)
-        print(out[mismatch])
-        print(ids[mismatch])
     assert_array_equal(out, ids)
-    # assert np.all(out == ids)
 
 
 def test_map_rolling_pairs():
