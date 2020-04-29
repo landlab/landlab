@@ -3,9 +3,6 @@ from numpy.testing import assert_array_almost_equal
 
 from landlab.components import NetworkSedimentTransporter
 from landlab.data_record import DataRecord
-from landlab.grid.network import NetworkModelGrid
-
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
 def test_abrasion(example_nmg, example_parcels, example_flow_director):
@@ -32,7 +29,7 @@ def test_abrasion(example_nmg, example_parcels, example_flow_director):
         items=items,
         time=time,
         data_vars=variables,
-        dummy_elements={"link": [_OUT_OF_NETWORK]},
+        dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
 
     timesteps = 8

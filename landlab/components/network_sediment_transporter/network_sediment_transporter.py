@@ -26,8 +26,6 @@ from landlab.grid.network import NetworkModelGrid
 
 _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
-
 _REQUIRED_PARCEL_ATTRIBUTES = [
     "time_arrival_in_link",
     "abrasion_rate",
@@ -66,13 +64,17 @@ class NetworkSedimentTransporter(Component):
     Examples of its usage can be found in the NetworkSedimentTransporter
     notebooks (located in the "notebooks" folder).
 
+    Attributes
+    ----------
+    OUT_OF_NETWORK : int
+        Indicates a parcel is out of network.
+
     Examples
     ----------
     >>> import numpy as np
     >>> from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
     >>> from landlab import NetworkModelGrid
     >>> from landlab.data_record import DataRecord
-    >>> _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
     The NetworkSedimentTransporter moves "parcels" of sediment down a network
     based on a given flow and a given sediment transport formulation. The river
@@ -147,7 +149,8 @@ class NetworkSedimentTransporter(Component):
     ...     items=items,
     ...     time=time,
     ...     data_vars=variables,
-    ...     dummy_elements={"link": [_OUT_OF_NETWORK]},
+    ...     dummy_elements={
+    ...         "link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     ... )
 
     Instantiate the model run
@@ -245,6 +248,9 @@ class NetworkSedimentTransporter(Component):
             "doc": "Land surface topographic elevation",
         },
     }
+
+    #: Indicates a parcel is out of network
+    OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
     def __init__(
         self,
@@ -419,7 +425,9 @@ class NetworkSedimentTransporter(Component):
         )
         self._this_timesteps_parcels[:, -1] = True
 
-        parcels_off_grid = self._parcels.dataset.element_id[:, -1] == _OUT_OF_NETWORK
+        parcels_off_grid = (
+            self._parcels.dataset.element_id[:, -1] == self.OUT_OF_NETWORK
+        )
         self._this_timesteps_parcels[parcels_off_grid, -1] = False
 
         self._num_parcels = self._parcels.number_of_items
@@ -453,7 +461,7 @@ class NetworkSedimentTransporter(Component):
 
         # Calculate mean values for density and grain size (weighted by volume).
         sel_parcels = current_parcels.where(
-            current_parcels.element_id != _OUT_OF_NETWORK
+            current_parcels.element_id != self.OUT_OF_NETWORK
         )
 
         d_weighted = sel_parcels.D * sel_parcels.volume
@@ -804,7 +812,7 @@ class NetworkSedimentTransporter(Component):
         # active parcels on the network:
         in_network = (
             self._parcels.dataset.element_id.values[:, self._time_idx]
-            != _OUT_OF_NETWORK
+            != self.OUT_OF_NETWORK
         )
         active = distance_to_travel_this_timestep > 0.0
         active_parcel_ids = np.nonzero(in_network * active)[0]
@@ -813,7 +821,7 @@ class NetworkSedimentTransporter(Component):
         while np.any(distance_left_to_travel > 0.0):
 
             # Step 1: Move parcels downstream.
-            on_network = current_link != _OUT_OF_NETWORK
+            on_network = current_link != self.OUT_OF_NETWORK
 
             # Get current link lengths:
             current_link_lengths = self._grid.at_link["reach_length"][current_link]
@@ -877,7 +885,7 @@ class NetworkSedimentTransporter(Component):
                 if np.any(moved_oon):
                     # print('  {x} exiting network'.format(x=np.sum(moved_oon)))
 
-                    current_link[moved_oon] = _OUT_OF_NETWORK
+                    current_link[moved_oon] = self.OUT_OF_NETWORK
                     # assign location in link of np.nan to those which moved oon
                     location_in_link[moved_oon] = np.nan
                     distance_left_to_travel[moved_oon] = 0.0

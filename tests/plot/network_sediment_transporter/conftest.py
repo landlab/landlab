@@ -8,9 +8,6 @@ from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.io import read_shapefile
 
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
-
-
 _TEST_DATA_DIR = os.path.join(
     os.path.dirname(__file__), "..", "..", "io", "shapefile", "data"
 )
@@ -83,7 +80,7 @@ def synthetic():
         items=items,
         time=[0.0],
         data_vars=variables,
-        dummy_elements={"link": [_OUT_OF_NETWORK]},
+        dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
 
     fd1 = FlowDirectorSteepest(grid1, "topographic__elevation")
@@ -172,7 +169,7 @@ def methow():
         items=items,
         time=[0.0],
         data_vars=variables,
-        dummy_elements={"link": [_OUT_OF_NETWORK]},
+        dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
 
     fd2 = FlowDirectorSteepest(grid2, "topographic__elevation")

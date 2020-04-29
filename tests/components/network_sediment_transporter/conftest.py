@@ -1,11 +1,9 @@
 import numpy as np
 import pytest
 
-from landlab.components import FlowDirectorSteepest
+from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
-
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
 @pytest.fixture()
@@ -94,7 +92,7 @@ def example_parcels(example_nmg):
         items=items,
         time=time,
         data_vars=variables,
-        dummy_elements={"link": [_OUT_OF_NETWORK]},
+        dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
     return parcels
 

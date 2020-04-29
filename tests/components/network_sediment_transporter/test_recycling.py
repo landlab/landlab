@@ -6,8 +6,6 @@ from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
-
 
 def test_recycling():
     y_of_node = (0, 0, 0, 0)
@@ -54,7 +52,7 @@ def test_recycling():
         items=items,
         time=time,
         data_vars=variables,
-        dummy_elements={"link": [_OUT_OF_NETWORK]},
+        dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
 
     nst = NetworkSedimentTransporter(
@@ -74,10 +72,12 @@ def test_recycling():
     for t in range(0, (timesteps * dt), dt):
         # RECYCLE sediment: what left the network gets added back in at top.
         parcels.dataset.location_in_link.values[
-            parcels.dataset.element_id.values == _OUT_OF_NETWORK
+            parcels.dataset.element_id.values
+            == NetworkSedimentTransporter.OUT_OF_NETWORK
         ] = 0
         parcels.dataset.element_id.values[
-            parcels.dataset.element_id.values == _OUT_OF_NETWORK
+            parcels.dataset.element_id.values
+            == NetworkSedimentTransporter.OUT_OF_NETWORK
         ] = 0
         nst.run_one_step(dt)
 

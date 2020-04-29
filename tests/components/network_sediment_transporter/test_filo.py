@@ -5,8 +5,6 @@ from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
-
 
 def test_first_in_last_out():
     y_of_node = (0, 0, 0, 0, 0, 0)
@@ -71,7 +69,7 @@ def test_first_in_last_out():
         items=items,
         time=time,
         data_vars=variables,
-        dummy_elements={"link": [_OUT_OF_NETWORK]},
+        dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
 
     nst = NetworkSedimentTransporter(

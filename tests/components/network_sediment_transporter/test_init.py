@@ -1,9 +1,6 @@
 import pytest
 
 from landlab.components import NetworkSedimentTransporter
-from landlab.grid.network import NetworkModelGrid
-
-_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
 def test_basic_init(example_nmg, example_parcels, example_flow_director):
