@@ -10,7 +10,7 @@ Landlab.
 
 NetworkSedimentTransporter documentation is located [here](https://landlab.readthedocs.io/en/master/reference/components/network_sediment_transporter.html).
 
-## SpeciesEvolver tutorial
+## NetworkSedimentTransporter tutorial
 
 Three tutorials exist on NetworkSedimentTransporter. They are Jupyter notebooks accessible in the Landlab notebooks. The following are links to Binder instances of the notebooks. If instead you want to run the notebooks locally, you can clone the landlab repository and find them in the directory `landlab/notebooks/tutorials/network_sediment_transporter`.
 
