@@ -23,7 +23,6 @@ import inspect
 import os
 import re
 
-
 import numpy as np
 
 SIZEOF_INT = np.dtype(np.int).itemsize
