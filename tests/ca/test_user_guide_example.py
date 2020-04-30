@@ -16,10 +16,12 @@ Created on Thu Apr 30 11:43:50 2020
 """
 
 import time
-#import matplotlib (commented out for CI testing)
+
+# import matplotlib (commented out for CI testing)
 from numpy import where
+
 from landlab import RasterModelGrid
-from landlab.ca.celllab_cts import Transition #, CAPlotter (# CI testing)
+from landlab.ca.celllab_cts import Transition  # , CAPlotter (# CI testing)
 from landlab.ca.raster_cts import RasterCTS
 
 
@@ -64,10 +66,11 @@ def setup_transition_list():
     #    (left/bottom cell, right/top cell, orientation)
     #  - Transition rate (cells per time step, in this case 1 sec)
     #  - Name for transition
-    xn_list.append( Transition((0,1,0), (1,0,0), 10., 'left/down motion') )
-    xn_list.append( Transition((1,0,0), (0,1,0), 10., 'right/up motion') )
+    xn_list.append(Transition((0, 1, 0), (1, 0, 0), 10.0, "left/down motion"))
+    xn_list.append(Transition((1, 0, 0), (0, 1, 0), 10.0, "right/up motion"))
 
     return xn_list
+
 
 def test_user_guide_example():
 
@@ -76,8 +79,8 @@ def test_user_guide_example():
     # User-defined parameters
     nr = 80  # number of rows in grid
     nc = 50  # number of columns in grid
-    plot_interval = 0.5   # time interval for plotting, sec
-    run_duration = 1.0   # duration of run, sec
+    plot_interval = 0.5  # time interval for plotting, sec
+    run_duration = 1.0  # duration of run, sec
     report_interval = 10.0  # report interval, in real-time seconds
 
     # Remember the clock time, and calculate when we next want to report
@@ -92,7 +95,7 @@ def test_user_guide_example():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Create a node-state dictionary
-    ns_dict = { 0 : 'fluid', 1 : 'particle' }
+    ns_dict = {0: "fluid", 1: "particle"}
 
     # Create the transition list
     xn_list = setup_transition_list()
@@ -100,11 +103,11 @@ def test_user_guide_example():
     # Create an array containing the initial node-state values
 
     # Create the node-state array and attach it to the grid
-    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
+    node_state_grid = mg.add_zeros("node", "node_state_map", dtype=int)
 
     # Initialize the node-state array: here, the initial condition is a pile of
     # resting grains at the bottom of a container.
-    bottom_rows = where(mg.node_y<0.1*nr)[0]
+    bottom_rows = where(mg.node_y < 0.1 * nr)[0]
     node_state_grid[bottom_rows] = 1
 
     # For visual display purposes, set all boundary nodes to fluid
@@ -116,17 +119,17 @@ def test_user_guide_example():
     # Set up plotting
     # Set up colors for plotting
     # (commented out for CI testing)
-    #grain = '#5F594D'
-    #fluid = '#D0E4F2'
-    #clist = [fluid,grain]
-    #my_cmap = matplotlib.colors.ListedColormap(clist)
+    # grain = '#5F594D'
+    # fluid = '#D0E4F2'
+    # clist = [fluid,grain]
+    # my_cmap = matplotlib.colors.ListedColormap(clist)
 
     # Create a CAPlotter object for handling screen display
     # (commented out for CI testing)
-    #ca_plotter = CAPlotter(ca, cmap=my_cmap)
+    # ca_plotter = CAPlotter(ca, cmap=my_cmap)
 
     # Plot the initial grid (commented out for CI testing)
-    #ca_plotter.update_plot()
+    # ca_plotter.update_plot()
 
     # RUN
     current_time = 0.0
@@ -136,17 +139,22 @@ def test_user_guide_example():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current simulation time '+str(current_time)+'  \
-            	   ('+str(int(100*current_time/run_duration))+'%)')
+            print(
+                "Current simulation time "
+                + str(current_time)
+                + "  \
+            	   ("
+                + str(int(100 * current_time / run_duration))
+                + "%)"
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
-               plot_each_transition=False)
+        ca.run(current_time + plot_interval, ca.node_state, plot_each_transition=False)
         current_time += plot_interval
 
         # Plot the current grid (commented out for CI testing)
-        #ca_plotter.update_plot() 
+        # ca_plotter.update_plot()
 
     # Finalize plot (commented out for CI testing)
-    #ca_plotter.finalize()
+    # ca_plotter.finalize()
