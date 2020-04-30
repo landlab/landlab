@@ -17,8 +17,7 @@
     :target: https://landscape.io/github/landlab/landlab/master
 
 .. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
-
+ :target: https://mybinder.org/v2/gh/ChristinaB/landlab/ChristinaB-landslide?filepath=notebooks%2Ftutorials%2Flandslides%2FSynthetic_LandlabLandslide_v2-2020429-wet.ipynb
 =======
 Landlab
 =======
