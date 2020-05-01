@@ -143,7 +143,7 @@ def test_user_guide_example():
                 "Current simulation time "
                 + str(current_time)
                 + "  \
-            	   ("
+                   ("
                 + str(int(100 * current_time / run_duration))
                 + "%)"
             )
