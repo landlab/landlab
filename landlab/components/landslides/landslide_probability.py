@@ -318,7 +318,7 @@ class LandslideProbability(Component):
         "soil__mean_watertable_depth": {
             "dtype": float,
             "intent": "out",
-            "optional": True,
+            "optional": False,
             "units": "m",
             "mapping": "node",
             "doc": "Mean depth to water table from surface to perched water table within the soil layer",
@@ -708,10 +708,11 @@ class LandslideProbability(Component):
             )
             
         elif self._groundwater__depth_distribution is not None:
-            self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold)           
+            self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold))           
          
         if self._groundwater__depth_distribution == 'data_driven_spatial':
-            self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold)   
+                                 
+            self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold))   
 
         # calculate probability of saturation 
         #if self._groundwater__recharge_distribution is not None:
