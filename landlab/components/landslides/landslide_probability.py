@@ -699,16 +699,19 @@ class LandslideProbability(Component):
         ) 
        
         # relative wetness
+        sat_threshold = 0.001 #numerical approximation to accomodate precision of 'saturated depth to water' 
+        #value for saturated depth that is a not-negative not-zero value; RW = 1  at this depth.
+
         if self._groundwater__recharge_distribution is not None:
             self._rel_wetness = (
                 (self._Re)/self._T)*(self._a/np.sin(np.arctan(self._theta))
             )
             
         elif self._groundwater__depth_distribution is not None:
-            self._rel_wetness = ((self._hs_mode - self._De) / self._hs_mode)           
+            self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold)           
          
         if self._groundwater__depth_distribution == 'data_driven_spatial':
-            self._rel_wetness = ((self._interp_hw_dist) / self._hs_mode)
+            self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold)   
 
         # calculate probability of saturation 
         #if self._groundwater__recharge_distribution is not None:
