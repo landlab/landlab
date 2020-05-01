@@ -144,7 +144,7 @@ class LandslideProbability(Component):
 
     Create a grid on which to calculate landslide probability.
 
-    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4))
 
     Check the number of core nodes.
 
@@ -318,7 +318,7 @@ class LandslideProbability(Component):
         "soil__mean_watertable_depth": {
             "dtype": float,
             "intent": "out",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "Mean depth to water table from surface to perched water table within the soil layer",
@@ -327,7 +327,7 @@ class LandslideProbability(Component):
         "soil__minimum_total_cohesion": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "Pa or kg/m-s2",
             "mapping": "node",
             "doc": "minimum of combined root and soil cohesion at node",
@@ -335,7 +335,7 @@ class LandslideProbability(Component):
         "soil__mode_total_cohesion": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "Pa or kg/m-s2",
             "mapping": "node",
             "doc": "mode of combined root and soil cohesion at node",
@@ -351,7 +351,7 @@ class LandslideProbability(Component):
         "soil__saturated_hydraulic_conductivity": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "m/day",
             "mapping": "node",
             "doc": "mode rate of water transmitted through soil. If transmissivity is NOT provided, the component calculates transmissivity using Ksat and soil depth",
@@ -367,7 +367,7 @@ class LandslideProbability(Component):
         "soil__transmissivity": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "m2/day",
             "mapping": "node",
             "doc": "mode rate of water transmitted through a unit width of saturated soil - either provided or calculated with Ksat and soil depth",
