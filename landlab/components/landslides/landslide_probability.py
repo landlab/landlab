@@ -555,12 +555,12 @@ class LandslideProbability(Component):
     
     # Depth to water table - Lognormal Distribution - Variable in space                                  
         elif self._groundwater__depth_distribution == "lognormal_spatial":
-            #assert groundwater__depth_mean.shape[0] == (
-            #    self._grid.number_of_nodes
-            #), "Input array should be of the length of grid.number_of_nodes!"
-            #assert (groundwater__depth_standard_deviation.shape[0] == (
-            #    self._grid.number_of_nodes
-            #), "Input array should be of the length of grid.number_of_nodes!"
+            assert groundwater__depth_mean.shape[0] == (
+                self._grid.number_of_nodes
+            ), "Input array should be of the length of grid.number_of_nodes!"
+            assert (groundwater__depth_standard_deviation.shape[0] == (
+                self._grid.number_of_nodes
+            ), "Input array should be of the length of grid.number_of_nodes!"
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation        
             
