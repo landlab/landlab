@@ -555,12 +555,12 @@ class LandslideProbability(Component):
     
     # Depth to water table - Lognormal Distribution - Variable in space                                  
         elif self._groundwater__depth_distribution == "lognormal_spatial":
-            assert groundwater__depth_mean.shape[0] == (
-                self._grid.number_of_nodes
-            ), "Input array should be of the length of grid.number_of_nodes!"
-            assert (groundwater__depth_standard_deviation.shape[0] == (
-                self._grid.number_of_nodes
-            ), "Input array should be of the length of grid.number_of_nodes!"
+            #assert groundwater__depth_mean.shape[0] == (
+            #    self._grid.number_of_nodes
+            #), "Input array should be of the length of grid.number_of_nodes!"
+            #assert (groundwater__depth_standard_deviation.shape[0] == (
+            #    self._grid.number_of_nodes
+            #), "Input array should be of the length of grid.number_of_nodes!"
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation        
             
@@ -708,14 +708,17 @@ class LandslideProbability(Component):
             )
             
         elif self._groundwater__depth_distribution is not None:
-            self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold))           
+            
+            if self._groundwater__depth_distribution == 'data_driven_spatial':
+                              
+                self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold))   
+            
+            else:
+                self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold))           
          
-        if self._groundwater__depth_distribution == 'data_driven_spatial':
-                                 
-            self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold))   
+
 
         # calculate probability of saturation 
-        #if self._groundwater__recharge_distribution is not None:
         countr = 0
         for val in self._rel_wetness:            # find how many RW values >= 1
             if val >= 1.0:
@@ -747,7 +750,7 @@ class LandslideProbability(Component):
         Method creates arrays for output variables then loops through
         all the core nodes to run the method
         'calculate_factor_of_safety.' Output parameters probability of
-        failure, mean relative wetness, and probability of saturation
+        failure, mean relative wetness, mean water table depth, and probability of saturation
         are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
