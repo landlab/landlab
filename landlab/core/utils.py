@@ -18,14 +18,70 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
+import errno
 import importlib
 import inspect
 import os
+import pathlib
+import pkg_resources
 import re
+import shutil
 
 import numpy as np
 
 SIZEOF_INT = np.dtype(np.int).itemsize
+
+
+def _iter_example_data(example, case=""):
+    path_to_data = pathlib.Path(
+        pkg_resources.resource_filename(
+            "landlab", str(pathlib.Path("data").joinpath(example, case))
+        )
+    )
+    return path_to_data.iterdir()
+
+
+def copy_example_data(example, case="", dry_run=False):
+    """Copy landlab example data files.
+
+    Parameters
+    ----------
+    example : str
+        Name of the example to get data files for.
+    case : str, optional
+        A particular case of the base example.
+    dry_run : bool, optional
+        Don't actually copy any files, just return the files, if any,
+        that would have been copied.
+
+    Returns
+    -------
+    list of str
+        Names of the data files/folders copied.
+
+    Examples
+    --------
+    >>> copied_files = copy_example_data("io/shapefile")
+    """
+    dst = pathlib.Path(".")
+    data_files = list(_iter_example_data(example, case=case))
+
+    if not dry_run:
+        for src in data_files:
+            if (dst / src.name).exists():
+                raise FileExistsError(
+                    "[Errno {errno}] File exists: {name}".format(
+                        errno=errno.EEXIST, name=repr(src.name)
+                    )
+                )
+
+        for src in data_files:
+            if src.is_file():
+                shutil.copy2(src, dst)
+            elif src.is_dir():
+                shutil.copytree(src, dst / src.name)
+
+    return list(src.name for src in data_files)
 
 
 def degrees_to_radians(degrees):
