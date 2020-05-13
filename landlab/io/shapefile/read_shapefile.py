@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Functions to read shapefiles and create a NetworkModelGrid."""
 import numpy as np
+import pathlib
 import shapefile as ps
 from shapefile import ShapefileException
 
@@ -10,6 +11,8 @@ from landlab.grid.network import NetworkModelGrid
 
 
 def _read_shapefile(file, dbf):
+    if isinstance(file, pathlib.PurePath):
+        file = str(file)
     try:
         sf = ps.Reader(file)
     except ShapefileException:
