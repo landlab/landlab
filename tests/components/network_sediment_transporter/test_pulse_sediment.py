@@ -130,8 +130,6 @@ def test_add_pulse():
         time=[nst._time], new_item=new_parcels, new_item_spec=new_variables
     )
 
-    # print(parcels.dataset.element_id.values)
-
     nst.run_one_step(dt)
 
     print(parcels.dataset.element_id.values)

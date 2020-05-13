@@ -15,13 +15,13 @@ def example_nmg():
     grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
     # add variables to grid
-    _ = grid.add_field(
+    grid.add_field(
         "topographic__elevation", [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6], at="node"
     )
-    _ = grid.add_field(
+    grid.add_field(
         "bedrock__elevation", [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6], at="node"
     )
-    _ = grid.add_field(
+    grid.add_field(
         "reach_length",
         [10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0],
         at="link",
@@ -103,21 +103,3 @@ def example_flow_director(example_nmg):
     fd = FlowDirectorSteepest(example_nmg)
     fd.run_one_step()
     return fd
-
-
-# @pytest.fixture()
-# def example_flow_depth(example_nmg):
-#     timesteps = 30
-#
-#     Qgage = 8000.0  # (m3/s)
-#
-#     Hgage = 1.703 * Qgage ** 0.3447
-#     # (m)
-#     Agage = 4.5895e9
-#     # (m2)
-#
-#     flow_depth = (
-#         np.tile(Hgage, (example_nmg.number_of_links)) / (Agage ** 0.4)
-#     ) * np.tile(example_nmg.size("link"), (timesteps + 1, 1)) ** 0.4
-#
-#     return flow_depth
