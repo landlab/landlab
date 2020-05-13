@@ -2,34 +2,32 @@ import pathlib
 
 import pytest
 
-from landlab import copy_example_data
+from landlab import ExampleData
 
 
-def test_copy(tmpdir):
+def test_fetch(tmpdir):
+    data = ExampleData("io/shapefile")
+    expected = set(data)
     with tmpdir.as_cwd():
-        copied = copy_example_data("io/shapefile")
-        assert set(copied) == set(p.name for p in pathlib.Path(".").iterdir())
+        data.fetch()
+
+        fetched = set(p.name for p in pathlib.Path(".").iterdir())
+        assert expected == fetched
 
 
-def test_copy_with_case(tmpdir):
+def test_fetch_with_case(tmpdir):
+    data = ExampleData("io/shapefile", case="methow")
+    expected = ["methow"]
     with tmpdir.as_cwd():
-        copied = copy_example_data("io/shapefile", case="methow")
-        assert set(copied) == set(p.name for p in pathlib.Path(".").iterdir())
+        data.fetch()
+
+        fetched = set(p.name for p in pathlib.Path(".").iterdir())
+        assert expected == fetched
 
 
-def test_copy_dry_run(tmpdir):
+def test_fetch_no_overwrite(tmpdir):
+    data = ExampleData("io/shapefile")
     with tmpdir.as_cwd():
-        to_copy = copy_example_data("io/shapefile", case="methow", dry_run=True)
-        assert len(list(p.name for p in pathlib.Path(".").iterdir())) == 0
-
-        copied = copy_example_data("io/shapefile", case="methow", dry_run=False)
-        assert set(to_copy) == set(copied)
-        assert set(to_copy) == set(p.name for p in pathlib.Path(".").iterdir())
-
-
-def test_copy_no_overwrite(tmpdir):
-    with tmpdir.as_cwd():
-        to_copy = copy_example_data("io/shapefile", case="methow", dry_run=True)
-        pathlib.Path(to_copy[0]).touch()
+        pathlib.Path(list(data).pop()).touch()
         with pytest.raises(FileExistsError):
-            copy_example_data("io/shapefile", case="methow", dry_run=False)
+            data.fetch()

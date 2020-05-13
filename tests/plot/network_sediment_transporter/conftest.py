@@ -7,10 +7,7 @@ from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.io import read_shapefile
-
-_TEST_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "..", "..", "io", "shapefile", "data"
-)
+from landlab import ExampleData
 
 
 @pytest.fixture()
@@ -105,11 +102,12 @@ def synthetic():
 
 @pytest.fixture()
 def methow():
-    file = os.path.join(_TEST_DATA_DIR, "MethowSubBasin.shp")
+    example_data_dir = ExampleData("io/shapefile", case="methow").base
+    shp_file = example_data_dir / "MethowSubBasin.shp"
+    points_shapefile = example_data_dir / "MethowSubBasin_Nodes_4.shp"
 
-    points_shapefile = os.path.join(_TEST_DATA_DIR, "MethowSubBasin_Nodes_4.shp")
     grid2 = read_shapefile(
-        file,
+        shp_file,
         points_shapefile=points_shapefile,
         node_fields=["usarea_km2", "Elev_m"],
         link_fields=["usarea_km2", "Length_m"],

@@ -32,56 +32,45 @@ import numpy as np
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
-def _iter_example_data(example, case=""):
-    path_to_data = pathlib.Path(
-        pkg_resources.resource_filename(
-            "landlab", str(pathlib.Path("data").joinpath(example, case))
+class ExampleData:
+    def __init__(self, example, case=""):
+        self._base = pathlib.Path(
+            pkg_resources.resource_filename(
+                "landlab", str(pathlib.Path("data").joinpath(example, case))
+            )
         )
-    )
-    return path_to_data.iterdir()
 
+    @property
+    def base(self):
+        return self._base
 
-def copy_example_data(example, case="", dry_run=False):
-    """Copy landlab example data files.
+    def fetch(self):
+        """Fetch landlab example data files.
 
-    Parameters
-    ----------
-    example : str
-        Name of the example to get data files for.
-    case : str, optional
-        A particular case of the base example.
-    dry_run : bool, optional
-        Don't actually copy any files, just return the files, if any,
-        that would have been copied.
+        Examples
+        --------
+        >>> data = ExampleData("io/shapefile")
+        >>> data.fetch()
+        """
+        dstdir, srcdir = pathlib.Path("."), self.base
 
-    Returns
-    -------
-    list of str
-        Names of the data files/folders copied.
-
-    Examples
-    --------
-    >>> copied_files = copy_example_data("io/shapefile")
-    """
-    dst = pathlib.Path(".")
-    data_files = list(_iter_example_data(example, case=case))
-
-    if not dry_run:
-        for src in data_files:
-            if (dst / src.name).exists():
+        for dst in (dstdir / p for p in self):
+            if dst.exists():
                 raise FileExistsError(
                     "[Errno {errno}] File exists: {name}".format(
-                        errno=errno.EEXIST, name=repr(src.name)
+                        errno=errno.EEXIST, name=repr(dst.name)
                     )
                 )
 
-        for src in data_files:
+        for src in (srcdir / p for p in self):
             if src.is_file():
-                shutil.copy2(src, dst)
+                shutil.copy2(src, ".")
             elif src.is_dir():
-                shutil.copytree(src, dst / src.name)
+                shutil.copytree(src, src.name)
 
-    return list(src.name for src in data_files)
+    def __iter__(self):
+        for p in self.base.iterdir():
+            yield p.name
 
 
 def degrees_to_radians(degrees):

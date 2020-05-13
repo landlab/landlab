@@ -8,17 +8,14 @@ from pytest import approx, raises
 from shapefile import ShapefileException
 
 from landlab.io.shapefile import read_shapefile
-from landlab import copy_example_data
-
-# _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+from landlab import ExampleData
 
 
 def test_read_methow(tmpdir):
     # test of the big methow network.
-    # shp_file = os.path.join(_TEST_DATA_DIR, "Methow_Network.shp")
     shp_file = "Methow_Network.shp"
     with tmpdir.as_cwd():
-        copy_example_data("io/shapefile", case="methow")
+        ExampleData("io/shapefile", case="methow").fetch()
 
         grid = read_shapefile(shp_file)
         assert grid.number_of_nodes == 721
@@ -69,13 +66,11 @@ def test_read_methow(tmpdir):
 
 def test_read_methow_subbasin(tmpdir):
     # test of the small methow network with
-    # shp_file = os.path.join(_TEST_DATA_DIR, "MethowSubBasin.shp")
     shp_file = "MethowSubBasin.shp"
     points_shapefile = "MethowSubBasin_Nodes_4.shp"
     with tmpdir.as_cwd():
-        copy_example_data("io/shapefile", case="methow")
+        ExampleData("io/shapefile", case="methow").fetch()
 
-        # points_shapefile = os.path.join(_TEST_DATA_DIR, "MethowSubBasin_Nodes_4.shp")
         grid = read_shapefile(shp_file, points_shapefile=points_shapefile, threshold=0.01)
         assert grid.number_of_nodes == 30
         assert grid.number_of_links == 29
@@ -146,13 +141,11 @@ def test_read_methow_subbasin(tmpdir):
 
 def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
     # test of the small methow network with
-    # file = os.path.join(_TEST_DATA_DIR, "MethowSubBasin.shp")
-    # points_shapefile = os.path.join(_TEST_DATA_DIR, "MethowSubBasin_Nodes_4.shp")
     shp_file = "MethowSubBasin.shp"
     points_shapefile = "MethowSubBasin_Nodes_4.shp"
 
     with tmpdir.as_cwd():
-        copy_example_data("io/shapefile", case="methow")
+        ExampleData("io/shapefile", case="methow").fetch()
 
         grid = read_shapefile(
             shp_file,
@@ -244,22 +237,19 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
 
 
 def test_bad_file(tmpdir):
-    # shp_file = os.path.join(_TEST_DATA_DIR, "bad_file.shp")
     shp_file = "bad_file.shp"
     with raises(ShapefileException):
         read_shapefile(shp_file)
 
 
 def test_points(datadir):
-    # shp_file = os.path.join(_TEST_DATA_DIR, "points.shp")
-    shp_file = str(datadir / "points.shp")
+    shp_file = datadir / "points.shp"
     with raises(ValueError):
         read_shapefile(shp_file)
 
 
 def test_multipart(datadir):
-    # file = os.path.join(_TEST_DATA_DIR, "multipartpolyline.shp")
-    shp_file = str(datadir / "multipartpolyline.shp")
+    shp_file = datadir / "multipartpolyline.shp"
     with raises(ValueError):
         read_shapefile(shp_file)
 

@@ -17,7 +17,7 @@ from ._version import get_versions
 from .core.errors import MissingKeyError, ParameterValueError
 from .core.model_component import Component
 from .core.model_parameter_loader import load_params
-from .core.utils import copy_example_data
+from .core.utils import ExampleData
 from .field import FieldError
 from .grid import (
     HexModelGrid,
@@ -48,7 +48,7 @@ __all__ = [
     "Component",
     "FieldError",
     "load_params",
-    "copy_example_data",
+    "ExampleData",
     "ModelGrid",
     "HexModelGrid",
     "RadialModelGrid",
