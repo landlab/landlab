@@ -53,11 +53,11 @@ In the ``NetworkSedimentTransporter``, sediment is represented as "parcels"-a qu
 
 The ``NetworkSedimentTransporter`` adds new functionality to the original implementation by @Czuba2018. Specifically, it allows for variable sediment density and bed-material abrasion (i.e., each parcel can have a unique attribute for sediment density and abrasion coefficient). The latter is calculating the loss of particle mass (or volume, because each parcel has a constant density) during transport downstream as:
 
-$W_x = W_0 e^{\left(\alpha x \right)}$
+$W_x = W_0 \exp \left(\alpha x \right)$
 
-Where $x$ is the downstream transport distance, $\alpha$ is the abrasion rate (for mass loss), and $W_x$ and $W_0$ are the resulting and original sediment parcel masses, respectively. The model tracks parcels volumes (not masses) so the actual implementation replaces $W_x$ and $W_0$ with volumes (e.g., $W_0$ = $V_0$ * rho_s, where $V_0$ is the original sediment parcel volume and rho_s is the rock density of the sediment in the parcel); however, the form of the equation for mass or volume is equivalent for a parcel with a constant sediment density (i.e., the rho_s on both sides of the equation cancel out). Furthermore, once a volume reduction of each parcel is computed, the model also updates the associated reduction in parcel sediment grain size as:
+Where $x$ is the downstream transport distance, $\alpha$ is the abrasion rate (for mass loss), and $W_x$ and $W_0$ are the resulting and original sediment parcel masses, respectively. The model tracks parcels volumes (not masses) so the actual implementation replaces $W_x$ and $W_0$ with volumes (e.g., $W_0=V_0\rho_s$, where $V_0$ is the original sediment parcel volume and \rho_s is the rock density of the sediment in the parcel); however, the form of the equation for mass or volume is equivalent for a parcel with a constant sediment density (i.e., the \rho_s on both sides of the equation cancel out). Furthermore, once a volume reduction of each parcel is computed, the model also updates the associated reduction in parcel sediment grain size as:
 
-$D_x = D_0 * (V_x / V_0) ^ (1/3)$
+$D_x = D_0 \left(\frac{V_x}{V_0}\right)^{1/3}$
 
 Where $D_x$ and $D_0$ are the resulting and original sediment parcel diameters, respectively.
 
