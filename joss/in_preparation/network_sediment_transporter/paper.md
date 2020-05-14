@@ -27,7 +27,7 @@ affiliations:
     index: 2
   - name: University of Colorado at Boulder, Cooperative Institute for Research in Environmental Sciences
     index: 3
-  - name: Present affiliation: U.S. Geological Survey, Landslide Hazards Program, 1711 Illinois St., Golden, CO 80401
+  - name: "Present affiliation: U.S. Geological Survey, Landslide Hazards Program, 1711 Illinois St., Golden, CO 80401"
     index: 4
   - name: Virginia Tech, Department of Biological Systems Engineering and The Global Change Center
     index: 5
