@@ -55,7 +55,7 @@ The ``NetworkSedimentTransporter`` adds new functionality to the original implem
 
 $W_x = W_0 \exp \left(\alpha x \right)$
 
-Where $x$ is the downstream transport distance, $\alpha$ is the abrasion rate (for mass loss), and $W_x$ and $W_0$ are the resulting and original sediment parcel masses, respectively. The model tracks parcels volumes (not masses) so the actual implementation replaces $W_x$ and $W_0$ with volumes (e.g., $W_0=V_0\rho_s$, where $V_0$ is the original sediment parcel volume and \rho_s is the rock density of the sediment in the parcel); however, the form of the equation for mass or volume is equivalent for a parcel with a constant sediment density (i.e., the \rho_s on both sides of the equation cancel out). Furthermore, once a volume reduction of each parcel is computed, the model also updates the associated reduction in parcel sediment grain size as:
+Where $x$ is the downstream transport distance, $\alpha$ is the abrasion rate (for mass loss), and $W_x$ and $W_0$ are the resulting and original sediment parcel masses, respectively. The model tracks parcels volumes (not masses) so the actual implementation replaces $W_x$ and $W_0$ with volumes (e.g., $W_0=V_0\rho_s$, where $V_0$ is the original sediment parcel volume and $\rho_s$ is the rock density of the sediment in the parcel); however, the form of the equation for mass or volume is equivalent for a parcel with a constant sediment density (i.e., the $\rho_s$ on both sides of the equation cancel out). Furthermore, once a volume reduction of each parcel is computed, the model also updates the associated reduction in parcel sediment grain size as:
 
 $D_x = D_0 \left(\frac{V_x}{V_0}\right)^{1/3}$
 
