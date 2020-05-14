@@ -621,6 +621,8 @@ class FlowAccumulator(Component):
 
     _name = "FlowAccumulator"
 
+    _unit_agnostic = True
+
     _info = {
         "drainage_area": {
             "dtype": float,
@@ -688,7 +690,7 @@ class FlowAccumulator(Component):
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
-        super(FlowAccumulator, self).__init__(grid)
+        super().__init__(grid)
         # Keep a local reference to the grid
 
         # Grid type testing
@@ -1065,19 +1067,39 @@ class FlowAccumulator(Component):
         else:
             self._depression_finder = None
 
-    def accumulate_flow(self, update_flow_director=True):
+    def accumulate_flow(self, update_flow_director=True, update_depression_finder=True):
         """Function to make FlowAccumulator calculate drainage area and
         discharge.
 
-        Running run_one_step() results in the following to occur:
+        Running accumulate_flow() results in the following to occur:
+
             1. Flow directions are updated (unless update_flow_director is set
-            as False).
-            2. Intermediate steps that analyse the drainage network topology
-            and create datastructures for efficient drainage area and discharge
-            calculations.
-            3. Calculation of drainage area and discharge.
-            4. Depression finding and mapping, which updates drainage area and
-            discharge.
+               as False). This incluldes checking for updated boundary
+               conditions.
+            2. The depression finder, if present is updated (unless
+               update_depression_finder is set as False).
+            3. Intermediate steps that analyse the drainage network topology
+               and create datastructures for efficient drainage area and
+               discharge calculations.
+            4. Calculation of drainage area and discharge.
+            5. Return of drainage area and discharge.
+
+        Parameters
+        ----------
+        update_flow_director : optional, bool
+            Whether to update the flow director. Default is True.
+        update_depression_finder : optional, bool
+            Whether to update the depression finder, if present.
+            Default is True.
+
+        Returns
+        -------
+        drainage_area : array
+            At node array which points to the field
+            grid.at_node["drainage_area"].
+        surface_water__discharge
+            At node array which points to the field
+            grid.at_node["surface_water__discharge"].
         """
         # set a couple of aliases
         a = self._grid["node"]["drainage_area"]
@@ -1100,11 +1122,12 @@ class FlowAccumulator(Component):
             # At the moment, no depression finders work with to-many, so it
             # lives here
             if self._depression_finder_provided is not None:
-                self._depression_finder.map_depressions()
+                if update_depression_finder:
+                    self._depression_finder.map_depressions()
 
-                # if FlowDirectorSteepest is used, update the link directions
-                if self._flow_director._name == "FlowDirectorSteepest":
-                    self._flow_director._determine_link_directions()
+                    # if FlowDirectorSteepest is used, update the link directions
+                    if self._flow_director._name == "FlowDirectorSteepest":
+                        self._flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
@@ -1167,13 +1190,19 @@ class FlowAccumulator(Component):
     def run_one_step(self):
         """Accumulate flow and save to the model grid.
 
-        run_one_step() checks for updated boundary conditions, calculates
-        slopes on links, finds baselevel nodes based on the status at node,
-        calculates flow directions, and accumulates flow and saves results to
-        the grid.
+        1. Flow directions are updated. This incluldes checking for updated
+           boundary conditions.
+        2. The depression finder, if present is updated.
+        3. Intermediate steps that analyse the drainage network topology
+           and create datastructures for efficient drainage area and
+           discharge calculations.
+        4. Calculation of drainage area and discharge.
+        5. Return of drainage area and discharge.
 
         An alternative to run_one_step() is accumulate_flow() which does the
         same things but also returns the drainage area and discharge.
+        accumulate_flow() additionally provides the ability to turn off updating
+        the flow director or the depression finder.
         """
         self.accumulate_flow()
 

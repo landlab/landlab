@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
 
-import os
 
 import pytest
 from numpy.testing import assert_array_equal
@@ -13,8 +12,6 @@ from landlab.io import (
     MismatchGridXYSpacing,
 )
 from landlab.io.netcdf import read_netcdf
-
-_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 grid_mapping_keys = [
     "grid_mapping_name",

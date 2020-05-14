@@ -93,6 +93,8 @@ class SinkFiller(Component):
 
     _name = "SinkFiller"
 
+    _unit_agnostic = True
+
     _info = {
         "sediment_fill__depth": {
             "dtype": float,
@@ -133,7 +135,7 @@ class SinkFiller(Component):
             The slope added to the top surface of filled pits to allow flow
             routing across them, if apply_slope.
         """
-        super(SinkFiller, self).__init__(grid)
+        super().__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):

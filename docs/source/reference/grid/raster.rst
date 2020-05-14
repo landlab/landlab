@@ -100,7 +100,6 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.node_is_boundary
     ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes
@@ -201,7 +200,7 @@ Information about corners
 
 Data Fields in ModelGrid
 ------------------------
-:class:`~.ModelGrid` inherits from the :class:`~.ModelDataFields` class. This
+:class:`~.ModelGrid` inherits from the :class:`~.GraphFields` class. This
 provides `~.ModelGrid`, and its subclasses, with the ability to, optionally,
 store data values that are associated with the different types grid elements
 (nodes, cells, etc.). In particular, as part of ``ModelGrid.__init__()``,
@@ -210,7 +209,7 @@ put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
 
 To access these groups, use the same methods as accessing groups with
-`~.ModelDataFields`. ``ModelGrid.__init__()`` adds the following attributes to
+`~.GraphFields`. ``ModelGrid.__init__()`` adds the following attributes to
 itself that provide access to the values groups:
 
 .. autosummary::
@@ -239,9 +238,9 @@ are of the correct size but a new field will not be added to the field:
 .. autosummary::
     :nosignatures:
 
-    ~landlab.field.grouped.ModelDataFields.empty
-    ~landlab.field.grouped.ModelDataFields.ones
-    ~landlab.field.grouped.ModelDataFields.zeros
+    ~landlab.field.graph_field.GraphFields.empty
+    ~landlab.field.graph_field.GraphFields.ones
+    ~landlab.field.graph_field.GraphFields.zeros
 
 Add Fields to a ModelGrid
 +++++++++++++++++++++++++
@@ -266,7 +265,7 @@ These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the
 ModelGrid. The calling signature is the same but with the addition of an
 argument that gives the name of the new field as a string. The additional
-method, :meth:`~.ModelDataFields.add_field`, adds a previously allocation
+method, :meth:`~.GraphFields.add_field`, adds a previously allocation
 array to the ModelGrid. If the array is of the incorrect size it will raise
 ``ValueError``.
 
@@ -278,13 +277,13 @@ fields:
 .. autosummary::
     :nosignatures:
 
-    ~landlab.field.grouped.ModelDataFields.size
-    ~landlab.field.grouped.ModelDataFields.keys
-    ~landlab.field.grouped.ModelDataFields.has_group
-    ~landlab.field.grouped.ModelDataFields.has_field
+    ~landlab.field.graph_field.GraphFields.size
+    ~landlab.field.graph_field.GraphFields.keys
+    ~landlab.field.graph_field.GraphFields.has_group
+    ~landlab.field.graph_field.GraphFields.has_field
     ~landlab.grid.raster.RasterModelGrid.field_units
     ~landlab.grid.raster.RasterModelGrid.field_values
-    ~landlab.field.grouped.ModelDataFields.groups
+    ~landlab.field.graph_field.GraphFields.groups
 
 i.e., call, e.g. mg.has_field('node', 'my_field_name')
 

@@ -112,6 +112,8 @@ class Vegetation(Component):
 
     _name = "Vegetation"
 
+    _unit_agnostic = False
+
     _info = {
         "surface__evapotranspiration": {
             "dtype": float,
@@ -280,7 +282,7 @@ class Vegetation(Component):
             Flag to indiate the PET threshold. This controls whether the
             threshold is for growth (1) or dormancy (any other value).
         """
-        super(Vegetation, self).__init__(grid)
+        super().__init__(grid)
 
         self.Tb = Tb
         self.Tr = Tr

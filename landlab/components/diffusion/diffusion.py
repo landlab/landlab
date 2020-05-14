@@ -106,6 +106,8 @@ class LinearDiffuser(Component):
 
     _name = "LinearDiffuser"
 
+    _unit_agnostic = True
+
     _info = {
         "hillslope_sediment__unit_volume_flux": {
             "dtype": float,
@@ -170,7 +172,7 @@ class LinearDiffuser(Component):
             will not reach the predicted analytical solution unless deposit is set
             to False.
         """
-        super(LinearDiffuser, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
         assert method in ("simple", "resolve_on_patches", "on_diagonals")

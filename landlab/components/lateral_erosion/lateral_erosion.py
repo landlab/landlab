@@ -164,6 +164,8 @@ class LateralEroder(Component):
 
     _name = "LateralEroder"
 
+    _unit_agnostic = False
+
     _cite_as = """
     @article{langston2018developing,
       author = {Langston, A. L. and Tucker, G. E.},
@@ -290,7 +292,7 @@ class LateralEroder(Component):
             must be passed. It will be run within sub-timesteps in order to update
             the flow directions and drainage area.
         """
-        super(LateralEroder, self).__init__(grid)
+        super().__init__(grid)
 
         assert isinstance(
             grid, RasterModelGrid

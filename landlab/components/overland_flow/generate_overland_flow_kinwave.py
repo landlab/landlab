@@ -52,6 +52,8 @@ class KinwaveOverlandFlowModel(Component):
 
     _name = "KinwaveOverlandFlowModel"
 
+    _unit_agnostic = False
+
     _info = {
         "surface_water__depth": {
             "dtype": float,
@@ -118,7 +120,7 @@ class KinwaveOverlandFlowModel(Component):
         roughness : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
         """
-        super(KinwaveOverlandFlowModel, self).__init__(grid)
+        super().__init__(grid)
 
         # Store parameters and do unit conversion
         self._current_time = 0

@@ -160,9 +160,9 @@ class HexGraph(VoronoiGraph):
         # nodes_at_link = create_nodes_at_link(shape)
         # links_at_patch = create_links_at_patch(shape)
 
-        # super(HexGraph, self).__init__(
+        # super().__init__(
         #     (y_of_node, x_of_node), links=nodes_at_link,
         #     patches=links_at_patch, xy_sort=True, rot_sort=True)
 
-        super(HexGraph, self).__init__(
+        super().__init__(
             (y_of_node, x_of_node), xy_sort=True, rot_sort=True)

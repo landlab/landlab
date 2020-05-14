@@ -169,7 +169,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             topographic__elevation,.
         """
         self._method = "D8"
-        super(FlowDirectorD8, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         try:
             self._grid.nodes_at_d8
         except AttributeError:

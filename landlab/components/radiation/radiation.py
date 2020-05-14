@@ -82,6 +82,8 @@ class Radiation(Component):
 
     _name = "Radiation"
 
+    _unit_agnostic = False
+
     _info = {
         "radiation__incoming_shortwave_flux": {
             "dtype": float,
@@ -154,7 +156,7 @@ class Radiation(Component):
         hour: float, optional
               Hour of the day. Default is 12 (solar noon)
         """
-        super(Radiation, self).__init__(grid)
+        super().__init__(grid)
 
         self.current_time = current_time
         self.hour = hour

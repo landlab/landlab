@@ -1,8 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from .grouped import GroupError
-from .scalar_data_fields import FieldError
+from .errors import FieldError, GroupError
 
 
 def reshape_for_storage(array, field_size=None):
@@ -186,7 +185,7 @@ class FieldDataset(dict):
 
         self.size = size
 
-        super(FieldDataset, self).__init__()
+        super().__init__()
 
     @property
     def size(self):
@@ -293,14 +292,14 @@ class FieldDataset(dict):
             dims = (self._name, name + "_per_" + self._name)
 
         if name in self._ds:
-            self._ds = self._ds.drop(name)
+            self._ds = self._ds.drop_vars(name)
 
         self._ds.update({name: xr.DataArray(value_array, dims=dims, attrs=attrs)})
         self._units[name] = attrs["units"]
 
     def pop(self, name):
         array = self._ds[name].values
-        self._ds = self._ds.drop(name)
+        self._ds = self._ds.drop_vars(name)
         return array
 
     def __getitem__(self, name):
@@ -335,7 +334,7 @@ class FieldDataset(dict):
         return iter(self._ds.variables)
 
 
-class GraphFields(object):
+class GraphFields:
 
     """Collection of grouped data-fields.
 
@@ -347,13 +346,6 @@ class GraphFields(object):
     Attributes
     ----------
     groups
-
-    See Also
-    --------
-    landlab.field.ScalarDataFields : Data fields within a *group* are
-        stored as :class:`landlab.field.ScalarDataFields`.
-    landlab.field.ModelDataFields : Equivalent data structure for
-        old-style fields.
 
     Examples
     --------
@@ -742,8 +734,8 @@ class GraphFields(object):
         Create a group of fields called *node*.
 
         >>> import numpy as np
-        >>> from landlab.field import ModelDataFields
-        >>> fields = ModelDataFields()
+        >>> from landlab.field import GraphFields
+        >>> fields = GraphFields()
         >>> fields.new_field_location('node', 4)
 
         Add a field, initialized to ones, called *topographic__elevation*
@@ -1091,7 +1083,7 @@ class GraphFields(object):
             ds = getattr(self, "at_" + loc)
         except AttributeError:
             raise KeyError(loc)
-        ds._ds = ds._ds.drop(name)
+        ds._ds = ds._ds.drop_vars(name)
 
     def add_empty(self, *args, **kwds):
         """add_empty(name, at='node', units='-', clobber=False)

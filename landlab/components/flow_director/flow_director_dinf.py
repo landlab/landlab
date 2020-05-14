@@ -284,7 +284,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
         self._method = "DINF"
         self._max_receivers = 2
-        super(FlowDirectorDINF, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         try:
             self._grid.nodes_at_d8
         except AttributeError:

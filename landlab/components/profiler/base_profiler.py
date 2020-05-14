@@ -46,7 +46,7 @@ def _recursive_min(jagged):
     return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
-class _BaseProfiler(Component, ABC):
+class _BaseProfiler(ABC, Component):
     """Base class to handle profilers.
 
     Primarily exists to handle plotting.
@@ -54,10 +54,12 @@ class _BaseProfiler(Component, ABC):
 
     _name = "_BaseProfiler"
 
+    _unit_agnostic = True
+
     _info = {}
 
     def __init__(self, grid):
-        super(_BaseProfiler, self).__init__(grid)
+        super().__init__(grid)
 
     def run_one_step(self):
         """Calculate the profile data structure and distances along it."""

@@ -109,6 +109,8 @@ class DetachmentLtdErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
+    _unit_agnostic = True
+
     _info = {
         "surface_water__discharge": {
             "dtype": float,
@@ -173,7 +175,7 @@ class DetachmentLtdErosion(Component):
         slope : str
             Field name of an at-node field that contains the slope.
         """
-        super(DetachmentLtdErosion, self).__init__(grid)
+        super().__init__(grid)
 
         assert slope in grid.at_node
 
