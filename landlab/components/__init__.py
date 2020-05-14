@@ -24,6 +24,7 @@ from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
+from .network_sediment_transporter import NetworkSedimentTransporter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
@@ -89,6 +90,7 @@ COMPONENTS = [
     LithoLayers,
     Lithology,
     LossyFlowAccumulator,
+    NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,
     OverlandFlowBates,

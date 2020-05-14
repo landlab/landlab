@@ -77,6 +77,7 @@ setup(
     python_requires=">=3.6",
     setup_requires=["cython", "numpy"],
     install_requires=open("requirements.txt", "r").read().splitlines(),
+    include_package_data=True,
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",

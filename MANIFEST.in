@@ -2,6 +2,7 @@ include *.txt
 include *.rst
 recursive-include landlab *.pyx
 recursive-include docs *.txt
+recursive-include landlab/data *
 include ez_setup.py
 include README.md
 include versioneer.py
