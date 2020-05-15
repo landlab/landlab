@@ -6,3 +6,5 @@
   reason: "not v2 compatible"
 - file: lithology_and_litholayers.ipynb
   reason: "stalls travis builds"
+- file: nst_scaling_profiling.ipynb
+  reason: "stalls travis builds"
