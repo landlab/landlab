@@ -18,7 +18,7 @@ Three tutorials exist on NetworkSedimentTransporter. They are Jupyter notebooks 
 - [Part  2: Using a shapefile-based river network](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/network_sediment_transporter/network_sediment_transporter_shapefile_network.ipynb)
 - [Part  3: Plotting options](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/network_sediment_transporter/network_plotting_examples.ipynb)
 
-The index of all Landlab tutorials on Binder can bee found [here](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=welcome.ipynb) using Binder.
+The index of all Landlab tutorials on Binder can bee found [here](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb) using Binder.
 
 ## Get or give help
 
