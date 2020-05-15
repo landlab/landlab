@@ -564,6 +564,7 @@ def write_netcdf(
     names=None,
     at=None,
     time=None,
+    raster=False,
 ):
     """Write landlab fields to netcdf.
 
@@ -588,6 +589,9 @@ def write_netcdf(
         write all fields.
     at : {'node', 'cell'}, optional
         The location where values are defined.
+    raster : bool, optional
+        Indicate whether spatial dimensions are written as full value arrays
+        (default) or just as coordinate dimensions.
 
     Examples
     --------
@@ -684,8 +688,12 @@ def write_netcdf(
             grid.y_of_corner[grid.corners_at_cell].reshape(shape + (4,)),
         )
     else:
-        data["x"] = (("nj", "ni"), grid.x_of_node.reshape(shape))
-        data["y"] = (("nj", "ni"), grid.y_of_node.reshape(shape))
+        if raster:
+            data["x"] = (("ni"), grid.x_of_node.reshape(shape)[0, :])
+            data["y"] = (("nj"), grid.y_of_node.reshape(shape)[:, 0])
+        else:
+            data["x"] = (("nj", "ni"), grid.x_of_node.reshape(shape))
+            data["y"] = (("nj", "ni"), grid.y_of_node.reshape(shape))
 
     if not append:
         if time is not None:
@@ -718,6 +726,13 @@ def write_raster_netcdf(
 
     This method is for Raster Grids only and takes advantage of regular x and
     y spacing to save memory.
+
+    Rather that writing x and y of node locations at all (nr x nc) locations,
+    it writes a 1D array each for x and y.
+
+    A more modern version of this might write x and y location as a netcdf
+    coordinate. However, the original version of this function wrote x and y
+    as data variables rather than coordinates.
 
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
@@ -754,6 +769,8 @@ def write_raster_netcdf(
     some data fields to it.
 
     >>> rmg = RasterModelGrid((4, 3))
+    >>> rmg.shape
+    (4, 3)
     >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
     >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
@@ -784,6 +801,24 @@ def write_raster_netcdf(
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
+    >>> fp.variables['x'][:]
+    array([ 0.,  1.,  2.])
+    >>> fp.variables['y'][:]
+    array([ 0.,  1.,  2.,  3.])
+
+    Read now with read_netcdf
+
+    >>> from landlab.io.netcdf import read_netcdf
+    >>> grid = read_netcdf("test.nc")
+    >>> grid.shape
+    (4, 3)
+    >>> grid.x_of_node
+    array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+    >>> grid.y_of_node
+    array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
+    >>> grid.at_node["uplift_rate"]
+    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+            22.])
     """
     return write_netcdf(
         path,
@@ -794,4 +829,5 @@ def write_raster_netcdf(
         names=names,
         at=at,
         time=time,
+        raster=True,
     )

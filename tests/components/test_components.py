@@ -19,6 +19,7 @@ def test_component_metadata(Comp):
         "HackCalculator",
         "Lithology",
         "LithoLayers",
+        "NetworkSedimentTransporter",
         "Profiler",
         "SoilMoisture",
         "Vegetation",
@@ -96,7 +97,7 @@ def test_component_metadata(Comp):
             if Comp._info[name]["mapping"] not in _VALID_LOCS:
                 raise ValueError(
                     "{component} mapping for variable: {name} is invalid: {at}".format(
-                        component=Comp._name, name=name, at=at, attribute=attribute
+                        component=Comp._name, name=name, at=at,
                     )
                 )
 
