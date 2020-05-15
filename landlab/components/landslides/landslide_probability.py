@@ -228,6 +228,7 @@ class LandslideProbability(Component):
     ['landslide__probability_of_failure',
      'soil__mean_relative_wetness',
      'soil__mean_watertable_depth',
+     'soil__mean_recharge',
      'soil__probability_of_saturation']
 
     Check the output from the component, including array at one node.
@@ -284,7 +285,7 @@ class LandslideProbability(Component):
             "doc": "number of times FS is <=1 out of number of iterations user selected",
         },
         "soil__density": {
-            "dtype": float,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "kg/m3",
@@ -292,7 +293,7 @@ class LandslideProbability(Component):
             "doc": "wet bulk density of soil",
         },
         "soil__internal_friction_angle": {
-            "dtype": float,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "degrees",
@@ -300,7 +301,7 @@ class LandslideProbability(Component):
             "doc": "critical angle just before failure due to friction between particles",
         },
         "soil__maximum_total_cohesion": {
-            "dtype": float,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "Pa or kg/m-s2",
@@ -323,19 +324,26 @@ class LandslideProbability(Component):
             "mapping": "node",
             "doc": "Mean depth to water table from surface to perched water table within the soil layer",
         },
-        
-        "soil__minimum_total_cohesion": {
+        "soil__mean_recharge": {
             "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/day",
+            "mapping": "node",
+            "doc": "Mean recharge to the soil layer",
+        },
+        "soil__minimum_total_cohesion": {
+            "dtype": int,
             "intent": "in",
-            "optional": True,
+            "optional": False,
             "units": "Pa or kg/m-s2",
             "mapping": "node",
             "doc": "minimum of combined root and soil cohesion at node",
         },
         "soil__mode_total_cohesion": {
-            "dtype": float,
+            "dtype": int,
             "intent": "in",
-            "optional": True,
+            "optional": False,
             "units": "Pa or kg/m-s2",
             "mapping": "node",
             "doc": "mode of combined root and soil cohesion at node",
@@ -351,7 +359,7 @@ class LandslideProbability(Component):
         "soil__saturated_hydraulic_conductivity": {
             "dtype": float,
             "intent": "in",
-            "optional": True,
+            "optional": False,
             "units": "m/day",
             "mapping": "node",
             "doc": "mode rate of water transmitted through soil. If transmissivity is NOT provided, the component calculates transmissivity using Ksat and soil depth",
@@ -367,7 +375,7 @@ class LandslideProbability(Component):
         "soil__transmissivity": {
             "dtype": float,
             "intent": "in",
-            "optional": True,
+            "optional": False,
             "units": "m2/day",
             "mapping": "node",
             "doc": "mode rate of water transmitted through a unit width of saturated soil - either provided or calculated with Ksat and soil depth",
@@ -381,7 +389,7 @@ class LandslideProbability(Component):
             "doc": "gradient of the ground surface",
         },
         "topographic__specific_contributing_area": {
-            "dtype": float,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -555,12 +563,6 @@ class LandslideProbability(Component):
     
     # Depth to water table - Lognormal Distribution - Variable in space                                  
         elif self._groundwater__depth_distribution == "lognormal_spatial":
-            assert groundwater__depth_mean.shape[0] == (
-                self._grid.number_of_nodes
-            ), "Input array should be of the length of grid.number_of_nodes!"
-            assert (groundwater__depth_standard_deviation.shape[0] == (
-                self._grid.number_of_nodes
-            ), "Input array should be of the length of grid.number_of_nodes!"
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation        
             
@@ -601,13 +603,13 @@ class LandslideProbability(Component):
         self._Ksatmode = np.float32(
             self._grid.at_node["soil__saturated_hydraulic_conductivity"][i]
         )
-        self._Cmode = np.float32(self._grid.at_node["soil__mode_total_cohesion"][i])
-        self._Cmin = np.float32(self._grid.at_node["soil__minimum_total_cohesion"][i])
-        self._Cmax = np.float32(self._grid.at_node["soil__maximum_total_cohesion"][i])
+        self._Cmode = np.int32(self._grid.at_node["soil__mode_total_cohesion"][i])
+        self._Cmin = np.int32(self._grid.at_node["soil__minimum_total_cohesion"][i])
+        self._Cmax = np.int32(self._grid.at_node["soil__maximum_total_cohesion"][i])
         self._phi_mode = np.float32(
             self._grid.at_node["soil__internal_friction_angle"][i]
         )
-        self._rho = np.float32(self._grid.at_node["soil__density"][i])
+        self._rho = np.int32(self._grid.at_node["soil__density"][i])
         self._hs_mode = np.float32(self._grid.at_node["soil__thickness"][i])
 
         # Create a switch to imply whether Recharge or Depth to Water Table Forcing
@@ -633,26 +635,30 @@ class LandslideProbability(Component):
             self._hw_dist= self._hs_mode - self._De  
             self._hw_dist[np.where(self._hw_dist<0)] = 0  #no water in soil column when De input > soil thickness 
             
-            # depth of water
+            # output mean depth of water
             self._soil__mean_watertable_depth = np.mean(self._De)
-                    
-        # recharge distribution based on distribution type
-        if self._groundwater__recharge_distribution == "data_driven_spatial":
-            self._calculate_HSD_recharge(i)
-            self._Re /= 1000.0  # mm->m
-        elif self._groundwater__recharge_distribution == "lognormal_spatial":
-            mu_lognormal = np.log(
-                (self._recharge_mean[i] ** 2)
-                / np.sqrt(self._recharge_stdev[i] ** 2 + self._recharge_mean[i] ** 2)
-            )
-            sigma_lognormal = np.sqrt(
-                np.log(
-                    (self._recharge_stdev[i] ** 2) / (self._recharge_mean[i] ** 2) + 1
+        
+        if self._groundwater__recharge_distribution is not None:            
+            # recharge distribution based on distribution type
+            if self._groundwater__recharge_distribution == "data_driven_spatial":
+                self._calculate_HSD_recharge(i)
+                self._Re /= 1000.0  # mm->m
+
+            elif self._groundwater__recharge_distribution == "lognormal_spatial":
+                mu_lognormal = np.log(
+                    (self._recharge_mean[i] ** 2)
+                    / np.sqrt(self._recharge_stdev[i] ** 2 + self._recharge_mean[i] ** 2)
                 )
-            )
-            self._Re = np.random.lognormal(mu_lognormal, sigma_lognormal, self._n)
-            self._Re /= 1000.0  # Convert mm to m
-       
+                sigma_lognormal = np.sqrt(
+                    np.log(
+                        (self._recharge_stdev[i] ** 2) / (self._recharge_mean[i] ** 2) + 1
+                    )
+                )
+                self._Re = np.random.lognormal(mu_lognormal, sigma_lognormal, self._n)
+                self._Re /= 1000.0  # Convert mm to m
+
+            # output mean recharge
+            self._soil__mean_recharge = np.mean(self._Re)
                     
         # Cohesion
         if np.all(self._grid.at_node['soil__minimum_total_cohesion']) is not None:
@@ -677,20 +683,22 @@ class LandslideProbability(Component):
         self._hs[self._hs <= 0.0] = 0.005
         
         #if Ksat provided (if T is on grid, it's not used in the calculation):
-        if np.all(self._grid.at_node['soil__saturated_hydraulic_conductivity']) is not None:
-            # Hydraulic conductivity (Ksat)
-            Ksatmin = self._Ksatmode - (0.3 * self._Ksatmode)
-            Ksatmax = self._Ksatmode + (0.1 * self._Ksatmode)
-            self._Ksat = np.random.triangular(
-                Ksatmin, self._Ksatmode, Ksatmax, size=self._n
-            )            
-            self._T = self._Ksat * self._hs
-        else:
+        #if np.all(self._grid.at_node['soil__saturated_hydraulic_conductivity']) is not None:
+        #    # Hydraulic conductivity (Ksat)
+        #    Ksatmin = self._Ksatmode - (0.3 * self._Ksatmode)
+        #    Ksatmax = self._Ksatmode + (0.1 * self._Ksatmode)
+        #    self._Ksat = np.random.triangular(
+        #        Ksatmin, self._Ksatmode, Ksatmax, size=self._n
+        #    )            
+        self._T = self._Ksatmode * self._hs
+        #else:
             # Transmissivity (T); Ksat not provided
-            Tmin = self._Tmode - (0.3 * self._Tmode)
-            Tmax = self._Tmode + (0.1 * self._Tmode)
-            self._T = np.random.triangular(Tmin, self._Tmode, Tmax, size=self._n)
-
+        Tmin = self._Tmode - (0.3 * self._Tmode)
+        Tmax = self._Tmode + (0.1 * self._Tmode)
+        self._T = np.random.triangular(Tmin, self._Tmode, Tmax, size=self._n)
+        self._Ksat = self._T / self._hs
+        
+        
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
         # dimensionless cohesion            
@@ -699,7 +707,7 @@ class LandslideProbability(Component):
         ) 
        
         # relative wetness
-        sat_threshold = 0.001 #numerical approximation to accomodate precision of 'saturated depth to water' 
+        sat_threshold = 0.01 #numerical approximation to accomodate precision of 'saturated depth to water' 
         #value for saturated depth that is a not-negative not-zero value; RW = 1  at this depth.
 
         if self._groundwater__recharge_distribution is not None:
@@ -708,14 +716,17 @@ class LandslideProbability(Component):
             )
             
         elif self._groundwater__depth_distribution is not None:
-            self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold))           
-         
-        if self._groundwater__depth_distribution == 'data_driven_spatial':
-                                 
-            self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold))   
+            
+            if self._groundwater__depth_distribution == 'data_driven_spatial':
+                              
+                self._rel_wetness = ((self._interp_hw_dist) / (self._hs_mode - sat_threshold))   
+            
+            else:
+                self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold))           
+                #print(self._rel_wetness)
+
 
         # calculate probability of saturation 
-        #if self._groundwater__recharge_distribution is not None:
         countr = 0
         for val in self._rel_wetness:            # find how many RW values >= 1
             if val >= 1.0:
@@ -747,7 +758,7 @@ class LandslideProbability(Component):
         Method creates arrays for output variables then loops through
         all the core nodes to run the method
         'calculate_factor_of_safety.' Output parameters probability of
-        failure, mean relative wetness, and probability of saturation
+        failure, mean relative wetness, mean water table depth, and probability of saturation
         are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
@@ -758,7 +769,11 @@ class LandslideProbability(Component):
             self._mean_watertable_depth = np.full(self._grid.number_of_nodes, -9999.0)
         else:
             self._mean_watertable_depth = np.full(self._grid.number_of_nodes, np.NaN)
-                  
+        if self._groundwater__recharge_distribution is not None:
+            self._mean_recharge = np.full(self._grid.number_of_nodes, -9999.0)
+        else:
+            self._mean_recharge = np.full(self._grid.number_of_nodes, np.NaN)  
+            
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self._grid.core_nodes:
@@ -769,19 +784,24 @@ class LandslideProbability(Component):
             self._prob_sat[i] = self._soil__probability_of_saturation
             if self._groundwater__depth_distribution is not None:
                 self._mean_watertable_depth[i]=self._soil__mean_watertable_depth
-            
+            if self._groundwater__recharge_distribution is not None:
+                self._mean_recharge[i]=self._soil__mean_recharge
+                
         # Values can't be negative
         self._mean_Relative_Wetness[self._mean_Relative_Wetness < 0.0] = 0.0
         self._prob_fail[self._prob_fail < 0.0] = 0.0
         self._prob_sat[self._prob_sat < 0.0] = 0.0
-        self._mean_watertable_depth[self._mean_watertable_depth < 0.0] = 0.0
-            
+        if self._groundwater__depth_distribution is not None:
+            self._mean_watertable_depth[self._mean_watertable_depth < 0.0] = 0.0
+        if self._groundwater__recharge_distribution is not None:
+            self._mean_recharge[self._mean_recharge < 0.0] = 0.0
+        
         # assign output fields to nodes
         self._grid.at_node["soil__mean_relative_wetness"] = self._mean_Relative_Wetness
         self._grid.at_node["landslide__probability_of_failure"] = self._prob_fail
         self._grid.at_node["soil__probability_of_saturation"] = self._prob_sat
         self._grid.at_node['soil__mean_watertable_depth'] = self._mean_watertable_depth          
-        
+        self._grid.at_node['soil__mean_recharge'] = self._mean_recharge      
             
 
     def _seed_generator(self, seed=0):
