@@ -6,8 +6,8 @@ from numpy.testing import assert_array_equal
 from pytest import approx, raises
 from shapefile import ShapefileException
 
-from landlab.io.shapefile import read_shapefile
 from landlab import ExampleData
+from landlab.io.shapefile import read_shapefile
 
 
 def test_read_methow(tmpdir):
@@ -70,7 +70,9 @@ def test_read_methow_subbasin(tmpdir):
     with tmpdir.as_cwd():
         ExampleData("io/shapefile", case="methow").fetch()
 
-        grid = read_shapefile(shp_file, points_shapefile=points_shapefile, threshold=0.01)
+        grid = read_shapefile(
+            shp_file, points_shapefile=points_shapefile, threshold=0.01
+        )
         assert grid.number_of_nodes == 30
         assert grid.number_of_links == 29
 
@@ -78,7 +80,14 @@ def test_read_methow_subbasin(tmpdir):
         assert "y_of_polyline" in grid.at_link
 
         # verify that fields are present.
-        node_fields = ["GridID", "ToLink", "usarea_km2", "uselev_m", "dselev_m", "Elev_m"]
+        node_fields = [
+            "GridID",
+            "ToLink",
+            "usarea_km2",
+            "uselev_m",
+            "dselev_m",
+            "Elev_m",
+        ]
         link_fields = [
             "GridID",
             "Length_m",
@@ -151,7 +160,10 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
             points_shapefile=points_shapefile,
             node_fields=["usarea_km2", "ToLink", "Elev_m"],
             link_fields=["usarea_km2", "ToLink"],
-            link_field_conversion={"usarea_km2": "drainage_area", "ToLink": "shapefile_to"},
+            link_field_conversion={
+                "usarea_km2": "drainage_area",
+                "ToLink": "shapefile_to",
+            },
             node_field_conversion={
                 "usarea_km2": "drainage_area",
                 "Elev_m": "topographic__elevation",

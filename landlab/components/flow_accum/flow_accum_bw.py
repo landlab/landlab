@@ -286,7 +286,14 @@ def find_drainage_area_and_discharge(
 
 
 def find_drainage_area_and_discharge_lossy(
-    s, r, link_to_receiver, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
+    s,
+    r,
+    link_to_receiver,
+    loss_function,
+    grid,
+    node_cell_area=1.0,
+    runoff=1.0,
+    boundary_nodes=None,
 ):
 
     """Calculate the drainage area and water discharge at each node, permitting

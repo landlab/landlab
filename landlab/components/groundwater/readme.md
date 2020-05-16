@@ -38,7 +38,7 @@ that describes the use of the `GroundwaterDupuitPercolator`.
 The link takes you to a binder instance of this notebook. Its filepath within
 the repository is `notebooks/tutorials/groundwater/groundwater_flow.ipynb`
 
-A directory of all Landlab notebooks can be found (as a binder instance) [here](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=welcome.ipynb)
+A directory of all Landlab notebooks can be found (as a binder instance) [here](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb)
 
 ### Tests of this Component
 Along with the rest of the Landlab package, this component uses
