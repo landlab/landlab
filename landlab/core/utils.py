@@ -23,11 +23,11 @@ import importlib
 import inspect
 import os
 import pathlib
-import pkg_resources
 import re
 import shutil
 
 import numpy as np
+import pkg_resources
 
 SIZEOF_INT = np.dtype(np.int).itemsize
 
