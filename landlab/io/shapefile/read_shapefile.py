@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Functions to read shapefiles and create a NetworkModelGrid."""
-import numpy as np
 import pathlib
+
+import numpy as np
 import shapefile as ps
 from shapefile import ShapefileException
 
