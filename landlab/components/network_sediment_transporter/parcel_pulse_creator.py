@@ -15,6 +15,7 @@ class SyntheticPulseParcelCreator(Component):
         """Create one or more synthetic pulses that add parcels to a network
 
         More description here.
+        And more description here.
 
         Note that this is unit agnostic, but that it is designed to work with
         the :py:class:`~landlab.components.NetworkSedimentTransporter` which
