@@ -386,6 +386,22 @@ class NetworkSedimentTransporter(Component):
         self._adjust_node_elevation()
         self._update_channel_slopes()
 
+    def split_parcels(self, index):
+        """Split parcels.
+
+        Take the current self._parcels and split into two different data
+        records, one should have all timesteps up to the present timestep (but
+        not including it), one should have the present timesteps values. assign
+        self.parcels as the current timesteps parcels only (e.g., having
+        dropped almost all the values). And return a data record that has all
+        the prior timesteps values (this to then be written to a file. )
+        """
+        # split self._parcels.
+
+        # re assign self._parcels.
+
+        return earlier_timesteps_parcels
+
     @property
     def time(self):
         """Return current time."""
