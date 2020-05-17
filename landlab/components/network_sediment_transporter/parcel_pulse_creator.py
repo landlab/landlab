@@ -9,6 +9,7 @@ class SyntheticPulseParcelCreator(Component):
         """Create one or more synthetic pulses that add parcels to a network
 
         More description here.
+        And more description here.
 
         Parameters
         ----------
