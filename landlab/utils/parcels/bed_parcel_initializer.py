@@ -17,8 +17,7 @@ def synthetic_bed_parcel_initializer(grid):
 
     Examples
     --------
-    >>> from landlab.utils.network_sediment_transport import (
-    ...     synthetic_bed_parcel_initializer)
+    >>> from landlab.utils.parcels import synthetic_bed_parcel_initializer
 
     """
     if not isinstance(grid, NetworkModelGrid):
