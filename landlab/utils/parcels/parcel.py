@@ -1,8 +1,176 @@
 import numpy as np
+import scipy.constants
 
-from landlab.components.network_sediment_transporter.network_sediment_transporter import (
-    _INACTIVE,
-)
+from ...data_record import DataRecord
+
+
+_OUT_OF_NETWORK = -2
+
+
+class SedimentPulser:
+
+    """
+    Parameters
+    ----------
+    grid : ModelGrid
+        landlab *ModelGrid* to place sediment parcels on.
+    mannings_n : float, optional
+        Mannings's n.
+    tau_critical : float, optional
+        Critical shear stress.
+    rho_sediment : float, optional
+        Sediment grain density [kg / m^3].
+    rho_water : float, optional
+        Density of water [kg / m^3].
+    gravity : float, optional
+        Accelertion due to gravity [m / s^2].
+    std_dev : float, optional
+        Standard deviation of lognormal distribution of grain size.
+
+    Examples
+    --------
+    >>> from landlab import NetworkModelGrid
+    >>> from landlab.utils.parcels import SedimentPulser
+
+    >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
+    >>> x_of_node = (0, 0, 100, -50, -100, 50, -150, -100)
+    >>> nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
+    >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+    >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
+    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
+    >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
+
+    >>> def time_to_pulse(time):
+    ...     return time == 10.0
+    >>> make_pulse = SedimentPulser(grid, time_to_pulse=time_to_pulse)
+    >>> d50 = 1.5
+    >>> for time in range(100):
+    ...     make_pulse(d50, time)
+    """
+    def __init__(
+        self,
+        grid,
+        parcels=None,
+        mannings_n=0.035,
+        tau_critical=0.04,
+        rho_sediment=2650.0,
+        rho_water=1000.0,
+        gravity=scipy.constants.g,
+        std_dev=2.1,
+        time_to_pulse=0.0,
+    ):
+        self._grid = grid
+        self._parcels = parcels
+        self._mannings_n = mannings_n
+        self._tau_critical = tau_critical
+        self._rho_sediment = rho_sediment
+        self._rho_water = rho_water
+        self._gravity = gravity
+        self._std_dev = std_dev
+        self._time_to_pulse = time_to_pulse
+
+    def __call__(self, d50, time, n_parcels=100, links=0):
+        if not self._time_to_pulse(time):
+            return
+
+        d84 = d50 * self._std_dev
+
+        total_parcel_volume_at_link = calc_total_parcel_volume(
+            self._grid.at_link["channel_width"],
+            self._grid.at_link["reach_length"],
+            d84 * 2.0 * 2.0,
+        )
+        max_parcel_volume = _calc_approx_parcel_volume(total_parcel_volume_at_link)
+
+        variables, items = _pulse_characteristics(
+            time,
+            links,
+            n_parcels,
+            d50,
+            self._std_dev,
+            self._rho_sediment,
+        )
+
+        if self._parcels is None:
+            self._parcels = DataRecord(
+                self._grid,
+                items=items,
+                time=[0.0],
+                data_vars=variables,
+                dummy_elements={"link": [_OUT_OF_NETWORK]},
+            )
+        else:
+            self._parcels.add_item(time=[time], new_item=items, new_item_spec=variables)
+
+
+def _pulse_characteristics(
+    time,
+    links,
+    num_pulse_parcels,
+    d50,
+    std_dev,
+    rho_sediment,
+):
+
+    element_id = np.full(num_pulse_parcels, links, dtype=int)
+    # element_id = np.zeros(num_pulse_parcels, dtype=int)
+    starting_link = element_id.copy()
+
+    element_id = np.expand_dims(element_id, axis=1)
+    
+    np.random.seed(0)
+    
+    time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float) 
+    volume = np.full(np.shape(element_id), 0.05)  # (m3) the volume of each parcel
+
+    # a lithology descriptor for each parcel
+    # lithology = ["pulse_material"] * np.size(element_id)
+
+    # 1 = active/surface layer; 0 = subsurface layer
+    active_layer = np.ones(np.shape(element_id))
+    
+    density =  np.full(np.size(element_id), rho_sediment)  # (kg/m3)
+    
+    location_in_link = np.random.rand(np.size(element_id), 1) / 3.0
+
+    abrasion_rate = np.full(np.size(element_id), 0.0)
+    
+    # grain_size = 0.03 * np.ones(np.shape(element_id))
+
+    grain_size = np.random.lognormal(
+        np.log(d50), np.log(std_dev), np.shape(element_id)
+    )
+
+    # BUG: should be able to pass ["link"], but datarecord fills it into an incorrect array shape-- the length of parcels (NOT new parcels)
+    # newpar_grid_elements = np.array(
+    #     np.empty(
+    #         (np.shape(newpar_element_id)), dtype=object
+    #     )
+    # )
+    # newpar_grid_elements.fill("link")
+    
+
+    return {
+        "starting_link": (["item_id"], starting_link),
+        "abrasion_rate": (["item_id"], abrasion_rate),
+        "density": (["item_id"], density),
+        # "lithology": (["item_id"], lithology),
+        "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
+        "active_layer": (["item_id", "time"], active_layer),
+        "location_in_link": (["item_id", "time"], location_in_link),
+        "D": (["item_id", "time"], grain_size),
+        "volume": (["item_id", "time"], volume),
+    }, {"grid_element": "link", "element_id": element_id}
+
+
+def _calc_approx_parcel_volume(total_parcel_volume_at_link):
+    min_link_volume = np.min(total_parcel_volume_at_link)
+    min_number_of_starting_parcels = 100
+    return min_link_volume / min_number_of_starting_parcels
+
+
+def calc_total_parcel_volume(width, length, sediment_thickness):
+    return width * length * sediment_thickness
 
 
 def make_sediment(
@@ -76,7 +244,7 @@ def make_sediment(
 
     Examples
     --------
-    >>> from landlab.utils.parcels import make_sediment
+    >>> # from landlab.utils.parcels import make_sediment
 
     Make one example that uses all default values.
 
@@ -136,7 +304,7 @@ def make_sediment(
         "time_arrival_in_link": (["item_id", "time"], new_time_arrival_in_link),
         "active_layer": (["item_id", "time"], new_active_layer),
         "location_in_link": (["item_id", "time"], new_location_in_link),
-        "D": (["item_id", "time"], new_D),
+        "D": (["item_id", "time"], new_grain_size),
         "volume": (["item_id", "time"], new_volume),
     }
 
