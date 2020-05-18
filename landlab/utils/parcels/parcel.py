@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.constants
 
-from ...data_record import DataRecord
+from landlab.data_record import DataRecord
 
 
 _OUT_OF_NETWORK = -2
@@ -51,27 +51,23 @@ class SedimentPulser:
         self,
         grid,
         parcels=None,
-        mannings_n=0.035,
-        tau_critical=0.04,
         rho_sediment=2650.0,
-        rho_water=1000.0,
-        gravity=scipy.constants.g,
         std_dev=2.1,
-        time_to_pulse=0.0,
+        time_to_pulse=None,
     ):
         self._grid = grid
         self._parcels = parcels
-        self._mannings_n = mannings_n
-        self._tau_critical = tau_critical
         self._rho_sediment = rho_sediment
-        self._rho_water = rho_water
-        self._gravity = gravity
         self._std_dev = std_dev
-        self._time_to_pulse = time_to_pulse
+        if time_to_pulse is None:
+            self._time_to_pulse = lambda time: True
+        else:
+            self._time_to_pulse = time_to_pulse
+            
 
     def __call__(self, d50, time, n_parcels=100, links=0):
         if not self._time_to_pulse(time):
-            return
+            return self._parcels
 
         d84 = d50 * self._std_dev
 
@@ -101,6 +97,8 @@ class SedimentPulser:
             )
         else:
             self._parcels.add_item(time=[time], new_item=items, new_item_spec=variables)
+            
+        return self._parcels
 
 
 def _pulse_characteristics(
