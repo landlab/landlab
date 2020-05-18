@@ -41,11 +41,10 @@ class SedimentPulser:
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
 
     >>> def time_to_pulse(time):
-    ...     return time == 10.0
+    ...     return True
     >>> make_pulse = SedimentPulser(grid, time_to_pulse=time_to_pulse)
     >>> d50 = 1.5
-    >>> for time in range(100):
-    ...     make_pulse(d50, time)
+    >>> parcels = make_pulse(0.0, d50)
     """
     def __init__(
         self,
@@ -69,9 +68,13 @@ class SedimentPulser:
         self._std_dev = std_dev
         self._time_to_pulse = time_to_pulse
 
-    def __call__(self, d50, time, n_parcels=100, links=0):
+    def __call__(self, time, d50, n_parcels=100, links=0):
         if not self._time_to_pulse(time):
             return
+
+        links = np.asarray(links).reshape(-1)
+        n_parcels, _ = np.broadcast_arrays(n_parcels, links)
+        d50, _ = np.broadcast_arrays(d50, links)
 
         d84 = d50 * self._std_dev
 
@@ -80,48 +83,79 @@ class SedimentPulser:
             self._grid.at_link["reach_length"],
             d84 * 2.0 * 2.0,
         )
-        max_parcel_volume = _calc_approx_parcel_volume(total_parcel_volume_at_link)
+        # max_parcel_volume = _calc_approx_parcel_volume(total_parcel_volume_at_link)
+        max_parcel_volume = 0.05
 
         variables, items = _pulse_characteristics(
             time,
             links,
             n_parcels,
+            total_parcel_volume_at_link,
+            max_parcel_volume,
             d50,
             self._std_dev,
             self._rho_sediment,
+            0.0,
         )
 
         if self._parcels is None:
             self._parcels = DataRecord(
                 self._grid,
                 items=items,
-                time=[0.0],
+                time=[time],
                 data_vars=variables,
                 dummy_elements={"link": [_OUT_OF_NETWORK]},
             )
         else:
             self._parcels.add_item(time=[time], new_item=items, new_item_spec=variables)
 
+        return self._parcels
+
 
 def _pulse_characteristics(
     time,
     links,
-    num_pulse_parcels,
+    n_parcels_at_link,
+    total_parcel_volume_at_link,
+    max_parcel_volume,
     d50,
     std_dev,
     rho_sediment,
+    abrasion_rate,
 ):
+    n_parcels_at_link = np.ceil(
+        total_parcel_volume_at_link / max_parcel_volume
+    ).astype(dtype=int)
 
-    element_id = np.full(num_pulse_parcels, links, dtype=int)
-    # element_id = np.zeros(num_pulse_parcels, dtype=int)
+    element_id = np.empty(np.sum(n_parcels_at_link), dtype=int)
+
+    # volume = np.full(np.sum(n_parcels_at_link), max_parcel_volume, dtype=float)
+    volume = np.full_like(element_id, max_parcel_volume, dtype=float)
+    grain_size = np.empty_like(element_id, dtype=float)
+    offset = 0
+    # for link, n_parcels in enumerate(n_parcels_at_link):
+    for link, n_parcels in zip(links, n_parcels_at_link):
+        element_id[offset:offset + n_parcels] = link
+        grain_size[offset:offset + n_parcels] = np.random.lognormal(
+            np.log(d50[link]), np.log(std_dev), n_parcels
+        )
+        volume[offset] = total_parcel_volume_at_link[link] % n_parcels
+        offset += n_parcels
     starting_link = element_id.copy()
+    abrasion_rate = np.full_like(element_id, abrasion_rate, dtype=float)
+    density = np.full_like(element_id, rho_sediment, dtype=float)
+
+    # element_id = np.full(num_pulse_parcels, links, dtype=int)
+    # # element_id = np.zeros(num_pulse_parcels, dtype=int)
+    # starting_link = element_id.copy()
 
     element_id = np.expand_dims(element_id, axis=1)
+    grain_size = np.expand_dims(grain_size, axis=1)
+    volume = np.expand_dims(volume, axis=1)
     
-    np.random.seed(0)
-    
-    time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float) 
-    volume = np.full(np.shape(element_id), 0.05)  # (m3) the volume of each parcel
+    time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
+    location_in_link = np.expand_dims(np.random.rand(np.sum(n_parcels_at_link)), axis=1)
+    # volume = np.full(np.shape(element_id), 0.05)  # (m3) the volume of each parcel
 
     # a lithology descriptor for each parcel
     # lithology = ["pulse_material"] * np.size(element_id)
@@ -129,17 +163,15 @@ def _pulse_characteristics(
     # 1 = active/surface layer; 0 = subsurface layer
     active_layer = np.ones(np.shape(element_id))
     
-    density =  np.full(np.size(element_id), rho_sediment)  # (kg/m3)
-    
-    location_in_link = np.random.rand(np.size(element_id), 1) / 3.0
+    # density =  np.full(np.size(element_id), rho_sediment)  # (kg/m3)
 
-    abrasion_rate = np.full(np.size(element_id), 0.0)
+    # location_in_link = np.random.rand(np.size(element_id), 1) / 3.0
+
+    # abrasion_rate = np.full(np.size(element_id), 0.0)
+
+    # location_in_link = np.expand_dims(np.random.rand(np.sum(n_parcels_at_link)), axis=1)
     
     # grain_size = 0.03 * np.ones(np.shape(element_id))
-
-    grain_size = np.random.lognormal(
-        np.log(d50), np.log(std_dev), np.shape(element_id)
-    )
 
     # BUG: should be able to pass ["link"], but datarecord fills it into an incorrect array shape-- the length of parcels (NOT new parcels)
     # newpar_grid_elements = np.array(
