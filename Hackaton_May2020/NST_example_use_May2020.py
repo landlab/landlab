@@ -10,6 +10,7 @@ Last updated: 5/16/2020
 import matplotlib.pyplot as plt
 import numpy as np
 import time as measuretime
+import copy
 
 from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
@@ -88,6 +89,7 @@ parcels = DataRecord(
     data_vars=variables,
     dummy_elements={"link": [_OUT_OF_NETWORK]},
 )
+parcels_ini=copy.deepcopy(parcels)
 
 # %% Instantiate component(s)
 
@@ -105,7 +107,7 @@ nst = NetworkSedimentTransporter(
 )
 
 # %% Run the component(s)
-timesteps = 15
+timesteps = 30
 dt = 60 * 60 * 24 *3# (seconds) timestep
 pulsetime = 3
 num_pulse_parcels = 50
@@ -192,8 +194,60 @@ for t in range(0, (timesteps * dt), dt):
                                        parcel_color_attribute="D",
                                        parcel_color_attribute_title="Grain size (m)",
                                        parcel_size=60,
-                                       )        
+                                       )   
+        
+    # Save pulse parcel locations every few timesteps
+    if (t/dt-pulsetime)%3 == 0:
+        #Save out grid
+        outputDir = '/Users/beca4397/Data/NST/'
+        iter_Cur = np.round(t/dt)
+        # grid.to_netcdf(outputDir + 'NST_grid_iter_' + str(iter_Cur))
+        parcels.dataset.to_netcdf(outputDir + 'NST_parcel_iter_' + str(iter_Cur))
+        #Remove all parcels but the current one
+        
                 
+        cur_parcels = parcels.dataset.isel(time =parcels.dataset.dims.get('time')-1)       
+
+
+        variables = {
+            "starting_link": (["item_id"], cur_parcels.variables["starting_link"].values),
+            "abrasion_rate": (["item_id"], cur_parcels.variables["abrasion_rate"].values),
+            "density": (["item_id"], cur_parcels.variables["density"].values),
+            "lithology": (["item_id"], cur_parcels.variables["lithology"].values),
+            "time_arrival_in_link": (["item_id", "time"], np.expand_dims(cur_parcels.variables["time_arrival_in_link"].values ,axis=1)),
+            "active_layer": (["item_id", "time"], np.expand_dims(cur_parcels.variables["active_layer"].values ,axis=1)),
+            "location_in_link": (["item_id", "time"], np.expand_dims(cur_parcels.variables["location_in_link"].values ,axis=1)),
+            "D": (["item_id", "time"], np.expand_dims(cur_parcels.variables["D"].values ,axis=1)),
+            "volume": (["item_id", "time"], np.expand_dims(cur_parcels.variables["volume"].values ,axis=1)),
+        }
+                        
+        # parcels.dataset.drop(parcels.dataset.isel(time =get_all.dims.get('time')-2))
+        # items = {"grid_element": "link", "element_id": element_id}
+        # items = cur_parcels.items['link']
+        items = {"grid_element": "link", "element_id": element_id}
+        tt=[t]
+        parcels= DataRecord(
+            grid,
+            items=items,
+            time=tt,
+            data_vars=variables,
+            dummy_elements={"link": [_OUT_OF_NETWORK]},
+        )
+        
+        # with Katy's magic tric
+        # parcels._dataset=cur_parcels
+        
+        # nst1 = NetworkSedimentTransporter(  
+        #     grid,
+        #     parcels,
+        #     fd,
+        #     bed_porosity=0.3,
+        #     g=9.81,
+        #     fluid_density=1000,
+        #     transport_method="WilcockCrowe",
+        # )
+  
+        
     print("Model time: ", t/(60*60*24), "days passed")
     print('Elapsed:', (measuretime.time() - start_time)/60 ,' minutes')
     print()

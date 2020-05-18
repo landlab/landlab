@@ -35,6 +35,8 @@ from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
 from landlab.plot import plot_network_and_parcels
+from landlab.io.netcdf import read_netcdf
+
 
 # get_ipython().run_line_magic('matplotlib', 'inline')
 
@@ -60,6 +62,8 @@ graph.plot_graph(grid, at="node,link")
 # Our network consists of seven links between 8 nodes. X and Y, above, represent the plan-view coordinates of the node locations. Notes_at_link describes the node indices that are connedted by each link. For example, link 2 connects node 1 and node 7. 
 # 
 # Next, we need to populate the grid with the relevant topographic information: 
+
+
 
 # In[3]:
 
@@ -205,6 +209,9 @@ nst = NetworkSedimentTransporter(
 for t in range(0, (timesteps * dt), dt):
     nst.run_one_step(dt)    
     print("Model time: ", t/dt, "timesteps passed")
+    
+    #%% Try to save this out
+    grid.to_netcdf('name')
 
 
 # ## 4. Plot the model results
