@@ -366,6 +366,9 @@ class NetworkSedimentTransporter(Component):
         if self._transport_method == "WilcockCrowe":
             self._update_transport_time = self._calc_transport_wilcock_crowe
 
+        elif self._transport_method == "MPM":
+            self._update_transport_time = self._calc_transport_mpm
+
         # save reference to key fields
         self._width = self._grid.at_link["channel_width"]
         self._topographic__elevation = self._grid.at_node["topographic__elevation"]
