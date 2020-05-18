@@ -2,7 +2,7 @@ from landlab import Component
 from landlab.data_record import DataRecord
 from landlab.utils.parcels import make_sediment
 
-#comment from jeff, try 2
+#comment from jeff, try 3
 class SyntheticPulseParcelCreator(Component):
 
     _name = "SyntheticPulseParcelCreator"
