@@ -4,15 +4,26 @@ import scipy.constants
 from landlab.data_record import DataRecord
 
 
-def synthetic_bed_parcel_initializer(grid):
+def bed_parcel_initializer(grid):
     """Initialize bed sediment on a network for the NetworkSedimentTransporter
 
+    This function creates a landlab DataRecord to represent parcels of sediment
+    on a river network (represented by a NetworkModelGrid). The function takes
+    discharge data for each link as input, as well as channel geometry
+    (`channel_width`, `reach_length`, `channel_slope`) fields attached to the
+    NetworkModelGrid.
 
-    More description here.
+    This function currently estimates median parcel grain size at a link
+    according to Snyder et al. (2013), assuming a lognormal parcel grain size
+    distribution.
 
     Parameters
     ----------
     grid : NetworkModelGrid
+# is this where discharge is a parameter? amp is confused.
+    discharge_at_link : ndarray of float, shape (n_links, )
+        "dominant discharge" for each link in the network, used to set parcel
+        grain size.
 
     Returns
     -------
@@ -20,7 +31,7 @@ def synthetic_bed_parcel_initializer(grid):
 
     Examples
     --------
-    >>> from landlab.utils.parcels import synthetic_bed_parcel_initializer
+    >>> from landlab.utils.parcels import bed_parcel_initializer
 
     """
     if not isinstance(grid, NetworkModelGrid):
@@ -46,9 +57,11 @@ class BedParcelInitializer:
     grid : ModelGrid
         landlab *ModelGrid* to place sediment parcels on.
     mannings_n : float, optional
-        Mannings's n.
-    tau_critical : float, optional
-        Critical shear stress.
+        Manning's n value for all links, used to calculate median parcel grain
+        size at a link.
+    tau_50 : float, optional
+        Shields stress for d50 at dominant discharge for all links, used to
+        calculate median parcel grain size
     rho_sediment : float, optional
         Sediment grain density [kg / m^3].
     rho_water : float, optional
@@ -79,7 +92,7 @@ class BedParcelInitializer:
         self,
         grid,
         mannings_n=0.035,
-        tau_critical=0.04,
+        tau_50=0.04,
         rho_sediment=2650.0,
         rho_water=1000.0,
         gravity=scipy.constants.g,
@@ -87,7 +100,7 @@ class BedParcelInitializer:
     ):
         self._grid = grid
         self._mannings_n = mannings_n
-        self._tau_critical = tau_critical
+        self._tau_50 = tau_50
         self._rho_sediment = rho_sediment
         self._rho_water = rho_water
         self._gravity = gravity
@@ -102,7 +115,7 @@ class BedParcelInitializer:
             gravity=self._gravity,
             rho_water=self._rho_water,
             rho_sediment=self._rho_sediment,
-            tau_critical=self._tau_critical,
+            tau_50=self._tau_50,
         )
         d84 = d50 * self._std_dev
 
@@ -189,23 +202,6 @@ def _determine_approx_parcel_volume(total_parcel_volume_at_link):
 def calc_total_parcel_volume(width, length, sediment_thickness):
     return width * length * sediment_thickness
 
-
-def calc_dominant_discharge(discharge):
-    """Calculate dominant discharge.
-
-    Parameters
-    ----------
-    discharge : ndarray of float
-        Time series of discharge.
-
-    Returns
-    -------
-    ndarray of float
-        Dominant discharge.
-    """
-    raise NotImplementedError("calc_dominant_discharge")
-
-
 def calc_d50_grain_size(
     dominant_discharge,
     width,
@@ -214,10 +210,23 @@ def calc_d50_grain_size(
     gravity=scipy.constants.g,
     rho_water=1000.0,
     rho_sediment=2650.0,
-    tau_critical=0.04,
+    tau_50=0.04,
 ):
+    """Calculate median grain size according to Snyder et al. (2013)
+
+    Parameters
+    ----------
+    see above
+
+    Returns
+    -------
+    ndarray of float
+        d50.
+    """
+
+
     return (
         rho_water * gravity * mannings_n **  3 / 5 * dominant_discharge ** 3 / 5 * width ** (- 3 / 5) * slope ** (7 / 10)
     ) / (
-        (rho_sediment - rho_water) * gravity * tau_critical
+        (rho_sediment - rho_water) * gravity * tau_50
     )
