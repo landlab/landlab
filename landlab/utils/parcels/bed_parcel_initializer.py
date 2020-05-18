@@ -2,48 +2,7 @@ import numpy as np
 import scipy.constants
 
 from landlab.data_record import DataRecord
-
-
-def bed_parcel_initializer(grid):
-    """Initialize bed sediment on a network for the NetworkSedimentTransporter
-
-    This function creates a landlab DataRecord to represent parcels of sediment
-    on a river network (represented by a NetworkModelGrid). The function takes
-    discharge data for each link as input, as well as channel geometry
-    (`channel_width`, `reach_length`, `channel_slope`) fields attached to the
-    NetworkModelGrid.
-
-    This function currently estimates median parcel grain size at a link
-    according to Snyder et al. (2013), assuming a lognormal parcel grain size
-    distribution.
-
-    Parameters
-    ----------
-    grid : NetworkModelGrid
-# is this where discharge is a parameter? amp is confused.
-    discharge_at_link : ndarray of float, shape (n_links, )
-        "dominant discharge" for each link in the network, used to set parcel
-        grain size.
-
-    Returns
-    -------
-    parcels : DataRecord
-
-    Examples
-    --------
-    >>> from landlab.utils.parcels import bed_parcel_initializer
-
-    """
-    if not isinstance(grid, NetworkModelGrid):
-        msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
-        raise ValueError(msg)
-
-    # given the input arguments, keyword arguments create bed sediment.
-    # return the parcel datastructure.
-
-    parcels = None
-    return parcels
-
+from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = -2
 
@@ -51,7 +10,6 @@ _OUT_OF_NETWORK = -2
 class BedParcelInitializer:
 
     """
-
     Parameters
     ----------
     grid : ModelGrid
@@ -70,6 +28,13 @@ class BedParcelInitializer:
         Accelertion due to gravity [m / s^2].
     std_dev : float, optional
         Standard deviation of lognormal distribution of grain size.
+    sed_thickness : float, optional
+        Sediment thickness in multiples of d84.
+    abrasion_rate : float, optional
+        Abrasion rate of parcels during transport in units of 1/m.
+    extra_parcel_attributes : str or list of str, optional
+        name of user-defined parcel attribute to be added to parcel data record,
+        which will be returned as an empty parcel attribute
 
     Examples
     --------
@@ -97,6 +62,9 @@ class BedParcelInitializer:
         rho_water=1000.0,
         gravity=scipy.constants.g,
         std_dev=2.1,
+        sed_thickness=4,
+        abrasion_rate=0.0,
+        extra_parcel_attributes=None,
     ):
         self._grid = grid
         self._mannings_n = mannings_n
@@ -105,6 +73,13 @@ class BedParcelInitializer:
         self._rho_water = rho_water
         self._gravity = gravity
         self._std_dev = std_dev
+        self._abrasion_rate = abrasion_rate
+        self._extra_parcel_attributes = extra_parcel_attributes
+        self._sed_thickness = sed_thickness
+
+        if not isinstance(grid, NetworkModelGrid):
+            msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
+            raise ValueError(msg)
 
     def __call__(self, discharge_at_link):
         d50 = calc_d50_grain_size(
@@ -122,7 +97,7 @@ class BedParcelInitializer:
         total_parcel_volume_at_link = calc_total_parcel_volume(
             self._grid.at_link["channel_width"],
             self._grid.at_link["reach_length"],
-            d84 * 2.0 * 2.0,
+            d84 * self._sed_thickness,
         )
         max_parcel_volume = _determine_approx_parcel_volume(total_parcel_volume_at_link)
 
@@ -132,7 +107,8 @@ class BedParcelInitializer:
             d50,
             self._std_dev,
             self._rho_sediment,
-            0.0,
+            self._abrasion_rate,
+            self._extra_parcel_attributes
         )
 
         return DataRecord(
@@ -150,6 +126,7 @@ def _parcel_characteristics(
     std_dev,
     rho_sediment,
     abrasion_rate,
+    extra_parcel_attributes
 ):
     n_parcels_at_link = np.ceil(total_parcel_volume_at_link / max_parcel_volume).astype(dtype=int)
 
@@ -180,8 +157,7 @@ def _parcel_characteristics(
     # starting_link = element_id.copy()
     # active_layer = np.empty(np.sum(n_parcels_at_link), dtype=float)
     active_layer = np.empty_like(element_id, dtype=float)
-
-    return {
+    variables = {
         "starting_link": (["item_id"], starting_link),
         "abrasion_rate": (["item_id"], abrasion_rate),
         "density": (["item_id"], density),
@@ -190,14 +166,27 @@ def _parcel_characteristics(
         "location_in_link": (["item_id", "time"], location_in_link),
         "D": (["item_id", "time"], grain_size),
         "volume": (["item_id", "time"], volume),
-    }, {"grid_element": "link", "element_id": element_id}
+    }
+
+    if extra_parcel_attributes is not None:
+
+        for attrib in extra_parcel_attributes:
+            variables[attrib] = (
+                            ['item_id'],
+                            np.nan*np.zeros_like(element_id)
+                            )
+        # multiple variables?
+        # in time and item_id?
+
+        print('SUCCESS with adding to variables', variables)
+
+    return variables, {"grid_element": "link", "element_id": element_id}
 
 
 def _determine_approx_parcel_volume(total_parcel_volume_at_link):
-    min_link_volume = np.min(total_parcel_volume_at_link)
-    min_number_of_starting_parcels = 100
-    return min_link_volume / min_number_of_starting_parcels
-
+    median_link_volume = np.median(total_parcel_volume_at_link)
+    median_number_of_starting_parcels = 2 # xxx set back to 100 post troubleshoot
+    return median_link_volume / median_number_of_starting_parcels
 
 def calc_total_parcel_volume(width, length, sediment_thickness):
     return width * length * sediment_thickness
@@ -206,11 +195,11 @@ def calc_d50_grain_size(
     dominant_discharge,
     width,
     slope,
-    mannings_n=0.45,
+    mannings_n=self._mannings_n, #HOW TO READ THOSE IN
     gravity=scipy.constants.g,
     rho_water=1000.0,
-    rho_sediment=2650.0,
-    tau_50=0.04,
+    rho_sediment=self._rho_sediment,
+    tau_50=self._tau_50,
 ):
     """Calculate median grain size according to Snyder et al. (2013)
 
