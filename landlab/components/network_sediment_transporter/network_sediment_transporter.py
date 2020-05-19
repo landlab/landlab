@@ -460,9 +460,16 @@ class NetworkSedimentTransporter(Component):
         # has already been calculated (e.g. during 'zeroing' runs)
 
         # Calculate mean values for density and grain size (weighted by volume).
-        sel_parcels = current_parcels.where(
-            current_parcels.element_id != self.OUT_OF_NETWORK
+        assert current_parcels.element_id.dtype == np.int
+
+        valid_elements = np.logical_and(
+            (current_parcels.element_id != self.OUT_OF_NETWORK),
+            (current_parcels.element_id != self._grid.BAD_INDEX),
         )
+
+        # using np.where masks using np.nan, so element id's dtype becomes an
+        # float. We fix this in the merge below.
+        sel_parcels = current_parcels.where(valid_elements)
 
         d_weighted = sel_parcels.D * sel_parcels.volume
         rho_weighted = sel_parcels.density * sel_parcels.volume
@@ -470,19 +477,26 @@ class NetworkSedimentTransporter(Component):
         rho_weighted.name = "rho_weighted"
 
         grouped_by_element = xr.merge(
-            (sel_parcels.element_id, sel_parcels.volume, d_weighted, rho_weighted)
+            (
+                sel_parcels.element_id.astype(int),
+                sel_parcels.volume,
+                d_weighted,
+                rho_weighted,
+            )
         ).groupby("element_id")
+
+        # assert grouped_by_element.element_id.dtype == np.float
 
         d_avg = grouped_by_element.sum().d_weighted / grouped_by_element.sum().volume
         rho_avg = (
             grouped_by_element.sum().rho_weighted / grouped_by_element.sum().volume
         )
 
-        self._d_mean_active = np.zeros(self._grid.size("link"))
-        self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
+        self._d_mean_active = np.zeros(self._grid.size("link"), dtype=float)
+        self._d_mean_active[d_avg.element_id.values] = d_avg.values
 
-        self._rhos_mean_active = np.zeros(self._grid.size("link"))
-        self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
+        self._rhos_mean_active = np.zeros(self._grid.size("link"), dtype=float)
+        self._rhos_mean_active[rho_avg.element_id.values] = rho_avg.values
 
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
@@ -542,7 +556,7 @@ class NetworkSedimentTransporter(Component):
 
         active_inactive = _INACTIVE * np.ones(self._num_parcels)
 
-        current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
+        current_link = self._parcels.dataset.element_id.values[:, -1]
         time_arrival = self._parcels.dataset.time_arrival_in_link.values[:, -1]
         volumes = self._parcels.dataset.volume.values[:, -1]
 
@@ -785,7 +799,7 @@ class NetworkSedimentTransporter(Component):
         layer.
         """
         # determine where parcels are starting
-        current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
+        current_link = self._parcels.dataset.element_id.values[:, -1]
         self.current_link = current_link
 
         # determine location within link where parcels are starting.
