@@ -106,21 +106,10 @@ nst = NetworkSedimentTransporter(
     transport_method="WilcockCrowe",
 )
 
-# %% Run the component(s)
-timesteps = 30
-dt = 60 * 60 * 24 *3# (seconds) timestep
-pulsetime = 3
-num_pulse_parcels = 50
 
-for t in range(0, (timesteps * dt), dt):
-    start_time = measuretime.time()
+# %% Function to add new parcels and update nst 
 
-    # Run the NST component
-    nst.run_one_step(dt)
-    
-    if t == dt*pulsetime:
-        print("Now let's add new parcels!")
-        
+def add_new_parcels(num_pulse_parcels,nst):
         newpar_element_id = np.zeros(num_pulse_parcels,dtype=int)
         newpar_element_id = np.expand_dims(newpar_element_id, axis=1)
         
@@ -162,7 +151,7 @@ for t in range(0, (timesteps * dt), dt):
         
         new_parcels = {"grid_element": newpar_grid_elements,
                  "element_id": newpar_element_id}
-
+        
         new_variables = {
             "starting_link": (["item_id"], new_starting_link),
             "abrasion_rate": (["item_id"], new_abrasion_rate),
@@ -179,8 +168,117 @@ for t in range(0, (timesteps * dt), dt):
                 time=[nst._time],
                 new_item = new_parcels,
                 new_item_spec = new_variables
-        )
+        )   
+        
+        return new_parcels,nst
+
     
+
+# %% Run the component with add_new_parcels() 
+timesteps = 30
+dt = 60 * 60 * 24 *3# (seconds) timestep
+pulsetime = 3
+num_pulse_parcels = 50
+
+for t in range(0, (timesteps * dt), dt):
+    start_time = measuretime.time()
+
+    # Run the NST component
+    nst.run_one_step(dt)
+    
+    if t == dt*pulsetime:
+        print("Now let's add new parcels!")
+        
+        new_parcels,nst = add_new_parcels(num_pulse_parcels,nst)
+    
+     
+    
+    if (t/dt-pulsetime)%3 == 0:
+        pfilter = parcels.dataset['lithology']=='pulse_material'
+    
+        fig = plot_network_and_parcels(grid, 
+                                       parcels,  
+                                       parcel_filter=pfilter,
+                                       network_color='w',
+                                       network_linewidth=4,
+                                       parcel_alpha=1.0, 
+                                       parcel_color_attribute="D",
+                                       parcel_color_attribute_title="Grain size (m)",
+                                       parcel_size=60,
+                                       )      
+    
+parcels.dataset.to_netcdf()
+    
+# %% Function to reset parcels for a chunk of runs and reinitiate nst 
+
+def reset_parcels_nst(parcels,grid):
+    # parcels._dataset=cur_parcels
+    _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
+    time = [parcels.dataset.dims.get('time')-1]   
+    print(time)
+    cur_parcels = parcels.dataset.isel(time = time) 
+        
+    cur_items = {"grid_element": "link", "element_id":cur_parcels.element_id}
+
+    variables = {
+            "starting_link": (["item_id"], cur_parcels.variables["starting_link"].values),
+            "abrasion_rate": (["item_id"], cur_parcels.variables["abrasion_rate"].values),
+            "density": (["item_id"], cur_parcels.variables["density"].values),
+            "lithology": (["item_id"], cur_parcels.variables["lithology"].values),
+            "time_arrival_in_link": (["item_id", "time"], np.expand_dims(cur_parcels.variables["time_arrival_in_link"].values ,axis=1)),
+            "active_layer": (["item_id", "time"], np.expand_dims(cur_parcels.variables["active_layer"].values ,axis=1)),
+            "location_in_link": (["item_id", "time"], np.expand_dims(cur_parcels.variables["location_in_link"].values ,axis=1)),
+            "D": (["item_id", "time"], np.expand_dims(cur_parcels.variables["D"].values ,axis=1)),
+            "volume": (["item_id", "time"], np.expand_dims(cur_parcels.variables["volume"].values ,axis=1)),
+        }
+    #print(variables)
+    
+    chunk_parcels = DataRecord(
+    grid=grid,
+    items=cur_items,
+    time=time,
+    data_vars=variables,
+    dummy_elements={"link": [_OUT_OF_NETWORK]},
+    )
+    
+    nst = NetworkSedimentTransporter(    
+    grid,
+    chunk_parcels,
+    fd,
+    bed_porosity=0.3,
+    g=9.81,
+    fluid_density=1000,
+    transport_method="WilcockCrowe",
+    )
+
+    
+    return nst, parcels, variables
+
+
+
+    # %% Run the component(s)
+timesteps = 30
+dt = 60 * 60 * 24 *3# (seconds) timestep
+pulsetime = 3
+num_pulse_parcels = 50
+timesteps = 6
+dt = 60 * 60 * 24 *3# (seconds) timestep
+pulsetime = 3
+num_pulse_parcels = 50
+
+for t in range(0, (timesteps * dt), dt):
+    start_time = measuretime.time()
+
+    # Run the NST component
+    nst.run_one_step(dt)
+    
+    if t == dt*pulsetime:
+        print("Now let's add new parcels!")
+        
+        new_parcels,nst = add_new_parcels(num_pulse_parcels,nst)
+    
+     
+   
     # Plot pulse parcel locations every few timesteps
     if (t/dt-pulsetime)%3 == 0:
         pfilter = parcels.dataset['lithology']=='pulse_material'
@@ -197,59 +295,18 @@ for t in range(0, (timesteps * dt), dt):
                                        )   
         
     # Save pulse parcel locations every few timesteps
-    if (t/dt-pulsetime)%3 == 0:
-        #Save out grid
-        outputDir = '/Users/beca4397/Data/NST/'
+    if (t/dt-pulsetime)%6 == 0:
+        
+        #Save to netcdf grid
         iter_Cur = np.round(t/dt)
-        # grid.to_netcdf(outputDir + 'NST_grid_iter_' + str(iter_Cur))
-        parcels.dataset.to_netcdf(outputDir + 'NST_parcel_iter_' + str(iter_Cur))
-        #Remove all parcels but the current one
         
-                
-        cur_parcels = parcels.dataset.isel(time =parcels.dataset.dims.get('time')-1)       
-
-
-        variables = {
-            "starting_link": (["item_id"], cur_parcels.variables["starting_link"].values),
-            "abrasion_rate": (["item_id"], cur_parcels.variables["abrasion_rate"].values),
-            "density": (["item_id"], cur_parcels.variables["density"].values),
-            "lithology": (["item_id"], cur_parcels.variables["lithology"].values),
-            "time_arrival_in_link": (["item_id", "time"], np.expand_dims(cur_parcels.variables["time_arrival_in_link"].values ,axis=1)),
-            "active_layer": (["item_id", "time"], np.expand_dims(cur_parcels.variables["active_layer"].values ,axis=1)),
-            "location_in_link": (["item_id", "time"], np.expand_dims(cur_parcels.variables["location_in_link"].values ,axis=1)),
-            "D": (["item_id", "time"], np.expand_dims(cur_parcels.variables["D"].values ,axis=1)),
-            "volume": (["item_id", "time"], np.expand_dims(cur_parcels.variables["volume"].values ,axis=1)),
-        }
-                        
-        # parcels.dataset.drop(parcels.dataset.isel(time =get_all.dims.get('time')-2))
-        # items = {"grid_element": "link", "element_id": element_id}
-        # items = cur_parcels.items['link']
-        items = {"grid_element": "link", "element_id": element_id}
-        tt=[t]
-        parcels= DataRecord(
-            grid,
-            items=items,
-            time=tt,
-            data_vars=variables,
-            dummy_elements={"link": [_OUT_OF_NETWORK]},
-        )
+        parcels.dataset.to_netcdf('NST_parcel_iter_' + str(iter_Cur) + '.nc')
         
-        # with Katy's magic tric
-        # parcels._dataset=cur_parcels
+        #Remove all parcels but the current one and reset the parcels and nst
+             
+        parcels, nst, variables = reset_parcels_nst(parcels,grid)                
         
-        # nst1 = NetworkSedimentTransporter(  
-        #     grid,
-        #     parcels,
-        #     fd,
-        #     bed_porosity=0.3,
-        #     g=9.81,
-        #     fluid_density=1000,
-        #     transport_method="WilcockCrowe",
-        # )
-  
         
     print("Model time: ", t/(60*60*24), "days passed")
     print('Elapsed:', (measuretime.time() - start_time)/60 ,' minutes')
     print()
-
-tau_star_mean = (3*grid.at_link['channel_slope'])/(1.65*nst.d_mean_active)
