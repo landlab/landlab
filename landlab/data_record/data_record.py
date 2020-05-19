@@ -4,9 +4,11 @@
 import numpy as np
 import xarray as xr
 
+from landlab.grid.base import BAD_INDEX_VALUE
+
 xr.set_options(keep_attrs=True)
 
-_EID_FILL_VAL = -1
+_EID_FILL_VAL = BAD_INDEX_VALUE
 _element_ids_attrs = {"_FillValue": _EID_FILL_VAL, "dtype": np.int}
 _grid_element_attrs = {"_FillValue": "nan", "dtype": str}
 
