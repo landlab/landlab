@@ -175,7 +175,7 @@ class NetworkSedimentTransporter(Component):
     We can the link location of the parcel at each timestep
 
     >>> print(one_parcel.dataset.element_id.values)
-    [[ 0.  0.  0.  0.  0.  1.  1.  1.  1.  1.  2.]]
+    [[0 0 0 0 0 1 1 1 1 1 2]]
 
     References
     ----------

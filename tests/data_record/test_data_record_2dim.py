@@ -10,6 +10,7 @@ Last updated 8/24/2018
 import numpy as np
 
 from landlab import RasterModelGrid
+from landlab.data_record.data_record import _EID_FILL_VAL
 
 grid = RasterModelGrid((3, 3))
 shape = (3, 3)
@@ -76,7 +77,7 @@ def test_add_record(dr_2dim):
         dr_2dim.dataset["grid_element"].values[1, 1],
         dr_2dim.dataset["mean_elevation"].values[2],
     ) == ("cell", 130.0)
-    assert np.isnan(dr_2dim.dataset["element_id"].values[1, 2])
+    assert dr_2dim.dataset["element_id"].values[1, 2] == _EID_FILL_VAL
     dr_2dim.add_record(
         time=[10.0],
         item_id=[1],
