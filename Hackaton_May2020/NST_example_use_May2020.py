@@ -5,7 +5,7 @@ component, including adding new sediment mid-run.
 
 Last updated: 5/16/2020
 
-@authors: AMP
+@authors:AMP and NST Team and ChristinaB and Benjamin Campforts
 """
 import matplotlib.pyplot as plt
 import numpy as np
