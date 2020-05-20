@@ -349,12 +349,15 @@ class DataRecord(object):
 
     @classmethod
     def from_grid_and_dataset(cls, grid, dataset, dummy_elements):
+        """
+        TODO ADD DOCS.
+        """
+        # TODO ADD TEST.
         cls._grid = grid
         cls._dummy_elements = dummy_elements
         _check_dummy_elements(cls._grid, cls._dummy_elements)
 
-        # check characteristics...
-        # TODO
+        # check characteristics of dataset, done via setter.
         cls.dataset = dataset
 
         return cls
@@ -377,7 +380,9 @@ class DataRecord(object):
         **kwds :
             Passed to xarray.to_netcdf
 
+        TODO FINISH DOCS.
         """
+        # TODO ADD TEST FOR ALL OF THIS.
         if "time" not in self._dataset:
             raise ValueError("DataRecord does not have time coordinates.")
 
@@ -452,7 +457,9 @@ class DataRecord(object):
         if not np.issubdtype(element_id.dtype, np.integer):
             raise ValueError(
                 "You have passed a non-integer element_id to "
-                "DataRecord, this is not permitted"
+                "DataRecord, this is not permitted. Dtype is {}".format(
+                    element_id.dtype
+                )
             )
 
     def add_record(self, time=None, item_id=None, new_item_loc=None, new_record=None):
@@ -663,13 +670,11 @@ class DataRecord(object):
         # if new attributes have been added and existing attributes don't exist
         # then add them.
         for key, val in ds_to_add.data_vars.items():
-             if val.attrs != {} and key not in self._data_var_attrs:
-                 self._data_var_attrs[key] = val.attrs.copy()
+            if val.attrs != {} and key not in self._data_var_attrs:
+                self._data_var_attrs[key] = val.attrs.copy()  # TODO NEEDS TEST.
 
         # Merge new record and original dataset:
-        self._dataset = xr.merge(
-            (self._dataset, ds_to_add),
-            compat="no_conflicts")
+        self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
 
         # reset dtypes as appropriate.
         self._reset_attrs_dtypes()
@@ -844,7 +849,7 @@ class DataRecord(object):
                 }
 
         else:
-            # no time
+            # no time©
             coords_to_add = {"item_id": np.array(new_item_ids)}
             # check that grid_element and element_id exist on
             # the grid and have valid format:
@@ -868,9 +873,7 @@ class DataRecord(object):
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
         # Merge new record and original dataset:
-        self._dataset = xr.merge(
-            (self._dataset, ds_to_add),
-            compat="no_conflicts")
+        self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
 
         # reset dtypes as appropriate.
         self._reset_attrs_dtypes()
@@ -880,15 +883,17 @@ class DataRecord(object):
         # doing this because xr.merge is dropping attributes and I can't seem
         # to get it to not.
         for key, val in self._data_var_attrs.items():
-             if self._dataset[key].attrs == {}:
-                 self._dataset[key].attrs = self._data_var_attrs[key]
+            if self._dataset[key].attrs == {}:
+                self._dataset[key].attrs = self._data_var_attrs[key]
 
         # where a fill value or dtype is known, grab it and reset.
         for key, val in self._dataset.data_vars.items():
             if "_FillValue" in val.attrs:
                 self._dataset[key] = self._dataset[key].fillna(val.attrs["_FillValue"])
                 if "dtype" in val.attrs:
-                    self._dataset[key] = self._dataset[key].astype(dtype=val.attrs["dtype"])
+                    self._dataset[key] = self._dataset[key].astype(
+                        dtype=val.attrs["dtype"]
+                    )
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Get the value of a variable at a model time and/or for an item.
@@ -948,7 +953,9 @@ class DataRecord(object):
                 if "item_id" not in self._dataset:
                     raise KeyError("This DataRecord does not hold items")
                 if not isinstance(item_id, (list, np.array)):
-                    raise TypeError("item_id must be a list or a 1-D array")
+                    raise TypeError(
+                        "item_id must be a list or a 1-D array"
+                    )  # NEEDS TEST
                 try:
                     self._dataset["item_id"].values[item_id]
                 except IndexError:
@@ -962,7 +969,7 @@ class DataRecord(object):
             if "time" not in self._dataset:
                 raise KeyError("This DataRecord does not record time")
             if not isinstance(time, (list, np.array)):
-                raise TypeError("time must be a list or a 1-D array")
+                raise TypeError("time must be a list or a 1-D array")  # NEEDS TEST
             try:
                 time_index = int(self.time_coordinates.index(time[0]))
             except ValueError:
@@ -978,7 +985,9 @@ class DataRecord(object):
                 if "item_id" not in self._dataset:
                     raise KeyError("This DataRecord does not hold items")
                 if not isinstance(item_id, (list, np.array)):
-                    raise TypeError("item_id must be a list or a 1-D array")
+                    raise TypeError(
+                        "item_id must be a list or a 1-D array"
+                    )  # NEEDS TEST
                 try:
                     self._dataset["item_id"].values[item_id]
                 except IndexError:
@@ -1423,6 +1432,10 @@ class DataRecord(object):
         setter makes no assurances about attributes dtypes, and/or fill values.
         Those need to be set correctly in the source Dataset.
 
+
+        TODO DESCRIBE NEEDS FOR ALL.
+        TODO ALL TEST FOR ALL.
+
         Parameters
         ----------
         val : xarray Dataset.
@@ -1439,7 +1452,7 @@ class DataRecord(object):
             dims.remove("time")
         if "item_id" in dims:
             dims.remove("item_id")
-        if len(dims)>0:
+        if len(dims) > 0:
             raise ValueError("DataRecord: Invalid dimension {}".format(dims))
 
         dims = list(val.coords.keys())
@@ -1457,7 +1470,9 @@ class DataRecord(object):
 
             # loop through all items and times.
             # grid_element and element_id pairs must be valid.
-            _check_element_id_values(val.element_id, val.grid_element)
+            self._check_element_id_values(
+                val.grid_element.values.flatten(), val.element_id.values.flatten()
+            )
 
         self._dataset = val
 
@@ -1465,8 +1480,8 @@ class DataRecord(object):
         # doing this because xr.merge is dropping attributes...
         self._data_var_attrs = {}
         for key, val in self._dataset.data_vars.items():
-             if val.attrs != {}:
-                 self._data_var_attrs[key] = val.attrs.copy()
+            if val.attrs != {}:
+                self._data_var_attrs[key] = val.attrs.copy()
 
     @property
     def variable_names(self):
@@ -1515,9 +1530,10 @@ class DataRecord(object):
         else:
             return sorted(self.time_coordinates)[-2]
 
+
 def _check_dummy_elements(grid, dummy_elements):
-        for at in grid.groups:
-            for item in dummy_elements.get(at, []):
-                if (item < grid[at].size) and (item >= 0):
-                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
-                    raise ValueError(msg)
+    for at in grid.groups:
+        for item in dummy_elements.get(at, []):
+            if (item < grid[at].size) and (item >= 0):
+                msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
+                raise ValueError(msg)
