@@ -224,7 +224,7 @@ class DataRecord(object):
         # save dummy elements reference
         # check dummies and reformat into {"node": [0, 1, 2]}
         self._dummy_elements = dummy_elements or {}
-        self._check_dummy_elements()
+        _check_dummy_elements(self._grid, self._dummy_elements)
 
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
@@ -347,10 +347,12 @@ class DataRecord(object):
         # create an xarray Dataset:
         self.dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
 
+    @classmethod
     def from_grid_and_dataset(cls, grid, dataset, dummy_elements):
         cls._grid = grid
         cls._dummy_elements = dummy_elements
-        cls._check_dummy_elements()
+        _check_dummy_elements(cls._grid, cls._dummy_elements)
+
         # check characteristics...
         # TODO
         cls.dataset = dataset
@@ -391,13 +393,6 @@ class DataRecord(object):
         if drop:
             keep_parcels = self._dataset.sel(time=[time_coords[-1]])
             self._dataset = keep_parcels
-
-    def _check_dummy_elements(self):
-            for at in self._grid.groups:
-                for item in self._dummy_elements.get(at, []):
-                    if (item < self._grid[at].size) and (item >= 0):
-                        msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
-                        raise ValueError(msg)
 
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check the location and size of grid_element and element_id."""
@@ -1425,15 +1420,19 @@ class DataRecord(object):
     def dataset(self, val):
         """The xarray Dataset that serves as the core datastructure.
 
+        setter makes no assurances about attributes dtypes, and/or fill values.
+        Those need to be set correctly in the source Dataset.
+
         Parameters
         ----------
-        val : new value
-
-
+        val : xarray Dataset.
+            Must be a valid DataRecord.
+            Todo add more here.
         """
+        # make sure it is an xarray dataset.
         if not isinstance(val, xr.Dataset):
             raise ValueError
-        #© do checks on the dataset, specifically
+
         # * dims are time, item_id, or both
         dims = list(val.coords.keys())
         if "time" in dims:
@@ -1443,11 +1442,22 @@ class DataRecord(object):
         if len(dims)>0:
             raise ValueError("DataRecord: Invalid dimension {}".format(dims))
 
+        dims = list(val.coords.keys())
 
         # * element_id and grid_element are present
-        # when not fill value, then:
-            # all of grid element lives somewhere on the grid.
-            # all of element ID is a valid element.
+        if "item_id" in dims:
+            if "element_id" not in val.data_vars or "grid_element" not in val.data_vars:
+                raise ValueError
+
+            if set(dims) != set(val.element_id.dims):
+                raise ValueError
+
+            if set(dims) != set(val.grid_element.dims):
+                raise ValueError
+
+            # loop through all items and times.
+            # grid_element and element_id pairs must be valid.
+            _check_element_id_values(val.element_id, val.grid_element)
 
         self._dataset = val
 
@@ -1504,3 +1514,10 @@ class DataRecord(object):
             return np.nan
         else:
             return sorted(self.time_coordinates)[-2]
+
+def _check_dummy_elements(grid, dummy_elements):
+        for at in grid.groups:
+            for item in dummy_elements.get(at, []):
+                if (item < grid[at].size) and (item >= 0):
+                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
+                    raise ValueError(msg)
