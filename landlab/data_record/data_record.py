@@ -221,17 +221,10 @@ class DataRecord(object):
         # save a reference to the grid
         self._grid = grid
 
-        # depending on the grid type, permitted locations for items vary
-        self._permitted_locations = self._grid.groups
-
         # save dummy elements reference
         # check dummies and reformat into {"node": [0, 1, 2]}
         self._dummy_elements = dummy_elements or {}
-        for at in self._permitted_locations:
-            for item in self._dummy_elements.get(at, []):
-                if (item < self._grid[at].size) and (item >= 0):
-                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
-                    raise ValueError(msg)
+        self._check_dummy_elements()
 
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
@@ -352,7 +345,59 @@ class DataRecord(object):
             )
 
         # create an xarray Dataset:
-        self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
+        self.dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
+
+    def from_grid_and_dataset(cls, grid, dataset, dummy_elements):
+        cls._grid = grid
+        cls._dummy_elements = dummy_elements
+        cls._check_dummy_elements()
+        # check characteristics...
+        # TODO
+        cls.dataset = dataset
+
+        return cls
+
+    def dump_prior_timesteps_to_netcdf(
+        self, filename, drop=True, include_final_timestep=False, **kwds
+    ):
+        """Write a netcdf containing all but the last timestep.
+
+        If ``drop==True`` (default) then reset the DataRecord to only include
+        the final timestep.
+
+        Only works if time is a dimension of the DataRecord.dataset.
+
+        Parameters
+        ----------
+        filename
+        drop
+        include_final_timestep
+        **kwds :
+            Passed to xarray.to_netcdf
+
+        """
+        if "time" not in self._dataset:
+            raise ValueError("DataRecord does not have time coordinates.")
+
+        # Get all time vals.
+        time_coords = self._dataset.time.values
+
+        if include_final_timestep:
+            self._dataset.to_netcdf(filename, **kwds)
+        else:
+            sel_parcels = self._dataset.sel(time=time_coords[:-1])
+            sel_parcels.to_netcdf(filename, **kwds)
+
+        if drop:
+            keep_parcels = self._dataset.sel(time=[time_coords[-1]])
+            self._dataset = keep_parcels
+
+    def _check_dummy_elements(self):
+            for at in self._grid.groups:
+                for item in self._dummy_elements.get(at, []):
+                    if (item < self._grid[at].size) and (item >= 0):
+                        msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
+                        raise ValueError(msg)
 
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check the location and size of grid_element and element_id."""
@@ -379,7 +424,7 @@ class DataRecord(object):
 
         # verify all grid elements are valid.
         for loc in grid_element.flatten():
-            if loc not in self._permitted_locations:
+            if loc not in self._grid.groups:
                 raise ValueError(
                     "One or more of the grid elements"
                     " provided is/are not permitted location"
@@ -390,7 +435,7 @@ class DataRecord(object):
 
     def _check_element_id_values(self, grid_element, element_id):
         """Check that element_id values are valid."""
-        for at in self._permitted_locations:
+        for at in self._grid.groups:
             max_size = self._grid[at].size
 
             # this needs to work with 2d arrays (rows, col = np.where (so grid element always needs to be at least 2d.))
@@ -419,7 +464,7 @@ class DataRecord(object):
         """Add a new record to the DataRecord.
 
         Unlike add_item, this method can support adding records that include
-        new variables to the DataRecord. It can also support adding records
+        new variables to the DataRecord. It can also support adding r©ecords
         that do not include time.
 
         Parameters
@@ -442,7 +487,7 @@ class DataRecord(object):
 
         new_record : dict
             Dictionary containing the new record. Structure should be:
-            {'variable_name_1' : (['dimensions'], variable_data_1)}
+            {'variable_name_1' : (['dimensions'], variable_data_1, attrs_1)}
             with:
 
                 - 'variable_name_1' : name of the (potentially new) variable
@@ -450,6 +495,10 @@ class DataRecord(object):
                   varies; can be ['time'], ['item_id] or ['item_id', 'time']
                 - variable_data_1 : new data array, size must match the
                   variable dimension(s)
+                - attrs_1 : data attributes, as a dictionary. if attributes
+                  for a variable with the same name have already been passed,
+                  then these attributes will be ignored and previous attributes
+                  will be maintained.
 
         Examples
         --------
@@ -616,22 +665,19 @@ class DataRecord(object):
         # create dataset of new record
         ds_to_add = xr.Dataset(data_vars=_new_data_vars, coords=coords_to_add)
 
-        # Merge new record and original dataset:
-        ds = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+        # if new attributes have been added and existing attributes don't exist
+        # then add them.
+        for key, val in ds_to_add.data_vars.items():
+             if val.attrs != {} and key not in self._data_var_attrs:
+                 self._data_var_attrs[key] = val.attrs.copy()
 
-        if "element_id" in ds:
-            ds["element_id"].attrs = _element_ids_attrs
-        if "grid_element" in ds:
-            ds["grid_element"].attrs = _grid_element_attrs
-        # where a fill value or dtype is known, grab it and reset.
-        for key, val in ds.data_vars.items():
-            if "_FillValue" in val.attrs:
-                ds[key] = ds[key].fillna(val.attrs["_FillValue"])
-                if "dtype" in val.attrs:
-                    ds[key] = ds[key].astype(dtype=val.attrs["dtype"])
+        # Merge new record and original dataset:
+        self._dataset = xr.merge(
+            (self._dataset, ds_to_add),
+            compat="no_conflicts")
 
         # reset dtypes as appropriate.
-        self._dataset = ds
+        self._reset_attrs_dtypes()
 
     def add_item(self, time=None, new_item=None, new_item_spec=None):
         """Add new item(s) to the current DataRecord.
@@ -827,22 +873,27 @@ class DataRecord(object):
         ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
         # Merge new record and original dataset:
-        ds = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
-
-        if "element_id" in ds:
-            ds["element_id"].attrs = _element_ids_attrs
-        if "grid_element" in ds:
-            ds["grid_element"].attrs = _grid_element_attrs
-
-        # where a fill value or dtype is known, grab it and reset.
-        for key, val in ds.data_vars.items():
-            if "_FillValue" in val.attrs:
-                ds[key] = ds[key].fillna(val.attrs["_FillValue"])
-                if "dtype" in val.attrs:
-                    ds[key] = ds[key].astype(dtype=val.attrs["dtype"])
+        self._dataset = xr.merge(
+            (self._dataset, ds_to_add),
+            compat="no_conflicts")
 
         # reset dtypes as appropriate.
-        self._dataset = ds
+        self._reset_attrs_dtypes()
+
+    def _reset_attrs_dtypes(self):
+        # set _data_var_attrs to keep track of data var attributes.
+        # doing this because xr.merge is dropping attributes and I can't seem
+        # to get it to not.
+        for key, val in self._data_var_attrs.items():
+             if self._dataset[key].attrs == {}:
+                 self._dataset[key].attrs = self._data_var_attrs[key]
+
+        # where a fill value or dtype is known, grab it and reset.
+        for key, val in self._dataset.data_vars.items():
+            if "_FillValue" in val.attrs:
+                self._dataset[key] = self._dataset[key].fillna(val.attrs["_FillValue"])
+                if "dtype" in val.attrs:
+                    self._dataset[key] = self._dataset[key].astype(dtype=val.attrs["dtype"])
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Get the value of a variable at a model time and/or for an item.
@@ -891,9 +942,7 @@ class DataRecord(object):
         array([['node'],
                ['node']], dtype=object)
         """
-        try:
-            self._dataset[data_variable]
-        except KeyError:
+        if data_variable not in self._dataset:
             raise KeyError(
                 "the variable '{}' is not in the " "DataRecord".format(data_variable)
             )
@@ -901,13 +950,9 @@ class DataRecord(object):
             if item_id is None:
                 return self._dataset[data_variable].values
             else:
-                try:
-                    self._dataset["item_id"]
-                except KeyError:
+                if "item_id" not in self._dataset:
                     raise KeyError("This DataRecord does not hold items")
-                try:
-                    len(item_id)
-                except TypeError:
+                if not isinstance(item_id, (list, np.array)):
                     raise TypeError("item_id must be a list or a 1-D array")
                 try:
                     self._dataset["item_id"].values[item_id]
@@ -919,13 +964,9 @@ class DataRecord(object):
                 return self._dataset.isel(item_id=item_id)[data_variable].values
 
         else:  # time is not None
-            try:
-                self._dataset["time"]
-            except KeyError:
+            if "time" not in self._dataset:
                 raise KeyError("This DataRecord does not record time")
-            try:
-                len(time)
-            except TypeError:
+            if not isinstance(time, (list, np.array)):
                 raise TypeError("time must be a list or a 1-D array")
             try:
                 time_index = int(self.time_coordinates.index(time[0]))
@@ -939,13 +980,9 @@ class DataRecord(object):
             if item_id is None:
                 return self._dataset.isel(time=time_index)[data_variable].values
             else:
-                try:
-                    self._dataset["item_id"]
-                except KeyError:
+                if "item_id" not in self._dataset:
                     raise KeyError("This DataRecord does not hold items")
-                try:
-                    len(item_id)
-                except TypeError:
+                if not isinstance(item_id, (list, np.array)):
                     raise TypeError("item_id must be a list or a 1-D array")
                 try:
                     self._dataset["item_id"].values[item_id]
@@ -1200,6 +1237,7 @@ class DataRecord(object):
 
         if np.any(my_filter):
             # Filter DataRecord with my_filter and groupby element_id:
+            # note that where uses np.nan to mask, which uses float.
             filtered = self._dataset.where(my_filter).groupby("element_id")
 
             # Calculate values
@@ -1375,14 +1413,50 @@ class DataRecord(object):
         ge = self._dataset["grid_element"].values
         for i in range(ge.shape[0]):
             for j in range(1, ge.shape[1]):
-                if ge[i, j] not in self._permitted_locations:
+                if ge[i, j] not in self._grid.groups:
                     ge[i, j] = ge[i, j - 1]
         self._dataset["grid_element"] = (["item_id", "time"], ge)
 
     @property
     def dataset(self):
-        """The xarray Dataset that serves as the core datastructure."""
         return self._dataset
+
+    @dataset.setter
+    def dataset(self, val):
+        """The xarray Dataset that serves as the core datastructure.
+
+        Parameters
+        ----------
+        val : new value
+
+
+        """
+        if not isinstance(val, xr.Dataset):
+            raise ValueError
+        #© do checks on the dataset, specifically
+        # * dims are time, item_id, or both
+        dims = list(val.coords.keys())
+        if "time" in dims:
+            dims.remove("time")
+        if "item_id" in dims:
+            dims.remove("item_id")
+        if len(dims)>0:
+            raise ValueError("DataRecord: Invalid dimension {}".format(dims))
+
+
+        # * element_id and grid_element are present
+        # when not fill value, then:
+            # all of grid element lives somewhere on the grid.
+            # all of element ID is a valid element.
+
+        self._dataset = val
+
+        # set _data_var_attrs to keep track of data var attributes.
+        # doing this because xr.merge is dropping attributes...
+        self._data_var_attrs = {}
+        for key, val in self._dataset.data_vars.items():
+             if val.attrs != {}:
+                 self._data_var_attrs[key] = val.attrs.copy()
 
     @property
     def variable_names(self):
