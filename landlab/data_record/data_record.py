@@ -380,6 +380,40 @@ class DataRecord(object):
         **kwds :
             Passed to xarray.to_netcdf
 
+        Examples
+        --------
+
+        Examples
+        --------
+        >>> from landlab import NetworkModelGrid
+        >>> from landlab.components import NetworkSedimentTransporter
+        >>> from landlab.data_record import DataRecord
+        >>> import xarray as xr
+
+        TODO: create grid, model, parcels.
+
+        # While running be able to dump portion of the parcels to netcdf.
+
+        >>> files = []
+        >>> for t in time:
+        >>> 	nst.run_one_step(dt)
+        >>> 	if t%10 == 0: # every ten timesteps write data out.
+        >>>
+        >>>       	# write out all but present time to a file, remove prior times from
+        >>>       	# parcels.
+        >>>         # define a filename
+        >>>       	parcels.dump_prior_timesteps_to_netcdf(filename, stuff)
+        >>>       	files.append(filename)
+
+        Afterwards be able to combine them (including correct join method,
+        concatenating on the time dimension, etc)
+
+        >>> parcels_ds = xr.load_mfdataset(files)
+        >>> parcels.dataset = parcels_ds
+
+        # note that parcels_ds is an xarray dataset, not a datarecord, but
+        # the setter will mostly check it.
+
         TODO FINISH DOCS.
         """
         # TODO ADD TEST FOR ALL OF THIS.
