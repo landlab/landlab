@@ -127,6 +127,13 @@ class HeightAboveDrainage(Component):
 
         def run_one_step(self):
 
+            self_draining_nodes = sum(self._receivers == np.arange(self._grid.number_of_nodes))
+            if self_draining_nodes != len(self._grid.boundary_nodes):
+                warn(
+                "Pits detected in the flow directions supplied. "
+                "Pits will be treated as drainage nodes."
+                )
+
             self._downstream_drainage_id[:] = 0
             is_drainage_node = self._channel_mask
             is_drainage_node[self._grid.open_boundary_nodes] = 1
