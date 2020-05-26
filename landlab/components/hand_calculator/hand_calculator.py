@@ -9,6 +9,47 @@ from landlab import Component
 
 class HeightAboveDrainage(Component):
     """
+    Calculate the elevation difference between each node and its nearest
+    drainage node in a DEM.
+
+    This component implements the method described by Nobre et al (2011). A
+    single direction flow director (D8 or steepest descent) must be run prior
+    to HeightAboveDrainage to supply the flow directions. This component does
+    not fill depressions in a DEM, instead it treats them as drainage nodes.
+    For best results, please run one of the available pit filling components
+    prior to HeightAboveDrainage.
+
+    Examples
+    --------
+
+    >>> import numpy as np
+    >>> from numpy.testing import assert_equal
+
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import HeightAboveDrainage, FlowAccumulator
+
+    >>> mg = RasterModelGrid((5, 4))
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> mg.set_status_at_node_on_edges(right=grid.BC_NODE_IS_CLOSED, bottom=grid.BC_NODE_IS_FIXED_VALUE, \
+                                  left=grid.BC_NODE_IS_CLOSED, top=grid.BC_NODE_IS_CLOSED)
+    >>> elev = np.array([[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4],[5,4,4,4,5]])
+    >>> elev
+    >>> z[:] = elev.reshape(len(z))
+
+    >>> fa = FlowAccumulator(mg, flow_director="D8")
+    >>> fa.run_one_step()
+
+    >>> channel__mask = mg.zeros(at="node")
+    >>> channel__mask[[2,7]] = 1
+    >>> channel__mask.reshape(elev.shape)
+
+    >>> hd = HeightAboveDrainage(mg, channel__mask)
+    >>> hd.run_one_step()
+
+    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)
+
+
+
     References
     ----------
     **Required Software Citation(s) Specific to this Component**
@@ -37,14 +78,6 @@ class HeightAboveDrainage(Component):
             "mapping": "node",
             "doc": "Logical map of at which grid nodes channels are present",
         },
-        "flow__link_to_receiver_node": {
-            "dtype": int,
-            "intent": "in",
-            "optional": False,
-            "units": "-",
-            "mapping": "node",
-            "doc": "ID of link downstream of each node, which carries the discharge",
-        },
         "flow__receiver_node": {
             "dtype": int,
             "intent": "in",
@@ -52,14 +85,6 @@ class HeightAboveDrainage(Component):
             "units": "-",
             "mapping": "node",
             "doc": "Node array of receivers (node that receives flow from current node)",
-        },
-        "flow__upstream_node_order": {
-            "dtype": int,
-            "intent": "in",
-            "optional": False,
-            "units": "-",
-            "mapping": "node",
-            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -101,13 +126,6 @@ class HeightAboveDrainage(Component):
             )
             raise NotImplementedError(msg)
 
-        if channel__mask is None:
-            raise ValueError(
-                "No channel mask supplied. "
-                "A channel mask is needed "
-                "to determine nearest drainage."
-            )
-
         self._grid = grid
         self._channel_mask = channel__mask
         self._elev = grid.at_node["topographic__elevation"]
@@ -139,19 +157,21 @@ class HeightAboveDrainage(Component):
 
     def run_one_step(self):
 
-        self_draining_nodes = sum(
-            self._receivers == np.arange(self._grid.number_of_nodes)
-        )
-        if self_draining_nodes != len(self._grid.boundary_nodes):
-            warn(
-                "Pits detected in the flow directions supplied. "
-                "Pits will be treated as drainage nodes."
-            )
-
         self._downstream_drainage_id[:] = 0
         is_drainage_node = self._channel_mask
         is_drainage_node[self._grid.open_boundary_nodes] = 1
 
+        # check for pits
+        self_draining_nodes = np.where(self._receivers == np.arange(self._grid.number_of_nodes))
+        pits = np.setxor1d(self_draining_nodes,self._grid.boundary_nodes)
+        if pits.any():
+            warn(
+                "Pits detected in the flow directions supplied. "
+                "Pits will be treated as drainage nodes."
+            )
+            is_drainage_node[pits] = 1
+
+        # find drainage nodes
         for i in range(self._grid.number_of_nodes):
 
             if (
@@ -170,5 +190,6 @@ class HeightAboveDrainage(Component):
                     else:
                         cur_node = downstream_id
 
+        # calculate height above drainage node
         nearest_drainage_elev = self._elev[self._downstream_drainage_id]
         self._hand[:] = self._elev - nearest_drainage_elev
