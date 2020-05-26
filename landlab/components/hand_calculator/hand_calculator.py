@@ -115,9 +115,7 @@ class HeightAboveDrainage(Component):
 
         # Downstream drainage node
         if "downstream_drainage__node" in grid.at_node:
-            self._downstream_drainage_id = grid.at_node[
-                "downstream_drainage__node"
-            ]
+            self._downstream_drainage_id = grid.at_node["downstream_drainage__node"]
         else:
             self._downstream_drainage_id = grid.add_zeros(
                 "downstream_drainage__node", at="node", dtype=int
@@ -125,31 +123,29 @@ class HeightAboveDrainage(Component):
 
         # height above nearest drainage
         if "height_above_drainage__elevation" in grid.at_node:
-            self._hand = grid.at_node[
-                "height_above_drainage__elevation"
-            ]
+            self._hand = grid.at_node["height_above_drainage__elevation"]
         else:
             self._hand = grid.add_zeros(
                 "height_above_drainage__elevation", at="node", dtype=float
             )
-
 
     @property
     def channel_mask(self):
         return self._channel_mask
 
     @channel_mask.setter
-    def channel_mask(self,new_val):
+    def channel_mask(self, new_val):
         self._channel_mask = new_val
-
 
     def run_one_step(self):
 
-        self_draining_nodes = sum(self._receivers == np.arange(self._grid.number_of_nodes))
+        self_draining_nodes = sum(
+            self._receivers == np.arange(self._grid.number_of_nodes)
+        )
         if self_draining_nodes != len(self._grid.boundary_nodes):
             warn(
-            "Pits detected in the flow directions supplied. "
-            "Pits will be treated as drainage nodes."
+                "Pits detected in the flow directions supplied. "
+                "Pits will be treated as drainage nodes."
             )
 
         self._downstream_drainage_id[:] = 0
@@ -158,7 +154,9 @@ class HeightAboveDrainage(Component):
 
         for i in range(self._grid.number_of_nodes):
 
-            if i == self._receivers[i] or is_drainage_node[i]: #started on a boundary, depression, or in channel
+            if (
+                i == self._receivers[i] or is_drainage_node[i]
+            ):  # started on a boundary, depression, or in channel
                 self._downstream_drainage_id[i] = i
 
             else:
@@ -173,4 +171,4 @@ class HeightAboveDrainage(Component):
                         cur_node = downstream_id
 
         nearest_drainage_elev = self._elev[self._downstream_drainage_id]
-        self._hand[:] = self._elev-nearest_drainage_elev
+        self._hand[:] = self._elev - nearest_drainage_elev
