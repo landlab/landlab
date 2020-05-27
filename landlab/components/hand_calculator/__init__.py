@@ -5,6 +5,6 @@
 .. sectionauthor:: D Litwin
 """
 
-from .hand_calculator import HeightAboveDrainage
+from .hand_calculator import HeightAboveDrainageCalculator
 
-__all__ = ["HeightAboveDrainage"]
+__all__ = ["HeightAboveDrainageCalculator"]

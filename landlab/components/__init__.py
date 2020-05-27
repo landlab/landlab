@@ -20,7 +20,7 @@ from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
 from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
-from .hand_calculator import HeightAboveDrainage
+from .hand_calculator import HeightAboveDrainageCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder

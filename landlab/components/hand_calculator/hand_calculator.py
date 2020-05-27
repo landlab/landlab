@@ -7,17 +7,17 @@ import numpy as np
 from landlab import Component
 
 
-class HeightAboveDrainage(Component):
+class HeightAboveDrainageCalculator(Component):
     """
     Calculate the elevation difference between each node and its nearest
     drainage node in a DEM.
 
     This component implements the method described by Nobre et al (2011). A
     single direction flow director (D8 or steepest descent) must be run prior
-    to HeightAboveDrainage to supply the flow directions. This component does
-    not fill depressions in a DEM, instead it treats them as drainage nodes.
+    to HeightAboveDrainageCalculator to supply the flow directions. This component does
+    not fill depressions in a DEM, but rather it treats them as drainage nodes.
     For best results, please run one of the available pit filling components
-    prior to HeightAboveDrainage.
+    prior to HeightAboveDrainageCalculator.
 
     Examples
     --------
@@ -26,12 +26,12 @@ class HeightAboveDrainage(Component):
     >>> from numpy.testing import assert_equal
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import HeightAboveDrainage, FlowAccumulator
+    >>> from landlab.components import HeightAboveDrainageCalculator, FlowAccumulator
 
-    >>> mg = RasterModelGrid((5, 4))
+    >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> mg.set_status_at_node_on_edges(right=grid.BC_NODE_IS_CLOSED, bottom=grid.BC_NODE_IS_FIXED_VALUE, \
-                                  left=grid.BC_NODE_IS_CLOSED, top=grid.BC_NODE_IS_CLOSED)
+    >>> mg.set_status_at_node_on_edges(right=mg.BC_NODE_IS_CLOSED, bottom=mg.BC_NODE_IS_FIXED_VALUE, \
+                                  left=mg.BC_NODE_IS_CLOSED, top=mg.BC_NODE_IS_CLOSED)
     >>> elev = np.array([[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4],[5,4,4,4,5]])
     >>> elev
     >>> z[:] = elev.reshape(len(z))
@@ -103,7 +103,7 @@ class HeightAboveDrainage(Component):
             "doc": "Elevation above the nearest channel node",
         },
         "downstream_drainage__node": {
-            "dtype": float,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
