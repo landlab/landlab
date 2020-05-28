@@ -33,8 +33,12 @@ class HeightAboveDrainageCalculator(Component):
     >>> mg.set_status_at_node_on_edges(right=mg.BC_NODE_IS_CLOSED, bottom=mg.BC_NODE_IS_FIXED_VALUE, \
                                   left=mg.BC_NODE_IS_CLOSED, top=mg.BC_NODE_IS_CLOSED)
     >>> elev = np.array([[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4],[5,4,4,4,5]])
-    >>> elev
     >>> z[:] = elev.reshape(len(z))
+    >>> elev
+    array([[2, 1, 0, 1, 2],
+       [3, 2, 1, 2, 3],
+       [4, 3, 2, 3, 4],
+       [5, 4, 4, 4, 5]])
 
     >>> fa = FlowAccumulator(mg, flow_director="D8")
     >>> fa.run_one_step()
@@ -42,13 +46,19 @@ class HeightAboveDrainageCalculator(Component):
     >>> channel__mask = mg.zeros(at="node")
     >>> channel__mask[[2,7]] = 1
     >>> channel__mask.reshape(elev.shape)
+    array([[ 0.,  0.,  1.,  0.,  0.],
+       [ 0.,  0.,  1.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.,  0.],
+       [ 0.,  0.,  0.,  0.,  0.]])
 
     >>> hd = HeightAboveDrainageCalculator(mg, channel__mask)
     >>> hd.run_one_step()
 
-    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)
-
-
+    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)  # doctest: +NORMALIZE_WHITESPACE
+    array([[ 0.,  0.,  0.,  0.,  0.],
+           [ 0.,  2.,  0.,  2.,  0.],
+           [ 0.,  2.,  1.,  2.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.]])
 
     References
     ----------
