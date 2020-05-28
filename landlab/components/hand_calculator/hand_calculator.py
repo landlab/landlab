@@ -43,7 +43,7 @@ class HeightAboveDrainageCalculator(Component):
     >>> channel__mask[[2,7]] = 1
     >>> channel__mask.reshape(elev.shape)
 
-    >>> hd = HeightAboveDrainage(mg, channel__mask)
+    >>> hd = HeightAboveDrainageCalculator(mg, channel__mask)
     >>> hd.run_one_step()
 
     >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)
@@ -65,7 +65,7 @@ class HeightAboveDrainageCalculator(Component):
 
     """
 
-    _name = "HeightAboveDrainage"
+    _name = "HeightAboveDrainageCalculator"
 
     _unit_agnostic = True
 
