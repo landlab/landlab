@@ -96,6 +96,14 @@ class HeightAboveDrainageCalculator(Component):
             "mapping": "node",
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
         "topographic__elevation": {
             "dtype": float,
             "intent": "in",
@@ -111,15 +119,7 @@ class HeightAboveDrainageCalculator(Component):
             "units": "m",
             "mapping": "node",
             "doc": "Elevation above the nearest channel node",
-        },
-        "downstream_drainage__node": {
-            "dtype": int,
-            "intent": "out",
-            "optional": False,
-            "units": "-",
-            "mapping": "node",
-            "doc": "node array of nearst drainage node ID",
-        },
+        }
     }
 
     def __init__(self, grid, channel__mask):
@@ -140,14 +140,7 @@ class HeightAboveDrainageCalculator(Component):
         self._channel_mask = channel__mask
         self._elev = grid.at_node["topographic__elevation"]
         self._receivers = grid.at_node["flow__receiver_node"]
-
-        # Downstream drainage node
-        if "downstream_drainage__node" in grid.at_node:
-            self._downstream_drainage_id = grid.at_node["downstream_drainage__node"]
-        else:
-            self._downstream_drainage_id = grid.add_zeros(
-                "downstream_drainage__node", at="node", dtype=int
-            )
+        self._node_order = grid.at_node["flow__upstream_node_order"]
 
         # height above nearest drainage
         if "height_above_drainage__elevation" in grid.at_node:
@@ -167,7 +160,7 @@ class HeightAboveDrainageCalculator(Component):
 
     def run_one_step(self):
 
-        self._downstream_drainage_id[:] = 0
+        nearest_drainage_elev = np.zeros_like(self._elev)
         is_drainage_node = self._channel_mask
         is_drainage_node[self._grid.open_boundary_nodes] = 1
 
@@ -181,25 +174,13 @@ class HeightAboveDrainageCalculator(Component):
             )
             is_drainage_node[pits] = 1
 
-        # find drainage nodes
-        for i in range(self._grid.number_of_nodes):
+        nearest_drainage_elev= np.empty(self._elev.shape)
+        for n in self._node_order:
+            r = self._receivers[n]
+            # if not drainage node set drainage elevation to downstream.
+            if not is_drainage_node[n]:
+                nearest_drainage_elev[n] = nearest_drainage_elev[r]
+            else: # set elevation of drainage to self.
+                nearest_drainage_elev[n] = self._elev[n]
 
-            if (
-                i == self._receivers[i] or is_drainage_node[i]
-            ):  # started on a boundary, depression, or in channel
-                self._downstream_drainage_id[i] = i
-
-            else:
-                cur_node = i
-                reached_drainage = False
-                while not reached_drainage:
-                    downstream_id = self._receivers[cur_node]
-                    if is_drainage_node[downstream_id]:
-                        self._downstream_drainage_id[i] = downstream_id
-                        reached_drainage = True
-                    else:
-                        cur_node = downstream_id
-
-        # calculate height above drainage node
-        nearest_drainage_elev = self._elev[self._downstream_drainage_id]
         self._hand[:] = self._elev - nearest_drainage_elev
