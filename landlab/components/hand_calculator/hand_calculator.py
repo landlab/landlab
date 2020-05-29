@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Landlab component to calculate height above nearest drainage."""
+"""Landlab component to calculate height above nearest drainage.
+
+@author: D Litwin
+"""
 from warnings import warn
 
 import numpy as np
@@ -55,10 +58,10 @@ class HeightAboveDrainageCalculator(Component):
     >>> hd.run_one_step()
 
     >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)  # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0.,  0.,  0.,  0.,  0.],
-           [ 0.,  2.,  0.,  2.,  0.],
-           [ 0.,  2.,  1.,  2.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.]])
+    array([[ 2.,  0.,  0.,  0.,  0.],
+           [ 3.,  2.,  0.,  2.,  3.],
+           [ 4.,  2.,  1.,  2.,  4.],
+           [ 5.,  4.,  4.,  4.,  5.]])
 
     References
     ----------
@@ -83,7 +86,7 @@ class HeightAboveDrainageCalculator(Component):
         "channel__mask": {
             "dtype": np.uint8,
             "intent": "in",
-            "optional": True,
+            "optional": False,
             "units": "-",
             "mapping": "node",
             "doc": "Logical map of at which grid nodes channels are present",
@@ -119,7 +122,7 @@ class HeightAboveDrainageCalculator(Component):
             "units": "m",
             "mapping": "node",
             "doc": "Elevation above the nearest channel node",
-        }
+        },
     }
 
     def __init__(self, grid, channel__mask):
@@ -130,7 +133,7 @@ class HeightAboveDrainageCalculator(Component):
             msg = (
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
-                "verified that HeightAboveDrainage is compatible with "
+                "verified that HeightAboveDrainageCalculator is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
@@ -160,13 +163,14 @@ class HeightAboveDrainageCalculator(Component):
 
     def run_one_step(self):
 
-        nearest_drainage_elev = np.zeros_like(self._elev)
         is_drainage_node = self._channel_mask
         is_drainage_node[self._grid.open_boundary_nodes] = 1
 
         # check for pits
-        self_draining_nodes = np.where(self._receivers == np.arange(self._grid.number_of_nodes))
-        pits = np.setxor1d(self_draining_nodes,self._grid.boundary_nodes)
+        self_draining_nodes = np.where(
+            self._receivers == np.arange(self._grid.number_of_nodes)
+        )
+        pits = np.setxor1d(self_draining_nodes, self._grid.boundary_nodes)
         if pits.any():
             warn(
                 "Pits detected in the flow directions supplied. "
@@ -174,13 +178,14 @@ class HeightAboveDrainageCalculator(Component):
             )
             is_drainage_node[pits] = 1
 
-        nearest_drainage_elev= np.empty(self._elev.shape)
+        # iterate downstream through stack to find nearest drainage elevation
+        nearest_drainage_elev = np.empty(self._elev.shape)
         for n in self._node_order:
             r = self._receivers[n]
             # if not drainage node set drainage elevation to downstream.
             if not is_drainage_node[n]:
                 nearest_drainage_elev[n] = nearest_drainage_elev[r]
-            else: # set elevation of drainage to self.
+            else:  # set elevation of drainage to self.
                 nearest_drainage_elev[n] = self._elev[n]
 
         self._hand[:] = self._elev - nearest_drainage_elev
