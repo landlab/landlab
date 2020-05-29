@@ -86,7 +86,7 @@ class HeightAboveDrainageCalculator(Component):
         "channel__mask": {
             "dtype": np.uint8,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "-",
             "mapping": "node",
             "doc": "Logical map of at which grid nodes channels are present",
