@@ -82,6 +82,7 @@ COMPONENTS = [
     gFlex,
     GroundwaterDupuitPercolator,
     HackCalculator,
+    HeightAboveDrainageCalculator,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     LakeMapperBarnes,

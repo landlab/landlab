@@ -83,14 +83,6 @@ class HeightAboveDrainageCalculator(Component):
     _unit_agnostic = True
 
     _info = {
-        "channel__mask": {
-            "dtype": np.uint8,
-            "intent": "in",
-            "optional": True,
-            "units": "-",
-            "mapping": "node",
-            "doc": "Logical map of at which grid nodes channels are present",
-        },
         "flow__receiver_node": {
             "dtype": int,
             "intent": "in",
@@ -126,7 +118,12 @@ class HeightAboveDrainageCalculator(Component):
     }
 
     def __init__(self, grid, channel__mask):
-
+        """
+        Parameters
+        ----------
+        grid : Landlab Model Grid instance, required
+        channel__mask : Logical map of at which grid nodes channels are present, required
+        """
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
