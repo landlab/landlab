@@ -130,8 +130,10 @@ class HeightAboveDrainageCalculator(Component):
         """
         Parameters
         ----------
-        grid : Landlab Model Grid instance, required
-        channel__mask : Logical map of at which grid nodes channels are present, required
+        grid : ModelGrid
+            Landlab ModelGrid object
+        channel_mask : field name, array of uint8
+            Logical map of nodes where drainage is present
         """
         super().__init__(grid)
 
@@ -165,7 +167,7 @@ class HeightAboveDrainageCalculator(Component):
 
     @channel_mask.setter
     def channel_mask(self, new_val):
-        self._channel_mask = new_val
+        self._channel_mask = return_array_at_node(self._grid, new_val)
 
     def run_one_step(self):
 
