@@ -10,6 +10,7 @@ import numpy as np
 from landlab import Component
 from landlab.utils import return_array_at_node
 
+
 class HeightAboveDrainageCalculator(Component):
     """
     Calculate the elevation difference between each node and its nearest
@@ -125,7 +126,7 @@ class HeightAboveDrainageCalculator(Component):
         },
     }
 
-    def __init__(self, grid, channel_mask = "channel__mask"):
+    def __init__(self, grid, channel_mask="channel__mask"):
         """
         Parameters
         ----------
