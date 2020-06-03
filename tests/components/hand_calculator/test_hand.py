@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_equal
 
-from landlab import FieldError, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import HeightAboveDrainageCalculator, FlowAccumulator
 
 
@@ -18,17 +17,18 @@ def test_route_to_multiple_error_raised():
     with pytest.raises(NotImplementedError):
         HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
 
+
 def test_warn_drainage_pits():
     mg = RasterModelGrid((4, 4))
     z = mg.add_zeros("topographic__elevation", at="node")
-    elev = np.array([[2,1,1,2],[3,2,2,3],[4,1,3,4],[5,3,4,4]])
+    elev = np.array([[2, 1, 1, 2], [3, 2, 2, 3], [4, 1, 3, 4], [5, 3, 4, 4]])
     z[:] = elev.reshape(len(z))
 
     fa = FlowAccumulator(mg, flow_director="D8")
     fa.run_one_step()
 
     channel__mask = mg.zeros(at="node")
-    channel__mask[[2,6]] = 1
+    channel__mask[[2, 6]] = 1
     hd = HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
 
     with pytest.warns(UserWarning):
