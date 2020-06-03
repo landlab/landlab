@@ -16,7 +16,7 @@ def test_route_to_multiple_error_raised():
     channel__mask = mg.zeros(at="node")
 
     with pytest.raises(NotImplementedError):
-        HeightAboveDrainageCalculator(mg, channel__mask)
+        HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
 
 def test_warn_drainage_pits():
     mg = RasterModelGrid((4, 4))
@@ -29,7 +29,7 @@ def test_warn_drainage_pits():
 
     channel__mask = mg.zeros(at="node")
     channel__mask[[2,6]] = 1
-    hd = HeightAboveDrainageCalculator(mg, channel__mask)
+    hd = HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
 
     with pytest.warns(UserWarning):
         hd.run_one_step()

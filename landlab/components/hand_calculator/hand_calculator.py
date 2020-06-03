@@ -8,7 +8,7 @@ from warnings import warn
 import numpy as np
 
 from landlab import Component
-
+from landlab.utils import return_array_at_node
 
 class HeightAboveDrainageCalculator(Component):
     """
@@ -54,7 +54,7 @@ class HeightAboveDrainageCalculator(Component):
        [ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.]])
 
-    >>> hd = HeightAboveDrainageCalculator(mg, channel__mask)
+    >>> hd = HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
     >>> hd.run_one_step()
 
     >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)  # doctest: +NORMALIZE_WHITESPACE
@@ -125,7 +125,7 @@ class HeightAboveDrainageCalculator(Component):
         },
     }
 
-    def __init__(self, grid, channel__mask):
+    def __init__(self, grid, channel_mask = "channel__mask"):
         """
         Parameters
         ----------
@@ -145,7 +145,7 @@ class HeightAboveDrainageCalculator(Component):
             raise NotImplementedError(msg)
 
         self._grid = grid
-        self._channel_mask = channel__mask
+        self._channel_mask = return_array_at_node(self._grid, channel_mask)
         self._elev = grid.at_node["topographic__elevation"]
         self._receivers = grid.at_node["flow__receiver_node"]
         self._node_order = grid.at_node["flow__upstream_node_order"]
