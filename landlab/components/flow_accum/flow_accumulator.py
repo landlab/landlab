@@ -1119,7 +1119,6 @@ class FlowAccumulator(Component):
             At node array which points to the field
             grid.at_node["surface_water__discharge"].
         """
-        # print('fa>af')
         # set a couple of aliases
         a = self._grid["node"]["drainage_area"]
         q = self._grid["node"]["surface_water__discharge"]
