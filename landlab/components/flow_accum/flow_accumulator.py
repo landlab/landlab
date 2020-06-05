@@ -748,8 +748,8 @@ class FlowAccumulator(Component):
         self._nodes_not_in_stack = True
 
         # STEP 4:
-        # identify Flow Director method, save name, import and initialize the 
-        # correct flow director component if necessary; same with 
+        # identify Flow Director method, save name, import and initialize the
+        # correct flow director component if necessary; same with
         # lake/depression handler, if specified.
         self._add_director(flow_director)
         self._add_depression_finder(depression_finder)
@@ -959,8 +959,7 @@ class FlowAccumulator(Component):
 
     def _add_depression_finder(self, depression_finder):
         """Test and add the depression finder component."""
-        PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter",
-                                        "LakeMapperBarnes"]
+        PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter", "LakeMapperBarnes"]
 
         # now do a similar thing for the depression finder.
         self._depression_finder_provided = depression_finder
@@ -968,17 +967,19 @@ class FlowAccumulator(Component):
 
             # collect potential kwargs to pass to depression_finder
             # instantiation
-            potential_kwargs = ["routing",
-                                "pits",
-                                "reroute_flow",
-                                "surface",
-                                "method",
-                                "fill_flat",
-                                "fill_surface",
-                                "redirect_flow_steepest_descent",
-                                "reaccumulate_flow",
-                                "ignore_overfill",
-                                "track_lakes"]
+            potential_kwargs = [
+                "routing",
+                "pits",
+                "reroute_flow",
+                "surface",
+                "method",
+                "fill_flat",
+                "fill_surface",
+                "redirect_flow_steepest_descent",
+                "reaccumulate_flow",
+                "ignore_overfill",
+                "track_lakes",
+            ]
             kw = {}
             for p_k in potential_kwargs:
                 if p_k in self._kwargs.keys():
@@ -1019,8 +1020,10 @@ class FlowAccumulator(Component):
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
 
-                from landlab.components import (DepressionFinderAndRouter,
-                                                LakeMapperBarnes)
+                from landlab.components import (
+                    DepressionFinderAndRouter,
+                    LakeMapperBarnes,
+                )
 
                 DEPRESSION_METHODS = {
                     "DepressionFinderAndRouter": DepressionFinderAndRouter,
