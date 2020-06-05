@@ -690,7 +690,7 @@ class FlowAccumulator(Component):
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
-        #print('FA>init')
+        # print('FA>init')
         super().__init__(grid)
         # Keep a local reference to the grid
 
@@ -1102,7 +1102,7 @@ class FlowAccumulator(Component):
             At node array which points to the field
             grid.at_node["surface_water__discharge"].
         """
-        #print('fa>af')
+        # print('fa>af')
         # set a couple of aliases
         a = self._grid["node"]["drainage_area"]
         q = self._grid["node"]["surface_water__discharge"]
@@ -1154,7 +1154,9 @@ class FlowAccumulator(Component):
             nd = as_id_array(flow_accum_to_n._make_number_of_donors_array_to_n(r, p))
             delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
             D = as_id_array(flow_accum_to_n._make_array_of_donors_to_n(r, p, delta))
-            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p, nd, delta, D))
+            s = as_id_array(
+                flow_accum_to_n.make_ordered_node_array_to_n(r, p, nd, delta, D)
+            )
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid

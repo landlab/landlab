@@ -360,7 +360,9 @@ def _make_array_of_donors_to_n(r, p, delta):
     return D
 
 
-def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion, nd=None, delta=None, D=None):
+def make_ordered_node_array_to_n(
+    receiver_nodes, receiver_proportion, nd=None, delta=None, D=None
+):
 
     """Create an array of node IDs.
 
