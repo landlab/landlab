@@ -958,7 +958,8 @@ class FlowAccumulator(Component):
 
     def _add_depression_finder(self, depression_finder):
         """Test and add the depression finder component."""
-        PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter"]
+        PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter",
+                                        "LakeMapperBarnes"]
 
         # now do a similar thing for the depression finder.
         self._depression_finder_provided = depression_finder
@@ -966,7 +967,17 @@ class FlowAccumulator(Component):
 
             # collect potential kwargs to pass to depression_finder
             # instantiation
-            potential_kwargs = ["routing"]
+            potential_kwargs = ["routing",
+                                "pits",
+                                "reroute_flow",
+                                "surface",
+                                "method",
+                                "fill_flat",
+                                "fill_surface",
+                                "redirect_flow_steepest_descent",
+                                "reaccumulate_flow",
+                                "ignore_overfill",
+                                "track_lakes"]
             kw = {}
             for p_k in potential_kwargs:
                 if p_k in self._kwargs.keys():
@@ -1007,10 +1018,12 @@ class FlowAccumulator(Component):
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
 
-                from landlab.components import DepressionFinderAndRouter
+                from landlab.components import (DepressionFinderAndRouter,
+                                                LakeMapperBarnes)
 
                 DEPRESSION_METHODS = {
-                    "DepressionFinderAndRouter": DepressionFinderAndRouter
+                    "DepressionFinderAndRouter": DepressionFinderAndRouter,
+                    "LakeMapperBarnes": LakeMapperBarnes,
                 }
 
                 try:
@@ -1125,7 +1138,7 @@ class FlowAccumulator(Component):
             # lives here
             if self._depression_finder_provided is not None:
                 if update_depression_finder:
-                    self._depression_finder.map_depressions()
+                    self._depression_finder.update()
 
                     # if FlowDirectorSteepest is used, update the link directions
                     if self._flow_director._name == "FlowDirectorSteepest":
