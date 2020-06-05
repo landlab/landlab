@@ -690,6 +690,7 @@ class FlowAccumulator(Component):
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
+        #print('FA>init')
         super().__init__(grid)
         # Keep a local reference to the grid
 
@@ -1101,6 +1102,7 @@ class FlowAccumulator(Component):
             At node array which points to the field
             grid.at_node["surface_water__discharge"].
         """
+        #print('fa>af')
         # set a couple of aliases
         a = self._grid["node"]["drainage_area"]
         q = self._grid["node"]["surface_water__discharge"]
@@ -1133,13 +1135,13 @@ class FlowAccumulator(Component):
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
             delta = as_id_array(flow_accum_bw._make_delta_array(nd))
             D = as_id_array(flow_accum_bw._make_array_of_donors(r, delta))
-            s = as_id_array(flow_accum_bw.make_ordered_node_array(r))
+            s = as_id_array(flow_accum_bw.make_ordered_node_array(r, nd, delta, D))
 
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
-            self._grid.at_node["flow__data_structure_delta"][:] = delta[1:]
-            self._D_structure = D
-            self._grid.at_node["flow__upstream_node_order"][:] = s
+            self._grid.at_node["flow__data_structure_delta"][:] = as_id_array(delta[1:])
+            self._D_structure = as_id_array(D)
+            self._grid.at_node["flow__upstream_node_order"][:] = as_id_array(s)
 
             # step 4. Accumulate (to one or to N depending on direction method)
             a[:], q[:] = self._accumulate_A_Q_to_one(s, r)
@@ -1152,7 +1154,7 @@ class FlowAccumulator(Component):
             nd = as_id_array(flow_accum_to_n._make_number_of_donors_array_to_n(r, p))
             delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
             D = as_id_array(flow_accum_to_n._make_array_of_donors_to_n(r, p, delta))
-            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p))
+            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p, nd, delta, D))
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
