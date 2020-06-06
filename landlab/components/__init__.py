@@ -20,10 +20,12 @@ from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
 from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
+from .hand_calculator import HeightAboveDrainageCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
+from .network_sediment_transporter import NetworkSedimentTransporter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
@@ -80,6 +82,7 @@ COMPONENTS = [
     gFlex,
     GroundwaterDupuitPercolator,
     HackCalculator,
+    HeightAboveDrainageCalculator,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     LakeMapperBarnes,
@@ -89,6 +92,7 @@ COMPONENTS = [
     LithoLayers,
     Lithology,
     LossyFlowAccumulator,
+    NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,
     OverlandFlowBates,

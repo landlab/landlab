@@ -18,14 +18,65 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
+import errno
 import importlib
 import inspect
 import os
+import pathlib
 import re
+import shutil
 
 import numpy as np
+import pkg_resources
 
 SIZEOF_INT = np.dtype(np.int).itemsize
+
+
+class ExampleData:
+    def __init__(self, example, case=""):
+        self._base = pathlib.Path(
+            pkg_resources.resource_filename(
+                "landlab", str(pathlib.Path("data").joinpath(example, case))
+            )
+        )
+
+    @property
+    def base(self):
+        return self._base
+
+    def fetch(self):
+        """Fetch landlab example data files.
+
+        Examples
+        --------
+        >>> data = ExampleData("io/shapefile")
+        >>> data.fetch()
+
+        We now remove the created folder because otherwise the test can only
+        pass locally once.
+
+        >>> import shutil
+        >>> shutil.rmtree("methow")
+        """
+        dstdir, srcdir = pathlib.Path("."), self.base
+
+        for dst in (dstdir / p for p in self):
+            if dst.exists():
+                raise FileExistsError(
+                    "[Errno {errno}] File exists: {name}".format(
+                        errno=errno.EEXIST, name=repr(dst.name)
+                    )
+                )
+
+        for src in (srcdir / p for p in self):
+            if src.is_file():
+                shutil.copy2(src, ".")
+            elif src.is_dir():
+                shutil.copytree(src, src.name)
+
+    def __iter__(self):
+        for p in self.base.iterdir():
+            yield p.name
 
 
 def degrees_to_radians(degrees):
