@@ -722,8 +722,8 @@ class FlowAccumulator(Component):
 
         self._node_cell_area = node_cell_area
 
-        # STEP 3:
-        # This component will track of the following variables.
+        # STEP 2:
+        # This component will track the following variables.
         # Attempt to create each, if they already exist, assign the existing
         # version to the local copy.
 
@@ -747,7 +747,7 @@ class FlowAccumulator(Component):
         self._D_structure = self._grid.BAD_INDEX * grid.ones(at="link", dtype=int)
         self._nodes_not_in_stack = True
 
-        # STEP 4:
+        # STEP 3:
         # identify Flow Director method, save name, import and initialize the
         # correct flow director component if necessary; same with
         # lake/depression handler, if specified.
