@@ -6,7 +6,7 @@ CellLab-CTS User Guide
 
 Created: August 2015, Greg Tucker
 
-Last updated: September 2018
+Last updated: April 2020 GT 
 
 Introduction
 ------------
@@ -97,8 +97,8 @@ A CellLab-CTS application normally starts by importing the appropriate type of C
 	import matplotlib
 	from numpy import where
 	from landlab import RasterModelGrid
-	from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
-	from landlab.components.cellular_automata.raster_cts import RasterCTS
+	from landlab.ca.celllab_cts import Transition, CAPlotter
+	from landlab.ca.raster_cts import RasterCTS
 
 Here, we're using a raster model, so we import Landlab's ``RasterModelGrid`` class. It will be a non-oriented raster model, so we import the ``RasterCTS`` class (rather than  ``OrientedRasterCTS``). We also import the ``CAPlotter`` class for help with graphical display (more on that below), as well as the ``Transition`` class. We need the Transition class to set up our pair transitions, which we explore next.
 
