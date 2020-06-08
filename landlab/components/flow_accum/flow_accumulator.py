@@ -1085,6 +1085,9 @@ class FlowAccumulator(Component):
         else:
             self._depression_finder = None
 
+    def pits_present(self):
+        return np.any(self._grid.at_node["flow__sink_flag"][self._grid.core_nodes])
+
     def accumulate_flow(self, update_flow_director=True, update_depression_finder=True):
         """Function to make FlowAccumulator calculate drainage area and
         discharge.
@@ -1140,7 +1143,7 @@ class FlowAccumulator(Component):
             # At the moment, no depression finders work with to-many, so it
             # lives here
             if self._depression_finder_provided is not None:
-                if update_depression_finder:
+                if update_depression_finder and self.pits_present():
                     self._depression_finder.update()
 
                     # if FlowDirectorSteepest is used, update the link directions

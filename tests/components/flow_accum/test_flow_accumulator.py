@@ -1212,6 +1212,7 @@ def test_with_lake_mapper_barnes():
     assert_array_equal(rcvrs[[13, 21, 46]], [6, 13, 39])
 
     from landlab.components import LakeMapperBarnes
+
     fa = FlowAccumulator(hmg_hole, depression_finder=LakeMapperBarnes)
     lmb = LakeMapperBarnes(hmg_hole)
     fa = FlowAccumulator(hmg_hole, depression_finder=lmb)
