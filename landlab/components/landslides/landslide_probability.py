@@ -36,6 +36,7 @@ import numpy as np
 import scipy.constants
 from scipy import interpolate
 from statsmodels.distributions.empirical_distribution import ECDF
+import landlab.grid.landslide_unitgrid as landslide_unitgrid
 
 from landlab import Component
 
@@ -144,12 +145,7 @@ class LandslideProbability(Component):
 
     Create a grid on which to calculate landslide probability.
 
-    >>> grid = RasterModelGrid((5, 4))
-
-    Check the number of core nodes.
-
-    >>> grid.number_of_core_nodes
-    6
+    >>> grid = landslide_unitgrid.build_grid_unitarea() 
 
     The grid will need some input data. To check the names of the fields
     that provide the input to this component, use the *input_var_names*
@@ -169,73 +165,49 @@ class LandslideProbability(Component):
 
     Check the units for the fields.
 
-    >>> LandslideProbability.var_units('topographic__specific_contributing_area')
-    'm'
-
-    Create an input field.
-
-    >>> grid.at_node['topographic__slope'] = np.random.rand(grid.number_of_nodes)
-
-    If you are not sure about one of the input or output variables, you can
-    get help for specific variables.
-
-    >>> LandslideProbability.var_help('soil__transmissivity')  # doctest: +NORMALIZE_WHITESPACE
-    name: soil__transmissivity
+    >>> LandslideProbability.var_help('soil__mean_watertable_depth')
+    name: soil__mean_watertable_depth
     description:
-      mode rate of water transmitted through a unit width of saturated
-      soil - either provided or calculated with Ksat and soil depth
-    units: m2/day
-    unit agnostic: False
-    at: node
-    intent: in
+        Mean depth to water table from surface to perched water table within
+        the soil layer
+        units: m
+        unit agnostic: False
+        at: node
+        intent: out
+  
+    >>> LandslideProbability.var_help('soil__mean_recharge')
+    name: soil__mean_recharge
+    description:
+        Mean recharge to the soil layer
+        units: mm/day
+        unit agnostic: False
+        at: node
+        intent: out
+        
+    
+    Instantiate a new grid with default parameters for each model instance
+    
 
-    Additional required fields for component.
+    >>> grid_r1 = landslide_unitgrid.build_grid_unitarea()
+    
+    >>> grid_d1 = landslide_unitgrid.build_grid_unitarea()
 
-    >>> scatter_dat = np.random.randint(1, 10, grid.number_of_nodes)
-    >>> grid.at_node['topographic__specific_contributing_area'] = np.sort(
-    ...      np.random.randint(30, 900, grid.number_of_nodes).astype(float))
-    >>> grid.at_node['soil__transmissivity'] = np.sort(
-    ...      np.random.randint(5, 20, grid.number_of_nodes).astype(float), -1)
-    >>> grid.at_node['soil__saturated_hydraulic_conductivity'] = np.sort(
-    ...      np.random.randint(2, 10, grid.number_of_nodes).astype(float), -1)
-    >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
-    ...      np.random.randint(30, 900, grid.number_of_nodes).astype(float))
-    >>> grid.at_node['soil__minimum_total_cohesion'] = (
-    ...      grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
-    >>> grid.at_node['soil__maximum_total_cohesion'] = (
-    ...      grid.at_node['soil__mode_total_cohesion'] + scatter_dat)
-    >>> grid.at_node['soil__internal_friction_angle'] = np.sort(
-    ...      np.random.randint(26, 40, grid.number_of_nodes).astype(float))
-    >>> grid.at_node['soil__thickness'] = np.sort(
-    ...      np.random.randint(1, 10, grid.number_of_nodes).astype(float))
-    >>> grid.at_node['soil__density'] = (2000. * np.ones(grid.number_of_nodes))
-
-    Instantiate the 'LandslideProbability' component to work on this grid,
+    Instantiate the 'LandslideProbability' component to work on each grid,
     and run it.
+    >>> LS_prob1_r = LandslideProbability(grid_r1,groundwater__recharge_distribution='uniform')
 
-    >>> ls_prob = LandslideProbability(grid)
-    >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
-    True
+    >>> LS_prob1_d = LandslideProbability(grid_d1, groundwater__depth_distribution='uniform')
 
     Run the *calculate_landslide_probability* method to update output
     variables with grid
 
-    >>> ls_prob.calculate_landslide_probability()
+    >>> LS_prob1_r.calculate_landslide_probability()
+    >>> LS_prob1_d.calculate_landslide_probability()
 
     Check the output variable names.
 
-    >>> sorted(ls_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['landslide__probability_of_failure',
-     'soil__mean_relative_wetness',
-     'soil__mean_watertable_depth',
-     'soil__mean_recharge',
-     'soil__probability_of_saturation']
-
-    Check the output from the component, including array at one node.
-
-    >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
-    False
-    >>> core_nodes = ls_prob.grid.core_nodes
+    >>> sorted(LS_prob1_d.output_var_names) # doctest: +NORMALIZE_WHITESPACE
+    ['landslide__probability_of_failure', 'soil__mean_recharge', 'soil__mean_relative_wetness', 'soil__mean_watertable_depth', 'soil__probability_of_saturation']
 
     References
     ----------
@@ -484,7 +456,8 @@ class LandslideProbability(Component):
         self._g = g
         self._groundwater__recharge_distribution = groundwater__recharge_distribution
         self._groundwater__depth_distribution = groundwater__depth_distribution
-            
+        
+        
         # Following code will deal with the input distribution and associated
         # parameters for recharge hydrologic forcing
         # Recharge Uniform distribution
@@ -563,15 +536,13 @@ class LandslideProbability(Component):
     
     # Depth to water table - Lognormal Distribution - Variable in space                                  
         elif self._groundwater__depth_distribution == "lognormal_spatial":
-<<<<<<< HEAD
-=======
+
             #assert groundwater__depth_mean.shape[0] == (
             #    self._grid.number_of_nodes
             #), "Input array should be of the length of grid.number_of_nodes!"
             #assert (groundwater__depth_standard_deviation.shape[0] == (
             #    self._grid.number_of_nodes
             #), "Input array should be of the length of grid.number_of_nodes!"
->>>>>>> f7daa8a6992335548e09fcccbdf4d8b652ac608e
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation        
             
@@ -732,12 +703,6 @@ class LandslideProbability(Component):
             
             else:
                 self._rel_wetness = ((self._hs_mode - self._De) / (self._hs_mode - sat_threshold))           
-<<<<<<< HEAD
-                #print(self._rel_wetness)
-=======
-         
->>>>>>> f7daa8a6992335548e09fcccbdf4d8b652ac608e
-
 
         # calculate probability of saturation 
         countr = 0
@@ -905,3 +870,19 @@ class LandslideProbability(Component):
         #interpolate
         self._interpolate_HSD_array()
         self._De = self._HSD_dict[i]
+        
+        
+   
+    def _build_unitgrid(rowcol, edgelength):
+        """ Customize UNIT TEST for bigger grids. Testing the main method 'calculate_landslide_probability()' with
+        'uniform' method. Useful for testing run time and designing model experiment limits before GIS work.
+        
+        Input parameters:  dimensions of grid 
+        """
+        
+        grid = RasterModelGrid(rowcol, xy_spacing=edgelength)
+        
+        ls_prob = landslide_pars_ongrid(grid,unit_default_value) #see default values given in dictionary above
+            
+        return ls_prob   
+    

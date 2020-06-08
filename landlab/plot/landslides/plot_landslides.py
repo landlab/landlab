@@ -35,8 +35,8 @@ def print_nodevalues(ls_prob):
     Input: Landlab landslide model instance  """
     
     for name in ls_prob.grid["node"]:
-        field_min = ls_prob.grid["node"][name].min()
-        field_max = ls_prob.grid["node"][name].max()
+        field_min = round(ls_prob.grid["node"][name].min(),3)
+        field_max = round(ls_prob.grid["node"][name].max(),3)
 
         print_minmax = print("{value} (Min, Max) range of ({value1},{value2}) values on node:".format(value=name,value1=field_min,value2=field_max))
         print_value = print("All {value} default value initialized for each node:".format(value=name))
