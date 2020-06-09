@@ -287,6 +287,7 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f=1e-2,
         courant_coefficient=0.5,
         vn_coefficient=0.8,
+        callback_fun=None,
     ):
         """
         Parameters
@@ -365,6 +366,8 @@ class GroundwaterDupuitPercolator(Component):
         # save courant_coefficient (and test)
         self.courant_coefficient = courant_coefficient
         self.vn_coefficient = vn_coefficient
+
+        self._callback_fun = callback_fun
 
     @property
     def courant_coefficient(self):
@@ -725,5 +728,7 @@ class GroundwaterDupuitPercolator(Component):
             # calculate the time remaining and advance count of substeps
             remaining_time -= substep_dt
             self._num_substeps += 1
+
+            self._callback_fun(self._grid, substep_dt)
 
         self._qsavg[:] = qs_cumulative / dt
