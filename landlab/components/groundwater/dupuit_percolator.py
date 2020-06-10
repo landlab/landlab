@@ -3,7 +3,7 @@
 
 @author: G Tucker, D Litwin, K Barnhart
 """
-
+from warnings import warn
 import numpy as np
 
 from landlab import Component, LinkStatus
@@ -468,20 +468,20 @@ class GroundwaterDupuitPercolator(Component):
 
     @n.setter
     def n(self, new_val):
-        """set aquifer drainable porosity"""
+        """set aquifer drainable porosity (-)"""
         self._n = return_array_at_node(self._grid, new_val)
         self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
 
     @property
     def number_of_substeps(self):
         """
-        The numer of substeps used by the run_with_adaptive_time_step_solver
+        The number of substeps used by the run_with_adaptive_time_step_solver
         method in the latest method call.
         """
         if self._num_substeps:
             return self._num_substeps
         else:
-            print("The method run_with_adaptive_time_step_solver has not been used")
+            warn("The method run_with_adaptive_time_step_solver has not been used")
 
         return self._num_substeps
 
@@ -573,6 +573,11 @@ class GroundwaterDupuitPercolator(Component):
 
         # check water table above surface
         if (self._wtable > self._elev).any():
+            warn(
+                "water table above elevation surface. "
+                "Setting water table elevation here to "
+                "elevation surface"
+                )
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
             ]
@@ -638,9 +643,10 @@ class GroundwaterDupuitPercolator(Component):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet stability conditions.
-        Note this method returns the fluxes at the last subtimestep, but also
+        Note this method returns the fluxes at the last substep, but also
         returns a new field, average_surface_water__specific_discharge, that is
-        averaged over all subtimesteps.
+        averaged over all subtimesteps. To return state during substeps,
+        provide a callback_fun.
 
         Parameters
         ----------
@@ -650,6 +656,11 @@ class GroundwaterDupuitPercolator(Component):
 
         # check water table above surface
         if (self._wtable > self._elev).any():
+            warn(
+                "water table above elevation surface. "
+                "Setting water table elevation here to "
+                "elevation surface"
+                )
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
             ]
@@ -715,11 +726,13 @@ class GroundwaterDupuitPercolator(Component):
             self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
+            c1 = hlink>0
             self._dt_vn = self._vn_coefficient * min(
-                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
+                self._n_link[c1] * self._grid.length_of_link[c1] ** 2 / (4 * self._K[c1] * hlink[c1])
             )
+            c2 = self._vel>0
             self._dt_courant = self._courant_coefficient * min(
-                self._grid.length_of_link / abs(self._vel / self._n_link)
+                self._grid.length_of_link[c2] / abs(self._vel[c2] / self._n_link[c2])
             )
             dt_stability = min(self._dt_courant, self._dt_vn)
             substep_dt = min([dt_stability, remaining_time])
