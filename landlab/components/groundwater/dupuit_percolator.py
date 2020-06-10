@@ -287,7 +287,7 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f=1e-2,
         courant_coefficient=0.5,
         vn_coefficient=0.8,
-        callback_fun=None,
+        callback_fun=lambda *args, **kwargs: None,
     ):
         """
         Parameters
@@ -326,6 +326,14 @@ class GroundwaterDupuitPercolator(Component):
             This parameter is only used with ``run_with_adaptive_time_step_solver``
             and must be greater than zero.
             Default = 0.8
+        callback_fun: function(grid, substep_dt)
+            Optional function that will be executed at the end of each sub-timestep
+            in the run_with_adaptive_time_step_solver method. Intended purpose
+            is to write output not otherwise visible outside of the method call.
+            Arguments:
+                grid: the ModelGrid instance used by GroundwaterDupuitPercolator
+                substep_dt: the length of the current substep determined internally
+                by run_with_adaptive_time_step_solver to meet stability criteria.
         """
         super().__init__(grid)
 
@@ -367,6 +375,7 @@ class GroundwaterDupuitPercolator(Component):
         self.courant_coefficient = courant_coefficient
         self.vn_coefficient = vn_coefficient
 
+        # set callback function
         self._callback_fun = callback_fun
 
     @property
