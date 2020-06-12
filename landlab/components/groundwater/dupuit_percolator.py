@@ -577,7 +577,7 @@ class GroundwaterDupuitPercolator(Component):
                 "water table above elevation surface. "
                 "Setting water table elevation here to "
                 "elevation surface"
-                )
+            )
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
             ]
@@ -660,7 +660,7 @@ class GroundwaterDupuitPercolator(Component):
                 "water table above elevation surface. "
                 "Setting water table elevation here to "
                 "elevation surface"
-                )
+            )
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
             ]
@@ -726,13 +726,12 @@ class GroundwaterDupuitPercolator(Component):
             self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
-            c1 = hlink>0
             self._dt_vn = self._vn_coefficient * min(
-                self._n_link[c1] * self._grid.length_of_link[c1] ** 2 / (4 * self._K[c1] * hlink[c1])
+                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
             )
-            c2 = self._vel>0
+
             self._dt_courant = self._courant_coefficient * min(
-                self._grid.length_of_link[c2] / abs(self._vel[c2] / self._n_link[c2])
+                self._grid.length_of_link / abs(self._vel / self._n_link)
             )
             dt_stability = min(self._dt_courant, self._dt_vn)
             substep_dt = min([dt_stability, remaining_time])

@@ -324,16 +324,17 @@ def test_callback_func():
     # externally defined lists
     storage_subdt = []
     subdt = []
-    def test_fun(grid,dt):
+
+    def test_fun(grid, dt, n=0.2):
         cores = grid.core_nodes
         h = grid.at_node["aquifer__thickness"]
         area = grid.cell_area_at_node
-        storage = np.sum(n*h[cores]*area[cores])
+        storage = np.sum(n * h[cores] * area[cores])
 
         storage_subdt.append(storage)
         subdt.append(dt)
 
-    #initialize grid
+    # initialize grid
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
     elev = grid.add_ones("topographic__elevation", at="node")
@@ -347,14 +348,14 @@ def test_callback_func():
         grid,
         recharge_rate=0.0,
         hydraulic_conductivity=0.0001,
-        callback_fun = test_fun,
+        callback_fun=test_fun,
     )
 
     # run groundawter model
     gdp.run_with_adaptive_time_step_solver(1e5)
 
     # assert that the water table does not increase during substeps
-    assert (np.diff(storage_subdt)<=0.0).all()
+    assert (np.diff(storage_subdt) <= 0.0).all()
 
     # assert that substeps sum to the global timestep
-    assert_almost_equal(1e5,sum(subdt))
+    assert_almost_equal(1e5, sum(subdt))
