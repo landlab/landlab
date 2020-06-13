@@ -159,7 +159,7 @@ class GroundwaterDupuitPercolator(Component):
 
     Litwin, D. G., Tucker, G.E., Barnhart, K. R., Harman, C. J. (2020).
     GroundwaterDupuitPercolator: A Landlab component for groundwater flow.
-    Journal of Open Source Software, 5(46), 1935.
+    Journal of Open Source Software, 5(46), 1935, https://doi.org/10.21105/joss.01935.
 
     **Additional References**
 
@@ -332,9 +332,9 @@ class GroundwaterDupuitPercolator(Component):
             in the run_with_adaptive_time_step_solver method. Intended purpose
             is to write output not otherwise visible outside of the method call.
             The function should have two required arguments:
-                grid: the ModelGrid instance used by GroundwaterDupuitPercolator
-                substep_dt: the length of the current substep determined internally
-                by run_with_adaptive_time_step_solver to meet stability criteria.
+            grid: the ModelGrid instance used by GroundwaterDupuitPercolator
+            substep_dt: the length of the current substep determined internally
+            by run_with_adaptive_time_step_solver to meet stability criteria.
         """
         super().__init__(grid)
 
