@@ -76,7 +76,7 @@ class GroundwaterDupuitPercolator(Component):
     >>> elev[:] = 5.0
     >>> gdp = GroundwaterDupuitPercolator(grid)
 
-    Run component forward. Note all time units in the model are in seconds.
+    Run component forward.
 
     >>> dt = 1E4
     >>> for i in range(100):
@@ -107,7 +107,8 @@ class GroundwaterDupuitPercolator(Component):
     >>> gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1E-7)
     >>> fa = FlowAccumulator(grid, runoff_rate='surface_water__specific_discharge')
 
-    Advance timestep
+    Advance timestep. Default units are meters and seconds, though the component
+    is unit agnostic.
 
     >>> dt = 1E3
     >>> for i in range(1000):
@@ -149,7 +150,7 @@ class GroundwaterDupuitPercolator(Component):
     where :math:`n` is the drainable porosity.
 
     An explicit forward in time finite volume method is used to implement a
-    numerical solution. Flow discharge between neighboring nodes is calculated
+    numerical solution. Groundwater flow between neighboring nodes is calculated
     using the saturated thickness at the up-gradient node.
 
     References
@@ -158,7 +159,7 @@ class GroundwaterDupuitPercolator(Component):
 
     Litwin, D. G., Tucker, G.E., Barnhart, K. R., Harman, C. J. (2020).
     GroundwaterDupuitPercolator: A Landlab component for groundwater flow.
-    Journal of Open Source Software, 5(46), 1935, https://doi.org/10.21105/joss.01935
+    Journal of Open Source Software, 5(46), 1935.
 
     **Additional References**
 
@@ -567,7 +568,7 @@ class GroundwaterDupuitPercolator(Component):
 
         Parameters
         ----------
-        dt: float (time in seconds)
+        dt: float
             The imposed timestep.
         """
 
@@ -650,7 +651,7 @@ class GroundwaterDupuitPercolator(Component):
 
         Parameters
         ----------
-        dt: float (time in seconds)
+        dt: float
             The imposed timestep.
         """
 
