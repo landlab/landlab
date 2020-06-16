@@ -327,7 +327,7 @@ class GroundwaterDupuitPercolator(Component):
             This parameter is only used with ``run_with_adaptive_time_step_solver``
             and must be greater than zero.
             Default = 0.8
-        callback_fun: function(grid, substep_dt, **kwargs)
+        callback_fun: function(grid, substep_dt, \*\*kwargs)
             Optional function that will be executed at the end of each sub-timestep
             in the run_with_adaptive_time_step_solver method. Intended purpose
             is to write output not otherwise visible outside of the method call.
