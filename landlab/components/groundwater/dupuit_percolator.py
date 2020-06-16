@@ -320,8 +320,8 @@ class GroundwaterDupuitPercolator(Component):
             zero.
             Default = 0.5
         vn_coefficient: float (-)
-            The multiplying factor C for the condition dt >= C*dx^2/(4D),
-            where D = Kh/n is the diffusivity of the Boussinesq
+            The multiplying factor C for the condition :math:`dt >= C*dx^2/(4D)`,
+            where :math:`D = Kh/n` is the diffusivity of the Boussinesq
             equation. This arises from a von Neumann stability analysis of
             the Boussinesq equation when the hydraulic gradient is small.
             This parameter is only used with ``run_with_adaptive_time_step_solver``
