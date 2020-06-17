@@ -4,6 +4,7 @@
 @author: G Tucker, D Litwin, K Barnhart
 """
 from warnings import warn
+
 import numpy as np
 
 from landlab import Component, LinkStatus

@@ -345,10 +345,7 @@ def test_callback_func():
 
     # initialize groundwater model
     gdp = GroundwaterDupuitPercolator(
-        grid,
-        recharge_rate=0.0,
-        hydraulic_conductivity=0.0001,
-        callback_fun=test_fun,
+        grid, recharge_rate=0.0, hydraulic_conductivity=0.0001, callback_fun=test_fun,
     )
 
     # run groundawter model
