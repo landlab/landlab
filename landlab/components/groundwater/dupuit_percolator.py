@@ -291,7 +291,7 @@ class GroundwaterDupuitPercolator(Component):
         vn_coefficient=0.8,
         callback_fun=lambda *args, **kwargs: None,
     ):
-        """
+        r"""
         Parameters
         ----------
         grid: ModelGrid
