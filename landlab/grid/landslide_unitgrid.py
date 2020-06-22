@@ -2,42 +2,47 @@
 Unit tests for landlab.components.landslides.landslide_probability
 """
 import numpy as np
-import pytest
+
 from numpy.testing import assert_array_almost_equal
+import tests.components.landslides.test_landslide_probability as test
 
 from landlab import RasterModelGrid
 
-(_SHAPE, _SPACING, _ORIGIN) = ((5, 4), (10e0, 10e0), (0.0, 0.0))
-_ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
-rowcol = _SHAPE 
-edgelength = _SPACING
-relative_wetness = 0.75
 
-unit_default_value={}
-unit_default_value["topographic__slope"]=(0.1,0.8)
-unit_default_value["topographic__specific_contributing_area"]=(10,100)
-unit_default_value["soil__transmissivity"]=(0.1, 10)
-unit_default_value["soil__mode_total_cohesion"]=(30, 900)
-mode = unit_default_value["soil__mode_total_cohesion"]
-# code used to run the model uses a random scatter <cohesion_scatter = np.random.randint(1,10)>
-scatter = np.random.randint(1,10)  #smallest min is the largest scatter, minus the mode cohesion
-unit_default_value["soil__minimum_total_cohesion"]=((mode[0]-scatter),mode[1]-scatter)
-#large max is the largest scatter, plus the mode cohesion
-unit_default_value["soil__maximum_total_cohesion"]=((mode[0]+scatter),mode[1]+scatter)
-unit_default_value["soil__internal_friction_angle"]=(26, 37)
-unit_default_value["soil__thickness"]=(0.1,1) #functionally setting to uniform uniform 1 meter default; coded for the option of a range of values
-unit_default_value["soil__density"]=(1999,2001) #functionally setting to uniform 2000
+def build_landslide_unitgrid(shape,spacing,coordinates,forcing):
+    # 1. Build a Landlab grid
+    grid = RasterModelGrid(shape,spacing,coordinates)
+    gridnum = grid.number_of_nodes
+    # 2. Get range of default landslide parameters
+    unit_default_value = test.calc_unit_default_value()
+    # 3. Distribute and Add the parameters to each node on a Landlab grid
+    ls_grid = test.landslide_pars_ongrid(grid, gridnum, unit_default_value)
+    # 4. Calculate default depth and recharge forcing range as a function of relative wetness,
+    # given the default unit grid inputs (Recharge = f(rw, T, a, slope); Depth = f(rw, hs))
+    relative_wetness = 0.75
+    Default_R, Default_D=test.scenario_unit_explorer(relative_wetness,ls_grid)
+    # 5. Distribute and Add the parameters to a Landlab grid that will be linked to the landslide model instance
+    if forcing == 'depth':
+        ls_prob = LandslideProbability(
+        ls_grid,
+        number_of_iterations=25,
+        groundwater__depth_distribution="uniform",
+        groundwater__depth_min_value=Default_D[0],
+        groundwater__depth_max_value=Default_D[1]
+        )
+    else: 
+        ls_prob = LandslideProbability(
+        ls_grid,
+        number_of_iterations=25,
+        groundwater__recharge_distribution="uniform",
+        groundwater__depth_min_value=Default_R[0],
+        groundwater__depth_max_value=Default_R[1]
+        )
+    ## sometimes a grid format is easier to work with, other times, it's easier to maintain the linked 
+    ## model instance with a new grid for each model test
+    return ls_prob, ls_grid
 
-#Note on Ksat default range calculation
-#reverse order: (see above) lowest Transmissivity value are in upper right of synthethic grid,
-#not reversed: (see above) highest soil thickness in upper right of synthethic grid,
-#caution creating Ksat since parameterization of T and hs will have inverse relationship on Ksat
-#Kmin  = Tmin/hs_max   -slow- think of a deep thick clay layer 
-kmin = unit_default_value['soil__transmissivity'][0]/unit_default_value['soil__thickness'][1] 
-#Kmax = Tmax/hs_min    -fast- think of a sieve or a parking lot
-kmax = unit_default_value['soil__transmissivity'][1]/unit_default_value['soil__thickness'][0] 
-unit_default_value["soil__saturated_hydraulic_conductivity"]= (kmin,kmax)
 
 def unit_defaultpar_value():
 
