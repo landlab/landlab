@@ -1,1 +1,0 @@
-notes and practice
