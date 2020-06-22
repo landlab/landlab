@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import LandslideProbability
+from landlab.components.landslides import LandslideProbability
 
 relative_wetness = 0.75
 

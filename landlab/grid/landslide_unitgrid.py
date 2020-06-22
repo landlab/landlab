@@ -5,7 +5,7 @@ import numpy as np
 
 from numpy.testing import assert_array_almost_equal
 import tests.components.landslides.test_landslide_probability as test
-
+from landlab.components.landslides import LandslideProbability
 from landlab import RasterModelGrid
 
 
@@ -527,13 +527,6 @@ def scenario_unit_explorer(rw,grid):
        
     return Default_R, Default_D
 
-
-#Output value range used in tests will change as a function of input default values
-unit_default_value["landslide__probability_of_failure"]= (0,1)
-unit_default_value["soil__mean_relative_wetness"]=(0,1)
-unit_default_value["soil__mean_watertable_depth"]=(0,1000)
-unit_default_value["soil__mean_recharge"]=(0,1000)
-unit_default_value["soil__probability_of_saturation"]=(0,1)
 
 def print_testcore_nodevalues(ls_prob):
     name = "landslide__probability_of_failure"
