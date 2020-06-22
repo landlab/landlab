@@ -360,7 +360,9 @@ def _make_array_of_donors_to_n(r, p, delta):
     return D
 
 
-def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion):
+def make_ordered_node_array_to_n(
+    receiver_nodes, receiver_proportion, nd=None, delta=None, D=None
+):
 
     """Create an array of node IDs.
 
@@ -411,9 +413,12 @@ def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion):
     """
     node_id = numpy.arange(receiver_nodes.shape[0])
     baselevel_nodes = numpy.where(node_id == receiver_nodes[:, 0])[0]
-    nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
-    delta = _make_delta_array_to_n(nd)
-    D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
+    if nd is None:
+        nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
+    if delta is None:
+        delta = _make_delta_array_to_n(nd)
+    if D is None:
+        D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
 
     num_receivers = numpy.sum(receiver_nodes >= 0, axis=1)
 
