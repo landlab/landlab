@@ -14,7 +14,7 @@ Barnhart, K.R., Hutton, E.W.H., Tucker, G.E., Gasparini, N.M., Istanbulluoglu, E
 
 Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 1, conceptualization and sensitivity analysis.** *Journal of Geophysical Research: Earth Surface,* e2018JF004961. `https://doi.org/10.1029/2018JF004961 <https://doi.org/10.1029/2018JF004961>`__.
 
-Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 2, calibration and validation.** *Journal of Geophysical Research: Earth Surface,* e2018JF004963. `https://doi.org/10.1029/2018JF004963 < https://doi.org/10.1029/2018JF004963>`__.
+Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 2, calibration and validation.** *Journal of Geophysical Research: Earth Surface,* e2018JF004963. `https://doi.org/10.1029/2018JF004963 <https://doi.org/10.1029/2018JF004963>`__.
 
 Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 3, Determining parameter ranges for select mature geomorphic transport laws and connecting changes in fluvial erodibility to changes in climate.** *Journal of Geophysical Research: Earth Surface,* e2019JF005287, `https://doi.org/10.1029/2019JF005287 <https://doi.org/10.1029/2019JF005287>`__.
 
