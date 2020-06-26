@@ -1,0 +1,9 @@
+bmipy<1
+matplotlib
+netcdf4
+pyyaml
+pyshp
+scipy
+statsmodels
+pandas
+xarray
