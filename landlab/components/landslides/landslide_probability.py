@@ -36,7 +36,6 @@ import numpy as np
 import scipy.constants
 from scipy import interpolate
 from statsmodels.distributions.empirical_distribution import ECDF
-import landlab.grid.landslide_unitgrid as landslide_unitgrid
 
 from landlab import Component
 
