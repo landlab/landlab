@@ -18,6 +18,7 @@
 
 .. image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
+
 =======
 Landlab
 =======
@@ -75,7 +76,7 @@ Supported Python Versions
 Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
 binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
 and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 and 3.7
-(3.8 coming soon).
+(3.8 coming soon). 
 
 Conda Environment with Pre-packaged Binary Distribution
 ```````````````````````````````````````````````````````
