@@ -12,6 +12,59 @@ DTYPE_INT = np.int
 ctypedef np.int_t DTYPE_INT_t
 
 
+def calc_erosion_rates(np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] K_br,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] Q_to_the_m,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] slope,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] soil__depth,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] br_erosion_term,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] sp_crit_sed,
+                        np.ndarray[DTYPE_FLOAT_t, ndim=1] sp_crit_br,
+                        DTYPE_FLOAT_t n_sp,
+                        DTYPE_FLOAT_t H_star,
+                        DTYPE_FLOAT_t phi):
+        """Calculate erosion rates."""
+        cdef np.ndarray omega_sed = np.zeros(Es.size)
+        cdef np.ndarray omega_br = np.zeros(Es.size)
+
+        # if sp_crits are zero, then this colapses to correct all the time.
+        omega_sed[:] = K_sed * Q_to_the_m * np.power(slope, n_sp)
+        omega_br[:] = K_br * Q_to_the_m * np.power(slope, n_sp)
+
+        omega_sed_over_sp_crit = np.divide(
+            omega_sed,
+            sp_crit_sed,
+            out=np.zeros_like(omega_sed),
+            where=sp_crit_sed != 0,
+        )
+
+        omega_br_over_sp_crit = np.divide(
+            omega_br,
+            sp_crit_br,
+            out=np.zeros_like(omega_br),
+            where=sp_crit_br != 0,
+        )
+
+        sed_erosion_term = omega_sed - sp_crit_sed * (
+            1.0 - np.exp(-omega_sed_over_sp_crit)
+        ) / (
+            1 - phi
+        )  # convert from a volume to a mass flux.
+
+        br_erosion_term = omega_br - sp_crit_br * (
+            1.0 - np.exp(-omega_br_over_sp_crit)
+        )
+
+        Es = sed_erosion_term * (
+            1.0 - np.exp(-soil__depth / H_star)
+        )
+
+        Er = br_erosion_term * np.exp(-soil__depth / H_star)
+
+
 def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                     np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area_at_node,
