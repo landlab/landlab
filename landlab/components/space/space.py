@@ -7,7 +7,7 @@ from landlab.components.erosion_deposition.generalized_erosion_deposition import
 )
 from landlab.utils.return_array import return_array_at_node
 
-from .cfuncs import calculate_qs_in, calc_erosion_rates
+from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
@@ -346,9 +346,6 @@ class Space(_GeneralizedErosionDeposition):
         elif solver == "adaptive":
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
-        elif solver == "experimental":
-            self.run_one_step = self.run_with_experimental_adaptive_time_step_solver
-            self._time_to_flat = np.zeros(grid.number_of_nodes)
             self._time_to_zero_alluv = np.zeros(grid.number_of_nodes)
             self._dzdt = np.zeros(grid.number_of_nodes)
         else:
@@ -431,31 +428,11 @@ class Space(_GeneralizedErosionDeposition):
         return self._H
 
     def _calc_qs_in_and_depo_rate(self):
-        import time
 
         # Choose a method for calculating erosion:
         self._calc_hydrology()
-#        st = time.time()
         self._calc_erosion_rates()
-        # calc_erosion_rates(
-        #     self._K_sed,
-        #     self._K_br,
-        #     self._Q_to_the_m,
-        #     self._slope,
-        #     self._soil__depth,
-        #     self._sed_erosion_term,
-        #     self._br_erosion_term,
-        #     self._Es,
-        #     self._Er,
-        #     self._sp_crit_sed,
-        #     self._sp_crit_br,
-        #     self._n_sp,
-        #     self._H_star,
-        #     self._phi,
-        # )
 
-#        en = time.time()
-#        print(en-st)
         is_flooded_core_node = self._get_flooded_core_nodes()
 
         self._Es[is_flooded_core_node] = 0.0
@@ -623,124 +600,6 @@ class Space(_GeneralizedErosionDeposition):
         )
 
     def run_with_adaptive_time_step_solver(self, dt=1.0):
-        """Run step with CHILD-like solver that adjusts time steps to prevent
-        slope flattening.
-
-        Parameters
-        ----------
-        dt : float
-            Model timestep [T]
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import FlowAccumulator
-        >>> import numpy as np
-
-        >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('topographic__elevation', at='node')
-        >>> z[:] = 0.1 * rg.x_of_node
-        >>> H = rg.add_zeros('soil__depth', at='node')
-        >>> H += 0.1
-        >>> br = rg.add_zeros('bedrock__elevation', at='node')
-        >>> br[:] = z - H
-
-        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorSteepest')
-        >>> fa.run_one_step()
-        >>> sp = Space(rg, K_sed=1.0, K_br=0.1,
-        ...            F_f=0.5, phi=0.0, H_star=1., v_s=1.0,
-        ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
-        ...            sp_crit_br=0, solver='adaptive')
-        >>> sp.run_one_step(dt=10.0)
-
-        >>> np.round(sp.Es[5:7], 4)
-        array([ 0.0029,  0.0074])
-        >>> np.round(sp.Er[5:7], 4)
-        array([ 0.0032,  0.0085])
-        >>> np.round(H[5:7], 3)
-        array([ 0.088,  0.078])
-        """
-
-        # Initialize remaining_time, which records how much of the global time
-        # step we have yet to use up.
-        remaining_time = dt
-
-        z = self._grid.at_node["topographic__elevation"]
-        br = self._grid.at_node["bedrock__elevation"]
-        H = self._grid.at_node["soil__depth"]
-        r = self._flow_receivers
-        time_to_flat = np.zeros(len(z))
-        time_to_zero_alluv = np.zeros(len(z))
-        dzdt = np.zeros(len(z))
-        cores = self._grid.core_nodes
-
-        first_iteration = True
-
-        is_flooded_core_node = self._get_flooded_core_nodes()
-
-        # Outer WHILE loop: keep going until time is used up
-        while remaining_time > 0.0:
-
-            # Update all the flow-link slopes.
-            #
-            # For the first iteration, we assume this has already been done
-            # outside the component (e.g., by flow router), but we need to do
-            # it ourselves on subsequent iterations.
-            if not first_iteration:
-                # update the link slopes
-                self._update_flow_link_slopes()
-                # update where nodes are flooded. This shouuldn't happen because
-                # of the dynamic timestepper, but just in case, we update here.
-                is_flooded_core_node[self._slope < 0] = True
-            else:
-                first_iteration = False
-
-            is_flooded_core_node = self._calc_qs_in_and_depo_rate()
-
-            # Now look at upstream-downstream node pairs, and recording the
-            # time it would take for each pair to flatten. Take the minimum.
-            dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (
-                self._Es[cores] + self._Er[cores]
-            )
-            rocdif = dzdt - dzdt[r]
-            zdif = z - z[r]
-            time_to_flat[:] = remaining_time
-
-            converging = np.where(rocdif < 0.0)[0]
-            time_to_flat[converging] = -(
-                TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
-            )
-            time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
-
-            # From this, find the maximum stable time step with regard to slope
-            # evolution.
-            dt_max1 = np.amin(time_to_flat)
-
-            # Next we consider time to exhaust regolith
-            time_to_zero_alluv[:] = remaining_time
-
-            # poof deposition by phi
-            dHdt = self._porosity_factor * (self._depo_rate - self._Es)
-            decreasing_H = np.where(dHdt < 0.0)[0]
-            time_to_zero_alluv[decreasing_H] = -(
-                TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
-            )
-
-            # Now find the smallest time that would lead to near-empty alluv
-            dt_max2 = np.amin(time_to_zero_alluv)
-
-            # Take the smaller of the limits
-            dt_max = max(self._dt_min, min(dt_max1, dt_max2))
-
-            # Now a vector operation: apply dzdt and dhdt to all nodes
-            br[cores] -= self._Er[cores] * dt_max
-            H[cores] += dHdt[cores] * dt_max
-            z[cores] = br[cores] + H[cores]
-
-            # Update remaining time and continue
-            remaining_time -= dt_max
-
-    def run_with_experimental_adaptive_time_step_solver(self, dt=1.0):
         """Run step with CHILD-like solver that adjusts time steps to prevent
         slope flattening.
 
