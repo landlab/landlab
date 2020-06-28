@@ -327,8 +327,8 @@ class Space(_GeneralizedErosionDeposition):
                 self._topographic__elevation - self._soil__depth
             )
 
-        self._sed_erosion_term  = np.zeros(grid.number_of_nodes)
-        self._br_erosion_term  = np.zeros(grid.number_of_nodes)
+        self._sed_erosion_term = np.zeros(grid.number_of_nodes)
+        self._br_erosion_term = np.zeros(grid.number_of_nodes)
         self._Es = np.zeros(grid.number_of_nodes)
         self._Er = np.zeros(grid.number_of_nodes)
 
@@ -406,9 +406,7 @@ class Space(_GeneralizedErosionDeposition):
         )
 
         H_over_Hstar = self._soil__depth / self._H_star
-        self._Es = self._sed_erosion_term * (
-            1.0 - np.exp(-H_over_Hstar)
-        )
+        self._Es = self._sed_erosion_term * (1.0 - np.exp(-H_over_Hstar))
 
         self._Er = self._br_erosion_term * np.exp(-H_over_Hstar)
 
@@ -669,7 +667,9 @@ class Space(_GeneralizedErosionDeposition):
             else:
                 first_iteration = False
 
-            is_flooded_core_node = self._calc_qs_in_and_depo_rate() #THIS IS THE SPEED BOTTLENECK
+            is_flooded_core_node = (
+                self._calc_qs_in_and_depo_rate()
+            )  # THIS IS THE SPEED BOTTLENECK
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
