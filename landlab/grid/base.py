@@ -3,7 +3,7 @@
 grids for 2D numerical models.
 
 Do NOT add new documentation here. Grid documentation is now built in a
-semi- automated fashion. To modify the text seen on the web, edit the
+semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
 import fnmatch
@@ -986,6 +986,76 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: LINF BC
         """
         return np.where(self.status_at_link == LinkStatus.FIXED)[0]
+
+    @property
+    @cache_result_in_object()
+    @return_readonly_id_array
+    def core_to_core_links(self):
+        """Return an array with the IDs of all links that join two core nodes.
+    
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.status_at_node[13] = grid.BC_NODE_IS_FIXED_VALUE
+        >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
+        >>> grid.core_to_core_links
+        array([10, 11, 14, 15, 19])
+        """
+        return np.where(
+            np.logical_and(
+                self.status_at_node[self.node_at_link_tail] == self.BC_NODE_IS_CORE,
+                self.status_at_node[self.node_at_link_head] == self.BC_NODE_IS_CORE,
+            )
+        )[0]
+
+    @property
+    @cache_result_in_object()
+    @return_readonly_id_array
+    def core_to_fixed_value_links(self):
+        """Return an array with the IDs of all links that a core node (tail)
+        to a fixed-value node (head).
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.status_at_node[13] = grid.BC_NODE_IS_FIXED_VALUE
+        >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
+        >>> grid.core_to_fixed_value_links
+        array([12, 16, 20, 23, 24])
+        """
+        return np.where(
+            np.logical_and(
+                self.status_at_node[self.node_at_link_tail] == self.BC_NODE_IS_CORE,
+                self.status_at_node[self.node_at_link_head]
+                == self.BC_NODE_IS_FIXED_VALUE,
+            )
+        )[0]
+
+    @property
+    @cache_result_in_object()
+    @return_readonly_id_array
+    def fixed_value_to_core_links(self):
+        """Return an array with the IDs of all links that join a fixed-value node (tail)
+        to a core node (head).
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> grid.status_at_node[13] = grid.BC_NODE_IS_FIXED_VALUE
+        >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
+        >>> grid.fixed_value_to_core_links
+        array([ 5,  7,  9, 18])
+        """
+        return np.where(
+            np.logical_and(
+                self.status_at_node[self.node_at_link_tail]
+                == self.BC_NODE_IS_FIXED_VALUE,
+                self.status_at_node[self.node_at_link_head] == self.BC_NODE_IS_CORE,
+            )
+        )[0]
 
     @property
     @cache_result_in_object()
