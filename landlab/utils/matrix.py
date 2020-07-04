@@ -18,8 +18,11 @@ def matrix_row_at_node(grid):
     array([-1, -1, -1, -1, -1, -1,  0,  1,  2, -1, -1,  3,  4, -1, -1, -1, -1, -1, -1, -1])
     """
     matrix_row_at_node = -np.ones(grid.number_of_nodes, dtype=np.int)
-    matrix_row_at_node[grid.core_nodes] = np.arange(grid.number_of_core_nodes, dtype=np.int)
+    matrix_row_at_node[grid.core_nodes] = np.arange(
+        grid.number_of_core_nodes, dtype=np.int
+    )
     return matrix_row_at_node
+
 
 def make_core_node_matrix(grid, value):
     """
@@ -60,10 +63,10 @@ def make_core_node_matrix(grid, value):
     # Make the matrix and right-hand side vector
     mat = np.zeros((grid.number_of_core_nodes, grid.number_of_core_nodes))
     rhs = np.zeros((grid.number_of_core_nodes, 1))
-    
+
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
-    
+
     # Handle the core-to-core links (note: for-loop not array op, bcs nodes can appear > once)
     for ln in core2core:
         t = grid.node_at_link_tail[ln]
@@ -88,6 +91,7 @@ def make_core_node_matrix(grid, value):
         rhs[matrow[h]] -= value[t]
 
     return mat, rhs
+
 
 def make_core_node_matrix_var_coef(grid, value, coef):
     """
@@ -126,14 +130,14 @@ def make_core_node_matrix_var_coef(grid, value, coef):
     core2core = grid.core_to_core_links
     fv2core = grid.fixed_value_to_core_links
     core2fv = grid.core_to_fixed_value_links
-    
+
     # Make the matrix and right-hand side vector
     mat = np.zeros((grid.number_of_core_nodes, grid.number_of_core_nodes))
     rhs = np.zeros((grid.number_of_core_nodes, 1))
-    
+
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
-    
+
     # Handle the core-to-core links (note: for-loop not array op, bcs nodes can appear > once)
     for ln in core2core:
         t = grid.node_at_link_tail[ln]
