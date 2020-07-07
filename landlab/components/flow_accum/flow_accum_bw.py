@@ -52,9 +52,9 @@ class _DrainageStack:
         self.delta = delta
         self.D = D
 
-    def add_to_stack(self, l):
+    def add_to_stack(self, node):
 
-        """Adds node l to the stack and increments the current index (j).
+        """Adds *node* to the stack and increments the current index (j).
 
         Examples
         --------
@@ -69,7 +69,7 @@ class _DrainageStack:
         array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
         """
         # we invoke cython here to attempt to suppress Python's RecursionLimit
-        self.j = _add_to_stack(l, self.j, self.s, self.delta, self.D)
+        self.j = _add_to_stack(node, self.j, self.s, self.delta, self.D)
 
 
 def _make_number_of_donors_array(r):
@@ -177,7 +177,7 @@ def _make_array_of_donors(r, delta):
     return D
 
 
-def make_ordered_node_array(receiver_nodes):
+def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
 
     """Create an array of node IDs that is arranged in order from.
 
@@ -198,9 +198,12 @@ def make_ordered_node_array(receiver_nodes):
     """
     node_id = numpy.arange(receiver_nodes.size)
     baselevel_nodes = numpy.where(node_id == receiver_nodes)[0]
-    nd = _make_number_of_donors_array(receiver_nodes)
-    delta = _make_delta_array(nd)
-    D = _make_array_of_donors(receiver_nodes, delta)
+    if nd is None:
+        nd = _make_number_of_donors_array(receiver_nodes)
+    if delta is None:
+        delta = _make_delta_array(nd)
+    if D is None:
+        D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
@@ -286,7 +289,14 @@ def find_drainage_area_and_discharge(
 
 
 def find_drainage_area_and_discharge_lossy(
-    s, r, l, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
+    s,
+    r,
+    link_to_receiver,
+    loss_function,
+    grid,
+    node_cell_area=1.0,
+    runoff=1.0,
+    boundary_nodes=None,
 ):
 
     """Calculate the drainage area and water discharge at each node, permitting
@@ -302,7 +312,7 @@ def find_drainage_area_and_discharge_lossy(
         Ordered (downstream to upstream) array of node IDs
     r : ndarray of int
         Receiver node IDs for each node
-    l : ndarray of int
+    link_to_receiver : ndarray of int
         Link to receiver node IDs for each node
     loss_function : Python function(Qw, nodeID, linkID, grid)
         Function dictating how to modify the discharge as it leaves each node.
@@ -411,7 +421,7 @@ def find_drainage_area_and_discharge_lossy(
     for i in range(np - 1, -1, -1):
         donor = s[i]
         recvr = r[donor]
-        lrec = l[donor]
+        lrec = link_to_receiver[donor]
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge_remaining = numpy.clip(

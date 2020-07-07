@@ -7,7 +7,6 @@ Landlab utilities
 .. autosummary::
 
     ~landlab.core.utils.radians_to_degrees
-    ~landlab.core.utils.extend_array
     ~landlab.core.utils.as_id_array
     ~landlab.core.utils.make_optional_arg_into_id_array
     ~landlab.core.utils.get_functions_from_module
@@ -19,11 +18,65 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
-
+import errno
+import importlib
+import inspect
+import os
+import pathlib
+import re
+import shutil
 
 import numpy as np
+import pkg_resources
 
 SIZEOF_INT = np.dtype(np.int).itemsize
+
+
+class ExampleData:
+    def __init__(self, example, case=""):
+        self._base = pathlib.Path(
+            pkg_resources.resource_filename(
+                "landlab", str(pathlib.Path("data").joinpath(example, case))
+            )
+        )
+
+    @property
+    def base(self):
+        return self._base
+
+    def fetch(self):
+        """Fetch landlab example data files.
+
+        Examples
+        --------
+        >>> data = ExampleData("io/shapefile")
+        >>> data.fetch()
+
+        We now remove the created folder because otherwise the test can only
+        pass locally once.
+
+        >>> import shutil
+        >>> shutil.rmtree("methow")
+        """
+        dstdir, srcdir = pathlib.Path("."), self.base
+
+        for dst in (dstdir / p for p in self):
+            if dst.exists():
+                raise FileExistsError(
+                    "[Errno {errno}] File exists: {name}".format(
+                        errno=errno.EEXIST, name=repr(dst.name)
+                    )
+                )
+
+        for src in (srcdir / p for p in self):
+            if src.is_file():
+                shutil.copy2(src, ".")
+            elif src.is_dir():
+                shutil.copytree(src, src.name)
+
+    def __iter__(self):
+        for p in self.base.iterdir():
+            yield p.name
 
 
 def degrees_to_radians(degrees):
@@ -93,67 +146,6 @@ def radians_to_degrees(rads):
     """
     degrees = (5.0 * np.pi / 2.0 - rads) % (2.0 * np.pi)
     return 180.0 / np.pi * degrees
-
-
-def extend_array(x, fill=0):
-    """Extend an array by one element.
-
-    The new array will appear as a view of the input array. However, its
-    data now points to a newly-allocated buffer that's one element longer
-    and contains a copy of the contents of *x*. The last element of the
-    buffer is filled with *fill*. To access the extended array, use the
-    *x* attribute of the returned array.
-
-    Parameters
-    ----------
-    x : ndarray
-        The array to extend.
-    fill : number, optional
-        The value to fill the extra element with.
-
-    Returns
-    -------
-    ndarray
-        A view of the original array with the data buffer extended by one
-        element.
-
-    Examples
-    --------
-    >>> from landlab.core.utils import extend_array
-    >>> import numpy as np
-    >>> arr = extend_array(np.arange(4).reshape((2, 2)))
-    >>> arr
-    array([[0, 1],
-           [2, 3]])
-    >>> arr.ext
-    array([0, 1, 2, 3, 0])
-
-    If the array is already extended, don't extend it more. However,
-    possibly change its fill value.
-
-    >>> rtn = extend_array(arr, fill=999)
-    >>> rtn is arr
-    True
-    >>> rtn.ext
-    array([  0,   1,   2,   3, 999])
-    """
-    if hasattr(x, "ext"):
-        x.ext[-1] = fill
-        return x
-
-    extended = np.empty(x.size + 1, dtype=x.dtype)
-    extended[:-1] = x.flat
-    extended[-1] = fill
-    x.data = extended.data
-
-    class array(np.ndarray):
-        def __new__(cls, arr):
-            """Instantiate the class with a view of the base array."""
-            obj = np.asarray(arr).view(cls)
-            obj.ext = extended
-            return obj
-
-    return array(x)
 
 
 def as_id_array(array):
@@ -289,9 +281,6 @@ def get_functions_from_module(mod, pattern=None, exclude=None):
         Dictionary of functions contained in the module. Keys are the
         function names, values are the functions themselves.
     """
-    import inspect
-    import re
-
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
         if pattern is None or re.search(pattern, name):
@@ -330,16 +319,9 @@ def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
 
     *Note* if both pattern and exclude are provided both conditions must be met.
     """
-    import inspect
-    import imp
-    import os
-
-    caller = inspect.stack()[1]
-    path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
-
     (module, _) = os.path.splitext(os.path.basename(module))
 
-    mod = imp.load_module(module, *imp.find_module(module, [path]))
+    mod = importlib.import_module("." + module, package="landlab.grid")
 
     funcs = get_functions_from_module(mod, pattern=pattern, exclude=exclude)
     strip_grid_from_method_docstring(funcs)
