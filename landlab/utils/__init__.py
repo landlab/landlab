@@ -19,6 +19,7 @@ from .watershed import (
     get_watershed_nodes,
     get_watershed_outlet,
 )
+from .matrix import make_core_node_matrix, make_core_node_matrix_var_coef
 
 __all__ = [
     "add_halo",
@@ -34,4 +35,6 @@ __all__ = [
     "StablePriorityQueue",
     "return_array_at_node",
     "return_array_at_link",
+    "make_core_node_matrix",
+    "make_core_node_matrix_var_coef",
 ]
