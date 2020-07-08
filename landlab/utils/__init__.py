@@ -5,6 +5,7 @@ from .add_halo import add_halo
 # import landlab.utils.count_repeats
 # from landlab.utils.count_repeats import count_repeats
 from .count_repeats import count_repeated_values
+from .matrix import make_core_node_matrix, make_core_node_matrix_var_coef
 from .return_array import return_array_at_link, return_array_at_node
 from .source_tracking_algorithm import (
     convert_arc_flow_directions_to_landlab_node_ids,
@@ -19,7 +20,6 @@ from .watershed import (
     get_watershed_nodes,
     get_watershed_outlet,
 )
-from .matrix import make_core_node_matrix, make_core_node_matrix_var_coef
 
 __all__ = [
     "add_halo",
