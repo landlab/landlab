@@ -28,7 +28,7 @@ def make_core_node_matrix(grid, value):
     """
     Construct and return a matrix for the core nodes, plus a right-hand side vector
     containing values based on the input array `value`.
-    
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -98,7 +98,7 @@ def make_core_node_matrix_var_coef(grid, value, coef):
     Construct and return a matrix for the core nodes, plus a right-hand side vector
     containing values based on the input array `value`. This version includes a
     coefficient for each link.
-    
+
     Examples
     --------
     >>> from landlab import RasterModelGrid

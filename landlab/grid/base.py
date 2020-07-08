@@ -992,7 +992,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @return_readonly_id_array
     def core_to_core_links(self):
         """Return an array with the IDs of all links that join two core nodes.
-    
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1015,7 +1015,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     def core_to_fixed_value_links(self):
         """Return an array with the IDs of all links that a core node (tail)
         to a fixed-value node (head).
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -1039,7 +1039,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     def fixed_value_to_core_links(self):
         """Return an array with the IDs of all links that join a fixed-value node (tail)
         to a core node (head).
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
