@@ -1002,12 +1002,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.core_to_core_links
         array([10, 11, 14, 15, 19])
         """
-        return np.where(
-            np.logical_and(
-                self.status_at_node[self.node_at_link_tail] == self.BC_NODE_IS_CORE,
-                self.status_at_node[self.node_at_link_head] == self.BC_NODE_IS_CORE,
-            )
-        )[0]
+        return self.links_by_tail_and_head_status(self.BC_NODE_IS_CORE,
+                                                  self.BC_NODE_IS_CORE)
 
     @property
     @cache_result_in_object()
@@ -1025,13 +1021,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.core_to_fixed_value_links
         array([12, 16, 20, 23, 24])
         """
-        return np.where(
-            np.logical_and(
-                self.status_at_node[self.node_at_link_tail] == self.BC_NODE_IS_CORE,
-                self.status_at_node[self.node_at_link_head]
-                == self.BC_NODE_IS_FIXED_VALUE,
-            )
-        )[0]
+        return self.links_by_tail_and_head_status(self.BC_NODE_IS_CORE,
+                                                  self.BC_NODE_IS_FIXED_VALUE)
 
     @property
     @cache_result_in_object()
@@ -1049,11 +1040,32 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.fixed_value_to_core_links
         array([ 5,  7,  9, 18])
         """
+        return self.links_by_tail_and_head_status(self.BC_NODE_IS_FIXED_VALUE,
+                                                  self.BC_NODE_IS_CORE)
+
+    def links_by_tail_and_head_status(self, status_at_tail, status_at_head):
+        """Return an array with the IDs of all links that join a fixed-value node (tail)
+        to a core node (head).
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((4, 5))
+        >>> fv = grid.BC_NODE_IS_FIXED_VALUE
+        >>> core = grid.BC_NODE_IS_CORE
+        >>> grid.status_at_node[13] = fv
+        >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
+        >>> grid.links_by_tail_and_head_status(core, core)
+        array([10, 11, 14, 15, 19])
+        >>> grid.links_by_tail_and_head_status(core, fv)
+        array([12, 16, 20, 23, 24])
+        >>> grid.links_by_tail_and_head_status(fv, core)
+        array([ 5,  7,  9, 18])
+        """
         return np.where(
             np.logical_and(
-                self.status_at_node[self.node_at_link_tail]
-                == self.BC_NODE_IS_FIXED_VALUE,
-                self.status_at_node[self.node_at_link_head] == self.BC_NODE_IS_CORE,
+                self.status_at_node[self.node_at_link_tail] == status_at_tail,
+                self.status_at_node[self.node_at_link_head] == status_at_head,
             )
         )[0]
 
