@@ -988,8 +988,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return np.where(self.status_at_link == LinkStatus.FIXED)[0]
 
     def links_by_tail_and_head_status(self, status_at_tail, status_at_head):
-        """Return an array with the IDs of all links that join a fixed-value node (tail)
-        to a core node (head).
+        """Return an array with the IDs of all links that join a node with
+        given status_at_tail to one with given status_at_head.
 
         Examples
         --------
