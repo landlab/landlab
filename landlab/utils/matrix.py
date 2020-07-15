@@ -56,14 +56,14 @@ def make_core_node_matrix(grid, value):
     2. TODO: use scipy sparse matrix to handle large grids
     """
     # Get the various types of active link
-    core2core = grid.links_by_tail_and_head_status(
-        grid.BC_NODE_IS_CORE, grid.BC_NODE_IS_CORE
+    core2core = grid.link_with_node_status(
+        status_at_tail=grid.BC_NODE_IS_CORE, status_at_head=grid.BC_NODE_IS_CORE
     )
-    fv2core = grid.links_by_tail_and_head_status(
-        grid.BC_NODE_IS_FIXED_VALUE, grid.BC_NODE_IS_CORE
+    fv2core = grid.links_with_node_status(
+        status_at_tail=grid.BC_NODE_IS_FIXED_VALUE, status_at_head=grid.BC_NODE_IS_CORE
     )
-    core2fv = grid.links_by_tail_and_head_status(
-        grid.BC_NODE_IS_CORE, grid.BC_NODE_IS_FIXED_VALUE
+    core2fv = grid.link_with_node_status(
+        status_at_tail=grid.BC_NODE_IS_CORE, status_at_head=grid.BC_NODE_IS_FIXED_VALUE
     )
 
     # Make the matrix and right-hand side vector
@@ -133,14 +133,14 @@ def make_core_node_matrix_var_coef(grid, value, coef):
     2. TODO: use scipy sparse matrix to handle large grids
     """
     # Get the various types of active link
-    core2core = grid.links_by_tail_and_head_status(
-        grid.BC_NODE_IS_CORE, grid.BC_NODE_IS_CORE
+    core2core = grid.link_with_node_status(
+        status_at_tail=grid.BC_NODE_IS_CORE, status_at_head=grid.BC_NODE_IS_CORE
     )
-    fv2core = grid.links_by_tail_and_head_status(
-        grid.BC_NODE_IS_FIXED_VALUE, grid.BC_NODE_IS_CORE
+    fv2core = grid.link_with_node_status(
+        status_at_tail=grid.BC_NODE_IS_FIXED_VALUE, status_at_head=grid.BC_NODE_IS_CORE
     )
-    core2fv = grid.links_by_tail_and_head_status(
-        grid.BC_NODE_IS_CORE, grid.BC_NODE_IS_FIXED_VALUE
+    core2fv = grid.link_with_node_status(
+        status_at_tail=grid.BC_NODE_IS_CORE, status_at_head=grid.BC_NODE_IS_FIXED_VALUE
     )
 
     # Make the matrix and right-hand side vector
