@@ -21,7 +21,9 @@ from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
-from .decorators import override_array_setitem_and_reset, return_readonly_id_array
+from .decorators import (
+    override_array_setitem_and_reset, return_id_array, return_readonly_id_array
+)
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
 
@@ -987,6 +989,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return np.where(self.status_at_link == LinkStatus.FIXED)[0]
 
+    @return_id_array
     def link_with_node_status(self, status_at_tail=None, status_at_head=None):
         """Links with a given node status.
 
