@@ -327,6 +327,8 @@ class Space(_GeneralizedErosionDeposition):
                 self._topographic__elevation - self._soil__depth
             )
 
+        self._sed_erosion_term = np.zeros(grid.number_of_nodes)
+        self._br_erosion_term = np.zeros(grid.number_of_nodes)
         self._Es = np.zeros(grid.number_of_nodes)
         self._Er = np.zeros(grid.number_of_nodes)
 
@@ -344,6 +346,8 @@ class Space(_GeneralizedErosionDeposition):
         elif solver == "adaptive":
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
+            self._time_to_zero_alluv = np.zeros(grid.number_of_nodes)
+            self._dzdt = np.zeros(grid.number_of_nodes)
         else:
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
@@ -370,8 +374,12 @@ class Space(_GeneralizedErosionDeposition):
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
         # if sp_crits are zero, then this colapses to correct all the time.
-        omega_sed = self._K_sed * self._Q_to_the_m * np.power(self._slope, self._n_sp)
-        omega_br = self._K_br * self._Q_to_the_m * np.power(self._slope, self._n_sp)
+        if self._n_sp == 1.0:
+            S_to_the_n = self._slope
+        else:
+            S_to_the_n = np.power(self._slope, self._n_sp)
+        omega_sed = self._K_sed * self._Q_to_the_m * S_to_the_n
+        omega_br = self._K_br * self._Q_to_the_m * S_to_the_n
 
         omega_sed_over_sp_crit = np.divide(
             omega_sed,
@@ -397,11 +405,10 @@ class Space(_GeneralizedErosionDeposition):
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
 
-        self._Es = self._sed_erosion_term * (
-            1.0 - np.exp(-self._soil__depth / self._H_star)
-        )
+        H_over_Hstar = self._soil__depth / self._H_star
+        self._Es = self._sed_erosion_term * (1.0 - np.exp(-H_over_Hstar))
 
-        self._Er = self._br_erosion_term * np.exp(-self._soil__depth / self._H_star)
+        self._Er = self._br_erosion_term * np.exp(-H_over_Hstar)
 
     @property
     def Es(self):
@@ -419,6 +426,7 @@ class Space(_GeneralizedErosionDeposition):
         return self._H
 
     def _calc_qs_in_and_depo_rate(self):
+
         # Choose a method for calculating erosion:
         self._calc_hydrology()
         self._calc_erosion_rates()
@@ -636,9 +644,6 @@ class Space(_GeneralizedErosionDeposition):
         br = self._grid.at_node["bedrock__elevation"]
         H = self._grid.at_node["soil__depth"]
         r = self._flow_receivers
-        time_to_flat = np.zeros(len(z))
-        time_to_zero_alluv = np.zeros(len(z))
-        dzdt = np.zeros(len(z))
         cores = self._grid.core_nodes
 
         first_iteration = True
@@ -662,39 +667,41 @@ class Space(_GeneralizedErosionDeposition):
             else:
                 first_iteration = False
 
-            is_flooded_core_node = self._calc_qs_in_and_depo_rate()
+            is_flooded_core_node = (
+                self._calc_qs_in_and_depo_rate()
+            )  # THIS IS THE SPEED BOTTLENECK
 
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
-            dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (
+            self._dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (
                 self._Es[cores] + self._Er[cores]
             )
-            rocdif = dzdt - dzdt[r]
+            rocdif = self._dzdt - self._dzdt[r]
             zdif = z - z[r]
-            time_to_flat[:] = remaining_time
+            self._time_to_flat[:] = remaining_time
 
             converging = np.where(rocdif < 0.0)[0]
-            time_to_flat[converging] = -(
+            self._time_to_flat[converging] = -(
                 TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
             )
-            time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
+            self._time_to_flat[np.where(zdif <= 0.0)[0]] = remaining_time
 
             # From this, find the maximum stable time step with regard to slope
             # evolution.
-            dt_max1 = np.amin(time_to_flat)
+            dt_max1 = np.amin(self._time_to_flat)
 
             # Next we consider time to exhaust regolith
-            time_to_zero_alluv[:] = remaining_time
+            self._time_to_zero_alluv[:] = remaining_time
 
             # poof deposition by phi
             dHdt = self._porosity_factor * (self._depo_rate - self._Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
-            time_to_zero_alluv[decreasing_H] = -(
+            self._time_to_zero_alluv[decreasing_H] = -(
                 TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
             )
 
             # Now find the smallest time that would lead to near-empty alluv
-            dt_max2 = np.amin(time_to_zero_alluv)
+            dt_max2 = np.amin(self._time_to_zero_alluv)
 
             # Take the smaller of the limits
             dt_max = max(self._dt_min, min(dt_max1, dt_max2))
