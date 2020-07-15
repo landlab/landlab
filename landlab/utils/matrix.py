@@ -59,7 +59,7 @@ def make_core_node_matrix(grid, value):
     core2core = grid.link_with_node_status(
         status_at_tail=grid.BC_NODE_IS_CORE, status_at_head=grid.BC_NODE_IS_CORE
     )
-    fv2core = grid.links_with_node_status(
+    fv2core = grid.link_with_node_status(
         status_at_tail=grid.BC_NODE_IS_FIXED_VALUE, status_at_head=grid.BC_NODE_IS_CORE
     )
     core2fv = grid.link_with_node_status(
