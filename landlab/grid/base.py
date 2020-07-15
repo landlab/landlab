@@ -1002,8 +1002,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.core_to_core_links
         array([10, 11, 14, 15, 19])
         """
-        return self.links_by_tail_and_head_status(self.BC_NODE_IS_CORE,
-                                                  self.BC_NODE_IS_CORE)
+        return self.links_by_tail_and_head_status(
+            self.BC_NODE_IS_CORE, self.BC_NODE_IS_CORE
+        )
 
     @property
     @cache_result_in_object()
@@ -1021,8 +1022,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.core_to_fixed_value_links
         array([12, 16, 20, 23, 24])
         """
-        return self.links_by_tail_and_head_status(self.BC_NODE_IS_CORE,
-                                                  self.BC_NODE_IS_FIXED_VALUE)
+        return self.links_by_tail_and_head_status(
+            self.BC_NODE_IS_CORE, self.BC_NODE_IS_FIXED_VALUE
+        )
 
     @property
     @cache_result_in_object()
@@ -1040,8 +1042,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.fixed_value_to_core_links
         array([ 5,  7,  9, 18])
         """
-        return self.links_by_tail_and_head_status(self.BC_NODE_IS_FIXED_VALUE,
-                                                  self.BC_NODE_IS_CORE)
+        return self.links_by_tail_and_head_status(
+            self.BC_NODE_IS_FIXED_VALUE, self.BC_NODE_IS_CORE
+        )
 
     def links_by_tail_and_head_status(self, status_at_tail, status_at_head):
         """Return an array with the IDs of all links that join a fixed-value node (tail)
@@ -1068,6 +1071,63 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
                 self.status_at_node[self.node_at_link_head] == status_at_head,
             )
         )[0]
+
+    def link_with_node_status(self, status_at_tail=None, status_at_head=None):
+        """Links with a given node status.
+
+        Parameters
+        ----------
+        status_at_tail : NodeStatus, optional
+            Status of the link tail node.
+        status_at_head : NodeStatus, optional
+            Status of the link head node.
+
+        Returns
+        -------
+        array of int
+            Links with the given tail and head node statuses.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, NodeStatus
+        >>> grid = RasterModelGrid((4, 5))
+
+        >>> grid.status_at_node[13] = NodeStatus.FIXED_VALUE
+        >>> grid.status_at_node[2] = NodeStatus.CLOSED
+        >>> grid.link_with_node_status(
+        ...     status_at_tail=NodeStatus.CORE, status_at_head=NodeStatus.CORE
+        ... )
+        array([10, 11, 14, 15, 19])
+        >>> grid.link_with_node_status(
+        ...     status_at_tail=NodeStatus.CORE, status_at_head=NodeStatus.FIXED_VALUE
+        ... )
+        array([12, 16, 20, 23, 24])
+        >>> grid.link_with_node_status(
+        ...     status_at_tail=NodeStatus.FIXED_VALUE, status_at_head=NodeStatus.CORE
+        ... )
+        array([ 5,  7,  9, 18])
+
+        >>> grid.link_with_node_status(status_at_head=NodeStatus.CORE)
+        array([ 5,  6,  7,  9, 10, 11, 14, 15, 18, 19])
+        >>> grid.link_with_node_status(status_at_tail=NodeStatus.CORE)
+        array([10, 11, 12, 14, 15, 16, 19, 20, 23, 24])
+        >>> grid.link_with_node_status()
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
+        """
+        masks = []
+        if status_at_tail is not None:
+            masks.append(self.status_at_node[self.node_at_link_tail] == status_at_tail)
+        if status_at_head is not None:
+            masks.append(self.status_at_node[self.node_at_link_head] == status_at_head)
+
+        if len(masks) == 0:
+            return np.arange(self.number_of_links, dtype=int)
+        if len(masks) == 1:
+            return np.where(masks[0])[0]
+        else:
+            return np.where(masks[0] & masks[1])[0]
+
 
     @property
     @cache_result_in_object()
