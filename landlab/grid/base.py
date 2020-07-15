@@ -987,32 +987,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return np.where(self.status_at_link == LinkStatus.FIXED)[0]
 
-    def links_by_tail_and_head_status(self, status_at_tail, status_at_head):
-        """Return an array with the IDs of all links that join a node with
-        given status_at_tail to one with given status_at_head.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> fv = grid.BC_NODE_IS_FIXED_VALUE
-        >>> core = grid.BC_NODE_IS_CORE
-        >>> grid.status_at_node[13] = fv
-        >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
-        >>> grid.links_by_tail_and_head_status(core, core).tolist()
-        [10, 11, 14, 15, 19]
-        >>> grid.links_by_tail_and_head_status(core, fv).tolist()
-        [12, 16, 20, 23, 24]
-        >>> grid.links_by_tail_and_head_status(fv, core).tolist()
-        [5, 7, 9, 18]
-        """
-        return np.where(
-            np.logical_and(
-                self.status_at_node[self.node_at_link_tail] == status_at_tail,
-                self.status_at_node[self.node_at_link_head] == status_at_head,
-            )
-        )[0]
-
     def link_with_node_status(self, status_at_tail=None, status_at_head=None):
         """Links with a given node status.
 
