@@ -30,16 +30,11 @@ def test_netcdf_write_uint8(tmpdir, format):
     grid.add_field("topographic__elevation", np.arange(12, dtype=np.uint8), at="node")
 
     with tmpdir.as_cwd():
-        if format != "NETCDF4":
-            with pytest.raises(RuntimeError):
-                to_netcdf(grid, "test.nc", format=format)
-        else:
-            to_netcdf(grid, "test.nc", format=format)
+        to_netcdf(grid, "test.nc", format=format)
 
-            assert_array_equal(
-                xr.open_dataset("test.nc")["at_node:topographic__elevation"],
-                grid.at_node["topographic__elevation"],
-            )
+        actual = xr.open_dataset("test.nc")["at_node:topographic__elevation"]
+        assert_array_equal(actual, grid.at_node["topographic__elevation"])
+        assert actual.dtype == np.uint8 if format == "NETCDF4" else np.int8
 
 
 @pytest.mark.parametrize("dtype", ("int32", "float32", "float64"))
