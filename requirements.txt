@@ -6,4 +6,4 @@ pyshp
 scipy
 statsmodels
 pandas
-xarray
+xarray>=0.16
