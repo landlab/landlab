@@ -1046,7 +1046,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return np.where(masks[0] & masks[1])[0]
 
-
     @property
     @cache_result_in_object()
     @return_readonly_id_array
