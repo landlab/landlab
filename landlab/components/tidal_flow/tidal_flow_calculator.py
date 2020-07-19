@@ -114,7 +114,7 @@ class TidalFlowCalculator(Component):
         >>> rate = tfc.calc_tidal_inundation_rate()
         >>> 0.5 * rate[5:10] * period  # depth in m
         array([ 0.  ,  0.25,  0.5 ,  0.75,  1.  ])
-        >>> rate]  # rate in m/s
+        >>> rate[5:10]  # rate in m/s
         array([  0.00000000e+00,   1.25000000e-05,   2.50000000e-05,
                   3.75000000e-05,   5.00000000e-05])
 
@@ -135,7 +135,7 @@ class TidalFlowCalculator(Component):
         TODO: use an "out" for matrix fn when available; use sparse option
         when available.
         """
-
+        print('hi')
         # Tidal mean water depth  and water surface elevation at nodes
         self._water_depth[:] = self.mean_sea_level - self._elev
         self._water_depth[self._water_depth <= 0.0] = self._min_depth
@@ -170,7 +170,7 @@ class TidalFlowCalculator(Component):
         # Solve for flood tide water-surface elevation
         tidal_wse = np.zeros(self.grid.number_of_nodes)
         tidal_wse[self.grid.core_nodes] = np.dot(np.linalg.inv(mat), rhs).flatten()
-
+        print(tidal_wse)
         # Calculate flood-tide water-surface gradient at links
         tidal_wse_grad = self.grid.calc_grad_at_link(tidal_wse)
 
@@ -179,7 +179,7 @@ class TidalFlowCalculator(Component):
             -velocity_coef[self.grid.active_links]
             * tidal_wse_grad[self.grid.active_links]
         )
-
+        print(self._flood_tide_vel)
         # For ebb tide, set up matrix and add boundary info to RHS vector
         mat, rhs = make_core_node_matrix_var_coef(
             self.grid, mean_water_surf_elev, self._diffusion_coef_at_links
@@ -199,8 +199,6 @@ class TidalFlowCalculator(Component):
         )
 
 # TODO:
-# - make a branch
-# - add test for vertical grid
 # - add test for hex grid
 # - allow roughness to be a field
 # - make properties
