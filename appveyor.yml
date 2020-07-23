@@ -8,57 +8,48 @@ environment:
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
-    - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_PY: 2.7
-      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
-      DISTUTILS_USE_SDK: 1
 
     - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda37-x64
-      CONDA_PY: 3.7
+      PYTHON: "C:\\Python38-x64"
 
     - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
-      CONDA_PY: 3.6
+      PYTHON: "C:\\Python37-x64"
+
+    - TARGET_ARCH: x64
+      PYTHON: "C:\\Python36-x64"
 
 platform:
   - x64
 
-os: Previous Visual Studio 2015
+# os: Previous Visual Studio 2015
 # os: Visual Studio 2013
 
 init:
-  - "ECHO %CONDA_INSTALL_LOCN% %CONDA_PY% %HOME% %PLATFORM%"
+  - "ECHO %PYTHON% %HOME% %PLATFORM%"
   - "ECHO %APPVEYOR_REPO_BRANCH%"
 
 install:
-  - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
-  - cmd: conda update --yes --quiet conda
-  - cmd: set PYTHONUNBUFFERED=1
-  - cmd: conda config --set always_yes yes
-  - cmd: pip install twine pytest pytest-cov pytest-datadir
-  - cmd: conda info
-  - cmd: conda list
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "%WITH_COMPILER% pip install twine wheel -r requirements-testing.txt -r requirements-notebooks.txt"
+  - "%WITH_COMPILER% python -VV"
 
 build: false
 
 test_script:
   - "%WITH_COMPILER% pip install numpy"
+  - "%WITH_COMPILER% pip install netcdf4==1.5.2"
   - "%WITH_COMPILER% pip install -e ."
-  - pytest -vvv
+  - "%WITH_COMPILER% pytest -vvv"
 
 after_test:
-  - cmd: python setup.py bdist_wheel
+  - "%WITH_COMPILER% python setup.py bdist_wheel"
 
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   - path: 'dist\*'
 
 deploy_script:
-  - cmd: python .ci/appveyor/pypi_upload.py
+  - cmd: "%WITH_COMPILER% python .ci/appveyor/pypi_upload.py"
 
 notifications:
   - provider: Slack

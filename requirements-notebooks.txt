@@ -1,0 +1,4 @@
+dask[array]
+jupyter
+holoviews
+nbformat

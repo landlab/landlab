@@ -12,7 +12,7 @@ FlowDirectorSteepest instead.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab import LinkStatus
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -53,9 +53,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorD8(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -68,8 +68,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
             0.        ,  0.        ,  0.        ,  0.        ])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag']
-    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
+    >>> mg.at_node['flow__sink_flag'].astype(int)
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1])
     >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
@@ -77,9 +77,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
+    ...     "topographic__elevation",
+    ...     topographic__elevation,
+    ...     at="node",
     ... )
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorD8(mg_2)
@@ -98,9 +98,65 @@ class FlowDirectorD8(_FlowDirectorToOne):
     array([0, 1, 2,
            3, 0, 5,
            6, 7, 8])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    O'Callaghan, J., Mark, D. (1984). The extraction of drainage networks from
+    digital elevation data. Computer Vision, Graphics, and Image Processing
+    28(3), 323 - 344. https://dx.doi.org/10.1016/s0734-189x(84)80011-0
+
     """
 
     _name = "FlowDirectorD8"
+
+    _info = {
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__sink_flag": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The steepest *downhill* slope",
+        },
+    }
 
     def __init__(self, grid, surface="topographic__elevation"):
         """
@@ -112,9 +168,14 @@ class FlowDirectorD8(_FlowDirectorToOne):
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """
-        self.method = "D8"
-        super(FlowDirectorD8, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        self._method = "D8"
+        super().__init__(grid, surface)
+        try:
+            self._grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         if self._is_Voroni:
             raise NotImplementedError(
                 "FlowDirectorD8 not implemented for"
@@ -130,8 +191,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
         Call this if boundary conditions on the grid are updated after
         the component is instantiated.
         """
-        self._active_links = self.grid.active_d8
-        nodes_at_d8 = self.grid.nodes_at_d8[self._active_links]
+        self._active_links = numpy.arange(self._grid.number_of_d8)
+        nodes_at_d8 = self._grid.nodes_at_d8[self._active_links]
         self._activelink_tail = nodes_at_d8[:, 0]
         self._activelink_head = nodes_at_d8[:, 1]
 
@@ -167,21 +228,20 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._changed_surface()
 
         # step 1. Calculate link slopes.
-        link_slope = -self._grid._calculate_gradients_at_d8_active_links(
-            self.surface_values
-        )
+        link_slope = -self._grid.calc_grad_at_d8(self._surface_values)
+        link_slope[self._grid.status_at_d8 != LinkStatus.ACTIVE] = 0
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_FIXED_VALUE,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_FIXED_GRADIENT,
             )
         )
 
         # Calculate flow directions by D8 method
         receiver, steepest_slope, sink, recvr_link = flow_direction_DN.flow_directions(
-            self.surface_values,
+            self._surface_values,
             self._active_links,
             self._activelink_tail,
             self._activelink_head,

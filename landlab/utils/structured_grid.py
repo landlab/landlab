@@ -5,15 +5,10 @@
 import itertools
 
 import numpy as np
-from six.moves import range
 
 from ..core.utils import as_id_array
-from ..grid.base import (
-    BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-)
+from ..grid.base import BAD_INDEX_VALUE
+from ..grid.nodestatus import NodeStatus
 
 
 def node_count(shape):
@@ -87,8 +82,8 @@ def active_cell_count(shape):
 def core_cell_count(shape):
     """Number of core cells.
 
-    Number of core cells. By default, all cells are core so this is
-    the same as cell_count.
+    Number of core cells. By default, all cells are core so this is the
+    same as cell_count.
     """
     return cell_count(shape)
 
@@ -160,8 +155,8 @@ def perimeter_node_count(shape):
 def interior_cell_count(shape):
     """Number of interior cells.
 
-    Number of interior cells. Since cells are only defined on interior nodes,
-    this is the same as cell_count.
+    Number of interior cells. Since cells are only defined on interior
+    nodes, this is the same as cell_count.
     """
     return cell_count(shape)
 
@@ -265,30 +260,6 @@ def bottom_top_iter(shape):
     return itertools.chain(bottom_index_iter(shape), top_index_iter(shape))
 
 
-def boundary_iter(shape):
-    """Iterator for perimeter nodes.
-
-    .. deprecated:: 0.6
-
-        Deprecated due to imprecise terminology. This is really perimeter_iter
-        (see below).
-        Iterates over all of the boundary node indices of a structured grid in
-        order.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.utils.structured_grid import boundary_iter
-    >>> np.fromiter(boundary_iter((4, 3)), dtype=np.int)
-    array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
-    """
-    return itertools.chain(
-        bottom_index_iter(shape),
-        left_right_iter(shape, 1, shape[0] - 1),
-        top_index_iter(shape),
-    )
-
-
 def perimeter_iter(shape):
     """Iterator for perimeter nodes.
 
@@ -307,24 +278,6 @@ def perimeter_iter(shape):
         left_right_iter(shape, 1, shape[0] - 1),
         top_index_iter(shape),
     )
-
-
-def boundary_nodes(shape):
-    """Array of perimeter nodes.
-
-    .. deprecated:: 0.6
-        Deprecated due to imprecise terminology. This is really perimeter_iter
-        (see below).
-
-    An array of the indices of the boundary nodes.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import boundary_nodes
-    >>> boundary_nodes((3, 4))
-    array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
-    """
-    return np.fromiter(boundary_iter(shape), dtype=np.int)
 
 
 def perimeter_nodes(shape):
@@ -523,17 +476,17 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     return link_faces
 
 
-def status_at_node(shape, boundary_status=FIXED_VALUE_BOUNDARY):
+def status_at_node(shape, boundary_status=NodeStatus.FIXED_VALUE):
     """Array of the statuses of nodes.
 
-    The statuses of the nodes in a structured grid with dimensions, *shape*.
-    Use the *boundary_status* keyword to specify the status of the top,
-    bottom, left and right boundary nodes.
+    The statuses of the nodes in a structured grid with dimensions,
+    *shape*. Use the *boundary_status* keyword to specify the status of
+    the top, bottom, left and right boundary nodes.
     """
     status = np.empty(np.prod(shape), dtype=np.int8)
 
-    status[interior_nodes(shape)] = CORE_NODE
-    status[boundary_nodes(shape)] = boundary_status
+    status[interior_nodes(shape)] = NodeStatus.CORE
+    status[perimeter_nodes(shape)] = boundary_status
 
     return status
 
@@ -544,7 +497,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     Return the link IDs for links that are *active* in a structured grid of
     quadrilaterals. Use the *node_status_array* keyword to specify the status
     for each of the grid's nodes. If not given, each of the perimeter nodes is
-    assumed to be `FIXED_VALUE_BOUNDARY`.
+    assumed to be `NodeStatus.FIXED_VALUE`.
 
     Use the *link_nodes* keyword to provide, as a tuple of arrays, that give
     the *from-node* and the *to-node* for each for each link in the grid.
@@ -559,19 +512,19 @@ def active_links(shape, node_status_array=None, link_nodes=None):
 
     Examples
     --------
-    Because, by default, the perimeter nodes are `FIXED_VALUE_BOUNDARY` nodes,
+    Because, by default, the perimeter nodes are `NodeStatus.FIXED_VALUE` nodes,
     only links attached to the interior nodes are *active*.
 
     >>> from landlab.utils.structured_grid import active_links
-    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
+    >>> from landlab.grid.nodestatus import NodeStatus
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
 
-    If all the perimeter nodes `CLOSED_BOUNDARY` nodes, the only active link
+    If all the perimeter nodes `NodeStatus.CLOSED` nodes, the only active link
     is between the two core nodes.
 
-    >>> node_status = np.ones(3 * 4) * CLOSED_BOUNDARY
-    >>> node_status[5:7] = CORE_NODE
+    >>> node_status = np.ones(3 * 4) * NodeStatus.CLOSED
+    >>> node_status[5:7] = NodeStatus.CORE
     >>> active_links((3, 4), node_status_array=node_status)
     array([12])
 
@@ -594,8 +547,8 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     to_node_status = node_status_array[link_to_node]
 
     active_links_ = (
-        (from_node_status == CORE_NODE) & ~(to_node_status == CLOSED_BOUNDARY)
-    ) | ((to_node_status == CORE_NODE) & ~(from_node_status == CLOSED_BOUNDARY))
+        (from_node_status == NodeStatus.CORE) & ~(to_node_status == NodeStatus.CLOSED)
+    ) | ((to_node_status == NodeStatus.CORE) & ~(from_node_status == NodeStatus.CLOSED))
 
     (active_links_,) = np.where(active_links_)
 
@@ -1301,7 +1254,7 @@ def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
 
     Use the *node_status_array* keyword to specify the status for each of the
     grid's nodes. If not given, each of the perimeter nodes is assumed to be
-    `FIXED_VALUE_BOUNDARY`.
+    `NodeStatus.FIXED_VALUE`.
 
     Parameters
     ----------
@@ -1353,7 +1306,7 @@ def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
 
     Use the *node_status_array* keyword to specify the status for each of
     the grid's nodes. If not given, each of the perimeter nodes is assumed
-    to be `FIXED_VALUE_BOUNDARY`.
+    to be `NodeStatus.FIXED_VALUE`.
 
     Parameters
     ----------
@@ -1405,7 +1358,7 @@ def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
 
     Use the *node_status_array* keyword to specify the status for each of the
     grid's nodes. If not given, each of the perimeter nodes is assumed to be
-    `FIXED_VALUE_BOUNDARY`.
+    `NodeStatus.FIXED_VALUE`.
 
     Parameters
     ----------
@@ -1462,7 +1415,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 
     (interiors, boundaries) = (
         interior_nodes(shape_with_halo),
-        boundary_nodes(shape_with_halo),
+        perimeter_nodes(shape_with_halo),
     )
 
     ids.flat[interiors] = range(interior_node_count(shape_with_halo))
@@ -1691,7 +1644,7 @@ def diagonal_node_array(
     if boundary_node_mask is not None:
         boundaries = np.empty(4, dtype=np.int)
         boundaries.fill(boundary_node_mask)
-        diags[boundary_nodes(shape)] = boundaries
+        diags[perimeter_nodes(shape)] = boundaries
 
     if contiguous:
         return diags.copy()

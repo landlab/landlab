@@ -1,0 +1,8 @@
+name: landlab_notebooks
+channels:
+  - conda-forge
+dependencies:
+- landlab>=2.1
+- pip
+- pip:
+  - -r file:requirements-notebooks.txt

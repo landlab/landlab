@@ -5,7 +5,7 @@ cimport cython
 from libc.stdlib cimport malloc, free, qsort
 from libc.math cimport atan2
 
-from argsort cimport argsort
+from .argsort cimport argsort
 
 
 cdef _calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
@@ -15,6 +15,8 @@ cdef _calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
     cdef double y0 = hub[1]
     cdef double * spoke = spokes
     cdef double two_pi = 2. * np.pi
+    cdef double x
+    cdef double y
 
     for i in range(n_spokes):
         x = spoke[0]
@@ -96,7 +98,7 @@ cdef _sort_spokes_around_hub(long * spokes, int n_spokes, double * xy_of_spoke,
 def calc_spoke_angles(np.ndarray[double, ndim=1, mode="c"] hub,
                       np.ndarray[double, ndim=1, mode="c"] spokes,
                       np.ndarray[double, ndim=1, mode="c"] angles):
-    cdef int n_spokes = spokes.size // 2
+    cdef int n_spokes = spokes.shape[0] // 2
     _calc_spoke_angles(&hub[0], &spokes[0], n_spokes, &angles[0])
 
 
@@ -104,7 +106,7 @@ def calc_spoke_angles(np.ndarray[double, ndim=1, mode="c"] hub,
 def sort_spokes_around_hub(np.ndarray[long, ndim=1, mode="c"] spokes,
                            np.ndarray[double, ndim=2, mode="c"] xy_of_spoke,
                            np.ndarray[double, ndim=1, mode="c"] xy_of_hub):
-    cdef int n_spokes = spokes.size
+    cdef int n_spokes = spokes.shape[0]
 
     _sort_spokes_around_hub(&spokes[0], n_spokes, &xy_of_spoke[0, 0],
                             &xy_of_hub[0])
@@ -185,13 +187,20 @@ def sort_spokes_at_wheel(np.ndarray[long, ndim=1, mode="c"] spokes_at_wheel,
     cdef int n_wheels = len(offset_to_wheel) - 1
     cdef int i
     cdef int n_spokes
+    cdef int spoke
     cdef long * wheel
 
-    wheel = &spokes_at_wheel[0]
+    # wheel = &spokes_at_wheel[0]
     for i in range(n_wheels):
+        # wheel = &spokes_at_wheel[0] + offset_to_wheel[i]
+        wheel = &spokes_at_wheel[offset_to_wheel[i]]
         n_spokes = offset_to_wheel[i + 1] - offset_to_wheel[i]
+        # n_spokes = spokes_per_wheel[i]
+        for spoke in range(n_spokes):
+            if wheel[spoke] == -1:
+                n_spokes = spoke
+                break
 
         _sort_spokes_around_hub(wheel, n_spokes, &xy_of_spoke[0, 0],
                                 &xy_of_hub[i, 0])
-
-        wheel += n_spokes
+        # wheel += n_spokes

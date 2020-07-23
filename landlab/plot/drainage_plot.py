@@ -1,19 +1,10 @@
-"""Plot drainage network.
-
-"""
+"""Plot drainage network."""
 import matplotlib.pylab as plt
 import numpy as np
 
-# KRB, FEB 2017.
-import six
-
-from landlab import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-)
 from landlab.plot.imshow import imshow_grid
+
+# KRB, FEB 2017.
 
 
 def drainage_plot(
@@ -26,7 +17,7 @@ def drainage_plot(
     title="Drainage Plot",
 ):
 
-    if isinstance(surface, six.string_types):
+    if isinstance(surface, str):
         colorbar_label = surface
     else:
         colorbar_label = "topographic_elevation"
@@ -80,30 +71,30 @@ def drainage_plot(
         )
 
     # Plot differen types of nodes:
-    o, = plt.plot(
-        mg.x_of_node[mg.status_at_node == CORE_NODE],
-        mg.y_of_node[mg.status_at_node == CORE_NODE],
+    (o,) = plt.plot(
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
         "b.",
         label="Core Nodes",
         zorder=4,
     )
-    fg, = plt.plot(
-        mg.x_of_node[mg.status_at_node == FIXED_VALUE_BOUNDARY],
-        mg.y_of_node[mg.status_at_node == FIXED_VALUE_BOUNDARY],
+    (fg,) = plt.plot(
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE],
         "c.",
         label="Fixed Gradient Nodes",
         zorder=5,
     )
-    fv, = plt.plot(
-        mg.x_of_node[mg.status_at_node == FIXED_GRADIENT_BOUNDARY],
-        mg.y_of_node[mg.status_at_node == FIXED_GRADIENT_BOUNDARY],
+    (fv,) = plt.plot(
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_GRADIENT],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_GRADIENT],
         "g.",
         label="Fixed Value Nodes",
         zorder=6,
     )
-    c, = plt.plot(
-        mg.x_of_node[mg.status_at_node == CLOSED_BOUNDARY],
-        mg.y_of_node[mg.status_at_node == CLOSED_BOUNDARY],
+    (c,) = plt.plot(
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CLOSED],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CLOSED],
         "r.",
         label="Closed Nodes",
         zorder=7,
@@ -112,7 +103,7 @@ def drainage_plot(
     node_id = np.arange(mg.number_of_nodes)
     flow_to_self = receivers[:, 0] == node_id
 
-    fts, = plt.plot(
+    (fts,) = plt.plot(
         mg.x_of_node[flow_to_self],
         mg.y_of_node[flow_to_self],
         "kx",

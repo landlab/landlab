@@ -39,9 +39,23 @@ class LithoLayers(Lithology):
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
 
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Hutton, E., Gasparini, N., Tucker, G. (2018). Lithology: A
+    Landlab submodule for spatially variable rock properties. Journal of Open
+    Source Software  3(30), 979 - 2. https://dx.doi.org/10.21105/joss.00979
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "LithoLayers"
+
+    _unit_agnostic = True
 
     _cite_as = """@article{barnhart2018lithology,
                     title = "Lithology: A Landlab submodule for spatially variable rock properties",
@@ -53,6 +67,8 @@ class LithoLayers(Lithology):
                     author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
                     }"""
 
+    _info = {}
+
     def __init__(
         self,
         grid,
@@ -63,6 +79,8 @@ class LithoLayers(Lithology):
         y0=0,
         function=lambda x, y: 0 * x + 0 * y,
         layer_type="EventLayers",
+        dz_advection=0,
+        rock_id=None,
     ):
         """Create a new instance of a LithoLayers.
 
@@ -83,7 +101,7 @@ class LithoLayers(Lithology):
             y value of anchor point for all layers.
         function : function, optional
             Functional form of layers as a function of two variables, x and y.
-            Default value is lambda x, y: 0*x + 0*y for flatlying layers.
+            Default value is `lambda x, y: 0*x + 0*y` for flatlying layers.
         layer_type : str, optional
             Type of Landlab layers object used to store the layers. If
             MaterialLayers (default) is specified, then erosion removes material
@@ -91,6 +109,12 @@ class LithoLayers(Lithology):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
+            Change in rock elevation due to advection by some external process.
+            This can be changed using the property setter.
+        rock_id : value or `(n_nodes, )` shape array, optional
+            Rock type id for new material if deposited.
+            This can be changed using the property setter.
 
         Examples
         --------
@@ -140,7 +164,6 @@ class LithoLayers(Lithology):
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
                 0.001 ,  0.0001])
         """
-        self._grid = grid
 
         function_args = function.__code__.co_varnames
         if len(function_args) != 2:
@@ -155,10 +178,10 @@ class LithoLayers(Lithology):
             msg = "LithoLayers: Bad layer depth order passed."
             raise ValueError(msg)
 
-        z_surf = function(self._grid.x_of_node - x0, self._grid.y_of_node - y0)
+        z_surf = function(grid.x_of_node - x0, grid.y_of_node - y0)
 
         if hasattr(z_surf, "shape"):
-            if z_surf.shape != self._grid.x_of_node.shape:
+            if z_surf.shape != grid.x_of_node.shape:
                 msg = "LithoLayers: function must return an array of shape (n_nodes,)"
                 raise ValueError(msg)
         else:
@@ -170,7 +193,7 @@ class LithoLayers(Lithology):
 
         num_layers = np.asarray(z0s).size
 
-        last_layer_elev = np.zeros(self._grid.number_of_nodes)
+        last_layer_elev = np.zeros(grid.number_of_nodes)
 
         # create layers (here listed from the top to the bottom.)
         for i in range(num_layers):
@@ -185,6 +208,12 @@ class LithoLayers(Lithology):
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
-        super(LithoLayers, self).__init__(
-            grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type
+        super().__init__(
+            grid,
+            layer_thicknesses,
+            layer_ids,
+            attrs,
+            layer_type=layer_type,
+            dz_advection=dz_advection,
+            rock_id=rock_id,
         )

@@ -7,8 +7,7 @@ from landlab import FieldError
 
 
 def get_watershed_mask(grid, outlet_id):
-    """
-    Get the watershed of an outlet returned as a boolean array.
+    """Get the watershed of an outlet returned as a boolean array.
 
     Parameters
     ----------
@@ -101,8 +100,7 @@ def get_watershed_mask(grid, outlet_id):
 
 
 def get_watershed_nodes(grid, outlet_id):
-    """
-    Get the watershed of an outlet returned as a list of nodes.
+    """Get the watershed of an outlet returned as a list of nodes.
 
     Parameters
     ----------
@@ -158,8 +156,7 @@ def get_watershed_nodes(grid, outlet_id):
 
 
 def get_watershed_masks(grid):
-    """
-    Assign the watershed outlet id to all nodes in the grid.
+    """Assign the watershed outlet id to all nodes in the grid.
 
     Parameters
     ----------
@@ -210,7 +207,6 @@ def get_watershed_masks(grid):
            [28,  2,  2,  2, 18, 18, 34],
            [35,  2,  2,  2, 18, 18, 41],
            [42, 43, 44, 45, 46, 47, 48]])
-
     """
     upstream_node_order = grid.at_node["flow__upstream_node_order"]
     flow__receiver_node = grid.at_node["flow__receiver_node"]
@@ -223,8 +219,7 @@ def get_watershed_masks(grid):
 
 
 def get_watershed_masks_with_area_threshold(grid, critical_area):
-    """
-    Get masks of all of the watersheds with a minimum drainage area size.
+    """Get masks of all of the watersheds with a minimum drainage area size.
 
     Parameters
     ----------
@@ -279,7 +274,6 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
     >>> below_critical_area_nodes = A < critical_area
     >>> np.all(below_critical_area_nodes)
     True
-
     """
     watershed_masks = get_watershed_masks(grid)
     area = grid.at_node["drainage_area"]
@@ -293,8 +287,7 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
 
 
 def get_watershed_outlet(grid, source_node_id):
-    """
-    Get the downstream-most node (the outlet) of the source node.
+    """Get the downstream-most node (the outlet) of the source node.
 
     Parameters
     ----------

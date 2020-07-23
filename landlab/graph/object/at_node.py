@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 
 from ...core.utils import as_id_array
@@ -32,7 +30,7 @@ def get_links_at_node(graph, sort=False):
 
     max_node_count = np.max(node_count)
 
-    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0, dtype=int)
+    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0, dtype=np.int8)
     links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
 
     get_links_at_node(graph.nodes_at_link, links_at_node, link_dirs_at_node)
@@ -46,7 +44,7 @@ def get_links_at_node(graph, sort=False):
 
 
 def sort_links_at_node_by_angle(
-    links_at_node, link_dirs_at_node, angle_of_link, inplace=True
+    links_at_node, link_dirs_at_node, angle_of_link, inplace=False
 ):
     """Sort links as spokes about a hub.
 
@@ -71,11 +69,13 @@ def sort_links_at_node_by_angle(
     >>> from landlab.graph.object.at_node import sort_links_at_node_by_angle
 
     ::
+
         (1) - 1 -> (3)
          |          ^
          2          3
          V          |
         (0) - 0 -> (2)
+
 
     >>> links_at_node = [[2, 0], [1, 2], [3, 0], [3, 1]]
     >>> link_dirs_at_node = [[1, -1], [-1, -1], [-1, 1], [1, 1]]
@@ -93,7 +93,7 @@ def sort_links_at_node_by_angle(
     The second item is the direction of the link (entering or leaving).
 
     >>> out[1] # doctest: +NORMALIZE_WHITESPACE
-    array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]])
+    array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
 
     Because the input arrays are lists, not numpy arrays, the sort is not
     in-place.
@@ -101,28 +101,29 @@ def sort_links_at_node_by_angle(
     >>> out[0] is not links_at_node
     True
 
-    >>> links_at_node = np.asarray([[2, 0], [1, 2], [3, 0], [3, 1]])
-    >>> link_dirs_at_node = np.asarray([[1, -1], [-1, -1], [-1, 1], [1, 1]])
+    >>> links_at_node = np.asarray([[2, 0], [1, 2], [3, 0], [3, 1]], dtype=int)
+    >>> link_dirs_at_node = np.asarray([[1, -1], [-1, -1], [-1, 1], [1, 1]], dtype=np.int8)
     >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
 
     >>> _ = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-    ...     angle_of_link)
+    ...     angle_of_link, inplace=True)
     >>> links_at_node # doctest: +NORMALIZE_WHITESPACE
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
     >>> link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]])
+    array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
-    from .ext.at_node import reorder_links_at_node
+    from .ext.at_node import reorder_links_at_node, reorder_link_dirs_at_node
 
     out = (
         np.asarray(links_at_node, dtype=int),
-        np.asarray(link_dirs_at_node, dtype=int),
+        np.asarray(link_dirs_at_node, dtype=np.int8),
     )
 
     if inplace:
         if out[0] is not links_at_node or out[1] is not link_dirs_at_node:
-            inplace = False
-            warnings.warn("input must be ndarray of int for in-place sort")
+            raise ValueError(
+                "links_at_node and link_dirs_at_node arrays must be ndarray for in-place sort"
+            )
 
     if not inplace:
         if out[0] is links_at_node:
@@ -143,6 +144,6 @@ def sort_links_at_node_by_angle(
     sorted_links = as_id_array(np.argsort(outward_angle))
 
     reorder_links_at_node(links_at_node, sorted_links)
-    reorder_links_at_node(link_dirs_at_node, sorted_links)
+    reorder_link_dirs_at_node(link_dirs_at_node, sorted_links)
 
     return links_at_node, link_dirs_at_node
