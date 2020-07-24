@@ -3,6 +3,7 @@
 """Functions to set up a finite-volume solution matrix for a landlab grid."""
 
 import numpy as np
+from scipy.sparse import lil_matrix
 
 
 def matrix_row_at_node(grid):
@@ -24,7 +25,7 @@ def matrix_row_at_node(grid):
     return matrix_row_at_node
 
 
-def make_core_node_matrix(grid, value):
+def make_core_node_matrix(grid, value, sparse=False):
     """
     Construct and return a matrix for the core nodes, plus a right-hand side vector
     containing values based on the input array `value`.
@@ -49,11 +50,17 @@ def make_core_node_matrix(grid, value):
            [-25.],
            [-26.],
            [-30.]])
+    >>> mat, rhs = make_core_node_matrix(grid, vals, sparse=True)
+    >>> mat.toarray()
+    array([[-4.,  1.,  0.,  1.,  0.],
+       [ 1., -3.,  1.,  0.,  1.],
+       [ 0.,  1., -4.,  0.,  0.],
+       [ 1.,  0.,  0., -4.,  1.],
+       [ 0.,  1.,  0.,  1., -4.]])
 
     Notes
     -----
     1. TODO: good candidate for cythonization
-    2. TODO: use scipy sparse matrix to handle large grids
     """
     # Get the various types of active link
     core2core = grid.link_with_node_status(
@@ -67,7 +74,10 @@ def make_core_node_matrix(grid, value):
     )
 
     # Make the matrix and right-hand side vector
-    mat = np.zeros((grid.number_of_core_nodes, grid.number_of_core_nodes))
+    if sparse:
+        mat = lil_matrix((grid.number_of_core_nodes, grid.number_of_core_nodes))
+    else:
+        mat = np.zeros((grid.number_of_core_nodes, grid.number_of_core_nodes))
     rhs = np.zeros((grid.number_of_core_nodes, 1))
 
     # Get matrix row indices for each of the nodes
@@ -96,10 +106,13 @@ def make_core_node_matrix(grid, value):
         mat[matrow[h], matrow[h]] -= 1
         rhs[matrow[h]] -= value[t]
 
+    if sparse:
+        mat = mat.tocsr()  # convert to Compressed Sparse Row format
+
     return mat, rhs
 
 
-def make_core_node_matrix_var_coef(grid, value, coef):
+def make_core_node_matrix_var_coef(grid, value, coef, sparse=False):
     """
     Construct and return a matrix for the core nodes, plus a right-hand side vector
     containing values based on the input array `value`. This version includes a
@@ -126,11 +139,17 @@ def make_core_node_matrix_var_coef(grid, value, coef):
            [-25.],
            [-26.],
            [-30.]])
+    >>> mat, rhs = make_core_node_matrix_var_coef(grid, vals, coefs, sparse=True)
+    >>> mat.toarray()
+    array([[-4.,  1.,  0.,  1.,  0.],
+       [ 1., -3.,  1.,  0.,  1.],
+       [ 0.,  1., -4.,  0.,  0.],
+       [ 1.,  0.,  0., -4.,  1.],
+       [ 0.,  1.,  0.,  1., -4.]])
 
     Notes
     -----
     1. TODO: good candidate for cythonization
-    2. TODO: use scipy sparse matrix to handle large grids
     """
     # Get the various types of active link
     core2core = grid.link_with_node_status(
@@ -144,7 +163,10 @@ def make_core_node_matrix_var_coef(grid, value, coef):
     )
 
     # Make the matrix and right-hand side vector
-    mat = np.zeros((grid.number_of_core_nodes, grid.number_of_core_nodes))
+    if sparse:
+        mat = lil_matrix((grid.number_of_core_nodes, grid.number_of_core_nodes))
+    else:
+        mat = np.zeros((grid.number_of_core_nodes, grid.number_of_core_nodes))
     rhs = np.zeros((grid.number_of_core_nodes, 1))
 
     # Get matrix row indices for each of the nodes
@@ -172,5 +194,8 @@ def make_core_node_matrix_var_coef(grid, value, coef):
         h = grid.node_at_link_head[ln]
         mat[matrow[h], matrow[h]] -= coef[ln]
         rhs[matrow[h]] -= value[t]
+
+    if sparse:
+        mat = mat.tocsr()  # convert to Compressed Sparse Row format
 
     return mat, rhs
