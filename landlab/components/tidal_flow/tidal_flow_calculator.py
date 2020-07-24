@@ -7,6 +7,7 @@ Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 import numpy as np
 from landlab import Component, RasterModelGrid, HexModelGrid
 from landlab.utils import make_core_node_matrix_var_coef
+from landlab.utils.return_array import return_array_at_link
 from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
 _FOUR_THIRDS = 4.0 / 3.0
@@ -61,11 +62,29 @@ class TidalFlowCalculator(Component):
         tidal_range=1.0,
         tidal_period=_M2_PERIOD,
         roughness=0.01,
-        scale_velocity=1.0,
         mean_sea_level=0.0,
+        scale_velocity=1.0,
         min_water_depth=0.01,
     ):
-        """Initialize TidalFlowCalculator."""
+        """Initialize TidalFlowCalculator.
+        
+        Parameters
+        ----------
+        grid : RasterModelGrid or HexModelGrid
+            A Landlab grid object.
+        tidal_range : float, optional
+            Tidal range (2x tidal amplitude) (m).
+        tidal_period : float, optional
+            Tidal perioid (s).
+        roughness : float, array, or field name; optional
+            Manning roughness coefficient ("n") (s/m^1/3).
+        mean_sea_level : float, optional
+            Mean sea level (m).
+        scale_velocity : float, optional
+            Scale velocity (see Mariotti, 2018) (m/s).
+        min_water_depth : float, optional
+            Minimum depth for calculating diffusion coefficient (m).
+        """
 
         # Handle grid type
         if isinstance(grid, RasterModelGrid):
@@ -88,18 +107,56 @@ class TidalFlowCalculator(Component):
 
         # Handle inputs
         # TODO: make properties
-        self.tidal_range = tidal_range
+        self._roughness = roughness  # uses setter below
+        self._tidal_range = tidal_range
         self._tidal_half_range = tidal_range / 2.0
-        self.tidal_period = tidal_period
+        self._tidal_period = tidal_period
         self._tidal_half_period = tidal_period / 2.0
         self._scale_velocity = scale_velocity
-        self.roughness = roughness  # TODO: replace with a field
-        self.mean_sea_level = mean_sea_level
+        self._mean_sea_level = mean_sea_level
         self._min_depth = min_water_depth
 
         # Make other data structures
         self._water_depth_at_links = np.zeros(grid.number_of_links)
         self._diffusion_coef_at_links = np.zeros(grid.number_of_links)
+
+    @property
+    def roughness(self):
+        """Roughness coefficient (Manning's n)."""
+        return self._roughness
+
+    @roughness.setter
+    def roughness(self, new_val):
+        self._roughness = return_array_at_link(self.grid, new_val)
+
+    @property
+    def tidal_range(self):
+        """Tidal range."""
+        return self._tidal_range
+
+    @tidal_range.setter
+    def tidal_range(self, new_val):
+        self._tidal_range = new_val
+        self._tidal_half_range = new_val / 2
+
+    @property
+    def tidal_period(self):
+        """Tidal period."""
+        return self._tidal_period
+
+    @tidal_period.setter
+    def tidal_period(self, new_val):
+        self._tidal_period = new_val
+        self._tidal_half_period = new_val / 2
+
+    @property
+    def mean_sea_level(self):
+        """Mean sea level."""
+        return self._mean_sea_level
+
+    @mean_sea_level.setter
+    def tidal_period(self, new_val):
+        self._mean_sea_level = new_val
 
     def calc_tidal_inundation_rate(self):
         """Calculate and store the rate of inundation/draining at each node, averaged over a tidal half-cycle.
@@ -200,8 +257,7 @@ class TidalFlowCalculator(Component):
 
 
 # TODO:
-# - allow roughness to be a field
-# - make properties
 # - use sparse matrix
 # - add "out" to matrix fns
+# - check test coverage and add as needed
 # - make demo notebook

@@ -181,6 +181,6 @@ def test_with_hex_grid():
     assert_array_almost_equal(q[3:7], [0.0002625, 0.0002625, 0.0002625, 0.0002625])
 
 
-# test_constant_depth_deeper_than_tidal_amplitude()
-# test_constant_depth_deeper_than_tidal_amplitude_alt_grid()
+test_constant_depth_deeper_than_tidal_amplitude()
+test_constant_depth_deeper_than_tidal_amplitude_alt_grid()
 test_with_hex_grid()
