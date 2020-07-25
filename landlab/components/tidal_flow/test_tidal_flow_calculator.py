@@ -7,8 +7,9 @@ Created on Sun Jul 12 10:22:59 2020
 """
 
 from tidal_flow_calculator import TidalFlowCalculator
-from numpy.testing import assert_array_almost_equal
-from landlab import RasterModelGrid, HexModelGrid
+import numpy as np
+from numpy.testing import assert_equal, assert_array_equal, assert_array_almost_equal, assert_raises
+from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
 
 
 def test_constant_depth_deeper_than_tidal_amplitude():
@@ -181,6 +182,33 @@ def test_with_hex_grid():
     assert_array_almost_equal(q[3:7], [0.0002625, 0.0002625, 0.0002625, 0.0002625])
 
 
+def test_wrong_grid_type_error():
+    grid = RadialModelGrid(2)
+    assert_raises(TypeError, TidalFlowCalculator, grid)
+
+
+def test_getters_and_setters():
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("topographic__elevation", at="node")
+    tfc = TidalFlowCalculator(grid)
+
+    tfc.roughness = 0.01
+    assert_array_equal(tfc.roughness, 0.01 + np.zeros(grid.number_of_links))
+
+    tfc.tidal_range = 4.0
+    assert_equal(tfc.tidal_range, 4.0)
+    assert_equal(tfc._tidal_half_range, 2.0)
+
+    tfc.tidal_period = 40000.0
+    assert_equal(tfc.tidal_period, 40000.0)
+    assert_equal(tfc._tidal_half_period, 20000.0)
+
+    tfc.mean_sea_level = 1.0
+    assert_equal(tfc.mean_sea_level, 1.0)
+
+
 test_constant_depth_deeper_than_tidal_amplitude()
 test_constant_depth_deeper_than_tidal_amplitude_alt_grid()
 test_with_hex_grid()
+test_wrong_grid_type_error()
+test_getters_and_setters()
