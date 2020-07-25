@@ -107,7 +107,6 @@ class TidalFlowCalculator(Component):
         self._ebb_tide_vel = self.grid.at_link["ebb_tide_flow__velocity"]
 
         # Handle inputs
-        # TODO: make properties
         self._roughness = roughness  # uses setter below
         self._tidal_range = tidal_range
         self._tidal_half_range = tidal_range / 2.0
@@ -251,8 +250,3 @@ class TidalFlowCalculator(Component):
             -velocity_coef[self.grid.active_links]
             * tidal_wse_grad[self.grid.active_links]
         )
-
-
-# TODO:
-# - check test coverage and add as needed
-# - make demo notebook
