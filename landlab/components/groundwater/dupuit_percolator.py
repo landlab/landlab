@@ -332,9 +332,9 @@ class GroundwaterDupuitPercolator(Component):
             Optional function that will be executed at the end of each sub-timestep
             in the run_with_adaptive_time_step_solver method. Intended purpose
             is to write output not otherwise visible outside of the method call.
-            The function should have two required arguments:
+            The function should have three required arguments:
             grid: the ModelGrid instance used by GroundwaterDupuitPercolator
-            recharge_rate: an array at node that is the component recharge rate
+            recharge_rate: an array at node that is the specified recharge rate
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
         """
