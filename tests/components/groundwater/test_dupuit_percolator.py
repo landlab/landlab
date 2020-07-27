@@ -325,7 +325,7 @@ def test_callback_func():
     storage_subdt = []
     subdt = []
 
-    def test_fun(grid, dt, n=0.2):
+    def test_fun(grid, recharge, dt, n=0.2):
         cores = grid.core_nodes
         h = grid.at_node["aquifer__thickness"]
         area = grid.cell_area_at_node
