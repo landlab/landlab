@@ -177,7 +177,7 @@ def _make_array_of_donors(r, delta):
     return D
 
 
-def make_ordered_node_array(receiver_nodes):
+def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
 
     """Create an array of node IDs that is arranged in order from.
 
@@ -198,9 +198,12 @@ def make_ordered_node_array(receiver_nodes):
     """
     node_id = numpy.arange(receiver_nodes.size)
     baselevel_nodes = numpy.where(node_id == receiver_nodes)[0]
-    nd = _make_number_of_donors_array(receiver_nodes)
-    delta = _make_delta_array(nd)
-    D = _make_array_of_donors(receiver_nodes, delta)
+    if nd is None:
+        nd = _make_number_of_donors_array(receiver_nodes)
+    if delta is None:
+        delta = _make_delta_array(nd)
+    if D is None:
+        D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:

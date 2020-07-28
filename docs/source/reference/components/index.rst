@@ -32,7 +32,7 @@ Fluvial geomorphology
    erosion_deposition
    space
    network_sediment_transporter
-   
+
 Flow routing
 ------------
 
@@ -127,6 +127,7 @@ Terrain Analysis
   channel_profiler
   trickle_down_profiler
   hack_calculator
+  hand_calculator
 
 Tectonics
 ---------
@@ -202,6 +203,7 @@ Alphabetical Listing of Modules
    gflex
    groundwater
    hack_calculator
+   hand_calculator
    lake_fill
    landslides
    lateral_erosion
