@@ -36,7 +36,7 @@ def make_core_node_matrix(grid, value, sparse=False):
     >>> grid = RasterModelGrid((4, 5))
     >>> grid.status_at_node[13] = grid.BC_NODE_IS_FIXED_VALUE
     >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
-    >>> vals = np.arange(grid.number_of_nodes)  # made-up state variable array
+    >>> vals = np.arange(grid.number_of_nodes, dtype=np.double)  # made-up state variable array
     >>> mat, rhs = make_core_node_matrix(grid, vals)
     >>> mat
     array([[-4.,  1.,  0.,  1.,  0.],
@@ -57,10 +57,6 @@ def make_core_node_matrix(grid, value, sparse=False):
        [ 0.,  1., -4.,  0.,  0.],
        [ 1.,  0.,  0., -4.,  1.],
        [ 0.,  1.,  0.,  1., -4.]])
-
-    Notes
-    -----
-    1. TODO: good candidate for cythonization
     """
     # Get the various types of active link
     core2core = grid.link_with_node_status(
@@ -83,28 +79,9 @@ def make_core_node_matrix(grid, value, sparse=False):
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
 
-    # Handle the core-to-core links (note: for-loop not array op, bcs nodes can appear > once)
-    for ln in core2core:
-        t = grid.node_at_link_tail[ln]
-        h = grid.node_at_link_head[ln]
-        mat[matrow[t], matrow[t]] -= 1.0
-        mat[matrow[h], matrow[h]] -= 1.0
-        mat[matrow[t], matrow[h]] = 1.0
-        mat[matrow[h], matrow[t]] = 1.0
-
-    # Handle core-to-fv links
-    for ln in core2fv:
-        t = grid.node_at_link_tail[ln]
-        h = grid.node_at_link_head[ln]
-        mat[matrow[t], matrow[t]] -= 1
-        rhs[matrow[t]] -= value[h]
-
-    # Handle fv-to-core links
-    for ln in fv2core:
-        t = grid.node_at_link_tail[ln]
-        h = grid.node_at_link_head[ln]
-        mat[matrow[h], matrow[h]] -= 1
-        rhs[matrow[h]] -= value[t]
+    from .cfuncs import fill_matrix
+    fill_matrix(core2core, core2fv, fv2core, grid.node_at_link_tail,
+                           grid.node_at_link_head, matrow, value, rhs, mat)
 
     if sparse:
         mat = mat.tocsr()  # convert to Compressed Sparse Row format
