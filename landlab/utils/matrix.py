@@ -4,6 +4,7 @@
 
 import numpy as np
 from scipy.sparse import lil_matrix
+from .cfuncs import fill_matrix, fill_matrix_with_coefficients
 
 
 def matrix_row_at_node(grid):
@@ -79,9 +80,17 @@ def make_core_node_matrix(grid, value, sparse=False):
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
 
-    from .cfuncs import fill_matrix
-    fill_matrix(core2core, core2fv, fv2core, grid.node_at_link_tail,
-                           grid.node_at_link_head, matrow, value, rhs, mat)
+    fill_matrix(
+        core2core,
+        core2fv,
+        fv2core,
+        grid.node_at_link_tail,
+        grid.node_at_link_head,
+        matrow,
+        value,
+        rhs,
+        mat,
+    )
 
     if sparse:
         mat = mat.tocsr()  # convert to Compressed Sparse Row format
@@ -101,8 +110,8 @@ def make_core_node_matrix_var_coef(grid, value, coef, sparse=False):
     >>> grid = RasterModelGrid((4, 5))
     >>> grid.status_at_node[13] = grid.BC_NODE_IS_FIXED_VALUE
     >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
-    >>> vals = np.arange(grid.number_of_nodes)  # made-up state variable array
-    >>> coefs = np.ones(grid.number_of_links)  # coefficient array
+    >>> vals = np.arange(grid.number_of_nodes, dtype=np.double)  # made-up state variable array
+    >>> coefs = np.ones(grid.number_of_links, dtype=np.double)  # coefficient array
     >>> mat, rhs = make_core_node_matrix_var_coef(grid, vals, coefs)
     >>> mat
     array([[-4.,  1.,  0.,  1.,  0.],
@@ -149,28 +158,18 @@ def make_core_node_matrix_var_coef(grid, value, coef, sparse=False):
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
 
-    # Handle the core-to-core links (note: for-loop not array op, bcs nodes can appear > once)
-    for ln in core2core:
-        t = grid.node_at_link_tail[ln]
-        h = grid.node_at_link_head[ln]
-        mat[matrow[t], matrow[t]] -= coef[ln]
-        mat[matrow[h], matrow[h]] -= coef[ln]
-        mat[matrow[t], matrow[h]] = coef[ln]
-        mat[matrow[h], matrow[t]] = coef[ln]
-
-    # Handle core-to-fv links
-    for ln in core2fv:
-        t = grid.node_at_link_tail[ln]
-        h = grid.node_at_link_head[ln]
-        mat[matrow[t], matrow[t]] -= coef[ln]
-        rhs[matrow[t]] -= value[h]
-
-    # Handle fv-to-core links
-    for ln in fv2core:
-        t = grid.node_at_link_tail[ln]
-        h = grid.node_at_link_head[ln]
-        mat[matrow[h], matrow[h]] -= coef[ln]
-        rhs[matrow[h]] -= value[t]
+    fill_matrix_with_coefficients(
+        core2core,
+        core2fv,
+        fv2core,
+        grid.node_at_link_tail,
+        grid.node_at_link_head,
+        matrow,
+        value,
+        rhs,
+        coef,
+        mat,
+    )
 
     if sparse:
         mat = mat.tocsr()  # convert to Compressed Sparse Row format
