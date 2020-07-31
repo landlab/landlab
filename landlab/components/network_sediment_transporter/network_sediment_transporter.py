@@ -264,8 +264,7 @@ class NetworkSedimentTransporter(Component):
         fluid_density=1000.0,
         transport_method="WilcockCrowe",
         active_layer_method="WongParker",
-        active_layer_d_multiplier=2
-
+        active_layer_d_multiplier=2,
     ):
         """
         Parameters
@@ -545,11 +544,13 @@ class NetworkSedimentTransporter(Component):
 
         elif self._active_layer_method == "GrainSizeDependent":
             # Set all active layers to a multiple of the lnk mean grain size
-            self._active_layer_thickness = (self._d_mean_active*self._active_layer_d_multiplier)
+            self._active_layer_thickness = (
+                self._d_mean_active * self._active_layer_d_multiplier
+            )
 
-        elif self._active_layer_method =="Constant10cm":
+        elif self._active_layer_method == "Constant10cm":
             # Set all active layers to 10 cm thickness.
-            self._active_layer_thickness = 0.1 *np.ones_like(self._d_mean_active)
+            self._active_layer_thickness = 0.1 * np.ones_like(self._d_mean_active)
 
         # If links have no parcels, we still need to assign them an active layer
         # thickness..

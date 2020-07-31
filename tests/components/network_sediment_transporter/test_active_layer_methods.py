@@ -46,7 +46,6 @@ def test_grainsize_active_layer(example_nmg, example_parcels, example_flow_direc
         g=9.81,
         fluid_density=1000,
         transport_method="WilcockCrowe",
-        
     )
 
     dt = 60 * 60 * 24  # (seconds) daily timestep
