@@ -107,7 +107,7 @@ class TidalFlowCalculator(Component):
         self._ebb_tide_vel = self.grid.at_link["ebb_tide_flow__velocity"]
 
         # Handle inputs
-        self._roughness = roughness  # uses setter below
+        self.roughness = roughness  # uses setter below
         self._tidal_range = tidal_range
         self._tidal_half_range = tidal_range / 2.0
         self._tidal_period = tidal_period
@@ -186,13 +186,33 @@ class TidalFlowCalculator(Component):
             )
         ) / self._tidal_half_period
 
+    def _calc_effective_water_depth(self):
+        """Calculate and store the effective water depth.
+        
+        Water depth is calculated as the average of high tide and low tide
+        water depth, except where this average is less than the user-specified
+        minimum depth, in which case the minimum depth is assigned.
+        
+        Examples
+        --------
+        >>> grid = RasterModelGrid((3, 5))
+        >>> z = grid.add_zeros('topographic__elevation', at='node')
+        >>> z[6:9] = [1.0, 2.0, -2.0]
+        >>> tfc = TidalFlowCalculator(grid, tidal_range=3.1, min_water_depth=0.02)
+        >>> tfc._calc_effective_water_depth()
+        >>> tfc._water_depth[6:9]
+        array([ 0.275,  0.02 ,  2.   ])
+        """
+        high_tide_depth = (self.mean_sea_level + self._tidal_half_range) - self._elev
+        low_tide_depth = np.maximum((self.mean_sea_level - self._tidal_half_range) - self._elev, 0.0)
+        self._water_depth[:] = (high_tide_depth + low_tide_depth) / 2.0
+        self._water_depth[self._water_depth <= self._min_depth] = self._min_depth
+
     def run_one_step(self):
         """Calculate the tidal flow field and water-surface elevation."""
-        # import time
-        # s = time.time()
+
         # Tidal mean water depth  and water surface elevation at nodes
-        self._water_depth[:] = self.mean_sea_level - self._elev
-        self._water_depth[self._water_depth <= 0.0] = self._min_depth
+        self._calc_effective_water_depth()
         mean_water_surf_elev = self._elev + self._water_depth
 
         # Map water depth to links
@@ -212,62 +232,25 @@ class TidalFlowCalculator(Component):
         # Set up right-hand-side (RHS) vector for both ebb and flood tides (only
         # difference is in the sign)
         cores = self.grid.core_nodes
-        base_rhs = self._grid_multiplier * tidal_inundation_rate[cores]
-        # e = time.time()
-        # print(e-s)
-        # s = e
+
         # For flood tide, set up matrix and add boundary info to RHS vector
         mat, rhs = make_core_node_matrix_var_coef(
             self.grid, mean_water_surf_elev, self._diffusion_coef_at_links, sparse=True,
         )
-        rhs[:, 0] += base_rhs
-        # e = time.time()
-        # print(e-s)
-        # s = e
+        rhs[:, 0] += self._grid_multiplier * tidal_inundation_rate[cores]
 
         # Solve for flood tide water-surface elevation
         tidal_wse = np.zeros(self.grid.number_of_nodes)
         tidal_wse[self.grid.core_nodes] = spsolve(mat, rhs)
-        # e = time.time()
-        # print(e-s)
-        # s = e
 
         # Calculate flood-tide water-surface gradient at links
         tidal_wse_grad = np.zeros(self.grid.number_of_links)
         self.grid.calc_grad_at_link(tidal_wse, out=tidal_wse_grad)
 
-        # Calculate flow velocity field at links for flood tide
+        # Calculate flow velocity field at links for flood tide, and assign
+        # negative of the flood tide values to ebb tide
         self._flood_tide_vel[self.grid.active_links] = (
             -velocity_coef[self.grid.active_links]
             * tidal_wse_grad[self.grid.active_links]
         )
-        # e = time.time()
-        # print(e-s)
-        # s = e
-
-        # For ebb tide, set up matrix and add boundary info to RHS vector
-        mat, rhs = make_core_node_matrix_var_coef(
-            self.grid, mean_water_surf_elev, self._diffusion_coef_at_links, sparse=True,
-        )
-        rhs[:, 0] -= base_rhs
-        # e = time.time()
-        # print(e-s)
-        # s = e
-
-        # Solve for ebb tide water-surface elevation
-        tidal_wse[cores] = spsolve(mat, rhs)
-
-        # e = time.time()
-        # print(e-s)
-        # s = e
-        # Calculate ebb-tide water-surface gradient at links
-        self.grid.calc_grad_at_link(tidal_wse, out=tidal_wse_grad)
-
-        # Calculate flow velocity field at links for ebb tide
-        self._ebb_tide_vel[self.grid.active_links] = (
-            -velocity_coef[self.grid.active_links]
-            * tidal_wse_grad[self.grid.active_links]
-        )
-        # e = time.time()
-        # print(e-s)
-        # s = e
+        self._ebb_tide_vel[:] = -self._flood_tide_vel
