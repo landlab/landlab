@@ -91,12 +91,10 @@ def test_constant_depth_shallower_than_tidal_amplitude():
     T = 4.0e4  # tidal period in s
     n = 0.01  # roughness, s/m^1/3
     chi = 1  # scale velocity, m/s
-    h = 0.25    # tidal mean depth, m
+    h_m = 0.25    # water depth at mean sea level, m
 
     Under these conditions, the key factors are:
 
-    velocity coefficient, Cv = h^(4/3) / n^2 chi = 1.6e5 m/s
-    diffusion coefficient, D = h^(7/3) / n^2 chi = 1.28e6 m2/s
     inundation rate (I) =
 
     $I = [r/2 − max(−r/2, min(z, r/2))]/(T/2)$
@@ -117,11 +115,15 @@ def test_constant_depth_shallower_than_tidal_amplitude():
         $u h = I x$  # output = input
 
         $u(x) = I x / h$
+        
+    Water depth $h$ is calculated as the average of high-tide and low-tide
+    depth. Because low-tide depth is zero,
+        
+        $h = (0.25 + r/2) / 2 = 0.375$ m
 
-    So with the above parameters, $I$ is 5e-5 m/s. In a grid with 5 columns,
-    $x$ is effectively 100, 200, and 300 m, with the adjacent open boundary node
-    at 350 m. So the velocity in m/s should be:
-        0.015, 0.03, 0.045
+    In a grid with 5 columns, $x$ is effectively 100, 200, and 300 m, with the
+    adjacent open boundary node at 350 m. So the velocity in m/s should be:
+        0.01, 0.02, 0.03
     """
     grid = RasterModelGrid((3, 5), xy_spacing=100.0)
     z = grid.add_zeros("topographic__elevation", at="node")
@@ -132,10 +134,10 @@ def test_constant_depth_shallower_than_tidal_amplitude():
     tfc.run_one_step()
 
     assert_array_almost_equal(
-        grid.at_link["ebb_tide_flow__velocity"][10:13], [0.015, 0.03, 0.045]
+        grid.at_link["ebb_tide_flow__velocity"][10:13], [0.01, 0.02, 0.03]
     )
     assert_array_almost_equal(
-        grid.at_link["flood_tide_flow__velocity"][10:13], [-0.015, -0.03, -0.045]
+        grid.at_link["flood_tide_flow__velocity"][10:13], [-0.01, -0.02, -0.03]
     )
 
 

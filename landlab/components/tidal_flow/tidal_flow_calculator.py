@@ -119,6 +119,7 @@ class TidalFlowCalculator(Component):
         # Make other data structures
         self._water_depth_at_links = np.zeros(grid.number_of_links)
         self._diffusion_coef_at_links = np.zeros(grid.number_of_links)
+        self._boundary_mean_water_surf_elev = np.zeros(grid.number_of_nodes)
 
     @property
     def roughness(self):
@@ -204,7 +205,9 @@ class TidalFlowCalculator(Component):
         array([ 0.275,  0.02 ,  2.   ])
         """
         high_tide_depth = (self.mean_sea_level + self._tidal_half_range) - self._elev
-        low_tide_depth = np.maximum((self.mean_sea_level - self._tidal_half_range) - self._elev, 0.0)
+        low_tide_depth = np.maximum(
+            (self.mean_sea_level - self._tidal_half_range) - self._elev, 0.0
+        )
         self._water_depth[:] = (high_tide_depth + low_tide_depth) / 2.0
         self._water_depth[self._water_depth <= self._min_depth] = self._min_depth
 
@@ -212,8 +215,10 @@ class TidalFlowCalculator(Component):
         """Calculate the tidal flow field and water-surface elevation."""
 
         # Tidal mean water depth  and water surface elevation at nodes
+        # (Note: mean water surf elev only used for boundary conditions in
+        # matrix construction; should be mean sea level)
         self._calc_effective_water_depth()
-        mean_water_surf_elev = self._elev + self._water_depth
+        self._boundary_mean_water_surf_elev[:] = self._mean_sea_level
 
         # Map water depth to links
         map_min_of_link_nodes_to_link(
@@ -235,8 +240,12 @@ class TidalFlowCalculator(Component):
 
         # For flood tide, set up matrix and add boundary info to RHS vector
         mat, rhs = make_core_node_matrix_var_coef(
-            self.grid, mean_water_surf_elev, self._diffusion_coef_at_links, sparse=True,
+            self.grid,
+            self._boundary_mean_water_surf_elev,
+            self._diffusion_coef_at_links,
+            sparse=True,
         )
+
         rhs[:, 0] += self._grid_multiplier * tidal_inundation_rate[cores]
 
         # Solve for flood tide water-surface elevation
