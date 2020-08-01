@@ -9,7 +9,7 @@ from scipy.sparse.linalg import spsolve
 from landlab import Component, RasterModelGrid, HexModelGrid
 from landlab.utils import make_core_node_matrix_var_coef
 from landlab.utils.return_array import return_array_at_link
-from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+from landlab.grid.mappers import map_min_of_link_nodes_to_link
 
 _FOUR_THIRDS = 4.0 / 3.0
 _M2_PERIOD = (12.0 + (25.2 / 60.0)) * 3600.0  # M2 tidal period, in seconds
@@ -166,7 +166,7 @@ class TidalFlowCalculator(Component):
         >>> grid = RasterModelGrid((3, 5))
         >>> z = grid.add_zeros('topographic__elevation', at='node')
         >>> z[5:10] = [10.0, 0.25, 0.0, -0.25, -10.0]
-        >>> period=4.0e4  # tidal period in s, for convenient calculation
+        >>> period = 4.0e4  # tidal period in s, for convenient calculation
         >>> tfc = TidalFlowCalculator(grid, tidal_period=period)
         >>> rate = tfc.calc_tidal_inundation_rate()
         >>> 0.5 * rate[5:10] * period  # depth in m
@@ -188,14 +188,15 @@ class TidalFlowCalculator(Component):
 
     def run_one_step(self):
         """Calculate the tidal flow field and water-surface elevation."""
-
+        # import time
+        # s = time.time()
         # Tidal mean water depth  and water surface elevation at nodes
         self._water_depth[:] = self.mean_sea_level - self._elev
         self._water_depth[self._water_depth <= 0.0] = self._min_depth
         mean_water_surf_elev = self._elev + self._water_depth
 
         # Map water depth to links
-        map_mean_of_link_nodes_to_link(
+        map_min_of_link_nodes_to_link(
             self.grid, self._water_depth, out=self._water_depth_at_links
         )
 
@@ -212,16 +213,24 @@ class TidalFlowCalculator(Component):
         # difference is in the sign)
         cores = self.grid.core_nodes
         base_rhs = self._grid_multiplier * tidal_inundation_rate[cores]
-
+        # e = time.time()
+        # print(e-s)
+        # s = e
         # For flood tide, set up matrix and add boundary info to RHS vector
         mat, rhs = make_core_node_matrix_var_coef(
             self.grid, mean_water_surf_elev, self._diffusion_coef_at_links, sparse=True,
         )
         rhs[:, 0] += base_rhs
+        # e = time.time()
+        # print(e-s)
+        # s = e
 
         # Solve for flood tide water-surface elevation
         tidal_wse = np.zeros(self.grid.number_of_nodes)
         tidal_wse[self.grid.core_nodes] = spsolve(mat, rhs)
+        # e = time.time()
+        # print(e-s)
+        # s = e
 
         # Calculate flood-tide water-surface gradient at links
         tidal_wse_grad = np.zeros(self.grid.number_of_links)
@@ -232,16 +241,25 @@ class TidalFlowCalculator(Component):
             -velocity_coef[self.grid.active_links]
             * tidal_wse_grad[self.grid.active_links]
         )
+        # e = time.time()
+        # print(e-s)
+        # s = e
 
         # For ebb tide, set up matrix and add boundary info to RHS vector
         mat, rhs = make_core_node_matrix_var_coef(
             self.grid, mean_water_surf_elev, self._diffusion_coef_at_links, sparse=True,
         )
         rhs[:, 0] -= base_rhs
+        # e = time.time()
+        # print(e-s)
+        # s = e
 
         # Solve for ebb tide water-surface elevation
         tidal_wse[cores] = spsolve(mat, rhs)
 
+        # e = time.time()
+        # print(e-s)
+        # s = e
         # Calculate ebb-tide water-surface gradient at links
         self.grid.calc_grad_at_link(tidal_wse, out=tidal_wse_grad)
 
@@ -250,3 +268,6 @@ class TidalFlowCalculator(Component):
             -velocity_coef[self.grid.active_links]
             * tidal_wse_grad[self.grid.active_links]
         )
+        # e = time.time()
+        # print(e-s)
+        # s = e

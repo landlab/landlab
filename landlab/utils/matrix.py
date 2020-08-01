@@ -80,7 +80,7 @@ def make_core_node_matrix(grid, value, sparse=False):
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
 
-    fill_matrix(
+    mat, rhs = fill_matrix(
         core2core,
         core2fv,
         fv2core,
@@ -132,11 +132,8 @@ def make_core_node_matrix_var_coef(grid, value, coef, sparse=False):
        [ 0.,  1., -4.,  0.,  0.],
        [ 1.,  0.,  0., -4.,  1.],
        [ 0.,  1.,  0.,  1., -4.]])
-
-    Notes
-    -----
-    1. TODO: good candidate for cythonization
     """
+
     # Get the various types of active link
     core2core = grid.link_with_node_status(
         status_at_tail=grid.BC_NODE_IS_CORE, status_at_head=grid.BC_NODE_IS_CORE
@@ -158,7 +155,7 @@ def make_core_node_matrix_var_coef(grid, value, coef, sparse=False):
     # Get matrix row indices for each of the nodes
     matrow = matrix_row_at_node(grid)
 
-    fill_matrix_with_coefficients(
+    mat, rhs = fill_matrix_with_coefficients(
         core2core,
         core2fv,
         fv2core,

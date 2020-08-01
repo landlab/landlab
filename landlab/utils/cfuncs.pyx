@@ -48,7 +48,7 @@ def fill_matrix(np.ndarray[DTYPE_INT_t, ndim=1] core2core,
     return mat, rhs
 
 
-def fill_matrix_with_coefficients(np.ndarray[DTYPE_INT_t, ndim=1] core2core,
+cpdef fill_matrix_with_coefficients(np.ndarray[DTYPE_INT_t, ndim=1] core2core,
                                   np.ndarray[DTYPE_INT_t, ndim=1] core2fv,
                                   np.ndarray[DTYPE_INT_t, ndim=1] fv2core,
                                   np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
@@ -67,23 +67,23 @@ def fill_matrix_with_coefficients(np.ndarray[DTYPE_INT_t, ndim=1] core2core,
     for ln in core2core:
         t = node_at_link_tail[ln]
         h = node_at_link_head[ln]
-        mat[matrow[t], matrow[t]] -= 1.0
-        mat[matrow[h], matrow[h]] -= 1.0
-        mat[matrow[t], matrow[h]] = 1.0
-        mat[matrow[h], matrow[t]] = 1.0
+        mat[matrow[t], matrow[t]] -= coef[ln]
+        mat[matrow[h], matrow[h]] -= coef[ln]
+        mat[matrow[t], matrow[h]] = coef[ln]
+        mat[matrow[h], matrow[t]] = coef[ln]
 
     # Handle core-to-fv links
     for ln in core2fv:
         t = node_at_link_tail[ln]
         h = node_at_link_head[ln]
-        mat[matrow[t], matrow[t]] -= 1
+        mat[matrow[t], matrow[t]] -= coef[ln]
         rhs[matrow[t]] -= value[h]
 
     # Handle fv-to-core links
     for ln in fv2core:
         t = node_at_link_tail[ln]
         h = node_at_link_head[ln]
-        mat[matrow[h], matrow[h]] -= 1
+        mat[matrow[h], matrow[h]] -= coef[ln]
         rhs[matrow[h]] -= value[t]
 
     return mat, rhs
