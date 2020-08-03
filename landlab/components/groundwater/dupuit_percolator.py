@@ -403,12 +403,12 @@ class GroundwaterDupuitPercolator(Component):
     @callback_fun.setter
     def callback_fun(self, new_val):
         try:
-            callback_function(grid, recharge_rate, substep_dt, **kwargs)
+            callback_function(self._grid, self.recharge, 0.0, **kwargs)
             self._callback_fun_old = lambda *args, **kwargs: None
             self._callback_fun = new_val
         except TypeError:
             try:
-                callback_function(grid, substep_dt, **kwargs)
+                callback_function(self._grid, 0.0, **kwargs)
                 self._callback_fun_old = new_val
                 self._callback_fun = lambda *args, **kwargs: None
                 print('Callback functions with two arguments (grid, substep_dt) are depricated and will be removed in future versions')
