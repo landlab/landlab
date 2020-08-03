@@ -13,7 +13,7 @@
 import numpy as np
 from landlab import FieldError, Component
 from ...utils.decorators import use_file_name_or_kwds
-from funcs import (convert_phy_pft_to_distr_pft,
+from .funcs import (convert_phy_pft_to_distr_pft,
                    convert_distr_pft_to_phy_pft)
 #from __future__ import print_function
 
