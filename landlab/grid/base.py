@@ -22,7 +22,9 @@ from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
 from .decorators import (
-    override_array_setitem_and_reset, return_id_array, return_readonly_id_array
+    override_array_setitem_and_reset,
+    return_id_array,
+    return_readonly_id_array,
 )
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
@@ -1045,6 +1047,50 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             return np.where(masks[0])[0]
         else:
             return np.where(masks[0] & masks[1])[0]
+
+    @return_id_array
+    def link_with_angle(self, angle):
+        """Return array of IDs of links with given angle.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid((3, 3))
+        >>> grid.link_with_angle( 0.0)
+        array([  0,  1,  8,  9, 10, 17, 18])
+        >>> grid.link_with_angle(60.0)
+        array([  3,  5,  7, 11, 13, 15])
+        >>> grid.link_with_angle(120.0)
+        array([  2,  4,  6, 12, 14, 16])
+        >>> len(grid.link_with_angle(30.0))  # no links at this angle
+        0
+        >>> grid = HexModelGrid((3, 3), orientation='vertical')
+        >>> grid.link_with_angle(30.0)
+        array([  1,  3,  8, 10, 15, 17])
+        >>> grid.link_with_angle(90.0)
+        array([ 2,  5,  6,  9, 12, 13, 16])
+        >>> grid.link_with_angle(330.0)
+        array([ 0,  4,  7, 11, 14, 18])
+        >>> len(grid.link_with_angle(60.0))  # no links at this angle
+        0
+        """
+        if angle == 90.0:
+            lwa = np.where(
+                self.x_of_node[self.node_at_link_head]
+                == self.x_of_node[self.node_at_link_tail]
+            )[0]
+        else:
+            dx = (
+                self.x_of_node[self.node_at_link_head]
+                - self.x_of_node[self.node_at_link_tail]
+            )
+            dy = (
+                self.y_of_node[self.node_at_link_head]
+                - self.y_of_node[self.node_at_link_tail]
+            )
+            pred_ratio = np.sin(np.deg2rad(angle)) / np.cos(np.deg2rad(angle))
+            lwa = np.where(np.round(dy / dx, 3) == np.round(pred_ratio, 3))[0]
+        return lwa
 
     @property
     @cache_result_in_object()
