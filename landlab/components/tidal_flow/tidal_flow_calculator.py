@@ -189,11 +189,11 @@ class TidalFlowCalculator(Component):
 
     def _calc_effective_water_depth(self):
         """Calculate and store the effective water depth.
-        
+
         Water depth is calculated as the average of high tide and low tide
         water depth, except where this average is less than the user-specified
         minimum depth, in which case the minimum depth is assigned.
-        
+
         Examples
         --------
         >>> grid = RasterModelGrid((3, 5))

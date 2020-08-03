@@ -115,10 +115,10 @@ def test_constant_depth_shallower_than_tidal_amplitude():
         $u h = I x$  # output = input
 
         $u(x) = I x / h$
-        
+
     Water depth $h$ is calculated as the average of high-tide and low-tide
     depth. Because low-tide depth is zero,
-        
+
         $h = (0.25 + r/2) / 2 = 0.375$ m
 
     In a grid with 5 columns, $x$ is effectively 100, 200, and 300 m, with the
