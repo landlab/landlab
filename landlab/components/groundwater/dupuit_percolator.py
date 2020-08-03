@@ -337,7 +337,7 @@ class GroundwaterDupuitPercolator(Component):
             recharge_rate: an array at node that is the specified recharge rate
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
-            Callback functions with two arguments (grid, substep_dt) are depricated.
+            Callback functions with two arguments (grid, substep_dt) are deprecated.
         """
         super().__init__(grid)
 
@@ -402,20 +402,21 @@ class GroundwaterDupuitPercolator(Component):
 
     @callback_fun.setter
     def callback_fun(self, new_val):
-        try:
-            callback_function(self._grid, self.recharge, 0.0, **kwargs)
-            self._callback_fun_old = lambda *args, **kwargs: None
+        try: # New style callback function.
+            callback_function(self._grid, self.recharge, 0.0) # WHERE WERE THE KWARGS COMING FROM?
+            self._old_style_callback = False
             self._callback_fun = new_val
         except TypeError:
-            try:
-                callback_function(self._grid, 0.0, **kwargs)
-                self._callback_fun_old = new_val
-                self._callback_fun = lambda *args, **kwargs: None
-                print('Callback functions with two arguments (grid, substep_dt) are depricated and will be removed in future versions')
-            except TypeError as error:
-                print('%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)'%error)
-                self._callback_fun_old = lambda *args, **kwargs: None
-                self._callback_fun = lambda *args, **kwargs: None
+            try: # Old style callback function, will work, but warn.
+                callback_function(self._grid, 0.0)
+                self._callback_fun = new_val
+                self._old_style_callback = True
+                warn('Callback functions with two arguments (grid, substep_dt) are deprecated and will be removed in future versions', DeprecationWarning)
+            except TypeError as error: # Nonfunctional callback function.
+                # SHOULDN'T THIS RAISE A VALUE ERROR B/C IT MEANS THAT THE
+                # FUNCTION DOESN'T WORK AS EXPECTED AND THUS THE COMPONENT
+                # SHOULDN'T INIT.
+                raise ValueError('%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)'%error)
 
     @property
     def courant_coefficient(self):
@@ -789,7 +790,9 @@ class GroundwaterDupuitPercolator(Component):
             remaining_time -= substep_dt
             self._num_substeps += 1
 
-            self._callback_fun(self._grid, self.recharge, substep_dt)
-            self._callback_fun_old(self._grid, substep_dt)
+            if self._old_style_callback:
+                self._callback_fun(self._grid, substep_dt)
+            else:
+                self._callback_fun(self._grid, self.recharge, substep_dt)
 
         self._qsavg[:] = qs_cumulative / dt
