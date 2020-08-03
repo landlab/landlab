@@ -45,7 +45,7 @@ class TidalFlowCalculator(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Bathymetric/topographic elevation",
+            "doc": "Land surface topographic elevation",
         },
         "mean_water__depth": {
             "dtype": float,
