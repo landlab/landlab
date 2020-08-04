@@ -4,6 +4,7 @@ from numpy.testing import assert_array_almost_equal
 from landlab.components import NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 
+
 def test_grainsize_active_layer(example_nmg, example_parcels, example_flow_director):
     time = [0.0]  # probably not the sensible way to do this...
 
@@ -46,7 +47,7 @@ def test_grainsize_active_layer(example_nmg, example_parcels, example_flow_direc
         fluid_density=1000,
         transport_method="WilcockCrowe",
         active_layer_method="GrainSizeDependent",
-        active_layer_d_multiplier=3
+        active_layer_d_multiplier=3,
     )
 
     dt = 60 * 60 * 24  # (seconds) daily timestep
@@ -55,7 +56,7 @@ def test_grainsize_active_layer(example_nmg, example_parcels, example_flow_direc
         nst.run_one_step(dt)
 
     # Active layer thickness should be 3*d_mean
-    active_layer_thickness_should_be = 3*0.05
+    active_layer_thickness_should_be = 3 * 0.05
 
     assert_array_almost_equal(
         active_layer_thickness_should_be, nst._active_layer_thickness[0]
