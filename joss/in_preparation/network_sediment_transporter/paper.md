@@ -1,5 +1,5 @@
 ---
-title: 'NetworkSedimentTransporter: A Landlab submodule for bed material transport through river networks'
+title: 'NetworkSedimentTransporter: A Landlab component for bed material transport through river networks'
 tags:
   - Python
   - Landlab
@@ -68,9 +68,9 @@ Our final modification to @Czuba2018 is enhancing the methods used for calculati
 The ``NetworkSedimentTransporter`` component of Landlab is capable of routing mixed grain size sediment through river networks to answer questions about how sediment pulses move through river networks and when, where, and how they affect downstream reaches. The accessibility of this code within the Landlab framework will make it easier for future users to modify and contribute to its continual evolution.
 
 Source code for ``NetworkSedimentTransporter`` is available as part of the [Landlab python package](https://github.com/landlab/landlab) and can be found in
-the [``NetworkSedimentTransporter`` submodule](https://github.com/landlab/landlab/tree/release/landlab/components/network_sediment_transporter). The first release version of Landlab that includes the ``NetworkSedimentTransporter`` submodule is tagged as v2.1.0.
+the [``NetworkSedimentTransporter`` component](https://github.com/landlab/landlab/tree/release/landlab/components/network_sediment_transporter). The first release version of Landlab that includes the ``NetworkSedimentTransporter`` component is tagged as v2.1.0.
 
-The Landlab project maintains a separate repository containing tutorials that introduce core concepts and the use of individual submodules. In addition to the
+The Landlab project maintains a separate repository containing tutorials that introduce core concepts and the use of individual components. In addition to the
 source code, a set of Jupyter Notebooks introducing the use of NetworkSedimentTransporter
 are now part of the Landlab tutorials repository:
 - [Part  1: Introduction with a synthetic network](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/network_sediment_transporter/network_sediment_transporter.ipynb)
