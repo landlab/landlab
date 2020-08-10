@@ -387,7 +387,7 @@ class GroundwaterDupuitPercolator(Component):
 
     @property
     def callback_fun(self):
-        """callback function for adaptive timestep solver
+        r"""callback function for adaptive timestep solver
 
         Parameters
         ----------
@@ -421,7 +421,7 @@ class GroundwaterDupuitPercolator(Component):
                 )
             except TypeError as error:  # Nonfunctional callback function.
                 raise ValueError(
-                    "%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)"
+                    r"%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)"
                     % error
                 )
 

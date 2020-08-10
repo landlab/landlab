@@ -335,7 +335,6 @@ def test_callback_func():
         storage_subdt.append(storage)
         subdt.append(dt)
         all_n.append(n)
-        
 
     # initialize grid
     grid = RasterModelGrid((3, 3))
@@ -348,7 +347,11 @@ def test_callback_func():
 
     # initialize groundwater model
     gdp = GroundwaterDupuitPercolator(
-        grid, recharge_rate=0.0, hydraulic_conductivity=0.0001, callback_fun=test_fun, n=0.1
+        grid,
+        recharge_rate=0.0,
+        hydraulic_conductivity=0.0001,
+        callback_fun=test_fun,
+        n=0.1,
     )
 
     # run groundawter model
@@ -359,5 +362,5 @@ def test_callback_func():
 
     # assert that substeps sum to the global timestep
     assert_almost_equal(1e5, sum(subdt))
-    
+
     assert all(x == 0.1 for x in all_n)
