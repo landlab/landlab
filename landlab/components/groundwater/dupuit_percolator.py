@@ -339,7 +339,7 @@ class GroundwaterDupuitPercolator(Component):
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
             Callback functions with two arguments (grid, substep_dt) are deprecated.
-        callback_kwds: any additional arguments for the provided callback_fun.
+        callback_kwds: any additional keyword arguments for the provided callback_fun.
         """
         super().__init__(grid)
 
@@ -382,7 +382,7 @@ class GroundwaterDupuitPercolator(Component):
         self.vn_coefficient = vn_coefficient
 
         # set callback function
-        self.callback_kwds = callback_kwds
+        self._callback_kwds = callback_kwds
         self.callback_fun = callback_fun
 
     @property
@@ -412,7 +412,7 @@ class GroundwaterDupuitPercolator(Component):
             self._callback_fun = new_val
         except TypeError:
             try:  # Old style callback function, will work, but warn.
-                new_val(self._grid, 0.0, **self.callback_kwds)
+                new_val(self._grid, 0.0, **self._callback_kwds)
                 self._callback_fun = new_val
                 self._old_style_callback = True
                 warn(
