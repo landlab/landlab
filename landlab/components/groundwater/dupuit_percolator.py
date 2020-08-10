@@ -798,10 +798,10 @@ class GroundwaterDupuitPercolator(Component):
             self._num_substeps += 1
 
             if self._old_style_callback:
-                self._callback_fun(self._grid, substep_dt, **self.callback_kwds)
+                self._callback_fun(self._grid, substep_dt, **self._callback_kwds)
             else:
                 self._callback_fun(
-                    self._grid, self.recharge, substep_dt, **self.callback_kwds
+                    self._grid, self.recharge, substep_dt, **self._callback_kwds
                 )
 
         self._qsavg[:] = qs_cumulative / dt
