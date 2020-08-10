@@ -407,7 +407,7 @@ class GroundwaterDupuitPercolator(Component):
     @callback_fun.setter
     def callback_fun(self, new_val):
         try:  # New style callback function.
-            new_val(self._grid, self.recharge, 0.0, **self.callback_kwds)
+            new_val(self._grid, self.recharge, 0.0, **self._callback_kwds)
             self._old_style_callback = False
             self._callback_fun = new_val
         except TypeError:
