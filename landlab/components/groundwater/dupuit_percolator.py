@@ -290,6 +290,7 @@ class GroundwaterDupuitPercolator(Component):
         courant_coefficient=0.5,
         vn_coefficient=0.8,
         callback_fun=lambda *args, **kwargs: None,
+        **callback_kwds,
     ):
         r"""
         Parameters
@@ -338,6 +339,7 @@ class GroundwaterDupuitPercolator(Component):
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
             Callback functions with two arguments (grid, substep_dt) are deprecated.
+        callback_kwds: any additional arguments for the provided callback_fun.
         """
         super().__init__(grid)
 
@@ -380,6 +382,7 @@ class GroundwaterDupuitPercolator(Component):
         self.vn_coefficient = vn_coefficient
 
         # set callback function
+        self.callback_kwds = callback_kwds
         self.callback_fun = callback_fun
 
     @property
@@ -388,7 +391,7 @@ class GroundwaterDupuitPercolator(Component):
 
         Parameters
         ----------
-        callback_fun: function(grid, recharge_rate, substep_dt, \*\*kwargs)
+        callback_fun: function(grid, recharge_rate, substep_dt, \*\*callback_kwds)
             Optional function that will be executed at the end of each sub-timestep
             in the run_with_adaptive_time_step_solver method. Intended purpose
             is to write output not otherwise visible outside of the method call.
@@ -399,23 +402,21 @@ class GroundwaterDupuitPercolator(Component):
             by run_with_adaptive_time_step_solver to meet stability criteria.
             Callback functions with two arguments (grid, substep_dt) are depricated.
         """
+        return self._callback_fun
 
     @callback_fun.setter
     def callback_fun(self, new_val):
         try: # New style callback function.
-            callback_function(self._grid, self.recharge, 0.0) # WHERE WERE THE KWARGS COMING FROM?
+            new_val(self._grid, self.recharge, 0.0, **self.callback_kwds)
             self._old_style_callback = False
             self._callback_fun = new_val
         except TypeError:
             try: # Old style callback function, will work, but warn.
-                callback_function(self._grid, 0.0)
+                new_val(self._grid, 0.0, **self.callback_kwds)
                 self._callback_fun = new_val
                 self._old_style_callback = True
                 warn('Callback functions with two arguments (grid, substep_dt) are deprecated and will be removed in future versions', DeprecationWarning)
             except TypeError as error: # Nonfunctional callback function.
-                # SHOULDN'T THIS RAISE A VALUE ERROR B/C IT MEANS THAT THE
-                # FUNCTION DOESN'T WORK AS EXPECTED AND THUS THE COMPONENT
-                # SHOULDN'T INIT.
                 raise ValueError('%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)'%error)
 
     @property
@@ -791,8 +792,8 @@ class GroundwaterDupuitPercolator(Component):
             self._num_substeps += 1
 
             if self._old_style_callback:
-                self._callback_fun(self._grid, substep_dt)
+                self._callback_fun(self._grid, substep_dt, **self.callback_kwds)
             else:
-                self._callback_fun(self._grid, self.recharge, substep_dt)
+                self._callback_fun(self._grid, self.recharge, substep_dt, **self.callback_kwds)
 
         self._qsavg[:] = qs_cumulative / dt
