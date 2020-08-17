@@ -1046,7 +1046,7 @@ class LakeMapperBarnes(Component):
         True
         >>> nodes_in_lakes = np.array([7, 8, 9, 14, 15, 16, 22])
         >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
-        >>> openq = StablePriorityQueue()  # empty dummy
+        >>> openq = StablePriorityQueue()  # empty dummy
 
         Note we're here defining the outlets as inside the lakes, which isn't
         actually the behaviour of the component, but helps us demonstrate
@@ -1255,6 +1255,10 @@ class LakeMapperBarnes(Component):
             closedq[outlet] = 1
             closedq[lakenodes] = 1
             closedq[liminal_nodes] = 1
+
+    def update(self):
+        """Alias for running one step."""
+        self.run_one_step()
 
     def run_one_step(self):
         """Fills the surface to fill all pits. Note that a second run on a
