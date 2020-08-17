@@ -6,10 +6,11 @@ Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 
 import numpy as np
 from scipy.sparse.linalg import spsolve
-from landlab import Component, RasterModelGrid, HexModelGrid
-from landlab.utils import make_core_node_matrix_var_coef
-from landlab.utils.return_array import return_array_at_link
+
+from landlab import Component, HexModelGrid, RasterModelGrid
 from landlab.grid.mappers import map_min_of_link_nodes_to_link
+from landlab.utils import get_core_node_matrix
+from landlab.utils.return_array import return_array_at_link
 
 _FOUR_THIRDS = 4.0 / 3.0
 _M2_PERIOD = (12.0 + (25.2 / 60.0)) * 3600.0  # M2 tidal period, in seconds
@@ -239,11 +240,11 @@ class TidalFlowCalculator(Component):
         cores = self.grid.core_nodes
 
         # For flood tide, set up matrix and add boundary info to RHS vector
-        mat, rhs = make_core_node_matrix_var_coef(
+        # mat, rhs = make_core_node_matrix_var_coef(
+        mat, rhs = get_core_node_matrix(
             self.grid,
             self._boundary_mean_water_surf_elev,
-            self._diffusion_coef_at_links,
-            sparse=True,
+            coef_at_link=self._diffusion_coef_at_links,
         )
 
         rhs[:, 0] += self._grid_multiplier * tidal_inundation_rate[cores]
