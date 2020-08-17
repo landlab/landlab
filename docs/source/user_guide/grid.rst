@@ -151,7 +151,7 @@ whose length is equal to the number of nodes in the grid.
 
 .. code-block:: python
 
-    z - mg.add_zeros("elevation", at="node")
+    z = mg.add_zeros("elevation", at="node")
 
 Here *z* is an array of zeros. We can verify that *z* has the same length as the number of nodes:
 
@@ -206,8 +206,8 @@ that prevents accidentally overwriting an existing field.
 .. code-block:: python
 
     import numpy as np
-    elevs_in - np.random.rand(mg.number_of_nodes)
-    mg.add_field("elevation", at="node", elevs_in, units="m", copy=True, clobber=False)
+    elevs_in = np.random.rand(mg.number_of_nodes)
+    mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
@@ -228,7 +228,7 @@ element type is provided:
 
 .. code-block:: python
 
-    veg - mg.add_ones("percent_vegetation", at="cell")
+    veg = mg.add_ones("percent_vegetation", at="cell")
     mg.at_cell.keys()
     ['percent_vegetation']
 
