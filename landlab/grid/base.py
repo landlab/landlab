@@ -1056,7 +1056,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         --------
         >>> from landlab import HexModelGrid
         >>> grid = HexModelGrid((3, 3))
-        >>> grid.link_with_angle( 0.0)
+        >>> grid.link_with_angle(0.0)
         array([  0,  1,  8,  9, 10, 17, 18])
         >>> grid.link_with_angle(60.0)
         array([  3,  5,  7, 11, 13, 15])
@@ -1074,23 +1074,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> len(grid.link_with_angle(60.0))  # no links at this angle
         0
         """
-        if angle == 90.0:
-            lwa = np.where(
-                self.x_of_node[self.node_at_link_head]
-                == self.x_of_node[self.node_at_link_tail]
-            )[0]
-        else:
-            dx = (
-                self.x_of_node[self.node_at_link_head]
-                - self.x_of_node[self.node_at_link_tail]
-            )
-            dy = (
-                self.y_of_node[self.node_at_link_head]
-                - self.y_of_node[self.node_at_link_tail]
-            )
-            pred_ratio = np.sin(np.deg2rad(angle)) / np.cos(np.deg2rad(angle))
-            lwa = np.where(np.round(dy / dx, 3) == np.round(pred_ratio, 3))[0]
-        return lwa
+        return np.where(np.isclose(self.angle_of_link, np.deg2rad(angle % 360.0)))[0]
 
     @property
     @cache_result_in_object()
