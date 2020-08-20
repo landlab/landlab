@@ -42,27 +42,36 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
     data_at_links : ndarray of float x number of links
         Data to be mapped
 
+    Returns
+    -------
+    (x_component, y_component) : tuple of ndarray
+        The *x* and *y* components of the field at each node. Both *x*
+        and *y* components for non-*core* nodes are set to zero.
+
     Examples
     --------
     >>> import numpy as np
     >>> from landlab import HexModelGrid
     >>> from landlab.grid.mappers import map_link_vector_components_to_node
+
     >>> grid = HexModelGrid((3, 3))
-    >>> link_data = np.zeros(grid.number_of_links) + 0.5 * 3.0**0.5
+    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0 ** 0.5)
     >>> link_data[np.isclose(grid.angle_of_link, 0.0)] = 0.0
-    >>> # link_data[grid.link_with_angle(0.0)] = 0.0
+
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
     >>> vy
     array([ 0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
+
     >>> link_data = np.arange(grid.number_of_links)
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx
     array([ 0. ,  0. ,  0. ,  0. ,  8.5,  9.5,  0. ,  0. ,  0. ,  0. ])
-    >>> link_data = np.zeros(grid.number_of_links) + 0.5 * 3.0**0.5
+
+    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0 ** 0.5)
     >>> link_data[np.isclose(grid.angle_of_link, 2.0 / 3.0 * np.pi)] = 0.0
-    >>> # link_data[grid.link_with_angle(120.0)] = 0.0
+
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> np.round(vx, 3)
     array([ 0. ,  0. ,  0. ,  0. ,  0.866,  0.866,  0. ,  0. ,  0. ,  0. ])
@@ -71,12 +80,14 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
 
     >>> grid = HexModelGrid((3, 3), orientation='vertical')
     >>> link_data = np.arange(grid.number_of_links)
+
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vy
     array([ 0. , 0. ,  0. ,  5.5,  0. ,  0. , 12.5,  0. ,  0. ,  0. ])
-    >>> link_data = np.zeros(grid.number_of_links) + 0.5 * 3.0**0.5
+
+    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0 ** 0.5)
     >>> link_data[np.isclose(grid.angle_of_link, np.pi / 2.0)] = 0.0
-    >>> # link_data[grid.link_with_angle(90.0)] = 0.0
+
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx
     array([ 0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  0.])
@@ -141,6 +152,7 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
         south = grid.links_at_node[cores, LinkAtNode.SOUTH]
         ese = grid.links_at_node[cores, LinkAtNode.ESE]
         y_component[cores] = (data_at_link[north] + data_at_link[south]) / 2
+
         vxe = (3.0 * data_at_link[ese] - data_at_link[ene]) / (2 * SIN60)
         vxw = (3.0 * data_at_link[wsw] - data_at_link[wnw]) / (2 * SIN60)
         x_component[cores] = (vxe + vxw) / 2

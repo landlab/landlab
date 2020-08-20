@@ -1461,16 +1461,19 @@ def map_link_vector_components_to_node(grid, data_at_link):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid, HexModelGrid
+
     >>> grid = RasterModelGrid((3, 4))
     >>> link_data = np.arange(grid.number_of_links)
+
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx[5:7]
     array([ 7.5, 8.5])
 
     >>> grid = HexModelGrid((3, 3))
     >>> link_data = np.zeros(grid.number_of_links) + 0.5 * 3.0**0.5
-    >>> link_data[grid.link_with_angle(0.0)] = 0.0
+    >>> link_data[np.isclose(grid.angle_of_link, 0.0)] = 0.0
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vy
     array([ 0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
