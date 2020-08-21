@@ -158,6 +158,7 @@ class FlowAccumulator(Component):
 
     Third, we can import a FlowDirector component from Landlab and pass it to
     `flow_director`:
+
     >>> from landlab.components import FlowDirectorSteepest
     >>> fa = FlowAccumulator(
     ...      mg,
