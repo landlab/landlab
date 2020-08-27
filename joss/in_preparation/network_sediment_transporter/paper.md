@@ -18,7 +18,7 @@ authors:
 
   - name: Eric W. H. Hutton
     orcid: 0000-0002-5864-6459
-    affiliation: 4, 6
+    affiliation: 6
 
 affiliations:
   - name: Western Washington University, Geology Department
