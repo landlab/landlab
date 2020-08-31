@@ -418,7 +418,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         dt : float
             Model timestep [T]
         """
-
+        import time
+        s = time.time()
         # Initialize remaining_time, which records how much of the global time
         # step we have yet to use up.
         remaining_time = dt
@@ -431,7 +432,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         first_iteration = True
 
         is_flooded_core_node = self._get_flooded_core_nodes()
-
+        e = time-time()
+        print('--')
+        print(e-s)
+        s = e
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
 
@@ -448,9 +452,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 is_flooded_core_node[self._slope < 0] = True
             else:
                 first_iteration = False
-
+            print('.')
+            e = time-time()
+            print(e-s)
+            s = e
             self._calc_qs_in_and_depo_rate()
 
+            e = time-time()
+            print(e-s)
+            s = e
             # Rate of change of elevation at core nodes:
             dzdt[cores] = self._depo_rate[cores] - self._erosion_term[cores]
 
@@ -476,6 +486,9 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
             )
 
+            e = time-time()
+            print(e-s)
+            s = e
             # Mask out pairs where the source at the same or lower elevation
             # as its downstream neighbor (e.g., because it's a pit or a lake).
             # Here, masking out means simply assigning the remaining time in
@@ -493,3 +506,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
             # Update remaining time and continue the loop
             remaining_time -= dt_max
+            e = time-time()
+            print(e-s)
+            s = e
