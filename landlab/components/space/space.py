@@ -378,6 +378,7 @@ class Space(_GeneralizedErosionDeposition):
             S_to_the_n = self._slope
         else:
             S_to_the_n = np.power(self._slope, self._n_sp)
+        
         omega_sed = self._K_sed * self._Q_to_the_m * S_to_the_n
         omega_br = self._K_br * self._Q_to_the_m * S_to_the_n
 
@@ -426,11 +427,18 @@ class Space(_GeneralizedErosionDeposition):
         return self._H
 
     def _calc_qs_in_and_depo_rate(self):
+        import time
+        s = time.time()
 
         # Choose a method for calculating erosion:
-        self._calc_hydrology()
-        self._calc_erosion_rates()
-
+        self._calc_hydrology()  # 3rd most
+        e = time.time()
+        #print(e-s)
+        s = e
+        self._calc_erosion_rates()  # most
+        e = time.time()
+        #print(e-s)
+        s = e
         is_flooded_core_node = self._get_flooded_core_nodes()
 
         self._Es[is_flooded_core_node] = 0.0
@@ -456,6 +464,9 @@ class Space(_GeneralizedErosionDeposition):
             self._v_s,
             self._F_f,
         )
+        e = time.time()
+        #print(e-s)  # 2nd most exp
+        s = e
 
         self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
             self._v_s / self._q[self._q > 0]
@@ -466,6 +477,9 @@ class Space(_GeneralizedErosionDeposition):
                 self._qs_in[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
+        e = time.time()
+        #print(e-s)  # 4th most exp
+        s = e
         return is_flooded_core_node
 
     def run_one_step_basic(self, dt=1.0):
@@ -635,7 +649,9 @@ class Space(_GeneralizedErosionDeposition):
         >>> np.round(H[5:7], 3)
         array([ 0.088,  0.078])
         """
-
+        import time
+        s = time.time()
+        ss = s
         # Initialize remaining_time, which records how much of the global time
         # step we have yet to use up.
         remaining_time = dt
@@ -649,10 +665,14 @@ class Space(_GeneralizedErosionDeposition):
         first_iteration = True
 
         is_flooded_core_node = self._get_flooded_core_nodes()
-
+        e = time.time()
+        #print('----')
+        #print(e-s)
+        s = e
+        #print('--')
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
-
+            #print('.')
             # Update all the flow-link slopes.
             #
             # For the first iteration, we assume this has already been done
@@ -667,10 +687,16 @@ class Space(_GeneralizedErosionDeposition):
             else:
                 first_iteration = False
 
+            e = time.time()
+            #print(e-s)
+            s = e
             is_flooded_core_node = (
                 self._calc_qs_in_and_depo_rate()
             )  # THIS IS THE SPEED BOTTLENECK
 
+            e = time.time()
+            #print(e-s)
+            s = e
             # Now look at upstream-downstream node pairs, and recording the
             # time it would take for each pair to flatten. Take the minimum.
             self._dzdt[cores] = self._depo_rate[cores] * self._porosity_factor - (
@@ -680,6 +706,9 @@ class Space(_GeneralizedErosionDeposition):
             zdif = z - z[r]
             self._time_to_flat[:] = remaining_time
 
+            e = time.time()
+            #print(e-s)
+            s = e
             converging = np.where(rocdif < 0.0)[0]
             self._time_to_flat[converging] = -(
                 TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
@@ -700,6 +729,9 @@ class Space(_GeneralizedErosionDeposition):
                 TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
             )
 
+            e = time.time()
+            #print(e-s)
+            s = e
             # Now find the smallest time that would lead to near-empty alluv
             dt_max2 = np.amin(self._time_to_zero_alluv)
 
@@ -713,6 +745,9 @@ class Space(_GeneralizedErosionDeposition):
 
             # Update remaining time and continue
             remaining_time -= dt_max
+            e = time.time()
+            #print(e-s)
+            #print(e-ss)
 
 
 def _dRdt(t, a, b, c, d, H0):
