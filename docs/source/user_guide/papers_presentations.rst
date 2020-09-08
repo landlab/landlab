@@ -7,6 +7,23 @@ Papers and Presentations
 Peer-reviewed journal articles
 ------------------------------
 
+2020
+````
+
+Barnhart, K.R., Hutton, E.W.H., Tucker, G.E., Gasparini, N.M., Istanbulluoglu, E., Hobley, D.E.J., Lyons⁠, N.J., Mouchene, M., Nudurupati, S.S., Adams, J.M., and Bandaragoda, C. (2020) **Short communication: Landlab 2.0: A software package for Earth surface dynamics.** *Earth Surface Dynamics,* 8, 379–397, `doi:10.5194/esurf-8-379-2020 <https://doi.org/10.5194/esurf-8-379-2020>`__.
+
+Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 1, conceptualization and sensitivity analysis.** *Journal of Geophysical Research: Earth Surface,* e2018JF004961. `https://doi.org/10.1029/2018JF004961 <https://doi.org/10.1029/2018JF004961>`__.
+
+Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 2, calibration and validation.** *Journal of Geophysical Research: Earth Surface,* e2018JF004963. `https://doi.org/10.1029/2018JF004963 <https://doi.org/10.1029/2018JF004963>`__.
+
+Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 3, Determining parameter ranges for select mature geomorphic transport laws and connecting changes in fluvial erodibility to changes in climate.** *Journal of Geophysical Research: Earth Surface,* e2019JF005287, `https://doi.org/10.1029/2019JF005287 <https://doi.org/10.1029/2019JF005287>`__.
+
+Carriere, A., Le Bouteiller, C., Tucker, G.E., Klotz, S., and Naaim, M. (2020) **Impact of vegetation on erosion: Insights from the calibration and test of a landscape evolution model in alpine badland catchments.** *Earth Surface Processes and Landforms.* `https://doi.org/10.1002/esp.4741 <https://doi.org/10.1002/esp.4741>`__.
+
+Litwin, D.G., Tucker, G.E., Barnhart, K.R., and Harman, C.J. (2020) **GroundwaterDupuitPercolator: A Landlab component for groundwater flow,** *Journal of Open Source Software,* 5(46), 1935, `https://doi.org/10.21105/joss.01935 <https://doi.org/10.21105/joss.01935>`__.
+
+Tucker, G. E., Hobley, D.E.J., McCoy, S.W., and Struble, W.T. (2020) **Modeling the shape and evolution of normal-fault facets.** *Journal of Geophysical Research: Earth Surface,* 125, `https://doi.org/10.1029/2019JF005305 <https://doi.org/10.1029/2019JF005305>`__.
+
 2019
 ````
 
@@ -31,7 +48,7 @@ feedbacks.** *Geology*,
 `doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal
 contributions
 
-Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research*, 124, `doi:10.1029/2019JB018596 <https://doi.org/10.1029/2019JB018596>`__.
+Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research: Solid Earth*, 124, `doi:10.1029/2019JB018596 <https://doi.org/10.1029/2019JB018596>`__.
 
 Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of
 tectonic and climatic forcings into records of sediment supply and
@@ -62,7 +79,7 @@ properties.** *J. Open Source Software*, 3(30), 979,
 Lai J., and Anders, A. (2018) **Modeled Postglacial Landscape Evolution
 at the Southern Margin of the Laurentide Ice Sheet: Hydrological
 Connection of Uplands Controls the Pace and Style of Fluvial Network
-Expansion.** *Journal of Geophysical Research*, v. 123, no. 5,
+Expansion.** *Journal of Geophysical Research: Earth Surface*, v. 123, no. 5,
 p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
 
 Langston, A.L., and Tucker, G. E. (2018) **Developing and exploring a
@@ -168,6 +185,58 @@ Benjamin Morris, *New Wave: Tulane News*. November 11, 2016.
 
 Presentations
 -------------
+
+2020
+````
+
+
+
+2019
+````
+
+Adams, J.M., Overeem, I., Hutton, E., Kettner, A.K. and Tucker, G.E. (2019, June) Exploring Surface Processes Using the Community Surface Dynamics Modeling System Modeling Tools. Joint Federal Interagency Sedimentation and Hydrology Conference (SEDHYD), Reno, NV.
+
+Bandaragoda, C., Castronova, A.M., Istanbulluoglu, E., Strauch, R.L., Nudurupati, S.S., Phoung, J., Adams, J.M., Gasparini, N.M., Barnhart, K.B., Hutton, E., Hobley, D.E., Lyons, N.J., Tucker, G.E., Tarboton, D.G., Idaszak, R. and Wang, S.W. (2019, December) Enabling collaborative numerical modeling in hydrology using knowledge infrastructure. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Barnhart, K.R., Tucker, G.E., Doty, S., Shobe, C.M., Glade, R.C., Rossi, M.W., and Hill, M.C. (2019, August) Projections of erosion for a temperate watershed on a 10,000 year timescale. Paper presented at Goldschmidt conference, Barcelona, Spain.
+
+Barnhart, K.R., Tucker, G.E., Doty, S., Shobe, C.M., Glade, R.C., Rossi, M.W., and Hill, M.C. (2019, December) The importance and challenge of thresholds in calibrating landscape evolution models. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Barnhart, K.R., Tucker, G.E., Doty, S., Shobe, C.M., Glade, R.C., Rossi, M.W., and Hill, M.C. (2019, December) Uncertainty in the prediction of erosion on geologic time scales. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Carriere, A., Le Bouteiller, C., Tucker, G.E. and Naaim, M (2019, April) Vegetation-modulated erosion in badland catchments. Paper presented at European Geophysical Union general assembly, Vienna Austria
+
+Gasparini, N.M., Adams, J.M. Bandaragoda, C., Barnhart, K.R., Hobley, D.E., Hutton, E., Istanbulluoglu, E., Lyons, N.J., Mouchene, M., Nudurupati, S.S., Strauch, R.L. and Tucker, G.E. (2019, December) Tools for learning about earth surface processes and how to model them. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Gemperline, J., Tucker, G.E., Rossi, M.W. and Hynek, B.M. (2019, December) Initial landscape evolution model results for Martian valley networks show potential differences between distributed rainfall and a melting ice sheet. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Glade, R., Shobe, C.M., Anderson, R.S. and Tucker, G.E. (2019, December) How do channel-hillslope feedbacks modulate river canyon evolution? Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Gray, HJ, East, AE, and Mahan, S (2019, December) Potential Aeolian Sediment Transport Pathways, Provenance, and Landscape Evolution in the Chuckwalla Valley, Southeastern California. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Istanbulluoglu, E, Strauch, RL, and Riedel, JL (2019, December) A new approach to mapping landslide hazards: a probabilistic integration of empirical and process-based models. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Litwin, D., Harman, C.J., Tucker, G.E. and Barnhart, K.R. (2019, December) A numerical exploration of coevolution between runoff pathways, climate and landscape morphology. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Lyons, NJ, Val, P, Albert, JS, Willenbring, JK, and Gasparini, NM (2019, December) Linking life and landscapes with new modeling tools. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Mason, JA, McDowell, T, and Marin-Spiotta, E (2019, December) Aeolian Landforms on Loess Tablelands of the Great Plains Limit Connectivity of Surface Runoff and Sediment Transport to Surrounding Stream Networks, Potentially Enhancing Long-Term Sediment and Carbon Storage. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.W. and Barnhart, K.R. (2019, December) Offset channels are incomplete records of strike-slip fault displacement. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Steckler, M.S., Hutton, E., Ologan, D., Tucker, G.E., Grall, C. and Gurcay, S. (2019, December) Developing Sequence Stratigraphic Modeling in Landlab to improve understanding of the tectonics in the Gulf of Kusadasi, Turkey. Gasparini, N.M., Adams, J.M. Bandaragoda, C., Barnhart, K.R., Hobley, D.E., Hutton, E., Istanbulluoglu, E., Lyons, N.J., Mouchene, M., Nudurupati, S.S., Strauch, R.L. and Tucker, G.E. (2019, December) Tools for learning about earth surface processes and how to model them. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Strauch, RL, Bandaragoda, C, Cristea, NC, Raymond, C, Istanbulluoglu, E, and Miller, D (2019, December)
+Slippery future predictions of multiple mountain hazards: landslides, climate change, and wildfire. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
+Tucker, G.E. (2019, March) Testing landscape evolution models with topographic data. Invited lecture presented at workshop on Data ANalytics for Climate and Earth, Lake Arrowhead, CA.
+
+Tucker, G.E. (2019, October) Community, Computing, and Education: an overview of CSDMS. Recorded lecture provided for 2019 CoMSES Virtual Meeting.
+
+Tucker, G.E., Barnhart, K.R., Doty, S.G., Glade, R.C., Hill, M.C., Rossi, M.W. and Shobe, C.M. (2019, November) Testing long-term channel network incision models using a natural experiment in postglacial landscape evolution. Paper presented at River, Coastal and Estuarine Morphodynamics Symposium (RCEM), Auckland, New Zealand.
+
+Tucker, G.E., Hobley, D.E.J., and McCoy, S.W. (2019, December) Exploring the morphologic diversity of normal-fault facets. Paper presented at American Geophysical Union fall meeting, San Francisco, CA.
+
 
 2018
 ````

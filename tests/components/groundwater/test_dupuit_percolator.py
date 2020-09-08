@@ -304,3 +304,63 @@ def test_k_func():
 
     gdp1.run_with_adaptive_time_step_solver(0)
     assert np.equal(0.005, gdp1.K).all()
+
+
+def test_callback_func():
+    """
+    Test the use of a callback function to return the storage and
+    substep durations while using the run_with_adaptive_time_step_solver
+    method.
+
+    Notes:
+    ----
+    Two tests here: make sure that the substeps sum to the global timestep,
+    and make sure that when recharge is 0.0, the total storage does not
+    increase during any of the substeps. See component documentation for
+    more detail on arguments for the callback_fun.
+    """
+
+    # make a function that writes storage and substep duration to
+    # externally defined lists
+    storage_subdt = []
+    subdt = []
+    all_n = []
+
+    def test_fun(grid, recharge, dt, n=0.2):
+        cores = grid.core_nodes
+        h = grid.at_node["aquifer__thickness"]
+        area = grid.cell_area_at_node
+        storage = np.sum(n * h[cores] * area[cores])
+
+        storage_subdt.append(storage)
+        subdt.append(dt)
+        all_n.append(n)
+
+    # initialize grid
+    grid = RasterModelGrid((3, 3))
+    grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
+    elev = grid.add_ones("topographic__elevation", at="node")
+    elev[3] = 0.1
+    grid.add_zeros("aquifer_base__elevation", at="node")
+    wt = grid.add_zeros("water_table__elevation", at="node")
+    wt[:] = elev
+
+    # initialize groundwater model
+    gdp = GroundwaterDupuitPercolator(
+        grid,
+        recharge_rate=0.0,
+        hydraulic_conductivity=0.0001,
+        callback_fun=test_fun,
+        n=0.1,
+    )
+
+    # run groundawter model
+    gdp.run_with_adaptive_time_step_solver(1e5)
+
+    # assert that the water table does not increase during substeps
+    assert (np.diff(storage_subdt) <= 0.0).all()
+
+    # assert that substeps sum to the global timestep
+    assert_almost_equal(1e5, sum(subdt))
+
+    assert all(x == 0.1 for x in all_n)

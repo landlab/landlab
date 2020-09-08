@@ -29,7 +29,7 @@ def _notebook_run(path):
             "notebook",
             "--execute",
             "--ExecutePreprocessor.kernel_name=python",
-            "--ExecutePreprocessor.timeout=None",
+            "--ExecutePreprocessor.timeout=-1",
             "--output",
             fp.name,
             "--output-dir=.",

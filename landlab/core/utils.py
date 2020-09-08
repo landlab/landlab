@@ -51,6 +51,12 @@ class ExampleData:
         --------
         >>> data = ExampleData("io/shapefile")
         >>> data.fetch()
+
+        We now remove the created folder because otherwise the test can only
+        pass locally once.
+
+        >>> import shutil
+        >>> shutil.rmtree("methow")
         """
         dstdir, srcdir = pathlib.Path("."), self.base
 
