@@ -158,6 +158,7 @@ class FlowAccumulator(Component):
 
     Third, we can import a FlowDirector component from Landlab and pass it to
     `flow_director`:
+
     >>> from landlab.components import FlowDirectorSteepest
     >>> fa = FlowAccumulator(
     ...      mg,
@@ -723,12 +724,7 @@ class FlowAccumulator(Component):
         self._node_cell_area = node_cell_area
 
         # STEP 2:
-        # identify Flow Director method, save name, import and initialize the correct
-        # flow director component if necessary
-        self._add_director(flow_director)
-        self._add_depression_finder(depression_finder)
-
-        # This component will track of the following variables.
+        # This component will track the following variables.
         # Attempt to create each, if they already exist, assign the existing
         # version to the local copy.
 
@@ -751,6 +747,13 @@ class FlowAccumulator(Component):
 
         self._D_structure = self._grid.BAD_INDEX * grid.ones(at="link", dtype=int)
         self._nodes_not_in_stack = True
+
+        # STEP 3:
+        # identify Flow Director method, save name, import and initialize the
+        # correct flow director component if necessary; same with
+        # lake/depression handler, if specified.
+        self._add_director(flow_director)
+        self._add_depression_finder(depression_finder)
 
         if len(self._kwargs) > 0:
             kwdstr = " ".join(list(self._kwargs.keys()))
@@ -957,7 +960,7 @@ class FlowAccumulator(Component):
 
     def _add_depression_finder(self, depression_finder):
         """Test and add the depression finder component."""
-        PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter"]
+        PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter", "LakeMapperBarnes"]
 
         # now do a similar thing for the depression finder.
         self._depression_finder_provided = depression_finder
@@ -965,7 +968,19 @@ class FlowAccumulator(Component):
 
             # collect potential kwargs to pass to depression_finder
             # instantiation
-            potential_kwargs = ["routing"]
+            potential_kwargs = [
+                "routing",
+                "pits",
+                "reroute_flow",
+                "surface",
+                "method",
+                "fill_flat",
+                "fill_surface",
+                "redirect_flow_steepest_descent",
+                "reaccumulate_flow",
+                "ignore_overfill",
+                "track_lakes",
+            ]
             kw = {}
             for p_k in potential_kwargs:
                 if p_k in self._kwargs.keys():
@@ -1006,10 +1021,14 @@ class FlowAccumulator(Component):
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
 
-                from landlab.components import DepressionFinderAndRouter
+                from landlab.components import (
+                    DepressionFinderAndRouter,
+                    LakeMapperBarnes,
+                )
 
                 DEPRESSION_METHODS = {
-                    "DepressionFinderAndRouter": DepressionFinderAndRouter
+                    "DepressionFinderAndRouter": DepressionFinderAndRouter,
+                    "LakeMapperBarnes": LakeMapperBarnes,
                 }
 
                 try:
@@ -1067,6 +1086,9 @@ class FlowAccumulator(Component):
         else:
             self._depression_finder = None
 
+    def pits_present(self):
+        return np.any(self._grid.at_node["flow__sink_flag"][self._grid.core_nodes])
+
     def accumulate_flow(self, update_flow_director=True, update_depression_finder=True):
         """Function to make FlowAccumulator calculate drainage area and
         discharge.
@@ -1122,8 +1144,8 @@ class FlowAccumulator(Component):
             # At the moment, no depression finders work with to-many, so it
             # lives here
             if self._depression_finder_provided is not None:
-                if update_depression_finder:
-                    self._depression_finder.map_depressions()
+                if update_depression_finder and self.pits_present():
+                    self._depression_finder.update()
 
                     # if FlowDirectorSteepest is used, update the link directions
                     if self._flow_director._name == "FlowDirectorSteepest":
@@ -1133,13 +1155,13 @@ class FlowAccumulator(Component):
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
             delta = as_id_array(flow_accum_bw._make_delta_array(nd))
             D = as_id_array(flow_accum_bw._make_array_of_donors(r, delta))
-            s = as_id_array(flow_accum_bw.make_ordered_node_array(r))
+            s = as_id_array(flow_accum_bw.make_ordered_node_array(r, nd, delta, D))
 
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
-            self._grid.at_node["flow__data_structure_delta"][:] = delta[1:]
-            self._D_structure = D
-            self._grid.at_node["flow__upstream_node_order"][:] = s
+            self._grid.at_node["flow__data_structure_delta"][:] = as_id_array(delta[1:])
+            self._D_structure = as_id_array(D)
+            self._grid.at_node["flow__upstream_node_order"][:] = as_id_array(s)
 
             # step 4. Accumulate (to one or to N depending on direction method)
             a[:], q[:] = self._accumulate_A_Q_to_one(s, r)
@@ -1152,7 +1174,9 @@ class FlowAccumulator(Component):
             nd = as_id_array(flow_accum_to_n._make_number_of_donors_array_to_n(r, p))
             delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
             D = as_id_array(flow_accum_to_n._make_array_of_donors_to_n(r, p, delta))
-            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p))
+            s = as_id_array(
+                flow_accum_to_n.make_ordered_node_array_to_n(r, p, nd, delta, D)
+            )
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid

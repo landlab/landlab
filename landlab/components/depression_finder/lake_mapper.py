@@ -838,6 +838,10 @@ class DepressionFinderAndRouter(Component):
             self._unique_pits
         ]
 
+    def update(self):
+        """Alias for map_depressions."""
+        self.map_depressions()
+
     def map_depressions(self):
         """Map depressions/lakes in a topographic surface.
 

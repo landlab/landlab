@@ -1185,3 +1185,34 @@ def test_extra_kwargs():
     _ = FlowDirectorSteepest(mg)
     with pytest.raises(ValueError):
         FlowAccumulator(mg, spam="eggs")
+
+
+def test_with_lake_mapper_barnes():
+    hmg_hole = HexModelGrid((9, 5))
+    z = hmg_hole.add_field(
+        "topographic__elevation",
+        hmg_hole.x_of_node + np.round(hmg_hole.y_of_node),
+        at="node",
+    )
+    hole_nodes = [21, 22, 23, 30, 31, 39, 40]
+    z[hole_nodes] = z[hole_nodes] * 0.1
+    hmg_hole.add_zeros("filled__elevation", at="node")
+    fa = FlowAccumulator(
+        hmg_hole,
+        flow_director="Steepest",
+        depression_finder="LakeMapperBarnes",
+        fill_flat=False,
+        redirect_flow_steepest_descent=True,
+        reaccumulate_flow=True,
+        fill_surface="filled__elevation",
+    )
+    fa.run_one_step()
+
+    rcvrs = hmg_hole.at_node["flow__receiver_node"]
+    assert_array_equal(rcvrs[[13, 21, 46]], [6, 13, 39])
+
+    from landlab.components import LakeMapperBarnes
+
+    fa = FlowAccumulator(hmg_hole, depression_finder=LakeMapperBarnes)
+    lmb = LakeMapperBarnes(hmg_hole)
+    fa = FlowAccumulator(hmg_hole, depression_finder=lmb)
