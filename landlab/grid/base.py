@@ -22,7 +22,9 @@ from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
 from .decorators import (
-    override_array_setitem_and_reset, return_id_array, return_readonly_id_array
+    override_array_setitem_and_reset,
+    return_id_array,
+    return_readonly_id_array,
 )
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
