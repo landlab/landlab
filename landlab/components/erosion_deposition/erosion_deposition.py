@@ -432,7 +432,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         first_iteration = True
 
         is_flooded_core_node = self._get_flooded_core_nodes()
-        e = time-time()
+        e = time.time()
         print('--')
         print(e-s)
         s = e
@@ -453,12 +453,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             else:
                 first_iteration = False
             print('.')
-            e = time-time()
+            e = time.time()
             print(e-s)
             s = e
             self._calc_qs_in_and_depo_rate()
 
-            e = time-time()
+            e = time.time()
             print(e-s)
             s = e
             # Rate of change of elevation at core nodes:
@@ -486,7 +486,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 TIME_STEP_FACTOR * zdif[converging] / rocdif[converging]
             )
 
-            e = time-time()
+            e = time.time()
             print(e-s)
             s = e
             # Mask out pairs where the source at the same or lower elevation
@@ -506,6 +506,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
             # Update remaining time and continue the loop
             remaining_time -= dt_max
-            e = time-time()
+            e = time.time()
             print(e-s)
             s = e

@@ -1210,13 +1210,44 @@ class LakeMapperBarnes(Component):
 
             # TODO: obvious case for Cython accel here
             # Now know which nodes we need to reassess. So:
+            #print(self._neighbor_arrays)
+            # print(type(self._steepestslopes))
+            #print(self._link_arrays)
+            # print(type(np.array(self._steepestslopes)))
+            # print(np.array(self._steepestslopes).shape)
+            has_diags = len(self._neighbor_arrays) - 1  # 0 or 1
+            if has_diags:
+                print('Diag array:')
+                print(self._neighbor_arrays[1])
+                print('liminal nodes:')
+                print(liminal_nodes)
+            from .cfuncs import redirect_dirs
+            # redirect_dirs(
+            #                 np.array(liminal_nodes),
+            #                 self._neighbor_arrays[0],
+            #                 self._neighbor_arrays[has_diags],
+            #                 self._link_arrays[0],
+            #                 self._link_arrays[has_diags],
+            #                 self._grid.status_at_node,
+            #                 int(self._grid.BC_NODE_IS_CLOSED),
+            #                 self._fill_surface,
+            #                 self._neighbor_lengths,
+            #                 self._receivers,
+            #                 self._receiverlinks,
+            #                 self._steepestslopes,
+            #                 has_diags,
+            #                 )
             for liminal in liminal_nodes:
                 min_elev = LARGE_ELEV
                 min_link = -1
                 for neighbor_set, link_set in zip(
                     self._neighbor_arrays, self._link_arrays
                 ):
+                    #print(type(neighbor_set), liminal)
+                    #print(neighbor_set.shape, link_set.shape)
+                    #print(neighbor_set)
                     neighbors = neighbor_set[liminal]
+                    #print(neighbors)
                     neighbors_valid = np.not_equal(neighbors, -1)
                     closednodes = np.equal(
                         self._grid.status_at_node[neighbors],
@@ -1650,6 +1681,8 @@ class LakeMapperBarnes(Component):
         ensures the information about the lake and the water surface
         topography are all updated cleanly and correctly.
         """
+        import time
+        s = time.time()
         if "flow__receiver_node" in self._grid.at_node:
             if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
                 "node"
@@ -1677,9 +1710,15 @@ class LakeMapperBarnes(Component):
         # now, return _closed to its initial cond, w only the BC_NODE_IS_CLOSED
         # and grid draining nodes pre-closed:
         closedq = self._closed.copy()
+        e = time.time()
+        #print(e-s)
+        s = e
         if self._track_lakes:
             for edgenode in self._edges:
                 _open.add_task(edgenode, priority=self._surface[edgenode])
+            e = time.time()
+            #print(e-s)
+            s = e
             closedq[self._edges] = True
             if self._fill_flat:
                 self._lakemappings = self._fill_to_flat_with_tracking(
@@ -1695,8 +1734,14 @@ class LakeMapperBarnes(Component):
                     ignore_overfill=self._ignore_overfill,
                     track_lakes=True,
                 )
+            e = time.time()
+            #print(e-s)
+            s = e
             if not self._dontredirect:
                 self._redirect_flowdirs(orig_topo, self._lakemappings, _open)
+                e = time.time()
+                #print(e-s)
+                s = e
                 if self._reaccumulate:
                     _, _ = self._fa.accumulate_flow(update_flow_director=False)
 
@@ -1718,6 +1763,8 @@ class LakeMapperBarnes(Component):
                     )
                 except KeyError:  # run out of nodes to fill...
                     break
+        e = time.time()
+        #print('lake fill run time: ' + str(e-s))
 
     @property
     def lake_dict(self):
