@@ -45,6 +45,7 @@ def redirect_dirs(
         #         neighbor_arrays, link_arrays
         # ):
         if True: # ONCE FOR THE BASIC NEIGHBORS
+            print('BASIC NBRS')
             neighbors = neighbor_array[liminal]
             neighbors_valid = np.not_equal(neighbors, -1)
             closednodes = np.equal(

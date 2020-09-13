@@ -1217,27 +1217,29 @@ class LakeMapperBarnes(Component):
             # print(np.array(self._steepestslopes).shape)
             has_diags = len(self._neighbor_arrays) - 1  # 0 or 1
             if has_diags:
+                print('Num links: ' + str(self._grid.number_of_links))
+                print('Num diags: ' + str(self._neighbor_arrays[1].shape))
                 print('Diag array:')
                 print(self._neighbor_arrays[1])
                 print('liminal nodes:')
                 print(liminal_nodes)
             from .cfuncs import redirect_dirs
-            # redirect_dirs(
-            #                 np.array(liminal_nodes),
-            #                 self._neighbor_arrays[0],
-            #                 self._neighbor_arrays[has_diags],
-            #                 self._link_arrays[0],
-            #                 self._link_arrays[has_diags],
-            #                 self._grid.status_at_node,
-            #                 int(self._grid.BC_NODE_IS_CLOSED),
-            #                 self._fill_surface,
-            #                 self._neighbor_lengths,
-            #                 self._receivers,
-            #                 self._receiverlinks,
-            #                 self._steepestslopes,
-            #                 has_diags,
-            #                 )
-            for liminal in liminal_nodes:
+            redirect_dirs(
+                            np.array(liminal_nodes),
+                            self._neighbor_arrays[0],
+                            self._neighbor_arrays[has_diags],
+                            self._link_arrays[0],
+                            self._link_arrays[has_diags],
+                            self._grid.status_at_node,
+                            int(self._grid.BC_NODE_IS_CLOSED),
+                            self._fill_surface,
+                            self._neighbor_lengths,
+                            self._receivers,
+                            self._receiverlinks,
+                            self._steepestslopes,
+                            has_diags,
+                            )
+            for liminal in []: #liminal_nodes:
                 min_elev = LARGE_ELEV
                 min_link = -1
                 for neighbor_set, link_set in zip(
@@ -1681,6 +1683,7 @@ class LakeMapperBarnes(Component):
         ensures the information about the lake and the water surface
         topography are all updated cleanly and correctly.
         """
+        print('lmb ros')
         import time
         s = time.time()
         if "flow__receiver_node" in self._grid.at_node:
@@ -1714,6 +1717,7 @@ class LakeMapperBarnes(Component):
         #print(e-s)
         s = e
         if self._track_lakes:
+            print('track_lakes is True')
             for edgenode in self._edges:
                 _open.add_task(edgenode, priority=self._surface[edgenode])
             e = time.time()
@@ -1746,6 +1750,7 @@ class LakeMapperBarnes(Component):
                     _, _ = self._fa.accumulate_flow(update_flow_director=False)
 
         else:  # not tracked
+            print('Track lakes False')
             # note we've already checked _dontredirect is True in setup,
             # so we don't need to worry about these cases.
             for edgenode in self._edges:
