@@ -45,7 +45,7 @@ def redirect_dirs(
         #         neighbor_arrays, link_arrays
         # ):
         if True: # ONCE FOR THE BASIC NEIGHBORS
-            print('BASIC NBRS')
+            #print('BASIC NBRS')
             neighbors = neighbor_array[liminal]
             neighbors_valid = np.not_equal(neighbors, -1)
             closednodes = np.equal(
@@ -75,8 +75,8 @@ def redirect_dirs(
                     pass
         if has_diags: #ONCE FOR THE DIAGONS, IF APPLICABLE
             neighbors = diag_neighbor_array[liminal]
-            print('diag nbrs:')
-            print(neighbors)
+            #print('diag nbrs:')
+            #print(neighbors)
             #SOMEHOW AN ID OF 48 IS SHOWING UP IN A 48-NODE GRID
             neighbors_valid = np.not_equal(neighbors, -1)
             closednodes = np.equal(

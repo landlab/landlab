@@ -324,52 +324,52 @@ assert(np.all(np.equal(
               0. , 1. , 2. , 3. , 4. , 5. , 6. , 7. ]))))
 #         True
 
-# sp.run_one_step(0.05)  # note m=0 to illustrate effect of slopes
-# np.all(np.equal(
-#     np.round(z_water, 2),
-#     np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
-#               0.  , 0.95, 1.95, 2.  , 3.9 , 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.95, 2.  , 3.9 , 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
-#               0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ])))
+sp.run_one_step(0.05)  # note m=0 to illustrate effect of slopes
+assert(np.all(np.equal(
+    np.round(z_water, 2),
+    np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
+              0.  , 0.95, 1.95, 2.  , 3.9 , 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.95, 2.  , 3.9 , 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
+              0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ]))))
 #         True
 
 #         If we want to keep this going honouring the depths of the lakes try
 #         this next in your loop:
 
-# z_bed[:] = np.minimum(z_water, z_bed)
-# np.all(np.equal(
-#     np.round(z_bed, 2),
-#     np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
-#               0.  , 0.95, 1.95, 1.5 , 3.9 , 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.95, 0.5 , 3.9 , 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
-#               0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ])))
+z_bed[:] = np.minimum(z_water, z_bed)
+assert(np.all(np.equal(
+    np.round(z_bed, 2),
+    np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
+              0.  , 0.95, 1.95, 1.5 , 3.9 , 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.95, 0.5 , 3.9 , 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
+              0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ]))))
 #         True
-# fd.run_one_step()
-# fa.run_one_step()
-# lmb.run_one_step()
+fd.run_one_step()
+fa.run_one_step()
+lmb.run_one_step()
 
 #         Lake node depths are now updated in lmb:
 
-# np.round(
-#     [lmb.lake_depths[lake] for lake in lmb.lake_dict.values()], 2)
-#         array([[ 0.45,  1.45]])
+np.testing.assert_array_equal(np.round(
+    [lmb.lake_depths[lake] for lake in lmb.lake_dict.values()], 2),
+        np.array([[ 0.45,  1.45]]))
 
 #         ...and the "topography" (i.e., water surface) at the flooded nodes
 #         has lowered itself as the lip of the outlet was eroded in the last
 #         step:
 
-# np.all(np.equal(
-#     np.round(z_water, 2),
-#     np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
-#               0.  , 0.95, 1.95, 1.95 , 3.9 , 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.95, 1.95 , 3.9 , 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
-#               0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
-#               0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ])))
+assert(np.all(np.equal(
+    np.round(z_water, 2),
+    np.array([0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ,
+              0.  , 0.95, 1.95, 1.95 , 3.9 , 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.95, 1.95 , 3.9 , 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.  ,
+              0.  , 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.  ,
+              0.  , 1.  , 2.  , 3.  , 4.  , 5.  , 6.  , 7.  ]))))
 #         True
 
 # sp.run_one_step(0.05)
