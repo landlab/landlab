@@ -13,6 +13,7 @@ from .source_tracking_algorithm import (
     track_source,
 )
 from .stable_priority_queue import StablePriorityQueue
+from .cfuncs import StablePriorityQueueC
 from .watershed import (
     get_watershed_mask,
     get_watershed_masks,
