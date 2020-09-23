@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 """unit tests for landlab.io.obj module"""
+import pathlib
 
-import os
-import tempfile
+import pytest
+
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.io import write_obj
 
@@ -54,26 +55,65 @@ def remove_newline_chars(mystr):
     return mystr
 
 
-def test_write_obj():
-
-    grid = HexModelGrid((3, 2), spacing=2.0)
-    z = grid.add_zeros("topographic__elevation", at="node")
-    z[3] = 1.0
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        fname = os.path.join(tmpdirname, "test_tri.obj")
-        write_obj(fname, grid)
-        file = open(fname)
-        contents = file.read()
-        contents = remove_newline_chars(contents)
-        assert contents == remove_newline_chars(LITTLE_HEX_OBJ)
-
+def test_write_to_filelike(tmpdir):
     grid = RasterModelGrid((3, 3), xy_spacing=2.0)
     z = grid.add_zeros("topographic__elevation", at="node")
     z[4] = 1.0
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        fname = os.path.join(tmpdirname, "test_quad.obj")
-        write_obj(fname, grid)
-        file = open(fname)
-        contents = file.read()
-        contents = remove_newline_chars(contents)
-        assert contents == remove_newline_chars(LITTLE_RAST_OBJ)
+
+    with tmpdir.as_cwd():
+        with open("test_quad.obj", "w") as fp:
+            write_obj(fp, grid)
+        with open("test_quad.obj", "r") as fp:
+            assert fp.read() == LITTLE_RAST_OBJ
+
+
+@pytest.mark.parametrize("fname", (pathlib.Path("test_hex.obj"), "test_hex.obj"))
+def test_write_hex_to_path(tmpdir, fname):
+    grid = HexModelGrid((3, 2), spacing=2.0)
+    z = grid.add_zeros("topographic__elevation", at="node")
+    z[3] = 1.0
+
+    with tmpdir.as_cwd():
+        actual = write_obj(fname, grid)
+        assert actual == fname
+        with open(fname, "r") as fp:
+            assert fp.read() == LITTLE_HEX_OBJ
+
+
+def test_write_raster(tmpdir):
+    grid = RasterModelGrid((3, 3), xy_spacing=2.0)
+    z = grid.add_zeros("topographic__elevation", at="node")
+    z[4] = 1.0
+
+    with tmpdir.as_cwd():
+        write_obj("test_quad.obj", grid)
+        with open("test_quad.obj", "r") as fp:
+            assert fp.read() == LITTLE_RAST_OBJ
+
+
+def test_field_name(tmpdir):
+    grid = RasterModelGrid((3, 3), xy_spacing=2.0)
+    z = grid.add_zeros("z", at="node")
+    z[4] = 1.0
+
+    with tmpdir.as_cwd():
+        write_obj("test_quad.obj", grid, field_for_z="z")
+        with open("test_quad.obj", "r") as fp:
+            assert fp.read() == LITTLE_RAST_OBJ
+
+
+def test_clobber(tmpdir):
+    grid = RasterModelGrid((3, 3), xy_spacing=2.0)
+    z = grid.add_zeros("topographic__elevation", at="node")
+    z[4] = 1.0
+
+    with tmpdir.as_cwd():
+        with open("test_quad.obj", "w") as fp:
+            pass
+
+        with pytest.raises(ValueError):
+            write_obj("test_quad.obj", grid)
+
+        write_obj("test_quad.obj", grid, clobber=True)
+        with open("test_quad.obj", "r") as fp:
+            assert fp.read() == LITTLE_RAST_OBJ
