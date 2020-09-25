@@ -22,6 +22,10 @@ Carriere, A., Le Bouteiller, C., Tucker, G.E., Klotz, S., and Naaim, M. (2020) *
 
 Litwin, D.G., Tucker, G.E., Barnhart, K.R., and Harman, C.J. (2020) **GroundwaterDupuitPercolator: A Landlab component for groundwater flow,** *Journal of Open Source Software,* 5(46), 1935, `https://doi.org/10.21105/joss.01935 <https://doi.org/10.21105/joss.01935>`__.
 
+Lyons, N.J., Albert, J.S., and Gasparini, N.M. (2020). **SpeciesEvolver: A Landlab component to evolve life in simulated landscapes.** *Journal of Open Source Software,* 5(46), 2066, `https://doi.org/10.21105/joss.02066 <https://doi.org/10.21105/joss.02066>`__.
+
+Pfeiffer, A.M., Barnhart, K.R., Czuba, J.A., and Hutton, E.W.H. (2020). **NetworkSedimentTransporter: A Landlab component for bed material transport through river networks.** *Journal of Open Source Software,* 5(53), 2341, `https://doi.org/10.21105/joss.02341 <https://doi.org/10.21105/joss.02341>`__.
+
 Tucker, G. E., Hobley, D.E.J., McCoy, S.W., and Struble, W.T. (2020) **Modeling the shape and evolution of normal-fault facets.** *Journal of Geophysical Research: Earth Surface,* 125, `https://doi.org/10.1029/2019JF005305 <https://doi.org/10.1029/2019JF005305>`__.
 
 2019
