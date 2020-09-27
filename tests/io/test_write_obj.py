@@ -49,12 +49,6 @@ f 5// 6// 9//
 """
 
 
-def remove_newline_chars(mystr):
-    mystr = mystr.replace("\n", "")
-    mystr = mystr.replace("\r", "")
-    return mystr
-
-
 def test_write_to_filelike(tmpdir):
     grid = RasterModelGrid((3, 3), xy_spacing=2.0)
     z = grid.add_zeros("topographic__elevation", at="node")
