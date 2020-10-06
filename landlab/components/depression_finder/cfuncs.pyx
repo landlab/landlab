@@ -39,7 +39,7 @@ cpdef find_lowest_node_on_lake_perimeter_c(
         pit node, then padding values, but it will be updated in place to
         reflect the nodes in the lake.
     pit_count : int
-        The number of nodes currently in the lake. 
+        The number of nodes currently in the lake.
 
     Returns
     -------
@@ -82,7 +82,7 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     """
     # Start with the first node on the list, and an arbitrarily large elev
     cdef int lowest_node = nodes_this_depression[0]
-    cdef float lowest_elev = BIG_ELEV
+    cdef DTYPE_FLOAT_t lowest_elev = BIG_ELEV
 
     # set up a worst-case scanario array for the pits, and a counter to pull
     # the good entries later:
