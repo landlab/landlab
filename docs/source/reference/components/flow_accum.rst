@@ -18,10 +18,16 @@ LossyFlowAccumulator: Component to accumulate flow with the FlowDirectors, while
 Functions to support flow accumulation
 --------------------------------------
 
+Route-to-one methods
+++++++++++++++++++++
+
 .. automodule:: landlab.components.flow_accum.flow_accum_bw
     :members:
     :undoc-members:
     :show-inheritance:
+
+Route-to-multiple methods
++++++++++++++++++++++++++
 
 .. automodule:: landlab.components.flow_accum.flow_accum_to_n
     :members:
