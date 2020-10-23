@@ -12,8 +12,9 @@ Algorithm constructs drainage area and (optionally) water discharge. Can
 handle the case in which each node has more than one downstream receiver.
 
 Computationally, for a grid of the same size this algorithm will take about
-    1.5*(avg number of downstream nodes per cell)
-        *(duration of flow_accum_bw for same grid using route-to-one method)
+
+    1.5 x (avg number of downstream nodes per cell)
+        x (duration of flow_accum_bw for same grid using route-to-one method)
 
 So under route-to-one direction schemes, using the Braun and Willet method is
 recommended.
