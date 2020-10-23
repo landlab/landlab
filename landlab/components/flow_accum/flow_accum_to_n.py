@@ -22,7 +22,7 @@ recommended.
 If water discharge is calculated, the result assumes steady flow (that is,
 hydrologic equilibrium).
 
-The main public function is:
+The main public function is::
 
     a, q, s = flow_accumulation_to_n(r, p)
 
@@ -286,7 +286,6 @@ def _make_delta_array_to_n(nd):
 
     Examples
     --------
-
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_to_n import(
     ... _make_delta_array_to_n)
