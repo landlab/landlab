@@ -35,8 +35,8 @@ class ExponentialWeathererIntegrated(Component):
         This enables accuracy over arbitrarily large timesteps, and better 
         compatiblity with run_one_step().
         - This should maintain the field output behavior of the original, but 
-        add a new return field for the weathered thickness.
-        - Density adjustments are needed inside the intergral and o are hendled here. 
+        add new return fields for the weathered thickness and soil produced thickness.
+        - Density adjustments are needed inside the integral and are handled here. 
         - Returns both weathered depth of bedrock and produced depth of soil over the timestep.
         - The primary soil depth field that is input is NOT updated by the component. 
         This is left as an exercise for the model driver, as different applications 
