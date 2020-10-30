@@ -34,8 +34,14 @@ class ExponentialWeathererIntegrated(Component):
         the reduction in rate over the timestep due to the increasing depth. 
         This enables accuracy over arbitrarily large timesteps, and better 
         compatiblity with run_one_step().
-        - this should maintain the field output behavior of the original, but add a new return field for the weathered thickness.
-        - density adjustments are expected to be handled outside of this component
+        - This should maintain the field output behavior of the original, but 
+        add a new return field for the weathered thickness.
+        - Density adjustments are needed inside the intergral and o are hendled here. 
+        - Returns both weathered depth of bedrock and produced depth of soil over the timestep.
+        - The primary soil depth field that is input is NOT updated by the component. 
+        This is left as an exercise for the model driver, as different applications 
+        may want to integrate soil depth and weathering in different sequences
+        among other processes.
 
     Examples
     --------
@@ -104,17 +110,26 @@ class ExponentialWeathererIntegrated(Component):
             "mapping": "node",
             "doc": "rate of soil production at nodes",
         },
-        "soil_production__dt_total_depth": {
+        "soil_production__dt_produced_depth": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "thickness of bedrock weathered at nodes",
+            "doc": "thickness of soil produced at nodes over time dt",
+        },
+        "soil_production__dt_weathered_depth": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "thickness of bedrock weathered at nodes over time dt",
+        },
     }
 
     def __init__(
-        self, grid, soil_production__maximum_rate=1.0, soil_production__decay_depth=1.0
+        self, grid, soil_production__maximum_rate=1.0, soil_production__decay_depth=1.0, soil_production__expansion_factor=1.0
     ):
         """
         Parameters
@@ -125,6 +140,8 @@ class ExponentialWeathererIntegrated(Component):
             Maximum weathering rate for bare bedrock
         soil_production__decay_depth : float
             Characteristic weathering depth
+        soil_production__expansion_factor : float
+            Expansion ratio of regolith (from rel densities of rock and reg) 
         """
         super().__init__(grid)
 
@@ -132,6 +149,7 @@ class ExponentialWeathererIntegrated(Component):
 
         self._wstar = soil_production__decay_depth
         self._w0 = soil_production__maximum_rate
+        self._fexp = soil_production__expansion_factor
 
         # Create fields:
         # soil depth
@@ -143,11 +161,18 @@ class ExponentialWeathererIntegrated(Component):
         else:
             self._soil_prod_rate = grid.add_zeros("soil_production__rate", at="node")
 
-        # weathering total over dt
-        if "soil_production__dt_total_depth" in grid.at_node:
-            self._soil_prod_rate = grid.at_node["soil_production__dt_total_depth"]
+        # soil produced total over dt
+        if "soil_production__dt_produced_depth" in grid.at_node:
+            self._soil_prod_total = grid.at_node["soil_production__dt_produced_depth"]
         else:
-            self._soil_prod_rate = grid.add_zeros("soil_production__dt_total_depth", at="node")
+            self._soil_prod_total = grid.add_zeros("soil_production__dt_produced_depth", at="node")
+
+        # bedrock weathering total over dt
+        if "soil_production__dt_weathered_depth" in grid.at_node:
+            self._rock_weathered_total = grid.at_node["soil_production__dt_weathered_depth"]
+        else:
+            self._rock_weathered_total = grid.add_zeros("soil_production__dt_weathered_depth", at="node")
+            
             
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""
@@ -156,20 +181,23 @@ class ExponentialWeathererIntegrated(Component):
             -self._depth[self._grid.core_nodes] / self._wstar
         )
 
-    def calc_dt_production_total(self,dt):
+    def _calc_dt_production_total(self,dt):
         """Calculate integrated production over 1 timestep dt"""
-        
+        self._soil_prod_total[self._grid.core_nodes] = self._wstar * np.log((self._fexp * self._soil_prod_rate * dt/self._wstar) + 1 )
+        # and back-convert to find rock thickness converted over the timestep:
+        self._rock_weathered_total[self._grid.core_nodes] = self._soil_prod_total / self._fexp 
 
-    def run_one_step(self,dt):
+    def run_one_step(self,dt=0):
         """
 
         Parameters
         ----------
         dt: float
             Used only for compatibility with standard run_one_step.
+            If dt is not provided, the default of zero maintains backward compatibility
         """
         self.calc_soil_prod_rate()
-        self.calc_dt_production_total(dt)
+        self._calc_dt_production_total(dt)
 
     @property
     def maximum_weathering_rate(self):
