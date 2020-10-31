@@ -36,18 +36,17 @@ class ExponentialWeathererIntegrated(Component):
         compatiblity with run_one_step().
 
         Compared to 'ExponentialWeatherer', upon which it is based...
-        - This maintains the field I/O behavior of the original, but
-        adds new return fields for the weathered thickness and soil produced thickness.
-        - Density adjustments are needed inside the integral and the density ratio is intialized on instantiation.
-            The default value of 1.0 assumes no change in density.
+        - This maintains the field I/O behavior of the original, but adds new return fields for the weathered thickness and soil produced thickness.
+        - Density adjustments are needed inside the integral and the density ratio is intialized on instantiation. The default value of 1.0 assumes no change in density.
         - Returns both weathered depth of bedrock and produced depth of soil over the timestep.
         - The primary soil__depth field that is input is NOT updated by the component.
-            This is left as an exercise for the model driver, as different applications
-            may want to integrate soil depth and weathering in different sequences
-            among other processes.
+        This is left as an exercise for the model driver, as different applications
+        may want to integrate soil depth and weathering in different sequences
+        among other processes.
         - SHOULD maintain drop-in compatiblity with the plain ExponentialWeatherer,
-            just import and instantiate this one instead and existing code should work
-            with no side effects other than the creation of the two additional (zeros) output fields.
+        just import and instantiate this one instead and existing code should work
+        with no side effects other than the creation of the two additional (zeros) 
+        output fields.
 
     Examples
     --------
