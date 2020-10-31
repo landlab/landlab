@@ -1,9 +1,9 @@
-# Documentation for Better Weatherer
+# Documentation for Better Weatherer (aka ExponentialWeathererIntegrated)
 
 
 ## 1. Why?
 
-With large time steps, areas with fast weathering rates or lots of bare bedrock are subject to inaccuaracy in the most common implementation, which is a linear extrapolation of present weathering rates through the next timestep. This component uses an analytical integration of the weathering function to exactly determine the weathering total over an arbitrary timestep. 
+Using an exponential weathering function, areas with fast weathering rates or lots of bare bedrock are subject to substantial inaccuaracy in the most common (forward-Eulerian) time stepping implementation, which is a linear extrapolation of present weathering rates through the next timestep. This component uses an analytical integration of the weathering function to exactly determine the weathering total over an arbitrary timestep. 
 
 ## 2. Derivation and background
 The common exponential weathering function (Anhert, 1970) computes soil production rate that declines as an exponential function of soil thickness, a model that has signficant observational support at least in some geological settings (Heimsath later review). 
@@ -29,7 +29,7 @@ $$
 	H_{prod}=d^* log \left[\frac{w*dt}{d^*} + 1\right]
 $$
 
-When we compute the thickness of soil production this way, we can see that the linear timestep extrapolation we used above results in about a 30% excess of regolith produced:
+When we compute the thickness of soil production this way, we can see that the linear timestep extrapolation we used above results in about a 30% excess of regolith produced over a single timestep:
 
 ```  matlab
 >> rstar = 1; rdot_H=1; dt=1;
@@ -87,7 +87,9 @@ The above discussion informs our component design. In particular, it is necessar
             Expansion ratio of regolith (from rel densities of rock and reg) 
 ```
 
+We are for now keeping the only public attribute the `max_weathering_rate` as in the existing component.
 An architectural alternative to integrating the two components directly would be to make this a subclass of the existing exp weatherer with only the new functionality added.
+This was dismissed because the integration used explicitly assumes that a particualr weathering function was used for the base rate, and if the original component changes for some reason, it could invalidate the use of the derived component.
 
-Future work should adapt the parameters to be variable across the grid, wheres now they're constant (but a grid might work... needs testing).
+Future work should adapt the parameters to be variable across the grid, wheres now they're scalars (but a grid might work... needs testing).
 
