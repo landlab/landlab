@@ -27,28 +27,28 @@ class ExponentialWeathererIntegrated(Component):
 
         w = w_0 \exp{-\frac{d}{d^*}} \;.
 
-    The `ExponentialWeathererIntegrated` uses the analytical solution for the 
-        amount of soil produced by an exponential weathering function over a 
-        timestep dt, and returns both the thickness of bedrock weathered and 
-        the thickness of soil produced. The solution accounts for 
-        the reduction in rate over the timestep due to the increasing depth. 
-        This enables accuracy over arbitrarily large timesteps, and better 
+    The `ExponentialWeathererIntegrated` uses the analytical solution for the
+        amount of soil produced by an exponential weathering function over a
+        timestep dt, and returns both the thickness of bedrock weathered and
+        the thickness of soil produced. The solution accounts for
+        the reduction in rate over the timestep due to the increasing depth.
+        This enables accuracy over arbitrarily large timesteps, and better
         compatiblity with run_one_step().
-        
+
         Compared to 'ExponentialWeatherer', upon which it is based...
-        - This maintains the field I/O behavior of the original, but 
+        - This maintains the field I/O behavior of the original, but
         adds new return fields for the weathered thickness and soil produced thickness.
-        - Density adjustments are needed inside the integral and the density ratio is intialized on instantiation. 
+        - Density adjustments are needed inside the integral and the density ratio is intialized on instantiation.
             The default value of 1.0 assumes no change in density.
         - Returns both weathered depth of bedrock and produced depth of soil over the timestep.
-        - The primary soil__depth field that is input is NOT updated by the component. 
-            This is left as an exercise for the model driver, as different applications 
+        - The primary soil__depth field that is input is NOT updated by the component.
+            This is left as an exercise for the model driver, as different applications
             may want to integrate soil depth and weathering in different sequences
             among other processes.
-        - SHOULD maintain drop-in compatiblity with the plain ExponentialWeatherer, 
-            just import and instantiate this one instead and existing code should work 
+        - SHOULD maintain drop-in compatiblity with the plain ExponentialWeatherer,
+            just import and instantiate this one instead and existing code should work
             with no side effects other than the creation of the two additional (zeros) output fields.
-            
+
     Examples
     --------
     >>> import numpy as np
@@ -150,7 +150,7 @@ class ExponentialWeathererIntegrated(Component):
         soil_production__decay_depth : float
             Characteristic weathering depth
         soil_production__expansion_factor : float
-            Expansion ratio of regolith (from rel. densities of rock and soil) 
+            Expansion ratio of regolith (from rel. densities of rock and soil)
         """
         super().__init__(grid)
 
@@ -181,8 +181,7 @@ class ExponentialWeathererIntegrated(Component):
             self._rock_weathered_total = grid.at_node["soil_production__dt_weathered_depth"]
         else:
             self._rock_weathered_total = grid.add_zeros("soil_production__dt_weathered_depth", at="node")
-            
-            
+
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""
         # apply exponential function
@@ -190,18 +189,17 @@ class ExponentialWeathererIntegrated(Component):
             -self._depth[self._grid.core_nodes] / self._wstar
         )
 
-    def _calc_dt_production_total(self,dt):
+    def _calc_dt_production_total(self, dt):
         """Calculate integrated production over 1 timestep dt"""
         # analytical solution
         self._soil_prod_total[self._grid.core_nodes] = self._wstar * np.log(
-            (self._fexp * self._soil_prod_rate[self._grid.core_nodes] * dt/self._wstar) + 1 
+            (self._fexp * self._soil_prod_rate[self._grid.core_nodes] * dt / self._wstar) + 1
         )
         # and back-convert to find rock thickness converted over the timestep:
-        self._rock_weathered_total[self._grid.core_nodes] = self._soil_prod_total[self._grid.core_nodes] / self._fexp 
+        self._rock_weathered_total[self._grid.core_nodes] = self._soil_prod_total[self._grid.core_nodes] / self._fexp
 
-    def run_one_step(self,dt=0):
+    def run_one_step(self, dt=0):
         """
-
         Parameters
         ----------
         dt: float
