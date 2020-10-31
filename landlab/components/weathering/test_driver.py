@@ -55,6 +55,13 @@ print( np.allclose(mg.at_node['soil_production__dt_weathered_depth'][mg.core_nod
 print( np.allclose(mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 7.17088848) )
 
 
+# Variable depths
+soilz[mg.node_y > 2] =1
+expw3.run_one_step(dt)
+
+print('weathered', mg.at_node['soil_production__dt_weathered_depth'])
+print('produced', mg.at_node['soil_production__dt_produced_depth'])
+
 
 """ Fun with setters and getters """
 print(expw2.maximum_weathering_rate, expw2._w0)

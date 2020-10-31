@@ -183,7 +183,10 @@ class ExponentialWeathererIntegrated(Component):
 
     def _calc_dt_production_total(self,dt):
         """Calculate integrated production over 1 timestep dt"""
-        self._soil_prod_total[self._grid.core_nodes] = self._wstar * np.log((self._fexp * self._soil_prod_rate[self._grid.core_nodes] * dt/self._wstar) + 1 )
+        # analytical solution
+        self._soil_prod_total[self._grid.core_nodes] = self._wstar * np.log(
+            (self._fexp * self._soil_prod_rate[self._grid.core_nodes] * dt/self._wstar) + 1 
+        )
         # and back-convert to find rock thickness converted over the timestep:
         self._rock_weathered_total[self._grid.core_nodes] = self._soil_prod_total[self._grid.core_nodes] / self._fexp 
 
