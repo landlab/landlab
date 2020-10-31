@@ -116,3 +116,4 @@ def test_hex_grid():
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
     assert not errors, "errors occured:\n{}".format("\n".join(errors))
+    
