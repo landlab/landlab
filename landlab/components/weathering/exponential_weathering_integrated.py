@@ -45,7 +45,7 @@ class ExponentialWeathererIntegrated(Component):
         among other processes.
         - SHOULD maintain drop-in compatiblity with the plain ExponentialWeatherer,
         just import and instantiate this one instead and existing code should work
-        with no side effects other than the creation of the two additional (zeros) 
+        with no side effects other than the creation of the two additional (zeros)
         output fields.
 
     Examples
