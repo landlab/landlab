@@ -26,6 +26,8 @@ Lyons, N.J., Albert, J.S., and Gasparini, N.M. (2020). **SpeciesEvolver: A Landl
 
 Pfeiffer, A.M., Barnhart, K.R., Czuba, J.A., and Hutton, E.W.H. (2020). **NetworkSedimentTransporter: A Landlab component for bed material transport through river networks.** *Journal of Open Source Software,* 5(53), 2341, `https://doi.org/10.21105/joss.02341 <https://doi.org/10.21105/joss.02341>`__.
 
+Shen, H., Lynch, B., Poulsen, C. J., & Yanites, B. J. (2020). **A modeling framework (WRF-Landlab) for simulating orogen-scale climate-erosion coupling.** *Computers & Geosciences,* 104625, `https://doi.org/10.1016/j.cageo.2020.104625` <https://doi.org/10.1016/j.cageo.2020.104625>`__.
+
 Tucker, G. E., Hobley, D.E.J., McCoy, S.W., and Struble, W.T. (2020) **Modeling the shape and evolution of normal-fault facets.** *Journal of Geophysical Research: Earth Surface,* 125, `https://doi.org/10.1029/2019JF005305 <https://doi.org/10.1029/2019JF005305>`__.
 
 2019
