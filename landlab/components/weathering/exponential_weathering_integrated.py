@@ -137,7 +137,11 @@ class ExponentialWeathererIntegrated(Component):
     }
 
     def __init__(
-        self, grid, soil_production__maximum_rate=1.0, soil_production__decay_depth=1.0, soil_production__expansion_factor=1.0
+        self,
+        grid,
+        soil_production__maximum_rate=1.0,
+        soil_production__decay_depth=1.0,
+        soil_production__expansion_factor=1.0,
     ):
         """
         Parameters
@@ -173,13 +177,19 @@ class ExponentialWeathererIntegrated(Component):
         if "soil_production__dt_produced_depth" in grid.at_node:
             self._soil_prod_total = grid.at_node["soil_production__dt_produced_depth"]
         else:
-            self._soil_prod_total = grid.add_zeros("soil_production__dt_produced_depth", at="node")
+            self._soil_prod_total = grid.add_zeros(
+                "soil_production__dt_produced_depth", at="node"
+            )
 
         # bedrock weathering total over dt
         if "soil_production__dt_weathered_depth" in grid.at_node:
-            self._rock_weathered_total = grid.at_node["soil_production__dt_weathered_depth"]
+            self._rock_weathered_total = grid.at_node[
+                "soil_production__dt_weathered_depth"
+            ]
         else:
-            self._rock_weathered_total = grid.add_zeros("soil_production__dt_weathered_depth", at="node")
+            self._rock_weathered_total = grid.add_zeros(
+                "soil_production__dt_weathered_depth", at="node"
+            )
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""
@@ -192,10 +202,18 @@ class ExponentialWeathererIntegrated(Component):
         """Calculate integrated production over 1 timestep dt"""
         # analytical solution
         self._soil_prod_total[self._grid.core_nodes] = self._wstar * np.log(
-            (self._fexp * self._soil_prod_rate[self._grid.core_nodes] * dt / self._wstar) + 1
+            (
+                self._fexp
+                * self._soil_prod_rate[self._grid.core_nodes]
+                * dt
+                / self._wstar
+            )
+            + 1
         )
         # and back-convert to find rock thickness converted over the timestep:
-        self._rock_weathered_total[self._grid.core_nodes] = self._soil_prod_total[self._grid.core_nodes] / self._fexp
+        self._rock_weathered_total[self._grid.core_nodes] = (
+            self._soil_prod_total[self._grid.core_nodes] / self._fexp
+        )
 
     def run_one_step(self, dt=0):
         """

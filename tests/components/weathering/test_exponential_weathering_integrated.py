@@ -6,9 +6,10 @@ Created on Fri Oct 30 17:25:27 2020
 @author: dylanward
 """
 
-import pytest
 import numpy as np
-from landlab import RasterModelGrid, HexModelGrid
+import pytest
+
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import ExponentialWeathererIntegrated
 
 
@@ -39,7 +40,7 @@ def test_basic_production_rate_func():
 
     expw2 = ExponentialWeathererIntegrated(mg)
     expw2.calc_soil_prod_rate()
-    np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
+    np.allclose(mg.at_node["soil_production__rate"][mg.core_nodes], 1.0)
 
 
 def test_run_step_no_dt():
@@ -52,9 +53,11 @@ def test_run_step_no_dt():
     expw2.run_one_step()
 
     errors = []
-    if not np.allclose(mg.at_node['soil_production__dt_weathered_depth'][mg.core_nodes], 0.):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_weathered_depth"][mg.core_nodes], 0.0
+    ):
         errors.append("error in weathered depth")
-    if not np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.):
+    if not np.allclose(mg.at_node["soil_production__rate"][mg.core_nodes], 1.0):
         errors.append("error in basic production rate")
     # assert no error message has been registered, else print messages
     assert not errors, "errors occured:\n{}".format("\n".join(errors))
@@ -66,15 +69,19 @@ def test_with_big_dt():
     mg.add_zeros("soil__depth", at="node")
 
     expw2 = ExponentialWeathererIntegrated(mg)
-    dt = 1000.
+    dt = 1000.0
     expw2.run_one_step(dt)
 
     errors = []
-    if not np.allclose(mg.at_node['soil_production__dt_weathered_depth'][mg.core_nodes], 6.9088):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_weathered_depth"][mg.core_nodes], 6.9088
+    ):
         errors.append("error in weathered depth")
-    if not np.allclose(mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 6.9088):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_produced_depth"][mg.core_nodes], 6.9088
+    ):
         errors.append("error in produced depth")
-    if not np.allclose(dt * mg.at_node['soil_production__rate'][mg.core_nodes], 1000.):
+    if not np.allclose(dt * mg.at_node["soil_production__rate"][mg.core_nodes], 1000.0):
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
     assert not errors, "errors occured:\n{}".format("\n".join(errors))
@@ -84,21 +91,26 @@ def test_density_contrast():
     # Different densities
     mg = RasterModelGrid((5, 5))
     mg.add_zeros("soil__depth", at="node")
-    dt = 1000.
-    expw3 = ExponentialWeathererIntegrated(mg,
-                                           soil_production__maximum_rate=1.0,
-                                           soil_production__decay_depth=1.0,
-                                           soil_production__expansion_factor=1.3
-                                           )
+    dt = 1000.0
+    expw3 = ExponentialWeathererIntegrated(
+        mg,
+        soil_production__maximum_rate=1.0,
+        soil_production__decay_depth=1.0,
+        soil_production__expansion_factor=1.3,
+    )
 
     expw3.run_one_step(dt)
     errors = []
     # replace assertions by conditions
-    if not np.allclose(mg.at_node['soil_production__dt_weathered_depth'][mg.core_nodes], 5.5161):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_weathered_depth"][mg.core_nodes], 5.5161
+    ):
         errors.append("error in weathered depth")
-    if not np.allclose(mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 7.1709):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_produced_depth"][mg.core_nodes], 7.1709
+    ):
         errors.append("error in produced depth")
-    if not np.allclose(dt * mg.at_node['soil_production__rate'][mg.core_nodes], 1000.):
+    if not np.allclose(dt * mg.at_node["soil_production__rate"][mg.core_nodes], 1000.0):
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
     assert not errors, "errors occured:\n{}".format("\n".join(errors))
@@ -107,21 +119,26 @@ def test_density_contrast():
 def test_hex_grid():
     mg = HexModelGrid((5, 5))
     mg.add_zeros("soil__depth", at="node")
-    dt = 1000.
-    expw3 = ExponentialWeathererIntegrated(mg,
-                                           soil_production__maximum_rate=1.0,
-                                           soil_production__decay_depth=1.0,
-                                           soil_production__expansion_factor=1.3
-                                           )
+    dt = 1000.0
+    expw3 = ExponentialWeathererIntegrated(
+        mg,
+        soil_production__maximum_rate=1.0,
+        soil_production__decay_depth=1.0,
+        soil_production__expansion_factor=1.3,
+    )
 
     expw3.run_one_step(dt)
     errors = []
     # replace assertions by conditions
-    if not np.allclose(mg.at_node['soil_production__dt_weathered_depth'][mg.core_nodes], 5.5161):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_weathered_depth"][mg.core_nodes], 5.5161
+    ):
         errors.append("error in weathered depth")
-    if not np.allclose(mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 7.1709):
+    if not np.allclose(
+        mg.at_node["soil_production__dt_produced_depth"][mg.core_nodes], 7.1709
+    ):
         errors.append("error in produced depth")
-    if not np.allclose(dt * mg.at_node['soil_production__rate'][mg.core_nodes], 1000.):
+    if not np.allclose(dt * mg.at_node["soil_production__rate"][mg.core_nodes], 1000.0):
         errors.append("error in basic euler integration")
     # assert no error message has been registered, else print messages
     assert not errors, "errors occured:\n{}".format("\n".join(errors))
