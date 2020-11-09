@@ -15,8 +15,9 @@ from landlab import Component
 class ExponentialWeathererIntegrated(Component):
 
     r"""
-    This component implements exponential weathering of bedrock on hillslopes.
-    Uses exponential soil production function in the style of Ahnert (1976).
+    This component implements exponential weathering of bedrock on
+    hillslopes. Uses exponential soil production function in the style
+    of Ahnert (1976).
 
     Consider that :math:`w_0` is the maximum soil production rate and
     that :math:`d^*` is the characteristic soil production depth. The
@@ -27,26 +28,37 @@ class ExponentialWeathererIntegrated(Component):
 
         w = w_0 \exp{-\frac{d}{d^*}} \;.
 
-    The `ExponentialWeathererIntegrated` uses the analytical solution for the
-        amount of soil produced by an exponential weathering function over a
-        timestep dt, and returns both the thickness of bedrock weathered and
-        the thickness of soil produced. The solution accounts for
-        the reduction in rate over the timestep due to the increasing depth.
-        This enables accuracy over arbitrarily large timesteps, and better
-        compatiblity with run_one_step().
+    The `ExponentialWeathererIntegrated` uses the analytical solution
+    for the amount of soil produced by an exponential weathering
+    function over a timestep dt, and returns both the thickness of
+    bedrock weathered and the thickness of soil produced. The solution
+    accounts for the reduction in rate over the timestep due to the
+    increasing depth. This enables accuracy over arbitrarily large
+    timesteps, and better compatiblity with the `run_one_step()`
+    interface.
 
-        Compared to 'ExponentialWeatherer', upon which it is based...
-        - This maintains the field I/O behavior of the original, but adds new return fields for the weathered thickness and soil produced thickness.
-        - Density adjustments are needed inside the integral and the density ratio is intialized on instantiation. The default value of 1.0 assumes no change in density.
-        - Returns both weathered depth of bedrock and produced depth of soil over the timestep.
-        - The primary soil__depth field that is input is NOT updated by the component.
-        This is left as an exercise for the model driver, as different applications
-        may want to integrate soil depth and weathering in different sequences
-        among other processes.
-        - SHOULD maintain drop-in compatiblity with the plain ExponentialWeatherer,
-        just import and instantiate this one instead and existing code should work
-        with no side effects other than the creation of the two additional (zeros)
-        output fields.
+    Compared to 'ExponentialWeatherer', upon which it is based...
+
+    - This maintains the field I/O behavior of the original, but adds
+      new return fields for the weathered thickness and soil produced
+      thickness.
+    - Density adjustments are needed inside the integral and the
+      density ratio is intialized on instantiation. The default value
+      of 1.0 assumes no change in density.
+    - Returns both weathered depth of bedrock and produced depth of
+      soil over the timestep.
+    - The primary `soil__depth` field that is input is NOT updated by
+      the component.
+
+    This is left as an exercise for the model driver, as different
+    applications may want to integrate soil depth and weathering in
+    different sequences among other processes.
+
+    - SHOULD maintain drop-in compatiblity with the plain
+      :py:class:`ExponentialWeatherer <landlab.components.ExponentialWeatherer>`,
+      just import and instantiate this one instead and existing code
+      should work with no side effects other than the creation of the
+      two additional (zeros) output fields.
 
     Examples
     --------
@@ -153,7 +165,8 @@ class ExponentialWeathererIntegrated(Component):
         soil_production__decay_depth : float
             Characteristic weathering depth
         soil_production__expansion_factor : float
-            Expansion ratio of regolith (from rel. densities of rock and soil)
+            Expansion ratio of regolith (from relative densities of
+            rock and soil)
         """
         super().__init__(grid)
 
