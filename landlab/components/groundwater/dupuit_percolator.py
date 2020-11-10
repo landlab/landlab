@@ -797,6 +797,15 @@ class GroundwaterDupuitPercolator(Component):
             remaining_time -= substep_dt
             self._num_substeps += 1
 
+            # reset water table below surface
+            self._wtable[self._wtable > self._elev] = self._elev[
+                self._wtable > self._elev
+            ]
+            self._thickness[self._cores] = (
+                self._wtable[self._cores] - self._base[self._cores]
+            )
+
+            # run callback function if supplied
             if self._old_style_callback:
                 self._callback_fun(self._grid, substep_dt, **self._callback_kwds)
             else:
