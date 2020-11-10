@@ -55,7 +55,7 @@ from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
-from .weathering import ExponentialWeatherer
+from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
     ChannelProfiler,
@@ -69,6 +69,7 @@ COMPONENTS = [
     DrainageDensity,
     ErosionDeposition,
     ExponentialWeatherer,
+    ExponentialWeathererIntegrated,
     FastscapeEroder,
     FireGenerator,
     Flexure,
