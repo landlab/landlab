@@ -27,6 +27,10 @@ class ExponentialWeatherer(Component):
 
     The `ExponentialWeatherer` only calculates soil production at core nodes.
 
+    An alternative version which uses the analytical integral of
+    production through time is available at the component
+    :py:class:`ExponentialWeathererIntegrated <landlab.components.ExponentialWeathererIntegrated>`.
+
     Examples
     --------
     >>> import numpy as np
