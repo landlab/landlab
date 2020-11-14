@@ -17,7 +17,82 @@ _M2_PERIOD = (12.0 + (25.2 / 60.0)) * 3600.0  # M2 tidal period, in seconds
 
 
 class TidalFlowCalculator(Component):
-    """Calculate average flow over a tidal cycle."""
+    """Component that calculates average flow over a tidal cycle.
+
+    The TidalFlowCalculator component calculates a tidal flow velocity field on
+    a grid using the method of Mariotti et al. (2018). The grid can be raster
+    or hex. In essence, the method uses a numerical solution to the steady
+    diffusion equation. The resulting velocity fields---one for flood tide, and
+    on for ebb tide---represent the average velocity over a tidal half-cycle.
+    Velocity is obtained by starting with the total depth of water that is
+    added or removed during flood tide or ebb tide, respectively, at each grid
+    point. The idea is to solve for the water-surface elevation field that
+    produces this total inflow or outflow of water at each point, using a
+    linear approximation for shallow-water flow. The math is given in
+    Mariotti (2018), and is summarized here:
+
+    Tidal-averaged water depth: with z as bed surface elevation, and r as tidal
+    range, the water depth h is:
+
+    .. math::
+
+        h = [\max(0, r/2 − z) + \max(0, −r/2 − z)]/2
+
+    Horizontal flow velocity (2d vector): with :math:`\eta` as water-surface
+    elevation, n as Manning roughness, and :math:`\chi` as a scale velocity
+    (here unity), depth-averaged flow velocity U is:
+
+    .. math::
+
+        U = \frac{h^{4/3}}{n^2\chi} \nabla \eta
+
+    Tidal inundation / drainage rate, I: at any given point, this is the depth
+    of water added (flood tide) or drained (ebb tide) divided by the tidal half
+    period, T/2. It is defined as:
+
+    .. math::
+
+        I = [r/2 − \max(−r/2, \min(z, r/2))] / (T/2)
+
+    Mass conservation:
+
+    .. math::
+
+        \nabla \cdot (h U) = I
+
+    Because h is assumed constant, this becomes a steady diffusion equation:
+
+    .. math::
+
+        \nabla^2 \eta = \frac{I n^{4/3} \chi}{h^{7/3}}
+
+    This is a Poisson (steady diffusion) equation, which is solved numerically
+    at grid nodes using a finite-volume method. The water-surface gradient is
+    then used to calculate the velocity field, using the above equation for U.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid or HexModelGrid
+        A Landlab grid object.
+    tidal_range : float, optional
+        Tidal range (2x tidal amplitude) (m) (default 1)
+    tidal_period : float, optional
+        Tidal perioid (s) (default M2 tidal period = 12 h 25 min)
+    roughness : float, array, or field name; optional
+        Manning roughness coefficient ("n") (s/m^1/3) (default 0.01)
+    mean_sea_level : float, optional
+        Mean sea level (m) (default 0)
+    scale_velocity : float, optional
+        Scale velocity (see Mariotti, 2018) (m/s) (default 1)
+    min_water_depth : float, optional
+        Minimum depth for calculating diffusion coefficient (m) (default 0.01)
+
+    References
+    ----------
+    Mariotti, G. (2018) Marsh channel morphological response to sea level rise
+    and sediment supply. Estuarine, Coastal and Shelf Science, 209, 89--101,
+    https://doi.org/10.1016/j.ecss.2018.05.016.
+    """
 
     _name = "TidalFlowCalculator"
 
@@ -68,25 +143,7 @@ class TidalFlowCalculator(Component):
         scale_velocity=1.0,
         min_water_depth=0.01,
     ):
-        """Initialize TidalFlowCalculator.
-
-        Parameters
-        ----------
-        grid : RasterModelGrid or HexModelGrid
-            A Landlab grid object.
-        tidal_range : float, optional
-            Tidal range (2x tidal amplitude) (m).
-        tidal_period : float, optional
-            Tidal perioid (s).
-        roughness : float, array, or field name; optional
-            Manning roughness coefficient ("n") (s/m^1/3).
-        mean_sea_level : float, optional
-            Mean sea level (m).
-        scale_velocity : float, optional
-            Scale velocity (see Mariotti, 2018) (m/s).
-        min_water_depth : float, optional
-            Minimum depth for calculating diffusion coefficient (m).
-        """
+        """Initialize TidalFlowCalculator."""
 
         # Handle grid type
         if isinstance(grid, RasterModelGrid):
@@ -161,7 +218,8 @@ class TidalFlowCalculator(Component):
         self._mean_sea_level = new_val
 
     def calc_tidal_inundation_rate(self):
-        """Calculate and store the rate of inundation/draining at each node, averaged over a tidal half-cycle.
+        """Calculate and store the rate of inundation/draining at each node,
+        averaged over a tidal half-cycle.
 
         Examples
         --------
@@ -179,7 +237,7 @@ class TidalFlowCalculator(Component):
 
         Notes
         -----
-        This calculates $I$ in Mariotti (2018) using his equation (1).
+        This calculates I in Mariotti (2018) using his equation (1).
         """
         return (
             self._tidal_half_range
