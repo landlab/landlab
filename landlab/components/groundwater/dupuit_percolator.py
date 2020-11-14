@@ -290,6 +290,7 @@ class GroundwaterDupuitPercolator(Component):
         courant_coefficient=0.5,
         vn_coefficient=0.8,
         callback_fun=lambda *args, **kwargs: None,
+        **callback_kwds,
     ):
         r"""
         Parameters
@@ -328,14 +329,17 @@ class GroundwaterDupuitPercolator(Component):
             This parameter is only used with ``run_with_adaptive_time_step_solver``
             and must be greater than zero.
             Default = 0.8
-        callback_fun: function(grid, substep_dt, \*\*kwargs)
+        callback_fun: function(grid, recharge_rate, substep_dt, \*\*kwargs)
             Optional function that will be executed at the end of each sub-timestep
             in the run_with_adaptive_time_step_solver method. Intended purpose
             is to write output not otherwise visible outside of the method call.
-            The function should have two required arguments:
+            The function should have three required arguments:
             grid: the ModelGrid instance used by GroundwaterDupuitPercolator
+            recharge_rate: an array at node that is the specified recharge rate
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
+            Callback functions with two arguments (grid, substep_dt) are deprecated.
+        callback_kwds: any additional keyword arguments for the provided callback_fun.
         """
         super().__init__(grid)
 
@@ -378,7 +382,48 @@ class GroundwaterDupuitPercolator(Component):
         self.vn_coefficient = vn_coefficient
 
         # set callback function
-        self._callback_fun = callback_fun
+        self._callback_kwds = callback_kwds
+        self.callback_fun = callback_fun
+
+    @property
+    def callback_fun(self):
+        r"""callback function for adaptive timestep solver
+
+        Parameters
+        ----------
+        callback_fun: function(grid, recharge_rate, substep_dt, \*\*callback_kwds)
+            Optional function that will be executed at the end of each sub-timestep
+            in the run_with_adaptive_time_step_solver method. Intended purpose
+            is to write output not otherwise visible outside of the method call.
+            The function should have three required arguments:
+            grid: the ModelGrid instance used by GroundwaterDupuitPercolator
+            recharge_rate: an array at node that is the specified recharge rate
+            substep_dt: the length of the current substep determined internally
+            by run_with_adaptive_time_step_solver to meet stability criteria.
+            Callback functions with two arguments (grid, substep_dt) are depricated.
+        """
+        return self._callback_fun
+
+    @callback_fun.setter
+    def callback_fun(self, new_val):
+        try:  # New style callback function.
+            new_val(self._grid, self.recharge, 0.0, **self._callback_kwds)
+            self._old_style_callback = False
+            self._callback_fun = new_val
+        except TypeError:
+            try:  # Old style callback function, will work, but warn.
+                new_val(self._grid, 0.0, **self._callback_kwds)
+                self._callback_fun = new_val
+                self._old_style_callback = True
+                warn(
+                    "Callback functions with two arguments (grid, substep_dt) are deprecated and will be removed in future versions",
+                    DeprecationWarning,
+                )
+            except TypeError as error:  # Nonfunctional callback function.
+                raise ValueError(
+                    r"%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)"
+                    % error
+                )
 
     @property
     def courant_coefficient(self):
@@ -752,6 +797,11 @@ class GroundwaterDupuitPercolator(Component):
             remaining_time -= substep_dt
             self._num_substeps += 1
 
-            self._callback_fun(self._grid, substep_dt)
+            if self._old_style_callback:
+                self._callback_fun(self._grid, substep_dt, **self._callback_kwds)
+            else:
+                self._callback_fun(
+                    self._grid, self.recharge, substep_dt, **self._callback_kwds
+                )
 
         self._qsavg[:] = qs_cumulative / dt
