@@ -12,8 +12,8 @@ from .esri_ascii import (
     read_esri_ascii,
     write_esri_ascii,
 )
-from .shapefile import read_shapefile
 from .obj import write_obj
+from .shapefile import read_shapefile
 
 __all__ = [
     "read_esri_ascii",
