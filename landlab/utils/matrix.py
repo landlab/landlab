@@ -5,7 +5,11 @@
 import numpy as np
 from scipy.sparse import csc_matrix
 
-from ._matrix import fill_right_hand_side, get_matrix_diagonal_elements, get_matrix_diagonal_elements_with_coef
+from ._matrix import (
+    fill_right_hand_side,
+    get_matrix_diagonal_elements,
+    get_matrix_diagonal_elements_with_coef,
+)
 
 
 def get_core_node_at_node(grid):
@@ -92,9 +96,9 @@ def get_matrix_entries(grid, coef_at_link=None):
     row_inds = np.empty(n_core_nodes + 2 * len(core2core), dtype=int)
     col_inds = np.empty(n_core_nodes + 2 * len(core2core), dtype=int)
 
-    diagonal_values = values[: n_core_nodes]
-    diagonal_rows = row_inds[: n_core_nodes]
-    diagonal_cols = col_inds[: n_core_nodes]
+    diagonal_values = values[:n_core_nodes]
+    diagonal_rows = row_inds[:n_core_nodes]
+    diagonal_cols = col_inds[:n_core_nodes]
 
     upper_values = values[n_core_nodes : n_core_nodes + len(core2core)]
     upper_rows = row_inds[n_core_nodes : n_core_nodes + len(core2core)]

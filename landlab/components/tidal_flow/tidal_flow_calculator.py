@@ -17,7 +17,7 @@ _M2_PERIOD = (12.0 + (25.2 / 60.0)) * 3600.0  # M2 tidal period, in seconds
 
 
 class TidalFlowCalculator(Component):
-    """Component that calculates average flow over a tidal cycle.
+    r"""Component that calculates average flow over a tidal cycle.
 
     The TidalFlowCalculator component calculates a tidal flow velocity field on
     a grid using the method of Mariotti et al. (2018). The grid can be raster
@@ -29,7 +29,7 @@ class TidalFlowCalculator(Component):
     point. The idea is to solve for the water-surface elevation field that
     produces this total inflow or outflow of water at each point, using a
     linear approximation for shallow-water flow. The math is given in
-    Mariotti (2018), and is summarized here:
+    Mariotti (2018), and is summarized below.
 
     Tidal-averaged water depth: with z as bed surface elevation, and r as tidal
     range, the water depth h is:

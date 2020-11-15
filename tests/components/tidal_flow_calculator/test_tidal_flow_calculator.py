@@ -6,15 +6,16 @@ Created on Sun Jul 12 10:22:59 2020
 @author: gtucker
 """
 
-from landlab.components import TidalFlowCalculator
 import numpy as np
 from numpy.testing import (
-    assert_equal,
-    assert_array_equal,
     assert_array_almost_equal,
+    assert_array_equal,
+    assert_equal,
     assert_raises,
 )
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
+
+from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
+from landlab.components import TidalFlowCalculator
 
 
 def test_constant_depth_deeper_than_tidal_amplitude():

@@ -167,9 +167,7 @@ def test_default_coef_is_one(Grid):
 
     coef_at_link = np.full(grid.number_of_links, 1.0, dtype=float)
 
-    expected, _ = get_core_node_matrix(
-        grid, value_at_node, coef_at_link=coef_at_link
-    )
+    expected, _ = get_core_node_matrix(grid, value_at_node, coef_at_link=coef_at_link)
     actual, _ = get_core_node_matrix(grid, value_at_node)
 
     assert_array_equal(expected.toarray(), actual.toarray())
@@ -197,9 +195,7 @@ def test_coef_at_link(Grid):
     coef_at_link = np.full(grid.number_of_links, 1.0)
 
     mat, rhs = get_core_node_matrix(grid, value_at_node, coef_at_link=coef_at_link)
-    actual, actual_rhs = get_core_node_matrix(
-        grid, value_at_node, coef_at_link * 2.0
-    )
+    actual, actual_rhs = get_core_node_matrix(grid, value_at_node, coef_at_link * 2.0)
 
     assert_array_equal(mat.toarray(), actual.toarray() / 2.0)
     assert_array_equal(rhs, actual_rhs)

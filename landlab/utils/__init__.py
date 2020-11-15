@@ -1,7 +1,6 @@
 #! /usr/bin/env
 
 from .add_halo import add_halo
-
 from .count_repeats import count_repeated_values
 from .matrix import get_core_node_at_node, get_core_node_matrix
 from .return_array import return_array_at_link, return_array_at_node
