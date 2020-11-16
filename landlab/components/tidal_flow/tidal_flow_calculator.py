@@ -87,6 +87,19 @@ class TidalFlowCalculator(Component):
     min_water_depth : float, optional
         Minimum depth for calculating diffusion coefficient (m) (default 0.01)
 
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import TidalFlowCalculator
+    >>> grid = RasterModelGrid((3, 5), xy_spacing=2.0)  # 1 row core nodes
+    >>> grid.set_closed_boundaries_at_grid_edges(False, True, True, True)
+    >>> z = grid.add_zeros('topographic__elevation', at='node')
+    >>> z[:] = -50.0  # mean water depth is 50 m below MSL
+    >>> tfc = TidalFlowCalculator(grid, tidal_range=2.0, tidal_period=4.0e4, roughness=0.01)
+    >>> tfc.run_one_step()
+    >>> round(grid.at_link['ebb_tide_flow__velocity'][10] * 1.0e6)
+    4.0
+
     References
     ----------
     Mariotti, G. (2018) Marsh channel morphological response to sea level rise
