@@ -97,8 +97,8 @@ class TidalFlowCalculator(Component):
     >>> z[:] = -50.0  # mean water depth is 50 m below MSL
     >>> tfc = TidalFlowCalculator(grid, tidal_range=2.0, tidal_period=4.0e4, roughness=0.01)
     >>> tfc.run_one_step()
-    >>> round(grid.at_link['ebb_tide_flow__velocity'][10] * 1.0e6)
-    4.0
+    >>> int(round(grid.at_link['ebb_tide_flow__velocity'][10] * 1.0e6))
+    4
 
     References
     ----------
