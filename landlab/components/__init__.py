@@ -52,6 +52,7 @@ from .stream_power import (
     StreamPowerSmoothThresholdEroder,
 )
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
+from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
 from .vegetation_dynamics import Vegetation
@@ -115,6 +116,7 @@ COMPONENTS = [
     StreamPowerEroder,
     StreamPowerSmoothThresholdEroder,
     TaylorNonLinearDiffuser,
+    TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,
     TrickleDownProfiler,
     VegCA,

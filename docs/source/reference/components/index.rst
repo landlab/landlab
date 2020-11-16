@@ -52,6 +52,7 @@ Shallow water hydrodynamics
    :maxdepth: 2
 
    overland_flow
+   tidal_flow
 
 Land surface hydrology
 ----------------------
