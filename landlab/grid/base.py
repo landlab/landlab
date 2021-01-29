@@ -1048,6 +1048,36 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return np.where(masks[0] & masks[1])[0]
 
+    @return_id_array
+    def link_with_angle(self, angle, in_degrees=False):
+        """Return array of IDs of links with given angle.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid((3, 3))
+        >>> grid.link_with_angle(0.0)
+        array([  0,  1,  8,  9, 10, 17, 18])
+        >>> grid.link_with_angle(60.0, in_degrees=True)
+        array([  3,  5,  7, 11, 13, 15])
+        >>> grid.link_with_angle(2.0944)  # 120 degrees
+        array([  2,  4,  6, 12, 14, 16])
+        >>> len(grid.link_with_angle(0.5236))  # no links at 30 deg
+        0
+        >>> grid = HexModelGrid((3, 3), orientation='vertical')
+        >>> grid.link_with_angle(30.0, in_degrees=True)
+        array([  1,  3,  8, 10, 15, 17])
+        >>> grid.link_with_angle(1.5708)  # 90 degrees
+        array([ 2,  5,  6,  9, 12, 13, 16])
+        >>> grid.link_with_angle(330.0, in_degrees=True)
+        array([ 0,  4,  7, 11, 14, 18])
+        >>> len(grid.link_with_angle(60.0, in_degrees=True))  # none at 60 deg
+        0
+        """
+        if in_degrees:
+            angle = np.deg2rad(angle % 360.0)
+        return np.where(np.isclose(self.angle_of_link, angle))[0]
+
     @property
     @cache_result_in_object()
     @return_readonly_id_array

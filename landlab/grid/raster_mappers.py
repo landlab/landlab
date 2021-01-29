@@ -872,3 +872,22 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     good_nodes = num_valid_links != 0
     out[good_nodes] = valid_links.sum(axis=1)[good_nodes] / num_valid_links[good_nodes]
     return out
+
+
+def map_link_vector_components_to_node_raster(grid, data_at_link):
+    """Map (x,y) vector components of data_at_link onto nodes.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> link_data = np.arange(rmg.number_of_links)
+    >>> x, y = map_link_vector_components_to_node_raster(rmg, link_data)
+    >>> x[5:7]
+    array([ 7.5,  8.5])
+    >>> y[5:7]
+    array([ 7.5,  8.5])
+    """
+    x = grid.map_mean_of_horizontal_links_to_node(data_at_link)
+    y = grid.map_mean_of_vertical_links_to_node(data_at_link)
+    return x, y

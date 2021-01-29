@@ -14,6 +14,7 @@ output to a file.
   native_landlab
   netcdf
   shapefile
+  obj
 
 Module contents
 ---------------
