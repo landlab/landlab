@@ -27,7 +27,7 @@ from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .network_sediment_transporter import (
     NetworkSedimentTransporter,
-    SyntheticPulseParcelCreator,
+#    SyntheticPulseParcelCreator,   # AP edit Ask Jeff
 )
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
@@ -118,7 +118,7 @@ COMPONENTS = [
     SteepnessFinder,
     StreamPowerEroder,
     StreamPowerSmoothThresholdEroder,
-    SyntheticPulseParcelCreator,
+#    SyntheticPulseParcelCreator, #AP edit 1/28/20 ask Jeff
     TaylorNonLinearDiffuser,
     TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,

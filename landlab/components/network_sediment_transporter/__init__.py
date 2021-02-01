@@ -1,4 +1,4 @@
 from .network_sediment_transporter import NetworkSedimentTransporter
-from .parcel_pulse_creator import SyntheticPulseParcelCreator
+from .bed_parcel_initializer import BedParcelInitializer
 
-__all__ = ["NetworkSedimentTransporter", "SyntheticPulseParcelCreator"]
+__all__ = ["NetworkSedimentTransporter", "BedParcelInitializer"]

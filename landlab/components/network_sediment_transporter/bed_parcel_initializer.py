@@ -21,10 +21,6 @@ class BedParcelInitializer:
     according to Snyder et al. (2013), assuming a lognormal parcel grain size
     distribution.
 
-    Wish list of future edits:
-    - allow user to pass flow depth instead of discharge to determine d50
-    -
-
     authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
     last updated: May 2020
@@ -35,11 +31,21 @@ class BedParcelInitializer:
         landlab *ModelGrid* to place sediment parcels on.
     time : float, optional
         The initial time to add to the record.
+
+    discharge_at_link: float, optional
+        Dominant/formative discharge at each link in the network.
     mannings_n : float, optional
         Manning's n value for all links, used to calculate median parcel grain
         size at a link.
-    tau_50 : float, optional
-        Shields stress for d50 at dominant discharge for all links, used to
+
+    flow_depth_at_link: float, optional
+        Dominant/formative flow depth at each link in the network.
+    tau_c_multiplier: float, optional
+        Coefficient to relate critical and dominant/bankfull/formative Shields
+        stress. Dominant/formative/bankfull Shields stress = multiplier * critical
+
+    tau_c_50 : float, optional
+        Critical Shields stress for d50 at dominant discharge for all links, used to
         calculate median parcel grain size
     rho_sediment : float, optional
         Sediment grain density [kg / m^3].
@@ -72,16 +78,58 @@ class BedParcelInitializer:
     >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
 
-    >>> initialize_parcels = BedParcelInitializer(grid)
-    >>> discharge_at_link = np.full(grid.number_of_links, 10.0)  # m^3 / s
-    >>> parcels = initialize_parcels(discharge_at_link)
+    Method 1: Using dominant discharge:
+
+    >>> discharge = np.full(grid.number_of_links, 10.0)  # m^3 / s
+    >>> initialize_parcels = BedParcelInitializer(
+                                    grid,
+                                    discharge_at_link = discharge
+                                    )
+    >>> parcels = initialize_parcels()
+
+    Method 2: Using dominant flow depth:
+
+    >>> depth = np.full(grid.number_of_links, 1.0)  # m
+    >>> initialize_parcels = BedParcelInitializer(
+                                    grid,
+                                    flow_depth_at_link = depth
+                                    )
+    >>> parcels = initialize_parcels()
+
+    Method 3: Using drainage area scaling:
+
+    >>> initialize_parcels = BedParcelInitializer(
+                                    grid,
+                                    drainage_area_coefficient = 0.1,
+                                    drainage_area_exponent = 0.3,
+                                    )
+    >>> parcels = initialize_parcels()
+
+    Method 4: Constant median grain size across links
+
+    >>> initialize_parcels = BedParcelInitializer(
+                                    grid,
+                                    uniform_d50 = 0.05
+                                    )
+    >>> parcels = initialize_parcels()
     """
     def __init__(
         self,
         grid,
         time = [0.0],
+
+        discharge_at_link=None,
         mannings_n=0.035,
-        tau_50=0.04,
+
+        flow_depth_at_link=None,
+        tau_c_multiplier = 1,
+
+        drainage_area_coefficient=None,
+        drainage_area_exponent=None,
+
+        uniform_d50=None,
+
+        tau_c_50=0.04,
         rho_sediment=2650.0,
         rho_water=1000.0,
         gravity=scipy.constants.g,
@@ -94,8 +142,17 @@ class BedParcelInitializer:
     ):
         self._time = time
         self._grid = grid
+
+        self._discharge = discharge_at_link
         self._mannings_n = mannings_n
-        self._tau_50 = tau_50
+
+        self._flow_depth = flow_depth
+        self._tau_c_multiplier = tau_c_multiplier
+
+        self._drainage_area_coefficient = drainage_area_coefficient
+        self._drainage_area_exponent = drainage_area_exponent
+
+        self._tau_c_50 = tau_c_50
         self._rho_sediment = rho_sediment
         self._rho_water = rho_water
         self._gravity = gravity
@@ -106,24 +163,63 @@ class BedParcelInitializer:
         self._median_number_of_starting_parcels = median_number_of_starting_parcels
 
         if not isinstance(grid, NetworkModelGrid):
-            msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
+            msg = "BedParcelInitializer: grid must be NetworkModelGrid"
             raise ValueError(msg)
 
-    def __call__(self, discharge_at_link):
-        d50 = calc_d50_grain_size(
-            discharge_at_link,
-            self._grid.at_link["channel_width"],
-            self._grid.at_link["channel_slope"],
-            mannings_n=self._mannings_n,
-            gravity=self._gravity,
-            rho_water=self._rho_water,
-            rho_sediment=self._rho_sediment,
-            tau_50=self._tau_50,
+    def __call__(self):
+#Start grain size section
+        if self._discharge is not None: # d50 = f(dominant discharge), Snyder
 
-        )
+            if np.max(np.abs(self._mannings_n-0.035)) > 0.3:
+                msg =(
+                "BedParcelInitializer: Manning's n value is unrealistic. Value given = "
+                + str(self._mannings_n))
+                warnings.warn(msg)
+
+            d50 = calc_d50_Snyder(
+                self._grid.at_link["channel_width"],
+                self._grid.at_link["channel_slope"],
+                discharge = self._discharge,
+                mannings_n=self._mannings_n,
+                gravity=self._gravity,
+                rho_water=self._rho_water,
+                rho_sediment=self._rho_sediment,
+                tau_c_50=self._tau_c_50,
+            )
+
+        elif self._flow_depth is not None: # d50 = f(dominant flow depth), Pfeiffer
+            d50 = calc_d50_Pfeiffer(
+                self._grid.at_link["channel_slope"],
+                flow_depth = self._flow_depth,
+                tau_c_multiplier = self._tau_c_multiplier,
+                rho_water=self._rho_water,
+                rho_sediment=self._rho_sediment,
+                tau_c_50=self._tau_c_50,
+            )
+
+        elif self._drainage_area_coefficient is not None:
+            d50 = calc_d50_dArea_scaling(
+                self._grid.at_link["drainage_area"],
+                a = self._drainage_area_coefficient,
+                n = self._drainage_area_exponent
+            )
+
+        elif self._uniform_d50 is not None:
+
+            if np.size(self._uniform_d50) != 1:
+                msg = "BedParcelInitializer: uniform D50 must be a scalar"
+                raise ValueError(msg)
+
+            d50 = np.full_like(element_id, self._uniform_d50, dtype=float)
+
+        else:
+            msg = "BedParcelInitializer: must pass depth, discharge, drainage area scaling, or uniform d50"
+            raise ValueError(msg)
+
         self.D50 = d50
         d84 = d50 * self._std_dev
 
+# END grain size section
         total_parcel_volume_at_link = calc_total_parcel_volume(
             self._grid.at_link["channel_width"],
             self._grid.at_link["reach_length"],
@@ -166,13 +262,7 @@ class BedParcelInitializer:
             +" m")
             warnings.warn(msg)
 
-        if np.max(np.abs(self._mannings_n-0.035)) > 0.3:
-            msg =(
-            "BedParcelInitializer: Manning's n value is unrealistic. Value given = "
-            + str(self._mannings_n))
-            warnings.warn(msg)
-
-        if np.max(np.abs(self._tau_50-0.055)) > 0.35:
+        if np.max(np.abs(self._tau_c_50-0.055)) > 0.35:
             msg =(
             "BedParcelInitializer: Shields stress value is unrealistic. Value given = "
             + str(self._sed_thickness))
@@ -180,7 +270,7 @@ class BedParcelInitializer:
 
         if max_parcel_volume < 0.05:
             msg =(
-            "BedParcelInitializer: Careful! Default parcel value is extremely small: "
+            "BedParcelInitializer: Careful! Default parcel volume is extremely small: "
             + str(max_parcel_volume)
             + ' m')
             warnings.warn(msg)
@@ -270,15 +360,15 @@ def _determine_approx_parcel_volume(
 def calc_total_parcel_volume(width, length, sediment_thickness):
     return width * length * sediment_thickness
 
-def calc_d50_grain_size(
-    dominant_discharge,
+def calc_d50_Snyder(
     width,
     slope,
+    dominant_discharge,
     mannings_n,
     gravity,
     rho_water,
     rho_sediment,
-    tau_50,
+    tau_c_50,
 ):
     """Calculate median grain size according to Snyder et al. (2013)
 
@@ -295,5 +385,51 @@ def calc_d50_grain_size(
     return (
         rho_water * gravity * mannings_n ** (3 / 5) * dominant_discharge ** (3 / 5) * width ** (- 3 / 5) * slope ** (7 / 10)
     ) / (
-        (rho_sediment - rho_water) * gravity * tau_50
+        (rho_sediment - rho_water) * gravity * tau_c_50
     )
+
+def calc_d50_Pfeiffer(
+    slope,
+    flow_depth,
+    tau_c_multiplier
+    rho_water,
+    rho_sediment,
+    tau_c_50,
+):
+    """Calculate median grain size according to Pfeiffer et al. (2017)
+
+    Parameters
+    ----------
+    see above
+
+    Returns
+    -------
+    ndarray of float
+        d50.
+    """
+
+    return (
+        rho_water  *flow_depth  * slope
+    ) / (
+        (rho_sediment - rho_water) * tau_c_multiplier* tau_c_50
+    )
+
+def calc_d50_dArea_scaling(
+    drainage_area,
+    a,
+    n
+):
+    '''Calculate median grain size via power law scaling relationship with
+    drinage area.
+    Parameters
+    ----------
+    see above
+
+    Returns
+    -------
+    ndarray of float
+        d50.
+    '''
+    d50  = a*drainage_area**n
+
+    return d50
