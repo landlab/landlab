@@ -109,7 +109,7 @@ class BedParcelInitializer:
 
     >>> initialize_parcels = BedParcelInitializer(
                                     grid,
-                                    uniform_d50 = 0.05
+                                    user_d50 = 0.05
                                     )
     >>> parcels = initialize_parcels()
     """
@@ -127,7 +127,7 @@ class BedParcelInitializer:
         drainage_area_coefficient=None,
         drainage_area_exponent=None,
 
-        uniform_d50=None,
+        user_d50=None,
 
         tau_c_50=0.04,
         rho_sediment=2650.0,
@@ -146,11 +146,13 @@ class BedParcelInitializer:
         self._discharge = discharge_at_link
         self._mannings_n = mannings_n
 
-        self._flow_depth = flow_depth
+        self._flow_depth = flow_depth_at_link
         self._tau_c_multiplier = tau_c_multiplier
 
         self._drainage_area_coefficient = drainage_area_coefficient
         self._drainage_area_exponent = drainage_area_exponent
+
+        self._user_d50 = user_d50
 
         self._tau_c_50 = tau_c_50
         self._rho_sediment = rho_sediment
@@ -167,7 +169,7 @@ class BedParcelInitializer:
             raise ValueError(msg)
 
     def __call__(self):
-#Start grain size section
+
         if self._discharge is not None: # d50 = f(dominant discharge), Snyder
 
             if np.max(np.abs(self._mannings_n-0.035)) > 0.3:
@@ -176,7 +178,7 @@ class BedParcelInitializer:
                 + str(self._mannings_n))
                 warnings.warn(msg)
 
-            d50 = calc_d50_Snyder(
+            d50 = calc_d50_discharge(
                 self._grid.at_link["channel_width"],
                 self._grid.at_link["channel_slope"],
                 discharge = self._discharge,
@@ -188,7 +190,8 @@ class BedParcelInitializer:
             )
 
         elif self._flow_depth is not None: # d50 = f(dominant flow depth), Pfeiffer
-            d50 = calc_d50_Pfeiffer(
+
+            d50 = calc_d50_depth(
                 self._grid.at_link["channel_slope"],
                 flow_depth = self._flow_depth,
                 tau_c_multiplier = self._tau_c_multiplier,
@@ -197,29 +200,38 @@ class BedParcelInitializer:
                 tau_c_50=self._tau_c_50,
             )
 
-        elif self._drainage_area_coefficient is not None:
+        elif self._drainage_area_coefficient is not None: # d50 = f(drainage area)
+
             d50 = calc_d50_dArea_scaling(
                 self._grid.at_link["drainage_area"],
                 a = self._drainage_area_coefficient,
                 n = self._drainage_area_exponent
             )
 
-        elif self._uniform_d50 is not None:
+        elif self._user_d50 is not None:
 
-            if np.size(self._uniform_d50) != 1:
-                msg = "BedParcelInitializer: uniform D50 must be a scalar"
+            if np.size(self._user_d50) == 1: # one d50, all links
+
+                d50 = np.full_like(self._grid.length_of_link, self._user_d50, dtype=float)
+                print('d50 at each link..', d50)
+
+            elif np.size(self._user_d50)==(self._grid.number_of_links): # different d50 each link
+
+                d50 = self._user_d50
+
+            else:
+                msg = ("BedParcelInitializer: user defined D50 must be either"
+                + "a scalar or size(element_id)"
+                )
                 raise ValueError(msg)
 
-            d50 = np.full_like(element_id, self._uniform_d50, dtype=float)
-
         else:
-            msg = "BedParcelInitializer: must pass depth, discharge, drainage area scaling, or uniform d50"
+            msg = "BedParcelInitializer: user must pass depth, discharge, drainage area scaling, or uniform d50"
             raise ValueError(msg)
 
         self.D50 = d50
         d84 = d50 * self._std_dev
 
-# END grain size section
         total_parcel_volume_at_link = calc_total_parcel_volume(
             self._grid.at_link["channel_width"],
             self._grid.at_link["reach_length"],
@@ -360,17 +372,18 @@ def _determine_approx_parcel_volume(
 def calc_total_parcel_volume(width, length, sediment_thickness):
     return width * length * sediment_thickness
 
-def calc_d50_Snyder(
+def calc_d50_discharge(
     width,
     slope,
-    dominant_discharge,
+    discharge,
     mannings_n,
     gravity,
     rho_water,
     rho_sediment,
     tau_c_50,
 ):
-    """Calculate median grain size according to Snyder et al. (2013)
+    """Calculate median grain size via dominant discharge and channel width
+    according to Snyder et al. (2013)
 
     Parameters
     ----------
@@ -383,20 +396,21 @@ def calc_d50_Snyder(
     """
 
     return (
-        rho_water * gravity * mannings_n ** (3 / 5) * dominant_discharge ** (3 / 5) * width ** (- 3 / 5) * slope ** (7 / 10)
+        rho_water * gravity * mannings_n ** (3 / 5) * discharge ** (3 / 5) * width ** (- 3 / 5) * slope ** (7 / 10)
     ) / (
         (rho_sediment - rho_water) * gravity * tau_c_50
     )
 
-def calc_d50_Pfeiffer(
+def calc_d50_depth(
     slope,
     flow_depth,
-    tau_c_multiplier
+    tau_c_multiplier,
     rho_water,
     rho_sediment,
     tau_c_50,
 ):
-    """Calculate median grain size according to Pfeiffer et al. (2017)
+    """Calculate median grain size via dominant flow depth according to
+    Pfeiffer et al. (2017).
 
     Parameters
     ----------
@@ -421,6 +435,7 @@ def calc_d50_dArea_scaling(
 ):
     '''Calculate median grain size via power law scaling relationship with
     drinage area.
+
     Parameters
     ----------
     see above
