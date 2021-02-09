@@ -46,7 +46,7 @@ class DrainageDensity(Component):
     The ``calculate_drainage_density`` function returns drainage density for the
     model domain. This function calculates the distance from every node to the
     nearest channel node :math:`L` along the flow line of steepest descent
-    (assuming D8 routing).
+    (assuming D8 routing if the grid is a RasterModelGrid).
 
     This component stores this distance a field, called:
     ``surface_to_channel__minimum_distance``. The drainage density is then
@@ -397,6 +397,12 @@ class DrainageDensity(Component):
                 "surface_to_channel__minimum_distance", at="node", dtype=float
             )
 
+        # Use the appropriate array for link or d8 lengths
+        try:
+            self._length_of_link = self._grid.length_of_d8
+        except AttributeError:
+            self._length_of_link = self._grid.length_of_link
+
     def _update_channel_mask_array(self):
         raise NotImplementedError(
             (
@@ -437,7 +443,7 @@ class DrainageDensity(Component):
             self._channel_network,
             self._flow_receivers,
             self._upstream_order,
-            self._grid.length_of_d8,
+            self._length_of_link,
             self._stack_links,
             self._distance_to_channel,
             self._grid.number_of_nodes,
