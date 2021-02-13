@@ -3,6 +3,9 @@ import numpy as np
 from landlab.components import LinearDiffuser
 
 
+_TINY_DIFFUSIVITY = 1.0e-20
+
+
 class SimpleSubmarineDiffuser(LinearDiffuser):
     """Simple diffusion-based model of marine sediment transport"""
 
@@ -138,7 +141,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             -(self._depth[deep_water] - self._wave_base) / self._wave_base
         )
 
-        k[land] = 1.0e-12
+        k[land] = _TINY_DIFFUSIVITY
 
         return k
 
@@ -183,13 +186,12 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         k = self.grid.at_node["kd"]
 
         k[:] = self._shallow_water_diffusivity * self.depth_function(water_depth)
-        #k[~land] = self._shallow_water_diffusivity
 
         k[deep_water] *= np.exp(
             -(water_depth[deep_water] - self._wave_base) / self._wave_base
         )
 
-        k[land] = 1.0e-12
+        k[land] = _TINY_DIFFUSIVITY
 
         return k
 

@@ -11,6 +11,67 @@ from landlab import RasterModelGrid
 from landlab.components import SimpleSubmarineDiffuser
 
 
+def test_one_step_shallow():
+    """
+    Test one time step of diffusion in shallow water.
+
+    The test uses a submarine topography above wave base, with a cross-section
+    that looks like this:
+
+        o_./'\._o
+
+    where o is an open-boundary node, . and ' indicate a core node, and the
+    slope of the / and \ links is 0.1. The other boundary nodes are closed.
+    With a diffusivity coefficient of 100 m2/y, the flux along the sloping
+    links should be 10 m2/y. Let the node spacing be 40 m. The height of most
+    of the nodes will be -10 m, and the central node -6 m. With a time step of
+    2 years, the central node should lose 20 m2 to each side, for a total of
+    40 m2. This translates into an elevation reduction of 1 m. The nodes on
+    either side each gain 40 m2, for an elevation gain of 0.5 m. Therefore the
+    3 core nodes should change from elevatios of [-10, -6, -10] to
+    [-9.5, -7, -9.5].
+    """
+    grid = RasterModelGrid((3, 5), xy_spacing=40.0)
+    grid.set_closed_boundaries_at_grid_edges(right_is_closed=False,
+                                             top_is_closed=True,
+                                             left_is_closed=False,
+                                             bottom_is_closed=True)
+    topo = grid.add_zeros('topographic__elevation', at='node')
+    topo[:] = -10.0
+    topo[7] = -6.0
+
+    ssd = SimpleSubmarineDiffuser(grid, tidal_range=0.0, wave_base=100.0,
+                                  shallow_water_diffusivity=100.0)
+    ssd.run_one_step(dt=2.0)
+    assert_array_equal(topo[6:9], [-9.5, -7, -9.5])
+
+
+def test_one_step_deep():
+    """
+    Test one time step of diffusion in deep water (below wave base).
+
+    This test is similar to the shallow-water test but operates below the wave
+    base. Let the wave base be 50 m. Using the exponential formulation for
+    depth-decay of transport, the transport coefficient at depth D is
+    K0 exp( -(D - Dwb) / Dwb ), where Dwb is the wave-base depth, and K0 is the
+    shallow-water transport coefficient (diffusivity). If D = 85 m, then the
+    transport coefficient is about 0.5 K0.
+    """
+    grid = RasterModelGrid((3, 5), xy_spacing=40.0)
+    grid.set_closed_boundaries_at_grid_edges(right_is_closed=False,
+                                             top_is_closed=True,
+                                             left_is_closed=False,
+                                             bottom_is_closed=True)
+    topo = grid.add_zeros('topographic__elevation', at='node')
+    topo[:] = -87.0
+    topo[7] = -83.0
+
+    ssd = SimpleSubmarineDiffuser(grid, tidal_range=0.0, wave_base=50.0,
+                                  shallow_water_diffusivity=100.0)
+    ssd.run_one_step(dt=2.0)
+    assert_array_almost_equal(topo[6:9], [-86.741574, -83.516851, -86.741574])
+
+
 def test_depth_function():
     """
     Test the depth-weighting function.
@@ -40,7 +101,6 @@ def test_depth_function():
 
 
 if __name__ == '__main__':
+    test_one_step_shallow()
+    test_one_step_deep()
     test_depth_function()
-
-    
-    
