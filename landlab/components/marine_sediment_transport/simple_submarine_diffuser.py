@@ -78,9 +78,14 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         if tidal_range > 0.0:
             self._inverse_tidal_range = 1.0 / tidal_range
 
-        grid.add_zeros("kd", at="node")
-        self._depth = grid.add_zeros("water__depth", at="node")
-        grid.add_zeros("sediment_deposit__thickness", at="node")
+        if not "kd" in grid.at_node:
+            grid.add_zeros("kd", at="node")
+        if not "sediment_deposit__thickness" in grid.at_node:
+            grid.add_zeros("sediment_deposit__thickness", at="node")
+        if "water__depth" in grid.at_node:
+            self._depth = grid.at_node["water__depth"]
+        else:
+            self._depth = grid.add_zeros("water__depth", at="node")
 
         self._time = 0.0
 
@@ -163,7 +168,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         if self._tidal_range > 0.0:
             df = (np.tanh(self._inverse_tidal_range * water_depth) + 1.0) / 2.0
         else:
-            df = 1.0 * (water_depth <= 0.0)
+            df = 1.0 * (water_depth >= 0.0)
         return df
 
     def calc_diffusion_coef(self):

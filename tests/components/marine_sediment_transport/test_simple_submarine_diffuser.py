@@ -31,13 +31,12 @@ def test_depth_function():
     assert_array_equal(df, [1.0, 1.0, 1.0, 1.0,
                             1.0, 1.0, 0.0, 1.0,
                             1.0, 1.0, 1.0, 1.0])
-    
+
     ssd = SimpleSubmarineDiffuser(grid, tidal_range=2.0)
-    depth = -topo
     df = ssd.depth_function(depth)
-    assert_array_almost_equal(df, [0.5, 0.5,    0.5,    0.5,
-                                   0.5, 0.8808, 0.1192, 0.5,
-                                   0.5, 0.5,    0.5,    0.5])
+    assert_array_almost_equal(df, [0.5, 0.5,      0.5,      0.5,
+                                   0.5, 0.880797, 0.119203, 0.5,
+                                   0.5, 0.5,      0.5,      0.5])
 
 
 if __name__ == '__main__':
