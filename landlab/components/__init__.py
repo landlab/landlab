@@ -25,6 +25,7 @@ from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
+from .marine_sediment_transport import SimpleSubmarineDiffuser
 from .network_sediment_transporter import NetworkSedimentTransporter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
@@ -105,6 +106,7 @@ COMPONENTS = [
     Profiler,
     Radiation,
     SedDepEroder,
+    SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
     SoilMoisture,
