@@ -34,7 +34,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             "units": "m",
             "mapping": "node",
             "doc": "depth of water under current sea level"
-        }
+        },
         "sediment_deposit__thickness": {
             "dtype": "float",
             "intent": "out",
@@ -74,7 +74,9 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         grid.at_grid["sea_level__elevation"] = sea_level
         self._sea_level = grid.at_grid["sea_level__elevation"]
         self._shallow_water_diffusivity = shallow_water_diffusivity
-        self._inverse_tidal_range = 1.0 / tidal_range
+        self._tidal_range = tidal_range
+        if tidal_range > 0.0:
+            self._inverse_tidal_range = 1.0 / tidal_range
 
         grid.add_zeros("kd", at="node")
         self._depth = grid.add_zeros("water__depth", at="node")
@@ -136,7 +138,33 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         return k
 
     def depth_function(self, water_depth):
-        return (np.tanh(self._inverse_tidal_range * water_depth) + 1.0) / 2.0
+        """
+        Return weighting factor for transport.
+        
+        If there is no tidal range, then the weight factor is 1 if at or
+        below sea level, and 0 if above it. If there is a tidal range, then
+        a tanh function is used to weight transport across mean sea level, so
+        that there is some degree of transport for water depths within the
+        tidal range (less above, more below). The nature of the tanh function
+        is such that the transport is about 95% of its maximum value at a depth
+        of 1.5x the mean tidal range, and 5% of its maximum value at a height
+        of 1.5x the mean tidal range above mean sea level.
+
+        Parameters
+        ----------
+        water_depth : float array
+            Depth of water relative to mean sea level (m) (can be negative)
+
+        Returns
+        -------
+        df : float array
+            Weight factor ranging from 0 to 1.
+        """
+        if self._tidal_range > 0.0:
+            df = (np.tanh(self._inverse_tidal_range * water_depth) + 1.0) / 2.0
+        else:
+            df = 1.0 * (water_depth <= 0.0)
+        return df
 
     def calc_diffusion_coef(self):
         """Calculate and store diffusion coefficient values.
