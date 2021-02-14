@@ -78,7 +78,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Thickness of deposition or erosion",
+            "doc": "Thickness of deposition or erosion in latest time step",
         },
     }
 
@@ -186,28 +186,38 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         return df
 
     def calc_diffusion_coef(self):
-        """Calculate and store diffusion coefficient values.
+        """
+        Calculate and store diffusion coefficient values.
+
+        Returns
+        -------
+        k : float array
+            Diffusion coefficient, m2/y
         """
         sea_level = self.grid.at_grid["sea_level__elevation"]
-        water_depth = sea_level - self._grid.at_node["topographic__elevation"]
+        self._depth[:] = sea_level - self._grid.at_node["topographic__elevation"]
 
-        deep_water = water_depth > self._wave_base
-        land = water_depth < 0.0
+        deep_water = self._depth > self._wave_base
+        land = self._depth < 0.0
 
         k = self.grid.at_node["kd"]
-
-        k[:] = self._shallow_water_diffusivity * self.depth_function(water_depth)
-
+        k[:] = self._shallow_water_diffusivity * self.depth_function(self._depth)
         k[deep_water] *= np.exp(
-            -(water_depth[deep_water] - self._wave_base) / self._wave_base
+            -(self._depth[deep_water] - self._wave_base) / self._wave_base
         )
-
         k[land] += _TINY_DIFFUSIVITY
 
         return k
 
     def run_one_step(self, dt):
+        """
+        Advance by one time step.
 
+        Parameters
+        ----------
+        dt : float
+            Time-step duration (y)
+        """
         z_before = self.grid.at_node["topographic__elevation"].copy()
 
         self.calc_diffusion_coef()

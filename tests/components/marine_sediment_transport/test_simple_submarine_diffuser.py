@@ -76,6 +76,8 @@ def test_one_step_shallow():
                                   shallow_water_diffusivity=100.0)
     ssd.run_one_step(dt=2.0)
     assert_array_equal(topo[6:9], [-9.5, -7, -9.5])
+    assert_array_equal(grid.at_node["sediment_deposit__thickness"][6:9],
+                       [0.5, -1.0, 0.5])
 
 
 def test_one_step_deep():
