@@ -11,6 +11,38 @@ from landlab import RasterModelGrid
 from landlab.components import SimpleSubmarineDiffuser
 
 
+def test_diffusivity_vs_depth():
+    """
+    Make sure the diffusivity-vs-depth function is correct.
+
+    This test checks that the diffusivity should equal the shallow water
+    diffusivity at the shoreline (when tidal range is zero), and at the wave
+    base depth (here 50 m). It should be about half the nominal value at a
+    depth of 84.657359 m (1 - ln(1/2) times the wave base depth). It should be
+    near-zero for negative depths.
+
+    When the tidal range is nonzero, the value at a depth of zero (shoreline)
+    should be half the shallow-water diffusivity.
+    """
+    grid = RasterModelGrid((3, 3), xy_spacing=40.0)
+    topo = grid.add_zeros('topographic__elevation', at='node')
+    topo[3] = -84.657359
+    topo[4] = -50.0
+    topo[5] = 50.0
+
+    ssd = SimpleSubmarineDiffuser(grid, tidal_range=0.0, wave_base=50.0,
+                                  shallow_water_diffusivity=100.0)
+    ssd.calc_diffusion_coef()
+    assert_array_almost_equal(grid.at_node["kd"][2:6],
+                              [100., 50., 100., 1.0e-20])
+
+    ssd = SimpleSubmarineDiffuser(grid, tidal_range=2.0, wave_base=50.0,
+                                  shallow_water_diffusivity=100.0)
+    ssd.calc_diffusion_coef()
+    assert_array_almost_equal(grid.at_node["kd"][2:6],
+                              [50., 50., 100., 1.0e-20])
+
+
 def test_one_step_shallow():
     """
     Test one time step of diffusion in shallow water.
@@ -101,6 +133,7 @@ def test_depth_function():
 
 
 if __name__ == '__main__':
+    test_diffusivity_vs_depth()
     test_one_step_shallow()
     test_one_step_deep()
     test_depth_function()

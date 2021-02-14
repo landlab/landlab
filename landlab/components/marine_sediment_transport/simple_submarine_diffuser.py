@@ -7,7 +7,41 @@ _TINY_DIFFUSIVITY = 1.0e-20
 
 
 class SimpleSubmarineDiffuser(LinearDiffuser):
-    """Simple diffusion-based model of marine sediment transport"""
+    """
+    Transport marine sediment using a water-depth-dependent diffusion model.
+
+    This component models sediment transport as a diffusion process with a
+    coefficient that depends on water depth :math:`h` as follows:
+
+    .. math::
+        D(h) = D_0 f_1(h) f_2(h)
+
+    Here :math:`D_0` is the maximum value, corresponding to the input
+    parameter :code:`shallow_water_diffusivity`.
+
+    The function :math:`f_1(h)` describes the decrease in transport efficiency
+    below the wave base depth :math:`h_w`. It is defined as unity for depth
+    above the wave base, and as
+
+    .. math::
+        f_1(h) = \exp( -(h - h_w) / h_w)
+
+    for :math:`h > h_w`.
+
+    The function :math:`f_2(h)` handles the transition in transport efficiency
+    around the shoreline. If :code:`tidal_range`, :math:`R_t`, is zero, then
+    :math:`f_2` is set to unity underwater (:math:`h \ge 0`), and a tiny value
+    above water (not zero, because that would cause a divide-by-zero error in
+    the base class).
+    If :math:`R_t > 0`, then a :math:`tanh` function is used to model
+    a smooth decrease in :math:`D` from the low to high tide level:
+
+    .. math::
+        f_2(h) = (\tanh ( -h / R_t) + 1) / 2
+
+    with an addition tiny value added to locations above water to avoid
+    division by zero.
+    """
 
     _name = "SimpleSubmarineDiffuser"
 
@@ -57,8 +91,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         tidal_range=2.0,
         **kwds
     ):
-        """Transport marine sediment using a water-depth-dependent diffusion model.
-
+        """
         Parameters
         ----------
         grid: ModelGrid (RasterModelGrid, HexModelGrid, etc.)
@@ -191,7 +224,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             -(water_depth[deep_water] - self._wave_base) / self._wave_base
         )
 
-        k[land] = _TINY_DIFFUSIVITY
+        k[land] += _TINY_DIFFUSIVITY
 
         return k
 
