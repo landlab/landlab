@@ -156,28 +156,6 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
     def sea_level(self, sea_level):
         self.grid.at_grid["sea_level__elevation"] = sea_level
 
-    def calc_diffusion_coef_orig(self):
-        """Calculate and store diffusion coefficient values.
-        """
-        sea_level = self.grid.at_grid["sea_level__elevation"]
-        self._depth = sea_level - self._grid.at_node["topographic__elevation"]
-
-        under_water = self._depth > 0.0
-        deep_water = self._depth > self._wave_base
-        land = ~under_water
-
-        k = self.grid.at_node["kd"]
-
-        k[under_water] = self._shallow_water_diffusivity
-
-        k[deep_water] *= np.exp(
-            -(self._depth[deep_water] - self._wave_base) / self._wave_base
-        )
-
-        k[land] = _TINY_DIFFUSIVITY
-
-        return k
-
     def depth_function(self, water_depth):
         """
         Return weighting factor for transport.
@@ -228,46 +206,11 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
 
         return k
 
-    # def shoreline_points(self, grid, z):
-    #     sl_links = np.sign(z[grid.node_at_link_tail]) != np.sign(z[grid.node_at_link_head])
-    #     slx = 0.5 * (grid.x_of_node[grid.node_at_link_tail[sl_links]] + grid.x_of_node[grid.node_at_link_head[sl_links]])
-    #     sly = 0.5 * (grid.y_of_node[grid.node_at_link_tail[sl_links]] + grid.y_of_node[grid.node_at_link_head[sl_links]])
-    #     return slx, sly
-
-    # def distance_from_shoreline(self, grid, slx, sly, z):
-
-    #     under_water = z <= 0.0
-    #     uw = np.zeros((np.count_nonzero(under_water), 2))
-    #     uw[:,0] = grid.x_of_node[under_water]
-    #     uw[:,1] = grid.y_of_node[under_water]
-
-    #     slxy = np.zeros((len(slx), 2))
-    #     slxy[:,0] = slx
-    #     slxy[:,1] = sly
-
-    #     dist = cdist(uw, slxy)
-    #     mindist = np.amin(dist, axis=1)
-
-    #     dist_to_shore = np.zeros(grid.number_of_nodes)
-    #     dist_to_shore[under_water] = mindist
-
-    #     return dist_to_shore
-
     def run_one_step(self, dt):
-        #z = self.grid.at_node['topographic__elevation']
+
         z_before = self.grid.at_node["topographic__elevation"].copy()
 
-        # slx, sly = self.shoreline_points(self.grid, z)
-        # d2s = self.distance_from_shoreline(self.grid, slx, sly, z)
         self.calc_diffusion_coef()
-
-        # set elevation at upstream boundary to ensure proper sediment influx
-        #x = self.grid.x_of_node.reshape(self.grid.shape)
-        #z = self._grid.at_node["topographic__elevation"].reshape(self.grid.shape)
-        # k = self._grid.at_node["kd"].reshape(self.grid.shape)
-        # z[1, 0] = z[1,1] + self._load / k[1, 0] * (x[1,1]-x[1,0])
-        #z[1, 0] = z[1, 1] + self._plain_slope * (x[1, 1] - x[1, 0])
-        # self._load/self._load0)
 
         super(SimpleSubmarineDiffuser, self).run_one_step(dt)
 
