@@ -38,10 +38,13 @@ jobs:
           conda list
 
       - name: Install requirements
-        run: conda install --file=requirements.txt
+        run: |
+          conda install --file=requirements.txt
 
       - name: Build and install package
-        run: pip install .
+        run:
+          pip install cython numpy setuptools wheel
+          pip install .
 
       - name: Install testing dependencies
         run: conda install --file=requirements-testing.txt -c conda-forge
