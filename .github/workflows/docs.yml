@@ -52,7 +52,7 @@ jobs:
             run: |
               conda install mamba
               mamba install --file=requirements.txt
-              pip install --file=requirements-docs.txt
+              pip install -r requirements-docs.txt
               pip install -e .
 
           - name: Build documentation
