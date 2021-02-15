@@ -14,7 +14,7 @@ with open(_exclude_file, "r") as fp:
 
 def _notebook_run(path):
     """Execute a notebook via nbconvert and collect output.
-       :returns (parsed nb object, execution errors)
+    :returns (parsed nb object, execution errors)
     """
     import nbformat
 

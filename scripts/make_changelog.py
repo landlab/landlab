@@ -29,32 +29,38 @@ This file was auto-generated using `scripts/make_changelog.py`.
 {% endfor -%}
 """.strip()
 
-SECTIONS = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
+SECTIONS = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
 
 
-def git_log(start=None, stop='HEAD'):
-    cmd = ['git', 'log', '--first-parent', 'master', '--merges',
-           '--topo-order',
-           # '--pretty=message: %s+author:%an+body: %b'],
-           '--pretty=%s [%an]',
-           # '--oneline',
-          ]
+def git_log(start=None, stop="HEAD"):
+    cmd = [
+        "git",
+        "log",
+        "--first-parent",
+        "master",
+        "--merges",
+        "--topo-order",
+        # '--pretty=message: %s+author:%an+body: %b'],
+        "--pretty=%s [%an]",
+        # '--oneline',
+    ]
     if start:
-        cmd.append('{start}..{stop}'.format(start=start, stop=stop))
+        cmd.append("{start}..{stop}".format(start=start, stop=stop))
     return subprocess.check_output(cmd).strip()
 
 
 def git_tag():
-    return subprocess.check_output(['git', 'tag']).strip()
+    return subprocess.check_output(["git", "tag"]).strip()
 
 
 def git_tag_date(tag):
-    return subprocess.check_output(['git', 'show', tag,
-                                    '--pretty=%ci']).strip().split()[0]
+    return (
+        subprocess.check_output(["git", "show", tag, "--pretty=%ci"]).strip().split()[0]
+    )
 
 
 def releases(ascending=True):
-    tags = git_tag().split(os.linesep) + ['HEAD']
+    tags = git_tag().split(os.linesep) + ["HEAD"]
     if ascending:
         return tags
     else:
@@ -63,33 +69,37 @@ def releases(ascending=True):
 
 def format_pr_message(message):
     m = re.match(
-        'Merge pull request (?P<pr>#[0-9]+) '
-        'from (?P<branch>[\S]*)'
-        '(?P<postscript>[\s\S]*$)',
-        message
+        "Merge pull request (?P<pr>#[0-9]+) "
+        "from (?P<branch>[\S]*)"
+        "(?P<postscript>[\s\S]*$)",
+        message,
     )
     if m:
-        return '{branch} [{pr}]{postscript}'.format(**m.groupdict())
+        return "{branch} [{pr}]{postscript}".format(**m.groupdict())
     else:
-        raise ValueError('not a pull request')
+        raise ValueError("not a pull request")
 
 
 def format_changelog_message(message):
-    m = re.match(
-        '(?P<first>\w+)(?P<rest>[\s\S]*)$',
-        message
-    )
-    word = m.groupdict()['first']
-    if word in ('Add', 'Fix', 'Deprecate', ):
-        return word + 'ed' + m.groupdict()['rest']
-    elif word in ('Change', 'Remove', ):
-        return word + 'd' + m.groupdict()['rest']
+    m = re.match("(?P<first>\w+)(?P<rest>[\s\S]*)$", message)
+    word = m.groupdict()["first"]
+    if word in (
+        "Add",
+        "Fix",
+        "Deprecate",
+    ):
+        return word + "ed" + m.groupdict()["rest"]
+    elif word in (
+        "Change",
+        "Remove",
+    ):
+        return word + "d" + m.groupdict()["rest"]
     else:
         return message
 
 
 def prettify_message(message):
-    if message.startswith('Merge branch'):
+    if message.startswith("Merge branch"):
         return None
 
     try:
@@ -99,7 +109,7 @@ def prettify_message(message):
     return message
 
 
-def brief(start=None, stop='HEAD'):
+def brief(start=None, stop="HEAD"):
     changes = []
     for change in git_log(start=start, stop=stop).split(os.linesep):
         if change:
@@ -113,18 +123,18 @@ def brief(start=None, stop='HEAD'):
 def group_changes(changes):
     groups = defaultdict(list)
     for change in changes:
-        if change.startswith('Add'):
-            group = 'Added'
-        elif change.startswith('Deprecate'):
-            group = 'Deprecated'
-        elif change.startswith('Remove'):
-            group = 'Removed'
-        elif change.startswith('Fix'):
-            group = 'Fixed'
-        elif change.startswith('Security'):
-            group = 'Security'
+        if change.startswith("Add"):
+            group = "Added"
+        elif change.startswith("Deprecate"):
+            group = "Deprecated"
+        elif change.startswith("Remove"):
+            group = "Removed"
+        elif change.startswith("Fix"):
+            group = "Fixed"
+        elif change.startswith("Security"):
+            group = "Security"
         else:
-            group = 'Changed'
+            group = "Changed"
         groups[group].append(change)
     return groups
 
@@ -139,10 +149,13 @@ def main():
             changelog[stop] = group_changes(changes)
             release_date[stop] = git_tag_date(stop)
 
-    env = jinja2.Environment(loader=jinja2.DictLoader({'changelog': CHANGELOG}))
-    print(env.get_template('changelog').render(releases=changelog,
-                                               release_date=release_date))
+    env = jinja2.Environment(loader=jinja2.DictLoader({"changelog": CHANGELOG}))
+    print(
+        env.get_template("changelog").render(
+            releases=changelog, release_date=release_date
+        )
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
