@@ -43,14 +43,15 @@ jobs:
               channel-priority: true
 
           - name: Show conda installation info
-            run: conda info
+            run: |
+              conda info
+              conda list
     
           - name: Install dependencies
             run: |
               conda install --file=requirements.txt
-              pip install numpy
-              pip install -e "."
-              pip install -r "requirements-docs.txt"
+              conda install --file=requirements-docs.txt
+              pip install -e .
 
           - name: Build documentation
             run: make -C docs clean html linkcheck
