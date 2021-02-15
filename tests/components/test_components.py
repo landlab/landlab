@@ -97,7 +97,9 @@ def test_component_metadata(Comp):
             if Comp._info[name]["mapping"] not in _VALID_LOCS:
                 raise ValueError(
                     "{component} mapping for variable: {name} is invalid: {at}".format(
-                        component=Comp._name, name=name, at=at,
+                        component=Comp._name,
+                        name=name,
+                        at=at,
                     )
                 )
 

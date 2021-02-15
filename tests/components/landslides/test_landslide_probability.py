@@ -13,14 +13,12 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def test_name(ls_prob):
-    """Testing if the name is right.
-    """
+    """Testing if the name is right."""
     assert ls_prob.name == "Landslide Probability"
 
 
 def test_input_var_names(ls_prob):
-    """Testing if the input_var_names outputs the right list.
-    """
+    """Testing if the input_var_names outputs the right list."""
     assert sorted(ls_prob.input_var_names) == [
         "soil__density",
         "soil__internal_friction_angle",
@@ -36,8 +34,7 @@ def test_input_var_names(ls_prob):
 
 
 def test_output_var_names(ls_prob):
-    """Testing if output_var_names outputs the right list.
-    """
+    """Testing if output_var_names outputs the right list."""
     assert sorted(ls_prob.output_var_names) == [
         "landslide__probability_of_failure",
         "soil__mean_relative_wetness",
@@ -46,8 +43,7 @@ def test_output_var_names(ls_prob):
 
 
 def test_var_units(ls_prob):
-    """Testing if units are right.
-    """
+    """Testing if units are right."""
     assert set(ls_prob.input_var_names) | set(ls_prob.output_var_names), set(
         dict(ls_prob.units).keys()
     )
@@ -68,27 +64,23 @@ def test_var_units(ls_prob):
 
 
 def test_grid_shape(ls_prob):
-    """Testing if the grid shape matches the inputs.
-    """
+    """Testing if the grid shape matches the inputs."""
     assert ls_prob.grid.number_of_node_rows == _SHAPE[0]
     assert ls_prob.grid.number_of_node_columns == _SHAPE[1]
 
 
 def test_grid_x_extent(ls_prob):
-    """Testing if x extent is right.
-    """
+    """Testing if x extent is right."""
     assert ls_prob.grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
 
 
 def test_grid_y_extent(ls_prob):
-    """Testing if y extent is right.
-    """
+    """Testing if y extent is right."""
     assert ls_prob.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
 
 
 def test_field_getters(ls_prob):
-    """Testing if the right field is called.
-    """
+    """Testing if the right field is called."""
     for name in ls_prob.grid["node"]:
         field = ls_prob.grid["node"][name]
         assert isinstance(field, np.ndarray)
@@ -101,8 +93,7 @@ def test_field_getters(ls_prob):
 
 
 def test_field_initialized_to_zero(ls_prob):
-    """Testing if the fields are initialized with zeros.
-    """
+    """Testing if the fields are initialized with zeros."""
     for name in ls_prob.grid["node"]:
         field = ls_prob.grid["node"][name]
         assert_array_almost_equal(field, np.zeros(ls_prob.grid.number_of_nodes))
