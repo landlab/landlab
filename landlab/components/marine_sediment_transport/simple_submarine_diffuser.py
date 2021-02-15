@@ -7,7 +7,7 @@ _TINY_DIFFUSIVITY = 1.0e-20
 
 
 class SimpleSubmarineDiffuser(LinearDiffuser):
-    """
+    r"""
     Transport marine sediment using a water-depth-dependent diffusion model.
 
     This component models sediment transport as a diffusion process with a
@@ -86,7 +86,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "depth of water under current sea level"
+            "doc": "depth of water under current sea level",
         },
         "sediment_deposit__thickness": {
             "dtype": "float",
@@ -120,7 +120,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             Diffusivity coefficient for shallow water (m2 / y) (default 100)
         tidal_range: float, optional
             Tidal range (m) (default 2)
-         """
+        """
         self._wave_base = float(wave_base)
         self._sea_level = sea_level
         grid.at_grid["sea_level__elevation"] = sea_level
@@ -130,9 +130,9 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         if tidal_range > 0.0:
             self._inverse_tidal_range = 1.0 / tidal_range
 
-        if not "kd" in grid.at_node:
+        if "kd" not in grid.at_node:
             grid.add_zeros("kd", at="node")
-        if not "sediment_deposit__thickness" in grid.at_node:
+        if "sediment_deposit__thickness" not in grid.at_node:
             grid.add_zeros("sediment_deposit__thickness", at="node")
         if "water__depth" in grid.at_node:
             self._depth = grid.at_node["water__depth"]
@@ -175,7 +175,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
     def depth_function(self, water_depth):
         """
         Return weighting factor for transport.
-        
+
         If there is no tidal range, then the weight factor is 1 if at or
         below sea level, and 0 if above it. If there is a tidal range, then
         a tanh function is used to weight transport across mean sea level, so
@@ -241,8 +241,6 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         super(SimpleSubmarineDiffuser, self).run_one_step(dt)
 
         depo = self.grid.at_node["sediment_deposit__thickness"]
-        depo[:] = (
-            self.grid.at_node["topographic__elevation"] - z_before
-        )
+        depo[:] = self.grid.at_node["topographic__elevation"] - z_before
 
         self._time += dt
