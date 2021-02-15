@@ -33,12 +33,15 @@ jobs:
           channel-priority: true
 
       - name: Show conda installation info
-        run: conda info
+        run: |
+          conda info
+          conda list
+
+      - name: Install requirements
+        run: conda install --file=requirements.txt
 
       - name: Build and install package
-        run: |
-          conda install --file=requirements.txt
-          pip install .
+        run: pip install .
 
       - name: Install testing dependencies
         run: conda install --file=requirements-testing.txt -c conda-forge
