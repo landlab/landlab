@@ -21,7 +21,7 @@ doctest_optionflags = [
   "ALLOW_UNICODE"
 ]
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')"
 ]
 
