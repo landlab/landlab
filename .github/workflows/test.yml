@@ -39,13 +39,14 @@ jobs:
 
       - name: Install requirements
         run: |
-          conda install --file=requirements.txt
-          conda install c-compiler
+          conda install mamba
+          mamba install --file=requirements.txt
+          mamba install c-compiler
+          mamba install cython numpy setuptools wheel
+          conda list
 
       - name: Build and install package
         run: |
-          pip install cython numpy setuptools wheel
-          conda list
           pip install .
 
       - name: Install testing dependencies
