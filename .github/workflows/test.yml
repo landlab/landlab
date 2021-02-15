@@ -41,16 +41,14 @@ jobs:
         run: |
           conda install mamba
           mamba install --file=requirements.txt
-          mamba install c-compiler
-          mamba install cython numpy setuptools wheel
-          conda list
+          mamba list
 
       - name: Build and install package
         run: |
-          pip install .
+          pip install -e .
 
       - name: Install testing dependencies
-        run: conda install --file=requirements-testing.txt -c conda-forge
+        run: mamba install --file=requirements-testing.txt -c conda-forge
 
       - name: Test
         run: |
