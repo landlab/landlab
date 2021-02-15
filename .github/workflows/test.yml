@@ -43,7 +43,7 @@ jobs:
           conda install c-compiler
 
       - name: Build and install package
-        run:
+        run: |
           pip install cython numpy setuptools wheel
           conda list
           pip install .
