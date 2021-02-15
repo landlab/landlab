@@ -39,7 +39,7 @@ jobs:
           - uses: conda-incubator/setup-miniconda@v2
             with:
               auto-update-conda: true
-              python-version: 3.9
+              python-version: 3.8
               channels: conda-forge
               channel-priority: true
 
