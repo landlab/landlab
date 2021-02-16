@@ -48,13 +48,12 @@ jobs:
           pip install -e .
 
       - name: Install testing dependencies
-        run: mamba install --file=requirements-testing.txt -c conda-forge
+        run: mamba install --file=requirements-testing.txt
 
       - name: Test
         run: |
           python -c 'import landlab; print(landlab.__version__)'
-          pip install -r requirements-testing.txt -r requirements-notebooks.txt
-          pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --run-notebook -vvv
+          pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
