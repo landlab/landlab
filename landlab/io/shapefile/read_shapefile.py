@@ -105,7 +105,7 @@ def read_shapefile(
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    >>> w.shapeTypeName = "POLYLINE"
+    >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
     >>> w.record(37)
@@ -139,7 +139,7 @@ def read_shapefile(
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    >>> w.shapeTypeName = "POLYLINE"
+    >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
     >>> w.record(37)
@@ -153,7 +153,7 @@ def read_shapefile(
     >>> p_shx = BytesIO()
     >>> p_dbf = BytesIO()
     >>> p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    >>> p_w.shapeTypeName = "POINT"
+    >>> p_w.shapeType = shapefile.POINT
     >>> p_w.field("eggs", "N")
     >>> p_w.point(5, 0)
     >>> p_w.record(2)
