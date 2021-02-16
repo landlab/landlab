@@ -5,7 +5,6 @@ import pathlib
 
 import numpy as np
 import shapefile as ps
-from shapefile import ShapefileException
 
 from landlab.graph.graph import NetworkGraph
 from landlab.grid.network import NetworkModelGrid
