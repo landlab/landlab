@@ -105,7 +105,7 @@ def read_shapefile(
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    >>> w.shapeType = 3
+    >>> w.shapeTypeName = "POLYLINE"
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
     >>> w.record(37)
@@ -139,7 +139,7 @@ def read_shapefile(
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    >>> w.shapeType = 3
+    >>> w.shapeTypeName = "POLYLINE"
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
     >>> w.record(37)
@@ -153,7 +153,7 @@ def read_shapefile(
     >>> p_shx = BytesIO()
     >>> p_dbf = BytesIO()
     >>> p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    >>> p_w.shapeType = 1
+    >>> p_w.shapeTypeName = "POINT"
     >>> p_w.field("eggs", "N")
     >>> p_w.point(5, 0)
     >>> p_w.record(2)
@@ -192,7 +192,7 @@ def read_shapefile(
     link_field_dtype = link_field_dtype or dict()
     node_field_dtype = node_field_dtype or dict()
 
-    if sf.shapeType != 3:
+    if sf.shapeTypeName != "POLYLINE":
         raise ValueError(
             (
                 "landlab.io.shapefile read requires a polyline "
@@ -203,7 +203,7 @@ def read_shapefile(
 
     if points_shapefile:
         psf = _read_shapefile(points_shapefile, points_dbf)
-        if psf.shapeType != 1:
+        if psf.shapeTypeName != "POINT":
             raise ValueError(
                 (
                     "landlab.io.shapefile read requires a point "
