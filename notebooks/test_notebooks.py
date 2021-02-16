@@ -21,7 +21,7 @@ def _notebook_run(path):
     _, notebook = os.path.split(path)
     base, ext = os.path.splitext(notebook)
 
-    with tempfile.NamedTemporaryFile("w", suffix=".ipynb") as fp:
+    with tempfile.NamedTemporaryFile("w", suffix=".ipynb", dir=".") as fp:
         args = [
             "jupyter",
             "nbconvert",
