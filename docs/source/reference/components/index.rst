@@ -115,6 +115,14 @@ Weathering
 
   weathering
 
+Subaqueous / Submarine Processes
+--------------------------------
+
+.. toctree::
+  :maxdepth: 2
+
+  marine_sediment_transport
+
 Terrain Analysis
 ----------------
 
