@@ -12,15 +12,15 @@ from landlab.grid.network import NetworkModelGrid
 
 
 def _read_shapefile(file, dbf):
-    if isinstance(file, pathlib.PurePath):
-        file = str(file)
-    try:
-        sf = ps.Reader(file)
-    except ShapefileException:
-        try:
-            sf = ps.Reader(shp=file, dbf=dbf)
-        except ShapefileException:
-            raise ShapefileException(("Bad file path provided to read_shapefile."))
+    kwds = {}
+    if dbf is not None:
+        kwds["dbf"] = dbf
+
+    if isinstance(file, (str, pathlib.Path)):
+        sf = ps.Reader(str(file), **kwds)
+    else:
+        sf = ps.Reader(shp=file, **kwds)
+
     return sf
 
 
