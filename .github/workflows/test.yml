@@ -1,4 +1,4 @@
-name: Build/Test CI
+ssame: Test
 
 on: [push, pull_request]
 

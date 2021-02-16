@@ -1,4 +1,4 @@
-name: Build/Test CI
+name: Notebooks
 
 on: [push, pull_request]
 
