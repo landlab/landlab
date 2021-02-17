@@ -325,10 +325,15 @@ class find_facets(object):
                 # new distances is far from the actual pts:
                 multiplier = 10.0 * np.ptp(grid.node_y[grid.core_nodes[nodes_possible]])
                 # derive the position:
-                x_ref = grid.node_x[i] + cmp(
-                    grid.node_x[i],
-                    np.mean(grid.node_x[grid.core_nodes[nodes_possible]]),
-                ) * multiplier * abs(grad)
+                x_ref = (
+                    grid.node_x[i]
+                    + cmp(
+                        grid.node_x[i],
+                        np.mean(grid.node_x[grid.core_nodes[nodes_possible]]),
+                    )
+                    * multiplier
+                    * abs(grad)
+                )
                 y_ref = (
                     grid.node_y[i]
                     + cmp(

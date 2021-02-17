@@ -1,0 +1,59 @@
+name: Documentation
+
+on: [push, pull_request]
+# on:
+#     push:
+#         paths:
+#             - "docs/**"
+#             - "AUTHORS.rst"
+#             - "CHANGES.rst"
+#             - "CONTRIBUTING.rst"
+#             - "LICENSE.rst"
+#             - "README.rst"
+#     pull_request:
+#         paths:
+#             - "docs/**"
+#             - "AUTHORS.rst"
+#             - "CHANGES.rst"
+#             - "CONTRIBUTING.rst"
+#             - "LICENSE.rst"
+#             - "README.rst"
+
+jobs:
+    build:
+        # We want to run on external PRs, but not on our own internal PRs as they'll be run
+        # by the push to the branch. Without this if check, checks are duplicated since
+        # internal PRs match both the push and pull_request events.
+        if:
+          github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
+          github.repository
+    
+        runs-on: ubuntu-latest
+        
+        defaults:
+          run:
+            shell: bash -l {0}
+
+        steps:
+          - uses: actions/checkout@v2
+          - uses: conda-incubator/setup-miniconda@v2
+            with:
+              auto-update-conda: true
+              python-version: 3.8
+              channels: conda-forge
+              channel-priority: true
+
+          - name: Show conda installation info
+            run: |
+              conda info
+              conda list
+    
+          - name: Install dependencies
+            run: |
+              conda install mamba
+              mamba install --file=requirements.txt
+              pip install -r requirements-docs.txt
+              pip install -e .
+
+          - name: Build documentation
+            run: make -C docs clean html
