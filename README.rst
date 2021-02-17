@@ -4,14 +4,16 @@
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
     :target: https://readthedocs.org/projects/landlab/?badge=latest
 
-.. image:: https://travis-ci.org/landlab/landlab.svg?branch=master
-    :target: https://travis-ci.org/landlab/landlab
+.. image:: https://github.com/landlab/landlab/workflows/Build/Test%20CI/badge.svg
+
+.. image:: https://github.com/landlab/landlab/workflows/Flake8/badge.svg
+
+.. image:: https://github.com/landlab/landlab/workflows/Black/badge.svg
+
+.. image:: https://github.com/landlab/landlab/workflows/Documentation/badge.svg
 
 .. image:: https://coveralls.io/repos/landlab/landlab/badge.png
     :target: https://coveralls.io/r/landlab/landlab
-
-.. image:: https://ci.appveyor.com/api/projects/status/6u0bj0pggxrmf7s1/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/mcflugen/landlab/branch/master
 
 .. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg
     :target: https://landscape.io/github/landlab/landlab/master

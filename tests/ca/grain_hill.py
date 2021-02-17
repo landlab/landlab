@@ -20,8 +20,8 @@ _DEBUG = False
 
 def plot_hill(grid, filename=None, array=None, cmap=None, show=True):
     """Generate a plot of the modeled hillslope."""
-    import matplotlib.pyplot as plt
     import matplotlib as mpl
+    import matplotlib.pyplot as plt
 
     # Set color map
     if cmap is None:
