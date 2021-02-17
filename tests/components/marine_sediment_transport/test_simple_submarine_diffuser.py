@@ -137,10 +137,3 @@ def test_depth_function():
     assert_array_almost_equal(
         df, [0.5, 0.5, 0.5, 0.5, 0.5, 0.880797, 0.119203, 0.5, 0.5, 0.5, 0.5, 0.5]
     )
-
-
-if __name__ == "__main__":
-    test_diffusivity_vs_depth()
-    test_one_step_shallow()
-    test_one_step_deep()
-    test_depth_function()
