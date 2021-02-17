@@ -500,31 +500,31 @@ def sort_points_by_x_then_y(pts):
 def anticlockwise_argsort_points(pts, midpt=None):
     """Argort points into anticlockwise order around a supplied center.
 
-        Sorts CCW from east. Assumes a convex hull.
+    Sorts CCW from east. Assumes a convex hull.
 
-        Parameters
-        ----------
-        pts : Nx2 NumPy array of float
-        (x,y) points to be sorted
-        midpt : len-2 NumPy array of float (optional)
-        (x, y) of point about which to sort. If not provided, mean of pts is
-        used.
+    Parameters
+    ----------
+    pts : Nx2 NumPy array of float
+    (x,y) points to be sorted
+    midpt : len-2 NumPy array of float (optional)
+    (x, y) of point about which to sort. If not provided, mean of pts is
+    used.
 
-        Returns
-        -------
-        pts : N NumPy array of int
-            sorted (x,y) points
+    Returns
+    -------
+    pts : N NumPy array of int
+        sorted (x,y) points
 
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab.core.utils import anticlockwise_argsort_points
-        >>> pts = np.zeros((4, 2))
-        >>> pts[:,0] = np.array([-3., -1., -1., -3.])
-        >>> pts[:,1] = np.array([-1., -3., -1., -3.])
-        >>> sortorder = anticlockwise_argsort_points(pts)
-        >>> np.all(sortorder == np.array([2, 0, 3, 1]))
-        True
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import anticlockwise_argsort_points
+    >>> pts = np.zeros((4, 2))
+    >>> pts[:,0] = np.array([-3., -1., -1., -3.])
+    >>> pts[:,1] = np.array([-1., -3., -1., -3.])
+    >>> sortorder = anticlockwise_argsort_points(pts)
+    >>> np.all(sortorder == np.array([2, 0, 3, 1]))
+    True
     """
     if midpt is None:
         midpt = pts.mean(axis=0)
@@ -637,15 +637,16 @@ def get_categories_from_grid_methods(grid_type):
     """
     import inspect
     import re
-    from landlab import (
-        ModelGrid,
-        RasterModelGrid,
-        HexModelGrid,
-        RadialModelGrid,
-        VoronoiDelaunayGrid,
-        NetworkModelGrid,
-    )
     from copy import copy
+
+    from landlab import (
+        HexModelGrid,
+        ModelGrid,
+        NetworkModelGrid,
+        RadialModelGrid,
+        RasterModelGrid,
+        VoronoiDelaunayGrid,
+    )
 
     grid_str_to_grid = {
         "ModelGrid": ModelGrid,

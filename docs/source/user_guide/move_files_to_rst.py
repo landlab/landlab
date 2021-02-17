@@ -12,15 +12,16 @@ import subprocess
 
 files = glob.glob("*.md")
 for file in files:
-    args = ["pandoc",
-           "--from=markdown",
-           "--to=rst",
-           "--output="+file.replace("md", "rst"),
-           file]
+    args = [
+        "pandoc",
+        "--from=markdown",
+        "--to=rst",
+        "--output=" + file.replace("md", "rst"),
+        file,
+    ]
     subprocess.call(args)
     os.remove(file)
-    
+
 files = glob.glob("*.rest")
 for file in files:
     os.rename(file, file.replace("rest", "rst"))
-

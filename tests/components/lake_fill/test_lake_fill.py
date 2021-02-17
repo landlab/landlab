@@ -14,7 +14,6 @@ from landlab.components import (
 )
 from landlab.utils import StablePriorityQueue
 
-
 """
 These tests test specific aspects of LakeMapperBarnes not picked up in the
 various docstrings.

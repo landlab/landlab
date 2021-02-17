@@ -5,7 +5,17 @@ from landlab import HexModelGrid
 from landlab.grid.mappers import map_link_vector_components_to_node
 
 
-@pytest.mark.parametrize("angle", (0.0, 60.0, 120.0, 180.0, 240.0, 300.0,))
+@pytest.mark.parametrize(
+    "angle",
+    (
+        0.0,
+        60.0,
+        120.0,
+        180.0,
+        240.0,
+        300.0,
+    ),
+)
 @pytest.mark.parametrize("node_layout", ("rect", "hex"))
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
 def test_along_links(orientation, node_layout, angle):
