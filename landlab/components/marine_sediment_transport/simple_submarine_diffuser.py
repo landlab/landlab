@@ -78,7 +78,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation", # and seafloor
+            "doc": "Land surface topographic elevation",  # and seafloor
         },
         "water__depth": {
             "dtype": "float",
