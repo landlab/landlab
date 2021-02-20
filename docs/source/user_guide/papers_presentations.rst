@@ -21,6 +21,8 @@ Anand, S. K., Hooshyar, M., & Porporato, A. (2020). **Linear layout of multiple 
 
 Barnhart, K.R., Hutton, E.W.H., Tucker, G.E., Gasparini, N.M., Istanbulluoglu, E., Hobley, D.E.J., Lyons⁠, N.J., Mouchene, M., Nudurupati, S.S., Adams, J.M., and Bandaragoda, C. (2020) **Short communication: Landlab 2.0: A software package for Earth surface dynamics.** *Earth Surface Dynamics,* 8, 379–397, `doi:10.5194/esurf-8-379-2020 <https://doi.org/10.5194/esurf-8-379-2020>`__.
 
+Barnhart, K. R., Tucker, G. E., Doty, S. G., Glade, R. C., Shobe, C. M., Rossi, M. W., & Hill, M. C. (2020). **Projections of landscape evolution on a 10,000 year timescale with assessment and partitioning of uncertainty sources.** *Journal of Geophysical Research: Earth Surface,* 125(12), e2020JF005795, `https://doi.org/10.1029/2020JF005795 <https://doi.org/10.1029/2020JF005795>`__.
+
 Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 1, conceptualization and sensitivity analysis.** *Journal of Geophysical Research: Earth Surface,* e2018JF004961. `https://doi.org/10.1029/2018JF004961 <https://doi.org/10.1029/2018JF004961>`__.
 
 Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 2, calibration and validation.** *Journal of Geophysical Research: Earth Surface,* e2018JF004963. `https://doi.org/10.1029/2018JF004963 <https://doi.org/10.1029/2018JF004963>`__.
