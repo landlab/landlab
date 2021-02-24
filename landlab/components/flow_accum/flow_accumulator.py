@@ -902,10 +902,10 @@ class FlowAccumulator(Component):
                 flow_director = flow_director[12:]
 
             from landlab.components.flow_director import (
-                FlowDirectorSteepest,
                 FlowDirectorD8,
-                FlowDirectorMFD,
                 FlowDirectorDINF,
+                FlowDirectorMFD,
+                FlowDirectorSteepest,
             )
 
             DIRECTOR_METHODS = {

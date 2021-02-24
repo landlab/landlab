@@ -1,6 +1,7 @@
-bmipy<1
+bmipy
 matplotlib
 netcdf4
+numpy
 pyyaml
 pyshp
 scipy

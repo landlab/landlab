@@ -418,7 +418,7 @@ class NetworkSedimentTransporter(Component):
         return self._rhos_mean_active
 
     def _create_new_parcel_time(self):
-        """ If we are going to track parcels through time in :py:class:`~landlab.data_record.data_record.DataRecord`, we
+        """If we are going to track parcels through time in :py:class:`~landlab.data_record.data_record.DataRecord`, we
         need to add a new time column to the parcels dataframe. This method simply
         copies over the attributes of the parcels from the former timestep.
         Attributes will be updated over the course of this step.
@@ -588,7 +588,10 @@ class NetworkSedimentTransporter(Component):
 
                 # sort them by arrival time.
                 time_arrival_sort = np.flip(
-                    np.argsort(time_arrival[this_links_parcels], 0,)
+                    np.argsort(
+                        time_arrival[this_links_parcels],
+                        0,
+                    )
                 )
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 

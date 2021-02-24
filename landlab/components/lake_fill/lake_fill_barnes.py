@@ -1683,7 +1683,11 @@ class LakeMapperBarnes(Component):
             closedq[self._edges] = True
             if self._fill_flat:
                 self._lakemappings = self._fill_to_flat_with_tracking(
-                    self._fill_surface, self._allneighbors, self._pit, _open, closedq,
+                    self._fill_surface,
+                    self._allneighbors,
+                    self._pit,
+                    _open,
+                    closedq,
                 )
             else:
                 self._lakemappings = self._fill_to_slant_with_optional_tracking(

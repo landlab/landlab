@@ -75,7 +75,6 @@ setup(
     description="Plugin-based component modeling tool.",
     long_description=open("README.rst").read(),
     python_requires=">=3.6",
-    setup_requires=["cython", "numpy"],
     install_requires=open("requirements.txt", "r").read().splitlines(),
     include_package_data=True,
     classifiers=[

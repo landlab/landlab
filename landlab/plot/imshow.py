@@ -19,8 +19,8 @@ from ..field import FieldError
 
 try:
     import matplotlib.pyplot as plt
+    from matplotlib.collections import LineCollection, PatchCollection
     from matplotlib.patches import Polygon
-    from matplotlib.collections import PatchCollection, LineCollection
 except ImportError:
     import warnings
 
@@ -308,8 +308,8 @@ def _imshow_grid_values(
             if colorbar_label:
                 cb.set_label(colorbar_label)
     else:
-        import matplotlib.colors as colors
         import matplotlib.cm as cmx
+        import matplotlib.colors as colors
 
         if limits is not None:
             (vmin, vmax) = (limits[0], limits[1])

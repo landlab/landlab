@@ -267,7 +267,10 @@ class TrickleDownProfiler(_BaseProfiler):
     }
 
     def __init__(
-        self, grid, starting_nodes=None, cmap="viridis",
+        self,
+        grid,
+        starting_nodes=None,
+        cmap="viridis",
     ):
         """
         Parameters
@@ -340,8 +343,7 @@ class TrickleDownProfiler(_BaseProfiler):
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-        """Create expected flattened structures for ids, distances, and colors.
-        """
+        """Create expected flattened structures for ids, distances, and colors."""
         self._nodes = []
 
         self._distance_along_profile = []
