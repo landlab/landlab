@@ -1144,7 +1144,7 @@ class FlowAccumulator(Component):
             # At the moment, no depression finders work with to-many, so it
             # lives here
             if self._depression_finder_provided is not None:
-                if update_depression_finder and self.pits_present():
+                if update_depression_finder:
                     self._depression_finder.update()
 
                     # if FlowDirectorSteepest is used, update the link directions
