@@ -12,7 +12,7 @@ env:
 
 jobs:
   build-and-publish:
-    name: Build and publish to PyPI
+    name: Build and publish to TestPyPI
     runs-on: ${{ matrix.os }}
 
     defaults:
