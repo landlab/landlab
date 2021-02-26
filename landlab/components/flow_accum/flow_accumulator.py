@@ -14,6 +14,7 @@ together.
 import numpy as np
 
 from landlab import (  # for type tests
+    _UNFLOODED,
     Component,
     FieldError,
     NetworkModelGrid,
@@ -1021,8 +1022,10 @@ class FlowAccumulator(Component):
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
 
-                from landlab.components import (
+                from landlab.components.depression_finder.lake_mapper import (
                     DepressionFinderAndRouter,
+                )
+                from landlab.components.lake_fill.lake_fill_barnes import (
                     LakeMapperBarnes,
                 )
 

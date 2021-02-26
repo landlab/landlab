@@ -9,19 +9,19 @@
 import numpy as np
 
 import landlab
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import (
+    _CURRENT_LAKE,
+    _FLOODED,
+    _PIT,
+    _UNFLOODED,
+    Component,
+    FieldError,
+    RasterModelGrid,
+)
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.core.utils import as_id_array
 
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
-
-# Codes for depression status
-# Note these are also hard-coded in the cfuncs, so if changed here be sure to
-# change there as well
-_UNFLOODED = 0
-_PIT = 1
-_CURRENT_LAKE = 2
-_FLOODED = 3
 
 use_cfuncs = True
 
