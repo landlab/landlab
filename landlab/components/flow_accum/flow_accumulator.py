@@ -1089,6 +1089,13 @@ class FlowAccumulator(Component):
     def pits_present(self):
         return np.any(self._grid.at_node["flow__sink_flag"][self._grid.core_nodes])
 
+    def flooded_nodes_present(self):
+        # flooded node status may not exist if no depression finder was used.
+        if "flood_status_code" in self._grid.at_node:
+            return np.all(self._grid.at_node["flood_status_code"] == _UNFLOODED)
+        else:
+            return False
+
     def accumulate_flow(self, update_flow_director=True, update_depression_finder=True):
         """Function to make FlowAccumulator calculate drainage area and
         discharge.
@@ -1145,7 +1152,10 @@ class FlowAccumulator(Component):
             # lives here
             if self._depression_finder_provided is not None:
                 if update_depression_finder:
-                    self._depression_finder.update()
+                    # only update depression finder if requested AND if there
+                    # are pits, or there were flooded nodes from last timestep.
+                    if self.pits_present or self.flooded_nodes_present:
+                        self._depression_finder.update()
 
                     # if FlowDirectorSteepest is used, update the link directions
                     if self._flow_director._name == "FlowDirectorSteepest":
