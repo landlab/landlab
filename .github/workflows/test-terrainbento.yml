@@ -1,4 +1,4 @@
-name: Test
+name: Test TerrainBento
 
 on: [push, pull_request]
 
@@ -20,41 +20,48 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8]
 
     steps:
       - uses: actions/checkout@v2
 
+      - name: Checkout dependent
+        uses: actions/checkout@v2
+        with:
+          repository: 'TerrainBento/terrainbento'
+          ref: 'v2.0.0'
+          path: 'terrainbento'
+      
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           channels: conda-forge
           channel-priority: true
+      
+      - name: Install landlab requirements
+        run: |
+          conda install mamba
+          mamba install --file=requirements.txt
+          mamba list
+      
+      - name: Build and install landlab
+        run: |
+          pip install -e .
+      
+      - name: Install testing dependencies
+        run: |
+          mamba install --file=requirements-testing.txt
+          mamba install --file=terrainbento/requirements_notebooks.txt
+          mamba install jupyter_contrib_nbextensions
 
       - name: Show conda installation info
         run: |
           conda info
           conda list
-
-      - name: Install requirements
+    
+      - name: Install and test dependent
         run: |
-          conda install mamba
-          mamba install --file=requirements.txt
-          mamba list
-
-      - name: Build and install package
-        run: |
+          cd terrainbento
           pip install -e .
-
-      - name: Install testing dependencies
-        run: mamba install --file=requirements-testing.txt
-
-      - name: Test
-        run: |
-          python -c 'import landlab; print(landlab.__version__)'
-          pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
-
-      - name: Coveralls
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-        uses: AndreMiras/coveralls-python-action@v20201129
+          pytest terrainbento tests -x

@@ -62,5 +62,6 @@ __all__ = [
     "imshow_grid_at_node",
 ]
 
-__version__ = get_versions()["version"]
+# __version__ = get_versions()["version"]
+__version__ = "2.3.0.dev0"
 del get_versions
