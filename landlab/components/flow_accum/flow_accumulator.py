@@ -14,7 +14,6 @@ together.
 import numpy as np
 
 from landlab import (  # for type tests
-    _UNFLOODED,
     Component,
     FieldError,
     NetworkModelGrid,
@@ -25,6 +24,10 @@ from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
 from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
+
+from ..depression_finder.floodstatus import FloodStatus
+
+_UNFLOODED = FloodStatus._UNFLOODED
 
 
 class FlowAccumulator(Component):

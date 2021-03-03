@@ -8,20 +8,17 @@
 
 import numpy as np
 
-import landlab
-from landlab import (
-    _CURRENT_LAKE,
-    _FLOODED,
-    _PIT,
-    _UNFLOODED,
-    Component,
-    FieldError,
-    RasterModelGrid,
-)
-from landlab.components.flow_accum import flow_accum_bw
+from landlab import Component, FieldError, RasterModelGrid
 from landlab.core.utils import as_id_array
 
+from ..flow_accum import flow_accum_bw
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
+from .floodstatus import FloodStatus
+
+_UNFLOODED = FloodStatus._UNFLOODED
+_CURRENT_LAKE = FloodStatus._CURRENT_LAKE
+_FLOODED = FloodStatus._FLOODED
+_PIT = FloodStatus._PIT
 
 use_cfuncs = True
 

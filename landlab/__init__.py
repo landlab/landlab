@@ -32,14 +32,6 @@ from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
 from .plot import imshow_grid, imshow_grid_at_node
 
-# Codes for depression status
-# Note these are also hard-coded in the cfuncs, so if changed here be sure to
-# change there as well
-_UNFLOODED = 0
-_PIT = 1
-_CURRENT_LAKE = 2
-_FLOODED = 3
-
 try:
     set_printoptions(legacy="1.13")
 except TypeError:
