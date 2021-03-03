@@ -53,9 +53,9 @@ jobs:
         run: mamba install --file=requirements-testing.txt
 
       - name: Show conda installation info
-      run: |
-        conda info
-        conda list
+        run: |
+          conda info
+          conda list
     
 
       - name: Install and test dependent
