@@ -57,9 +57,8 @@ jobs:
           conda info
           conda list
     
-
       - name: Install and test dependent
         run: |
           cd terrainbento
           pip install -e .
-          pytest .
+          pytest terrainbento tests
