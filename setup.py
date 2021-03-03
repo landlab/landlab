@@ -69,7 +69,7 @@ class develop_and_register(develop):
 setup(
     name="landlab",
     # version=versioneer.get_version(),
-    version= "2.3.0.dev0",
+    version="2.3.0.dev0",
     author="Eric Hutton",
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",
