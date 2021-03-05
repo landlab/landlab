@@ -1,0 +1,210 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Aug 29 09:59:02 2020
+
+@author: gtucker
+"""
+
+import numpy as np
+from landlab import Component, RasterModelGrid, HexModelGrid
+from landlab.utils.structured_grid import neighbor_node_array
+
+
+class ListricKinematicExtender(Component):
+    """Apply tectonic extension and subsidence kinematically to a raster or
+    hex grid.
+
+    Extension in  raster grid can be east-west (default) or north-south.
+    In a hex grid, extension is oblique, with a fault at N30E (default) and
+    east-west extension, or N60E (vertically oriented grid) and north-south
+    extension.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import ListricKinematicExtender
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=2500.0)
+    >>> topo = grid.add_zeros('topographic__elevation', at='node')
+    >>> lke = ListricKinematicExtender(grid, fault_location=2500.0)
+    >>> lke.update_subsidence_rate()
+    >>> np.round(grid.at_node["subsidence_rate"][8:13], 6)
+    array([ 0.      ,  0.001123,  0.000729,  0.000472,  0.000306])
+    """
+
+    _name = "ListricKinematicExtender"
+
+    _time_units = "y"
+
+    _info = {
+        "topographic__elevation": {
+            "dtype": "float",
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "subsidence_rate": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Rate of tectonic subsidence in hangingwall area",
+        },
+    }
+
+    def __init__(
+        self,
+        grid,
+        extension_rate=0.001,
+        fault_dip=60.0,
+        fault_location=None,
+        detachment_depth=1.0e4,
+        thickness_field=None,
+        extension_direction="east-west",
+    ):
+        """Deform vertically and horizontally to represent tectonic extension.
+
+        Parameters
+        ----------
+        grid: RasterModelGrid
+            A landlab grid.
+        extension_rate: float, optional
+            Rate of horizontal motion of hangingwall relative to footwall
+            (m / y), default 1 mm/y.
+        fault_dip: float, optional
+            Dip of the fault, degrees (default 45).
+        fault_location: float, optional
+            Distance of fault trace from x=0 (m) (default = grid width / 2).
+        elastic_decay_length: float, optional
+            Decay length scale for vertical motion (m), default 100 km.
+        extension_direction: string, optional
+            'east-west' (default), 'north-south' (raster only)
+        """
+        is_raster = isinstance(grid, RasterModelGrid)
+        is_hex = isinstance(grid, HexModelGrid)
+        if not (is_raster or is_hex):
+            raise TypeError("Grid must be RasterModelGrid or HexModelGrid")
+        elif isinstance(grid, HexModelGrid) and (
+            grid.node_layout == "hex" or grid.number_of_node_columns % 2 == 0
+        ):
+            raise TypeError(
+                "Hex grid must have rectangular layout & odd number of columns"
+            )
+
+        super().__init__(grid)
+        self.initialize_output_fields()
+
+        self._extension_rate = extension_rate
+        self._fault_grad = np.tan(np.deg2rad(fault_dip))
+        self._detachment_depth = detachment_depth
+        self._decay_length = detachment_depth / self._fault_grad
+
+        self._subs_rate = grid.at_node['subsidence_rate']
+
+        # Handle optional crustal thickness field
+        if isinstance(thickness_field, str):
+            self._thickness = grid.at_node[thickness_field]
+        else:
+            self._thickness = thickness_field
+
+        # handle grid type and extension direction
+        if isinstance(grid, HexModelGrid):
+            if fault_location is None:
+                self._fault_loc = 0.0
+            else:
+                self._fault_loc = fault_location
+            self._ds = grid.spacing
+            nbr_array_row = 2
+            if grid.orientation[0] == "h":
+                phi = np.deg2rad(-60.0)
+            else:
+                phi = np.deg2rad(-30.0)
+            self._fault_normal_coord = (
+                -grid.x_of_node * np.sin(phi) - grid.y_of_node * np.cos(phi)
+            ) + (self._fault_loc * np.sin(phi))
+        else:
+            if extension_direction == "north-south":
+                self._fault_normal_coord = grid.y_of_node
+                self._ds = grid.dy
+                nbr_array_row = 3
+            else:
+                self._fault_normal_coord = grid.x_of_node
+                self._ds = grid.dy
+                nbr_array_row = 2
+            if fault_location is None:
+                self._fault_loc = 0.5 * (
+                    np.amax(self._fault_normal_coord)
+                    - np.amin(self._fault_normal_coord)
+                )
+            else:
+                self._fault_loc = fault_location
+
+        self._elev = grid.at_node["topographic__elevation"]
+
+        # shorthand to make the next block of code easier to read
+        s = self._fault_normal_coord
+        fault = self._fault_loc
+        nrows = grid.number_of_node_rows
+        ncols = grid.number_of_node_columns
+
+        # set up data structure for horizontal shift of elevation values
+        self._horiz_displacement = 0.0  # horiz displ since last grid shift
+        self._current_time = (
+            0.0  # cumulative time (needed for adding new nodes during shift)
+        )
+        self._footwall = np.where(s <= fault)[0]
+        self._hangwall = np.where(s > fault)[0]
+        self._hw_downwind = np.where(s > fault + self._ds)[0]
+        if isinstance(grid, RasterModelGrid):
+            self._hw_upwind = neighbor_node_array((nrows, ncols), inactive=-1)[
+                nbr_array_row, self._hw_downwind
+            ]
+        else:
+            if grid.orientation == "horizontal":
+                shift = -1  # oblique east-west extension
+            else:  # TODO: not currently handled
+                shift = grid.number_of_node_columns  # oblique N-S
+            self._hw_upwind = self._hw_downwind + shift
+            self._is_uw = np.zeros(grid.number_of_nodes, dtype=bool)
+            self._is_uw[self._hw_upwind] = True
+        self._fault_nodes = np.logical_and(s > fault, s <= fault + self._ds)
+        self._fault_node_ref_ht = grid.at_node["topographic__elevation"][
+            self._fault_nodes
+        ]
+
+    def update_subsidence_rate(self):
+        """Update subsidence rate array."""
+        dist_to_fault = np.abs(self._fault_normal_coord - self._fault_loc)
+        self._subs_rate[self._hangwall] = self._extension_rate * self._fault_grad * np.exp(-dist_to_fault[self._hangwall] / self._decay_length)
+
+    def run_one_step(self, dt):
+        """Apply extensional motion to grid for one time step."""
+        self.update_subsidence_rate()
+        self._elev[self._hangwall] -= self._subs_rate[self._hangwall] * dt
+        self._horiz_displacement += self._extension_rate * dt
+
+        self._current_time += dt
+
+        # Shift footwall nodes
+        if self._horiz_displacement >= self._ds:
+
+            # TODO: shift *all* node fields
+            self._elev[self._hw_downwind] = self._elev[self._hw_upwind]
+
+            # fill in the new "blank" column (sic) of nodes
+            #self._elev[self._fault_nodes] = 0.5 * (
+            #    self._elev[self._fault_nodes - 1] + self._elev[self._fault_nodes + 1]
+            #)
+
+            # Do the same for thickness if applicable
+            #if not (self._thickness is None):
+            #    self._thickness[self._hw_downwind] = self._thickness[self._hw_upwind]
+            #    self._thickness[self._fault_nodes] = 0.5 * (
+            #        self._thickness[self._fault_nodes - 1]
+            #        + self._thickness[self._fault_nodes + 1]
+            #    )
+
+            self._horiz_displacement -= self._ds
