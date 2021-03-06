@@ -53,6 +53,22 @@ class ListricKinematicExtender(Component):
             "mapping": "node",
             "doc": "Rate of tectonic subsidence in hangingwall area",
         },
+        "upper_crust_thickness": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Thickness of upper crust (arbitrary datum)",
+        },
+        "cumulative_subsidence_depth": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Cumulative depth of tectonic subsidence",
+        },
     }
 
     def __init__(
@@ -62,7 +78,8 @@ class ListricKinematicExtender(Component):
         fault_dip=60.0,
         fault_location=None,
         detachment_depth=1.0e4,
-        thickness_field=None,
+        track_crustal_thickness=False,
+        fields_to_shift=[],
         extension_direction="east-west",
     ):
         """Deform vertically and horizontally to represent tectonic extension.
@@ -102,13 +119,23 @@ class ListricKinematicExtender(Component):
         self._detachment_depth = detachment_depth
         self._decay_length = detachment_depth / self._fault_grad
 
-        self._subs_rate = grid.at_node['subsidence_rate']
+        self._subs_rate = grid.at_node["subsidence_rate"]
 
-        # Handle optional crustal thickness field
-        if isinstance(thickness_field, str):
-            self._thickness = grid.at_node[thickness_field]
-        else:
-            self._thickness = thickness_field
+        # Handle option for tracking crustal thickness field
+        self._track_thickness = track_crustal_thickness
+        if self._track_thickness:
+            try:
+                self._thickness = grid.at_node["upper_crust_thickness"]
+            except KeyError:
+                raise KeyError(
+                    "When handle_thickness is True you must provide an 'upper_crust_thickness' node field."
+                )
+            self._cum_subs = grid.add_zeros("cumulative_subsidence_depth", at="node")
+            fields_to_shift.append("upper_crust_thickness")
+
+        # Handle fields to shift right as hangingwall moves
+        fields_to_shift.append("topographic__elevation")
+        self._fields_to_shift = fields_to_shift
 
         # handle grid type and extension direction
         if isinstance(grid, HexModelGrid):
@@ -155,6 +182,7 @@ class ListricKinematicExtender(Component):
         self._current_time = (
             0.0  # cumulative time (needed for adding new nodes during shift)
         )
+        self._hangwall_edge = fault
         self._footwall = np.where(s <= fault)[0]
         self._hangwall = np.where(s > fault)[0]
         self._hw_downwind = np.where(s > fault + self._ds)[0]
@@ -178,33 +206,39 @@ class ListricKinematicExtender(Component):
     def update_subsidence_rate(self):
         """Update subsidence rate array."""
         dist_to_fault = np.abs(self._fault_normal_coord - self._fault_loc)
-        self._subs_rate[self._hangwall] = self._extension_rate * self._fault_grad * np.exp(-dist_to_fault[self._hangwall] / self._decay_length)
+        self._subs_rate[self._hangwall] = (
+            self._extension_rate
+            * self._fault_grad
+            * np.exp(-dist_to_fault[self._hangwall] / self._decay_length)
+        )
 
     def run_one_step(self, dt):
         """Apply extensional motion to grid for one time step."""
         self.update_subsidence_rate()
         self._elev[self._hangwall] -= self._subs_rate[self._hangwall] * dt
         self._horiz_displacement += self._extension_rate * dt
+        if self._track_thickness:
+            self._cum_subs[self._hangwall] += self._subs_rate[self._hangwall] * dt
 
         self._current_time += dt
 
         # Shift footwall nodes
         if self._horiz_displacement >= self._ds:
 
-            # TODO: shift *all* node fields
-            self._elev[self._hw_downwind] = self._elev[self._hw_upwind]
+            # Shift node fields in hangingwall, including elevation, by one cell
+            for fieldname in self._fields_to_shift:
+                self.grid.at_node[fieldname][self._hw_downwind] = self.grid.at_node[
+                    fieldname
+                ][self._hw_upwind]
 
-            # fill in the new "blank" column (sic) of nodes
-            #self._elev[self._fault_nodes] = 0.5 * (
-            #    self._elev[self._fault_nodes - 1] + self._elev[self._fault_nodes + 1]
-            #)
+            # Subtract cumulative subsidence from thickness, and zero out
+            # cumulative subsidence (it is subsidence since latest horiz shift)
+            if self._track_thickness:
+                self._thickness -= self._cum_subs
+                self._cum_subs[:] = 0.0
 
-            # Do the same for thickness if applicable
-            #if not (self._thickness is None):
-            #    self._thickness[self._hw_downwind] = self._thickness[self._hw_upwind]
-            #    self._thickness[self._fault_nodes] = 0.5 * (
-            #        self._thickness[self._fault_nodes - 1]
-            #        + self._thickness[self._fault_nodes + 1]
-            #    )
-
+            # Update horizontal displacement (since latest shift) and
+            # hangingwall locations
             self._horiz_displacement -= self._ds
+            self._hangwall_edge += self._ds
+            self._hangwall = np.where(self._fault_normal_coord > self._hangwall_edge)[0]
