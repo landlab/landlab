@@ -55,7 +55,7 @@ class ListricKinematicExtender(Component):
         },
         "upper_crust_thickness": {
             "dtype": "float",
-            "intent": "out",
+            "intent": "inout",
             "optional": True,
             "units": "m",
             "mapping": "node",
@@ -119,7 +119,12 @@ class ListricKinematicExtender(Component):
         self._detachment_depth = detachment_depth
         self._decay_length = detachment_depth / self._fault_grad
 
+        self._elev = grid.at_node["topographic__elevation"]
         self._subs_rate = grid.at_node["subsidence_rate"]
+
+        # Handle fields to shift right as hangingwall moves
+        self._fields_to_shift = fields_to_shift.copy()
+        self._fields_to_shift.append("topographic__elevation")
 
         # Handle option for tracking crustal thickness field
         self._track_thickness = track_crustal_thickness
@@ -131,11 +136,7 @@ class ListricKinematicExtender(Component):
                     "When handle_thickness is True you must provide an 'upper_crust_thickness' node field."
                 )
             self._cum_subs = grid.add_zeros("cumulative_subsidence_depth", at="node")
-            fields_to_shift.append("upper_crust_thickness")
-
-        # Handle fields to shift right as hangingwall moves
-        fields_to_shift.append("topographic__elevation")
-        self._fields_to_shift = fields_to_shift
+            self._fields_to_shift.append("upper_crust_thickness")
 
         # handle grid type and extension direction
         if isinstance(grid, HexModelGrid):
@@ -174,8 +175,8 @@ class ListricKinematicExtender(Component):
         # shorthand to make the next block of code easier to read
         s = self._fault_normal_coord
         fault = self._fault_loc
-        nrows = grid.number_of_node_rows
-        ncols = grid.number_of_node_columns
+        # nrows = grid.number_of_node_rows
+        # ncols = grid.number_of_node_columns
 
         # set up data structure for horizontal shift of elevation values
         self._horiz_displacement = 0.0  # horiz displ since last grid shift
@@ -185,23 +186,36 @@ class ListricKinematicExtender(Component):
         self._hangwall_edge = fault
         self._footwall = np.where(s <= fault)[0]
         self._hangwall = np.where(s > fault)[0]
-        self._hw_downwind = np.where(s > fault + self._ds)[0]
-        if isinstance(grid, RasterModelGrid):
-            self._hw_upwind = neighbor_node_array((nrows, ncols), inactive=-1)[
-                nbr_array_row, self._hw_downwind
-            ]
-        else:
-            if grid.orientation == "horizontal":
-                shift = -1  # oblique east-west extension
-            else:  # TODO: not currently handled
-                shift = grid.number_of_node_columns  # oblique N-S
-            self._hw_upwind = self._hw_downwind + shift
-            self._is_uw = np.zeros(grid.number_of_nodes, dtype=bool)
-            self._is_uw[self._hw_upwind] = True
-        self._fault_nodes = np.logical_and(s > fault, s <= fault + self._ds)
-        self._fault_node_ref_ht = grid.at_node["topographic__elevation"][
-            self._fault_nodes
-        ]
+        self._update_hangingwall_nodes()
+        # self._hw_downwind = np.where(s > fault + self._ds)[0]
+        # if isinstance(grid, RasterModelGrid):
+        #     self._hw_upwind = neighbor_node_array((nrows, ncols), inactive=-1)[
+        #         nbr_array_row, self._hw_downwind
+        #     ]
+        # else:
+        #     if grid.orientation == "horizontal":
+        #         shift = -1  # oblique east-west extension
+        #     else:  # TODO: not currently handled
+        #         shift = grid.number_of_node_columns  # oblique N-S
+        #     self._hw_upwind = self._hw_downwind + shift
+        #     self._is_uw = np.zeros(grid.number_of_nodes, dtype=bool)
+        #     self._is_uw[self._hw_upwind] = True
+        # self._fault_nodes = np.logical_and(s > fault, s <= fault + self._ds)
+        # self._fault_node_ref_ht = grid.at_node["topographic__elevation"][
+        #     self._fault_nodes
+        # ]
+
+    def _update_hangingwall_nodes(self):
+        """Update the hw_downwind and hw_upwind arrays."""
+        self._hangwall = np.where(self._fault_normal_coord > self._hangwall_edge)[0]
+        self._hw_downwind = np.where(
+            self._fault_normal_coord > self._hangwall_edge + self._ds
+        )[0]
+        self._hw_upwind = self._hw_downwind - 1
+        self._fault_nodes = np.logical_and(
+            self._fault_normal_coord > self._hangwall_edge,
+            self._fault_normal_coord <= self._hangwall_edge + self._ds,
+        )
 
     def update_subsidence_rate(self):
         """Update subsidence rate array."""
@@ -211,6 +225,33 @@ class ListricKinematicExtender(Component):
             * self._fault_grad
             * np.exp(-dist_to_fault[self._hangwall] / self._decay_length)
         )
+
+    def fault_plane_elev(self, dist_from_fault_trace):
+        """Return elevation of fault plane at given distance from fault trace.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import ListricKinematicExtender
+        >>> grid = RasterModelGrid((3, 7), xy_spacing=5000.0)
+        >>> topo = grid.add_zeros('topographic__elevation', at='node')
+        >>> lke = ListricKinematicExtender(grid, fault_location=10000.0)
+        >>> np.round(lke.fault_plane_elev(np.array([0.0, 5000.0, 10000.0])))
+        array([   -0., -5794., -8231.])
+        """
+        return -(
+            self._detachment_depth
+            * (
+                1.0
+                - np.exp(
+                    -dist_from_fault_trace * self._fault_grad / self._detachment_depth
+                )
+            )
+        )
+    
+    def debug_print(self):
+        if self.grid.number_of_node_columns == 51:
+            print(self._elev[61:72])
 
     def run_one_step(self, dt):
         """Apply extensional motion to grid for one time step."""
@@ -231,6 +272,15 @@ class ListricKinematicExtender(Component):
                     fieldname
                 ][self._hw_upwind]
 
+            # Pull elevation along the current fault nodes down to either the
+            # fault plane, or their original values, whichever is lower.
+            self._elev[self._fault_nodes] = np.minimum(
+                self._elev[self._fault_nodes],
+                self.fault_plane_elev(
+                    (self._hangwall_edge - self._fault_loc) + self._ds
+                ),
+            )
+
             # Subtract cumulative subsidence from thickness, and zero out
             # cumulative subsidence (it is subsidence since latest horiz shift)
             if self._track_thickness:
@@ -241,4 +291,4 @@ class ListricKinematicExtender(Component):
             # hangingwall locations
             self._horiz_displacement -= self._ds
             self._hangwall_edge += self._ds
-            self._hangwall = np.where(self._fault_normal_coord > self._hangwall_edge)[0]
+            self._update_hangingwall_nodes()

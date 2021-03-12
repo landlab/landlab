@@ -6,10 +6,20 @@ Created on Fri Mar  5 08:42:24 2021
 @author: gtucker
 """
 
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 from landlab import RasterModelGrid
 from landlab.components import ListricKinematicExtender, Flexure
 
+
+def test_hangingwall_nodes():
+    """Test the correct identification of hangingwall nodes."""
+    grid = RasterModelGrid((3, 7), xy_spacing=2500.0)
+    topo = grid.add_zeros("topographic__elevation", at="node")
+    extender = ListricKinematicExtender(grid, fault_location=2500.0)
+
+    assert_array_equal(extender._hangwall, [ 2,  3,  4,  5,  6,
+                                             9, 10, 11, 12, 13,
+                                            16, 17, 18, 19, 20])
 
 def test_subsidence_and_horiz_shift():
     """Test that elev subsides then shifts after 2 time steps."""
@@ -31,7 +41,7 @@ def test_subsidence_and_horiz_shift():
     extender.run_one_step(dt=125000.0)
     assert_array_almost_equal(
         topo[7:14],
-        [0.0, 0.0, -2808.313638, -2808.313638, -1821.338140, -1181.232956, -766.091296],
+        [0.0, 0.0, -3514.477461, -2808.313638, -1821.338140, -1181.232956, -766.091296],
     )
 
     # Another step, and this time the hangingwall edge has moved by one cell,
@@ -42,7 +52,7 @@ def test_subsidence_and_horiz_shift():
         [
             0.0,
             0.0,
-            -2808.313638,
+            -3514.477461,
             -3718.982708,
             -2411.954617,
             -1564.278603,
@@ -139,3 +149,4 @@ def test_with_flexure():
 if __name__ == "__main__":
     test_subsidence_and_horiz_shift()
     test_with_flexure()
+    test_hangingwall_nodes()
