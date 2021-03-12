@@ -248,7 +248,7 @@ class ListricKinematicExtender(Component):
                 )
             )
         )
-    
+
     def debug_print(self):
         if self.grid.number_of_node_columns == 51:
             print(self._elev[61:72])

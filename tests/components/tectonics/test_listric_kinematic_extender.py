@@ -17,9 +17,10 @@ def test_hangingwall_nodes():
     topo = grid.add_zeros("topographic__elevation", at="node")
     extender = ListricKinematicExtender(grid, fault_location=2500.0)
 
-    assert_array_equal(extender._hangwall, [ 2,  3,  4,  5,  6,
-                                             9, 10, 11, 12, 13,
-                                            16, 17, 18, 19, 20])
+    assert_array_equal(
+        extender._hangwall, [2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20]
+    )
+
 
 def test_subsidence_and_horiz_shift():
     """Test that elev subsides then shifts after 2 time steps."""
