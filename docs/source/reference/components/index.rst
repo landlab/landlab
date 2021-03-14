@@ -123,6 +123,14 @@ Subaqueous / Submarine Processes
 
   marine_sediment_transport
 
+Tectonics
+---------
+
+.. toctree::
+  :maxdepth: 2
+
+  tectonics
+
 Terrain Analysis
 ----------------
 
