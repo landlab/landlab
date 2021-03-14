@@ -14,7 +14,7 @@ from landlab.components import ListricKinematicExtender, Flexure
 def test_hangingwall_nodes():
     """Test the correct identification of hangingwall nodes."""
     grid = RasterModelGrid((3, 7), xy_spacing=2500.0)
-    topo = grid.add_zeros("topographic__elevation", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
     extender = ListricKinematicExtender(grid, fault_location=2500.0)
 
     assert_array_equal(

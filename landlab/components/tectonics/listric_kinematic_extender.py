@@ -8,7 +8,8 @@ Created on Sat Aug 29 09:59:02 2020
 
 import numpy as np
 from landlab import Component, RasterModelGrid, HexModelGrid
-#from landlab.utils.structured_grid import neighbor_node_array
+
+# from landlab.utils.structured_grid import neighbor_node_array
 
 
 class ListricKinematicExtender(Component):
@@ -148,7 +149,9 @@ class ListricKinematicExtender(Component):
             if grid.orientation[0] == "h":
                 phi = np.deg2rad(-30.0)
             else:
-                raise NotImplementedError("vertical orientation hex grids not currently handled")
+                raise NotImplementedError(
+                    "vertical orientation hex grids not currently handled"
+                )
             self._fault_normal_coord = grid.x_of_node + grid.y_of_node * np.tan(phi)
         else:
             if extension_direction == "north-south":
@@ -223,10 +226,6 @@ class ListricKinematicExtender(Component):
                 )
             )
         )
-
-    def debug_print(self):
-        if self.grid.number_of_node_columns == 51:
-            print(self._elev[61:72])
 
     def run_one_step(self, dt):
         """Apply extensional motion to grid for one time step."""
