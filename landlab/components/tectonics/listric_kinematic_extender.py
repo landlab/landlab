@@ -37,6 +37,8 @@ class ListricKinematicExtender(Component):
 
     _time_units = "y"
 
+    _unit_agnostic = True
+
     _info = {
         "topographic__elevation": {
             "dtype": "float",
@@ -81,7 +83,6 @@ class ListricKinematicExtender(Component):
         detachment_depth=1.0e4,
         track_crustal_thickness=False,
         fields_to_shift=[],
-        extension_direction="east-west",
     ):
         """Deform vertically and horizontally to represent tectonic extension.
 
@@ -154,11 +155,8 @@ class ListricKinematicExtender(Component):
                 )
             self._fault_normal_coord = grid.x_of_node + grid.y_of_node * np.tan(phi)
         else:
-            if extension_direction == "north-south":
-                raise NotImplementedError("north-south extension not currently handled")
-            else:
-                self._fault_normal_coord = grid.x_of_node
-                self._ds = grid.dy
+            self._fault_normal_coord = grid.x_of_node
+            self._ds = grid.dy
             if fault_location is None:
                 self._fault_loc = 0.5 * (
                     np.amax(self._fault_normal_coord)

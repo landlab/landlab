@@ -6,8 +6,8 @@ Created on Fri Mar  5 08:42:24 2021
 @author: gtucker
 """
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab import RasterModelGrid
+from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_raises
+from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
 from landlab.components import ListricKinematicExtender, Flexure
 
 
@@ -60,6 +60,17 @@ def test_subsidence_and_horiz_shift():
             -1014.516414,
         ],
     )
+
+
+def test_with_hex_grid():
+    grid = HexModelGrid((5, 5), node_layout="rect")
+    grid.add_zeros("topographic__elevation", at="node")
+    ListricKinematicExtender(grid)
+    ListricKinematicExtender(grid, fault_location=2.0)
+
+    grid = HexModelGrid((5, 5), node_layout="rect", orientation="vertical")
+    grid.add_zeros("topographic__elevation", at="node")
+    assert_raises(NotImplementedError, ListricKinematicExtender, grid)
 
 
 def test_with_flexure():
@@ -147,7 +158,18 @@ def test_with_flexure():
     )
 
 
-if __name__ == "__main__":
-    test_subsidence_and_horiz_shift()
-    test_with_flexure()
-    test_hangingwall_nodes()
+def test_error_handling():
+
+    radial_grid = RadialModelGrid(
+        n_rings=1, nodes_in_first_ring=8
+    )  # , xy_of_center=(0., 0.))
+    assert_raises(TypeError, ListricKinematicExtender, radial_grid)
+
+    hex_grid = HexModelGrid((3, 3))
+    assert_raises(TypeError, ListricKinematicExtender, hex_grid)
+
+    grid = RasterModelGrid((3, 7))
+    grid.add_zeros("topographic__elevation", at="node")
+    assert_raises(
+        KeyError, ListricKinematicExtender, grid, track_crustal_thickness=True
+    )
