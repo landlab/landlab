@@ -8,7 +8,7 @@ Created on Sat Aug 29 09:59:02 2020
 
 import numpy as np
 from landlab import Component, RasterModelGrid, HexModelGrid
-from landlab.utils.structured_grid import neighbor_node_array
+#from landlab.utils.structured_grid import neighbor_node_array
 
 
 class ListricKinematicExtender(Component):
@@ -145,23 +145,17 @@ class ListricKinematicExtender(Component):
             else:
                 self._fault_loc = fault_location
             self._ds = grid.spacing
-            nbr_array_row = 2
             if grid.orientation[0] == "h":
-                phi = np.deg2rad(-60.0)
-            else:
                 phi = np.deg2rad(-30.0)
-            self._fault_normal_coord = (
-                -grid.x_of_node * np.sin(phi) - grid.y_of_node * np.cos(phi)
-            ) + (self._fault_loc * np.sin(phi))
+            else:
+                raise NotImplementedError("vertical orientation hex grids not currently handled")
+            self._fault_normal_coord = grid.x_of_node + grid.y_of_node * np.tan(phi)
         else:
             if extension_direction == "north-south":
-                self._fault_normal_coord = grid.y_of_node
-                self._ds = grid.dy
-                nbr_array_row = 3
+                raise NotImplementedError("north-south extension not currently handled")
             else:
                 self._fault_normal_coord = grid.x_of_node
                 self._ds = grid.dy
-                nbr_array_row = 2
             if fault_location is None:
                 self._fault_loc = 0.5 * (
                     np.amax(self._fault_normal_coord)
@@ -175,8 +169,6 @@ class ListricKinematicExtender(Component):
         # shorthand to make the next block of code easier to read
         s = self._fault_normal_coord
         fault = self._fault_loc
-        # nrows = grid.number_of_node_rows
-        # ncols = grid.number_of_node_columns
 
         # set up data structure for horizontal shift of elevation values
         self._horiz_displacement = 0.0  # horiz displ since last grid shift
@@ -187,23 +179,6 @@ class ListricKinematicExtender(Component):
         self._footwall = np.where(s <= fault)[0]
         self._hangwall = np.where(s > fault)[0]
         self._update_hangingwall_nodes()
-        # self._hw_downwind = np.where(s > fault + self._ds)[0]
-        # if isinstance(grid, RasterModelGrid):
-        #     self._hw_upwind = neighbor_node_array((nrows, ncols), inactive=-1)[
-        #         nbr_array_row, self._hw_downwind
-        #     ]
-        # else:
-        #     if grid.orientation == "horizontal":
-        #         shift = -1  # oblique east-west extension
-        #     else:  # TODO: not currently handled
-        #         shift = grid.number_of_node_columns  # oblique N-S
-        #     self._hw_upwind = self._hw_downwind + shift
-        #     self._is_uw = np.zeros(grid.number_of_nodes, dtype=bool)
-        #     self._is_uw[self._hw_upwind] = True
-        # self._fault_nodes = np.logical_and(s > fault, s <= fault + self._ds)
-        # self._fault_node_ref_ht = grid.at_node["topographic__elevation"][
-        #     self._fault_nodes
-        # ]
 
     def _update_hangingwall_nodes(self):
         """Update the hw_downwind and hw_upwind arrays."""
