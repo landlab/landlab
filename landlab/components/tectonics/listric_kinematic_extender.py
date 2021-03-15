@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Aug 29 09:59:02 2020
+Apply tectonic extension and subsidence kinematically.
+
+Landlab component that simulates development of an asymmetric rift on a listric
+fault plane.
+
+See notebook tutorial for complete examples.
 
 @author: gtucker
 """
@@ -9,17 +14,13 @@ Created on Sat Aug 29 09:59:02 2020
 import numpy as np
 from landlab import Component, RasterModelGrid, HexModelGrid
 
-# from landlab.utils.structured_grid import neighbor_node_array
-
 
 class ListricKinematicExtender(Component):
     """Apply tectonic extension and subsidence kinematically to a raster or
     hex grid.
 
-    Extension in  raster grid can be east-west (default) or north-south.
-    In a hex grid, extension is oblique, with a fault at N30E (default) and
-    east-west extension, or N60E (vertically oriented grid) and north-south
-    extension.
+    Extension is east-west, with a north-south fault in the case of a raster
+    grid, and a N30E fault in the case of a hex grid (obique extension).
 
     Examples
     --------
@@ -97,10 +98,15 @@ class ListricKinematicExtender(Component):
             Dip of the fault, degrees (default 45).
         fault_location: float, optional
             Distance of fault trace from x=0 (m) (default = grid width / 2).
-        elastic_decay_length: float, optional
-            Decay length scale for vertical motion (m), default 100 km.
-        extension_direction: string, optional
-            'east-west' (default), 'north-south' (raster only)
+        detachment_depth: float, optional
+            Depth to horizontal detachment (m), default 10 km.
+        track_crustal_thickness: bool, optional
+            Option to keep track of changes in crustal thickness (default False)
+        fields_to_shift: list of str, optional
+            List of names of fields, in addition to 'topographic__elevation'
+            and (if track_crustal_thickness==True) 'upper_crust_thickness',
+            that should be shifted horizontally whenever cumulative extension
+            exceeds one cell width. Default empty.
         """
         is_raster = isinstance(grid, RasterModelGrid)
         is_hex = isinstance(grid, HexModelGrid)
@@ -124,11 +130,9 @@ class ListricKinematicExtender(Component):
         self._elev = grid.at_node["topographic__elevation"]
         self._subs_rate = grid.at_node["subsidence_rate"]
 
-        # Handle fields to shift right as hangingwall moves
         self._fields_to_shift = fields_to_shift.copy()
         self._fields_to_shift.append("topographic__elevation")
 
-        # Handle option for tracking crustal thickness field
         self._track_thickness = track_crustal_thickness
         if self._track_thickness:
             try:
@@ -140,7 +144,6 @@ class ListricKinematicExtender(Component):
             self._cum_subs = grid.add_zeros("cumulative_subsidence_depth", at="node")
             self._fields_to_shift.append("upper_crust_thickness")
 
-        # handle grid type and extension direction
         if isinstance(grid, HexModelGrid):
             if fault_location is None:
                 self._fault_loc = 0.0
@@ -167,22 +170,13 @@ class ListricKinematicExtender(Component):
 
         self._elev = grid.at_node["topographic__elevation"]
 
-        # shorthand to make the next block of code easier to read
-        s = self._fault_normal_coord
-        fault = self._fault_loc
-
-        # set up data structure for horizontal shift of elevation values
+        # set up data structures for horizontal shift of elevation values
         self._horiz_displacement = 0.0  # horiz displ since last grid shift
-        self._current_time = (
-            0.0  # cumulative time (needed for adding new nodes during shift)
-        )
-        self._hangwall_edge = fault
-        self._footwall = np.where(s <= fault)[0]
-        self._hangwall = np.where(s > fault)[0]
+        self._hangwall_edge = self._fault_loc
         self._update_hangingwall_nodes()
 
     def _update_hangingwall_nodes(self):
-        """Update the hw_downwind and hw_upwind arrays."""
+        """Update data structures for shifting hangingwall nodes."""
         self._hangwall = np.where(self._fault_normal_coord > self._hangwall_edge)[0]
         self._hw_downwind = np.where(
             self._fault_normal_coord > self._hangwall_edge + self._ds
@@ -233,12 +227,9 @@ class ListricKinematicExtender(Component):
         if self._track_thickness:
             self._cum_subs[self._hangwall] += self._subs_rate[self._hangwall] * dt
 
-        self._current_time += dt
-
-        # Shift footwall nodes
+        # Shift hangingwall nodes by one cell
         if self._horiz_displacement >= self._ds:
 
-            # Shift node fields in hangingwall, including elevation, by one cell
             for fieldname in self._fields_to_shift:
                 self.grid.at_node[fieldname][self._hw_downwind] = self.grid.at_node[
                     fieldname
