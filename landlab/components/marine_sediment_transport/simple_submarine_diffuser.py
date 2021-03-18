@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 import numpy as np
-from landlab.components import LinearDiffuser
 
+from landlab.components import LinearDiffuser
 
 _TINY_DIFFUSIVITY = 1.0e-20
 
