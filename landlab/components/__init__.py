@@ -1,4 +1,5 @@
 from .chi_index import ChiFinder
+from .carbonate import CarbonateProducer
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -60,6 +61,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
