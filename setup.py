@@ -9,7 +9,6 @@ from setuptools import Extension, find_packages, setup
 from setuptools.command.develop import develop
 from setuptools.command.install import install
 
-import versioneer
 
 numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
 
@@ -82,7 +81,7 @@ class develop_and_register(develop):
 
 setup(
     name="landlab",
-    version=versioneer.get_version(),
+    version="2.3.0.dev0",
     author="Eric Hutton",
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",
@@ -116,9 +115,7 @@ setup(
             "test_*/*asc",
         ]
     },
-    cmdclass=versioneer.get_cmdclass(
-        {"install": install_and_register, "develop": develop_and_register}
-    ),
+    cmdclass={"install": install_and_register, "develop": develop_and_register},
     entry_points={"console_scripts": ["landlab=landlab.cmd.landlab:main"]},
     include_dirs=[numpy_incl],
     ext_modules=find_extensions("landlab"),

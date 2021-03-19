@@ -7,8 +7,6 @@ testpaths = ["notebooks", "landlab", "tests"]
 norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
-  --ignore versioneer.py
-  --ignore landlab/_version.py
   --tb native
   --strict
   --durations 16
