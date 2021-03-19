@@ -27,7 +27,7 @@ class CarbonateProducer(Component):
 
     _name = "The Producer of Carbonate"
 
-    _time_units = "y"
+    _unit_agnostic = True
 
     _info = {
         "sea_level__elevation": {
