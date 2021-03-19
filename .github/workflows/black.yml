@@ -5,6 +5,7 @@ on: [push, pull_request]
 jobs:
 
   lint:
+    name: Check code format
     # We want to run on external PRs, but not on our own internal PRs as they'll be run
     # by the push to the branch. Without this if check, checks are duplicated since
     # internal PRs match both the push and pull_request events.
@@ -18,4 +19,4 @@ jobs:
       - uses: actions/setup-python@v2
       - uses: psf/black@stable
         with:
-          black_args: ". --check"
+          args: ". --check"
