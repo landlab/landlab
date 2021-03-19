@@ -293,20 +293,3 @@ by the following grants:
 * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
   (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
 
-Who made Landlab?
------------------
-
-The core development team is currently composed of:
-
-- Greg Tucker (CU)
-- Nicole Gasparini (Tulane)
-- Erkan Istanbulluoglu (UW)
-- Daniel Hobley (Cardiff)
-- Sai S. Nudurupati (UW)
-- Jordan Adams (Tulane)
-- Eric Hutton (CU)
-- Jenny Knuth (CU)
-- Katy Barnhart (CU)
-- Margaux Mouchene (CU)
-- Christina Bandaragoda (UW)
-- Nathan Lyons (Tulane)

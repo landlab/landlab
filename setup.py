@@ -14,6 +14,20 @@ import versioneer
 numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
 
 
+def read(filename):
+    with open(filename, "r", encoding="utf-8") as fp:
+        return fp.read()
+
+
+long_description = u"\n\n".join(
+    [
+        read("README.rst"),
+        read("AUTHORS.rst"),
+        read("CHANGES.rst"),
+    ]
+)
+
+
 def find_extensions(path="."):
     extensions = []
     for root, dirs, files in os.walk(os.path.normpath(path)):
@@ -73,7 +87,7 @@ setup(
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",
     description="Plugin-based component modeling tool.",
-    long_description=open("README.rst").read(),
+    long_description=long_description,
     python_requires=">=3.6",
     install_requires=open("requirements.txt", "r").read().splitlines(),
     include_package_data=True,
