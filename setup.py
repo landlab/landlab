@@ -48,6 +48,7 @@ setup(
     install_requires=open("requirements.txt", "r").read().splitlines(),
     include_package_data=True,
     classifiers=[
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
