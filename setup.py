@@ -59,6 +59,14 @@ setup(
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering :: Physics",
     ],
+    keywords=[
+        "bmi",
+        "component modeling",
+        "earth science",
+        "gridding engine",
+        "model coupling",
+        "numerical modeling",
+    ],
     packages=find_packages(),
     package_data={
         "": [
