@@ -148,7 +148,7 @@ class CarbonateProducer(Component):
 
     @sea_level.setter
     def sea_level(self, sea_level):
-        self.grid.at_grid["sea_level__elevation"] = sea_level
+        self.grid.at_grid["sea_level__elevation"] = float(sea_level)
 
     def calc_production_with_depth(self, water_depth, out=None):
         """Return weighting factor for carbonate production.
