@@ -2,12 +2,9 @@
 
 import os
 import re
-from distutils.extension import Extension
 
 import pkg_resources
 from setuptools import Extension, find_packages, setup
-from setuptools.command.develop import develop
-from setuptools.command.install import install
 
 
 numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
@@ -37,46 +34,6 @@ def find_extensions(path="."):
         Extension(re.sub(re.escape(os.path.sep), ".", ext[: -len(".pyx")]), [ext])
         for ext in extensions
     ]
-
-
-def register(**kwds):
-    import httplib, urllib
-
-    data = urllib.urlencode(kwds)
-    header = {
-        "Content-type": "application/x-www-form-urlencoded",
-        "Accept": "text/plain",
-    }
-    conn = httplib.HTTPConnection("csdms.colorado.edu")
-    conn.request("POST", "/register/", data, header)
-
-
-def register_landlab():
-    try:
-        from sys import argv
-        import platform
-
-        data = {
-            "name": "landlab",
-            "version": __version__,
-            "platform": platform.platform(),
-            "desc": ";".join(argv),
-        }
-        register(**data)
-    except Exception:
-        pass
-
-
-class install_and_register(install):
-    def run(self):
-        install.run(self)
-        register_landlab()
-
-
-class develop_and_register(develop):
-    def run(self):
-        develop.run(self)
-        register_landlab()
 
 
 setup(
@@ -115,7 +72,6 @@ setup(
             "test_*/*asc",
         ]
     },
-    cmdclass={"install": install_and_register, "develop": develop_and_register},
     entry_points={"console_scripts": ["landlab=landlab.cmd.landlab:main"]},
     include_dirs=[numpy_incl],
     ext_modules=find_extensions("landlab"),
