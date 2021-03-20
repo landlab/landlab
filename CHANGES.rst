@@ -6,8 +6,50 @@ Changelog for landlab
 2.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fixed a bug when adding a missing at_grid field when testing components (#1286)
 
+- Cleaned up landlab metadata files (#1285)
+
+- Removed versioneer, we'll use zest.releaser from now on the manage versions (#1285)
+
+- Added release and prerelease github actions (#1275)
+
+- Fixed a bug in the FlowAccumulator to update pit present logic to also include node
+  flood status (#1277)
+
+- Fixed an error in the streampower notebook (#1260)
+
+- Added building and testing of landlab with Python 3.9 (#1274)
+
+- Added additional references for 2020/21 (#1273)
+
+- Added simple submarine diffuser component (#1269)
+
+- Changed to use GitHub Actions for CI (#1270)
+
+- Added tutorial for river input to LEMs (#1258)
+
+- Added a tidal flow component (#1225)
+
+- Added a reference to the papers and presentations list (#1255)
+
+- Fixed bug in Flow router/depression finder which incorrectly directed flow (#1248)
+
+- Added ExponentialWeathererIntegrated component (#1254)
+
+- Added docs for the flow accumulator (#1251)
+
+- Added Wavefront OBJ output (#1241)
+
+- Added two 2020 publications (#1243)
+
+- Small changes to JOSS paper (#1237)
+
+- Added recharge to the GroundwaterDupuitPercolator callback (#1223)
+
+- NetworkSedimentTtransporter JOSS paper fixes (#1235)
+
+- Fixed documentation bugs (#1233)
 
 1.5.1 (2018-06-22)
 ------------------
