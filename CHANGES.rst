@@ -3,7 +3,7 @@ Changelog for landlab
 =====================
 
 
-2.3.0 (unreleased)
+2.3.0 (2021-03-19)
 ------------------
 
 - Fixed a bug when adding a missing at_grid field when testing components (#1286)
