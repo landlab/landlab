@@ -114,7 +114,7 @@ the following commands:
 
     $ conda env create --file=environment-dev.yml
     $ conda activate landlab_dev
-    $ python setup.py develop
+    $ pip install -e .
 
 How do I verify I've installed Landlab correctly?
 -------------------------------------------------
