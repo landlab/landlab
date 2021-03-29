@@ -15,9 +15,6 @@
 .. image:: https://coveralls.io/repos/landlab/landlab/badge.png
     :target: https://coveralls.io/r/landlab/landlab
 
-.. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg
-    :target: https://landscape.io/github/landlab/landlab/master
-
 .. image:: https://mybinder.org/badge_logo.svg
  :target: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
 
