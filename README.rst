@@ -65,8 +65,7 @@ We distribute through both conda-forge and pip.
 Landlab 2.0
 ```````````
 
-In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
-in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
+In April 2020 Landlab switched to version 2.0. Landlab dropped
 support of Python 2.7 with this transition.
 
 Supported Python Versions
@@ -74,8 +73,7 @@ Supported Python Versions
 
 Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
 binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
-and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 and 3.7
-(3.8 coming soon). 
+and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 through 3.9.
 
 Conda Environment with Pre-packaged Binary Distribution
 ```````````````````````````````````````````````````````
@@ -105,7 +103,7 @@ which describe cloning the source code, creating a conda environment for
 development, compiling, and testing the code.
 
 In short, clone the repository, navigate to the top level directory, and
-the following commands:
+run the following commands:
 
 .. code-block:: bash
 
@@ -117,8 +115,8 @@ How do I verify I've installed Landlab correctly?
 -------------------------------------------------
 
 Landlab uses pytest to discover and run tests. These include docstring tests
-located within the core source code (``landlab\landlab`` directory) and unit
-tests located within the ``landlab\tests`` directory. Presuming you have used a
+located within the core source code (``landlab/landlab`` directory) and unit
+tests located within the ``landlab/tests`` directory. Presuming you have used a
 source code installation with the above conda environment, you will be able to
 test your install with
 
