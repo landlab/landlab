@@ -4,13 +4,17 @@
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
     :target: https://readthedocs.org/projects/landlab/?badge=latest
 
-.. image:: https://github.com/landlab/landlab/workflows/Build/Test%20CI/badge.svg
+.. image:: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/test.yml
 
-.. image:: https://github.com/landlab/landlab/workflows/Flake8/badge.svg
+.. image:: https://github.com/landlab/landlab/actions/workflows/flake8.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/flake8.yml
 
-.. image:: https://github.com/landlab/landlab/workflows/Black/badge.svg
+.. image:: https://github.com/landlab/landlab/actions/workflows/black.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/black.yml
 
-.. image:: https://github.com/landlab/landlab/workflows/Documentation/badge.svg
+.. image:: https://github.com/landlab/landlab/actions/workflows/docs.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/docs.yml
 
 .. image:: https://coveralls.io/repos/landlab/landlab/badge.png
     :target: https://coveralls.io/r/landlab/landlab
