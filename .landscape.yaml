@@ -1,7 +1,0 @@
-ignore-patterns:
-  - ez_setup.py
-  - setup.py
-ignore-paths:
-  - docs
-strictness: veryhigh
-doc-warnings: True

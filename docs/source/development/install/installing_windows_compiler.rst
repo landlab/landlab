@@ -26,7 +26,7 @@ until you attempt to perform the developer installation
 
 .. code-block:: bash
 
- $ python setup.py develop
+ $ pip install -e .
 
 If you have compiler issues, you will see an error message. On April 24, 2019
 on a clean install on Windows 10 this error message said: ::
