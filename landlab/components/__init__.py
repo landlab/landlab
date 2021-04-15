@@ -53,6 +53,7 @@ from .stream_power import (
     StreamPowerSmoothThresholdEroder,
 )
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
+from .tectonics import ListricKinematicExtender
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
@@ -92,6 +93,7 @@ COMPONENTS = [
     LandslideProbability,
     LateralEroder,
     LinearDiffuser,
+    ListricKinematicExtender,
     LithoLayers,
     Lithology,
     LossyFlowAccumulator,
