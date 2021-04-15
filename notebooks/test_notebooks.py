@@ -75,7 +75,7 @@ def _notebook_run(path_to_notebook):
     except subprocess.CalledProcessError:
         raise
     else:
-        nb = nbformat.read(unique_name, nbformat.current_nbformat, encoding="UTF-8")
+        nb = nbformat.read(unique_name, nbformat.current_nbformat)
     finally:
         try:
             unique_name.unlink()
