@@ -12,6 +12,8 @@ def calculate_window_statistic(grid, field, func, search_radius,
     This works on grid nodes (not other grid elements e.g. links) for
     any ModelGrid type.
 
+    **kwargs
+
     This utility outputs an array of length equal to the grid's number of
     nodes. Each element of the output array represents the node location in
     the grid. The value of each element is a function of the nodes within the
@@ -50,17 +52,17 @@ def calculate_window_statistic(grid, field, func, search_radius,
         · · · · · ·
 
     The input field can be any field assigned to grid nodes (e.g.
-    'topographic__elevation') and the input function can be any function that
-    acts on the input field (e.g. 'np.min' to find the minimum). The input
+    "topographic__elevation") and the input function can be any function that
+    acts on the input field (e.g. "np.min" to find the minimum). The input
     function may be user defined and may contain any number of inputs, which
     are input as **kwargs.
 
-    For example, if the input field is 'topographic__elevation' and the input
+    For example, if the input field is "topographic__elevation" and the input
     function is np.ptp (peak-to-peak, meaning max minus min value), then the
     output at node 15 will be the maximum elevation within the search window
     minus the minimum elevation within the search window (also known as relief).
     The np.percentile function, however, requires not only the input field,
-    but also an input value to define the 'q-th percentile' to be calculated.
+    but also an input value to define the "q-th percentile" to be calculated.
     This second input would be added as a **kwarg (e.g. q=90) at the end of
     the inputs for calculate_window_statistic. Both of these scenarios are
     shown in the doc string examples below.
