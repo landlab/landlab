@@ -101,78 +101,80 @@ def calculate_window_statistic(grid, field, func, search_radius,
     >>> z += np.arange(len(z))
 
     # Calculate relief using np.ptp function.
-    >>> relief = calculate_window_statistic(grid,'topographic__elevation',
-                                            np.ptp,search_radius=15)
+    >>> relief = calculate_window_statistic(grid, 'topographic__elevation',
+    ...                                     np.ptp, search_radius=15)
     >>> grid.at_node['topographic__elevation']
-    array([0.,   1.,   2.,   3.,   4.,   5.,
-           6.,   7.,   8.,   9.,   10.,  11.,
+    array([ 0.,   1.,   2.,   3.,   4.,   5.,
+            6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
            18.,  19.,  20.,  21.,  22.,  23.,
-           24.,  25.,  26.,  27.,  28.,  29.,])
+           24.,  25.,  26.,  27.,  28.,  29.])
     >>> relief
-    array([7.,   8.,   8.,   8.,   8.,   7.,
+    array([ 7.,   8.,   8.,   8.,   8.,   7.,
            13.,  14.,  14.,  14.,  14.,  13.,
            13.,  14.,  14.,  14.,  14.,  13.,
            13.,  14.,  14.,  14.,  14.,  13.,
-           7.,   8.,   8.,   8.,   8.,   7.])
+            7.,   8.,   8.,   8.,   8.,   7.])
 
     # Calculate relief using np.ptp function excluding closed nodes.
     >>> relief = calculate_window_statistic(grid,'topographic__elevation',
-                                        np.ptp,search_radius=15,
-                                        calc_on_closed_nodes=False)
+    ...                                 np.ptp,search_radius=15,
+    ...                                 calc_on_closed_nodes=False)
     >>> grid.at_node['topographic__elevation']
-    array([0.,   1.,   2.,   3.,   4.,   5.,
-           6.,   7.,   8.,   9.,   10.,  11.,
+    array([ 0.,   1.,   2.,   3.,   4.,   5.,
+            6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
            18.,  19.,  20.,  21.,  22.,  23.,
-           24.,  25.,  26.,  27.,  28.,  29.,])
+           24.,  25.,  26.,  27.,  28.,  29.])
     >>> relief
-    array([nan,  nan,  nan,  nan,  nan,  nan,
-           7.,   8.,   8.,   8.,   8.,   7.,
-           13.,  14.,  14.,  14.,  14.,  13.,
-           7.,   8.,   8.,   8.,   8.,   7.,
-           nan,  nan,  nan,  nan,  nan,  nan])
+    array([ nan,  nan,  nan,  nan,  nan,  nan,
+             7.,   8.,   8.,   8.,   8.,   7.,
+            13.,  14.,  14.,  14.,  14.,  13.,
+             7.,   8.,   8.,   8.,   8.,   7.,
+            nan,  nan,  nan,  nan,  nan,  nan])
 
     # Calculate 90th percentile using np.percentile function and **kwargs.
     >>> perc_90 = calculate_window_statistic(grid,'topographic__elevation',
-                                             np.percentile,search_radius=15,
-                                             calc_on_closed_nodes=False,
-                                             q=90)
+    ...                                      np.percentile,search_radius=15,
+    ...                                      calc_on_closed_nodes=False,
+    ...                                      q=90)
     >>> grid.at_node['topographic__elevation']
-    array([0.,   1.,   2.,   3.,   4.,   5.,
-           6.,   7.,   8.,   9.,   10.,  11.,
+    array([ 0.,   1.,   2.,   3.,   4.,   5.,
+            6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
            18.,  19.,  20.,  21.,  22.,  23.,
-           24.,  25.,  26.,  27.,  28.,  29.,])
+           24.,  25.,  26.,  27.,  28.,  29.])
     >>> perc_90
-    array([nan,  nan,  nan,  nan,  nan,  nan,
+    array([ nan,  nan,  nan,  nan,  nan,  nan,
            12.7, 13.5, 14.5, 15.5, 16.5, 16.7,
            18.5, 19.2, 20.2, 21.2, 22.2, 22.5,
            18.7, 19.5, 20.5, 21.5, 22.5, 22.7,
-           nan,  nan,  nan,  nan,  nan,  nan])
+            nan,  nan,  nan,  nan,  nan,  nan])
 
     # Calculate relief above 90th percentile elevation using a user-defined
     # function and **kwargs.
     >>> def max_minus_percentile(elev,q):
-            output = np.max(elev) - np.percentile(elev,q)
-            return output
-    >>> rel_above_90th_perc = calculate_window_statistic(grid,'topographic__elevation',
-                                                         max_minus_percentile,
-                                                         search_radius=15,
-                                                         calc_on_closed_nodes=False,
-                                                         q=90)
+    ...     output = np.max(elev) - np.percentile(elev,q)
+    ...     return output
+    >>> rel_above_90th_perc = calculate_window_statistic(
+    ...     grid,
+    ...     'topographic__elevation',
+    ...     max_minus_percentile,
+    ...     search_radius=15,
+    ...     calc_on_closed_nodes=False,
+    ...     q=90)
     >>> grid.at_node['topographic__elevation']
-    array([0.,   1.,   2.,   3.,   4.,   5.,
-           6.,   7.,   8.,   9.,   10.,  11.,
+    array([ 0.,   1.,   2.,   3.,   4.,   5.,
+            6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
            18.,  19.,  20.,  21.,  22.,  23.,
-           24.,  25.,  26.,  27.,  28.,  29.,])
+           24.,  25.,  26.,  27.,  28.,  29.])
     >>> rel_above_90th_perc
-    array([nan,  nan,  nan,  nan,  nan,  nan,
-           0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
-           0.5,  0.8,  0.8,  0.8,  0.8,  0.5,
-           0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
-           nan,  nan,  nan,  nan,  nan,  nan])
+    array([ nan,  nan,  nan,  nan,  nan,  nan,
+            0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
+            0.5,  0.8,  0.8,  0.8,  0.8,  0.5,
+            0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
+            nan,  nan,  nan,  nan,  nan,  nan])
     """
 
     if field not in grid.at_node:
