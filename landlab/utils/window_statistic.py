@@ -1,28 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Dec 17 13:35:49 2020
-
-@author: laure
-"""
-
 """Function to calculate node statistics in a moving window."""
 
 import numpy as np
 
 from landlab import FieldError
 
-def calculate_window_statistic(grid,field,func,search_radius,
-                               calc_on_closed_nodes=True,**kwargs):
+
+def calculate_window_statistic(grid, field, func, search_radius,
+                               calc_on_closed_nodes=True, **kwargs):
     """Calculate a statistic using a function within a search window.
-    This works on grid nodes (not other grid elements e.g. links) for 
+    This works on grid nodes (not other grid elements e.g. links) for
     any ModelGrid type.
 
     This utility outputs an array of length equal to the grid's number of
     nodes. Each element of the output array represents the node location in
     the grid. The value of each element is a function of the nodes within the
     search window surrounding that node location (see the model grid diagram
-    below). 
-    
+    below).
+
     The grid below contains six columns and five rows with cell spacing set
     to 10 distance units. This utility iteratively evaluates all nodes in the
     grid. The diagram shows evaluation of node ID 15 (marked "x"). If the
@@ -34,37 +29,37 @@ def calculate_window_statistic(grid,field,func,search_radius,
     * * x * * ·
     · * * * · ·
     · · * · · ·
-    
+
     Increasing the search radius to 25 results in the following search window.
-    
+
     · * * * · ·
     * * * * * ·
     * * x * * ·
     * * * * * ·
     · * * * · ·
-    
+
     Decreasing the search radius to 15 results in the following search window.
-    
+
     · · · · · ·
     · * * * · ·
     · * x * · ·
     · * * * · ·
     · · · · · ·
 
-    The input field can be any field assigned to grid nodes (e.g. 
+    The input field can be any field assigned to grid nodes (e.g.
     'topographic__elevation') and the input function can be any function that
     acts on the input field (e.g. 'np.min' to find the minimum). The input
     function may be user defined and may contain any number of inputs, which
     are input as **kwargs.
-                                                             
+
     For example, if the input field is 'topographic__elevation' and the input
     function is np.ptp (peak-to-peak, meaning max minus min value), then the
     output at node 15 will be the maximum elevation within the search window
     minus the minimum elevation within the search window (also known as relief).
-    The np.percentile function, however, requires not only the input field, 
+    The np.percentile function, however, requires not only the input field,
     but also an input value to define the 'q-th percentile' to be calculated.
     This second input would be added as a **kwarg (e.g. q=90) at the end of
-    the inputs for calculate_window_statistic. Both of these scenarios are 
+    the inputs for calculate_window_statistic. Both of these scenarios are
     shown in the doc string examples below.
 
     Parameters
@@ -75,7 +70,7 @@ def calculate_window_statistic(grid,field,func,search_radius,
         An existing grid field on which to calculate the statistic of interest.
         Must exist in grid.
     func : function
-        The function that calculates the window statistic of 'field'. 
+        The function that calculates the window statistic of 'field'.
         The first parameter of the function must be the values at nodes within
         the window, which are used used to calculate the statistic for the
         node under evaluation. Additional parameters of the function can be
@@ -88,13 +83,13 @@ def calculate_window_statistic(grid,field,func,search_radius,
     **kwargs : optional
         Keyword arguments passed to func that are additional to the array of
         node values within the search window.
-    
+
     Returns
     -------
     output : ndarray
         Output array containing the calculated values of the statistic.
-        Same length as input field. 
-    
+        Same length as input field.
+
     Examples
     --------
     >>> import numpy as np
@@ -104,7 +99,7 @@ def calculate_window_statistic(grid,field,func,search_radius,
     >>> grid.set_closed_boundaries_at_grid_edges(False,True,False,True)
     >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z += np.arange(len(z))
-    
+
     # Calculate relief using np.ptp function.
     >>> relief = calculate_window_statistic(grid,'topographic__elevation',
                                             np.ptp,search_radius=15)
@@ -120,7 +115,7 @@ def calculate_window_statistic(grid,field,func,search_radius,
            13.,  14.,  14.,  14.,  14.,  13.,
            13.,  14.,  14.,  14.,  14.,  13.,
            7.,   8.,   8.,   8.,   8.,   7.])
-    
+
     # Calculate relief using np.ptp function excluding closed nodes.
     >>> relief = calculate_window_statistic(grid,'topographic__elevation',
                                         np.ptp,search_radius=15,
@@ -137,7 +132,7 @@ def calculate_window_statistic(grid,field,func,search_radius,
            13.,  14.,  14.,  14.,  14.,  13.,
            7.,   8.,   8.,   8.,   8.,   7.,
            nan,  nan,  nan,  nan,  nan,  nan])
-    
+
     # Calculate 90th percentile using np.percentile function and **kwargs.
     >>> perc_90 = calculate_window_statistic(grid,'topographic__elevation',
                                              np.percentile,search_radius=15,
@@ -155,7 +150,7 @@ def calculate_window_statistic(grid,field,func,search_radius,
            18.5, 19.2, 20.2, 21.2, 22.2, 22.5,
            18.7, 19.5, 20.5, 21.5, 22.5, 22.7,
            nan,  nan,  nan,  nan,  nan,  nan])
-    
+
     # Calculate relief above 90th percentile elevation using a user-defined
     # function and **kwargs.
     >>> def max_minus_percentile(elev,q):
@@ -184,31 +179,32 @@ def calculate_window_statistic(grid,field,func,search_radius,
         raise FieldError(
             f"A {field} field is required at the nodes of the input grid."
         )
-    
+
     # Create output array
     output = np.zeros(grid.number_of_nodes)
-   
+
     # Create arrays of x and y coords for input to "distance to point' calc
     x_coord = grid.x_of_node
     y_coord = grid.y_of_node
-    
+
     nodes_in_loop = grid.nodes.flatten()
-    nodes_to_include = np.ones(grid.number_of_nodes,dtype=bool)
-    
+    nodes_to_include = np.ones(grid.number_of_nodes, dtype=bool)
+
     if calc_on_closed_nodes is False:
         closed_nodes = grid.status_at_node == grid.BC_NODE_IS_CLOSED
         nodes_in_loop = nodes_in_loop[~closed_nodes]
         nodes_to_include[closed_nodes] = False
         output[closed_nodes] = np.NaN
-        
+
     # Calculate "dist to point" then local value at nodes within window.
     for node in nodes_in_loop:
         node_dist_to_point = grid.calc_distances_of_nodes_to_point(
             (x_coord[node], y_coord[node])
         )
-        nodes_in_window = np.all([node_dist_to_point <= search_radius,
-                                  nodes_to_include],0)
+        nodes_in_window = np.all(
+            [node_dist_to_point <= search_radius,nodes_to_include],0
+        )
         values_in_window = grid.at_node[field][nodes_in_window]
         output[node] = func(values_in_window, **kwargs)
-        
+
     return output
