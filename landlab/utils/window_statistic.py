@@ -23,28 +23,31 @@ def calculate_window_statistic(grid, field, func, search_radius,
     grid. The diagram shows evaluation of node ID 15 (marked "x"). If the
     search radius is set to 20, twice the cell spacing, each node marked with
     a * is within the search window.
+    ::
 
-    · · * · · ·
-    · * * * · ·
-    * * x * * ·
-    · * * * · ·
-    · · * · · ·
+        · · * · · ·
+        · * * * · ·
+        * * x * * ·
+        · * * * · ·
+        · · * · · ·
 
     Increasing the search radius to 25 results in the following search window.
+    ::
 
-    · * * * · ·
-    * * * * * ·
-    * * x * * ·
-    * * * * * ·
-    · * * * · ·
+        · * * * · ·
+        * * * * * ·
+        * * x * * ·
+        * * * * * ·
+        · * * * · ·
 
     Decreasing the search radius to 15 results in the following search window.
+    ::
 
-    · · · · · ·
-    · * * * · ·
-    · * x * · ·
-    · * * * · ·
-    · · · · · ·
+        · · · · · ·
+        · * * * · ·
+        · * x * · ·
+        · * * * · ·
+        · · · · · ·
 
     The input field can be any field assigned to grid nodes (e.g.
     'topographic__elevation') and the input function can be any function that
