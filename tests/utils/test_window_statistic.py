@@ -70,7 +70,7 @@ def test_voronoi_grid():
 
 
 def test_radial_grid():
-    grid = RadialModelGrid(2 ,6 ,1)
+    grid = RadialModelGrid(2, 6, 1)
     grid.status_at_node[grid.status_at_node == 1] = grid.BC_NODE_IS_CLOSED
     z = grid.add_zeros("topographic__elevation", at="node")
     z += np.arange(len(z))
