@@ -202,7 +202,7 @@ def calculate_window_statistic(grid, field, func, search_radius,
             (x_coord[node], y_coord[node])
         )
         nodes_in_window = np.all(
-            [node_dist_to_point <= search_radius,nodes_to_include],0
+            [node_dist_to_point <= search_radius, nodes_to_include], 0
         )
         values_in_window = grid.at_node[field][nodes_in_window]
         output[node] = func(values_in_window, **kwargs)

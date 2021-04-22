@@ -32,7 +32,7 @@ def test_hex_grid():
 
 def test_calc_with_interior_closed_nodes():
     grid = RasterModelGrid((5, 5), xy_spacing=10.0)
-    grid.status_at_node[[7,8,12,13]] = grid.BC_NODE_IS_CLOSED
+    grid.status_at_node[[7, 8, 12, 13]] = grid.BC_NODE_IS_CLOSED
     z = grid.add_zeros("topographic__elevation", at="node")
     z += np.arange(len(z))
     relief = calculate_window_statistic(grid, 'topographic__elevation',
@@ -51,7 +51,7 @@ def test_calc_with_interior_closed_nodes():
 def test_voronoi_grid():
     x = [0, 0.001, 0.002, 0.003,
          1, 1.001, 1.002, 1.003,
-         2, 2.001, 2.002, 2.003,]
+         2, 2.001, 2.002, 2.003]
     y = [0, 1, 2, 3,
          0, 1, 2, 3,
          0, 1, 2, 3]
@@ -70,8 +70,8 @@ def test_voronoi_grid():
 
 
 def test_radial_grid():
-    grid = RadialModelGrid(2,6,1)
-    grid.status_at_node[grid.status_at_node==1] = grid.BC_NODE_IS_CLOSED
+    grid = RadialModelGrid(2 ,6 ,1)
+    grid.status_at_node[grid.status_at_node == 1] = grid.BC_NODE_IS_CLOSED
     z = grid.add_zeros("topographic__elevation", at="node")
     z += np.arange(len(z))
     relief = calculate_window_statistic(grid, 'topographic__elevation',
