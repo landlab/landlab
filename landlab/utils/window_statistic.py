@@ -83,7 +83,7 @@ def calculate_window_statistic(grid, field, func, search_radius,
     calc_on_closed_nodes : boolean, optional (default is True)
         Toggle calculation over all nodes including closed nodes (True) or all
         nodes except closed nodes (False)
-    **kwargs : optional
+    ``kwargs`` : optional
         Keyword arguments passed to func that are additional to the array of
         node values within the search window.
 
