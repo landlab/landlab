@@ -14,14 +14,6 @@ relatively standardized way of interacting with and using each different one.
 Landlab components exist as classes, and can be imported from
 ``landlab.components``.
 
-    We emphasize that at the moment most Landlab components are under active
-    development, and it is possible that    changes may occur to things such as
-    input argument format with little or no warning. Please let the Landlab
-    development team know if you're making heavy use of a component so we can
-    avoid unnecessarily breaking your code in future Landlab releases!
-    Components are presented as-is in this beta release and we don't make any
-    guarantees about the stability or otherwise of the implementations.
-
 To develop your own Landlab component, see
 :ref:`this page <dev_contributing>`
 and

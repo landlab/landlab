@@ -306,7 +306,7 @@ Tucker, G.E., Barnhart, K.R., Doty, S.G., Glade, R.C., Hill, M.C., Rossi, M., Sh
 Tucker, G.E., McCoy, S.W., and Hobley, D.E.J. (2018, December) A Stochastic Cellular Model of Hillslope Morphology and Evolution. Paper presented at American Geophysical Union fall meeting, Washington, DC.
 
 2017
-~~~~
+````
 
 Adams, J. (2017) Nonsteady flow routing in Landlab: implications for
 modeling watershed evolution, Tulane Science and Engineering Research
