@@ -391,6 +391,37 @@ class Component:
         """
         return cls._info[name]["mapping"]
 
+    def initialize_one_output_field(self, name, at, values_per_element=None):
+        """Create field of given name and grid element 'at'.
+        
+
+        Parameters
+        ----------
+        name : str
+            Name of field.
+        at : str
+            Name of grid element to which field applies (e.g., node, link).
+        values_per_element: int (optional)
+            Option for multiple values per element.
+
+        Returns
+        -------
+        None.
+
+        """
+        type_in = self.var_type(name)
+        num_elements = self._grid.size(at)
+
+        if values_per_element is None:
+            size = num_elements
+        else:
+            size = (num_elements, values_per_element)
+
+        init_vals = np.zeros(size, dtype=type_in)
+        units_in = self.var_units(name)
+
+        self.grid.add_field(name, init_vals, at=at, units=units_in, copy=False)
+
     def initialize_output_fields(self, values_per_element=None):
         """Create fields for a component based on its input and output var
         names.
@@ -414,18 +445,7 @@ class Component:
             out_true = "out" in self._info[name]["intent"]
             if (out_true) and (not optional) and (name not in self._grid[at]):
 
-                type_in = self.var_type(name)
-                num_elements = self._grid.size(at)
-
-                if values_per_element is None:
-                    size = num_elements
-                else:
-                    size = (num_elements, values_per_element)
-
-                init_vals = np.zeros(size, dtype=type_in)
-                units_in = self.var_units(name)
-
-                self.grid.add_field(name, init_vals, at=at, units=units_in, copy=False)
+                self.initialize_one_output_field(name, at, values_per_element)
 
     def initialize_optional_output_fields(self):
         """Create fields for a component based on its optional field outputs,
