@@ -39,7 +39,8 @@ def example_nmg():
 @pytest.fixture()
 def example_parcels(example_nmg):
     element_id = np.array(
-        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6], dtype=int,
+        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6],
+        dtype=int,
     )  # current link for each parcel
 
     element_id = np.expand_dims(element_id, axis=1)

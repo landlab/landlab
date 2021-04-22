@@ -250,8 +250,7 @@ class Profiler(_BaseProfiler):
             self._data_struct[segment_id]["color"] = color_mapping[segment_id]
 
     def _create_flat_structures(self):
-        """Create expected flattened structures for ids, distances, and colors.
-        """
+        """Create expected flattened structures for ids, distances, and colors."""
         self._nodes = []
         self._distance_along_profile = []
         self._colors = []

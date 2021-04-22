@@ -7,10 +7,21 @@ Papers and Presentations
 Peer-reviewed journal articles
 ------------------------------
 
+2021
+````
+
+Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
+
+Shen, H., Lynch, B., Poulsen, C. J., & Yanites, B. J. (2021). **A modeling framework (WRF-Landlab) for simulating orogen-scale climate-erosion coupling.** *Computers & Geosciences,* 146, 104625, `https://doi.org/10.1016/j.cageo.2020.104625 <https://doi.org/10.1016/j.cageo.2020.104625>`__.
+
 2020
 ````
 
+Anand, S. K., Hooshyar, M., & Porporato, A. (2020). **Linear layout of multiple flow-direction networks for landscape-evolution simulations.** *Environmental Modelling & Software,* 133, 104804, `https://doi.org/10.1016/j.envsoft.2020.104804 <https://doi.org/10.1016/j.envsoft.2020.104804>`__.
+
 Barnhart, K.R., Hutton, E.W.H., Tucker, G.E., Gasparini, N.M., Istanbulluoglu, E., Hobley, D.E.J., Lyons⁠, N.J., Mouchene, M., Nudurupati, S.S., Adams, J.M., and Bandaragoda, C. (2020) **Short communication: Landlab 2.0: A software package for Earth surface dynamics.** *Earth Surface Dynamics,* 8, 379–397, `doi:10.5194/esurf-8-379-2020 <https://doi.org/10.5194/esurf-8-379-2020>`__.
+
+Barnhart, K. R., Tucker, G. E., Doty, S. G., Glade, R. C., Shobe, C. M., Rossi, M. W., & Hill, M. C. (2020). **Projections of landscape evolution on a 10,000 year timescale with assessment and partitioning of uncertainty sources.** *Journal of Geophysical Research: Earth Surface,* 125(12), e2020JF005795, `https://doi.org/10.1029/2020JF005795 <https://doi.org/10.1029/2020JF005795>`__.
 
 Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. W., & Hill, M. C. (2020). **Inverting topography for landscape evolution model process representation: Part 1, conceptualization and sensitivity analysis.** *Journal of Geophysical Research: Earth Surface,* e2018JF004961. `https://doi.org/10.1029/2018JF004961 <https://doi.org/10.1029/2018JF004961>`__.
 
@@ -20,15 +31,25 @@ Barnhart, K. R., Tucker, G. E., Doty, S., Shobe, C. M., Glade, R. C., Rossi, M. 
 
 Carriere, A., Le Bouteiller, C., Tucker, G.E., Klotz, S., and Naaim, M. (2020) **Impact of vegetation on erosion: Insights from the calibration and test of a landscape evolution model in alpine badland catchments.** *Earth Surface Processes and Landforms.* `https://doi.org/10.1002/esp.4741 <https://doi.org/10.1002/esp.4741>`__.
 
+Evans, M. J., Scheele, B. C., Westgate, M. J., Yebra, M., Newport, J. S., & Manning, A. D. (2020). Beyond the pond: Terrestrial habitat use by frogs in a changing climate. Biological Conservation, 249, 108712., `https://doi.org/10.1016/j.biocon.2020.108712 <https://doi.org/10.1016/j.biocon.2020.108712>`__.
+
+Lai, J., & Anders, A. M. (2020). **Tectonic controls on rates and spatial patterns of glacial erosion through geothermal heat flux.** *Earth and Planetary Science Letters,* 543, 116348, `https://doi.org/10.1016/j.epsl.2020.116348 <https://doi.org/10.1016/j.epsl.2020.116348>`__.
+
+Lipp, A. G., Roberts, G. G., Whittaker, A. C., Gowing, C. J., & Fernandes, V. M. (2020). **River sediment geochemistry as a conservative mixture of source regions: Observations and predictions from the Cairngorms, UK.** *Journal of Geophysical Research: Earth Surface,* 125(12), `https://doi.org/10.1029/2020JF005700 <https://doi.org/10.1029/2020JF005700>`__.
+
 Litwin, D.G., Tucker, G.E., Barnhart, K.R., and Harman, C.J. (2020) **GroundwaterDupuitPercolator: A Landlab component for groundwater flow,** *Journal of Open Source Software,* 5(46), 1935, `https://doi.org/10.21105/joss.01935 <https://doi.org/10.21105/joss.01935>`__.
 
 Lyons, N.J., Albert, J.S., and Gasparini, N.M. (2020). **SpeciesEvolver: A Landlab component to evolve life in simulated landscapes.** *Journal of Open Source Software,* 5(46), 2066, `https://doi.org/10.21105/joss.02066 <https://doi.org/10.21105/joss.02066>`__.
 
+Lyons, N. J., Val, P., Albert, J. S., Willenbring, J. K., & Gasparini, N. M. (2020). **Topographic controls on divide migration, stream capture, and diversification in riverine life.** *Earth Surface Dynamics,* 8(4), 893-912, `https://doi.org/10.5194/esurf-8-893-2020 <https://doi.org/10.5194/esurf-8-893-2020>`__.
+
 Pfeiffer, A.M., Barnhart, K.R., Czuba, J.A., and Hutton, E.W.H. (2020). **NetworkSedimentTransporter: A Landlab component for bed material transport through river networks.** *Journal of Open Source Software,* 5(53), 2341, `https://doi.org/10.21105/joss.02341 <https://doi.org/10.21105/joss.02341>`__.
 
-Shen, H., Lynch, B., Poulsen, C. J., & Yanites, B. J. (2020). **A modeling framework (WRF-Landlab) for simulating orogen-scale climate-erosion coupling.** *Computers & Geosciences,* 104625, `https://doi.org/10.1016/j.cageo.2020.104625` <https://doi.org/10.1016/j.cageo.2020.104625>`__.
+Sheehan, C.E., and Ward, D.J. (2020). **Migrating Transverse Escarpments in Strike Valleys on the Colorado Plateau.** *Journal of Geophysical Research: Earth Surface,* 125(3), e2019JF005260, `https://doi.org/10.1029/2019JF005260 <https://doi.org/10.1029/2019JF005260>`__.
 
 Tucker, G. E., Hobley, D.E.J., McCoy, S.W., and Struble, W.T. (2020) **Modeling the shape and evolution of normal-fault facets.** *Journal of Geophysical Research: Earth Surface,* 125, `https://doi.org/10.1029/2019JF005305 <https://doi.org/10.1029/2019JF005305>`__.
+
+Walker, S. J., Wilkinson, S. N., van Dijk, A. I., & Hairsine, P. B. (2020). **A multi-resolution method to map and identify locations of future gully and channel incision.** *Geomorphology,* 358, 107115, `https://doi.org/10.1016/j.geomorph.2020.107115 <https://doi.org/10.1016/j.geomorph.2020.107115>`__.
 
 2019
 ````
@@ -285,7 +306,7 @@ Tucker, G.E., Barnhart, K.R., Doty, S.G., Glade, R.C., Hill, M.C., Rossi, M., Sh
 Tucker, G.E., McCoy, S.W., and Hobley, D.E.J. (2018, December) A Stochastic Cellular Model of Hillslope Morphology and Evolution. Paper presented at American Geophysical Union fall meeting, Washington, DC.
 
 2017
-~~~~
+````
 
 Adams, J. (2017) Nonsteady flow routing in Landlab: implications for
 modeling watershed evolution, Tulane Science and Engineering Research

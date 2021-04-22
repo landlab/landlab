@@ -21,8 +21,8 @@ def links_at_patch(patches, sort=True, nodes_at_link=None, xy_of_node=None):
     Examples
     --------
     """
-    from ..sort.ext.remap_element import reorder_links_at_patch
     from ..quantity.ext.of_link import calc_midpoint_of_link
+    from ..sort.ext.remap_element import reorder_links_at_patch
 
     links_at_patch, offset_to_patch = patches
 

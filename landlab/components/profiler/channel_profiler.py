@@ -760,8 +760,7 @@ class ChannelProfiler(_BaseProfiler):
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-        """Create expected flattened structures for ids, distances, and colors.
-        """
+        """Create expected flattened structures for ids, distances, and colors."""
         self._nodes = []
 
         self._distance_along_profile = []
