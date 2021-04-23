@@ -393,7 +393,7 @@ class Component:
 
     def initialize_one_output_field(self, name, at, values_per_element=None):
         """Create field of given name and grid element 'at'.
-        
+
 
         Parameters
         ----------
