@@ -82,7 +82,7 @@ def calculate_window_statistic(grid, field, func, search_radius,
         Radius of window within which the statistic is calculated.
     calc_on_closed_nodes : boolean, optional (default is True)
         Toggle calculation over all nodes including closed nodes (True) or all
-        nodes except closed nodes (False)
+        nodes except closed nodes (False).
     ``kwargs`` : optional
         Keyword arguments passed to func that are additional to the array of
         node values within the search window.
@@ -104,8 +104,8 @@ def calculate_window_statistic(grid, field, func, search_radius,
     >>> z += np.arange(len(z))
 
     # Calculate relief using np.ptp function.
-    >>> relief = calculate_window_statistic(grid, 'topographic__elevation',
-    ...                                     np.ptp, search_radius=15)
+    >>> relief = calculate_window_statistic(
+    ...     grid, 'topographic__elevation', np.ptp, search_radius=15)
     >>> grid.at_node['topographic__elevation']
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
@@ -120,9 +120,9 @@ def calculate_window_statistic(grid, field, func, search_radius,
             7.,   8.,   8.,   8.,   8.,   7.])
 
     # Calculate relief using np.ptp function excluding closed nodes.
-    >>> relief = calculate_window_statistic(grid,'topographic__elevation',
-    ...                                 np.ptp,search_radius=15,
-    ...                                 calc_on_closed_nodes=False)
+    >>> relief = calculate_window_statistic(
+    ...     grid,'topographic__elevation', np.ptp,search_radius=15,
+    ...     calc_on_closed_nodes=False)
     >>> grid.at_node['topographic__elevation']
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
@@ -137,10 +137,9 @@ def calculate_window_statistic(grid, field, func, search_radius,
             nan,  nan,  nan,  nan,  nan,  nan])
 
     # Calculate 90th percentile using np.percentile function and **kwargs.
-    >>> perc_90 = calculate_window_statistic(grid,'topographic__elevation',
-    ...                                      np.percentile,search_radius=15,
-    ...                                      calc_on_closed_nodes=False,
-    ...                                      q=90)
+    >>> perc_90 = calculate_window_statistic(
+    ...     grid,'topographic__elevation', np.percentile,search_radius=15,
+    ...     calc_on_closed_nodes=False, q=90)
     >>> grid.at_node['topographic__elevation']
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
