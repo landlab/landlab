@@ -48,9 +48,8 @@ use is described :ref:`on this page <teaching_tutorials>`.
 Landlab 2.0
 -----------
 
-In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
-in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
-support of Python 2.7 with this transition.
+In late April 2020 Landlab reached version 2.0.
+Landlab dropped support of Python 2.7 with this transition.
 
 Supported Python Versions
 -------------------------
