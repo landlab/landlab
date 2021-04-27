@@ -386,7 +386,7 @@ class DischargeDiffuser(Component):
         dir_sed_flux[deadedge] = 0.0
 
     def diffuse_sediment(self, Qw_in, Qsed_in):
-        """"""
+        """ """
         pass
 
 

@@ -12,7 +12,8 @@ See notebook tutorial for complete examples.
 """
 
 import numpy as np
-from landlab import Component, RasterModelGrid, HexModelGrid
+
+from landlab import Component, HexModelGrid, RasterModelGrid
 
 
 class ListricKinematicExtender(Component):
