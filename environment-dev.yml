@@ -6,3 +6,4 @@ dependencies:
   - -r file:requirements-testing.txt
   - -r file:requirements-dev.txt
   - -r file:requirements-notebooks.txt
+  - -r file:requirements-docs.txt
