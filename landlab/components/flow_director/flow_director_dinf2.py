@@ -11,10 +11,10 @@ import numpy
 
 from landlab import NodeStatus
 from landlab.components.flow_director import flow_direction_dinf
-from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
+from landlab.components.flow_director.flow_director_to_many2 import _FlowDirectorToMany2
 
 
-class FlowDirectorDINF2(_FlowDirectorToMany):
+class FlowDirectorDINF2(_FlowDirectorToMany2):
 
     """Flow direction on a raster grid by the D infinity method.
 
@@ -75,7 +75,7 @@ class FlowDirectorDINF2(_FlowDirectorToMany):
     downstream nodes, FlowDirectorDINF directs flow two nodes only. It stores
     the receiver information is a (number of nodes x 2) shape field at nodes.
 
-    >>> mg.at_node['flow__receiver_node']
+    >>> mg.at_node['flow__receiver_nodes']
     array([[ 0, -1],
            [ 1, -1],
            [ 2, -1],
@@ -113,7 +113,7 @@ class FlowDirectorDINF2(_FlowDirectorToMany):
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_node']
+    >>> mg.at_node['flow__links_to_receiver_node']
     array([[-1, -1],
            [-1, -1],
            [-1, -1],
@@ -130,7 +130,7 @@ class FlowDirectorDINF2(_FlowDirectorToMany):
            [18, 39],
            [19, 38],
            [20, 40]])
-    >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node['topographic__downhill_slopes'] # doctest: +NORMALIZE_WHITESPACE
     array([[ -1.00000000e+00,  -1.41421356e+00],
            [  1.00000000e+00,  -7.12763635e+02],
            [  3.00000000e+00,   1.41421356e+00],
@@ -226,13 +226,29 @@ class FlowDirectorDINF2(_FlowDirectorToMany):
             "mapping": "node",
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
+        "flow__links_to_receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "IDs of all link downstream of each node, which carries the discharge",
+        },
         "flow__receiver_node": {
             "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array of receivers (node that receives flow from current node)",
+            "doc": "Node array of one receiver (node that receives flow from current node)",
+        },
+        "flow__receiver_nodes": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of all receivers (node that receives flow from current node)",
         },
         "flow__receiver_proportions": {
             "dtype": float,
@@ -265,6 +281,14 @@ class FlowDirectorDINF2(_FlowDirectorToMany):
             "units": "-",
             "mapping": "node",
             "doc": "The steepest *downhill* slope",
+        },
+        "topographic__downhill_slopes": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The *downhill* slopes from each node",
         },
     }
 
@@ -359,10 +383,10 @@ class FlowDirectorDINF2(_FlowDirectorToMany):
         )
 
         # Save the four ouputs of this component.
-        self._grid["node"]["flow__receiver_node"][:] = self._receivers
+        self._grid["node"]["flow__receiver_nodes"][:] = self._receivers
         self._grid["node"]["flow__receiver_proportions"][:] = self._proportions
-        self._grid["node"]["topographic__steepest_slope"][:] = slopes_to_receivers
-        self._grid["node"]["flow__link_to_receiver_node"][:] = receiver_links
+        self._grid["node"]["topographic__downhill_slopes"][:] = slopes_to_receivers
+        self._grid["node"]["flow__links_to_receiver_node"][:] = receiver_links
         self._grid["node"]["flow__sink_flag"][:] = False
         self._grid["node"]["flow__sink_flag"][sink] = True
 

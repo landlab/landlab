@@ -162,11 +162,13 @@ class _FlowDirectorToMany2(_FlowDirector):
         # Create output fields with the right size. Those in the list of fields
         # with 2D arrays have size (number of nodes) x (max # receivers)
         for name in _OUTPUT_FIELDS_WITH_1D_ARRAY:
-            self.initialize_one_output_field(name, at="node")
+            if name not in grid["node"]:
+                self.initialize_one_output_field(name, at="node")
         for name in _OUTPUT_FIELDS_WITH_2D_ARRAY:
-            self.initialize_one_output_field(
-                name, at="node", values_per_element=self._max_receivers
-            )
+            if name not in grid["node"]:
+                self.initialize_one_output_field(
+                    name, at="node", values_per_element=self._max_receivers
+                )
 
         self._receivers = grid.at_node["flow__receiver_nodes"]
         if np.all(self._receivers == 0):
