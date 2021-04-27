@@ -100,15 +100,15 @@ If you use any portion of Landlab, you must cite the following papers:
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
 E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
 toolkit for building, coupling, and exploring two-dimensional numerical models
-of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
+of Earth-surface dynamics, Earth Surface Dynamics, 5(1), p 21-46,
 10.5194/esurf-5-21-2017.
 
-`Barnhart, K. R. <https://doi.org/10.5194/esurf-2020-12>`__,
+`Barnhart, K. R. <https://doi.org/10.5194/esurf-8-379-2020>`__,
 Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
 Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
-and Bandaragoda, C.: Short communication: Landlab v2.0: A software package for
-Earth surface dynamics, Earth Surf. Dynam. Discuss.,
-https://doi.org/10.5194/esurf-2020-12, in review, 2020.
+and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
+Earth surface dynamics, Earth Surf. Dynam., 8(2), p 379-397,
+doi:10.5194/esurf-8-379-2020.
 
 
 BibTeX format:
@@ -125,8 +125,9 @@ BibTeX format:
                    toolkit for building, coupling, and exploring
                    two-dimensional numerical models of
                    Earth-surface dynamics},
-          number = {5},
-          pages = {21-46},
+          volume = {5},
+          number = {1},
+          pages = {21--46},
           doi = {10.5194/esurf-5-21-2017}}
 
  @article{barnhart2020short,
@@ -137,12 +138,13 @@ BibTeX format:
                     S. S. and Adams, J. M. and Bandaragoda, C.},
           title = {Short communication: Landlab v2.0: A software
                    package for Earth surface dynamics},
-          journal = {Earth Surface Dynamics Discussions},
-          volume = {2020},
+          journal = {Earth Surface Dynamics},
+          volume = {8},
           year = {2020},
-          pages = {1--25},
-          url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
-          doi = {10.5194/esurf-2020-12}
+          number = {2},
+          pages = {379--397},
+          url = {https://esurf.copernicus.org/articles/8/379/2020/},
+          doi = {10.5194/esurf-8-379-2020}
           }
 
 If you are working with Landlab components and utilities, many of them have
