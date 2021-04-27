@@ -13,6 +13,7 @@ from .flow_accum import FlowAccumulator, LossyFlowAccumulator
 from .flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
+    FlowDirectorDINF2,
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
@@ -80,6 +81,7 @@ COMPONENTS = [
     FlowAccumulator,
     FlowDirectorD8,
     FlowDirectorDINF,
+    FlowDirectorDINF2,
     FlowDirectorMFD,
     FlowDirectorSteepest,
     FractureGridGenerator,
