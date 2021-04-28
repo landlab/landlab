@@ -69,7 +69,10 @@ class _FlowDirectorToMany2(_FlowDirector):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_to_receiver_node', 'flow__links_to_receiver_node', 'flow__receiver_node', 'flow__receiver_nodes', 'flow__receiver_proportions', 'flow__sink_flag', 'topographic__downhill_slopes', 'topographic__elevation', 'topographic__steepest_slope']
+    ['flow__link_to_receiver_node', 'flow__links_to_receiver_node',
+     'flow__receiver_node', 'flow__receiver_nodes', 'flow__receiver_proportions',
+     'flow__sink_flag', 'topographic__downhill_slopes', 'topographic__elevation',
+     'topographic__steepest_slope']
     """
 
     _name = "FlowDirectorToMany2"
@@ -184,6 +187,34 @@ class _FlowDirectorToMany2(_FlowDirector):
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError("run_one_step()")
+
+    def map_steepest_directions(self):
+        """Identify and store the receivers, links, and slopes in the steepest
+        direction.
+        
+        A many-direction component stores multiple receivers, receiver links,
+        and downhill slopes for each node. This method finds, for each node,
+        the receiver, link, and downhill gradient (slope) in the steepest among
+        the multiple directions. The multiple receivers, links, and slopes are
+        in the fields flow__receiver_nodes, flow__links_to_receiver_node, and
+        topographic__downhill_slopes, respectively (note the plural). The
+        *steepest* of these, for each node, is recorded in the fields
+        flow__receiver_node, flow__link_to_receiver_node, and 
+        topographic__steepest_slope, respectively (note the singular).
+        """
+        index_array = np.argmax(self._receivers, axis=-1)
+        steepest_rcvr = self._grid.at_node["flow__receiver_node"]
+        steepest_rcvr[:] = np.take_along_axis(
+            self._receivers, np.expand_dims(index_array, axis=-1)
+        )
+        link_to_steep_rcvr = self._grid.at_node["flow__link_to_receiver_node"]
+        link_to_steep_rcvr[:] = np.take_along_axis(
+            self._receiver_links, np.expand_dims(index_array, axis=-1)
+        )
+        steepest_slope = self._grid.at_node["topographic__steepest_slope"]
+        steepest_slope[:] = np.take_along_axis(
+            self._grid.at_node["topographic__downhill_slopes"], np.expand_dims(index_array, axis=-1)
+        )
 
     @property
     def proportions_of_flow(self):
