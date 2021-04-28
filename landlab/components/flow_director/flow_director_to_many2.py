@@ -191,7 +191,7 @@ class _FlowDirectorToMany2(_FlowDirector):
     def map_steepest_directions(self):
         """Identify and store the receivers, links, and slopes in the steepest
         direction.
-        
+
         A many-direction component stores multiple receivers, receiver links,
         and downhill slopes for each node. This method finds, for each node,
         the receiver, link, and downhill gradient (slope) in the steepest among
@@ -199,7 +199,7 @@ class _FlowDirectorToMany2(_FlowDirector):
         in the fields flow__receiver_nodes, flow__links_to_receiver_node, and
         topographic__downhill_slopes, respectively (note the plural). The
         *steepest* of these, for each node, is recorded in the fields
-        flow__receiver_node, flow__link_to_receiver_node, and 
+        flow__receiver_node, flow__link_to_receiver_node, and
         topographic__steepest_slope, respectively (note the singular).
         """
         index_array = np.argmax(self._receivers, axis=-1)
@@ -213,7 +213,9 @@ class _FlowDirectorToMany2(_FlowDirector):
         ).squeeze(axis=-1)
         steepest_slope = self._grid.at_node["topographic__steepest_slope"]
         steepest_slope[:] = np.take_along_axis(
-            self._grid.at_node["topographic__downhill_slopes"], np.expand_dims(index_array, axis=-1), axis=-1
+            self._grid.at_node["topographic__downhill_slopes"],
+            np.expand_dims(index_array, axis=-1),
+            axis=-1,
         ).squeeze(axis=-1)
 
     @property

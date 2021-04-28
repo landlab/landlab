@@ -153,7 +153,7 @@ class FlowDirectorDINF2(_FlowDirectorToMany2):
     >>> mg.at_node['flow__sink_flag'].astype(int)
     array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1])
 
-    You can identify, for each node, the receiver, link, and slope in the 
+    You can identify, for each node, the receiver, link, and slope in the
     steepest of the two directions:
 
     >>> fd.map_steepest_directions()
