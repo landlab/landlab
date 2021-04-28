@@ -205,16 +205,16 @@ class _FlowDirectorToMany2(_FlowDirector):
         index_array = np.argmax(self._receivers, axis=-1)
         steepest_rcvr = self._grid.at_node["flow__receiver_node"]
         steepest_rcvr[:] = np.take_along_axis(
-            self._receivers, np.expand_dims(index_array, axis=-1)
-        )
+            self._receivers, np.expand_dims(index_array, axis=-1), axis=-1
+        ).squeeze(axis=-1)
         link_to_steep_rcvr = self._grid.at_node["flow__link_to_receiver_node"]
         link_to_steep_rcvr[:] = np.take_along_axis(
-            self._receiver_links, np.expand_dims(index_array, axis=-1)
-        )
+            self._receiver_links, np.expand_dims(index_array, axis=-1), axis=-1
+        ).squeeze(axis=-1)
         steepest_slope = self._grid.at_node["topographic__steepest_slope"]
         steepest_slope[:] = np.take_along_axis(
-            self._grid.at_node["topographic__downhill_slopes"], np.expand_dims(index_array, axis=-1)
-        )
+            self._grid.at_node["topographic__downhill_slopes"], np.expand_dims(index_array, axis=-1), axis=-1
+        ).squeeze(axis=-1)
 
     @property
     def proportions_of_flow(self):
