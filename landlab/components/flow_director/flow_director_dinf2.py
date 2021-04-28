@@ -153,6 +153,22 @@ class FlowDirectorDINF2(_FlowDirectorToMany2):
     >>> mg.at_node['flow__sink_flag'].astype(int)
     array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1])
 
+    You can identify, for each node, the receiver, link, and slope in the 
+    steepest of the two directions:
+
+    >>> fd.map_steepest_directions()
+    >>> mg.at_node['flow__receiver_node']
+    array([ 0,  1,  2,  3,  4,  0,  5,  7,  8,  5,  5, 11, 12, 13, 14, 15])
+    >>> mg.at_node['flow__link_to_receiver_node']
+    array([-1, -1, -1, -1,  3, 24,  8,  9, 14, 11, 32, 16, 21, 18, 19, 20])
+    >>> mg.at_node['topographic__steepest_slope']
+    array([ -1.00000000e+00,   1.00000000e+00,   3.00000000e+00,
+             5.00000000e+00,   1.00900000e+03,   1.41421356e+00,
+             3.00000000e+00,   1.00400000e+03,   1.00400000e+03,
+             3.00000000e+00,   4.24264069e+00,   1.00100000e+03,
+            -0.00000000e+00,   1.00400000e+03,   1.00100000e+03,
+             0.00000000e+00])
+
     The flow directors also have the ability to return the flow receiver nodes
     through a function called direct_flow()
 
