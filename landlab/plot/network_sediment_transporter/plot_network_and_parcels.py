@@ -466,7 +466,11 @@ def plot_network_and_parcels(
             lab = [parcel_size_values.min(), parcel_size_values.max()]
 
         lax.legend(
-            han, lab, title=parcel_size_attribute_title, loc="center", frameon=False,
+            han,
+            lab,
+            title=parcel_size_attribute_title,
+            loc="center",
+            frameon=False,
         )
 
         plt.axis("off")

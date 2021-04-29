@@ -52,6 +52,7 @@ Shallow water hydrodynamics
    :maxdepth: 2
 
    overland_flow
+   tidal_flow
 
 Land surface hydrology
 ----------------------
@@ -113,6 +114,22 @@ Weathering
   :maxdepth: 2
 
   weathering
+
+Subaqueous / Submarine Processes
+--------------------------------
+
+.. toctree::
+  :maxdepth: 2
+
+  marine_sediment_transport
+
+Tectonics
+---------
+
+.. toctree::
+  :maxdepth: 2
+
+  tectonics
 
 Terrain Analysis
 ----------------

@@ -49,7 +49,7 @@ def test_simple_water_table():
 
 
 def test_simple_surface_leakage():
-    """ test a one-node steady simulation for surface leakage.
+    """test a one-node steady simulation for surface leakage.
 
     Notes
     ----
@@ -95,7 +95,7 @@ def test_simple_water_table_adaptive_dt():
 
 
 def test_conservation_of_mass_adaptive_dt():
-    """ test conservation of mass in a sloping aquifer.
+    """test conservation of mass in a sloping aquifer.
 
     Notes
     ----
@@ -146,7 +146,7 @@ def test_conservation_of_mass_adaptive_dt():
 
 
 def test_symmetry_of_solution():
-    """ test that water table is symmetric under constant recharge
+    """test that water table is symmetric under constant recharge
 
     Notes:
     ----
@@ -180,7 +180,7 @@ def test_symmetry_of_solution():
 
 
 def test_wt_above_surface_standard_run_step():
-    """ test that water tables above the topogrpahic elevation are
+    """test that water tables above the topogrpahic elevation are
     set to the topographic elevation.
 
     Notes:

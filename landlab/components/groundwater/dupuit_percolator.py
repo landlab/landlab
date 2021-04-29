@@ -448,7 +448,7 @@ class GroundwaterDupuitPercolator(Component):
 
     @property
     def vn_coefficient(self):
-        """ Coefficient for the diffusive timestep condition in
+        """Coefficient for the diffusive timestep condition in
         the adaptive timestep solver.
 
         Parameters
@@ -465,8 +465,8 @@ class GroundwaterDupuitPercolator(Component):
 
     @vn_coefficient.setter
     def vn_coefficient(self, new_val):
-        """ set coefficient for the diffusive timestep condition in
-        the adaptive timestep solver. """
+        """set coefficient for the diffusive timestep condition in
+        the adaptive timestep solver."""
         if new_val <= 0:
             raise ValueError("vn_coefficient must be > 0.")
         self._vn_coefficient = new_val

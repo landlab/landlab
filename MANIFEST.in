@@ -1,9 +1,34 @@
-include *.txt
-include *.rst
-recursive-include landlab *.pyx
+include LICENSE.txt
+include AUTHORS.rst
+include CHANGES.rst
+include README.rst
+include Makefile
+include requirements*txt
+
 recursive-include docs *.txt
+recursive-include landlab *.pyx
+recursive-include landlab *.pxd
+recursive-include landlab README.md
 recursive-include landlab/data *
-include ez_setup.py
-include README.md
-include versioneer.py
-include landlab/_version.py
+recursive-include tests *py
+recursive-include tests *.asc
+recursive-include tests *.dbf
+recursive-include tests *.nc
+recursive-include tests *.shp
+recursive-include tests *.shx
+recursive-include tests *.txt
+recursive-include tests *.yaml
+
+exclude .codeclimate.yml
+exclude .gitmodules
+exclude .landscape.yaml
+exclude .readthedocs.yaml
+exclude conftest.py
+exclude CONTRIBUTING.md
+exclude environment*yml
+
+recursive-exclude docs *
+recursive-exclude joss *
+recursive-exclude notebooks *
+recursive-exclude scripts *py
+recursive-exclude scripts *sh

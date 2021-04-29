@@ -70,24 +70,26 @@ from os import walk
 
 import landlab.components as comp
 
-terminate_chars_map = {'[':']', '{':'}', '(':')'}
+terminate_chars_map = {"[": "]", "{": "}", "(": ")"}
 
 abspath = path.abspath(comp.__path__[0])
 poss_comp_files = []
 for root, dirnames, filenames in walk(abspath):
-    for filename in fnmatch.filter(filenames, '*.py'):
+    for filename in fnmatch.filter(filenames, "*.py"):
         poss_comp_files.append(path.join(root, filename))
 
-props_to_strip_list = [' _name',
-                       ' _input_var_names',
-                       ' _output_var_names',
-                       ' _var_units',
-                       ' _var_mapping',
-                       ' _var_doc']  # must be in order for first loop
+props_to_strip_list = [
+    " _name",
+    " _input_var_names",
+    " _output_var_names",
+    " _var_units",
+    " _var_mapping",
+    " _var_doc",
+]  # must be in order for first loop
 
 props_to_strip = set(props_to_strip_list)
 
-poss_elements = ['node', 'link', 'cell', 'junction', 'patch', 'corner', 'face']
+poss_elements = ["node", "link", "cell", "junction", "patch", "corner", "face"]
 
 file_exceptions = ()
 
@@ -100,23 +102,23 @@ total_props = len(props_to_strip)
 
 for LLcomp in poss_comp_files:
     # print LLcomp
-    if 'example' in LLcomp.lower():
-        print('Ignored ' + LLcomp)
+    if "example" in LLcomp.lower():
+        print("Ignored " + LLcomp)
         continue
     else:
-        print ('Working on ' + LLcomp)
+        print("Working on " + LLcomp)
     found_a_name = False
     accumulated_props = set()
     for prop in props_to_strip_list:
         lines_captured = []
         start_write = False
-        with open(LLcomp, 'r') as inFile:
+        with open(LLcomp, "r") as inFile:
             for line in inFile:
                 if prop in line:
                     accumulated_props.add(prop)
                     start_write = True
-                    if prop != ' _name':
-                        assert ('{' in line) or ('[' in line) or ('(' in line)
+                    if prop != " _name":
+                        assert ("{" in line) or ("[" in line) or ("(" in line)
                         for open_char in terminate_chars_map.keys():
                             if open_char in line:
                                 close_char = terminate_chars_map[open_char]
@@ -125,49 +127,49 @@ for LLcomp in poss_comp_files:
                         found_a_name = True
                 if start_write:
                     # first, check there's no comments here
-                    nocomment = line.partition('#')[0]
+                    nocomment = line.partition("#")[0]
                     nowhite = nocomment.rstrip()
                     nowhite = nowhite.lstrip()
-                    no_nl = nowhite.replace('\\', '')
+                    no_nl = nowhite.replace("\\", "")
                     lines_captured.append(str(no_nl))
-                    if (close_char in line) or (prop == ' _name'):
+                    if (close_char in line) or (prop == " _name"):
                         break
-        cat_lines = ''
+        cat_lines = ""
         for expr in lines_captured:
             cat_lines += expr
         # cat_lines = cat_lines.replace(" ", "")
         if cat_lines and found_a_name:
             # print('EXEC: ', LLcomp)
             exec(cat_lines)  # eval(prop) is now an obj
-            if prop is ' _name':
+            if prop is " _name":
                 last_name = eval(prop.lstrip())
                 comp_elements[eval(prop.lstrip())] = {}
             else:
-                comp_elements[last_name][prop.lstrip()] = copy(
-                                                           eval(prop.lstrip()))
-    if (len(accumulated_props) != total_props):
+                comp_elements[last_name][prop.lstrip()] = copy(eval(prop.lstrip()))
+    if len(accumulated_props) != total_props:
         if len(accumulated_props) > 0:
             problematic_components[LLcomp] = props_to_strip - accumulated_props
         else:
-            bad_components[LLcomp] = 'No class is present in file.'
+            bad_components[LLcomp] = "No class is present in file."
 
 for badcomp in bad_components.keys():
-    with open(badcomp, 'r') as inFile:
+    with open(badcomp, "r") as inFile:
         noclass = True
         for line in inFile:
-            if 'class ' in line:
+            if "class " in line:
                 noclass = False
-                if '(Component)' in line:
-                    bad_components[badcomp] = 'Component lacks std interface'
+                if "(Component)" in line:
+                    bad_components[badcomp] = "Component lacks std interface"
                     break
-                elif ('(object)' in line):
-                    bad_components[badcomp] = 'No class in file inherits ' + \
-                                              'from Component'
+                elif "(object)" in line:
+                    bad_components[badcomp] = (
+                        "No class in file inherits " + "from Component"
+                    )
     excpt = False
     for fname in file_exceptions:
-        if not fnmatch.fnmatch(fname, '*.py'):
-            fname = fname + '.py'
-        excpt = excpt or fnmatch.fnmatch(badcomp, '*'+fname)
+        if not fnmatch.fnmatch(fname, "*.py"):
+            fname = fname + ".py"
+        excpt = excpt or fnmatch.fnmatch(badcomp, "*" + fname)
     if noclass or excpt:
         # There was no class in the file; can't be a LL component
         bad_components.pop(badcomp)
@@ -177,11 +179,11 @@ all_field_names = set()
 for name in comp_elements.keys():
     this_un = comp_elements[name]
     try:
-        all_field_names = all_field_names | this_un['_input_var_names']
+        all_field_names = all_field_names | this_un["_input_var_names"]
     except (TypeError, KeyError):
         pass  # this will get captured in problematic_components
     try:
-        all_field_names = all_field_names | this_un['_output_var_names']
+        all_field_names = all_field_names | this_un["_output_var_names"]
     except (TypeError, KeyError):
         pass  # ditto
 
@@ -190,44 +192,58 @@ for name in comp_elements.keys():
     all_fields_here = set()
     this_un = comp_elements[name]
     try:
-        all_fields_here = all_fields_here | this_un['_input_var_names']
+        all_fields_here = all_fields_here | this_un["_input_var_names"]
     except (TypeError, KeyError):
         all_fields_here = set()
     try:
-        all_fields_here = all_fields_here | this_un['_output_var_names']
+        all_fields_here = all_fields_here | this_un["_output_var_names"]
     except (TypeError, KeyError):
         all_fields_here = set()
     if type(name) != str:
-        problems.append('The _name '+str(name)+' is not a string.')
+        problems.append("The _name " + str(name) + " is not a string.")
     for prop in this_un:
-        if prop in ('_input_var_names', '_output_var_names'):
+        if prop in ("_input_var_names", "_output_var_names"):
             if type(this_un[prop]) != set:
-                problems.append(prop+' is not a set. It should be.')
-        if prop in ('_var_units', '_var_mapping', '_var_doc'):
+                problems.append(prop + " is not a set. It should be.")
+        if prop in ("_var_units", "_var_mapping", "_var_doc"):
             if type(this_un[prop]) != dict:
-                problems.append(prop+' is not a dict. It should be.')
-            elif (all_fields_here and not
-                    set(this_un[prop].keys()).issubset(all_fields_here)):
-                problems.append('Keys in '+prop+' are not the same as those ' +
-                                'defined in _input/_output_var_names')
+                problems.append(prop + " is not a dict. It should be.")
+            elif all_fields_here and not set(this_un[prop].keys()).issubset(
+                all_fields_here
+            ):
+                problems.append(
+                    "Keys in "
+                    + prop
+                    + " are not the same as those "
+                    + "defined in _input/_output_var_names"
+                )
             else:
-                if prop is '_var_mapping':
+                if prop is "_var_mapping":
                     for element in this_un[prop].values():
                         if not (element in poss_elements):
-                            problems.append(str(element)+" is not a " +
-                                            "recognised element type " +
-                                            "('node', 'link', etc).")
+                            problems.append(
+                                str(element)
+                                + " is not a "
+                                + "recognised element type "
+                                + "('node', 'link', etc)."
+                            )
                 else:
                     if any(type(x) is not str for x in this_un[prop].values()):
-                        problems.append('One or more values in the dict ' +
-                                        prop+' is not a string.')
+                        problems.append(
+                            "One or more values in the dict "
+                            + prop
+                            + " is not a string."
+                        )
     try:
         badstdnames = problematic_components[name]  # a set, if exists
     except KeyError:  # no missing fields
         problematic_components[name] = problems
     else:
-        problems.append('The following LL standard interface properties are ' +
-                        'not defined: '+str(badstdnames))
+        problems.append(
+            "The following LL standard interface properties are "
+            + "not defined: "
+            + str(badstdnames)
+        )
     finally:
         if problems:
             problematic_components[name] = copy(problems)
@@ -237,5 +253,8 @@ for (key, vals) in problematic_components.items():
     if len(vals) == 0:
         problematic_components.pop(key)
     elif type(vals) is dict:
-        problematic_components[key] = ('The following LL standard interface ' +
-                'properties are not defined: ' + str(vals))
+        problematic_components[key] = (
+            "The following LL standard interface "
+            + "properties are not defined: "
+            + str(vals)
+        )
