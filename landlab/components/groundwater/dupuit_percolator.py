@@ -6,6 +6,7 @@
 from warnings import warn
 
 import numpy as np
+from scipy.integrate import solve_ivp
 
 from landlab import Component, LinkStatus
 from landlab.grid.mappers import (
@@ -27,6 +28,14 @@ def _regularize_G(u, reg_factor):
 def _regularize_R(u):
     """ramp function on u."""
     return u * np.greater_equal(u, 0)
+
+def bind_dhdt(f, dqdx, reg_thickness, n, reg_factor):
+    """generate a function to pass to solve_ivp"""
+    def bound_dhdt(t, h):
+        """dh/dt function, solved by solve_ivp if the
+        run_with_adaptive_time_step_plus_ivp_solver method is used"""
+        return 1/n*(f - dqdx - _regularize_G(h/reg_thickness, reg_factor)*_regularize_R(f - dqdx))
+    return bound_dhdt
 
 
 def get_link_hydraulic_conductivity(grid, K):
@@ -804,6 +813,145 @@ class GroundwaterDupuitPercolator(Component):
             self._thickness[self._cores] = (
                 self._wtable[self._cores] - self._base[self._cores]
             )
+
+            # run callback function if supplied
+            if self._old_style_callback:
+                self._callback_fun(self._grid, substep_dt, **self._callback_kwds)
+            else:
+                self._callback_fun(
+                    self._grid, self.recharge, substep_dt, **self._callback_kwds
+                )
+
+        self._qsavg[:] = qs_cumulative / dt
+
+
+    def run_with_adaptive_time_step_plus_ivp_solver(self, dt):
+        """
+        Advance component by one time step of size dt, subdividing the timestep
+        into substeps as necessary to meet stability conditions.
+        Note this method returns the fluxes at the last substep, but also
+        returns a new field, average_surface_water__specific_discharge, that is
+        averaged over all subtimesteps. To return state during substeps,
+        provide a callback_fun.
+
+        Parameters
+        ----------
+        dt: float
+            The imposed timestep.
+        """
+
+        # check water table above surface
+        if (self._wtable > self._elev).any():
+            warn(
+                "water table above elevation surface. "
+                "Setting water table elevation here to "
+                "elevation surface"
+            )
+            self._wtable[self._wtable > self._elev] = self._elev[
+                self._wtable > self._elev
+            ]
+            self._thickness[self._cores] = (
+                self._wtable[self._cores] - self._base[self._cores]
+            )
+
+        # check water table below base
+        if (self._wtable < self._base).any():
+            warn(
+                "water table below elevation surface. "
+                "Setting water table elevation here to "
+                "base surface"
+            )
+            self._wtable[self._wtable < self._base] = self._base[
+                self._wtable < self._base
+            ]
+            self._thickness[self._cores] = (
+                self._wtable[self._cores] - self._base[self._cores]
+            )
+
+
+        # Calculate base gradient
+        self._base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
+            self._base
+        )[self._grid.active_links]
+        cosa = np.cos(np.arctan(self._base_grad))
+
+        # Initialize reg_thickness, rel_thickness
+        reg_thickness = self._elev - self._base
+        soil_present = reg_thickness > 0.0
+        rel_thickness = np.ones_like(self._elev)
+
+        # Initialize for average surface discharge
+        qs_cumulative = np.zeros_like(self._elev)
+
+        # Initialize variable timestep
+        remaining_time = dt
+        self._num_substeps = 0
+
+        while remaining_time > 0.0:
+
+            # Calculate hydraulic gradient
+            self._hydr_grad[self._grid.active_links] = (
+                self._grid.calc_grad_at_link(self._wtable)[self._grid.active_links]
+                * cosa[self._grid.active_links]
+            )
+
+            # Calculate groundwater velocity
+            self._vel[:] = -self._K * self._hydr_grad
+            self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
+
+            # Aquifer thickness at links (upwind)
+            hlink = (
+                map_value_at_max_node_to_link(
+                    self._grid, "water_table__elevation", "aquifer__thickness"
+                )
+                * cosa
+            )
+
+            # Calculate specific discharge
+            self._q[:] = hlink * self._vel
+
+            # Groundwater flux divergence
+            dqdx = self._grid.calc_flux_div_at_node(self._q)
+
+            # calculate criteria for timestep
+            self._dt_vn = self._vn_coefficient * min(
+                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
+            )
+
+            self._dt_courant = self._courant_coefficient * min(
+                self._grid.length_of_link / abs(self._vel / self._n_link)
+            )
+            substep_dt = min([self._dt_courant, self._dt_vn, remaining_time])
+            print(np.argmin(np.array([self._dt_vn, remaining_time]))) # 0 = courant limited, 1 = vn limited, 2 = not limited
+
+            # set up and solve ivp for thickness h after time substep_dt
+            # default behavior is to solve with RK45.
+            fun_dhdt = bind_dhdt(self._recharge, dqdx, reg_thickness, self._n, self._r)
+            sol = solve_ivp(fun_dhdt, [0,substep_dt], self._thickness, rtol=1e-6)
+            self._thickness[self._cores] = sol.y[self._cores,-1]
+
+            # Calculate surface discharge at nodes
+            self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
+                self._recharge - dqdx
+            )
+
+            # Recalculate water surface height
+            self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
+
+            # add cumulative sw discharge in substeps
+            qs_cumulative += self._qs * substep_dt
+
+            # calculate the time remaining and advance count of substeps
+            remaining_time -= substep_dt
+            self._num_substeps += 1
+
+            # # reset water table below surface
+            # self._wtable[self._wtable > self._elev] = self._elev[
+            #     self._wtable > self._elev
+            # ]
+            # self._thickness[self._cores] = (
+            #     self._wtable[self._cores] - self._base[self._cores]
+            # )
 
             # run callback function if supplied
             if self._old_style_callback:
