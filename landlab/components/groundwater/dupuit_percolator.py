@@ -147,7 +147,7 @@ class GroundwaterDupuitPercolator(Component):
     Surface water discharge per unit area, :math:`q_s`, is calculated as:
 
     .. math::
-        q_s = \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(-\cos(\alpha) \nabla \cdot q + f \big)
+        q_s = \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(-\nabla \cdot q + f \big)
 
     where :math:`\mathcal{G}_r` is a smoothed step function, :math:`\mathcal{R}` is the ramp function,
     :math:`d` is the regolith thickness, and :math:`f` is the recharge rate.
@@ -159,9 +159,9 @@ class GroundwaterDupuitPercolator(Component):
 
     where :math:`n` is the drainable porosity.
 
-    An explicit forward in time finite volume method is used to implement a
-    numerical solution. Groundwater flow between neighboring nodes is calculated
-    using the saturated thickness at the up-gradient node.
+    Numerical solutions vary depending on the solver used. Groundwater flow
+    between neighboring nodes is calculated using the saturated thickness at
+    the up-gradient node.
 
     References
     ----------
@@ -298,6 +298,8 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f=1e-2,
         courant_coefficient=0.5,
         vn_coefficient=0.8,
+        rtol=1e-6,
+        ivp_method='RK45',
         callback_fun=lambda *args, **kwargs: None,
         **callback_kwds,
     ):
@@ -338,6 +340,15 @@ class GroundwaterDupuitPercolator(Component):
             This parameter is only used with ``run_with_adaptive_time_step_solver``
             and must be greater than zero.
             Default = 0.8
+        rtol: float (-)
+            The relative tolerance used by the initial value problem solver in
+            ``run_with_adaptive_time_step_plus_ivp_solver``.
+            Default = 1e-6
+        ivp_method: str or OdeSolver
+            A method used by scipy solve_ivp in
+            ``run_with_adaptive_time_step_plus_ivp_solver``. The standard method
+            is explicit Runge-Kutta 5(4) order.
+            Default: 'RK45'
         callback_fun: function(grid, recharge_rate, substep_dt, \*\*kwargs)
             Optional function that will be executed at the end of each sub-timestep
             in the run_with_adaptive_time_step_solver method. Intended purpose
@@ -346,7 +357,7 @@ class GroundwaterDupuitPercolator(Component):
             grid: the ModelGrid instance used by GroundwaterDupuitPercolator
             recharge_rate: an array at node that is the specified recharge rate
             substep_dt: the length of the current substep determined internally
-            by run_with_adaptive_time_step_solver to meet stability criteria.
+            by ``run_with_adaptive_time_step_solver`` to meet stability criteria.
             Callback functions with two arguments (grid, substep_dt) are deprecated.
         callback_kwds: any additional keyword arguments for the provided callback_fun.
         """
@@ -385,6 +396,8 @@ class GroundwaterDupuitPercolator(Component):
         self.recharge = recharge_rate
         self.n = porosity
         self._r = regularization_f
+        self._rtol = rtol
+        self._ivp_method = ivp_method
 
         # save courant_coefficient (and test)
         self.courant_coefficient = courant_coefficient
@@ -826,13 +839,24 @@ class GroundwaterDupuitPercolator(Component):
 
 
     def run_with_adaptive_time_step_plus_ivp_solver(self, dt):
-        """
-        Advance component by one time step of size dt, subdividing the timestep
-        into substeps as necessary to meet stability conditions.
-        Note this method returns the fluxes at the last substep, but also
-        returns a new field, average_surface_water__specific_discharge, that is
-        averaged over all subtimesteps. To return state during substeps,
-        provide a callback_fun.
+        r"""
+        Like ``run_with_adaptive_time_step_solver``, this method advances
+        component by one time step of size dt, subdividing the timestep
+        into substeps as necessary to meet stability conditions. Rather than
+        using forward Euler to update thickness to next timestep,
+        this method uses a scipy initial value problem solver (4th order
+        Runge-Kutta by default) to update thickness :math:`h` by solving the ODE
+
+        .. math::
+            \frac{dh}{dt} = \frac{1}{n}\left( f - dqdx - \mathcal{G}_r \left( h/d \right) \mathcal{R} \left( dqdx + f \right) \right)
+
+        where only :math:`h` in :math:`q_s`, not :math:`h` in :math:`dqdx`, is
+        variable in the solver.
+
+        Like ``run_with_adaptive_time_step_solver``, this method returns the
+        fluxes at the last substep, but also returns a new field,
+        average_surface_water__specific_discharge, that is averaged over all
+        subtimesteps. To return state during substeps, provide a callback_fun.
 
         Parameters
         ----------
@@ -927,7 +951,7 @@ class GroundwaterDupuitPercolator(Component):
             # set up and solve ivp for thickness h after time substep_dt
             # default behavior is to solve with RK45.
             fun_dhdt = bind_dhdt(self._recharge, dqdx, reg_thickness, self._n, self._r)
-            sol = solve_ivp(fun_dhdt, [0,substep_dt], self._thickness, rtol=1e-6)
+            sol = solve_ivp(fun_dhdt, [0,substep_dt], self._thickness, rtol=self._rtol, method=self._ivp_method)
             self._thickness[self._cores] = sol.y[self._cores,-1]
 
             # Calculate surface discharge at nodes
