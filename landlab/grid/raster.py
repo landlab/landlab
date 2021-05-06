@@ -371,7 +371,7 @@ class RasterModelGrid(
             xy_of_lower_left=dataset["xy_of_lower_left"],
         )
 
-    def as_dataset(self, include="*", exclude=None):
+    def as_dataset(self, include="*", exclude=None, time=None):
         dataset = xr.Dataset(
             {
                 "shape": (("dim",), list(self.shape)),
@@ -381,7 +381,9 @@ class RasterModelGrid(
             attrs={"grid_type": "uniform_rectilinear"},
         )
         return dataset.update(
-            super(RasterModelGrid, self).as_dataset(include=include, exclude=exclude)
+            super(RasterModelGrid, self).as_dataset(
+                include=include, exclude=exclude, time=time
+            )
         )
 
     @property
