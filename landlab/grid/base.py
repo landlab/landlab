@@ -550,7 +550,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         dims = at.split("_")
 
         if at == "grid":
-            dims = [f"{field_name}_per_grid"] if values.shape else None
+            dims = [f"{field_name}_per_grid"] if values.shape else []
 
         if time is not None and "layer" not in dims:
             dims = ["time"] + dims
