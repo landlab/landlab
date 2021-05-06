@@ -608,7 +608,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         names = self.fields(include=include, exclude=exclude)
 
         data = {}
-        for name in names:  #  | layer_names:
+        for name in names:
             array = self.as_dataarray(name, time=time)
             data[array.name] = array
 
