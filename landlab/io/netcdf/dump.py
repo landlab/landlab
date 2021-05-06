@@ -115,6 +115,10 @@ def to_netcdf(
                     np.full_like(this_dataset[var].values, np.nan),
                 )
 
+            for var in list(that_dataset.variables):
+                if var.startswith("at_layer"):
+                    del that_dataset[var]
+
             this_dataset = xr.concat(
                 [that_dataset, this_dataset], dim="time", data_vars="minimal"
             )
