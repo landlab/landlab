@@ -86,7 +86,7 @@ def test_simple_water_table_adaptive_dt():
     rg.add_zeros("aquifer_base__elevation", at="node")
     rg.add_ones("topographic__elevation", at="node")
     rg.add_zeros("water_table__elevation", at="node")
-    rg.at_node['water_table__elevation'][rg.core_nodes] += 1e-10
+    rg.at_node["water_table__elevation"][rg.core_nodes] += 1e-10
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01,
     )

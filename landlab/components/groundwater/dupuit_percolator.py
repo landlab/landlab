@@ -29,12 +29,23 @@ def _regularize_R(u):
     """ramp function on u."""
     return u * np.greater_equal(u, 0)
 
+
 def bind_dhdt(f, dqdx, reg_thickness, n, reg_factor):
     """generate a function to pass to solve_ivp"""
+
     def bound_dhdt(t, h):
         """dh/dt function, solved by solve_ivp if the
         run_with_adaptive_time_step_plus_ivp_solver method is used"""
-        return 1/n*(f - dqdx - _regularize_G(h/reg_thickness, reg_factor)*_regularize_R(f - dqdx))
+        return (
+            1
+            / n
+            * (
+                f
+                - dqdx
+                - _regularize_G(h / reg_thickness, reg_factor) * _regularize_R(f - dqdx)
+            )
+        )
+
     return bound_dhdt
 
 
@@ -299,7 +310,7 @@ class GroundwaterDupuitPercolator(Component):
         courant_coefficient=0.5,
         vn_coefficient=0.8,
         rtol=1e-6,
-        ivp_method='RK45',
+        ivp_method="RK45",
         callback_fun=lambda *args, **kwargs: None,
         **callback_kwds,
     ):
@@ -741,9 +752,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
         # Calculate base gradient
-        self._base_grad[aL] = self._grid.calc_grad_at_link(
-            self._base
-        )[aL]
+        self._base_grad[aL] = self._grid.calc_grad_at_link(self._base)[aL]
         cosa = np.cos(np.arctan(self._base_grad))
 
         # Initialize reg_thickness, rel_thickness
@@ -762,8 +771,7 @@ class GroundwaterDupuitPercolator(Component):
 
             # Calculate hydraulic gradient
             self._hydr_grad[aL] = (
-                self._grid.calc_grad_at_link(self._wtable)[aL]
-                * cosa[aL]
+                self._grid.calc_grad_at_link(self._wtable)[aL] * cosa[aL]
             )
 
             # Calculate groundwater velocity
@@ -799,7 +807,9 @@ class GroundwaterDupuitPercolator(Component):
 
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link[aL] * self._grid.length_of_link[aL] ** 2 / (4 * self._K[aL] * hlink[aL])
+                self._n_link[aL]
+                * self._grid.length_of_link[aL] ** 2
+                / (4 * self._K[aL] * hlink[aL])
             )
 
             self._dt_courant = self._courant_coefficient * np.nanmin(
@@ -810,7 +820,9 @@ class GroundwaterDupuitPercolator(Component):
             # Update
             self._thickness[self._cores] += self._dhdt[self._cores] * substep_dt
             self._thickness[self._thickness < 0] = 0.0
-            self._thickness[self._thickness > reg_thickness] = reg_thickness[self._thickness > reg_thickness]
+            self._thickness[self._thickness > reg_thickness] = reg_thickness[
+                self._thickness > reg_thickness
+            ]
 
             # Recalculate water surface height
             self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
@@ -831,7 +843,6 @@ class GroundwaterDupuitPercolator(Component):
                 )
 
         self._qsavg[:] = qs_cumulative / dt
-
 
     def run_with_adaptive_time_step_plus_ivp_solver(self, dt):
         r"""
@@ -890,7 +901,6 @@ class GroundwaterDupuitPercolator(Component):
                 self._wtable[self._cores] - self._base[self._cores]
             )
 
-
         # Calculate base gradient
         self._base_grad[aL] = self._grid.calc_grad_at_link(self._base)[aL]
         cosa = np.cos(np.arctan(self._base_grad))
@@ -911,8 +921,7 @@ class GroundwaterDupuitPercolator(Component):
 
             # Calculate hydraulic gradient
             self._hydr_grad[aL] = (
-                self._grid.calc_grad_at_link(self._wtable)[aL]
-                * cosa[aL]
+                self._grid.calc_grad_at_link(self._wtable)[aL] * cosa[aL]
             )
 
             # Calculate groundwater velocity
@@ -935,7 +944,9 @@ class GroundwaterDupuitPercolator(Component):
 
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link[aL] * self._grid.length_of_link[aL] ** 2 / (4 * self._K[aL] * hlink[aL])
+                self._n_link[aL]
+                * self._grid.length_of_link[aL] ** 2
+                / (4 * self._K[aL] * hlink[aL])
             )
 
             self._dt_courant = self._courant_coefficient * np.nanmin(
@@ -947,14 +958,20 @@ class GroundwaterDupuitPercolator(Component):
             # set up and solve ivp for thickness h after time substep_dt
             # default behavior is to solve with RK45.
             fun_dhdt = bind_dhdt(self._recharge, dqdx, reg_thickness, self._n, self._r)
-            sol = solve_ivp(fun_dhdt, [0,substep_dt], self._thickness, rtol=self._rtol, method=self._ivp_method)
-            self._thickness[self._cores] = sol.y[self._cores,-1]
+            sol = solve_ivp(
+                fun_dhdt,
+                [0, substep_dt],
+                self._thickness,
+                rtol=self._rtol,
+                method=self._ivp_method,
+            )
+            self._thickness[self._cores] = sol.y[self._cores, -1]
             self._thickness[self._thickness < 0] = 0.0
 
             # Calculate surface discharge at nodes
-            self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
-                self._recharge - dqdx
-            )
+            self._qs[:] = _regularize_G(
+                self._thickness / reg_thickness, self._r
+            ) * _regularize_R(self._recharge - dqdx)
 
             # Recalculate water surface height
             self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
