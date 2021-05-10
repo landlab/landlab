@@ -946,13 +946,14 @@ class GroundwaterDupuitPercolator(Component):
                 self._grid.length_of_link / abs(self._vel / self._n_link)
             )
             substep_dt = min([self._dt_courant, self._dt_vn, remaining_time])
-            print(np.argmin(np.array([self._dt_vn, remaining_time]))) # 0 = courant limited, 1 = vn limited, 2 = not limited
+            # print(np.argmin(np.array([self._dt_vn, remaining_time]))) # 0 = courant limited, 1 = vn limited, 2 = not limited
 
             # set up and solve ivp for thickness h after time substep_dt
             # default behavior is to solve with RK45.
             fun_dhdt = bind_dhdt(self._recharge, dqdx, reg_thickness, self._n, self._r)
             sol = solve_ivp(fun_dhdt, [0,substep_dt], self._thickness, rtol=self._rtol, method=self._ivp_method)
             self._thickness[self._cores] = sol.y[self._cores,-1]
+            self._thickness[self._thickness < 0] = 0.0
 
             # Calculate surface discharge at nodes
             self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
@@ -968,14 +969,6 @@ class GroundwaterDupuitPercolator(Component):
             # calculate the time remaining and advance count of substeps
             remaining_time -= substep_dt
             self._num_substeps += 1
-
-            # # reset water table below surface
-            # self._wtable[self._wtable > self._elev] = self._elev[
-            #     self._wtable > self._elev
-            # ]
-            # self._thickness[self._cores] = (
-            #     self._wtable[self._cores] - self._base[self._cores]
-            # )
 
             # run callback function if supplied
             if self._old_style_callback:
