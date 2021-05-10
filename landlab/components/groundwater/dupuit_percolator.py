@@ -810,7 +810,7 @@ class GroundwaterDupuitPercolator(Component):
             # Update
             self._thickness[self._cores] += self._dhdt[self._cores] * substep_dt
             self._thickness[self._thickness < 0] = 0.0
-            self._thickness[self._thickness > reg_thickness] = reg_thickness
+            self._thickness[self._thickness > reg_thickness] = reg_thickness[self._thickness > reg_thickness]
 
             # Recalculate water surface height
             self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
