@@ -905,10 +905,8 @@ class GroundwaterDupuitPercolator(Component):
         self._base_grad[aL] = self._grid.calc_grad_at_link(self._base)[aL]
         cosa = np.cos(np.arctan(self._base_grad))
 
-        # Initialize reg_thickness, rel_thickness
+        # Initialize reg_thickness
         reg_thickness = self._elev - self._base
-        soil_present = reg_thickness > 0.0
-        rel_thickness = np.ones_like(self._elev)
 
         # Initialize for average surface discharge
         qs_cumulative = np.zeros_like(self._elev)
