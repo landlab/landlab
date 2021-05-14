@@ -66,7 +66,9 @@ def test_simple_water_table_adaptive_dt():
     rg.add_zeros("water_table__elevation", at="node")
     rg.at_node["water_table__elevation"][rg.core_nodes] += 1e-10
     gdp = GroundwaterDupuitPercolator(
-        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01,
+        rg,
+        recharge_rate=1.0e-8,
+        hydraulic_conductivity=0.01,
     )
     for i in range(10):
         gdp.run_with_adaptive_time_step_solver(1e4)
@@ -92,7 +94,9 @@ def test_simple_water_table_adaptive_dt_ivp():
     rg.add_zeros("water_table__elevation", at="node")
     rg.at_node["water_table__elevation"][rg.core_nodes] += 1e-10
     gdp = GroundwaterDupuitPercolator(
-        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01,
+        rg,
+        recharge_rate=1.0e-8,
+        hydraulic_conductivity=0.01,
     )
     for i in range(10):
         gdp.run_with_adaptive_time_step_plus_ivp_solver(1e4)
@@ -197,7 +201,9 @@ def test_conservation_of_mass_adaptive_dt():
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(
-        grid, hydraulic_conductivity=0.0005, recharge_rate=1e-7,
+        grid,
+        hydraulic_conductivity=0.0005,
+        recharge_rate=1e-7,
     )
     fa = FlowAccumulator(grid, runoff_rate="surface_water__specific_discharge")
 
@@ -242,7 +248,9 @@ def test_conservation_of_mass_adaptive_dt_ivp():
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(
-        grid, hydraulic_conductivity=0.0005, recharge_rate=1e-7,
+        grid,
+        hydraulic_conductivity=0.0005,
+        recharge_rate=1e-7,
     )
     fa = FlowAccumulator(grid, runoff_rate="surface_water__specific_discharge")
 
