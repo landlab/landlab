@@ -177,7 +177,7 @@ class NetworkSedimentTransporter(Component):
     We can the link location of the parcel at each timestep
 
     >>> print(one_parcel.dataset.element_id.values)
-    [[ 0.  0.  0.  0.  0.  1.  1.  1.  1.  1.  2.]]
+    [[0 0 0 0 0 1 1 1 1 1 2]]
 
     References
     ----------
@@ -402,6 +402,22 @@ class NetworkSedimentTransporter(Component):
         self._adjust_node_elevation()
         self._update_channel_slopes()
 
+    def split_parcels(self, index):
+        """Split parcels.
+
+        Take the current self._parcels and split into two different data
+        records, one should have all timesteps up to the present timestep (but
+        not including it), one should have the present timesteps values. assign
+        self.parcels as the current timesteps parcels only (e.g., having
+        dropped almost all the values). And return a data record that has all
+        the prior timesteps values (this to then be written to a file. )
+        """
+        # split self._parcels.
+
+        # re assign self._parcels.
+
+        return earlier_timesteps_parcels
+
     @property
     def time(self):
         """Return current time."""
@@ -432,9 +448,9 @@ class NetworkSedimentTransporter(Component):
 
             # copy parcel attributes forward in time.
             for at in self._time_variable_parcel_attributes:
-                self._parcels.dataset[at].values[
-                    :, self._time_idx
-                ] = self._parcels.dataset[at].values[:, self._time_idx - 1]
+                self._parcels.dataset[at].values[:, -1] = self._parcels.dataset[
+                    at
+                ].values[:, -2]
 
         self._this_timesteps_parcels = np.zeros_like(
             self._parcels.dataset.element_id, dtype=bool
@@ -466,7 +482,7 @@ class NetworkSedimentTransporter(Component):
     def _calculate_mean_D_and_rho(self):
         """Calculate mean grain size and density on each link"""
 
-        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
+        current_parcels = self._parcels.dataset.sel(time=self._time)
 
         # In the first full timestep, we need to calc grain size & rho_sed.
         # Assume all parcels are in the active layer for the purposes of
@@ -476,9 +492,14 @@ class NetworkSedimentTransporter(Component):
         # has already been calculated (e.g. during 'zeroing' runs)
 
         # Calculate mean values for density and grain size (weighted by volume).
-        sel_parcels = current_parcels.where(
-            current_parcels.element_id != self.OUT_OF_NETWORK
+        valid_elements = np.logical_and(
+            (current_parcels.element_id != self.OUT_OF_NETWORK),
+            (current_parcels.element_id != self._grid.BAD_INDEX),
         )
+
+        # using np.where masks using np.nan, so element id's dtype becomes an
+        # float. We fix this in the merge below.
+        sel_parcels = current_parcels.where(valid_elements)
 
         d_weighted = sel_parcels.D * sel_parcels.volume
         rho_weighted = sel_parcels.density * sel_parcels.volume
@@ -486,7 +507,12 @@ class NetworkSedimentTransporter(Component):
         rho_weighted.name = "rho_weighted"
 
         grouped_by_element = xr.merge(
-            (sel_parcels.element_id, sel_parcels.volume, d_weighted, rho_weighted)
+            (
+                sel_parcels.element_id.astype(int),
+                sel_parcels.volume,
+                d_weighted,
+                rho_weighted,
+            )
         ).groupby("element_id")
 
         d_avg = grouped_by_element.sum().d_weighted / grouped_by_element.sum().volume
@@ -494,11 +520,11 @@ class NetworkSedimentTransporter(Component):
             grouped_by_element.sum().rho_weighted / grouped_by_element.sum().volume
         )
 
-        self._d_mean_active = np.zeros(self._grid.size("link"))
-        self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
+        self._d_mean_active = np.zeros(self._grid.size("link"), dtype=float)
+        self._d_mean_active[d_avg.element_id.values] = d_avg.values
 
-        self._rhos_mean_active = np.zeros(self._grid.size("link"))
-        self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
+        self._rhos_mean_active = np.zeros(self._grid.size("link"), dtype=float)
+        self._rhos_mean_active[rho_avg.element_id.values] = rho_avg.values
 
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
@@ -571,7 +597,7 @@ class NetworkSedimentTransporter(Component):
 
         active_inactive = _INACTIVE * np.ones(self._num_parcels)
 
-        current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
+        current_link = self._parcels.dataset.element_id.values[:, -1]
         time_arrival = self._parcels.dataset.time_arrival_in_link.values[:, -1]
         volumes = self._parcels.dataset.volume.values[:, -1]
 
@@ -698,12 +724,12 @@ class NetworkSedimentTransporter(Component):
 
         # parcel attribute arrays from DataRecord
 
-        Darray = self._parcels.dataset.D[:, self._time_idx]
-        Activearray = self._parcels.dataset.active_layer[:, self._time_idx].values
+        Darray = self._parcels.dataset.D[:, -1]
+        Activearray = self._parcels.dataset.active_layer[:, -1].values
         Rhoarray = self._parcels.dataset.density.values
-        Volarray = self._parcels.dataset.volume[:, self._time_idx].values
+        Volarray = self._parcels.dataset.volume[:, -1].values
         Linkarray = self._parcels.dataset.element_id[
-            :, self._time_idx
+            :, -1
         ].values  # link that the parcel is currently in
 
         R = (Rhoarray - self._fluid_density) / self._fluid_density
@@ -817,7 +843,7 @@ class NetworkSedimentTransporter(Component):
         layer.
         """
         # determine where parcels are starting
-        current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
+        current_link = self._parcels.dataset.element_id.values[:, -1]
         self.current_link = current_link
 
         # determine location within link where parcels are starting.
@@ -843,8 +869,7 @@ class NetworkSedimentTransporter(Component):
 
         # active parcels on the network:
         in_network = (
-            self._parcels.dataset.element_id.values[:, self._time_idx]
-            != self.OUT_OF_NETWORK
+            self._parcels.dataset.element_id.values[:, -1] != self.OUT_OF_NETWORK
         )
         active = distance_to_travel_this_timestep > 0.0
         active_parcel_ids = np.nonzero(in_network * active)[0]
@@ -926,14 +951,14 @@ class NetworkSedimentTransporter(Component):
 
         # reduce D and volume due to abrasion
         vol = _calculate_parcel_volume_post_abrasion(
-            self._parcels.dataset.volume[active_parcel_ids, self._time_idx],
+            self._parcels.dataset.volume[active_parcel_ids, -1],
             distance_to_travel_this_timestep[active_parcel_ids],
             self._parcels.dataset.abrasion_rate[active_parcel_ids],
         )
 
         D = _calculate_parcel_grain_diameter_post_abrasion(
-            self._parcels.dataset.D[active_parcel_ids, self._time_idx],
-            self._parcels.dataset.volume[active_parcel_ids, self._time_idx],
+            self._parcels.dataset.D[active_parcel_ids, -1],
+            self._parcels.dataset.volume[active_parcel_ids, -1],
             vol,
         )
 
@@ -941,21 +966,20 @@ class NetworkSedimentTransporter(Component):
 
         # arrival time in link
         self._parcels.dataset.time_arrival_in_link[
-            active_parcel_ids, self._time_idx
+            active_parcel_ids, -1
         ] = self._time_idx
 
         # location in link
         self._parcels.dataset.location_in_link[
-            active_parcel_ids, self._time_idx
+            active_parcel_ids, -1
         ] = location_in_link[active_parcel_ids]
 
-        self._parcels.dataset.element_id[
-            active_parcel_ids, self._time_idx
-        ] = current_link[active_parcel_ids]
-        #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
-        # ^ reset to 1 (active) to be recomputed/determined at next timestep
-        self._parcels.dataset.D[active_parcel_ids, self._time_idx] = D
-        self._parcels.dataset.volume[active_parcel_ids, self._time_idx] = vol
+        self._parcels.dataset.element_id[active_parcel_ids, -1] = current_link[
+            active_parcel_ids
+        ]
+
+        self._parcels.dataset.D[active_parcel_ids, -1] = D
+        self._parcels.dataset.volume[active_parcel_ids, -1] = vol
 
     def run_one_step(self, dt):
         """Run NetworkSedimentTransporter forward in time.

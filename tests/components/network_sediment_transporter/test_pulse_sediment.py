@@ -135,9 +135,7 @@ def test_add_pulse():
     print(parcels.dataset.element_id.values)
     Parcel_element_id = parcels.dataset.element_id.values
 
-    Parcel_element_id_Should_Be = np.array(
-        [[0.0, 0.0, 0.0], [np.nan, 0.0, 0.0], [np.nan, 0.0, 0.0]]
-    )
+    Parcel_element_id_Should_Be = np.array([[0, 0, 0], [-1, 0, 0], [-1, 0, 0]])
 
     assert_array_almost_equal(
         Parcel_element_id_Should_Be, Parcel_element_id, decimal=-1

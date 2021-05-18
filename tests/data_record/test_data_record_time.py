@@ -28,8 +28,8 @@ def test_grid_shape(dr_time):
     assert dr_time._grid.number_of_node_columns == shape[1]
 
 
-def test_permitted_locations(dr_time):
-    assert dr_time._permitted_locations == grid.groups
+def test_grid_groups(dr_time):
+    assert dr_time._grid.groups == grid.groups
 
 
 def test_coordinates(dr_time):

@@ -4,6 +4,14 @@
 import numpy as np
 import xarray as xr
 
+from landlab.grid.base import BAD_INDEX_VALUE
+
+xr.set_options(keep_attrs=True)
+
+_EID_FILL_VAL = BAD_INDEX_VALUE
+_element_ids_attrs = {"_FillValue": _EID_FILL_VAL, "dtype": np.int}
+_grid_element_attrs = {"_FillValue": "nan", "dtype": str}
+
 
 class DataRecord(object):
     """Data structure to store variables in time and/or space dimensions.
@@ -118,8 +126,8 @@ class DataRecord(object):
 
             .. code-block:: python
 
-                {'variable_name_1' : (['dimensions'], variable_data_1),
-                 'variable_name_2' : (['dimensions'], variable_data_2)}
+                {'variable_name_1' : (['dimensions'], variable_data_1, attrs_1),
+                 'variable_name_2' : (['dimensions'], variable_data_2, attrs_2)}
 
             where:
 
@@ -128,6 +136,8 @@ class DataRecord(object):
                   exists: can be ['time'], ['item_id'] or ['item_id', 'time'].
                 - variable_data is an array containing the data, its size must
                   match that of the variable dimension(s).
+                - attrs_1 is an arbitrary dictionary of attributes. By default
+                  no attributes are used.
         attrs : dict (optional)
             Dictionary of global attributes on the DataRecord (metadata).
             Example: {'time_units' : 'y'}
@@ -208,21 +218,13 @@ class DataRecord(object):
         1       0.0          link           3
 
         """
-
         # save a reference to the grid
         self._grid = grid
-
-        # depending on the grid type, permitted locations for items vary
-        self._permitted_locations = self._grid.groups
 
         # save dummy elements reference
         # check dummies and reformat into {"node": [0, 1, 2]}
         self._dummy_elements = dummy_elements or {}
-        for at in self._permitted_locations:
-            for item in self._dummy_elements.get(at, []):
-                if (item < self._grid[at].size) and (item >= 0):
-                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
-                    raise ValueError(msg)
+        _check_dummy_elements(self._grid, self._dummy_elements)
 
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
@@ -280,19 +282,23 @@ class DataRecord(object):
             # create initial dictionaries of variables:
             if time is not None:
                 data_vars_dict = {
-                    "grid_element": (["item_id", "time"], _grid_elements),
+                    "grid_element": (
+                        ["item_id", "time"],
+                        _grid_elements,
+                        _grid_element_attrs,
+                    ),
                     "element_id": (
                         ["item_id", "time"],
                         _element_ids,
-                        {"dtype": np.int},
+                        _element_ids_attrs,
                     ),
                 }
                 coords = {"time": self._times, "item_id": self._item_ids}
             else:
                 # no time
                 data_vars_dict = {
-                    "grid_element": (["item_id"], _grid_elements),
-                    "element_id": (["item_id"], _element_ids, {"dtype": np.int}),
+                    "grid_element": (["item_id"], _grid_elements, _grid_element_attrs),
+                    "element_id": (["item_id"], _element_ids, _element_ids_attrs),
                 }
                 coords = {"item_id": self._item_ids}
 
@@ -339,7 +345,93 @@ class DataRecord(object):
             )
 
         # create an xarray Dataset:
-        self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
+        self.dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
+
+    @classmethod
+    def from_grid_and_dataset(cls, grid, dataset, dummy_elements):
+        """
+        TODO ADD DOCS.
+        """
+        # TODO ADD TEST.
+        cls._grid = grid
+        cls._dummy_elements = dummy_elements
+        _check_dummy_elements(cls._grid, cls._dummy_elements)
+
+        # check characteristics of dataset, done via setter.
+        cls.dataset = dataset
+
+        return cls
+
+    def dump_prior_timesteps_to_netcdf(
+        self, filename, drop=True, include_final_timestep=False, **kwds
+    ):
+        """Write a netcdf containing all but the last timestep.
+
+        If ``drop==True`` (default) then reset the DataRecord to only include
+        the final timestep.
+
+        Only works if time is a dimension of the DataRecord.dataset.
+
+        Parameters
+        ----------
+        filename
+        drop
+        include_final_timestep
+        **kwds :
+            Passed to xarray.to_netcdf
+
+        Examples
+        --------
+
+        Examples
+        --------
+        >>> from landlab import NetworkModelGrid
+        >>> from landlab.components import NetworkSedimentTransporter
+        >>> from landlab.data_record import DataRecord
+        >>> import xarray as xr
+
+        TODO: create grid, model, parcels.
+
+        # While running be able to dump portion of the parcels to netcdf.
+
+        >>> files = []
+        >>> for t in time:
+        >>> 	nst.run_one_step(dt)
+        >>> 	if t%10 == 0: # every ten timesteps write data out.
+        >>>
+        >>>       	# write out all but present time to a file, remove prior times from
+        >>>       	# parcels.
+        >>>         # define a filename
+        >>>       	parcels.dump_prior_timesteps_to_netcdf(filename, stuff)
+        >>>       	files.append(filename)
+
+        Afterwards be able to combine them (including correct join method,
+        concatenating on the time dimension, etc)
+
+        >>> parcels_ds = xr.load_mfdataset(files)
+        >>> parcels.dataset = parcels_ds
+
+        # note that parcels_ds is an xarray dataset, not a datarecord, but
+        # the setter will mostly check it.
+
+        TODO FINISH DOCS.
+        """
+        # TODO ADD TEST FOR ALL OF THIS.
+        if "time" not in self._dataset:
+            raise ValueError("DataRecord does not have time coordinates.")
+
+        # Get all time vals.
+        time_coords = self._dataset.time.values
+
+        if include_final_timestep:
+            self._dataset.to_netcdf(filename, **kwds)
+        else:
+            sel_parcels = self._dataset.sel(time=time_coords[:-1])
+            sel_parcels.to_netcdf(filename, **kwds)
+
+        if drop:
+            keep_parcels = self._dataset.sel(time=[time_coords[-1]])
+            self._dataset = keep_parcels
 
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check the location and size of grid_element and element_id."""
@@ -366,7 +458,7 @@ class DataRecord(object):
 
         # verify all grid elements are valid.
         for loc in grid_element.flatten():
-            if loc not in self._permitted_locations:
+            if loc not in self._grid.groups:
                 raise ValueError(
                     "One or more of the grid elements"
                     " provided is/are not permitted location"
@@ -377,7 +469,7 @@ class DataRecord(object):
 
     def _check_element_id_values(self, grid_element, element_id):
         """Check that element_id values are valid."""
-        for at in self._permitted_locations:
+        for at in self._grid.groups:
             max_size = self._grid[at].size
 
             # this needs to work with 2d arrays (rows, col = np.where (so grid element always needs to be at least 2d.))
@@ -399,14 +491,16 @@ class DataRecord(object):
         if not np.issubdtype(element_id.dtype, np.integer):
             raise ValueError(
                 "You have passed a non-integer element_id to "
-                "DataRecord, this is not permitted"
+                "DataRecord, this is not permitted. Dtype is {}".format(
+                    element_id.dtype
+                )
             )
 
     def add_record(self, time=None, item_id=None, new_item_loc=None, new_record=None):
         """Add a new record to the DataRecord.
 
         Unlike add_item, this method can support adding records that include
-        new variables to the DataRecord. It can also support adding records
+        new variables to the DataRecord. It can also support adding r©ecords
         that do not include time.
 
         Parameters
@@ -429,7 +523,7 @@ class DataRecord(object):
 
         new_record : dict
             Dictionary containing the new record. Structure should be:
-            {'variable_name_1' : (['dimensions'], variable_data_1)}
+            {'variable_name_1' : (['dimensions'], variable_data_1, attrs_1)}
             with:
 
                 - 'variable_name_1' : name of the (potentially new) variable
@@ -437,6 +531,10 @@ class DataRecord(object):
                   varies; can be ['time'], ['item_id] or ['item_id', 'time']
                 - variable_data_1 : new data array, size must match the
                   variable dimension(s)
+                - attrs_1 : data attributes, as a dictionary. if attributes
+                  for a variable with the same name have already been passed,
+                  then these attributes will be ignored and previous attributes
+                  will be maintained.
 
         Examples
         --------
@@ -467,8 +565,8 @@ class DataRecord(object):
         ...                new_record={'item_size':(
         ...                           ['item_id', 'time'], np.array([[0.2]]))})
         >>> dr3.dataset['element_id'].values
-        array([[  1.,   6.],
-               [  3.,  nan]])
+        array([[  1,   6],
+               [  3,  -1]])
         >>> dr3.get_data([2.0],[0],'item_size')
         array([ 0.2])
 
@@ -477,6 +575,15 @@ class DataRecord(object):
 
         >>> dr3.add_record(time=[50.0],
         ...                new_record={'mean_elev': (['time'], [110])})
+        >>> dr3.dataset['element_id'].to_dataframe()
+                      element_id
+        item_id time
+        0       0.0           1
+                2.0           6
+                50.0         -1
+        1       0.0           3
+                2.0          -1
+                50.0         -1
         >>> dr3.dataset['mean_elev'].to_dataframe()
               mean_elev
         time
@@ -485,10 +592,8 @@ class DataRecord(object):
         50.0      110.0
         """
         if time is not None:
-            try:
+            if "time" not in self._dataset:
                 # check that time is a dim of the DataRecord
-                self._dataset["time"]
-            except KeyError:
                 raise KeyError("This DataRecord does not record time")
 
             if not isinstance(time, (list, np.ndarray)):
@@ -499,15 +604,11 @@ class DataRecord(object):
                 )
             else:
                 if item_id is not None:
-                    try:
-                        # check that DataRecord holds items
-                        self._dataset["item_id"]
-                    except KeyError:
+                    if "item_id" not in self._dataset:
+                        # check that DataRecon4rd holds items
                         raise KeyError("This DataRecord does not hold items")
-                    try:
+                    if not isinstance(item_id, (list, np.ndarray)):
                         # check that item_id is list or array
-                        len(item_id)
-                    except TypeError:
                         raise TypeError("item_id must be a list or a 1D array")
                     if not all(i in self._dataset["item_id"].values for i in item_id):
                         # check that item_id already exist
@@ -546,8 +647,16 @@ class DataRecord(object):
                         self._check_element_id_values(new_grid_element, new_element_id)
 
                         _new_data_vars = {
-                            "grid_element": (["item_id", "time"], new_grid_element),
-                            "element_id": (["item_id", "time"], new_element_id),
+                            "grid_element": (
+                                ["item_id", "time"],
+                                new_grid_element,
+                                _grid_element_attrs,
+                            ),
+                            "element_id": (
+                                ["item_id", "time"],
+                                new_element_id,
+                                _element_ids_attrs,
+                            ),
                         }
                     else:
                         # new_item_loc is `None`
@@ -592,8 +701,17 @@ class DataRecord(object):
         # create dataset of new record
         ds_to_add = xr.Dataset(data_vars=_new_data_vars, coords=coords_to_add)
 
-        # merge new record and original dataset
+        # if new attributes have been added and existing attributes don't exist
+        # then add them.
+        for key, val in ds_to_add.data_vars.items():
+            if val.attrs != {} and key not in self._data_var_attrs:
+                self._data_var_attrs[key] = val.attrs.copy()  # TODO NEEDS TEST.
+
+        # Merge new record and original dataset:
         self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+
+        # reset dtypes as appropriate.
+        self._reset_attrs_dtypes()
 
     def add_item(self, time=None, new_item=None, new_item_spec=None):
         """Add new item(s) to the current DataRecord.
@@ -644,6 +762,7 @@ class DataRecord(object):
                 - variable_data_1 : new data array, size must match the
                   variable dimension(s)
 
+
         Examples
         --------
         >>> import numpy as np
@@ -654,7 +773,8 @@ class DataRecord(object):
         Example of a DataRecord with dimensions time and item_id:
 
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1],[3]])}
+        ...              'element_id': np.array([[1],[3]]),
+        ...              'var1': np.array([[4.], [5.]])}
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
@@ -671,7 +791,13 @@ class DataRecord(object):
         ...                                              [['node'], ['node']]),
         ...                        'element_id' : np.array([[4],[4]])},
         ...              new_item_spec={'size': (
-        ...                              ['item_id', 'time'], [[10],[5]])})
+        ...                              ['item_id', 'time'],
+        ...                              [[10.],[5.]],
+        ...                              {"_FillValue": 0}),
+        ...                             'density': (
+        ...                              ['item_id', 'time'],
+        ...                              [[2700.],[2800.]])}
+        ...               )
 
         Two items have been added at a new timestep 1.0:
 
@@ -681,15 +807,19 @@ class DataRecord(object):
         [0.0, 1.0]
 
         If a data variable is also added with the new items ('size' in this
-        example), the values for this variable are filled with 'nan' for the
-        pre-existing items:
+        example), the values for this variable are filled with nan, or the
+        attribute `_FillValue` for the pre-existing items:
 
         >>> dr3.dataset['size'][:,1].values
-        array([ nan,  nan,  10.,   5.])
+        array([ 0.,  0.,  10.,   5.])
+
+        >>> dr3.dataset['density'][:,1].values
+        array([   nan,    nan,  2700.,  2800.])
 
         The previous line calls the values of the variable 'size', for all
         items, at time=1; the first two items don't have a value for the
         variable 'size'.
+
         """
         if time is None and "time" in self._dataset["grid_element"].coords:
             raise ValueError(
@@ -725,9 +855,7 @@ class DataRecord(object):
         )
 
         if time is not None:
-            try:
-                self._dataset["time"]
-            except KeyError:
+            if "time" not in self._dataset:
                 raise KeyError("This DataRecord does not record time")
             if not isinstance(time, (list, np.ndarray)):
                 raise TypeError(
@@ -755,7 +883,7 @@ class DataRecord(object):
                 }
 
         else:
-            # no time
+            # no time©
             coords_to_add = {"item_id": np.array(new_item_ids)}
             # check that grid_element and element_id exist on
             # the grid and have valid format:
@@ -780,6 +908,26 @@ class DataRecord(object):
 
         # Merge new record and original dataset:
         self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
+
+        # reset dtypes as appropriate.
+        self._reset_attrs_dtypes()
+
+    def _reset_attrs_dtypes(self):
+        # set _data_var_attrs to keep track of data var attributes.
+        # doing this because xr.merge is dropping attributes and I can't seem
+        # to get it to not.
+        for key, val in self._data_var_attrs.items():
+            if self._dataset[key].attrs == {}:
+                self._dataset[key].attrs = self._data_var_attrs[key]
+
+        # where a fill value or dtype is known, grab it and reset.
+        for key, val in self._dataset.data_vars.items():
+            if "_FillValue" in val.attrs:
+                self._dataset[key] = self._dataset[key].fillna(val.attrs["_FillValue"])
+                if "dtype" in val.attrs:
+                    self._dataset[key] = self._dataset[key].astype(
+                        dtype=val.attrs["dtype"]
+                    )
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Get the value of a variable at a model time and/or for an item.
@@ -828,9 +976,7 @@ class DataRecord(object):
         array([['node'],
                ['node']], dtype=object)
         """
-        try:
-            self._dataset[data_variable]
-        except KeyError:
+        if data_variable not in self._dataset:
             raise KeyError(
                 "the variable '{}' is not in the " "DataRecord".format(data_variable)
             )
@@ -838,14 +984,12 @@ class DataRecord(object):
             if item_id is None:
                 return self._dataset[data_variable].values
             else:
-                try:
-                    self._dataset["item_id"]
-                except KeyError:
+                if "item_id" not in self._dataset:
                     raise KeyError("This DataRecord does not hold items")
-                try:
-                    len(item_id)
-                except TypeError:
-                    raise TypeError("item_id must be a list or a 1-D array")
+                if not isinstance(item_id, (list, np.array)):
+                    raise TypeError(
+                        "item_id must be a list or a 1-D array"
+                    )  # NEEDS TEST
                 try:
                     self._dataset["item_id"].values[item_id]
                 except IndexError:
@@ -856,14 +1000,10 @@ class DataRecord(object):
                 return self._dataset.isel(item_id=item_id)[data_variable].values
 
         else:  # time is not None
-            try:
-                self._dataset["time"]
-            except KeyError:
+            if "time" not in self._dataset:
                 raise KeyError("This DataRecord does not record time")
-            try:
-                len(time)
-            except TypeError:
-                raise TypeError("time must be a list or a 1-D array")
+            if not isinstance(time, (list, np.array)):
+                raise TypeError("time must be a list or a 1-D array")  # NEEDS TEST
             try:
                 time_index = int(self.time_coordinates.index(time[0]))
             except ValueError:
@@ -876,14 +1016,12 @@ class DataRecord(object):
             if item_id is None:
                 return self._dataset.isel(time=time_index)[data_variable].values
             else:
-                try:
-                    self._dataset["item_id"]
-                except KeyError:
+                if "item_id" not in self._dataset:
                     raise KeyError("This DataRecord does not hold items")
-                try:
-                    len(item_id)
-                except TypeError:
-                    raise TypeError("item_id must be a list or a 1-D array")
+                if not isinstance(item_id, (list, np.array)):
+                    raise TypeError(
+                        "item_id must be a list or a 1-D array"
+                    )  # NEEDS TEST
                 try:
                     self._dataset["item_id"].values[item_id]
                 except IndexError:
@@ -1137,6 +1275,7 @@ class DataRecord(object):
 
         if np.any(my_filter):
             # Filter DataRecord with my_filter and groupby element_id:
+            # note that where uses np.nan to mask, which uses float.
             filtered = self._dataset.where(my_filter).groupby("element_id")
 
             # Calculate values
@@ -1156,7 +1295,7 @@ class DataRecord(object):
             return np.repeat(fill_value, self._grid[at].size)
 
     def ffill_grid_element_and_id(self):
-        """Fill NaN values of the fields 'grid_element' and 'element_id'.
+        """Fill _FillValue values of the fields 'grid_element' and 'element_id'.
 
         Fields are filled by propagating values forward in time.
 
@@ -1191,11 +1330,11 @@ class DataRecord(object):
         for these time coordinates.
 
         >>> dr3.dataset['grid_element'].values
-        array([['node', nan, nan],
-               ['link', nan, nan]], dtype=object)
+        array([['node', 'nan', 'nan'],
+               ['link', 'nan', 'nan']], dtype='<U4')
         >>> dr3.dataset['element_id'].values
-        array([[  1.,  nan,  nan],
-               [  3.,  nan,  nan]])
+        array([[  1,  -1,  -1],
+               [  3,  -1,  -1]])
 
         To fill these values with the last valid value, use the method
         ffill_grid_element_and_id:
@@ -1203,10 +1342,10 @@ class DataRecord(object):
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset['grid_element'].values
         array([['node', 'node', 'node'],
-               ['link', 'link', 'link']], dtype=object)
+               ['link', 'link', 'link']], dtype='<U4')
         >>> dr3.dataset['element_id'].values
-        array([[ 1.,  1.,  1.],
-               [ 3.,  3.,  3.]])
+        array([[1, 1, 1],
+               [3, 3, 3]])
 
         In some applications, there may be no prior valid value. Under these
         circumstances, those values will stay as NaN. That is, this only
@@ -1240,67 +1379,71 @@ class DataRecord(object):
         >>> dr3.time_coordinates
         [0.0, 1.0]
         >>> dr3.dataset['element_id'].values
-        array([[  1.,  nan],
-               [  3.,  nan],
-               [ nan,   4.],
-               [ nan,   4.]])
+        array([[ 1, -1],
+               [ 3, -1],
+               [-1,  4],
+               [-1,  4]])
         >>> dr3.dataset['grid_element'].values
-        array([['node', nan],
-               ['link', nan],
-               [nan, 'node'],
-               [nan, 'node']], dtype=object)
+        array([['node', 'nan'],
+               ['link', 'nan'],
+               ['nan',  'node'],
+               ['nan',  'node']],
+              dtype='<U4')
 
         We expect that the NaN's to the left of the 4.s will stay NaN. And they
         do.
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset['element_id'].values
-        array([[  1.,   1.],
-               [  3.,   3.],
-               [ nan,   4.],
-               [ nan,   4.]])
+        array([[ 1, 1],
+               [ 3, 3],
+               [-1, 4],
+               [-1, 4]])
         >>> dr3.dataset['grid_element'].values
         array([['node', 'node'],
                ['link', 'link'],
-               [nan, 'node'],
-               [nan, 'node']], dtype=object)
+               ['nan',  'node'],
+               ['nan',  'node']],
+              dtype='<U4')
 
         Finally, if we add a new time, we see that we need to fill in the
         full time column.
 
         >>> dr3.add_record(time=[2])
         >>> dr3.dataset['element_id'].values
-        array([[  1.,   1.,  nan],
-               [  3.,   3.,  nan],
-               [ nan,   4.,  nan],
-               [ nan,   4.,  nan]])
+        array([[ 1, 1, -1],
+               [ 3, 3, -1],
+               [-1, 4, -1],
+               [-1, 4, -1]])
         >>> dr3.dataset['grid_element'].values
-        array([['node', 'node', nan],
-               ['link', 'link', nan],
-               [nan, 'node', nan],
-               [nan, 'node', nan]], dtype=object)
+        array([['node', 'node', 'nan'],
+               ['link', 'link', 'nan'],
+               ['nan',  'node', 'nan'],
+               ['nan',  'node', 'nan']],
+              dtype='<U4')
 
         And that forward filling fills everything as expected.
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset['element_id'].values
-        array([[  1.,   1.,   1.],
-               [  3.,   3.,   3.],
-               [ nan,   4.,   4.],
-               [ nan,   4.,   4.]])
+        array([[ 1, 1, 1],
+               [ 3, 3, 3],
+               [-1, 4, 4],
+               [-1, 4, 4]])
 
         >>> dr3.dataset['grid_element'].values
         array([['node', 'node', 'node'],
                ['link', 'link', 'link'],
-               [nan, 'node', 'node'],
-               [nan, 'node', 'node']], dtype=object)
+               ['nan',  'node', 'node'],
+               ['nan',  'node', 'node']],
+              dtype='<U4')
         """
 
         ei = self._dataset["element_id"].values
 
         for i in range(ei.shape[0]):
             for j in range(1, ei.shape[1]):
-                if np.isnan(ei[i, j]):
+                if ei[i, j] == _EID_FILL_VAL:
                     ei[i, j] = ei[i, j - 1]
 
         self._dataset["element_id"] = (["item_id", "time"], ei)
@@ -1308,14 +1451,71 @@ class DataRecord(object):
         ge = self._dataset["grid_element"].values
         for i in range(ge.shape[0]):
             for j in range(1, ge.shape[1]):
-                if ge[i, j] not in self._permitted_locations:
+                if ge[i, j] not in self._grid.groups:
                     ge[i, j] = ge[i, j - 1]
         self._dataset["grid_element"] = (["item_id", "time"], ge)
 
     @property
     def dataset(self):
-        """The xarray Dataset that serves as the core datastructure."""
         return self._dataset
+
+    @dataset.setter
+    def dataset(self, val):
+        """The xarray Dataset that serves as the core datastructure.
+
+        setter makes no assurances about attributes dtypes, and/or fill values.
+        Those need to be set correctly in the source Dataset.
+
+
+        TODO DESCRIBE NEEDS FOR ALL.
+        TODO ALL TEST FOR ALL.
+
+        Parameters
+        ----------
+        val : xarray Dataset.
+            Must be a valid DataRecord.
+            Todo add more here.
+        """
+        # make sure it is an xarray dataset.
+        if not isinstance(val, xr.Dataset):
+            raise ValueError
+
+        # * dims are time, item_id, or both
+        dims = list(val.coords.keys())
+        if "time" in dims:
+            dims.remove("time")
+        if "item_id" in dims:
+            dims.remove("item_id")
+        if len(dims) > 0:
+            raise ValueError("DataRecord: Invalid dimension {}".format(dims))
+
+        dims = list(val.coords.keys())
+
+        # * element_id and grid_element are present
+        if "item_id" in dims:
+            if "element_id" not in val.data_vars or "grid_element" not in val.data_vars:
+                raise ValueError
+
+            if set(dims) != set(val.element_id.dims):
+                raise ValueError
+
+            if set(dims) != set(val.grid_element.dims):
+                raise ValueError
+
+            # loop through all items and times.
+            # grid_element and element_id pairs must be valid.
+            self._check_element_id_values(
+                val.grid_element.values.flatten(), val.element_id.values.flatten()
+            )
+
+        self._dataset = val
+
+        # set _data_var_attrs to keep track of data var attributes.
+        # doing this because xr.merge is dropping attributes...
+        self._data_var_attrs = {}
+        for key, val in self._dataset.data_vars.items():
+            if val.attrs != {}:
+                self._data_var_attrs[key] = val.attrs.copy()
 
     @property
     def variable_names(self):
@@ -1363,3 +1563,11 @@ class DataRecord(object):
             return np.nan
         else:
             return sorted(self.time_coordinates)[-2]
+
+
+def _check_dummy_elements(grid, dummy_elements):
+    for at in grid.groups:
+        for item in dummy_elements.get(at, []):
+            if (item < grid[at].size) and (item >= 0):
+                msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
+                raise ValueError(msg)
