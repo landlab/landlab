@@ -10,7 +10,6 @@ Plotting functions
     ~landlab.plot.imshow.imshow_grid_at_cell
     ~landlab.plot.imshow.imshow_grid_at_node
 """
-import copy
 import numpy as np
 
 from landlab.grid.raster import RasterModelGrid
@@ -117,14 +116,9 @@ def imshow_grid_at_node(grid, values, **kwds):
     if values_at_node.size != grid.number_of_nodes:
         raise ValueError("number of values does not match number of nodes")
 
-    if isinstance(values_at_node, np.ma.MaskedArray):
-        local_mask = np.logical_or(
-            values_at_node.mask,
-            grid.status_at_node == grid.BC_NODE_IS_CLOSED
-        )
-    else:
-        local_mask = grid.status_at_node == grid.BC_NODE_IS_CLOSED
-    values_at_node = np.ma.masked_where(local_mask, values_at_node)
+    values_at_node = np.ma.masked_where(
+        grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
+    )
 
     if isinstance(grid, RasterModelGrid):
         shape = grid.shape
@@ -267,7 +261,7 @@ def _imshow_grid_values(
     show_elements=False,
     output=None,
 ):
-    cmap = copy.copy(plt.get_cmap(cmap))
+    cmap = plt.get_cmap(cmap)
 
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
