@@ -119,8 +119,7 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     if isinstance(values_at_node, np.ma.MaskedArray):
         local_mask = np.logical_or(
-            values_at_node.mask,
-            grid.status_at_node == grid.BC_NODE_IS_CLOSED
+            values_at_node.mask, grid.status_at_node == grid.BC_NODE_IS_CLOSED
         )
     else:
         local_mask = grid.status_at_node == grid.BC_NODE_IS_CLOSED
