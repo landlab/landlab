@@ -892,6 +892,7 @@ class FlowAccumulator(Component):
             "FlowDirectorD8",
             "FlowDirectorMFD",
             "FlowDirectorDINF",
+            "FlowDirectorDINF2"
         ]
 
         potential_kwargs = ["partition_method", "diagonals"]
@@ -908,6 +909,7 @@ class FlowAccumulator(Component):
             from landlab.components.flow_director import (
                 FlowDirectorD8,
                 FlowDirectorDINF,
+                FlowDirectorDINF2,
                 FlowDirectorMFD,
                 FlowDirectorSteepest,
             )
@@ -918,6 +920,7 @@ class FlowAccumulator(Component):
                 "D8": FlowDirectorD8,
                 "MFD": FlowDirectorMFD,
                 "DINF": FlowDirectorDINF,
+                "DINF2": FlowDirectorDINF2,
             }
 
             try:
@@ -1147,10 +1150,12 @@ class FlowAccumulator(Component):
         # further steps vary depending on how many recievers are present
         # one set of steps is for route to one (D8, Steepest/D4)
 
-        # step 2. Get r
-        r = as_id_array(self._grid["node"]["flow__receiver_node"])
+        #r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
         if self._flow_director._to_n_receivers == "one":
+
+            # step 2. Get r
+            r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
             # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.
@@ -1182,8 +1187,13 @@ class FlowAccumulator(Component):
             # step 4. Accumulate (to one or to N depending on direction method)
             a[:], q[:] = self._accumulate_A_Q_to_one(s, r)
 
-        else:
-            # Get p
+        else:  # multiple flow directions
+
+            # step 2. Get r and p.
+            try:
+                r = as_id_array(self._grid["node"]["flow__receiver_nodes"])
+            except FieldError:
+                r = as_id_array(self._grid["node"]["flow__receiver_node"])
             p = self._grid["node"]["flow__receiver_proportions"]
 
             # step 3. Stack, D, delta construction
