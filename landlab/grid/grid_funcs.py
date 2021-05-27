@@ -96,7 +96,7 @@ def find_nearest_node(grid, coords):
             ]
         x = np.array(x, dtype=float)
     else:
-        if not x.dtype is np.dtype(float):
+        if x.dtype is not np.dtype(float):
             x = x.astype(float)
     if not isinstance(y, np.ndarray):
         if type(y) in (float, int):
@@ -105,7 +105,7 @@ def find_nearest_node(grid, coords):
             ]
         y = np.array(y, dtype=float)
     else:
-        if not y.dtype is np.dtype(float):
+        if y.dtype is not np.dtype(float):
             y = y.astype(float)
     out = np.empty_like(x, dtype=int)
     _get_closest_nodes(out, grid.node_x, grid.node_y, x, y)
