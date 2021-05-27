@@ -91,14 +91,18 @@ def find_nearest_node(grid, coords):
     # Now, coerce inputs into standard form to feed the cfunc:
     if not isinstance(x, np.ndarray):
         if type(x) in (float, int):
-            x = [x, ]
+            x = [
+                x,
+            ]
         x = np.array(x, dtype=float)
     else:
         if not x.dtype is np.dtype(float):
             x = x.astype(float)
     if not isinstance(y, np.ndarray):
         if type(y) in (float, int):
-            y = [y, ]
+            y = [
+                y,
+            ]
         y = np.array(y, dtype=float)
     else:
         if not y.dtype is np.dtype(float):
