@@ -725,7 +725,11 @@ class NetworkSedimentTransporter(Component):
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
 
         vol_act_sand = self._parcels.calc_aggregate_value(
-            np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.0
+            xr.Dataset.sum,
+            "volume",
+            at="link",
+            filter_array=findactivesand,
+            fill_value=0.0,
         )
 
         frac_sand = np.zeros_like(self._vol_act)
