@@ -105,3 +105,30 @@ def _anticlockwise_argsort_points(np.ndarray[DTYPE_INT_t, ndim=2] pts,
     theta[:] = theta % twopi
     out[:] = np.argsort(theta)
 
+
+@cython.boundscheck(False)
+def _get_closest_nodes(np.ndarray[DTYPE_INT_t, ndim=1] closest_nodes_array,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=1] grid_x,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=1] grid_y,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=1] point_x,
+                       np.ndarray[DTYPE_FLOAT_t, ndim=1] point_y):
+
+    cdef int nearest_node, p_n, g_n, len_grid, len_points
+    cdef double x, y, dist_x, dist_y, dist_sq, smallest_dist
+
+    len_points = len(point_x)
+    len_grid = len(grid_x)
+    for p_n in range(len_points):
+        smallest_dist = 1.e12
+        nearest_node = -1
+        x = point_x[p_n]
+        y = point_y[p_n]
+        for g_n in range(len_grid):
+            dist_x = grid_x[g_n] - x
+            dist_y = grid_y[g_n] - y
+            dist_sq = dist_x * dist_x + dist_y * dist_y
+            # note no sqrt needed
+            if dist_sq < smallest_dist:
+                smallest_dist = dist_sq
+                nearest_node = g_n
+        closest_nodes_array[p_n] = nearest_node
