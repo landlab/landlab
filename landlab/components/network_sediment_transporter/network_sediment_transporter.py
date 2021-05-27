@@ -507,7 +507,7 @@ class NetworkSedimentTransporter(Component):
 
         """
         self._vol_tot = self._parcels.calc_aggregate_value(
-            np.sum,
+            xr.Dataset.sum,
             "volume",
             at="link",
             filter_array=self._this_timesteps_parcels,
@@ -612,7 +612,7 @@ class NetworkSedimentTransporter(Component):
         ) * (self._this_timesteps_parcels)
 
         self._vol_act = self._parcels.calc_aggregate_value(
-            np.sum,
+            xr.Dataset.sum,
             "volume",
             at="link",
             filter_array=self._active_parcel_records,
