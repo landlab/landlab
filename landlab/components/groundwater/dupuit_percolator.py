@@ -30,23 +30,17 @@ def _regularize_R(u):
     return u * np.greater_equal(u, 0)
 
 
-def bind_dhdt(f, dqdx, reg_thickness, n, reg_factor):
+def fun_dhdt(t, h, f, dqdx, reg_thickness, n, reg_factor):
     """generate a function to pass to solve_ivp"""
-
-    def bound_dhdt(t, h):
-        """dh/dt function, solved by solve_ivp if the
-        run_with_adaptive_time_step_plus_ivp_solver method is used"""
-        return (
-            1
-            / n
-            * (
-                f
-                - dqdx
-                - _regularize_G(h / reg_thickness, reg_factor) * _regularize_R(f - dqdx)
-            )
+    return (
+        1
+        / n
+        * (
+            f
+            - dqdx
+            - _regularize_G(h / reg_thickness, reg_factor) * _regularize_R(f - dqdx)
         )
-
-    return bound_dhdt
+    )
 
 
 def get_link_hydraulic_conductivity(grid, K):
@@ -955,13 +949,13 @@ class GroundwaterDupuitPercolator(Component):
 
             # set up and solve ivp for thickness h after time substep_dt
             # default behavior is to solve with RK45.
-            fun_dhdt = bind_dhdt(self._recharge, dqdx, reg_thickness, self._n, self._r)
             sol = solve_ivp(
                 fun_dhdt,
                 [0, substep_dt],
                 self._thickness,
                 rtol=self._rtol,
                 method=self._ivp_method,
+                args=(self._recharge, dqdx, reg_thickness, self._n, self._r),
             )
             self._thickness[self._cores] = sol.y[self._cores, -1]
             self._thickness[self._thickness < 0] = 0.0
