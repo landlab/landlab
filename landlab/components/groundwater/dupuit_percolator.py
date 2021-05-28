@@ -728,9 +728,6 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
 
-        # link status shorthand
-        aL = self._grid.active_links
-
         # check water table above surface
         if (self._wtable > self._elev).any():
             warn(
@@ -746,7 +743,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
         # Calculate base gradient
-        self._base_grad[aL] = self._grid.calc_grad_at_link(self._base)[aL]
+        self._base_grad = self._grid.calc_grad_at_link(self._base)
         cosa = np.cos(np.arctan(self._base_grad))
 
         # Initialize reg_thickness, rel_thickness
@@ -764,8 +761,8 @@ class GroundwaterDupuitPercolator(Component):
         while remaining_time > 0.0:
 
             # Calculate hydraulic gradient
-            self._hydr_grad[aL] = (
-                self._grid.calc_grad_at_link(self._wtable)[aL] * cosa[aL]
+            self._hydr_grad = (
+                self._grid.calc_grad_at_link(self._wtable) * cosa
             )
 
             # Calculate groundwater velocity
@@ -801,13 +798,13 @@ class GroundwaterDupuitPercolator(Component):
 
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link[aL]
-                * self._grid.length_of_link[aL] ** 2
-                / (4 * self._K[aL] * hlink[aL])
+                self._n_link
+                * self._grid.length_of_link ** 2
+                / (4 * self._K * hlink)
             )
 
             self._dt_courant = self._courant_coefficient * np.nanmin(
-                self._grid.length_of_link[aL] / abs(self._vel[aL] / self._n_link[aL])
+                self._grid.length_of_link / abs(self._vel / self._n_link)
             )
             substep_dt = min([self._dt_courant, self._dt_vn, remaining_time])
 
@@ -864,9 +861,6 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
 
-        # link status shorthand
-        aL = self._grid.active_links
-
         # check water table above surface
         if (self._wtable > self._elev).any():
             warn(
@@ -896,7 +890,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
         # Calculate base gradient
-        self._base_grad[aL] = self._grid.calc_grad_at_link(self._base)[aL]
+        self._base_grad = self._grid.calc_grad_at_link(self._base)
         cosa = np.cos(np.arctan(self._base_grad))
 
         # Initialize reg_thickness
@@ -912,8 +906,8 @@ class GroundwaterDupuitPercolator(Component):
         while remaining_time > 0.0:
 
             # Calculate hydraulic gradient
-            self._hydr_grad[aL] = (
-                self._grid.calc_grad_at_link(self._wtable)[aL] * cosa[aL]
+            self._hydr_grad = (
+                self._grid.calc_grad_at_link(self._wtable) * cosa
             )
 
             # Calculate groundwater velocity
@@ -936,13 +930,13 @@ class GroundwaterDupuitPercolator(Component):
 
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link[aL]
-                * self._grid.length_of_link[aL] ** 2
-                / (4 * self._K[aL] * hlink[aL])
+                self._n_link
+                * self._grid.length_of_link ** 2
+                / (4 * self._K * hlink)
             )
 
             self._dt_courant = self._courant_coefficient * np.nanmin(
-                self._grid.length_of_link[aL] / abs(self._vel[aL] / self._n_link[aL])
+                self._grid.length_of_link / abs(self._vel / self._n_link)
             )
             substep_dt = min([self._dt_courant, self._dt_vn, remaining_time])
             # print(np.argmin(np.array([self._dt_vn, remaining_time]))) # 0 = courant limited, 1 = vn limited, 2 = not limited
