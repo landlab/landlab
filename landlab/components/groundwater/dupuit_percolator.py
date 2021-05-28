@@ -761,9 +761,7 @@ class GroundwaterDupuitPercolator(Component):
         while remaining_time > 0.0:
 
             # Calculate hydraulic gradient
-            self._hydr_grad = (
-                self._grid.calc_grad_at_link(self._wtable) * cosa
-            )
+            self._hydr_grad = self._grid.calc_grad_at_link(self._wtable) * cosa
 
             # Calculate groundwater velocity
             self._vel[:] = -self._K * self._hydr_grad
@@ -798,9 +796,7 @@ class GroundwaterDupuitPercolator(Component):
 
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link
-                * self._grid.length_of_link ** 2
-                / (4 * self._K * hlink)
+                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
             )
 
             self._dt_courant = self._courant_coefficient * np.nanmin(
@@ -906,9 +902,7 @@ class GroundwaterDupuitPercolator(Component):
         while remaining_time > 0.0:
 
             # Calculate hydraulic gradient
-            self._hydr_grad = (
-                self._grid.calc_grad_at_link(self._wtable) * cosa
-            )
+            self._hydr_grad = self._grid.calc_grad_at_link(self._wtable) * cosa
 
             # Calculate groundwater velocity
             self._vel[:] = -self._K * self._hydr_grad
@@ -930,9 +924,7 @@ class GroundwaterDupuitPercolator(Component):
 
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link
-                * self._grid.length_of_link ** 2
-                / (4 * self._K * hlink)
+                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
             )
 
             self._dt_courant = self._courant_coefficient * np.nanmin(
