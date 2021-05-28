@@ -15,6 +15,7 @@ from .flow_director import (
     FlowDirectorDINF,
     FlowDirectorDINF2,
     FlowDirectorMFD,
+    FlowDirectorMFD2,
     FlowDirectorSteepest,
 )
 from .fracture_grid import FractureGridGenerator
@@ -83,6 +84,7 @@ COMPONENTS = [
     FlowDirectorDINF,
     FlowDirectorDINF2,
     FlowDirectorMFD,
+    FlowDirectorMFD2,
     FlowDirectorSteepest,
     FractureGridGenerator,
     gFlex,

@@ -18,6 +18,7 @@ from landlab.components.flow_director import (
 )
 from landlab.components.flow_director.flow_director import _FlowDirector
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
+from landlab.components.flow_director.flow_director_to_many2 import _FlowDirectorToMany2
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -37,9 +38,13 @@ def test_not_implemented():
     with pytest.raises(NotImplementedError):
         fd1.run_one_step()
 
-    fd2 = _FlowDirectorToOne(mg, "topographic__elevation")
+    fd2 = _FlowDirectorToMany2(mg, "topographic__elevation")
     with pytest.raises(NotImplementedError):
         fd2.run_one_step()
+
+    fd3 = _FlowDirectorToOne(mg, "topographic__elevation")
+    with pytest.raises(NotImplementedError):
+        fd3.run_one_step()
 
 
 def test_fields_already_added():

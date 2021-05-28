@@ -891,6 +891,7 @@ class FlowAccumulator(Component):
             "FlowDirectorSteepest",
             "FlowDirectorD8",
             "FlowDirectorMFD",
+            "FlowDirectorMFD2",
             "FlowDirectorDINF",
             "FlowDirectorDINF2"
         ]
@@ -911,6 +912,7 @@ class FlowAccumulator(Component):
                 FlowDirectorDINF,
                 FlowDirectorDINF2,
                 FlowDirectorMFD,
+                FlowDirectorMFD2,
                 FlowDirectorSteepest,
             )
 
@@ -919,6 +921,7 @@ class FlowAccumulator(Component):
                 "Steepest": FlowDirectorSteepest,
                 "D8": FlowDirectorD8,
                 "MFD": FlowDirectorMFD,
+                "MFD2": FlowDirectorMFD2,
                 "DINF": FlowDirectorDINF,
                 "DINF2": FlowDirectorDINF2,
             }
