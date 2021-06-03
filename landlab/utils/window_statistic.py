@@ -6,8 +6,9 @@ import numpy as np
 from landlab import FieldError
 
 
-def calculate_window_statistic(grid, field, func, search_radius,
-                               calc_on_closed_nodes=True, **kwargs):
+def calculate_window_statistic(
+    grid, field, func, search_radius, calc_on_closed_nodes=True, **kwargs
+):
     """Calculate a statistic using a function within a search window.
     This works on grid nodes (not other grid elements e.g. links) for
     any ModelGrid type.
@@ -180,9 +181,7 @@ def calculate_window_statistic(grid, field, func, search_radius,
     """
 
     if field not in grid.at_node:
-        raise FieldError(
-            f"A {field} field is required at the nodes of the input grid."
-        )
+        raise FieldError(f"A {field} field is required at the nodes of the input grid.")
 
     # Create output array
     output = np.zeros(grid.number_of_nodes)
