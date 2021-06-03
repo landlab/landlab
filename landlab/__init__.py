@@ -10,7 +10,6 @@
 :License: MIT
 """
 import pkg_resources
-
 from numpy import set_printoptions
 
 from ._registry import registry

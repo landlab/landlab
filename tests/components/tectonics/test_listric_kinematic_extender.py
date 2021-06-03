@@ -6,9 +6,10 @@ Created on Fri Mar  5 08:42:24 2021
 @author: gtucker
 """
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_raises
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
-from landlab.components import ListricKinematicExtender, Flexure
+from numpy.testing import assert_array_almost_equal, assert_array_equal, assert_raises
+
+from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
+from landlab.components import Flexure, ListricKinematicExtender
 
 
 def test_hangingwall_nodes():
