@@ -35,5 +35,5 @@ __all__ = [
     "return_array_at_link",
     "get_core_node_at_node",
     "get_core_node_matrix",
-    "calculate_window_statistic"
+    "calculate_window_statistic",
 ]
