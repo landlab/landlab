@@ -483,7 +483,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         array([42, 43, 19, 20, 21, 46, 23, 24, 50, 51, 27, 28, 29, 55, 31, 32, 33,
                59, 35, 36, 37, 62])
         """
-        self.link_offset_id = arange(self.grid.number_of_links, dtype=np.int)
+        self.link_offset_id = arange(self.grid.number_of_links, dtype=int)
         nc = self.grid.number_of_node_columns
         default_offset = 2 * nc + 2 * (nc - 1) + nc // 2
         self.first_link_shifted_from = 0
