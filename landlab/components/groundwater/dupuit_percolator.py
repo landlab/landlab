@@ -785,12 +785,22 @@ class GroundwaterDupuitPercolator(Component):
             self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
-            self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
+            self._dt_vn = self._vn_coefficient * np.min(
+                np.divide(
+                    (self._n_link * self._grid.length_of_link ** 2),
+                    (4 * self._K * hlink),
+                    where=hlink > 0,
+                    out=np.ones_like(self._q) * 1e15,
+                )
             )
 
-            self._dt_courant = self._courant_coefficient * np.nanmin(
-                self._grid.length_of_link / abs(self._vel / self._n_link)
+            self._dt_courant = self._courant_coefficient * np.min(
+                np.divide(
+                    self._grid.length_of_link,
+                    abs(self._vel / self._n_link),
+                    where=self._vel > 0,
+                    out=np.ones_like(self._q) * 1e15,
+                )
             )
             substep_dt = min([self._dt_courant, self._dt_vn, remaining_time])
 
@@ -910,12 +920,22 @@ class GroundwaterDupuitPercolator(Component):
             dqdx = self._grid.calc_flux_div_at_node(self._q)
 
             # calculate criteria for timestep
-            self._dt_vn = self._vn_coefficient * np.nanmin(
-                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
+            self._dt_vn = self._vn_coefficient * np.min(
+                np.divide(
+                    (self._n_link * self._grid.length_of_link ** 2),
+                    (4 * self._K * hlink),
+                    where=hlink > 0,
+                    out=np.ones_like(self._q) * 1e15,
+                )
             )
 
-            self._dt_courant = self._courant_coefficient * np.nanmin(
-                self._grid.length_of_link / abs(self._vel / self._n_link)
+            self._dt_courant = self._courant_coefficient * np.min(
+                np.divide(
+                    self._grid.length_of_link,
+                    abs(self._vel / self._n_link),
+                    where=self._vel > 0,
+                    out=np.ones_like(self._q) * 1e15,
+                )
             )
             substep_dt = min([self._dt_courant, self._dt_vn, remaining_time])
             # print(np.argmin(np.array([self._dt_vn, remaining_time]))) # 0 = courant limited, 1 = vn limited, 2 = not limited
