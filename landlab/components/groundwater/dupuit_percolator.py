@@ -408,22 +408,12 @@ class GroundwaterDupuitPercolator(Component):
     def callback_fun(self, new_val):
         try:  # New style callback function.
             new_val(self._grid, self.recharge, 0.0, **self._callback_kwds)
-            self._old_style_callback = False
             self._callback_fun = new_val
-        except TypeError:
-            try:  # Old style callback function, will work, but warn.
-                new_val(self._grid, 0.0, **self._callback_kwds)
-                self._callback_fun = new_val
-                self._old_style_callback = True
-                warn(
-                    "Callback functions with two arguments (grid, substep_dt) are deprecated and will be removed in future versions",
-                    DeprecationWarning,
-                )
-            except TypeError as error:  # Nonfunctional callback function.
-                raise ValueError(
-                    r"%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)"
-                    % error
-                )
+        except TypeError as error:  # Nonfunctional callback function.
+            raise ValueError(
+                r"%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)"
+                % error
+            )
 
     @property
     def courant_coefficient(self):
@@ -797,11 +787,9 @@ class GroundwaterDupuitPercolator(Component):
             remaining_time -= substep_dt
             self._num_substeps += 1
 
-            if self._old_style_callback:
-                self._callback_fun(self._grid, substep_dt, **self._callback_kwds)
-            else:
-                self._callback_fun(
-                    self._grid, self.recharge, substep_dt, **self._callback_kwds
-                )
+            # run callback function if supplied
+            self._callback_fun(
+                self._grid, self.recharge, substep_dt, **self._callback_kwds
+            )
 
         self._qsavg[:] = qs_cumulative / dt
