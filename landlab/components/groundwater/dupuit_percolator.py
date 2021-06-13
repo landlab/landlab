@@ -28,6 +28,12 @@ def _regularize_R(u):
     """ramp function on u."""
     return u * np.greater_equal(u, 0)
 
+def _update_thickness(dt, h0, b, f, dqdx, n, r):
+    out = np.empty_like(h0)
+    out[:] = b*(1 - r*np.log(1 + np.exp((1 - (h0 + ((f - dqdx)*dt)/n)/b)/r)*  (1 - np.exp(-(b - h0)/(b*r)))))
+    out[f<=dqdx] = (h0 + (1 / n * (f - dqdx))*dt)[f<=dqdx]
+    return out
+
 
 def get_link_hydraulic_conductivity(grid, K):
     """Returns array of hydraulic conductivity on links, allowing for aquifers
@@ -270,14 +276,6 @@ class GroundwaterDupuitPercolator(Component):
             "mapping": "node",
             "doc": "elevation of water table",
         },
-        "water_table__velocity": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m/s",
-            "mapping": "node",
-            "doc": "rate of change of water table elevation",
-        },
     }
 
     def __init__(
@@ -369,8 +367,6 @@ class GroundwaterDupuitPercolator(Component):
         self._qsavg = self.grid.at_node["average_surface_water__specific_discharge"]
 
         self._vel = self._grid.at_link["groundwater__velocity"]
-
-        self._dhdt = self._grid.at_node["water_table__velocity"]
 
         # Convert parameters to fields if needed, and store a reference
         self.K = hydraulic_conductivity
@@ -653,29 +649,20 @@ class GroundwaterDupuitPercolator(Component):
         # Groundwater flux divergence
         dqdx = self._grid.calc_flux_div_at_node(self._q)
 
-        # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
-        soil_present = (self._elev - self._base) > 0.0
-        rel_thickness = np.ones_like(self._elev)
-        rel_thickness[soil_present] = np.minimum(
-            1,
-            self._thickness[soil_present]
-            / (self._elev[soil_present] - self._base[soil_present]),
-        )
+        # Regolith thickness
+        reg_thickness = self._elev - self._base
 
-        # Calculate surface discharge at nodes
-        self._qs[:] = _regularize_G(rel_thickness, self._r) * _regularize_R(
-            self._recharge - dqdx
-        )
-
-        # Mass balance
-        self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
-
-        # Update
-        self._thickness[self._cores] += self._dhdt[self._cores] * dt
+        # update thickness from analytical
+        self._thickness[self._cores] = _update_thickness(dt, self._thickness, reg_thickness, self._recharge, dqdx, self._n, self._r)[self._cores]
         self._thickness[self._thickness < 0] = 0.0
 
         # Recalculate water surface height
-        self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
+        self._wtable[:] = self._base + self._thickness
+
+        # Calculate surface discharge at nodes
+        self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
+            self._recharge - dqdx
+        )
 
     def run_with_adaptive_time_step_solver(self, dt):
         """
@@ -712,10 +699,8 @@ class GroundwaterDupuitPercolator(Component):
         )[self._grid.active_links]
         cosa = np.cos(np.arctan(self._base_grad))
 
-        # Initialize reg_thickness, rel_thickness
+        # Initialize reg_thickness
         reg_thickness = self._elev - self._base
-        soil_present = reg_thickness > 0.0
-        rel_thickness = np.ones_like(self._elev)
 
         # Initialize for average surface discharge
         qs_cumulative = np.zeros_like(self._elev)
@@ -750,19 +735,6 @@ class GroundwaterDupuitPercolator(Component):
             # Groundwater flux divergence
             dqdx = self._grid.calc_flux_div_at_node(self._q)
 
-            # calculate relative thickness
-            rel_thickness[soil_present] = np.minimum(
-                1, self._thickness[soil_present] / (reg_thickness[soil_present])
-            )
-
-            # Calculate surface discharge at nodes
-            self._qs[:] = _regularize_G(rel_thickness, self._r) * _regularize_R(
-                self._recharge - dqdx
-            )
-
-            # Mass balance
-            self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
-
             # calculate criteria for timestep
             self._dt_vn = self._vn_coefficient * np.min(
                 np.divide(
@@ -784,12 +756,17 @@ class GroundwaterDupuitPercolator(Component):
             dt_stability = min(self._dt_courant, self._dt_vn)
             substep_dt = min([dt_stability, remaining_time])
 
-            # Update
-            self._thickness[self._cores] += self._dhdt[self._cores] * substep_dt
+            # update thickness from analytical
+            self._thickness[self._cores] = _update_thickness(substep_dt, self._thickness, reg_thickness, self._recharge, dqdx, self._n, self._r)[self._cores]
             self._thickness[self._thickness < 0] = 0.0
 
             # Recalculate water surface height
-            self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
+            self._wtable[:] = self._base + self._thickness
+
+            # Calculate surface discharge at nodes
+            self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
+                self._recharge - dqdx
+            )
 
             # add cumulative sw discharge in substeps
             qs_cumulative += self._qs * substep_dt
