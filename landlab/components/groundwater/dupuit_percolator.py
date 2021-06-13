@@ -7,7 +7,7 @@ from warnings import warn
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
 from landlab.grid.mappers import (
     map_mean_of_link_nodes_to_link,
     map_value_at_max_node_to_link,
@@ -28,10 +28,19 @@ def _regularize_R(u):
     """ramp function on u."""
     return u * np.greater_equal(u, 0)
 
+
 def _update_thickness(dt, h0, b, f, dqdx, n, r):
     out = np.empty_like(h0)
-    out[:] = b*(1 - r*np.log(1 + np.exp((1 - (h0 + ((f - dqdx)*dt)/n)/b)/r)*  (1 - np.exp(-(b - h0)/(b*r)))))
-    out[f<=dqdx] = (h0 + (1 / n * (f - dqdx))*dt)[f<=dqdx]
+    out[:] = b * (
+        1
+        - r
+        * np.log(
+            1
+            + np.exp((1 - (h0 + ((f - dqdx) * dt) / n) / b) / r)
+            * (1 - np.exp(-(b - h0) / (b * r)))
+        )
+    )
+    out[f <= dqdx] = (h0 + (1 / n * (f - dqdx)) * dt)[f <= dqdx]
     return out
 
 
@@ -91,7 +100,7 @@ class GroundwaterDupuitPercolator(Component):
 
     When the model generates groundwater return flow, the surface water flux
     out of the domain can be calculated only after a FlowAccumulator is run.
-    Below is a more complex model that demonstrates this case.
+    Below is a more complex example that demonstrates this case.
 
     >>> from landlab.components import FlowAccumulator
 
@@ -156,9 +165,11 @@ class GroundwaterDupuitPercolator(Component):
 
     where :math:`n` is the drainable porosity.
 
-    An explicit forward in time finite volume method is used to implement a
-    numerical solution. Groundwater flow between neighboring nodes is calculated
-    using the saturated thickness at the up-gradient node.
+    A semi-analytical approach is used to update aquifer thickness :math:`h`, in which
+    the differential equation above is linearized by assuming :math:`\nabla \cdot q` varies
+    minimally over the duration of a timestep. In this approach, :math:`q` is
+    reported at the beginning of the timestep, while :math:`q_s` is reported at the
+    end of the timestep.
 
     References
     ----------
@@ -615,9 +626,7 @@ class GroundwaterDupuitPercolator(Component):
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
             ]
-            self._thickness[self._cores] = (
-                self._wtable[self._cores] - self._base[self._cores]
-            )
+            self._thickness[self._cores] = (self._wtable - self._base)[self._cores]
 
         # Calculate base gradient
         self._base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
@@ -627,13 +636,11 @@ class GroundwaterDupuitPercolator(Component):
 
         # Calculate hydraulic gradient
         self._hydr_grad[self._grid.active_links] = (
-            self._grid.calc_grad_at_link(self._wtable)[self._grid.active_links]
-            * cosa[self._grid.active_links]
-        )
+            self._grid.calc_grad_at_link(self._wtable) * cosa
+        )[self._grid.active_links]
 
         # Calculate groundwater velocity
         self._vel[:] = -self._K * self._hydr_grad
-        self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Aquifer thickness at links (upwind)
         hlink = (
@@ -653,16 +660,18 @@ class GroundwaterDupuitPercolator(Component):
         reg_thickness = self._elev - self._base
 
         # update thickness from analytical
-        self._thickness[self._cores] = _update_thickness(dt, self._thickness, reg_thickness, self._recharge, dqdx, self._n, self._r)[self._cores]
+        self._thickness[self._cores] = _update_thickness(
+            dt, self._thickness, reg_thickness, self._recharge, dqdx, self._n, self._r
+        )[self._cores]
         self._thickness[self._thickness < 0] = 0.0
 
         # Recalculate water surface height
         self._wtable[:] = self._base + self._thickness
 
         # Calculate surface discharge at nodes
-        self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
-            self._recharge - dqdx
-        )
+        self._qs[:] = _regularize_G(
+            self._thickness / reg_thickness, self._r
+        ) * _regularize_R(self._recharge - dqdx)
 
     def run_with_adaptive_time_step_solver(self, dt):
         """
@@ -713,13 +722,11 @@ class GroundwaterDupuitPercolator(Component):
 
             # Calculate hydraulic gradient
             self._hydr_grad[self._grid.active_links] = (
-                self._grid.calc_grad_at_link(self._wtable)[self._grid.active_links]
-                * cosa[self._grid.active_links]
-            )
+                self._grid.calc_grad_at_link(self._wtable) * cosa
+            )[self._grid.active_links]
 
             # Calculate groundwater velocity
             self._vel[:] = -self._K * self._hydr_grad
-            self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
             # Aquifer thickness at links (upwind)
             hlink = (
@@ -757,16 +764,24 @@ class GroundwaterDupuitPercolator(Component):
             substep_dt = min([dt_stability, remaining_time])
 
             # update thickness from analytical
-            self._thickness[self._cores] = _update_thickness(substep_dt, self._thickness, reg_thickness, self._recharge, dqdx, self._n, self._r)[self._cores]
+            self._thickness[self._cores] = _update_thickness(
+                substep_dt,
+                self._thickness,
+                reg_thickness,
+                self._recharge,
+                dqdx,
+                self._n,
+                self._r,
+            )[self._cores]
             self._thickness[self._thickness < 0] = 0.0
 
             # Recalculate water surface height
             self._wtable[:] = self._base + self._thickness
 
             # Calculate surface discharge at nodes
-            self._qs[:] = _regularize_G(self._thickness/reg_thickness, self._r) * _regularize_R(
-                self._recharge - dqdx
-            )
+            self._qs[:] = _regularize_G(
+                self._thickness / reg_thickness, self._r
+            ) * _regularize_R(self._recharge - dqdx)
 
             # add cumulative sw discharge in substeps
             qs_cumulative += self._qs * substep_dt
