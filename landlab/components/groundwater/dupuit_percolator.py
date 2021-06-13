@@ -30,6 +30,7 @@ def _regularize_R(u):
 
 
 def _update_thickness(dt, h0, b, f, dqdx, n, r):
+    """analytical solution for the linearized governing equation."""
     out = np.empty_like(h0)
     out[:] = b * (
         1
