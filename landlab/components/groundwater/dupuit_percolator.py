@@ -763,12 +763,22 @@ class GroundwaterDupuitPercolator(Component):
             self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
-            self._dt_vn = self._vn_coefficient * min(
-                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
+            self._dt_vn = self._vn_coefficient * np.min(
+                np.divide(
+                    (self._n_link * self._grid.length_of_link ** 2),
+                    (4 * self._K * hlink),
+                    where=hlink > 0,
+                    out=np.ones_like(self._q) * 1e15,
+                )
             )
 
-            self._dt_courant = self._courant_coefficient * min(
-                self._grid.length_of_link / abs(self._vel / self._n_link)
+            self._dt_courant = self._courant_coefficient * np.min(
+                np.divide(
+                    self._grid.length_of_link,
+                    abs(self._vel / self._n_link),
+                    where=self._vel > 0,
+                    out=np.ones_like(self._q) * 1e15,
+                )
             )
             dt_stability = min(self._dt_courant, self._dt_vn)
             substep_dt = min([dt_stability, remaining_time])
