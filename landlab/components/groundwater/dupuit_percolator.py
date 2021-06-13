@@ -698,9 +698,7 @@ class GroundwaterDupuitPercolator(Component):
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
             ]
-            self._thickness[self._cores] = (
-                self._wtable[self._cores] - self._base[self._cores]
-            )
+            self._thickness[self._cores] = (self._wtable - self._base)[self._cores]
 
         # Calculate base gradient
         self._base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
