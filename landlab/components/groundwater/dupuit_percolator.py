@@ -138,7 +138,7 @@ class GroundwaterDupuitPercolator(Component):
     Surface water discharge per unit area, :math:`q_s`, is calculated as:
 
     .. math::
-        q_s = \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(-\cos(\alpha) \nabla \cdot q + f \big)
+        q_s = \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(-\nabla \cdot q + f \big)
 
     where :math:`\mathcal{G}_r` is a smoothed step function, :math:`\mathcal{R}` is the ramp function,
     :math:`d` is the regolith thickness, and :math:`f` is the recharge rate.
@@ -314,6 +314,7 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f: float
             factor controlling the smoothness of the transition between
             surface and subsurface flow
+            Default = 0.01
         courant_coefficient: float (-)
             The muliplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow
