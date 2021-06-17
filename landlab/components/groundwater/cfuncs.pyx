@@ -29,7 +29,7 @@ cdef _update_thickness(DTYPE_FLOAT_t dt,
 		):
 	"""analytical solution for the linearized governing equation."""
 	cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] out
-	cdef np.ndarray[bool, ndim=1] cond = f <= dqdx
+	cdef np.ndarray[np.uint8_t, ndim=1] cond = f <= dqdx
 	out = b * (
 		1
 		- r
@@ -147,11 +147,8 @@ def run_substeps(DTYPE_FLOAT_t dt,
 		vel = -K * hydr_grad
 
 		# Aquifer thickness at links (upwind)
-		hlink = (
-			_map_value_at_max_node_to_link(wtable, thickness, node_at_link_head, node_at_link_tail)
-			)
-			* cosa
-		)
+		hlink = _map_value_at_max_node_to_link(wtable, thickness, node_at_link_head, node_at_link_tail)	* cosa
+
 
 		# Calculate specific discharge
 		q = hlink * vel
@@ -164,23 +161,23 @@ def run_substeps(DTYPE_FLOAT_t dt,
 				area_of_cell,
 				length_of_face,
 				link_dirs_at_node,
-				)
+		)
 
 		# calculate criteria for timestep
 		dt_vn = vn * np.min(
 			np.divide(
-				(n_link * length_of_link ** 2),
+				(n_link * link_length ** 2),
 				(4 * K * hlink),
-				where=hlink > 0,
+				where=hlink > 0.0,
 				out=np.ones_like(q) * 1e15,
 			)
 		)
 
 		dt_courant = cour * np.min(
 			np.divide(
-				length_of_link,
+				link_length,
 				abs(vel / n_link),
-				where=vel > 0,
+				where=vel > 0.0,
 				out=np.ones_like(q) * 1e15,
 			)
 		)
@@ -197,7 +194,7 @@ def run_substeps(DTYPE_FLOAT_t dt,
 			n,
 			r,
 		)[cores]
-		thickness[thickness < 0] = 0.0
+		thickness[thickness < 0.0] = 0.0
 
 		# Recalculate water surface height
 		wtable = base + thickness
@@ -214,4 +211,4 @@ def run_substeps(DTYPE_FLOAT_t dt,
 		remaining_time -= substep_dt
 		num_substeps += 1
 
-	return wt, thickness, q, qs, qs_cumulative, num_substeps
+	return wtable, thickness, q, qs, qs_cumulative, num_substeps
