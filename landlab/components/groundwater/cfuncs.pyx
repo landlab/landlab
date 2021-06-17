@@ -95,7 +95,7 @@ def _map_value_at_max_node_to_link(np.ndarray[DTYPE_FLOAT_t, ndim=1] controls,
 	return out
 
 
-def run_substeps(DTYPE_FLOAT_t dt,
+def _run_substeps(DTYPE_FLOAT_t dt,
 		np.ndarray[DTYPE_FLOAT_t, ndim=1] wtable,
 		np.ndarray[DTYPE_FLOAT_t, ndim=1] base,
 		np.ndarray[DTYPE_FLOAT_t, ndim=1] thickness,
@@ -124,7 +124,7 @@ def run_substeps(DTYPE_FLOAT_t dt,
 		):
 
 	cdef DTYPE_FLOAT_t remaining_time = dt
-	cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] hydr_grad = np.zeros_like(wtable)
+	cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] hydr_grad = np.zeros_like(n_link)
 	cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] vel
 	cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] hlink
 	cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] q

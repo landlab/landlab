@@ -13,7 +13,7 @@ from landlab.grid.mappers import (
     map_value_at_max_node_to_link,
 )
 from landlab.utils import return_array_at_link, return_array_at_node
-
+from .cfuncs import _run_substeps
 
 # regularization functions used to deal with numerical demons of seepage
 def _regularize_G(u, reg_factor):
@@ -792,5 +792,77 @@ class GroundwaterDupuitPercolator(Component):
             self._callback_fun(
                 self._grid, self._recharge, substep_dt, **self._callback_kwds
             )
+
+        self._qsavg[:] = qs_cumulative / dt
+
+    def run_with_adaptive_time_step_solver_cy(self, dt):
+        """
+        Advance component by one time step of size dt, subdividing the timestep
+        into substeps as necessary to meet stability conditions.
+        Note this method returns the fluxes at the last substep, but also
+        returns a new field, average_surface_water__specific_discharge, that is
+        averaged over all subtimesteps. To return state during substeps,
+        provide a callback_fun.
+
+        Parameters
+        ----------
+        dt: float
+            The imposed timestep.
+        """
+
+        # check water table above surface
+        if (self._wtable > self._elev).any():
+            warn(
+                "water table above elevation surface. "
+                "Setting water table elevation here to "
+                "elevation surface"
+            )
+            self._wtable[self._wtable > self._elev] = self._elev[
+                self._wtable > self._elev
+            ]
+            self._thickness[self._cores] = (self._wtable - self._base)[self._cores]
+
+        # Calculate base gradient
+        self._base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
+            self._base
+        )[self._grid.active_links]
+        cosa = np.cos(np.arctan(self._base_grad))
+
+        # Initialize reg_thickness
+        reg_thickness = self._elev - self._base
+
+        # Initialize for average surface discharge
+        qs_cumulative = np.zeros_like(self._elev)
+
+        # Initialize variable timestep
+        self._num_substeps = 0
+
+        self._wtable[:], self._thickness[:], self._q[:], self._qs[:], qs_cumulative, self._num_substeps = _run_substeps(dt,
+        		self._wtable,
+        		self._base,
+        		self._thickness,
+        		self._recharge,
+        		self._K,
+        		self._n,
+        		self._n_link,
+        		cosa,
+        		reg_thickness,
+        		self._cores,
+        		self._grid.node_at_link_head,
+        		self._grid.node_at_link_tail,
+        		self._grid.length_of_link,
+        		self._grid.active_links,
+        		self._grid.node_at_link_head,
+        		self._grid.node_at_link_tail,
+        		self._grid.node_at_cell,
+        		self._grid.link_at_face,
+        		self._grid.faces_at_cell,
+        		self._grid.area_of_cell,
+        		self._grid.length_of_face,
+        		self._grid.link_dirs_at_node,
+        		self._vn_coefficient,
+        		self._courant_coefficient,
+        		self._r,
+        		)
 
         self._qsavg[:] = qs_cumulative / dt
