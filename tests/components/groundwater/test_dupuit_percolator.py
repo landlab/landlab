@@ -198,7 +198,6 @@ def test_wt_above_surface_standard_run_step():
 
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    elev = grid.add_ones("node", "topographic__elevation")
     wt = grid.add_ones("node", "water_table__elevation")
     _ = grid.add_zeros("node", "aquifer_base__elevation")
 
@@ -211,7 +210,6 @@ def test_wt_above_surface_standard_run_step():
 def test_wt_above_surface_adaptive_run_step():
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    elev = grid.add_ones("node", "topographic__elevation")
     wt = grid.add_ones("node", "water_table__elevation")
     _ = grid.add_zeros("node", "aquifer_base__elevation")
 
