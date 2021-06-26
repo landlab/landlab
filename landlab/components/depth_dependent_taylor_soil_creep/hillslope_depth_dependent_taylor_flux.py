@@ -9,6 +9,7 @@
 import numpy as np
 
 from landlab import Component, LinkStatus
+from landlab.core.messages import deprecation_message
 
 
 class DepthDependentTaylorDiffuser(Component):
@@ -292,13 +293,14 @@ class DepthDependentTaylorDiffuser(Component):
     def __init__(
         self,
         grid,
-        linear_diffusivity=1.0,
+        linear_diffusivity=None,
         slope_crit=1.0,
         soil_transport_decay_depth=1.0,
         nterms=2,
         dynamic_dt=False,
         if_unstable="pass",
         courant_factor=0.2,
+        soil_transport_velocity=1.0,
     ):
         """Initialize the DepthDependentTaylorDiffuser.
 
@@ -306,8 +308,8 @@ class DepthDependentTaylorDiffuser(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        linear_diffusivity: float, optional.
-            Hillslope diffusivity, m**2/yr
+        linear_diffusivity: float, optional, DEPRECATED
+            Hillslope diffusivity / decay depth, m/yr
             Default = 1.0
         slope_crit: float, optional
             Critical gradient parameter, m/m
@@ -319,18 +321,30 @@ class DepthDependentTaylorDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (default) gives the behavior
             described in Ganti et al. (2012).
-        dynamic_dt : bool
+        dynamic_dt : bool, optional, default  = False
             Whether internal timestepping is used.
-        if_unstable : str
+        if_unstable : str, optional, default = "pass"
             What to do if unstable (options are "pass",
             "raise", "warn")
-        courant_factor : float
+        courant_factor : float, optional, default = 0.2
             Courant factor for timestep calculation.
+        soil_transport_velocity : float, optional, default = 1.0
+            Velocity parameter for soil transport, m/yr. Diffusivity is the
+            product of this parameter and soil_transport_decay_depth.
         """
         super().__init__(grid)
-        # Store grid and parameters
 
-        self._K = linear_diffusivity
+        # Handle now-deprecated diffusivity argument
+        if linear_diffusivity is None:
+            self._K = soil_transport_velocity
+        else:
+            message = """Use of linear_diffusivity is deprecated, because the
+                         name is misleading: it is actually a velocity;
+                         diffusivity is obtained by multiplying by soil
+                         transport decay depth. Use soil_transport_velocity
+                         instead."""
+            print(deprecation_message(message))
+            self._K = linear_diffusivity
         self._soil_transport_decay_depth = soil_transport_decay_depth
         self._slope_crit = slope_crit
         self._nterms = nterms
