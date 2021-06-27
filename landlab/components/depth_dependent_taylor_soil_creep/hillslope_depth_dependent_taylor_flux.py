@@ -25,15 +25,16 @@ class DepthDependentTaylorDiffuser(Component):
 
     .. math::
 
-        q_s = - DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( - H / H^*)
+        q_s = - K H_* \nabla \eta ( 1 + (S/S_c)^2 + (S/S_c)^4 + .. + (S/S_c)^2(n-1) ) (1 - exp( - H / H_*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
-    negative downward), :math:`S_c` is the critical slope, :math:`n` is the
-    number of terms, :math:`H` is the soil depth on links, and :math:`H^*` is
+    where :math:`K` is a transport velocity coefficient, :math:`\eta` is land
+    surface elevation, :math:`S` is the slope gradient (defined as
+    positive downward), :math:`S_c` is the critical slope, :math:`n` is the
+    number of terms, :math:`H` is the soil depth on links, and :math:`H_*` is
     the soil transport decay depth.
 
     The default behavior uses two terms to produce a slope dependence as
-    described by Equation 6 of Ganti et al., (2012).
+    described by Equation 6 of Ganti et al. (2012).
 
     This component will ignore soil thickness located at non-core nodes.
 
