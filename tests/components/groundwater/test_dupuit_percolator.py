@@ -88,7 +88,9 @@ def test_simple_water_table_adaptive_dt():
     rg.add_zeros("water_table__elevation", at="node")
     rg.at_node["water_table__elevation"][rg.core_nodes] += 1e-10
     gdp = GroundwaterDupuitPercolator(
-        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01,
+        rg,
+        recharge_rate=1.0e-8,
+        hydraulic_conductivity=0.01,
     )
     for i in range(10):
         gdp.run_with_adaptive_time_step_solver(1e4)
