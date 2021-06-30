@@ -348,7 +348,6 @@ class GroundwaterDupuitPercolator(Component):
             recharge_rate: an array at node that is the specified recharge rate
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
-            Callback functions with two arguments (grid, substep_dt) are deprecated.
         callback_kwds: any additional keyword arguments for the provided callback_fun.
         """
         super().__init__(grid)
@@ -408,7 +407,6 @@ class GroundwaterDupuitPercolator(Component):
             recharge_rate: an array at node that is the specified recharge rate
             substep_dt: the length of the current substep determined internally
             by run_with_adaptive_time_step_solver to meet stability criteria.
-            Callback functions with two arguments (grid, substep_dt) are depricated.
         """
         return self._callback_fun
 
