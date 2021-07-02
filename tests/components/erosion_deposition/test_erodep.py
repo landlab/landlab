@@ -135,7 +135,14 @@ def test_steady_state_with_basic_solver_option():
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(
-        mg, K=K, F_f=F_f, v_s=v_s, m_sp=m_sp, n_sp=n_sp, sp_crit=0, solver="basic",
+        mg,
+        K=K,
+        F_f=F_f,
+        v_s=v_s,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        sp_crit=0,
+        solver="basic",
     )
 
     # ... and run it to steady state (5000x1-year timesteps).

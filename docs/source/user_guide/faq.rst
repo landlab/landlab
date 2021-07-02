@@ -163,7 +163,7 @@ And then you can cd to landlab and this works:
 
 .. code-block:: python
 
-    python setup.py develop
+    pip install -e .
 
 Support: How can I ask more questions and get help?
 ---------------------------------------------------

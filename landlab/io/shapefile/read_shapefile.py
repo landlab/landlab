@@ -5,22 +5,21 @@ import pathlib
 
 import numpy as np
 import shapefile as ps
-from shapefile import ShapefileException
 
 from landlab.graph.graph import NetworkGraph
 from landlab.grid.network import NetworkModelGrid
 
 
 def _read_shapefile(file, dbf):
-    if isinstance(file, pathlib.PurePath):
-        file = str(file)
-    try:
-        sf = ps.Reader(file)
-    except ShapefileException:
-        try:
-            sf = ps.Reader(shp=file, dbf=dbf)
-        except ShapefileException:
-            raise ShapefileException(("Bad file path provided to read_shapefile."))
+    kwds = {}
+    if dbf is not None:
+        kwds["dbf"] = dbf
+
+    if isinstance(file, (str, pathlib.Path)):
+        sf = ps.Reader(str(file), **kwds)
+    else:
+        sf = ps.Reader(shp=file, **kwds)
+
     return sf
 
 
@@ -105,7 +104,7 @@ def read_shapefile(
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    >>> w.shapeType = 3
+    >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
     >>> w.record(37)
@@ -139,7 +138,7 @@ def read_shapefile(
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    >>> w.shapeType = 3
+    >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
     >>> w.record(37)
@@ -153,7 +152,7 @@ def read_shapefile(
     >>> p_shx = BytesIO()
     >>> p_dbf = BytesIO()
     >>> p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    >>> p_w.shapeType = 1
+    >>> p_w.shapeType = shapefile.POINT
     >>> p_w.field("eggs", "N")
     >>> p_w.point(5, 0)
     >>> p_w.record(2)
@@ -192,7 +191,7 @@ def read_shapefile(
     link_field_dtype = link_field_dtype or dict()
     node_field_dtype = node_field_dtype or dict()
 
-    if sf.shapeType != 3:
+    if sf.shapeTypeName != "POLYLINE":
         raise ValueError(
             (
                 "landlab.io.shapefile read requires a polyline "
@@ -203,7 +202,7 @@ def read_shapefile(
 
     if points_shapefile:
         psf = _read_shapefile(points_shapefile, points_dbf)
-        if psf.shapeType != 1:
+        if psf.shapeTypeName != "POINT":
             raise ValueError(
                 (
                     "landlab.io.shapefile read requires a point "

@@ -71,4 +71,4 @@ docs: ## generate Sphinx HTML documentation, including API docs and link check
 	$(BROWSER) docs/build/html/index.html
 
 install: clean ## install the package to the active Python's site-packages
-	python setup.py develop
+	pip install -e .

@@ -131,7 +131,8 @@ def to_netcdf(
                 if "time" not in dims:
                     dims, array = ("time",) + dims, array[None]
                 padded_array = np.empty_like(
-                    array, shape=(array.shape[0] + 1,) + array.shape[1:],
+                    array,
+                    shape=(array.shape[0] + 1,) + array.shape[1:],
                 )
                 padded_array[-1] = array
                 data[name] = (dims, padded_array)

@@ -418,7 +418,7 @@ class NetworkSedimentTransporter(Component):
         return self._rhos_mean_active
 
     def _create_new_parcel_time(self):
-        """ If we are going to track parcels through time in :py:class:`~landlab.data_record.data_record.DataRecord`, we
+        """If we are going to track parcels through time in :py:class:`~landlab.data_record.data_record.DataRecord`, we
         need to add a new time column to the parcels dataframe. This method simply
         copies over the attributes of the parcels from the former timestep.
         Attributes will be updated over the course of this step.
@@ -507,7 +507,7 @@ class NetworkSedimentTransporter(Component):
 
         """
         self._vol_tot = self._parcels.calc_aggregate_value(
-            np.sum,
+            xr.Dataset.sum,
             "volume",
             at="link",
             filter_array=self._this_timesteps_parcels,
@@ -588,7 +588,10 @@ class NetworkSedimentTransporter(Component):
 
                 # sort them by arrival time.
                 time_arrival_sort = np.flip(
-                    np.argsort(time_arrival[this_links_parcels], 0,)
+                    np.argsort(
+                        time_arrival[this_links_parcels],
+                        0,
+                    )
                 )
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 
@@ -609,7 +612,7 @@ class NetworkSedimentTransporter(Component):
         ) * (self._this_timesteps_parcels)
 
         self._vol_act = self._parcels.calc_aggregate_value(
-            np.sum,
+            xr.Dataset.sum,
             "volume",
             at="link",
             filter_array=self._active_parcel_records,
@@ -722,7 +725,11 @@ class NetworkSedimentTransporter(Component):
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
 
         vol_act_sand = self._parcels.calc_aggregate_value(
-            np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.0
+            xr.Dataset.sum,
+            "volume",
+            at="link",
+            filter_array=findactivesand,
+            fill_value=0.0,
         )
 
         frac_sand = np.zeros_like(self._vol_act)
