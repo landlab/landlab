@@ -213,10 +213,10 @@ class KinwaveImplicitOverlandFlow(Component):
         grid : ModelGrid
             Landlab ModelGrid object
         runoff_rate : float, optional (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr. The value provide is divided by
+            Precipitation rate, mm/hr. The value provided is divided by
             3600000.0.
-        roughnes : float, defaults to 0.01
-            Manning roughness coefficient, s/m^1/3
+        roughness : float, defaults to 0.01
+            Manning roughness coefficient; units depend on depth_exp.
         changing_topo : boolean, optional (defaults to False)
             Flag indicating whether topography changes between time steps
         depth_exp : float (defaults to 1.5)
