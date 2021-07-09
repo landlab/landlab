@@ -10,11 +10,11 @@ Peer-reviewed journal articles
 2021
 ````
 
-Lipp, A. G., & Roberts, G. G. (2021). Scale‐Dependent Flow Directions of Rivers and the Importance of Subplate Support. Geophysical Research Letters, 48(1), e2020GL091107.
+Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Rivers and the Importance of Subplate Support.** *Geophysical Research Letters,* 48(1), e2020GL091107, `https://doi.org/10.1029/2020GL091107 <https://doi.org/10.1029/2020GL091107>`__.
 
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
 
-Sheehan, C. E., & Ward, D. J. (2021). An Autogenic Cycle of Fluvial Transience in Dipping, Layered Rocks. Geophysical Research Letters, 48(1), e2020GL090246.
+Sheehan, C. E., & Ward, D. J. (2021). **An Autogenic Cycle of Fluvial Transience in Dipping, Layered Rocks.** *Geophysical Research Letters,* 48(1), e2020GL090246, `https://doi.org/10.1029/2020GL090246 <https://doi.org/10.1029/2020GL090246>`__.
 
 Shen, H., Lynch, B., Poulsen, C. J., & Yanites, B. J. (2021). **A modeling framework (WRF-Landlab) for simulating orogen-scale climate-erosion coupling.** *Computers & Geosciences,* 146, 104625, `https://doi.org/10.1016/j.cageo.2020.104625 <https://doi.org/10.1016/j.cageo.2020.104625>`__.
 
@@ -220,12 +220,12 @@ Theses, Dissertations, and Reports
 2020
 ````
 
-Lai, J. (2020). Constraining tectonic and climatic controls on glacial/postglacial landscape evolution using numerical modeling (Doctoral dissertation, University of Illinois at Urbana-Champaign).
+Lai, J. (2020). **Constraining tectonic and climatic controls on glacial/postglacial landscape evolution using numerical modeling** (Doctoral dissertation, University of Illinois at Urbana-Champaign).
 
 2018
 ````
 
-Mahmoudi, M. (2018). Comparing model predictions of hillslope sediment size distribution with field measurements (Doctoral dissertation, San Francisco State University).
+Mahmoudi, M. (2018). **Comparing model predictions of hillslope sediment size distribution with field measurements** (Doctoral dissertation, San Francisco State University).
 
 
 Presentations
