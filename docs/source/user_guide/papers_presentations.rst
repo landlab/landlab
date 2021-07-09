@@ -138,7 +138,7 @@ vegetation cover over millennial to million-year timescales.** *Earth
 Surface Dynamics*, 6(4), 859-881,
 `doi:10.5194/esurf-6-859-2018 <https://www.earth-surf-dynam.net/6/859/2018/>`__.
 
-Singer, M. B., Michaelides, K., & Hobley, D. E. J. (2018) ** STORM 1.0: a
+Singer, M. B., Michaelides, K., & Hobley, D. E. J. (2018) **STORM 1.0: a
 simple, flexible, and parsimonious stochastic rainfall generator for simulating
 climate and climate change.** *Geoscientific Model Development*,  11, 3713–3726,
 `https://doi.org/10.5194/gmd-11-3713-2018 <https://doi.org/10.5194/gmd-11-3713-2018>`__.
