@@ -1107,7 +1107,6 @@ class FlowAccumulator(Component):
         does not handle multiple-flow directors)
         """
         assert isinstance(self._grid, RasterModelGrid)
-        print("****")
         if self._depression_finder._name in ("DepressionFinderAndRouter"):
             return self._depression_finder._routing
         elif self._depression_finder._name in ("LakeMapperBarnes"):
