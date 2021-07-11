@@ -1217,6 +1217,7 @@ def test_with_lake_mapper_barnes():
     lmb = LakeMapperBarnes(hmg_hole)
     fa = FlowAccumulator(hmg_hole, depression_finder=lmb)
 
+
 def test_incompatible_routing():
     """Test warning generation upon incompatible raster flow directions."""
     mg = RasterModelGrid((4, 4))
@@ -1226,32 +1227,30 @@ def test_incompatible_routing():
     with pytest.raises(ValueError):
         FlowAccumulator(
             mg,
-            flow_director='FlowDirectorSteepest',
-            depression_finder='DepressionFinderAndRouter'
+            flow_director="FlowDirectorSteepest",
+            depression_finder="DepressionFinderAndRouter",
         )
 
     # Flow director is D8 but depression finder is D4
     with pytest.raises(ValueError):
         FlowAccumulator(
             mg,
-            flow_director='FlowDirectorD8',
-            depression_finder='DepressionFinderAndRouter',
-            routing='D4' # make DepressionFinderAndRouter D4
+            flow_director="FlowDirectorD8",
+            depression_finder="DepressionFinderAndRouter",
+            routing="D4",  # make DepressionFinderAndRouter D4
         )
 
     # Flow director is D4 but depression finder is D8
     with pytest.raises(ValueError):
         FlowAccumulator(
             mg,
-            flow_director='FlowDirectorSteepest',
-            depression_finder='LakeMapperBarnes',
-            method='D8'
+            flow_director="FlowDirectorSteepest",
+            depression_finder="LakeMapperBarnes",
+            method="D8",
         )
 
     # Flow director is D8 but depression finder is D4
     with pytest.raises(ValueError):
         FlowAccumulator(
-            mg,
-            flow_director='FlowDirectorD8',
-            depression_finder='LakeMapperBarnes',
+            mg, flow_director="FlowDirectorD8", depression_finder="LakeMapperBarnes",
         )

@@ -1072,14 +1072,18 @@ class FlowAccumulator(Component):
             # and the depression handler
             if isinstance(self._grid, RasterModelGrid):
                 flow_director_method = self.flow_director_raster_method()
-                depression_finder_method = self.depression_handler_raster_direction_method()
+                depression_finder_method = (
+                    self.depression_handler_raster_direction_method()
+                )
                 if flow_director_method != depression_finder_method:
                     message = (
                         "Incompatibility between flow-director routing method\n"
-                        + "which is " + flow_director_method
+                        + "which is "
+                        + flow_director_method
                         + ", and depression-handler method,\n"
-                        + "which is " + depression_finder_method
-                        )
+                        + "which is "
+                        + depression_finder_method
+                    )
                     raise ValueError(warning_message(message))
         else:
             self._depression_finder = None
@@ -1092,9 +1096,9 @@ class FlowAccumulator(Component):
         """
         assert isinstance(self._grid, RasterModelGrid)
         if self._flow_director._name in ("FlowDirectorD8"):
-            return 'D8'
+            return "D8"
         else:
-            return 'D4'
+            return "D4"
 
     def depression_handler_raster_direction_method(self):
         """Return 'D8' or 'D4' depending on the direction method used.
@@ -1103,17 +1107,19 @@ class FlowAccumulator(Component):
         does not handle multiple-flow directors)
         """
         assert isinstance(self._grid, RasterModelGrid)
-        print('****')
+        print("****")
         if self._depression_finder._name in ("DepressionFinderAndRouter"):
             return self._depression_finder._routing
         elif self._depression_finder._name in ("LakeMapperBarnes"):
-            if (self._depression_finder._allneighbors.size
-                > self.grid.adjacent_nodes_at_node.size):
-                return 'D8'
+            if (
+                self._depression_finder._allneighbors.size
+                > self.grid.adjacent_nodes_at_node.size
+            ):
+                return "D8"
             else:
-                return 'D4'
+                return "D4"
         else:
-            raise ValueError('Depression finder type not recognized.')
+            raise ValueError("Depression finder type not recognized.")
 
     def pits_present(self):
         return np.any(self._grid.at_node["flow__sink_flag"][self._grid.core_nodes])
