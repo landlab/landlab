@@ -6,11 +6,13 @@ def angle_finder(grid, dn, cn, rn):
     xcoord = grid.node_axis_coordinates(axis=0)
     ycoord = grid.node_axis_coordinates(axis=1)
     if xcoord[cn] == xcoord[dn]:
-        sl1 = np.inf # In case xcoord is same for donor and current node
+        # In case xcoord is same for donor and current node
+        sl1 = np.inf
     else:
         sl1 = (ycoord[cn] - ycoord[dn]) / (xcoord[cn] - xcoord[dn])
     if xcoord[rn] == xcoord[cn]:
-        sl2 = np.inf # In case xcoord is same for current and receiver node
+        # In case xcoord is same for current and receiver node
+        sl2 = np.inf
     else:
         sl2 = (ycoord[rn] - ycoord[cn]) / (xcoord[rn] - xcoord[cn])
     angle1 = math.degrees(math.atan(sl1))
@@ -244,23 +246,23 @@ def node_finder(grid, i, flowdirs, drain_area):
         # this is a sink. no lateral ero
         radcurv_angle = 0.0
         lat_node = 0
-    if donor == i:
+    elif donor == i:
         # this is a sink. no lateral ero
         radcurv_angle = 0.0
         lat_node = 0
-    if angle_diff == 0.0:
+    elif angle_diff == 0.0:
         [lat_node, radcurv_angle] = straight_node(
             donor, i, receiver, neighbors, diag_neigh
         )
-    if angle_diff == 45.0 or angle_diff == 135.0:
+    elif angle_diff == 45.0 or angle_diff == 135.0:
         [lat_node, radcurv_angle] = forty_five_node(
             donor, i, receiver, neighbors, diag_neigh
         )
-    if angle_diff == 90.0:
+    elif angle_diff == 90.0:
         [lat_node, radcurv_angle] = ninety_node(
             donor, i, receiver, link_list, neighbors, diag_neigh
         )
-    if lat_node > 2e9:
+    else:
         # print "old latnode", lat_node
         lat_node = 0
         radcurv_angle = 0.0
