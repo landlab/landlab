@@ -2,12 +2,18 @@ import math
 
 import numpy as np
 
-
+# This function needed to be updated to allow for flow where donor and receivers have same xcoords. Previously, a divide-by-zero error would occur.
 def angle_finder(grid, dn, cn, rn):
     xcoord = grid.node_axis_coordinates(axis=0)
     ycoord = grid.node_axis_coordinates(axis=1)
-    sl1 = (ycoord[cn] - ycoord[dn]) / (xcoord[cn] - xcoord[dn])
-    sl2 = (ycoord[rn] - ycoord[cn]) / (xcoord[rn] - xcoord[cn])
+    if xcoord[cn] == xcoord[dn]:
+        sl1 = np.inf # Needed in case xcoord is same for donor and receiver node
+    else:
+        sl1 = (ycoord[cn] - ycoord[dn]) / (xcoord[cn] - xcoord[dn]) # EDIT: This results in a warning when donors and receivers have the same x-coord.
+    if xcoord[rn] == xcoord[cn]:
+        sl2 = np.inf # Needed in case xcoord is same for donor and receiver node
+    else:
+        sl2 = (ycoord[rn] - ycoord[cn]) / (xcoord[rn] - xcoord[cn])
     angle1 = math.degrees(math.atan(sl1))
     angle2 = math.degrees(math.atan(sl2))
     angle_diff = angle2 - angle1
