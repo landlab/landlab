@@ -11,7 +11,33 @@ import numpy as np
 from landlab import Component
 
 
-def _calc_fracture_starting_position(shape, seed):
+def _calc_fracture_starting_position(shape):
+    """Choose a random starting position along one of the sides of the grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Number of rows and columns in the grid
+    seed : int
+        Seeds the random number generator, so that a particular random
+        sequence can be recreated.
+
+    Returns
+    -------
+    (y, x) : tuple of int
+        Fracture starting coordinates (row and column IDs)
+    """
+    grid_side = np.random.randint(0, 3) # east, north, west, south
+
+    if (grid_side % 2) == 0:  # east or west
+        x = (grid_side // 2) * (shape[1] - 1)
+        y = np.random.randint(0, shape[0] - 1)
+    else:
+        x = np.random.randint(0, shape[1] - 1)
+        y = (grid_side // 2) * (shape[0] - 1)
+    return (y, x)
+
+def _calc_fracture_starting_position_original(shape, seed):
     """Choose a random starting position along the x or y axis (random choice).
 
     Parameters
@@ -38,7 +64,43 @@ def _calc_fracture_starting_position(shape, seed):
     return (y, x)
 
 
-def _calc_fracture_orientation(coords, seed):
+def _calc_fracture_orientation(coords, shape):
+    """Choose a random orientation for the fracture.
+
+    Parameters
+    ----------
+    coords : tuple of int
+        Starting coordinates (one of which should be zero) as *y*, *x*.
+    shape : tuple of int
+        Number of rows and columns
+
+    Returns
+    -------
+    ang : float
+        Fracture angle relative to horizontal
+
+    Notes
+    -----
+    The angle depends on which side of the grid the fracture starts on:
+        - east: 90-270
+        - north: 180-360
+        - west: 270-450 (mod 360)
+        - south: 0-180
+    """
+    y, x = coords
+
+    np.random.seed(seed)
+    ang = np.pi * np.random.rand()
+    if x == shape[1] - 1:  # east
+        ang += np.pi / 2
+    elif y == shape[0] - 1:  # north
+        ang += np.pi
+    elif x == 0:  # west
+        ang += 1.5 * np.pi
+
+    return ang
+
+def _calc_fracture_orientation_original(coords, seed):
     """Choose a random orientation for the fracture.
 
     Parameters
@@ -71,7 +133,61 @@ def _calc_fracture_orientation(coords, seed):
     return ang
 
 
-def _calc_fracture_step_sizes(start_yx, ang):
+def _calc_fracture_step_sizes(ang):
+    """Calculate the sizes of steps dx and dy to be used when "drawing" the
+    fracture onto the grid.
+
+    Parameters
+    ----------
+    start_yx : tuple of int
+        Starting grid coordinates
+    ang : float
+        Fracture angle relative to horizontal (radians)
+
+    Returns
+    -------
+    (dy, dx) : tuple of float
+        Step sizes in y and x directions. One will always be unity, and the
+        other will always be <1.
+
+    Examples
+    --------
+    >>> np.round(_calc_fracture_step_sizes(0 * np.pi / 6), 3)
+    array([ 1.,  0.])
+    >>> np.round(_calc_fracture_step_sizes(1 * np.pi / 6), 3)
+    array([ 1.   , 0.577])
+    >>> np.round(_calc_fracture_step_sizes(2 * np.pi / 6), 3)
+    array([ 0.577,  1.   ])
+    >>> np.round(_calc_fracture_step_sizes(3 * np.pi / 6), 3)
+    array([ 0., 1.])
+    >>> np.round(_calc_fracture_step_sizes(4 * np.pi / 6), 3)
+    array([-0.577, 1.   ])
+    >>> np.round(_calc_fracture_step_sizes(5 * np.pi / 6), 3)
+    array([-1.   , 0.577])
+    >>> np.round(_calc_fracture_step_sizes(6 * np.pi / 6), 3)
+    array([-1., 0.])
+    >>> np.round(_calc_fracture_step_sizes(7 * np.pi / 6), 3)
+    array([-1.   , -0.577])
+    >>> np.round(_calc_fracture_step_sizes(8 * np.pi / 6), 3)
+    array([-0.577, -1.   ])
+    >>> np.round(_calc_fracture_step_sizes(9 * np.pi / 6), 3)
+    array([-0., -1.])
+    >>> np.round(_calc_fracture_step_sizes(10 * np.pi / 6), 3)
+    array([ 0.577, -1.   ])
+    >>> np.round(_calc_fracture_step_sizes(11 * np.pi / 6), 3)
+    array([ 1.   , -0.577])
+    >>> np.round(_calc_fracture_step_sizes(12 * np.pi / 6), 3)
+    array([ 1., -0.])
+    """
+    dx = np.cos(ang)
+    dy = np.sin(ang)
+    multiplier = 1.0 / max(np.abs(dx), np.abs(dy))
+    dx *= multiplier
+    dy *= multiplier
+    return dx, dy
+
+
+def _calc_fracture_step_sizes_original(start_yx, ang):
     """Calculate the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
 
@@ -213,11 +329,43 @@ class FractureGridGenerator(Component):
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
 
+        np.random.seed(seed)
+
     def run_one_step(self):
         """Run FractureGridGenerator and create a random fracture grid."""
         self._make_frac_grid(self._frac_spacing, self._seed)
 
     def _make_frac_grid(self, frac_spacing, seed):
+        """Create a grid that contains a network of random fractures.
+
+        Creates a grid containing a network of random fractures, which are
+        represented as 1's embedded in a grid of 0's. The grid is stored in
+        the "fracture_at_node" field.
+
+        Parameters
+        ----------
+        frac_spacing : int
+            Average spacing of fractures (in grid cells)
+        seed : int
+            Seed used for random number generator
+        """
+        # Make an initial grid of all zeros. If user specified a model grid,
+        # use that. Otherwise, use the given dimensions.
+        nr = self._grid.number_of_node_rows
+        nc = self._grid.number_of_node_columns
+        m = self._grid.at_node["fracture_at_node"].reshape((nr, nc))
+
+        # Add fractures to grid
+        nfracs = (nr + nc) // frac_spacing
+        for i in range(nfracs):
+
+            (y, x) = _calc_fracture_starting_position((nr, nc), seed + i)
+            ang = _calc_fracture_orientation((y, x), seed + i)
+            (dy, dx) = _calc_fracture_step_sizes((y, x), ang)
+
+            _trace_fracture_through_grid(m, (y, x), (dy, dx))
+
+    def _make_frac_grid_original(self, frac_spacing, seed):
         """Create a grid that contains a network of random fractures.
 
         Creates a grid containing a network of random fractures, which are
