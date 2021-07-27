@@ -18,24 +18,22 @@ def _calc_fracture_starting_position(shape):
     ----------
     shape : tuple of int
         Number of rows and columns in the grid
-    seed : int
-        Seeds the random number generator, so that a particular random
-        sequence can be recreated.
 
     Returns
     -------
-    (y, x) : tuple of int
+    (x, y) : tuple of int
         Fracture starting coordinates (row and column IDs)
     """
     grid_side = np.random.randint(0, 3) # east, north, west, south
 
     if (grid_side % 2) == 0:  # east or west
-        x = (grid_side // 2) * (shape[1] - 1)
+        x = (1 - grid_side // 2) * (shape[1] - 1)
         y = np.random.randint(0, shape[0] - 1)
     else:
         x = np.random.randint(0, shape[1] - 1)
-        y = (grid_side // 2) * (shape[0] - 1)
-    return (y, x)
+        y = (1 - grid_side // 2) * (shape[0] - 1)
+    print('starting on side ' + str(grid_side) + ' at ' + str((x,y)))
+    return (x, y)
 
 def _calc_fracture_starting_position_original(shape, seed):
     """Choose a random starting position along the x or y axis (random choice).
@@ -70,7 +68,7 @@ def _calc_fracture_orientation(coords, shape):
     Parameters
     ----------
     coords : tuple of int
-        Starting coordinates (one of which should be zero) as *y*, *x*.
+        Starting coordinates (one of which should be zero) as *x*, *y*.
     shape : tuple of int
         Number of rows and columns
 
@@ -87,17 +85,23 @@ def _calc_fracture_orientation(coords, shape):
         - west: 270-450 (mod 360)
         - south: 0-180
     """
-    y, x = coords
-
-    np.random.seed(seed)
+    x, y = coords
+    print('in here x = ' + str(x))
     ang = np.pi * np.random.rand()
+    print('raw ang ' + str(np.degrees(ang)))
+    print(coords)
     if x == shape[1] - 1:  # east
         ang += np.pi / 2
+        print('east ' + str(np.degrees(ang)))
     elif y == shape[0] - 1:  # north
         ang += np.pi
+        print('n ' + str(np.degrees(ang)))
     elif x == 0:  # west
         ang += 1.5 * np.pi
-
+        print('w ' + str(np.degrees(ang)))
+    else:
+        print('s ' + str(np.degrees(ang)))
+    print('ang ' + str(np.degrees(ang)))
     return ang
 
 def _calc_fracture_orientation_original(coords, seed):
@@ -184,6 +188,7 @@ def _calc_fracture_step_sizes(ang):
     multiplier = 1.0 / max(np.abs(dx), np.abs(dy))
     dx *= multiplier
     dy *= multiplier
+    print('dy=' + str(dy) + ', dx=' + str(dx))
     return dx, dy
 
 
@@ -215,7 +220,44 @@ def _calc_fracture_step_sizes_original(start_yx, ang):
     return (dy, dx)
 
 
-def _trace_fracture_through_grid(m, start_yx, spacing):
+def _trace_fracture_through_grid(m, start_xy, spacing):
+    """Create a 2D fracture in a grid.
+
+    Creates a "fracture" in a 2D grid, m, by setting cell values to unity
+    along the trace of the fracture (i.e., "drawing" a line throuh the
+    grid).
+
+    Parameters
+    ----------
+    m : 2D Numpy array
+        Array that represents the grid
+    start_xy : tuple of int
+        Starting grid coordinates (col, row) for fracture
+    spacing : tuple of float
+        Step sizes in x and y directions
+
+    Returns
+    -------
+    None, but changes contents of m
+    """
+    x0, y0 = start_xy
+    dx, dy = spacing
+
+    x = x0
+    y = y0
+
+    while (
+        round(x) < np.size(m, 1)
+        and round(y) < np.size(m, 0)
+        and round(x) >= 0
+        and round(y) >= 0
+    ):
+        m[int(y + 0.5)][int(x + 0.5)] = 1
+        x += dx
+        y += dy
+
+
+def _trace_fracture_through_grid_original(m, start_yx, spacing):
     """Create a 2D fracture in a grid.
 
     Creates a "fracture" in a 2D grid, m, by setting cell values to unity
@@ -359,11 +401,11 @@ class FractureGridGenerator(Component):
         nfracs = (nr + nc) // frac_spacing
         for i in range(nfracs):
 
-            (y, x) = _calc_fracture_starting_position((nr, nc), seed + i)
-            ang = _calc_fracture_orientation((y, x), seed + i)
-            (dy, dx) = _calc_fracture_step_sizes((y, x), ang)
+            (x, y) = _calc_fracture_starting_position((nr, nc))
+            ang = _calc_fracture_orientation((x, y), (nr, nc))
+            (dx, dy) = _calc_fracture_step_sizes(ang)
 
-            _trace_fracture_through_grid(m, (y, x), (dy, dx))
+            _trace_fracture_through_grid(m, (x, y), (dx, dy))
 
     def _make_frac_grid_original(self, frac_spacing, seed):
         """Create a grid that contains a network of random fractures.
@@ -389,8 +431,12 @@ class FractureGridGenerator(Component):
         nfracs = (nr + nc) // frac_spacing
         for i in range(nfracs):
 
-            (y, x) = _calc_fracture_starting_position((nr, nc), seed + i)
-            ang = _calc_fracture_orientation((y, x), seed + i)
-            (dy, dx) = _calc_fracture_step_sizes((y, x), ang)
+            (x, y) = _calc_fracture_starting_position((nr, nc))
+            ang = _calc_fracture_orientation((x, y))
+            (dx, dy) = _calc_fracture_step_sizes(ang)
 
-            _trace_fracture_through_grid(m, (y, x), (dy, dx))
+            _trace_fracture_through_grid(m, (x, y), (dx, dy))
+
+
+if __name__=='__main__':
+    pass
