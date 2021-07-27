@@ -35,33 +35,6 @@ def _calc_fracture_starting_position(shape):
     print('starting on side ' + str(grid_side) + ' at ' + str((x,y)))
     return (x, y)
 
-def _calc_fracture_starting_position_original(shape, seed):
-    """Choose a random starting position along the x or y axis (random choice).
-
-    Parameters
-    ----------
-    shape : tuple of int
-        Number of rows and columns in the grid
-    seed : int
-        Seeds the random number generator, so that a particular random
-        sequence can be recreated.
-
-    Returns
-    -------
-    (y, x) : tuple of int
-        Fracture starting coordinates
-    """
-    np.random.seed(seed)
-
-    if np.random.randint(0, 1) == 0:
-        x = 0
-        y = np.random.randint(0, shape[0] - 1)
-    else:
-        x = np.random.randint(0, shape[1] - 1)
-        y = 0
-    return (y, x)
-
-
 def _calc_fracture_orientation(coords, shape):
     """Choose a random orientation for the fracture.
 
@@ -103,39 +76,6 @@ def _calc_fracture_orientation(coords, shape):
         print('s ' + str(np.degrees(ang)))
     print('ang ' + str(np.degrees(ang)))
     return ang
-
-def _calc_fracture_orientation_original(coords, seed):
-    """Choose a random orientation for the fracture.
-
-    Parameters
-    ----------
-    coords : tuple of int
-        Starting coordinates (one of which should be zero) as *y*, *x*.
-    seed : int
-        Seed value for random number generator
-
-    Returns
-    -------
-    ang : float
-        Fracture angle relative to horizontal
-
-    Notes
-    -----
-    If the fracture starts along the bottom of the grid (y=0), then the
-    angle will be between 45 and 135 degrees from horizontal
-    (counter-clockwise). Otherwise, it will be between -45 and 45 degrees.
-    """
-    y, x = coords
-
-    np.random.seed(seed)
-    ang = (np.pi / 2) * np.random.rand()
-    if y == 0:
-        ang += np.pi / 4
-    else:
-        ang -= np.pi / 4
-
-    return ang
-
 
 def _calc_fracture_step_sizes(ang):
     """Calculate the sizes of steps dx and dy to be used when "drawing" the
@@ -192,34 +132,6 @@ def _calc_fracture_step_sizes(ang):
     return dx, dy
 
 
-def _calc_fracture_step_sizes_original(start_yx, ang):
-    """Calculate the sizes of steps dx and dy to be used when "drawing" the
-    fracture onto the grid.
-
-    Parameters
-    ----------
-    start_yx : tuple of int
-        Starting grid coordinates
-    ang : float
-        Fracture angle relative to horizontal (radians)
-
-    Returns
-    -------
-    (dy, dx) : tuple of float
-        Step sizes in y and x directions. One will always be unity, and the
-        other will always be <1.
-    """
-    starty, startx = start_yx
-    if startx == 0:  # frac starts on left side
-        dx = 1
-        dy = np.tan(ang)
-    else:  # frac starts on bottom side
-        dy = 1
-        dx = -np.tan(ang - np.pi / 2)
-
-    return (dy, dx)
-
-
 def _trace_fracture_through_grid(m, start_xy, spacing):
     """Create a 2D fracture in a grid.
 
@@ -242,43 +154,6 @@ def _trace_fracture_through_grid(m, start_xy, spacing):
     """
     x0, y0 = start_xy
     dx, dy = spacing
-
-    x = x0
-    y = y0
-
-    while (
-        round(x) < np.size(m, 1)
-        and round(y) < np.size(m, 0)
-        and round(x) >= 0
-        and round(y) >= 0
-    ):
-        m[int(y + 0.5)][int(x + 0.5)] = 1
-        x += dx
-        y += dy
-
-
-def _trace_fracture_through_grid_original(m, start_yx, spacing):
-    """Create a 2D fracture in a grid.
-
-    Creates a "fracture" in a 2D grid, m, by setting cell values to unity
-    along the trace of the fracture (i.e., "drawing" a line throuh the
-    grid).
-
-    Parameters
-    ----------
-    m : 2D Numpy array
-        Array that represents the grid
-    start_yx : tuple of int
-        Starting grid coordinates for fracture
-    spacing : tuple of float
-        Step sizes in y and x directions
-
-    Returns
-    -------
-    None, but changes contents of m
-    """
-    y0, x0 = start_yx
-    dy, dx = spacing
 
     x = x0
     y = y0
@@ -406,37 +281,3 @@ class FractureGridGenerator(Component):
             (dx, dy) = _calc_fracture_step_sizes(ang)
 
             _trace_fracture_through_grid(m, (x, y), (dx, dy))
-
-    def _make_frac_grid_original(self, frac_spacing, seed):
-        """Create a grid that contains a network of random fractures.
-
-        Creates a grid containing a network of random fractures, which are
-        represented as 1's embedded in a grid of 0's. The grid is stored in
-        the "fracture_at_node" field.
-
-        Parameters
-        ----------
-        frac_spacing : int
-            Average spacing of fractures (in grid cells)
-        seed : int
-            Seed used for random number generator
-        """
-        # Make an initial grid of all zeros. If user specified a model grid,
-        # use that. Otherwise, use the given dimensions.
-        nr = self._grid.number_of_node_rows
-        nc = self._grid.number_of_node_columns
-        m = self._grid.at_node["fracture_at_node"].reshape((nr, nc))
-
-        # Add fractures to grid
-        nfracs = (nr + nc) // frac_spacing
-        for i in range(nfracs):
-
-            (x, y) = _calc_fracture_starting_position((nr, nc))
-            ang = _calc_fracture_orientation((x, y))
-            (dx, dy) = _calc_fracture_step_sizes(ang)
-
-            _trace_fracture_through_grid(m, (x, y), (dx, dy))
-
-
-if __name__=='__main__':
-    pass
