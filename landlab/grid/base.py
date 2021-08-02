@@ -2884,7 +2884,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF SUBSET
         """
-        assert mode is None
         return find_nearest_node(self, coords)
 
     # def node_has_boundary_neighbor(self, ids):
