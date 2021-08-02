@@ -451,6 +451,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
         >>> from landlab import HexModelGrid
         >>> pid = np.arange(25, dtype=int)
@@ -1039,6 +1040,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from landlab import HexModelGrid
         >>> from landlab.ca.hex_cts import HexCTS
         >>> from landlab.ca.celllab_cts import Transition
