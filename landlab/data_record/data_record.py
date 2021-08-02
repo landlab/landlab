@@ -483,6 +483,7 @@ class DataRecord(object):
         >>> dr3.add_record(time=[50.0], new_record={'mean_elev': (['time'], [110])})
         >>> dr3.dataset['mean_elev'].to_dataframe()
               mean_elev
+        time
         0.0         NaN
         2.0         NaN
         50.0      110.0

@@ -85,8 +85,12 @@ def test_simple_water_table_adaptive_dt():
     rg = RasterModelGrid((3, 3), bc=boundaries)
     rg.add_zeros("aquifer_base__elevation", at="node")
     rg.add_ones("topographic__elevation", at="node")
+    rg.add_zeros("water_table__elevation", at="node")
+    rg.at_node["water_table__elevation"][rg.core_nodes] += 1e-10
     gdp = GroundwaterDupuitPercolator(
-        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01, courant_coefficient=0.01
+        rg,
+        recharge_rate=1.0e-8,
+        hydraulic_conductivity=0.01,
     )
     for i in range(10):
         gdp.run_with_adaptive_time_step_solver(1e4)
@@ -196,10 +200,9 @@ def test_wt_above_surface_standard_run_step():
 
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    elev = grid.add_ones("node", "topographic__elevation")
-    wt = grid.add_zeros("node", "water_table__elevation")
-    _ = grid.add_zeros("aquifer_base__elevation", at="node")
-    wt[:] = elev + 1
+    wt = grid.add_ones("node", "water_table__elevation")
+    _ = grid.add_ones("node", "topographic__elevation")
+    _ = grid.add_zeros("node", "aquifer_base__elevation")
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
@@ -210,11 +213,9 @@ def test_wt_above_surface_standard_run_step():
 def test_wt_above_surface_adaptive_run_step():
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    elev = grid.add_ones("node", "topographic__elevation")
-    wt = grid.add_zeros("node", "water_table__elevation")
-    _ = grid.add_zeros("aquifer_base__elevation", at="node")
-
-    wt[:] = elev + 1
+    wt = grid.add_ones("node", "water_table__elevation")
+    _ = grid.add_ones("node", "topographic__elevation")
+    _ = grid.add_zeros("node", "aquifer_base__elevation")
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
