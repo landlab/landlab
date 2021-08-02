@@ -1,97 +1,7 @@
-"""Simulate detachment limited sediment transport.
+"""Landlab component that simulates detachment-limited river erosion.
 
-Landlab component that simulates detachment limited sediment transport is more
-general than the stream power component. Doesn't require the upstream node
-order, links to flow receiver and flow receiver fields. Instead, takes in
-the discharge values on NODES calculated by the OverlandFlow class and
-erodes the landscape in response to the output discharge.
-
-As of right now, this component relies on the OverlandFlow component
-for stability. There are no stability criteria implemented in this class.
-To ensure model stability, use StreamPowerEroder or FastscapeEroder
-components instead.
-
-.. codeauthor:: Jordan Adams
-
-Examples
---------
->>> import numpy as np
->>> from landlab import RasterModelGrid
->>> from landlab.components import DetachmentLtdErosion
-
-Create a grid on which to calculate detachment ltd sediment transport.
-
->>> grid = RasterModelGrid((4, 5))
-
-The grid will need some data to provide the detachment limited sediment
-transport component. To check the names of the fields that provide input to
-the detachment ltd transport component, use the *input_var_names* class
-property.
-
-Create fields of data for each of these input variables.
-
->>> grid.at_node['topographic__elevation'] = np.array([
-...     0., 0., 0., 0., 0.,
-...     1., 1., 1., 1., 1.,
-...     2., 2., 2., 2., 2.,
-...     3., 3., 3., 3., 3.])
-
-Using the set topography, now we will calculate slopes on all nodes.
-
-
->>> grid.at_node['topographic__slope'] = np.array([
-...     -0.        , -0.        , -0.        , -0.        , -0,
-...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
-...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
-...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678])
-
-
-Now we will arbitrarily add water discharge to each node for simplicity.
->>> grid.at_node['surface_water__discharge'] = np.array([
-...     30., 30., 30., 30., 30.,
-...     20., 20., 20., 20., 20.,
-...     10., 10., 10., 10., 10.,
-...      5., 5., 5., 5., 5.])
-
-Instantiate the `DetachmentLtdErosion` component to work on this grid, and
-run it. In this simple case, we need to pass it a time step ('dt')
-
->>> dt = 10.0
->>> dle = DetachmentLtdErosion(grid)
->>> dle.run_one_step(dt=dt)
-
-After calculating the erosion rate, the elevation field is updated in the
-grid. Use the *output_var_names* property to see the names of the fields that
-have been changed.
-
->>> dle.output_var_names
-('topographic__elevation',)
-
-The `topographic__elevation` field is defined at nodes.
-
->>> dle.var_loc('topographic__elevation')
-'node'
-
-
-Now we test to see how the topography changed as a function of the erosion
-rate.
-
->>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
-        1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
-        2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
-
-References
-----------
-**Required Software Citation(s) Specific to this Component**
-
-None Listed
-
-**Additional References**
-
-Howard, A. (1994). A detachment-limited model of drainage basin evolution. Water
-Resources Research  30(7), 2261-2285. https://dx.doi.org/10.1029/94wr00757
+This component calculates changes in elevation in response to
+vertical incision.
 """
 
 import numpy as np
@@ -100,11 +10,100 @@ from landlab import Component
 
 
 class DetachmentLtdErosion(Component):
+    """Simulate detachment limited sediment transport.
 
-    """Landlab component that simulates detachment-limited river erosion.
+    Landlab component that simulates detachment limited sediment transport is more
+    general than the stream power component. Doesn't require the upstream node
+    order, links to flow receiver and flow receiver fields. Instead, takes in
+    the discharge values on NODES calculated by the OverlandFlow class and
+    erodes the landscape in response to the output discharge.
 
-    This component calculates changes in elevation in response to
-    vertical incision.
+    As of right now, this component relies on the OverlandFlow component
+    for stability. There are no stability criteria implemented in this class.
+    To ensure model stability, use StreamPowerEroder or FastscapeEroder
+    components instead.
+
+    .. codeauthor:: Jordan Adams
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import DetachmentLtdErosion
+
+    Create a grid on which to calculate detachment ltd sediment transport.
+
+    >>> grid = RasterModelGrid((4, 5))
+
+    The grid will need some data to provide the detachment limited sediment
+    transport component. To check the names of the fields that provide input to
+    the detachment ltd transport component, use the *input_var_names* class
+    property.
+
+    Create fields of data for each of these input variables.
+
+    >>> grid.at_node['topographic__elevation'] = np.array([
+    ...     0., 0., 0., 0., 0.,
+    ...     1., 1., 1., 1., 1.,
+    ...     2., 2., 2., 2., 2.,
+    ...     3., 3., 3., 3., 3.])
+
+    Using the set topography, now we will calculate slopes on all nodes.
+
+
+    >>> grid.at_node['topographic__slope'] = np.array([
+    ...     -0.        , -0.        , -0.        , -0.        , -0,
+    ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
+    ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
+    ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678])
+
+
+    Now we will arbitrarily add water discharge to each node for simplicity.
+    >>> grid.at_node['surface_water__discharge'] = np.array([
+    ...     30., 30., 30., 30., 30.,
+    ...     20., 20., 20., 20., 20.,
+    ...     10., 10., 10., 10., 10.,
+    ...      5., 5., 5., 5., 5.])
+
+    Instantiate the `DetachmentLtdErosion` component to work on this grid, and
+    run it. In this simple case, we need to pass it a time step ('dt')
+
+    >>> dt = 10.0
+    >>> dle = DetachmentLtdErosion(grid)
+    >>> dle.run_one_step(dt=dt)
+
+    After calculating the erosion rate, the elevation field is updated in the
+    grid. Use the *output_var_names* property to see the names of the fields that
+    have been changed.
+
+    >>> dle.output_var_names
+    ('topographic__elevation',)
+
+    The `topographic__elevation` field is defined at nodes.
+
+    >>> dle.var_loc('topographic__elevation')
+    'node'
+
+
+    Now we test to see how the topography changed as a function of the erosion
+    rate.
+
+    >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
+            1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
+            2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Howard, A. (1994). A detachment-limited model of drainage basin evolution. Water
+    Resources Research  30(7), 2261-2285. https://dx.doi.org/10.1029/94wr00757
     """
 
     _name = "DetachmentLtdErosion"

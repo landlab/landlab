@@ -10,7 +10,13 @@ Peer-reviewed journal articles
 2021
 ````
 
+Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Rivers and the Importance of Subplate Support.** *Geophysical Research Letters,* 48(1), e2020GL091107, `https://doi.org/10.1029/2020GL091107 <https://doi.org/10.1029/2020GL091107>`__.
+
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
+
+Quichimbo, E. A., Singer, M. B., Michaelides, K., Hobley, D. E. J., Rosolem, R., & Cuthbert, M. O. (2021). **DRYP 1.0: A parsimonious hydrological model of DRYland Partitioning of the water balance.** *Geoscientific Model Development Discussions \[preprint\],* `https://doi.org/10.5194/gmd-2021-137 <https://doi.org/10.5194/gmd-2021-137>`__.
+
+Sheehan, C. E., & Ward, D. J. (2021). **An Autogenic Cycle of Fluvial Transience in Dipping, Layered Rocks.** *Geophysical Research Letters,* 48(1), e2020GL090246, `https://doi.org/10.1029/2020GL090246 <https://doi.org/10.1029/2020GL090246>`__.
 
 Shen, H., Lynch, B., Poulsen, C. J., & Yanites, B. J. (2021). **A modeling framework (WRF-Landlab) for simulating orogen-scale climate-erosion coupling.** *Computers & Geosciences,* 146, 104625, `https://doi.org/10.1016/j.cageo.2020.104625 <https://doi.org/10.1016/j.cageo.2020.104625>`__.
 
@@ -132,6 +138,11 @@ vegetation cover over millennial to million-year timescales.** *Earth
 Surface Dynamics*, 6(4), 859-881,
 `doi:10.5194/esurf-6-859-2018 <https://www.earth-surf-dynam.net/6/859/2018/>`__.
 
+Singer, M. B., Michaelides, K., & Hobley, D. E. J. (2018) **STORM 1.0: a
+simple, flexible, and parsimonious stochastic rainfall generator for simulating
+climate and climate change.** *Geoscientific Model Development*,  11, 3713–3726,
+`https://doi.org/10.5194/gmd-11-3713-2018 <https://doi.org/10.5194/gmd-11-3713-2018>`__.
+
 Strauch, R.E., Istanbulluoglu, E., Nudurupati, S.S., Bandaragoda, C.,
 Gasparini, N.M., & Tucker, G.E. (2018) **A hydro-climatological approach
 to predicting regional landslide probability using Landlab.** *Earth
@@ -209,6 +220,20 @@ Press
 `Grad student helps build model to study wildfires. <https://news.tulane.edu/news/grad-student-helps-build-model-study-wildfires>`__
 Benjamin Morris, *New Wave: Tulane News*. November 11, 2016.
 `article <https://news.tulane.edu/news/grad-student-helps-build-model-study-wildfires>`__
+
+Theses, Dissertations, and Reports
+----------------------------------
+
+2020
+````
+
+Lai, J. (2020). **Constraining tectonic and climatic controls on glacial/postglacial landscape evolution using numerical modeling** (Doctoral dissertation, University of Illinois at Urbana-Champaign).
+
+2018
+````
+
+Mahmoudi, M. (2018). **Comparing model predictions of hillslope sediment size distribution with field measurements** (Doctoral dissertation, San Francisco State University).
+
 
 Presentations
 -------------
