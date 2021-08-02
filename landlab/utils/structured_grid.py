@@ -371,14 +371,14 @@ def node_coords(shape, *args):
     try:
         spacing = args[0]
     except IndexError:
-        spacing = np.ones(len(shape), dtype=np.float)
+        spacing = np.ones(len(shape), dtype=float)
     else:
         assert len(spacing) == len(shape)
 
     try:
         origin = args[1]
     except IndexError:
-        origin = np.zeros(len(shape), dtype=np.float)
+        origin = np.zeros(len(shape), dtype=float)
     else:
         assert len(origin) == len(origin)
 

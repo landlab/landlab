@@ -414,7 +414,7 @@ class Flexure1D(Component):
             Deflections caused by the loading.
         """
         if out is None:
-            out = np.zeros_like(loads, dtype=np.float)
+            out = np.zeros_like(loads, dtype=float)
 
         loads = loads.reshape((-1, loads.shape[-1]))
         dz = out[..., :].reshape((-1, out.shape[-1]))
