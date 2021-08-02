@@ -302,6 +302,7 @@ def _imshow_grid_values(
                 kwds["vmin"] = vmin
             if vmax is not None:
                 kwds["vmax"] = vmax
+        kwds["norm"] = norm
 
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
@@ -309,7 +310,7 @@ def _imshow_grid_values(
         plt.autoscale(tight=True)
 
         if allow_colorbar:
-            cb = plt.colorbar(norm=norm, shrink=shrink)
+            cb = plt.colorbar(shrink=shrink)
             if colorbar_label:
                 cb.set_label(colorbar_label)
     else:
