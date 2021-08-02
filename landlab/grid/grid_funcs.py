@@ -109,8 +109,8 @@ def find_nearest_node(grid, coords):
         if y.dtype is not np.dtype(float):
             y = y.astype(float)
     # handle 0dim arrays:
-    x = x.reshape((x.size, ))
-    y = y.reshape((y.size, ))
+    x = x.reshape((x.size,))
+    y = y.reshape((y.size,))
     out = np.empty_like(x, dtype=int)
     _get_closest_nodes(out, grid.node_x, grid.node_y, x, y)
     return out
