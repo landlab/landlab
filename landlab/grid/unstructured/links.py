@@ -17,12 +17,12 @@ def _split_link_ends(link_ends):
     >>> _split_link_ends((0, 3))
     (array([0]), array([3]))
     """
-    links = np.array(list(link_ends), ndmin=2, dtype=np.int)
+    links = np.array(list(link_ends), ndmin=2, dtype=int)
     if len(links) != 2:
         links = links.transpose()
 
     if links.size == 0:
-        return (np.array([], dtype=np.int), np.array([], dtype=np.int))
+        return (np.array([], dtype=int), np.array([], dtype=int))
     else:
         return links[0], links[1]
 
@@ -192,7 +192,7 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
     sorted_links = np.argsort(node_at_link_ends[sortby])
 
     if link_ids is not None:
-        return np.array(link_ids, dtype=np.int)[sorted_links]
+        return np.array(link_ids, dtype=int)[sorted_links]
     else:
         return as_id_array(sorted_links)
 
