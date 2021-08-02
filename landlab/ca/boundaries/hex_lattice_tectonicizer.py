@@ -14,7 +14,6 @@ Created on Mon Nov 17 08:01:49 2014
 @author: gtucker
 """
 
-import numpy as np
 from numpy import (
     amax,
     arange,
