@@ -132,6 +132,10 @@ def find_nearest_node(rmg, coords, mode="raise"):
     array_like :
         Indices of the nodes nearest the given coordinates.
 
+    Notes
+    -----
+    The closest node *can* be closed, or a boundary.
+
     Examples
     --------
     Create a grid of 4 by 5 nodes with unit spacing.

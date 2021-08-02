@@ -74,6 +74,7 @@ def find_nearest_node(grid, coords):
     -----
     This base function is fairly slow. For a raster, use the equivalent, much
     faster, raster_funcs.find_nearest_node.
+    The closest node *can* be closed, or a boundary.
 
     Examples
     --------
@@ -107,6 +108,9 @@ def find_nearest_node(grid, coords):
     else:
         if y.dtype is not np.dtype(float):
             y = y.astype(float)
+    # handle 0dim arrays:
+    x = x.reshape((x.size, ))
+    y = y.reshape((y.size, ))
     out = np.empty_like(x, dtype=int)
     _get_closest_nodes(out, grid.node_x, grid.node_y, x, y)
     return out
