@@ -752,7 +752,7 @@ class GroundwaterDupuitPercolator(Component):
                 np.divide(
                     self._grid.length_of_link,
                     abs(self._vel / self._n_link),
-                    where=self._vel > 0,
+                    where=abs(self._vel) > 0,
                     out=np.ones_like(self._q) * 1e15,
                 )
             )
