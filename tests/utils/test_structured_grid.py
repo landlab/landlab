@@ -271,7 +271,7 @@ def test_vertical_active_link_count():
     link_count = sgrid.vertical_active_link_count((3, 2))
     assert 0 == link_count
 
-    node_status = np.ones((4, 5), dtype=np.int)
+    node_status = np.ones((4, 5), dtype=int)
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
     assert 9 == link_count
 
@@ -300,7 +300,7 @@ def test_horizontal_active_link_count():
     link_count = sgrid.horizontal_active_link_count((2, 3))
     assert 0 == link_count
 
-    node_status = np.ones((4, 5), dtype=np.int)
+    node_status = np.ones((4, 5), dtype=int)
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
     assert 8 == link_count
 

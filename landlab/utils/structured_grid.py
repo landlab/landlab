@@ -224,13 +224,13 @@ def left_right_iter(shape, *args):
     --------
     >>> import numpy as np
     >>> from landlab.utils.structured_grid import left_right_iter
-    >>> np.fromiter(left_right_iter((4, 3)), dtype=np.int)
+    >>> np.fromiter(left_right_iter((4, 3)), dtype=int)
     array([ 0,  2,  3,  5,  6,  8,  9, 11])
-    >>> np.fromiter(left_right_iter((4, 3), 2), dtype=np.int)
+    >>> np.fromiter(left_right_iter((4, 3), 2), dtype=int)
     array([0, 2, 3, 5])
-    >>> np.fromiter(left_right_iter((4, 3), 2, 4), dtype=np.int)
+    >>> np.fromiter(left_right_iter((4, 3), 2, 4), dtype=int)
     array([ 6,  8,  9, 11])
-    >>> np.fromiter(left_right_iter((4, 3), 1, 4, 2), dtype=np.int)
+    >>> np.fromiter(left_right_iter((4, 3), 1, 4, 2), dtype=int)
     array([ 3,  5,  9, 11])
     """
     if len(args) == 0:
@@ -254,7 +254,7 @@ def bottom_top_iter(shape):
     --------
     >>> import numpy as np
     >>> from landlab.utils.structured_grid import bottom_top_iter
-    >>> np.fromiter(bottom_top_iter((4, 3)), dtype=np.int)
+    >>> np.fromiter(bottom_top_iter((4, 3)), dtype=int)
     array([ 0,  1,  2,  9, 10, 11])
     """
     return itertools.chain(bottom_index_iter(shape), top_index_iter(shape))
@@ -270,7 +270,7 @@ def perimeter_iter(shape):
     --------
     >>> import numpy as np
     >>> from landlab.utils.structured_grid import perimeter_iter
-    >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
+    >>> np.fromiter(perimeter_iter((4, 3)), dtype=int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
     return itertools.chain(
@@ -291,7 +291,7 @@ def perimeter_nodes(shape):
     >>> perimeter_nodes((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
     """
-    return np.fromiter(perimeter_iter(shape), dtype=np.int)
+    return np.fromiter(perimeter_iter(shape), dtype=int)
 
 
 def corners(shape):
@@ -303,22 +303,22 @@ def corners(shape):
 
 def bottom_edge_node_ids(shape):
     """Array of nodes on the bottom edge."""
-    return np.fromiter(bottom_index_iter(shape), dtype=np.int)
+    return np.fromiter(bottom_index_iter(shape), dtype=int)
 
 
 def top_edge_node_ids(shape):
     """Array of nodes on the top edge."""
-    return np.fromiter(top_index_iter(shape), dtype=np.int)
+    return np.fromiter(top_index_iter(shape), dtype=int)
 
 
 def left_edge_node_ids(shape):
     """Array of nodes on the left edge."""
-    return np.fromiter(left_index_iter(shape), dtype=np.int)
+    return np.fromiter(left_index_iter(shape), dtype=int)
 
 
 def right_edge_node_ids(shape):
     """Array of nodes on the right edge."""
-    return np.fromiter(right_index_iter(shape), dtype=np.int)
+    return np.fromiter(right_index_iter(shape), dtype=int)
 
 
 def interior_iter(shape):
@@ -328,7 +328,7 @@ def interior_iter(shape):
     --------
     >>> import numpy as np
     >>> from landlab.utils.structured_grid import interior_iter
-    >>> np.fromiter(interior_iter((4, 3)), dtype=np.int)
+    >>> np.fromiter(interior_iter((4, 3)), dtype=int)
     array([4, 7])
     """
     interiors = []
@@ -340,7 +340,7 @@ def interior_iter(shape):
 
 def interior_nodes(shape):
     """Array of interior nodes."""
-    return np.fromiter(interior_iter(shape), dtype=np.int)
+    return np.fromiter(interior_iter(shape), dtype=int)
 
 
 def node_coords(shape, *args):
@@ -371,14 +371,14 @@ def node_coords(shape, *args):
     try:
         spacing = args[0]
     except IndexError:
-        spacing = np.ones(len(shape), dtype=np.float)
+        spacing = np.ones(len(shape), dtype=float)
     else:
         assert len(spacing) == len(shape)
 
     try:
         origin = args[1]
     except IndexError:
-        origin = np.zeros(len(shape), dtype=np.float)
+        origin = np.zeros(len(shape), dtype=float)
     else:
         assert len(origin) == len(origin)
 
@@ -469,7 +469,7 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
 
     num_links = link_count(shape)
 
-    link_faces = np.empty(num_links, dtype=np.int)
+    link_faces = np.empty(num_links, dtype=int)
     link_faces.fill(inactive_link_index)
     link_faces[actives] = np.arange(len(actives))
 
@@ -678,7 +678,7 @@ def active_outlinks2(shape, node_status=None):
 
 def vertical_link_ids(shape):
     """Array of links oriented vertically."""
-    link_ids = np.empty((shape[0] - 1, shape[1]), dtype=np.int)
+    link_ids = np.empty((shape[0] - 1, shape[1]), dtype=int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0] - 1):
         link_ids[r, :] = (shape[1] - 1) + (r * num_links_per_row) + np.arange(shape[1])
@@ -687,7 +687,7 @@ def vertical_link_ids(shape):
 
 def horizontal_link_ids(shape):
     """Array of links oriented horizontally."""
-    link_ids = np.empty((shape[0], shape[1] - 1), dtype=np.int)
+    link_ids = np.empty((shape[0], shape[1] - 1), dtype=int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0]):
         link_ids[r, :] = (r * num_links_per_row) + np.arange(shape[1] - 1)
@@ -782,7 +782,7 @@ def horizontal_inactive_link_mask(shape, node_status):
 
 
 # def vertical_active_link_ids(shape):
-#    link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
+#    link_ids = np.arange(vertical_active_link_count(shape), dtype=int)
 #    link_ids.shape = (shape[0] - 1, shape[1] - 2)
 #    return link_ids
 
@@ -790,7 +790,7 @@ def horizontal_inactive_link_mask(shape, node_status):
 def vertical_active_link_ids(shape, node_status=None):
     """Array of active links oriented vertically."""
     if node_status is None:
-        link_ids = np.arange(vertical_active_link_count(shape), dtype=np.int)
+        link_ids = np.arange(vertical_active_link_count(shape), dtype=int)
         # link_ids.shape = (shape[0] - 1, shape[1] - 2)
         # return link_ids
     else:
@@ -844,7 +844,7 @@ def vertical_active_link_ids2(shape, node_status=None):
     rather than "active link IDs" for active links. Designed to ultimately
     replace the original vertical_active_link_ids().
     """
-    link_ids = np.empty((shape[0] - 1, shape[1] - 2), dtype=np.int)
+    link_ids = np.empty((shape[0] - 1, shape[1] - 2), dtype=int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0] - 1):
         link_ids[r, :] = shape[1] + (r * num_links_per_row) + np.arange(shape[1] - 2)
@@ -863,7 +863,7 @@ def horizontal_active_link_ids(shape, node_status=None):
         link_ids = np.arange(
             link_id_offset,
             link_id_offset + horizontal_active_link_count(shape),
-            dtype=np.int,
+            dtype=int,
         )
     else:
         link_id_offset = vertical_active_link_count(shape, node_status=node_status)
@@ -874,7 +874,7 @@ def horizontal_active_link_ids(shape, node_status=None):
         link_ids = np.empty(inactive_links.size)
         link_ids[inactive_links] = -1
         link_ids[~inactive_links] = np.arange(
-            link_id_offset, link_id_offset + active_link_count_, dtype=np.int
+            link_id_offset, link_id_offset + active_link_count_, dtype=int
         )
     link_ids.shape = (shape[0] - 2, shape[1] - 1)
     return link_ids
@@ -916,7 +916,7 @@ def horizontal_active_link_ids2(shape, node_status=None):
     links rather than "active link IDs" for active links. Designed to
     ultimately replace the original horizontal_active_link_ids().
     """
-    link_ids = np.empty((shape[0] - 2, shape[1] - 1), dtype=np.int)
+    link_ids = np.empty((shape[0] - 2, shape[1] - 1), dtype=int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0] - 2):
         link_ids[r, :] = ((r + 1) * num_links_per_row) + np.arange(shape[1] - 1)
@@ -940,7 +940,7 @@ def west_links(shape):
     """
     link_ids = horizontal_link_ids(shape)
     link_ids.shape = (shape[0], shape[1] - 1)
-    return np.hstack((-np.ones((shape[0], 1), dtype=np.int), link_ids))
+    return np.hstack((-np.ones((shape[0], 1), dtype=int), link_ids))
 
 
 def north_links(shape):
@@ -956,7 +956,7 @@ def north_links(shape):
     """
     link_ids = vertical_link_ids(shape)
     link_ids.shape = (shape[0] - 1, shape[1])
-    return np.vstack((link_ids, -np.ones((1, shape[1]), dtype=np.int)))
+    return np.vstack((link_ids, -np.ones((1, shape[1]), dtype=int)))
 
 
 def south_links(shape):
@@ -972,7 +972,7 @@ def south_links(shape):
     """
     link_ids = vertical_link_ids(shape)
     link_ids.shape = (shape[0] - 1, shape[1])
-    return np.vstack((-np.ones((1, shape[1]), dtype=np.int), link_ids))
+    return np.vstack((-np.ones((1, shape[1]), dtype=int), link_ids))
 
 
 def east_links(shape):
@@ -1166,7 +1166,7 @@ def active_east_links2(shape, node_status=None):
 
 def outlink_count_per_node(shape):
     """Number of links leaving each node."""
-    link_count_ = np.empty(shape, dtype=np.int)
+    link_count_ = np.empty(shape, dtype=int)
     link_count_[:-1, :-1] = 2
     link_count_[-1, :-1] = 1
     link_count_[:-1, -1] = 1
@@ -1176,7 +1176,7 @@ def outlink_count_per_node(shape):
 
 def inlink_count_per_node(shape):
     """Number of links entering each node."""
-    link_count_ = np.empty(shape, dtype=np.int)
+    link_count_ = np.empty(shape, dtype=int)
     link_count_[1:, 1:] = 2
     link_count_[0, 1:] = 1
     link_count_[1:, 0] = 1
@@ -1186,7 +1186,7 @@ def inlink_count_per_node(shape):
 
 def active_outlink_count_per_node(shape):
     """Number of active links leaving each node."""
-    link_count_ = np.empty(shape, dtype=np.int)
+    link_count_ = np.empty(shape, dtype=int)
     link_count_[1:-1, 1:-1] = 2
     link_count_[0, :] = 1
     link_count_[-1, :] = 0
@@ -1201,7 +1201,7 @@ def active_outlink_count_per_node(shape):
 
 def active_inlink_count_per_node(shape):
     """Number of active links entering each node."""
-    link_count_ = np.empty(shape, dtype=np.int)
+    link_count_ = np.empty(shape, dtype=int)
     link_count_[1:-1, 1:-1] = 2
     link_count_[0, :] = 0
     link_count_[-1, :] = 1
@@ -1411,7 +1411,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     """
     shape_with_halo = np.array(shape) + 2
 
-    ids = np.empty(shape_with_halo, dtype=np.int)
+    ids = np.empty(shape_with_halo, dtype=int)
 
     (interiors, boundaries) = (
         interior_nodes(shape_with_halo),
@@ -1599,7 +1599,7 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         else:
             return neighbors
     else:
-        return np.array([], dtype=np.int)
+        return np.array([], dtype=int)
 
 
 def diagonal_node_array(
@@ -1642,7 +1642,7 @@ def diagonal_node_array(
     ).T
 
     if boundary_node_mask is not None:
-        boundaries = np.empty(4, dtype=np.int)
+        boundaries = np.empty(4, dtype=int)
         boundaries.fill(boundary_node_mask)
         diags[perimeter_nodes(shape)] = boundaries
 
@@ -1701,7 +1701,7 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         else:
             return diags
     else:
-        return np.array([], dtype=np.int)
+        return np.array([], dtype=int)
 
 
 def node_has_boundary_neighbor(neighbors, diagonals, out_of_bounds=BAD_INDEX_VALUE):
