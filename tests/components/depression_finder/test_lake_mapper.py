@@ -2030,10 +2030,10 @@ def test_precision_in_cython():
             [0.0, 90.0, 90.0, 90.0, 90.0, 0.0],
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         ],
-        dtype=np.float,
+        dtype=float,
     )
 
-    np_2D_init_topo = np.flipud(input_topo.astype(np.float))
+    np_2D_init_topo = np.flipud(input_topo.astype(float))
     map_shape = np_2D_init_topo.shape
     np_1D_init_topo = np_2D_init_topo.ravel()
 

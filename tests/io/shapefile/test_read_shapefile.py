@@ -169,8 +169,8 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
                 "Elev_m": "topographic__elevation",
                 "ToLink": "shapefile_to",
             },
-            link_field_dtype={"ToLink": np.int},
-            node_field_dtype={"ToLink": np.int},
+            link_field_dtype={"ToLink": int},
+            node_field_dtype={"ToLink": int},
             threshold=0.01,
         )
 
@@ -222,8 +222,8 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
         assert grid.y_of_node[22] == approx(5374213.8330760002)
 
         # verify dtype changes.
-        assert grid.at_link["shapefile_to"].dtype == np.int
-        assert grid.at_node["shapefile_to"].dtype == np.int
+        assert grid.at_link["shapefile_to"].dtype == int
+        assert grid.at_node["shapefile_to"].dtype == int
 
         # verify that fields are mapped correctly. choose two links and two nodes
         # to test.
