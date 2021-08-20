@@ -5,6 +5,7 @@ Calculate dimensionless dischange of stream sections based on Tang (2019)
 """
 
 import numpy as np
+import math
 from numpy.core.records import array
 
 
@@ -61,26 +62,52 @@ class DimensionlessDischange(Component):
     _name = "DimensionlessDischangeModel"
 
     _unit_agnostic = False
-
-    _info = {
-    "soil_density": {
-        "dtype": list[float],
-        "intent": "in",
-        "optional": False,
-        "units": "kg/m^2",
-        "doc": "density of soil in stream segment",
-    },
-     "water__velocity": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m/s",
-            "mapping": "link",
-            "doc": "flow velocity component in the direction of the link",
-        },
-    }
-
     
 
-    def __init__():
-        pass
+    def __init__(self, soil_density=1330, d50=[], C=12.0, N=0.85, stream_slopes=[], flux=[[]]):
+        """Initialize the DimensionlessDischange.
+
+        Parameters
+        ----------
+        soil_density : float, required (defaults to empty list [])
+            density of soil (kg/m^3)
+        d50 : list[float], required (defaults to 1 hour)
+            soil partical size (m)
+        C : float, optional (defaults to 12.0)
+            
+        N : float, defaults to 0.85
+            
+        stream_slope: list[float], required (defaults to empty list [])
+            Slope of each segment in the stream
+        stream_flux: list[list[float]], required (default to empty 2D list)
+            Flux value calculated for each stream segment
+        """
+        # Store parameters and do unit conversion
+        self._current_time = 0
+        self._iteration = 0
+        self._soil_density = soil_density
+        self._d50 = d50
+        self._C = C
+        self._N = N
+        self._stream_slopes = stream_slopes
+        self._flux = flux
+        self._dimensionless_discharge = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
+        self._dimensionless_discharge_above_threshold = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
+
+        #set threshold values for each segment
+        self._dimensionless_discharge_threshold_value = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
+        for i in range(len(self._dimensionless_discharge_threshold_value)):
+            for j in range(len(i)):
+                self._dimensionless_discharge_threshold_value[i][j] = C/(math.tan(self._stream_slopes[i])**N)
+
+    def run_one_step(self, dt):
+        for i in range(self._iteration):
+            self._dimensionless_discharge[self.iteration][i] = self._flux[0][i]/math.sqrt(((self._soil_density
+        -_WATER_DENSITY)/_WATER_DENSITY)*_GRAVITY*(self._d50[i]**3))
+            if self._dimensionless_discharge[self.iteration][i] >= self._dimensionless_discharge_threshold_value[i]:
+                self._dimensionless_discharge_above_threshold[self.iteration][i] = 1
+
+        self.iteration+=1
+        self._current_time += dt
+
+        
