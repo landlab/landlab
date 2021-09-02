@@ -4,9 +4,8 @@
 Calculate dimensionless dischange of stream sections based on Tang (2019)
 """
 
-import numpy as np
 import math
-from numpy.core.records import array
+from landlab import Component
 
 
 _WATER_DENSITY = 997.9 # kg/m^3
@@ -62,9 +61,27 @@ class DimensionlessDischange(Component):
     _name = "DimensionlessDischangeModel"
 
     _unit_agnostic = False
-    
 
-    def __init__(self, soil_density=1330, d50=[], C=12.0, N=0.85, stream_slopes=[], flux=[[]]):
+    _info = {
+        "dimensionless_discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "none",
+            "mapping": "node",
+            "doc": "Dimensionless discharge value for a stream segment.",
+        },
+        "dimensionless_discharge_above_threshold": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "none",
+            "mapping": "node",
+            "doc": "Dimensionless discharge value for a stream segment.",
+        }
+    }
+    
+    def __init__(self, grid, soil_density=1330, d50=[], C=12.0, N=0.85, stream_slopes=[], flux=[[]]):
         """Initialize the DimensionlessDischange.
 
         Parameters
@@ -82,6 +99,9 @@ class DimensionlessDischange(Component):
         stream_flux: list[list[float]], required (default to empty 2D list)
             Flux value calculated for each stream segment
         """
+
+        super().__init__(grid)
+
         # Store parameters and do unit conversion
         self._current_time = 0
         self._iteration = 0
@@ -91,8 +111,8 @@ class DimensionlessDischange(Component):
         self._N = N
         self._stream_slopes = stream_slopes
         self._flux = flux
-        self._dimensionless_discharge = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
-        self._dimensionless_discharge_above_threshold = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
+        self._dimensionless_discharge = self.grid.at_node["dimensionless_discharge"]
+        self._dimensionless_discharge_above_threshold = self.grid.at_node["dimensionless_discharge_above_threshold"]
 
         #set threshold values for each segment
         self._dimensionless_discharge_threshold_value = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
