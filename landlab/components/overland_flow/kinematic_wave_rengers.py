@@ -113,41 +113,46 @@ class KinematicWaveRengers(Component):
 
     _name = "KinematicWaveRengers"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "surface_water__depth",
-    )
+    _unit_agnostic = False
 
-    _output_var_names = (
-        "surface_water__depth",
-        "surface_water__discharge",
-        "surface_water__velocity",
-    )
+    _info = {
+        "surface_water__depth": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of water on the surface",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
 
-    _var_units = {
-        "topographic__elevation": "m",
-        "surface_water__depth": "m",
-        "surface_water__discharge": "m**3/s",
-        "surface_water__velocity": "m/s",
+        "surface_water__discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Magnitude of discharge of water above the surface",
+        },
+
+        "surface_water__velocity": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "Speed of water flow above the surface",
+        },
+
     }
 
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "surface_water__depth": "node",
-        "surface_water__discharge": "node",
-        "surface_water__velocity": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "surface_water__depth": "Depth of water above the surface",
-        "surface_water__discharge": (
-            "Magnitude of discharge of water above " + "the surface"
-        ),
-        "surface_water__velocity": "Speed of water flow above the surface",
-    }
-
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -160,21 +165,20 @@ class KinematicWaveRengers(Component):
         **kwds
     ):
         """Initialize the kinematic wave approximation overland flow component."""
+        super().__init__(grid)
 
-        assert isinstance(grid, RasterModelGrid), "grid must be regular"
-        self._grid = grid
-        try:
-            self.set_new_fields_for_component()
-        except AttributeError:
-            self.grid.add_empty("node", "surface_water__velocity")
-            self.grid.add_empty("node", "surface_water__discharge")
+        if not isinstance(grid, RasterModelGrid):
+            ValueError("KinematicWaveRengers: grid must be regular")
+
         active = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
         self._h = self.grid.at_node["surface_water__depth"]
         self._active = active
         self._hc = critical_flow_depth
         self._n = mannings_n
         self._negepsilon = -mannings_epsilon
-        assert not np.isclose(dt_max, 0.0)
+        if not np.isclose(dt_max, 0.0):
+            raise ValueError("KinematicWaveRengers: dt must be > 0.0")
+            
         self.dt_max = dt_max
         self.min_surface_water_depth = min_surface_water_depth
         self._active_depths = self.grid.at_node["surface_water__depth"][active]
