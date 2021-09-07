@@ -70,9 +70,9 @@ class KinematicWaveRengers(Component):
     >>> from landlab.components import KinematicWaveRengers
     >>> mg = RasterModelGrid((5, 10), 10.)
     >>> mg.status_at_node[mg.nodes_at_left_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
-    >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CORE
-    >>> mg.status_at_node[mg.nodes_at_bottom_edge] = mg.BC_NODE_IS_CORE
-    >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_CORE
+    >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
+    >>> mg.status_at_node[mg.nodes_at_bottom_edge] = mg.BC_NODE_IS_CLOSED
+    >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_CLOSED
     >>> _ = mg.add_field('node', 'topographic__elevation', 0.05*mg.node_x)
     >>> _ = mg.add_empty('node', 'surface_water__depth')
     >>> mg.at_node['surface_water__depth'].fill(1.e-8)
@@ -149,18 +149,17 @@ class KinematicWaveRengers(Component):
         dt_max=0.3,
         max_courant=0.2,
         min_surface_water_depth=1.0e-8,
-        **kwds
     ):
         """Initialize the kinematic wave approximation overland flow component."""
         super().__init__(grid)
 
-        if not isinstance(grid, RasterModelGrid):
+        if not isinstance(self.grid, RasterModelGrid):
             ValueError("KinematicWaveRengers: grid must be regular")
 
         if np.isclose(dt_max, 0.0):
             raise ValueError("KinematicWaveRengers: dt must be > 0.0")
 
-        active = np.where(self.grid.status_at_node != self._grid.BC_NODE_IS_CORE)[0]
+        active = np.nonzero(self.grid.status_at_node != self.grid.BC_NODE_IS_CLOSED)
         self._h = self.grid.at_node["surface_water__depth"]
         self._active = active
         self._hc = critical_flow_depth
@@ -188,14 +187,15 @@ class KinematicWaveRengers(Component):
             self.equaldims = False
             self.courant_prefactor = max_courant * self.grid.dx * self.grid.dy
         self._neighbors = self.grid.adjacent_nodes_at_node.copy()
-        self._neighbors[self._neighbors == self._grid.BAD_INDEX] = -1
+        self._neighbors[self._neighbors == self.grid.BAD_INDEX] = -1
         self._water_balance = []
         self.actives_BCs = (
-            self.grid.status_at_node[active] == self._grid.BC_NODE_IS_FIXED_VALUE
+            self.grid.status_at_node[active] == self.grid.BC_NODE_IS_FIXED_VALUE
         )
         self.actives_BCs_water_depth = self._h[active][self.actives_BCs]
-        fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes
+        fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes.copy()
         fixed_grad_anchors = self.grid.fixed_gradient_boundary_node_anchor_node
+
         # ^add this value to the anchor nodes to update the BCs
         # these also need to be mapped to active_IDs:
         blank_nodes = self.grid.zeros("node", dtype=bool)
@@ -204,6 +204,9 @@ class KinematicWaveRengers(Component):
         blank_nodes.fill(False)
         blank_nodes[fixed_grad_anchors] = True
         self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
+
+        # create outputs
+        self.initialize_output_fields()
 
     def run_one_step(
         self,
@@ -336,7 +339,7 @@ class KinematicWaveRengers(Component):
         If the topo changes during the run, change the held params used by
         :func:`run_one_step`.
         """
-        active = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
+        active = np.where(self.grid.status_at_node != self.grid.BC_NODE_IS_CLOSED)[0]
         all_grads = self.grid.calculate_gradients_at_links("topographic__elevation")
         hoz_grads = self.grid.map_mean_of_horizontal_active_links_to_node(all_grads)
         vert_grads = self.grid.map_mean_of_vertical_active_links_to_node(all_grads)
@@ -362,9 +365,9 @@ class KinematicWaveRengers(Component):
             self.qy.fill(0.0)
             self.qx.fill(0.0)
             self._neighbors = self.grid.adjacent_nodes_at_node.copy()
-            self._neighbors[self._neighbors == self._grid.BAD_INDEX] = -1
+            self._neighbors[self._neighbors == self.grid.BAD_INDEX] = -1
             self.actives_BCs = (
-                self.grid.status_at_node[active] == self._grid.BC_NODE_IS_FIXED_VALUE
+                self.grid.status_at_node[active] == self.grid.BC_NODE_IS_FIXED_VALUE
             )
             self.actives_BCs_water_depth = self._h[self.actives_BCs]
 
