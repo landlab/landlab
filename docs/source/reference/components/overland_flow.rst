@@ -25,7 +25,7 @@ KinematicWaveRengers
 KinwaveImplicitOverlandFlow
 ---------------------------
 
-.. automodule:: landlab.components.overland_flow.overland_flow_implicit_kinwave
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_implicit_kinwave
     :members:
     :undoc-members:
     :show-inheritance:
@@ -33,7 +33,7 @@ KinwaveImplicitOverlandFlow
 KinwaveOverlandFlowModel
 ------------------------
 
-.. automodule:: landlab.components.overland_flow.overland_flow_kinwave
+.. automodule:: landlab.components.overland_flow.generate_overland_flow_kinwave
     :members:
     :undoc-members:
     :show-inheritance:
