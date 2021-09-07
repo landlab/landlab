@@ -7,6 +7,7 @@ from .kinematic_wave_rengers import KinematicWaveRengers
 __all__ = [
     "OverlandFlowBates",
     "OverlandFlow",
+    "KinematicWaveRengers",
     "KinwaveImplicitOverlandFlow",
     "KinwaveOverlandFlowModel",
 ]

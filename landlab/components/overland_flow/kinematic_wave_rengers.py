@@ -128,7 +128,7 @@ class KinematicWaveRengers(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Magnitude of discharge of water above the surface",
+            "doc": "Volumetric discharge of surface water",
         },
         "surface_water__velocity": {
             "dtype": float,
@@ -265,7 +265,9 @@ class KinematicWaveRengers(Component):
             _hnew -= internal_dt / self.grid.dy * np.fabs(self._qx[active])
             _hnew += internal_dt / self.grid.dx * (_qy_top - _qy_bottom)[active]
             _hnew += internal_dt / self.grid.dy * (_qx_left - _qx_right)[active]
-            _hnew[self._fixed_grad_nodes_active] = _hnew[self._fixed_grad_anchors_active]
+            _hnew[self._fixed_grad_nodes_active] = _hnew[
+                self._fixed_grad_anchors_active
+            ]
             # update the internal clock
             elapsed_time_in_dt += internal_dt
 
