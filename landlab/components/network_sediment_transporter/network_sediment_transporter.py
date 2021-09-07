@@ -7,7 +7,7 @@ in bed material grain size and river bed elevation. Model framework
 described in Czuba (2018). Additions include: particle abrasion, variable
 active layer thickness (Wong et al., 2007).
 
-.. codeauthor:: Allison Pfeiffer, Katy Barnhart, Jon Czuba
+.. codeauthor:: Allison Pfeiffer, Katy Barnhart, Jon Czuba, Eric Hutton
 
 Created on Tu May 8, 2018
 Last edit was sometime after February 2020
@@ -25,6 +25,7 @@ from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
 _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
+_SUPPORTED_ACTIVE_LAYER_METHODS = ["WongParker", "GrainSizeDependent", "Constant10cm"]
 
 _REQUIRED_PARCEL_ATTRIBUTES = [
     "time_arrival_in_link",
@@ -163,6 +164,7 @@ class NetworkSedimentTransporter(Component):
     ...         g=9.81,
     ...         fluid_density=1000,
     ...         transport_method="WilcockCrowe",
+    ...         active_layer_method="WongParker"
     ...     )
 
     >>> dt = 60  # (seconds) 1 min timestep
@@ -261,6 +263,8 @@ class NetworkSedimentTransporter(Component):
         g=scipy.constants.g,
         fluid_density=1000.0,
         transport_method="WilcockCrowe",
+        active_layer_method="WongParker",
+        active_layer_d_multiplier=2,
     ):
         """
         Parameters
@@ -294,6 +298,9 @@ class NetworkSedimentTransporter(Component):
         transport_method: string
             Sediment transport equation option. Default (and currently only)
             option is "WilcockCrowe".
+        active_layer_method: string, optional
+            Option for treating sediment active layer as a constant or variable
+            (default, "WongParker")
         """
         if not isinstance(grid, NetworkModelGrid):
             msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
@@ -366,6 +373,15 @@ class NetworkSedimentTransporter(Component):
         if self._transport_method == "WilcockCrowe":
             self._update_transport_time = self._calc_transport_wilcock_crowe
 
+        if active_layer_method in _SUPPORTED_ACTIVE_LAYER_METHODS:
+            self._active_layer_method = active_layer_method
+        else:
+            msg = "NetworkSedimentTransporter: Active layer method not supported."
+            raise ValueError(msg)
+
+        if self._active_layer_method == "GrainSizeDependent":
+            self._active_layer_d_multiplier = active_layer_d_multiplier
+
         # save reference to key fields
         self._width = self._grid.at_link["channel_width"]
         self._topographic__elevation = self._grid.at_node["topographic__elevation"]
@@ -402,7 +418,7 @@ class NetworkSedimentTransporter(Component):
         return self._rhos_mean_active
 
     def _create_new_parcel_time(self):
-        """ If we are going to track parcels through time in :py:class:`~landlab.data_record.data_record.DataRecord`, we
+        """If we are going to track parcels through time in :py:class:`~landlab.data_record.data_record.DataRecord`, we
         need to add a new time column to the parcels dataframe. This method simply
         copies over the attributes of the parcels from the former timestep.
         Attributes will be updated over the course of this step.
@@ -491,40 +507,53 @@ class NetworkSedimentTransporter(Component):
 
         """
         self._vol_tot = self._parcels.calc_aggregate_value(
-            np.sum,
+            xr.Dataset.sum,
             "volume",
             at="link",
             filter_array=self._this_timesteps_parcels,
             fill_value=0.0,
         )
 
-        # Wong et al. (2007) approximation for active layer thickness.
-        # NOTE: calculated using grain size and grain density calculated for
-        # the active layer grains in each link at the **previous** timestep.
-        # This circumvents the need for an iterative scheme to determine grain
-        # size of the active layer before determining which grains are in the
-        # active layer.
+        if self._active_layer_method == "WongParker":
+            # Wong et al. (2007) approximation for active layer thickness.
+            # NOTE: calculated using grain size and grain density calculated for
+            # the active layer grains in each link at the **previous** timestep.
+            # This circumvents the need for an iterative scheme to determine grain
+            # size of the active layer before determining which grains are in the
+            # active layer.
 
-        # calculate tau
-        tau = (
-            self._fluid_density
-            * self._g
-            * self._grid.at_link["channel_slope"]
-            * self._grid.at_link["flow_depth"]
-        )
+            # calculate tau
+            tau = (
+                self._fluid_density
+                * self._g
+                * self._grid.at_link["channel_slope"]
+                * self._grid.at_link["flow_depth"]
+            )
 
-        # calcuate taustar
-        taustar = tau / (
-            (self._rhos_mean_active - self._fluid_density)
-            * self._g
-            * self._d_mean_active
-        )
+            # calcuate taustar
+            taustar = tau / (
+                (self._rhos_mean_active - self._fluid_density)
+                * self._g
+                * self._d_mean_active
+            )
 
-        # calculate active layer thickness
-        self._active_layer_thickness = (
-            0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
-        )  # in units of m
+            # calculate active layer thickness
+            self._active_layer_thickness = (
+                0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
+            )  # in units of m
 
+        elif self._active_layer_method == "GrainSizeDependent":
+            # Set all active layers to a multiple of the lnk mean grain size
+            self._active_layer_thickness = (
+                self._d_mean_active * self._active_layer_d_multiplier
+            )
+
+        elif self._active_layer_method == "Constant10cm":
+            # Set all active layers to 10 cm thickness.
+            self._active_layer_thickness = 0.1 * np.ones_like(self._d_mean_active)
+
+        # If links have no parcels, we still need to assign them an active layer
+        # thickness..
         links_with_no_active_layer = np.isnan(self._active_layer_thickness)
         self._active_layer_thickness[links_with_no_active_layer] = np.mean(
             self._active_layer_thickness[links_with_no_active_layer == 0]
@@ -559,7 +588,10 @@ class NetworkSedimentTransporter(Component):
 
                 # sort them by arrival time.
                 time_arrival_sort = np.flip(
-                    np.argsort(time_arrival[this_links_parcels], 0,)
+                    np.argsort(
+                        time_arrival[this_links_parcels],
+                        0,
+                    )
                 )
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 
@@ -580,7 +612,7 @@ class NetworkSedimentTransporter(Component):
         ) * (self._this_timesteps_parcels)
 
         self._vol_act = self._parcels.calc_aggregate_value(
-            np.sum,
+            xr.Dataset.sum,
             "volume",
             at="link",
             filter_array=self._active_parcel_records,
@@ -693,7 +725,11 @@ class NetworkSedimentTransporter(Component):
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
 
         vol_act_sand = self._parcels.calc_aggregate_value(
-            np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.0
+            xr.Dataset.sum,
+            "volume",
+            at="link",
+            filter_array=findactivesand,
+            fill_value=0.0,
         )
 
         frac_sand = np.zeros_like(self._vol_act)

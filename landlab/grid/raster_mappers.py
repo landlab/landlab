@@ -54,13 +54,13 @@ def _node_out_link_ids(shape):
 
     layout = StructuredQuadGraphTopology(shape)
 
-    node_horizontal_link_ids = np.empty(shape, np.int)
+    node_horizontal_link_ids = np.empty(shape, int)
     node_horizontal_link_ids[:, :-1] = layout.horizontal_links.reshape(
         (shape[0], shape[1] - 1)
     )
     node_horizontal_link_ids[:, -1] = -1
 
-    node_vertical_link_ids = np.empty(shape, np.int)
+    node_vertical_link_ids = np.empty(shape, int)
     node_vertical_link_ids[:-1, :] = layout.vertical_links.reshape(
         (shape[0] - 1, shape[1])
     )
@@ -99,13 +99,13 @@ def _node_in_link_ids(shape):
 
     layout = StructuredQuadGraphTopology(shape)
 
-    node_horizontal_link_ids = np.empty(shape, np.int)
+    node_horizontal_link_ids = np.empty(shape, int)
     node_horizontal_link_ids[:, 1:] = layout.horizontal_links.reshape(
         (shape[0], shape[1] - 1)
     )
     node_horizontal_link_ids[:, 0] = -1
 
-    node_vertical_link_ids = np.empty(shape, np.int)
+    node_vertical_link_ids = np.empty(shape, int)
     node_vertical_link_ids[1:, :] = layout.vertical_links.reshape(
         (shape[0] - 1, shape[1])
     )
@@ -139,7 +139,7 @@ def _number_of_links_per_node(shape):
 
     layout = StructuredQuadGraphTopology(shape)
 
-    n_links_at_node = np.full(shape[0] * shape[1], 4, np.int)
+    n_links_at_node = np.full(shape[0] * shape[1], 4, int)
     n_links_at_node[layout.perimeter_nodes] = 3
     n_links_at_node[layout.corner_nodes] = 2
 
@@ -872,3 +872,22 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     good_nodes = num_valid_links != 0
     out[good_nodes] = valid_links.sum(axis=1)[good_nodes] / num_valid_links[good_nodes]
     return out
+
+
+def map_link_vector_components_to_node_raster(grid, data_at_link):
+    """Map (x,y) vector components of data_at_link onto nodes.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> link_data = np.arange(rmg.number_of_links)
+    >>> x, y = map_link_vector_components_to_node_raster(rmg, link_data)
+    >>> x[5:7]
+    array([ 7.5,  8.5])
+    >>> y[5:7]
+    array([ 7.5,  8.5])
+    """
+    x = grid.map_mean_of_horizontal_links_to_node(data_at_link)
+    y = grid.map_mean_of_vertical_links_to_node(data_at_link)
+    return x, y

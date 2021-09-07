@@ -8,20 +8,18 @@
 
 import numpy as np
 
-import landlab
-from landlab import Component, FieldError, RasterModelGrid
-from landlab.components.flow_accum import flow_accum_bw
-from landlab.core.utils import as_id_array
-
+from ...core.model_component import Component
+from ...core.utils import as_id_array
+from ...field import FieldError
+from ...grid import RasterModelGrid
+from ..flow_accum import flow_accum_bw
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
+from .floodstatus import FloodStatus
 
-# Codes for depression status
-# Note these are also hard-coded in the cfuncs, so if changed here be sure to
-# change there as well
-_UNFLOODED = 0
-_PIT = 1
-_CURRENT_LAKE = 2
-_FLOODED = 3
+_UNFLOODED = FloodStatus._UNFLOODED
+_CURRENT_LAKE = FloodStatus._CURRENT_LAKE
+_FLOODED = FloodStatus._FLOODED
+_PIT = FloodStatus._PIT
 
 use_cfuncs = True
 
@@ -1203,7 +1201,7 @@ class DepressionFinderAndRouter(Component):
             outlet_neighbors[inlake] = -1
             unique_outs, unique_indxs = np.unique(outlet_neighbors, return_index=True)
             out_draining = unique_outs[1:]
-            if isinstance(self._grid, landlab.grid.raster.RasterModelGrid):
+            if isinstance(self._grid, RasterModelGrid):
                 link_l = self._link_lengths
             else:  # Voronoi
                 link_l = self._link_lengths[self._grid.links_at_node[outlet_node, :]]

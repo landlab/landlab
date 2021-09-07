@@ -2010,3 +2010,54 @@ def test_all_boundaries_are_closed():
     )
     with pytest.raises(ValueError):
         fa.run_one_step()
+
+
+def test_precision_in_cython():
+    """
+    This test confirms no issues with Cython precision matching of floats and
+    Numpy array C++ doubles. Per alexmitchell @issue 1219 (now fixed).
+
+    Bit of a smoke test on the whole component, as this is how the issue was
+    found.
+    """
+    node_spacing = 100
+    input_topo = np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 90.0, 80.0, 90.0, 90.0, 0.0],
+            [0.0, 90.0, 32.0, 32.000001, 90.0, 0.0],  # precision matters here
+            [0.0, 90.0, 90.0, 1.0, 90.0, 0.0],
+            [0.0, 90.0, 90.0, 90.0, 90.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
+        dtype=float,
+    )
+
+    np_2D_init_topo = np.flipud(input_topo.astype(float))
+    map_shape = np_2D_init_topo.shape
+    np_1D_init_topo = np_2D_init_topo.ravel()
+
+    mg = RasterModelGrid(map_shape, node_spacing)
+    mg.add_field("node", "topographic__elevation", np_1D_init_topo, units="m")
+    mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
+    # Set up flow router component and run it once
+    flow_router = FlowAccumulator(
+        mg, flow_director="FlowDirectorD8", depression_finder=DepressionFinderAndRouter
+    )
+
+    flow_router.run_one_step()
+    flow_router.depression_finder.depression_outlet_map.reshape(mg.shape)
+
+    # formerly, this concluded that 32.000001 < 32., and so terminated the
+    # fill algo with only one lake node, but in fact:
+    correct_map = np.array(
+        [
+            [-1, -1, -1, -1, -1, -1],
+            [-1, -1, -1, -1, -1, -1],
+            [-1, -1, -1, 26, -1, -1],
+            [-1, -1, 26, 26, -1, -1],
+            [-1, -1, -1, -1, -1, -1],
+            [-1, -1, -1, -1, -1, -1],
+        ]
+    ).ravel()
+    assert np.all(flow_router.depression_finder.depression_outlet_map == correct_map)

@@ -1,10 +1,8 @@
 #! /usr/bin/env
 
 from .add_halo import add_halo
-
-# import landlab.utils.count_repeats
-# from landlab.utils.count_repeats import count_repeats
 from .count_repeats import count_repeated_values
+from .matrix import get_core_node_at_node, get_core_node_matrix
 from .return_array import return_array_at_link, return_array_at_node
 from .source_tracking_algorithm import (
     convert_arc_flow_directions_to_landlab_node_ids,
@@ -34,4 +32,6 @@ __all__ = [
     "StablePriorityQueue",
     "return_array_at_node",
     "return_array_at_link",
+    "get_core_node_at_node",
+    "get_core_node_matrix",
 ]

@@ -49,7 +49,7 @@ def test_simple_water_table():
 
 
 def test_simple_surface_leakage():
-    """ test a one-node steady simulation for surface leakage.
+    """test a one-node steady simulation for surface leakage.
 
     Notes
     ----
@@ -85,8 +85,12 @@ def test_simple_water_table_adaptive_dt():
     rg = RasterModelGrid((3, 3), bc=boundaries)
     rg.add_zeros("aquifer_base__elevation", at="node")
     rg.add_ones("topographic__elevation", at="node")
+    rg.add_zeros("water_table__elevation", at="node")
+    rg.at_node["water_table__elevation"][rg.core_nodes] += 1e-10
     gdp = GroundwaterDupuitPercolator(
-        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01, courant_coefficient=0.01
+        rg,
+        recharge_rate=1.0e-8,
+        hydraulic_conductivity=0.01,
     )
     for i in range(10):
         gdp.run_with_adaptive_time_step_solver(1e4)
@@ -95,7 +99,7 @@ def test_simple_water_table_adaptive_dt():
 
 
 def test_conservation_of_mass_adaptive_dt():
-    """ test conservation of mass in a sloping aquifer.
+    """test conservation of mass in a sloping aquifer.
 
     Notes
     ----
@@ -146,7 +150,7 @@ def test_conservation_of_mass_adaptive_dt():
 
 
 def test_symmetry_of_solution():
-    """ test that water table is symmetric under constant recharge
+    """test that water table is symmetric under constant recharge
 
     Notes:
     ----
@@ -180,7 +184,7 @@ def test_symmetry_of_solution():
 
 
 def test_wt_above_surface_standard_run_step():
-    """ test that water tables above the topogrpahic elevation are
+    """test that water tables above the topogrpahic elevation are
     set to the topographic elevation.
 
     Notes:
@@ -196,10 +200,9 @@ def test_wt_above_surface_standard_run_step():
 
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    elev = grid.add_ones("node", "topographic__elevation")
-    wt = grid.add_zeros("node", "water_table__elevation")
-    _ = grid.add_zeros("aquifer_base__elevation", at="node")
-    wt[:] = elev + 1
+    wt = grid.add_ones("node", "water_table__elevation")
+    _ = grid.add_ones("node", "topographic__elevation")
+    _ = grid.add_zeros("node", "aquifer_base__elevation")
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
@@ -210,11 +213,9 @@ def test_wt_above_surface_standard_run_step():
 def test_wt_above_surface_adaptive_run_step():
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    elev = grid.add_ones("node", "topographic__elevation")
-    wt = grid.add_zeros("node", "water_table__elevation")
-    _ = grid.add_zeros("aquifer_base__elevation", at="node")
-
-    wt[:] = elev + 1
+    wt = grid.add_ones("node", "water_table__elevation")
+    _ = grid.add_ones("node", "topographic__elevation")
+    _ = grid.add_zeros("node", "aquifer_base__elevation")
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
@@ -324,8 +325,9 @@ def test_callback_func():
     # externally defined lists
     storage_subdt = []
     subdt = []
+    all_n = []
 
-    def test_fun(grid, dt, n=0.2):
+    def test_fun(grid, recharge, dt, n=0.2):
         cores = grid.core_nodes
         h = grid.at_node["aquifer__thickness"]
         area = grid.cell_area_at_node
@@ -333,6 +335,7 @@ def test_callback_func():
 
         storage_subdt.append(storage)
         subdt.append(dt)
+        all_n.append(n)
 
     # initialize grid
     grid = RasterModelGrid((3, 3))
@@ -345,7 +348,11 @@ def test_callback_func():
 
     # initialize groundwater model
     gdp = GroundwaterDupuitPercolator(
-        grid, recharge_rate=0.0, hydraulic_conductivity=0.0001, callback_fun=test_fun,
+        grid,
+        recharge_rate=0.0,
+        hydraulic_conductivity=0.0001,
+        callback_fun=test_fun,
+        n=0.1,
     )
 
     # run groundawter model
@@ -356,3 +363,5 @@ def test_callback_func():
 
     # assert that substeps sum to the global timestep
     assert_almost_equal(1e5, sum(subdt))
+
+    assert all(x == 0.1 for x in all_n)

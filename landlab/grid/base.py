@@ -3,7 +3,7 @@
 grids for 2D numerical models.
 
 Do NOT add new documentation here. Grid documentation is now built in a
-semi- automated fashion. To modify the text seen on the web, edit the
+semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
 import fnmatch
@@ -21,7 +21,11 @@ from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
-from .decorators import override_array_setitem_and_reset, return_readonly_id_array
+from .decorators import (
+    override_array_setitem_and_reset,
+    return_id_array,
+    return_readonly_id_array,
+)
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
 
@@ -986,6 +990,93 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: LINF BC
         """
         return np.where(self.status_at_link == LinkStatus.FIXED)[0]
+
+    @return_id_array
+    def link_with_node_status(self, status_at_tail=None, status_at_head=None):
+        """Links with a given node status.
+
+        Parameters
+        ----------
+        status_at_tail : NodeStatus, optional
+            Status of the link tail node.
+        status_at_head : NodeStatus, optional
+            Status of the link head node.
+
+        Returns
+        -------
+        array of int
+            Links with the given tail and head node statuses.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid, NodeStatus
+        >>> grid = RasterModelGrid((4, 5))
+
+        >>> grid.status_at_node[13] = NodeStatus.FIXED_VALUE
+        >>> grid.status_at_node[2] = NodeStatus.CLOSED
+        >>> grid.link_with_node_status(
+        ...     status_at_tail=NodeStatus.CORE, status_at_head=NodeStatus.CORE
+        ... )
+        array([10, 11, 14, 15, 19])
+        >>> grid.link_with_node_status(
+        ...     status_at_tail=NodeStatus.CORE, status_at_head=NodeStatus.FIXED_VALUE
+        ... )
+        array([12, 16, 20, 23, 24])
+        >>> grid.link_with_node_status(
+        ...     status_at_tail=NodeStatus.FIXED_VALUE, status_at_head=NodeStatus.CORE
+        ... )
+        array([ 5,  7,  9, 18])
+
+        >>> grid.link_with_node_status(status_at_head=NodeStatus.CORE)
+        array([ 5,  6,  7,  9, 10, 11, 14, 15, 18, 19])
+        >>> grid.link_with_node_status(status_at_tail=NodeStatus.CORE)
+        array([10, 11, 12, 14, 15, 16, 19, 20, 23, 24])
+        >>> grid.link_with_node_status()
+        array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+               17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
+        """
+        masks = []
+        if status_at_tail is not None:
+            masks.append(self.status_at_node[self.node_at_link_tail] == status_at_tail)
+        if status_at_head is not None:
+            masks.append(self.status_at_node[self.node_at_link_head] == status_at_head)
+
+        if len(masks) == 0:
+            return np.arange(self.number_of_links, dtype=int)
+        if len(masks) == 1:
+            return np.where(masks[0])[0]
+        else:
+            return np.where(masks[0] & masks[1])[0]
+
+    @return_id_array
+    def link_with_angle(self, angle, in_degrees=False):
+        """Return array of IDs of links with given angle.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid((3, 3))
+        >>> grid.link_with_angle(0.0)
+        array([  0,  1,  8,  9, 10, 17, 18])
+        >>> grid.link_with_angle(60.0, in_degrees=True)
+        array([  3,  5,  7, 11, 13, 15])
+        >>> grid.link_with_angle(2.0944)  # 120 degrees
+        array([  2,  4,  6, 12, 14, 16])
+        >>> len(grid.link_with_angle(0.5236))  # no links at 30 deg
+        0
+        >>> grid = HexModelGrid((3, 3), orientation='vertical')
+        >>> grid.link_with_angle(30.0, in_degrees=True)
+        array([  1,  3,  8, 10, 15, 17])
+        >>> grid.link_with_angle(1.5708)  # 90 degrees
+        array([ 2,  5,  6,  9, 12, 13, 16])
+        >>> grid.link_with_angle(330.0, in_degrees=True)
+        array([ 0,  4,  7, 11, 14, 18])
+        >>> len(grid.link_with_angle(60.0, in_degrees=True))  # none at 60 deg
+        0
+        """
+        if in_degrees:
+            angle = np.deg2rad(angle % 360.0)
+        return np.where(np.isclose(self.angle_of_link, angle))[0]
 
     @property
     @cache_result_in_object()
@@ -2579,7 +2670,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             len_subset = self.number_of_nodes
 
         if out_distance is None:
-            out_distance = np.empty(len_subset, dtype=np.float)
+            out_distance = np.empty(len_subset, dtype=float)
         if out_distance.size != len_subset:
             raise ValueError("output array size mismatch for distances")
 
@@ -2589,7 +2680,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             else:
                 az_shape = (len_subset,)
             if out_azimuth is None:
-                out_azimuth = np.empty(az_shape, dtype=np.float)
+                out_azimuth = np.empty(az_shape, dtype=float)
             if out_azimuth.shape != az_shape:
                 raise ValueError("output array mismatch for azimuths")
 

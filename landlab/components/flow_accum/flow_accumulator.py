@@ -25,6 +25,10 @@ from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
 
+from ..depression_finder.floodstatus import FloodStatus
+
+_UNFLOODED = FloodStatus._UNFLOODED
+
 
 class FlowAccumulator(Component):
 
@@ -158,6 +162,7 @@ class FlowAccumulator(Component):
 
     Third, we can import a FlowDirector component from Landlab and pass it to
     `flow_director`:
+
     >>> from landlab.components import FlowDirectorSteepest
     >>> fa = FlowAccumulator(
     ...      mg,
@@ -901,10 +906,10 @@ class FlowAccumulator(Component):
                 flow_director = flow_director[12:]
 
             from landlab.components.flow_director import (
-                FlowDirectorSteepest,
                 FlowDirectorD8,
-                FlowDirectorMFD,
                 FlowDirectorDINF,
+                FlowDirectorMFD,
+                FlowDirectorSteepest,
             )
 
             DIRECTOR_METHODS = {
@@ -995,33 +1000,13 @@ class FlowAccumulator(Component):
                 )
                 raise NotImplementedError(msg)
 
-            # if D4 is being used here and should be.
-            if (
-                (("routing" not in kw) or (kw["routing"] != "D4"))
-                and isinstance(self._grid, RasterModelGrid)
-                and (self._flow_director._name in ("FlowDirectorSteepest"))
-            ):
-
-                message = (
-                    "You have specified \n"
-                    "flow_director=FlowDirectorSteepest and\n"
-                    "depression_finder=DepressionFinderAndRouter\n"
-                    "in the instantiation of FlowAccumulator on a "
-                    "RasterModelGrid. The default behavior of "
-                    "DepressionFinderAndRouter is to use D8 connectivity "
-                    "which is in conflict with D4 connectivity used by "
-                    "FlowDirectorSteepest. \n"
-                    "To fix this, provide the kwarg routing='D4', when "
-                    "you instantiate FlowAccumulator."
-                )
-
-                raise ValueError(warning_message(message))
-
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
 
-                from landlab.components import (
+                from landlab.components.depression_finder.lake_mapper import (
                     DepressionFinderAndRouter,
+                )
+                from landlab.components.lake_fill.lake_fill_barnes import (
                     LakeMapperBarnes,
                 )
 
@@ -1082,11 +1067,68 @@ class FlowAccumulator(Component):
                         "components are valid imputs:\n"
                         + str(PERMITTED_DEPRESSION_FINDERS)
                     )
+
+            # Make sure direction methods are consistent between the director
+            # and the depression handler
+            if isinstance(self._grid, RasterModelGrid):
+                flow_director_method = self.flow_director_raster_method()
+                depression_finder_method = (
+                    self.depression_handler_raster_direction_method()
+                )
+                if flow_director_method != depression_finder_method:
+                    message = (
+                        "Incompatibility between flow-director routing method\n"
+                        + "which is "
+                        + flow_director_method
+                        + ", and depression-handler method,\n"
+                        + "which is "
+                        + depression_finder_method
+                    )
+                    raise ValueError(warning_message(message))
         else:
             self._depression_finder = None
 
+    def flow_director_raster_method(self):
+        """Return 'D8' or 'D4' depending on the direction method used.
+
+        (Note: only call this function for a raster gird;
+        does not handle multiple-flow directors)
+        """
+        assert isinstance(self._grid, RasterModelGrid)
+        if self._flow_director._name in ("FlowDirectorD8"):
+            return "D8"
+        else:
+            return "D4"
+
+    def depression_handler_raster_direction_method(self):
+        """Return 'D8' or 'D4' depending on the direction method used.
+
+        (Note: only call this function for a raster gird;
+        does not handle multiple-flow directors)
+        """
+        assert isinstance(self._grid, RasterModelGrid)
+        if self._depression_finder._name in ("DepressionFinderAndRouter"):
+            return self._depression_finder._routing
+        elif self._depression_finder._name in ("LakeMapperBarnes"):
+            if (
+                self._depression_finder._allneighbors.size
+                > self.grid.adjacent_nodes_at_node.size
+            ):
+                return "D8"
+            else:
+                return "D4"
+        else:
+            raise ValueError("Depression finder type not recognized.")
+
     def pits_present(self):
         return np.any(self._grid.at_node["flow__sink_flag"][self._grid.core_nodes])
+
+    def flooded_nodes_present(self):
+        # flooded node status may not exist if no depression finder was used.
+        if "flood_status_code" in self._grid.at_node:
+            return np.all(self._grid.at_node["flood_status_code"] == _UNFLOODED)
+        else:
+            return False
 
     def accumulate_flow(self, update_flow_director=True, update_depression_finder=True):
         """Function to make FlowAccumulator calculate drainage area and
@@ -1143,8 +1185,11 @@ class FlowAccumulator(Component):
             # At the moment, no depression finders work with to-many, so it
             # lives here
             if self._depression_finder_provided is not None:
-                if update_depression_finder and self.pits_present():
-                    self._depression_finder.update()
+                if update_depression_finder:
+                    # only update depression finder if requested AND if there
+                    # are pits, or there were flooded nodes from last timestep.
+                    if self.pits_present or self.flooded_nodes_present:
+                        self._depression_finder.update()
 
                     # if FlowDirectorSteepest is used, update the link directions
                     if self._flow_director._name == "FlowDirectorSteepest":
