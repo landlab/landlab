@@ -2,17 +2,7 @@
 
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_LINK,
-    FIXED_VALUE_BOUNDARY,
-    Component,
-    RasterModelGrid,
-)
-
-from ...utils.decorators import use_file_name_or_kwds
+from landlab import Component, RasterModelGrid
 
 
 class KinematicWaveRengers(Component):
@@ -77,12 +67,12 @@ class KinematicWaveRengers(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-    >>> mg = RasterModelGrid((5, 10), spacing=10.)
-    >>> mg.status_at_node[mg.nodes_at_left_edge] = FIXED_GRADIENT_BOUNDARY
-    >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> mg.status_at_node[mg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> mg.status_at_node[mg.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> from landlab.components import KinematicWaveRengers
+    >>> mg = RasterModelGrid((5, 10), 10.)
+    >>> mg.status_at_node[mg.nodes_at_left_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
+    >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CORE
+    >>> mg.status_at_node[mg.nodes_at_bottom_edge] = mg.BC_NODE_IS_CORE
+    >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_CORE
     >>> _ = mg.add_field('node', 'topographic__elevation', 0.05*mg.node_x)
     >>> _ = mg.add_empty('node', 'surface_water__depth')
     >>> mg.at_node['surface_water__depth'].fill(1.e-8)
@@ -132,7 +122,6 @@ class KinematicWaveRengers(Component):
             "mapping": "node",
             "doc": "Land surface topographic elevation",
         },
-
         "surface_water__discharge": {
             "dtype": float,
             "intent": "out",
@@ -141,7 +130,6 @@ class KinematicWaveRengers(Component):
             "mapping": "node",
             "doc": "Magnitude of discharge of water above the surface",
         },
-
         "surface_water__velocity": {
             "dtype": float,
             "intent": "out",
@@ -150,7 +138,6 @@ class KinematicWaveRengers(Component):
             "mapping": "node",
             "doc": "Speed of water flow above the surface",
         },
-
     }
 
     def __init__(
@@ -170,15 +157,16 @@ class KinematicWaveRengers(Component):
         if not isinstance(grid, RasterModelGrid):
             ValueError("KinematicWaveRengers: grid must be regular")
 
-        active = np.where(self.grid.status_at_node != CLOSED_BOUNDARY)[0]
+        if np.isclose(dt_max, 0.0):
+            raise ValueError("KinematicWaveRengers: dt must be > 0.0")
+
+        active = np.where(self.grid.status_at_node != self._grid.BC_NODE_IS_CORE)[0]
         self._h = self.grid.at_node["surface_water__depth"]
         self._active = active
         self._hc = critical_flow_depth
         self._n = mannings_n
         self._negepsilon = -mannings_epsilon
-        if not np.isclose(dt_max, 0.0):
-            raise ValueError("KinematicWaveRengers: dt must be > 0.0")
-            
+
         self.dt_max = dt_max
         self.min_surface_water_depth = min_surface_water_depth
         self._active_depths = self.grid.at_node["surface_water__depth"][active]
@@ -199,10 +187,12 @@ class KinematicWaveRengers(Component):
         else:
             self.equaldims = False
             self.courant_prefactor = max_courant * self.grid.dx * self.grid.dy
-        self._neighbors = self.grid.neighbors_at_node.copy()
-        self._neighbors[self._neighbors == BAD_INDEX_VALUE] = -1
+        self._neighbors = self.grid.adjacent_nodes_at_node.copy()
+        self._neighbors[self._neighbors == self._grid.BAD_INDEX] = -1
         self._water_balance = []
-        self.actives_BCs = self.grid.status_at_node[active] == FIXED_VALUE_BOUNDARY
+        self.actives_BCs = (
+            self.grid.status_at_node[active] == self._grid.BC_NODE_IS_FIXED_VALUE
+        )
         self.actives_BCs_water_depth = self._h[active][self.actives_BCs]
         fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes
         fixed_grad_anchors = self.grid.fixed_gradient_boundary_node_anchor_node
@@ -371,9 +361,11 @@ class KinematicWaveRengers(Component):
             self.vely.fill(0.0)
             self.qy.fill(0.0)
             self.qx.fill(0.0)
-            self._neighbors = self.grid.neighbors_at_node.copy()
-            self._neighbors[self._neighbors == BAD_INDEX_VALUE] = -1
-            self.actives_BCs = self.grid.status_at_node[active] == FIXED_VALUE_BOUNDARY
+            self._neighbors = self.grid.adjacent_nodes_at_node.copy()
+            self._neighbors[self._neighbors == self._grid.BAD_INDEX] = -1
+            self.actives_BCs = (
+                self.grid.status_at_node[active] == self._grid.BC_NODE_IS_FIXED_VALUE
+            )
             self.actives_BCs_water_depth = self._h[self.actives_BCs]
 
     @property
