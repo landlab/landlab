@@ -166,33 +166,33 @@ class KinematicWaveRengers(Component):
         self._n = mannings_n
         self._negepsilon = -mannings_epsilon
 
-        self.dt_max = dt_max
-        self.min_surface_water_depth = min_surface_water_depth
+        self._dt_max = dt_max
+        self._min_surface_water_depth = min_surface_water_depth
         self._active_depths = self.grid.at_node["surface_water__depth"][active]
         all_grads = self.grid.calc_grad_at_link("topographic__elevation")
         hoz_grads = self.grid.map_mean_of_horizontal_active_links_to_node(all_grads)
         vert_grads = self.grid.map_mean_of_vertical_active_links_to_node(all_grads)
-        self.hozslopept5 = np.fabs(hoz_grads[active]) ** 0.5
-        self.vertslopept5 = np.fabs(vert_grads[active]) ** 0.5
-        self.velx = self.grid.zeros("node", dtype=float)
-        self.vely = self.grid.zeros("node", dtype=float)
-        self.qy = np.zeros(grid.number_of_nodes + 1, dtype=float)
-        self.qx = np.zeros(grid.number_of_nodes + 1, dtype=float)
-        self.poshozgrads = hoz_grads > 0.0
-        self.posvertgrads = vert_grads > 0.0
+        self._hozslopept5 = np.fabs(hoz_grads[active]) ** 0.5
+        self._vertslopept5 = np.fabs(vert_grads[active]) ** 0.5
+        self._velx = self.grid.zeros("node", dtype=float)
+        self._vely = self.grid.zeros("node", dtype=float)
+        self._qy = np.zeros(grid.number_of_nodes + 1, dtype=float)
+        self._qx = np.zeros(grid.number_of_nodes + 1, dtype=float)
+        self._poshozgrads = hoz_grads > 0.0
+        self._posvertgrads = vert_grads > 0.0
         if np.isclose(self.grid.dx, self.grid.dy):
-            self.equaldims = True
-            self.courant_prefactor = max_courant * self.grid.dx
+            self._equaldims = True
+            self._courant_prefactor = max_courant * self.grid.dx
         else:
-            self.equaldims = False
-            self.courant_prefactor = max_courant * self.grid.dx * self.grid.dy
+            self._equaldims = False
+            self._courant_prefactor = max_courant * self.grid.dx * self.grid.dy
         self._neighbors = self.grid.adjacent_nodes_at_node.copy()
         self._neighbors[self._neighbors == self.grid.BAD_INDEX] = -1
         self._water_balance = []
-        self.actives_BCs = (
+        self._actives_BCs = (
             self.grid.status_at_node[active] == self.grid.BC_NODE_IS_FIXED_VALUE
         )
-        self.actives_BCs_water_depth = self._h[active][self.actives_BCs]
+        self._actives_BCs_water_depth = self._h[active][self._actives_BCs]
         fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes.copy()
         fixed_grad_anchors = self.grid.fixed_gradient_boundary_node_anchor_node
 
@@ -200,10 +200,10 @@ class KinematicWaveRengers(Component):
         # these also need to be mapped to active_IDs:
         blank_nodes = self.grid.zeros("node", dtype=bool)
         blank_nodes[fixed_grad_nodes] = True
-        self.fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
+        self._fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
         blank_nodes.fill(False)
         blank_nodes[fixed_grad_anchors] = True
-        self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
+        self._fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
 
         # create outputs
         self.initialize_output_fields()
@@ -232,8 +232,8 @@ class KinematicWaveRengers(Component):
         """
         elapsed_time_in_dt = 0.0  # this is only since the start of the timestep
         active = self._active
-        self.hnew = self._h[active]
-        hnew = self.hnew
+        self._hnew = self._h[active]
+        _hnew = self._hnew
         if update_topography:
             self.update_topographic_params()
         while elapsed_time_in_dt < dt:
@@ -244,10 +244,10 @@ class KinematicWaveRengers(Component):
             # now reduce timestep is needed if limited by total tstep length
             internal_dt = min(internal_dt, remaining_dt).clip(0.0)
             # this section uses our final-array-val-is-zero trick
-            qx_left = self.qx[self._neighbors[:, 2]].clip(min=0.0)
-            qx_right = self.qx[self._neighbors[:, 0]].clip(max=0.0)
-            qy_top = self.qy[self._neighbors[:, 1]].clip(min=0.0)
-            qy_bottom = self.qy[self._neighbors[:, 3]].clip(max=0.0)
+            _qx_left = self._qx[self._neighbors[:, 2]].clip(min=0.0)
+            _qx_right = self._qx[self._neighbors[:, 0]].clip(max=0.0)
+            _qy_top = self._qy[self._neighbors[:, 1]].clip(min=0.0)
+            _qy_bottom = self._qy[self._neighbors[:, 3]].clip(max=0.0)
             # FR's rainfall handling was here. We're going to assume that the
             # component is being driven by a "LL style" rainfall record, where
             # the provided rainfall_intensity is constant across the provide
@@ -255,27 +255,27 @@ class KinematicWaveRengers(Component):
 
             # now add the rainfall input
             if type(rainfall_intensity) is not np.ndarray:
-                hnew += internal_dt * rainfall_intensity
+                _hnew += internal_dt * rainfall_intensity
             else:
-                hnew += internal_dt * rainfall_intensity[active]
+                _hnew += internal_dt * rainfall_intensity[active]
             # set the BCs
-            hnew[self.actives_BCs] = self.actives_BCs_water_depth
+            _hnew[self._actives_BCs] = self._actives_BCs_water_depth
             # flux it round
-            hnew -= internal_dt / self.grid.dx * np.fabs(self.qy[active])
-            hnew -= internal_dt / self.grid.dy * np.fabs(self.qx[active])
-            hnew += internal_dt / self.grid.dx * (qy_top - qy_bottom)[active]
-            hnew += internal_dt / self.grid.dy * (qx_left - qx_right)[active]
-            hnew[self.fixed_grad_nodes_active] = hnew[self.fixed_grad_anchors_active]
+            _hnew -= internal_dt / self.grid.dx * np.fabs(self._qy[active])
+            _hnew -= internal_dt / self.grid.dy * np.fabs(self._qx[active])
+            _hnew += internal_dt / self.grid.dx * (_qy_top - _qy_bottom)[active]
+            _hnew += internal_dt / self.grid.dy * (_qx_left - _qx_right)[active]
+            _hnew[self._fixed_grad_nodes_active] = _hnew[self._fixed_grad_anchors_active]
             # update the internal clock
             elapsed_time_in_dt += internal_dt
 
         # update the actual fields
-        self._h[active] = hnew
+        self._h[active] = _hnew
         self.grid.at_node["surface_water__velocity"][:] = np.sqrt(
-            np.square(self.velx) + np.square(self.vely)
+            np.square(self._velx) + np.square(self._vely)
         )
         self.grid.at_node["surface_water__discharge"][:] = np.sqrt(
-            np.square(self.qx[:-1]) + np.square(self.qy[:-1])
+            np.square(self._qx[:-1]) + np.square(self._qy[:-1])
         )
 
     def calc_grads_and_timesteps(self, update_topography, track_min_depth):
@@ -299,35 +299,35 @@ class KinematicWaveRengers(Component):
             The internally stable timestep that will be used on this loop.
         """
         active = self._active
-        hnew = self.hnew
+        _hnew = self._hnew
         if update_topography:
             self.update_topographic_params()
         # assert the minimum water depth - this could introduce an element of
         # mass gain, but should remain minor
-        hnew.clip(self.min_surface_water_depth, out=hnew)
+        _hnew.clip(self._min_surface_water_depth, out=_hnew)
         if track_min_depth:
             self._water_balance.append(
-                (hnew - self._h[active]).sum() / self._h[active].sum()
+                (_hnew - self._h[active]).sum() / self._h[active].sum()
             )
-        n = self._n * (hnew / self._hc) ** self._negepsilon
-        twothirdshnewbyn = hnew ** 0.66666666 / n
-        self.vely[active] = twothirdshnewbyn * self.vertslopept5
-        self.velx[active] = twothirdshnewbyn * self.hozslopept5
-        self.vely[self.posvertgrads] *= -1.0
-        self.velx[self.poshozgrads] *= -1.0
-        self.qy[active] = self.vely[active] * hnew  # m**2/s
-        self.qx[active] = self.velx[active] * hnew  # m**2/s
-        maxvely = np.fabs(self.vely).max()
-        maxvelx = np.fabs(self.velx).max()
-        if self.equaldims:
-            courant_dt = self.courant_prefactor / (maxvelx + maxvely)
+        n = self._n * (_hnew / self._hc) ** self._negepsilon
+        twothirds_hnewbyn = _hnew ** 0.66666666 / n
+        self._vely[active] = twothirds_hnewbyn * self._vertslopept5
+        self._velx[active] = twothirds_hnewbyn * self._hozslopept5
+        self._vely[self._posvertgrads] *= -1.0
+        self._velx[self._poshozgrads] *= -1.0
+        self._qy[active] = self._vely[active] * _hnew  # m**2/s
+        self._qx[active] = self._velx[active] * _hnew  # m**2/s
+        max_vely = np.fabs(self._vely).max()
+        max_velx = np.fabs(self._velx).max()
+        if self._equaldims:
+            courant_dt = self._courant_prefactor / (max_velx + max_vely)
         else:
             # note prefactor is NOT THE SAME as above in this case
-            courant_dt = self.courant_prefactor / (
-                self.grid.dy * maxvelx + self.grid.dx * maxvely
+            courant_dt = self._courant_prefactor / (
+                self.grid.dy * max_velx + self.grid.dx * max_vely
             )
-        if self.dt_max is not None:
-            internal_dt = np.min((self.dt_max, courant_dt))
+        if self._dt_max is not None:
+            internal_dt = np.min((self._dt_max, courant_dt))
         else:
             internal_dt = courant_dt
         self._internal_dt = internal_dt
@@ -343,33 +343,33 @@ class KinematicWaveRengers(Component):
         all_grads = self.grid.calculate_gradients_at_links("topographic__elevation")
         hoz_grads = self.grid.map_mean_of_horizontal_active_links_to_node(all_grads)
         vert_grads = self.grid.map_mean_of_vertical_active_links_to_node(all_grads)
-        self.hozslopept5 = np.fabs(hoz_grads[active]) ** 0.5
-        self.vertslopept5 = np.fabs(vert_grads[active]) ** 0.5
-        self.poshozgrads = hoz_grads > 0.0
-        self.posvertgrads = vert_grads > 0.0
+        self._hozslopept5 = np.fabs(hoz_grads[active]) ** 0.5
+        self._vertslopept5 = np.fabs(vert_grads[active]) ** 0.5
+        self._poshozgrads = hoz_grads > 0.0
+        self._posvertgrads = vert_grads > 0.0
         fixed_grad_nodes = self.grid.fixed_gradient_boundary_nodes
         fixed_grad_anchors = self.grid.fixed_gradient_boundary_node_anchor_node
         # ^add this value to the anchor nodes to update the BCs
         # these also need to be mapped to active_IDs:
         blank_nodes = self.grid.zeros("node", dtype=bool)
         blank_nodes[fixed_grad_nodes] = True
-        self.fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
+        self._fixed_grad_nodes_active = np.where(blank_nodes[active])[0]
         blank_nodes.fill(False)
         blank_nodes[fixed_grad_anchors] = True
-        self.fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
+        self._fixed_grad_anchors_active = np.where(blank_nodes[active])[0]
         # check is the grid topology has changed...
         if not np.all(np.equal(self._active, active)):
             self._active = active
-            self.velx.fill(0.0)
-            self.vely.fill(0.0)
-            self.qy.fill(0.0)
-            self.qx.fill(0.0)
+            self._velx.fill(0.0)
+            self._vely.fill(0.0)
+            self._qy.fill(0.0)
+            self._qx.fill(0.0)
             self._neighbors = self.grid.adjacent_nodes_at_node.copy()
             self._neighbors[self._neighbors == self.grid.BAD_INDEX] = -1
-            self.actives_BCs = (
+            self._actives_BCs = (
                 self.grid.status_at_node[active] == self.grid.BC_NODE_IS_FIXED_VALUE
             )
-            self.actives_BCs_water_depth = self._h[self.actives_BCs]
+            self._actives_BCs_water_depth = self._h[self._actives_BCs]
 
     @property
     def water_balance(self):
