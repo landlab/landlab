@@ -65,6 +65,7 @@ if os.getenv("GITHUB_ACTIONS"):
         ),  # Added by EWHH Feb 2020
         r"https://dx.doi.org/10.1029/2011jf002181",  # Added by EWHH April 2020
         r"https://doi.org/10.1029/2019JB018596",  # Added by EWHH April 2020
+        r"https://doi.org/10.3133/pp294B",   # Added by EWHH September 2021
     ]
 
 # The master toctree document.
