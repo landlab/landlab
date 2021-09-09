@@ -1,6 +1,14 @@
 name: Notebooks
 
-on: [push, pull_request]
+on:
+  push:
+      paths:
+          - "landlab/**"
+          - "notebooks/**"
+  pull_request:
+      paths:
+          - "landlab/**"
+          - "notebooks/**"
 
 jobs:
   build-and-test:
