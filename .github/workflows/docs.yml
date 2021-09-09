@@ -1,22 +1,6 @@
 name: Documentation
 
-on:
-    push:
-        paths:
-            - "docs/**"
-            - "AUTHORS.rst"
-            - "CHANGES.rst"
-            - "CONTRIBUTING.rst"
-            - "LICENSE.rst"
-            - "README.rst"
-    pull_request:
-        paths:
-            - "docs/**"
-            - "AUTHORS.rst"
-            - "CHANGES.rst"
-            - "CONTRIBUTING.rst"
-            - "LICENSE.rst"
-            - "README.rst"
+on: [push, pull_request]
 
 jobs:
     build:
