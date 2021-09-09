@@ -1,6 +1,15 @@
 name: Test
 
-on: [push, pull_request]
+
+on:
+  push:
+      paths:
+          - "landlab/**"
+          - "tests/**"
+  pull_request:
+      paths:
+          - "landlab/**"
+          - "tests/**"
 
 jobs:
   build-and-test:
