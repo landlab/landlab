@@ -181,7 +181,6 @@ There are a few ways to follow Landlab developments. You can
 - follow Landlab on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_  @landlabtoolkit,
 - "watch" Landlab's GitHub repository,
 - file a pull request or an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab>`__,
-- sign up to the `Landlab Lookout newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_ to get the latest news, tips, publications and more.
 
 Why are there no other FAQs besides these few?
 ----------------------------------------------
