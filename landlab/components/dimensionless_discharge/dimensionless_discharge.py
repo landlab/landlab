@@ -12,7 +12,7 @@ _WATER_DENSITY = 997.9 # kg/m^3
 _GRAVITY = 9.8  # m/s^2
 
 
-class DimensionlessDischange(Component):
+class DimensionlessDischarge(Component):
     r"""Component that calculates dimensionless dischange of stream segments.
 
     The DimensionlessDischarge component calculates the dimensionless discharge 
@@ -115,7 +115,7 @@ class DimensionlessDischange(Component):
         self._dimensionless_discharge_above_threshold = self.grid.at_node["dimensionless_discharge_above_threshold"]
 
         #set threshold values for each segment
-        self._dimensionless_discharge_threshold_value = [[ 0 for i in range(len(self._flux[1]))] for in range(len(self._flux))]
+        self._dimensionless_discharge_threshold_value = [[0]*len(self._flux[1])]*len(self._flux)
         for i in range(len(self._dimensionless_discharge_threshold_value)):
             for j in range(len(i)):
                 self._dimensionless_discharge_threshold_value[i][j] = C/(math.tan(self._stream_slopes[i])**N)
