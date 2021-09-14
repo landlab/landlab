@@ -68,7 +68,7 @@ class DepthSlopeProductErosion(Component):
 
     Create fields of data for each of these input variables.
 
-    First create topopgraphy. This is a flat surface of elevation 10 m.
+    First create topography. This is a flat surface of elevation 10 m.
 
     >>> grid.at_node['topographic__elevation'] = np.ones(grid.number_of_nodes)
     >>> grid.at_node['topographic__elevation'] *= 10.
@@ -100,7 +100,6 @@ class DepthSlopeProductErosion(Component):
     >>> grid.at_node['water_surface__slope']
     array([ 0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,
             1.,  0., -0.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.])
-
 
     Instantiate the `DepthSlopeProductErosion` component to work on this grid, and
     run it. In this simple case, we need to pass it a time step ('dt') and also
