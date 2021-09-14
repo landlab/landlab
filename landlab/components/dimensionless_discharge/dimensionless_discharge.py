@@ -25,18 +25,11 @@ class DimensionlessDischarge(Component):
     ----------
     soil_density : float list
         Density of soil in watershed (kg/m^3)
-    flux : float list
-        flux in each stream segment (m/s)
-    d50 : float list
-        soil grain size (m)
     number_segments : int
         number of stream segments that will be used
     C : float
         
     N : float
-       
-    stream_segment_slopes : float list
-        slope of each stream segment
 
     Examples
     --------
@@ -78,10 +71,34 @@ class DimensionlessDischarge(Component):
             "units": "none",
             "mapping": "node",
             "doc": "Dimensionless discharge value for a stream segment.",
+        },
+        "flux": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "flux in each stream segment",
+        },
+        "d50": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "soil grain size",
+        },
+        "stream_slopes": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "node",
+            "doc": "slope of each stream segment",
         }
     }
     
-    def __init__(self, grid, soil_density=1330, d50=[], C=12.0, N=0.85, stream_slopes=[], flux=[[]]):
+    def __init__(self, grid, soil_density=1330, C=12.0, N=0.85):
         """Initialize the DimensionlessDischange.
 
         Parameters
@@ -104,30 +121,28 @@ class DimensionlessDischarge(Component):
 
         # Store parameters and do unit conversion
         self._current_time = 0
-        self._iteration = 0
         self._soil_density = soil_density
-        self._d50 = d50
         self._C = C
         self._N = N
-        self._stream_slopes = stream_slopes
-        self._flux = flux
-        self._dimensionless_discharge = self.grid.at_node["dimensionless_discharge"]
-        self._dimensionless_discharge_above_threshold = self.grid.at_node["dimensionless_discharge_above_threshold"]
+        self._stream_slopes = self.grid.at_node["stream_slopes"]
+        self._flux = self.grid.at_node["flux"]
+        self._d50 = self.grid.at_node["d50"]
 
         #set threshold values for each segment
-        self._dimensionless_discharge_threshold_value = [[0]*len(self._flux[1])]*len(self._flux)
-        for i in range(len(self._dimensionless_discharge_threshold_value)):
-            for j in range(len(i)):
-                self._dimensionless_discharge_threshold_value[i][j] = C/(math.tan(self._stream_slopes[i])**N)
+        z = self.grid.add_zeros('node', 'dimensionless_discharge')
+        a= self.grid.add_zeros('node', 'dimensionless_discharge_above_threshold')
+        c =self.grid.add_zeros('node', 'dimensionless_discharge_threshold_value')
+        for i in range(len(self.grid.at_node["dimensionless_discharge_threshold_value"])):
+            self.grid.at_node["dimensionless_discharge_threshold_value"][i] = C/(math.tan(self._stream_slopes[i])**N)
+        print(self.grid)
 
     def run_one_step(self, dt):
-        for i in range(self._iteration):
-            self._dimensionless_discharge[self.iteration][i] = self._flux[0][i]/math.sqrt(((self._soil_density
+        for i in range(len(self.grid.at_node["dimensionless_discharge"])):
+            self.grid.at_node["dimensionless_discharge"][i] = self._flux[i]/math.sqrt(((self._soil_density
         -_WATER_DENSITY)/_WATER_DENSITY)*_GRAVITY*(self._d50[i]**3))
-            if self._dimensionless_discharge[self.iteration][i] >= self._dimensionless_discharge_threshold_value[i]:
-                self._dimensionless_discharge_above_threshold[self.iteration][i] = 1
+            if self._dimensionless_discharge[i] >= self._dimensionless_discharge_threshold_value[i]:
+                self._dimensionless_discharge_above_threshold[i] = 1
 
-        self.iteration+=1
         self._current_time += dt
 
         
