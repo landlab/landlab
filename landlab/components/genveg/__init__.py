@@ -1,5 +1,5 @@
 from .load_veg_params import VegParams
-from .growth import Growth
-from .dispersal import Dispersal
+from .growth import PlantGrowth
 
-__all__ = ["VegParams", "Growth", "Dispersal"]
+
+__all__ = ["VegParams", "PlantGrowth"]

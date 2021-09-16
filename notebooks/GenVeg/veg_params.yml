@@ -1,0 +1,24 @@
+{veg_params: {colparams: {}, dispparams: {disp_cost: {BIS: [0], BTS: [0], DB: [0]},
+      disp_dist: {BIS: [4], BTS: [4], DB: [4]}, disp_size_rat: {BIS: [0.5], BTS: [
+          0.5], DB: [0.5]}}, growthparams: {allocate: {BIS: [0.45, 0.3, 0.25], BTS: [
+          0.45, 0.3, 0.25], DB: [0.45, 0.3, 0.25]}, glu_req: {BIS: [1.444, 1.513,
+          1.463], BTS: [1.444, 1.513, 1.463], DB: [1.444, 1.513, 1.463]}, gs_end: {
+        BIS: [305], BTS: [305], DB: [305]}, gs_start: {BIS: [45], BTS: [45], DB: [
+          45]}, hi: {BIS: [9], BTS: [9], DB: [9]}, le_k: {BIS: [0.02], BTS: [0.02],
+        DB: [0.02]}, p_max: {BIS: [0.055], BTS: [0.055], DB: [0.055]}, res_co: {BIS: [
+          0.015, 0.015, 0.03], BTS: [0.015, 0.015, 0.03], DB: [0.015, 0.015, 0.03]}},
+    mortparams: {s1_days: {BIS: [207], BTS: [207], DB: [207]}, s1_name: {BIS: [Distance
+            to shore], BTS: [Distance to shore], DB: [Distance to shore]}, s1_pred: {
+        BIS: [30, 40, 50], BTS: [30, 40, 50], DB: [30, 40, 50]}, s1_rate: {BIS: [
+          0.01, 0.25, 0.67], BTS: [0.01, 0.25, 0.67], DB: [0.01, 0.25, 0.67]}, s2_days: {
+        BIS: [365], BTS: [365], DB: [365]}, s2_pred: {BIS: [0, 0.2, 0.5, 0.68, 1.12],
+        BTS: [0, 0.2, 0.5, 0.68, 1.12], DB: [0, 0.2, 0.5, 0.68, 1.12]}, s2_rate: {
+        BIS: [0, 0, 0, 1, 1], BTS: [0, 0, 0, 1, 1], DB: [0, 0, 0, 1, 1]}, s2_weight: {
+        BIS: [500, 300, 200, 200, 300], BTS: [500, 300, 200, 200, 300], DB: [500,
+          300, 200, 200, 300]}}, plant_ids: {BIS: [BIS], BTS: [BTS], DB: [DB]}, sizeparams: {
+      min_mass: {BIS: [0.01, 0.1, 0.5], BTS: [0.01, 0.1, 0.5], DB: [0.01, 0.1, 0.5]},
+      pl_dens_max: {BIS: [34], BTS: [34], DB: [34]}, pl_stems_max: {BIS: [3], BTS: [
+          3], DB: [3]}, stem_ht_max: {BIS: [1], BTS: [1], DB: [1]}, stem_mass_max: {
+        BIS: [1.45], BTS: [1.45], DB: [1.45]}, stem_tca: {BIS: [0.231], BTS: [0.231],
+        DB: [0.231]}}, storparams: {r_wint_die: {BIS: [0.25], BTS: [0.25], DB: [0.25]},
+      r_wint_stor: {BIS: [0.25], BTS: [0.25], DB: [0.25]}}}}

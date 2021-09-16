@@ -6,13 +6,14 @@ Want to retain formatted Excel file due to type of data required
 import numpy as np
 import pandas as pd
 import pathlib
+import yaml
 
 #Create veg_params class type for input data and calculated params
 class VegParams:
     """
     Load vegetation parameters from formatted Excel file
-    into a Pandas dateframe that is converted to yaml
-    for landlab input
+    into a Pandas dateframe that is converted to parameter 
+    dictionaries stored in a yaml for landlab input
 
     Parameters
     ----------
@@ -20,8 +21,14 @@ class VegParams:
            If blank, model will assume species is corn.
     processes: a list of vegetation processes to initialize parameters for 'plantsize','dispersal','mortality','colonization','storage'. 
                If blank, model will run basic growth only.
+    outfile: optional input to allow for custom file name
     """
-    def __init__(self,fpath='None',processes=[]):
+    def __init__(
+        self,
+        fpath='None',
+        outfile='veg_params.yml',
+        processes=[]
+    ):
         if fpath=='None':
             self.growthparams={
                 'name':['Corn'],
@@ -77,7 +84,8 @@ class VegParams:
             self.fpath=fpath
         #add check for file extension
             exten=pathlib.Path(self.fpath).suffix
-            if exten == 'yaml':
+            if exten == 'yml':
+                print('File already in correct file format. Use Landlab load_params function.')
                 pass
             else:
                 if 'xls' in exten:          
@@ -90,7 +98,9 @@ class VegParams:
                         df_in=xlin.parse(i, usecols='B,D',skiprows=[1,4,18,30,34,37,40])
                         group_in=df_in.groupby('Variable Name').agg(pd.Series.tolist)
                         x=pd.concat([x,group_in],axis=1,join='outer')
-                    self.x=x.T.to_dict('list')
+                        keyval=x.loc['name'].at['Values'][0]
+                        x.rename(columns={'Values': keyval}, inplace=True)
+                    self.x=x.T.to_dict()
                 else: 
                     if exten == 'csv':
                         #Add Carra's code here and load into dict called x
@@ -99,7 +109,6 @@ class VegParams:
                         raise ValueError('File extension not recognized')
                 #Make list of vegparams keys to create new dictionary    
                 param_keys={
-                    'name',
                     'ftype',
                     'ph_type',
                     'gs_start',
@@ -110,13 +119,10 @@ class VegParams:
                     'le_k',
                     'hi',
                     'p_max',
+                    'allocate'
                 }
                 #Create growth parameter dictionary
                 self.growthparams={ key:value for key,value in self.x.items() if key in param_keys}
-                gs_length=[]
-                for j in range(len(coms)):
-                    gs_length.append([self.growthparams['gs_end'][j][0]-self.growthparams['gs_start'][j][0]+1])
-                self.growthparams['gs_length']=gs_length
                 
                 #Check to see if plant size is required
                 if 'plantsize' in processes:
@@ -125,7 +131,6 @@ class VegParams:
                         'pl_stems_max',
                         'stem_ht_max',
                         'stem_mass_max',
-                        'allocate',
                         'stem_tca',
                         'min_mass'
                     }
@@ -136,19 +141,19 @@ class VegParams:
                     stem_dens_max=[]
                     ag_mass_max=[]
                     bg_mass_max=[]
-                    for j in range(len(coms)):
-                        rsratio.append([self.sizeparams['allocate'][j][0]/(self.sizeparams['allocate'][j][1]+self.sizeparams['allocate'][j][2])])
-                        stem_mass_unit.append([self.sizeparams['stem_mass_max'][j][0]/self.sizeparams['stem_ht_max'][j][0]])
-                        stem_dens_max.append([self.sizeparams['pl_dens_max'][j][0]*self.sizeparams['pl_stems_max'][j][0]])
+                    #for j in range(len(coms)):
+                    #    rsratio.append([self.sizeparams['allocate'][j][0]/(self.sizeparams['allocate'][j][1]+self.sizeparams['allocate'][j][2])])
+                    #    stem_mass_unit.append([self.sizeparams['stem_mass_max'][j][0]/self.sizeparams['stem_ht_max'][j][0]])
+                    #    stem_dens_max.append([self.sizeparams['pl_dens_max'][j][0]*self.sizeparams['pl_stems_max'][j][0]])
                         #ag_mass_max.append([t1*t2*(1+(t3/t4)) for [t1,t2,[t3,t4,t5]] in 
                         #                    [stem_dens_max[j][0],self.sizeparams['stem_mass_max'][j][0],
                         #                    self.sizeparams['allocate']]])
                         #bg_mass_max.append([t1*t2 for [t1,t2] in [ag_mass_max[j][0],rsratio[j][0]]])
-                    self.growthparams['rsratio']=rsratio
-                    self.growthparams['stem_mass_unit']=stem_mass_unit
-                    self.growthparams['stem_dens_max']=stem_dens_max
-                    #self.growthparams['ag_mass_max']=ag_mass_max
-                    #self.growthparams['bg_mass_max']=bg_mass_max
+                    #self.sizeparams['rsratio']=rsratio
+                    #self.sizeparams['stem_mass_unit']=stem_mass_unit
+                    #self.sizeparams['stem_dens_max']=stem_dens_max
+                    #self.sizeparams['ag_mass_max']=ag_mass_max
+                    #self.sizeparams['bg_mass_max']=bg_mass_max
 
                     if 'dispersal' in processes:
                         param_keys={
@@ -156,21 +161,25 @@ class VegParams:
                             'disp_size_rat',
                             'disp_cost'
                             }
-                    self.dispparams={ key:value for key,value in self.x.items() if key in param_keys}
-
+                        self.dispparams={ key:value for key,value in self.x.items() if key in param_keys}
+                    else:
+                        self.dispparams={}
                     if 'storage' in processes:
                         param_keys={
                             'r_wint_die',
                             'r_wint_stor',
                             }
-                    self.storparams={ key:value for key,value in self.x.items() if key in param_keys}
-
+                        self.storparams={ key:value for key,value in self.x.items() if key in param_keys}
+                    else:
+                        self.storparams={}
                 if 'colonize' in processes:
                     param_keys={
                         'col_prob',
                         'col_dt'
                     }
                     self.colparams={ key:value for key,value in self.x.items() if key in param_keys}
+                else:
+                    self.colparams={}
                 
                 if 'mortality' in processes:
                     param_keys={
@@ -201,3 +210,17 @@ class VegParams:
                         's5_weight'
                     }
                     self.mortparams={ key:value for key,value in self.x.items() if key in param_keys}
+                else:
+                    self.mortparams={}
+        out={'veg_params':{
+                'plant_ids': self.x['name'],
+                'growthparams':self.growthparams,
+                'sizeparams':self.sizeparams,
+                'dispparams':self.dispparams,
+                'storparams':self.storparams,
+                'colparams':self.colparams,
+                'mortparams':self.mortparams
+            }
+        }
+        with open(outfile,'w') as outfile:
+            yaml.dump(out, outfile, default_flow_style=True)            
