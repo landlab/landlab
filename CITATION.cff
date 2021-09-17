@@ -4,9 +4,63 @@ authors:
   -
     family-names: Hutton
     given-names: Eric
+    orcid: "https://orcid.org/0000-0002-5864-6459"
   -
     family-names: Barnhart
-    given-names: Katy
+    given-names: Katy  
+  -
+    family-names: Hobley
+    given-names: Dan
+  -
+    family-names: Tucker
+    given-names: Greg
+  -
+    family-names: Nudurupati
+    given-names: Sai
+  -
+    family-names: Adams
+    given-names: Jordan
+  -
+    family-names: Gasparini
+    given-names: Nicole
+  -
+    family-names: Shobe
+    given-names: Charlie
+  -
+    family-names: Strauch
+    given-names: Ronda
+  -
+    family-names: Knuth
+    given-names: Jenny
+  -
+    family-names: Knuth
+    given-names: Jenny
+  -
+    family-names: Mouchene
+    given-names: Margaux
+  -
+    family-names: Lyons
+    given-names: Nathan
+  -
+    family-names: Litwin
+    given-names: David
+  -
+    family-names: Glade
+    given-names: Rachel
+  -
+    name: Giuseppecipolla95
+  -
+    family-names: Manaster
+    given-names: Amanda
+  -
+    family-names: Abby
+    given-names: Langston
+  -
+    family-names: Thyng
+    given-names: Kristen
+  -
+    family-names: Rengers
+    given-names: Francis
 cff-version: "1.1.0"
 date-released: 2021-04-29
 doi: "10.5281/zenodo.3776837"
