@@ -2,6 +2,7 @@
 ---
 authors: 
   -
+    affiliation: "University of Colorado"
     family-names: Hutton
     given-names: Eric
     orcid: "https://orcid.org/0000-0002-5864-6459"
@@ -62,11 +63,16 @@ authors:
     family-names: Rengers
     given-names: Francis
 cff-version: "1.1.0"
-date-released: 2021-04-29
-doi: "10.5281/zenodo.3776837"
+doi: "10.5281/zenodo.595872"
+keywords:
+  - bmi
+  - "component modeling"
+  - "earth science"
+  - "gridding engine"
+  - "model coupling"
+  - "numerical modeling"
 license: MIT
 message: "If you use this software, please cite it using these metadata."
-repository-code: "https://github.com/landlab/landlab/releases/tag/v2.0.1"
-title: "landlab (Mrs. Weasley)"
-version: "2.0.1"
+repository-code: "https://github.com/landlab/landlab"
+title: "landlab"
 ...
