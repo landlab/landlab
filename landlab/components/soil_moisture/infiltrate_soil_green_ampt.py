@@ -46,8 +46,8 @@ class SoilInfiltrationGreenAmpt(Component):
     colleagues, after Julien et al., 1995. The infiltration scheme follows the
     Green and Ampt equation. It was implemented in Landlab by DEJH, March 2016.
 
-    Where to learn more
-    -------------------
+    **Where to learn more**
+
     A description of the Green-Ampt infiltration equation can be found in many
     hydrology texts, as well as online resources. The original theory was
     published by Green and Ampt (1911).
