@@ -33,16 +33,19 @@ class DimensionlessDischarge(Component):
 
     Examples
     --------
+    >>> from landlab.components import DimensionlessDischarge
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((4, 5), 10.0)
-    >>> kw = KinwaveOverlandFlowModel(rg)
-    >>> kw.vel_coef
-    100.0
-    >>> rg.at_node['surface_water__depth']
-    array([ 0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.])
+    >>> import random
+    >>> grid = RasterModelGrid((3, 3))
+    >>> flux = grid.add_ones('node', 'flux')
+    >>> d50 = grid.add_ones('node', 'd50')
+    >>> stream_slopes = grid.add_ones('node', 'stream_slopes')
+    >>> dd = DimensionlessDischarge(grid)
+    >>> dd.run_one_step(.5)
+    >>> grid.at_node['dimensionless_discharge']
+    array([ 0.  0.  0.  
+            0.  0.  0.  
+            0.  0.  0.])
 
     
 
