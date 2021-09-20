@@ -125,23 +125,22 @@ class DimensionlessDischarge(Component):
         self._C = C
         self._N = N
         self._stream_slopes = self.grid.at_node["stream_slopes"]
-        self._flux = self.grid.at_node["flux"]
-        self._d50 = self.grid.at_node["d50"]
 
         #set threshold values for each segment
-        z = self.grid.add_zeros('node', 'dimensionless_discharge')
-        a= self.grid.add_zeros('node', 'dimensionless_discharge_above_threshold')
-        c =self.grid.add_zeros('node', 'dimensionless_discharge_threshold_value')
+        dimensionless_discharge = self.grid.add_zeros('node', 'dimensionless_discharge')
+        dimensionless_discharge_above_threshold = self.grid.add_zeros('node', 'dimensionless_discharge_above_threshold')
+        dimensionless_discharge_threshold_value =self.grid.add_zeros('node', 'dimensionless_discharge_threshold_value')
         for i in range(len(self.grid.at_node["dimensionless_discharge_threshold_value"])):
             self.grid.at_node["dimensionless_discharge_threshold_value"][i] = C/(math.tan(self._stream_slopes[i])**N)
-        print(self.grid)
 
     def run_one_step(self, dt):
         for i in range(len(self.grid.at_node["dimensionless_discharge"])):
-            self.grid.at_node["dimensionless_discharge"][i] = self._flux[i]/math.sqrt(((self._soil_density
-        -_WATER_DENSITY)/_WATER_DENSITY)*_GRAVITY*(self._d50[i]**3))
-            if self._dimensionless_discharge[i] >= self._dimensionless_discharge_threshold_value[i]:
-                self._dimensionless_discharge_above_threshold[i] = 1
+            self.grid.at_node["dimensionless_discharge"][i] = self.grid.at_node["flux"][i]/math.sqrt(((self._soil_density
+        -_WATER_DENSITY)/_WATER_DENSITY)*_GRAVITY*(self.grid.at_node["d50"][i]**3))
+            if self.grid.at_node["dimensionless_discharge"][i] >= self.grid.at_node["dimensionless_discharge_threshold_value"][i]:
+                self.grid.at_node["dimensionless_discharge_above_threshold"][i] = 1
+            else: 
+                self.grid.at_node["dimensionless_discharge_above_threshold"][i] = 0
 
         self._current_time += dt
 
