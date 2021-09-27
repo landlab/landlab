@@ -10,11 +10,19 @@ Peer-reviewed journal articles
 2021
 ````
 
+Chen, H., Wang, X., Lu, H., & Van Balen, R. (2021). **Anthropogenic impacts on Holocene fluvial dynamics in the Chinese Loess Plateau, an evaluation based on landscape evolution modelling.** *Geomorphology,* 392, 107935, `https://doi.org/10.1016/j.geomorph.2021.107935 <https://doi.org/10.1016/j.geomorph.2021.107935>`__.
+
+Hooshyar, M., & Porporato, A. (2021). **Mean Dynamics and Elevation‐Contributing Area Covariance in Landscape Evolution Models.** *Water Resources Research,* 57(8), e2021WR029727, `https://doi.org/10.1029/2021WR029727 <https://doi.org/10.1029/2021WR029727>`__.
+
+Lai, J., & Anders, A. M. (2021). **Climatic controls on mountain glacier basal thermal regimes dictate spatial patterns of glacial erosion.** *Earth Surface Dynamics*, 9(4), 845-859, `https://doi.org/10.5194/esurf-9-845-2021 <https://doi.org/10.5194/esurf-9-845-2021>`__.
+
 Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Rivers and the Importance of Subplate Support.** *Geophysical Research Letters,* 48(1), e2020GL091107, `https://doi.org/10.1029/2020GL091107 <https://doi.org/10.1029/2020GL091107>`__.
 
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
 
 Quichimbo, E. A., Singer, M. B., Michaelides, K., Hobley, D. E. J., Rosolem, R., & Cuthbert, M. O. (2021). **DRYP 1.0: A parsimonious hydrological model of DRYland Partitioning of the water balance.** *Geoscientific Model Development Discussions \[preprint\],* `https://doi.org/10.5194/gmd-2021-137 <https://doi.org/10.5194/gmd-2021-137>`__.
+
+Sharma, H., Ehlers, T. A., Glotzbach, C., Schmid, M., & Tielbörger, K. (2021). **Effect of rock uplift and Milankovitch timescale variations in precipitation and vegetation cover on catchment erosion rates.** *Earth Surface Dynamics,* 9(4), 1045-1072, `https://doi.org/10.5194/esurf-9-1045-2021 <https://doi.org/10.5194/esurf-9-1045-2021>`__.
 
 Sheehan, C. E., & Ward, D. J. (2021). **An Autogenic Cycle of Fluvial Transience in Dipping, Layered Rocks.** *Geophysical Research Letters,* 48(1), e2020GL090246, `https://doi.org/10.1029/2020GL090246 <https://doi.org/10.1029/2020GL090246>`__.
 
