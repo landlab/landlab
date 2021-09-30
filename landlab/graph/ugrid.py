@@ -53,7 +53,7 @@ def _update_node_coords(ugrid, node_y_and_x):
 
 
 def _update_nodes_at_link(ugrid, node_links):
-    node_links = np.asarray(node_links, dtype=np.int).reshape((-1, 2))
+    node_links = np.asarray(node_links, dtype=int).reshape((-1, 2))
     nodes_at_link = xr.DataArray(
         data=node_links,
         dims=("link", "Two"),

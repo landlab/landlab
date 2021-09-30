@@ -437,7 +437,7 @@ class CellLabCTSModel(object):
         # Create priority queue for events and next_update array for links
         self.next_update = self.grid.add_zeros("link", "next_update_time")
         self.priority_queue = PriorityQueue()
-        self.next_trn_id = -np.ones(self.grid.number_of_links, dtype=np.int)
+        self.next_trn_id = -np.ones(self.grid.number_of_links, dtype=int)
 
         # Assign link types from node types
         self.create_link_state_dict_and_pair_list()
@@ -589,7 +589,7 @@ class CellLabCTSModel(object):
         n_xn = np.zeros(self.num_link_states, dtype=int)
         for xn in xn_list:
             n_xn[xn.from_state] += 1
-        self.n_trn = np.zeros(self.num_link_states, dtype=np.int)
+        self.n_trn = np.zeros(self.num_link_states, dtype=int)
 
         # Now, create arrays to hold the "to state" and transition rate for each
         # transition. These arrays are dimensioned N x M where N is the number
@@ -598,9 +598,9 @@ class CellLabCTSModel(object):
         # state 4, and the other states only had one or zero possible
         # transitions, then the maximum would be 2).
         max_transitions = np.max(n_xn)
-        self.trn_id = np.zeros((self.num_link_states, max_transitions), dtype=np.int)
+        self.trn_id = np.zeros((self.num_link_states, max_transitions), dtype=int)
         num_transitions = len(xn_list)
-        self.trn_to = np.zeros(num_transitions, dtype=np.int)
+        self.trn_to = np.zeros(num_transitions, dtype=int)
         self.trn_rate = np.zeros(num_transitions)
         self.trn_propswap = np.zeros(num_transitions, dtype=np.int8)
         self.trn_prop_update_fn = np.zeros(num_transitions, dtype=object)
@@ -730,7 +730,7 @@ class CellLabCTSModel(object):
         >>> nsd = {0 : 'zero', 1 : 'one'}
         >>> trn_list = []
         >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
-        >>> ins = np.zeros(15, dtype=np.int)
+        >>> ins = np.zeros(15, dtype=int)
         >>> ca = RasterCTS(grid, nsd, trn_list, ins)
         >>> list(ca.node_state[6:9])
         [0, 0, 0]
