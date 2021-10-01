@@ -32,10 +32,10 @@ def _calc_fracture_starting_position_raster(shape):
     else:
         c = np.random.randint(0, shape[1] - 1)
         r = (1 - grid_side // 2) * (shape[0] - 1)
-    print('starting on side ' + str(grid_side) + ' at ' + str((c,r)))
+
     return (c, r)
 
-def _calc_fracture_starting_position_hex(shape, is_horiz):
+def _calc_fracture_starting_position_and_angle_hex(shape, is_horiz, spacing):
     """Choose a random starting position along one of the sides of the grid.
 
     Parameters
@@ -45,19 +45,41 @@ def _calc_fracture_starting_position_hex(shape, is_horiz):
 
     Returns
     -------
-    (c, r) : tuple of int
-        Fracture starting coordinates (column and row IDs)
+    (x, y, ang) : tuple of float
+        Fracture starting coordinates and angle (radians)
     """
     grid_side = np.random.randint(0, 3) # east, north, west, south
+    ang = np.pi * np.random.rand()
+    if is_horiz:
+        row_spacing = 0.5 * 3.0**0.5 * spacing
+        col_spacing = spacing
+    else:
+        row_spacing = spacing
+        col_spacing = 0.5 * 3.0**0.5 * spacing
 
     if (grid_side % 2) == 0:  # east or west
         c = (1 - grid_side // 2) * (shape[1] - 1)
         r = np.random.randint(0, shape[0] - 1)
+        if grid_side==0:  # east
+            ang += np.pi / 2
+        else:  # west
+            ang += 1.5 * np.pi
     else:
         c = np.random.randint(0, shape[1] - 1)
         r = (1 - grid_side // 2) * (shape[0] - 1)
-    print('starting on side ' + str(grid_side) + ' at ' + str((c,r)))
-    return (c, r)
+        if grid_side==1:  # north
+            ang += np.pi
+
+    x = c * col_spacing
+    y = r * row_spacing
+
+    epsilon = 0.001 * spacing  # tiny offset to ensure points start inside grid
+    if x > epsilon:
+        x -= epsilon
+    if y > epsilon:
+        y -= epsilon
+
+    return (x, y, ang)
 
 def _calc_fracture_orientation(coords, shape):
     """Choose a random orientation for the fracture.
@@ -83,22 +105,15 @@ def _calc_fracture_orientation(coords, shape):
         - south: 0-180
     """
     x, y = coords
-    print('in here x = ' + str(x))
     ang = np.pi * np.random.rand()
-    print('raw ang ' + str(np.degrees(ang)))
-    print(coords)
+
     if x == shape[1] - 1:  # east
         ang += np.pi / 2
-        print('east ' + str(np.degrees(ang)))
     elif y == shape[0] - 1:  # north
         ang += np.pi
-        print('n ' + str(np.degrees(ang)))
     elif x == 0:  # west
         ang += 1.5 * np.pi
-        print('w ' + str(np.degrees(ang)))
-    else:
-        print('s ' + str(np.degrees(ang)))
-    print('ang ' + str(np.degrees(ang)))
+
     return ang
 
 def _calc_fracture_step_sizes(ang):
@@ -152,7 +167,7 @@ def _calc_fracture_step_sizes(ang):
     multiplier = 1.0 / max(np.abs(dx), np.abs(dy))
     dx *= multiplier
     dy *= multiplier
-    print('dy=' + str(dy) + ', dx=' + str(dx))
+
     return dx, dy
 
 
@@ -203,60 +218,6 @@ def _coords_to_row_col_hex(x, y, is_horiz):
         col = int((2 / 3.0**0.5) * x + 0.5)
 
 
-def _trace_fracture_through_grid_hex(m, start_xy, spacing, is_horiz=True):
-    """Create a 2D fracture in a grid.
-
-    Creates a "fracture" in a 2D grid, m, by setting cell values to unity
-    along the trace of the fracture (i.e., "drawing" a line throuh the
-    grid).
-
-    Parameters
-    ----------
-    m : 2D Numpy array
-        Array that represents the grid
-    start_xy : tuple of int
-        Starting grid coordinates (col, row) for fracture
-    spacing : tuple of float
-        Step sizes in x and y directions
-
-    Returns
-    -------
-    None, but changes contents of m
-    """
-    x0, y0 = start_xy
-    dx, dy = spacing
-    root3over2 = 3.0**0.5 / 2
-    dx *= 0.5
-    dy *= 0.5
-
-    x = x0
-    y = y0
-
-    if is_horiz:
-        while (
-            round(x) < np.size(m, 1)
-            and round(y) < np.size(m, 0)
-            and round(x) >= 0
-            and round(y) >= 0
-        ):
-            xshift = 0.5 - 0.5 * (round(y) % 2) # shift 0.5,1 for even,odd col
-            m[int(y + 0.5)][int(x + xshift)] = 1
-            x += dx
-            y += dy
-
-    else:
-        while (
-            round(x) < np.size(m, 1)
-            and round(y) < np.size(m, 0)
-            and round(x) >= 0
-            and round(y) >= 0
-        ):
-            yshift = 0.5 - 0.5 * (round(x) % 2) # shift 0.5,1 for even,odd col
-            m[int(y + yshift)][int(x + 0.5)] = 1
-            x += dx
-            y += dy
-
-
 class FractureGridGenerator(Component):
 
     """Create a 2D grid with randomly generated fractures.
@@ -271,7 +232,7 @@ class FractureGridGenerator(Component):
     >>> grid = RasterModelGrid((5, 5))
     >>> fg = FractureGridGenerator(grid=grid, frac_spacing=3)
     >>> fg.run_one_step()
-    >>> grid.at_node['fracture_at_node']
+    >>> grid.at_node['fracture_at_node'].reshape((5, 5))
     array([1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
            0, 0], dtype=int8)
 
@@ -331,6 +292,13 @@ class FractureGridGenerator(Component):
         self._seed = seed
         super().__init__(grid)
 
+        if isinstance(grid, RasterModelGrid):
+            self._make_frac_grid = self.make_frac_grid_raster
+        elif isinstance(grid, HexModelGrid):
+            self._make_frac_grid = self.make_frac_grid_hex
+        else:
+            raise TypeError('grid must be RasterModelGrid or HexModelGrid')
+
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
 
@@ -362,7 +330,7 @@ class FractureGridGenerator(Component):
         nfracs = (nr + nc) // frac_spacing
         for i in range(nfracs):
 
-            (c, r) = _calc_fracture_starting_position((nr, nc))
+            (c, r) = _calc_fracture_starting_position_raster((nr, nc))
             ang = _calc_fracture_orientation((c, r), (nr, nc))
             (dx, dy) = _calc_fracture_step_sizes(ang)
 
@@ -380,24 +348,36 @@ class FractureGridGenerator(Component):
         frac_spacing : int
             Average spacing of fractures (in # of grid-cell widths)
         """
-        # Make an initial grid of all zeros. If user specified a model grid,
-        # use that. Otherwise, use the given dimensions.
+        # Make an initial grid of all zeros
         nr = self._grid.number_of_node_rows
         nc = self._grid.number_of_node_columns
-        m = self._grid.at_node["fracture_at_node"].reshape((nr, nc))
+        m = self._grid.at_node["fracture_at_node"] #.reshape((nr, nc))
 
         # Add fractures to grid
         nfracs = (nr + nc) // frac_spacing
         for i in range(nfracs):
 
-            (c, r) = _calc_fracture_starting_position((nr, nc))
-            ang = _calc_fracture_orientation((c, r), (nr, nc))
-            (dx, dy) = _calc_fracture_step_sizes(ang)
-            x, y =
-            dx /= 2.0
-            dy /= 2.0
+            (x, y, ang) = _calc_fracture_starting_position_and_angle_hex(
+                (nr, nc),
+                is_horiz=(self._grid.orientation[0]=='h'),
+                spacing=self._grid.spacing
+            )
 
-            _trace_fracture_through_grid_hex(m, (c, r), (dx, dy))
+            dx = 0.5 * np.cos(ang)
+            dy = 0.5 * np.sin(ang)
+
+            # the following is a TERRIBLE brute-force, algorithm, with its only
+            # redeeming feature being that it was quick to code
+            xmax = np.amax(self._grid.x_of_node)
+            ymax = np.amax(self._grid.y_of_node)
+            while x >= 0 and x <= xmax and y >= 0 and y <= ymax:
+                distx2 = (self._grid.x_of_node - x)**2
+                disty2 = (self._grid.y_of_node - y)**2
+                dist = np.sqrt(distx2 + disty2)
+                closest_node = np.argmin(dist)
+                x += dx
+                y += dy
+                m[closest_node] = 1
 
     def _calc_fracture_starting_position(self):
         """Choose a random starting position along one of the sides of the grid.
@@ -439,5 +419,5 @@ class FractureGridGenerator(Component):
         else:
             x = np.random.rand() * grid_width / grid_dx
             y = (1 - grid_side // 2) * (shape[0] - 1)
-        print('starting on side ' + str(grid_side) + ' at ' + str((x,y)))
+
         return (x, y)
