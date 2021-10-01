@@ -24,7 +24,7 @@ def _calc_fracture_starting_position_raster(shape):
     (c, r) : tuple of int
         Fracture starting coordinates (column and row IDs)
     """
-    grid_side = np.random.randint(0, 3) # east, north, west, south
+    grid_side = np.random.randint(0, 3)  # east, north, west, south
 
     if (grid_side % 2) == 0:  # east or west
         c = (1 - grid_side // 2) * (shape[1] - 1)
@@ -34,6 +34,7 @@ def _calc_fracture_starting_position_raster(shape):
         r = (1 - grid_side // 2) * (shape[0] - 1)
 
     return (c, r)
+
 
 def _calc_fracture_starting_position_and_angle_hex(shape, is_horiz, spacing):
     """Choose a random starting position along one of the sides of the grid.
@@ -48,26 +49,26 @@ def _calc_fracture_starting_position_and_angle_hex(shape, is_horiz, spacing):
     (x, y, ang) : tuple of float
         Fracture starting coordinates and angle (radians)
     """
-    grid_side = np.random.randint(0, 3) # east, north, west, south
+    grid_side = np.random.randint(0, 3)  # east, north, west, south
     ang = np.pi * np.random.rand()
     if is_horiz:
-        row_spacing = 0.5 * 3.0**0.5 * spacing
+        row_spacing = 0.5 * 3.0 ** 0.5 * spacing
         col_spacing = spacing
     else:
         row_spacing = spacing
-        col_spacing = 0.5 * 3.0**0.5 * spacing
+        col_spacing = 0.5 * 3.0 ** 0.5 * spacing
 
     if (grid_side % 2) == 0:  # east or west
         c = (1 - grid_side // 2) * (shape[1] - 1)
         r = np.random.randint(0, shape[0] - 1)
-        if grid_side==0:  # east
+        if grid_side == 0:  # east
             ang += np.pi / 2
         else:  # west
             ang += 1.5 * np.pi
     else:
         c = np.random.randint(0, shape[1] - 1)
         r = (1 - grid_side // 2) * (shape[0] - 1)
-        if grid_side==1:  # north
+        if grid_side == 1:  # north
             ang += np.pi
 
     x = c * col_spacing
@@ -80,6 +81,7 @@ def _calc_fracture_starting_position_and_angle_hex(shape, is_horiz, spacing):
         y -= epsilon
 
     return (x, y, ang)
+
 
 def _calc_fracture_orientation(coords, shape):
     """Choose a random orientation for the fracture.
@@ -115,6 +117,7 @@ def _calc_fracture_orientation(coords, shape):
         ang += 1.5 * np.pi
 
     return ang
+
 
 def _calc_fracture_step_sizes(ang):
     """Calculate the sizes of steps dx and dy to be used when "drawing" the
@@ -208,16 +211,6 @@ def _trace_fracture_through_grid_raster(m, start_xy, spacing):
         y += dy
 
 
-def _coords_to_row_col_hex(x, y, is_horiz):
-    """Convert (x,y) coordinates to (row,col) in a rect-layout hex grid."""
-    if is_horiz:
-        row = int((2 / 3.0**0.5) * y + 0.5)
-        col = int(x + 0.5)  # col number is rounded x coordinate
-    else:
-        row = int(y + 0.5)  # row number is rounded y coordinate
-        col = int((2 / 3.0**0.5) * x + 0.5)
-
-
 class FractureGridGenerator(Component):
 
     """Create a 2D grid with randomly generated fractures.
@@ -300,7 +293,7 @@ class FractureGridGenerator(Component):
         elif isinstance(grid, HexModelGrid):
             self._make_frac_grid = self.make_frac_grid_hex
         else:
-            raise TypeError('grid must be RasterModelGrid or HexModelGrid')
+            raise TypeError("grid must be RasterModelGrid or HexModelGrid")
 
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
@@ -354,7 +347,7 @@ class FractureGridGenerator(Component):
         # Make an initial grid of all zeros
         nr = self._grid.number_of_node_rows
         nc = self._grid.number_of_node_columns
-        m = self._grid.at_node["fracture_at_node"] #.reshape((nr, nc))
+        m = self._grid.at_node["fracture_at_node"]  # .reshape((nr, nc))
 
         # Add fractures to grid
         nfracs = (nr + nc) // frac_spacing
@@ -362,8 +355,8 @@ class FractureGridGenerator(Component):
 
             (x, y, ang) = _calc_fracture_starting_position_and_angle_hex(
                 (nr, nc),
-                is_horiz=(self._grid.orientation[0]=='h'),
-                spacing=self._grid.spacing
+                is_horiz=(self._grid.orientation[0] == "h"),
+                spacing=self._grid.spacing,
             )
 
             dx = 0.5 * np.cos(ang)
@@ -374,53 +367,10 @@ class FractureGridGenerator(Component):
             xmax = np.amax(self._grid.x_of_node)
             ymax = np.amax(self._grid.y_of_node)
             while x >= 0 and x <= xmax and y >= 0 and y <= ymax:
-                distx2 = (self._grid.x_of_node - x)**2
-                disty2 = (self._grid.y_of_node - y)**2
+                distx2 = (self._grid.x_of_node - x) ** 2
+                disty2 = (self._grid.y_of_node - y) ** 2
                 dist = np.sqrt(distx2 + disty2)
                 closest_node = np.argmin(dist)
                 x += dx
                 y += dy
                 m[closest_node] = 1
-
-    def _calc_fracture_starting_position(self):
-        """Choose a random starting position along one of the sides of the grid.
-
-        Parameters
-        ----------
-        shape : tuple of int
-            Number of rows and columns in the grid
-
-        Returns
-        -------
-        (x, y) : tuple of float
-            Fracture starting coordinates (normalized? x and y coords)
-        """
-        #
-        grid_height = np.amax(self.grid.y_of_node)
-        grid_width = np.amax(self.grid.x_of_node)
-
-        try:  # raster
-            grid_dx, grid_dy = self.grid.spacing
-        except TypeError:  # hex
-            if orientation == 'horizontal':
-                grid_dx = self.grid.spacing
-                grid_dy = (3.0**0.5 / 2.0) * self.grid.spacing
-            else:
-                grid_dy = self.grid.spacing
-                grid_dx = (3.0**0.5 / 2.0) * self.grid.spacing
-
-        if np.random.rand() < grid_height / (grid_height + grid_width): # e or w
-            grid_side = 0
-        else: # n or s
-            grid_side = 1
-        coin_flip = np.random.randint(0, 1)
-        grid_side += 2 * coin_flip  # 0 = e or n, 1 = w or s
-
-        if (grid_side % 2) == 0:  # east or west
-            x = (1 - grid_side // 2) * grid_width
-            y = np.random.rand() * grid_height / grid_dy
-        else:
-            x = np.random.rand() * grid_width / grid_dx
-            y = (1 - grid_side // 2) * (shape[0] - 1)
-
-        return (x, y)
