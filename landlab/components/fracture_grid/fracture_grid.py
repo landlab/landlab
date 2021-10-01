@@ -233,8 +233,11 @@ class FractureGridGenerator(Component):
     >>> fg = FractureGridGenerator(grid=grid, frac_spacing=3)
     >>> fg.run_one_step()
     >>> grid.at_node['fracture_at_node'].reshape((5, 5))
-    array([1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-           0, 0], dtype=int8)
+    array([[1, 0, 0, 1, 0],
+           [0, 1, 1, 1, 1],
+           [0, 0, 0, 1, 1],
+           [0, 0, 0, 1, 1],
+           [0, 0, 0, 1, 0]], dtype=int8)
 
     Notes
     -----
