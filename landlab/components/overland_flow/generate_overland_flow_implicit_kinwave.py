@@ -39,6 +39,7 @@ def water_fn(x, a, b, c, d, e):
     e : float
         Water inflow volume per unit cell area in one time step.
 
+
     This equation represents the implicit solution for water depth
     :math:`H` at the next time step. In the code below, it is
     formulated in a generic way.  Written using more familiar

@@ -2670,7 +2670,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             len_subset = self.number_of_nodes
 
         if out_distance is None:
-            out_distance = np.empty(len_subset, dtype=np.float)
+            out_distance = np.empty(len_subset, dtype=float)
         if out_distance.size != len_subset:
             raise ValueError("output array size mismatch for distances")
 
@@ -2680,7 +2680,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             else:
                 az_shape = (len_subset,)
             if out_azimuth is None:
-                out_azimuth = np.empty(az_shape, dtype=np.float)
+                out_azimuth = np.empty(az_shape, dtype=float)
             if out_azimuth.shape != az_shape:
                 raise ValueError("output array mismatch for azimuths")
 

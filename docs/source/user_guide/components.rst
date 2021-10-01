@@ -155,7 +155,7 @@ Landlab components always want to see a Python dictionary as their input, as
 illustrated above. However, Landlab does offer a native file
 reader called `load_params` that allows you to create dictionaries to pass to
 components from input files. This function recognizes both
-`"yaml" <https://yaml.org/start.html>`_ formatted data files, e.g.,
+`"yaml" <https://yaml.org/spec/1.2/>`_ formatted data files, e.g.,
 
 .. code-block:: yaml
 
