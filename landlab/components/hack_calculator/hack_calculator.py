@@ -238,7 +238,7 @@ class HackCalculator(Component):
         super().initialize_output_fields()
         self._dist = grid.at_node['distance_to_divide']
 
-        self._profiler = ChannelProfiler(grid, **kwds)
+        self.profiler = ChannelProfiler(grid, **kwds)
         self._save_full_df = save_full_df
 
     @property
@@ -312,7 +312,7 @@ class HackCalculator(Component):
     def calculate_hack_parameters(self):
         """Calculate Hack parameters for desired watersheds."""
         out = collections.OrderedDict()
-        self._profiler.run_one_step()
+        self.profiler.run_one_step()
 
         self._dist[:] = calculate_distance_to_divide(self._grid, longest_path=True)
 
@@ -320,11 +320,11 @@ class HackCalculator(Component):
             internal_df = []
 
         # for watershed in watersheds (in profile structure)
-        for outlet_node in self._profiler._data_struct:
-            seg_tuples = self._profiler._data_struct[outlet_node].keys()
+        for outlet_node in self.profiler._data_struct:
+            seg_tuples = self.profiler._data_struct[outlet_node].keys()
 
             watershed = [
-                self._profiler._data_struct[outlet_node][seg]["ids"]
+                self.profiler._data_struct[outlet_node][seg]["ids"]
                 for seg in seg_tuples
             ]
 
