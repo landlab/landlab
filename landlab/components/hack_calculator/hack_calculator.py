@@ -235,6 +235,8 @@ class HackCalculator(Component):
             Values to pass to the ChannelProfiler.
         """
         super().__init__(grid)
+        super().initialize_output_fields()
+        self._dist = grid.at_node['distance_to_divide']
 
         self._profiler = ChannelProfiler(grid, **kwds)
         self._save_full_df = save_full_df
@@ -312,7 +314,7 @@ class HackCalculator(Component):
         out = collections.OrderedDict()
         self._profiler.run_one_step()
 
-        dist = calculate_distance_to_divide(self._grid, longest_path=True)
+        self._dist[:] = calculate_distance_to_divide(self._grid, longest_path=True)
 
         if self._save_full_df:
             internal_df = []
@@ -331,7 +333,7 @@ class HackCalculator(Component):
             nodes = np.unique(_flatten(watershed))
 
             A = self._grid.at_node["drainage_area"][nodes]
-            L = dist[nodes]
+            L = self._dist[nodes]
             C, h = _estimate_hack_coeff(A, L)
 
             out[outlet_node] = {"A_max": A_max, "C": C, "h": h}
