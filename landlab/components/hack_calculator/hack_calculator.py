@@ -236,7 +236,7 @@ class HackCalculator(Component):
         """
         super().__init__(grid)
         super().initialize_output_fields()
-        self._dist = grid.at_node['distance_to_divide']
+        self._dist = grid.at_node["distance_to_divide"]
 
         self.profiler = ChannelProfiler(grid, **kwds)
         self._save_full_df = save_full_df
