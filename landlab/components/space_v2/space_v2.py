@@ -16,6 +16,8 @@ import copy as cp
 class Space_v2(Component):   
 
     _name = "Space_v2"
+    
+    _unit_agnostic = True
 
     _info = {
         "flow__link_to_receiver_node": {

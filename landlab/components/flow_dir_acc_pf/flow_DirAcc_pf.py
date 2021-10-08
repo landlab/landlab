@@ -204,6 +204,8 @@ class FlowDirAccPf(Component):
     """
 
     _name = "FlowDirAccPf"
+    
+    _unit_agnostic = True
 
     _info = {
         "flow__link_to_receiver_node": {
@@ -212,7 +214,7 @@ class FlowDirAccPf(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "TODO, currently not implemented ID of link downstream of each node, which carries the discharge",
+            "doc": "ID of link downstream of each node, which carries the discharge",
         },
         
         "drainage_area": {
@@ -285,7 +287,7 @@ class FlowDirAccPf(Component):
             "doc": "The steepest *downhill* slope",
         },
         "SQUARED_length_adjacent": {
-            "dtype": int,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "-",
