@@ -17,10 +17,12 @@ from .watershed import (
     get_watershed_nodes,
     get_watershed_outlet,
 )
+from .fileTreatment import check_out_dirs
 
 __all__ = [
     "add_halo",
     "count_repeated_values",
+    "check_out_dirs",
     "track_source",
     "convert_arc_flow_directions_to_landlab_node_ids",
     "find_unique_upstream_hsd_ids_and_fractions",

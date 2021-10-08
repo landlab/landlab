@@ -9,6 +9,7 @@ from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
 from .flexure import Flexure, Flexure1D
+from .flow_dir_acc_pf import FlowDirAccPf
 from .flow_accum import FlowAccumulator, LossyFlowAccumulator
 from .flow_director import (
     FlowDirectorD8,
@@ -44,6 +45,7 @@ from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
 from .space import Space
+from .space_v2 import Space_v2
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -79,6 +81,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
+    FlowDirAccPf,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
@@ -116,6 +119,7 @@ COMPONENTS = [
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
+    Space_v2,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,
