@@ -2,6 +2,7 @@
 
 from .add_halo import add_halo
 from .count_repeats import count_repeated_values
+from .fileTreatment import check_out_dirs
 from .matrix import get_core_node_at_node, get_core_node_matrix
 from .return_array import return_array_at_link, return_array_at_node
 from .source_tracking_algorithm import (
@@ -17,7 +18,6 @@ from .watershed import (
     get_watershed_nodes,
     get_watershed_outlet,
 )
-from .fileTreatment import check_out_dirs
 
 __all__ = [
     "add_halo",

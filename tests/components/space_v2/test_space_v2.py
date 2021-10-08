@@ -1,11 +1,14 @@
+import copy as cp
+
 import numpy as np
 import pytest
 from numpy import testing
 
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import FlowAccumulator, FlowDirAccPf, Space_v2
-import copy as cp
+
 #%%
+
 
 def test_route_to_multiple_error_raised():
     #%%
@@ -29,6 +32,7 @@ def test_route_to_multiple_error_raised():
             sp_crit_sed=0,
             sp_crit_br=0,
         )
+
 
 #%%
 def test_bad_fillLakesToBrim_Type():
@@ -76,8 +80,9 @@ def test_bad_fillLakesToBrim_Type():
             n_sp=1.0,
             sp_crit_sed=0,
             sp_crit_br=0,
-            fillLakesToBrim = 100
+            fillLakesToBrim=100,
         )
+
 
 #%%
 def test_soil_field_already_on_grid():
@@ -135,7 +140,10 @@ def test_soil_field_already_on_grid():
         err_msg="Space_v2 soil depth field test failed",
         verbose=True,
     )
+
+
 #%%
+
 
 def test_br_field_already_on_grid():
     #%%
@@ -192,6 +200,7 @@ def test_br_field_already_on_grid():
         err_msg="Space_v2 bedrock field test failed",
         verbose=True,
     )
+
 
 #%%
 def test_matches_detachment_solution():
@@ -538,6 +547,7 @@ def test_can_run_with_hex():
         sp.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt
 
+
 #%%
 def test_matches_detachment_solution_PF():
     """
@@ -568,7 +578,9 @@ def test_matches_detachment_solution_PF():
     )
     br[:] = z[:] - soil[:]
 
-    fa = FlowDirAccPf(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
+    fa = FlowDirAccPf(
+        mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
+    )
     fa.run_one_step()
 
     # Parameter values for detachment-limited test
@@ -616,10 +628,11 @@ def test_matches_detachment_solution_PF():
         verbose=True,
     )
 
+
 #%%
 @pytest.mark.slow
 def test_matches_transport_solution_PF():
-    
+
     """
     Test that model matches the transport-limited analytical solution
     for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m)
@@ -628,7 +641,7 @@ def test_matches_transport_solution_PF():
     Also test that model matches the analytical solution for steady-state
     sediment flux: Qs = U * A * (1 - phi).
     """
-#%%
+    #%%
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
@@ -655,7 +668,9 @@ def test_matches_transport_solution_PF():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    fa = FlowDirAccPf(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
+    fa = FlowDirAccPf(
+        mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
+    )
     fa.run_one_step()
 
     # Parameter values for detachment-limited test
@@ -729,6 +744,7 @@ def test_matches_transport_solution_PF():
         verbose=True,
     )
 
+
 #%%
 @pytest.mark.slow
 def test_matches_bedrock_alluvial_solution_PF():
@@ -741,7 +757,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     analytical solution at steady state:
     H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
     """
-#%%
+    #%%
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
@@ -768,7 +784,9 @@ def test_matches_bedrock_alluvial_solution_PF():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    fa = FlowDirAccPf(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
+    fa = FlowDirAccPf(
+        mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
+    )
     fa.run_one_step()
 
     # Parameter values for detachment-limited test
@@ -838,17 +856,19 @@ def test_matches_bedrock_alluvial_solution_PF():
         verbose=True,
     )
     #%%
+
+
 def test_MassBalance():
     #%%
     # set up a 15x15 grid with one open outlet node and low initial elevations.
     nr = 15
     nc = 15
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
-    
+
     z = mg.add_zeros("topographic__elevation", at="node")
     br = mg.add_zeros("bedrock__elevation", at="node")
     soil = mg.add_zeros("soil__depth", at="node")
-    
+
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
     )
@@ -864,19 +884,16 @@ def test_MassBalance():
     soil[:] += 0.0  # initial condition of no soil depth.
     br[:] = z[:]
     z[:] += soil[:]
-    
+
     # Create a D8 flow handler
     # fa = FlowDirAccPf(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
     # fa.run_one_step()
-    
-    
+
     # Create a D8 flow handler
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
     )
-    
-    
-    
+
     # Parameter values for detachment-limited test
     K_br = 0.002
     K_sed = 0.002
@@ -887,7 +904,7 @@ def test_MassBalance():
     n_sp = 1.0
     v_s = 0.25
     H_star = 0.1
-    
+
     # Instantiate the Space component...
     sp = Space_v2(
         mg,
@@ -915,26 +932,27 @@ def test_MassBalance():
         bed_B = cp.deepcopy(br)
         vol_SSY_riv, V_leaving_riv = sp.run_one_step(dt=dt)
         diff_MB = (
-            np.sum((bed_B[cores]-br[cores])*area[cores]) 
-            + np.sum((soil_B[cores] - H[cores])*area[cores])*(1-sp._phi) 
-            -vol_SSY_riv*dt - V_leaving_riv
-            ) 
-        
+            np.sum((bed_B[cores] - br[cores]) * area[cores])
+            + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
+            - vol_SSY_riv * dt
+            - V_leaving_riv
+        )
+
         br[mg.core_nodes] += U * dt  # m
         soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]
-        
-        #Test Every iteration
+
+        # Test Every iteration
         testing.assert_array_almost_equal(
             z[cores],
-            br[cores]+H[cores],
+            br[cores] + H[cores],
             decimal=5,
             err_msg="Topography does not equal sum of bedrock and soil! Decrease timestep",
             verbose=True,
-            )
+        )
         testing.assert_array_less(
             abs(diff_MB),
-            1e-8*mg.number_of_nodes, 
-            err_msg = "Mass balance error Space_v2! Try to resolve by becreasing timestep",
+            1e-8 * mg.number_of_nodes,
+            err_msg="Mass balance error Space_v2! Try to resolve by becreasing timestep",
             verbose=True,
-            )
+        )

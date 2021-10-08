@@ -29,7 +29,7 @@ from .grid import (
 )
 from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
-from .plot import imshow_grid, imshowhs_grid,imshow_grid_at_node
+from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid
 
 try:
     set_printoptions(legacy="1.13")

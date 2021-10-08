@@ -134,6 +134,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         "button_press_event", lambda event: query_grid_on_button_press(event, grid)
     )
 
+
 def imshowhs_grid_at_node(grid, values, **kwds):
     """
     see imshow_grid_at_node
@@ -158,7 +159,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     else:
         shape = (-1,)
 
-    ax=_imshowhs_grid_values(grid, values_at_node.reshape(shape), **kwds)
+    ax = _imshowhs_grid_values(grid, values_at_node.reshape(shape), **kwds)
 
     if isinstance(values, str):
         plt.title(values)
@@ -437,11 +438,12 @@ def _imshow_grid_values(
         elif output:
             plt.show()
 
+
 def _imshowhs_grid_values(
     grid,
     values,
     plot_name=None,
-    thicks_km =True,
+    thicks_km=True,
     var_name=None,
     var_units=None,
     grid_units=(None, None),
@@ -458,31 +460,32 @@ def _imshowhs_grid_values(
     color_for_background=None,
     show_elements=False,
     output=None,
-    plotType='DEM',
-    drape1 = None,
-    drape2 =None,
+    plotType="DEM",
+    drape1=None,
+    drape2=None,
     cmap2=None,
     vertical_exa=None,
     azdeg=None,
     altdeg=None,
-    thres_drape1 = None,
+    thres_drape1=None,
     alpha=None,
-    thres_drape2 = None,
+    thres_drape2=None,
     alpha2=None,
     addDoubleColorbar=False,
     plt_contour=False,
-    contour_nb = 50,
-    default_fontsize = 10,
-    cbar_height = '5%',
-    cbar_width = '30%',
-    cbar_or='horizontal',
-    cbar_loc = 'lower right',
-    bbox_to_anchor =(0,0,1,1),
-    cbar_ticks_position = 'top',
-    cbar_ticks_position2= 'bottom',
-    colorbar_label_y = -40,
-    colorbar_label_x = 0.5,
-    cbar_tick_size =10):
+    contour_nb=50,
+    default_fontsize=10,
+    cbar_height="5%",
+    cbar_width="30%",
+    cbar_or="horizontal",
+    cbar_loc="lower right",
+    bbox_to_anchor=(0, 0, 1, 1),
+    cbar_ticks_position="top",
+    cbar_ticks_position2="bottom",
+    colorbar_label_y=-40,
+    colorbar_label_x=0.5,
+    cbar_tick_size=10,
+):
     cmap = plt.get_cmap(cmap)
 
     if color_for_closed is not None:
@@ -492,7 +495,7 @@ def _imshowhs_grid_values(
 
     if isinstance(grid, RasterModelGrid):
         # somethingToPlot is a flag indicating if any pixels should be plotted.
-        somethingToPlot =True
+        somethingToPlot = True
 
         if values.ndim != 2:
             raise ValueError("values must have ndim == 2")
@@ -508,25 +511,22 @@ def _imshowhs_grid_values(
             + grid.xy_of_lower_left[0]
         )
 
-
         #%% Alternative
         # Shade from the northwest, with the sun 45 degrees from horizontal
+        import matplotlib as mpl
         from matplotlib.colors import LightSource
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-        import matplotlib as mpl
         # %%
-
 
         if azdeg is not None:
             pass
         else:
-            azdeg=315
+            azdeg = 315
         if altdeg is not None:
             pass
         else:
-            altdeg=65
-
+            altdeg = 65
 
         ls = LightSource(azdeg=azdeg, altdeg=altdeg)
         if cmap is not None:
@@ -534,25 +534,25 @@ def _imshowhs_grid_values(
         else:
             cmap = plt.cm.terrain
 
-        dx = x[1]-x[0]
-        dy = y[1]-y[0]
+        dx = x[1] - x[0]
+        dy = y[1] - y[0]
 
         if vertical_exa is not None:
             ve = vertical_exa
         else:
-            ve=3
-        extent = [x[0]-dx, x[-1]+dx, y[-1]+dy, y[0]-dy]
+            ve = 3
+        extent = [x[0] - dx, x[-1] + dx, y[-1] + dy, y[0] - dy]
         if thicks_km:
-            extent =np.divide(extent,1e3)
+            extent = np.divide(extent, 1e3)
 
-        ax1 =plt.gca()
+        ax1 = plt.gca()
         if alpha is None:
-            alpha=1
+            alpha = 1
         if alpha2 is None:
-            alpha2=1
+            alpha2 = 1
         # %%
-        blend_modes = ['hsv', 'overlay', 'soft']
-        if plotType=='DEM':
+        blend_modes = ["hsv", "overlay", "soft"]
+        if plotType == "DEM":
 
             kwds = dict(cmap=cmap)
             (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
@@ -569,18 +569,27 @@ def _imshowhs_grid_values(
                 if vmax is not None:
                     kwds["vmax"] = vmax
 
-
-            val= values.data
-            rgb = ls.shade(val, cmap=cmap, blend_mode=blend_modes[0],
-                           vert_exag=ve, dx=dx, dy=dy,fraction =0.4)
+            val = values.data
+            rgb = ls.shade(
+                val,
+                cmap=cmap,
+                blend_mode=blend_modes[0],
+                vert_exag=ve,
+                dx=dx,
+                dy=dy,
+                fraction=0.4,
+            )
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
-        elif plotType=='Hillshade':
-             ima = plt.imshow(ls.hillshade(values,
-                                          vert_exag=ve, dx=dx, dy=dy), cmap='gray', extent=extent)
-             allow_colorbar =False
+        elif plotType == "Hillshade":
+            ima = plt.imshow(
+                ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
+                cmap="gray",
+                extent=extent,
+            )
+            allow_colorbar = False
 
-        elif plotType=='Drape1' or plotType=='Drape2':
+        elif plotType == "Drape1" or plotType == "Drape2":
 
             #%% Process values from first drape
 
@@ -599,18 +608,18 @@ def _imshowhs_grid_values(
             # Add mask if thres_drape1 is given
             if thres_drape1 is not None:
                 # check if any value exceeds threshold
-                if not np.any(values_at_node_drape1>thres_drape1):
+                if not np.any(values_at_node_drape1 > thres_drape1):
                     somethingToPlot = False
 
                 values_at_node_drape1 = np.ma.masked_where(
-                values_at_node_drape1<thres_drape1, values_at_node_drape1
+                    values_at_node_drape1 < thres_drape1, values_at_node_drape1
                 )
 
             if isinstance(grid, RasterModelGrid):
                 shape = grid.shape
             else:
                 shape = (-1,)
-            val1=values_at_node_drape1.reshape(shape)
+            val1 = values_at_node_drape1.reshape(shape)
 
             kwds = dict(cmap=cmap)
             (kwds["vmin"], kwds["vmax"]) = (val1.min(), val1.max())
@@ -629,51 +638,88 @@ def _imshowhs_grid_values(
 
             # val1 = val1.data
             # %%
-            plt.imshow(ls.hillshade(values,
-                                          vert_exag=ve, dx=dx, dy=dy), cmap='gray', extent=extent)
-            ima = ax1.imshow(val1, extent=extent,alpha=alpha, **kwds)
+            plt.imshow(
+                ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
+                cmap="gray",
+                extent=extent,
+            )
+            ima = ax1.imshow(val1, extent=extent, alpha=alpha, **kwds)
             if plt_contour:
-                plt.contour(x[0:-1]*1e-3, y[0:-1]*1e-3,val1, contour_nb, colors='black',linewidths=0.2)
+                plt.contour(
+                    x[0:-1] * 1e-3,
+                    y[0:-1] * 1e-3,
+                    val1,
+                    contour_nb,
+                    colors="black",
+                    linewidths=0.2,
+                )
             # plt.show()
         if somethingToPlot:
             # %% To cartezian  coordinates   (not if other layers has to be plotted on top!)
-            if plotType!='Drape2':
+            if plotType != "Drape2":
                 ax1.invert_yaxis()
             plt.xticks(fontsize=default_fontsize)
             plt.yticks(fontsize=default_fontsize)
 
-            if allow_colorbar and plotType!='Drape2':
+            if allow_colorbar and plotType != "Drape2":
 
-                cb_or=cbar_or
+                cb_or = cbar_or
                 cb_ticks_position = cbar_ticks_position
 
+                axins1 = inset_axes(
+                    ax1,
+                    width=cbar_width,  # width = 50% of parent_bbox width
+                    height=cbar_height,  # height : 5%
+                    loc=cbar_loc,
+                    bbox_transform=ax1.transAxes,
+                    borderpad=0,
+                    bbox_to_anchor=bbox_to_anchor,
+                )
 
-
-                axins1 = inset_axes(ax1,
-                        width=cbar_width,  # width = 50% of parent_bbox width
-                        height=cbar_height,  # height : 5%
-                        loc=cbar_loc,
-                        bbox_transform=ax1.transAxes,
-                        borderpad=0,
-                        bbox_to_anchor=bbox_to_anchor)
-
-                maxV =kwds["vmax"]
-                minV =kwds["vmin"]
-                cb_length = maxV-minV
-                if maxV<=10:
-                    cb = plt.colorbar(ima,ax=ax1, cax=axins1, orientation=cb_or,ticks=[np.round(minV+0.2*cb_length,1),np.round(minV+0.8*cb_length,1)])
-                elif maxV<=100:
-                    cb = plt.colorbar(ima,ax=ax1, cax=axins1, orientation=cb_or,ticks=[np.round(minV+0.2*cb_length,0), np.round(minV+0.8*cb_length,0)])
+                maxV = kwds["vmax"]
+                minV = kwds["vmin"]
+                cb_length = maxV - minV
+                if maxV <= 10:
+                    cb = plt.colorbar(
+                        ima,
+                        ax=ax1,
+                        cax=axins1,
+                        orientation=cb_or,
+                        ticks=[
+                            np.round(minV + 0.2 * cb_length, 1),
+                            np.round(minV + 0.8 * cb_length, 1),
+                        ],
+                    )
+                elif maxV <= 100:
+                    cb = plt.colorbar(
+                        ima,
+                        ax=ax1,
+                        cax=axins1,
+                        orientation=cb_or,
+                        ticks=[
+                            np.round(minV + 0.2 * cb_length, 0),
+                            np.round(minV + 0.8 * cb_length, 0),
+                        ],
+                    )
                 else:
-                    cb = plt.colorbar(ima,ax=ax1, cax=axins1, orientation=cb_or,ticks=[np.round(0.1*(minV+0.2*cb_length))*10, np.round(0.1*(minV+0.8*cb_length))*10])
+                    cb = plt.colorbar(
+                        ima,
+                        ax=ax1,
+                        cax=axins1,
+                        orientation=cb_or,
+                        ticks=[
+                            np.round(0.1 * (minV + 0.2 * cb_length)) * 10,
+                            np.round(0.1 * (minV + 0.8 * cb_length)) * 10,
+                        ],
+                    )
                 axins1.xaxis.set_ticks_position(cb_ticks_position)
                 cb.ax.tick_params(labelsize=cbar_tick_size)
 
                 if colorbar_label:
-                    cb.set_label(colorbar_label,rotation=270)
-                    #ax1.xaxis.set_label_coords(0,2.5)
+                    cb.set_label(colorbar_label, rotation=270)
+                    # ax1.xaxis.set_label_coords(0,2.5)
 
-            if plotType=='Drape2':
+            if plotType == "Drape2":
 
                 # Process values from first drape
 
@@ -692,14 +738,14 @@ def _imshowhs_grid_values(
                 # Add mask if thres_drape1 is given
                 if thres_drape2 is not None:
                     values_at_node_drape2 = np.ma.masked_where(
-                    values_at_node_drape2<thres_drape2, values_at_node_drape2
+                        values_at_node_drape2 < thres_drape2, values_at_node_drape2
                     )
 
                 if isinstance(grid, RasterModelGrid):
                     shape = grid.shape
                 else:
                     shape = (-1,)
-                val2=values_at_node_drape2.reshape(shape)
+                val2 = values_at_node_drape2.reshape(shape)
 
                 if cmap2 is None:
                     cmap2 = plt.cm.terrain
@@ -718,65 +764,128 @@ def _imshowhs_grid_values(
                     if vmax is not None:
                         kwds["vmax"] = vmax
 
-                ima2 = ax1.imshow(val2, extent=extent, alpha=alpha2,**kwds)
+                ima2 = ax1.imshow(val2, extent=extent, alpha=alpha2, **kwds)
                 ax1.invert_yaxis()
 
                 # Add colorbars
                 if addDoubleColorbar:
-                    axins1 = inset_axes(ax1,
+                    axins1 = inset_axes(
+                        ax1,
                         width=cbar_width,  # width = 50% of parent_bbox width
                         height=cbar_height,  # height : 5%
                         loc=cbar_loc,
-                        bbox_to_anchor=(-.005, 0.25, 1, 1),
+                        bbox_to_anchor=(-0.005, 0.25, 1, 1),
                         bbox_transform=ax1.transAxes,
-                        borderpad=0)
+                        borderpad=0,
+                    )
 
-                    cb_or=cbar_or
+                    cb_or = cbar_or
                     cb_ticks_position = cbar_ticks_position
-                    maxV =np.max(val1)
-                    minV =np.min(val1)
-                    cb_length = maxV-minV
-                    if maxV<=10:
-                        cb = plt.colorbar(ima,ax=ax1, cax=axins1, orientation=cb_or,ticks=[np.round(minV+0.2*cb_length,1),np.round(minV+0.8*cb_length,1)])
-                    elif maxV<=100:
-                        cb = plt.colorbar(ima,ax=ax1, cax=axins1, orientation=cb_or,ticks=[np.round(minV+0.2*cb_length,0), np.round(minV+0.8*cb_length,0)])
+                    maxV = np.max(val1)
+                    minV = np.min(val1)
+                    cb_length = maxV - minV
+                    if maxV <= 10:
+                        cb = plt.colorbar(
+                            ima,
+                            ax=ax1,
+                            cax=axins1,
+                            orientation=cb_or,
+                            ticks=[
+                                np.round(minV + 0.2 * cb_length, 1),
+                                np.round(minV + 0.8 * cb_length, 1),
+                            ],
+                        )
+                    elif maxV <= 100:
+                        cb = plt.colorbar(
+                            ima,
+                            ax=ax1,
+                            cax=axins1,
+                            orientation=cb_or,
+                            ticks=[
+                                np.round(minV + 0.2 * cb_length, 0),
+                                np.round(minV + 0.8 * cb_length, 0),
+                            ],
+                        )
                     else:
-                        cb = plt.colorbar(ima,ax=ax1, cax=axins1, orientation=cb_or,ticks=[np.round(0.1*(minV+0.2*cb_length))*10, np.round(0.1*(minV+0.8*cb_length))*10])
+                        cb = plt.colorbar(
+                            ima,
+                            ax=ax1,
+                            cax=axins1,
+                            orientation=cb_or,
+                            ticks=[
+                                np.round(0.1 * (minV + 0.2 * cb_length)) * 10,
+                                np.round(0.1 * (minV + 0.8 * cb_length)) * 10,
+                            ],
+                        )
                     cb.ax.tick_params(labelsize=cbar_tick_size)
                     axins1.xaxis.set_ticks_position(cb_ticks_position)
                     # axins1.set_xlabel(colorbar_label,fontsize=default_fontsize)
-                    axins1.set_xlabel('$log_{10}LS_{E}$', usetex=True, fontsize=default_fontsize, rotation=0)
-                    axins1.xaxis.set_label_coords(.5,3.5)
+                    axins1.set_xlabel(
+                        "$log_{10}LS_{E}$",
+                        usetex=True,
+                        fontsize=default_fontsize,
+                        rotation=0,
+                    )
+                    axins1.xaxis.set_label_coords(0.5, 3.5)
 
-
-                    axins2 = inset_axes(ax1,
+                    axins2 = inset_axes(
+                        ax1,
                         width=cbar_width,  # width = 50% of parent_bbox width
                         height=cbar_height,  # height : 5%
                         loc=cbar_loc,
-                        bbox_to_anchor=(-.005, 0.15, 1, 1),
+                        bbox_to_anchor=(-0.005, 0.15, 1, 1),
                         bbox_transform=ax1.transAxes,
-                        borderpad=0)
-                    cb_or=cbar_or
+                        borderpad=0,
+                    )
+                    cb_or = cbar_or
                     cb_ticks_position = cbar_ticks_position2
-                    maxV =np.max(val2)
-                    minV =np.min(val2)
-                    cb_length = maxV-minV
-                    if maxV<=10:
-                        cb = plt.colorbar(ima2,ax=ax1, cax=axins2, orientation=cb_or,ticks=[np.round(minV+0.2*cb_length,1),np.round(minV+0.8*cb_length,1)])
-                    elif maxV<=100:
-                        cb = plt.colorbar(ima2,ax=ax1, cax=axins2, orientation=cb_or,ticks=[np.round(minV+0.2*cb_length,0), np.round(minV+0.8*cb_length,0)])
+                    maxV = np.max(val2)
+                    minV = np.min(val2)
+                    cb_length = maxV - minV
+                    if maxV <= 10:
+                        cb = plt.colorbar(
+                            ima2,
+                            ax=ax1,
+                            cax=axins2,
+                            orientation=cb_or,
+                            ticks=[
+                                np.round(minV + 0.2 * cb_length, 1),
+                                np.round(minV + 0.8 * cb_length, 1),
+                            ],
+                        )
+                    elif maxV <= 100:
+                        cb = plt.colorbar(
+                            ima2,
+                            ax=ax1,
+                            cax=axins2,
+                            orientation=cb_or,
+                            ticks=[
+                                np.round(minV + 0.2 * cb_length, 0),
+                                np.round(minV + 0.8 * cb_length, 0),
+                            ],
+                        )
                     else:
-                        cb = plt.colorbar(ima2,ax=ax1, cax=axins2, orientation=cb_or,ticks=[np.round(0.1*(minV+0.2*cb_length))*10, np.round(0.1*(minV+0.8*cb_length))*10])
+                        cb = plt.colorbar(
+                            ima2,
+                            ax=ax1,
+                            cax=axins2,
+                            orientation=cb_or,
+                            ticks=[
+                                np.round(0.1 * (minV + 0.2 * cb_length)) * 10,
+                                np.round(0.1 * (minV + 0.8 * cb_length)) * 10,
+                            ],
+                        )
                     cb.ax.tick_params(labelsize=cbar_tick_size)
 
                     axins2.xaxis.set_ticks_position(cb_ticks_position)
                     # axins2.set_xlabel(colorbar_label,fontsize=default_fontsize)
-                    axins2.set_xlabel('$log_{10}LS_{D}$', usetex=True, fontsize=default_fontsize, rotation=0)
-                    axins2.xaxis.set_label_coords(0.5,-1.75)
-
-
-
-
+                    axins2.set_xlabel(
+                        "$log_{10}LS_{D}$",
+                        usetex=True,
+                        fontsize=default_fontsize,
+                        rotation=0,
+                    )
+                    axins2.xaxis.set_label_coords(0.5, -1.75)
 
     else:
         print("TODO")
@@ -784,19 +893,35 @@ def _imshowhs_grid_values(
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
         if grid_units[1] == "-" and grid_units[0] == "-":
-            ax1.set_xlabel('Easting', fontweight='bold',fontsize=default_fontsize)
-            ax1.set_ylabel('Northing', fontweight='bold',fontsize=default_fontsize)
+            ax1.set_xlabel("Easting", fontweight="bold", fontsize=default_fontsize)
+            ax1.set_ylabel("Northing", fontweight="bold", fontsize=default_fontsize)
         else:
-            ax1.set_xlabel('Easting, %s' % grid_units[1], fontweight='bold',fontsize=default_fontsize)
-            ax1.set_ylabel('Northing, %s' % grid_units[1], fontweight='bold',fontsize=default_fontsize)
+            ax1.set_xlabel(
+                "Easting, %s" % grid_units[1],
+                fontweight="bold",
+                fontsize=default_fontsize,
+            )
+            ax1.set_ylabel(
+                "Northing, %s" % grid_units[1],
+                fontweight="bold",
+                fontsize=default_fontsize,
+            )
     else:
-            ax1.set_xlabel('Easting, %s' % grid_units[1], fontweight='bold',fontsize=default_fontsize)
-            ax1.set_ylabel('Northing, %s' % grid_units[1], fontweight='bold',fontsize=default_fontsize)
+        ax1.set_xlabel(
+            "Easting, %s" % grid_units[1], fontweight="bold", fontsize=default_fontsize
+        )
+        ax1.set_ylabel(
+            "Northing, %s" % grid_units[1], fontweight="bold", fontsize=default_fontsize
+        )
 
     if plot_name is not None:
         plt.title("%s" % (plot_name))
 
-    if somethingToPlot and (var_name is not None or var_units is not None) and plotType!='Drape2':
+    if (
+        somethingToPlot
+        and (var_name is not None or var_units is not None)
+        and plotType != "Drape2"
+    ):
         if var_name is not None:
             assert type(var_name) is str
             if var_units is not None:
@@ -809,9 +934,13 @@ def _imshowhs_grid_values(
             colorbar_label = "(" + var_units + ")"
         assert type(colorbar_label) is str
         assert allow_colorbar
-        cb.set_label(colorbar_label,fontsize=default_fontsize, labelpad=colorbar_label_y, x=colorbar_label_x)
+        cb.set_label(
+            colorbar_label,
+            fontsize=default_fontsize,
+            labelpad=colorbar_label_y,
+            x=colorbar_label_x,
+        )
         # cb.axes.set_xlabel('m')
-
 
     if color_for_background is not None:
         plt.gca().set_facecolor(color_for_background)
@@ -824,6 +953,7 @@ def _imshowhs_grid_values(
             plt.show()
 
     return ax1
+
 
 def imshow_grid(grid, values, **kwds):
     """imshow_grid(grid, values, plot_name=None, var_name=None, var_units=None,
@@ -923,6 +1053,7 @@ def imshow_grid(grid, values, **kwds):
         imshow_grid_at_cell(grid, values, **kwds)
     else:
         raise TypeError("value location %s not understood" % values_at)
+
 
 def imshowhs_grid(grid, values, **kwds):
     """

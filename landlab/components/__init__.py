@@ -9,8 +9,8 @@ from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
 from .flexure import Flexure, Flexure1D
-from .flow_dir_acc_pf import FlowDirAccPf
 from .flow_accum import FlowAccumulator, LossyFlowAccumulator
+from .flow_dir_acc_pf import FlowDirAccPf
 from .flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,

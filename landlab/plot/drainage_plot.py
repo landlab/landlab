@@ -33,7 +33,6 @@ def drainage_plot(
 
     if receivers.ndim == 1:
         receivers = np.expand_dims(receivers, axis=1)
-        
 
     nreceievers = receivers.shape[-1]
 
@@ -49,7 +48,6 @@ def drainage_plot(
             proportions = np.ones_like(receivers, dtype=float)
         if proportions.ndim == 1:
             proportions = np.expand_dims(proportions, axis=1)
-
 
         is_bad[proportions[:, j] == 0.0] = True
 
