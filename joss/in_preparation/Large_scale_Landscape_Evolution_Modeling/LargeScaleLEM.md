@@ -11,7 +11,7 @@ bibliography: papers.bib
 
 ## Introduction
 
-Earth's surface is shaped by processes that mediate the interplay between climate, tectonics and life. Understanding the interplay among Earth's surface processes  relies on geo-spatial software tools that can process topographical datasets over large spatial and temporal domains. Despite the large potential of geo-spatial software to understand Earth surface response to environmental change, applications of current generation LEMs are often hampered by limited model efficiency. 
+Earth's surface is shaped by processes that mediate the interplay between climate, tectonics and life. Understanding the interplay among Earth's surface processes  relies on geo-spatial software tools that can process topographical datasets over large spatial and temporal domains. Despite the large potential of geo-spatial software to understand Earth surface response to environmental change, applications of current generation LEMs are often hampered by limited model efficiency.
 
 ## The Landlab toolkit and terrainbento package
 
@@ -58,7 +58,7 @@ To facilitate future landscape evolution model development with the ``FlowDirAcc
 ### ``Landlab``
 
 The ``Landlab`` project maintains a separate repository containing tutorials that introduce core concepts and the use of individual submodules. In addition to the
-source code of the [``FlowDirAccPf``](https://github.com/BCampforts/landlab/tree/bc/priority_flood/landlab/components/flow_dir_acc_pf) and the [``Space_v2``](https://github.com/BCampforts/landlab/tree/bc/priority_flood/landlab/components/space_v2) components, a [Jupyter Notebook introducing the use of the new Priority Flow router to analyze hydrological properties of SRTM DEMs ](https://github.com/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood_realDEMs.ipynb) is now part of the Landlab tutorials repository. The tutorial also features a new ``Landlab`` plotting feature (``imshow_hs``) that allows plotting spatially explicit data draped over hillshade maps and builds on the recently released ``bmi_topography`` package to download DEMs of various extents. This tutorial was brought into the repository with [Pull Request # ...](). The first release version of the ``Landlab`` tutorials that includes these components and notebook is tagged as v1.5.4 and is archived in Zenodo with the linked DOI:[].
+source code of the [``FlowDirAccPf``](https://github.com/BCampforts/landlab/tree/bc/priority_flood/landlab/components/flow_dir_acc_pf) and the [``Space_v2``](https://github.com/BCampforts/landlab/tree/bc/priority_flood/landlab/components/space_v2) components, a [Jupyter Notebook introducing the use of the new Priority Flow router to analyze hydrological properties of SRTM DEMs ](https://github.com/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/flow_direction_and_accumulation/PriorityFlood_realDEMs.ipynb) is now part of the Landlab tutorials repository. The tutorial also features a new ``Landlab`` plotting feature (``imshow_hs``) that allows plotting spatially explicit data draped over hillshade maps and builds on the recently released ``bmi_topography`` package to download DEMs of various extents. This tutorial was brought into the repository with [Pull Request # ...](). The first release version of the ``Landlab`` tutorials that includes these components and notebook is tagged as v1.5.4 and is archived in Zenodo with the linked DOI:[].
 
 ### ``Terrainbento``
 
