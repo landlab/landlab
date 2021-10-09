@@ -13,16 +13,28 @@ from landlab import Component
 class DepthSlopeProductErosion(Component):
     """Calculate erosion rate as a function of the depth-slope product.
 
-    Erosion rate = k_e * ((Tau**a - Tau_crit**a))
+    Erosion rate is calculated as, ``erosion_rate = k_e * ((tau ** a - tau_crit ** a))``
 
-    k_e = erodibility coefficient
-    Tau = bed shear stress
-        = density of fluid (rho) * gravitational acceleration (g) * water depths (h) * slopes (S)
-    Tau_crit = critical shear stress
-    a = positive exponent
+    *k_e*
+        Erodibility coefficient
+    *tau*
+        Bed shear stress: ``tau = rho * g * h * S``
+    *rho*
+        Density of fluid
+    *g*
+        Gravitational acceleration
+    *h*
+        Water depths
+    *S*
+        Slope
+    *tau_crit*
+        Critical shear stress
+    *a*
+        Positive exponent
+
 
     Note this equation was presented in Tucker, G.T., 2004, Drainage basin
-    sensitivityto tectonic and climatic forcing: Implications of a stochastic
+    sensitivity to tectonic and climatic forcing: Implications of a stochastic
     model for the role of entrainment and erosion thresholds,
     Earth Surface Processes and Landforms.
 
@@ -56,7 +68,8 @@ class DepthSlopeProductErosion(Component):
 
     Create fields of data for each of these input variables.
 
-    First create toopgraphy. This is a flat surface of elevation 10 m.
+    First create topography. This is a flat surface of elevation 10 m.
+
     >>> grid.at_node['topographic__elevation'] = np.ones(grid.number_of_nodes)
     >>> grid.at_node['topographic__elevation'] *= 10.
     >>> grid.at_node['topographic__elevation'] = np.array([
@@ -67,6 +80,7 @@ class DepthSlopeProductErosion(Component):
     ...      10., 10., 10., 10., 10.])
 
     Now we'll add an arbitrary water depth field on top of that topography.
+
     >>> grid.at_node['surface_water__depth'] = np.array([
     ...      5., 5., 5., 5., 5.,
     ...      4., 4., 4., 4., 4.,
@@ -77,6 +91,7 @@ class DepthSlopeProductErosion(Component):
     Using the set topography, now we will calculate slopes on all nodes.
 
     First calculating slopes on links
+
     >>> grid.at_link['water_surface__slope'] = grid.calc_grad_at_link('surface_water__depth')
 
     Now putting slopes on nodes
@@ -85,7 +100,6 @@ class DepthSlopeProductErosion(Component):
     >>> grid.at_node['water_surface__slope']
     array([ 0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,
             1.,  0., -0.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.])
-
 
     Instantiate the `DepthSlopeProductErosion` component to work on this grid, and
     run it. In this simple case, we need to pass it a time step ('dt') and also
@@ -109,6 +123,7 @@ class DepthSlopeProductErosion(Component):
             0.    ,  0.    ,  0.    ,  0.    ])
 
     Now, our updated topography...
+
     >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
     array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
              8.038 ,   8.038 ,   8.038 ,  10.    ,  10.    ,   8.5285,
