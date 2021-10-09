@@ -7,11 +7,11 @@ from numpy import testing
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import FlowAccumulator, FlowDirAccPf, Space_v2
 
-#%%
+# %%
 
 
 def test_route_to_multiple_error_raised():
-    #%%
+    # %%
     mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
@@ -34,9 +34,9 @@ def test_route_to_multiple_error_raised():
         )
 
 
-#%%
+# %%
 def test_bad_fillLakesToBrim_Type():
-    #%%
+    # %%
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.
     """
@@ -84,9 +84,9 @@ def test_bad_fillLakesToBrim_Type():
         )
 
 
-#%%
+# %%
 def test_soil_field_already_on_grid():
-    #%%
+    # %%
     """
     Test that an existing soil grid field is not changed by instantiating
     Space_v2.
@@ -142,11 +142,11 @@ def test_soil_field_already_on_grid():
     )
 
 
-#%%
+# %%
 
 
 def test_br_field_already_on_grid():
-    #%%
+    # %%
     """
     Test that an existing bedrock elevation grid field is not changed by
     instantiating Space_v2.
@@ -202,15 +202,15 @@ def test_br_field_already_on_grid():
     )
 
 
-#%%
+# %%
 def test_matches_detachment_solution():
-    #%%
+    # %%
     """
     Test that model matches the detachment-limited analytical solution
     for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
     """
 
-    #%% set up a 5x5 grid with one open outlet node and low initial elevations.
+    # %% set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
@@ -280,12 +280,12 @@ def test_matches_detachment_solution():
         err_msg="Space_v2 detachment-limited test failed",
         verbose=True,
     )
-    #%%
+    # %%
 
 
 @pytest.mark.slow
 def test_matches_transport_solution():
-    #%%
+    # %%
     """
     Test that model matches the transport-limited analytical solution
     for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m)
@@ -395,12 +395,12 @@ def test_matches_transport_solution():
         err_msg="Space_v2 transport-limited sediment flux test failed",
         verbose=True,
     )
-    #%%
+    # %%
 
 
 @pytest.mark.slow
 def test_matches_bedrock_alluvial_solution():
-    #%%
+    # %%
     """
     Test that model matches the bedrock-alluvial analytical solution
     for slope/area relationship at steady state:
@@ -507,12 +507,12 @@ def test_matches_bedrock_alluvial_solution():
         err_msg="Space_v2 bedrock-alluvial soil thickness test failed",
         verbose=True,
     )
-    #%%
+    # %%
 
 
 def test_can_run_with_hex():
     """Test that model can run with hex model grid."""
-    #%%
+    # %%
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     mg = HexModelGrid((7, 7))
     z = mg.add_zeros("topographic__elevation", at="node")
@@ -548,7 +548,7 @@ def test_can_run_with_hex():
         z[mg.core_nodes] += U * dt
 
 
-#%%
+# %%
 def test_matches_detachment_solution_PF():
     """
     Test that model matches the detachment-limited analytical solution
@@ -629,7 +629,7 @@ def test_matches_detachment_solution_PF():
     )
 
 
-#%%
+# %%
 @pytest.mark.slow
 def test_matches_transport_solution_PF():
 
@@ -641,7 +641,7 @@ def test_matches_transport_solution_PF():
     Also test that model matches the analytical solution for steady-state
     sediment flux: Qs = U * A * (1 - phi).
     """
-    #%%
+    # %%
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
@@ -745,7 +745,7 @@ def test_matches_transport_solution_PF():
     )
 
 
-#%%
+# %%
 @pytest.mark.slow
 def test_matches_bedrock_alluvial_solution_PF():
     """
@@ -757,7 +757,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     analytical solution at steady state:
     H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
     """
-    #%%
+    # %%
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
@@ -855,11 +855,11 @@ def test_matches_bedrock_alluvial_solution_PF():
         err_msg="Space_v2 bedrock-alluvial soil thickness test failed",
         verbose=True,
     )
-    #%%
+    # %%
 
 
 def test_MassBalance():
-    #%%
+    # %%
     # set up a 15x15 grid with one open outlet node and low initial elevations.
     nr = 15
     nc = 15

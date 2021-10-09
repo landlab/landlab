@@ -1,19 +1,11 @@
 import numpy as np
-from scipy.integrate import quad
-
 from landlab import Component, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
-
 from .cfuncs import calculate_qs_in, calculate_qs_in_lakeFiller
+from ..depression_finder.lake_mapper import _FLOODED
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
-
-import copy as cp
-
-from matplotlib.pyplot import pause
-
-from ..depression_finder.lake_mapper import _FLOODED
 
 
 class Space_v2(Component):
@@ -237,7 +229,7 @@ class Space_v2(Component):
         else:
             self._link_lengths = grid.length_of_link
 
-        if v_s_lake == None:
+        if v_s_lake is None:
             self._v_s_lake = np.float64(v_s)
         else:
             self._v_s_lake = np.float64(v_s_lake)
@@ -263,7 +255,7 @@ class Space_v2(Component):
         # If filling to brim, a depression free field must be provided.
         # 'deprFree_elevation' is automatically produced as a grid field when using FlowAccumulatorPf
         if fillLakesToBrim:
-            if not "deprFree_elevation" in self.grid.at_node.keys():
+            if "deprFree_elevation" not in self.grid.at_node.keys():
                 raise NotImplementedError(
                     "If filling to brim, a depression free \
                                           field must be provided. \
@@ -353,10 +345,10 @@ class Space_v2(Component):
         self._Es = self._sed_erosion_term * (1.0 - np.exp(-H / self._H_star))
         self._Er = self._br_erosion_term * np.exp(-H / self._H_star)
 
-        """ if the soil layer becomes exceptionally thick (e.g. because of 
-        landslide derived sediment deposition(,) the algorithm will become 
-        unstable because np.exp(x) with x > 709 yeilds inf values. 
-        Therefore soil depth is temporqlly topped of at 200m and the remaining 
+        """ if the soil layer becomes exceptionally thick (e.g. because of
+        landslide derived sediment deposition(,) the algorithm will become
+        unstable because np.exp(x) with x > 709 yeilds inf values.
+        Therefore soil depth is temporqlly topped of at 200m and the remaining
         values are added back after the space component has run """
 
         self._Es[H > self._thickness_lim] = self._sed_erosion_term[

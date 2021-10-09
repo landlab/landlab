@@ -15,10 +15,10 @@ from landlab.components import FlowDirAccPf
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
-#%%
+
 def test_check_fields():
     """Check to make sure the right fields have been created."""
-    #%%
+    # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     z = mg.add_field(
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
@@ -33,15 +33,15 @@ def test_check_fields():
     assert_array_equal(np.full(100, 2.0), mg.at_node["water__unit_flux_in"])
 
 
-#%%
+# %%
 def test_fields():
-    #%%
+    # %%
     """Check to make sure the right fields have been created.
 
     Check that the sizes are also correct.
     """
 
-    #%% Default configuration
+    # %% Default configuration
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
     fa1 = FlowDirAccPf(mg1)
@@ -61,7 +61,7 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    #%% No flow accumulation
+    # %% No flow accumulation
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
     fa2 = FlowDirAccPf(mg2, accumulateFlow=True)
@@ -81,7 +81,7 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    #%% Second FD (no FA is default)
+    # %% Second FD (no FA is default)
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
     fa2 = FlowDirAccPf(mg2, seperate_Hill_Flow=True)
@@ -104,7 +104,7 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    #%% Second FD (with FA )
+    # %% Second FD (with FA )
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
     fa2 = FlowDirAccPf(mg2, seperate_Hill_Flow=True, accumulateFlowHill=True)
@@ -130,7 +130,7 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    #%%
+    # %%
 
 
 def test_accumulated_area_closes():
@@ -145,7 +145,7 @@ def test_accumulated_area_closes():
     core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
     assert drained_area == core_area
 
-    #%% multiple flow
+    # %% multiple flow
     """Check that accumulated area is area of core nodes."""
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")
@@ -160,11 +160,11 @@ def test_accumulated_area_closes():
     assert drainage_area_hill == core_area
 
 
-#%%
+# %%
 
 
 def test_specifying_routing_method_wrong():
-    #%%
+    # %%
     """Test specifying incorrect method for routing compatability"""
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
@@ -173,9 +173,9 @@ def test_specifying_routing_method_wrong():
         FlowDirAccPf(mg, flow_director="D2")
 
 
-#%%
+# %%
 def test_D8_metric():
-    #%%
+    # %%
     """Test D8 routing functionality"""
 
     topographic__elevation = np.array(
@@ -227,9 +227,9 @@ def test_D8_metric():
     assert_array_equal(defaultLandl_r, pf_r)
 
 
-#%%
+# %%
 def test_flow_accumulator_properties():
-    #%%
+    # %%
 
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
@@ -272,27 +272,27 @@ def test_flow_accumulator_properties():
     assert_array_equal(fa.node_drainage_area, node_drainage_area)
 
 
-#%%
+# %%
 def test_bad_metric_name():
-    #%%
+    # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(Exception):
         FlowDirAccPf(mg, flow_metric="spam")
 
 
-#%%
+# %%
 def test_hex_mfd():
-    #%%
+    # %%
     mg = HexModelGrid((5, 3))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(FieldError):
         FlowDirAccPf(mg, flow_metric="MFD")
-    #%%
+    # %%
 
 
 def test_sum_prop_is_one():
-    #%%
+    # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowDirAccPf(mg, seperate_Hill_Flow=True)
@@ -320,7 +320,7 @@ def test_sum_prop_is_one():
         verbose=True,
     )
 
-    #%% multiple flow with D8
+    # %% multiple flow with D8
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowDirAccPf(mg, seperate_Hill_Flow=True, hill_flow_metric="D8")

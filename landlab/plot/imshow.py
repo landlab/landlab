@@ -14,6 +14,8 @@ import numpy as np
 
 from landlab.grid.raster import RasterModelGrid
 from landlab.plot.event_handler import query_grid_on_button_press
+from matplotlib.colors import LightSource
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from ..field import FieldError
 
@@ -510,15 +512,6 @@ def _imshowhs_grid_values(
             - grid.dx * 0.5
             + grid.xy_of_lower_left[0]
         )
-
-        #%% Alternative
-        # Shade from the northwest, with the sun 45 degrees from horizontal
-        import matplotlib as mpl
-        from matplotlib.colors import LightSource
-        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
-        # %%
-
         if azdeg is not None:
             pass
         else:
@@ -550,7 +543,6 @@ def _imshowhs_grid_values(
             alpha = 1
         if alpha2 is None:
             alpha2 = 1
-        # %%
         blend_modes = ["hsv", "overlay", "soft"]
         if plotType == "DEM":
 
@@ -590,9 +582,7 @@ def _imshowhs_grid_values(
             allow_colorbar = False
 
         elif plotType == "Drape1" or plotType == "Drape2":
-
-            #%% Process values from first drape
-
+            # Process values from first drape
             if isinstance(drape1, str):
                 values_at_node_drape1 = grid.at_node[drape1]
             else:
@@ -635,9 +625,6 @@ def _imshowhs_grid_values(
                     kwds["vmin"] = vmin
                 if vmax is not None:
                     kwds["vmax"] = vmax
-
-            # val1 = val1.data
-            # %%
             plt.imshow(
                 ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
                 cmap="gray",
@@ -653,9 +640,8 @@ def _imshowhs_grid_values(
                     colors="black",
                     linewidths=0.2,
                 )
-            # plt.show()
         if somethingToPlot:
-            # %% To cartezian  coordinates   (not if other layers has to be plotted on top!)
+            # To cartezian  coordinates   (not if other layers has to be plotted on top!)
             if plotType != "Drape2":
                 ax1.invert_yaxis()
             plt.xticks(fontsize=default_fontsize)

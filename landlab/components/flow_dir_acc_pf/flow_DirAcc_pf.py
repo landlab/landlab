@@ -5,8 +5,8 @@ flow_DirAcc_Pf.py: Component to fill or breach a DEM, accumulate flow and calcul
 
 FlowDirAccPf is a wrapper of the RichDEM package: https://richdem.readthedocs.io/en/latest/flow_metrics.html
 
-The componet merges a filling/breaching algorithm, a flow director as well as a flow accumulator. 
-Moreover, the component supports the definitation of two flow accumulator fields associated to the same grid. 
+The componet merges a filling/breaching algorithm, a flow director as well as a flow accumulator.
+Moreover, the component supports the definitation of two flow accumulator fields associated to the same grid.
 This prevents the user from updating the filling/breaching algorithms in between calculation of flow accumulater one and two.
 
 @author: benjaminCampforts
@@ -15,23 +15,18 @@ This prevents the user from updating the filling/breaching algorithms in between
 import copy as cp
 import os
 import sys
-
 import numpy as np
 import numpy.matlib as npm
 import richdem as rd
-
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
-
 from .cfuncs import _FA_D8, _FD_D8
 from .suppress_stdout_stderr import suppress_stdout_stderr
-
 # Codes for depression status
 _UNFLOODED = 0
 _PIT = 1
 _CURRENT_LAKE = 2
 _FLOODED = 3
-
 # Flow metrics resulting in single flow
 PSINGLE_FMs = ["D8", "D4", "Rho8", "Rho4"]
 # Flow metrics resulting in multiple flow
@@ -96,7 +91,6 @@ class FlowDirAccPf(Component):
 
         - Node array of receivers (node that receives flow from current node)
             *'hill_flow__receiver_node'*
-
         - The steepest *downhill* slope *'hill_topographic__steepest_slope'*
 
         - Node array of proportion of flow sent to each receiver
