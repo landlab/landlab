@@ -15,13 +15,17 @@ This prevents the user from updating the filling/breaching algorithms in between
 import copy as cp
 import os
 import sys
+
 import numpy as np
 import numpy.matlib as npm
 import richdem as rd
+
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
+
 from .cfuncs import _FA_D8, _FD_D8
 from .suppress_stdout_stderr import suppress_stdout_stderr
+
 # Codes for depression status
 _UNFLOODED = 0
 _PIT = 1
