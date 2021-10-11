@@ -151,7 +151,8 @@ class FlowDirAccPf(Component):
                 edge of the DEM.
                 See also: https://richdem.readthedocs.io/en/latest/depression_breaching.html
 
-    exponent:  Some methods require an exponent (see flow_metric) Default {1}
+    exponent: float, optional
+        Some methods require an exponent (see flow_metric) Default {1}
     epsilon: boolean, default {true}. If True, an epsilon gradient is imposed
         to all flat regions. This ensures that there is always a local gradient.
     accumulateFlow : if True flow directions and acummulations will be calcualted.
@@ -179,7 +180,8 @@ class FlowDirAccPf(Component):
             Holmgren (1994)
             D∞ (Tarboton, 1997)
             for details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
-    hill_exponent Some methods require an exponent (see flow_metric) {1}
+    hill_exponent: float, optional
+        Some methods require an exponent (see flow_metric) {1}
     suppress_out:
         suppress verbose of priority flood algorithm
 
