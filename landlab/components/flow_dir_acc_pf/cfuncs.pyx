@@ -3,6 +3,9 @@ cimport numpy as np
 cimport cython
 
 
+DTYPE_INT = np.int
+ctypedef np.int_t DTYPE_INT_t
+
 DTYPE_INT64 = np.int64
 ctypedef np.int64_t DTYPE_INT64_t
 
@@ -10,20 +13,20 @@ DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
 
-cpdef _FD_D8(np.ndarray[DTYPE_INT64_t, ndim=1] receivers,
+cpdef _FD_D8(np.ndarray[DTYPE_INT_t, ndim=1] receivers,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] distance_receiver,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] steepest_slope,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] el,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] el_ori,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] dist,
-             np.ndarray[DTYPE_INT64_t, ndim=1] ngb,
-             np.ndarray[DTYPE_INT64_t, ndim=1] cores,
-             np.ndarray[DTYPE_INT64_t, ndim=1] activeCells,
+             np.ndarray[DTYPE_INT_t, ndim=1] ngb,
+             np.ndarray[DTYPE_INT_t, ndim=1] cores,
+             np.ndarray[DTYPE_INT_t, ndim=1] activeCells,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] el_d,
              DTYPE_INT64_t r, DTYPE_INT64_t c,
              DTYPE_FLOAT_t dx, DTYPE_FLOAT_t sq2,
-             np.ndarray[DTYPE_INT64_t, ndim=2] adj_link ,
-             np.ndarray[DTYPE_INT64_t, ndim=1] rec_link):
+             np.ndarray[DTYPE_INT_t, ndim=2] adj_link ,
+             np.ndarray[DTYPE_INT_t, ndim=1] rec_link):
     
     """
     Calcualte D8 flow dirs

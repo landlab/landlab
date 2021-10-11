@@ -701,8 +701,8 @@ class FlowDirAccPf(Component):
         c = self.grid.number_of_node_columns
         dx = self.grid.dx
         sq2 = np.sqrt(2)
-        activeCells = np.array(self._grid.status_at_node != 4 + 0, dtype=np.int64)
-        receivers = np.array(self.grid.status_at_node, dtype=np.int64)
+        activeCells = np.array(self._grid.status_at_node != 4 + 0, dtype=int)
+        receivers = np.array(self.grid.status_at_node, dtype=int)
         distance_receiver = np.zeros((receivers.shape), dtype=float)
         cores = self.grid.core_nodes
         # Make boundaries to save time with conditionals in c loops
@@ -711,12 +711,12 @@ class FlowDirAccPf(Component):
         el = self._deprFreeDEM.reshape(self.grid.number_of_nodes)
         el_ori = self.grid.at_node["topographic__elevation"]
         dist = np.multiply([1, 1, 1, 1, sq2, sq2, sq2, sq2], dx)
-        ngb = np.zeros((8,), dtype=np.int64)
+        ngb = np.zeros((8,), dtype=int)
         el_d = np.zeros((8,), dtype=float)
 
         # Links
-        adj_link = np.array(self._grid.d8s_at_node, dtype=np.int64)
-        recvr_link = np.zeros((receivers.shape), dtype=np.int64) - 1
+        adj_link = np.array(self._grid.d8s_at_node, dtype=int)
+        recvr_link = np.zeros((receivers.shape), dtype=int) - 1
 
         _FD_D8(
             receivers,
