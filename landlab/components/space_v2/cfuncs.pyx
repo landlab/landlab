@@ -12,12 +12,15 @@ ctypedef np.double_t DTYPE_FLOAT_t
 DTYPE_INT = np.int
 ctypedef np.int_t DTYPE_INT_t
 
+DTYPE_UINT8 = np.uint8
+ctypedef np.uint8_t DTYPE_UINT8_t
+
 from libc.stdio cimport printf
 
 
 def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                     np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,                    
-                    np.ndarray[DTYPE_INT_t, ndim=1] node_Status,
+                    np.ndarray[DTYPE_UINT8_t, ndim=1] node_Status,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,

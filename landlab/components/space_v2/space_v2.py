@@ -357,7 +357,7 @@ class Space_v2(Component):
         self._Er[H > self._thickness_lim] = 0
 
     def run_one_step_basic(self, dt=10):
-        node_Status = np.int64(self.grid.status_at_node)
+        node_Status = self.grid.status_at_node
 
         z = self.grid.at_node["topographic__elevation"]
         br = self.grid.at_node["bedrock__elevation"]
