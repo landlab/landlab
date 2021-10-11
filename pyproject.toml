@@ -1,0 +1,31 @@
+[build-system]
+requires = ["cython", "numpy", "setuptools", "wheel"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["notebooks", "landlab", "tests"]
+norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
+addopts = """
+  --ignore setup.py
+  --tb native
+  --strict
+  --durations 16
+  --doctest-modules
+  -vvv
+"""
+doctest_optionflags = [
+  "NORMALIZE_WHITESPACE",
+  "IGNORE_EXCEPTION_DETAIL",
+  "ALLOW_UNICODE"
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "notebook: marks tests as notebook (deselect with '-m \"not notebook\"')"
+]
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+combine_as_imports = true
+line_length = 88
