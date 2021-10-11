@@ -5,9 +5,9 @@ flow_DirAcc_Pf.py: Component to fill or breach a DEM, accumulate flow and calcul
 
 FlowDirAccPf is a wrapper of the RichDEM package: https://richdem.readthedocs.io/en/latest/flow_metrics.html
 
-The componet merges a filling/breaching algorithm, a flow director as well as a flow accumulator.
-Moreover, the component supports the definitation of two flow accumulator fields associated to the same grid.
-This prevents the user from updating the filling/breaching algorithms in between calculation of flow accumulater one and two.
+The component merges a filling/breaching algorithm, a flow director as well as a flow accumulator.
+Moreover, the component supports the definition of two flow accumulator fields associated to the same grid.
+This prevents the user from updating the filling/breaching algorithms in between calculation of flow accumulator one and two.
 
 @author: benjaminCampforts
 """
@@ -40,66 +40,50 @@ PMULTIPLE_FMs = ["Quinn", "Freeman", "Holmgren", "Dinf"]
 class FlowDirAccPf(Component):
 
     """Component to accumulate flow and calculate drainage area based RICHDEM software package.
+
     See also: https://richdem.readthedocs.io/en/latest/
 
 
-    NOTE: The perimeter nodes  NEVER contribute to the accumulating flux, even
-    if the  gradients from them point inwards to the main body of the grid.
-    This is because under Landlab definitions, perimeter nodes lack cells, so
-    cannot accumulate any discharge.
+    .. note::
 
-    FlowAccumulatorPf stores as ModelGrid fields:
+        The perimeter nodes  NEVER contribute to the accumulating flux, even
+        if the  gradients from them point inwards to the main body of the grid.
+        This is because under Landlab definitions, perimeter nodes lack cells, so
+        cannot accumulate any discharge.
 
-        -  Node array of drainage areas: *'drainage_area'*
+    *FlowAccumulatorPf* stores as *ModelGrid* fields:
 
-        -  Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED) *'flood_status_code'*
+    - *'drainage_area'*: Node array of drainage areas
+    - *'flood_status_code'*: Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED).
+    - *'surface_water__discharge'*: Node array of discharges.
+    - *'Distance to receiver'*: Distance to receiver
+    - *'water__unit_flux_in'*: External volume water per area per time input to each node.
+    - *'flow__upstream_node_order'*: Node array containing downstream-to-upstream ordered
+      list of node IDs.
+    - *'flow__receiver_node'*: Node array of receivers (nodes that receive flow), or ITS OWN ID if
+      there is no receiver. This array is 2D for *RouteToMany* methods and has the shape
+      *(n-nodes x max number of receivers)*.
+    - *'flow__receiver_proportions'*: Node array of flow proportions. This
+      array is 2D, for *RouteToMany* methods and has the shape
+      *(n-nodes x max number of receivers)*.
+    - *'topographic__steepest_slope'*: Node array of downhill slopes from each receiver.
+      This array is 2D for *RouteToMany* methods and has the shape
+      *(n-nodes x max number of receivers)*.
+    - *'flow__link_to_receiver_node'*: Node array of links carrying flow.
+    - *'flow__receiver_proportion's*: Node array of proportion of flow sent to each receiver.
+    - *'deprFree_elevation'*: Depression free land surface topographic elevation, at closed
+      borders, value equals -1.
 
-        -  Node array of discharges: *'surface_water__discharge'*
+    The following fields are required when an additional hillslope flowrouting
+    scheme is required, can be completed with flow acc and discharge if required:
 
-        -  Distance to receiver: *'Distance to receiver'*
-
-        -  External volume water per area per time input to each node *'water__unit_flux_in'*
-
-        -  Node array containing downstream-to-upstream ordered list of node
-            IDs: *'flow__upstream_node_order'*
-
-        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-            there is no receiver: *'flow__receiver_node'*. This array is 2D for
-            RouteToMany methods and has the shape
-
-            (n-nodes x max number of receivers).
-        -  Node array of flow proportions: *'flow__receiver_proportions'*. This
-            array is 2D, for RouteToMany methods and has the shape
-            (n-nodes x max number of receivers).
-
-        -  Node array of downhill slopes from each receiver:
-            *'topographic__steepest_slope'* This array is 2D for RouteToMany
-            methods and has the shape (n-nodes x max number of receivers).
-
-
-        -  Node array of links carrying flow
-            *'flow__link_to_receiver_node'*
-
-        - Node array of proportion of flow sent to each receiver '*flow__receiver_proportions*'
-
-        - Depression free land surface topographic elevation, at closed borders,
-            value equals -1 *'deprFree_elevation'*
-
-        # The following fields are required when an additional
-        # hillslope flowrouting scheme is required, can be completed
-        # with flow acc and discharge if required
-
-
-        - Node array containing downstream-to-upstream ordered list of node IDs
-            *'hill_flow__upstream_node_order'*
-
-        - Node array of receivers (node that receives flow from current node)
-            *'hill_flow__receiver_node'*
-        - The steepest *downhill* slope *'hill_topographic__steepest_slope'*
-
-        - Node array of proportion of flow sent to each receiver
-            *'hill_flow__receiver_proportions'*
-
+    - *'hill_flow__upstream_node_order'*: Node array containing downstream-to-upstream
+      ordered list of node IDs
+    - *'hill_flow__receiver_node'*: Node array of receivers (node that receives flow
+      from current node)
+    - *'hill_topographic__steepest_slope'*: The steepest *downhill* slope.
+    - *'hill_flow__receiver_proportions'*: Node array of proportion of flow sent to each
+      receiver
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -107,20 +91,14 @@ class FlowDirAccPf(Component):
     ----------
     grid : ModelGrid
         A Landlab grid.
-    surface : field name at node or array of length node
-        The surface to direct flow across.
-    flow_metric: Various options possible:
-            D8 (O’Callaghan and Mark, 1984) {default}
-            Rho8 (Fairfield and Leymarie, 1991)
-            Quinn (1991)
-            Freeman (1991)
-            Holmgren (1994)
-            D∞ (Tarboton, 1997)
-            for details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
-
-
-    runoff_rate : field name, array, or float, optional (m/time)
-        If provided, sets the runoff rate and will be assigned to the grid field
+    surface : str or array_like, optional
+        The surface to direct flow across. An at-node field name or an array of length *n_node*.
+    flow_metric : str, optional
+        String has to be one of 'D8' (O’Callaghan and Mark, 1984), 'Rho8' (Fairfield and Leymarie, 1991),
+        'Quinn' (1991), 'Freeman' (1991), 'Holmgren' (1994), 'Dinf' (Tarboton, 1997).
+        For details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
+    runoff_rate : str, array_like, or float, optional
+        If provided, sets the runoff rate (m / time) and will be assigned to the grid field
         'water__unit_flux_in'. If a spatially and and temporally variable runoff
         rate is desired, pass this field name and update the field through model
         run time. If both the field and argument are present at the time of
@@ -129,67 +107,58 @@ class FlowDirAccPf(Component):
         Both a runoff_rate array and the 'water__unit_flux_in' field are
         permitted to contain negative values, in which case they mimic
         transmission losses rather than e.g. rain inputs.
-
-    updateFlowDepressions {True} Build-in depression handler. Can be through filling or breaching (see below). Default is True
-
-    updateHillDepressions {False} Only needed if DEM needs to be filled seperately for second (hill flow) flow accumulator.
-    Default behavior is not to execute a seperate filling procedure in between the first and the second flow accumualtor.
-
-
-
-    depressionHandler : string, "fill" or "breach" indicating wheather to use a
+    updateFlowDepressions : bool, optional
+        Build-in depression handler. Can be through filling or breaching (see below).
+    updateHillDepressions : bool, optional
+        Only needed if DEM needs to be filled separately for second (hill flow) flow accumulator.
+        Default behavior is not to execute a separate filling procedure in between the first and
+        the second flow accumulator.
+    depressionHandler : str, optional
+        Must be one of 'fill or 'breach'.
         Depression-Filling or breaching algorithm to process depressions
-            - fill {default}: Depression-Filling
-                Depression-filling is often used to fill in all the depressions
-                in a DEM to the level of their lowest outlet or spill-point.
-                See also: https://richdem.readthedocs.io/en/latest/depression_filling.html
-            - breach {default}: Complete Breaching
-                Depression-breaching is used to dig channels from the pit cells
-                of a DEM to the nearest cells (in priority-flood sense) outside
-                of the depression containing the pit. This resolves the depression
-                as all cells in the depression now have a drainage path to the
-                edge of the DEM.
-                See also: https://richdem.readthedocs.io/en/latest/depression_breaching.html
 
-    exponent: float, optional
+        - 'fill': Depression-Filling.
+          Depression-filling is often used to fill in all the depressions
+          in a DEM to the level of their lowest outlet or spill-point.
+          See also: https://richdem.readthedocs.io/en/latest/depression_filling.html
+        - 'breach': Complete Breaching.
+          Depression-breaching is used to dig channels from the pit cells
+          of a DEM to the nearest cells (in priority-flood sense) outside
+          of the depression containing the pit. This resolves the depression
+          as all cells in the depression now have a drainage path to the
+          edge of the DEM.
+          See also: https://richdem.readthedocs.io/en/latest/depression_breaching.html
+    exponent : float, optional
         Some methods require an exponent (see flow_metric) Default {1}
-    epsilon: boolean, default {true}. If True, an epsilon gradient is imposed
-        to all flat regions. This ensures that there is always a local gradient.
-    accumulateFlow : if True flow directions and acummulations will be calcualted.
-        Set to False when only interested in flow directions
-    accumulateFlowHill: if True flow directions and acummulations will be calcualted
-        for second FD component (Hill). Set to False when only interested in flow
+    epsilon : bool, optional
+        If ``True``, an epsilon gradient is imposed to all flat regions. This ensures
+        that there is always a local gradient.
+    accumulateFlow : bool, optional
+        If ``True`` flow directions and accumulations will be calculated.
+        Set to ``False`` when only interested in flow directions
+    accumulateFlowHill : bool, optional
+        If ``True`` flow directions and accumulations will be calculated
+        for second FD component (Hill). Set to ``False`` when only interested in flow
         directions.
-    seperate_Hill_Flow: boolean {False}
-        For some applications (e.g. HyLands) both single and
+    seperate_Hill_Flow : bool, optional
+        For some applications (e.g. *HyLands*) both single and
         multiple flow direction and accumulation is required.
         By calculating them in the same component, we can optimize procedures
-        invovled with filling and breaching of DEMs
-    update_HillFlow_instanteneous: boolean {True}
-        update seperate hillslope director and accumulator simultaneously on update
-        Set to if other operations have to be performed in between updating the
-        principle flow properties and the hillslope properties
-    hill_flow_metric:
-            various options possible:
-            D8 (O’Callaghan and Mark, 1984)
-            D4 (O’Callaghan and Mark, 1984)
-            Rho8 (Fairfield and Leymarie, 1991)
-            Rho4 (Fairfield and Leymarie, 1991)
-            Quinn (1991) {default}
-            Freeman (1991)
-            Holmgren (1994)
-            D∞ (Tarboton, 1997)
-            for details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
-    hill_exponent: float, optional
-        Some methods require an exponent (see flow_metric) {1}
-    suppress_out:
-        suppress verbose of priority flood algorithm
-
-
-
-
-    Examples
-    --------
+        involved with filling and breaching of DEMs
+    update_HillFlow_instanteneous : bool, optional
+        Update separate hillslope director and accumulator simultaneously on update.
+        Set if other operations have to be performed in between updating the
+        principle flow properties and the hillslope properties.
+    hill_flow_metric : str, optional
+        Must be one 'D8' (O’Callaghan and Mark, 1984),'D4' (O’Callaghan and Mark, 1984),
+        'Rho8' (Fairfield and Leymarie, 1991), 'Rho4' (Fairfield and Leymarie, 1991),
+        'Quinn' (1991) {default},'Freeman' (1991), 'Holmgren' (1994),
+        'Dinf' (Tarboton, 1997).
+        For details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
+    hill_exponent : float, optional
+        Some methods require an exponent (see flow_metric)
+    suppress_out : bool, optional
+        Suppress verbose of priority flood algorithm
 
 
     References
