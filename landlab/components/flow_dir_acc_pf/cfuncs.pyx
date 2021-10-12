@@ -100,8 +100,8 @@ cpdef _FD_D8(np.ndarray[DTYPE_INT_t, ndim=1] receivers,
 cpdef _FA_D8(DTYPE_INT64_t np,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] a,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
-             np.ndarray[DTYPE_INT64_t, ndim=1] stack,
-             np.ndarray[DTYPE_INT64_t, ndim=1] receivers):
+             np.ndarray[DTYPE_INT_t, ndim=1] stack,
+             np.ndarray[DTYPE_INT_t, ndim=1] receivers):
     """
     Accumulates drainage area and discharge, permitting transmission losses.
     """
