@@ -15,7 +15,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_UINT8 = np.uint8
 ctypedef np.uint8_t DTYPE_UINT8_t
 
-from libc.stdio cimport printf
+# from libc.stdio cimport printf
 
 
 def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
