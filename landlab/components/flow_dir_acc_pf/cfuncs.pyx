@@ -6,9 +6,6 @@ cimport cython
 DTYPE_INT = np.int
 ctypedef np.int_t DTYPE_INT_t
 
-DTYPE_INT64 = np.int64
-ctypedef np.int64_t DTYPE_INT64_t
-
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
@@ -23,7 +20,7 @@ cpdef _FD_D8(np.ndarray[DTYPE_INT_t, ndim=1] receivers,
              np.ndarray[DTYPE_INT_t, ndim=1] cores,
              np.ndarray[DTYPE_INT_t, ndim=1] activeCells,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] el_d,
-             DTYPE_INT64_t r, DTYPE_INT64_t c,
+             DTYPE_INT_t r, DTYPE_INT_t c,
              DTYPE_FLOAT_t dx, DTYPE_FLOAT_t sq2,
              np.ndarray[DTYPE_INT_t, ndim=2] adj_link ,
              np.ndarray[DTYPE_INT_t, ndim=1] rec_link):
@@ -97,7 +94,7 @@ cpdef _FD_D8(np.ndarray[DTYPE_INT_t, ndim=1] receivers,
 
 
 
-cpdef _FA_D8(DTYPE_INT64_t np,
+cpdef _FA_D8(DTYPE_INT_t np,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] a,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
              np.ndarray[DTYPE_INT_t, ndim=1] stack,

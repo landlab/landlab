@@ -762,16 +762,13 @@ class FlowDirAccPf(Component):
                 dis = wg_q
             else:
                 dis = (
-                    np.zeros(self.grid.number_of_nodes, dtype=np.int64)
+                    np.zeros(self.grid.number_of_nodes, dtype=int)
                     + self._node_cell_area
                 )
 
-            da = (
-                np.zeros(self.grid.number_of_nodes, dtype=np.int64)
-                + self._node_cell_area
-            )
+            da = np.zeros(self.grid.number_of_nodes, dtype=int) + self._node_cell_area
             stack = self._sort
-            nb = np.int64(len(da))
+            nb = len(da)
             _FA_D8(nb, da, dis, stack, receivers)
 
             a[:] = da
