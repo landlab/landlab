@@ -436,7 +436,7 @@ class LateralEroder(Component):
         # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
         # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
         # or add self.dzlat to itself after each time step.
-        self._dzlat *= 0
+        self._dzlat.fill(0.0)
 
         if inlet_on is True:
             inlet_node = self._inlet_node
@@ -563,7 +563,7 @@ class LateralEroder(Component):
         # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
         # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
         # or add self.dzlat to itself after each time step.
-        self._dzlat *= 0
+        self._dzlat.fill(0.0)
 
         if inlet_on is True:
             # define inlet_node
