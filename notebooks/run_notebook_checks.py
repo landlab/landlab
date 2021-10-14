@@ -27,10 +27,7 @@ def is_a_notebook(path):
 def iter_notebooks_in_dir(path, root):
     for s in path.iterdir():
         p = pathlib.Path(s)
-        # normalized_path = "/" + p.resolve().relative_to(root).as_posix()
 
-        # if p.is_dir():
-        #     normalized_path += "/"
         if p.is_dir() and p.name not in (".git", ".ipynb_checkpoints"):
             yield from iter_notebooks_in_dir(p, root)
         elif is_a_notebook(p):
@@ -115,17 +112,13 @@ def notebook_is_clean(ctx, verbose, quiet, path):
         else:
             unclean.append(str(notebook))
 
-    # if verbose:
-    #     for notebook in sorted(clean + unclean):
-    #         out(notebook) if notebook in clean else err(notebook)
-    #     out(
-    #         f"notebooks checked: {len(clean) + len(unclean)} ({len(clean)} passed / {len(unclean)} failed)"
-    #     )
+    report = Report(clean_count=len(clean), dirty_count=len(unclean))
 
     if verbose:
-        # for notebook in sorted(clean + unclean):
-        #     out(notebook) if notebook in clean else err(notebook)
-        report = Report(clean_count=len(clean), dirty_count=len(unclean))
+        for notebook in sorted(clean + unclean):
+            out(notebook) if notebook in clean else err(notebook)
+
+    if not quiet:
         out(error_msg if report.dirty_count else "All done! ✨ 🍰 ✨")
         out(str(report))
 
