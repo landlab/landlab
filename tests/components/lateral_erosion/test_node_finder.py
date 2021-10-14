@@ -2,9 +2,7 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components.lateral_erosion.node_finder import (
-    angle_finder as angle_finder,
-)
+from landlab.components.lateral_erosion.node_finder import angle_finder
 
 
 @pytest.mark.parametrize(
