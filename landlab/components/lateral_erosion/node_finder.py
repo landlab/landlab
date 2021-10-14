@@ -24,12 +24,12 @@ def angle_finder(grid, dn, cn, rn):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.lateral_erosion.node_finder import angle_finder_v2
+    >>> from landlab.components.lateral_erosion.node_finder import angle_finder
 
     >>> grid = RasterModelGrid((3, 4))
-    >>> np.rad2deg(angle_finder_v2(grid, 8, 5, 0))
+    >>> np.rad2deg(angle_finder(grid, 8, 5, 0))
     90.0
-    >>> np.rad2deg(angle_finder_v2(grid, (8, 9, 10, 6), 5, 6))
+    >>> np.rad2deg(angle_finder(grid, (8, 9, 10, 6), 5, 6))
     array([ 135.,   90.,   45.,    0.])
     """
     vertex = np.take(grid.x_of_node, cn), np.take(grid.y_of_node, cn)
