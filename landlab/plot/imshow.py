@@ -487,6 +487,8 @@ def _imshowhs_grid_values(
     colorbar_label_y=-40,
     colorbar_label_x=0.5,
     cbar_tick_size=10,
+    cbar_label_color = 'black',
+    cbar_label_fontweight = 'bold',
 ):
     cmap = plt.get_cmap(cmap)
 
@@ -699,7 +701,7 @@ def _imshowhs_grid_values(
                         ],
                     )
                 axins1.xaxis.set_ticks_position(cb_ticks_position)
-                cb.ax.tick_params(labelsize=cbar_tick_size)
+                cb.ax.tick_params(labelsize=cbar_tick_size, color = cbar_label_color,labelcolor  = cbar_label_color)  
 
                 if colorbar_label:
                     cb.set_label(colorbar_label, rotation=270)
@@ -803,7 +805,7 @@ def _imshowhs_grid_values(
                                 np.round(0.1 * (minV + 0.8 * cb_length)) * 10,
                             ],
                         )
-                    cb.ax.tick_params(labelsize=cbar_tick_size)
+                    cb.ax.tick_params(labelsize=cbar_tick_size,color = cbar_label_color,labelcolor  = cbar_label_color)         
                     axins1.xaxis.set_ticks_position(cb_ticks_position)
                     # axins1.set_xlabel(colorbar_label,fontsize=default_fontsize)
                     axins1.set_xlabel(
@@ -861,7 +863,7 @@ def _imshowhs_grid_values(
                                 np.round(0.1 * (minV + 0.8 * cb_length)) * 10,
                             ],
                         )
-                    cb.ax.tick_params(labelsize=cbar_tick_size)
+                    cb.ax.tick_params(labelsize=cbar_tick_size,color = cbar_label_color,labelcolor  = cbar_label_color)       
 
                     axins2.xaxis.set_ticks_position(cb_ticks_position)
                     # axins2.set_xlabel(colorbar_label,fontsize=default_fontsize)
@@ -924,7 +926,10 @@ def _imshowhs_grid_values(
             colorbar_label,
             fontsize=default_fontsize,
             labelpad=colorbar_label_y,
+            color = cbar_label_color,
             x=colorbar_label_x,
+            fontweight=cbar_label_fontweight,
+            
         )
         # cb.axes.set_xlabel('m')
 
