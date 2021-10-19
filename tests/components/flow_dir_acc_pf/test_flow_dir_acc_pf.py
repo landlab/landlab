@@ -2,9 +2,6 @@
 
 @author: benjaminCampforts
 """
-# Created on Thurs Nov 12, 2015
-import os
-
 import numpy as np
 import pytest
 from numpy import testing
@@ -12,8 +9,6 @@ from numpy.testing import assert_array_equal
 
 from landlab import FieldError, HexModelGrid, RasterModelGrid
 from landlab.components import FlowDirAccPf
-
-_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_check_fields():
@@ -64,7 +59,7 @@ def test_fields():
     # %% No flow accumulation
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, accumulateFlow=True)
+    fa2 = FlowDirAccPf(mg2, accumulate_flow=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
         "SQUARED_length_adjacent",
@@ -84,7 +79,7 @@ def test_fields():
     # %% Second FD (no FA is default)
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, seperate_Hill_Flow=True)
+    fa2 = FlowDirAccPf(mg2, separate_hill_flow=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
         "SQUARED_length_adjacent",
@@ -107,7 +102,7 @@ def test_fields():
     # %% Second FD (with FA )
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, seperate_Hill_Flow=True, accumulateFlowHill=True)
+    fa2 = FlowDirAccPf(mg2, separate_hill_flow=True, accumulate_flow_hill=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
         "SQUARED_length_adjacent",
@@ -150,7 +145,10 @@ def test_accumulated_area_closes():
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")
     fa3 = FlowDirAccPf(
-        mg3, seperate_Hill_Flow=True, accumulateFlowHill=True, hill_flow_metric="Quinn"
+        mg3,
+        separate_hill_flow=True,
+        accumulate_flow_hill=True,
+        hill_flow_metric="Quinn",
     )
     fa3.run_one_step()
 
@@ -295,7 +293,7 @@ def test_sum_prop_is_one():
     # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, seperate_Hill_Flow=True)
+    fa = FlowDirAccPf(mg, separate_hill_flow=True)
     fa.run_one_step()
 
     # Single flow
@@ -323,7 +321,7 @@ def test_sum_prop_is_one():
     # %% multiple flow with D8
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, seperate_Hill_Flow=True, hill_flow_metric="D8")
+    fa = FlowDirAccPf(mg, separate_hill_flow=True, hill_flow_metric="D8")
     fa.run_one_step()
 
     # Multiple flow
