@@ -151,7 +151,7 @@ class SteepnessFinder(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        reference_concavity : float
+        reference_concavity : float (default 0.5)
             The reference concavity to use in the calculation.
         min_drainage_area : float (m**2; default 1.e6)
             The minimum drainage area above which steepness indices are
