@@ -658,7 +658,7 @@ erosional responses of landscapes to fire using the Landlab modeling
 environment. 2014: Community Surface Dynamics Modeling System Annual
 Meeting, Boulder, Colorado, May 2014.
 `abstract <https://csdms.colorado.edu/wiki/CSDMS_2014_annual_meeting_poster_Jordan_Adams>`__
-`poster <https://csdms.colorado.edu/csdms_wiki/images/CSDMS2014_poster_JordanAdams.pdf>`__
+`poster <https://csdms.colorado.edu/wiki/File:CSDMS2014_poster_JordanAdams.pdf>`__
 
 2013
 ````

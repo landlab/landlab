@@ -13,7 +13,7 @@ from .spoke_sort import sort_spokes_at_wheel
 from .argsort cimport argsort_int
 
 
-DTYPE = np.int
+DTYPE = int
 ctypedef np.int_t DTYPE_t
 ctypedef np.uint8_t uint8
 
