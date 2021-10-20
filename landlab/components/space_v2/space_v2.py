@@ -110,7 +110,7 @@ class Space_v2(Component):
         discharge_field="surface_water__discharge",
         erode_flooded_nodes=False,
         thickness_lim=100,
-        fillLakesToBrim=False,
+        fill_lakes_to_brim=False,
     ):
         """Initialize the Space model.
 
@@ -118,42 +118,41 @@ class Space_v2(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_sed : float, field name, or array
-            Erodibility for sediment (units vary).
-        K_br : float, field name, or array
-            Erodibility for bedrock (units vary).
-        F_f : float
+        K_sed : float, array of float, or str, optional
+            Erodibility for sediment (units vary) as either a number or a field name.
+        K_br : float, array of float, or str, optional
+            Erodibility for bedrock (units vary) as either a number or a field name.
+        F_f : float, optional
             Fraction of permanently suspendable fines in bedrock [-].
-        phi : float
+        phi : float, optional
             Sediment porosity [-].
-        H_star : float
+        H_star : float, optional
             Sediment thickness required for full entrainment [L].
-        v_s : float
+        v_s : float, optional
             Effective settling velocity for chosen grain size metric [L/T].
-        v_s_lake : float
+        v_s_lake : float, optional
             Effective settling velocity in lakes for chosen grain size metric [L/T].
-        m_sp : float
-            Drainage area exponent (units vary)
-        n_sp : float
-            Slope exponent (units vary)
-        sp_crit_sed : float, field name, or array
-            Critical stream power to erode sediment [E/(TL^2)]
-        sp_crit_br : float, field name, or array
+        m_sp : float, optional
+            Drainage area exponent (units vary).
+        n_sp : float, optional
+            Slope exponent (units vary).
+        sp_crit_sed : float, array of float, or str, optional
+            Critical stream power to erode sediment [E/(TL^2)].
+        sp_crit_br : float, array of float, or str, optional
             Critical stream power to erode rock [E/(TL^2)]
-        discharge_field : float, field name, or array
+        discharge_field : float, array of float, or str, optional
             Discharge [L^2/T]. The default is to use the grid field
             'surface_water__discharge', which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom
             spatially/temporally varying rainfall, use 'water__unit_flux_in'
             to specify water input to the FlowAccumulator.
-        erode_flooded_nodes : bool (optional)
+        erode_flooded_nodes : bool, optional
             Whether erosion occurs in flooded nodes identified by a
             depression/lake mapper (e.g., DepressionFinderAndRouter). When set
             to false, the field *flood_status_code* must be present on the grid
             (this is created by the DepressionFinderAndRouter). Default True.
-
-        fillLakesToBrim : Wheter depostion should fill sinks to brim at water level {False}
-
+        fill_lakes_to_brim : bool, optional
+            Fill sinks to brim at water level.
         """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
@@ -164,6 +163,9 @@ class Space_v2(Component):
                 "to start this process."
             )
             raise NotImplementedError(msg)
+
+        if not isinstance(fill_lakes_to_brim, bool):
+            raise ValueError("fill_lakes_to_brim must be True or False")
 
         super(Space_v2, self).__init__(
             grid,
@@ -234,8 +236,9 @@ class Space_v2(Component):
         else:
             self._v_s_lake = np.float64(v_s_lake)
         self._F_f = np.float64(F_f)
+
         # Boolean to 0 or 1 to be used as cython switch
-        self._fillLakesToBrim = int(fillLakesToBrim)
+        self._fill_lakes_to_brim = fill_lakes_to_brim
 
         if phi >= 1.0:
             raise ValueError("Porosity must be < 1.0")
@@ -249,12 +252,9 @@ class Space_v2(Component):
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
 
-        if not isinstance(fillLakesToBrim, bool):
-            raise ValueError("fillLakesToBrim must be True or False")
-
         # If filling to brim, a depression free field must be provided.
         # 'deprFree_elevation' is automatically produced as a grid field when using FlowAccumulatorPf
-        if fillLakesToBrim:
+        if fill_lakes_to_brim:
             if "deprFree_elevation" not in self.grid.at_node.keys():
                 raise NotImplementedError(
                     "If filling to brim, a depression free \
@@ -345,11 +345,11 @@ class Space_v2(Component):
         self._Es = self._sed_erosion_term * (1.0 - np.exp(-H / self._H_star))
         self._Er = self._br_erosion_term * np.exp(-H / self._H_star)
 
-        """ if the soil layer becomes exceptionally thick (e.g. because of
-        landslide derived sediment deposition(,) the algorithm will become
-        unstable because np.exp(x) with x > 709 yeilds inf values.
-        Therefore soil depth is temporqlly topped of at 200m and the remaining
-        values are added back after the space component has run """
+        # if the soil layer becomes exceptionally thick (e.g. because of
+        # landslide derived sediment deposition(,) the algorithm will become
+        # unstable because np.exp(x) with x > 709 yeilds inf values.
+        # Therefore soil depth is temporqlly topped of at 200m and the remaining
+        # values are added back after the space component has run
 
         self._Es[H > self._thickness_lim] = self._sed_erosion_term[
             H > self._thickness_lim
@@ -388,11 +388,11 @@ class Space_v2(Component):
 
         self._qs_in[:] = 0
 
-        if self._fillLakesToBrim or self._v_s != self._v_s_lake:
+        if self._fill_lakes_to_brim or not np.isclose(self._v_s, self._v_s_lake):
 
             v = np.ones(self.grid.number_of_nodes) * self._v_s
             v[flooded_nodes] = self._v_s_lake
-            if self._fillLakesToBrim:
+            if self._fill_lakes_to_brim:
                 waterEl = self.grid.at_node["deprFree_elevation"]
             else:
                 waterEl = np.zeros(self.grid.number_of_nodes)
@@ -421,7 +421,7 @@ class Space_v2(Component):
                 self._H_star,
                 dt,
                 self._thickness_lim,
-                self._fillLakesToBrim,
+                int(self._fill_lakes_to_brim),
             )
 
         else:
