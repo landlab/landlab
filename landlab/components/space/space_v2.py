@@ -1,7 +1,7 @@
 import numpy as np
 from landlab import Component, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
-from .cfuncs import calculate_qs_in, calculate_qs_in_lakeFiller
+from .ext.calc_qs_v2 import calculate_qs_in, calculate_qs_in_lakeFiller
 from ..depression_finder.lake_mapper import _FLOODED
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
@@ -357,7 +357,7 @@ class Space_v2(Component):
         self._Er[H > self._thickness_lim] = 0
 
     def run_one_step_basic(self, dt=10):
-        node_Status = self.grid.status_at_node
+        node_status = self.grid.status_at_node
 
         z = self.grid.at_node["topographic__elevation"]
         br = self.grid.at_node["bedrock__elevation"]
@@ -400,7 +400,7 @@ class Space_v2(Component):
             vol_SSY_riv = calculate_qs_in_lakeFiller(
                 np.flipud(stack),
                 r,
-                node_Status,
+                node_status,
                 area,
                 self._q,
                 self._qs,
@@ -428,7 +428,7 @@ class Space_v2(Component):
             vol_SSY_riv = calculate_qs_in(
                 np.flipud(stack),
                 r,
-                node_Status,
+                node_status,
                 area,
                 self._q,
                 self._qs,
