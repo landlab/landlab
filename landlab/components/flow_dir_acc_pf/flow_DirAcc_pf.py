@@ -13,8 +13,7 @@ This prevents the user from updating the filling/breaching algorithms in between
 """
 
 import copy as cp
-import os
-import sys
+from functools import partial
 
 import numpy as np
 import numpy.matlib as npm
@@ -24,7 +23,7 @@ from landlab import Component, FieldError, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
 from .cfuncs import _FA_D8, _FD_D8
-from .suppress_stdout_stderr import suppress_stdout_stderr
+from ...utils.suppress_output import suppress_output
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -348,15 +347,17 @@ class FlowDirAccPf(Component):
     ):
         """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and
-        compatability for the flow_metric and depression_finder
+        Saves the grid, tests grid type, tests input types and
+        compatibility for the flow_metric and depression_finder
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
         super(FlowDirAccPf, self).__init__(grid)
         # Keep a local reference to the grid
 
-        self._suppress_out = suppress_out
+        self._suppress_output = partial(
+            suppress_output, out=suppress_out, err=suppress_out
+        )
 
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -365,7 +366,8 @@ class FlowDirAccPf(Component):
         # Grid type testing
         if not isinstance(self._grid, RasterModelGrid):
             raise FieldError(
-                "Flow Accumulator Priority flood only works with regular raster grids, use default Landlab flow accumulator instead"
+                "Flow Accumulator Priority flood only works with regular raster grids, "
+                "use default Landlab flow accumulator instead"
             )
 
         node_cell_area = self._grid.cell_area_at_node.copy()
@@ -399,7 +401,7 @@ class FlowDirAccPf(Component):
         if depression_handler == "fill" or depression_handler == "breach":
             self._depression_handler = depression_handler
         else:
-            raise ValueError("depression_handler should be fill or breach")
+            raise ValueError("depression_handler should be 'fill' or 'breach'")
 
         self._depression_handler = depression_handler
         self._exponent = exponent
@@ -479,17 +481,7 @@ class FlowDirAccPf(Component):
             self._hill_prps = self.grid.at_node["hill_flow__receiver_proportions"]
 
         # Create properties specific to RichDEM
-        if self._suppress_out:
-            with suppress_stdout_stderr():
-                sys.stdout = open(os.devnull, "w")
-                sys.stderr = open(os.devnull, "w")
-
-                self._create_properties()
-
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-        else:
-            self._create_properties()
+        self._create_richdem_properties()
 
     @property
     def node_drainage_area(self):
@@ -501,7 +493,7 @@ class FlowDirAccPf(Component):
         """Return the surface water discharge."""
         return self._grid["node"]["surface_water__discharge"]
 
-    def _create_properties(self):
+    def _create_richdem_properties(self):
         self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
                 self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
@@ -554,7 +546,7 @@ class FlowDirAccPf(Component):
             self.remove_depressions()
 
         # 2: Flow directions and accumulation
-        # D8 flow accumulation in richDEM seems not to differntiatie between caridal and diagonal cells,
+        # D8 flow accumulation in richDEM seems not to differentiate between cardinal and diagonal cells,
         #   so we provide an alternative D8 implementation strategy
         if flow_metric == "D8":
             self.FA_DA_D8(hill_flow=hill_flow)
@@ -562,11 +554,12 @@ class FlowDirAccPf(Component):
 
             # Calculate flow direction (proportion) and accumulation using RichDEM
             # self._depression_free_dem[self._closed == 1] = 1e6
-            props_Pf = rd.FlowProportions(
-                dem=self._depression_free_dem,
-                method=flow_metric,
-                exponent=self._exponent,
-            )
+            with self._suppress_output():
+                props_Pf = rd.FlowProportions(
+                    dem=self._depression_free_dem,
+                    method=flow_metric,
+                    exponent=self._exponent,
+                )
             # self._depression_free_dem[self._closed == 1] = -1
 
             # Calculate flow accumulation using RichDEM
@@ -800,10 +793,13 @@ class FlowDirAccPf(Component):
                 no_data=-9999,
             )
         )
-        if self._depression_handler == "fill":
-            rd.FillDepressions(self._depression_free_dem, self._epsilon, in_place=True)
-        elif self._depression_handler == "breach":
-            rd.BreachDepressions(self._depression_free_dem, in_place=True)
+        with self._suppress_output():
+            if self._depression_handler == "fill":
+                rd.FillDepressions(
+                    self._depression_free_dem, self._epsilon, in_place=True
+                )
+            elif self._depression_handler == "breach":
+                rd.BreachDepressions(self._depression_free_dem, in_place=True)
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
@@ -823,18 +819,20 @@ class FlowDirAccPf(Component):
         wg[np.nonzero(self._grid.status_at_node)] = 0
         wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
 
-        a[:] = np.array(
-            rd.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
-                self.grid.number_of_nodes
+        with self._suppress_output():
+            a[:] = np.array(
+                rd.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
+                    self.grid.number_of_nodes
+                )
             )
-        )
 
         if any(self.grid.at_node["water__unit_flux_in"] != 1):
             wg = self.grid.at_node["water__unit_flux_in"] * self.grid.dx * self.grid.dx
             # Only core nodes (status == 0) need to receive a weight
             wg[np.nonzero(self._grid.status_at_node)] = 0
             wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
-            q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
+            with self._suppress_output():
+                q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
         else:
             q[:] = self._drainage_area
@@ -844,43 +842,14 @@ class FlowDirAccPf(Component):
             raise ValueError(
                 "If hillslope properties are updated, the separate_hill_flow property of the FlowDirAccPf class should be True upon initialisation"
             )
-        if self._suppress_out:
-            with suppress_stdout_stderr():
-                sys.stdout = open(os.devnull, "w")
-                sys.stderr = open(os.devnull, "w")
-                self.calc_flow_dir_acc(
-                    hill_flow=True, update_depressions=update_depressions
-                )
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-        else:
-            self.calc_flow_dir_acc(
-                hill_flow=True, update_depressions=update_depressions
-            )
+        self.calc_flow_dir_acc(hill_flow=True, update_depressions=update_depressions)
 
     def run_one_step(self):
-        if self._suppress_out:
-            with suppress_stdout_stderr():
-                sys.stdout = open(os.devnull, "w")
-                sys.stderr = open(os.devnull, "w")
+        self.calc_flow_dir_acc(
+            hill_flow=False, update_depressions=self._update_flow_depressions
+        )
+        if self._separate_hill_flow:
+            if self._update_hill_flow_instantaneous:
                 self.calc_flow_dir_acc(
-                    hill_flow=False, update_depressions=self._update_flow_depressions
+                    hill_flow=True, update_depressions=self._update_hill_depressions
                 )
-                if self._separate_hill_flow:
-                    if self._update_hill_flow_instantaneous:
-                        self.calc_flow_dir_acc(
-                            hill_flow=True,
-                            update_depressions=self._update_hill_depressions,
-                        )
-
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-        else:
-            self.calc_flow_dir_acc(
-                hill_flow=False, update_depressions=self._update_flow_depressions
-            )
-            if self._separate_hill_flow:
-                if self._update_hill_flow_instantaneous:
-                    self.calc_flow_dir_acc(
-                        hill_flow=True, update_depressions=self._update_hill_depressions
-                    )
