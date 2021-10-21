@@ -398,14 +398,16 @@ class FlowDirAccPf(Component):
                 ]
             )
 
-        if depression_handler == "fill" or depression_handler == "breach":
-            self._depression_handler = depression_handler
+        if depression_handler == "fill":
+            self._depression_handler = partial(
+                rd.FillDepressions, epsilon=epsilon, in_place=True
+            )
+        elif depression_handler == "breach":
+            self._depression_handler = partial(rd.BreachDepressions, in_place=True)
         else:
-            raise ValueError("depression_handler should be 'fill' or 'breach'")
+            raise ValueError("depression_handler should be one of 'fill' or 'breach'")
 
-        self._depression_handler = depression_handler
         self._exponent = exponent
-        self._epsilon = epsilon
         self._separate_hill_flow = separate_hill_flow
         self._update_hill_flow_instantaneous = update_hill_flow_instantaneous
 
@@ -794,12 +796,7 @@ class FlowDirAccPf(Component):
             )
         )
         with self._suppress_output():
-            if self._depression_handler == "fill":
-                rd.FillDepressions(
-                    self._depression_free_dem, self._epsilon, in_place=True
-                )
-            elif self._depression_handler == "breach":
-                rd.BreachDepressions(self._depression_free_dem, in_place=True)
+            self._depression_handler(self._depression_free_dem)
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
