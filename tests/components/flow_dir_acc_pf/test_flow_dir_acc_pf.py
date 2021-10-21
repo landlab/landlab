@@ -193,9 +193,15 @@ def test_D8_metric():
     fa2.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
     reciever = np.array(
-        [[0, 1, 2, 3], [4, 1, 2, 7], [8, 6, 6, 11], [12, 14, 10, 15], [16, 17, 18, 19]]
+        [
+            [0, 1, 2, 3],
+            [4, 1, 2, 7],
+            [8, 6, 6, 11],
+            [12, 14, 10, 15],
+            [16, 17, 18, 19],
+        ]
     )
-    assert_array_equal(reciever, pf_r)
+    assert_array_equal(reciever.flatten(), pf_r)
 
     # Uncomment to compare with default Landlab flow accumulator
     mg1 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
@@ -231,8 +237,8 @@ def test_flow_accumulator_properties():
         ]
     )
 
-    assert_array_equal(fa.node_water_discharge, node_drainage_area)
-    assert_array_equal(fa.node_drainage_area, node_drainage_area)
+    assert_array_equal(fa.node_water_discharge, node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
 
 
 # %%
