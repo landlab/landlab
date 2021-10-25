@@ -7,6 +7,7 @@ Calculate dimensionless dischange of stream sections based on Tang (2019)
 import math
 from landlab import Component
 from landlab.utils.return_array import return_array_at_node
+import numpy as np
 
 
 class DimensionlessDischarge(Component):
@@ -124,8 +125,8 @@ class DimensionlessDischarge(Component):
         # Store parameters
         self._current_time = 0
         self._soil_density = soil_density
-        self._C = C
-        self._N = N
+        self._C = [C]*grid.number_of_nodes
+        self._N = [N]*grid.number_of_nodes
         self._stream_slopes = grid.at_node["stream_slopes"]
         self.water_density = water_density
         self.gravity = 9.8 
@@ -138,18 +139,18 @@ class DimensionlessDischarge(Component):
         dimensionless_discharge_threshold_value = self.grid.add_zeros('node', 
             'dimensionless_discharge_threshold_value')
         self.grid.at_node["dimensionless_discharge_threshold_value"] = \
-            C / (math.tan(self._stream_slopes) ** N)
+            self._C / (np.tan(self._stream_slopes) ** self._N)
 
     def run_one_step(self, dt):
         self.grid.at_node["dimensionless_discharge"] = \
-            self.grid.at_node["flux"] / math.sqrt(((self._soil_density -
+            self.grid.at_node["flux"] / np.sqrt(((self._soil_density -
                 self.water_density) / self.water_density) *
                  self.gravity * (self.grid.at_node["d50"] ** 3))
-        if self.grid.at_node["dimensionless_discharge"] >= \
-            self.grid.at_node["dimensionless_discharge_threshold_value"]:
-            self.grid.at_node["dimensionless_discharge_above_threshold"] = 1
-        else: 
-            self.grid.at_node["dimensionless_discharge_above_threshold"] = 0
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = [0 if \
+            self.grid.at_node["dimensionless_discharge"][i] >= \
+            self.grid.at_node["dimensionless_discharge_threshold_value"][i] \
+            else 1 for i in range(self.grid.number_of_nodes)]
+       
 
         self._current_time += dt
 
