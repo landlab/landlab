@@ -539,7 +539,9 @@ class NetworkSedimentTransporter(Component):
 
             # calculate active layer thickness
             self._active_layer_thickness = (
-                0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
+                0.515
+                * self._d_mean_active
+                * (3.09 * (taustar - 0.0549).clip(0.0, None) ** 0.56)
             )  # in units of m
 
         elif self._active_layer_method == "GrainSizeDependent":
