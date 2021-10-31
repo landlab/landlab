@@ -8,7 +8,7 @@ from numpy.testing import assert_array_equal
 from landlab.io.shapefile.read_shapefile import _infer_data_type
 
 
-@pytest.mark.parametrize("in_type", [int, float])
+@pytest.mark.parametrize("in_type", [np.int32, np.int64, float])
 @pytest.mark.parametrize(
     "astype", [list, tuple, np.asarray, partial(np.asarray, dtype=object)]
 )
