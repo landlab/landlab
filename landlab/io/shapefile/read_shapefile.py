@@ -360,9 +360,8 @@ def read_shapefile(
     )
 
     # add values to fields.
-    if field_name in link_fields:
+    for field_name in link_fields:
         mapped_field_name = link_field_conversion.get(field_name, field_name)
-
         grid.at_link[mapped_field_name] = _infer_data_type(
             np.take(fields[field_name], sorted_links),
             dtype=link_field_dtype.get(field_name, None),
