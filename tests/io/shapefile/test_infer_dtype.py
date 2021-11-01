@@ -15,14 +15,13 @@ def test_infer_dtype(as_iterable, src_type):
     assert_array_equal(array, values)
 
 
-@pytest.mark.parametrize("as_iterable", [list, tuple, np.asarray])
 @pytest.mark.parametrize(
     "values,dst_type",
     [([1, 2, 3], np.int_), ([1.0, 2.0, 3.0], float), ([True, True, False], bool)],
 )
-def test_infer_dtype_from_object(as_iterable, values, dst_type):
+def test_infer_dtype_from_object(values, dst_type):
     values = np.asarray(values, dtype=object)
-    array = _infer_data_type(as_iterable(values))
+    array = _infer_data_type(values)
     assert array.dtype == dst_type
     assert_array_equal(array, values)
 
