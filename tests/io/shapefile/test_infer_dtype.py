@@ -17,13 +17,38 @@ def test_infer_dtype(as_iterable, src_type):
 
 @pytest.mark.parametrize(
     "values,dst_type",
-    [([1, 2, 3], np.int_), ([1.0, 2.0, 3.0], float), ([True, True, False], bool)],
+    [
+        ([1, 2, 3], np.int_),
+        ([1, 2, 3.0], float),
+        ([1.0, 2.0, 3.0], float),
+        ([1j, 2j, 3j], complex),
+        ([True, True, False], bool),
+    ],
 )
 def test_infer_dtype_from_object(values, dst_type):
     values = np.asarray(values, dtype=object)
     array = _infer_data_type(values)
     assert array.dtype == dst_type
     assert_array_equal(array, values)
+
+
+@pytest.mark.parametrize(
+    "values,dst_type,expected",
+    [
+        ([1, 2, 3.0], float, [1.0, 2.0, 3.0]),
+        ([1.0, 2.0, 3j], complex, [1 + 0j, 2 + 0j, 3j]),
+        ([1, 2, 3j], complex, [1 + 0j, 2 + 0j, 3j]),
+        ([True, False, 1], int, [1, 0, 1]),
+        ([True, False, 1.0], float, [1.0, 0.0, 1.0]),
+        ([None, 1.0, 2.0], float, [np.nan, 1.0, 2.0]),
+        ([None, 1.0, 2j], complex, [np.nan * 1j, 1.0, 2j]),
+    ],
+)
+def test_infer_dtype_from_mixed(values, dst_type, expected):
+    values = np.asarray(values, dtype=object)
+    array = _infer_data_type(values)
+    assert array.dtype == dst_type
+    assert_array_equal(array, expected)
 
 
 @pytest.mark.parametrize("dst_type", [int, float, np.int32, np.int64])

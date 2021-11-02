@@ -24,6 +24,17 @@ def _read_shapefile(file, dbf):
     return sf
 
 
+_NUMPY_DTYPE = {
+    "integer": (int,),
+    "mixed": (float, complex),
+    "mixed-integer": (int, complex),
+    "mixed-integer-float": (float,),
+    "floating": (float,),
+    "complex": (complex,),
+    "boolean": (bool,),
+}
+
+
 def _infer_data_type(array, dtype=None):
     """Infer the type of a numpy array.
 
@@ -61,8 +72,16 @@ def _infer_data_type(array, dtype=None):
     array([[1, 2, 3]])
     """
     array = np.asarray(array, dtype=dtype)
-    if dtype is None:
-        array = pd.to_numeric(array.flatten(), errors="ignore").reshape(array.shape)
+    if dtype is None and not np.issubdtype(array.dtype, np.number):
+        infered_dtype = pd.api.types.infer_dtype(array, skipna=True)
+        for dtype in _NUMPY_DTYPE.get(infered_dtype, ()):
+            try:
+                _array = np.asarray(array, dtype=dtype)
+            except TypeError:
+                pass
+            else:
+                array = _array
+                break
     return array
 
 
