@@ -448,6 +448,8 @@ def _imshowhs_grid_values(
     thicks_km=True,
     var_name=None,
     var_units=None,
+    fontweight_xlabel = 'bold',
+    fontweight_ylabel = 'bold',
     grid_units=(None, None),
     symmetric_cbar=False,
     cmap="pink",
@@ -881,25 +883,25 @@ def _imshowhs_grid_values(
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
         if grid_units[1] == "-" and grid_units[0] == "-":
-            ax1.set_xlabel("Easting", fontweight="bold", fontsize=default_fontsize)
-            ax1.set_ylabel("Northing", fontweight="bold", fontsize=default_fontsize)
+            ax1.set_xlabel("Easting", fontweight=fontweight_xlabel, fontsize=default_fontsize)
+            ax1.set_ylabel("Northing", fontweight=fontweight_ylabel, fontsize=default_fontsize)
         else:
             ax1.set_xlabel(
                 "Easting, %s" % grid_units[1],
-                fontweight="bold",
+                fontweight=fontweight_xlabel,
                 fontsize=default_fontsize,
             )
             ax1.set_ylabel(
                 "Northing, %s" % grid_units[1],
-                fontweight="bold",
+                fontweight=fontweight_ylabel,
                 fontsize=default_fontsize,
             )
     else:
         ax1.set_xlabel(
-            "Easting, %s" % grid_units[1], fontweight="bold", fontsize=default_fontsize
+            "Easting, %s" % grid_units[1], fontweight=fontweight_xlabel, fontsize=default_fontsize
         )
         ax1.set_ylabel(
-            "Northing, %s" % grid_units[1], fontweight="bold", fontsize=default_fontsize
+            "Northing, %s" % grid_units[1], fontweight=fontweight_ylabel, fontsize=default_fontsize
         )
 
     if plot_name is not None:
