@@ -35,7 +35,7 @@ def test_route_to_multiple_error_raised():
 
 
 # %%
-def test_bad_fillLakesToBrim_Type():
+def test_bad_fill_lakes_to_brim_type():
     # %%
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.
@@ -80,7 +80,7 @@ def test_bad_fillLakesToBrim_Type():
             n_sp=1.0,
             sp_crit_sed=0,
             sp_crit_br=0,
-            fillLakesToBrim=100,
+            fill_lakes_to_brim=100,
         )
 
 
@@ -260,7 +260,7 @@ def test_matches_detachment_solution():
     )
 
     # ... and run it to steady state (2000x1-year timesteps).
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt  # m
@@ -351,7 +351,7 @@ def test_matches_transport_solution():
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
-    for i in range(5000):
+    for _ in range(5000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
@@ -468,7 +468,7 @@ def test_matches_bedrock_alluvial_solution():
     )
 
     # ... and run it to steady state (10000x1-year timesteps).
-    for i in range(10000):
+    for _ in range(10000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
@@ -542,7 +542,7 @@ def test_can_run_with_hex():
     )
 
     # ... and run it to steady state.
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt
@@ -607,7 +607,7 @@ def test_matches_detachment_solution_PF():
     )
 
     # ... and run it to steady state (2000x1-year timesteps).
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt  # m
@@ -699,7 +699,7 @@ def test_matches_transport_solution_PF():
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
-    for i in range(5000):
+    for _ in range(5000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
@@ -816,7 +816,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     )
 
     # ... and run it to steady state (10000x1-year timesteps).
-    for i in range(10000):
+    for _ in range(10000):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
@@ -926,7 +926,7 @@ def test_MassBalance():
     cores = mg.core_nodes
     area = mg.cell_area_at_node
     # ... and run it to steady state (10000x1-year timesteps).
-    for i in range(10000):
+    for _ in range(10000):
         fa.run_one_step()
         soil_B = cp.deepcopy(H)
         bed_B = cp.deepcopy(br)

@@ -13,8 +13,7 @@ This prevents the user from updating the filling/breaching algorithms in between
 """
 
 import copy as cp
-import os
-import sys
+from functools import partial
 
 import numpy as np
 import numpy.matlib as npm
@@ -24,7 +23,7 @@ from landlab import Component, FieldError, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
 from .cfuncs import _FA_D8, _FD_D8
-from .suppress_stdout_stderr import suppress_stdout_stderr
+from ...utils.suppress_output import suppress_output
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -107,13 +106,13 @@ class FlowDirAccPf(Component):
         Both a runoff_rate array and the 'water__unit_flux_in' field are
         permitted to contain negative values, in which case they mimic
         transmission losses rather than e.g. rain inputs.
-    updateFlowDepressions : bool, optional
+    update_flow_depressions : bool, optional
         Build-in depression handler. Can be through filling or breaching (see below).
-    updateHillDepressions : bool, optional
+    update_hill_depressions : bool, optional
         Only needed if DEM needs to be filled separately for second (hill flow) flow accumulator.
         Default behavior is not to execute a separate filling procedure in between the first and
         the second flow accumulator.
-    depressionHandler : str, optional
+    depression_handler : str, optional
         Must be one of 'fill or 'breach'.
         Depression-Filling or breaching algorithm to process depressions
 
@@ -133,19 +132,19 @@ class FlowDirAccPf(Component):
     epsilon : bool, optional
         If ``True``, an epsilon gradient is imposed to all flat regions. This ensures
         that there is always a local gradient.
-    accumulateFlow : bool, optional
+    accumulate_flow : bool, optional
         If ``True`` flow directions and accumulations will be calculated.
         Set to ``False`` when only interested in flow directions
-    accumulateFlowHill : bool, optional
+    accumulate_flow_hill : bool, optional
         If ``True`` flow directions and accumulations will be calculated
         for second FD component (Hill). Set to ``False`` when only interested in flow
         directions.
-    seperate_Hill_Flow : bool, optional
+    separate_hill_flow : bool, optional
         For some applications (e.g. *HyLands*) both single and
         multiple flow direction and accumulation is required.
         By calculating them in the same component, we can optimize procedures
         involved with filling and breaching of DEMs
-    update_HillFlow_instanteneous : bool, optional
+    update_hill_flow_instantaneous : bool, optional
         Update separate hillslope director and accumulator simultaneously on update.
         Set if other operations have to be performed in between updating the
         principle flow properties and the hillslope properties.
@@ -333,30 +332,32 @@ class FlowDirAccPf(Component):
         surface="topographic__elevation",
         flow_metric="D8",
         runoff_rate=None,
-        updateFlowDepressions=True,
-        depressionHandler="fill",
+        update_flow_depressions=True,
+        depression_handler="fill",
         exponent=1,
         epsilon=True,
-        accumulateFlow=True,
-        accumulateFlowHill=False,
-        seperate_Hill_Flow=False,
-        updateHillDepressions=False,
-        update_HillFlow_instanteneous=True,
+        accumulate_flow=True,
+        accumulate_flow_hill=False,
+        separate_hill_flow=False,
+        update_hill_depressions=False,
+        update_hill_flow_instantaneous=True,
         hill_flow_metric="Quinn",
         hill_exponent=1,
         suppress_out=False,
     ):
         """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and
-        compatability for the flow_metric and depression_finder
+        Saves the grid, tests grid type, tests input types and
+        compatibility for the flow_metric and depression_finder
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
         super(FlowDirAccPf, self).__init__(grid)
         # Keep a local reference to the grid
 
-        self._suppress_out = suppress_out
+        self._suppress_output = partial(
+            suppress_output, out=suppress_out, err=suppress_out
+        )
 
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -365,7 +366,8 @@ class FlowDirAccPf(Component):
         # Grid type testing
         if not isinstance(self._grid, RasterModelGrid):
             raise FieldError(
-                "Flow Accumulator Priority flood only works with regular raster grids, use default Landlab flow accumulator instead"
+                "Flow Accumulator Priority flood only works with regular raster grids, "
+                "use default Landlab flow accumulator instead"
             )
 
         node_cell_area = self._grid.cell_area_at_node.copy()
@@ -396,23 +398,23 @@ class FlowDirAccPf(Component):
                 ]
             )
 
-        if depressionHandler == "fill" or depressionHandler == "breach":
-            self._depressionHandler = depressionHandler
+        if depression_handler == "fill" or depression_handler == "breach":
+            self._depression_handler = depression_handler
         else:
-            raise ValueError("depressionHandler should be fill or breach")
+            raise ValueError("depression_handler should be 'fill' or 'breach'")
 
-        self._depressionHandler = depressionHandler
+        self._depression_handler = depression_handler
         self._exponent = exponent
         self._epsilon = epsilon
-        self._seperate_Hill_Flow = seperate_Hill_Flow
-        self._update_HillFlow_instanteneous = update_HillFlow_instanteneous
+        self._separate_hill_flow = separate_hill_flow
+        self._update_hill_flow_instantaneous = update_hill_flow_instantaneous
 
-        self._updateFlowDepressions = updateFlowDepressions
-        self._updateHillDepressions = updateHillDepressions
+        self._update_flow_depressions = update_flow_depressions
+        self._update_hill_depressions = update_hill_depressions
 
         self._hill_exponent = hill_exponent
 
-        if self._seperate_Hill_Flow:
+        if self._separate_hill_flow:
             # Adjust dict
             self._info["hill_drainage_area"]["optional"] = False
             self._info["hill_surface_water__discharge"]["optional"] = False
@@ -421,21 +423,21 @@ class FlowDirAccPf(Component):
             self._info["hill_topographic__steepest_slope"]["optional"] = False
             self._info["hill_flow__receiver_proportions"]["optional"] = False
 
-        self._accumulateFlow = accumulateFlow
-        self._accumulateFlowHill = accumulateFlowHill
+        self._accumulate_flow = accumulate_flow
+        self._accumulate_flow_hill = accumulate_flow_hill
 
-        if not self._accumulateFlow:
+        if not self._accumulate_flow:
             self._info["drainage_area"]["optional"] = True
             self._info["surface_water__discharge"]["optional"] = True
 
-        if not self._accumulateFlowHill:
+        if not self._accumulate_flow_hill:
             self._info["hill_drainage_area"]["optional"] = True
             self._info["hill_surface_water__discharge"]["optional"] = True
 
         self.initialize_output_fields()
 
         # Make aliases
-        if self._accumulateFlow:
+        if self._accumulate_flow:
             self._drainage_area = self.grid.at_node["drainage_area"]
             self._discharges = self.grid.at_node["surface_water__discharge"]
         self._sort = self.grid.at_node["flow__upstream_node_order"]
@@ -458,8 +460,8 @@ class FlowDirAccPf(Component):
         self._prps = self.grid.at_node["flow__receiver_proportions"]
         self._recvr_link = self.grid.at_node["flow__link_to_receiver_node"]
 
-        if self._seperate_Hill_Flow:
-            if self._accumulateFlowHill:
+        if self._separate_hill_flow:
+            if self._accumulate_flow_hill:
                 self._hill_drainage_area = self.grid.at_node["hill_drainage_area"]
                 self._hill_discharges = self.grid.at_node[
                     "hill_surface_water__discharge"
@@ -479,17 +481,7 @@ class FlowDirAccPf(Component):
             self._hill_prps = self.grid.at_node["hill_flow__receiver_proportions"]
 
         # Create properties specific to RichDEM
-        if self._suppress_out:
-            with suppress_stdout_stderr():
-                sys.stdout = open(os.devnull, "w")
-                sys.stderr = open(os.devnull, "w")
-
-                self._create_properties()
-
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-        else:
-            self._create_properties()
+        self._create_richdem_properties()
 
     @property
     def node_drainage_area(self):
@@ -501,8 +493,8 @@ class FlowDirAccPf(Component):
         """Return the surface water discharge."""
         return self._grid["node"]["surface_water__discharge"]
 
-    def _create_properties(self):
-        self._deprFreeDEM = cp.deepcopy(
+    def _create_richdem_properties(self):
+        self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
                 self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
                 no_data=-9999,
@@ -543,37 +535,40 @@ class FlowDirAccPf(Component):
                 runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node["water__unit_flux_in"] = runoff_rate
 
-    def calculateFlowDir_Acc(self, hillFlow=False, updateDepressions=True):
-        if hillFlow:
-            flowMetric = self._hill_flow_metric
+    def calc_flow_dir_acc(self, hill_flow=False, update_depressions=True):
+        if hill_flow:
+            flow_metric = self._hill_flow_metric
         else:
-            flowMetric = self._flow_metric
+            flow_metric = self._flow_metric
 
         # 1: Remove depressions
-        if updateDepressions:
-            self.removeDepressions()
+        if update_depressions:
+            self.remove_depressions()
 
         # 2: Flow directions and accumulation
-        # D8 flow accumulation in richDEM seems not to differntiatie between caridal and diagonal cells,
+        # D8 flow accumulation in richDEM seems not to differentiate between cardinal and diagonal cells,
         #   so we provide an alternative D8 implementation strategy
-        if flowMetric == "D8":
-            self.FA_DA_D8(hillFlow=hillFlow)
+        if flow_metric == "D8":
+            self.FA_DA_D8(hill_flow=hill_flow)
         else:
 
             # Calculate flow direction (proportion) and accumulation using RichDEM
-            # self._deprFreeDEM[self._closed == 1] = 1e6
-            props_Pf = rd.FlowProportions(
-                dem=self._deprFreeDEM, method=flowMetric, exponent=self._exponent
-            )
-            # self._deprFreeDEM[self._closed == 1] = -1
+            # self._depression_free_dem[self._closed == 1] = 1e6
+            with self._suppress_output():
+                props_Pf = rd.FlowProportions(
+                    dem=self._depression_free_dem,
+                    method=flow_metric,
+                    exponent=self._exponent,
+                )
+            # self._depression_free_dem[self._closed == 1] = -1
 
             # Calculate flow accumulation using RichDEM
-            if hillFlow:
-                if self._accumulateFlowHill:
-                    self.accumulate_flow_RD(props_Pf, hillFlow=hillFlow)
+            if hill_flow:
+                if self._accumulate_flow_hill:
+                    self.accumulate_flow_RD(props_Pf, hill_flow=hill_flow)
             else:
-                if self._accumulateFlow:
-                    self.accumulate_flow_RD(props_Pf, hillFlow=hillFlow)
+                if self._accumulate_flow:
+                    self.accumulate_flow_RD(props_Pf, hill_flow=hill_flow)
 
             # Convert flow proportions to landlab structure
             props_Pf = props_Pf.reshape(
@@ -608,7 +603,7 @@ class FlowDirAccPf(Component):
             recvr_link[props_Pf <= 0] = -1
 
             # make sure sum of proportions equals 1
-            if flowMetric in PSINGLE_FMs:
+            if flow_metric in PSINGLE_FMs:
                 # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
                 slope_temp = np.divide(
                     np.subtract(
@@ -637,9 +632,9 @@ class FlowDirAccPf(Component):
                 props_Pf[props_Pf[:, 0] != 1, :] = rc64_temp[props_Pf[:, 0] != 1, :]
                 props_Pf[props_Pf == 0] = -1
 
-            if hillFlow:
+            if hill_flow:
                 self._hill_prps[:] = props_Pf
-                if flowMetric in PSINGLE_FMs:
+                if flow_metric in PSINGLE_FMs:
                     idx = np.argmax(rcvrs, axis=1)
                     self._hill_rcvs[:] = rcvrs[np.arange(rcvrs.shape[0]), idx]
                     self._hill_slope[:] = slope_temp[np.arange(rcvrs.shape[0]), idx]
@@ -664,7 +659,7 @@ class FlowDirAccPf(Component):
 
             else:
 
-                if flowMetric in PSINGLE_FMs:
+                if flow_metric in PSINGLE_FMs:
                     idx = np.argmax(rcvrs, axis=1)
                     self._prps[:] = props_Pf[np.arange(rcvrs.shape[0]), idx]
                     self._rcvs[:] = rcvrs[np.arange(rcvrs.shape[0]), idx]
@@ -692,9 +687,9 @@ class FlowDirAccPf(Component):
 
                     self._recvr_link[:] = recvr_link
 
-    def FA_DA_D8(self, hillFlow=False):
+    def FA_DA_D8(self, hill_flow=False):
 
-        # self._deprFreeDEM[self._closed == 1] = 1e6
+        # self._depression_free_dem[self._closed == 1] = 1e6
 
         # calcualte D8 in C++
         r = self.grid.number_of_node_rows
@@ -708,7 +703,7 @@ class FlowDirAccPf(Component):
         # Make boundaries to save time with conditionals in c loops
         receivers[np.nonzero(self._grid.status_at_node)] = -1
         steepest_slope = np.zeros((receivers.shape), dtype=float)
-        el = self._deprFreeDEM.reshape(self.grid.number_of_nodes)
+        el = self._depression_free_dem.reshape(self.grid.number_of_nodes)
         el_ori = self.grid.at_node["topographic__elevation"]
         dist = np.multiply([1, 1, 1, 1, sq2, sq2, sq2, sq2], dx)
         ngb = np.zeros((8,), dtype=int)
@@ -739,13 +734,13 @@ class FlowDirAccPf(Component):
 
         # Calcualte flow acc
         do_FA = False
-        if hillFlow:
-            if self._accumulateFlowHill:
+        if hill_flow:
+            if self._accumulate_flow_hill:
                 do_FA = True
                 a = self._hill_drainage_area
                 q = self._hill_discharges
         else:
-            if self._accumulateFlow:
+            if self._accumulate_flow:
                 do_FA = True
                 a = self._drainage_area
                 q = self._discharges
@@ -779,9 +774,9 @@ class FlowDirAccPf(Component):
         receivers[receivers == -1] = val[receivers == -1]
 
         # Restore depression free DEM
-        # self._deprFreeDEM[self._closed == 1] = -1
+        # self._depression_free_dem[self._closed == 1] = -1
 
-        if hillFlow:
+        if hill_flow:
             self._hill_prps[:] = np.ones_like(receivers)
             self._hill_rcvs[:] = receivers
             self._hill_slope[:] = steepest_slope
@@ -791,24 +786,27 @@ class FlowDirAccPf(Component):
             self._slope[:] = steepest_slope
             self._recvr_link[:] = recvr_link
 
-    def removeDepressions(self):
-        self._deprFreeDEM = cp.deepcopy(
+    def remove_depressions(self):
+        self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
                 self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
                 no_data=-9999,
             )
         )
-        if self._depressionHandler == "fill":
-            rd.FillDepressions(self._deprFreeDEM, self._epsilon, in_place=True)
-        elif self._depressionHandler == "breach":
-            rd.BreachDepressions(self._deprFreeDEM, in_place=True)
+        with self._suppress_output():
+            if self._depression_handler == "fill":
+                rd.FillDepressions(
+                    self._depression_free_dem, self._epsilon, in_place=True
+                )
+            elif self._depression_handler == "breach":
+                rd.BreachDepressions(self._depression_free_dem, in_place=True)
         self._sort[:] = np.argsort(
-            np.array(self._deprFreeDEM.reshape(self.grid.number_of_nodes))
+            np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
-        self.grid.at_node["deprFree_elevation"] = self._deprFreeDEM
+        self.grid.at_node["deprFree_elevation"] = self._depression_free_dem
 
-    def accumulate_flow_RD(self, props_Pf, hillFlow=False):
-        if not hillFlow:
+    def accumulate_flow_RD(self, props_Pf, hill_flow=False):
+        if not hill_flow:
             a = self._drainage_area
             q = self._discharges
         else:
@@ -821,69 +819,37 @@ class FlowDirAccPf(Component):
         wg[np.nonzero(self._grid.status_at_node)] = 0
         wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
 
-        a[:] = np.array(
-            rd.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
-                self.grid.number_of_nodes
+        with self._suppress_output():
+            a[:] = np.array(
+                rd.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
+                    self.grid.number_of_nodes
+                )
             )
-        )
 
         if any(self.grid.at_node["water__unit_flux_in"] != 1):
             wg = self.grid.at_node["water__unit_flux_in"] * self.grid.dx * self.grid.dx
             # Only core nodes (status == 0) need to receive a weight
             wg[np.nonzero(self._grid.status_at_node)] = 0
             wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
-            q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
+            with self._suppress_output():
+                q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
         else:
             q[:] = self._drainage_area
 
-    def update_Hill_FDFA(self, updateDepressions=False):
-        if not self._seperate_Hill_Flow:
+    def update_hill_fdfa(self, update_depressions=False):
+        if not self._separate_hill_flow:
             raise ValueError(
-                "If hillslope properties are updated, the seperate_Hill_Flow property of the FlowDirAccPf class should be True upon initialisation"
+                "If hillslope properties are updated, the separate_hill_flow property of the FlowDirAccPf class should be True upon initialisation"
             )
-        if self._suppress_out:
-            with suppress_stdout_stderr():
-                sys.stdout = open(os.devnull, "w")
-                sys.stderr = open(os.devnull, "w")
-                self.calculateFlowDir_Acc(
-                    hillFlow=True, updateDepressions=updateDepressions
-                )
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-        else:
-            self.calculateFlowDir_Acc(
-                hillFlow=True, updateDepressions=updateDepressions
-            )
+        self.calc_flow_dir_acc(hill_flow=True, update_depressions=update_depressions)
 
     def run_one_step(self):
-        if self._suppress_out:
-            with suppress_stdout_stderr():
-                sys.stdout = open(os.devnull, "w")
-                sys.stderr = open(os.devnull, "w")
-                self.calculateFlowDir_Acc(
-                    hillFlow=False, updateDepressions=self._updateFlowDepressions
+        self.calc_flow_dir_acc(
+            hill_flow=False, update_depressions=self._update_flow_depressions
+        )
+        if self._separate_hill_flow:
+            if self._update_hill_flow_instantaneous:
+                self.calc_flow_dir_acc(
+                    hill_flow=True, update_depressions=self._update_hill_depressions
                 )
-                if self._seperate_Hill_Flow:
-                    if self._update_HillFlow_instanteneous:
-                        self.calculateFlowDir_Acc(
-                            hillFlow=True, updateDepressions=self._updateHillDepressions
-                        )
-
-                sys.stdout = sys.__stdout__
-                sys.stderr = sys.__stderr__
-        else:
-            self.calculateFlowDir_Acc(
-                hillFlow=False, updateDepressions=self._updateFlowDepressions
-            )
-            if self._seperate_Hill_Flow:
-                if self._update_HillFlow_instanteneous:
-                    self.calculateFlowDir_Acc(
-                        hillFlow=True, updateDepressions=self._updateHillDepressions
-                    )
-
-
-if __name__ == "__main__":  # pragma: no cover
-    import doctest
-
-    doctest.testmod()
