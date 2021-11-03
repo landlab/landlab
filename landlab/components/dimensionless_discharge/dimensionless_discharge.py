@@ -4,52 +4,50 @@
 Calculate dimensionless dischange of stream sections based on Tang (2019)
 """
 
+import math
+from landlab import Component
+from landlab.utils.return_array import return_array_at_node
 import numpy as np
-from numpy.core.records import array
 
 
-_WATER_DENSITY = 997.9 # kg/m^3
-_GRAVITY = 9.8  # m/s^2
+class DimensionlessDischarge(Component):
+    r"""Component that calculates dimensionless dischange of stream 
+    segments.
 
-
-class DimensionlessDischange(Component):
-    r"""Component that calculates dimensionless dischange of stream segments.
-
-    The DimensionlessDischarge component calculates the dimensionless discharge 
-    value for every stream segment in a watershed. It also computes a threshold
-    which is used predict whether or not a segment would have a debris flow. If 
-    the dimensionless discharge value is greater than the threshold value, we 
-    predict that a debris flow would occure in this area.
+   The dimensionless discharge model calculates the unitless discharge 
+   value of streams and can be used to help determine locations of 
+   debris flows. It uses an equation from Tang et al. (2019) to 
+   calculate the dimensionless discharge as well as the threshold for 
+   whether a debris flow will occur for a specified location. 
 
     Parameters
     ----------
     soil_density : float list
         Density of soil in watershed (kg/m^3)
-    flux : float list
-        flux in each stream segment (m/s)
-    d50 : float list
-        soil grain size (m)
     number_segments : int
         number of stream segments that will be used
+    water_density = float
+        density of water in waterhed (kg/m^3)
     C : float
-        
+        Empirically derived constant.
     N : float
-       
-    stream_segment_slopes : float list
-        slope of each stream segment
+        Empirically derived constant
 
     Examples
     --------
+    >>> from landlab.components import DimensionlessDischarge
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((4, 5), 10.0)
-    >>> kw = KinwaveOverlandFlowModel(rg)
-    >>> kw.vel_coef
-    100.0
-    >>> rg.at_node['surface_water__depth']
-    array([ 0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.])
+    >>> import random
+    >>> watershed_grid = RasterModelGrid((3, 3))
+    >>> flux = watershed_grid.add_ones('node', 'flux')
+    >>> d50 = watershed_grid.add_ones('node', 'd50')
+    >>> stream_slopes = watershed_grid.add_ones('node', 'stream_slopes')
+    >>> dd = DimensionlessDischarge(watershed_grid)
+    >>> dd.run_one_step(.5)
+    >>> watershed_grid.at_node['dimensionless_discharge']
+    array([ 0.  0.  0.  
+            0.  0.  0.  
+            0.  0.  0.])
 
     
 
@@ -63,24 +61,103 @@ class DimensionlessDischange(Component):
     _unit_agnostic = False
 
     _info = {
-    "soil_density": {
-        "dtype": list[float],
-        "intent": "in",
-        "optional": False,
-        "units": "kg/m^2",
-        "doc": "density of soil in stream segment",
-    },
-     "water__velocity": {
+        "dimensionless_discharge": {
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "m/s",
-            "mapping": "link",
-            "doc": "flow velocity component in the direction of the link",
+            "units": "none",
+            "mapping": "node",
+            "doc": "Dimensionless discharge value for a stream segment.",
         },
+        "dimensionless_discharge_above_threshold": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "none",
+            "mapping": "node",
+            "doc": "Dimensionless discharge value for a stream segment.",
+        },
+        "flux": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "flux in each stream segment",
+        },
+        "d50": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "soil grain size",
+        },
+        "dem_values": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "slope of each stream segment",
+        }
     }
-
     
+    def __init__(self, grid, soil_density = 1330,  \
+        water_density = 997.9, C = 12.0, N = 0.85):
+        """Initialize the DimensionlessDischange.
 
-    def __init__():
-        pass
+        Parameters
+        ----------
+        soil_density : float, required (defaults to empty list [])
+            density of soil (kg/m^3)
+        C : float, optional (defaults to 12.0)
+            
+        N : float, defaults to 0.85
+            
+        stream_slope: list[float], required (defaults to empty list [])
+            Slope of each segment in the stream
+        stream_flux: list[list[float]], required (default to empty 2D list)
+            Flux value calculated for each stream segment
+        """
+
+        super().__init__(grid)
+
+        # Store parameters
+        self._current_time = 0
+        self._soil_density = soil_density
+        self._C = [C]*grid.number_of_nodes
+        self._N = [N]*grid.number_of_nodes
+        # change DEM values into slope of a stream segment
+        self._stream_slopes = grid.calc_slope_at_node(elevs="dem_values")
+        self.water_density = water_density
+        self.gravity = 9.8 
+
+        print(self._stream_slopes)
+
+        #set threshold values for each segment
+        dimensionless_discharge = self.grid.add_zeros('node', 
+            'dimensionless_discharge')
+        dimensionless_discharge_above_threshold = self.grid.add_zeros('node', 
+            'dimensionless_discharge_above_threshold')
+        dimensionless_discharge_threshold_value = self.grid.add_zeros('node', 
+            'dimensionless_discharge_threshold_value')
+        self.grid.at_node["dimensionless_discharge_threshold_value"] = \
+            self._C / (self._stream_slopes ** self._N)
+
+    def run_one_step(self, dt):
+        
+        self.grid.at_node["dimensionless_discharge"] = \
+            self.grid.at_node["flux"] / np.sqrt(((self._soil_density -
+                self.water_density) / self.water_density) *
+                 self.gravity * (self.grid.at_node["d50"] ** 3))
+        
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = [0 if \
+            self.grid.at_node["dimensionless_discharge"][i] >= \
+            self.grid.at_node["dimensionless_discharge_threshold_value"][i] \
+            else 1 for i in range(self.grid.number_of_nodes)]
+       
+
+        self._current_time += dt
+
+        
