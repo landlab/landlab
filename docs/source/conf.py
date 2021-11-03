@@ -12,7 +12,6 @@
 # serve to show the default.
 
 import os
-import re
 import sys
 from datetime import date
 
@@ -56,16 +55,16 @@ source_suffix = ".rst"
 # source_encoding = 'utf-8-sig'
 
 # Regex for links that we know work in browser, but do not work in sphinx/CI (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
-if os.getenv("TRAVIS"):
+if os.getenv("GITHUB_ACTIONS"):
     linkcheck_ignore = [
         r"https://pubs.geoscienceworld.org/gsa/geology.*",  # Added by KRB Dec 2019, at this point two links match this pattern
-        r"https://dx.doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
-        re.escape(
-            r"https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7"
-        ),  # Added by EWHH Feb 2020
+        r"https://doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
         r"https://dx.doi.org/10.1029/2011jf002181",  # Added by EWHH April 2020
         r"https://doi.org/10.1029/2019JB018596",  # Added by EWHH April 2020
+        r"https://doi.org/10.3133/pp294B",  # Added by EWHH September 2021
+        #     r"https://yaml.org/start.html",  # Added by EWHH September 2021
     ]
+    linkcheck_retries = 5
 
 # The master toctree document.
 master_doc = "index"
@@ -208,12 +207,12 @@ htmlhelp_basename = "landlabdoc"
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #'preamble': '',
+    #  The paper size ('letterpaper' or 'a4paper').
+    # 'papersize': 'letterpaper',
+    #  The font size ('10pt', '11pt' or '12pt').
+    # 'pointsize': '10pt',
+    #  Additional stuff for the LaTeX preamble.
+    # 'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

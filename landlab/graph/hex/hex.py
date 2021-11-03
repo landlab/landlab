@@ -473,7 +473,7 @@ class HorizontalHexTriGraph:
         ) = HorizontalHexTriGraph.corner_nodes(shape)
 
         if n_rows == 1:
-            nodes_at_south_edge = np.asarray([southwest], dtype=np.int)
+            nodes_at_south_edge = np.asarray([southwest], dtype=int)
         else:
             nodes_at_south_edge = np.arange(southwest, southeast)
 

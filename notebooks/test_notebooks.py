@@ -1,10 +1,11 @@
-import os
 import pathlib
 import subprocess
-import tempfile
 
 import pytest
 import yaml
+
+from run_notebook_checks import _notebook_check_is_clean
+
 
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
 with open(_exclude_file, "r") as fp:
@@ -13,12 +14,10 @@ with open(_exclude_file, "r") as fp:
 
 def _notebook_check(notebook):
     """Check a notebook for errors.
-
     Parameters
     ----------
     notebook : Notebook node
         Path the to notebook to execute.
-
     Returns
     -------
     errors : list of str
@@ -41,7 +40,7 @@ def _notebook_run(path_to_notebook):
     Parameters
     ----------
     path_to_notebook : str or Path
-        Path the to notebook to execute.
+        Path to the notebook to execute.
 
     Returns
     -------
@@ -83,6 +82,11 @@ def _notebook_run(path_to_notebook):
             pass
 
     return nb
+
+
+@pytest.mark.notebook
+def test_notebook_is_clean(notebook):
+    assert _notebook_check_is_clean(notebook)
 
 
 @pytest.mark.notebook

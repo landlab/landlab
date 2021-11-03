@@ -7,4 +7,3 @@ dependencies:
   - -r requirements-dev.txt
   - -r requirements-notebooks.txt
   - -r requirements-docs.txt
-  

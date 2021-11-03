@@ -4,7 +4,7 @@ cimport cython
 from libc.stdlib cimport malloc, free
 
 
-DTYPE = np.int
+DTYPE = int
 ctypedef np.int_t DTYPE_t
 ctypedef np.uint8_t uint8
 

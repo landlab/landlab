@@ -31,6 +31,7 @@ from .network_sediment_transporter import NetworkSedimentTransporter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
+    KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     OverlandFlow,
@@ -89,6 +90,7 @@ COMPONENTS = [
     GroundwaterDupuitPercolator,
     HackCalculator,
     HeightAboveDrainageCalculator,
+    KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     LakeMapperBarnes,

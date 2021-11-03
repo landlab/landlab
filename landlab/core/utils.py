@@ -29,7 +29,7 @@ import shutil
 import numpy as np
 import pkg_resources
 
-SIZEOF_INT = np.dtype(np.int).itemsize
+SIZEOF_INT = np.dtype(int).itemsize
 
 
 class ExampleData:
@@ -170,7 +170,7 @@ def as_id_array(array):
     >>> y
     array([0, 1, 2, 3, 4])
 
-    >>> x = np.arange(5, dtype=np.int)
+    >>> x = np.arange(5, dtype=int)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
@@ -179,37 +179,37 @@ def as_id_array(array):
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> y.dtype == np.int
+    >>> y.dtype == int
     True
 
     >>> x = np.arange(5, dtype=np.int64)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> y.dtype == np.int
+    >>> y.dtype == int
     True
 
     >>> x = np.arange(5, dtype=np.intp)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> y.dtype == np.int
+    >>> y.dtype == int
     True
 
     >>> x = np.arange(5, dtype=np.intp)
     >>> y = np.where(x < 3)[0]
     >>> y.dtype == np.intp
     True
-    >>> as_id_array(y).dtype == np.int
+    >>> as_id_array(y).dtype == int
     True
     """
     try:
-        if array.dtype == np.int:
-            return array.view(np.int)
+        if array.dtype == int:
+            return array.view(int)
         else:
-            return array.astype(np.int)
+            return array.astype(int)
     except AttributeError:
-        return np.asarray(array, dtype=np.int)
+        return np.asarray(array, dtype=int)
 
 
 def make_optional_arg_into_id_array(number_of_elements, *args):
@@ -252,7 +252,7 @@ def make_optional_arg_into_id_array(number_of_elements, *args):
     array([1, 2, 3, 4])
     """
     if len(args) == 0:
-        ids = np.arange(number_of_elements, dtype=np.int)
+        ids = np.arange(number_of_elements, dtype=int)
     elif len(args) == 1:
         ids = as_id_array(np.asarray(args[0])).reshape((-1,))
     else:
