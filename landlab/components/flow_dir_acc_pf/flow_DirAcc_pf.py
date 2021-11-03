@@ -21,8 +21,9 @@ import richdem as rd
 
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
+from landlab.grid.nodestatus import NodeStatus
 
-from .cfuncs import _FA_D8, _FD_D8
+from .cfuncs import _FA_D8, D8_flowDir
 from ...utils.suppress_output import suppress_output
 
 # Codes for depression status
@@ -249,7 +250,7 @@ class FlowDirAccPf(Component):
             "mapping": "node",
             "doc": "The steepest *downhill* slope",
         },
-        "SQUARED_length_adjacent": {
+        "squared_length_adjacent": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -379,23 +380,15 @@ class FlowDirAccPf(Component):
             self._flow_metric = flow_metric
         else:
             raise ValueError(
-                [
-                    "flow metric should be one of these single flow directors : "
-                    + str(PSINGLE_FMs)
-                    + " or multiple flow directors"
-                    + str(PMULTIPLE_FMs)
-                ]
+                f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} "
+                "or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
             )
         if (hill_flow_metric in PSINGLE_FMs) or (hill_flow_metric in PMULTIPLE_FMs):
             self._hill_flow_metric = hill_flow_metric
         else:
             raise ValueError(
-                [
-                    "flow metric should be one of these single flow directors : "
-                    + str(PSINGLE_FMs)
-                    + " or multiple flow directors"
-                    + str(PMULTIPLE_FMs)
-                ]
+                f"hillflow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} "
+                "or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
             )
 
         if depression_handler == "fill" or depression_handler == "breach":
@@ -502,7 +495,7 @@ class FlowDirAccPf(Component):
         )
 
         # Calculate SQUARED length adjacent
-        self.grid.at_node["SQUARED_length_adjacent"] = np.concatenate(
+        self.grid.at_node["squared_length_adjacent"] = np.concatenate(
             (
                 np.ones((self.grid.number_of_nodes, 4)),
                 2 * np.ones((self.grid.number_of_nodes, 4)),
@@ -511,7 +504,7 @@ class FlowDirAccPf(Component):
         )
 
         self._closed = np.zeros(self._grid.number_of_nodes)
-        self._closed[self._grid.status_at_node == 4] = 1
+        self._closed[self._grid.status_at_node == NodeStatus.CLOSED] = 1
         self._closed = rd.rdarray(self._closed.reshape(self._grid.shape), no_data=-9999)
 
     def _test_water_inputs(self, grid, runoff_rate):
@@ -536,6 +529,7 @@ class FlowDirAccPf(Component):
                 grid.at_node["water__unit_flux_in"] = runoff_rate
 
     def calc_flow_dir_acc(self, hill_flow=False, update_depressions=True):
+        """Calculate flow direction and accumulation using the richdem package"""
         if hill_flow:
             flow_metric = self._hill_flow_metric
         else:
@@ -553,14 +547,12 @@ class FlowDirAccPf(Component):
         else:
 
             # Calculate flow direction (proportion) and accumulation using RichDEM
-            # self._depression_free_dem[self._closed == 1] = 1e6
             with self._suppress_output():
                 props_Pf = rd.FlowProportions(
                     dem=self._depression_free_dem,
                     method=flow_metric,
                     exponent=self._exponent,
                 )
-            # self._depression_free_dem[self._closed == 1] = -1
 
             # Calculate flow accumulation using RichDEM
             if hill_flow:
@@ -617,7 +609,7 @@ class FlowDirAccPf(Component):
                         self.grid.at_node["topographic__elevation"][rcvrs],
                     ),
                     self.grid.dx
-                    * np.sqrt(self.grid.at_node["SQUARED_length_adjacent"]),
+                    * np.sqrt(self.grid.at_node["squared_length_adjacent"]),
                 )
                 slope_temp[rcvrs == -1] = 0
 
@@ -653,7 +645,7 @@ class FlowDirAccPf(Component):
                             self.grid.at_node["topographic__elevation"][rcvrs],
                         ),
                         self.grid.dx
-                        * np.sqrt(self.grid.at_node["SQUARED_length_adjacent"]),
+                        * np.sqrt(self.grid.at_node["squared_length_adjacent"]),
                     )
                     self._hill_slope[rcvrs == -1] = 0
 
@@ -681,7 +673,7 @@ class FlowDirAccPf(Component):
                             self.grid.at_node["topographic__elevation"][rcvrs],
                         ),
                         self.grid.dx
-                        * np.sqrt(self.grid.at_node["SQUARED_length_adjacent"]),
+                        * np.sqrt(self.grid.at_node["squared_length_adjacent"]),
                     )
                     self._slope[rcvrs == -1] = 0
 
@@ -695,17 +687,17 @@ class FlowDirAccPf(Component):
         r = self.grid.number_of_node_rows
         c = self.grid.number_of_node_columns
         dx = self.grid.dx
-        sq2 = np.sqrt(2)
-        activeCells = np.array(self._grid.status_at_node != 4 + 0, dtype=int)
+        activeCells = np.array(self._grid.status_at_node != NodeStatus.CLOSED + 0, dtype=int)
         receivers = np.array(self.grid.status_at_node, dtype=int)
         distance_receiver = np.zeros((receivers.shape), dtype=float)
         cores = self.grid.core_nodes
+        activeCores = cores[activeCells[cores]==1]
         # Make boundaries to save time with conditionals in c loops
         receivers[np.nonzero(self._grid.status_at_node)] = -1
         steepest_slope = np.zeros((receivers.shape), dtype=float)
         el = self._depression_free_dem.reshape(self.grid.number_of_nodes)
         el_ori = self.grid.at_node["topographic__elevation"]
-        dist = np.multiply([1, 1, 1, 1, sq2, sq2, sq2, sq2], dx)
+        dist = np.multiply([1, 1, 1, 1, np.sqrt(2), np.sqrt(2), np.sqrt(2), np.sqrt(2)], dx)
         ngb = np.zeros((8,), dtype=int)
         el_d = np.zeros((8,), dtype=float)
 
@@ -713,7 +705,7 @@ class FlowDirAccPf(Component):
         adj_link = np.array(self._grid.d8s_at_node, dtype=int)
         recvr_link = np.zeros((receivers.shape), dtype=int) - 1
 
-        _FD_D8(
+        D8_flowDir(
             receivers,
             distance_receiver,
             steepest_slope,
@@ -721,13 +713,12 @@ class FlowDirAccPf(Component):
             el_ori,
             dist,
             ngb,
-            cores,
+            activeCores,
             activeCells,
             el_d,
             r,
             c,
             dx,
-            sq2,
             adj_link,
             recvr_link,
         )
