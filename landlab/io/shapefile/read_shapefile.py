@@ -25,7 +25,7 @@ def _read_shapefile(file, dbf):
 
 
 _NUMPY_DTYPE = {
-    "integer": (int,),
+    "integer": (int, float),
     "mixed": (float, complex),
     "mixed-integer": (int, complex),
     "mixed-integer-float": (float,),
@@ -66,10 +66,10 @@ def _infer_data_type(array, dtype=None):
     array([ 1.,  2.,  3.])
     >>> _infer_data_type(np.array([1.0, 2.0, 3.0], dtype=object))
     array([ 1.,  2.,  3.])
-    >>> _infer_data_type([None, 1, 2, 3])
-    array([ nan,   1.,   2.,   3.])
     >>> _infer_data_type([[1, 2, 3]])
     array([[1, 2, 3]])
+    >>> _infer_data_type([None, 1, 2, 3])
+    array([ nan,   1.,   2.,   3.])
     """
     array = np.asarray(array, dtype=dtype)
     if dtype is None and not np.issubdtype(array.dtype, np.number):
