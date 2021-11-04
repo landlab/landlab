@@ -76,11 +76,11 @@ def _infer_data_type(array, dtype=None):
         infered_dtype = pd.api.types.infer_dtype(array, skipna=True)
         for dtype in _NUMPY_DTYPE.get(infered_dtype, ()):
             try:
-                _array = np.asarray(array, dtype=dtype)
-            except TypeError:
+                _array = np.asarray(array.flatten(), dtype=dtype)
+            except (TypeError, ValueError):
                 pass
             else:
-                array = _array
+                array = _array.reshape(array.shape)
                 break
     return array
 
