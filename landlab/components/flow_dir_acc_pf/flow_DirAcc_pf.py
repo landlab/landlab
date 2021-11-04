@@ -380,15 +380,13 @@ class FlowDirAccPf(Component):
             self._flow_metric = flow_metric
         else:
             raise ValueError(
-                f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} "
-                "or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
+                f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
             )
         if (hill_flow_metric in PSINGLE_FMs) or (hill_flow_metric in PMULTIPLE_FMs):
             self._hill_flow_metric = hill_flow_metric
         else:
             raise ValueError(
-                f"hillflow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} "
-                "or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
+                f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
             )
 
         if depression_handler == "fill" or depression_handler == "breach":
@@ -490,9 +488,10 @@ class FlowDirAccPf(Component):
         self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
                 self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
-                no_data=-9999,
+                no_data=-9999
             )
-        )
+        )        
+        self._depression_free_dem.geotransform = [0,1,0,0,0,-1]
 
         # Calculate SQUARED length adjacent
         self.grid.at_node["squared_length_adjacent"] = np.concatenate(
@@ -505,7 +504,10 @@ class FlowDirAccPf(Component):
 
         self._closed = np.zeros(self._grid.number_of_nodes)
         self._closed[self._grid.status_at_node == NodeStatus.CLOSED] = 1
-        self._closed = rd.rdarray(self._closed.reshape(self._grid.shape), no_data=-9999)
+        self._closed = rd.rdarray(
+            self._closed.reshape(self._grid.shape), 
+            no_data=-9999)
+        self._closed.geotransform = [0,1,0,0,0,-1]
 
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
@@ -554,13 +556,9 @@ class FlowDirAccPf(Component):
                     exponent=self._exponent,
                 )
 
-            # Calculate flow accumulation using RichDEM
-            if hill_flow:
-                if self._accumulate_flow_hill:
-                    self.accumulate_flow_RD(props_Pf, hill_flow=hill_flow)
-            else:
-                if self._accumulate_flow:
-                    self.accumulate_flow_RD(props_Pf, hill_flow=hill_flow)
+            # Calculate flow accumulation using RichDEM     
+            if (hill_flow and self._accumulate_flow_hill) or (not hill_flow and self._accumulate_flow):
+                self.accumulate_flow_RD(props_Pf, hill_flow=hill_flow)
 
             # Convert flow proportions to landlab structure
             props_Pf = props_Pf.reshape(
@@ -596,21 +594,10 @@ class FlowDirAccPf(Component):
 
             # make sure sum of proportions equals 1
             if flow_metric in PSINGLE_FMs:
-                # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
-                slope_temp = np.divide(
-                    np.subtract(
-                        npm.repmat(
-                            self.grid.at_node["topographic__elevation"].reshape(
-                                self.grid.number_of_nodes, 1
-                            ),
-                            1,
-                            8,
-                        ),
-                        self.grid.at_node["topographic__elevation"][rcvrs],
-                    ),
-                    self.grid.dx
-                    * np.sqrt(self.grid.at_node["squared_length_adjacent"]),
-                )
+                slope_temp = (
+                    self.grid.at_node["topographic__elevation"].reshape(-1, 1)
+                    - self.grid.at_node["topographic__elevation"][rcvrs]
+                ) / (self.grid.dx * np.sqrt(self.grid.at_node["squared_length_adjacent"]))
                 slope_temp[rcvrs == -1] = 0
 
             else:
@@ -631,22 +618,11 @@ class FlowDirAccPf(Component):
                     self._hill_rcvs[:] = rcvrs[np.arange(rcvrs.shape[0]), idx]
                     self._hill_slope[:] = slope_temp[np.arange(rcvrs.shape[0]), idx]
                 else:
-                    self._hill_rcvs[:] = rcvrs
-                    # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
-                    self._hill_slope[:] = np.divide(
-                        np.subtract(
-                            npm.repmat(
-                                self.grid.at_node["topographic__elevation"].reshape(
-                                    self.grid.number_of_nodes, 1
-                                ),
-                                1,
-                                8,
-                            ),
-                            self.grid.at_node["topographic__elevation"][rcvrs],
-                        ),
-                        self.grid.dx
-                        * np.sqrt(self.grid.at_node["squared_length_adjacent"]),
-                    )
+                    self._hill_rcvs[:] = rcvrs                    
+                    self._hill_slope = (
+                        self.grid.at_node["topographic__elevation"].reshape(-1, 1)
+                        - self.grid.at_node["topographic__elevation"][rcvrs]
+                    ) / (self.grid.dx * np.sqrt(self.grid.at_node["squared_length_adjacent"]))
                     self._hill_slope[rcvrs == -1] = 0
 
             else:
@@ -661,20 +637,10 @@ class FlowDirAccPf(Component):
                     self._prps[:] = props_Pf
                     self._rcvs[:] = rcvrs
                     # update slope; make pointer to slope location first, in order to not break connection to the slope memory location previously established
-                    self._slope[:] = np.divide(
-                        np.subtract(
-                            npm.repmat(
-                                self.grid.at_node["topographic__elevation"].reshape(
-                                    self.grid.number_of_nodes, 1
-                                ),
-                                1,
-                                8,
-                            ),
-                            self.grid.at_node["topographic__elevation"][rcvrs],
-                        ),
-                        self.grid.dx
-                        * np.sqrt(self.grid.at_node["squared_length_adjacent"]),
-                    )
+                    self._slope = (
+                        self.grid.at_node["topographic__elevation"].reshape(-1, 1)
+                        - self.grid.at_node["topographic__elevation"][rcvrs]
+                    ) / (self.grid.dx * np.sqrt(self.grid.at_node["squared_length_adjacent"]))
                     self._slope[rcvrs == -1] = 0
 
                     self._recvr_link[:] = recvr_link
@@ -781,9 +747,10 @@ class FlowDirAccPf(Component):
         self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
                 self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
-                no_data=-9999,
+                no_data=-9999, 
             )
         )
+        self._depression_free_dem.geotransform = [0,1,0,0,0,-1]
         with self._suppress_output():
             if self._depression_handler == "fill":
                 rd.FillDepressions(
@@ -808,7 +775,11 @@ class FlowDirAccPf(Component):
         wg = np.ones(self.grid.number_of_nodes) * self.grid.dx * self.grid.dx
         # Only core nodes (status == 0) need to receive a weight
         wg[np.nonzero(self._grid.status_at_node)] = 0
-        wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
+        wg = rd.rdarray(
+            wg.reshape(self.grid.shape), 
+            no_data=-9999, 
+            )
+        wg.geotransform = [0,1,0,0,0,-1]
 
         with self._suppress_output():
             a[:] = np.array(
@@ -821,7 +792,10 @@ class FlowDirAccPf(Component):
             wg = self.grid.at_node["water__unit_flux_in"] * self.grid.dx * self.grid.dx
             # Only core nodes (status == 0) need to receive a weight
             wg[np.nonzero(self._grid.status_at_node)] = 0
-            wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
+            wg = rd.rdarray(
+                wg.reshape(self.grid.shape), 
+                no_data=-9999)
+            wg.geotransform = [0,1,0,0,0,-1]
             with self._suppress_output():
                 q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
