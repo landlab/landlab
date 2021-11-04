@@ -1,7 +1,9 @@
+import hypothesis.extra.numpy as hynp
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
-
 
 from landlab.io.shapefile.read_shapefile import _infer_data_type
 
@@ -51,11 +53,54 @@ def test_infer_dtype_from_mixed(values, dst_type, expected):
     assert_array_equal(array, expected)
 
 
-@pytest.mark.parametrize("dst_type", [int, float, np.int32, np.int64])
-@pytest.mark.parametrize("src_type", [int, float, object])
+@given(
+    values=hynp.arrays(
+        dtype=hynp.floating_dtypes() | hynp.integer_dtypes(),
+        shape=hynp.array_shapes(),
+        elements=integers(0, 8),
+    ),
+    dst_type=hynp.floating_dtypes()
+    | hynp.integer_dtypes()
+    | hynp.complex_number_dtypes(),
+)
 @pytest.mark.parametrize("as_iterable", [list, tuple, np.asarray])
-def test_dtype_keyword(as_iterable, src_type, dst_type):
-    values = np.asarray([1, 2, 3], dtype=src_type)
+def test_dtype_keyword(as_iterable, values, dst_type):
     array = _infer_data_type(as_iterable(values), dtype=dst_type)
     assert array.dtype == dst_type
-    assert_array_equal(array, [1, 2, 3])
+    assert_array_equal(array, values)
+
+
+@given(
+    values=hynp.arrays(
+        dtype=hynp.floating_dtypes() | hynp.integer_dtypes(),
+        shape=hynp.array_shapes(),
+        elements=integers(0, 8),
+    ),
+    dst_type=hynp.floating_dtypes()
+    | hynp.integer_dtypes()
+    | hynp.complex_number_dtypes(),
+)
+def test_object_arrays(values, dst_type):
+    values = np.asarray(values, dtype=object)
+    array = _infer_data_type(values, dtype=dst_type)
+    assert array.dtype == dst_type
+    assert_array_equal(array, values)
+
+
+@given(
+    values=hynp.arrays(
+        dtype=hynp.complex_number_dtypes(),
+        shape=hynp.array_shapes(),
+        elements=integers(0, 8),
+    ),
+    dst_type=hynp.floating_dtypes() | hynp.integer_dtypes(),
+)
+def test_from_complex(values, dst_type):
+    array = _infer_data_type(values, dtype=dst_type)
+    assert_array_equal(array.real, values.real)
+
+
+@given(values=hynp.arrays(dtype=hynp.array_dtypes(), shape=hynp.array_shapes()))
+def test_array_not_copied(values):
+    array = _infer_data_type(values, dtype=values.dtype)
+    assert array is values
