@@ -44,9 +44,9 @@ class DimensionlessDischarge(Component):
     >>> watershed_grid.at_node['dem_values'] = np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
     >>> dd = DimensionlessDischarge(watershed_grid)
     >>> dd.run_one_step(.5)
-    >>> print(watershed_grid.at_node['dimensionless_discharge']) 
-    array([ 0.55372743  0.55372743  0.55372743  0.55372743  0.55372743  
-            0.55372743  0.55372743  0.55372743  0.55372743])
+    >>> print(watershed_grid.at_node['dimensionless_discharge'])
+    [ 0.55372743  0.55372743  0.55372743  0.55372743  0.55372743  
+            0.55372743  0.55372743  0.55372743  0.55372743]
 
     
 
@@ -131,8 +131,6 @@ class DimensionlessDischarge(Component):
         self._stream_slopes = grid.calc_slope_at_node(elevs="dem_values")
         self.water_density = water_density
         self.gravity = 9.8 
-
-        print(self._stream_slopes)
 
         #set threshold values for each segment
         dimensionless_discharge = self.grid.add_zeros('node', 
