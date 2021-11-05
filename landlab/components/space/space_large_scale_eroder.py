@@ -1,9 +1,11 @@
 import numpy as np
+
 from landlab import Component, RasterModelGrid
-from landlab.utils.return_array import return_array_at_node
-from .ext.calc_qs_large_scale import calculate_qs_in
-from ..depression_finder.lake_mapper import _FLOODED
 from landlab.grid.nodestatus import NodeStatus
+from landlab.utils.return_array import return_array_at_node
+
+from ..depression_finder.lake_mapper import _FLOODED
+from .ext.calc_qs_large_scale import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
@@ -162,7 +164,6 @@ class SpaceLargeScaleEroder(Component):
             )
             raise NotImplementedError(msg)
 
-
         super(SpaceLargeScaleEroder, self).__init__(
             grid,
         )
@@ -243,7 +244,7 @@ class SpaceLargeScaleEroder(Component):
             raise ValueError("Porosity must be > 0.0")
 
         if F_f < 0.0:
-            raise ValueError("Fraction of fines must be > 0.0")        
+            raise ValueError("Fraction of fines must be > 0.0")
 
     @property
     def K_br(self):
@@ -346,8 +347,11 @@ class SpaceLargeScaleEroder(Component):
 
         r = self.grid.at_node["flow__receiver_node"]
         stack_flip_ud = np.flipud(self.grid.at_node["flow__upstream_node_order"])
-        #Select core nodes where qs >0 
-        stack_flip_ud_sel = stack_flip_ud[(node_status[stack_flip_ud] == NodeStatus.CORE) & (self._q[stack_flip_ud] > 0.0)]
+        # Select core nodes where qs >0
+        stack_flip_ud_sel = stack_flip_ud[
+            (node_status[stack_flip_ud] == NodeStatus.CORE)
+            & (self._q[stack_flip_ud] > 0.0)
+        ]
         slope = (z - z[r]) / self._link_lengths[link_to_rcvr]
 
         # Choose a method for calculating erosion:
@@ -365,7 +369,7 @@ class SpaceLargeScaleEroder(Component):
         self._sed_erosion_term[flooded_nodes] = 0.0
         self._br_erosion_term[flooded_nodes] = 0.0
 
-        self._qs_in[:] = 0         
+        self._qs_in[:] = 0
 
         vol_SSY_riv = calculate_qs_in(
             stack_flip_ud_sel,
