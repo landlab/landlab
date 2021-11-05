@@ -5,7 +5,7 @@ import pytest
 from numpy import testing
 
 from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import FlowAccumulator, FlowDirAccPf, Space_v2
+from landlab.components import FlowAccumulator, FlowDirAccPf, SpaceLargeScaleEroder
 
 # %%
 
@@ -19,7 +19,7 @@ def test_route_to_multiple_error_raised():
     fa.run_one_step()
 
     with pytest.raises(NotImplementedError):
-        Space_v2(
+        SpaceLargeScaleEroder(
             mg,
             K_sed=0.1,
             K_br=0.1,
@@ -35,61 +35,11 @@ def test_route_to_multiple_error_raised():
 
 
 # %%
-def test_bad_fill_lakes_to_brim_type():
-    # %%
-    """
-    Test that any solver name besides 'basic' and 'adaptive' raises an error.
-    """
-
-    # set up a 5x5 grid with one open outlet node and low initial elevations.
-    nr = 5
-    nc = 5
-    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
-
-    z = mg.add_zeros("topographic__elevation", at="node")
-    br = mg.add_zeros("bedrock__elevation", at="node")
-    soil = mg.add_zeros("soil__depth", at="node")
-
-    mg["node"]["topographic__elevation"] += (
-        mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
-    )
-    mg.set_closed_boundaries_at_grid_edges(
-        bottom_is_closed=True,
-        left_is_closed=True,
-        right_is_closed=True,
-        top_is_closed=True,
-    )
-    mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.0
-    )
-    br[:] = z[:] - soil[:]
-
-    # Create a D8 flow handler
-    FlowAccumulator(mg, flow_director="D8")
-
-    # try to instantiate Space_v2 using a wrong solver name
-    with pytest.raises(ValueError):
-        Space_v2(
-            mg,
-            K_sed=0.01,
-            K_br=0.01,
-            F_f=0.0,
-            phi=0.0,
-            v_s=0.001,
-            m_sp=0.5,
-            n_sp=1.0,
-            sp_crit_sed=0,
-            sp_crit_br=0,
-            fill_lakes_to_brim=100,
-        )
-
-
-# %%
 def test_soil_field_already_on_grid():
     # %%
     """
     Test that an existing soil grid field is not changed by instantiating
-    Space_v2.
+    SpaceLargeScaleEroder.
     """
 
     # set up a 5x5 grid with one open outlet node and low initial elevations.
@@ -119,8 +69,8 @@ def test_soil_field_already_on_grid():
     # Create a D8 flow handler
     FlowAccumulator(mg, flow_director="D8")
 
-    # Instantiate Space_v2
-    sp = Space_v2(
+    # Instantiate SpaceLargeScaleEroder
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=0.01,
         K_br=0.01,
@@ -137,7 +87,7 @@ def test_soil_field_already_on_grid():
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
         sp._soil__depth,
-        err_msg="Space_v2 soil depth field test failed",
+        err_msg="SpaceLargeScaleEroder soil depth field test failed",
         verbose=True,
     )
 
@@ -149,7 +99,7 @@ def test_br_field_already_on_grid():
     # %%
     """
     Test that an existing bedrock elevation grid field is not changed by
-    instantiating Space_v2.
+    instantiating SpaceLargeScaleEroder.
     """
 
     # set up a 5x5 grid with one open outlet node and low initial elevations.
@@ -179,8 +129,8 @@ def test_br_field_already_on_grid():
     # Create a D8 flow handler
     FlowAccumulator(mg, flow_director="D8")
 
-    # Instantiate Space_v2
-    sp = Space_v2(
+    # Instantiate SpaceLargeScaleEroder
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=0.01,
         K_br=0.01,
@@ -197,7 +147,7 @@ def test_br_field_already_on_grid():
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
         sp._bedrock__elevation,
-        err_msg="Space_v2 bedrock field test failed",
+        err_msg="SpaceLargeScaleEroder bedrock field test failed",
         verbose=True,
     )
 
@@ -244,8 +194,8 @@ def test_matches_detachment_solution():
     m_sp = 0.5
     n_sp = 1.0
 
-    # Instantiate the Space_v2 component...
-    sp = Space_v2(
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=0.00001,
         K_br=K_br,
@@ -277,7 +227,7 @@ def test_matches_detachment_solution():
         num_slope,
         analytical_slope,
         decimal=8,
-        err_msg="Space_v2 detachment-limited test failed",
+        err_msg="SpaceLargeScaleEroder detachment-limited test failed",
         verbose=True,
     )
     # %%
@@ -335,8 +285,8 @@ def test_matches_transport_solution():
     v_s = 0.5
     phi = 0.5
 
-    # Instantiate the Space_v2 component...
-    sp = Space_v2(
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=K_sed,
         K_br=0.01,
@@ -379,7 +329,7 @@ def test_matches_transport_solution():
         num_slope,
         analytical_slope,
         decimal=8,
-        err_msg="Space_v2 transport-limited slope-area test failed",
+        err_msg="SpaceLargeScaleEroder transport-limited slope-area test failed",
         verbose=True,
     )
 
@@ -392,7 +342,7 @@ def test_matches_transport_solution():
         num_sedflux,
         analytical_sedflux,
         decimal=8,
-        err_msg="Space_v2 transport-limited sediment flux test failed",
+        err_msg="SpaceLargeScaleEroder transport-limited sediment flux test failed",
         verbose=True,
     )
     # %%
@@ -452,8 +402,8 @@ def test_matches_bedrock_alluvial_solution():
     v_s = 0.25
     H_star = 0.1
 
-    # Instantiate the Space_v2 component...
-    sp = Space_v2(
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=K_sed,
         K_br=K_br,
@@ -491,7 +441,7 @@ def test_matches_bedrock_alluvial_solution():
         num_slope,
         analytical_slope,
         decimal=8,
-        err_msg="Space_v2 bedrock-alluvial slope-area test failed",
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial slope-area test failed",
         verbose=True,
     )
 
@@ -504,7 +454,7 @@ def test_matches_bedrock_alluvial_solution():
         num_h,
         analytical_h,
         decimal=5,
-        err_msg="Space_v2 bedrock-alluvial soil thickness test failed",
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial soil thickness test failed",
         verbose=True,
     )
     # %%
@@ -526,8 +476,8 @@ def test_can_run_with_hex():
     U = 0.001
     dt = 10.0
 
-    # Create the Space_v2 component...
-    sp = Space_v2(
+    # Create the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=0.00001,
         K_br=0.00000000001,
@@ -550,6 +500,7 @@ def test_can_run_with_hex():
 
 # %%
 def test_matches_detachment_solution_PF():
+    # %%
     """
     Test that model matches the detachment-limited analytical solution
     for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
@@ -591,8 +542,8 @@ def test_matches_detachment_solution_PF():
     m_sp = 0.5
     n_sp = 1.0
 
-    # Instantiate the Space_v2 component...
-    sp = Space_v2(
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=0.00001,
         K_br=K_br,
@@ -624,7 +575,7 @@ def test_matches_detachment_solution_PF():
         num_slope,
         analytical_slope,
         decimal=8,
-        err_msg="Space_v2 detachment-limited test failed",
+        err_msg="SpaceLargeScaleEroder detachment-limited test failed",
         verbose=True,
     )
 
@@ -683,8 +634,8 @@ def test_matches_transport_solution_PF():
     v_s = 0.5
     phi = 0.5
 
-    # Instantiate the Space_v2 component...
-    sp = Space_v2(
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=K_sed,
         K_br=0.01,
@@ -727,7 +678,7 @@ def test_matches_transport_solution_PF():
         num_slope,
         analytical_slope,
         decimal=8,
-        err_msg="Space_v2 transport-limited slope-area test failed",
+        err_msg="SpaceLargeScaleEroder transport-limited slope-area test failed",
         verbose=True,
     )
 
@@ -740,7 +691,7 @@ def test_matches_transport_solution_PF():
         num_sedflux,
         analytical_sedflux,
         decimal=8,
-        err_msg="Space_v2 transport-limited sediment flux test failed",
+        err_msg="SpaceLargeScaleEroder transport-limited sediment flux test failed",
         verbose=True,
     )
 
@@ -800,8 +751,8 @@ def test_matches_bedrock_alluvial_solution_PF():
     v_s = 0.25
     H_star = 0.1
 
-    # Instantiate the Space_v2 component...
-    sp = Space_v2(
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=K_sed,
         K_br=K_br,
@@ -839,7 +790,7 @@ def test_matches_bedrock_alluvial_solution_PF():
         num_slope,
         analytical_slope,
         decimal=8,
-        err_msg="Space_v2 bedrock-alluvial slope-area test failed",
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial slope-area test failed",
         verbose=True,
     )
 
@@ -852,7 +803,7 @@ def test_matches_bedrock_alluvial_solution_PF():
         num_h,
         analytical_h,
         decimal=5,
-        err_msg="Space_v2 bedrock-alluvial soil thickness test failed",
+        err_msg="SpaceLargeScaleEroder bedrock-alluvial soil thickness test failed",
         verbose=True,
     )
     # %%
@@ -906,7 +857,7 @@ def test_MassBalance():
     H_star = 0.1
 
     # Instantiate the Space component...
-    sp = Space_v2(
+    sp = SpaceLargeScaleEroder(
         mg,
         K_sed=K_sed,
         K_br=K_br,
@@ -953,6 +904,6 @@ def test_MassBalance():
         testing.assert_array_less(
             abs(diff_MB),
             1e-8 * mg.number_of_nodes,
-            err_msg="Mass balance error Space_v2! Try to resolve by becreasing timestep",
+            err_msg="Mass balance error SpaceLargeScaleEroder! Try to resolve by becreasing timestep",
             verbose=True,
         )
