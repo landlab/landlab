@@ -613,7 +613,6 @@ class FlowDirAccPf(Component):
             if hill_flow:
                 self._hill_prps[:] = props_Pf
                 if flow_metric in PSINGLE_FMs:
-                    idx = np.argmax(rcvrs, axis=1)
                     ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
                     self._hill_rcvs[:] = rcvrs[ij_at_max]
                     self._hill_slope[:] = slope_temp[ij_at_max]
@@ -625,7 +624,6 @@ class FlowDirAccPf(Component):
             else:
 
                 if flow_metric in PSINGLE_FMs:
-                    idx = np.argmax(rcvrs, axis=1)
                     ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
                     self._prps[:] = props_Pf[ij_at_max]
                     self._rcvs[:] = rcvrs[ij_at_max]
