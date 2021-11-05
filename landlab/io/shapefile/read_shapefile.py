@@ -46,8 +46,8 @@ def _infer_data_type(array, dtype=None):
     ----------
     array : array_like
         Input data to infer its data type.
-    dytpe : data-type, optional
-        If not provided, infer data type from array elements, otherwise,
+    dtype : data-type, optional
+        If not provided, infer data type from array elements; otherwise,
         try to cast to the provided data type.
 
     Returns
@@ -101,8 +101,8 @@ def read_shapefile(
 ):
     """Read shapefile and create a NetworkModelGrid.
 
-    There are a number of assumptions that are requied about the shapefile.
-        * The shape file must be a polyline shapefile.
+    There are a number of assumptions that are required about the shapefile.
+        * The shapefile must be a polyline shapefile.
         * All polylines must be their own object (e.g. no multi-part
           polylines).
         * Polyline endpoints match perfectly.
