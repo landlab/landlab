@@ -73,7 +73,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         Units for the variable being plotted, for the colorbar.
     grid_units : tuple of str, optional
         Units for y, and x dimensions. If None, component will look to the
-        gri property `axis_units` for this information. If no units are
+        grid property `axis_units` for this information. If no units are
         specified there, no entry is made.
     symmetric_cbar : bool
         Make the colormap symetric about 0.
@@ -138,7 +138,8 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 
 def imshowhs_grid_at_node(grid, values, **kwds):
-    """
+    """imshowhs_grid_at_node(grid, values, **kwds)
+    
     Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
 
@@ -216,19 +217,14 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     fontweight_ylabel : str, optional
         weight of y label. The default is 'bold'.
     plot_type : str, optional
-        The type of plot that will be plotted.
         There are four options:
-            * 'DEM'         : Display a digital elevation map underlain by a shaded
-                                relief, based on the same DEM
-                                ('topographic__elevation')
-            * 'Hillshade'   : Display the shaded relief, of the provided DEM
-                                ('topographic__elevation')
-            * 'Drape1'      : Display any kind of provided layer on top of a
-                                shaded relief provided in the
-                                'topographic__elevation' field
-            * 'Drape2'      : Display two layers on top of a
-                                shaded relief provided in the
-                                'topographic__elevation' field
+        * 'DEM': Display a digital elevation map underlain by a shaded relief, 
+        based on the same DEM ('topographic__elevation')
+        * 'Hillshade': Display the shaded relief, of the provided DEM ('topographic__elevation')
+        * 'Drape1': Display any kind of provided layer on top of a shaded 
+        relief provided in the 'topographic__elevation' field
+        * 'Drape2': Display two layers on top of a shaded relief provided in 
+        the 'topographic__elevation' field
         The default is "DEM".
     drape1 : array_like, masked_array
         Node values to plot on top of a hillshade map. The default is None.
@@ -289,7 +285,6 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     -------
     ax : figure ax
         return ax if output == True.
-
     """
     if isinstance(values, str):
         values_at_node = grid.at_node[values]
@@ -1242,7 +1237,8 @@ def imshow_grid(grid, values, **kwds):
 
 
 def imshowhs_grid(grid, values, **kwds):
-    """
+    """imshowhs_grid(grid, values, **kwds)
+    
     Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
 
@@ -1322,17 +1318,13 @@ def imshowhs_grid(grid, values, **kwds):
     plot_type : str, optional
         The type of plot that will be plotted.
         There are four options:
-            * 'DEM'         : Display a digital elevation map underlain by a shaded
-                                relief, based on the same DEM
-                                ('topographic__elevation')
-            * 'Hillshade'   : Display the shaded relief, of the provided DEM
-                                ('topographic__elevation')
-            * 'Drape1'      : Display any kind of provided layer on top of a
-                                shaded relief provided in the
-                                'topographic__elevation' field
-            * 'Drape2'      : Display two layers on top of a
-                                shaded relief provided in the
-                                'topographic__elevation' field
+        * 'DEM': Display a digital elevation map underlain by a shaded relief, 
+        based on the same DEM ('topographic__elevation')
+        * 'Hillshade': Display the shaded relief, of the provided DEM ('topographic__elevation')
+        * 'Drape1': Display any kind of provided layer on top of a shaded 
+        relief provided in the 'topographic__elevation' field
+        * 'Drape2': Display two layers on top of a shaded relief provided in 
+        the 'topographic__elevation' field
         The default is "DEM".
     drape1 : array_like, masked_array
         Node values to plot on top of a hillshade map. The default is None.
@@ -1393,7 +1385,6 @@ def imshowhs_grid(grid, values, **kwds):
     -------
     ax : figure ax
         return ax if output == True.
-
     """
     values_at = kwds.pop("values_at", "node")
     values_at = kwds.pop("at", values_at)
