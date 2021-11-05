@@ -157,6 +157,13 @@ def _convert_where(where, at):
         return where
 
 
+def units(grid, name, units, at="node"):
+    """Add units to a field."""
+    _create_missing_field(grid, name, at)
+    grid[at].set_units(name, units)
+    return grid[at][name]
+
+
 def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     """Add random values to a grid.
 
