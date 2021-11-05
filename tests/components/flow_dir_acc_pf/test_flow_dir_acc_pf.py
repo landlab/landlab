@@ -39,18 +39,18 @@ def test_fields():
     # %% Default configuration
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
-    fa1 = FlowDirAccPf(mg1)
+    fa1 = FlowDirAccPf(mg1, suppress_out=True)
     fa1.run_one_step()
 
     assert sorted(list(mg1.at_node.keys())) == [
-        "SQUARED_length_adjacent",
-        "deprFree_elevation",
+        "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__receiver_proportions",
         "flow__upstream_node_order",
+        "squared_length_adjacent",
         "surface_water__discharge",
         "topographic__elevation",
         "topographic__steepest_slope",
@@ -59,17 +59,17 @@ def test_fields():
     # %% No flow accumulation
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, accumulate_flow=True)
+    fa2 = FlowDirAccPf(mg2, accumulate_flow=True, suppress_out=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
-        "SQUARED_length_adjacent",
-        "deprFree_elevation",
+        "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__receiver_proportions",
         "flow__upstream_node_order",
+        "squared_length_adjacent",
         "surface_water__discharge",
         "topographic__elevation",
         "topographic__steepest_slope",
@@ -79,11 +79,10 @@ def test_fields():
     # %% Second FD (no FA is default)
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, separate_hill_flow=True)
+    fa2 = FlowDirAccPf(mg2, separate_hill_flow=True, suppress_out=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
-        "SQUARED_length_adjacent",
-        "deprFree_elevation",
+        "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
         "flow__link_to_receiver_node",
@@ -94,6 +93,7 @@ def test_fields():
         "hill_flow__receiver_proportions",
         "hill_flow__upstream_node_order",
         "hill_topographic__steepest_slope",
+        "squared_length_adjacent",
         "surface_water__discharge",
         "topographic__elevation",
         "topographic__steepest_slope",
@@ -102,11 +102,12 @@ def test_fields():
     # %% Second FD (with FA )
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, separate_hill_flow=True, accumulate_flow_hill=True)
+    fa2 = FlowDirAccPf(
+        mg2, separate_hill_flow=True, accumulate_flow_hill=True, suppress_out=True
+    )
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
-        "SQUARED_length_adjacent",
-        "deprFree_elevation",
+        "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
         "flow__link_to_receiver_node",
@@ -119,6 +120,7 @@ def test_fields():
         "hill_flow__upstream_node_order",
         "hill_surface_water__discharge",
         "hill_topographic__steepest_slope",
+        "squared_length_adjacent",
         "surface_water__discharge",
         "topographic__elevation",
         "topographic__steepest_slope",
@@ -132,7 +134,7 @@ def test_accumulated_area_closes():
     """Check that accumulated area is area of core nodes."""
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg)
+    fa = FlowDirAccPf(mg, suppress_out=True)
     fa.run_one_step()
 
     drainage_area = mg.at_node["drainage_area"]
@@ -149,6 +151,7 @@ def test_accumulated_area_closes():
         separate_hill_flow=True,
         accumulate_flow_hill=True,
         hill_flow_metric="Quinn",
+        suppress_out=True,
     )
     fa3.run_one_step()
 
@@ -189,7 +192,7 @@ def test_D8_metric():
     mg2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", topographic__elevation, at="node")
     mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    fa2 = FlowDirAccPf(mg2, flow_metric="D8")
+    fa2 = FlowDirAccPf(mg2, flow_metric="D8", suppress_out=True)
     fa2.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
     reciever = np.array(
@@ -222,7 +225,7 @@ def test_flow_accumulator_properties():
 
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, flow_metric="D8")
+    fa = FlowDirAccPf(mg, flow_metric="D8", suppress_out=True)
     # from landlab.components.flow_accum import FlowAccumulator
     # fa = FlowAccumulator(mg)
     fa.run_one_step()
@@ -247,7 +250,7 @@ def test_bad_metric_name():
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(Exception):
-        FlowDirAccPf(mg, flow_metric="spam")
+        FlowDirAccPf(mg, flow_metric="spam", suppress_out=True)
 
 
 # %%
@@ -256,7 +259,7 @@ def test_hex_mfd():
     mg = HexModelGrid((5, 3))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(FieldError):
-        FlowDirAccPf(mg, flow_metric="MFD")
+        FlowDirAccPf(mg, flow_metric="MFD", suppress_out=True)
     # %%
 
 
@@ -264,7 +267,7 @@ def test_sum_prop_is_one():
     # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, separate_hill_flow=True)
+    fa = FlowDirAccPf(mg, separate_hill_flow=True, suppress_out=True)
     fa.run_one_step()
 
     # Single flow
@@ -292,7 +295,9 @@ def test_sum_prop_is_one():
     # %% multiple flow with D8
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, separate_hill_flow=True, hill_flow_metric="D8")
+    fa = FlowDirAccPf(
+        mg, separate_hill_flow=True, hill_flow_metric="D8", suppress_out=True
+    )
     fa.run_one_step()
 
     # Multiple flow
