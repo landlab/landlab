@@ -614,8 +614,9 @@ class FlowDirAccPf(Component):
                 self._hill_prps[:] = props_Pf
                 if flow_metric in PSINGLE_FMs:
                     idx = np.argmax(rcvrs, axis=1)
-                    self._hill_rcvs[:] = rcvrs[np.arange(rcvrs.shape[0]), idx]
-                    self._hill_slope[:] = slope_temp[np.arange(rcvrs.shape[0]), idx]
+                    ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
+                    self._hill_rcvs[:] = rcvrs[ij_at_max]
+                    self._hill_slope[:] = slope_temp[ij_at_max]
                 else:
                     self._hill_rcvs[:] = rcvrs                    
                     self._hill_slope = slope_temp
@@ -625,10 +626,11 @@ class FlowDirAccPf(Component):
 
                 if flow_metric in PSINGLE_FMs:
                     idx = np.argmax(rcvrs, axis=1)
-                    self._prps[:] = props_Pf[np.arange(rcvrs.shape[0]), idx]
-                    self._rcvs[:] = rcvrs[np.arange(rcvrs.shape[0]), idx]
-                    self._slope[:] = slope_temp[np.arange(rcvrs.shape[0]), idx]
-                    self._recvr_link[:] = recvr_link[np.arange(rcvrs.shape[0]), idx]
+                    ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
+                    self._prps[:] = props_Pf[ij_at_max]
+                    self._rcvs[:] = rcvrs[ij_at_max]
+                    self._slope[:] = slope_temp[ij_at_max]
+                    self._recvr_link[:] = recvr_link[ij_at_max]
                 else:
                     self._prps[:] = props_Pf
                     self._rcvs[:] = rcvrs
