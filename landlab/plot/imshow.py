@@ -139,7 +139,162 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 def imshowhs_grid_at_node(grid, values, **kwds):
     """
-    see imshow_grid_at_node
+    Prepare a map view of data over all nodes in the grid using a hillshade 
+    topography map in the background.
+
+    Data is plotted as cells shaded with the value at the node at its center.
+    Outer edges of perimeter cells are extrapolated. Closed elements are
+    colored uniformly (default black, overridden with kwd 'color_for_closed');
+    other open boundary nodes get their actual values.
+
+    *values* can be a field name, a regular array, or a masked array. If a
+    masked array is provided, masked entries will be treated as if they were
+    Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
+    keyword (i.e., "transparent"), this can allow for construction of overlay
+    layers in a figure (e.g., only defining values in a river network, and
+    overlaying it on another landscape).
+
+    Use matplotlib functions like xlim, ylim to modify your plot after calling
+    :func:`imshowhs_grid`, as desired.
+
+    Node coordinates are printed when a mouse button is pressed on a cell in
+    the plot.
+
+    For now, this function only works with regular grids.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        Grid containing the field to plot, or describing the geometry of the
+        provided array.
+    values : array_like, masked_array, or str
+        Node values, or a field name as a string from which to draw the data.
+    plot_name : str, optional
+        String to put as the plot title.
+    var_name : str, optional
+        Variable name, to use as a colorbar label.
+    var_name_two : str, optional
+        Variable name of second layer, to use as a colorbar label.
+    var_units : str, optional
+        Units for the variable being plotted, for the colorbar.
+    grid_units : tuple of str, optional
+        Units for y, and x dimensions. If None, component will look to the
+        gri property `axis_units` for this information. If no units are
+        specified there, no entry is made.
+    symmetric_cbar : bool
+        Make the colormap symetric about 0.
+    cmap : str
+        Name of a colormap
+    limits : tuple of float
+        Minimum and maximum of the colorbar.
+    vmin, vmax: floats
+        Alternatives to limits.
+    norm : matplotlib.colors.Normalize
+        The normalizing object which scales data, typically into the interval
+        [0, 1]. Ignore in most cases.
+    thicks_km : bool, optional
+        Display thicks in km instead of m
+    allow_colorbar : bool
+        If True, include the colorbar.
+    shrink : float
+        Fraction by which to shrink the colorbar.
+    color_for_closed : str or None
+        Color to use for closed nodes (default 'black'). If None, closed
+        (or masked) nodes will be transparent.
+    color_for_background : color str or other color declaration, or None
+        Color to use for closed elements (default None). If None, the
+        background will be transparent, and appear white.
+    output : None, string, or bool
+        If None (or False), the image is sent to the imaging buffer to await
+        an explicit call to show() or savefig() from outside this function.
+        If a string, the string should be the path to a save location, and the
+        filename (with file extension). The function will then call
+        plt.savefig([string]) itself. If True, the function will call
+        plt.show() itself once plotting is complete.   
+    fontweight_xlabel : str, optional
+        weight of x label. The default is 'bold'.
+    fontweight_ylabel : str, optional
+        weight of y label. The default is 'bold'.   
+    plot_type : str, optional
+        The type of plot that will be plotted. 
+        There are four options:
+            * 'DEM'         : Display a digital elevation map underlain by a shaded 
+                                relief, based on the same DEM 
+                                ('topographic__elevation')
+            * 'Hillshade'   : Display the shaded relief, of the provided DEM 
+                                ('topographic__elevation')
+            * 'Drape1'      : Display any kind of provided layer on top of a 
+                                shaded relief provided in the 
+                                'topographic__elevation' field
+            * 'Drape2'      : Display two layers on top of a 
+                                shaded relief provided in the 
+                                'topographic__elevation' field
+        The default is "DEM".
+    drape1 : TYPE, optional
+        DESCRIPTION. The default is None.
+    drape2 : TYPE, optional
+        DESCRIPTION. The default is None.
+    cmap2 : TYPE, optional
+        DESCRIPTION. The default is None.
+    vertical_exa : TYPE, optional
+        DESCRIPTION. The default is None.
+    azdeg : TYPE, optional
+        DESCRIPTION. The default is None.
+    altdeg : TYPE, optional
+        DESCRIPTION. The default is None.
+    thres_drape1 : TYPE, optional
+        DESCRIPTION. The default is None.
+    alpha : TYPE, optional
+        DESCRIPTION. The default is None.
+    thres_drape2 : TYPE, optional
+        DESCRIPTION. The default is None.
+    alpha2 : TYPE, optional
+        DESCRIPTION. The default is None.
+    add_double_colorbar : TYPE, optional
+        DESCRIPTION. The default is False.
+    plt_contour : TYPE, optional
+        DESCRIPTION. The default is False.
+    contour_nb : TYPE, optional
+        DESCRIPTION. The default is 50.
+    default_fontsize : TYPE, optional
+        DESCRIPTION. The default is 10.
+    cbar_height : TYPE, optional
+        DESCRIPTION. The default is "5%".
+    cbar_width : TYPE, optional
+        DESCRIPTION. The default is "30%".
+    cbar_or : TYPE, optional
+        DESCRIPTION. The default is "horizontal".
+    cbar_loc : TYPE, optional
+        DESCRIPTION. The default is "lower right".
+    bbox_to_anchor : TYPE, optional
+        DESCRIPTION. The default is (0, 0, 1, 1).
+    cbar_ticks_position : TYPE, optional
+        DESCRIPTION. The default is "top".
+    cbar_ticks_position2 : TYPE, optional
+        DESCRIPTION. The default is "bottom".
+    colorbar_label_y : TYPE, optional
+        DESCRIPTION. The default is -40.
+    colorbar_label_x : TYPE, optional
+        DESCRIPTION. The default is 0.5.
+    cbar_tick_size : TYPE, optional
+        DESCRIPTION. The default is 10.
+    cbar_label_color : TYPE, optional
+        DESCRIPTION. The default is 'black'.
+    cbar_label_fontweight : TYPE, optional
+        DESCRIPTION. The default is 'bold'.
+    add_label_bbox : TYPE, optional
+        DESCRIPTION. The default is False.
+
+    Raises
+    ------
+    ValueError
+        DESCRIPTION.
+
+    Returns
+    -------
+    ax : TYPE
+        DESCRIPTION.
+
     """
     if isinstance(values, str):
         values_at_node = grid.at_node[values]
@@ -148,14 +303,11 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
     if values_at_node.size != grid.number_of_nodes:
         raise ValueError("number of values does not match number of nodes")
-
+        
     values_at_node = np.ma.masked_where(
         grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
-    )
-    # values_at_node = np.ma.masked_where(
-    #     values_at_node==0, values_at_node
-    # )
-
+    )  
+    
     if isinstance(grid, RasterModelGrid):
         shape = grid.shape
     else:
@@ -445,7 +597,6 @@ def _imshowhs_grid_values(
     grid,
     values,
     plot_name=None,
-    thicks_km=True,
     var_name=None,
     var_name_two = None, 
     var_units=None,
@@ -455,17 +606,16 @@ def _imshowhs_grid_values(
     symmetric_cbar=False,
     cmap="pink",
     limits=None,
-    # colorbar_label=None,
     allow_colorbar=True,
     vmin=None,
     vmax=None,
-    norm=None,
+    norm=None,    
+    thicks_km=True,
     shrink=1.0,
     color_for_closed=None,
     color_for_background=None,
-    show_elements=False,
     output=None,
-    plotType="DEM",
+    plot_type="DEM",
     drape1=None,
     drape2=None,
     cmap2=None,
@@ -476,7 +626,7 @@ def _imshowhs_grid_values(
     alpha=None,
     thres_drape2=None,
     alpha2=None,
-    addDoubleColorbar=False,
+    add_double_colorbar=False,
     plt_contour=False,
     contour_nb=50,
     default_fontsize=10,
@@ -494,6 +644,15 @@ def _imshowhs_grid_values(
     cbar_label_fontweight = 'bold',
     add_label_bbox = False,
 ):
+    plot_type_options = ['DEM', 'Hillshade', 'Drape1', 'Drape2']
+    if plot_type not in plot_type_options:
+        raise ValueError("plot_type should be one of the following: " + ', '.join(map(str,plot_type_options)))
+    if plot_type == 'Drape1' and drape1 is None: 
+        raise ValueError("if plot_type is Drape1, 'drape1' input argument cannot be None. \
+                         Provide at least one array with the size of the number of grid nodes as drape1='field_to_be_plotted'" )
+    if plot_type == 'Drape2' and (drape1 is None or drape2 is None): 
+        raise ValueError("if plot_type is Drape2, 'drape1' and 'drape2' input arguments cannot be None. \
+                         Provide an array for both with the size of the number of grid nodes as drape1='field1_to_be_plotted' and drape2='field2_to_be_plotted' ")
     
     # Poperties of bounding box of colorbar label, if used: 
     if add_label_bbox:
@@ -527,19 +686,13 @@ def _imshowhs_grid_values(
             - grid.dx * 0.5
             + grid.xy_of_lower_left[0]
         )
-        if azdeg is not None:
-            pass
-        else:
+        if azdeg is None:
             azdeg = 315
-        if altdeg is not None:
-            pass
-        else:
+        if altdeg is None:
             altdeg = 65
 
         ls = LightSource(azdeg=azdeg, altdeg=altdeg)
-        if cmap is not None:
-            pass
-        else:
+        if cmap is None:
             cmap = plt.cm.terrain
 
         dx = x[1] - x[0]
@@ -549,9 +702,9 @@ def _imshowhs_grid_values(
             ve = vertical_exa
         else:
             ve = 3
-        extent = [x[0] - dx, x[-1] + dx, y[-1] + dy, y[0] - dy]
+        extent = np.array([x[0] - dx, x[-1] + dx, y[-1] + dy, y[0] - dy])
         if thicks_km:
-            extent = np.divide(extent, 1e3)
+            extent /= 1e3
 
         ax1 = plt.gca()
         if alpha is None:
@@ -559,7 +712,7 @@ def _imshowhs_grid_values(
         if alpha2 is None:
             alpha2 = 1
         blend_modes = ["hsv", "overlay", "soft"]
-        if plotType == "DEM":
+        if plot_type == "DEM":
 
             kwds = dict(cmap=cmap)
             (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
@@ -588,7 +741,7 @@ def _imshowhs_grid_values(
             )
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
-        elif plotType == "Hillshade":
+        elif plot_type == "Hillshade":
             ima = plt.imshow(
                 ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
                 cmap="gray",
@@ -596,7 +749,7 @@ def _imshowhs_grid_values(
             )
             allow_colorbar = False
 
-        elif plotType == "Drape1" or plotType == "Drape2":
+        elif plot_type == "Drape1" or plot_type == "Drape2":
             # Process values from first drape
             if isinstance(drape1, str):
                 values_at_node_drape1 = grid.at_node[drape1]
@@ -657,12 +810,13 @@ def _imshowhs_grid_values(
                 )
         if somethingToPlot:
             # To cartezian  coordinates   (not if other layers has to be plotted on top!)
-            if plotType != "Drape2":
+            if plot_type != "Drape2":
                 ax1.invert_yaxis()
             plt.xticks(fontsize=default_fontsize)
             plt.yticks(fontsize=default_fontsize)
-
-            if allow_colorbar and plotType != "Drape2":
+            
+            # if Drape2, default behavior is to add colorbar of first layer if add_double_colorbar == False
+            if allow_colorbar and (plot_type == "DEM" or plot_type == "Drape1" or (plot_type == "Drape2" and not add_double_colorbar)):
 
                 cb_or = cbar_or
                 cb_ticks_position = cbar_ticks_position
@@ -720,7 +874,7 @@ def _imshowhs_grid_values(
                 #     cb.set_label(colorbar_label, rotation=270)
                 #     # ax1.xaxis.set_label_coords(0,2.5)
 
-            if plotType == "Drape2":
+            if plot_type == "Drape2":
 
                 # Process values from first drape
 
@@ -769,7 +923,7 @@ def _imshowhs_grid_values(
                 ax1.invert_yaxis()
 
                 # Add colorbars
-                if addDoubleColorbar:
+                if add_double_colorbar:
                     axins1 = inset_axes(
                         ax1,
                         width=cbar_width,  # width = 50% of parent_bbox width
@@ -894,7 +1048,7 @@ def _imshowhs_grid_values(
                     axins2.xaxis.set_label_coords(0.5, -1.75)
 
     else:
-        print("TODO")
+        NotImplementedError('For now, only RasterModelGrids are supported in the imshowhs functions')
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
@@ -926,7 +1080,7 @@ def _imshowhs_grid_values(
     if (
         somethingToPlot
         and (var_name is not None or var_units is not None)
-        and plotType != "Drape2"
+        and plot_type != "Drape2"
     ):
         if var_name is not None:
             assert type(var_name) is str
@@ -939,17 +1093,17 @@ def _imshowhs_grid_values(
             assert type(var_units) is str
             colorbar_label = "(" + var_units + ")"
         assert type(colorbar_label) is str
-        assert allow_colorbar
-        cb.set_label(
-            colorbar_label,
-            fontsize=default_fontsize,
-            labelpad=colorbar_label_y,
-            color = cbar_label_color,
-            x=colorbar_label_x,
-            fontweight=cbar_label_fontweight,
-            bbox=bbox_prop  
-            
-        )
+        if allow_colorbar:
+            cb.set_label(
+                colorbar_label,
+                fontsize=default_fontsize,
+                labelpad=colorbar_label_y,
+                color = cbar_label_color,
+                x=colorbar_label_x,
+                fontweight=cbar_label_fontweight,
+                bbox=bbox_prop  
+                
+            )
 
     if color_for_background is not None:
         plt.gca().set_facecolor(color_for_background)
@@ -1077,7 +1231,8 @@ def imshowhs_grid(grid, values, **kwds):
     if values_at == "node":
         ax = imshowhs_grid_at_node(grid, values, **kwds)
     elif values_at == "cell":
-        print("TODO")
+        NotImplementedError('For now, only values at nodes can be displayed using the in the imshowhs functions')
+
         ax = None
     else:
         raise TypeError("value location %s not understood" % values_at)
