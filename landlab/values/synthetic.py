@@ -157,10 +157,11 @@ def _convert_where(where, at):
         return where
 
 
-def units(grid, name, units, at="node"):
+def units(grid, name, at="node", units=None):
     """Add units to a field."""
     _create_missing_field(grid, name, at)
-    grid[at].set_units(name, units)
+    if units is not None:
+        grid[at].set_units(name, units)
     return grid[at][name]
 
 
