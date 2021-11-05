@@ -1,7 +1,7 @@
 import hypothesis.extra.numpy as hynp
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import assume, given
 from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
 
@@ -55,9 +55,11 @@ def test_infer_dtype_from_mixed(values, dst_type, expected):
 
 @given(
     values=hynp.arrays(
-        dtype=hynp.floating_dtypes() | hynp.integer_dtypes(),
+        dtype=hynp.floating_dtypes()
+        | hynp.integer_dtypes()
+        | hynp.complex_number_dtypes(),
         shape=hynp.array_shapes(),
-        elements=integers(0, 8),
+        elements=integers(0, 2 ** 7 - 1),
     ),
     dst_type=hynp.floating_dtypes()
     | hynp.integer_dtypes()
@@ -72,15 +74,21 @@ def test_dtype_keyword(as_iterable, values, dst_type):
 
 @given(
     values=hynp.arrays(
-        dtype=hynp.floating_dtypes() | hynp.integer_dtypes(),
+        dtype=hynp.floating_dtypes()
+        | hynp.integer_dtypes()
+        | hynp.complex_number_dtypes(),
         shape=hynp.array_shapes(),
-        elements=integers(0, 8),
+        elements=integers(0, 2 ** 7 - 1),
     ),
     dst_type=hynp.floating_dtypes()
     | hynp.integer_dtypes()
     | hynp.complex_number_dtypes(),
 )
 def test_object_arrays(values, dst_type):
+    assume(
+        not np.issubdtype(values.dtype, np.complexfloating)
+        or np.issubdtype(dst_type, np.complexfloating)
+    )
     values = np.asarray(values, dtype=object)
     array = _infer_data_type(values, dtype=dst_type)
     assert array.dtype == dst_type
