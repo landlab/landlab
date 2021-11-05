@@ -45,7 +45,7 @@ from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
 from .space import Space
-from .space import Space_v2
+from .space import SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -119,7 +119,7 @@ COMPONENTS = [
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
-    Space_v2,
+    SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,
