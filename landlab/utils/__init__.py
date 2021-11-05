@@ -2,7 +2,6 @@
 
 from .add_halo import add_halo
 from .count_repeats import count_repeated_values
-from .fileTreatment import check_out_dirs
 from .matrix import get_core_node_at_node, get_core_node_matrix
 from .return_array import return_array_at_link, return_array_at_node
 from .source_tracking_algorithm import (
@@ -22,7 +21,6 @@ from .watershed import (
 __all__ = [
     "add_halo",
     "count_repeated_values",
-    "check_out_dirs",
     "track_source",
     "convert_arc_flow_directions_to_landlab_node_ids",
     "find_unique_upstream_hsd_ids_and_fractions",

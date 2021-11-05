@@ -447,6 +447,7 @@ def _imshowhs_grid_values(
     plot_name=None,
     thicks_km=True,
     var_name=None,
+    var_name_two = None, 
     var_units=None,
     fontweight_xlabel = 'bold',
     fontweight_ylabel = 'bold',
@@ -454,7 +455,7 @@ def _imshowhs_grid_values(
     symmetric_cbar=False,
     cmap="pink",
     limits=None,
-    colorbar_label=None,
+    # colorbar_label=None,
     allow_colorbar=True,
     vmin=None,
     vmax=None,
@@ -491,7 +492,17 @@ def _imshowhs_grid_values(
     cbar_tick_size=10,
     cbar_label_color = 'black',
     cbar_label_fontweight = 'bold',
+    add_label_bbox = False,
 ):
+    
+    # Poperties of bounding box of colorbar label, if used: 
+    if add_label_bbox:
+        bbox_prop = dict(boxstyle='round',pad=0.1,
+                         facecolor='white', alpha=.7, edgecolor='white')
+    else:
+        bbox_prop = None
+            
+     
     cmap = plt.get_cmap(cmap)
 
     if color_for_closed is not None:
@@ -705,9 +716,9 @@ def _imshowhs_grid_values(
                 axins1.xaxis.set_ticks_position(cb_ticks_position)
                 cb.ax.tick_params(labelsize=cbar_tick_size, color = cbar_label_color,labelcolor  = cbar_label_color)  
 
-                if colorbar_label:
-                    cb.set_label(colorbar_label, rotation=270)
-                    # ax1.xaxis.set_label_coords(0,2.5)
+                # if colorbar_label:
+                #     cb.set_label(colorbar_label, rotation=270)
+                #     # ax1.xaxis.set_label_coords(0,2.5)
 
             if plotType == "Drape2":
 
@@ -809,12 +820,15 @@ def _imshowhs_grid_values(
                         )
                     cb.ax.tick_params(labelsize=cbar_tick_size,color = cbar_label_color,labelcolor  = cbar_label_color)         
                     axins1.xaxis.set_ticks_position(cb_ticks_position)
-                    # axins1.set_xlabel(colorbar_label,fontsize=default_fontsize)
+                     
                     axins1.set_xlabel(
-                        "$log_{10}LS_{E}$",
+                        var_name,
                         usetex=True,
                         fontsize=default_fontsize,
                         rotation=0,
+                        color = cbar_label_color,
+                        fontweight=cbar_label_fontweight,                    
+                        bbox=bbox_prop  
                     )
                     axins1.xaxis.set_label_coords(0.5, 3.5)
 
@@ -868,12 +882,14 @@ def _imshowhs_grid_values(
                     cb.ax.tick_params(labelsize=cbar_tick_size,color = cbar_label_color,labelcolor  = cbar_label_color)       
 
                     axins2.xaxis.set_ticks_position(cb_ticks_position)
-                    # axins2.set_xlabel(colorbar_label,fontsize=default_fontsize)
                     axins2.set_xlabel(
-                        "$log_{10}LS_{D}$",
+                        var_name_two,
                         usetex=True,
                         fontsize=default_fontsize,
                         rotation=0,
+                        color = cbar_label_color,
+                        fontweight=cbar_label_fontweight,                                          
+                        bbox=bbox_prop  
                     )
                     axins2.xaxis.set_label_coords(0.5, -1.75)
 
@@ -931,9 +947,9 @@ def _imshowhs_grid_values(
             color = cbar_label_color,
             x=colorbar_label_x,
             fontweight=cbar_label_fontweight,
+            bbox=bbox_prop  
             
         )
-        # cb.axes.set_xlabel('m')
 
     if color_for_background is not None:
         plt.gca().set_facecolor(color_for_background)
