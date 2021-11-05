@@ -465,6 +465,18 @@ def plot_network_and_parcels(
 def _get_xy_of_polylines(x_of_polylines, y_of_polylines):
     """Zip together x and y coordinate arrays.
 
+    Parameters
+    ----------
+    x_of_polylines : ndarray
+        x coordinates of a series of polyline segments.
+    y_of_polylines : ndarray
+        y coordinates of a series of polyline segments.
+
+    Returns
+    -------
+    ndarray
+        An ndarray of zipped polyline coordinates.
+
     Examples
     --------
     >>> x = [[0, 1, 2], [3, 4], [4, 3, 2, 1]]
