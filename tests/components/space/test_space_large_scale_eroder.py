@@ -5,7 +5,11 @@ import pytest
 from numpy import testing
 
 from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import FlowAccumulator, FlowDirAccPf, SpaceLargeScaleEroder
+from landlab.components import (
+    FlowAccumulator,
+    PriorityFloodFlowRouter,
+    SpaceLargeScaleEroder,
+)
 
 # %%
 
@@ -529,7 +533,7 @@ def test_matches_detachment_solution_PF():
     )
     br[:] = z[:] - soil[:]
 
-    fa = FlowDirAccPf(
+    fa = PriorityFloodFlowRouter(
         mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
     )
     fa.run_one_step()
@@ -619,7 +623,7 @@ def test_matches_transport_solution_PF():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    fa = FlowDirAccPf(
+    fa = PriorityFloodFlowRouter(
         mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
     )
     fa.run_one_step()
@@ -735,7 +739,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    fa = FlowDirAccPf(
+    fa = PriorityFloodFlowRouter(
         mg, surface="topographic__elevation", flow_metric="D8", suppress_out=True
     )
     fa.run_one_step()
@@ -837,7 +841,7 @@ def test_MassBalance():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    # fa = FlowDirAccPf(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
+    # fa = PriorityFloodFlowRouter(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
     # fa.run_one_step()
 
     # Create a D8 flow handler

@@ -7,8 +7,10 @@ Plotting functions
 .. autosummary::
 
     ~landlab.plot.imshow.imshow_grid
+    ~landlab.plot.imshow.imshowhs_grid
     ~landlab.plot.imshow.imshow_grid_at_cell
     ~landlab.plot.imshow.imshow_grid_at_node
+    ~landlab.plot.imshow.imshowhs_grid_at_node
 """
 import numpy as np
 from matplotlib.colors import LightSource

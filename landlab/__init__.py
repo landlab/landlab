@@ -29,7 +29,7 @@ from .grid import (
 )
 from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
-from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid
+from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid, imshowhs_grid_at_node
 
 try:
     set_printoptions(legacy="1.13")
@@ -59,8 +59,9 @@ __all__ = [
     "NodeStatus",
     "create_grid",
     "imshow_grid",
-    "imshowhs_grid",
     "imshow_grid_at_node",
+    "imshowhs_grid",
+    "imshowhs_grid_at_node",
 ]
 
 del pkg_resources

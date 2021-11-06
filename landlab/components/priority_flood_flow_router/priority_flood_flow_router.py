@@ -1,9 +1,9 @@
 #!/usr/env/python
 
 """
-flow_DirAcc_Pf.py: Component to fill or breach a DEM, accumulate flow and calculate drainage area using the priority flood algorithm.
+priority_flood_flow_router.py: Component to fill or breach a DEM, accumulate flow and calculate drainage area using the priority flood algorithm.
 
-FlowDirAccPf is a wrapper of the RichDEM package: https://richdem.readthedocs.io/en/latest/flow_metrics.html
+PriorityFloodFlowRouter is a wrapper of the RichDEM package: https://richdem.readthedocs.io/en/latest/flow_metrics.html
 
 The component merges a filling/breaching algorithm, a flow director as well as a flow accumulator.
 Moreover, the component supports the definition of two flow accumulator fields associated to the same grid.
@@ -37,7 +37,7 @@ PSINGLE_FMs = ["D8", "D4", "Rho8", "Rho4"]
 PMULTIPLE_FMs = ["Quinn", "Freeman", "Holmgren", "Dinf"]
 
 
-class FlowDirAccPf(Component):
+class PriorityFloodFlowRouter(Component):
 
     """Component to accumulate flow and calculate drainage area based RICHDEM software package.
 
@@ -173,7 +173,7 @@ class FlowDirAccPf(Component):
 
     """
 
-    _name = "FlowDirAccPf"
+    _name = "PriorityFloodFlowRouter"
 
     _unit_agnostic = True
 
@@ -353,7 +353,7 @@ class FlowDirAccPf(Component):
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
-        super(FlowDirAccPf, self).__init__(grid)
+        super(PriorityFloodFlowRouter, self).__init__(grid)
         # Keep a local reference to the grid
 
         self._suppress_output = partial(
@@ -828,7 +828,7 @@ class FlowDirAccPf(Component):
     def update_hill_fdfa(self, update_depressions=False):
         if not self._separate_hill_flow:
             raise ValueError(
-                "If hillslope properties are updated, the separate_hill_flow property of the FlowDirAccPf class should be True upon initialisation"
+                "If hillslope properties are updated, the separate_hill_flow property of the PriorityFloodFlowRouter class should be True upon initialisation"
             )
         self.calc_flow_dir_acc(hill_flow=True, update_depressions=update_depressions)
 

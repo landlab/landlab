@@ -10,7 +10,6 @@ from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
 from .flexure import Flexure, Flexure1D
 from .flow_accum import FlowAccumulator, LossyFlowAccumulator
-from .flow_dir_acc_pf import FlowDirAccPf
 from .flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
@@ -40,6 +39,7 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
@@ -80,7 +80,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
-    FlowDirAccPf,
+    PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,

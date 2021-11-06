@@ -8,7 +8,7 @@ from numpy import testing
 from numpy.testing import assert_array_equal
 
 from landlab import FieldError, HexModelGrid, RasterModelGrid
-from landlab.components import FlowDirAccPf
+from landlab.components import PriorityFloodFlowRouter
 
 
 def test_check_fields():
@@ -19,12 +19,12 @@ def test_check_fields():
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
 
-    FlowDirAccPf(mg)
+    PriorityFloodFlowRouter(mg)
     assert_array_equal(z, mg.at_node["topographic__elevation"])
     assert_array_equal(np.zeros(100), mg.at_node["drainage_area"])
     assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
 
-    FlowDirAccPf(mg, runoff_rate=2.0)
+    PriorityFloodFlowRouter(mg, runoff_rate=2.0)
     assert_array_equal(np.full(100, 2.0), mg.at_node["water__unit_flux_in"])
 
 
@@ -39,7 +39,7 @@ def test_fields():
     # %% Default configuration
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
-    fa1 = FlowDirAccPf(mg1, suppress_out=True)
+    fa1 = PriorityFloodFlowRouter(mg1, suppress_out=True)
     fa1.run_one_step()
 
     assert sorted(list(mg1.at_node.keys())) == [
@@ -59,7 +59,7 @@ def test_fields():
     # %% No flow accumulation
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, accumulate_flow=True, suppress_out=True)
+    fa2 = PriorityFloodFlowRouter(mg2, accumulate_flow=True, suppress_out=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
         "depression_free_elevation",
@@ -79,7 +79,7 @@ def test_fields():
     # %% Second FD (no FA is default)
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(mg2, separate_hill_flow=True, suppress_out=True)
+    fa2 = PriorityFloodFlowRouter(mg2, separate_hill_flow=True, suppress_out=True)
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
         "depression_free_elevation",
@@ -102,7 +102,7 @@ def test_fields():
     # %% Second FD (with FA )
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = FlowDirAccPf(
+    fa2 = PriorityFloodFlowRouter(
         mg2, separate_hill_flow=True, accumulate_flow_hill=True, suppress_out=True
     )
     fa2.run_one_step()
@@ -134,7 +134,7 @@ def test_accumulated_area_closes():
     """Check that accumulated area is area of core nodes."""
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, suppress_out=True)
+    fa = PriorityFloodFlowRouter(mg, suppress_out=True)
     fa.run_one_step()
 
     drainage_area = mg.at_node["drainage_area"]
@@ -146,7 +146,7 @@ def test_accumulated_area_closes():
     """Check that accumulated area is area of core nodes."""
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")
-    fa3 = FlowDirAccPf(
+    fa3 = PriorityFloodFlowRouter(
         mg3,
         separate_hill_flow=True,
         accumulate_flow_hill=True,
@@ -171,7 +171,7 @@ def test_specifying_routing_method_wrong():
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     with pytest.raises(TypeError):
-        FlowDirAccPf(mg, flow_director="D2")
+        PriorityFloodFlowRouter(mg, flow_director="D2")
 
 
 # %%
@@ -192,7 +192,7 @@ def test_D8_metric():
     mg2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", topographic__elevation, at="node")
     mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    fa2 = FlowDirAccPf(mg2, flow_metric="D8", suppress_out=True)
+    fa2 = PriorityFloodFlowRouter(mg2, flow_metric="D8", suppress_out=True)
     fa2.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
     reciever = np.array(
@@ -225,7 +225,7 @@ def test_flow_accumulator_properties():
 
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, flow_metric="D8", suppress_out=True)
+    fa = PriorityFloodFlowRouter(mg, flow_metric="D8", suppress_out=True)
     # from landlab.components.flow_accum import FlowAccumulator
     # fa = FlowAccumulator(mg)
     fa.run_one_step()
@@ -250,7 +250,7 @@ def test_bad_metric_name():
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(Exception):
-        FlowDirAccPf(mg, flow_metric="spam", suppress_out=True)
+        PriorityFloodFlowRouter(mg, flow_metric="spam", suppress_out=True)
 
 
 # %%
@@ -259,7 +259,7 @@ def test_hex_mfd():
     mg = HexModelGrid((5, 3))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(FieldError):
-        FlowDirAccPf(mg, flow_metric="MFD", suppress_out=True)
+        PriorityFloodFlowRouter(mg, flow_metric="MFD", suppress_out=True)
     # %%
 
 
@@ -267,7 +267,7 @@ def test_sum_prop_is_one():
     # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(mg, separate_hill_flow=True, suppress_out=True)
+    fa = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
     fa.run_one_step()
 
     # Single flow
@@ -295,7 +295,7 @@ def test_sum_prop_is_one():
     # %% multiple flow with D8
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowDirAccPf(
+    fa = PriorityFloodFlowRouter(
         mg, separate_hill_flow=True, hill_flow_metric="D8", suppress_out=True
     )
     fa.run_one_step()
