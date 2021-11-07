@@ -9,55 +9,55 @@ DTYPE_FLOAT = np.float64
 ctypedef np.float64_t DTYPE_FLOAT_t
 
 @cython.boundscheck(False)
-cpdef non_local_depo(DTYPE_INT_t nb, DTYPE_INT_t q, 
-                               DTYPE_FLOAT_t dx,DTYPE_FLOAT_t dx2,DTYPE_FLOAT_t phi,
-                               np.ndarray[DTYPE_INT_t, ndim=1] stack,
-                               np.ndarray[DTYPE_INT_t, ndim=2] receivers,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=2] fract,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_in,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] L_Hill,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_out,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] max_dH,
-                               np.ndarray[DTYPE_FLOAT_t, ndim=1] Grid_Status):
+cpdef _landslide_runout(
+    DTYPE_FLOAT_t dx,
+    DTYPE_FLOAT_t phi,
+    np.ndarray[DTYPE_INT_t, ndim=1] stack_rev_sel,
+    np.ndarray[DTYPE_INT_t, ndim=2] receivers,
+    np.ndarray[DTYPE_FLOAT_t, ndim=2] fract,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_in,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] L_Hill,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_out,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_dH):
     """
-    
+    Calculate landslide runout using a non-local deposition algorithm based on:
+        * Carretier S., Martinod P., Reich M., Godderis Y. (2016) Modelling 
+          sediment clasts transport during landscape evolution. 
+          Earth Surf Dyn: 4(1):237–51. 
+        * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J. 
+          (2020) HyLands 1.0: a hybrid landscape evolution model to simulate 
+          the impact of landslides and landslide-derived sediment on landscape 
+          evolution. Geosci Model Dev: 13(9):3863–86.         
     """
     # define internal variables    
-    cdef int donor, rcvr, i, r
+    cdef int donor, rcvr, r
     cdef double accum, proportion
     
            
     # Iterate backward through the stack, which means we work from upstream to
     # downstream.
-    for i in range(nb-1, -1, -1):
-        donor = stack[i]
-        # No deposition at boundaries
-        if Grid_Status[donor] != 1:
-            # Following Carretier 2016
-            dH =min(max_dH[donor],
-                    max(0,
-                        min(((Qs_in[donor]/dx)/L_Hill[donor])/(1-phi),
-                        max_D[donor])
-                        ))
-            dH_Hill[donor] = dH_Hill[donor] + dH
-            H_i_temp[donor] = H_i_temp[donor] + dH
+    for donor in stack_rev_sel:        
+        dH =min(max_dH[donor],
+                max(0,
+                    min(((Qs_in[donor]/dx)/L_Hill[donor])/(1-phi),
+                    max_D[donor])
+                    ))
+        dH_Hill[donor] = dH_Hill[donor] + dH
+        H_i_temp[donor] = H_i_temp[donor] + dH
+        
+        Qs_in[donor] = Qs_in[donor] - dH*dx*dx*(1-phi)
+        Qs_out[donor] = Qs_out[donor] + Qs_in[donor]
+        
+        for r in range(0,receivers.shape[1]):
+            rcvr = receivers[donor,r]
+            max_D[rcvr] = max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr])
             
-            Qs_in[donor] = Qs_in[donor] - dH*dx2*(1-phi)
-            Qs_out[donor] = Qs_out[donor] + Qs_in[donor]
-            
-            for r in range(0,q):
-                rcvr = receivers[donor,r]
-                max_D[rcvr] = max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr])
-                
-                proportion = fract[donor,r]
-                if proportion > 0.:
-                    if donor != rcvr:
-                        Qs_in[rcvr] = Qs_in[rcvr] + Qs_out[donor] * proportion
-                        Qs_in[donor] =Qs_in[donor] - Qs_out[donor] * proportion
-                        
-                # Take care of grain sizes
+            proportion = fract[donor,r]
+            if proportion > 0. and donor != rcvr:
+                    Qs_in[rcvr] = Qs_in[rcvr] + Qs_out[donor] * proportion
+                    Qs_in[donor] =Qs_in[donor] - Qs_out[donor] * proportion
                 
 

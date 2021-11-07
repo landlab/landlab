@@ -3,7 +3,8 @@ import numpy.matlib
 import copy as cp
 from landlab import Component
 from ..depression_finder.lake_mapper import _FLOODED
-from .cfuncs import non_local_depo
+from .cfuncs import _landslide_runout
+from landlab.grid.nodestatus import NodeStatus
 
 MAX_HEIGHT_SLOPE = 100 # in m 
 
@@ -372,24 +373,21 @@ class Hylands(Component):
         
                 
         # %% calcualte hillslope _landslide_runout 
-        # Aliases
-        stack = self.grid.at_node["flow__upstream_node_order"]
-        receivers = self.grid.at_node["hill_flow__receiver_node"]
-        fract = self.grid.at_node["hill_flow__receiver_proportions"]
-        slope = cp.deepcopy(self.grid.at_node["hill_topographic__steepest_slope"])
-        # el = cp.deepcopy(self.grid.at_node["topographic__elevation"])
-        
         z = self.grid.at_node["topographic__elevation"]
         br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
-        
+        stack_rev = np.flip(self.grid.at_node["flow__upstream_node_order"])
+        node_status = self.grid.status_at_node
+        # Only process core nodes
+        stack_rev_sel = stack_rev[(node_status[stack_rev] == NodeStatus.CORE)]        
+        receivers = self.grid.at_node["hill_flow__receiver_node"]
+        fract = self.grid.at_node["hill_flow__receiver_proportions"]
+        slope = cp.deepcopy(self.grid.at_node["hill_topographic__steepest_slope"])    
         
         # keep only steepest slope
         slope = np.max(slope,axis=1)
         slope = np.maximum(slope,np.zeros(slope.shape))
-        
-        #core_nodes = DepoGrid_v1.core_nodes
-                              
+                                      
         Qs_in = self._Qs_change_LS*dt# Qs_in, in m3 per timestep
         
         # L following carretier 
@@ -407,29 +405,26 @@ class Hylands(Component):
         phi = self._phi
         
         
-        # Number of points
-        nb = receivers.shape[0]
+        # Number of receivers
         nb_r = receivers.shape[1]
+        
         # Call the cfunc to calculate non-local, non-linear _landslide_runout
         Grid_Status = np.float64(self.grid.status_at_node)        
        
      
-        non_local_depo(nb,
-                   nb_r,
-                   dx,
-                   dx2,
-                   phi,
-                   stack,
-                   receivers,
-                   fract,
-                   Qs_in,
-                   L_Hill,
-                   Qs_out,
-                   dH_Hill,
-                   H_i_temp,
-                   max_D,
-                   max_dH,
-                   Grid_Status)
+        _landslide_runout(                   
+            dx,
+            phi,
+            stack_rev_sel,
+            receivers,
+            fract,
+            Qs_in,
+            L_Hill,
+            Qs_out,
+            dH_Hill,
+            H_i_temp,
+            max_D,
+            max_dH)
             
         Qs_coreNodes = np.sum(Qs_in[self.grid.status_at_node == 0])#/(self.grid.number_of_nodes*dx2)*dt # This value should be close to zero, difference with zero is error
         Qs_leaving = np.sum(Qs_in[self.grid.status_at_node == 1])
