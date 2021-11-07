@@ -9,7 +9,7 @@ DTYPE_FLOAT = np.float64
 ctypedef np.float64_t DTYPE_FLOAT_t
 
 @cython.boundscheck(False)
-cpdef non_local_Depo(DTYPE_INT_t nb, DTYPE_INT_t q, 
+cpdef non_local_depo(DTYPE_INT_t nb, DTYPE_INT_t q, 
                                DTYPE_FLOAT_t dx,DTYPE_FLOAT_t dx2,DTYPE_FLOAT_t phi,
                                np.ndarray[DTYPE_INT_t, ndim=1] stack,
                                np.ndarray[DTYPE_INT_t, ndim=2] receivers,
