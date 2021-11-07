@@ -123,7 +123,7 @@ class Hylands(Component):
         LS_properties_Volume,
         LS_properties_Volume_Reg,
         LS_properties_Volume_Bed,   
-        slope_crit = 1.0,
+        angle_int_frict = 1.0,
         C_eff = 1e4,
         rho_r = 2700,
         grav = 9.81,
@@ -145,7 +145,7 @@ class Hylands(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        slope_crit: float, optional
+        angle_int_frict: float, optional
             Critical slope
             Default = 1.0
         C_eff : float
@@ -172,7 +172,7 @@ class Hylands(Component):
         self.LS_properties_Volume_Bed=LS_properties_Volume_Bed
         
         # Store grid and parameters
-        self._slope_crit = slope_crit
+        self._angle_int_frict = angle_int_frict
         self._C_eff = C_eff
         self._rho_r = rho_r
         self._grav = grav
@@ -225,7 +225,7 @@ class Hylands(Component):
         H_el[H_el>self._max_H_el]=self._max_H_el    
         
         beta_rad = np.arctan(S_slope)
-        sc_rad = np.arctan(self._slope_crit)
+        sc_rad = np.arctan(self._angle_int_frict)
         Hc = (4 * self._C_eff/(self._grav*self._rho_r))\
             *np.divide(np.multiply(np.sin(beta_rad),np.cos(sc_rad)),(1-np.cos(beta_rad-sc_rad)))
         
@@ -276,8 +276,8 @@ class Hylands(Component):
             all_iP_el=self.grid.at_node['topographic__elevation'][nb_up]
             s_slide_all=np.divide((all_iP_el-cP_el),distToIni_all)
             
-            nb_up=nb_up[s_slide_all>self._slope_crit]
-            s_slide_all=s_slide_all[s_slide_all>self._slope_crit]
+            nb_up=nb_up[s_slide_all>self._angle_int_frict]
+            s_slide_all=s_slide_all[s_slide_all>self._angle_int_frict]
             
             if s_slide_all.size > 0:
                 s_slide=max(s_slide_all)
@@ -287,7 +287,7 @@ class Hylands(Component):
                 uP=nb_up
                 uP = uP[(self.grid.node_is_boundary(uP) == False)] 
                 # Fix sliding angle of particular LS
-                ang_sl=np.float64((self._slope_crit+s_slide)/2)
+                ang_sl=np.float64((self._angle_int_frict+s_slide)/2)
                 
                 stall = 0
                 
@@ -380,7 +380,7 @@ class Hylands(Component):
         dx = self.grid.dx
         dx2 = np.square(dx)
         
-        L_Hill = numpy.matlib.divide(dx,(1-numpy.matlib.minimum( numpy.matlib.square(numpy.matlib.divide(slope,self._slope_crit )),0.999)))        
+        L_Hill = numpy.matlib.divide(dx,(1-numpy.matlib.minimum( numpy.matlib.square(numpy.matlib.divide(slope,self._angle_int_frict )),0.999)))        
         Qs_out = np.zeros(z.shape)
         # Node that this results in zero deposition at watershed divides
         dH_Hill = np.zeros(z.shape)
