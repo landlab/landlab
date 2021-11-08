@@ -41,13 +41,12 @@ class DimensionlessDischarge(Component):
     >>> watershed_grid = RasterModelGrid((3, 3))
     >>> flux = watershed_grid.add_ones('node', 'flux')
     >>> d50 = watershed_grid.add_ones('node', 'd50')
-    >>> stream_slopes = watershed_grid.add_ones('node', 'stream_slopes')
+    >>> watershed_grid.at_node['dem_values'] = np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
     >>> dd = DimensionlessDischarge(watershed_grid)
     >>> dd.run_one_step(.5)
-    >>> watershed_grid.at_node['dimensionless_discharge']
-    array([ 0.  0.  0.  
-            0.  0.  0.  
-            0.  0.  0.])
+    >>> print(watershed_grid.at_node['dimensionless_discharge'])
+    [ 0.55372743  0.55372743  0.55372743  0.55372743  0.55372743  
+            0.55372743  0.55372743  0.55372743  0.55372743]
 
     
 
@@ -133,13 +132,13 @@ class DimensionlessDischarge(Component):
         self.water_density = water_density
         self.gravity = 9.8 
 
-        print(self._stream_slopes)
-
         #set threshold values for each segment
         dimensionless_discharge = self.grid.add_zeros('node', 
             'dimensionless_discharge')
         dimensionless_discharge_above_threshold = self.grid.add_zeros('node', 
             'dimensionless_discharge_above_threshold')
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = \
+            np.array([[False]*self.grid.number_of_nodes])
         dimensionless_discharge_threshold_value = self.grid.add_zeros('node', 
             'dimensionless_discharge_threshold_value')
         self.grid.at_node["dimensionless_discharge_threshold_value"] = \
@@ -152,10 +151,10 @@ class DimensionlessDischarge(Component):
                 self.water_density) / self.water_density) *
                  self.gravity * (self.grid.at_node["d50"] ** 3))
         
-        self.grid.at_node["dimensionless_discharge_above_threshold"] = [0 if \
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = [False if \
             self.grid.at_node["dimensionless_discharge"][i] >= \
             self.grid.at_node["dimensionless_discharge_threshold_value"][i] \
-            else 1 for i in range(self.grid.number_of_nodes)]
+            else True for i in range(self.grid.number_of_nodes)]
        
 
         self._current_time += dt
