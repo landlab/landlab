@@ -19,7 +19,7 @@ def init_grid():
 def test_dimensionless_discharge_final_values():
     watershed_grid = init_grid()
     dd = DimensionlessDischarge(watershed_grid)
-    dd.run_one_step(.5)
+    dd.run_one_step()
     expected_values = [ 0.55372743, 0.55372743, 
         0.55372743, 0.55372743, 0.55372743, 0.55372743, 0.55372743, 
         0.55372743, 0.55372743]
@@ -29,7 +29,7 @@ def test_dimensionless_discharge_final_values():
 def test_dimensionless_discharge_threshold_values():
     watershed_grid = init_grid()
     dd = DimensionlessDischarge(watershed_grid)
-    dd.run_one_step(.5)
+    dd.run_one_step()
     expected_values = [11.09442633, 12.63600546, 14.73515969, 11.01921767, 11.72461201,
         12.5362998, 10.94510988, 10.94510988, 10.94510988]
     assert_array_almost_equal(
