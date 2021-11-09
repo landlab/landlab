@@ -14,6 +14,7 @@ _POINT = (0, 0, 0)
 
 
 @given(name=text(), unit_str=text())
+@settings(deadline=None)
 def test_add_units_missing_field(at, name, unit_str):
     grid = RasterModelGrid((4, 4))
     units(grid, name, at=at, units=unit_str)
