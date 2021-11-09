@@ -163,10 +163,10 @@ class DimensionlessDischarge(Component):
                 self.water_density) / self.water_density) *
                  self.gravity * (self.grid.at_node["d50"] ** 3))
         
-        self.grid.at_node["dimensionless_discharge_above_threshold"] = [False \
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = [True \
             if self.grid.at_node["dimensionless_discharge"][i] >= \
             self.grid.at_node["dimensionless_discharge_threshold_value"][i] \
-            else True for i in range(self.grid.number_of_nodes)]
+            else False for i in range(self.grid.number_of_nodes)]
        
 
 
