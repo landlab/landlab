@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import text
 from numpy.testing import assert_array_equal
 
@@ -34,6 +34,7 @@ def test_add_units_existing_field(at):
 
 
 @given(name=text())
+@settings(deadline=None)
 def test_add_units_without_units(at, name):
     grid = RasterModelGrid((4, 4))
     units(grid, name, at=at, units=None)
