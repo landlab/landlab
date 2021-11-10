@@ -1,16 +1,19 @@
 import numpy as np
+
 from landlab import Component, RasterModelGrid
+from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
-from .ext.calc_qs_v2 import calculate_qs_in, calculate_qs_in_lakeFiller
+
 from ..depression_finder.lake_mapper import _FLOODED
+from .ext.calc_qs_large_scale import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
 
 
-class Space_v2(Component):
+class SpaceLargeScaleEroder(Component):
 
-    _name = "Space_v2"
+    _name = "SpaceLargeScaleEroder"
 
     _unit_agnostic = True
 
@@ -110,9 +113,8 @@ class Space_v2(Component):
         discharge_field="surface_water__discharge",
         erode_flooded_nodes=False,
         thickness_lim=100,
-        fill_lakes_to_brim=False,
     ):
-        """Initialize the Space model.
+        """Initialize the SpaceLargeScaleEroder model.
 
         Parameters
         ----------
@@ -151,23 +153,18 @@ class Space_v2(Component):
             depression/lake mapper (e.g., DepressionFinderAndRouter). When set
             to false, the field *flood_status_code* must be present on the grid
             (this is created by the DepressionFinderAndRouter). Default True.
-        fill_lakes_to_brim : bool, optional
-            Fill sinks to brim at water level.
         """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
-                "verified that SPACE is compatible with "
+                "verified that SpaceLargeScaleEroder is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
             raise NotImplementedError(msg)
 
-        if not isinstance(fill_lakes_to_brim, bool):
-            raise ValueError("fill_lakes_to_brim must be True or False")
-
-        super(Space_v2, self).__init__(
+        super(SpaceLargeScaleEroder, self).__init__(
             grid,
         )
 
@@ -185,7 +182,7 @@ class Space_v2(Component):
                 self._topographic__elevation - self._soil__depth
             )
 
-        # space specific inits
+        # specific inits
         self._thickness_lim = thickness_lim
         self._H_star = H_star
 
@@ -237,9 +234,6 @@ class Space_v2(Component):
             self._v_s_lake = np.float64(v_s_lake)
         self._F_f = np.float64(F_f)
 
-        # Boolean to 0 or 1 to be used as cython switch
-        self._fill_lakes_to_brim = fill_lakes_to_brim
-
         if phi >= 1.0:
             raise ValueError("Porosity must be < 1.0")
 
@@ -251,18 +245,6 @@ class Space_v2(Component):
 
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
-
-        # If filling to brim, a depression free field must be provided.
-        # 'deprFree_elevation' is automatically produced as a grid field when using FlowAccumulatorPf
-        if fill_lakes_to_brim:
-            if "deprFree_elevation" not in self.grid.at_node.keys():
-                raise NotImplementedError(
-                    "If filling to brim, a depression free \
-                                          field must be provided. \
-                                          'deprFree_elevation' is automatically \
-                                              produced as a grid field when using \
-                                                  FlowAccumulatorPf"
-                )
 
     @property
     def K_br(self):
@@ -300,13 +282,11 @@ class Space_v2(Component):
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
 
-        """Calculate erosion rates."""
-
         br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
 
         # if sp_crits are zero, then this colapses to correct all the time.
-        if self._n_sp == 1.0:
+        if np.isclose(self._n_sp, 1.0):
             S_to_the_n = self._slope
         else:
             S_to_the_n = np.power(self._slope, self._n_sp)
@@ -336,7 +316,7 @@ class Space_v2(Component):
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
 
-        # Space does not allow the formation of potholes (addition v2)
+        # Do not allow for the formation of potholes (addition v2)
         r = self._grid.at_node["flow__receiver_node"]
         br_e_max = br - br[r]
         br_e_max[br_e_max < 0] = 0
@@ -366,16 +346,19 @@ class Space_v2(Component):
         area = self.grid.cell_area_at_node
 
         r = self.grid.at_node["flow__receiver_node"]
-        stack = self.grid.at_node["flow__upstream_node_order"]
-        slope = self.grid.at_node["topographic__steepest_slope"]
-
+        stack_flip_ud = np.flipud(self.grid.at_node["flow__upstream_node_order"])
+        # Select core nodes where qs >0
+        stack_flip_ud_sel = stack_flip_ud[
+            (node_status[stack_flip_ud] == NodeStatus.CORE)
+            & (self._q[stack_flip_ud] > 0.0)
+        ]
         slope = (z - z[r]) / self._link_lengths[link_to_rcvr]
 
         # Choose a method for calculating erosion:
         self._Q_to_the_m[:] = np.power(self._q, self._m_sp)
         self._calc_erosion_rates()
 
-        if "flood_status_code" in self.grid.at_node.keys():
+        if "flood_status_code" in self.grid.at_node:
             flood_status = self.grid.at_node["flood_status_code"]
             flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
         else:
@@ -388,67 +371,29 @@ class Space_v2(Component):
 
         self._qs_in[:] = 0
 
-        if self._fill_lakes_to_brim or not np.isclose(self._v_s, self._v_s_lake):
-
-            v = np.ones(self.grid.number_of_nodes) * self._v_s
-            v[flooded_nodes] = self._v_s_lake
-            if self._fill_lakes_to_brim:
-                waterEl = self.grid.at_node["deprFree_elevation"]
-            else:
-                waterEl = np.zeros(self.grid.number_of_nodes)
-
-            vol_SSY_riv = calculate_qs_in_lakeFiller(
-                np.flipud(stack),
-                r,
-                node_status,
-                area,
-                self._q,
-                self._qs,
-                self._qs_in,
-                self._Es,
-                self._Er,
-                self._Q_to_the_m,
-                slope,
-                v,
-                H,
-                br,
-                waterEl,
-                self._sed_erosion_term,
-                self._br_erosion_term,
-                self._phi,
-                self._F_f,
-                self._K_sed,
-                self._H_star,
-                dt,
-                self._thickness_lim,
-                int(self._fill_lakes_to_brim),
-            )
-
-        else:
-            vol_SSY_riv = calculate_qs_in(
-                np.flipud(stack),
-                r,
-                node_status,
-                area,
-                self._q,
-                self._qs,
-                self._qs_in,
-                self._Es,
-                self._Er,
-                self._Q_to_the_m,
-                slope,
-                H,
-                br,
-                self._sed_erosion_term,
-                self._br_erosion_term,
-                self._v_s,
-                self._phi,
-                self._F_f,
-                self._K_sed,
-                self._H_star,
-                dt,
-                self._thickness_lim,
-            )
+        vol_SSY_riv = calculate_qs_in(
+            stack_flip_ud_sel,
+            r,
+            area,
+            self._q,
+            self._qs,
+            self._qs_in,
+            self._Es,
+            self._Er,
+            self._Q_to_the_m,
+            slope,
+            H,
+            br,
+            self._sed_erosion_term,
+            self._br_erosion_term,
+            self._v_s,
+            self._phi,
+            self._F_f,
+            self._K_sed,
+            self._H_star,
+            dt,
+            self._thickness_lim,
+        )
 
         V_leaving_riv = np.sum(self._qs_in) * dt
         # Update topography

@@ -1,4 +1,4 @@
 from .space import Space
-from .space_v2 import Space_v2
+from .space_large_scale_eroder import SpaceLargeScaleEroder
 
-__all__ = ["Space", "Space_v2"]
+__all__ = ["Space", "SpaceLargeScaleEroder"]

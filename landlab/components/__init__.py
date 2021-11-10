@@ -10,7 +10,6 @@ from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
 from .flexure import Flexure, Flexure1D
 from .flow_accum import FlowAccumulator, LossyFlowAccumulator
-from .flow_dir_acc_pf import FlowDirAccPf
 from .flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
@@ -40,12 +39,12 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
-from .space import Space
-from .space import Space_v2
+from .space import Space, SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -81,7 +80,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
-    FlowDirAccPf,
+    PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
@@ -119,7 +118,7 @@ COMPONENTS = [
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
-    Space_v2,
+    SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,
