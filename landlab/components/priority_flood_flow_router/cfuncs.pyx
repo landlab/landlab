@@ -42,37 +42,16 @@ cpdef D8_flowDir(np.ndarray[DTYPE_INT_t, ndim=1] receivers,
         ngb[7] = i -c + 1
             
         # Differences after filling can be very small, *1e3 to exaggerate those
-        el_d[0] = (el[i] - el[i + 1])*1e3 
-        if not activeCells[i + 1]:
-            el_d[0] = -1
-        
-        el_d[1] = (el[i] - el[i + c])*1e3 
-        if not activeCells[i + c]:
-            el_d[1] = -1
-        
-        el_d[2] = (el[i] - el[i -1])*1e3  
-        if not activeCells[i -1]:
-            el_d[2] = -1
-        
-        el_d[3] = (el[i] - el[i - c])*1e3  
-        if not activeCells[i - c]:
-            el_d[3] = -1
-        
-        el_d[4] = (el[i] - el[i + c + 1])*1e3/(np.sqrt(2))  
-        if not activeCells[i + c + 1]:
-            el_d[4] = -1
-        
-        el_d[5] = (el[i] - el[i + c - 1])*1e3/(np.sqrt(2))  
-        if not activeCells[i + c - 1]:
-            el_d[5] = -1
-        
-        el_d[6] = (el[i] - el[i -c - 1])*1e3/(np.sqrt(2))  
-        if not activeCells[i -c - 1]:
-            el_d[6] = -1
-        
-        el_d[7] = (el[i] - el[i -c + 1])*1e3/(np.sqrt(2))    
-        if not activeCells[i -c + 1]:
-            el_d[7] = -1        
+        # Set to -1 at boundaries (active cell ==0)
+        el_d[0] = (el[i] - el[i + 1])*1e3*activeCells[i + 1]-1+activeCells[i + 1] 
+        el_d[1] = (el[i] - el[i + c])*1e3 *activeCells[i + c]-1+activeCells[i + c]
+        el_d[2] = (el[i] - el[i -1])*1e3  *activeCells[i -1]-1+activeCells[i -1]
+        el_d[3] = (el[i] - el[i - c])*1e3 *activeCells[i - c]-1+activeCells[i - c]
+        el_d[4] = (el[i] - el[i + c + 1])*1e3/(np.sqrt(2)) *activeCells[i + c + 1]-1+activeCells[i + c + 1]
+        el_d[5] = (el[i] - el[i + c - 1])*1e3/(np.sqrt(2)) *activeCells[i + c - 1]-1+activeCells[i + c - 1]
+        el_d[6] = (el[i] - el[i -c - 1])*1e3/(np.sqrt(2)) *activeCells[i -c - 1]-1+activeCells[i -c - 1]
+        el_d[7] = (el[i] - el[i -c + 1])*1e3/(np.sqrt(2)) *activeCells[i -c + 1]-1+activeCells[i -c + 1]
+      
      
         # check to see if pixel is not a lake, if a lake, drain to itself
         if np.max(el_d)>=0:       
