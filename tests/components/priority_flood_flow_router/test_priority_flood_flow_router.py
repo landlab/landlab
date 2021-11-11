@@ -384,7 +384,7 @@ def test_cython_functions():
     sort = np.argsort(el_dep_free)
     stack_flip = np.flip(sort)
     # Filter out donors giving to receivers being -1
-    stack_flip = stack_flip[receivers[stack_flip] != -1]
+    stack_flip = np.array(stack_flip[receivers[stack_flip] != -1], dtype=int)
 
     _D8_FlowAcc(da, dis, stack_flip, receivers)
 
@@ -480,7 +480,7 @@ def test_cython_functions():
     sort = np.argsort(el_dep_free)
     stack_flip = np.flip(sort)
     # Filter out donors giving to receivers being -1
-    stack_flip = stack_flip[receivers[stack_flip] != -1]
+    stack_flip = np.array(stack_flip[receivers[stack_flip] != -1], dtype=int)
 
     _D8_FlowAcc(da, dis, stack_flip, receivers)
 
