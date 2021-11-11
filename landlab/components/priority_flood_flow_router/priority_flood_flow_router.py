@@ -724,9 +724,9 @@ class PriorityFloodFlowRouter(Component):
             da = np.array(self._node_cell_area)
             stack_flip = np.flip(self._sort)
             # Filter out donors giving to receivers being -1
-            stack_flip = stack_flip[receivers[stack_flip] != -1]           
-            
-            _D8_FlowAcc( da, dis, stack_flip, receivers)
+            stack_flip = stack_flip[receivers[stack_flip] != -1]
+
+            _D8_FlowAcc(da, dis, stack_flip, receivers)
 
             a[:] = da
             q[:] = dis

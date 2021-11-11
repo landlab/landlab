@@ -164,7 +164,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     the plot.
 
     For now, this function only works with regular grids.
-    
+
     Developed by: Benjamin Campforts
 
     Parameters
