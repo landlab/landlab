@@ -165,6 +165,8 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
     For now, this function only works with regular grids.
 
+    Developed by: Benjamin Campforts
+
     Parameters
     ----------
     grid : ModelGrid
@@ -197,6 +199,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
         [0, 1]. Ignore in most cases.
     thicks_km : bool, optional
         Display thicks in km instead of m
+        Default: False
     allow_colorbar : bool
         If True, include the colorbar.
     shrink : float
@@ -602,7 +605,7 @@ def _imshowhs_grid_values(
     vmin=None,
     vmax=None,
     norm=None,
-    thicks_km=True,
+    thicks_km=False,
     shrink=1.0,
     color_for_closed=None,
     color_for_background=None,

@@ -9,6 +9,11 @@ from numpy.testing import assert_array_equal
 
 from landlab import FieldError, HexModelGrid, RasterModelGrid
 from landlab.components import PriorityFloodFlowRouter
+from landlab.components.priority_flood_flow_router.cfuncs import (
+    _D8_FlowAcc,
+    _D8_flowDir,
+)
+from landlab.grid.nodestatus import NodeStatus
 
 
 def test_check_fields():
@@ -307,5 +312,186 @@ def test_sum_prop_is_one():
         np.ones_like(props_Pf),
         decimal=5,
         err_msg="Sum of flow propoertions is not equal to one",
+        verbose=True,
+    )
+
+
+def test_cython_functions():
+    # %% test d8 flow dir with open boundaries
+    mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
+    z = mg.add_zeros("topographic__elevation", at="node")
+    z[5:7] = [1, 3]
+    z[9:11] = [3, 4]
+    from landlab.plot import imshow_grid
+
+    imshow_grid(mg, "topographic__elevation")
+
+    activeCells = np.array(mg.status_at_node != NodeStatus.CLOSED + 0, dtype=int)
+    receivers = np.array(mg.status_at_node, dtype=int)
+    distance_receiver = np.zeros((receivers.shape), dtype=float)
+    cores = mg.core_nodes
+    activeCores = cores[activeCells[cores] == 1]
+    # Make boundaries to save time with conditionals in c loops
+    receivers[np.nonzero(mg.status_at_node)] = -1
+    steepest_slope = np.zeros((receivers.shape), dtype=float)
+    el_dep_free = z
+    el_ori = mg.at_node["topographic__elevation"]
+    dist = (
+        np.array([1, np.sqrt(2), 1, np.sqrt(2), 1, np.sqrt(2), 1, np.sqrt(2)]) * mg.dx
+    )
+
+    ngb = np.zeros((8,), dtype=int)
+    el_d = np.zeros((8,), dtype=float)
+
+    # Links
+    adj_link = np.array(mg.d8s_at_node, dtype=int)
+    recvr_link = np.zeros((receivers.shape), dtype=int) - 1
+
+    _D8_flowDir(
+        receivers,
+        distance_receiver,
+        steepest_slope,
+        np.array(el_dep_free),
+        el_ori,
+        dist,
+        ngb,
+        activeCores,
+        activeCells,
+        el_d,
+        mg.number_of_node_columns,
+        mg.dx,
+        adj_link,
+        recvr_link,
+    )
+
+    # We know where the water will flow using the D8 steepest descent algo
+    # Also consider that under equal slopes, the flow will follow Landlab's rotational ordering going first to cardial, then to diagonal cells
+    known_rec = np.array([-1, -1, -1, -1, -1, 4, 7, -1, -1, 13, 11, -1, -1, -1, -1, -1])
+
+    testing.assert_array_equal(
+        known_rec,
+        receivers,
+        err_msg="Error with D8 flow routing calculations",
+        verbose=True,
+    )
+
+    # %% test flow acc with open boundaries
+    node_cell_area = np.array(mg.cell_area_at_node)
+    node_cell_area[mg.closed_boundary_nodes] = 0.0
+    dis = np.full(mg.number_of_nodes, node_cell_area)
+
+    da = np.array(node_cell_area)
+    sort = np.argsort(el_dep_free)
+    stack_flip = np.flip(sort)
+    # Filter out donors giving to receivers being -1
+    stack_flip = np.array(stack_flip[receivers[stack_flip] != -1], dtype=int)
+
+    _D8_FlowAcc(da, dis, stack_flip, receivers)
+
+    # We know how much water will accumualte given the calculated flow dir (see before)
+    known_FA = np.array(
+        [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0]
+    )
+
+    testing.assert_array_equal(
+        known_FA,
+        da,
+        err_msg="Error with D8_FlowAcc calculations",
+        verbose=True,
+    )
+
+    # %% test d8 flow dir with closed boundaries
+    mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
+    z = mg.add_zeros("topographic__elevation", at="node")
+    # Close all model boundary edges
+    mg.set_closed_boundaries_at_grid_edges(
+        bottom_is_closed=True,
+        left_is_closed=True,
+        right_is_closed=True,
+        top_is_closed=True,
+    )
+
+    # Set lower-left (southwest) corner as an open boundary
+    mg.set_watershed_boundary_condition_outlet_id(
+        0, mg["node"]["topographic__elevation"], -9999.0
+    )
+
+    z[5:7] = [1, 3]
+    z[9:11] = [3, 4]
+    from landlab.plot import imshow_grid
+
+    imshow_grid(mg, "topographic__elevation")
+
+    activeCells = np.array(mg.status_at_node != NodeStatus.CLOSED + 0, dtype=int)
+    receivers = np.array(mg.status_at_node, dtype=int)
+    distance_receiver = np.zeros((receivers.shape), dtype=float)
+    cores = mg.core_nodes
+    activeCores = cores[activeCells[cores] == 1]
+    # Make boundaries to save time with conditionals in c loops
+    receivers[np.nonzero(mg.status_at_node)] = -1
+    steepest_slope = np.zeros((receivers.shape), dtype=float)
+    el_dep_free = z
+    el_ori = mg.at_node["topographic__elevation"]
+    dist = (
+        np.array([1, np.sqrt(2), 1, np.sqrt(2), 1, np.sqrt(2), 1, np.sqrt(2)]) * mg.dx
+    )
+
+    ngb = np.zeros((8,), dtype=int)
+    el_d = np.zeros((8,), dtype=float)
+
+    # Links
+    adj_link = np.array(mg.d8s_at_node, dtype=int)
+    recvr_link = np.zeros((receivers.shape), dtype=int) - 1
+
+    _D8_flowDir(
+        receivers,
+        distance_receiver,
+        steepest_slope,
+        np.array(el_dep_free),
+        el_ori,
+        dist,
+        ngb,
+        activeCores,
+        activeCells,
+        el_d,
+        mg.number_of_node_columns,
+        mg.dx,
+        adj_link,
+        recvr_link,
+    )
+
+    # We know where the water will flow using the D8 steepest descent algo
+    # Also consider that under equal slopes, the flow will follow Landlab's rotational ordering going first to cardial, then to diagonal cells
+    known_rec = np.array([-1, -1, -1, -1, -1, 0, 5, -1, -1, 5, 5, -1, -1, -1, -1, -1])
+
+    testing.assert_array_equal(
+        known_rec,
+        receivers,
+        err_msg="Error with D8 flow routing calculations",
+        verbose=True,
+    )
+
+    # %% test flow acc with closed boundaries
+    node_cell_area = np.array(mg.cell_area_at_node)
+    node_cell_area[mg.closed_boundary_nodes] = 0.0
+    dis = np.full(mg.number_of_nodes, node_cell_area)
+
+    da = np.array(node_cell_area)
+    sort = np.argsort(el_dep_free)
+    stack_flip = np.flip(sort)
+    # Filter out donors giving to receivers being -1
+    stack_flip = np.array(stack_flip[receivers[stack_flip] != -1], dtype=int)
+
+    _D8_FlowAcc(da, dis, stack_flip, receivers)
+
+    # We know how much water will accumualte given the calculated flow dir (see before)
+    known_FA = np.array(
+        [4.0, 0.0, 0.0, 0.0, 0.0, 4.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
+
+    testing.assert_array_equal(
+        known_FA,
+        da,
+        err_msg="Error with D8_FlowAcc calculations",
         verbose=True,
     )

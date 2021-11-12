@@ -24,7 +24,7 @@ from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
-from .cfuncs import _FA_D8, D8_flowDir
+from .cfuncs import _D8_FlowAcc, _D8_flowDir
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -655,7 +655,6 @@ class PriorityFloodFlowRouter(Component):
         None.
 
         """
-        r = self.grid.number_of_node_rows
         c = self.grid.number_of_node_columns
         dx = self.grid.dx
         activeCells = np.array(
@@ -668,7 +667,7 @@ class PriorityFloodFlowRouter(Component):
         # Make boundaries to save time with conditionals in c loops
         receivers[np.nonzero(self._grid.status_at_node)] = -1
         steepest_slope = np.zeros((receivers.shape), dtype=float)
-        el = self._depression_free_dem.reshape(self.grid.number_of_nodes)
+        el_dep_free = self._depression_free_dem.reshape(self.grid.number_of_nodes)
         el_ori = self.grid.at_node["topographic__elevation"]
         dist = np.multiply(
             [1, 1, 1, 1, np.sqrt(2), np.sqrt(2), np.sqrt(2), np.sqrt(2)], dx
@@ -680,18 +679,17 @@ class PriorityFloodFlowRouter(Component):
         adj_link = np.array(self._grid.d8s_at_node, dtype=int)
         recvr_link = np.zeros((receivers.shape), dtype=int) - 1
 
-        D8_flowDir(
+        _D8_flowDir(
             receivers,
             distance_receiver,
             steepest_slope,
-            np.array(el),
+            np.array(el_dep_free),
             el_ori,
             dist,
             ngb,
             activeCores,
             activeCells,
             el_d,
-            r,
             c,
             dx,
             adj_link,
@@ -725,10 +723,12 @@ class PriorityFloodFlowRouter(Component):
             else:
                 dis = np.full(self.grid.number_of_nodes, self._node_cell_area)
 
-            da = np.zeros(self.grid.number_of_nodes, dtype=int) + self._node_cell_area
-            stack = self._sort
-            nb = len(da)
-            _FA_D8(nb, da, dis, stack, receivers)
+            da = np.array(self._node_cell_area)
+            stack_flip = np.flip(self._sort)
+            # Filter out donors giving to receivers being -1
+            stack_flip = stack_flip[receivers[stack_flip] != -1]
+
+            _D8_FlowAcc(da, dis, stack_flip, receivers)
 
             a[:] = da
             q[:] = dis
