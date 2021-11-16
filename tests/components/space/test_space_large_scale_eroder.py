@@ -79,7 +79,7 @@ def check_properties_phi_fraction_fines_LS():
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros("topographic__elevation", at="node")
     br = mg.add_zeros("bedrock__elevation", at="node")
-    br = mg.x_of_node + mg.y_of_node
+    br[:] = mg.x_of_node + mg.y_of_node
     soil = mg.add_zeros("soil__depth", at="node")
     z[:] = br + soil
     fa = FlowAccumulator(mg, flow_director="D8")
@@ -107,7 +107,7 @@ def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
     br = mg.add_zeros("bedrock__elevation", at="node")
-    br = mg.x_of_node + mg.y_of_node
+    br[:] = mg.x_of_node + mg.y_of_node
     soil = mg.add_zeros("soil__depth", at="node")
     z[:] = br + soil
     fa = FlowAccumulator(mg, flow_director="MFD")
@@ -185,6 +185,55 @@ def test_soil_field_already_on_grid():
         err_msg="SpaceLargeScaleEroder soil depth field test failed",
         verbose=True,
     )
+
+    # %% Check getters
+    testing.assert_array_equal(
+        0.01,
+        sp.K_br,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    testing.assert_array_equal(
+        0.01,
+        sp.K_sed,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    # sediment erosion is zero before running the component
+    testing.assert_array_equal(
+        np.zeros(mg.number_of_nodes),
+        sp.Es,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    # rock erosion is zero before running the component
+    testing.assert_array_equal(
+        np.zeros(mg.number_of_nodes),
+        sp.Er,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    # %% Check setters
+    sp.K_br = 0.02
+    testing.assert_array_equal(
+        0.02,
+        sp.K_br,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    sp.K_sed = 0.02
+    testing.assert_array_equal(
+        0.02,
+        sp.K_sed,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+
+    with pytest.raises(AttributeError):
+        sp.Es = np.zeros(mg.number_of_nodes)
+
+    with pytest.raises(AttributeError):
+        sp.Er = np.zeros(mg.number_of_nodes)
 
 
 # %%
@@ -728,6 +777,7 @@ def test_matches_detachment_solution_PF():
         phi=0.1,
         H_star=1.0,
         v_s=0.001,
+        v_s_lake=0.001,
         m_sp=m_sp,
         n_sp=n_sp,
         sp_crit_sed=0,

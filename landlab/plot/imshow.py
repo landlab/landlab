@@ -1400,8 +1400,6 @@ def imshowhs_grid(grid, values, **kwds):
         raise NotImplementedError(
             "For now, only values at nodes can be displayed using the in the imshowhs functions"
         )
-
-        ax = None
     else:
         raise TypeError("value location %s not understood" % values_at)
 

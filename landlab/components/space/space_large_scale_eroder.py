@@ -403,11 +403,6 @@ class SpaceLargeScaleEroder(Component):
         """Bedrock erosion term."""
         return self._Er
 
-    @property
-    def H(self):
-        """Sediment thickness."""
-        return self._H
-
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
 
