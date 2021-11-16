@@ -12,7 +12,7 @@ from landlab.components import (
 )
 
 
-def check_inputFields_flowRouter():
+def test_inputFields_flowRouter():
     """
     SpaceLargeScaleEroder should throw an error when topograhy is not equal to the sum of
     bedrock and soil thickness
@@ -37,7 +37,7 @@ def check_inputFields_flowRouter():
 
 
 # %%
-def check_inputFields_soil():
+def test_inputFields_soil():
     """
     SpaceLargeScaleEroder should throw an error when the soil__depth field is not provided
     """
@@ -54,9 +54,10 @@ def check_inputFields_soil():
 
 
 # %%
-def check_inputFields_bedrock():
+def test_inputFields_bedrock():
     """
-    SpaceLargeScaleEroder should throw an error when the bedrock__elevation field is not provided
+    SpaceLargeScaleEroder should instanciate the bedrock__elevation field
+    when it is not provided
     """
     # %%
     mg = RasterModelGrid((5, 5))
@@ -64,14 +65,13 @@ def check_inputFields_bedrock():
     _ = mg.add_zeros("soil__depth", at="node")
     fa = FlowAccumulator(mg, flow_director="D8")
     fa.run_one_step()
+    _ = SpaceLargeScaleEroder(mg)
 
-    # Instanciate the slider
-    with pytest.raises(FieldError):
-        _ = SpaceLargeScaleEroder(mg)
+    assert "bedrock__elevation" in mg.at_node.keys()
 
 
 # %%
-def check_properties_phi_fraction_fines_LS():
+def test_properties_phi_fraction_fines_LS():
     """
     SpaceLargeScaleEroder should throw an error when phi/fraction_fines_LS < 0 or phi > 0
     """
