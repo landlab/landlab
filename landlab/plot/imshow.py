@@ -306,7 +306,9 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     if isinstance(grid, RasterModelGrid):
         shape = grid.shape
     else:
-        shape = (-1,)
+        raise NotImplementedError(
+            "For now, only RasterModelGrids are supported in the imshowhs functions"
+        )
 
     ax = _imshowhs_grid_values(grid, values_at_node.reshape(shape), **kwds)
 
@@ -1061,11 +1063,6 @@ def _imshowhs_grid_values(
                     )
                     axins2.xaxis.set_label_coords(0.5, -1.75)
 
-    else:
-        NotImplementedError(
-            "For now, only RasterModelGrids are supported in the imshowhs functions"
-        )
-
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
         if grid_units[1] == "-" and grid_units[0] == "-":
@@ -1400,7 +1397,7 @@ def imshowhs_grid(grid, values, **kwds):
     if values_at == "node":
         ax = imshowhs_grid_at_node(grid, values, **kwds)
     elif values_at == "cell":
-        NotImplementedError(
+        raise NotImplementedError(
             "For now, only values at nodes can be displayed using the in the imshowhs functions"
         )
 
