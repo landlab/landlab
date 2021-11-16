@@ -422,10 +422,17 @@ class PriorityFloodFlowRouter(Component):
         if not self._accumulate_flow:
             self._info["drainage_area"]["optional"] = True
             self._info["surface_water__discharge"]["optional"] = True
+        else:
+            self._info["drainage_area"]["optional"] = False
+            self._info["surface_water__discharge"]["optional"] = False
 
         if not self._accumulate_flow_hill:
             self._info["hill_drainage_area"]["optional"] = True
             self._info["hill_surface_water__discharge"]["optional"] = True
+        else:
+
+            self._info["hill_drainage_area"]["optional"] = False
+            self._info["hill_surface_water__discharge"]["optional"] = False
 
         self.initialize_output_fields()
 
@@ -613,12 +620,13 @@ class PriorityFloodFlowRouter(Component):
                 props_Pf[props_Pf == 0] = -1
 
             if hill_flow:
-                self._hill_prps[:] = props_Pf
                 if flow_metric in PSINGLE_FMs:
                     ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
+                    self._hill_prps[:] = props_Pf[ij_at_max]
                     self._hill_rcvs[:] = rcvrs[ij_at_max]
                     self._hill_slope[:] = slope_temp[ij_at_max]
                 else:
+                    self._hill_prps[:] = props_Pf
                     self._hill_rcvs[:] = rcvrs
                     self._hill_slope = slope_temp
                     self._hill_slope[rcvrs == -1] = 0
@@ -817,7 +825,7 @@ class PriorityFloodFlowRouter(Component):
             wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
             wg.geotransform = [0, 1, 0, 0, 0, -1]
             with self._suppress_output():
-                q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
+                q_pf = rd.FlowAccumFromProps(props=props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
         else:
             q[:] = self._drainage_area

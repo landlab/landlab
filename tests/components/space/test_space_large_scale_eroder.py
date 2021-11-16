@@ -4,12 +4,100 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import FieldError, HexModelGrid, RasterModelGrid
 from landlab.components import (
     FlowAccumulator,
     PriorityFloodFlowRouter,
     SpaceLargeScaleEroder,
 )
+
+
+def check_inputFields_flowRouter():
+    """
+    SpaceLargeScaleEroder should throw an error when topograhy is not equal to the sum of
+    bedrock and soil thickness
+    """
+    # %%
+    # Make a raster model grid and create a plateau
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    br[:] = mg.x_of_node + mg.y_of_node
+    soil = mg.add_zeros("soil__depth", at="node")
+    z[:] = br + soil
+    fa = FlowAccumulator(mg, flow_director="D8")
+    fa.run_one_step()
+
+    # make plateau at 10m
+    br += 10
+
+    # Instanciate the slider
+    with pytest.raises(AssertionError):
+        _ = SpaceLargeScaleEroder(mg)
+
+
+# %%
+def check_inputFields_soil():
+    """
+    SpaceLargeScaleEroder should throw an error when the soil__depth field is not provided
+    """
+    # %%
+    mg = RasterModelGrid((5, 5))
+    _ = mg.add_zeros("topographic__elevation", at="node")
+    _ = mg.add_zeros("bedrock__elevation", at="node")
+    fa = FlowAccumulator(mg, flow_director="D8")
+    fa.run_one_step()
+
+    # Instanciate the slider
+    with pytest.raises(FieldError):
+        _ = SpaceLargeScaleEroder(mg)
+
+
+# %%
+def check_inputFields_bedrock():
+    """
+    SpaceLargeScaleEroder should throw an error when the bedrock__elevation field is not provided
+    """
+    # %%
+    mg = RasterModelGrid((5, 5))
+    _ = mg.add_zeros("topographic__elevation", at="node")
+    _ = mg.add_zeros("soil__depth", at="node")
+    fa = FlowAccumulator(mg, flow_director="D8")
+    fa.run_one_step()
+
+    # Instanciate the slider
+    with pytest.raises(FieldError):
+        _ = SpaceLargeScaleEroder(mg)
+
+
+# %%
+def check_properties_phi_fraction_fines_LS():
+    """
+    SpaceLargeScaleEroder should throw an error when phi/fraction_fines_LS < 0 or phi > 0
+    """
+    # %%
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    br = mg.x_of_node + mg.y_of_node
+    soil = mg.add_zeros("soil__depth", at="node")
+    z[:] = br + soil
+    fa = FlowAccumulator(mg, flow_director="D8")
+    fa.run_one_step()
+
+    # Instanciate the slider
+    with pytest.raises(ValueError):
+        _ = SpaceLargeScaleEroder(mg, phi=-0.2)
+    # Instanciate the slider
+    with pytest.raises(ValueError):
+        _ = SpaceLargeScaleEroder(mg, phi=1.2)
+    # Instanciate the slider
+    with pytest.raises(ValueError):
+        _ = SpaceLargeScaleEroder(mg, F_f=-0.2)
+    # Instanciate the slider
+    with pytest.raises(ValueError):
+        _ = SpaceLargeScaleEroder(mg, F_f=1.2)
+
 
 # %%
 
@@ -18,7 +106,10 @@ def test_route_to_multiple_error_raised():
     # %%
     mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
-    z += mg.x_of_node + mg.y_of_node
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    br = mg.x_of_node + mg.y_of_node
+    soil = mg.add_zeros("soil__depth", at="node")
+    z[:] = br + soil
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
 
@@ -68,7 +159,7 @@ def test_soil_field_already_on_grid():
     mg.set_watershed_boundary_condition_outlet_id(
         0, mg["node"]["topographic__elevation"], -9999.0
     )
-    br[:] = z[:] - soil[:]
+    br[:] = z - soil
 
     # Create a D8 flow handler
     FlowAccumulator(mg, flow_director="D8")
@@ -128,7 +219,7 @@ def test_br_field_already_on_grid():
     mg.set_watershed_boundary_condition_outlet_id(
         0, mg["node"]["topographic__elevation"], -9999.0
     )
-    z[:] = br[:] + soil[:]
+    z[:] = br + soil
 
     # Create a D8 flow handler
     FlowAccumulator(mg, flow_director="D8")
@@ -234,7 +325,89 @@ def test_matches_detachment_solution():
         err_msg="SpaceLargeScaleEroder detachment-limited test failed",
         verbose=True,
     )
+
+
+# %%
+def test_matches_detachment_solution_n_gr_1():
     # %%
+    """
+    Test that model matches the detachment-limited analytical solution
+    for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
+    """
+
+    # %% set up a 5x5 grid with one open outlet node and low initial elevations.
+    nr = 5
+    nc = 5
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
+
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
+
+    mg["node"]["topographic__elevation"] += (
+        mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
+    )
+    mg.set_closed_boundaries_at_grid_edges(
+        bottom_is_closed=True,
+        left_is_closed=True,
+        right_is_closed=True,
+        top_is_closed=True,
+    )
+    mg.set_watershed_boundary_condition_outlet_id(
+        0, mg["node"]["topographic__elevation"], -9999.0
+    )
+    br[:] = z[:] - soil[:]
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(mg, flow_director="D8")
+
+    # Parameter values for detachment-limited test
+    K_br = 0.01
+    U = 0.0001
+    dt = 1.0
+    F_f = 1.0  # all detached rock disappears; detachment-ltd end-member
+    m_sp = 0.5
+    n_sp = 1.1
+
+    # Instantiate the SpaceLargeScaleEroder component...
+    sp = SpaceLargeScaleEroder(
+        mg,
+        K_sed=0.00001,
+        K_br=K_br,
+        F_f=F_f,
+        phi=0.1,
+        H_star=1.0,
+        v_s=0.001,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        sp_crit_sed=0,
+        sp_crit_br=0,
+    )
+
+    # ... and run it to steady state (2000x1-year timesteps).
+    for _ in range(4000):
+        fa.run_one_step()
+        sp.run_one_step(dt=dt)
+        z[mg.core_nodes] += U * dt  # m
+        br[mg.core_nodes] = z[mg.core_nodes] - soil[mg.core_nodes]
+
+    # compare numerical and analytical slope solutions
+    num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
+    analytical_slope = np.power(U / K_br, 1.0 / n_sp) * np.power(
+        mg.at_node["drainage_area"][mg.core_nodes], -m_sp / n_sp
+    )
+
+    # test for match with analytical slope-area relationship
+    testing.assert_array_almost_equal(
+        num_slope,
+        analytical_slope,
+        decimal=8,
+        err_msg="SpaceLargeScaleEroder detachment-limited test failed",
+        verbose=True,
+    )
+
+
+# %%
 
 
 @pytest.mark.slow
