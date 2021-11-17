@@ -15,8 +15,6 @@ from numpy import testing
 from landlab import FieldError, RasterModelGrid
 from landlab.components import BedrockLandslider, PriorityFloodFlowRouter
 
-# %%
-
 
 def check_inputFields_flowRouter():
     """
@@ -43,7 +41,6 @@ def check_inputFields_flowRouter():
         _ = BedrockLandslider(mg)
 
 
-# %%
 def check_inputFields_soil():
     """
     BedrockLandslider should throw an error when the soil__depth field is not provided
@@ -64,7 +61,6 @@ def check_inputFields_soil():
         _ = BedrockLandslider(mg)
 
 
-# %%
 def check_inputFields_bedrock():
     """
     BedrockLandslider should throw an error when the bedrock__elevation field is not provided
@@ -330,9 +326,6 @@ def testMassBalance_noporosity():
     testing.assert_almost_equal(
         total_vol_before, total_vol_after, decimal=5, err_msg=err_msg
     )
-
-
-# %%
 
 
 def testMassBalance_porosity():
