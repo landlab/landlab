@@ -34,19 +34,54 @@ def test_check_fields():
 
 
 # %%
-def test_fields():
+def input_values():
     # %%
-    """Check to make sure the right fields have been created.
+    """
+    PriorityFloodFlowRouter should throw an error when wrong input values are provided
+    """
+
+    # %% Default configuration
+    mg1 = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
+
+    with pytest.raises(ValueError):
+        _ = PriorityFloodFlowRouter(mg1, suppress_out=True, flow_metric="Oops")
+
+    with pytest.raises(ValueError):
+        _ = PriorityFloodFlowRouter(mg1, suppress_out=True, depression_handler="Oops")
+
+
+# %%
+def test_seperate_hillflow_update():
+    # %%
+    """
+    Hillflow fields cannot be updated if not initialized
+    """
+
+    # %% Default configuration
+    mg1 = RasterModelGrid((6, 6), xy_spacing=(1, 1))
+    mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
+    fa1 = PriorityFloodFlowRouter(mg1, suppress_out=True)
+    fa1.run_one_step()
+    with pytest.raises(ValueError):
+        fa1.update_hill_fdfa()
+
+    # %%
+
+
+def test_fields1():
+    # %%
+    """
+    Check to make sure the right fields have been created.
 
     Check that the sizes are also correct.
     """
 
     # %% Default configuration
-    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg1 = RasterModelGrid((6, 6), xy_spacing=(1, 1))
     mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
     fa1 = PriorityFloodFlowRouter(mg1, suppress_out=True)
     fa1.run_one_step()
-
     assert sorted(list(mg1.at_node.keys())) == [
         "depression_free_elevation",
         "drainage_area",
@@ -61,32 +96,38 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
+
+
+def test_fields2():
     # %% No flow accumulation
-    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg2 = RasterModelGrid((7, 7), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = PriorityFloodFlowRouter(mg2, accumulate_flow=True, suppress_out=True)
+    fa2 = PriorityFloodFlowRouter(mg2, suppress_out=True, accumulate_flow=False)
     fa2.run_one_step()
+
     assert sorted(list(mg2.at_node.keys())) == [
         "depression_free_elevation",
-        "drainage_area",
         "flood_status_code",
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__receiver_proportions",
         "flow__upstream_node_order",
         "squared_length_adjacent",
-        "surface_water__discharge",
         "topographic__elevation",
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
+    # %%
+
+
+def test_fields3():
 
     # %% Second FD (no FA is default)
-    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = PriorityFloodFlowRouter(mg2, separate_hill_flow=True, suppress_out=True)
-    fa2.run_one_step()
-    assert sorted(list(mg2.at_node.keys())) == [
+    mg3 = RasterModelGrid((8, 8), xy_spacing=(1, 1))
+    mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")
+    fa3 = PriorityFloodFlowRouter(mg3, separate_hill_flow=True, suppress_out=True)
+    fa3.run_one_step()
+    assert sorted(list(mg3.at_node.keys())) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -104,14 +145,20 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    # %% Second FD (with FA )
-    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
-    fa2 = PriorityFloodFlowRouter(
-        mg2, separate_hill_flow=True, accumulate_flow_hill=True, suppress_out=True
+    # %%
+
+
+def test_fields4():
+    """
+    Second FD (with FA )
+    """
+    mg4 = RasterModelGrid((9, 9), xy_spacing=(1, 1))
+    mg4.add_field("topographic__elevation", mg4.node_x + mg4.node_y, at="node")
+    fa4 = PriorityFloodFlowRouter(
+        mg4, separate_hill_flow=True, accumulate_flow_hill=True, suppress_out=True
     )
-    fa2.run_one_step()
-    assert sorted(list(mg2.at_node.keys())) == [
+    fa4.run_one_step()
+    assert sorted(list(mg4.at_node.keys())) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -132,7 +179,17 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    # %%
+
+def test_fields5():
+    # %% Verify multiple flow
+    mg5 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg5.add_field("topographic__elevation", mg5.node_x + mg5.node_y, at="node")
+    _ = PriorityFloodFlowRouter(mg5, suppress_out=True, flow_metric="Quinn")
+
+    assert mg5.at_node["topographic__steepest_slope"].shape[1] == 8
+    assert mg5.at_node["flow__receiver_node"].shape[1] == 8
+    assert mg5.at_node["flow__receiver_proportions"].shape[1] == 8
+    assert mg5.at_node["flow__link_to_receiver_node"].shape[1] == 8
 
 
 def test_accumulated_area_closes():
@@ -249,6 +306,219 @@ def test_flow_accumulator_properties():
     assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
 
 
+def test_flow_accumulator_properties_D4():
+    # %% set update_hill_flow_instantaneous to false and update hill flow properties explicitly
+
+    mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
+    _ = mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
+    fa = PriorityFloodFlowRouter(
+        mg,
+        flow_metric="D4",
+        suppress_out=True,
+        separate_hill_flow=True,
+        hill_flow_metric="D4",
+        accumulate_flow_hill=True,
+        update_hill_flow_instantaneous=False,
+    )
+    # from landlab.components.flow_accum import FlowAccumulator
+    # fa = FlowAccumulator(mg)
+    fa.run_one_step()
+    fa.update_hill_fdfa()
+
+    node_drainage_area = np.array(
+        [0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
+
+    assert_array_equal(fa.node_water_discharge, node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
+
+    # Hill flow accumulation should be similar
+    assert_array_equal(
+        mg.at_node["hill_surface_water__discharge"], node_drainage_area.flatten()
+    )
+    assert_array_equal(mg.at_node["hill_drainage_area"], node_drainage_area.flatten())
+
+
+# %%
+def test_flow_accumulator_properties_D4_varying_runoff():
+    # %%
+
+    mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
+    _ = mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
+    runoff_rate = mg.node_x * 0 + 2
+    fa = PriorityFloodFlowRouter(
+        mg,
+        flow_metric="D4",
+        suppress_out=True,
+        separate_hill_flow=True,
+        hill_flow_metric="D4",
+        runoff_rate=runoff_rate,
+        accumulate_flow_hill=True,
+    )
+    # from landlab.components.flow_accum import FlowAccumulator
+    # fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    node_drainage_area = np.array(
+        [0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
+
+    assert_array_equal(fa.node_water_discharge, 2 * node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
+
+    # Hill flow accumulation should be similar
+    assert_array_equal(
+        mg.at_node["hill_surface_water__discharge"], 2 * node_drainage_area.flatten()
+    )
+    assert_array_equal(mg.at_node["hill_drainage_area"], node_drainage_area.flatten())
+
+
+def test_flow_accumulator_properties_D4_varying_water__unit_flux_in():
+    # %%
+
+    mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
+    _ = mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
+    mg.add_field("water__unit_flux_in", mg.node_x * 0 + 2, at="node")
+    fa = PriorityFloodFlowRouter(
+        mg,
+        flow_metric="D4",
+        suppress_out=True,
+        separate_hill_flow=True,
+        hill_flow_metric="D4",
+        accumulate_flow_hill=True,
+    )
+    # from landlab.components.flow_accum import FlowAccumulator
+    # fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    node_drainage_area = np.array(
+        [0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 1.0, 0.0, 2.0, 2.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
+
+    assert_array_equal(fa.node_water_discharge, 2 * node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
+
+    # Hill flow accumulation should be similar
+    assert_array_equal(
+        mg.at_node["hill_surface_water__discharge"], 2 * node_drainage_area.flatten()
+    )
+    assert_array_equal(mg.at_node["hill_drainage_area"], node_drainage_area.flatten())
+
+
+# %%
+def test_flow_accumulator_varying_Runoff_rate():
+    """
+    There are two options to provide a runoff value
+    The first one is to provide a weight array as a runoff_value input argument
+    """
+
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
+    runoff_rate = mg.node_x * 0 + 2
+    fa = PriorityFloodFlowRouter(
+        mg,
+        flow_metric="D8",
+        suppress_out=True,
+        runoff_rate=runoff_rate,
+        separate_hill_flow=True,
+        hill_flow_metric="D8",
+        accumulate_flow_hill=True,
+    )
+
+    # from landlab.components.flow_accum import FlowAccumulator
+    # fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    node_drainage_area = np.array(
+        [
+            [3.0, 2.0, 1.0, 0.0, 0.0],
+            [2.0, 3.0, 2.0, 1.0, 0.0],
+            [1.0, 2.0, 2.0, 1.0, 0.0],
+            [0.0, 1.0, 1.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
+    )
+
+    assert_array_equal(fa.node_water_discharge, 2 * node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
+
+    # Hill flow accumulation should be similar
+    assert_array_equal(
+        mg.at_node["hill_surface_water__discharge"], 2 * node_drainage_area.flatten()
+    )
+    assert_array_equal(mg.at_node["hill_drainage_area"], node_drainage_area.flatten())
+
+
+# %%
+def test_flow_accumulator_varying_water__unit_flux_in():
+    """
+    There are two options to provide a runoff value
+    The second is to provide a weight array as a water__unit_flux_in input field
+    """
+
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
+    mg.add_field("water__unit_flux_in", mg.node_x * 0 + 2, at="node")
+    fa = PriorityFloodFlowRouter(
+        mg,
+        flow_metric="D8",
+        suppress_out=True,
+        separate_hill_flow=True,
+        hill_flow_metric="D8",
+        accumulate_flow_hill=True,
+    )
+
+    # from landlab.components.flow_accum import FlowAccumulator
+    # fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    node_drainage_area = np.array(
+        [
+            [3.0, 2.0, 1.0, 0.0, 0.0],
+            [2.0, 3.0, 2.0, 1.0, 0.0],
+            [1.0, 2.0, 2.0, 1.0, 0.0],
+            [0.0, 1.0, 1.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
+    )
+
+    assert_array_equal(fa.node_water_discharge, 2 * node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
+
+    # Hill flow accumulation should be similar
+    assert_array_equal(
+        mg.at_node["hill_surface_water__discharge"], 2 * node_drainage_area.flatten()
+    )
+    assert_array_equal(mg.at_node["hill_drainage_area"], node_drainage_area.flatten())
+
+
+# %%
+def test_flow_accumulator_properties_breach():
+    # %%
+
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x * 2 + mg.node_y, at="node")
+    fa = PriorityFloodFlowRouter(
+        mg, flow_metric="D8", suppress_out=True, depression_handler="breach"
+    )
+    # from landlab.components.flow_accum import FlowAccumulator
+    # fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    node_drainage_area = np.array(
+        [
+            [3.0, 2.0, 1.0, 0.0, 0.0],
+            [2.0, 3.0, 2.0, 1.0, 0.0],
+            [1.0, 2.0, 2.0, 1.0, 0.0],
+            [0.0, 1.0, 1.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
+    )
+
+    assert_array_equal(fa.node_water_discharge, node_drainage_area.flatten())
+    assert_array_equal(fa.node_drainage_area, node_drainage_area.flatten())
+
+
 # %%
 def test_bad_metric_name():
     # %%
@@ -281,7 +551,7 @@ def test_sum_prop_is_one():
         props_Pf,
         np.ones_like(props_Pf),
         decimal=5,
-        err_msg="Sum of flow propoertions is not equal to one",
+        err_msg="Sum of flow proportions is not equal to one",
         verbose=True,
     )
 
@@ -293,11 +563,11 @@ def test_sum_prop_is_one():
         props_Pf,
         np.ones_like(props_Pf),
         decimal=5,
-        err_msg="Sum of flow propoertions is not equal to one",
+        err_msg="Sum of flow proportions is not equal to one",
         verbose=True,
     )
 
-    # %% multiple flow with D8
+    # %% multiple flow with D8 over hills
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = PriorityFloodFlowRouter(
@@ -311,9 +581,28 @@ def test_sum_prop_is_one():
         props_Pf,
         np.ones_like(props_Pf),
         decimal=5,
-        err_msg="Sum of flow propoertions is not equal to one",
+        err_msg="Sum of flow proportions is not equal to one",
         verbose=True,
     )
+
+    # %% multiple flow with D8 over rivers
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    fa = PriorityFloodFlowRouter(mg, flow_metric="Quinn", suppress_out=True)
+    fa.run_one_step()
+
+    # Multiple flow
+    props_Pf = mg.at_node["flow__receiver_proportions"]
+    props_Pf[props_Pf == -1] = 0
+    props_Pf = np.sum(props_Pf, axis=1)
+    testing.assert_array_almost_equal(
+        props_Pf,
+        np.ones_like(props_Pf),
+        decimal=5,
+        err_msg="Sum of flow proportions is not equal to one",
+        verbose=True,
+    )
+    # %%
 
 
 def test_cython_functions():
@@ -384,7 +673,7 @@ def test_cython_functions():
     sort = np.argsort(el_dep_free)
     stack_flip = np.flip(sort)
     # Filter out donors giving to receivers being -1
-    stack_flip = stack_flip[receivers[stack_flip] != -1]
+    stack_flip = np.array(stack_flip[receivers[stack_flip] != -1], dtype=int)
 
     _D8_FlowAcc(da, dis, stack_flip, receivers)
 
@@ -418,9 +707,6 @@ def test_cython_functions():
 
     z[5:7] = [1, 3]
     z[9:11] = [3, 4]
-    from landlab.plot import imshow_grid
-
-    imshow_grid(mg, "topographic__elevation")
 
     activeCells = np.array(mg.status_at_node != NodeStatus.CLOSED + 0, dtype=int)
     receivers = np.array(mg.status_at_node, dtype=int)
@@ -480,7 +766,7 @@ def test_cython_functions():
     sort = np.argsort(el_dep_free)
     stack_flip = np.flip(sort)
     # Filter out donors giving to receivers being -1
-    stack_flip = stack_flip[receivers[stack_flip] != -1]
+    stack_flip = np.array(stack_flip[receivers[stack_flip] != -1], dtype=int)
 
     _D8_FlowAcc(da, dis, stack_flip, receivers)
 

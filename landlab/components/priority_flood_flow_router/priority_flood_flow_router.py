@@ -389,14 +389,16 @@ class PriorityFloodFlowRouter(Component):
                 f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
             )
 
-        if depression_handler == "fill" or depression_handler == "breach":
-            self._depression_handler = depression_handler
+        if depression_handler == "fill":
+            self._depression_handler = partial(
+                rd.FillDepressions, epsilon=epsilon, in_place=True
+            )
+        elif depression_handler == "breach":
+            self._depression_handler = partial(rd.BreachDepressions, in_place=True)
         else:
-            raise ValueError("depression_handler should be 'fill' or 'breach'")
+            raise ValueError("depression_handler should be one of 'fill' or 'breach'")
 
-        self._depression_handler = depression_handler
         self._exponent = exponent
-        self._epsilon = epsilon
         self._separate_hill_flow = separate_hill_flow
         self._update_hill_flow_instantaneous = update_hill_flow_instantaneous
 
@@ -420,10 +422,17 @@ class PriorityFloodFlowRouter(Component):
         if not self._accumulate_flow:
             self._info["drainage_area"]["optional"] = True
             self._info["surface_water__discharge"]["optional"] = True
+        else:
+            self._info["drainage_area"]["optional"] = False
+            self._info["surface_water__discharge"]["optional"] = False
 
         if not self._accumulate_flow_hill:
             self._info["hill_drainage_area"]["optional"] = True
             self._info["hill_surface_water__discharge"]["optional"] = True
+        else:
+
+            self._info["hill_drainage_area"]["optional"] = False
+            self._info["hill_surface_water__discharge"]["optional"] = False
 
         self.initialize_output_fields()
 
@@ -611,12 +620,13 @@ class PriorityFloodFlowRouter(Component):
                 props_Pf[props_Pf == 0] = -1
 
             if hill_flow:
-                self._hill_prps[:] = props_Pf
                 if flow_metric in PSINGLE_FMs:
                     ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
+                    self._hill_prps[:] = props_Pf[ij_at_max]
                     self._hill_rcvs[:] = rcvrs[ij_at_max]
                     self._hill_slope[:] = slope_temp[ij_at_max]
                 else:
+                    self._hill_prps[:] = props_Pf
                     self._hill_rcvs[:] = rcvrs
                     self._hill_slope = slope_temp
                     self._hill_slope[rcvrs == -1] = 0
@@ -757,12 +767,7 @@ class PriorityFloodFlowRouter(Component):
         )
         self._depression_free_dem.geotransform = [0, 1, 0, 0, 0, -1]
         with self._suppress_output():
-            if self._depression_handler == "fill":
-                rd.FillDepressions(
-                    self._depression_free_dem, self._epsilon, in_place=True
-                )
-            elif self._depression_handler == "breach":
-                rd.BreachDepressions(self._depression_free_dem, in_place=True)
+            self._depression_handler(self._depression_free_dem)
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
@@ -820,7 +825,7 @@ class PriorityFloodFlowRouter(Component):
             wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
             wg.geotransform = [0, 1, 0, 0, 0, -1]
             with self._suppress_output():
-                q_pf = rd.FlowAccumFromProps(props=self._props_Pf, weights=wg)
+                q_pf = rd.FlowAccumFromProps(props=props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
         else:
             q[:] = self._drainage_area
