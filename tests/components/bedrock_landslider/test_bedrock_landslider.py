@@ -330,7 +330,10 @@ def testMassBalance_noporosity():
     testing.assert_almost_equal(
         total_vol_before, total_vol_after, decimal=5, err_msg=err_msg
     )
+
+
 # %%
+
 
 def testMassBalance_porosity():
     """
