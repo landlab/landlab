@@ -23,10 +23,7 @@ cpdef _landslide_runout(
     np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] max_dH):
     """
-    Calculate landslide runout using a non-local deposition algorithm based on:
-        * Carretier S., Martinod P., Reich M., Godderis Y. (2016) Modelling 
-          sediment clasts transport during landscape evolution. 
-          Earth Surf Dyn: 4(1):237–51. 
+    Calculate landslide runout using a non-local deposition algorithm, see:
         * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J. 
           (2020) HyLands 1.0: a hybrid landscape evolution model to simulate 
           the impact of landslides and landslide-derived sediment on landscape 

@@ -15,7 +15,7 @@ from .cfuncs import _landslide_runout
 MAX_HEIGHT_SLOPE = 100  # in m
 
 
-class Hylands(Component):
+class BedrockLandslider(Component):
     """ Deep-seated bedrock landsliding removing overlying soil and bedrock
     following the Cullman criterion
 
@@ -37,7 +37,7 @@ class Hylands(Component):
     >>> import numpy as np
     >>> from numpy import testing
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import PriorityFloodFlowRouter, Hylands
+    >>> from landlab.components import PriorityFloodFlowRouter, BedrockLandslider
 
     Make a raster model grid and create a plateau
     * 5x5 grid
@@ -60,15 +60,15 @@ class Hylands(Component):
     >>> b[2] = 0
     >>> z[:] = b + s
 
-    Instantiate flow accumulation and hylands
+    Instantiate flow accumulation and BedrockLandslider
 
     >>> fd = PriorityFloodFlowRouter(
     ...     mg,
     ...     separate_hill_flow=True,
     ...     suppress_out=True)
-    >>> hy = Hylands(mg, landslides_return_time=1)
+    >>> hy = BedrockLandslider(mg, landslides_return_time=1)
 
-    run flow director and Hylands for one timestep
+    run flow director and BedrockLandslider for one timestep
     >>> fd.run_one_step()
     >>> vol_SSY ,V_leaving = hy.run_one_step(dt=1)
 
@@ -88,7 +88,7 @@ class Hylands(Component):
     **Required Software Citation(s) Specific to this Component**
 
     Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
-    (2020) HyLands 1.0: a hybrid landscape evolution model to simulate the
+    (2020) BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the
     impact of landslides and landslide-derived sediment on landscape evolution.
     Geosci Model Dev: 13(9):3863–86.
     `https://dx.doi.org/10.5194/esurf-6-1-2018 <https://dx.doi.org/10.5194/esurf-6-1-2018>`_
@@ -99,7 +99,7 @@ class Hylands(Component):
 
     """
 
-    _name = "Hylands"
+    _name = "BedrockLandslider"
 
     _unit_agnostic = True
 
@@ -204,7 +204,7 @@ class Hylands(Component):
 
     _cite_as = """@Article{gmd-13-3863-2020,
                   AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
-                  TITLE = {HyLands 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
+                  TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
                   JOURNAL = {Geoscientific Model Development},
                   VOLUME = {13},
                   YEAR = {2020},
@@ -234,7 +234,7 @@ class Hylands(Component):
         landslides_volume_sed=None,
         landslides_volume_bed=None,
     ):
-        """Initialize the HyLands model.
+        """Initialize the BedrockLandslider model.
 
         Parameters
         ----------
@@ -300,7 +300,7 @@ class Hylands(Component):
             Volume of sediment leaving the domain.
 
         """
-        super(Hylands, self).__init__(grid)
+        super(BedrockLandslider, self).__init__(grid)
 
         # Check consistency of bedrock, soil and topogarphic elevation fields
         err_msg = (
@@ -640,7 +640,7 @@ class Hylands(Component):
         return dH_Hill, V_leaving, Qs_coreNodes
 
     def run_one_step(self, dt):
-        """Advance hylands component by one time step of size dt.
+        """Advance BedrockLandslider component by one time step of size dt.
 
         Parameters
         ----------

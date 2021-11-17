@@ -5,23 +5,22 @@ Created on Mon Nov 08 13:50:43 2021
 @author: BenjaminCampforts
 
 
-Doc tests and unit tests for bedrock landslides using the hylands component.
+Doc tests and unit tests for bedrock landslides using the BedrockLandslider component.
 """
 
 import numpy as np
 import pytest
-from matplotlib import pyplot as plt
 from numpy import testing
 
 from landlab import FieldError, RasterModelGrid
-from landlab.components import Hylands, PriorityFloodFlowRouter
+from landlab.components import BedrockLandslider, PriorityFloodFlowRouter
 
 # %%
 
 
 def check_inputFields_flowRouter():
     """
-    HyLands should throw an error when topograhy is not equal to the sum of
+    BedrockLandslider should throw an error when topograhy is not equal to the sum of
     bedrock and soil thickness
     """
     # %%
@@ -41,12 +40,13 @@ def check_inputFields_flowRouter():
 
     # Instanciate the slider
     with pytest.raises(AssertionError):
-        _ = Hylands(mg)
+        _ = BedrockLandslider(mg)
 
 
+# %%
 def check_inputFields_soil():
     """
-    HyLands should throw an error when the soil__depth field is not provided
+    BedrockLandslider should throw an error when the soil__depth field is not provided
     """
     # %%
     nr = 5
@@ -61,12 +61,13 @@ def check_inputFields_soil():
 
     # Instanciate the slider
     with pytest.raises(FieldError):
-        _ = Hylands(mg)
+        _ = BedrockLandslider(mg)
 
 
+# %%
 def check_inputFields_bedrock():
     """
-    HyLands should throw an error when the bedrock__elevation field is not provided
+    BedrockLandslider should throw an error when the bedrock__elevation field is not provided
     """
     # %%
     nr = 5
@@ -81,12 +82,12 @@ def check_inputFields_bedrock():
 
     # Instanciate the slider
     with pytest.raises(FieldError):
-        _ = Hylands(mg)
+        _ = BedrockLandslider(mg)
 
 
 def check_properties_phi_fraction_fines_LS():
     """
-    HyLands should throw an error when phi/fraction_fines_LS < 0 or phi > 0
+    BedrockLandslider should throw an error when phi/fraction_fines_LS < 0 or phi > 0
     """
     # %%
     # Make a raster model grid and create a plateau
@@ -102,21 +103,21 @@ def check_properties_phi_fraction_fines_LS():
 
     # Instanciate the slider
     with pytest.raises(ValueError):
-        _ = Hylands(mg, phi=-0.2)
+        _ = BedrockLandslider(mg, phi=-0.2)
     # Instanciate the slider
     with pytest.raises(ValueError):
-        _ = Hylands(mg, phi=1.2)
+        _ = BedrockLandslider(mg, phi=1.2)
     # Instanciate the slider
     with pytest.raises(ValueError):
-        _ = Hylands(mg, fraction_fines_LS=-0.2)
+        _ = BedrockLandslider(mg, fraction_fines_LS=-0.2)
     # Instanciate the slider
     with pytest.raises(ValueError):
-        _ = Hylands(mg, fraction_fines_LS=1.2)
+        _ = BedrockLandslider(mg, fraction_fines_LS=1.2)
 
 
 def test_slidingPlain():
     """
-    Test that if hylands maths are sound and follow the Culmann theory
+    Test that if BedrockLandslider maths are sound and follow the Culmann theory
     """
     # %%
     # Make a raster model grid and create a plateau
@@ -134,9 +135,9 @@ def test_slidingPlain():
     b[2] = 0
     z[:] = b + s
     fd = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
-    hy = Hylands(mg, landslides_return_time=1)
+    hy = BedrockLandslider(mg, landslides_return_time=1)
 
-    # run flow director and Hylands for one timestep
+    # run flow director and BedrockLandslider for one timestep
     fd.run_one_step()
     hy.run_one_step(dt=1)
     # After one timestep, we can predict eactly where the landslide will occur.
@@ -153,7 +154,7 @@ def test_slidingPlain():
 
 def test_slidingEvolution():
     """
-    Test that if hylands is run for a long enough time, slopes evolve to the
+    Test that if BedrockLandslider is run for a long enough time, slopes evolve to the
     angle of internal friction
     """
     # %%
@@ -175,7 +176,7 @@ def test_slidingEvolution():
 
     # Instanciate the slider, but this time provide the node at which landslides
     # should occur (node 2)
-    hy = Hylands(
+    hy = BedrockLandslider(
         mg,
         angle_int_frict=1,
         landslides_return_time=0.01,
@@ -183,10 +184,10 @@ def test_slidingEvolution():
         critical_sliding_nodes=[2],
     )
 
-    # run flow director and Hylands for long enough so that surface evolves
+    # run flow director and BedrockLandslider for long enough so that surface evolves
     # towards the angle of internal friction timestep
 
-    for i in range(50):
+    for _ in range(50):
         fd.run_one_step()
         hy.run_one_step(dt=1)
 
@@ -229,7 +230,7 @@ def test_slidingEvolution():
 
 def test_boundaryNodes():
     """
-    Test that if hylands cannot make or initate landslides at boundary nodes,
+    Test that if BedrockLandslider cannot make or initate landslides at boundary nodes,
     it doesn't
     """
     # %%
@@ -252,7 +253,7 @@ def test_boundaryNodes():
 
     # Instanciate the slider, but this time provide the node at which landslides
     # should occur (node 2)
-    hy = Hylands(
+    hy = BedrockLandslider(
         mg,
         angle_int_frict=1,
         landslides_return_time=0.01,
@@ -260,10 +261,10 @@ def test_boundaryNodes():
         critical_sliding_nodes=[2],
     )
 
-    # run flow director and Hylands for long enough so that surface evolves
+    # run flow director and BedrockLandslider for long enough so that surface evolves
     # towards the angle of internal friction timestep
 
-    for i in range(5):
+    for _ in range(5):
         fd.run_one_step()
         hy.run_one_step(dt=1)
     # Final topo at boundary nodes should be inital topo
@@ -301,7 +302,7 @@ def testMassBalance_noporosity():
 
     # Instanciate the slider, but this time provide the node at which landslides
     # should occur (node 2)
-    hy = Hylands(
+    hy = BedrockLandslider(
         mg,
         angle_int_frict=1,
         landslides_return_time=1,
@@ -317,20 +318,19 @@ def testMassBalance_noporosity():
     vol_SSY_tot = 0
     V_leaving_tot = 0
     # Run for some time
-    for i in range(5):
+    for _ in range(5):
         fd.run_one_step()
         vol_SSY, V_leaving = hy.run_one_step(dt=1)
         vol_SSY_tot += vol_SSY
         V_leaving_tot += V_leaving
 
     total_vol_after = np.sum(b) + np.sum(s) + vol_SSY_tot + V_leaving_tot
-    plt.figure()
     # Check mass balance
     err_msg = "Mass balance not okey"
     testing.assert_almost_equal(
         total_vol_before, total_vol_after, decimal=5, err_msg=err_msg
     )
-
+# %%
 
 def testMassBalance_porosity():
     """
@@ -360,7 +360,7 @@ def testMassBalance_porosity():
     # Instanciate the slider, but this time provide the node at which landslides
     # should occur (node 2)
     phi = 0.3
-    hy = Hylands(
+    hy = BedrockLandslider(
         mg,
         angle_int_frict=1,
         landslides_return_time=1,
@@ -376,14 +376,13 @@ def testMassBalance_porosity():
     vol_SSY_tot = 0
     V_leaving_tot = 0
     # Run for some time
-    for i in range(5):
+    for _ in range(5):
         fd.run_one_step()
         vol_SSY, V_leaving = hy.run_one_step(dt=1)
         vol_SSY_tot += vol_SSY
         V_leaving_tot += V_leaving
 
     total_vol_after = np.sum(b) + np.sum(s) * (1 - phi) + vol_SSY_tot + V_leaving_tot
-    plt.figure()
     # Check mass balance
     err_msg = "Mass balance not okey"
     testing.assert_almost_equal(
@@ -420,7 +419,7 @@ def testMassBalance_porosity_suspension():
     # should occur (node 2)
     phi = 0.3
     fraction_fines_LS = 0.5
-    hy = Hylands(
+    hy = BedrockLandslider(
         mg,
         angle_int_frict=1,
         landslides_return_time=1,
@@ -436,14 +435,13 @@ def testMassBalance_porosity_suspension():
     vol_SSY_tot = 0
     V_leaving_tot = 0
     # Run for some time
-    for i in range(5):
+    for _ in range(5):
         fd.run_one_step()
         vol_SSY, V_leaving = hy.run_one_step(dt=1)
         vol_SSY_tot += vol_SSY
         V_leaving_tot += V_leaving
 
     total_vol_after = np.sum(b) + np.sum(s) * (1 - phi) + vol_SSY_tot + V_leaving_tot
-    plt.figure()
     # Check mass balance
     err_msg = "Mass balance not okey"
     testing.assert_almost_equal(
