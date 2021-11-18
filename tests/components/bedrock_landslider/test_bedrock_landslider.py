@@ -303,6 +303,7 @@ def test_boundary_nodes():
     )
 
 
+# %%
 def test_mass_balance_noporosity():
     """
     Test is mass balance is conserved during sliding events.
@@ -337,6 +338,9 @@ def test_mass_balance_noporosity():
         landslides_on_boundary_nodes=True,
         phi=0,
         fraction_fines_LS=0,
+        store_landslides_volume_bed=True,
+        store_landslides_volume_sed=True,
+        verbose_landslides=True,
     )
 
     # Assume equal bulk density for rock and soil
