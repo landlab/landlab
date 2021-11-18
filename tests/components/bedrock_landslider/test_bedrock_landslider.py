@@ -16,7 +16,7 @@ from landlab import FieldError, RasterModelGrid
 from landlab.components import BedrockLandslider, PriorityFloodFlowRouter
 
 
-def check_inputFields_flowRouter():
+def test_inputFields_flowRouter():
     """
     BedrockLandslider should throw an error when topograhy is not equal to the sum of
     bedrock and soil thickness
@@ -41,7 +41,7 @@ def check_inputFields_flowRouter():
         _ = BedrockLandslider(mg)
 
 
-def check_inputFields_soil():
+def test_inputFields_soil():
     """
     BedrockLandslider should throw an error when the soil__depth field is not provided
     """
@@ -61,9 +61,9 @@ def check_inputFields_soil():
         _ = BedrockLandslider(mg)
 
 
-def check_inputFields_bedrock():
+def test_inputFields_bedrock():
     """
-    BedrockLandslider should throw an error when the bedrock__elevation field is not provided
+    BedrockLandslider should create the bedrock__elevation field when not provided
     """
     # %%
     nr = 5
@@ -75,13 +75,45 @@ def check_inputFields_bedrock():
     # _ = mg.add_zeros("bedrock__elevation", at='node')
 
     _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+    _ = BedrockLandslider(mg)
 
     # Instanciate the slider
-    with pytest.raises(FieldError):
-        _ = BedrockLandslider(mg)
+    assert "bedrock__elevation" in mg.at_node
 
 
-def check_properties_phi_fraction_fines_LS():
+# %%
+def test_storage_ls_properties():
+    """
+    Check if right output properties are generated upon initialization
+    """
+    # %%
+    nr = 5
+    nc = 5
+    dx = 1
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    _ = mg.add_zeros("topographic__elevation", at="node")
+    _ = mg.add_zeros("soil__depth", at="node")
+    _ = mg.add_zeros("bedrock__elevation", at="node")
+
+    _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+
+    # Instanciate the slider
+    bl = BedrockLandslider(
+        mg,
+        store_landslides_size=False,
+        store_landslides_volume=False,
+        store_landslides_volume_bed=True,
+        store_landslides_volume_sed=True,
+    )
+
+    assert bl.landslides_size is None
+    assert bl.landslides_volume is None
+    assert isinstance(bl.landslides_volume_bed, list)
+    assert isinstance(bl.landslides_volume_sed, list)
+
+
+# %%
+def test_properties_phi_fraction_fines_LS():
     """
     BedrockLandslider should throw an error when phi/fraction_fines_LS < 0 or phi > 0
     """
@@ -111,7 +143,7 @@ def check_properties_phi_fraction_fines_LS():
         _ = BedrockLandslider(mg, fraction_fines_LS=1.2)
 
 
-def test_slidingPlain():
+def test_sliding_plain():
     """
     Test that if BedrockLandslider maths are sound and follow the Culmann theory
     """
@@ -148,7 +180,7 @@ def test_slidingPlain():
     )
 
 
-def test_slidingEvolution():
+def test_sliding_evolution():
     """
     Test that if BedrockLandslider is run for a long enough time, slopes evolve to the
     angle of internal friction
@@ -224,7 +256,7 @@ def test_slidingEvolution():
     testing.assert_almost_equal(topo_cal, z, decimal=5, err_msg=err_msg)
 
 
-def test_boundaryNodes():
+def test_boundary_nodes():
     """
     Test that if BedrockLandslider cannot make or initate landslides at boundary nodes,
     it doesn't
@@ -271,7 +303,7 @@ def test_boundaryNodes():
     )
 
 
-def testMassBalance_noporosity():
+def test_mass_balance_noporosity():
     """
     Test is mass balance is conserved during sliding events.
     First test for soils with zero porosity and where none of the sediment is
@@ -328,7 +360,7 @@ def testMassBalance_noporosity():
     )
 
 
-def testMassBalance_porosity():
+def test_mass_balance_porosity():
     """
     Test is mass balance is conserved during sliding events.
     Test for soils with given porosity phi and where none of the sediment is
@@ -386,7 +418,7 @@ def testMassBalance_porosity():
     )
 
 
-def testMassBalance_porosity_suspension():
+def test_mass_balance_porosity_suspension():
     """
     Test is mass balance is conserved during sliding events.
     Test for soils with given porosity phi and where none of the sediment is

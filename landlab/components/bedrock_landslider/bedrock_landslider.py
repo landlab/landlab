@@ -16,11 +16,9 @@ MAX_HEIGHT_SLOPE = 100  # in m
 
 
 class BedrockLandslider(Component):
-    """ Deep-seated bedrock landsliding removing overlying soil and bedrock
-    following the Cullman criterion
-
+    """
     Landlab component that calculates the location and magnitude of episodic
-    bedrock landsliding.
+    bedrock landsliding following the Cullman criterion.
     See the publication:
 
     Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
@@ -128,14 +126,6 @@ class BedrockLandslider(Component):
             "mapping": "node",
             "doc": "Depth of soil or weathered bedrock",
         },
-        "bedrock__elevation": {
-            "dtype": float,
-            "intent": "inout",
-            "optional": False,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Depth of soil or weathered bedrock",
-        },
         "flow__receiver_node": {
             "dtype": int,
             "intent": "in",
@@ -152,6 +142,8 @@ class BedrockLandslider(Component):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
+        # Note that this field has to be provided in addition to the \
+        # flow__receiver_node and will be used to route sediments over the hillslope
         "hill_flow__receiver_node": {
             "dtype": int,
             "intent": "in",
@@ -160,13 +152,16 @@ class BedrockLandslider(Component):
             "mapping": "node",
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
+        # Note that this field has to be provided in addition to the \
+        # flow__receiver_proportions and will be used to route sediments
+        # over the hillslope
         "hill_flow__receiver_proportions": {
             "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array of receivers (node that receives flow from current node)",
+            "doc": "Node array of proportion of flow sent to each receiver.",
         },
         "hill_topographic__steepest_slope": {
             "dtype": float,
@@ -174,15 +169,16 @@ class BedrockLandslider(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array of receivers (node that receives flow from current node)",
+            "doc": "The steepest *downhill* slope",
         },
-        "sediment__flux": {
+        "LS_sediment__flux": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+            "doc": "Sediment flux originating from landslides \
+                (volume per unit time of sediment entering each node)",
         },
         "landslide__bed_erosion": {
             "dtype": float,
@@ -190,7 +186,7 @@ class BedrockLandslider(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "landslide__bed_erosion",
+            "doc": "erosion caused by bedrock landsliding ",
         },
         "landslide__deposition": {
             "dtype": float,
@@ -198,7 +194,17 @@ class BedrockLandslider(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "landslide__bed_erosion",
+            "doc": "deposition of bedrock derived sediment",
+        },
+        "landslide_sediment_point_source": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3",
+            "mapping": "node",
+            "doc": "Landslide derived sediment, as point sources on all the \
+                critical nodes where landslides initiate, \
+                before landslide runout is calculated ",
         },
     }
 
@@ -229,10 +235,10 @@ class BedrockLandslider(Component):
         verbose_landslides=False,
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=None,
-        landslides_size=None,
-        landslides_volume=None,
-        landslides_volume_sed=None,
-        landslides_volume_bed=None,
+        store_landslides_size=True,
+        store_landslides_volume=True,
+        store_landslides_volume_sed=False,
+        store_landslides_volume_bed=False,
     ):
         """Initialize the BedrockLandslider model.
 
@@ -275,22 +281,23 @@ class BedrockLandslider(Component):
             This cancels the stochastic part of the algorithm and allows the
             user to form landslides at the provided critical nodes.
             Default = None
-        landslides_size : list  , optional
-            Store the size of landslides through time
-            Pass empty list ('[]') to store sizes, pass None to not store any data
-            Default : None
-        landslides_volume : list , optional
-            Store the volume of landslides through time.
-            Pass empty list ('[]') to store volumes, pass None to not store any data
-            Default = None
-        landslides_volume_sed  : list , optional
-            Store the volume of eroded bedrock through time
-            Pass empty list ('[]') to store volumes, pass None to not store any data
-            Default = None
-        landslides_volume_bed : list  , optional
-            Store the volume of eroded sediment landslides through time
-            Pass empty list ('[]') to store volumes, pass None to not store any data
-            Default = None
+        store_landslides_size : bool  , optional
+            Store the size of landslides through time. Values will be stored in
+            a list as a property of a bedrock_landslider object.
+            Default : True
+        store_landslides_volume : bool , optional
+            Store the volume of landslides through time. Values will be stored in
+            a list as a property of a bedrock_landslider object.
+            Default = True
+        store_landslides_volume_sed  : bool , optional
+            Store the volume of eroded bedrock through time. Values will be
+            stored in a list as a property of a bedrock_landslider object.
+            Default = False
+        store_landslides_volume_bed : bool  , optional
+            Store the volume of eroded sediment landslides through time.
+            Values will be stored in a list as a property of a
+            bedrock_landslider object.
+            Default = False
 
         Returns
         -------
@@ -301,6 +308,13 @@ class BedrockLandslider(Component):
 
         """
         super(BedrockLandslider, self).__init__(grid)
+
+        topo = self.grid.at_node["topographic__elevation"]
+        soil = self.grid.at_node["soil__depth"]
+
+        if "bedrock__elevation" not in grid.at_node:
+            bed = grid.add_zeros("bedrock__elevation", at="node", dtype=float)
+            bed[:] = topo - soil
 
         # Check consistency of bedrock, soil and topogarphic elevation fields
         err_msg = (
@@ -313,6 +327,8 @@ class BedrockLandslider(Component):
             err_msg=err_msg,
         )
 
+        self.initialize_output_fields()
+
         # Store grid and parameters
         self._angle_int_frict = angle_int_frict
         self._cohesion_eff = cohesion_eff
@@ -323,21 +339,29 @@ class BedrockLandslider(Component):
         self._landslides_return_time = landslides_return_time
         self._max_pixelsize_landslide = max_pixelsize_landslide
         self._verbose_landslides = verbose_landslides
-        self._Qs_change_LS = np.zeros(self.grid.number_of_nodes)
-
-        # Set seed
-        if seed is not None:
-            np.random.seed = seed
         self.landslides_on_boundary_nodes = landslides_on_boundary_nodes
-
         self.critical_sliding_nodes = critical_sliding_nodes
 
-        # Data structure to store properties of simulated landslides.
-        # If None, data will not be stored
-        self.landslides_size = landslides_size
-        self.landslides_volume = landslides_volume
-        self.landslides_volume_sed = landslides_volume_sed
-        self.landslides_volume_bed = landslides_volume_bed
+        # Data structures to store properties of simulated landslides.
+        if store_landslides_size:
+            self.landslides_size = []
+        else:
+            self.landslides_size = None
+
+        if store_landslides_volume:
+            self.landslides_volume = []
+        else:
+            self.landslides_volume = None
+
+        if store_landslides_volume_sed:
+            self.landslides_volume_sed = []
+        else:
+            self.landslides_volume_sed = None
+
+        if store_landslides_volume_bed:
+            self.landslides_volume_bed = []
+        else:
+            self.landslides_volume_bed = None
 
         # Check input values
         if phi >= 1.0:
@@ -351,6 +375,10 @@ class BedrockLandslider(Component):
 
         if fraction_fines_LS < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
+
+        # Set seed
+        if seed is not None:
+            np.random.seed(seed)
 
     def _landslide_erosion(self, dt):
         """
@@ -372,16 +400,15 @@ class BedrockLandslider(Component):
         bed = self.grid.at_node["bedrock__elevation"]
         ss = self.grid.at_node["topographic__steepest_slope"]
         soil_d = self.grid.at_node["soil__depth"]
-
-        dx = self.grid.dx
+        ls_sed_in = self.grid.at_node["landslide_sediment_point_source"]
+        lb_bed_ero = self.grid.at_node["landslide__bed_erosion"]
 
         # Reset LS Plains
-        self.grid.at_node["landslide__bed_erosion"] = np.zeros(
-            self.grid.number_of_nodes
-        )
-        self.grid.at_node["landslide__deposition"] = np.zeros(self.grid.number_of_nodes)
+        lb_bed_ero[:] = np.zeros(self.grid.number_of_nodes)
+        # Reset landslide sediment point source field
+        ls_sed_in[:] = np.zeros(self.grid.number_of_nodes)
 
-        # identify flooded nodes
+        # Identify flooded nodes
         flood_status = self.grid.at_node["flood_status_code"]
         flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
 
@@ -496,8 +523,8 @@ class BedrockLandslider(Component):
                         bed[uP[0]] -= bed_LS_E
                         topo[uP[0]] = newEl
 
-                        vol_sed = sed_LS_E * (1 - self._phi) * (dx * dx)
-                        vol_bed = bed_LS_E * (dx * dx)
+                        vol_sed = sed_LS_E * (1 - self._phi) * (self.grid.dx ** 2)
+                        vol_bed = bed_LS_E * (self.grid.dx ** 2)
                         storeV_sed = storeV_sed + vol_sed
                         storeV_bed = storeV_bed + vol_bed
 
@@ -520,16 +547,14 @@ class BedrockLandslider(Component):
                         # remove it there so that no new landslide is initialized
                         i_slide = i_slide[np.where((i_slide != uP[0]))]
 
-                        self.grid.at_node["landslide__bed_erosion"][uP[0]] = (
-                            sed_LS_E + bed_LS_E
-                        )
+                        lb_bed_ero[uP[0]] = sed_LS_E + bed_LS_E
 
                     uP = np.delete(uP, 0, 0)
 
                 storeV = storeV_sed + storeV_bed
                 storeV_cum += storeV
                 if upstream > 0:
-                    self._Qs_change_LS[cP] += np.float64(
+                    ls_sed_in[cP] += np.float64(
                         (storeV / dt) * (1 - self._fraction_fines_LS)
                     )
                     suspended_Sed += np.float64((storeV / dt) * self._fraction_fines_LS)
@@ -577,8 +602,12 @@ class BedrockLandslider(Component):
         z = self.grid.at_node["topographic__elevation"]
         br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
+        sed_flux = self.grid.at_node["LS_sediment__flux"]
         stack_rev = np.flip(self.grid.at_node["flow__upstream_node_order"])
+        ls_depo = self.grid.at_node["landslide__deposition"]
+        ls_sed_in = self.grid.at_node["landslide_sediment_point_source"]
         node_status = self.grid.status_at_node
+
         # Only process core nodes
         stack_rev_sel = stack_rev[(node_status[stack_rev] == NodeStatus.CORE)]
         receivers = self.grid.at_node["hill_flow__receiver_node"]
@@ -588,12 +617,11 @@ class BedrockLandslider(Component):
         slope = np.max(self.grid.at_node["hill_topographic__steepest_slope"], axis=1)
         slope[slope < 0] = 0
 
-        Qs_in = self._Qs_change_LS * dt  # Qs_in, in m3 per timestep
+        Qs_in = ls_sed_in * dt  # Qs_in, in m3 per timestep
 
-        dx = self.grid.dx
-        # L following carretier
+        # L following carretier 2016
         L_Hill = np.matlib.divide(
-            dx,
+            self.grid.dx,
             (
                 1
                 - np.matlib.minimum(
@@ -603,17 +631,14 @@ class BedrockLandslider(Component):
             ),
         )
         Qs_out = np.zeros(z.shape)
-        # Node that this results in zero _landslide_runout at watershed divides
         dH_Hill = np.zeros(z.shape)
         H_i_temp = np.array(z)
         max_D = np.zeros(z.shape)
         max_dH = np.ones(z.shape) + np.inf
 
-        phi = self._phi
-
         _landslide_runout(
-            dx,
-            phi,
+            self.grid.dx,
+            self._phi,
             stack_rev_sel,
             receivers,
             fract,
@@ -625,6 +650,7 @@ class BedrockLandslider(Component):
             max_D,
             max_dH,
         )
+        sed_flux[:] = Qs_out
 
         Qs_coreNodes = np.sum(Qs_in[self.grid.status_at_node == 0])
         V_leaving = np.sum(Qs_in)  # Qs_leaving # in m3 per timestep
@@ -634,8 +660,9 @@ class BedrockLandslider(Component):
         z[:] = br[:] + H[:]
 
         # Reset Qs
-        self._Qs_change_LS = np.zeros(self.grid.number_of_nodes)
-        self.grid.at_node["landslide__deposition"][:] = dH_Hill
+        ls_sed_in[:] = np.zeros(self.grid.number_of_nodes)
+        # Update deposition field
+        ls_depo[:] = dH_Hill
 
         return dH_Hill, V_leaving, Qs_coreNodes
 
