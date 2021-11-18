@@ -422,7 +422,7 @@ class PriorityFloodFlowRouter(Component):
             self._info["hill_flow__receiver_node"]["optional"] = True
             self._info["hill_topographic__steepest_slope"]["optional"] = True
             self._info["hill_flow__receiver_proportions"]["optional"] = True
-            
+
         self._accumulate_flow = accumulate_flow
         self._accumulate_flow_hill = accumulate_flow_hill
 
