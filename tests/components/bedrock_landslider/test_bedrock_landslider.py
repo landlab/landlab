@@ -21,83 +21,78 @@ def test_inputFields_flowRouter():
     BedrockLandslider should throw an error when topograhy is not equal to the sum of
     bedrock and soil thickness
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")
 
     # make plateau at 10m
     b += 10
 
-    _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+    PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
 
-    # Instanciate the slider
+    # instantiate the slider
     with pytest.raises(AssertionError):
-        _ = BedrockLandslider(mg)
+        BedrockLandslider(mg)
 
 
 def test_inputFields_soil():
     """
     BedrockLandslider should throw an error when the soil__depth field is not provided
     """
-    # %%
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    # _ = mg.add_zeros("soil__depth", at='node')
-    _ = mg.add_zeros("bedrock__elevation", at="node")
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    # mg.add_zeros("soil__depth", at='node')
+    mg.add_zeros("bedrock__elevation", at="node")
 
-    _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+    PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
 
-    # Instanciate the slider
+    # instantiate the slider
     with pytest.raises(FieldError):
-        _ = BedrockLandslider(mg)
+        BedrockLandslider(mg)
 
 
 def test_inputFields_bedrock():
     """
     BedrockLandslider should create the bedrock__elevation field when not provided
     """
-    # %%
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    # _ = mg.add_zeros("bedrock__elevation", at='node')
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    # mg.add_zeros("bedrock__elevation", at='node')
 
-    _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
-    _ = BedrockLandslider(mg)
+    PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+    BedrockLandslider(mg)
 
-    # Instanciate the slider
+    # instantiate the slider
     assert "bedrock__elevation" in mg.at_node
 
 
-# %%
 def test_storage_ls_properties():
     """
     Check if right output properties are generated upon initialization
     """
-    # %%
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("bedrock__elevation", at="node")
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("bedrock__elevation", at="node")
 
-    _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+    PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
 
-    # Instanciate the slider
+    # instantiate the slider
     bl = BedrockLandslider(
         mg,
         store_landslides_size=False,
@@ -112,47 +107,44 @@ def test_storage_ls_properties():
     assert isinstance(bl.landslides_volume_sed, list)
 
 
-# %%
 def test_properties_phi_fraction_fines_LS():
     """
     BedrockLandslider should throw an error when phi/fraction_fines_LS < 0 or phi > 0
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("bedrock__elevation", at="node")
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("bedrock__elevation", at="node")
 
-    _ = PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
+    PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
 
-    # Instanciate the slider
+    # instantiate the slider
     with pytest.raises(ValueError):
-        _ = BedrockLandslider(mg, phi=-0.2)
-    # Instanciate the slider
+        BedrockLandslider(mg, phi=-0.2)
+    # instantiate the slider
     with pytest.raises(ValueError):
-        _ = BedrockLandslider(mg, phi=1.2)
-    # Instanciate the slider
+        BedrockLandslider(mg, phi=1.2)
+    # instantiate the slider
     with pytest.raises(ValueError):
-        _ = BedrockLandslider(mg, fraction_fines_LS=-0.2)
-    # Instanciate the slider
+        BedrockLandslider(mg, fraction_fines_LS=-0.2)
+    # instantiate the slider
     with pytest.raises(ValueError):
-        _ = BedrockLandslider(mg, fraction_fines_LS=1.2)
+        BedrockLandslider(mg, fraction_fines_LS=1.2)
 
 
 def test_sliding_plain():
     """
     Test that if BedrockLandslider maths are sound and follow the Culmann theory
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
     s = mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")
@@ -185,12 +177,11 @@ def test_sliding_evolution():
     Test that if BedrockLandslider is run for a long enough time, slopes evolve to the
     angle of internal friction
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
     s = mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")
@@ -224,33 +215,13 @@ def test_sliding_evolution():
     # distance from node 2 giving:
     topo_cal = np.array(
         [
-            2.0,
-            1.0,
-            0.0,
-            1.0,
-            2.0,
-            2.23606798,
-            1.41421356,
-            1.0,
-            1.41421356,
-            2.23606798,
-            2.82842712,
-            2.23606798,
-            2.0,
-            2.23606798,
-            2.82842712,
-            3.60555128,
-            3.16227766,
-            3.0,
-            3.16227766,
-            3.60555128,
-            4.47213595,
-            4.12310563,
-            4.0,
-            4.12310563,
-            4.47213595,
+            [2.0, 1.0, 0.0, 1.0, 2.0],
+            [2.23606798, 1.41421356, 1.0, 1.41421356, 2.23606798],
+            [2.82842712, 2.23606798, 2.0, 2.23606798, 2.82842712],
+            [3.60555128, 3.16227766, 3.0, 3.16227766, 3.60555128],
+            [4.47213595, 4.12310563, 4.0, 4.12310563, 4.47213595],
         ]
-    )
+    ).flatten()
 
     err_msg = "Slope is not evolving to theoretical value"
     testing.assert_almost_equal(topo_cal, z, decimal=5, err_msg=err_msg)
@@ -261,12 +232,11 @@ def test_boundary_nodes():
     Test that if BedrockLandslider cannot make or initate landslides at boundary nodes,
     it doesn't
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 5
-    nc = 5
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    n_rows = 5
+    n_columns = 5
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
     s = mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")
@@ -303,19 +273,17 @@ def test_boundary_nodes():
     )
 
 
-# %%
 def test_mass_balance_noporosity():
     """
     Test is mass balance is conserved during sliding events.
     First test for soils with zero porosity and where none of the sediment is
     evacuated as suspended sediment.
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 9
-    nc = 9
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    n_rows = 9
+    n_columns = 9
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
     s = mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")
@@ -370,12 +338,11 @@ def test_mass_balance_porosity():
     Test for soils with given porosity phi and where none of the sediment is
     evacuated as suspended sediment.
     """
-    # %%
     # Make a raster model grid and create a plateau
-    nr = 9
-    nc = 9
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    n_rows = 9
+    n_columns = 9
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
     s = mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")
@@ -430,10 +397,10 @@ def test_mass_balance_porosity_suspension():
     """
     # %%
     # Make a raster model grid and create a plateau
-    nr = 9
-    nc = 9
-    dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    n_rows = 9
+    n_columns = 9
+    spacing = 1
+    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     z = mg.add_zeros("topographic__elevation", at="node")
     s = mg.add_zeros("soil__depth", at="node")
     b = mg.add_zeros("bedrock__elevation", at="node")

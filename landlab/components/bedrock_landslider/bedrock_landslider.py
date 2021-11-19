@@ -313,7 +313,7 @@ class BedrockLandslider(Component):
         soil = self.grid.at_node["soil__depth"]
 
         if "bedrock__elevation" not in grid.at_node:
-            bed = grid.add_zeros("bedrock__elevation", at="node", dtype=float)
+            bed = grid.add_empty("bedrock__elevation", at="node", dtype=float)
             bed[:] = topo - soil
 
         # Check consistency of bedrock, soil and topogarphic elevation fields
@@ -364,17 +364,13 @@ class BedrockLandslider(Component):
             self.landslides_volume_bed = None
 
         # Check input values
-        if phi >= 1.0:
-            raise ValueError("Porosity must be < 1.0")
+        if phi >= 1.0 or phi < 0.0:
+            raise ValueError(f"Porosity must be between 0 and 1 ({phi})")
 
-        if fraction_fines_LS > 1.0:
-            raise ValueError("Fraction of fines must be <= 1.0")
-
-        if phi < 0.0:
-            raise ValueError("Porosity must be > 0.0")
-
-        if fraction_fines_LS < 0.0:
-            raise ValueError("Fraction of fines must be > 0.0")
+        if fraction_fines_LS > 1.0 or fraction_fines_LS < 0.0:
+            raise ValueError(
+                f"Fraction of fines must be between 0 and 1 ({fraction_fines_LS})"
+            )
 
         # Set seed
         if seed is not None:
@@ -454,7 +450,7 @@ class BedrockLandslider(Component):
         # output variables
         suspended_Sed = np.float64(0)
         if self._verbose_landslides:
-            print("nbSlides = " + str(len(i_slide)))
+            print(f"nbSlides = {len(i_slide)}")
 
         storeV_cum = 0.0
         while i_slide.size > 0:
@@ -609,7 +605,7 @@ class BedrockLandslider(Component):
         node_status = self.grid.status_at_node
 
         # Only process core nodes
-        stack_rev_sel = stack_rev[(node_status[stack_rev] == NodeStatus.CORE)]
+        stack_rev_sel = stack_rev[node_status[stack_rev] == NodeStatus.CORE]
         receivers = self.grid.at_node["hill_flow__receiver_node"]
         fract = self.grid.at_node["hill_flow__receiver_proportions"]
 

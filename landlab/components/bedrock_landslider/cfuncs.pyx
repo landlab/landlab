@@ -21,7 +21,8 @@ cpdef _landslide_runout(
     np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_dH):
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_dH
+):
     """
     Calculate landslide runout using a non-local deposition algorithm, see:
         * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J. 
@@ -32,29 +33,32 @@ cpdef _landslide_runout(
     # define internal variables    
     cdef int donor, rcvr, r
     cdef double accum, proportion
-    
-           
+
     # Iterate backward through the stack, which means we work from upstream to
     # downstream.
     for donor in stack_rev_sel:        
-        dH =min(max_dH[donor],
-                max(0,
-                    min(((Qs_in[donor]/dx)/L_Hill[donor])/(1-phi),
-                    max_D[donor])
-                    ))
-        dH_Hill[donor] = dH_Hill[donor] + dH
-        H_i_temp[donor] = H_i_temp[donor] + dH
+        dH = min(
+            max_dH[donor],
+            max(
+                0,
+                min(
+                    ((Qs_in[donor] / dx) / L_Hill[donor]) / (1 - phi), max_D[donor]
+                )
+            )
+        )
+        dH_Hill[donor] += dH
+        H_i_temp[donor] += dH
         
-        Qs_in[donor] = Qs_in[donor] - dH*dx*dx*(1-phi)
-        Qs_out[donor] = Qs_out[donor] + Qs_in[donor]
+        Qs_in[donor] -= dH * dx * dx * (1 - phi)
+        Qs_out[donor] += Qs_in[donor]
         
-        for r in range(0,receivers.shape[1]):
-            rcvr = receivers[donor,r]
+        for r in range(receivers.shape[1]):
+            rcvr = receivers[donor, r]
             max_D[rcvr] = max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr])
             
-            proportion = fract[donor,r]
+            proportion = fract[donor, r]
             if proportion > 0. and donor != rcvr:
-                    Qs_in[rcvr] = Qs_in[rcvr] + Qs_out[donor] * proportion
-                    Qs_in[donor] =Qs_in[donor] - Qs_out[donor] * proportion
+                Qs_in[rcvr] += Qs_out[donor] * proportion
+                Qs_in[donor] -= Qs_out[donor] * proportion
                 
 
