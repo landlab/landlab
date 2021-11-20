@@ -339,29 +339,29 @@ class BedrockLandslider(Component):
         self._landslides_return_time = landslides_return_time
         self._max_pixelsize_landslide = max_pixelsize_landslide
         self._verbose_landslides = verbose_landslides
-        self.landslides_on_boundary_nodes = landslides_on_boundary_nodes
-        self.critical_sliding_nodes = critical_sliding_nodes
+        self._landslides_on_boundary_nodes = landslides_on_boundary_nodes
+        self._critical_sliding_nodes = critical_sliding_nodes
 
         # Data structures to store properties of simulated landslides.
         if store_landslides_size:
-            self.landslides_size = []
+            self._landslides_size = []
         else:
-            self.landslides_size = None
+            self._landslides_size = None
 
         if store_landslides_volume:
-            self.landslides_volume = []
+            self._landslides_volume = []
         else:
-            self.landslides_volume = None
+            self._landslides_volume = None
 
         if store_landslides_volume_sed:
-            self.landslides_volume_sed = []
+            self._landslides_volume_sed = []
         else:
-            self.landslides_volume_sed = None
+            self._landslides_volume_sed = None
 
         if store_landslides_volume_bed:
-            self.landslides_volume_bed = []
+            self._landslides_volume_bed = []
         else:
-            self.landslides_volume_bed = None
+            self._landslides_volume_bed = None
 
         # Check input values
         if phi >= 1.0 or phi < 0.0:
@@ -375,6 +375,23 @@ class BedrockLandslider(Component):
         # Set seed
         if seed is not None:
             np.random.seed(seed)
+
+    # Getters for properties
+    @property
+    def landslides_size(self):
+        return self._landslides_size
+
+    @property
+    def landslides_volume(self):
+        return self._landslides_volume
+
+    @property
+    def landslides_volume_sed(self):
+        return self._landslides_volume_sed
+
+    @property
+    def landslides_volume_bed(self):
+        return self._landslides_volume_bed
 
     def _landslide_erosion(self, dt):
         """
@@ -400,9 +417,9 @@ class BedrockLandslider(Component):
         lb_bed_ero = self.grid.at_node["landslide__bed_erosion"]
 
         # Reset LS Plains
-        lb_bed_ero[:] = np.zeros(self.grid.number_of_nodes)
+        lb_bed_ero.fill(0.0)
         # Reset landslide sediment point source field
-        ls_sed_in[:] = np.zeros(self.grid.number_of_nodes)
+        ls_sed_in.fill(0.0)
 
         # Identify flooded nodes
         flood_status = self.grid.at_node["flood_status_code"]
@@ -411,7 +428,7 @@ class BedrockLandslider(Component):
         """In the following section the location of critical nodes where
         landsldies are initatated is calcualted, unless these critical nodes
         are provided as critical_sliding_nodes"""
-        if self.critical_sliding_nodes is None:
+        if self._critical_sliding_nodes is None:
             # Calculate gradients
             H_el = topo - topo[self.grid.at_node["flow__receiver_node"]]
 
@@ -423,9 +440,7 @@ class BedrockLandslider(Component):
                 (np.sin(np.arctan(ss)) * np.cos(sc_rad))
                 / (1 - np.cos(np.arctan(ss) - sc_rad))
             )
-            Hc[Hc == 0] = np.nan
-            # Spatial probability
-            p_S = H_el / Hc
+            p_S = np.divide(H_el, Hc, where=Hc > 0, out=np.zeros_like(Hc))
             p_S[np.arctan(ss) <= sc_rad] = 0
             p_S[p_S > 1] = 1
 
@@ -442,10 +457,10 @@ class BedrockLandslider(Component):
                 self.grid.at_node["flow__receiver_node"][np.where(slides)]
             )
             # Remove boundary nodes
-            if not self.landslides_on_boundary_nodes:
-                i_slide = i_slide[(self.grid.node_is_boundary(i_slide) is False)]
+            if not self._landslides_on_boundary_nodes:
+                i_slide = i_slide[~self.grid.node_is_boundary(i_slide)]
         else:
-            i_slide = np.array(self.critical_sliding_nodes)
+            i_slide = np.array(self._critical_sliding_nodes)
 
         # output variables
         suspended_Sed = np.float64(0)
@@ -489,8 +504,8 @@ class BedrockLandslider(Component):
                 storeV_sed = np.float64(0.0)
                 upstream = 0
                 uP = nb_up
-                if not self.landslides_on_boundary_nodes:
-                    uP = uP[(self.grid.node_is_boundary(uP) is False)]
+                if not self._landslides_on_boundary_nodes:
+                    uP = uP[~self.grid.node_is_boundary(uP)]
                 # Fix sliding angle of particular LS
                 ang_sl = np.float64((self._angle_int_frict + s_slide) / 2)
                 stall = 0
@@ -537,8 +552,8 @@ class BedrockLandslider(Component):
                         temp, idx = np.unique(uP, "first")
                         uP = np.array(uP)
                         uP = uP[np.sort(idx)]
-                        if not self.landslides_on_boundary_nodes:
-                            uP = uP[(self.grid.node_is_boundary(uP) is False)]
+                        if not self._landslides_on_boundary_nodes:
+                            uP = uP[~self.grid.node_is_boundary(uP)]
                         # if one of the LS pixels also appears in i_slide list,
                         # remove it there so that no new landslide is initialized
                         i_slide = i_slide[np.where((i_slide != uP[0]))]
@@ -555,14 +570,14 @@ class BedrockLandslider(Component):
                     )
                     suspended_Sed += np.float64((storeV / dt) * self._fraction_fines_LS)
 
-                    if self.landslides_size is not None:
-                        self.landslides_size.append(upstream)
-                    if self.landslides_volume is not None:
-                        self.landslides_volume.append(storeV)
-                    if self.landslides_volume_sed is not None:
-                        self.landslides_volume_sed.append(storeV_sed)
-                    if self.landslides_volume_bed is not None:
-                        self.landslides_volume_bed.append(storeV_bed)
+                    if self._landslides_size is not None:
+                        self._landslides_size.append(upstream)
+                    if self._landslides_volume is not None:
+                        self._landslides_volume.append(storeV)
+                    if self._landslides_volume_sed is not None:
+                        self._landslides_volume_sed.append(storeV_sed)
+                    if self._landslides_volume_bed is not None:
+                        self._landslides_volume_bed.append(storeV_bed)
 
             if i_slide.size > 0:
                 i_slide = np.delete(i_slide, 0, 0)

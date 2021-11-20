@@ -228,6 +228,7 @@ def test_sliding_evolution():
 
 
 def test_boundary_nodes():
+    # %%
     """
     Test that if BedrockLandslider cannot make or initate landslides at boundary nodes,
     it doesn't
@@ -273,6 +274,7 @@ def test_boundary_nodes():
     )
 
 
+# %%
 def test_mass_balance_noporosity():
     """
     Test is mass balance is conserved during sliding events.
