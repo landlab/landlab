@@ -463,7 +463,7 @@ class BedrockLandslider(Component):
             i_slide = np.array(self._critical_sliding_nodes)
 
         # output variables
-        suspended_Sed = np.float64(0)
+        suspended_Sed = 0.0
         if self._verbose_landslides:
             print(f"nbSlides = {len(i_slide)}")
 
@@ -500,17 +500,17 @@ class BedrockLandslider(Component):
 
             if s_slide_all.size > 0:
                 s_slide = max(s_slide_all)
-                storeV_bed = np.float64(0.0)
-                storeV_sed = np.float64(0.0)
+                storeV_bed = 0.0
+                storeV_sed = 0.0
                 upstream = 0
                 uP = nb_up
                 if not self._landslides_on_boundary_nodes:
                     uP = uP[~self.grid.node_is_boundary(uP)]
                 # Fix sliding angle of particular LS
-                ang_sl = np.float64((self._angle_int_frict + s_slide) / 2)
+                ang_sl = (self._angle_int_frict + s_slide) / 2.0
                 stall = 0
 
-                while uP.size > 0 & (
+                while uP.size > 0 and (
                     upstream <= self._max_pixelsize_landslide and stall < 1e4
                 ):
                     # print(uP.size)
@@ -549,7 +549,7 @@ class BedrockLandslider(Component):
                         nb_up = nb[topo[nb] > cP_el]
                         uP = [*uP, *nb_up]
 
-                        temp, idx = np.unique(uP, "first")
+                        temp, idx = np.unique(uP, return_index=True)
                         uP = np.array(uP)
                         uP = uP[np.sort(idx)]
                         if not self._landslides_on_boundary_nodes:
@@ -645,7 +645,6 @@ class BedrockLandslider(Component):
         dH_Hill = np.zeros(z.shape)
         H_i_temp = np.array(z)
         max_D = np.zeros(z.shape)
-        max_dH = np.ones(z.shape) + np.inf
 
         _landslide_runout(
             self.grid.dx,
@@ -659,7 +658,6 @@ class BedrockLandslider(Component):
             dH_Hill,
             H_i_temp,
             max_D,
-            max_dH,
         )
         sed_flux[:] = Qs_out
 

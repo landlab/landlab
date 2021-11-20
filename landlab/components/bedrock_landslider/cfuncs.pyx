@@ -21,7 +21,6 @@ cpdef _landslide_runout(
     np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_dH
 ):
     """
     Calculate landslide runout using a non-local deposition algorithm, see:
@@ -37,15 +36,10 @@ cpdef _landslide_runout(
     # Iterate backward through the stack, which means we work from upstream to
     # downstream.
     for donor in stack_rev_sel:        
-        dH = min(
-            max_dH[donor],
-            max(
+        dH = max(
                 0,
-                min(
-                    ((Qs_in[donor] / dx) / L_Hill[donor]) / (1 - phi), max_D[donor]
-                )
+                min(((Qs_in[donor] / dx) / L_Hill[donor]) / (1 - phi), max_D[donor])
             )
-        )
         dH_Hill[donor] += dH
         H_i_temp[donor] += dH
         
