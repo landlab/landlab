@@ -157,7 +157,7 @@ class PriorityFloodFlowRouter(Component):
         For details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
     hill_exponent : float, optional
         Some methods require an exponent (see flow_metric)
-    suppress_out : bool, optional
+    suppress_out : bool, optional, Default: True
         Suppress verbose of priority flood algorithm
 
 
@@ -344,7 +344,7 @@ class PriorityFloodFlowRouter(Component):
         update_hill_flow_instantaneous=True,
         hill_flow_metric="Quinn",
         hill_exponent=1,
-        suppress_out=False,
+        suppress_out=True,
     ):
         """Initialize the FlowAccumulator component.
 
