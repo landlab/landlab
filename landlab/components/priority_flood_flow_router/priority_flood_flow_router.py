@@ -157,7 +157,7 @@ class PriorityFloodFlowRouter(Component):
         For details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
     hill_exponent : float, optional
         Some methods require an exponent (see flow_metric)
-    suppress_out : bool, optional, Default: True
+    suppress_out : bool, optional
         Suppress verbose of priority flood algorithm
 
 

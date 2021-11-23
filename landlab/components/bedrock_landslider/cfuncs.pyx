@@ -31,7 +31,7 @@ cpdef _landslide_runout(
     """
     # define internal variables    
     cdef int donor, rcvr, r
-    cdef double accum, proportion
+    cdef double accum, proportion, dH
 
     # Iterate backward through the stack, which means we work from upstream to
     # downstream.

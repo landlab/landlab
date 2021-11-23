@@ -63,7 +63,8 @@ class BedrockLandslider(Component):
     >>> fd = PriorityFloodFlowRouter(
     ...     mg,
     ...     separate_hill_flow=True,
-    ...     suppress_out=True)
+    ...     suppress_out=True,
+    ... )
     >>> hy = BedrockLandslider(mg, landslides_return_time=1)
 
     run flow director and BedrockLandslider for one timestep
@@ -77,9 +78,9 @@ class BedrockLandslider(Component):
     With a dx of 1, the cardial cell next to the critical sliding node must
     be 5.5 m and the diagonal one at 5.5 * sqrt(2) = 7.8 m
 
-    >>> err_msg ='Error in the calculation of the sliding plain'
-    >>> testing.assert_almost_equal([5.5 * np.sqrt(2), 5.5, 5.5 * np.sqrt(2)],\
-                                    z[6:9],decimal=5, err_msg=err_msg)
+    >>> testing.assert_almost_equal(
+    ...     [5.5 * np.sqrt(2), 5.5, 5.5 * np.sqrt(2)], z[6:9], decimal=5
+    ... )
 
     References
     ----------
@@ -248,12 +249,10 @@ class BedrockLandslider(Component):
             Landlab ModelGrid object
         angle_int_frict: float, optional
             Materials angle of internal friction in [m/m]
-            Default = 1.0
         cohesion_eff : float, optional
             Effective cohesion of material [m L^-1 T^-2].
         landslides_return_time  : float, optional
             Return time for stochastic landslide events to occur
-            Default = 1e5
         rho_r : float, optional
             Bulk density rock [m L^-3].
         fraction_fines_LS : float
@@ -263,49 +262,32 @@ class BedrockLandslider(Component):
             Sediment porosity, value must be between 0 and 1 [-].
         max_pixelsize_landslide : int , optional
             Maximum size for landslides in number of pixels
-            Default = 1e9
         verbose_landslides : bool , optional
             Print output as number of simulated landslides per timestep
-            Default = False
         seed : float , optional
             Provide seed to set stochastic model.
             If not provided, seed is set to 2021.
             Provide None to keep current seed.
-            Default = 2021
         landslides_on_boundary_nodes : bool, optional
             Allow landslides to initiate (critical node) and extend over
             boundary nodes.
-            Default = True
         critical_sliding_nodes : list, optional
             Provide list with critical nodes where landslides have to initiate
             This cancels the stochastic part of the algorithm and allows the
             user to form landslides at the provided critical nodes.
-            Default = None
         store_landslides_size : bool  , optional
             Store the size of landslides through time. Values will be stored in
             a list as a property of a bedrock_landslider object.
-            Default : True
         store_landslides_volume : bool , optional
             Store the volume of landslides through time. Values will be stored in
             a list as a property of a bedrock_landslider object.
-            Default = True
         store_landslides_volume_sed  : bool , optional
             Store the volume of eroded bedrock through time. Values will be
             stored in a list as a property of a bedrock_landslider object.
-            Default = False
         store_landslides_volume_bed : bool  , optional
             Store the volume of eroded sediment landslides through time.
             Values will be stored in a list as a property of a
             bedrock_landslider object.
-            Default = False
-
-        Returns
-        -------
-        vol_SSY : float
-            volume of sediment evacuated as syspended sediment.
-        V_leaving : float
-            Volume of sediment leaving the domain.
-
         """
         super(BedrockLandslider, self).__init__(grid)
 
@@ -313,19 +295,16 @@ class BedrockLandslider(Component):
         soil = self.grid.at_node["soil__depth"]
 
         if "bedrock__elevation" not in grid.at_node:
-            bed = grid.add_empty("bedrock__elevation", at="node", dtype=float)
-            bed[:] = topo - soil
+            grid.add_full("bedrock__elevation", topo - soil, at="node", dtype=float)
 
-        # Check consistency of bedrock, soil and topogarphic elevation fields
-        err_msg = (
-            "The sum of bedrock elevation and topographic elevation should be equal"
-        )
-        np.testing.assert_almost_equal(
+        # Check consistency of bedrock, soil and topographic elevation fields
+        if not np.allclose(
             grid.at_node["bedrock__elevation"] + grid.at_node["soil__depth"],
             grid.at_node["topographic__elevation"],
-            decimal=5,
-            err_msg=err_msg,
-        )
+        ):
+            raise RuntimeError(
+                "The sum of bedrock elevation and topographic elevation should be equal"
+            )
 
         self.initialize_output_fields()
 
@@ -343,25 +322,10 @@ class BedrockLandslider(Component):
         self._critical_sliding_nodes = critical_sliding_nodes
 
         # Data structures to store properties of simulated landslides.
-        if store_landslides_size:
-            self._landslides_size = []
-        else:
-            self._landslides_size = None
-
-        if store_landslides_volume:
-            self._landslides_volume = []
-        else:
-            self._landslides_volume = None
-
-        if store_landslides_volume_sed:
-            self._landslides_volume_sed = []
-        else:
-            self._landslides_volume_sed = None
-
-        if store_landslides_volume_bed:
-            self._landslides_volume_bed = []
-        else:
-            self._landslides_volume_bed = None
+        self._landslides_size = [] if store_landslides_size else None
+        self._landslides_volume = [] if store_landslides_volume else None
+        self._landslides_volume_sed = [] if store_landslides_volume_sed else None
+        self._landslides_volume_bed = [] if store_landslides_volume_bed else None
 
         # Check input values
         if phi >= 1.0 or phi < 0.0:
@@ -513,7 +477,6 @@ class BedrockLandslider(Component):
                 while uP.size > 0 and (
                     upstream <= self._max_pixelsize_landslide and stall < 1e4
                 ):
-                    # print(uP.size)
                     distToIni = np.sqrt(
                         np.add(
                             np.square(X_cP - self.grid.node_x[uP[0]]),
@@ -525,12 +488,16 @@ class BedrockLandslider(Component):
                     if newEl < topo[uP[0]]:
                         # Do actual slide
                         upstream = upstream + 1
-                        sed_LS_E = np.float64(
-                            max(0.0, min(soil_d[uP[0]], topo[uP[0]] - newEl))
+                        sed_LS_E = np.clip(
+                            min(soil_d[uP[0]], topo[uP[0]] - newEl),
+                            a_min=0.0,
+                            a_max=None,
                         )
                         soil_d[uP[0]] -= sed_LS_E
                         topo[uP[0]] = newEl
-                        bed_LS_E = max(0, bed[uP[0]] - (newEl - soil_d[uP[0]]))
+                        bed_LS_E = np.clip(
+                            bed[uP[0]] - (newEl - soil_d[uP[0]]), a_min=0.0, m_max=None
+                        )
                         bed[uP[0]] -= bed_LS_E
                         topo[uP[0]] = newEl
 
@@ -565,10 +532,8 @@ class BedrockLandslider(Component):
                 storeV = storeV_sed + storeV_bed
                 storeV_cum += storeV
                 if upstream > 0:
-                    ls_sed_in[cP] += np.float64(
-                        (storeV / dt) * (1 - self._fraction_fines_LS)
-                    )
-                    suspended_Sed += np.float64((storeV / dt) * self._fraction_fines_LS)
+                    ls_sed_in[cP] += (storeV / dt) * (1.0 - self._fraction_fines_LS)
+                    suspended_Sed += (storeV / dt) * self._fraction_fines_LS
 
                     if self._landslides_size is not None:
                         self._landslides_size.append(upstream)
@@ -626,7 +591,7 @@ class BedrockLandslider(Component):
 
         # keep only steepest slope
         slope = np.max(self.grid.at_node["hill_topographic__steepest_slope"], axis=1)
-        slope[slope < 0] = 0
+        slope[slope < 0] = 0.0
 
         Qs_in = ls_sed_in * dt  # Qs_in, in m3 per timestep
 
@@ -665,11 +630,11 @@ class BedrockLandslider(Component):
         V_leaving = np.sum(Qs_in)  # Qs_leaving # in m3 per timestep
 
         # Change sediment layer
-        H[:] += dH_Hill[:]
-        z[:] = br[:] + H[:]
+        H[:] += dH_Hill
+        z[:] = br + H
 
         # Reset Qs
-        ls_sed_in[:] = np.zeros(self.grid.number_of_nodes)
+        ls_sed_in.fill(0.0)
         # Update deposition field
         ls_depo[:] = dH_Hill
 
@@ -690,13 +655,12 @@ class BedrockLandslider(Component):
         V_leaving : float
             Volume of sediment leaving the domain.
         """
+        dt = float(dt)
 
         if self.current_time is None:
             self.current_time = dt
         else:
             self.current_time += dt
-
-        dt = np.float64(dt)
 
         # Landslides
         vol_SSY = self._landslide_erosion(dt)
