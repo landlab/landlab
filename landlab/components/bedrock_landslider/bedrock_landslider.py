@@ -295,7 +295,7 @@ class BedrockLandslider(Component):
         soil = self.grid.at_node["soil__depth"]
 
         if "bedrock__elevation" not in grid.at_node:
-            grid.add_full("bedrock__elevation", topo - soil, at="node", dtype=float)
+            grid.add_field("bedrock__elevation", topo - soil, at="node", dtype=float)
 
         # Check consistency of bedrock, soil and topographic elevation fields
         if not np.allclose(

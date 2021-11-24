@@ -36,7 +36,7 @@ def test_inputFields_flowRouter():
     PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
 
     # instantiate the slider
-    with pytest.raises(AssertionError):
+    with pytest.raises(RuntimeError):
         BedrockLandslider(mg)
 
 
