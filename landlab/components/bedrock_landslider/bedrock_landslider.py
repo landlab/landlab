@@ -496,7 +496,7 @@ class BedrockLandslider(Component):
                         soil_d[uP[0]] -= sed_LS_E
                         topo[uP[0]] = newEl
                         bed_LS_E = np.clip(
-                            bed[uP[0]] - (newEl - soil_d[uP[0]]), a_min=0.0, m_max=None
+                            bed[uP[0]] - (newEl - soil_d[uP[0]]), a_min=0.0, a_max=None
                         )
                         bed[uP[0]] -= bed_LS_E
                         topo[uP[0]] = newEl
