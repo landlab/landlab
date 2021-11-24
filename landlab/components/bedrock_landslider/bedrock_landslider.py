@@ -400,9 +400,12 @@ class BedrockLandslider(Component):
             H_el[H_el > MAX_HEIGHT_SLOPE] = MAX_HEIGHT_SLOPE
 
             sc_rad = np.arctan(self._angle_int_frict)
-            Hc = (4 * self._cohesion_eff / (self._grav * self._rho_r)) * (
-                (np.sin(np.arctan(ss)) * np.cos(sc_rad))
-                / (1 - np.cos(np.arctan(ss) - sc_rad))
+            Hc = np.divide(
+                (4 * self._cohesion_eff / (self._grav * self._rho_r))
+                * (np.sin(np.arctan(ss)) * np.cos(sc_rad)),
+                1 - np.cos(np.arctan(ss) - sc_rad),
+                where=(1 - np.cos(np.arctan(ss) - sc_rad)) > 0,
+                out=np.zeros_like(ss),
             )
             p_S = np.divide(H_el, Hc, where=Hc > 0, out=np.zeros_like(Hc))
             p_S[np.arctan(ss) <= sc_rad] = 0
