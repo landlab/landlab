@@ -181,13 +181,13 @@ class BedrockLandslider(Component):
             "doc": "Sediment flux originating from landslides \
                 (volume per unit time of sediment entering each node)",
         },
-        "landslide__bed_erosion": {
+        "landslide__erosion": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "erosion caused by bedrock landsliding ",
+            "doc": "Total erosion caused by landsliding ",
         },
         "landslide__deposition": {
             "dtype": float,
@@ -195,7 +195,7 @@ class BedrockLandslider(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "deposition of bedrock derived sediment",
+            "doc": "Total deposition of derived sediment",
         },
         "landslide_sediment_point_source": {
             "dtype": float,
@@ -367,22 +367,22 @@ class BedrockLandslider(Component):
 
         Returns
         -------
-        suspended_Sed : float
+        suspended_sed : float
             Volume of suspended sediment.
 
         """
         # Pointers
         topo = self.grid.at_node["topographic__elevation"]
         bed = self.grid.at_node["bedrock__elevation"]
-        ss = self.grid.at_node["topographic__steepest_slope"]
+        steepest_slope = self.grid.at_node["topographic__steepest_slope"]
         soil_d = self.grid.at_node["soil__depth"]
-        ls_sed_in = self.grid.at_node["landslide_sediment_point_source"]
-        lb_bed_ero = self.grid.at_node["landslide__bed_erosion"]
+        landslide_sed_in = self.grid.at_node["landslide_sediment_point_source"]
+        landslide__ero = self.grid.at_node["landslide__erosion"]
 
         # Reset LS Plains
-        lb_bed_ero.fill(0.0)
+        landslide__ero.fill(0.0)
         # Reset landslide sediment point source field
-        ls_sed_in.fill(0.0)
+        landslide_sed_in.fill(0.0)
 
         # Reset data structures to store properties of simulated landslides.
         self._landslides_size = []
@@ -399,159 +399,200 @@ class BedrockLandslider(Component):
         are provided as critical_sliding_nodes"""
         if self._critical_sliding_nodes is None:
             # Calculate gradients
-            H_el = topo - topo[self.grid.at_node["flow__receiver_node"]]
+            height_cell = topo - topo[self.grid.at_node["flow__receiver_node"]]
 
-            H_el[flooded_nodes] = 0
-            H_el[H_el > MAX_HEIGHT_SLOPE] = MAX_HEIGHT_SLOPE
+            height_cell[flooded_nodes] = 0
+            height_cell[height_cell > MAX_HEIGHT_SLOPE] = MAX_HEIGHT_SLOPE
 
             sc_rad = np.arctan(self._angle_int_frict)
-            Hc = np.divide(
+            height_critical = np.divide(
                 (4 * self._cohesion_eff / (self._grav * self._rho_r))
-                * (np.sin(np.arctan(ss)) * np.cos(sc_rad)),
-                1 - np.cos(np.arctan(ss) - sc_rad),
-                where=(1 - np.cos(np.arctan(ss) - sc_rad)) > 0,
-                out=np.zeros_like(ss),
+                * (np.sin(np.arctan(steepest_slope)) * np.cos(sc_rad)),
+                1 - np.cos(np.arctan(steepest_slope) - sc_rad),
+                where=(1 - np.cos(np.arctan(steepest_slope) - sc_rad)) > 0,
+                out=np.zeros_like(steepest_slope),
             )
-            p_S = np.divide(H_el, Hc, where=Hc > 0, out=np.zeros_like(Hc))
-            p_S[np.arctan(ss) <= sc_rad] = 0
-            p_S[p_S > 1] = 1
+            spatial_prob = np.divide(
+                height_cell,
+                height_critical,
+                where=height_critical > 0,
+                out=np.zeros_like(height_critical),
+            )
+            spatial_prob[np.arctan(steepest_slope) <= sc_rad] = 0
+            spatial_prob[spatial_prob > 1] = 1
 
             # Temporal probability
-            p_t = 1 - np.exp(-dt / self._landslides_return_time)
+            temporal_prob = 1 - np.exp(-dt / self._landslides_return_time)
 
             # Combined probability
-            p = p_t * p_S
-            slides = np.random.rand(p.size) < p
+            combined_prob = temporal_prob * spatial_prob
+            sliding = np.random.rand(combined_prob.size) < combined_prob
 
-            # Now, find the critical node, which is the receiver of i_slide
+            # Now, find the critical node, which is the receiver of critical_landslide_nodes
             # Critical nodes must be unique (a given node can have more receivers...)
-            i_slide = np.unique(
-                self.grid.at_node["flow__receiver_node"][np.where(slides)]
+            critical_landslide_nodes = np.unique(
+                self.grid.at_node["flow__receiver_node"][np.where(sliding)]
             )
             # Remove boundary nodes
             if not self._landslides_on_boundary_nodes:
-                i_slide = i_slide[~self.grid.node_is_boundary(i_slide)]
+                critical_landslide_nodes = critical_landslide_nodes[
+                    ~self.grid.node_is_boundary(critical_landslide_nodes)
+                ]
         else:
-            i_slide = np.array(self._critical_sliding_nodes)
+            critical_landslide_nodes = np.array(self._critical_sliding_nodes)
 
         # output variables
-        suspended_Sed = 0.0
+        suspended_sed = 0.0
         if self._verbose_landslides:
-            print(f"nbSlides = {len(i_slide)}")
+            print(f"nbSlides = {len(critical_landslide_nodes)}")
 
-        storeV_cum = 0.0
-        while i_slide.size > 0:
-            ind = 0
-            cP = i_slide[ind]  # Critical Node
-            cP_el = topo[cP]
+        store_cumul_volume = 0.0
+        while critical_landslide_nodes.size > 0:
+            crit_node = critical_landslide_nodes[0]  # start at first critical node
+            crit_node_el = topo[crit_node]
 
             # get 8 neighbors and only keep those to active nodes which are upstream
-            nb = np.concatenate(
+            neighbors = np.concatenate(
                 (
-                    self.grid.active_adjacent_nodes_at_node[cP],
-                    self.grid.diagonal_adjacent_nodes_at_node[cP],
+                    self.grid.active_adjacent_nodes_at_node[crit_node],
+                    self.grid.diagonal_adjacent_nodes_at_node[crit_node],
                 )
             )
-            nb = nb[nb != -1]
-            nb_up = nb[topo[nb] > cP_el]
+            neighbors = neighbors[neighbors != -1]
+            neighbors_up = neighbors[topo[neighbors] > crit_node_el]
 
-            X_cP = self.grid.node_x[cP]
-            Y_cP = self.grid.node_y[cP]
+            x_crit_node = self.grid.node_x[crit_node]
+            y_crit_node = self.grid.node_y[crit_node]
 
-            distToIni_all = np.sqrt(
+            dist_to_initial_node = np.sqrt(
                 np.add(
-                    np.square(X_cP - self.grid.node_x[nb_up]),
-                    np.square(Y_cP - self.grid.node_y[nb_up]),
+                    np.square(x_crit_node - self.grid.node_x[neighbors_up]),
+                    np.square(y_crit_node - self.grid.node_y[neighbors_up]),
                 )
             )
-            all_iP_el = topo[nb_up]
-            s_slide_all = (all_iP_el - cP_el) / distToIni_all
+            slope_neighbors_to_crit_node = (
+                topo[neighbors_up] - crit_node_el
+            ) / dist_to_initial_node
 
-            nb_up = nb_up[s_slide_all > self._angle_int_frict]
-            s_slide_all = s_slide_all[s_slide_all > self._angle_int_frict]
+            neighbors_up = neighbors_up[
+                slope_neighbors_to_crit_node > self._angle_int_frict
+            ]
+            slope_neighbors_to_crit_node = slope_neighbors_to_crit_node[
+                slope_neighbors_to_crit_node > self._angle_int_frict
+            ]
 
-            if s_slide_all.size > 0:
-                s_slide = max(s_slide_all)
-                storeV_bed = 0.0
-                storeV_sed = 0.0
-                upstream = 0
-                uP = nb_up
+            if slope_neighbors_to_crit_node.size > 0:
+                slope_slide = max(slope_neighbors_to_crit_node)
+                store_volume_bed = 0.0
+                store_volume_sed = 0.0
+                upstream_count = 0
+                upstream_neighbors = neighbors_up
                 if not self._landslides_on_boundary_nodes:
-                    uP = uP[~self.grid.node_is_boundary(uP)]
+                    upstream_neighbors = upstream_neighbors[
+                        ~self.grid.node_is_boundary(upstream_neighbors)
+                    ]
                 # Fix sliding angle of particular LS
-                ang_sl = (self._angle_int_frict + s_slide) / 2.0
-                stall = 0
+                sliding_angle = (self._angle_int_frict + slope_slide) / 2.0
+                nb_landslide_cells = 0
 
-                while uP.size > 0 and (
-                    upstream <= self._max_pixelsize_landslide and stall < 1e4
+                # If landslides become unrealistically big, exit algorithm
+                while upstream_neighbors.size > 0 and (
+                    upstream_count <= self._max_pixelsize_landslide
+                    and nb_landslide_cells < 1e5
                 ):
-                    distToIni = np.sqrt(
+                    distance_to_crit_node = np.sqrt(
                         np.add(
-                            np.square(X_cP - self.grid.node_x[uP[0]]),
-                            np.square(Y_cP - self.grid.node_y[uP[0]]),
+                            np.square(
+                                x_crit_node - self.grid.node_x[upstream_neighbors[0]]
+                            ),
+                            np.square(
+                                y_crit_node - self.grid.node_y[upstream_neighbors[0]]
+                            ),
                         )
                     )
-                    newEl = cP_el + distToIni * ang_sl
-                    stall += 1
-                    if newEl < topo[uP[0]]:
+                    new_el = crit_node_el + distance_to_crit_node * sliding_angle
+                    nb_landslide_cells += 1
+                    if new_el < topo[upstream_neighbors[0]]:
                         # Do actual slide
-                        upstream = upstream + 1
-                        sed_LS_E = np.clip(
-                            min(soil_d[uP[0]], topo[uP[0]] - newEl),
+                        upstream_count += 1
+                        sed_landslide_ero = np.clip(
+                            min(
+                                soil_d[upstream_neighbors[0]],
+                                topo[upstream_neighbors[0]] - new_el,
+                            ),
                             a_min=0.0,
                             a_max=None,
                         )
-                        soil_d[uP[0]] -= sed_LS_E
-                        topo[uP[0]] = newEl
-                        bed_LS_E = np.clip(
-                            bed[uP[0]] - (newEl - soil_d[uP[0]]), a_min=0.0, a_max=None
+                        soil_d[upstream_neighbors[0]] -= sed_landslide_ero
+                        topo[upstream_neighbors[0]] = new_el
+                        bed_landslide_ero = np.clip(
+                            bed[upstream_neighbors[0]]
+                            - (new_el - soil_d[upstream_neighbors[0]]),
+                            a_min=0.0,
+                            a_max=None,
                         )
-                        bed[uP[0]] -= bed_LS_E
-                        topo[uP[0]] = newEl
+                        bed[upstream_neighbors[0]] -= bed_landslide_ero
+                        topo[upstream_neighbors[0]] = new_el
 
-                        vol_sed = sed_LS_E * (1 - self._phi) * (self.grid.dx ** 2)
-                        vol_bed = bed_LS_E * (self.grid.dx ** 2)
-                        storeV_sed = storeV_sed + vol_sed
-                        storeV_bed = storeV_bed + vol_bed
+                        vol_sed = (
+                            sed_landslide_ero * (1 - self._phi) * (self.grid.dx ** 2)
+                        )
+                        vol_bed = bed_landslide_ero * (self.grid.dx ** 2)
+                        store_volume_sed = store_volume_sed + vol_sed
+                        store_volume_bed = store_volume_bed + vol_bed
 
-                        nb = np.concatenate(
+                        neighbors = np.concatenate(
                             (
-                                self.grid.active_adjacent_nodes_at_node[uP[0]],
-                                self.grid.diagonal_adjacent_nodes_at_node[uP[0]],
+                                self.grid.active_adjacent_nodes_at_node[
+                                    upstream_neighbors[0]
+                                ],
+                                self.grid.diagonal_adjacent_nodes_at_node[
+                                    upstream_neighbors[0]
+                                ],
                             )
                         )
-                        nb = nb[nb != -1]
-                        nb_up = nb[topo[nb] > cP_el]
-                        uP = [*uP, *nb_up]
+                        neighbors = neighbors[neighbors != -1]
+                        neighbors_up = neighbors[topo[neighbors] > crit_node_el]
+                        upstream_neighbors = [*upstream_neighbors, *neighbors_up]
 
-                        temp, idx = np.unique(uP, return_index=True)
-                        uP = np.array(uP)
-                        uP = uP[np.sort(idx)]
+                        temp, idx = np.unique(upstream_neighbors, return_index=True)
+                        upstream_neighbors = np.array(upstream_neighbors)
+                        upstream_neighbors = upstream_neighbors[np.sort(idx)]
                         if not self._landslides_on_boundary_nodes:
-                            uP = uP[~self.grid.node_is_boundary(uP)]
-                        # if one of the LS pixels also appears in i_slide list,
+                            upstream_neighbors = upstream_neighbors[
+                                ~self.grid.node_is_boundary(upstream_neighbors)
+                            ]
+                        # if one of the LS pixels also appears in critical_landslide_nodes list,
                         # remove it there so that no new landslide is initialized
-                        i_slide = i_slide[np.where((i_slide != uP[0]))]
+                        critical_landslide_nodes = critical_landslide_nodes[
+                            np.where(
+                                (critical_landslide_nodes != upstream_neighbors[0])
+                            )
+                        ]
 
-                        lb_bed_ero[uP[0]] = sed_LS_E + bed_LS_E
+                        landslide__ero[upstream_neighbors[0]] = (
+                            sed_landslide_ero + bed_landslide_ero
+                        )
 
-                    uP = np.delete(uP, 0, 0)
+                    upstream_neighbors = np.delete(upstream_neighbors, 0, 0)
 
-                storeV = storeV_sed + storeV_bed
-                storeV_cum += storeV
-                if upstream > 0:
-                    ls_sed_in[cP] += (storeV / dt) * (1.0 - self._fraction_fines_LS)
-                    suspended_Sed += (storeV / dt) * self._fraction_fines_LS
+                store_volume = store_volume_sed + store_volume_bed
+                store_cumul_volume += store_volume
+                if upstream_count > 0:
+                    landslide_sed_in[crit_node] += (store_volume / dt) * (
+                        1.0 - self._fraction_fines_LS
+                    )
+                    suspended_sed += (store_volume / dt) * self._fraction_fines_LS
 
-                    self._landslides_size.append(upstream)
-                    self._landslides_volume.append(storeV)
-                    self._landslides_volume_sed.append(storeV_sed)
-                    self._landslides_volume_bed.append(storeV_bed)
+                    self._landslides_size.append(upstream_count)
+                    self._landslides_volume.append(store_volume)
+                    self._landslides_volume_sed.append(store_volume_sed)
+                    self._landslides_volume_bed.append(store_volume_bed)
 
-            if i_slide.size > 0:
-                i_slide = np.delete(i_slide, 0, 0)
+            if critical_landslide_nodes.size > 0:
+                critical_landslide_nodes = np.delete(critical_landslide_nodes, 0, 0)
 
-        return suspended_Sed
+        return suspended_sed
 
     def _landslide_runout(self, dt):
         """
@@ -571,7 +612,7 @@ class BedrockLandslider(Component):
 
         Returns
         -------
-        dH_Hill : float
+        dh_hill : float
             Hillslope erosion over the simulated domain.
         V_leaving : float
             Total volume of sediment leaving the simulated domain.
@@ -579,28 +620,28 @@ class BedrockLandslider(Component):
             Sediment flux over the simulated domain.
 
         """
-        z = self.grid.at_node["topographic__elevation"]
-        br = self.grid.at_node["bedrock__elevation"]
-        H = self.grid.at_node["soil__depth"]
+        topo = self.grid.at_node["topographic__elevation"]
+        bed = self.grid.at_node["bedrock__elevation"]
+        soil_d = self.grid.at_node["soil__depth"]
         sed_flux = self.grid.at_node["LS_sediment__flux"]
         stack_rev = np.flip(self.grid.at_node["flow__upstream_node_order"])
-        ls_depo = self.grid.at_node["landslide__deposition"]
-        ls_sed_in = self.grid.at_node["landslide_sediment_point_source"]
+        landslide_depo = self.grid.at_node["landslide__deposition"]
+        landslide_sed_in = self.grid.at_node["landslide_sediment_point_source"]
         node_status = self.grid.status_at_node
 
         # Only process core nodes
         stack_rev_sel = stack_rev[node_status[stack_rev] == NodeStatus.CORE]
         receivers = self.grid.at_node["hill_flow__receiver_node"]
-        fract = self.grid.at_node["hill_flow__receiver_proportions"]
+        fract_receivers = self.grid.at_node["hill_flow__receiver_proportions"]
 
         # keep only steepest slope
         slope = np.max(self.grid.at_node["hill_topographic__steepest_slope"], axis=1)
         slope[slope < 0] = 0.0
 
-        Qs_in = ls_sed_in * dt  # Qs_in, in m3 per timestep
+        flux_in = landslide_sed_in * dt  # flux_in, in m3 per timestep
 
         # L following carretier 2016
-        L_Hill = np.matlib.divide(
+        transport_length_hill = np.matlib.divide(
             self.grid.dx,
             (
                 1
@@ -610,39 +651,39 @@ class BedrockLandslider(Component):
                 )
             ),
         )
-        Qs_out = np.zeros(z.shape)
-        dH_Hill = np.zeros(z.shape)
-        H_i_temp = np.array(z)
-        max_D = np.zeros(z.shape)
+        flux_out = np.zeros(topo.shape)
+        dh_hill = np.zeros(topo.shape)
+        topo_copy = np.array(topo)
+        max_depo = np.zeros(topo.shape)
 
         _landslide_runout(
             self.grid.dx,
             self._phi,
             stack_rev_sel,
             receivers,
-            fract,
-            Qs_in,
-            L_Hill,
-            Qs_out,
-            dH_Hill,
-            H_i_temp,
-            max_D,
+            fract_receivers,
+            flux_in,
+            transport_length_hill,
+            flux_out,
+            dh_hill,
+            topo_copy,
+            max_depo,
         )
-        sed_flux[:] = Qs_out
+        sed_flux[:] = flux_out
 
-        Qs_coreNodes = np.sum(Qs_in[self.grid.status_at_node == 0])
-        V_leaving = np.sum(Qs_in)  # Qs_leaving # in m3 per timestep
+        Qs_coreNodes = np.sum(flux_in[self.grid.status_at_node == 0])
+        V_leaving = np.sum(flux_in)  # Qs_leaving # in m3 per timestep
 
         # Change sediment layer
-        H[:] += dH_Hill
-        z[:] = br + H
+        soil_d[:] += dh_hill
+        topo[:] = bed + soil_d
 
         # Reset Qs
-        ls_sed_in.fill(0.0)
+        landslide_sed_in.fill(0.0)
         # Update deposition field
-        ls_depo[:] = dH_Hill
+        landslide_depo[:] = dh_hill
 
-        return dH_Hill, V_leaving, Qs_coreNodes
+        return dh_hill, V_leaving, Qs_coreNodes
 
     def run_one_step(self, dt):
         """Advance BedrockLandslider component by one time step of size dt.
@@ -668,6 +709,6 @@ class BedrockLandslider(Component):
 
         # Landslides
         vol_SSY = self._landslide_erosion(dt)
-        dH_Hill, V_leaving, Qs_coreNodes = self._landslide_runout(dt)
+        dh_hill, V_leaving, Qs_coreNodes = self._landslide_runout(dt)
 
         return vol_SSY, V_leaving
