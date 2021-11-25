@@ -236,10 +236,6 @@ class BedrockLandslider(Component):
         verbose_landslides=False,
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=None,
-        store_landslides_size=True,
-        store_landslides_volume=True,
-        store_landslides_volume_sed=False,
-        store_landslides_volume_bed=False,
     ):
         """Initialize the BedrockLandslider model.
 
@@ -275,19 +271,6 @@ class BedrockLandslider(Component):
             Provide list with critical nodes where landslides have to initiate
             This cancels the stochastic part of the algorithm and allows the
             user to form landslides at the provided critical nodes.
-        store_landslides_size : bool  , optional
-            Store the size of landslides through time. Values will be stored in
-            a list as a property of a bedrock_landslider object.
-        store_landslides_volume : bool , optional
-            Store the volume of landslides through time. Values will be stored in
-            a list as a property of a bedrock_landslider object.
-        store_landslides_volume_sed  : bool , optional
-            Store the volume of eroded bedrock through time. Values will be
-            stored in a list as a property of a bedrock_landslider object.
-        store_landslides_volume_bed : bool  , optional
-            Store the volume of eroded sediment landslides through time.
-            Values will be stored in a list as a property of a
-            bedrock_landslider object.
         """
         super(BedrockLandslider, self).__init__(grid)
 
@@ -322,10 +305,10 @@ class BedrockLandslider(Component):
         self._critical_sliding_nodes = critical_sliding_nodes
 
         # Data structures to store properties of simulated landslides.
-        self._landslides_size = [] if store_landslides_size else None
-        self._landslides_volume = [] if store_landslides_volume else None
-        self._landslides_volume_sed = [] if store_landslides_volume_sed else None
-        self._landslides_volume_bed = [] if store_landslides_volume_bed else None
+        self._landslides_size = []
+        self._landslides_volume = []
+        self._landslides_volume_sed = []
+        self._landslides_volume_bed = []
 
         # Check input values
         if phi >= 1.0 or phi < 0.0:
@@ -343,18 +326,34 @@ class BedrockLandslider(Component):
     # Getters for properties
     @property
     def landslides_size(self):
+        """
+        List with the size of simulated landslides.
+        The list is reset every time the _landslide_erosion function is called
+        """
         return self._landslides_size
 
     @property
     def landslides_volume(self):
+        """
+        List with the volume of simulated landslides.
+        The list is reset every time the _landslide_erosion function is called
+        """
         return self._landslides_volume
 
     @property
     def landslides_volume_sed(self):
+        """
+        List with the volume of sediment eroded by landslides.
+        The list is reset every time the _landslide_erosion function is called
+        """
         return self._landslides_volume_sed
 
     @property
     def landslides_volume_bed(self):
+        """
+        List with the volume of bedrock eroded by landslides.
+        The list is reset every time the _landslide_erosion function is called
+        """
         return self._landslides_volume_bed
 
     def _landslide_erosion(self, dt):
@@ -384,6 +383,12 @@ class BedrockLandslider(Component):
         lb_bed_ero.fill(0.0)
         # Reset landslide sediment point source field
         ls_sed_in.fill(0.0)
+
+        # Reset data structures to store properties of simulated landslides.
+        self._landslides_size = []
+        self._landslides_volume = []
+        self._landslides_volume_sed = []
+        self._landslides_volume_bed = []
 
         # Identify flooded nodes
         flood_status = self.grid.at_node["flood_status_code"]
@@ -538,14 +543,10 @@ class BedrockLandslider(Component):
                     ls_sed_in[cP] += (storeV / dt) * (1.0 - self._fraction_fines_LS)
                     suspended_Sed += (storeV / dt) * self._fraction_fines_LS
 
-                    if self._landslides_size is not None:
-                        self._landslides_size.append(upstream)
-                    if self._landslides_volume is not None:
-                        self._landslides_volume.append(storeV)
-                    if self._landslides_volume_sed is not None:
-                        self._landslides_volume_sed.append(storeV_sed)
-                    if self._landslides_volume_bed is not None:
-                        self._landslides_volume_bed.append(storeV_bed)
+                    self._landslides_size.append(upstream)
+                    self._landslides_volume.append(storeV)
+                    self._landslides_volume_sed.append(storeV_sed)
+                    self._landslides_volume_bed.append(storeV_bed)
 
             if i_slide.size > 0:
                 i_slide = np.delete(i_slide, 0, 0)

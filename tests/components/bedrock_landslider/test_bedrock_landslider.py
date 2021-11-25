@@ -78,35 +78,6 @@ def test_inputFields_bedrock():
     assert "bedrock__elevation" in mg.at_node
 
 
-def test_storage_ls_properties():
-    """
-    Check if right output properties are generated upon initialization
-    """
-    n_rows = 5
-    n_columns = 5
-    spacing = 1
-    mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
-    mg.add_zeros("topographic__elevation", at="node")
-    mg.add_zeros("soil__depth", at="node")
-    mg.add_zeros("bedrock__elevation", at="node")
-
-    PriorityFloodFlowRouter(mg, separate_hill_flow=True, suppress_out=True)
-
-    # instantiate the slider
-    bl = BedrockLandslider(
-        mg,
-        store_landslides_size=False,
-        store_landslides_volume=False,
-        store_landslides_volume_bed=True,
-        store_landslides_volume_sed=True,
-    )
-
-    assert bl.landslides_size is None
-    assert bl.landslides_volume is None
-    assert isinstance(bl.landslides_volume_bed, list)
-    assert isinstance(bl.landslides_volume_sed, list)
-
-
 def test_properties_phi_fraction_fines_LS():
     """
     BedrockLandslider should throw an error when phi/fraction_fines_LS < 0 or phi > 0
@@ -308,8 +279,6 @@ def test_mass_balance_noporosity():
         landslides_on_boundary_nodes=True,
         phi=0,
         fraction_fines_LS=0,
-        store_landslides_volume_bed=True,
-        store_landslides_volume_sed=True,
         verbose_landslides=True,
     )
 
@@ -325,6 +294,12 @@ def test_mass_balance_noporosity():
         vol_SSY, V_leaving = hy.run_one_step(dt=1)
         vol_SSY_tot += vol_SSY
         V_leaving_tot += V_leaving
+
+    # Check if list with landslide properties is generated
+    assert isinstance(hy.landslides_size, list)
+    assert isinstance(hy.landslides_volume, list)
+    assert isinstance(hy.landslides_volume_bed, list)
+    assert isinstance(hy.landslides_volume_sed, list)
 
     total_vol_after = np.sum(b) + np.sum(s) + vol_SSY_tot + V_leaving_tot
     # Check mass balance
