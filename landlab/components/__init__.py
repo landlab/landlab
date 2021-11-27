@@ -1,3 +1,4 @@
+from .bedrock_landslider import BedrockLandslider
 from .chi_index import ChiFinder
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
@@ -63,6 +64,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    BedrockLandslider,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
