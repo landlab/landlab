@@ -3,6 +3,12 @@ Changelog for landlab
 =====================
 
 
+2.4.0b1 (unreleased)
+--------------------
+
+- Nothing changed yet.
+
+
 2.4.0b0 (2021-11-28)
 --------------------
 
