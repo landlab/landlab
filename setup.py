@@ -38,7 +38,7 @@ def find_extensions(path="."):
 
 setup(
     name="landlab",
-    version="2.3.1.dev0",
+    version="2.4.0b0",
     author="Eric Hutton",
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",

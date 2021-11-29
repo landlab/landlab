@@ -3,8 +3,8 @@ Changelog for landlab
 =====================
 
 
-2.3.1 (unreleased)
-------------------
+2.4.0b0 (2021-11-28)
+--------------------
 
 - Added BedrockLandslider component (#1362)
 
