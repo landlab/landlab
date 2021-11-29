@@ -166,6 +166,14 @@ class SpaceLargeScaleEroder(Component):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
+        },
+        "sediment__influx": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "soil__depth": {
@@ -337,14 +345,11 @@ class SpaceLargeScaleEroder(Component):
         self.initialize_output_fields()
 
         self._qs = grid.at_node["sediment__flux"]
+        self._qs_in = grid.at_node["sediment__influx"]
         self._q = return_array_at_node(grid, discharge_field)
 
-        # Create arrays for sediment influx at each node, discharge to the
-        # power "m", and deposition rate
-        self._qs_in = np.zeros(grid.number_of_nodes)
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
         self._S_to_the_n = np.zeros(grid.number_of_nodes)
-        # self._depo_rate = np.zeros(grid.number_of_nodes)
 
         # store other constants
         self._m_sp = np.float64(m_sp)

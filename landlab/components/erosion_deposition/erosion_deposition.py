@@ -135,6 +135,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
+        },
+        "sediment__influx": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "surface_water__discharge": {
