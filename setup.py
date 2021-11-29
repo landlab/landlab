@@ -26,7 +26,7 @@ long_description = u"\n\n".join(
 
 def find_extensions(path="."):
     extensions = []
-    for root, dirs, files in os.walk(os.path.normpath(path)):
+    for root, _dirs, files in os.walk(os.path.normpath(path)):
         extensions += [
             os.path.join(root, fname) for fname in files if fname.endswith(".pyx")
         ]
