@@ -90,5 +90,7 @@ jobs:
 
       - name: Upload distributions
         # run: twine upload --skip-existing dist/*-${{ matrix.platform }}*.whl
-        run: twine upload --skip-existing wheelhouse/*.whl
+        run: |
+          pip install twine
+          twine upload --skip-existing wheelhouse/*.whl
 
