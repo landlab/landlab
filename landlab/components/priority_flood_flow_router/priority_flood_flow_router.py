@@ -344,7 +344,7 @@ class PriorityFloodFlowRouter(Component):
         update_hill_flow_instantaneous=True,
         hill_flow_metric="Quinn",
         hill_exponent=1,
-        suppress_out=False,
+        suppress_out=True,
     ):
         """Initialize the FlowAccumulator component.
 
@@ -415,6 +415,13 @@ class PriorityFloodFlowRouter(Component):
             self._info["hill_flow__receiver_node"]["optional"] = False
             self._info["hill_topographic__steepest_slope"]["optional"] = False
             self._info["hill_flow__receiver_proportions"]["optional"] = False
+        else:
+            self._info["hill_drainage_area"]["optional"] = True
+            self._info["hill_surface_water__discharge"]["optional"] = True
+            self._info["hill_flow__upstream_node_order"]["optional"] = True
+            self._info["hill_flow__receiver_node"]["optional"] = True
+            self._info["hill_topographic__steepest_slope"]["optional"] = True
+            self._info["hill_flow__receiver_proportions"]["optional"] = True
 
         self._accumulate_flow = accumulate_flow
         self._accumulate_flow_hill = accumulate_flow_hill
