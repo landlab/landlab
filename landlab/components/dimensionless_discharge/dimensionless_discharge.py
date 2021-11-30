@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Calculate dimensionless dischange of stream sections based on Tang (2019)
+Calculate dimensionless dischange of stream sections based on Tang et 
+al. (2019)
 """
 
 import math
@@ -30,16 +31,36 @@ class DimensionlessDischarge(Component):
     gravitational constant, and :math:`D_50` is the average sediment 
     partical size in the stream segment area.
 
+    Constants C and N are coefficients used in the slope-dependent 
+    equation 
+    
+    .. math::
+
+       q*_{thresold} = \frac{C}{(tan(\theta))^N}
+    
+    to determine whether the dimensionless discharge calculated 
+    exceeds thresholds for a sediment-laden (Upper Limit) or 
+    water-producing only (Lower Limit) debris flow.  C and N are 
+    empirically-derived by comparing dimensionless discharge estimates 
+    against previous debris flow events.  The values will vary based on 
+    local geology and soil type. In southern California values of C=12 
+    and N=0.85 (upper limits, Tang et al, 2019) and C=4.29, N=0.78 
+    (lower limits, Tang et al, 2019) have been used, while values of 
+    C=0.195 and N=1.27 have been in used in the Italian Dolomites 
+    (Gregoretti and Fontana, 2008). Default values are C=12 and N=0.85.  
+
     Parameters
     ----------
     soil_density : float list
         Density of soil in watershed (kg/m^3)
-    water_density = float
+    water_density : float
         density of water in waterhed (kg/m^3)
     C : float
-        Empirically derived constant (see Tang et al. 2019)
+        Numerator of the debris flow threshold equation; Empirically 
+        derived constant (See Tang et al. 2019)
     N : float
-        Empirically derived constant (see Tang et al. 2019)
+        Exponent for slope in the denominator of the debris flow 
+        threshold equation; Empirically derived constant (See Tang et al. 2019) 
 
     Examples
     --------
@@ -121,16 +142,17 @@ class DimensionlessDischarge(Component):
 
         Parameters
         ----------
-        soil_density : float, required (defaults to empty list [])
+        soil_density : float, optional (defaults to 1330)
             density of soil (kg/m^3)
+        water_density : float, optional (defaults to 997.9)
+            density of water (kg/m^3)
         C : float, optional (defaults to 12.0)
-            Empirically derived constant (see Tang et al. 2019)
-        N : float, defaults to 0.85
-            Empirically derived constant (see Tang et al. 2019)
-        stream_slope: list[float], required (defaults to empty list [])
-            Slope of each segment in the stream
-        stream_flux: list[list[float]], required (default to empty 2D list)
-            Flux value calculated for each stream segment
+            Numerator of the debris flow threshold equation; Empirically
+            derived constant (See Tang et al. 2019)
+        N : float, optional (defaults to 0.85)
+            Exponent for slope in the denominator of the debris flow 
+            threshold equation; Empirically derived constant (See Tang 
+            et al. 2019) 
         """
 
         super().__init__(grid)
