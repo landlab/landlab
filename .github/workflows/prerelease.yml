@@ -51,15 +51,12 @@ jobs:
           conda install pip
           python --version
           pip --version
-          python -m pip install cibuildwheel==2.3.0
+          python -m pip install cibuildwheel==2.3.0 twine
 
       - name: Show conda installation info
         run: |
           conda info
           conda list
-
-      - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
 
       - name: Build source distribution
         if: matrix.os == 'ubuntu-latest'
@@ -67,8 +64,10 @@ jobs:
           python setup.py sdist --dist-dir wheelhouse
           twine upload --skip-existing wheelhouse/*.tar.gz
 
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
       - name: Upload distributions
         run: |
-          pip install twine
           twine upload --skip-existing wheelhouse/*.whl
 
