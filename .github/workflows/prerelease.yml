@@ -27,7 +27,7 @@ jobs:
       CIBW_BUILD: 'cp38-* cp39-* cp310-*'
       CIBW_SKIP: '*-musllinux_*'
       CIBW_ARCHS_MACOS: "x86_64 arm64"
-      CIBW_ARCHS_LINUX: "x86_64 aarch64"
+      CIBW_ARCHS_LINUX: "auto aarch64"
 
 
     steps:
@@ -39,6 +39,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
           channels: conda-forge
           channel-priority: true
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
 
       - name: Install cibuildwheel
         run: |
@@ -59,10 +65,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           python setup.py sdist --dist-dir wheelhouse
+          twine upload --skip-existing wheelhouse/*.tar.gz
 
       - name: Upload distributions
         run: |
           pip install twine
           twine upload --skip-existing wheelhouse/*.whl
-          twine upload --skip-existing wheelhouse/*.tar.gz
 
