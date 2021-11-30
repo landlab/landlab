@@ -134,11 +134,7 @@ class _GeneralizedErosionDeposition(Component):
         self.initialize_output_fields()
 
         self._qs = grid.at_node["sediment__flux"]
-        try:
-            self._qs_in = grid.at_node["sediment__influx"]
-        except:
-            print('WHOA NELLY')
-            print(self.grid.at_node.keys())
+        self._qs_in = grid.at_node["sediment__influx"]
         self._q = return_array_at_node(grid, discharge_field)
 
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
@@ -208,7 +204,6 @@ class _GeneralizedErosionDeposition(Component):
         else:
             is_pit = self._flow_receivers == self._grid.nodes.flatten()
             is_flooded_core = np.logical_and(
-                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
-                is_pit,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE, is_pit,
             )
         return np.array(is_flooded_core)
