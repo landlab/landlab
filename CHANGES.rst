@@ -3,8 +3,8 @@ Changelog for landlab
 =====================
 
 
-2.4.0b1 (unreleased)
---------------------
+2.4.0 (2021-11-29)
+------------------
 
 - Changed GitHub actions to use cibuildwheel for building wheels (#1368)
 
