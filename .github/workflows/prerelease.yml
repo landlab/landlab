@@ -41,6 +41,9 @@ jobs:
     env:
       CIBW_BUILD: 'cp38-* cp39-* cp310-*'
       CIBW_SKIP: '*-musllinux_*'
+      CIBW_ARCHS_MACOS: "x86_64 arm64"
+      CIBW_ARCHS_LINUX: "auto aarch64"
+
 
     steps:
       - uses: actions/checkout@v2
