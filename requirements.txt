@@ -8,3 +8,5 @@ scipy
 statsmodels
 pandas
 xarray>=0.16
+richdem
+bmi-topography

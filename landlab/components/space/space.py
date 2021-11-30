@@ -7,7 +7,7 @@ from landlab.components.erosion_deposition.generalized_erosion_deposition import
 )
 from landlab.utils.return_array import return_array_at_node
 
-from .cfuncs import calculate_qs_in
+from .ext.calc_qs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
