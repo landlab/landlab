@@ -196,14 +196,13 @@ class _GeneralizedErosionDeposition(Component):
 
         True where core node is flooded or self-draining.
         """
+        is_core = self._grid.status_at_node == self._grid.BC_NODE_IS_CORE
         if self._depressions_are_handled():
-            is_flooded_core = np.logical_and(
-                self._grid.at_node["flood_status_code"] == _FLOODED,
-                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+            is_flooded_core = is_core & (
+                self._grid.at_node["flood_status_code"] == _FLOODED
             )
         else:
-            is_pit = self._flow_receivers == self._grid.nodes.flatten()
-            is_flooded_core = np.logical_and(
-                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE, is_pit,
+            is_flooded_core = is_core & (
+                self._flow_receivers == self._grid.nodes.flatten()
             )
-        return np.array(is_flooded_core)
+        return np.asarray(is_flooded_core)
