@@ -3,7 +3,7 @@ name: TestPyPI
 on:
   push:
     tags:
-      - v[0-9]+.[0-9]+.[0-9]+[ab][0-9]*
+      - 'v[0-9]+.[0-9]+.[0-9]+[ab][0-9]+'
 
 env:
   TWINE_USERNAME: __token__
@@ -28,7 +28,6 @@ jobs:
       CIBW_SKIP: '*-musllinux_*'
       CIBW_ARCHS_MACOS: "x86_64 arm64"
       CIBW_ARCHS_LINUX: "auto aarch64"
-
 
     steps:
       - uses: actions/checkout@v2
