@@ -6,8 +6,11 @@ Changelog for landlab
 2.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fixed the building of source distributions for prerelease and release
+  workflows (#1372); fixed a bug that causes release workflows to not
+  be triggered (#1371)
 
+- Added two ABM tutorial notebooks (#1364)
 
 2.4.0 (2021-11-29)
 ------------------
