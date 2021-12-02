@@ -3,7 +3,7 @@ Changelog for landlab
 =====================
 
 
-2.4.1 (unreleased)
+2.4.1 (2021-12-02)
 ------------------
 
 - Fixed the building of source distributions for prerelease and release
