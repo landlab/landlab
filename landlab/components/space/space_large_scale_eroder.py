@@ -80,6 +80,7 @@ class SpaceLargeScaleEroder(Component):
     >>> mg.set_watershed_boundary_condition_outlet_id(
     ...     0, mg.at_node['topographic__elevation'], -9999.0
     ... )
+
     >>> fr = PriorityFloodFlowRouter(mg, flow_metric='D8', suppress_out = True)
     >>> sp = SpaceLargeScaleEroder(
     ...     mg,
@@ -105,6 +106,9 @@ class SpaceLargeScaleEroder(Component):
     ...     sed_flux[count] = mg.at_node["sediment__flux"][node_next_to_outlet]
     ...     elapsed_time += timestep
     ...     count += 1
+
+    Plot the results.
+
     >>> fig = plt.figure()
     >>> plot = plt.subplot()
     >>> _ = imshow_grid(
