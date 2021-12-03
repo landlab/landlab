@@ -79,6 +79,7 @@ Landslides
 .. toctree::
   :maxdepth: 2
 
+  bedrock_landslider
   landslides
 
 Vegetation
