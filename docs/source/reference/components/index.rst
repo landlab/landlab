@@ -43,6 +43,7 @@ Flow routing
    flow_accum
    flow_routing
    lake_fill
+   priority_flood_flow_router
    sink_fill
 
 Shallow water hydrodynamics
