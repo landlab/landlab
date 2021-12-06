@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Calculate dimensionless dischange of stream sections based on Tang et
+Calculate dimensionless discharge of stream sections based on Tang et
 al. (2019)
 """
 
@@ -11,7 +11,7 @@ from landlab import Component
 
 
 class DimensionlessDischarge(Component):
-    r"""Component that calculates dimensionless dischange of stream
+    r"""Component that calculates dimensionless discharge of stream
      segments.
 
     The dimensionless discharge model calculates the unitless  discharge
@@ -88,7 +88,7 @@ class DimensionlessDischarge(Component):
 
     """
 
-    _name = "DimensionlessDischangeModel"
+    _name = "DimensionlessDischargeModel"
 
     _unit_agnostic = False
 
@@ -136,7 +136,7 @@ class DimensionlessDischarge(Component):
     }
 
     def __init__(self, grid, soil_density=1330, water_density=997.9, C=12.0, N=0.85):
-        """Initialize the DimensionlessDischange.
+        """Initialize the DimensionlessDischarge.
 
         Parameters
         ----------

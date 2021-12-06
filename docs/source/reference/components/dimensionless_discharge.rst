@@ -1,7 +1,7 @@
-DimensionlessDischange: Calculate dimensionless dischange of stream sections
+DimensionlessDischarge: Calculate dimensionless discharge of stream sections
 ---------------------------------------------------------------------------------------------
 
-.. automodule:: landlab.components.dimensionless_dischange
+.. automodule:: landlab.components.dimensionless_discharge
     :members:
     :undoc-members:
     :show-inheritance:
