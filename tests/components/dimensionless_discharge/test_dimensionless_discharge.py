@@ -10,6 +10,7 @@ from landlab.components.dimensionless_discharge import DimensionlessDischarge
 
 
 def init_grid():
+    """initialize grid for testing"""
     watershed_grid = RasterModelGrid((3, 3))
     flux = watershed_grid.add_ones("node", "flux")
     d50 = watershed_grid.add_ones("node", "d50")
@@ -19,6 +20,7 @@ def init_grid():
 
 
 def test_dimensionless_discharge_final_values():
+    """Testing for correct final dimensionless discharge values"""
     watershed_grid = init_grid()
     dd = DimensionlessDischarge(watershed_grid)
     dd.run_one_step()
@@ -39,6 +41,7 @@ def test_dimensionless_discharge_final_values():
 
 
 def test_dimensionless_discharge_threshold_values():
+    """Validate threshold values are correctly calculated"""
     watershed_grid = init_grid()
     dd = DimensionlessDischarge(watershed_grid)
     dd.run_one_step()
