@@ -165,16 +165,12 @@ class DimensionlessDischarge(Component):
         self.gravity = 9.8
 
         # set threshold values for each segment
-        dimensionless_discharge = self.grid.add_zeros("node", "dimensionless_discharge")
-        dimensionless_discharge_above_threshold = self.grid.add_zeros(
-            "node", "dimensionless_discharge_above_threshold"
-        )
+        _ = self.grid.add_zeros("node", "dimensionless_discharge")
+        _ = self.grid.add_zeros("node", "dimensionless_discharge_above_threshold")
         self.grid.at_node["dimensionless_discharge_above_threshold"] = np.array(
             [[False] * self.grid.number_of_nodes]
         )
-        dimensionless_discharge_threshold_value = self.grid.add_zeros(
-            "node", "dimensionless_discharge_threshold_value"
-        )
+        _ = self.grid.add_zeros("node", "dimensionless_discharge_threshold_value")
         self.grid.at_node["dimensionless_discharge_threshold_value"] = self._C / (
             self._stream_slopes ** self._N
         )

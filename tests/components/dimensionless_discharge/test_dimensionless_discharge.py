@@ -3,22 +3,24 @@ Unit tests for landlab.components.dimensionless.discharge
 """
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_equal
+from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab.components.dimensionless_discharge import DimensionlessDischarge
 
 
 def init_grid():
+    """initialize grid for testing"""
     watershed_grid = RasterModelGrid((3, 3))
-    flux = watershed_grid.add_ones("node", "flux")
-    d50 = watershed_grid.add_ones("node", "d50")
-    dem_values = watershed_grid.add_ones("node", "dem_values")
+    _ = watershed_grid.add_ones("node", "flux")
+    _ = watershed_grid.add_ones("node", "d50")
+    _ = watershed_grid.add_ones("node", "dem_values")
     watershed_grid.at_node["dem_values"] = np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
     return watershed_grid
 
 
 def test_dimensionless_discharge_final_values():
+    """Testing for correct final dimensionless discharge values"""
     watershed_grid = init_grid()
     dd = DimensionlessDischarge(watershed_grid)
     dd.run_one_step()
@@ -39,6 +41,7 @@ def test_dimensionless_discharge_final_values():
 
 
 def test_dimensionless_discharge_threshold_values():
+    """Validate threshold values are correctly calculated"""
     watershed_grid = init_grid()
     dd = DimensionlessDischarge(watershed_grid)
     dd.run_one_step()
