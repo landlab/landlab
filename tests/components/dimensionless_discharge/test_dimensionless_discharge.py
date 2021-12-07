@@ -15,7 +15,8 @@ def init_grid():
     _ = watershed_grid.add_ones("node", "flux")
     _ = watershed_grid.add_ones("node", "d50")
     _ = watershed_grid.add_ones("node", "dem_values")
-    watershed_grid.at_node["dem_values"] = np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
+    watershed_grid.at_node["dem_values"] = np.array([[1.1, 2, 3, 4, 2, 3, 4,
+                                                      5, 3]])
     return watershed_grid
 
 
