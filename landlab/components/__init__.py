@@ -5,6 +5,7 @@ from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
 from .diffusion import LinearDiffuser
+from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
@@ -73,6 +74,7 @@ COMPONENTS = [
     DepthSlopeProductErosion,
     DetachmentLtdErosion,
     DischargeDiffuser,
+    DimensionlessDischarge,
     DrainageDensity,
     ErosionDeposition,
     ExponentialWeatherer,
