@@ -59,7 +59,8 @@ class DimensionlessDischarge(Component):
          derived constant (See Tang et al. 2019)
      N : float
          Exponent for slope in the denominator of the debris flow
-         threshold equation; Empirically derived constant (See Tang et al. 2019)
+         threshold equation; Empirically derived constant (See Tang et
+         al. 2019)
 
      Examples
      --------
@@ -69,7 +70,8 @@ class DimensionlessDischarge(Component):
      >>> watershed_grid = RasterModelGrid((3, 3))
      >>> flux = watershed_grid.add_ones('node', 'flux')
      >>> d50 = watershed_grid.add_ones('node', 'd50')
-     >>> watershed_grid.at_node['dem_values'] = np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
+     >>> watershed_grid.at_node ['dem_values'] = \
+     ... np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
      >>> dd = DimensionlessDischarge(watershed_grid)
      >>> dd.run_one_step()
      >>> print(watershed_grid.at_node['dimensionless_discharge'])
@@ -135,7 +137,8 @@ class DimensionlessDischarge(Component):
         },
     }
 
-    def __init__(self, grid, soil_density=1330, water_density=997.9, C=12.0, N=0.85):
+    def __init__(self, grid, soil_density=1330, water_density=997.9,
+                 C=12.0, N=0.85):
         """Initialize the DimensionlessDischarge.
 
         Parameters
@@ -166,14 +169,14 @@ class DimensionlessDischarge(Component):
 
         # set threshold values for each segment
         _ = self.grid.add_zeros("node", "dimensionless_discharge")
-        _ = self.grid.add_zeros("node", "dimensionless_discharge_above_threshold")
-        self.grid.at_node["dimensionless_discharge_above_threshold"] = np.array(
-            [[False] * self.grid.number_of_nodes]
-        )
-        _ = self.grid.add_zeros("node", "dimensionless_discharge_threshold_value")
-        self.grid.at_node["dimensionless_discharge_threshold_value"] = self._C / (
-            self._stream_slopes ** self._N
-        )
+        _ = self.grid.add_zeros("node",
+                                "dimensionless_discharge_above_threshold")
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = \
+            np.array([[False] * self.grid.number_of_nodes])
+        _ = self.grid.add_zeros("node",
+                                "dimensionless_discharge_threshold_value")
+        self.grid.at_node["dimensionless_discharge_threshold_value"] = \
+            self._C / (self._stream_slopes ** self._N)
 
     def run_one_step(self):
 
