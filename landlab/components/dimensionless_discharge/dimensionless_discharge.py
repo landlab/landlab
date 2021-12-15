@@ -137,8 +137,7 @@ class DimensionlessDischarge(Component):
         },
     }
 
-    def __init__(self, grid, soil_density=1330, water_density=997.9,
-                 C=12.0, N=0.85):
+    def __init__(self, grid, soil_density=1330, water_density=997.9, C=12.0, N=0.85):
         """Initialize the DimensionlessDischarge.
 
         Parameters
@@ -169,14 +168,14 @@ class DimensionlessDischarge(Component):
 
         # set threshold values for each segment
         _ = self.grid.add_zeros("node", "dimensionless_discharge")
-        _ = self.grid.add_zeros("node",
-                                "dimensionless_discharge_above_threshold")
-        self.grid.at_node["dimensionless_discharge_above_threshold"] = \
-            np.array([[False] * self.grid.number_of_nodes])
-        _ = self.grid.add_zeros("node",
-                                "dimensionless_discharge_threshold_value")
-        self.grid.at_node["dimensionless_discharge_threshold_value"] = \
-            self._C / (self._stream_slopes ** self._N)
+        _ = self.grid.add_zeros("node", "dimensionless_discharge_above_threshold")
+        self.grid.at_node["dimensionless_discharge_above_threshold"] = np.array(
+            [[False] * self.grid.number_of_nodes]
+        )
+        _ = self.grid.add_zeros("node", "dimensionless_discharge_threshold_value")
+        self.grid.at_node["dimensionless_discharge_threshold_value"] = self._C / (
+            self._stream_slopes ** self._N
+        )
 
     def run_one_step(self):
 
