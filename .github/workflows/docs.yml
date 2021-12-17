@@ -40,4 +40,4 @@ jobs:
               pip install -e .
 
           - name: Build documentation
-            run: make -C docs clean html linkcheck
+            run: make -C docs clean html

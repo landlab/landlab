@@ -26,7 +26,7 @@ long_description = u"\n\n".join(
 
 def find_extensions(path="."):
     extensions = []
-    for root, dirs, files in os.walk(os.path.normpath(path)):
+    for root, _dirs, files in os.walk(os.path.normpath(path)):
         extensions += [
             os.path.join(root, fname) for fname in files if fname.endswith(".pyx")
         ]
@@ -38,7 +38,7 @@ def find_extensions(path="."):
 
 setup(
     name="landlab",
-    version="2.3.1.dev0",
+    version="2.4.2.dev0",
     author="Eric Hutton",
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",
