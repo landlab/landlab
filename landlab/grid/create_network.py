@@ -379,7 +379,7 @@ def create_network_from_raster(
     return nmg
 
 
-def network_grid_from_raster(grid, reducer=None):
+def network_grid_from_raster(grid, reducer=None, include="*", exclude=None):
     """Create a NetworkModelGrid from a RasterModelGrid."""
 
     if "drainage_area" not in grid.at_node:
@@ -398,7 +398,9 @@ def network_grid_from_raster(grid, reducer=None):
     if reducer is not None:
         channel_segments = [reducer(segment) for segment in channel_segments]
 
-    network_grid = network_grid_from_segments(grid, channel_segments)
+    network_grid = network_grid_from_segments(
+        grid, channel_segments, include=include, exclude=exclude
+    )
 
     return network_grid
 
@@ -426,7 +428,7 @@ def get_channel_segments(grid, divergent_okay=False):
     profiler = ChannelProfiler(
         grid,
         number_of_watersheds=1,
-        # minimum_channel_threshold=min_channel_thresh,
+        minimum_channel_threshold=12000.0,
         # outlet_nodes=outlet_nodes,
         main_channel_only=False,
     )
@@ -451,6 +453,11 @@ def get_channel_segments(grid, divergent_okay=False):
 def network_grid_from_segments(grid, nodes_at_segment, include="*", exclude=None):
     """Create a NetworkModelGrid from channel segments."""
     channel_network = ChannelSegmentConnector(*nodes_at_segment)
+
+    for segment in channel_network.root:
+        if len(segment.upstream) == 1:
+            if len(segment.upstream[0]) > 0:
+                print("segments can be joined")
 
     xy_of_node = create_xy_of_node(channel_network.root, grid)
     at_node = get_node_fields(
@@ -565,9 +572,12 @@ class AtMostNodes(SegmentReducer):
     def reduce(self, segment: npt.ArrayLike) -> npt.ArrayLike:
         if self.count < len(segment):
             step = len(segment) // (self.count - 2 + 1)
-            return np.append(segment[: -step + 1 : step], segment[-1])
+            reduced_segment = np.append(
+                segment[: -step + 1 : step][: self.count - 1], segment[-1]
+            )
         else:
-            return np.asarray(segment)
+            reduced_segment = np.asarray(segment)
+        return reduced_segment
 
 
 def spacing_from_drainage_area(
@@ -917,6 +927,11 @@ def get_node_fields(network, grid, include="*", exclude=None):
     """
     if isinstance(include, str):
         include = [include]
+
+    include = [
+        pattern if pattern.startswith("at_") else f"at_node:{pattern}"
+        for pattern in include
+    ]
 
     node_fields = set()
     for canonical_name in grid.fields(include=include, exclude=exclude):
