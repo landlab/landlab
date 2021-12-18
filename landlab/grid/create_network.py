@@ -379,7 +379,9 @@ def create_network_from_raster(
     return nmg
 
 
-def network_grid_from_raster(grid, reducer=None, include="*", exclude=None):
+def network_grid_from_raster(
+    grid, reducer=None, include="*", exclude=None, minimum_channel_threshold=0.0
+):
     """Create a NetworkModelGrid from a RasterModelGrid."""
 
     if "drainage_area" not in grid.at_node:
@@ -393,7 +395,9 @@ def network_grid_from_raster(grid, reducer=None, include="*", exclude=None):
     if "drainage_area" not in grid.at_node:
         raise ValueError("'drainage_area' field is missing from the grid")
 
-    channel_segments = get_channel_segments(grid)
+    channel_segments = get_channel_segments(
+        grid, minimum_channel_threshold=minimum_channel_threshold
+    )
 
     if reducer is not None:
         channel_segments = [reducer(segment) for segment in channel_segments]
@@ -405,7 +409,7 @@ def network_grid_from_raster(grid, reducer=None, include="*", exclude=None):
     return network_grid
 
 
-def get_channel_segments(grid, divergent_okay=False):
+def get_channel_segments(grid, divergent_okay=False, minimum_channel_threshold=0.0):
     """Extract channel segments from a grid.
 
     Each segment includes nodes within the segment, upstream segments, and
@@ -428,7 +432,7 @@ def get_channel_segments(grid, divergent_okay=False):
     profiler = ChannelProfiler(
         grid,
         number_of_watersheds=1,
-        minimum_channel_threshold=12000.0,
+        minimum_channel_threshold=minimum_channel_threshold,
         # outlet_nodes=outlet_nodes,
         main_channel_only=False,
     )
