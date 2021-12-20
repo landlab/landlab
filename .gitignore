@@ -77,6 +77,8 @@ test-results.xml
 
 *.synctex.gz
 
+.hypothesis/
+
 installfiles.txt
 
 # Ignore all .c files as, currently, they are all cython generated.
