@@ -531,10 +531,19 @@ class NetworkSedimentTransporter(Component):
             )
 
             # calcuate taustar
-            taustar = tau / (
+            # taustar = tau / (
+            #     (self._rhos_mean_active - self._fluid_density)
+            #     * self._g
+            #     * self._d_mean_active
+            # )
+            taustar = np.zeros_like(tau)
+            np.divide(
+                tau,
                 (self._rhos_mean_active - self._fluid_density)
                 * self._g
-                * self._d_mean_active
+                * self._d_mean_active,
+                where=self._rhos_mean_active > self._fluid_density,
+                out=taustar,
             )
 
             # calculate active layer thickness
@@ -716,8 +725,11 @@ class NetworkSedimentTransporter(Component):
         Sarray = np.zeros(self._num_parcels)
         Harray = np.zeros(self._num_parcels)
         Larray = np.zeros(self._num_parcels)
-        D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
-        active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
+        # D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
+        # active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
+        D_mean_activearray = np.full(self._num_parcels, np.nan)
+        active_layer_thickness_array = np.full(self._num_parcels, np.nan)
+
         #        rhos_mean_active = np.zeros(self._num_parcels)
         #        rhos_mean_active.fill(np.nan)
 
