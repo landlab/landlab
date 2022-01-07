@@ -1252,7 +1252,5 @@ def test_incompatible_routing():
     # Flow director is D8 but depression finder is D4
     with pytest.raises(ValueError):
         FlowAccumulator(
-            mg,
-            flow_director="FlowDirectorD8",
-            depression_finder="LakeMapperBarnes",
+            mg, flow_director="FlowDirectorD8", depression_finder="LakeMapperBarnes",
         )

@@ -258,13 +258,7 @@ def test_D8_metric():
     fa2.run_one_step()
     pf_r = mg2.at_node["flow__receiver_node"]
     reciever = np.array(
-        [
-            [0, 1, 2, 3],
-            [4, 1, 2, 7],
-            [8, 6, 6, 11],
-            [12, 14, 10, 15],
-            [16, 17, 18, 19],
-        ]
+        [[0, 1, 2, 3], [4, 1, 2, 7], [8, 6, 6, 11], [12, 14, 10, 15], [16, 17, 18, 19],]
     )
     assert_array_equal(reciever.flatten(), pf_r)
 
@@ -683,10 +677,7 @@ def test_cython_functions():
     )
 
     testing.assert_array_equal(
-        known_FA,
-        da,
-        err_msg="Error with D8_FlowAcc calculations",
-        verbose=True,
+        known_FA, da, err_msg="Error with D8_FlowAcc calculations", verbose=True,
     )
 
     # %% test d8 flow dir with closed boundaries
@@ -776,8 +767,5 @@ def test_cython_functions():
     )
 
     testing.assert_array_equal(
-        known_FA,
-        da,
-        err_msg="Error with D8_FlowAcc calculations",
-        verbose=True,
+        known_FA, da, err_msg="Error with D8_FlowAcc calculations", verbose=True,
     )
