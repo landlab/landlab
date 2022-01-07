@@ -16,7 +16,8 @@ def test_angle_finder_90(node_1, node_2):
 
 
 @pytest.mark.parametrize(
-    "node_1,node_2", [(10, 6), (6, 2), (2, 1), (1, 0), (0, 4), (4, 8), (8, 9), (9, 10)],
+    "node_1,node_2",
+    [(10, 6), (6, 2), (2, 1), (1, 0), (0, 4), (4, 8), (8, 9), (9, 10)],
 )
 def test_angle_finder_45(node_1, node_2):
     grid = RasterModelGrid((3, 4))

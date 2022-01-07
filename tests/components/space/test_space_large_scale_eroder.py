@@ -188,10 +188,16 @@ def test_soil_field_already_on_grid():
 
     # %% Check getters
     testing.assert_array_equal(
-        0.01, sp.K_br, err_msg="Parameter value issue", verbose=True,
+        0.01,
+        sp.K_br,
+        err_msg="Parameter value issue",
+        verbose=True,
     )
     testing.assert_array_equal(
-        0.01, sp.K_sed, err_msg="Parameter value issue", verbose=True,
+        0.01,
+        sp.K_sed,
+        err_msg="Parameter value issue",
+        verbose=True,
     )
     # sediment erosion is zero before running the component
     testing.assert_array_equal(
@@ -210,11 +216,17 @@ def test_soil_field_already_on_grid():
     # %% Check setters
     sp.K_br = 0.02
     testing.assert_array_equal(
-        0.02, sp.K_br, err_msg="Parameter value issue", verbose=True,
+        0.02,
+        sp.K_br,
+        err_msg="Parameter value issue",
+        verbose=True,
     )
     sp.K_sed = 0.02
     testing.assert_array_equal(
-        0.02, sp.K_sed, err_msg="Parameter value issue", verbose=True,
+        0.02,
+        sp.K_sed,
+        err_msg="Parameter value issue",
+        verbose=True,
     )
 
     with pytest.raises(AttributeError):
