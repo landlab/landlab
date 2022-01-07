@@ -3,10 +3,25 @@ Changelog for landlab
 =====================
 
 
-2.4.0b1 (unreleased)
---------------------
+2.4.2 (unreleased)
+------------------
 
 - Nothing changed yet.
+
+
+2.4.1 (2021-12-02)
+------------------
+
+- Fixed the building of source distributions for prerelease and release
+  workflows (#1372); fixed a bug that causes release workflows to not
+  be triggered (#1371)
+
+- Added two ABM tutorial notebooks (#1364)
+
+2.4.0 (2021-11-29)
+------------------
+
+- Changed GitHub actions to use cibuildwheel for building wheels (#1368)
 
 
 2.4.0b0 (2021-11-28)
