@@ -142,7 +142,7 @@ class _GeneralizedErosionDeposition(Component):
         self._qs = grid.at_node["sediment__outflux"]
         self._q = return_array_at_node(grid, discharge_field)
 
-        # For backward compatibility
+        # For backward compatibility (remove in 3.0.0+)
         grid.at_node["sediment__flux"] = grid.at_node["sediment__outflux"]
 
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
