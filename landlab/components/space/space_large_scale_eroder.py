@@ -290,7 +290,7 @@ class SpaceLargeScaleEroder(Component):
             )
             raise NotImplementedError(msg)
 
-        super(SpaceLargeScaleEroder, self).__init__(grid,)
+        super(SpaceLargeScaleEroder, self).__init__(grid)
 
         self._soil__depth = grid.at_node["soil__depth"]
         self._topographic__elevation = grid.at_node["topographic__elevation"]
