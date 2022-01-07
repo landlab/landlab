@@ -88,7 +88,10 @@ def test_with_flexure():
     upper_crust_base = grid.add_zeros("upper_crust_base__elevation", at="node")
 
     extender = ListricKinematicExtender(
-        grid, extension_rate=0.01, fault_location=2500.0, track_crustal_thickness=True,
+        grid,
+        extension_rate=0.01,
+        fault_location=2500.0,
+        track_crustal_thickness=True,
     )
     flexer = Flexure(grid, eet=5000.0, method="flexure")
     deflection = grid.at_node["lithosphere_surface__elevation_increment"]
@@ -116,7 +119,8 @@ def test_with_flexure():
     flexer.update()
     net_deflection = deflection - init_deflection
     assert_array_almost_equal(
-        net_deflection[7:14], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        net_deflection[7:14],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     )
     test_topo = thickness + upper_crust_base - (net_deflection + extender._cum_subs)
     assert_array_almost_equal(topo, test_topo)
