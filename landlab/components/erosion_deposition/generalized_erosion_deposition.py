@@ -133,12 +133,6 @@ class _GeneralizedErosionDeposition(Component):
 
         self.initialize_output_fields()
 
-        try:
-            frog = grid.at_node["sediment__outflux"]
-        except KeyError:
-            print('*********WHOA**********')
-            raise KeyError('I have no idea')
-
         self._qs = grid.at_node["sediment__outflux"]
         self._q = return_array_at_node(grid, discharge_field)
 
@@ -165,7 +159,7 @@ class _GeneralizedErosionDeposition(Component):
     @property
     def sediment_influx(self):
         """Volumetric sediment influx to each node."""
-        return  self.grid.at_node["sediment__influx"]
+        return self.grid.at_node["sediment__influx"]
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.

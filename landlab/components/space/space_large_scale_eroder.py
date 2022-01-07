@@ -411,7 +411,7 @@ class SpaceLargeScaleEroder(Component):
     @property
     def sediment_influx(self):
         """Volumetric sediment influx to each node."""
-        return  self.grid.at_node["sediment__influx"]
+        return self.grid.at_node["sediment__influx"]
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
