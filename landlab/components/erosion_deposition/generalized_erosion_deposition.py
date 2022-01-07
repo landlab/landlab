@@ -43,14 +43,6 @@ class _GeneralizedErosionDeposition(Component):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
-        "sediment__flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m3/s",
-            "mapping": "node",
-            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
-        },
         "sediment__influx": {
             "dtype": float,
             "intent": "out",
@@ -58,6 +50,14 @@ class _GeneralizedErosionDeposition(Component):
             "units": "m3/s",
             "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "sediment__outflux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -133,8 +133,17 @@ class _GeneralizedErosionDeposition(Component):
 
         self.initialize_output_fields()
 
-        self._qs = grid.at_node["sediment__flux"]
+        try:
+            frog = grid.at_node["sediment__outflux"]
+        except KeyError:
+            print('*********WHOA**********')
+            raise KeyError('I have no idea')
+
+        self._qs = grid.at_node["sediment__outflux"]
         self._q = return_array_at_node(grid, discharge_field)
+
+        # For backward compatibility
+        grid.at_node["sediment__flux"] = grid.at_node["sediment__outflux"]
 
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
         self._S_to_the_n = np.zeros(grid.number_of_nodes)

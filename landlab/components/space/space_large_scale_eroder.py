@@ -86,7 +86,7 @@ class SpaceLargeScaleEroder(Component):
     >>> while elapsed_time < run_time:
     ...     fr.run_one_step()
     ...     _, _ = sp.run_one_step(dt=timestep)
-    ...     sed_flux[count] = mg.at_node['sediment__flux'][node_next_to_outlet]
+    ...     sed_flux[count] = mg.at_node['sediment__outflux'][node_next_to_outlet]
     ...     elapsed_time += timestep
     ...     count += 1
     >>> fig = plt.figure()
@@ -103,7 +103,7 @@ class SpaceLargeScaleEroder(Component):
     >>> _ = plt.figure()
     >>> _ = imshow_grid(
     ...         mg,
-    ...         'sediment__flux',
+    ...         'sediment__outflux',
     ...         plot_name='Sediment flux',
     ...         var_name='Sediment flux',
     ...         var_units=r'm$^3$/yr',
@@ -160,14 +160,6 @@ class SpaceLargeScaleEroder(Component):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
-        "sediment__flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m3/s",
-            "mapping": "node",
-            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
-        },
         "sediment__influx": {
             "dtype": float,
             "intent": "out",
@@ -175,6 +167,14 @@ class SpaceLargeScaleEroder(Component):
             "units": "m3/s",
             "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "sediment__outflux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
         "soil__depth": {
             "dtype": float,
@@ -342,8 +342,11 @@ class SpaceLargeScaleEroder(Component):
 
         self.initialize_output_fields()
 
-        self._qs = grid.at_node["sediment__flux"]
+        self._qs = grid.at_node["sediment__outflux"]
         self._q = return_array_at_node(grid, discharge_field)
+
+        # for backward compatibility
+        grid.at_node["sediment__flux"] = grid.at_node["sediment__outflux"]
 
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
         self._S_to_the_n = np.zeros(grid.number_of_nodes)

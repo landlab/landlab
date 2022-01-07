@@ -172,14 +172,6 @@ class Space(_GeneralizedErosionDeposition):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
-        "sediment__flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m3/s",
-            "mapping": "node",
-            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
-        },
         "sediment__influx": {
             "dtype": float,
             "intent": "out",
@@ -187,6 +179,14 @@ class Space(_GeneralizedErosionDeposition):
             "units": "m3/s",
             "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "sediment__outflux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
         "soil__depth": {
             "dtype": float,
