@@ -129,13 +129,21 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
-        "sediment__flux": {
+        "sediment__influx": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "sediment__outflux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -366,7 +374,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         is_flooded_core_node = self._get_flooded_core_nodes()
         self._erosion_term[is_flooded_core_node] = 0.0
 
-        self._qs_in[:] = 0.0
+        self.sediment_influx[:] = 0.0
         self._depo_rate[:] = 0.0
 
         # iterate top to bottom through the stack, calculate qs
@@ -377,7 +385,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._cell_area_at_node,
             self._q,
             self._qs,
-            self._qs_in,
+            self.sediment_influx,
             self._erosion_term,
             self._v_s,
             self._F_f,
@@ -388,7 +396,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         )
         if not self._depressions_are_handled():  # all sed dropped here
             self._depo_rate[is_flooded_core_node] = (
-                self._qs_in[is_flooded_core_node]
+                self.sediment_influx[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
 

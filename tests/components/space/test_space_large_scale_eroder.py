@@ -560,7 +560,7 @@ def test_matches_transport_solution():
     )
 
     # compare numerical and analytical sediment flux solutions
-    num_sedflux = mg.at_node["sediment__flux"][mg.core_nodes]
+    num_sedflux = mg.at_node["sediment__outflux"][mg.core_nodes]
     analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes] * (1 - phi)
 
     # test for match with anakytical sediment flux
@@ -910,7 +910,7 @@ def test_matches_transport_solution_PF():
     )
 
     # compare numerical and analytical sediment flux solutions
-    num_sedflux = mg.at_node["sediment__flux"][mg.core_nodes]
+    num_sedflux = mg.at_node["sediment__outflux"][mg.core_nodes]
     analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes] * (1 - phi)
 
     # test for match with anakytical sediment flux
