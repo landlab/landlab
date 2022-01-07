@@ -134,7 +134,6 @@ class _GeneralizedErosionDeposition(Component):
         self.initialize_output_fields()
 
         self._qs = grid.at_node["sediment__flux"]
-        self._qs_in = grid.at_node["sediment__influx"]
         self._q = return_array_at_node(grid, discharge_field)
 
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
@@ -153,6 +152,11 @@ class _GeneralizedErosionDeposition(Component):
 
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
+
+    @property
+    def sediment_influx(self):
+        """Volumetric sediment influx to each node."""
+        return  self.grid.at_node["sediment__influx"]
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.

@@ -447,7 +447,7 @@ class Space(_GeneralizedErosionDeposition):
         self._sed_erosion_term[is_flooded_core_node] = 0.0
         self._br_erosion_term[is_flooded_core_node] = 0.0
 
-        self._qs_in[:] = 0
+        self.sediment_influx[:] = 0
         self._depo_rate[:] = 0.0
 
         # iterate top to bottom through the stack, calculate qs
@@ -458,7 +458,7 @@ class Space(_GeneralizedErosionDeposition):
             self._cell_area_at_node,
             self._q,
             self._qs,
-            self._qs_in,
+            self.sediment_influx,
             self._Es,
             self._Er,
             self._v_s,
@@ -471,7 +471,7 @@ class Space(_GeneralizedErosionDeposition):
 
         if not self._depressions_are_handled():  # all sed dropped here
             self._depo_rate[is_flooded_core_node] = (
-                self._qs_in[is_flooded_core_node]
+                self.sediment_influx[is_flooded_core_node]
                 / self._cell_area_at_node[is_flooded_core_node]
             )
         return is_flooded_core_node

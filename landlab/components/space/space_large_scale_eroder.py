@@ -343,7 +343,6 @@ class SpaceLargeScaleEroder(Component):
         self.initialize_output_fields()
 
         self._qs = grid.at_node["sediment__flux"]
-        self._qs_in = grid.at_node["sediment__influx"]
         self._q = return_array_at_node(grid, discharge_field)
 
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
@@ -405,6 +404,11 @@ class SpaceLargeScaleEroder(Component):
     def Er(self):
         """Bedrock erosion term."""
         return self._Er
+
+    @property
+    def sediment_influx(self):
+        """Volumetric sediment influx to each node."""
+        return  self.grid.at_node["sediment__influx"]
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
@@ -496,7 +500,7 @@ class SpaceLargeScaleEroder(Component):
         self._sed_erosion_term[flooded_nodes] = 0.0
         self._br_erosion_term[flooded_nodes] = 0.0
 
-        self._qs_in[:] = 0
+        self.sediment_influx[:] = 0
 
         vol_SSY_riv = _sequential_ero_depo(
             stack_flip_ud_sel,
@@ -504,7 +508,7 @@ class SpaceLargeScaleEroder(Component):
             area,
             self._q,
             self._qs,
-            self._qs_in,
+            self.sediment_influx,
             self._Es,
             self._Er,
             self._Q_to_the_m,
@@ -522,7 +526,7 @@ class SpaceLargeScaleEroder(Component):
             self._thickness_lim,
         )
 
-        V_leaving_riv = np.sum(self._qs_in) * dt
+        V_leaving_riv = np.sum(self.sediment_influx) * dt
         # Update topography
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]
