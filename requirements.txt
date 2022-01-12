@@ -7,6 +7,6 @@ pyshp
 scipy
 statsmodels
 pandas
-xarray>=0.16
-richdem
+xarray >= 0.16
+richdem ; sys_platform != 'win32' or python_version < '3.10'
 bmi-topography
