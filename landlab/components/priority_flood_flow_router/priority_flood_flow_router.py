@@ -17,7 +17,6 @@ from functools import partial
 
 import numpy as np
 import numpy.matlib as npm
-import richdem as rd
 
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.grid.nodestatus import NodeStatus
@@ -25,6 +24,19 @@ from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc, _D8_flowDir
+
+try:
+    import richdem as rd
+except ModuleNotFoundError:
+
+    class richdem:
+        def __getattribute__(self, name):
+            raise RuntimeError(
+                "PriorityFloodFlowRouter requires richdem but richdem is not installed"
+            )
+
+    rd = richdem()
+
 
 # Codes for depression status
 _UNFLOODED = 0
