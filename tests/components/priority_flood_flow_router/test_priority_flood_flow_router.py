@@ -8,12 +8,15 @@ from numpy import testing
 from numpy.testing import assert_array_equal
 
 from landlab import FieldError, HexModelGrid, RasterModelGrid
-from landlab.components import PriorityFloodFlowRouter
+from landlab.components import PriorityFloodFlowRouter, WITH_PRIORITY_FLOOD_FLOW_ROUTER
 from landlab.components.priority_flood_flow_router.cfuncs import (
     _D8_FlowAcc,
     _D8_flowDir,
 )
 from landlab.grid.nodestatus import NodeStatus
+
+if not WITH_PRIORITY_FLOOD_FLOW_ROUTER:
+    pytestmark = pytest.mark.skip(reason="richdem is not installed")
 
 
 def test_check_fields():

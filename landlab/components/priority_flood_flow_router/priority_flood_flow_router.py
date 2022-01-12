@@ -36,6 +36,9 @@ except ModuleNotFoundError:
             )
 
     rd = richdem()
+    WITH_PRIORITY_FLOOD_FLOW_ROUTER = False
+else:
+    WITH_PRIORITY_FLOOD_FLOW_ROUTER = True
 
 
 # Codes for depression status
