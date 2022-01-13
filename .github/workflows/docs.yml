@@ -35,7 +35,6 @@ jobs:
           - name: Install dependencies
             run: |
               conda install mamba
-              mamba install --file=requirements.txt
               pip install -r requirements-docs.txt
               pip install -e .
 
