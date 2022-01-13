@@ -36,9 +36,9 @@ except ModuleNotFoundError:
             )
 
     rd = richdem()
-    WITH_PRIORITY_FLOOD_FLOW_ROUTER = False
+    WITH_RICHDEM = False
 else:
-    WITH_PRIORITY_FLOOD_FLOW_ROUTER = True
+    WITH_RICHDEM = True
 
 
 # Codes for depression status
@@ -341,6 +341,8 @@ class PriorityFloodFlowRouter(Component):
             "doc": "Node array of proportion of flow sent to each receiver.",
         },
     }
+
+    WITH_RICHDEM = WITH_RICHDEM
 
     def __init__(
         self,
