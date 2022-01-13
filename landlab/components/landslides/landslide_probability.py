@@ -97,6 +97,14 @@ class LandslideProbability(Component):
                                                                HSD_id_dict,
                                                                fract_dict])
 
+    Option 5 - Modeled event recharge
+
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
+                             groundwater__recharge_distribution='modeled_event'
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -339,6 +347,14 @@ class LandslideProbability(Component):
             "mapping": "node",
             "doc": "specific contributing (upslope area/cell face ) that drains to node",
         },
+        "depth__to_water_table": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "depth to water table",
+        },
     }
 
     def __init__(
@@ -447,7 +463,12 @@ class LandslideProbability(Component):
             self._HSD_id_dict = groundwater__recharge_HSD_inputs[1]
             self._fract_dict = groundwater__recharge_HSD_inputs[2]
             self._interpolate_HSD_dict()
-
+        elif self._groundwater__recharge_distribution == "modeled_rw_event": #/jk/
+            print('a single relative wetness computed directly from the depth__to_water_table rmg field, representing recharge from a specific storm event') #/jk/
+        elif self._groundwater__recharge_distribution == "modeled_rw_lognormal_spatial":     
+            print('relative wetness computed directly from the thickness__sat_zone_mean and thickness__sat_zone_stdev rmg field for "n" random events') #/jk/
+            self._sat_thickness_mean =  np.float32(self._grid.at_node["thickness__sat_zone_mean"]) #/jk/
+            self._sat_thickness_stdev =  np.float32(self._grid.at_node["thickness__sat_zone_stdev"]) #/jk/
         # Check if all output fields are initialized
         self.initialize_output_fields()
 
@@ -459,6 +480,14 @@ class LandslideProbability(Component):
 
         self._nodal_values = self._grid.at_node
 
+        #/jk/
+        # create emptly class variable for saving the 1*self._n np.array or FS values  
+        # final list can be made into an number for core nodes * self._n np.array. 
+        # each column is factor of safety map of core nodes 1 iteration of the self._n itterations
+        #/jk/
+            
+        self._FS_list = [] #/jk/
+        
     def calculate_factor_of_safety(self, i):
         """Method to calculate factor of safety.
 
@@ -510,7 +539,25 @@ class LandslideProbability(Component):
             )
             self._Re = np.random.lognormal(mu_lognormal, sigma_lognormal, self._n)
             self._Re /= 1000.0  # Convert mm to m
-
+        
+        #/jk/
+        elif self._groundwater__recharge_distribution == 'modeled_rw_event': #/jk/
+            self._Re = np.ones(self._n)*np.nan #/jk/ # no recharge, depth to water table modeled
+        #/jk/
+        elif self._groundwater__recharge_distribution == 'modeled_rw_lognormal_spatial': #/jk/
+            self._Re = np.ones(self._n)*np.nan #/jk/ # no recharge, depth to water table modeled
+           
+            mu_lognormal = np.log(
+                (self._sat_thickness_mean[i] ** 2)
+                / np.sqrt(self._sat_thickness_stdev[i] ** 2 + self._sat_thickness_mean[i] ** 2)
+            )
+            sigma_lognormal = np.sqrt(
+                np.log(
+                    (self._sat_thickness_stdev[i] ** 2) / (self._sat_thickness_mean[i] ** 2) + 1
+                )
+            )
+            self._satthick = np.random.lognormal(mu_lognormal, sigma_lognormal, self._n) #/jk/      
+            
         # Cohesion
         # if don't provide fields of min and max C, uncomment 2 lines below
         #    Cmin = self._Cmode-0.3*self._Cmode
@@ -527,7 +574,10 @@ class LandslideProbability(Component):
         # hs_min = min(0.005, self._hs_mode-0.3*self._hs_mode) # Alternative
         hs_min = self._hs_mode - 0.3 * self._hs_mode
         hs_max = self._hs_mode + 0.1 * self._hs_mode
-        self._hs = np.random.triangular(hs_min, self._hs_mode, hs_max, size=self._n)
+        try:#/jk/ # after landslide remove material, a depth of 0 causes error.
+            self._hs = np.random.triangular(hs_min, self._hs_mode, hs_max, size=self._n) #/jk/
+        except: #/jk/ minimum depth in landslide areas
+            self._hs = np.random.triangular(.001, 0.005, .01, size=self._n) #/jk/               
         self._hs[self._hs <= 0.0] = 0.005
         if self._Ksat_provided:
             # Hydraulic conductivity (Ksat)
@@ -548,9 +598,34 @@ class LandslideProbability(Component):
         self._C_dim = self._C / (
             self._hs * self._rho * self._g
         )  # dimensionless cohesion
-        self._rel_wetness = ((self._Re) / self._T) * (
-            self._a / np.sin(np.arctan(self._theta))
-        )  # relative wetness
+        
+        #/jk/
+        if self._groundwater__recharge_distribution == 'modeled_rw_event': #/jk/#
+            #/jk/ a single relative wetness value is determined from raster mg depth
+            # to water table field, all other parameters are an np array of 
+            # length n of randomly parameters 
+            #/jk/
+            # np.float32(self._grid.at_node["depth__to_water_table"])...np float needed? #/jk
+            Rw = (self._hs-self._grid.at_node["depth__to_water_table"][i]) / self._hs #/jk/
+            self._rel_wetness = Rw #np.ones(self._n)*Rw #/jk/
+        
+        elif self._groundwater__recharge_distribution == 'modeled_rw_lognormal_spatial': #/jk/#
+            #/jk/ relative wetness is stochastically determined from a lognormal #/jk/
+            #/jk/ pdf of saturated zone thickness, parameterized from the mean and #/jk/
+            #/jk/ standard deviation of saturated zone thikcness at each node #/jk/
+            # , all other parameters are an np array of length n of randomly #/jk/ 
+            # parameters #/jk/
+            Rw = (self._satthick) / self._hs #/jk/
+            self._rel_wetness = Rw #np.ones(self._n)*Rw #/jk/            
+            
+        else:
+            #/jk/ relative wetness is stochastically determined from the user
+            #selected recharge pdf for each iteration
+            self._rel_wetness = ((self._Re) / self._T) * ( #/jk/
+                self._a / np.sin(np.arctan(self._theta)) #/jk/
+            )  # relative wetness #/jk/
+        
+        
         # calculate probability of saturation
         countr = 0
         for val in self._rel_wetness:  # find how many RW values >= 1
@@ -567,12 +642,16 @@ class LandslideProbability(Component):
         self._FS = (self._C_dim / np.sin(np.arctan(self._theta))) + (
             np.cos(np.arctan(self._theta)) * (Y / np.sin(np.arctan(self._theta)))
         )
+        
+        self._FS_list.append(self._FS) #/jk/ append all 
         count = 0
         for val in self._FS:  # find how many FS values <= 1
             if val <= 1.0:
                 count = count + 1  # number with unstable FS values (<=1)
         # probability: No. unstable values/total No. of values (n)
         self._landslide__probability_of_failure = np.float32(count) / self._n
+
+        
 
     def calculate_landslide_probability(self):
         """Main method of Landslide Probability class.
@@ -602,6 +681,9 @@ class LandslideProbability(Component):
         self._grid.at_node["soil__mean_relative_wetness"] = self._mean_Relative_Wetness
         self._grid.at_node["landslide__probability_of_failure"] = self._prob_fail
         self._grid.at_node["soil__probability_of_saturation"] = self._prob_sat
+        self._FSarray = np.array(self._FS_list) #/jk/ convert list to 
+        # rows = number of core nodes * columns = self._n array that is used
+        # to construct self._n maps of landslide factor of safety
 
     def _seed_generator(self, seed=0):
         """Method to initiate random seed.
