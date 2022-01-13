@@ -58,7 +58,7 @@ jobs:
           pip install -e .
 
       - name: Install testing dependencies
-        run: mamba install --file=requirements-testing.txt
+        run: pip install -e .[tests]
 
       - name: Test
         run: |

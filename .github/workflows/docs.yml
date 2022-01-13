@@ -35,8 +35,7 @@ jobs:
           - name: Install dependencies
             run: |
               conda install mamba
-              pip install -r requirements-docs.txt
-              pip install -e .
+              pip install -e ".[docs]"
 
           - name: Build documentation
             run: make -C docs clean html
