@@ -8,3 +8,7 @@
   reason: "stalls travis builds"
 - file: nst_scaling_profiling.ipynb
   reason: "stalls travis builds"
+- file: PriorityFlood_LandscapeEvolutionModel.ipynb
+  reason: "requires richdem, bmi-topography"
+- file: PriorityFlood_realDEMs.ipynb
+  reason: "requires richdem, bmi-topography"
