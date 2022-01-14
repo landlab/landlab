@@ -43,13 +43,21 @@ class _GeneralizedErosionDeposition(Component):
             "mapping": "node",
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
-        "sediment__flux": {
+        "sediment__influx": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "sediment__outflux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -125,12 +133,12 @@ class _GeneralizedErosionDeposition(Component):
 
         self.initialize_output_fields()
 
-        self._qs = grid.at_node["sediment__flux"]
+        self._qs = grid.at_node["sediment__outflux"]
         self._q = return_array_at_node(grid, discharge_field)
 
-        # Create arrays for sediment influx at each node, discharge to the
-        # power "m", and deposition rate
-        self._qs_in = np.zeros(grid.number_of_nodes)
+        # For backward compatibility (remove in 3.0.0+)
+        grid.at_node["sediment__flux"] = grid.at_node["sediment__outflux"]
+
         self._Q_to_the_m = np.zeros(grid.number_of_nodes)
         self._S_to_the_n = np.zeros(grid.number_of_nodes)
         self._depo_rate = np.zeros(grid.number_of_nodes)
@@ -147,6 +155,11 @@ class _GeneralizedErosionDeposition(Component):
 
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
+
+    @property
+    def sediment_influx(self):
+        """Volumetric sediment influx to each node."""
+        return self.grid.at_node["sediment__influx"]
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
@@ -190,15 +203,13 @@ class _GeneralizedErosionDeposition(Component):
 
         True where core node is flooded or self-draining.
         """
+        is_core = self._grid.status_at_node == self._grid.BC_NODE_IS_CORE
         if self._depressions_are_handled():
-            is_flooded_core = np.logical_and(
-                self._grid.at_node["flood_status_code"] == _FLOODED,
-                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
+            is_flooded_core = is_core & (
+                self._grid.at_node["flood_status_code"] == _FLOODED
             )
         else:
-            is_pit = self._flow_receivers == self._grid.nodes.flatten()
-            is_flooded_core = np.logical_and(
-                self._grid.status_at_node == self._grid.BC_NODE_IS_CORE,
-                is_pit,
+            is_flooded_core = is_core & (
+                self._flow_receivers == self._grid.nodes.flatten()
             )
-        return np.array(is_flooded_core)
+        return np.asarray(is_flooded_core)
