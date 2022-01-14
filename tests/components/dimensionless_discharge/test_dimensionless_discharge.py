@@ -12,18 +12,27 @@ from landlab.components.dimensionless_discharge import DimensionlessDischarge
 def init_grid():
     """initialize grid for testing"""
     watershed_grid = RasterModelGrid((3, 3))
-    _ = watershed_grid.add_ones("node", "flux")
-    _ = watershed_grid.add_ones("node", "d50")
-    _ = watershed_grid.add_ones("node", "dem_values")
-    watershed_grid.at_node["dem_values"] = np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
+    watershed_grid.add_ones("flux", at="node")
+    watershed_grid.add_ones("d50", at="node")
+    watershed_grid.add_ones("topographic__elevation", at="node")
+    watershed_grid.at_node["topographic__elevation"] = np.array(
+        [[1.1, 2, 3, 4, 2, 3, 4, 5, 3]]
+    )
     return watershed_grid
 
 
 def test_dimensionless_discharge_final_values():
     """Testing for correct final dimensionless discharge values"""
     watershed_grid = init_grid()
-    dd = DimensionlessDischarge(watershed_grid)
+    # Setting the gravitation constant to 9.8 to make hand calculating
+    # expeted values easier.
+    dd = DimensionlessDischarge(watershed_grid, gravity=9.8)
     dd.run_one_step()
+    # 0.55372743 is the expected value from the dimensionless discharge
+    # (q*) equation in the Tang et al paper when flux = 1 and d50 = 1.
+    # All values in dimensionless_discharge should be 0.5537274 after
+    # running the un_one_step() function since the D50 and flux values
+    # are all 1s
     expected_values = [
         0.55372743,
         0.55372743,
@@ -43,7 +52,9 @@ def test_dimensionless_discharge_final_values():
 def test_dimensionless_discharge_threshold_values():
     """Validate threshold values are correctly calculated"""
     watershed_grid = init_grid()
-    dd = DimensionlessDischarge(watershed_grid)
+    # Setting the gravitation constant to 9.8 to make hand calculating
+    # expeted values easier.
+    dd = DimensionlessDischarge(watershed_grid, gravity=9.8)
     dd.run_one_step()
     expected_values = [
         11.09442633,
@@ -57,6 +68,6 @@ def test_dimensionless_discharge_threshold_values():
         10.94510988,
     ]
     assert_array_almost_equal(
-        watershed_grid.at_node["dimensionless_discharge_threshold_value"],
+        watershed_grid.at_node["dimensionless_discharge_threshold"],
         expected_values,
     )
