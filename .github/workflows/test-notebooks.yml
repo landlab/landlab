@@ -59,6 +59,7 @@ jobs:
 
       - name: Install testing dependencies
         run: |
+          mamba install rasterio
           pip install -e .[tests,notebooks]
 
       - name: Test jupyter notebooks a clean
