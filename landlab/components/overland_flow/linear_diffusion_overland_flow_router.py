@@ -47,14 +47,16 @@ class LinearDiffusionOverlandFlowRouter(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((3, 3), xy_spacing=10.0)
-    >>> z = rg.add_zeros("topographic__elevation", at="node")
-    >>> ldof = LinearDiffusionOverlandFlowRouter(rg, roughness=0.1)
-    >>> round(ldof.vel_coef)
+    >>> grid = RasterModelGrid((3, 3))
+    >>> _ = grid.add_zeros('topographic__elevation', at='node')
+    >>> olf = LinearDiffusionOverlandFlowRouter(grid, roughness=0.1)
+    >>> round(olf.vel_coef)
     100
-    >>> ldof.precip_rate = 1.0e-4
-    >>> ldof.run_one_step(10.0)
-    >>> rg.at_node['surface_water__depth'][4]
+    >>> olf.precip_rate
+    1e-05
+    >>> olf.precip_rate = 1.0e-4
+    >>> olf.run_one_step(dt=10.0)
+    >>> grid.at_node['surface_water__depth'][4]
     0.001
 
     References
@@ -156,11 +158,8 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
     @property
     def precip_rate(self):
-        """Velocity coefficient.
-
-        (1/(roughness^2 x velocity_scale)
-        """
-        return self._vel_coef
+        """Precipitation rate"""
+        return self._precip
 
     @precip_rate.setter
     def precip_rate(self, value):
