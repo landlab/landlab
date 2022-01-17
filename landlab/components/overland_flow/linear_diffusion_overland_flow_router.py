@@ -15,7 +15,7 @@ _FOUR_THIRDS = 4.0 / 3.0
 
 
 class LinearDiffusionOverlandFlowRouter(Component):
-    """Calculate water flow over topography.
+    r"""Calculate water flow over topography.
 
     Landlab component that implements a two-dimensional, linearized
     diffusion-wave model. The diffusion-wave approximation is a simplification
@@ -43,6 +43,18 @@ class LinearDiffusionOverlandFlowRouter(Component):
     where :math:`n` is the friction factor ("Manning's n"), :math:`U_c` is a
     characteristic flow velocity, and :math:`w` is water-surface height, which
     is the sum of topographic elevation plus water depth.
+
+    Infiltration rate should decline smoothly to zero as surface water depth
+    approaches zero. To ensure this, infiltration rate is calculated as
+
+    ..math::
+
+        I = I_c \left( 1 - e^{-H / H_i} ) \right)
+
+    where :math:`H_i` is a characteristic water depth. The concept here is that
+    when :math:`H \le H_i`, small spatial variations in water depth will leave
+    parts of the ground un-ponded and therefore not subject to any infiltration.
+    Mathematically, :math:`I \approx 0.95 I_c` when :math:`H = 3H_i`.
 
     Examples
     --------
@@ -121,9 +133,10 @@ class LinearDiffusionOverlandFlowRouter(Component):
     def __init__(
         self,
         grid,
+        roughness=0.01,
         precip_rate=1.0e-5,
         infilt_rate=0.0,
-        roughness=0.01,
+        infilt_depth_scale=0.001,
         velocity_scale=1.0,
     ):
         """Initialize the LinearDiffusionOverlandFlowRouter.
@@ -132,12 +145,14 @@ class LinearDiffusionOverlandFlowRouter(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        precip_rate : float, optional (defaults to 36 mm/hr)
-            Precipitation rate, m/s
-        infilt_rate : float, optional (defaults to 0)
-            Maximum rate of infiltration, m/s
         roughness : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
+        precip_rate : float, optional (defaults to 36 mm/hr)
+            Precipitation rate, m/s
+        infilt_depth_scale : float, defaults to 0.001
+            Depth scale for water infiltration, m
+        infilt_rate : float, optional (defaults to 0)
+            Maximum rate of infiltration, m/s
         velocity_scale : float, defaults to 1
             Characteristic flow velocity, m/s
         """
@@ -146,6 +161,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         # Store parameters and do unit conversion
         self._precip = precip_rate
         self._infilt = infilt_rate
+        self._infilt_depth_scale = infilt_depth_scale
         self._vel_coef = 1.0 / (roughness ** 2 * velocity_scale)
 
         self._elev = grid.at_node["topographic__elevation"]
@@ -197,8 +213,8 @@ class LinearDiffusionOverlandFlowRouter(Component):
         # Flux divergence
         dqda = self._grid.calc_flux_div_at_node(self._disch)
 
-        # Rates of infiltration and runoff (TODO: do better than this hack)
-        infilt = np.minimum(self._infilt, self._depth / dt)
+        # Rates of infiltration and runoff
+        infilt = self._infilt * (1.0 - np.exp(-self._depth / self._infilt_depth_scale))
 
         # Rate of change of water depth
         dHdt = self._precip - infilt - dqda
