@@ -16,6 +16,12 @@ def read(filename):
 
 
 def read_requirements(filename):
+    """Read requirements from a file, adding dependency specifications where needed.
+
+    Dependency specifications could be included in the requirements file but,
+    since the requirements file is also used by conda and conda doesn't
+    understand dependency specifications, we add them here.
+    """
     lines = [line.strip() for line in read(filename).splitlines()]
     requirements = []
     for requirement in lines:
@@ -73,9 +79,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Cython",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering :: Physics",
     ],
