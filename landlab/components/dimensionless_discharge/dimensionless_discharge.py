@@ -97,7 +97,7 @@ class DimensionlessDischarge(Component):
             "optional": False,
             "units": "none",
             "mapping": "node",
-            "doc": "Dimensionless discharge value for a stream segment.",
+            "doc": "True if dimensionless discharge value is above threshold value, false otherwise.",
         },
         "dimensionless_discharge_threshold": {
             "dtype": float,
