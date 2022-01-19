@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Landlab component for overland flow using the diffusion-wave approximation.
+"""Landlab component for overland flow using the linearized diffusion-wave approximation.
 
 Created on Fri May 27 14:26:13 2016
 
@@ -134,7 +134,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self,
         grid,
         roughness=0.01,
-        precip_rate=1.0e-5,
+        rain_rate=1.0e-5,
         infilt_rate=0.0,
         infilt_depth_scale=0.001,
         velocity_scale=1.0,
@@ -147,8 +147,8 @@ class LinearDiffusionOverlandFlowRouter(Component):
             Landlab ModelGrid object
         roughness : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
-        precip_rate : float, optional (defaults to 36 mm/hr)
-            Precipitation rate, m/s
+        rain_rate : float, optional (defaults to 36 mm/hr)
+            Rainfall rate, m/s
         infilt_depth_scale : float, defaults to 0.001
             Depth scale for water infiltration, m
         infilt_rate : float, optional (defaults to 0)
@@ -159,7 +159,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         super().__init__(grid)
 
         # Store parameters and do unit conversion
-        self._precip = precip_rate
+        self._rain = rain_rate
         self._infilt = infilt_rate
         self._infilt_depth_scale = infilt_depth_scale
         self._vel_coef = 1.0 / (roughness ** 2 * velocity_scale)
@@ -172,14 +172,19 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self._disch = grid.at_link["water__specific_discharge"]
         self._wsgrad = grid.at_link["water_surface__gradient"]
 
-    @property
-    def precip_rate(self):
-        """Precipitation rate"""
-        return self._precip
+        self._depth_at_link = np.zeros(grid.number_of_links)
+        self._water_surf_elev = np.zeros(grid.number_of_nodes)
 
-    @precip_rate.setter
-    def precip_rate(self, value):
-        self._precip = value
+        self._inactive_links = grid.status_at_link == grid.BC_LINK_IS_INACTIVE
+
+    @property
+    def rain_rate(self):
+        """Rainfall rate"""
+        return self._rain
+
+    @rain_rate.setter
+    def rain_rate(self, value):
+        self._rain = value
 
     @property
     def vel_coef(self):
@@ -194,21 +199,27 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         Default units for dt are *seconds*.
         """
+        # Calculate the water-surface elevation
+        self._water_surf_elev[:] = self._elev + self._depth
+
         # Calculate water depth at links. This implements an "upwind" scheme
         # in which water depth at the links is the depth at the higher of the
         # two nodes.
-        H_link = self._grid.map_value_at_max_node_to_link(
-            "topographic__elevation", "surface_water__depth"
+        self._grid.map_value_at_max_node_to_link(
+            self._water_surf_elev, "surface_water__depth", out=self._depth_at_link
         )
 
-        # Calculate the water-surface gradient
-        self.grid.calc_grad_at_link(self._elev + self._depth, out=self._wsgrad)
+        # Calculate the water-surface gradient and impose any closed boundaries
+        self.grid.calc_grad_at_link(self._water_surf_elev, out=self._wsgrad)
+        self._wsgrad[self._inactive_links] = 0.0
 
         # Calculate velocity using the linearized Manning equation.
-        self._vel = -self._vel_coef * H_link ** _FOUR_THIRDS * self._wsgrad
+        self._vel[:] = (
+            -self._vel_coef * self._depth_at_link ** _FOUR_THIRDS * self._wsgrad
+        )
 
         # Calculate discharge
-        self._disch[:] = H_link * self._vel
+        self._disch[:] = self._depth_at_link * self._vel
 
         # Flux divergence
         dqda = self._grid.calc_flux_div_at_node(self._disch)
@@ -217,7 +228,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         infilt = self._infilt * (1.0 - np.exp(-self._depth / self._infilt_depth_scale))
 
         # Rate of change of water depth
-        dHdt = self._precip - infilt - dqda
+        dHdt = self._rain - infilt - dqda
 
         # Update water depth: simple forward Euler scheme
         self._depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * dt
