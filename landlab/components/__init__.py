@@ -34,6 +34,7 @@ from .overland_flow import (
     KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
+    LinearDiffusionOverlandFlowRouter,
     OverlandFlow,
     OverlandFlowBates,
 )
