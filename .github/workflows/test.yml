@@ -48,11 +48,6 @@ jobs:
           conda info
           conda list
 
-      - name: Install requirements
-        run: |
-          conda install mamba
-          mamba list
-
       - name: Build and install package
         run: |
           pip install -e .
