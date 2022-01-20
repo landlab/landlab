@@ -116,6 +116,17 @@ run the following commands:
     $ conda activate landlab
     $ pip install -e .
 
+This will install *landlab* and it's dependencies. You may want to install
+some additional utilities used for developing, testing, and running *landlab*
+notebooks. This can be done with the following:
+
+.. code-block:: bash
+
+    $ conda install --file=requirements-dev.txt
+    $ conda install --file=requirements-testing.txt
+    $ conda install --file=requirements-notebooks.txt
+
+
 How do I verify I've installed Landlab correctly?
 -------------------------------------------------
 
