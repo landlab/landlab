@@ -66,9 +66,9 @@ class LinearDiffusionOverlandFlowRouter(Component):
     >>> olf = LinearDiffusionOverlandFlowRouter(grid, roughness=0.1)
     >>> round(olf.vel_coef)
     100
-    >>> olf.precip_rate
+    >>> olf.rain_rate
     1e-05
-    >>> olf.precip_rate = 1.0e-4
+    >>> olf.rain_rate = 1.0e-4
     >>> olf.run_one_step(dt=10.0)
     >>> grid.at_node['surface_water__depth'][4]
     0.001
