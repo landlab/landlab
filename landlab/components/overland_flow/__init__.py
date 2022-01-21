@@ -11,5 +11,5 @@ __all__ = [
     "KinematicWaveRengers",
     "KinwaveImplicitOverlandFlow",
     "KinwaveOverlandFlowModel",
-    "LinearDiffusionOverlandFlowRouter"
+    "LinearDiffusionOverlandFlowRouter",
 ]

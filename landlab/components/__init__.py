@@ -100,6 +100,7 @@ COMPONENTS = [
     LandslideProbability,
     LateralEroder,
     LinearDiffuser,
+    LinearDiffusionOverlandFlowRouter,
     ListricKinematicExtender,
     LithoLayers,
     Lithology,
