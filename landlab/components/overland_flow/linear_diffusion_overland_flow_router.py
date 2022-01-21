@@ -128,7 +128,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "link",
-            "doc": "gradient of water surface",
+            "doc": "Downstream gradient of the water surface.",
         },
     }
 
