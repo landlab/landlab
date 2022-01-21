@@ -12,6 +12,8 @@ import numpy as np
 from landlab import Component
 
 _FOUR_THIRDS = 4.0 / 3.0
+_SEVEN_THIRDS = 7.0 / 3.0
+_MICRO_DEPTH = 1.0e-6  # tiny water depth to avoid blowup in time-step estimator
 
 
 class LinearDiffusionOverlandFlowRouter(Component):
@@ -138,6 +140,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         infilt_rate=0.0,
         infilt_depth_scale=0.001,
         velocity_scale=1.0,
+        cfl_factor=0.2,
     ):
         """Initialize the LinearDiffusionOverlandFlowRouter.
 
@@ -155,6 +158,9 @@ class LinearDiffusionOverlandFlowRouter(Component):
             Maximum rate of infiltration, m/s
         velocity_scale : float, defaults to 1
             Characteristic flow velocity, m/s
+        cfl_factor : float, optional (defaults to 0.2)
+            Time-step control factor: fraction of maximum estimated time-step
+            that is actually used (must be <=1)
         """
         super().__init__(grid)
 
@@ -177,6 +183,8 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         self._inactive_links = grid.status_at_link == grid.BC_LINK_IS_INACTIVE
 
+        self._cfl_param = cfl_factor * 0.5 * np.amin(grid.length_of_link) ** 2
+
     @property
     def rain_rate(self):
         """Rainfall rate"""
@@ -194,11 +202,16 @@ class LinearDiffusionOverlandFlowRouter(Component):
         """
         return self._vel_coef
 
-    def run_one_step(self, dt):
-        """Calculate water flow for a time period `dt`.
+    def _cfl_time_step(self):
+        """Calculate maximum time-step size using CFL criterion for explicit
+        FTCS diffusion."""
+        max_water_depth = max(np.amax(self._depth), _MICRO_DEPTH)
+        max_diffusivity = self._vel_coef * max_water_depth ** _SEVEN_THIRDS
+        return self._cfl_param / max_diffusivity
 
-        Default units for dt are *seconds*.
-        """
+    def update_for_one_iteration(self, iter_dt):
+        """Update state variables for one iteration of duration iter_dt."""
+
         # Calculate the water-surface elevation
         self._water_surf_elev[:] = self._elev + self._depth
 
@@ -231,7 +244,20 @@ class LinearDiffusionOverlandFlowRouter(Component):
         dHdt = self._rain - infilt - dqda
 
         # Update water depth: simple forward Euler scheme
-        self._depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * dt
+        self._depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * iter_dt
 
         # Very crude numerical hack: prevent negative water depth (TODO: better)
         self._depth[np.where(self._depth < 0.0)[0]] = 0.0
+
+    def run_one_step(self, dt):
+        """Calculate water flow for a time period `dt`.
+
+        Default units for dt are *seconds*. We use a time-step subdivision
+        algorithm that ensures step size is always below CFL limit.
+        """
+        remaining_time = dt
+        while remaining_time > 0.0:
+            dtmax = self._cfl_time_step()  # biggest possible time step size
+            dt_this_iter = min(dtmax, remaining_time)  # step we'll actually use
+            self.update_for_one_iteration(dt_this_iter)
+            remaining_time -= dt_this_iter
