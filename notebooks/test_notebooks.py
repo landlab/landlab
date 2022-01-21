@@ -1,24 +1,34 @@
-import os
 import pathlib
 import subprocess
-import tempfile
+from pkg_resources import evaluate_marker
 
 import pytest
 import yaml
 
+from run_notebook_checks import _notebook_check_is_clean
+
+
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
+_EXCLUDE = dict()
 with open(_exclude_file, "r") as fp:
-    _EXCLUDE = dict([(item["file"], item["reason"]) for item in yaml.safe_load(fp)])
+    for item in yaml.safe_load(fp):
+        filename, reason = item["file"], item["reason"]
+        try:
+            unless = item["unless"]
+        except KeyError:
+            exclude = True
+        else:
+            exclude = not evaluate_marker(unless)
+        if exclude:
+            _EXCLUDE[filename] = reason
 
 
 def _notebook_check(notebook):
     """Check a notebook for errors.
-
     Parameters
     ----------
     notebook : Notebook node
         Path the to notebook to execute.
-
     Returns
     -------
     errors : list of str
@@ -41,7 +51,7 @@ def _notebook_run(path_to_notebook):
     Parameters
     ----------
     path_to_notebook : str or Path
-        Path the to notebook to execute.
+        Path to the notebook to execute.
 
     Returns
     -------
@@ -83,6 +93,11 @@ def _notebook_run(path_to_notebook):
             pass
 
     return nb
+
+
+@pytest.mark.notebook
+def test_notebook_is_clean(notebook):
+    assert _notebook_check_is_clean(notebook)
 
 
 @pytest.mark.notebook

@@ -122,7 +122,7 @@ class find_facets(object):
     def define_aspect_node_subset_local(
         self, dist_tolerance=4.0, angle_tolerance=15.0, dip_dir="E"
     ):
-        """"""
+        """ """
         grid = self.grid
         try:
             print("using subset")

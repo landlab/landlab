@@ -54,13 +54,13 @@ def _node_out_link_ids(shape):
 
     layout = StructuredQuadGraphTopology(shape)
 
-    node_horizontal_link_ids = np.empty(shape, np.int)
+    node_horizontal_link_ids = np.empty(shape, int)
     node_horizontal_link_ids[:, :-1] = layout.horizontal_links.reshape(
         (shape[0], shape[1] - 1)
     )
     node_horizontal_link_ids[:, -1] = -1
 
-    node_vertical_link_ids = np.empty(shape, np.int)
+    node_vertical_link_ids = np.empty(shape, int)
     node_vertical_link_ids[:-1, :] = layout.vertical_links.reshape(
         (shape[0] - 1, shape[1])
     )
@@ -99,13 +99,13 @@ def _node_in_link_ids(shape):
 
     layout = StructuredQuadGraphTopology(shape)
 
-    node_horizontal_link_ids = np.empty(shape, np.int)
+    node_horizontal_link_ids = np.empty(shape, int)
     node_horizontal_link_ids[:, 1:] = layout.horizontal_links.reshape(
         (shape[0], shape[1] - 1)
     )
     node_horizontal_link_ids[:, 0] = -1
 
-    node_vertical_link_ids = np.empty(shape, np.int)
+    node_vertical_link_ids = np.empty(shape, int)
     node_vertical_link_ids[1:, :] = layout.vertical_links.reshape(
         (shape[0] - 1, shape[1])
     )
@@ -139,7 +139,7 @@ def _number_of_links_per_node(shape):
 
     layout = StructuredQuadGraphTopology(shape)
 
-    n_links_at_node = np.full(shape[0] * shape[1], 4, np.int)
+    n_links_at_node = np.full(shape[0] * shape[1], 4, int)
     n_links_at_node[layout.perimeter_nodes] = 3
     n_links_at_node[layout.corner_nodes] = 2
 

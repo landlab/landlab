@@ -10,7 +10,6 @@
 :License: MIT
 """
 import pkg_resources
-
 from numpy import set_printoptions
 
 from ._registry import registry
@@ -30,7 +29,7 @@ from .grid import (
 )
 from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
-from .plot import imshow_grid, imshow_grid_at_node
+from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid, imshowhs_grid_at_node
 
 try:
     set_printoptions(legacy="1.13")
@@ -61,6 +60,8 @@ __all__ = [
     "create_grid",
     "imshow_grid",
     "imshow_grid_at_node",
+    "imshowhs_grid",
+    "imshowhs_grid_at_node",
 ]
 
 del pkg_resources

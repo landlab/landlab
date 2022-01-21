@@ -31,3 +31,5 @@ Contributors
 - `Allison Pfeiffer <https://github.com/pfeiffea>`_
 - `alangston <https://github.com/alangston>`_
 - `Kristen Thyng <https://github.com/kthyng>`_
+- `Dylan Ward <https://github.com/ddoubleprime>`_
+

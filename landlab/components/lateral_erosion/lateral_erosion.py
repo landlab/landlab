@@ -212,7 +212,7 @@ class LateralEroder(Component):
             "mapping": "node",
             "doc": "Change in elevation at each node from lateral erosion during time step",
         },
-        "sediment__flux": {
+        "sediment__influx": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -349,15 +349,18 @@ class LateralEroder(Component):
         else:
             self._vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
 
-        if "sediment__flux" in grid.at_node:
-            self._qs_in = grid.at_node["sediment__flux"]
+        if "sediment__influx" in grid.at_node:
+            self._qs_in = grid.at_node["sediment__influx"]
         else:
-            self._qs_in = grid.add_zeros("sediment__flux", at="node")
+            self._qs_in = grid.add_zeros("sediment__influx", at="node")
 
         if "lateral_erosion__depth_increment" in grid.at_node:
             self._dzlat = grid.at_node["lateral_erosion__depth_increment"]
         else:
             self._dzlat = grid.add_zeros("lateral_erosion__depth_increment", at="node")
+
+        # for backward compatibility (remove in version 3.0.0+)
+        grid.at_node["sediment__flux"] = grid.at_node["sediment__influx"]
 
         # you can specify the type of lateral erosion model you want to use.
         # But if you don't the default is the undercutting-slump model
@@ -418,6 +421,7 @@ class LateralEroder(Component):
         vol_lat = self._grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
+
         # May 2, runoff calculated below (in m/s) is important for calculating
         # discharge and water depth correctly. renamed runoffms to prevent
         # confusion with other uses of runoff
@@ -426,11 +430,17 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs_in = grid.add_zeros("sediment__influx", at="node", clobber=True)
         qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
+
+        # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
+        # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
+        # or add self.dzlat to itself after each time step.
+        self._dzlat.fill(0.0)
+
         if inlet_on is True:
             inlet_node = self._inlet_node
             qsinlet = self._qsinlet
@@ -547,11 +557,16 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs_in = grid.add_zeros("sediment__influx", at="node", clobber=True)
         qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
+
+        # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
+        # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
+        # or add self.dzlat to itself after each time step.
+        self._dzlat.fill(0.0)
 
         if inlet_on is True:
             # define inlet_node

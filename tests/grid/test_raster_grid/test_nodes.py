@@ -8,7 +8,7 @@ from landlab import RasterModelGrid
 def test_nodes_at_left_edge():
     """Test nodes at left edge of raster grid."""
     grid = RasterModelGrid((3, 4))
-    assert_array_equal(grid.nodes_at_left_edge, np.array([0, 4, 8], dtype=np.int))
+    assert_array_equal(grid.nodes_at_left_edge, np.array([0, 4, 8], dtype=int))
 
     vals_at_node = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
     assert_array_equal(vals_at_node[grid.nodes_at_left_edge], np.array([0, 4, 8]))
@@ -17,19 +17,19 @@ def test_nodes_at_left_edge():
 def test_nodes_at_right_edge():
     """Test nodes at right edge of raster grid."""
     grid = RasterModelGrid((3, 4))
-    assert_array_equal(grid.nodes_at_right_edge, np.array([3, 7, 11], dtype=np.int))
+    assert_array_equal(grid.nodes_at_right_edge, np.array([3, 7, 11], dtype=int))
 
 
 def test_nodes_at_top_edge():
     """Test nodes at top edge of raster grid."""
     grid = RasterModelGrid((3, 4))
-    assert_array_equal(grid.nodes_at_top_edge, np.array([8, 9, 10, 11], dtype=np.int))
+    assert_array_equal(grid.nodes_at_top_edge, np.array([8, 9, 10, 11], dtype=int))
 
 
 def test_nodes_at_bottom_edge():
     """Test nodes at bottom edge of raster grid."""
     grid = RasterModelGrid((3, 4))
-    assert_array_equal(grid.nodes_at_bottom_edge, np.array([0, 1, 2, 3], dtype=np.int))
+    assert_array_equal(grid.nodes_at_bottom_edge, np.array([0, 1, 2, 3], dtype=int))
 
 
 def test_nodes_at_edge():
