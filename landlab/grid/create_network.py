@@ -16,7 +16,7 @@ from .network import NetworkModelGrid
 try:
     from itertools import pairwise
 except ImportError:
-
+    # Not available before Python 3.10
     def pairwise(iterable):
         # pairwise('ABCDEFG') --> AB BC CD DE EF FG
         a, b = tee(iterable)
@@ -28,6 +28,9 @@ def network_grid_from_raster(
     grid, reducer=None, include="*", exclude=None, minimum_channel_threshold=0.0
 ):
     """Create a NetworkModelGrid from a RasterModelGrid.
+
+    The optional *reducer* keyword is use to pass a function that reduces the number
+    of nodes in each channel segment. The default is to keep all segment nodes.
 
     Parameters
     ----------
@@ -87,7 +90,8 @@ def get_channel_segments(grid, divergent_okay=False, minimum_channel_threshold=0
     grid : RasterModelGrid
         Grid from which to extract channel segments.
     divergent_okay : bool, optional
-        If ``False``, raise an error if the network is divergent.
+        If ``False``, raise an error if the network is divergent (i.e. a channel
+        segment has more than one downstream segments).
 
     Returns
     -------
@@ -203,13 +207,8 @@ class SpacingAtLeast(SegmentReducer):
 
 
 @dataclass
-class VariableSpacing(SpacingAtLeast):
+class AlongChannelSpacingAtLeast(SpacingAtLeast):
     """Remove segment nodes to ensure a minimum per-node along-channel spacing."""
-
-    spacing: npt.ArrayLike
-
-    def __post_init__(self):
-        self.spacing = np.broadcast_to(self.spacing, len(self.xy_of_node))
 
     def reduce(self, segment):
         nodes = _reduce_nodes(
@@ -273,7 +272,51 @@ def spacing_from_drainage_area(
 
 
 def _reduce_nodes(distance_along_segment, spacing=1.0):
-    """Reduce the number of nodes in a segment based on a minimum spacing."""
+    """Reduce the number of nodes in a segment based on a minimum spacing.
+
+    Parameters
+    ----------
+    distance_along_segment : array of float
+        Distance along a segment to each of the segment's nodes.
+    spacing : float or array of float, optional
+        Minimum spacing for each node along a segment. If a scalar,
+        a constant spacing is used along the segment.
+
+    Returns
+    -------
+    list : nodes
+        Indices of nodes to retain after the reduction.
+
+    Examples
+    --------
+    >>> from landlab.grid.create_network import _reduce_nodes
+
+    Maintain a spacing of at least 1.75.
+
+    >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
+    >>> _reduce_nodes(distance, spacing=1.75)
+    [0, 2, 4]
+
+    If the requested minimum spacing is already smaller than the
+    initial spacing, keep all the nodes.
+
+    >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
+    >>> _reduce_nodes(distance, spacing=0.5)
+    [0, 1, 2, 3, 4]
+
+    The spacing can be variable from node to node.
+
+    >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
+    >>> _reduce_nodes(distance, spacing=[0.5, 1.0, 2.0, 1.0, 0.5])
+    [0, 1, 2, 4]
+
+    The end nodes are always retained.
+
+    >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
+    >>> _reduce_nodes(distance, spacing=100.)
+    [0, 4]
+
+    """
     from bisect import bisect_left
 
     distance_along_segment = np.asarray(distance_along_segment)
@@ -285,12 +328,6 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
     while head_node < n_nodes - 1:
         nodes.append(head_node)
         distance_to_tail_node = distance_along_segment[head_node] + spacing[head_node]
-
-        #         tail_node = _find_index_to_nearest(
-        #             distance_along_segment[head_node + 1 :], distance_to_tail_node
-        #         )
-        #
-        #         head_node = tail_node + head_node + 1
 
         tail_node = bisect_left(
             distance_along_segment, distance_to_tail_node, lo=head_node + 1
@@ -309,7 +346,48 @@ def calc_distance_to_point(point, points):
 
 
 def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
-    """Reduce to the fewest number of nodes while maintaining a minimum spacing."""
+    """Reduce to the fewest number of nodes while maintaining a minimum spacing.
+
+    Parameters
+    ----------
+    xy_of_node : array of float shape (n_nodes, 2)
+        x and y coordinates of each node along a segment.
+    spacing : float or array of float, optional
+        Minimum spacing for each node along a segment. If a scalar,
+        a constant spacing is used along the segment.
+
+    Returns
+    -------
+    list : nodes
+        Indices of nodes to retain after the reduction.
+
+    >>> from landlab.grid.create_network import _reduce_to_fewest_nodes
+
+    Maintain a spacing of at least 1.75.
+
+    >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=1.75)
+    [0, 2, 4]
+
+    If the requested minimum spacing is already smaller than the
+    initial spacing, keep all the nodes.
+
+    >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=0.5)
+    [0, 1, 2, 3, 4]
+
+    The spacing can be variable from node to node.
+
+    >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=[0.5, 1.0, 2.0, 1.0, 0.5])
+    [0, 1, 2, 4]
+
+    The end nodes are always retained.
+
+    >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.)
+    [0, 4]
+    """
     xy_of_node = np.asarray(xy_of_node)
     n_nodes = len(xy_of_node)
     spacing = np.broadcast_to(spacing, n_nodes)
@@ -336,19 +414,10 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
     return nodes
 
 
-def _find_index_to_nearest(array, value):
-    """Find index to nearest value in a sorted array of values."""
-    array = np.asarray(array)
-    if value < array[0]:
-        return 0
-    elif value >= array[-1]:
-        return len(array) - 1
-    else:
-        ind = np.searchsorted(array, value, side="right")
-        return ind - 1 + np.abs(array[ind - 1 : ind + 1] - value).argmin()
-
-
 class SegmentLinkCollector:
+
+    """Collect links between nodes of segments."""
+
     def __init__(self, links=None):
         if links is None:
             self._links = []
@@ -356,6 +425,7 @@ class SegmentLinkCollector:
             self._links = list(links)
 
     def __call__(self, segment):
+        """Add links between segment nodes to those previously collected."""
         try:
             nodes = [segment.downstream._nodes[-1]]
         except AttributeError:
@@ -366,6 +436,7 @@ class SegmentLinkCollector:
 
     @property
     def links(self):
+        """Head and tail nodes of all collected links."""
         return self._links
 
 
@@ -472,7 +543,7 @@ class DisconnectedSegmentError(Exception):
 
 class ChannelSegmentConnector:
 
-    """Connect channel segment to form a network."""
+    """Connect channel segments to form a network."""
 
     def __init__(self, *args):
         """ChannelSegmentConnector(channel1, channel2, ...)"""
@@ -559,11 +630,15 @@ def create_xy_of_node(network, grid):
 
 
 class SegmentNodeCoordinateCollector:
+
+    """Collect xy coordinates for each node along segments."""
+
     def __init__(self, grid):
         self._grid = grid
         self._xy_of_node = []
 
     def __call__(self, segment):
+        """Add coordinates of the nodes of a segment to previously collected coordinates."""
         if segment.downstream is None:
             nodes = segment._nodes
         else:
@@ -574,6 +649,7 @@ class SegmentNodeCoordinateCollector:
 
     @property
     def xy_of_node(self):
+        """Coordinates of all collected nodes."""
         return self._xy_of_node
 
 
@@ -619,11 +695,15 @@ def get_node_fields(network, grid, include="*", exclude=None):
 
 
 class SegmentFieldCollector:
+
+    """Collect field values for each node along segments."""
+
     def __init__(self, field):
         self._field = field
         self._values = []
 
     def __call__(self, segment):
+        """Add field values for nodes along a segment to previously collected values."""
         if segment.downstream is None:
             nodes = segment._nodes
         else:
@@ -633,6 +713,7 @@ class SegmentFieldCollector:
 
     @property
     def values(self):
+        """Field values of all collected nodes."""
         return self._values
 
 
@@ -645,6 +726,9 @@ def reindex_network_nodes(network):
 
 
 class SegmentNodeReindexer:
+
+    """Reindex nodes along segments."""
+
     def __init__(self, nodes=None):
         if nodes is None:
             self._nodes = []
@@ -652,6 +736,7 @@ class SegmentNodeReindexer:
             self._nodes = list(nodes)
 
     def __call__(self, segment):
+        """Reindex nodes of a segment based on previously collected nodes."""
         try:
             start = self._nodes[-1] + 1
         except IndexError:
@@ -670,6 +755,7 @@ class SegmentNodeReindexer:
 
     @property
     def nodes(self):
+        """Reindexed nodes of all collected nodes."""
         return self._nodes
 
 
