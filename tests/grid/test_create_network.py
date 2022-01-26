@@ -7,7 +7,7 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.grid.create_network import (
-    _find_index_to_nearest,
+    _reduce_to_fewest_nodes,
     _reduce_nodes,
     create_network_links,
     create_xy_of_node,
@@ -17,6 +17,7 @@ from landlab.grid.create_network import (
     pairwise,
     reindex_network_nodes,
     spacing_from_drainage_area,
+    AlongChannelSpacingAtLeast,
     ChannelSegment,
     ChannelSegmentConnector,
     AtMostNodes,
@@ -26,19 +27,6 @@ from landlab.grid.create_network import (
     SegmentNodeReindexer,
     SpacingAtLeast,
 )
-
-
-def test_find_nearest_index():
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 0.1) == 0
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 1.1) == 1
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 1.9) == 2
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], -1.0) == 0
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 3.0) == 2
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 0.5) == 0
-
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 0.0) == 0
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 1.0) == 1
-    assert _find_index_to_nearest([0.0, 1.0, 2.0], 2.0) == 2
 
 
 @given(
@@ -419,6 +407,32 @@ def test_reduce_nodes():
     assert nodes == [0, 2, 4, 5]
 
 
+def test_reduce_to_fewest_nodes():
+    x = [0.0, 1.0, 2.0, 3.0, 3.5]
+    y = [0.0] * len(x)
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=1.0)
+    assert nodes == [0, 1, 2, 3, 4]
+
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=0.5)
+    assert nodes == [0, 1, 2, 3, 4]
+
+    x = [0.0, 1.0, 2.0, 3.0, 4.0]
+    y = [0.0] * len(x)
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=1.75)
+    assert nodes == [0, 2, 4]
+
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=[1.0, 1.0, 2.0, 2.0, 2.0])
+    assert nodes == [0, 1, 2, 4]
+
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=1000.0)
+    assert nodes == [0, 4]
+
+    x = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+    y = [0.0] * len(x)
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=2.0)
+    assert nodes == [0, 2, 4, 5]
+
+
 def test_reduce_nodes_stay_the_same():
     nodes = _reduce_nodes([0.0, 1.0, 2.0, 3.0, 4.0], spacing=1.0)
     assert nodes == [0, 1, 2, 3, 4]
@@ -430,6 +444,21 @@ def test_reduce_nodes_stay_the_same():
     assert nodes == [0, 1, 2, 3, 4]
 
     nodes = _reduce_nodes([0.0, 1.0, 3.0, 6.0, 10.0], spacing=[1, 2, 3, 4, 5])
+    assert nodes == [0, 1, 2, 3, 4]
+
+
+@pytest.mark.parametrize(
+    "x,spacing",
+    [
+        ([0.0, 1.0, 2.0, 3.0, 4.0], 1.0),
+        ([0.0, 2.0, 4.0, 6.0, 8.0], 2.0),
+        ([0.0, 1.0, 2.0, 3.0, 4.0], 0.5),
+        ([0.0, 1.0, 3.0, 6.0, 10.0], [1, 2, 3, 4, 5]),
+    ],
+)
+def test_reduce_to_fewest_nodes_stay_the_same(x, spacing):
+    y = [0.0] * len(x)
+    nodes = _reduce_to_fewest_nodes(list(zip(x, y)), spacing=spacing)
     assert nodes == [0, 1, 2, 3, 4]
 
 
@@ -449,14 +478,44 @@ def test_reduce_nodes_min_max_spacing(spacing):
     nodes = _reduce_nodes(distance_along_segment, spacing=spacing.min())
     assert np.all(nodes == np.arange(len(spacing)))
 
-    nodes = _reduce_nodes(distance_along_segment, spacing=spacing.min())
-    assert np.all(nodes == np.arange(len(spacing)))
-
     nodes = _reduce_nodes(
         distance_along_segment,
         spacing=distance_along_segment[-1] - distance_along_segment[0],
     )
     assert nodes == [0, len(spacing) - 1]
+
+
+@given(
+    spacing=hynp.arrays(
+        dtype=float,
+        shape=hynp.array_shapes(min_dims=1, max_dims=1, min_side=2),
+        elements=floats(min_value=1e-3, max_value=1e3),
+    )
+)
+def test_reduce_to_fewest_nodes_min_max_spacing(spacing):
+    distance_along_segment = np.cumsum(spacing)
+
+    if np.any(np.diff(distance_along_segment) <= 0):
+        raise ValueError(f"array not sorted ({distance_along_segment})")
+
+    xy_of_node = list(zip(distance_along_segment, [0.0] * len(distance_along_segment)))
+    min_spacing = np.diff(distance_along_segment).min()
+
+    nodes = _reduce_to_fewest_nodes(xy_of_node, spacing=min_spacing)
+    assert np.all(nodes == np.arange(len(spacing)))
+
+    nodes = _reduce_to_fewest_nodes(
+        xy_of_node,
+        spacing=distance_along_segment[-1] - distance_along_segment[0],
+    )
+    assert nodes == [0, len(spacing) - 1]
+
+
+def test_educe_to_fewest_nodes_wraparound():
+    x = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+    y = [0.0, 1.0, 2.0, 2.0, 1.0, 0.0]
+
+    assert _reduce_to_fewest_nodes(list(zip(x, y)), spacing=1.001) == [0, 5]
 
 
 def test_create_xy_of_node_with_branch():
@@ -681,3 +740,13 @@ def test_reducer_spacing_at_least_all_greater(xy_of_node, spacing):
     assert reduced_segment[0] == segment[0]
     assert reduced_segment[-1] == segment[-1]
     assert np.all(np.diff(distance_along_segment) >= spacing)
+
+
+def test_reducer_along_channel_spacing_at_least_variable():
+    xy_of_node = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0]]
+    spacing = [1, 2, 3, 4, 5, 6]
+
+    reduce = AlongChannelSpacingAtLeast(xy_of_node=xy_of_node, spacing=spacing)
+
+    assert_array_equal(reduce([0, 1, 2, 3, 4, 5]), [0, 1, 3, 5])
+    assert_array_equal(reduce([0, 1, 2, 3, 4, 5]), reduce(reduce([0, 1, 2, 3, 4, 5])))
