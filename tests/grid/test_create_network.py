@@ -1,7 +1,7 @@
 import hypothesis.extra.numpy as hynp
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import composite, floats, integers, lists
 from numpy.testing import assert_array_equal
 
@@ -531,8 +531,9 @@ def test_create_xy_of_node_with_branch():
         integers(min_value=0, max_value=1023),
         min_size=2,
         max_size=1024,
-    )
+    ),
 )
+@settings(deadline=None)
 def test_create_xy_of_node_one_segement(nodes):
     grid = RasterModelGrid((16, 64), xy_spacing=(2.0, 3.0))
     network = ChannelSegmentConnector(nodes)
