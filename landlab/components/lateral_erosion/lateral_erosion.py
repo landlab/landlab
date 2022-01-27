@@ -212,7 +212,7 @@ class LateralEroder(Component):
             "mapping": "node",
             "doc": "Change in elevation at each node from lateral erosion during time step",
         },
-        "sediment__flux": {
+        "sediment__influx": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -349,15 +349,18 @@ class LateralEroder(Component):
         else:
             self._vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
 
-        if "sediment__flux" in grid.at_node:
-            self._qs_in = grid.at_node["sediment__flux"]
+        if "sediment__influx" in grid.at_node:
+            self._qs_in = grid.at_node["sediment__influx"]
         else:
-            self._qs_in = grid.add_zeros("sediment__flux", at="node")
+            self._qs_in = grid.add_zeros("sediment__influx", at="node")
 
         if "lateral_erosion__depth_increment" in grid.at_node:
             self._dzlat = grid.at_node["lateral_erosion__depth_increment"]
         else:
             self._dzlat = grid.add_zeros("lateral_erosion__depth_increment", at="node")
+
+        # for backward compatibility (remove in version 3.0.0+)
+        grid.at_node["sediment__flux"] = grid.at_node["sediment__influx"]
 
         # you can specify the type of lateral erosion model you want to use.
         # But if you don't the default is the undercutting-slump model
@@ -427,7 +430,7 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs_in = grid.add_zeros("sediment__influx", at="node", clobber=True)
         qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
@@ -554,7 +557,7 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs_in = grid.add_zeros("sediment__influx", at="node", clobber=True)
         qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)

@@ -8,7 +8,7 @@ Last significant modification: conversion to proper component 7/2019 GT
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid, HexModelGrid
+from landlab import Component, HexModelGrid, RasterModelGrid
 
 
 def _calc_fracture_starting_position_raster(shape):
