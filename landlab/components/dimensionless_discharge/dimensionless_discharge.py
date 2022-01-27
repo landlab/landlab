@@ -56,7 +56,7 @@ class DimensionlessDischarge(Component):
      >>> from landlab import RasterModelGrid
      >>> import random
      >>> watershed_grid = RasterModelGrid((3, 3))
-     >>> flux = watershed_grid.add_ones('node', 'flux')
+     >>> surface_water__discharge = watershed_grid.add_ones('node', 'surface_water__discharge')
      >>> d50 = watershed_grid.add_ones('node', 'd50')
      >>> watershed_grid.at_node ['topographic__elevation'] = \
      ... np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
@@ -107,13 +107,13 @@ class DimensionlessDischarge(Component):
             "mapping": "node",
             "doc": "Dimensionless discharge threshold for each stream segment.",
         },
-        "flux": {
+        "surface_water__discharge": {
             "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m/s",
             "mapping": "node",
-            "doc": "flux in each stream segment",
+            "doc": "Volumetric discharge of surface water",
         },
         "d50": {
             "dtype": float,
@@ -141,6 +141,7 @@ class DimensionlessDischarge(Component):
         C=12.0,
         N=0.85,
         gravity=constants.g,
+        d50 = "d50"
     ):
         """Initialize the DimensionlessDischarge.
 
@@ -157,8 +158,8 @@ class DimensionlessDischarge(Component):
             Exponent for slope in the denominator of the debris flow
             threshold equation; Empirically derived constant (See Tang
             et al. 2019)
-        gravity : gravitational constant. Defaults to scipy's standard
-            acceleration of gravity.
+        gravity : float, optional (defaults to scipy's standard
+            acceleration of gravity)
         """
 
         super().__init__(grid)
@@ -171,6 +172,7 @@ class DimensionlessDischarge(Component):
         self._stream_slopes = grid.calc_slope_at_node(elevs="topographic__elevation")
         self._water_density = water_density
         self._gravity = gravity
+        self._d50 = d50
 
         # set threshold values for each segment
         self.grid.add_zeros("dimensionless_discharge", at="node")
@@ -183,12 +185,14 @@ class DimensionlessDischarge(Component):
         )
 
     def run_one_step(self):
+        d50 = return_array_at_node(self.grid, self._d50)
+
         self.grid.at_node["dimensionless_discharge"] = self.grid.at_node[
-            "flux"
+            "surface_water__discharge"
         ] / np.sqrt(
             ((self._soil_density - self._water_density) / self._water_density)
             * self._gravity
-            * (self.grid.at_node["d50"] ** 3)
+            * (d50 ** 3)
         )
 
         self.grid.at_node["dimensionless_discharge_above_threshold"] = (
