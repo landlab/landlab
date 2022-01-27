@@ -3,4 +3,4 @@ jupyter
 holoviews
 nbformat
 mesa
-bmi-topography
+bmi-topography >= 0.5
