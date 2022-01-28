@@ -224,7 +224,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
     def _cfl_time_step(self):
         """Calculate maximum time-step size using CFL criterion for explicit
         FTCS diffusion."""
-        max_water_depth = max(np.amax(self._depth), _MICRO_DEPTH)
+        max_water_depth = np.amax(self._depth, initial=_MICRO_DEPTH)
         max_diffusivity = self._vel_coef * max_water_depth ** _SEVEN_THIRDS
         return self._cfl_param / max_diffusivity
 
@@ -266,7 +266,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self._depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * iter_dt
 
         # Very crude numerical hack: prevent negative water depth (TODO: better)
-        self._depth[np.where(self._depth < 0.0)[0]] = 0.0
+        self._depth.clip(min=0.0, out=self._depth)
 
     def run_one_step(self, dt):
         """Calculate water flow for a time period `dt`.
