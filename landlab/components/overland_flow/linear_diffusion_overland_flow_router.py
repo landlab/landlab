@@ -166,14 +166,20 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         if roughness <= 0.0:
             raise ValueError(f"roughness must be greater than zero {roughness}")
-        if velocity_scale <= 0.0:
-            raise ValueError(
-                f"velocity_scale must be greater than zero {velocity_scale}"
-            )
+        if rain_rate < 0.0:
+            raise ValueError(f"rain_rate must not be negative {rain_rate}")
         if infilt_depth_scale <= 0.0:
             raise ValueError(
                 f"infilt_depth_scale must be greater than zero {infilt_depth_scale}"
             )
+        if infilt_rate < 0.0:
+            raise ValueError(f"infilt_rate must not be negative {infilt_rate}")
+        if velocity_scale <= 0.0:
+            raise ValueError(
+                f"velocity_scale must be greater than zero {velocity_scale}"
+            )
+        if cfl_factor > 1.0 or cfl_factor <= 0.0:
+            raise ValueError(f"cfl_factor must >0, <=1 {cfl_factor}")
 
         # Store parameters and do unit conversion
         self._rain = rain_rate
@@ -203,6 +209,8 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
     @rain_rate.setter
     def rain_rate(self, value):
+        if value < 0.0:
+            raise ValueError(f"rain_rate must be positive {value}")
         self._rain = value
 
     @property

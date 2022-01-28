@@ -40,9 +40,20 @@ def test_invalid_parameters():
     grid = RasterModelGrid((3, 3))
     grid.add_zeros("topographic__elevation", at="node")
     assert_raises(ValueError, LinearDiffusionOverlandFlowRouter, grid, roughness=-1.0)
-    assert_raises(
-        ValueError, LinearDiffusionOverlandFlowRouter, grid, velocity_scale=0.0
-    )
+    assert_raises(ValueError, LinearDiffusionOverlandFlowRouter, grid, rain_rate=-1.0)
     assert_raises(
         ValueError, LinearDiffusionOverlandFlowRouter, grid, infilt_depth_scale=0.0
     )
+    assert_raises(ValueError, LinearDiffusionOverlandFlowRouter, grid, infilt_rate=-1.0)
+    assert_raises(
+        ValueError, LinearDiffusionOverlandFlowRouter, grid, velocity_scale=0.0
+    )
+    assert_raises(ValueError, LinearDiffusionOverlandFlowRouter, grid, cfl_factor=0.0)
+    assert_raises(ValueError, LinearDiffusionOverlandFlowRouter, grid, cfl_factor=2.0)
+    olflow = LinearDiffusionOverlandFlowRouter(grid)
+    try:
+        olflow.rain_rate = -1.0
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Setting negative rain_rate should raise ValueError")
