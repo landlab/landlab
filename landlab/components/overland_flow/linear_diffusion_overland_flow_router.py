@@ -164,6 +164,17 @@ class LinearDiffusionOverlandFlowRouter(Component):
         """
         super().__init__(grid)
 
+        if roughness <= 0.0:
+            raise ValueError(f"roughness must be greater than zero {roughness}")
+        if velocity_scale <= 0.0:
+            raise ValueError(
+                f"velocity_scale must be greater than zero {velocity_scale}"
+            )
+        if infilt_depth_scale <= 0.0:
+            raise ValueError(
+                f"infilt_depth_scale must be greater than zero {infilt_depth_scale}"
+            )
+
         # Store parameters and do unit conversion
         self._rain = rain_rate
         self._infilt = infilt_rate

@@ -8,7 +8,7 @@ Created on Sat Apr  1 10:49:33 2017
 @author: gtucker
 """
 
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_raises
 
 from landlab import RasterModelGrid
 from landlab.components import LinearDiffusionOverlandFlowRouter
@@ -33,3 +33,16 @@ def test_steady_one_node():
     expected = (grid.dx * grid.dy * olflow.rain_rate / olflow.vel_coef) ** 0.3
 
     assert_allclose(actual, expected, atol=1e-4)
+
+
+def test_invalid_parameters():
+    """Make sure invalid parameters raise the right exceptions."""
+    grid = RasterModelGrid((3, 3))
+    grid.add_zeros("topographic__elevation", at="node")
+    assert_raises(ValueError, LinearDiffusionOverlandFlowRouter, grid, roughness=-1.0)
+    assert_raises(
+        ValueError, LinearDiffusionOverlandFlowRouter, grid, velocity_scale=0.0
+    )
+    assert_raises(
+        ValueError, LinearDiffusionOverlandFlowRouter, grid, infilt_depth_scale=0.0
+    )
