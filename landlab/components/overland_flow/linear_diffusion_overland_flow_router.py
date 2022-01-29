@@ -98,6 +98,14 @@ class LinearDiffusionOverlandFlowRouter(Component):
             "mapping": "node",
             "doc": "Depth of water on the surface",
         },
+        "surface_water__depth_at_link": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "link",
+            "doc": "Depth of water on the surface at grid links",
+        },
         "topographic__elevation": {
             "dtype": float,
             "intent": "in",
@@ -191,11 +199,11 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         self.initialize_output_fields()
         self._depth = grid.at_node["surface_water__depth"]
+        self._depth_at_link = grid.at_link["surface_water__depth_at_link"]
         self._vel = grid.at_link["water__velocity"]
         self._disch = grid.at_link["water__specific_discharge"]
         self._wsgrad = grid.at_link["water_surface__gradient"]
 
-        self._depth_at_link = np.zeros(grid.number_of_links)
         self._water_surf_elev = np.zeros(grid.number_of_nodes)
 
         self._inactive_links = grid.status_at_link == grid.BC_LINK_IS_INACTIVE
