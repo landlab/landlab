@@ -166,12 +166,16 @@ class DimensionlessDischarge(Component):
 
         # Store parameters
 
+        # scalar parameters.
         self._c = C
         self._n = N
+        self._water_density = water_density
+        self._gravity = gravity
+
         # get topographic__elevation values and change into slope of a
         # stream segment
-        self._stream_slopes = self.elevationToSlope()
-        self._water_density = water_density
+        self._stream_slopes = self._elevationToSlope()
+
         # both soil density and d50 can be float, array, or field name.
         self._soil_density = return_array_at_node(self.grid, soil_density)
         self._channel_bottom_sediment_grain__d50_diameter = return_array_at_node(
