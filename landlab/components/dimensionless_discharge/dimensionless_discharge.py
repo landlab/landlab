@@ -185,12 +185,17 @@ class DimensionlessDischarge(Component):
             self.grid, channel_bottom_sediment_grain__d50_diameter
         )
 
-        # set threshold values for each segment
+        # create output fields
         self.grid.add_zeros("dimensionless_discharge", at="node")
         self.grid.add_full(
             "dimensionless_discharge_above_threshold", False, at="node", dtype=bool
         )
         self.grid.add_zeros("dimensionless_discharge_threshold", at="node", dtype=float)
+
+        # calculate threshold values for each segment
+        self._calc_threshold()
+
+    def _calc_threshold(self):
         self.grid.at_node["dimensionless_discharge_threshold"] = self._c / (
             self._stream_slopes ** self._n
         )
@@ -199,11 +204,12 @@ class DimensionlessDischarge(Component):
         return self.grid.calc_slope_at_node(elevs="topographic__elevation")
 
     def run_one_step(self):
-        channel_bottom_sediment_grain__d50_diameter = return_array_at_node(
-            self.grid, self._channel_bottom_sediment_grain__d50_diameter
-        )
+
         # update slopes
         self._stream_slopes = self._elevationToSlope()
+
+        # recalculate threshold with new slopes.
+        self._calc_threshold()
 
         self.grid.at_node["dimensionless_discharge"] = self.grid.at_node[
             "surface_water__discharge"
