@@ -257,6 +257,9 @@ class FieldDataset(dict):
     def units(self):
         return self._units
 
+    def set_units(self, name, new_units):
+        self._units[name] = self._ds[name].attrs["units"] = new_units
+
     @property
     def dataset(self):
         return self._ds

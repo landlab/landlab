@@ -3,6 +3,8 @@ from io import StringIO
 
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.strategies import text
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
@@ -483,3 +485,56 @@ def test_norm_grid_description():
     expected = {"args": ["arg0", "arg1"]}
     assert norm_grid_description(["arg0", "arg1"]) == expected
     assert norm_grid_description(expected) == expected
+
+
+@given(units=text())
+def test_field_units(units):
+    params = {
+        "RasterModelGrid": [
+            {
+                "shape": (5, 7),
+                "xy_spacing": (10, 10),
+            },
+            {
+                "fields": {
+                    "node": {
+                        "topographic__elevation": {
+                            "constant": [{"value": 0.0}],
+                            "units": {"units": units},
+                        },
+                    }
+                },
+            },
+        ],
+    }
+    grid = create_grid(params)
+    assert grid.at_node["topographic__elevation"] == pytest.approx(0.0)
+    assert grid.at_node.units["topographic__elevation"] == units
+    assert grid.field_units("node", "topographic__elevation") == units
+
+
+@given(units=text())
+def test_repeated_units(units):
+    params = {
+        "RasterModelGrid": [
+            {
+                "shape": (5, 7),
+                "xy_spacing": (10, 10),
+            },
+            {
+                "fields": {
+                    "node": {
+                        "topographic__elevation": [
+                            ("units", {"units": units[::-1]}),
+                            ("constant", [{"value": 0.0}]),
+                            ("units", {"units": units}),
+                        ],
+                    }
+                },
+            },
+        ],
+    }
+    grid = create_grid(params)
+    assert grid.at_node["topographic__elevation"] == pytest.approx(0.0)
+    assert grid.at_node.units["topographic__elevation"] == units
+    assert grid.field_units("node", "topographic__elevation") == units
