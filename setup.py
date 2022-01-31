@@ -15,6 +15,23 @@ def read(filename):
         return fp.read()
 
 
+def read_requirements(filename):
+    """Read requirements from a file, adding dependency specifications where needed.
+
+    Dependency specifications could be included in the requirements file but,
+    since the requirements file is also used by conda and conda doesn't
+    understand dependency specifications, we add them here.
+    """
+    lines = [line.strip() for line in read(filename).splitlines()]
+    requirements = []
+    for requirement in lines:
+        if requirement.startswith(("richdem", "bmi-topography")):
+            requirement += "; sys_platform != 'win32' or python_version < '3.10'"
+        requirements.append(requirement)
+
+    return requirements
+
+
 long_description = u"\n\n".join(
     [
         read("README.rst"),
@@ -36,6 +53,14 @@ def find_extensions(path="."):
     ]
 
 
+install_requires = read_requirements("requirements.txt")
+extras_require = {
+    "tests": read_requirements("requirements-testing.txt"),
+    "docs": read_requirements("requirements-docs.txt"),
+    "dev": read_requirements("requirements-dev.txt"),
+    "notebooks": read_requirements("requirements-notebooks.txt"),
+}
+
 setup(
     name="landlab",
     version="2.4.2.dev0",
@@ -44,8 +69,9 @@ setup(
     url="https://github.com/landlab",
     description="Plugin-based component modeling tool.",
     long_description=long_description,
-    python_requires=">=3.6",
-    install_requires=open("requirements.txt", "r").read().splitlines(),
+    python_requires=">=3.7",
+    install_requires=install_requires,
+    extras_require=extras_require,
     include_package_data=True,
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -53,9 +79,10 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Cython",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering :: Physics",
     ],
