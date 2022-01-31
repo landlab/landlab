@@ -57,7 +57,7 @@ class DimensionlessDischarge(Component):
      >>> import random
      >>> watershed_grid = RasterModelGrid((3, 3))
      >>> surface_water__discharge = watershed_grid.add_ones('node', 'surface_water__discharge')
-     >>> d50 = watershed_grid.add_ones('node', 'd50')
+     >>> d50 = watershed_grid.add_ones('node', 'channel_bottom_sediment_grain__d50_diameter')
      >>> watershed_grid.at_node ['topographic__elevation'] = \
      ... np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
      >>> dd = DimensionlessDischarge(watershed_grid, gravity = 9.8)
@@ -115,7 +115,7 @@ class DimensionlessDischarge(Component):
             "mapping": "node",
             "doc": "Volumetric discharge of surface water",
         },
-        "d50": {
+        "channel_bottom_sediment_grain__d50_diameter": {
             "dtype": float,
             "intent": "in",
             "optional": False,
@@ -141,7 +141,7 @@ class DimensionlessDischarge(Component):
         C=12.0,
         N=0.85,
         gravity=constants.g,
-        d50 = "d50"
+        channel_bottom_sediment_grain__d50_diameter="channel_bottom_sediment_grain__d50_diameter",
     ):
         """Initialize the DimensionlessDischarge.
 
@@ -168,11 +168,14 @@ class DimensionlessDischarge(Component):
         self._soil_density = soil_density
         self._c = C
         self._n = N
-        # change topographic__elevation values into slope of a stream segment
-        self._stream_slopes = grid.calc_slope_at_node(elevs="topographic__elevation")
+        # get topographic__elevation values and change into slope of a
+        # stream segment
+        self._stream_slopes = self.elevationToSlope()
         self._water_density = water_density
         self._gravity = gravity
-        self._d50 = d50
+        self._channel_bottom_sediment_grain__d50_diameter = (
+            channel_bottom_sediment_grain__d50_diameter
+        )
 
         # set threshold values for each segment
         self.grid.add_zeros("dimensionless_discharge", at="node")
@@ -184,15 +187,22 @@ class DimensionlessDischarge(Component):
             self._stream_slopes ** self._n
         )
 
+    def elevationToSlope(self):
+        return self.grid.calc_slope_at_node(elevs="topographic__elevation")
+
     def run_one_step(self):
-        d50 = return_array_at_node(self.grid, self._d50)
+        channel_bottom_sediment_grain__d50_diameter = return_array_at_node(
+            self.grid, self._channel_bottom_sediment_grain__d50_diameter
+        )
+        # update slopes
+        self._stream_slopes = self.elevationToSlope()
 
         self.grid.at_node["dimensionless_discharge"] = self.grid.at_node[
             "surface_water__discharge"
         ] / np.sqrt(
             ((self._soil_density - self._water_density) / self._water_density)
             * self._gravity
-            * (d50 ** 3)
+            * (channel_bottom_sediment_grain__d50_diameter ** 3)
         )
 
         self.grid.at_node["dimensionless_discharge_above_threshold"] = (
