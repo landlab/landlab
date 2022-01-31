@@ -187,7 +187,7 @@ class DimensionlessDischarge(Component):
             self._stream_slopes ** self._n
         )
 
-    def elevationToSlope(self):
+    def _elevationToSlope(self):
         return self.grid.calc_slope_at_node(elevs="topographic__elevation")
 
     def run_one_step(self):
@@ -195,7 +195,7 @@ class DimensionlessDischarge(Component):
             self.grid, self._channel_bottom_sediment_grain__d50_diameter
         )
         # update slopes
-        self._stream_slopes = self.elevationToSlope()
+        self._stream_slopes = self._elevationToSlope()
 
         self.grid.at_node["dimensionless_discharge"] = self.grid.at_node[
             "surface_water__discharge"
