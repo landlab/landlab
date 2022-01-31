@@ -174,7 +174,8 @@ class DimensionlessDischarge(Component):
         self._water_density = water_density
         self._gravity = gravity
         self._channel_bottom_sediment_grain__d50_diameter = (
-            channel_bottom_sediment_grain__d50_diameter
+        self._channel_bottom_sediment_grain__d50_diameter = return_array_at_node(
+            self.grid, channel_bottom_sediment_grain__d50_diameter
         )
 
         # set threshold values for each segment
@@ -202,7 +203,7 @@ class DimensionlessDischarge(Component):
         ] / np.sqrt(
             ((self._soil_density - self._water_density) / self._water_density)
             * self._gravity
-            * (channel_bottom_sediment_grain__d50_diameter ** 3)
+            * (self._channel_bottom_sediment_grain__d50_diameter ** 3)
         )
 
         self.grid.at_node["dimensionless_discharge_above_threshold"] = (
