@@ -6,6 +6,8 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | Field Name                                       | Provided By                                                             | Used By                                                                 |
 +==================================================+=========================================================================+=========================================================================+
+| LS_sediment__flux                                |                                                                         | :py:class:`~landlab.components.BedrockLandslider` (node)                |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | aquifer__thickness                               |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | aquifer_base__elevation                          | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      |                                                                         |
@@ -16,7 +18,9 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | area_exponent                                    | :py:class:`~landlab.components.DrainageDensity` (node)                  |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| bedrock__elevation                               |                                                                         | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           |
+| average_surface_water__specific_discharge        |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| bedrock__elevation                               | :py:class:`~landlab.components.NetworkSedimentTransporter` (node)       | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           |
 |                                                  |                                                                         | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channel__bed_shear_stress                        |                                                                         | :py:class:`~landlab.components.SedDepEroder` (node)                     |
@@ -28,10 +32,13 @@ Landlab Standard Name Field-Component Mapping
 | channel__discharge                               |                                                                         | :py:class:`~landlab.components.SedDepEroder` (node)                     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channel__mask                                    | :py:class:`~landlab.components.DrainageDensity` (node)                  |                                                                         |
+|                                                  | :py:class:`~landlab.components.HeightAboveDrainageCalculator` (node)    |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channel__steepness_index                         |                                                                         | :py:class:`~landlab.components.SteepnessFinder` (node)                  |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channel__width                                   |                                                                         | :py:class:`~landlab.components.SedDepEroder` (node)                     |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| channel_bottom_sediment_grain__d50_diameter      | :py:class:`~landlab.components.DimensionlessDischarge` (node)           |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channel_sediment__relative_flux                  |                                                                         | :py:class:`~landlab.components.SedDepEroder` (node)                     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -39,18 +46,32 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channel_sediment__volumetric_transport_capacity  |                                                                         | :py:class:`~landlab.components.SedDepEroder` (node)                     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| channel_slope                                    |                                                                         | :py:class:`~landlab.components.NetworkSedimentTransporter` (link)       |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| channel_width                                    | :py:class:`~landlab.components.NetworkSedimentTransporter` (link)       |                                                                         |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | channelization_threshold                         | :py:class:`~landlab.components.DrainageDensity` (node)                  |                                                                         |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| cumulative_subsidence_depth                      |                                                                         | :py:class:`~landlab.components.ListricKinematicExtender` (node)         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | depression__depth                                |                                                                         | :py:class:`~landlab.components.DepressionFinderAndRouter` (node)        |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | depression__outlet_node                          |                                                                         | :py:class:`~landlab.components.DepressionFinderAndRouter` (node)        |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| depression_free_elevation                        |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| dimensionless_discharge                          |                                                                         | :py:class:`~landlab.components.DimensionlessDischarge` (node)           |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| dimensionless_discharge_above_threshold          |                                                                         | :py:class:`~landlab.components.DimensionlessDischarge` (node)           |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| dimensionless_discharge_threshold                |                                                                         | :py:class:`~landlab.components.DimensionlessDischarge` (node)           |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | distance_to_divide                               |                                                                         | :py:class:`~landlab.components.HackCalculator` (node)                   |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | drainage_area                                    | :py:class:`~landlab.components.ChannelProfiler` (node)                  | :py:class:`~landlab.components.FlowAccumulator` (node)                  |
-|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
-|                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |
-|                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   |                                                                         |
+|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
+|                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
+|                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |
 |                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |                                                                         |
 |                                                  | :py:class:`~landlab.components.LateralEroder` (node)                    |                                                                         |
 |                                                  | :py:class:`~landlab.components.SedDepEroder` (node)                     |                                                                         |
@@ -58,7 +79,12 @@ Landlab Standard Name Field-Component Mapping
 |                                                  | :py:class:`~landlab.components.StreamPowerEroder` (node)                |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| ebb_tide_flow__velocity                          |                                                                         | :py:class:`~landlab.components.TidalFlowCalculator` (link)              |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | flood_status_code                                |                                                                         | :py:class:`~landlab.components.DepressionFinderAndRouter` (node)        |
+|                                                  |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| flood_tide_flow__velocity                        |                                                                         | :py:class:`~landlab.components.TidalFlowCalculator` (link)              |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | flow__data_structure_delta                       | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 | :py:class:`~landlab.components.FlowAccumulator` (node)                  |
 |                                                  |                                                                         | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
@@ -66,38 +92,45 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | flow__link_direction                             |                                                                         | :py:class:`~landlab.components.FlowDirectorSteepest` (link)             |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| flow__link_to_receiver_node                      | :py:class:`~landlab.components.ChannelProfiler` (node)                  | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
-|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 |
-|                                                  | :py:class:`~landlab.components.DrainageDensity` (node)                  | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  |
-|                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             |
-|                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
-|                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   |                                                                         |
+| flow__link_to_receiver_node                      | :py:class:`~landlab.components.ChannelProfiler` (node)                  | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
+|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
+|                                                  | :py:class:`~landlab.components.DrainageDensity` (node)                  | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 |
+|                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  |
+|                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             |
+|                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
 |                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |                                                                         |
 |                                                  | :py:class:`~landlab.components.SedDepEroder` (node)                     |                                                                         |
 |                                                  | :py:class:`~landlab.components.Space` (node)                            |                                                                         |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |                                                                         |
 |                                                  | :py:class:`~landlab.components.SteepnessFinder` (node)                  |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerEroder` (node)                |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |                                                                         |
+|                                                  | :py:class:`~landlab.components.TrickleDownProfiler` (node)              |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | flow__potential                                  |                                                                         | :py:class:`~landlab.components.DischargeDiffuser` (node)                |
 |                                                  |                                                                         | :py:class:`~landlab.components.PotentialityFlowRouter` (node)           |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| flow__receiver_node                              | :py:class:`~landlab.components.ChannelProfiler` (node)                  | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
+| flow__receiver_node                              | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
+|                                                  | :py:class:`~landlab.components.ChannelProfiler` (node)                  | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
 |                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 |
 |                                                  | :py:class:`~landlab.components.DrainageDensity` (node)                  | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  |
 |                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             |
 |                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
 |                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   |                                                                         |
+|                                                  | :py:class:`~landlab.components.HeightAboveDrainageCalculator` (node)    |                                                                         |
 |                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |                                                                         |
 |                                                  | :py:class:`~landlab.components.LateralEroder` (node)                    |                                                                         |
 |                                                  | :py:class:`~landlab.components.SedDepEroder` (node)                     |                                                                         |
 |                                                  | :py:class:`~landlab.components.Space` (node)                            |                                                                         |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |                                                                         |
 |                                                  | :py:class:`~landlab.components.SteepnessFinder` (node)                  |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerEroder` (node)                |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |                                                                         |
 |                                                  | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |                                                                         |
+|                                                  | :py:class:`~landlab.components.TrickleDownProfiler` (node)              |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| flow__receiver_proportions                       |                                                                         | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 |
+| flow__receiver_proportions                       |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
+|                                                  |                                                                         | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 |
 |                                                  |                                                                         | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | flow__sink_flag                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
@@ -106,18 +139,23 @@ Landlab Standard Name Field-Component Mapping
 |                                                  |                                                                         | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             |
 |                                                  |                                                                         | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| flow__upstream_node_order                        | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.FlowAccumulator` (node)                  |
+| flow__upstream_node_order                        | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.FlowAccumulator` (node)                  |
+|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
 |                                                  | :py:class:`~landlab.components.DrainageDensity` (node)                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
 |                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |
 |                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  |                                                                         |
 |                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   |                                                                         |
+|                                                  | :py:class:`~landlab.components.HeightAboveDrainageCalculator` (node)    |                                                                         |
 |                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |                                                                         |
 |                                                  | :py:class:`~landlab.components.LateralEroder` (node)                    |                                                                         |
 |                                                  | :py:class:`~landlab.components.SedDepEroder` (node)                     |                                                                         |
 |                                                  | :py:class:`~landlab.components.Space` (node)                            |                                                                         |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |                                                                         |
 |                                                  | :py:class:`~landlab.components.SteepnessFinder` (node)                  |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerEroder` (node)                |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |                                                                         |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| flow_depth                                       | :py:class:`~landlab.components.NetworkSedimentTransporter` (link)       |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | fracture_at_node                                 |                                                                         | :py:class:`~landlab.components.FractureGridGenerator` (node)            |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -125,13 +163,33 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | groundwater__velocity                            |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (link)      |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| height_above_drainage__elevation                 |                                                                         | :py:class:`~landlab.components.HeightAboveDrainageCalculator` (node)    |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| hill_drainage_area                               |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| hill_flow__receiver_node                         | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| hill_flow__receiver_proportions                  | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| hill_flow__upstream_node_order                   |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| hill_surface_water__discharge                    |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| hill_topographic__steepest_slope                 | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | hillslope_sediment__unit_volume_flux             |                                                                         | :py:class:`~landlab.components.LinearDiffuser` (link)                   |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | hydraulic__gradient                              |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (link)      |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | is_pit                                           |                                                                         | :py:class:`~landlab.components.DepressionFinderAndRouter` (node)        |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| landslide__deposition                            |                                                                         | :py:class:`~landlab.components.BedrockLandslider` (node)                |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| landslide__erosion                               |                                                                         | :py:class:`~landlab.components.BedrockLandslider` (node)                |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | landslide__probability_of_failure                |                                                                         | :py:class:`~landlab.components.LandslideProbability` (node)             |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| landslide_sediment_point_source                  |                                                                         | :py:class:`~landlab.components.BedrockLandslider` (node)                |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | lateral_erosion__depth_increment                 |                                                                         | :py:class:`~landlab.components.LateralEroder` (node)                    |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -143,6 +201,8 @@ Landlab Standard Name Field-Component Mapping
 |                                                  |                                                                         | :py:class:`~landlab.components.gFlex` (node)                            |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | lithosphere_surface__increment_of_elevation      |                                                                         | :py:class:`~landlab.components.Flexure1D` (node)                        |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| mean_water__depth                                |                                                                         | :py:class:`~landlab.components.TidalFlowCalculator` (node)              |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | plant__age                                       |                                                                         | :py:class:`~landlab.components.VegCA` (cell)                            |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -167,6 +227,10 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | rainfall__total_depth_per_year                   |                                                                         | :py:class:`~landlab.components.SpatialPrecipitationDistribution` (node) |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| reach_length                                     | :py:class:`~landlab.components.NetworkSedimentTransporter` (link)       |                                                                         |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| sea_level__elevation                             | :py:class:`~landlab.components.SimpleSubmarineDiffuser` (grid)          |                                                                         |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment__deposition_coeff                       |                                                                         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment__deposition_rate                        |                                                                         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
@@ -175,15 +239,22 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment__erosion_rate                           |                                                                         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| sediment__flux                                   |                                                                         | :py:class:`~landlab.components.ErosionDeposition` (node)                |
-|                                                  |                                                                         | :py:class:`~landlab.components.LateralEroder` (node)                    |
-|                                                  |                                                                         | :py:class:`~landlab.components.Space` (node)                            |
-+--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment__flux_in                                |                                                                         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment__flux_out                               |                                                                         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| sediment__influx                                 |                                                                         | :py:class:`~landlab.components.ErosionDeposition` (node)                |
+|                                                  |                                                                         | :py:class:`~landlab.components.LateralEroder` (node)                    |
+|                                                  |                                                                         | :py:class:`~landlab.components.Space` (node)                            |
+|                                                  |                                                                         | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| sediment__outflux                                |                                                                         | :py:class:`~landlab.components.ErosionDeposition` (node)                |
+|                                                  |                                                                         | :py:class:`~landlab.components.Space` (node)                            |
+|                                                  |                                                                         | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment__transfer_rate                          |                                                                         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| sediment_deposit__thickness                      |                                                                         | :py:class:`~landlab.components.SimpleSubmarineDiffuser` (node)          |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | sediment_fill__depth                             |                                                                         | :py:class:`~landlab.components.SinkFiller` (node)                       |
 |                                                  |                                                                         | :py:class:`~landlab.components.SinkFillerBarnes` (node)                 |
@@ -194,10 +265,13 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | soil__density                                    | :py:class:`~landlab.components.LandslideProbability` (node)             |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| soil__depth                                      | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           |
+| soil__depth                                      | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.BedrockLandslider` (node)                |
+|                                                  | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           |
 |                                                  | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     |
 |                                                  | :py:class:`~landlab.components.ExponentialWeatherer` (node)             | :py:class:`~landlab.components.Space` (node)                            |
+|                                                  | :py:class:`~landlab.components.ExponentialWeathererIntegrated` (node)   | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |
 |                                                  | :py:class:`~landlab.components.Space` (node)                            |                                                                         |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | soil__flux                                       |                                                                         | :py:class:`~landlab.components.DepthDependentDiffuser` (link)           |
 |                                                  |                                                                         | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (link)     |
@@ -227,10 +301,18 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | soil_moisture__saturation_fraction               |                                                                         | :py:class:`~landlab.components.SoilMoisture` (cell)                     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| soil_production__dt_produced_depth               |                                                                         | :py:class:`~landlab.components.ExponentialWeathererIntegrated` (node)   |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| soil_production__dt_weathered_depth              |                                                                         | :py:class:`~landlab.components.ExponentialWeathererIntegrated` (node)   |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | soil_production__rate                            | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           | :py:class:`~landlab.components.ExponentialWeatherer` (node)             |
-|                                                  | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     |                                                                         |
+|                                                  | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     | :py:class:`~landlab.components.ExponentialWeathererIntegrated` (node)   |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | soil_water_infiltration__depth                   | :py:class:`~landlab.components.SoilInfiltrationGreenAmpt` (node)        | :py:class:`~landlab.components.SoilInfiltrationGreenAmpt` (node)        |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| squared_length_adjacent                          |                                                                         | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| subsidence_rate                                  |                                                                         | :py:class:`~landlab.components.ListricKinematicExtender` (node)         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | surface__evapotranspiration                      | :py:class:`~landlab.components.Vegetation` (cell)                       | :py:class:`~landlab.components.SoilMoisture` (cell)                     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -245,7 +327,8 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | surface_to_channel__minimum_distance             |                                                                         | :py:class:`~landlab.components.DrainageDensity` (node)                  |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| surface_water__depth                             | :py:class:`~landlab.components.DepthSlopeProductErosion` (node)         | :py:class:`~landlab.components.KinwaveImplicitOverlandFlow` (node)      |
+| surface_water__depth                             | :py:class:`~landlab.components.DepthSlopeProductErosion` (node)         | :py:class:`~landlab.components.KinematicWaveRengers` (node)             |
+|                                                  | :py:class:`~landlab.components.KinematicWaveRengers` (node)             | :py:class:`~landlab.components.KinwaveImplicitOverlandFlow` (node)      |
 |                                                  | :py:class:`~landlab.components.OverlandFlow` (node)                     | :py:class:`~landlab.components.KinwaveOverlandFlowModel` (node)         |
 |                                                  | :py:class:`~landlab.components.OverlandFlowBates` (node)                | :py:class:`~landlab.components.OverlandFlow` (node)                     |
 |                                                  | :py:class:`~landlab.components.SoilInfiltrationGreenAmpt` (node)        | :py:class:`~landlab.components.OverlandFlowBates` (node)                |
@@ -253,9 +336,11 @@ Landlab Standard Name Field-Component Mapping
 |                                                  |                                                                         | :py:class:`~landlab.components.SoilInfiltrationGreenAmpt` (node)        |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | surface_water__discharge                         | :py:class:`~landlab.components.DetachmentLtdErosion` (node)             | :py:class:`~landlab.components.DischargeDiffuser` (node)                |
-|                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.FlowAccumulator` (node)                  |
-|                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
-|                                                  | :py:class:`~landlab.components.Space` (node)                            | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |
+|                                                  | :py:class:`~landlab.components.DimensionlessDischarge` (node)           | :py:class:`~landlab.components.FlowAccumulator` (node)                  |
+|                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
+|                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 | :py:class:`~landlab.components.KinematicWaveRengers` (node)             |
+|                                                  | :py:class:`~landlab.components.Space` (node)                            | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |
 |                                                  |                                                                         | :py:class:`~landlab.components.OverlandFlow` (link)                     |
 |                                                  |                                                                         | :py:class:`~landlab.components.OverlandFlowBates` (link)                |
 |                                                  |                                                                         | :py:class:`~landlab.components.PotentialityFlowRouter` (node)           |
@@ -264,29 +349,39 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | surface_water__specific_discharge                |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| surface_water__velocity                          |                                                                         | :py:class:`~landlab.components.KinematicWaveRengers` (node)             |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | surface_water_inflow__discharge                  |                                                                         | :py:class:`~landlab.components.KinwaveImplicitOverlandFlow` (node)      |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| topographic__elevation                           | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           |
+| taxa__richness                                   |                                                                         | :py:class:`~landlab.components.SpeciesEvolver` (node)                   |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| topographic__elevation                           | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.BedrockLandslider` (node)                |
+|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           |
 |                                                  | :py:class:`~landlab.components.DepressionFinderAndRouter` (node)        | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     |
 |                                                  | :py:class:`~landlab.components.DepthDependentDiffuser` (node)           | :py:class:`~landlab.components.DepthSlopeProductErosion` (node)         |
 |                                                  | :py:class:`~landlab.components.DepthDependentTaylorDiffuser` (node)     | :py:class:`~landlab.components.DetachmentLtdErosion` (node)             |
 |                                                  | :py:class:`~landlab.components.DepthSlopeProductErosion` (node)         | :py:class:`~landlab.components.DischargeDiffuser` (node)                |
-|                                                  | :py:class:`~landlab.components.DetachmentLtdErosion` (node)             | :py:class:`~landlab.components.ErosionDeposition` (node)                |
-|                                                  | :py:class:`~landlab.components.DischargeDiffuser` (node)                | :py:class:`~landlab.components.FastscapeEroder` (node)                  |
+|                                                  | :py:class:`~landlab.components.DetachmentLtdErosion` (node)             | :py:class:`~landlab.components.DimensionlessDischarge` (node)           |
+|                                                  | :py:class:`~landlab.components.DischargeDiffuser` (node)                | :py:class:`~landlab.components.ErosionDeposition` (node)                |
+|                                                  | :py:class:`~landlab.components.DimensionlessDischarge` (node)           | :py:class:`~landlab.components.FastscapeEroder` (node)                  |
 |                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.gFlex` (node)                            |
 |                                                  | :py:class:`~landlab.components.FastscapeEroder` (node)                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 |
 |                                                  | :py:class:`~landlab.components.FlowAccumulator` (node)                  | :py:class:`~landlab.components.LateralEroder` (node)                    |
-|                                                  | :py:class:`~landlab.components.FlowDirectorD8` (node)                   | :py:class:`~landlab.components.LinearDiffuser` (node)                   |
-|                                                  | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 | :py:class:`~landlab.components.NormalFault` (node)                      |
-|                                                  | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  | :py:class:`~landlab.components.PerronNLDiffuse` (node)                  |
-|                                                  | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             | :py:class:`~landlab.components.SedDepEroder` (node)                     |
-|                                                  | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      | :py:class:`~landlab.components.SinkFiller` (node)                       |
-|                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   | :py:class:`~landlab.components.SinkFillerBarnes` (node)                 |
+|                                                  | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          | :py:class:`~landlab.components.LinearDiffuser` (node)                   |
+|                                                  | :py:class:`~landlab.components.FlowDirectorD8` (node)                   | :py:class:`~landlab.components.ListricKinematicExtender` (node)         |
+|                                                  | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 | :py:class:`~landlab.components.NetworkSedimentTransporter` (node)       |
+|                                                  | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  | :py:class:`~landlab.components.NormalFault` (node)                      |
+|                                                  | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             | :py:class:`~landlab.components.PerronNLDiffuse` (node)                  |
+|                                                  | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      | :py:class:`~landlab.components.SedDepEroder` (node)                     |
+|                                                  | :py:class:`~landlab.components.HackCalculator` (node)                   | :py:class:`~landlab.components.SimpleSubmarineDiffuser` (node)          |
+|                                                  | :py:class:`~landlab.components.HeightAboveDrainageCalculator` (node)    | :py:class:`~landlab.components.SinkFiller` (node)                       |
+|                                                  | :py:class:`~landlab.components.KinematicWaveRengers` (node)             | :py:class:`~landlab.components.SinkFillerBarnes` (node)                 |
 |                                                  | :py:class:`~landlab.components.KinwaveImplicitOverlandFlow` (node)      | :py:class:`~landlab.components.Space` (node)                            |
-|                                                  | :py:class:`~landlab.components.KinwaveOverlandFlowModel` (node)         | :py:class:`~landlab.components.StreamPowerEroder` (node)                |
-|                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |
-|                                                  | :py:class:`~landlab.components.LateralEroder` (node)                    | :py:class:`~landlab.components.TaylorNonLinearDiffuser` (node)          |
-|                                                  | :py:class:`~landlab.components.LinearDiffuser` (node)                   | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
+|                                                  | :py:class:`~landlab.components.KinwaveOverlandFlowModel` (node)         | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |
+|                                                  | :py:class:`~landlab.components.LakeMapperBarnes` (node)                 | :py:class:`~landlab.components.StreamPowerEroder` (node)                |
+|                                                  | :py:class:`~landlab.components.LateralEroder` (node)                    | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |
+|                                                  | :py:class:`~landlab.components.LinearDiffuser` (node)                   | :py:class:`~landlab.components.TaylorNonLinearDiffuser` (node)          |
+|                                                  | :py:class:`~landlab.components.ListricKinematicExtender` (node)         | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |
 |                                                  | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |                                                                         |
 |                                                  | :py:class:`~landlab.components.NormalFault` (node)                      |                                                                         |
 |                                                  | :py:class:`~landlab.components.OverlandFlow` (node)                     |                                                                         |
@@ -295,14 +390,17 @@ Landlab Standard Name Field-Component Mapping
 |                                                  | :py:class:`~landlab.components.PotentialityFlowRouter` (node)           |                                                                         |
 |                                                  | :py:class:`~landlab.components.Radiation` (node)                        |                                                                         |
 |                                                  | :py:class:`~landlab.components.SedDepEroder` (node)                     |                                                                         |
+|                                                  | :py:class:`~landlab.components.SimpleSubmarineDiffuser` (node)          |                                                                         |
 |                                                  | :py:class:`~landlab.components.SinkFiller` (node)                       |                                                                         |
 |                                                  | :py:class:`~landlab.components.SinkFillerBarnes` (node)                 |                                                                         |
 |                                                  | :py:class:`~landlab.components.Space` (node)                            |                                                                         |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |                                                                         |
 |                                                  | :py:class:`~landlab.components.SpatialPrecipitationDistribution` (node) |                                                                         |
 |                                                  | :py:class:`~landlab.components.SteepnessFinder` (node)                  |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerEroder` (node)                |                                                                         |
 |                                                  | :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder` (node) |                                                                         |
 |                                                  | :py:class:`~landlab.components.TaylorNonLinearDiffuser` (node)          |                                                                         |
+|                                                  | :py:class:`~landlab.components.TidalFlowCalculator` (node)              |                                                                         |
 |                                                  | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | topographic__gradient                            | :py:class:`~landlab.components.KinwaveOverlandFlowModel` (link)         | :py:class:`~landlab.components.KinwaveImplicitOverlandFlow` (link)      |
@@ -314,14 +412,18 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | topographic__specific_contributing_area          | :py:class:`~landlab.components.LandslideProbability` (node)             |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| topographic__steepest_slope                      | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
+| topographic__steepest_slope                      | :py:class:`~landlab.components.BedrockLandslider` (node)                | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |
+|                                                  | :py:class:`~landlab.components.ChiFinder` (node)                        | :py:class:`~landlab.components.FlowDirectorD8` (node)                   |
 |                                                  | :py:class:`~landlab.components.DrainageDensity` (node)                  | :py:class:`~landlab.components.FlowDirectorDINF` (node)                 |
 |                                                  | :py:class:`~landlab.components.ErosionDeposition` (node)                | :py:class:`~landlab.components.FlowDirectorMFD` (node)                  |
 |                                                  | :py:class:`~landlab.components.LateralEroder` (node)                    | :py:class:`~landlab.components.FlowDirectorSteepest` (node)             |
 |                                                  | :py:class:`~landlab.components.SedDepEroder` (node)                     |                                                                         |
 |                                                  | :py:class:`~landlab.components.Space` (node)                            |                                                                         |
+|                                                  | :py:class:`~landlab.components.SpaceLargeScaleEroder` (node)            |                                                                         |
 |                                                  | :py:class:`~landlab.components.SteepnessFinder` (node)                  |                                                                         |
 |                                                  | :py:class:`~landlab.components.TransportLengthHillslopeDiffuser` (node) |                                                                         |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| upper_crust_thickness                            | :py:class:`~landlab.components.ListricKinematicExtender` (node)         | :py:class:`~landlab.components.ListricKinematicExtender` (node)         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | vegetation__cover_fraction                       | :py:class:`~landlab.components.SoilMoisture` (cell)                     | :py:class:`~landlab.components.Vegetation` (cell)                       |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -343,11 +445,14 @@ Landlab Standard Name Field-Component Mapping
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | volume__lateral_erosion                          |                                                                         | :py:class:`~landlab.components.LateralEroder` (node)                    |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
+| water__depth                                     |                                                                         | :py:class:`~landlab.components.SimpleSubmarineDiffuser` (node)          |
++--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | water__discharge_in                              | :py:class:`~landlab.components.DischargeDiffuser` (node)                |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | water__specific_discharge                        |                                                                         | :py:class:`~landlab.components.KinwaveOverlandFlowModel` (link)         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | water__unit_flux_in                              | :py:class:`~landlab.components.FlowAccumulator` (node)                  |                                                                         |
+|                                                  | :py:class:`~landlab.components.PriorityFloodFlowRouter` (node)          |                                                                         |
 |                                                  | :py:class:`~landlab.components.LossyFlowAccumulator` (node)             |                                                                         |
 |                                                  | :py:class:`~landlab.components.PotentialityFlowRouter` (node)           |                                                                         |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
@@ -356,6 +461,4 @@ Landlab Standard Name Field-Component Mapping
 | water_surface__gradient                          |                                                                         | :py:class:`~landlab.components.OverlandFlow` (link)                     |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
 | water_table__elevation                           |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      |
-+--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
-| water_table__velocity                            |                                                                         | :py:class:`~landlab.components.GroundwaterDupuitPercolator` (node)      |
 +--------------------------------------------------+-------------------------------------------------------------------------+-------------------------------------------------------------------------+
