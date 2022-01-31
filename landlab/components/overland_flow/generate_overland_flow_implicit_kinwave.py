@@ -363,7 +363,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Calc outflow
                 Heff = self._weight * self._depth[n] + (1.0 - self._weight) * cc
                 outflow = (
-                    self._vel_coef * (Heff ** self._depth_exp) * self._grad_width_sum[n]
+                    self._vel_coef * (Heff**self._depth_exp) * self._grad_width_sum[n]
                 )  # this is manning/chezy/darcy
 
                 # Send flow downstream. Here we take total inflow discharge

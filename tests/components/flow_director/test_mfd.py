@@ -145,11 +145,11 @@ def test_MFD_SW_slope_w_diags():
     true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
 
-    total_sum_of_slopes = 1.0 + 1.0 + (2.0 / 2.0 ** 0.5)
+    total_sum_of_slopes = 1.0 + 1.0 + (2.0 / 2.0**0.5)
 
     true_proportions[mg.core_nodes, 2] = 1.0 / total_sum_of_slopes
     true_proportions[mg.core_nodes, 3] = 1.0 / total_sum_of_slopes
-    true_proportions[mg.core_nodes, 6] = (2.0 / 2.0 ** 0.5) / total_sum_of_slopes
+    true_proportions[mg.core_nodes, 6] = (2.0 / 2.0**0.5) / total_sum_of_slopes
 
     assert_array_equal(true_receivers, fa.flow_director._receivers)
     assert_array_almost_equal(true_proportions, fa.flow_director._proportions)
@@ -197,11 +197,11 @@ def test_MFD_S_slope_w_diag():
     true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
 
-    total_sum_of_slopes = 1.0 + 2.0 * (1.0 / 2.0 ** 0.5)
+    total_sum_of_slopes = 1.0 + 2.0 * (1.0 / 2.0**0.5)
 
     true_proportions[mg.core_nodes, 3] = 1.0 / total_sum_of_slopes
-    true_proportions[mg.core_nodes, 6] = (1.0 / 2.0 ** 0.5) / total_sum_of_slopes
-    true_proportions[mg.core_nodes, 7] = (1.0 / 2.0 ** 0.5) / total_sum_of_slopes
+    true_proportions[mg.core_nodes, 6] = (1.0 / 2.0**0.5) / total_sum_of_slopes
+    true_proportions[mg.core_nodes, 7] = (1.0 / 2.0**0.5) / total_sum_of_slopes
 
     assert_array_equal(true_receivers, fa.flow_director._receivers)
     assert_array_almost_equal(true_proportions, fa.flow_director._proportions)

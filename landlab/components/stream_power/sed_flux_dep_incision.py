@@ -529,22 +529,22 @@ class SedDepEroder(Component):
             twothirds = 2.0 / 3.0
             self._Qs_prefactor = (
                 4.0
-                * self._C_MPM ** twothirds
-                * self._fluid_density ** twothirds
+                * self._C_MPM**twothirds
+                * self._fluid_density**twothirds
                 / (self._sed_density - self._fluid_density) ** twothirds
                 * self._g ** (twothirds / 2.0)
-                * mannings_n ** 0.6
+                * mannings_n**0.6
                 * self._k_w ** (1.0 / 15.0)
                 * self._k_Q ** (0.6 + self._b / 15.0)
-                / self._sed_density ** twothirds
+                / self._sed_density**twothirds
             )
             self._Qs_thresh_prefactor = (
                 4.0
                 * (
                     self._C_MPM
                     * self._k_w
-                    * self._k_Q ** self._b
-                    / self._fluid_density ** 0.5
+                    * self._k_Q**self._b
+                    / self._fluid_density**0.5
                     / (self._sed_density - self._fluid_density)
                     / self._g
                     / self._sed_density
@@ -575,7 +575,7 @@ class SedDepEroder(Component):
             """Returns K*f(qs,qc)"""
             sed_flux_fn = (
                 self._kappa
-                * (rel_sed_flux ** self._nu + self._c)
+                * (rel_sed_flux**self._nu + self._c)
                 * np.exp(-self._phi * rel_sed_flux)
             )
         elif self._type == "linear_decline":
@@ -623,7 +623,7 @@ class SedDepEroder(Component):
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return (
                     self._kappa
-                    * (rel_sed_flux_in ** self._nu + self._c)
+                    * (rel_sed_flux_in**self._nu + self._c)
                     * np.exp(-self._phi * rel_sed_flux_in)
                 )
 
@@ -744,7 +744,7 @@ class SedDepEroder(Component):
                     * self._Dchar
                 )
             if self._lamb_flag:
-                variable_shields_crit = 0.15 * node_S ** 0.25
+                variable_shields_crit = 0.15 * node_S**0.25
                 try:
                     variable_thresh = (
                         variable_shields_crit * self._shields_prefactor_to_shear
@@ -756,29 +756,29 @@ class SedDepEroder(Component):
                         * self._Dchar
                     )
 
-            node_Q = self._k_Q * self._runoff_rate * node_A ** self._c
+            node_Q = self._k_Q * self._runoff_rate * node_A**self._c
             shear_stress_prefactor_timesAparts = (
-                self._shear_stress_prefactor * node_Q ** self._point6onelessb
+                self._shear_stress_prefactor * node_Q**self._point6onelessb
             )
             try:
                 transport_capacities_thresh = (
                     self._thresh
                     * self._Qs_thresh_prefactor
                     * self._runoff_rate ** (0.66667 * self._b)
-                    * node_A ** self._Qs_power_onAthresh
+                    * node_A**self._Qs_power_onAthresh
                 )
             except AttributeError:
                 transport_capacities_thresh = (
                     variable_thresh
                     * self._Qs_thresh_prefactor
                     * self._runoff_rate ** (0.66667 * self._b)
-                    * node_A ** self._Qs_power_onAthresh
+                    * node_A**self._Qs_power_onAthresh
                 )
 
             transport_capacity_prefactor_withA = (
                 self._Qs_prefactor
                 * self._runoff_rate ** (0.6 + self._b / 15.0)
-                * node_A ** self._Qs_power_onA
+                * node_A**self._Qs_power_onA
             )
 
             internal_t = 0.0
@@ -801,7 +801,7 @@ class SedDepEroder(Component):
                 # gradient, including in any lake depressions
                 # we DON'T immediately zero trp capacity in the lake.
                 # positive_slopes = np.greater(downward_slopes, 0.)
-                slopes_tothe07 = downward_slopes ** 0.7
+                slopes_tothe07 = downward_slopes**0.7
                 transport_capacities_S = (
                     transport_capacity_prefactor_withA * slopes_tothe07
                 )
@@ -810,7 +810,7 @@ class SedDepEroder(Component):
                 )
                 transport_capacities = np.sqrt(trp_diff * trp_diff * trp_diff)
                 shear_stress = shear_stress_prefactor_timesAparts * slopes_tothe07
-                shear_tothe_a = shear_stress ** self._a
+                shear_tothe_a = shear_stress**self._a
 
                 dt_this_step = dt_secs - internal_t
                 # ^timestep adjustment is made AFTER the dz calc
@@ -935,8 +935,8 @@ class SedDepEroder(Component):
                 internal_t += dt_this_step  # still in seconds, remember
 
         elif self._Qc == "power_law":
-            transport_capacity_prefactor_withA = self._Kt * node_A ** self._mt
-            erosion_prefactor_withA = self._K_unit_time * node_A ** self._m
+            transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
+            erosion_prefactor_withA = self._K_unit_time * node_A**self._m
             # ^doesn't include S**n*f(Qc/Qc)
             internal_t = 0.0
             break_flag = False
@@ -948,8 +948,8 @@ class SedDepEroder(Component):
                 # print counter
                 downward_slopes = node_S.clip(0.0)
                 # positive_slopes = np.greater(downward_slopes, 0.)
-                slopes_tothen = downward_slopes ** self._n
-                slopes_tothent = downward_slopes ** self._nt
+                slopes_tothen = downward_slopes**self._n
+                slopes_tothent = downward_slopes**self._nt
                 transport_capacities = (
                     transport_capacity_prefactor_withA * slopes_tothent
                 )
@@ -1049,7 +1049,7 @@ class SedDepEroder(Component):
         if self._return_ch_props:
             # add the channel property field entries,
             # 'channel__width', 'channel__depth', and 'channel__discharge'
-            W = self._k_w * node_Q ** self._b
+            W = self._k_w * node_Q**self._b
             H = shear_stress / self._rho_g / node_S  # ...sneaky!
             grid.at_node["channel__width"][:] = W
             grid.at_node["channel__depth"][:] = H
