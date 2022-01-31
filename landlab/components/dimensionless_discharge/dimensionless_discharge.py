@@ -147,19 +147,22 @@ class DimensionlessDischarge(Component):
 
         Parameters
         ----------
-        soil_density : float, optional (defaults to 1330)
-            density of soil (kg/m^3)
-        water_density : float, optional (defaults to 997.9)
-            density of water (kg/m^3)
-        C : float, optional (defaults to 12.0)
+        soil_density : float, field name, or array, optional
+            density of soil (kg/m^3) (defaults to 1330)
+        water_density : float, optional
+            density of water (kg/m^3) (defaults to 997.9)
+        C : float, optional
             Numerator of the debris flow threshold equation; Empirically
-            derived constant (See Tang et al. 2019)
-        N : float, optional (defaults to 0.85)
+            derived constant (See Tang et al. 2019). (defaults to 12.0)
+        N : float, optional
             Exponent for slope in the denominator of the debris flow
             threshold equation; Empirically derived constant (See Tang
-            et al. 2019)
-        gravity : float, optional (defaults to scipy's standard
-            acceleration of gravity)
+            et al. 2019). (defaults to 0.85)
+        gravity : float, optional
+            (defaults to scipy's standard acceleration of gravity)
+        channel_bottom_sediment_grain__d50_diameter : float, field_name, or array
+            defaults to the field name
+            "channel_bottom_sediment_grain__d50_diameter"
         """
 
         super().__init__(grid)
