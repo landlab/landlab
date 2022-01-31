@@ -118,7 +118,7 @@ class DimensionlessDischarge(Component):
         "channel_bottom_sediment_grain__d50_diameter": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "soil grain size average in stream segment",
