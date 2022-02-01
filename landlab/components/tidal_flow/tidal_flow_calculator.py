@@ -298,8 +298,8 @@ class TidalFlowCalculator(Component):
         )
 
         # Calculate velocity and diffusion coefficients on links
-        velocity_coef = self._water_depth_at_links ** _FOUR_THIRDS / (
-            (self.roughness ** 2) * self._scale_velocity
+        velocity_coef = self._water_depth_at_links**_FOUR_THIRDS / (
+            (self.roughness**2) * self._scale_velocity
         )
         self._diffusion_coef_at_links[:] = self._water_depth_at_links * velocity_coef
 
