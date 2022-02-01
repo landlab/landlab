@@ -276,7 +276,7 @@ class LinearDiffuser(Component):
             rt2 = np.sqrt(2.0)
             horizontal_face = self._grid.dx / (1.0 + rt2)
             vertical_face = self._grid.dy / (1.0 + rt2)
-            diag_face = np.sqrt(0.5 * (horizontal_face ** 2 + vertical_face ** 2))
+            diag_face = np.sqrt(0.5 * (horizontal_face**2 + vertical_face**2))
 
             # NOTE: Do these need to be flattened?
             # self._hoz = self.grid.horizontal_links.flatten()
@@ -506,8 +506,8 @@ class LinearDiffuser(Component):
                     )
                     Kx[self._vert] = vert_link_crosslink_K.mean(axis=1)
                     Ky[self._hoz] = hoz_link_crosslink_K.mean(axis=1)
-                    Cslope = np.sqrt(slx ** 2 + sly ** 2)
-                    v = np.sqrt(Kx ** 2 + Ky ** 2)
+                    Cslope = np.sqrt(slx**2 + sly**2)
+                    v = np.sqrt(Kx**2 + Ky**2)
                     flux_links = v * Cslope
                     # NEW, to resolve issue with K being off angle to S:
                     # in fact, no. Doing this just makes this equivalent

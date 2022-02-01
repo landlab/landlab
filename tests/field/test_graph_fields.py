@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.strategies import text
 from numpy.testing import assert_array_equal
 
 from landlab.field import FieldError, GroupError
@@ -261,3 +263,14 @@ def test_nd_field():
         fields.add_field("newest_value", np.ones((13, 4, 5)), at="node")
     with pytest.raises(ValueError):
         fields.add_field("newestest_value", np.ones((13)), at="node")
+
+
+@given(name=text(), unit_str=text())
+def test_setting_units(name, unit_str):
+    fields = ModelDataFields()
+    fields.new_field_location("node", 12)
+    fields.add_field(name, np.empty(12), at="node", units=unit_str[::-1])
+    assert fields.field_units("node", name) == unit_str[::-1]
+
+    fields["node"].set_units(name, unit_str)
+    assert fields.field_units("node", name) == unit_str

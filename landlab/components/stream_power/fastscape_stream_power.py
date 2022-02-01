@@ -322,7 +322,7 @@ class FastscapeEroder(Component):
             self._K[defined_flow_receivers]
             * dt
             * self._A_to_the_m[defined_flow_receivers]
-            / (flow_link_lengths ** self._n)
+            / (flow_link_lengths**self._n)
         )
 
         # Handle flooded nodes, if any (no erosion there)

@@ -171,7 +171,7 @@ class KinwaveOverlandFlowModel(Component):
 
         # Calculate velocity using the Manning equation.
         self._vel = (
-            -self._sign_slope * self._vel_coef * H_link ** 0.66667 * self._sqrt_slope
+            -self._sign_slope * self._vel_coef * H_link**0.66667 * self._sqrt_slope
         )
 
         # Calculate discharge

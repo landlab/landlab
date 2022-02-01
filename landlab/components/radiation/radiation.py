@@ -264,7 +264,7 @@ class Radiation(Component):
         self._Rsflat = self._Rgl * self._flat
 
         # flat surface Net incoming shortwave radiation
-        self._Rnetflat = (1 - self._A) * (1 - 0.65 * (self._N ** 2)) * self._Rsflat
+        self._Rnetflat = (1 - self._A) * (1 - 0.65 * (self._N**2)) * self._Rsflat
 
         self._sloped = np.cos(self._slope) * np.sin(self._alpha) + np.sin(
             self._slope

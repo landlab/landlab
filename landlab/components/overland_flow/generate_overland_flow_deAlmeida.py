@@ -613,7 +613,7 @@ class OverlandFlow(Component):
                     1
                     + self._g
                     * self._dt
-                    * self._mannings_n ** 2.0
+                    * self._mannings_n**2.0
                     * abs(self._q[horiz])
                     / self._h_links[horiz] ** _SEVEN_OVER_THREE
                 )
@@ -632,7 +632,7 @@ class OverlandFlow(Component):
                     1
                     + self._g
                     * self._dt
-                    * self._mannings_n ** 2.0
+                    * self._mannings_n**2.0
                     * abs(self._q[vert])
                     / self._h_links[vert] ** _SEVEN_OVER_THREE
                 )
@@ -776,7 +776,7 @@ class OverlandFlow(Component):
             # as it showed the smallest amount of mass creation in the grid
             # during testing.
             if self._steep_slopes is True:
-                self._h[self._h < self._h_init] = self._h_init * 10.0 ** -3
+                self._h[self._h < self._h_init] = self._h_init * 10.0**-3
 
             # And reset our field values with the newest water depth and
             # discharge.
