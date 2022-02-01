@@ -1,3 +1,4 @@
+from .bedrock_landslider import BedrockLandslider
 from .chi_index import ChiFinder
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
@@ -30,6 +31,7 @@ from .network_sediment_transporter import NetworkSedimentTransporter
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
+    KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     OverlandFlow,
@@ -38,11 +40,12 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
-from .space import Space
+from .space import Space, SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -61,6 +64,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    BedrockLandslider,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
@@ -78,6 +82,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
+    PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
@@ -87,6 +92,7 @@ COMPONENTS = [
     GroundwaterDupuitPercolator,
     HackCalculator,
     HeightAboveDrainageCalculator,
+    KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     LakeMapperBarnes,
@@ -114,6 +120,7 @@ COMPONENTS = [
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
+    SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,

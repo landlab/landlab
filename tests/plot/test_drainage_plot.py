@@ -8,7 +8,7 @@ from landlab.plot.drainage_plot import drainage_plot
 def make_grid():
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2 + mg.node_y, at="node"
+        "topographic__elevation", mg.node_x**2 + mg.node_y**2 + mg.node_y, at="node"
     )
     return mg
 

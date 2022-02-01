@@ -88,7 +88,6 @@ Landlab News
 
 To keep in touch with the latest Landlab news:
 
--  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
 -  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
 
 Citing Landlab

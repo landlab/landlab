@@ -151,7 +151,7 @@ class SteepnessFinder(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        reference_concavity : float
+        reference_concavity : float (default 0.5)
             The reference concavity to use in the calculation.
         min_drainage_area : float (m**2; default 1.e6)
             The minimum drainage area above which steepness indices are
@@ -281,7 +281,7 @@ class SteepnessFinder(Component):
                     log_S = np.log10(ch_S[:-1])
                     # we're potentially propagating nans here if S<=0
                     log_ksn = log_S + reftheta * log_A
-                    ch_ksn = 10.0 ** log_ksn
+                    ch_ksn = 10.0**log_ksn
                 # save the answers into the main arrays:
                 assert np.all(self._mask[ch_nodes[:-1]])
                 # Final node gets trimmed off...
@@ -505,7 +505,7 @@ class SteepnessFinder(Component):
             meanlogseg_A = np.mean(logseg_A)
             meanlogseg_S = np.mean(logseg_S)
             logseg_ksn = meanlogseg_S + ref_theta * meanlogseg_A
-            ch_ksn[pts_in_seg] = 10.0 ** logseg_ksn
+            ch_ksn[pts_in_seg] = 10.0**logseg_ksn
             i -= 1
 
         return ch_ksn[:-1]

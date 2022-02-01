@@ -26,6 +26,7 @@ exclude .readthedocs.yaml
 exclude conftest.py
 exclude CONTRIBUTING.md
 exclude environment*yml
+exclude .pre-commit-config.yaml
 
 recursive-exclude docs *
 recursive-exclude joss *

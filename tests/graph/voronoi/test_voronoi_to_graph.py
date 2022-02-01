@@ -246,7 +246,7 @@ def test_has_suffix(hex_graph, at):
 
 @pytest.mark.parametrize(
     "n_nodes",
-    [2 ** 10, 2 ** 11, 2 ** 12, 2 ** 13, 2 ** 14, 2 ** 15],  # , 2 ** 16, 2 ** 20]
+    [2**10, 2**11, 2**12, 2**13, 2**14, 2**15],  # , 2 ** 16, 2 ** 20]
 )
 def test_big_graph(n_nodes):
     xy_of_node = np.random.rand(2 * n_nodes).reshape((-1, 2))

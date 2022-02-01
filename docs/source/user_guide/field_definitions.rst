@@ -277,6 +277,8 @@ Landlab Standard Name Definitions
 | surface_water_inflow__discharge                  | water volume inflow rate to the cell     |
 |                                                  | around each node                         |
 +--------------------------------------------------+------------------------------------------+
+| surface_water__velocity                          | Speed of water flow above the surface    |
++--------------------------------------------------+------------------------------------------+
 | topographic__elevation                           | Land surface topographic elevation       |
 +--------------------------------------------------+------------------------------------------+
 | topographic__gradient                            | Gradient of the ground surface           |

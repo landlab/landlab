@@ -37,7 +37,7 @@ def test_no_thresh():
     actual_slopes = mg.at_node["topographic__steepest_slope"][mg.core_nodes[1:-1]]
     actual_areas = mg.at_node["drainage_area"][mg.core_nodes[1:-1]]
 
-    predicted_slopes = (U / (K * (actual_areas ** m))) ** (1.0 / n)
+    predicted_slopes = (U / (K * (actual_areas**m))) ** (1.0 / n)
 
     assert_array_almost_equal(actual_slopes, predicted_slopes)
 
@@ -65,8 +65,8 @@ def test_with_thresh():
     actual_slopes = mg.at_node["topographic__steepest_slope"][mg.core_nodes[1:-1]]
     actual_areas = mg.at_node["drainage_area"][mg.core_nodes[1:-1]]
 
-    predicted_slopes_upper = ((U + threshold) / (K * (actual_areas ** m))) ** (1.0 / n)
-    predicted_slopes_lower = ((U + 0.0) / (K * (actual_areas ** m))) ** (1.0 / n)
+    predicted_slopes_upper = ((U + threshold) / (K * (actual_areas**m))) ** (1.0 / n)
+    predicted_slopes_lower = ((U + 0.0) / (K * (actual_areas**m))) ** (1.0 / n)
 
     # assert actual and predicted slopes are in the correct range for the slopes.
     assert np.all(actual_slopes > predicted_slopes_lower)

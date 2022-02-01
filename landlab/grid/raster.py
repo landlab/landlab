@@ -1502,7 +1502,7 @@ class RasterModelGrid(
 
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)
-        slope = np.arctan(np.sqrt(dz_dx ** 2 + dz_dy ** 2))
+        slope = np.arctan(np.sqrt(dz_dx**2 + dz_dy**2))
         aspect = np.arctan2(dz_dy, -dz_dx)
         aspect = np.pi * 0.5 - aspect
         aspect[aspect < 0.0] = aspect[aspect < 0.0] + 2.0 * np.pi

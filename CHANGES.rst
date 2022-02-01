@@ -3,10 +3,85 @@ Changelog for landlab
 =====================
 
 
-2.3.1 (unreleased)
+2.4.2 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+2.4.1 (2021-12-02)
+------------------
+
+- Fixed the building of source distributions for prerelease and release
+  workflows (#1372); fixed a bug that causes release workflows to not
+  be triggered (#1371)
+
+- Added two ABM tutorial notebooks (#1364)
+
+2.4.0 (2021-11-29)
+------------------
+
+- Changed GitHub actions to use cibuildwheel for building wheels (#1368)
+
+
+2.4.0b0 (2021-11-28)
+--------------------
+
+- Added BedrockLandslider component (#1362)
+
+- Added PriorityFloodFlowRouter and SpaceLargeScaleEroder components (#1351)
+
+- Infer data types of fields when reading from shape files (#1357)
+
+- Fixed pits and division by zero in lateral_erosion component (#1353)
+
+- Check that notebooks are both clean and blackened as part of continuous integration (#1355)
+
+- Removed usages of np.int from Cython code (#1354)
+
+- Added a link to launch landlab notebooks on the CSDMS JupyterHub (#1347)
+
+- Added new references to landlab (#1344)
+
+- Fixed documentation errors in green ampt component (#1343)
+
+- Added a pre-commit configuration file (#1338)
+
+- Drop the "file:" prefix when referencing pip requirements files (#1339)
+
+- Changed continuous integration to always check the docs build; run the link checker on docs  (#1336)
+
+- Added tutorial notebook for smooth thresh eroder (#1331)
+
+- Added tutorial notebook for Space component (#1314)
+
+- Fixed warnings related to unnecessary use of numpy number types (#1323)
+
+- Fixed ability to pass a masked array to imshow_grid_at_node (#1297)
+
+- Fixed a missing absolute value in Courant condition in dupuit_percolator (#1311)
+
+- Added tutorial notebook for erodep (#1317)
+
+- Added tutorial notebook for erosiondeposition ttl (#1315)
+
+- Added tutorial notebook for kinwave impl (#1308)
+
+- Added tutorial notebook for dep slope eroder
+
+- Added tutorial notebook for depth dependent taylor diffuser (#1306)
+
+- Added tutorial notebook for taylor diffuser (#1309)
+
+- Added tutorial notebook for chi finder (#1307)
+
+- Fixed xarray 'axis' keyword error in map function (#1300)
+
+- Minor updates to documentation (#1290)
+
+- Gt/kinematic extender (#1283)
+
+- Updated installation instructions (#1287)
 
 
 2.3.0 (2021-03-19)

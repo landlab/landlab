@@ -1,18 +1,51 @@
-import math
-
 import numpy as np
 
 
 def angle_finder(grid, dn, cn, rn):
-    xcoord = grid.node_axis_coordinates(axis=0)
-    ycoord = grid.node_axis_coordinates(axis=1)
-    sl1 = (ycoord[cn] - ycoord[dn]) / (xcoord[cn] - xcoord[dn])
-    sl2 = (ycoord[rn] - ycoord[cn]) / (xcoord[rn] - xcoord[cn])
-    angle1 = math.degrees(math.atan(sl1))
-    angle2 = math.degrees(math.atan(sl2))
-    angle_diff = angle2 - angle1
-    angle_diff = abs(angle2 - angle1)
-    return angle_diff
+    """Find the interior angle between two vectors on a grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab grid.
+    dn : int or array of int
+        Node or nodes at the end of the first vector.
+    cn : int or array of int
+        Node or nodes at the vertex between vectors.
+    rn : int or array of int
+        Node or nodes at the end of the second vector.
+
+    Returns
+    -------
+    float or array of float
+        Angle between vectors (in radians).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.lateral_erosion.node_finder import angle_finder
+
+    >>> grid = RasterModelGrid((3, 4))
+    >>> np.rad2deg(angle_finder(grid, 8, 5, 0))
+    90.0
+    >>> np.rad2deg(angle_finder(grid, (8, 9, 10, 6), 5, 6))
+    array([ 135.,   90.,   45.,    0.])
+    """
+    vertex = np.take(grid.x_of_node, cn), np.take(grid.y_of_node, cn)
+    vec_1 = [
+        np.take(grid.x_of_node, dn) - vertex[0],
+        np.take(grid.y_of_node, dn) - vertex[1],
+    ]
+    vec_2 = [
+        np.take(grid.x_of_node, rn) - vertex[0],
+        np.take(grid.y_of_node, rn) - vertex[1],
+    ]
+
+    return np.arccos(
+        (vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1])
+        / np.sqrt((vec_1[0] ** 2 + vec_1[1] ** 2) * (vec_2[0] ** 2 + vec_2[1] ** 2))
+    )
 
 
 def forty_five_node(donor, i, receiver, neighbors, diag_neigh):
@@ -234,30 +267,29 @@ def node_finder(grid, i, flowdirs, drain_area):
     # this gives list of all diagonal neighbors for specified node
     # the order of this list is: [NE,NW,SW,SE]
     diag_neigh = grid.diagonal_adjacent_nodes_at_node[i]
-    angle_diff = angle_finder(grid, donor, i, receiver)
+    angle_diff = np.rad2deg(angle_finder(grid, donor, i, receiver))
 
     if donor == flowdirs[i]:
         # this is a sink. no lateral ero
         radcurv_angle = 0.0
         lat_node = 0
-    if donor == i:
+    elif donor == i:
         # this is a sink. no lateral ero
         radcurv_angle = 0.0
         lat_node = 0
-    if angle_diff == 0.0:
+    elif np.isclose(angle_diff, 0.0) or np.isclose(angle_diff, 180.0):
         [lat_node, radcurv_angle] = straight_node(
             donor, i, receiver, neighbors, diag_neigh
         )
-    if angle_diff == 45.0 or angle_diff == 135.0:
+    elif np.isclose(angle_diff, 45.0) or np.isclose(angle_diff, 135.0):
         [lat_node, radcurv_angle] = forty_five_node(
             donor, i, receiver, neighbors, diag_neigh
         )
-    if angle_diff == 90.0:
+    elif np.isclose(angle_diff, 90.0):
         [lat_node, radcurv_angle] = ninety_node(
             donor, i, receiver, link_list, neighbors, diag_neigh
         )
-    if lat_node > 2e9:
-        # print "old latnode", lat_node
+    else:
         lat_node = 0
         radcurv_angle = 0.0
 

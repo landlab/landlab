@@ -310,7 +310,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # calculate r and s, the direction and magnitude
     r = np.arctan2(s2, s1)
-    s = ((s1 ** 2) + (s2 ** 2)) ** 0.5
+    s = ((s1**2) + (s2**2)) ** 0.5
 
     r[np.isnan(r)] = 0
     # adjust r if it doesn't sit in the realm of (0, arctan(d2,d1))
