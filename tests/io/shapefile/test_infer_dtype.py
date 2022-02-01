@@ -59,7 +59,7 @@ def test_infer_dtype_from_mixed(values, dst_type, expected):
         | hynp.integer_dtypes()
         | hynp.complex_number_dtypes(),
         shape=hynp.array_shapes(),
-        elements=integers(0, 2 ** 7 - 1),
+        elements=integers(0, 2**7 - 1),
     ),
     dst_type=hynp.floating_dtypes()
     | hynp.integer_dtypes()
@@ -78,7 +78,7 @@ def test_dtype_keyword(as_iterable, values, dst_type):
         | hynp.integer_dtypes()
         | hynp.complex_number_dtypes(),
         shape=hynp.array_shapes(),
-        elements=integers(0, 2 ** 7 - 1),
+        elements=integers(0, 2**7 - 1),
     ),
     dst_type=hynp.floating_dtypes()
     | hynp.integer_dtypes()
