@@ -67,12 +67,12 @@ def test_Bates_analytical():
     bates.dt = 1.0
     while time < 500:
         bates.overland_flow(grid)
-        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
+        h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += bates.dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01**2) * (0.4**2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)

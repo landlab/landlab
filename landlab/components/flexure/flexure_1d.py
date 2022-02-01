@@ -310,7 +310,7 @@ class Flexure1D(Component):
             self._rigidity
         except AttributeError:
             self._rigidity = (
-                self._eet ** 3.0 * self._youngs / (12.0 * (1.0 - self._POISSON ** 2.0))
+                self._eet**3.0 * self._youngs / (12.0 * (1.0 - self._POISSON**2.0))
             )
         finally:
             return self._rigidity
