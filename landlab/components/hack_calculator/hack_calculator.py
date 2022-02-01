@@ -345,7 +345,7 @@ class HackCalculator(Component):
                             "basin_outlet_id": outlet_node * np.ones(A.shape),
                             "A": A,
                             "L_obs": L,
-                            "L_est": C * A ** h,
+                            "L_est": C * A**h,
                             "node_id": nodes,
                         }
                     )

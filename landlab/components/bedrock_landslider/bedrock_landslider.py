@@ -535,9 +535,9 @@ class BedrockLandslider(Component):
                         topo[upstream_neighbors[0]] = new_el
 
                         vol_sed = (
-                            sed_landslide_ero * (1 - self._phi) * (self.grid.dx ** 2)
+                            sed_landslide_ero * (1 - self._phi) * (self.grid.dx**2)
                         )
-                        vol_bed = bed_landslide_ero * (self.grid.dx ** 2)
+                        vol_bed = bed_landslide_ero * (self.grid.dx**2)
                         store_volume_sed = store_volume_sed + vol_sed
                         store_volume_bed = store_volume_bed + vol_bed
 
