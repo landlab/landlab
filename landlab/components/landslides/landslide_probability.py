@@ -421,11 +421,11 @@ class LandslideProbability(Component):
             self._recharge_mean = groundwater__recharge_mean
             self._recharge_stdev = groundwater__recharge_standard_deviation
             self._mu_lognormal = np.log(
-                (self._recharge_mean ** 2)
-                / np.sqrt(self._recharge_stdev ** 2 + self._recharge_mean ** 2)
+                (self._recharge_mean**2)
+                / np.sqrt(self._recharge_stdev**2 + self._recharge_mean**2)
             )
             self._sigma_lognormal = np.sqrt(
-                np.log((self._recharge_stdev ** 2) / (self._recharge_mean ** 2) + 1)
+                np.log((self._recharge_stdev**2) / (self._recharge_mean**2) + 1)
             )
             self._Re = np.random.lognormal(
                 self._mu_lognormal, self._sigma_lognormal, self._n

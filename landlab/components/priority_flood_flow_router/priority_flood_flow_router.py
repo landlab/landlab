@@ -825,7 +825,7 @@ class PriorityFloodFlowRouter(Component):
             q = self._hill_discharges
 
         # Create weight for flow accum: both open (status ==1) and closed nodes (status ==4) will have zero weight
-        wg = np.full(self.grid.number_of_nodes, self.grid.dx ** 2)
+        wg = np.full(self.grid.number_of_nodes, self.grid.dx**2)
 
         # Only core nodes (status == 0) need to receive a weight
         wg[self._grid.status_at_node != NodeStatus.CORE] = 0

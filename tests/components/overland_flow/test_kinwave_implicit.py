@@ -115,7 +115,7 @@ def test_curved_surface():
     # Create a grid
     rg = RasterModelGrid((10, 10), xy_spacing=(2, 2))
     rg.add_field(
-        "topographic__elevation", 3.0 * rg.node_x ** 2 + rg.node_y ** 2, at="node"
+        "topographic__elevation", 3.0 * rg.node_x**2 + rg.node_y**2, at="node"
     )
 
     # Create component and run it

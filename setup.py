@@ -32,7 +32,7 @@ def read_requirements(filename):
     return requirements
 
 
-long_description = u"\n\n".join(
+long_description = "\n\n".join(
     [
         read("README.rst"),
         read("AUTHORS.rst"),
