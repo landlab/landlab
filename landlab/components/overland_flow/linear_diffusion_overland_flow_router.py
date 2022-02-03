@@ -193,7 +193,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self._rain = rain_rate
         self._infilt = infilt_rate
         self._infilt_depth_scale = infilt_depth_scale
-        self._vel_coef = 1.0 / (roughness ** 2 * velocity_scale)
+        self._vel_coef = 1.0 / (roughness**2 * velocity_scale)
 
         self._elev = grid.at_node["topographic__elevation"]
 
@@ -233,7 +233,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         """Calculate maximum time-step size using CFL criterion for explicit
         FTCS diffusion."""
         max_water_depth = np.amax(self._depth, initial=_MICRO_DEPTH)
-        max_diffusivity = self._vel_coef * max_water_depth ** _SEVEN_THIRDS
+        max_diffusivity = self._vel_coef * max_water_depth**_SEVEN_THIRDS
         return self._cfl_param / max_diffusivity
 
     def update_for_one_iteration(self, iter_dt):
@@ -255,7 +255,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         # Calculate velocity using the linearized Manning equation.
         self._vel[:] = (
-            -self._vel_coef * self._depth_at_link ** _FOUR_THIRDS * self._wsgrad
+            -self._vel_coef * self._depth_at_link**_FOUR_THIRDS * self._wsgrad
         )
 
         # Calculate discharge
