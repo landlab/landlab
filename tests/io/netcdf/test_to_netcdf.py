@@ -110,7 +110,25 @@ def test_layers(tmpdir, format):
         actual_fields = set(
             [name for name in actual.variables if name.startswith("at_")]
         )
-        assert actual_fields == set(["at_layer:water_depth"])
+        assert actual_fields == set(
+            ["at_layer_cell:water_depth", "at_layer_cell:thickness"]
+        )
+
+
+def test_layers_append(tmpdir, format):
+    grid = RasterModelGrid((3, 4))
+    grid.event_layers.add(10.0, water_depth=[1.0, 2.0])
+    with tmpdir.as_cwd():
+        to_netcdf(grid, "test.nc", include="at_layer*", format=format)
+        to_netcdf(grid, "test.nc", include="at_layer*", format=format, mode="a")
+
+        actual = xr.open_dataset("test.nc")
+        actual_fields = set(
+            [name for name in actual.variables if name.startswith("at_")]
+        )
+        assert actual_fields == set(
+            ["at_layer_cell:water_depth", "at_layer_cell:thickness"]
+        )
 
 
 @pytest.mark.parametrize("mode", ("w", "a"))
@@ -132,10 +150,56 @@ def test_with_and_without_time(tmpdir, format, mode):
             assert actual["at_node:elevation"].dims == ("time", "node")
 
 
+@pytest.mark.parametrize("mode", ("w", "a"))
+@pytest.mark.parametrize("time0", [None, 10.0])
+@pytest.mark.parametrize("time1", [None, 100.0])
+def test_append_with_and_without_time(tmpdir, format, mode, time0, time1):
+    grid = RasterModelGrid((3, 4))
+    grid.add_full("elevation", 1.0, at="node")
+    with tmpdir.as_cwd():
+        to_netcdf(grid, "test.nc", format=format, mode=mode, time=time0)
+        to_netcdf(grid, "test.nc", format=format, mode="a", time=time1)
+
+        time0 = np.nan if time0 is None else time0
+
+        with xr.open_dataset("test.nc") as actual:
+            assert "time" in actual.dims
+            assert "time" in actual.variables
+            assert_array_equal(
+                actual["time"],
+                [
+                    np.nan if time0 is None else time0,
+                    time0 + 1 if time1 is None else time1,
+                ],
+            )
+
+
 def test_append_with_new_field(tmpdir, format):
     grid = RasterModelGrid((3, 4))
     grid.add_full("elevation", 1.0, at="node")
     with tmpdir.as_cwd():
-        to_netcdf(grid, "test.nc", format=format)
+        to_netcdf(grid, "test.nc", format=format, time=0.0)
         grid.add_full("temperature", 2.0, at="node")
         to_netcdf(grid, "test.nc", format=format, mode="a", time=10.0)
+
+        with xr.open_dataset("test.nc") as ds:
+            assert sorted(ds.variables) == [
+                "at_node:elevation",
+                "at_node:temperature",
+                "shape",
+                "status_at_node",
+                "time",
+                "xy_of_lower_left",
+                "xy_spacing",
+            ]
+            assert_array_equal(
+                ds["at_node:temperature"],
+                np.vstack(
+                    [np.full(grid.number_of_nodes, np.nan), grid.at_node["temperature"]]
+                ),
+            )
+            assert_array_equal(
+                ds["at_node:elevation"],
+                np.vstack([grid.at_node["elevation"], grid.at_node["elevation"]]),
+            )
+            assert_array_equal(ds["time"], [0.0, 10.0])

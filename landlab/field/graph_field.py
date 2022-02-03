@@ -546,15 +546,17 @@ class GraphFields:
         """
         return name in self._groups
 
-    def has_field(self, group, field):
-        """Check if a field is in a group.
+    def has_field(self, *args, **kwds):
+        """has_field(field, at=None)
+
+        Check if a field is in a group.
 
         Parameters
         ----------
-        group: str
-            Name of the group.
         field: str
             Name of the field.
+        at: str, optional
+            Name of the group.
 
         Returns
         -------
@@ -567,16 +569,34 @@ class GraphFields:
         in a group.
 
         >>> from landlab.field import GraphFields
+
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 12)
+        >>> fields.new_field_location("node", 12)
         >>> _ = fields.add_ones("topographic__elevation", at="node")
-        >>> fields.has_field('node', 'topographic__elevation')
+        >>> fields.has_field("topographic__elevation", at="node")
         True
-        >>> fields.has_field('cell', 'topographic__elevation')
+        >>> fields.has_field("topographic__elevation", at="cell")
+        False
+
+        >>> fields = GraphFields()
+        >>> fields.new_field_location("node", 12)
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
+        >>> fields.has_field("node", "topographic__elevation")
+        True
+        >>> fields.has_field("cell", "topographic__elevation")
         False
 
         LLCATS: FIELDINF
         """
+        if len(args) == 2:
+            group, field = args
+        elif len(args) == 1:
+            group, field = kwds.pop("at", self.default_group), args[0]
+        else:
+            raise ValueError("number of arguments must be 1 or 2")
+        if group is None:
+            raise ValueError("no group provided")
+
         try:
             return field in self[group]
         except KeyError:
@@ -637,18 +657,20 @@ class GraphFields:
         """
         return self[group].size
 
-    def field_values(self, group, field):
-        """Get values of a field.
+    def field_values(self, *args, **kwds):
+        """field_values(field, at=None)
+
+        Get values of a field.
 
         Given a *group* and a *field*, return a reference to the associated
         data array.
 
         Parameters
         ----------
-        group: str
-            Name of the group.
         field: str
             Name of the field withing *group*.
+        at: str, optional
+            Name of the group.
 
         Returns
         -------
@@ -668,32 +690,41 @@ class GraphFields:
 
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 4)
+        >>> fields.new_field_location("node", 4)
 
         Add a field, initialized to ones, called *topographic__elevation*
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
         >>> _ = fields.add_ones("topographic__elevation", at="node")
-        >>> fields.field_values('node', 'topographic__elevation')
+        >>> fields.field_values("topographic__elevation", at="node")
         array([ 1.,  1.,  1.,  1.])
 
         Raise FieldError if *field* does not exist in *group*.
 
-        >>> fields.field_values('node', 'planet_surface__temperature')
+        >>> fields.field_values("planet_surface__temperature", at="node")
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: planet_surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
-        >>> fields.field_values('cell', 'topographic__elevation')
+        >>> fields.field_values("topographic__elevation", at="cell")
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
 
         LLCATS: FIELDIO
         """
+        if len(args) == 2:
+            group, field = args
+        elif len(args) == 1:
+            group, field = kwds.pop("at", self.default_group), args[0]
+        else:
+            raise ValueError("number of arguments must be 1 or 2")
+        if group is None:
+            raise ValueError("no group provided")
+
         try:
             fields = self[group]
         except KeyError:
@@ -703,8 +734,10 @@ class GraphFields:
         except KeyError:
             raise FieldError(group)
 
-    def return_array_or_field_values(self, group, field):
-        """Return field given a field name, or array of with the correct shape.
+    def return_array_or_field_values(self, *args, **kwds):
+        """return_array_or_field_values(field, at=None)
+
+        Return field given a field name, or array of with the correct shape.
 
         Given a *group* and a *field*, return a reference to the associated
         data array. *field* is either a string that is a field in the group
@@ -715,10 +748,10 @@ class GraphFields:
 
         Parameters
         ----------
-        group: str
-            Name of the group.
         field: str or array
             Name of the field withing *group*.
+        at: str, optional
+            Name of the group.
 
         Returns
         -------
@@ -746,26 +779,26 @@ class GraphFields:
         to the field's data.
 
         >>> _ = fields.add_ones("topographic__elevation", at="node")
-        >>> fields.field_values('node', 'topographic__elevation')
+        >>> fields.field_values("topographic__elevation", at="node")
         array([ 1.,  1.,  1.,  1.])
 
         Alternatively, if the second argument is an array, its size is
         checked and returned if correct.
 
         >>> vals = np.array([4., 5., 7., 3.])
-        >>> fields.return_array_or_field_values('node', vals)
+        >>> fields.return_array_or_field_values(vals, at="node")
         array([ 4.,  5.,  7.,  3.])
 
         Raise FieldError if *field* does not exist in *group*.
 
-        >>> fields.return_array_or_field_values('node', 'surface__temperature')
+        >>> fields.return_array_or_field_values("surface__temperature", at="node")
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
-        >>> fields.return_array_or_field_values('cell', 'topographic__elevation')
+        >>> fields.return_array_or_field_values("topographic__elevation", at="cell")
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
@@ -773,13 +806,22 @@ class GraphFields:
         And if the array of values provided is incorrect, raise a ValueError.
 
         >>> vals = np.array([3., 2., 1.])
-        >>> fields.return_array_or_field_values('node', vals)
+        >>> fields.return_array_or_field_values(vals, at="node")
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: Array has incorrect size.
 
         LLCATS: FIELDIO
         """
+        if len(args) == 2:
+            group, field = args
+        elif len(args) == 1:
+            group, field = kwds.pop("at", self.default_group), args[0]
+        else:
+            raise ValueError("number of arguments must be 1 or 2")
+        if group is None:
+            raise ValueError("no group provided")
+
         if isinstance(field, str):
             vals = self.field_values(group, field)
         else:
@@ -789,18 +831,20 @@ class GraphFields:
                 raise ValueError(msg)
         return vals
 
-    def field_units(self, group, field):
-        """Get units for a field.
+    def field_units(self, *args, **kwds):
+        """field_units(field, at=None)
+
+        Get units for a field.
 
         Returns the unit string associated with the data array in *group* and
         *field*.
 
         Parameters
         ----------
-        group: str
-            Name of the group.
         field: str
             Name of the field withing *group*.
+        at: str, optional
+            Name of the group.
 
         Returns
         -------
@@ -814,6 +858,15 @@ class GraphFields:
 
         LLCATS: FIELDINF
         """
+        if len(args) == 2:
+            group, field = args
+        elif len(args) == 1:
+            group, field = kwds.pop("at", self.default_group), args[0]
+        else:
+            raise ValueError("number of arguments must be 1 or 2")
+        if group is None:
+            raise ValueError("no group provided")
+
         return self[group]._ds[field].attrs["units"]
 
     def empty(self, *args, **kwds):
