@@ -515,6 +515,7 @@ def test_field_units(units):
 
 
 @given(units=text())
+@settings(deadline=None)
 def test_repeated_units(units):
     params = {
         "RasterModelGrid": [
