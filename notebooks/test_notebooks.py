@@ -1,5 +1,6 @@
 import pathlib
 import subprocess
+from pkg_resources import evaluate_marker
 
 import pytest
 import yaml
@@ -8,8 +9,18 @@ from run_notebook_checks import _notebook_check_is_clean
 
 
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
+_EXCLUDE = dict()
 with open(_exclude_file, "r") as fp:
-    _EXCLUDE = dict([(item["file"], item["reason"]) for item in yaml.safe_load(fp)])
+    for item in yaml.safe_load(fp):
+        filename, reason = item["file"], item["reason"]
+        try:
+            unless = item["unless"]
+        except KeyError:
+            exclude = True
+        else:
+            exclude = not evaluate_marker(unless)
+        if exclude:
+            _EXCLUDE[filename] = reason
 
 
 def _notebook_check(notebook):

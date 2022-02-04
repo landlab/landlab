@@ -241,7 +241,7 @@ class DepthSlopeProductErosion(Component):
         self._E[less_than_tc] = 0.0
 
         self._E[greater_than_tc] = self._k_e * (
-            (self._tau[greater_than_tc] ** self._a) - (self._tau_crit ** self._a)
+            (self._tau[greater_than_tc] ** self._a) - (self._tau_crit**self._a)
         )
 
         self._E[self._E < 0.0] = 0.0

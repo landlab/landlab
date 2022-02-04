@@ -65,12 +65,12 @@ def test_deAlm_analytical():
         ][left_inactive_ids + 1]
         dt = deAlm.calc_time_step()
         deAlm.overland_flow(dt)
-        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
+        h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01**2) * (0.4**2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)
@@ -98,12 +98,12 @@ def test_deAlm_analytical_imposed_dt_short():
         ][left_inactive_ids + 1]
         dt = 10.0
         deAlm.overland_flow(dt)
-        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
+        h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01**2) * (0.4**2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)
@@ -131,12 +131,12 @@ def test_deAlm_analytical_imposed_dt_long():
         ][left_inactive_ids + 1]
         dt = 100.0
         deAlm.run_one_step(dt)
-        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
+        h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01**2) * (0.4**2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)

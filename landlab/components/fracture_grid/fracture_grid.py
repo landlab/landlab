@@ -8,7 +8,7 @@ Last significant modification: conversion to proper component 7/2019 GT
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid, HexModelGrid
+from landlab import Component, HexModelGrid, RasterModelGrid
 
 
 def _calc_fracture_starting_position_raster(shape):
@@ -52,11 +52,11 @@ def _calc_fracture_starting_position_and_angle_hex(shape, is_horiz, spacing):
     grid_side = np.random.randint(0, 3)  # east, north, west, south
     ang = np.pi * np.random.rand()
     if is_horiz:
-        row_spacing = 0.5 * 3.0 ** 0.5 * spacing
+        row_spacing = 0.5 * 3.0**0.5 * spacing
         col_spacing = spacing
     else:
         row_spacing = spacing
-        col_spacing = 0.5 * 3.0 ** 0.5 * spacing
+        col_spacing = 0.5 * 3.0**0.5 * spacing
 
     if (grid_side % 2) == 0:  # east or west
         c = (1 - grid_side // 2) * (shape[1] - 1)

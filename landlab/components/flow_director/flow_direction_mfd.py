@@ -285,7 +285,7 @@ def flow_directions_mfd(
     flow_slopes[inactive_link_to_neighbor] = 0.0
 
     if partition_method == "square_root_of_slope":
-        values_for_partitioning = flow_slopes ** 0.5
+        values_for_partitioning = flow_slopes**0.5
     elif partition_method == "slope":
         values_for_partitioning = flow_slopes
     else:
