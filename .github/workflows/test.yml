@@ -48,18 +48,12 @@ jobs:
           conda info
           conda list
 
-      - name: Install requirements
-        run: |
-          conda install mamba
-          mamba install --file=requirements.txt
-          mamba list
-
       - name: Build and install package
         run: |
           pip install -e .
 
       - name: Install testing dependencies
-        run: mamba install --file=requirements-testing.txt
+        run: pip install -e .[tests]
 
       - name: Test
         run: |

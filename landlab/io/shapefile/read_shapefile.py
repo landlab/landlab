@@ -415,7 +415,7 @@ def read_shapefile(
             x_diff = grid.x_of_node - point_x
             y_diff = grid.y_of_node - point_y
 
-            dist = np.sqrt(x_diff ** 2 + y_diff ** 2)
+            dist = np.sqrt(x_diff**2 + y_diff**2)
 
             # check that the distance is small.
             if np.min(dist) > threshold:

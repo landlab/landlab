@@ -153,7 +153,7 @@ def test_map_pairs_all_missing():
 
 
 def test_map_pairs_big_data():
-    n_src_pairs = 2 ** 20
+    n_src_pairs = 2**20
     src = np.random.randint(n_src_pairs * 2, size=n_src_pairs * 2, dtype=int).reshape(
         (-1, 2)
     )

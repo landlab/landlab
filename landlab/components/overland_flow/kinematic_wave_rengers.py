@@ -312,7 +312,7 @@ class KinematicWaveRengers(Component):
                 (_hnew - self._h[active]).sum() / self._h[active].sum()
             )
         n = self._n * (_hnew / self._hc) ** self._negepsilon
-        twothirds_hnewbyn = _hnew ** 0.66666666 / n
+        twothirds_hnewbyn = _hnew**0.66666666 / n
         self._vely[active] = twothirds_hnewbyn * self._vertslopept5
         self._velx[active] = twothirds_hnewbyn * self._hozslopept5
         self._vely[self._posvertgrads] *= -1.0
