@@ -438,12 +438,12 @@ class LandslideProbability(Component):
              either 'event' or 'lognormal_spatial'. Note, groundwater__recharge_distribution
              must be set to 'None' to run using saturated__thickness_distribution.
              (default = None)
-        saturated__thickness_mean: float, numpy array with length equal to number
-            of raster model grid nodes. Mean of saturated thickness at each node.
-            (default = None)
-        saturated__thickness_standard_deviation:float, numpy array with length 
-            equal to number of raster model grid nodes. Standard deviation of
-            saturated thickness at each node. (default = None)
+        saturated__thickness_mean: float, numpy array (m)
+            Mean of saturated thickness at each node. Array length equal to number
+            of raster model grid nodes. (default = None)
+        saturated__thickness_standard_deviation: float, numpy array (m)
+            Standard deviation of saturated thickness at each node. Array length 
+            equal to number of raster model grid nodes.  (default = None)
         g: float, optional (m/sec^2)
             acceleration due to gravity.
         seed: int, optional
