@@ -109,7 +109,7 @@ class LandslideProbability(Component):
                                                                HSD_id_dict,
                                                                fract_dict])
 
-    Option 5 - event soil saturated zone thickness 
+    Option 5 - Event soil saturated zone thickness 
 
     .. code-block:: python
 
@@ -119,7 +119,7 @@ class LandslideProbability(Component):
                              saturated__thickness_distribution = 'event'
 
 
-    Option 6 - lognormal_spatial soil saturated zone thickness 
+    Option 6 - Lognormal_spatial soil saturated zone thickness 
 
     .. code-block:: python
 
