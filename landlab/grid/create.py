@@ -4,7 +4,7 @@
 from ..core import load_params
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
-from ..values import constant, plane, random, sine
+from ..values import constant, plane, random, sine, units
 from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
@@ -24,6 +24,7 @@ _SYNTHETIC_FIELD_CONSTRUCTORS = {
     "random": random,
     "sine": sine,
     "constant": constant,
+    "units": units,
 }
 
 
@@ -246,13 +247,20 @@ def create_grid(file_like, section=None):
     functions do not meet your needs, we welcome contributions that extend the
     capabilities of this function.
 
+    An additional supported method, which can be chained together with
+    either synthetic fields or fields read from a file, is *units*. The
+    *units* function will set the units attribute of its corresponding field.
+    If this optional function is not used, the resulting field will not be
+    given any units.
+
     The following example would use the
     :py:func:`~landlab.values.synthetic.plane` function from the synthetic
     values package to create a *node* value for the field
     *topographic__elevation*. The plane function adds values to a Landlab model
     grid field that lie on a plane specified by a point and a normal vector. In
     the below example the plane goes through the point (1.0, 1.0, 1.0) and has
-    a normal of (-2.0, -1.0, 1.0).
+    a normal of (-2.0, -1.0, 1.0). The *units* function sets the units of
+    elevation to *meters*.
 
     .. code-block:: yaml
 
@@ -266,6 +274,8 @@ def create_grid(file_like, section=None):
                     plane:
                       - point: [1, 1, 1]
                         normal: [-2, -1, 1]
+                    units:
+                        - units: "meters"
 
     **Dictionary Section "boundary_conditions"**
 
