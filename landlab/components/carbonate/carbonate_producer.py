@@ -15,6 +15,25 @@ def set_numpy_err(*args, **kwds):
 
 
 def smooth_heaviside(x, width=0.5, out=None):
+    """Return a smoothed heaviside function (step function).
+
+    Parameters
+    ----------
+    x : array or float
+        Dependent variable
+    width : float (default 0.5)
+        Width parameter for smoothing (same units as x)
+    out : array (default None)
+        Optional array in which to store result; must have len(x)
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> np.round(smooth_heaviside(np.array([-1, 0, 1])), 3)
+    array([ 0.018,  0.5  ,  0.982])
+    >>> smooth_heaviside(np.array([-1, 0, 1]), width=0.0)
+    array([ 0. ,  0.5,  1. ])
+    """
     if width > 0.0:
         with set_numpy_err(over="ignore"):
             return np.divide(1.0, (1.0 + np.exp(-2.0 / width * np.asarray(x))), out=out)
@@ -23,9 +42,9 @@ def smooth_heaviside(x, width=0.5, out=None):
 
 
 class CarbonateProducer(Component):
-    """When I properly understand how to write the code, I'll write this intro ;-)"""
+    """Calculate marine carbonate production and deposition."""
 
-    _name = "The Producer of Carbonate"
+    _name = "CarbonateProducer"
 
     _unit_agnostic = True
 
@@ -36,7 +55,7 @@ class CarbonateProducer(Component):
             "optional": False,
             "units": "m",
             "mapping": "grid",
-            "doc": "Position of sea level",
+            "doc": "Elevation of sea level",
         },
         "topographic__elevation": {
             "dtype": "float",
@@ -52,36 +71,68 @@ class CarbonateProducer(Component):
             "optional": False,
             "units": "m / y",
             "mapping": "node",
-            "doc": "Carbonate production rate in latest time step",
+            "doc": "Carbonate production rate",
+        },
+        "carbonate_thickness": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Carbonate thickness",
+        },
+        "water_depth": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Water depth",
         },
     }
 
     def __init__(
         self,
         grid,
-        extinction_coefficient=1.0,
-        max_carbonate_production_rate=1000.0,
-        saturating_light=1.0,
-        surface_light=1.0,
+        max_carbonate_production_rate=0.01,
+        extinction_coefficient=0.1,
+        surface_light=2000.0,
+        saturating_light=400.0,
         tidal_range=0.0,
     ):
         """
         Parameters
         ----------
         grid: ModelGrid (RasterModelGrid, HexModelGrid, etc.)
-            A landlab grid.
+            A landlab grid object.
+        max_carbonate_production_rate: float (default 0.01 m/y)
+            Maximum rate of carbonate production, in m thickness per year
+        extinction_coefficient: float (default 0.1 m^-1)
+            Coefficient of light extinction in water column
+        surface_light: float (default 2000.0 micro Einstein per m2 per s)
+            Light intensity (photosynthetic photon flux density) at sea surface.
+        saturating_light: float (default 400.0 micro Einstein per m2 per s)
+            Saturating light intensity (photosynthetic photon flux density)
+        tidal_range: float (default zero)
+            Tidal range used to smooth growth rate when surface is near mean
+            sea level.
         """
+        super().__init__(grid)
+
         self.extinction_coefficient = extinction_coefficient
         self.max_carbonate_production_rate = max_carbonate_production_rate
         self.surface_light = surface_light
         self.tidal_range = tidal_range
         self.saturating_light = saturating_light
 
-        super(CarbonateProducer, self).__init__(grid)
+        super().initialize_output_fields()
+        self._carb_prod_rate = grid.at_node["carbonate_production_rate"]
+        self._depth = grid.at_node["water_depth"]
 
-        if "carbonate_production_rate" not in self.grid.at_node:
-            self.grid.add_empty("carbonate_production_rate", at="node")
-        self.grid.at_node["carbonate_production_rate"].fill(0.0)
+        if "carbonate_thickness" in grid.at_node.keys():
+            self._carbonate_thickness = grid.at_node["carbonate_thickness"]
+        else:
+            self._carbonate_thickness = None
 
     @property
     def extinction_coefficient(self):
@@ -139,10 +190,6 @@ class CarbonateProducer(Component):
             raise ValueError("surface light must be non-negative")
 
     @property
-    def carbonate_thickness(self):
-        return self._carb_thickness
-
-    @property
     def sea_level(self):
         return self.grid.at_grid["sea_level__elevation"]
 
@@ -150,70 +197,55 @@ class CarbonateProducer(Component):
     def sea_level(self, sea_level):
         self.grid.at_grid["sea_level__elevation"] = float(sea_level)
 
-    def calc_production_with_depth(self, water_depth, out=None):
-        """Return weighting factor for carbonate production.
+    def _create_carbonate_thickness_field(self):
+        """Create and return optional carbonate_thickness field."""
+        return self.grid.add_zeros("carbonate_thickness", at="node")
 
-        If there is no tidal range, then the weight factor is 1 at sea level,
-        then decreases with increasing water depth following Bosscher and Schlager (1992),
-        and 0 if above sea level. If there is a tidal range, then
-        a tanh function is used to weight production across mean sea level, so
-        that there is some degree of production for water depths within the
-        tidal range (less above, more below). The nature of the tanh function
-        is such that the production is about 95% of its maximum value at a depth
-        of 1.5x the mean tidal range, and 5% of its maximum value at a height
-        of 1.5x the mean tidal range above mean sea level.
-
-        Parameters
-        ----------
-        water_depth : float array
-            Depth of water relative to mean sea level (m) (can be negative)
-
-            also needs, but not yet defined/coded
-            surface_light
-            extinction_coeff
-            saturating_light
+    def calc_carbonate_production_rate(self):
+        """Update carbonate production rate and store in field.
 
         Returns
         -------
-        df : float array
-            Weight factor ranging from 0 to 1.
+        float array x number of grid nodes
+            Reference to updated carbonate_production_rate field
         """
-        water_depth = np.asarray(water_depth)
-        if out is None:
-            production = np.empty_like(water_depth)
-        else:
-            production = out
-
-        under_water = water_depth >= 0.0
-        production[under_water] = np.tanh(
+        self._depth[:] = self.sea_level - self._grid.at_node["topographic__elevation"]
+        self._depth.clip(min=-2.0 * self._tidal_range, out=self._depth)
+        self._carb_prod_rate[:] = self._max_carbonate_production_rate * np.tanh(
             self.surface_light
             * np.exp(-self.extinction_coefficient * water_depth[under_water])
             / self.saturating_light
         )
-        production[~under_water] = 0.0
+        self._carb_prod_rate *= smooth_heaviside(water_depth, width=self.tidal_range)
+        return self._carb_prod_rate
 
-        return production
+    def produce_carbonate(self, dt):
+        """Grow carbonate for one time step & add to carbonate thickness field.
 
-    def calc_carbonate_production_at_node(self, out=None):
-        """Calculate and store carbonate produced thickness, so strictly speaking accumulation.
+        If optional carbonate_thickness field does not already exist, this
+        function creates it and initializes all values to zero.
 
         Returns
         -------
-        carb_thick : float array
-            produced carbonate thickness, m
+        float array x number of grid nodes
+            Reference to updated carbonate_thickness field
         """
-        water_depth = (
-            self.sea_level
-            + self.tidal_range
-            - self._grid.at_node["topographic__elevation"]
-        )
-        fraction = self.calc_production_with_depth(
-            water_depth, out=out
-        ) * smooth_heaviside(water_depth, width=self.tidal_range)
-        return np.multiply(self.max_carbonate_production_rate, fraction, out=out)
+        if self._carbonate_thickness is None:
+            self._carbonate_thickness = self._create_carbonate_thickness_field()
 
-    def run_one_step(self):
-        """Advance by one time step."""
-        self.calc_carbonate_production_at_node(
-            out=self._grid.at_node["carbonate_production_rate"]
-        )
+        calc_carbonate_production_rate()
+        self._carbonate_thickness += self._carb_prod_rate * dt
+
+        return self._carbonate_thickness
+
+    def run_one_step(self, dt):
+        """Advance by one time step.
+
+        Simply calls the produce_carbonate() function.
+
+        Parameters
+        ----------
+        dt : float
+            Time step duration (normally in years)
+        """
+        produce_carbonate(dt)
