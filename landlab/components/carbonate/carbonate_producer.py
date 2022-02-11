@@ -87,6 +87,11 @@ class CarbonateProducer(Component):
     >>> cp.run_one_step(10.0)
     >>> np.round(10 * thickness[4])
     2.0
+
+    References
+    ----------
+    Bosscher, H., & Schlager, W. (1992). Computer simulation of reef growth.
+    Sedimentology, 39(3), 503-512.
     """
 
     _name = "CarbonateProducer"
