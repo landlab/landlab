@@ -190,7 +190,7 @@ class CarbonateProducer(Component):
 
     @extinction_coefficient.setter
     def extinction_coefficient(self, value):
-        if value >= 0.0:
+        if value > 0.0:
             self._extinction_coefficient = float(value)
         else:
             raise ValueError("must be non-negative")
