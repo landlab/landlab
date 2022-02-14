@@ -105,7 +105,7 @@ class CarbonateProducer(Component):
             "optional": False,
             "units": "m",
             "mapping": "grid",
-            "doc": "Elevation of sea level",
+            "doc": "Sea level elevation",
         },
         "topographic__elevation": {
             "dtype": "float",
