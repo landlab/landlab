@@ -641,16 +641,12 @@ class BedrockLandslider(Component):
         flux_in = landslide_sed_in * dt  # flux_in, in m3 per timestep
 
         # L following carretier 2016
-        transport_length_hill = np.matlib.divide(
-            self.grid.dx,
-            (
-                1
-                - np.matlib.minimum(
-                    np.matlib.square(np.matlib.divide(slope, self._angle_int_frict)),
-                    0.999,
-                )
-            ),
+        transport_length_hill = np.where(
+            slope < self._angle_int_frict,
+            self.grid.dx / (1 - (slope / self._angle_int_frict) ** 2),
+            1e6,
         )
+
         flux_out = np.zeros(topo.shape)
         dh_hill = np.zeros(topo.shape)
         topo_copy = np.array(topo)
