@@ -652,7 +652,7 @@ class PriorityFloodFlowRouter(Component):
                 else:
                     self._hill_prps[:] = props_Pf
                     self._hill_rcvs[:] = rcvrs
-                    self._hill_slope = slope_temp
+                    self._hill_slope[:] = slope_temp
                     self._hill_slope[rcvrs == -1] = 0
 
             else:
