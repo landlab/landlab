@@ -1,11 +1,8 @@
 #! /usr/bin/env python
 """Methods to plot data defined on Landlab grids.
-
 Plotting functions
 ++++++++++++++++++
-
 .. autosummary::
-
     ~landlab.plot.imshow.imshow_grid
     ~landlab.plot.imshow.imshowhs_grid
     ~landlab.plot.imshow.imshow_grid_at_cell
@@ -37,29 +34,22 @@ def imshow_grid_at_node(grid, values, **kwds):
     limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
     allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
     color_for_background=None, show_elements=False, output=None)
-
     Prepare a map view of data over all nodes in the grid.
-
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
-
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
-
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
-
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
-
     This function happily works with both regular and irregular grids.
-
     Parameters
     ----------
     grid : ModelGrid
@@ -141,32 +131,24 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 def imshowhs_grid_at_node(grid, values, **kwds):
     """imshowhs_grid_at_node(grid, values, **kwds)
-
     Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
-
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
-
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
-
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshowhs_grid`, as desired.
-
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
-
     For now, this function only works with regular grids.
-
     Developed by: Benjamin Campforts
-
     Parameters
     ----------
     grid : ModelGrid
@@ -197,8 +179,8 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
-    thicks_km : bool, optional
-        Display thicks in km instead of m
+    ticks_km : bool, optional
+        Display ticks in km instead of m
         Default: False
     allow_colorbar : bool
         If True, include the colorbar.
@@ -285,7 +267,6 @@ def imshowhs_grid_at_node(grid, values, **kwds):
         colorbar font weight. The default is 'bold'.
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
-
     Returns
     -------
     ax : figure ax
@@ -329,12 +310,9 @@ def imshow_grid_at_cell(grid, values, **kwds):
     allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
     color_for_closed='black', color_for_background=None, show_elements=False,
     output=None)
-
     Map view of grid data over all grid cells.
-
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
-
     Parameters
     ----------
     grid : ModelGrid
@@ -387,7 +365,6 @@ def imshow_grid_at_cell(grid, values, **kwds):
         filename (with file extension). The function will then call
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
-
     Raises
     ------
     ValueError
@@ -607,7 +584,7 @@ def _imshowhs_grid_values(
     vmin=None,
     vmax=None,
     norm=None,
-    thicks_km=False,
+    ticks_km=False,
     shrink=1.0,
     color_for_closed=None,
     color_for_background=None,
@@ -640,6 +617,8 @@ def _imshowhs_grid_values(
     cbar_label_color="black",
     cbar_label_fontweight="bold",
     add_label_bbox=False,
+    y_label_offSet_var_1=3,
+    y_label_offSet_var_2=-1.25,
 ):
     plot_type_options = ["DEM", "Hillshade", "Drape1", "Drape2"]
     if plot_type not in plot_type_options:
@@ -703,7 +682,7 @@ def _imshowhs_grid_values(
         else:
             ve = 3
         extent = np.array([x[0] - dx, x[-1] + dx, y[-1] + dy, y[0] - dy])
-        if thicks_km:
+        if ticks_km:
             extent /= 1e3
 
         ax1 = plt.gca()
@@ -996,7 +975,7 @@ def _imshowhs_grid_values(
                         fontweight=cbar_label_fontweight,
                         bbox=bbox_prop,
                     )
-                    axins1.xaxis.set_label_coords(0.5, 3.5)
+                    axins1.xaxis.set_label_coords(0.5, y_label_offSet_var_1)
 
                     axins2 = inset_axes(
                         ax1,
@@ -1061,7 +1040,7 @@ def _imshowhs_grid_values(
                         fontweight=cbar_label_fontweight,
                         bbox=bbox_prop,
                     )
-                    axins2.xaxis.set_label_coords(0.5, -1.75)
+                    axins2.xaxis.set_label_coords(0.5, y_label_offSet_var_2)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
@@ -1144,28 +1123,22 @@ def imshow_grid(grid, values, **kwds):
     values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
     colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
     show_elements=False, color_for_background=None)
-
     Prepare a map view of data over all nodes or cells in the grid.
-
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
     is shaded with its own value. Outer edges of perimeter cells are
     extrapolated. Closed elements are colored uniformly (default black,
     overridden with kwd 'color_for_closed'); other open boundary nodes get
     their actual values.
-
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_for_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
-
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
-
     This function happily works with both regular and irregular grids.
-
     Parameters
     ----------
     grid : ModelGrid
@@ -1240,30 +1213,23 @@ def imshow_grid(grid, values, **kwds):
 
 def imshowhs_grid(grid, values, **kwds):
     """imshowhs_grid(grid, values, **kwds)
-
     Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
-
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
-
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
-
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshowhs_grid`, as desired.
-
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
-
     For now, this function only works with regular grids.
-
     Parameters
     ----------
     grid : ModelGrid
@@ -1294,8 +1260,8 @@ def imshowhs_grid(grid, values, **kwds):
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
-    thicks_km : bool, optional
-        Display thicks in km instead of m
+    ticks_km : bool, optional
+        Display ticks in km instead of m
     allow_colorbar : bool
         If True, include the colorbar.
     shrink : float
@@ -1382,7 +1348,6 @@ def imshowhs_grid(grid, values, **kwds):
         colorbar font weight. The default is 'bold'.
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
-
     Returns
     -------
     ax : figure ax

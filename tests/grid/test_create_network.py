@@ -7,8 +7,17 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.grid.create_network import (
-    _reduce_to_fewest_nodes,
+    AlongChannelSpacingAtLeast,
+    AtMostNodes,
+    ChannelSegment,
+    ChannelSegmentConnector,
+    JustEndNodes,
+    SegmentLinkCollector,
+    SegmentNodeCoordinateCollector,
+    SegmentNodeReindexer,
+    SpacingAtLeast,
     _reduce_nodes,
+    _reduce_to_fewest_nodes,
     create_network_links,
     create_xy_of_node,
     get_node_fields,
@@ -17,15 +26,6 @@ from landlab.grid.create_network import (
     pairwise,
     reindex_network_nodes,
     spacing_from_drainage_area,
-    AlongChannelSpacingAtLeast,
-    ChannelSegment,
-    ChannelSegmentConnector,
-    AtMostNodes,
-    JustEndNodes,
-    SegmentLinkCollector,
-    SegmentNodeCoordinateCollector,
-    SegmentNodeReindexer,
-    SpacingAtLeast,
 )
 
 
