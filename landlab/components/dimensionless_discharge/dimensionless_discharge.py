@@ -56,7 +56,7 @@ class DimensionlessDischarge(Component):
      >>> from landlab import RasterModelGrid
      >>> import random
      >>> watershed_grid = RasterModelGrid((3, 3))
-     >>> surface_water__discharge = watershed_grid.add_ones('node', 'surface_water__discharge')
+     >>> surface_water__unit_discharge = watershed_grid.add_ones('node', 'surface_water__unit_discharge')
      >>> d50 = watershed_grid.add_ones('node', 'channel_bottom_sediment_grain__d50_diameter')
      >>> watershed_grid.at_node ['topographic__elevation'] = \
      ... np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
@@ -107,7 +107,7 @@ class DimensionlessDischarge(Component):
             "mapping": "node",
             "doc": "Dimensionless discharge threshold for each stream segment.",
         },
-        "surface_water__discharge": {
+        "surface_water__unit_discharge": {
             "dtype": float,
             "intent": "in",
             "optional": False,
@@ -212,7 +212,7 @@ class DimensionlessDischarge(Component):
         self._calc_threshold()
 
         self.grid.at_node["dimensionless_discharge"] = self.grid.at_node[
-            "surface_water__discharge"
+            "surface_water__unit_discharge"
         ] / np.sqrt(
             ((self._soil_density - self._water_density) / self._water_density)
             * self._gravity
