@@ -5,6 +5,9 @@ import numpy as np
 from landlab import Component
 
 
+_EPSILON = 1.0e-6  # tiny negative depth avoid fast carb growth at zero depth
+
+
 @contextmanager
 def set_numpy_err(*args, **kwds):
     settings = np.seterr(*args, **kwds)
@@ -169,11 +172,11 @@ class CarbonateProducer(Component):
         """
         super().__init__(grid)
 
-        self.extinction_coefficient = extinction_coefficient
-        self.max_carbonate_production_rate = max_carbonate_production_rate
-        self.surface_light = surface_light
-        self.tidal_range = tidal_range
-        self.saturating_light = saturating_light
+        self._extinction_coefficient = extinction_coefficient
+        self._max_carbonate_production_rate = max_carbonate_production_rate
+        self._surface_light = surface_light
+        self._tidal_range = tidal_range
+        self._saturating_light = saturating_light
 
         super().initialize_output_fields()
         self._carb_prod_rate = grid.at_node["carbonate_production_rate"]
@@ -260,10 +263,12 @@ class CarbonateProducer(Component):
             Reference to updated carbonate_production_rate field
         """
         self._depth[:] = self.sea_level - self._grid.at_node["topographic__elevation"]
-        self._depth.clip(min=-2.0 * self._tidal_range, out=self._depth)
-        self._carb_prod_rate[:] = self._max_carbonate_production_rate * np.tanh(
+        self._depth.clip(min=-2.0 * self._tidal_range - _EPSILON, out=self._depth)
+        self._carb_prod_rate[
+            self.grid.core_nodes
+        ] = self._max_carbonate_production_rate * np.tanh(
             self.surface_light
-            * np.exp(-self.extinction_coefficient * self._depth)
+            * np.exp(-self.extinction_coefficient * self._depth[self.grid.core_nodes])
             / self.saturating_light
         )
         self._carb_prod_rate *= smooth_heaviside(self._depth, width=self.tidal_range)
@@ -284,7 +289,14 @@ class CarbonateProducer(Component):
             self._carbonate_thickness = self._create_carbonate_thickness_field()
 
         self.calc_carbonate_production_rate()
-        self._carbonate_thickness += self._carb_prod_rate * dt
+        # print(self._depth)
+        # print(self._carb_prod_rate)
+        added_thickness = self._carb_prod_rate * dt
+        # print(added_thickness)
+        self._carbonate_thickness += added_thickness
+        # print(self._carbonate_thickness)
+        self.grid.at_node["topographic__elevation"] += added_thickness
+        # print(self.grid.at_node["topographic__elevation"])
 
         return self._carbonate_thickness
 
