@@ -172,11 +172,11 @@ class CarbonateProducer(Component):
         """
         super().__init__(grid)
 
-        self._extinction_coefficient = extinction_coefficient
-        self._max_carbonate_production_rate = max_carbonate_production_rate
-        self._surface_light = surface_light
-        self._tidal_range = tidal_range
-        self._saturating_light = saturating_light
+        self.extinction_coefficient = extinction_coefficient
+        self.max_carbonate_production_rate = max_carbonate_production_rate
+        self.surface_light = surface_light
+        self.tidal_range = tidal_range
+        self.saturating_light = saturating_light
 
         super().initialize_output_fields()
         self._carb_prod_rate = grid.at_node["carbonate_production_rate"]
