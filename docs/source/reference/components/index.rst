@@ -121,6 +121,7 @@ Subaqueous / Submarine Processes
 .. toctree::
   :maxdepth: 2
 
+  carbonate
   marine_sediment_transport
 
 Tectonics
