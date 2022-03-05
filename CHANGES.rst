@@ -2,39 +2,7 @@
 Changelog for landlab
 =====================
 
-
-2.5.0 (unreleased)
-------------------
-
-New Components
-``````````````
-
-- Added CarbonateProducer component (`#1284 <https://github.com/landlab/landlab/issues/1284>`_)
-- LinearDiffusionOverlandFlowRouter: overland flow using the linearized diffusion-wave approximation (`#1383 <https://github.com/landlab/landlab/issues/1383>`_)
-
-
-New Features
-````````````
-
-- add at_layer variables at elements other than cell (`#1292 <https://github.com/landlab/landlab/issues/1292>`_)
-- add field units with create_grid (`#1358 <https://github.com/landlab/landlab/issues/1358>`_)
-- create network grid from raster grid functionality (`#1360 <https://github.com/landlab/landlab/issues/1360>`_)
-- make qs_in a field called sediment__influx (`#1370 <https://github.com/landlab/landlab/issues/1370>`_)
-
-
-Bug Fixes
-`````````
-
-- clip active layer thickness to zero (`#1356 <https://github.com/landlab/landlab/issues/1356>`_)
-- install with richdem even if it is not available (`#1379 <https://github.com/landlab/landlab/issues/1379>`_)
-
-
-Other Changes and Additions
-```````````````````````````
-
-- add OPENTOPOGRAPHY_API_KEY to notebook tests (`#1384 <https://github.com/landlab/landlab/issues/1384>`_)
-- update coding style to conform to new version of black (`#1385 <https://github.com/landlab/landlab/issues/1385>`_)
-
+ .. towncrier release notes start
 
 2.4.1 (2021-12-02)
 ------------------
@@ -81,8 +49,9 @@ New Tutorial Notebooks
 - Added tutorial notebook for kinwave impl (`#1308 <https://github.com/landlab/landlab/issues/1308>`_)
 - Added tutorial notebook for taylor diffuser (`#1309 <https://github.com/landlab/landlab/issues/1309>`_)
 - Added notebook tutorials for two components (both written by Jordan Adams):
-    * ``DepthSlopeProductErosion``,
-    * ``DetachmentLtdErosion``
+  * ``DepthSlopeProductErosion``,
+  * ``DetachmentLtdErosion``
+
   Added a tutorial showing how to "D4 pit fill" a DEM, and a version of the simple ``hugo_site.asc`` DEM that has been pit-filled. (`#1313 <https://github.com/landlab/landlab/issues/1313>`_)
 - Added tutorial notebook for Space component (`#1314 <https://github.com/landlab/landlab/issues/1314>`_)
 - Added tutorial notebook for erosiondeposition ttl (`#1315 <https://github.com/landlab/landlab/issues/1315>`_)
