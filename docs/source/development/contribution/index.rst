@@ -37,7 +37,7 @@ summarized here when finalized. If you have any questions regarding whether
 your potential JOSS submission is appropriate, the best thing to do is to
 make a pre-submission inquiry with JOSS.
 
-NEWS Entries
+News Entries
 ------------
 
 The ``CHANGES.rst`` file is managed using `towncrier`_ and all non trivial changes
