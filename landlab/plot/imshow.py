@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 """Methods to plot data defined on Landlab grids.
+
 Plotting functions
 ++++++++++++++++++
 .. autosummary::
