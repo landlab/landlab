@@ -69,7 +69,7 @@ class BedrockLandslider(Component):
 
     run flow director and BedrockLandslider for one timestep
     >>> fd.run_one_step()
-    >>> vol_SSY ,V_leaving = hy.run_one_step(dt=1)
+    >>> vol_suspended_sediment_yield ,volume_leaving = hy.run_one_step(dt=1)
 
     After one timestep, we can predict eactly where the landslide will occur.
     The return time is set to 1 year so that probability for sliding is 100%
@@ -404,12 +404,13 @@ class BedrockLandslider(Component):
             height_cell[flooded_nodes] = 0
             height_cell[height_cell > MAX_HEIGHT_SLOPE] = MAX_HEIGHT_SLOPE
 
-            sc_rad = np.arctan(self._angle_int_frict)
+            angle_int_frict_radians = np.arctan(self._angle_int_frict)
             height_critical = np.divide(
                 (4 * self._cohesion_eff / (self._grav * self._rho_r))
-                * (np.sin(np.arctan(steepest_slope)) * np.cos(sc_rad)),
-                1 - np.cos(np.arctan(steepest_slope) - sc_rad),
-                where=(1 - np.cos(np.arctan(steepest_slope) - sc_rad)) > 0,
+                * (np.sin(np.arctan(steepest_slope)) * np.cos(angle_int_frict_radians)),
+                1 - np.cos(np.arctan(steepest_slope) - angle_int_frict_radians),
+                where=(1 - np.cos(np.arctan(steepest_slope) - angle_int_frict_radians))
+                > 0,
                 out=np.zeros_like(steepest_slope),
             )
             spatial_prob = np.divide(
@@ -418,7 +419,7 @@ class BedrockLandslider(Component):
                 where=height_critical > 0,
                 out=np.zeros_like(height_critical),
             )
-            spatial_prob[np.arctan(steepest_slope) <= sc_rad] = 0
+            spatial_prob[np.arctan(steepest_slope) <= angle_int_frict_radians] = 0
             spatial_prob[spatial_prob > 1] = 1
 
             # Temporal probability
@@ -614,9 +615,9 @@ class BedrockLandslider(Component):
         -------
         dh_hill : float
             Hillslope erosion over the simulated domain.
-        V_leaving : float
+        volume_leaving : float
             Total volume of sediment leaving the simulated domain.
-        Qs_coreNodes : float
+        flux_core_nodes : float
             Sediment flux over the simulated domain.
 
         """
@@ -667,8 +668,8 @@ class BedrockLandslider(Component):
         )
         sed_flux[:] = flux_out
 
-        Qs_coreNodes = np.sum(flux_in[self.grid.status_at_node == 0])
-        V_leaving = np.sum(flux_in)  # Qs_leaving # in m3 per timestep
+        flux_core_nodes = np.sum(flux_in[self.grid.status_at_node == 0])
+        volume_leaving = np.sum(flux_in)  # Qs_leaving # in m3 per timestep
 
         # Change sediment layer
         soil_d[:] += dh_hill
@@ -679,7 +680,7 @@ class BedrockLandslider(Component):
         # Update deposition field
         landslide_depo[:] = dh_hill
 
-        return dh_hill, V_leaving, Qs_coreNodes
+        return dh_hill, volume_leaving, flux_core_nodes
 
     def run_one_step(self, dt):
         """Advance BedrockLandslider component by one time step of size dt.
@@ -691,9 +692,9 @@ class BedrockLandslider(Component):
 
         Returns
         -------
-        vol_SSY : float
+        vol_suspended_sediment_yield : float
             volume of sediment evacuated as syspended sediment.
-        V_leaving : float
+        volume_leaving : float
             Volume of sediment leaving the domain.
         """
         dt = float(dt)
@@ -704,7 +705,7 @@ class BedrockLandslider(Component):
             self.current_time += dt
 
         # Landslides
-        vol_SSY = self._landslide_erosion(dt)
-        dh_hill, V_leaving, Qs_coreNodes = self._landslide_runout(dt)
+        vol_suspended_sediment_yield = self._landslide_erosion(dt)
+        dh_hill, volume_leaving, flux_core_nodes = self._landslide_runout(dt)
 
-        return vol_SSY, V_leaving
+        return vol_suspended_sediment_yield, volume_leaving
