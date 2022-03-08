@@ -1118,12 +1118,7 @@ def _imshowhs_grid_values(
 
 
 def imshow_grid(grid, values, **kwds):
-    """imshow_grid(grid, values, plot_name=None, var_name=None, var_units=None,
-    grid_units=None, symmetric_cbar=False, cmap='pink', limits=(values.min(),
-    values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
-    colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
-    show_elements=False, color_for_background=None)
-    Prepare a map view of data over all nodes or cells in the grid.
+    """Prepare a map view of data over all nodes or cells in the grid.
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
     is shaded with its own value. Outer edges of perimeter cells are
@@ -1139,6 +1134,7 @@ def imshow_grid(grid, values, **kwds):
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
     This function happily works with both regular and irregular grids.
+
     Parameters
     ----------
     grid : ModelGrid
