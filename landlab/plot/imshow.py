@@ -29,12 +29,7 @@ except ImportError:
 
 
 def imshow_grid_at_node(grid, values, **kwds):
-    """imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
-    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
-    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
-    allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
-    color_for_background=None, show_elements=False, output=None)
-    Prepare a map view of data over all nodes in the grid.
+    """Prepare a map view of data over all nodes in the grid.
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
@@ -50,6 +45,7 @@ def imshow_grid_at_node(grid, values, **kwds):
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
     This function happily works with both regular and irregular grids.
+
     Parameters
     ----------
     grid : ModelGrid
@@ -130,8 +126,7 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 
 def imshowhs_grid_at_node(grid, values, **kwds):
-    """imshowhs_grid_at_node(grid, values, **kwds)
-    Prepare a map view of data over all nodes in the grid using a hillshade
+    """Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
@@ -149,6 +144,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     the plot.
     For now, this function only works with regular grids.
     Developed by: Benjamin Campforts
+
     Parameters
     ----------
     grid : ModelGrid
@@ -304,15 +300,11 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
-    """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
-    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
-    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
-    allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
-    color_for_closed='black', color_for_background=None, show_elements=False,
-    output=None)
+    """
     Map view of grid data over all grid cells.
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
+
     Parameters
     ----------
     grid : ModelGrid
