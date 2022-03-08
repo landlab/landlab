@@ -263,6 +263,11 @@ def imshowhs_grid_at_node(grid, values, **kwds):
         colorbar font weight. The default is 'bold'.
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
+    y_label_offSet_var_1 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+    y_label_offSet_var_2 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
+
     Returns
     -------
     ax : figure ax
@@ -1200,8 +1205,7 @@ def imshow_grid(grid, values, **kwds):
 
 
 def imshowhs_grid(grid, values, **kwds):
-    """imshowhs_grid(grid, values, **kwds)
-    Prepare a map view of data over all nodes in the grid using a hillshade
+    """Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
@@ -1218,6 +1222,7 @@ def imshowhs_grid(grid, values, **kwds):
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
     For now, this function only works with regular grids.
+
     Parameters
     ----------
     grid : ModelGrid
@@ -1336,6 +1341,11 @@ def imshowhs_grid(grid, values, **kwds):
         colorbar font weight. The default is 'bold'.
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
+    y_label_offSet_var_1 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+    y_label_offSet_var_2 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
+
     Returns
     -------
     ax : figure ax
