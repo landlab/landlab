@@ -48,13 +48,20 @@ jobs:
           conda info
           conda list
 
-      - name: Build and install package
+      - name: Install richdem engine
         run: |
           conda install richdem -c conda-forge
+          python -c 'import _richdem'
+
+      - name: Build and install package
+        run: |
           pip install -e .
 
       - name: Install testing dependencies
         run: pip install -e .[tests]
+
+      - name: Test richdem engine works
+        run: python -c 'import _richdem'
 
       - name: Test
         run: |
