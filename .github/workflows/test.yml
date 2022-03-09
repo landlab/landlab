@@ -50,6 +50,7 @@ jobs:
 
       - name: Build and install package
         run: |
+          conda install richdem -c conda-forge
           pip install -e .
 
       - name: Install testing dependencies
