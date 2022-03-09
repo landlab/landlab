@@ -43,7 +43,6 @@ else:
     import richdem as rd
 
     WITH_RICHDEM = True
-finally:
     del _richdem
 
 
