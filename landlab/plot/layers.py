@@ -104,25 +104,94 @@ def plot_layers(
 
 
 def _insert_shorelines(x, y, sea_level=0.0):
+    """Insert shorelines into x-y arrays.
+
+    Examples
+    --------
+    >>> from landlab.plot.layers import _insert_shorelines
+    >>> _insert_shorelines([0, 1, 2],[2, 1, -1])
+    (array([ 0. ,  1. ,  1.5,  2. ]), array([ 2.,  1.,  0., -1.]))
+    """
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+
     y_relative_to_sea_level = y - sea_level
-    shorelines = _search_shorelines(x, y_relative_to_sea_level)
+    shorelines = _search_shorelines(y_relative_to_sea_level)
     x_of_shoreline = _interp_shorelines(x, y_relative_to_sea_level, shorelines)
 
     return (
-        np.insert(x, shorelines, x_of_shoreline),
-        np.insert(y, shorelines, sea_level),
+        np.insert(x, shorelines + 1, x_of_shoreline),
+        np.insert(y, shorelines + 1, sea_level),
     )
 
 
-def _search_shorelines(x, y):
-    return np.where(y[1:] * y[:-1] < 0.0)[0]
+def _search_shorelines(y):
+    """Search an array for changes in sign.
+
+    Parameters
+    ----------
+    y : array-like
+        Input array to check for sign changes.
+
+    Returns
+    -------
+    int
+        Indices into *y* where a sign has changed.
+
+    Examples
+    --------
+    >>> from landlab.plot.layers import _search_shorelines
+    >>> _search_shorelines([2, 1, -1])
+    array([1])
+    >>> _search_shorelines([2, 0, 0, -2])
+    array([2])
+    >>> _search_shorelines([-2, -2, 1, 2])
+    array([1])
+    >>> len(_search_shorelines([2, 0, 1])) == 0
+    True
+    >>> len(_search_shorelines([2, 3, 4])) == 0
+    True
+    >>> len(_search_shorelines([0, 0, 0])) == 0
+    True
+    """
+    sign = np.sign(y)
+
+    zeros = sign == 0
+    if not np.all(zeros):
+        while np.any(zeros):
+            sign[zeros] = np.roll(sign, 1)[zeros]
+            zeros = sign == 0
+
+    return np.where(sign[1:] != sign[:-1])[0]
 
 
 def _interp_shorelines(x, y, shorelines):
+    """Interpolate between adjacent elements to find shoreline positions.
+
+    Parameters
+    ----------
+    x : array-like
+        Distances.
+    y : array-like
+        Elevations.
+    shorelines : array-like of int
+        Indices to shoreline elements.
+
+    Returns
+    -------
+    array of float
+        Distances to interpolated shorelines.
+
+    Examples
+    --------
+    >>> from landlab.plot.layers import _interp_shorelines
+    >>> _interp_shorelines([0, 1, 2], [1, -1, -1], [0])
+    array([ 0.5])
+    >>> _interp_shorelines([0, 1, 2, 3], [1, -1, -1, 4], [0, 2])
+    array([ 0.5, 2.2])
+    """
     x_of_shoreline = []
     for shoreline in shorelines:
-        x_of_shoreline.append(
-            interp1d(y[shoreline : shoreline + 2], x[shoreline : shoreline + 2])(0.0)
-        )
+        coast = slice(shoreline, shoreline + 2)
+        x_of_shoreline.append(interp1d(y[coast], x[coast])(0.0))
 
     return np.asarray(x_of_shoreline)
