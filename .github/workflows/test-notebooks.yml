@@ -56,7 +56,7 @@ jobs:
 
       - name: Install testing requirements
         run: |
-          mamba install click pytest pyyaml -c conda-forge
+          mamba install click pytest pytest-xdist pyyaml -c conda-forge
           mamba list
 
       - name: Install notebook requirements
@@ -76,4 +76,4 @@ jobs:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
         run: |
           python -c 'import landlab; print(landlab.__version__)'
-          pytest notebooks --run-notebook -vvv
+          pytest notebooks --run-notebook -n auto -vvv
