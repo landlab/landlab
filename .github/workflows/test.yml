@@ -51,8 +51,7 @@ jobs:
       - name: Install richdem engine
         run: |
           conda install mamba
-          mamba install gdal=3.4.0 -c conda-forge
-          mamba install richdem -c conda-forge
+          mamba install richdem gdal=3.4.0 -c conda-forge
           python -c 'import _richdem'
 
       - name: Build and install package
