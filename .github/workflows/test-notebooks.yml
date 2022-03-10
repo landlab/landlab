@@ -56,7 +56,7 @@ jobs:
 
       - name: Install testing requirements
         run: |
-          mamba install --file=requirements-testing.txt -c conda-forge
+          mamba install click pytest pyyaml -c conda-forge
           mamba list
 
       - name: Install notebook requirements
