@@ -53,8 +53,11 @@ jobs:
           conda install mamba
           mamba install --file=requirements.txt
           mamba install --file=requirements-testing.txt
+          mamba list
+
+      - name: Install requirements for notebooks
+        run: |
           mamba install --file=requirements-notebooks.txt
-          mamba install gdal -c conda-forge
           mamba list
 
       - name: Build and install package
