@@ -50,19 +50,18 @@ jobs:
 
       - name: Install richdem requirements
         run: |
-          conda install mamba
-          mamba install richdem -c conda-forge
-          mamba list
+          conda install richdem -c conda-forge
+          conda list
 
       - name: Install testing requirements
         run: |
-          mamba install --file=requirements-testing.txt
-          mamba list
+          conda install --file=requirements-testing.txt -c conda-forge
+          conda list
 
       - name: Install notebook requirements
         run: |
-          mamba install --file=requirements-notebooks.txt
-          mamba list
+          conda install --file=requirements-notebooks.txt -c conda-forge
+          conda list
 
       - name: Build and install package
         run: |
