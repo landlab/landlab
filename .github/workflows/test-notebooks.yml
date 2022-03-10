@@ -52,10 +52,15 @@ jobs:
         run: |
           conda install mamba
           mamba install richdem -c conda-forge
+          mamba list
 
-      - name: Install testing and notebook requirements
+      - name: Install testing requirements
         run: |
           mamba install --file=requirements-testing.txt
+          mamba list
+
+      - name: Install notebook requirements
+        run: |
           mamba install --file=requirements-notebooks.txt
           mamba list
 
