@@ -122,6 +122,7 @@ def test_spacing(shape):
 @given(shape=lists(integers(min_value=3, max_value=32), min_size=2, max_size=2))
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
 @pytest.mark.parametrize("node_layout", ("hex", "rect"))
+@settings(deadline=None)
 def test_origin_keyword(node_layout, orientation, shape):
     """Test setting the origin."""
     graph = TriGraph(shape)
