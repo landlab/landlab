@@ -48,17 +48,14 @@ jobs:
           conda info
           conda list
 
-      - name: Install requirements
+      - name: Install richdem requirements
         run: |
           conda install mamba
-          mamba install --file=requirements.txt
+          mamba install richdem -c conda-forge
 
-      - name: Install testing requirements
+      - name: Install testing and notebook requirements
         run: |
           mamba install --file=requirements-testing.txt
-
-      - name: Install requirements for notebooks
-        run: |
           mamba install --file=requirements-notebooks.txt
           mamba list
 
