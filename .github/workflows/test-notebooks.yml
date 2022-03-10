@@ -54,7 +54,7 @@ jobs:
           mamba install --file=requirements.txt
           mamba install --file=requirements-testing.txt
           mamba install --file=requirements-notebooks.txt
-          mamba install gdal=3.4.0 -c conda-forge
+          mamba install gdal -c conda-forge
           mamba list
 
       - name: Build and install package
