@@ -1,0 +1,1 @@
+Fix a bug that incorrectly diagnosed if the *richdem* engine was installed and working correctly.
