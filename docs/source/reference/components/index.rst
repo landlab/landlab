@@ -43,6 +43,7 @@ Flow routing
    flow_accum
    flow_routing
    lake_fill
+   priority_flood_flow_router
    sink_fill
 
 Shallow water hydrodynamics
@@ -79,6 +80,7 @@ Landslides
 .. toctree::
   :maxdepth: 2
 
+  bedrock_landslider
   landslides
 
 Vegetation
