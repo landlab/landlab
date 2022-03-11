@@ -1,22 +1,6 @@
 name: Documentation
 
-on:
-    push:
-        paths:
-            - "docs/**"
-            - "AUTHORS.rst"
-            - "CHANGES.rst"
-            - "CONTRIBUTING.rst"
-            - "LICENSE.rst"
-            - "README.rst"
-    pull_request:
-        paths:
-            - "docs/**"
-            - "AUTHORS.rst"
-            - "CHANGES.rst"
-            - "CONTRIBUTING.rst"
-            - "LICENSE.rst"
-            - "README.rst"
+on: [push, pull_request]
 
 jobs:
     build:
@@ -49,11 +33,7 @@ jobs:
               conda list
     
           - name: Install dependencies
-            run: |
-              conda install mamba
-              mamba install --file=requirements.txt
-              pip install -r requirements-docs.txt
-              pip install -e .
+            run: pip install -e ".[docs]"
 
           - name: Build documentation
             run: make -C docs clean html

@@ -45,8 +45,8 @@ def test_erodep_slope_area_small_vs():
     a11 = 2.0
     a12 = 1.0
     s = rg.at_node["topographic__steepest_slope"]
-    s11 = sa_factor * (a11 ** -0.5)
-    s12 = sa_factor * (a12 ** -0.5)
+    s11 = sa_factor * (a11**-0.5)
+    s12 = sa_factor * (a12**-0.5)
     assert_equal(np.round(s[11], 3), np.round(s11, 3))
     assert_equal(np.round(s[12], 3), np.round(s12, 3))
 
@@ -82,8 +82,8 @@ def test_erodep_slope_area_big_vs():
     sa_factor = (1.0 + vs) * U / K
     a11 = 2.0
     a12 = 1.0
-    s11 = sa_factor * (a11 ** -0.5)
-    s12 = sa_factor * (a12 ** -0.5)
+    s11 = sa_factor * (a11**-0.5)
+    s12 = sa_factor * (a12**-0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
@@ -119,8 +119,8 @@ def test_erodep_slope_area_with_vs_unity():
     sa_factor = (1.0 + vs) * U / K
     a11 = 2.0
     a12 = 1.0
-    s11 = sa_factor * (a11 ** -0.5)
-    s12 = sa_factor * (a12 ** -0.5)
+    s11 = sa_factor * (a11**-0.5)
+    s12 = sa_factor * (a12**-0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
@@ -198,7 +198,7 @@ def test_erodep_slope_area_with_threshold():
     sa_factor = ((1.0 + vs) * U + wc) / K  # approximate sol'n
     a11 = 2.0
     a12 = 1.0
-    s11 = sa_factor * (a11 ** -0.5)
-    s12 = sa_factor * (a12 ** -0.5)
+    s11 = sa_factor * (a11**-0.5)
+    s12 = sa_factor * (a12**-0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))

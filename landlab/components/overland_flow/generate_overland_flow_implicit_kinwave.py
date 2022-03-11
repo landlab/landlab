@@ -39,6 +39,7 @@ def water_fn(x, a, b, c, d, e):
     e : float
         Water inflow volume per unit cell area in one time step.
 
+
     This equation represents the implicit solution for water depth
     :math:`H` at the next time step. In the code below, it is
     formulated in a generic way.  Written using more familiar
@@ -213,10 +214,10 @@ class KinwaveImplicitOverlandFlow(Component):
         grid : ModelGrid
             Landlab ModelGrid object
         runoff_rate : float, optional (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr. The value provide is divided by
+            Precipitation rate, mm/hr. The value provided is divided by
             3600000.0.
-        roughnes : float, defaults to 0.01
-            Manning roughness coefficient, s/m^1/3
+        roughness : float, defaults to 0.01
+            Manning roughness coefficient; units depend on depth_exp.
         changing_topo : boolean, optional (defaults to False)
             Flag indicating whether topography changes between time steps
         depth_exp : float (defaults to 1.5)
@@ -362,7 +363,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Calc outflow
                 Heff = self._weight * self._depth[n] + (1.0 - self._weight) * cc
                 outflow = (
-                    self._vel_coef * (Heff ** self._depth_exp) * self._grad_width_sum[n]
+                    self._vel_coef * (Heff**self._depth_exp) * self._grad_width_sum[n]
                 )  # this is manning/chezy/darcy
 
                 # Send flow downstream. Here we take total inflow discharge

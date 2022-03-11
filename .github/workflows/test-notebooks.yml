@@ -2,6 +2,16 @@ name: Notebooks
 
 on: [push, pull_request]
 
+# on:
+#   push:
+#       paths:
+#           - "landlab/**"
+#           - "notebooks/**"
+#   pull_request:
+#       paths:
+#           - "landlab/**"
+#           - "notebooks/**"
+
 jobs:
   build-and-test:
     name: Check notebooks
@@ -21,7 +31,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ["3.9"]
 
     steps:
       - uses: actions/checkout@v2
@@ -35,24 +45,35 @@ jobs:
 
       - name: Show conda installation info
         run: |
+          conda install mamba
           conda info
           conda list
 
-      - name: Install requirements
+      - name: Install richdem requirements
         run: |
-          conda install mamba
-          mamba install --file=requirements.txt
+          mamba install richdem -c conda-forge
+          mamba list
+
+      - name: Install testing requirements
+        run: |
+          mamba install click pytest pytest-xdist pyyaml -c conda-forge
+          mamba list
+
+      - name: Install notebook requirements
+        run: |
+          mamba install --file=requirements-notebooks.txt -c conda-forge
           mamba list
 
       - name: Build and install package
         run: |
           pip install -e .
 
-      - name: Install testing dependencies
-        run: mamba install --file=requirements-testing.txt -c conda-forge
+      - name: Test jupyter notebooks are clean
+        run: python notebooks/run_notebook_checks.py notebooks
 
       - name: Test jupyter notebooks
+        env:
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
         run: |
           python -c 'import landlab; print(landlab.__version__)'
-          pip install -r requirements-notebooks.txt
-          pytest notebooks --run-notebook -vvv
+          pytest notebooks --run-notebook -n auto -vvv

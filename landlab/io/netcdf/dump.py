@@ -89,54 +89,56 @@ def to_netcdf(
     ... )
     """
     path = pathlib.Path(path)
+    if not path.is_file():
+        mode = "w"
 
-    ds = grid.as_dataset(include=include, exclude=exclude)
-    new_fields = set([name for name in ds.variables if name.startswith("at_")])
-    if time is not None:
-        for name in new_fields:
-            dim, _ = name[len("at_") :].split(":")
-            ds[name] = (("time",) + ds[name].dims, ds[name].values[None])
-        ds["time"] = (("time",), [time])
+    if time is None and mode == "a":
+        time = np.nan
+
+    this_dataset = grid.as_dataset(include=include, exclude=exclude, time=time)
 
     if format != "NETCDF4":
-        ds["status_at_node"] = (
+        this_dataset["status_at_node"] = (
             ("node",),
-            ds["status_at_node"].values.astype(dtype=int),
+            this_dataset["status_at_node"].values.astype(dtype=int),
         )
 
-    if mode == "a" and path.is_file():
-        with xr.open_dataset(path) as dataset:
-            try:
-                times = dataset["time"].values
-            except KeyError:
-                times = [0.0]
-            if time is None:
-                time = times[-1] + 1.0
+    if mode == "a":
+        with xr.open_dataset(path) as that_dataset:
+            if "time" not in that_dataset.dims:
+                _add_time_dimension_to_dataset(that_dataset, time=np.nan)
 
-            data = {
-                "time": (("time",), np.concatenate([times, [time]])),
-            }
-
-            existing_fields = set(
-                [name for name in dataset.variables if name.startswith("at_")]
-            )
-            for name in existing_fields:
-                dims, array = dataset[name].dims, dataset[name].values
-                if "time" not in dims:
-                    dims, array = ("time",) + dims, array[None]
-                data[name] = (dims, np.concatenate([array, ds[name].values]))
-
-            for name in new_fields - existing_fields:
-                dims, array = ds[name].dims, ds[name].values
-                if "time" not in dims:
-                    dims, array = ("time",) + dims, array[None]
-                padded_array = np.empty_like(
-                    array,
-                    shape=(array.shape[0] + 1,) + array.shape[1:],
+            new_vars = set(this_dataset.variables) - set(that_dataset.variables)
+            for var in new_vars:
+                that_dataset[var] = (
+                    this_dataset[var].dims,
+                    np.full_like(this_dataset[var].values, np.nan),
                 )
-                padded_array[-1] = array
-                data[name] = (dims, padded_array)
 
-            ds.update(data)
+            for var in list(that_dataset.variables):
+                if var.startswith("at_layer"):
+                    del that_dataset[var]
 
-    ds.to_netcdf(path, format=format, mode="w", unlimited_dims=("time",))
+            this_dataset = xr.concat(
+                [that_dataset, this_dataset], dim="time", data_vars="minimal"
+            )
+
+            if np.isnan(this_dataset["time"][-1]):
+                this_dataset["time"].values[-1] = this_dataset["time"][-2] + 1.0
+
+    this_dataset.to_netcdf(path, format=format, mode="w", unlimited_dims=("time",))
+
+
+def _add_time_dimension_to_dataset(dataset, time=0.0):
+    """Add a time dimension to all variables except those at_layer."""
+    names = set(
+        [
+            name
+            for name in dataset.variables
+            if name.startswith("at_") and not name.startswith("at_layer")
+        ]
+    )
+
+    for name in names:
+        dataset[name] = (("time",) + dataset[name].dims, dataset[name].values[None])
+    dataset["time"] = (("time",), [time])

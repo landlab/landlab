@@ -48,10 +48,8 @@ def get_core_node_at_node(grid):
            -1,  3,  4, -1, -1,
            -1, -1, -1, -1, -1])
     """
-    core_node_at_node = -np.ones(grid.number_of_nodes, dtype=np.int)
-    core_node_at_node[grid.core_nodes] = np.arange(
-        grid.number_of_core_nodes, dtype=np.int
-    )
+    core_node_at_node = -np.ones(grid.number_of_nodes, dtype=int)
+    core_node_at_node[grid.core_nodes] = np.arange(grid.number_of_core_nodes, dtype=int)
     return core_node_at_node
 
 

@@ -1,0 +1,39 @@
+repos:
+- repo: https://github.com/psf/black
+  rev: 22.1.0
+  hooks:
+  - id: black
+    name: black
+    description: "Black: The uncompromising Python code formatter"
+    entry: black
+    language: python
+    language_version: python3
+    minimum_pre_commit_version: 2.9.2
+    require_serial: true
+    types_or: [python, pyi]
+  - id: black-jupyter
+    name: black-jupyter
+    description:
+      "Black: The uncompromising Python code formatter (with Jupyter Notebook support)"
+    entry: black
+    language: python
+    minimum_pre_commit_version: 2.9.2
+    require_serial: true
+    types_or: [python, pyi, jupyter]
+    additional_dependencies: [".[jupyter]"]
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.9.2
+  hooks:
+  - id: flake8
+    # additional_dependencies: [flake8-bugbear]
+- repo: https://gitlab.com/iamlikeme/nbhooks
+  rev: 1.0.0
+  hooks:
+  - id: nb-ensure-clean
+    name: nb-ensure-clean
+    description: Ensure that committed Jupyter notebooks contain no outputs.
+    entry: nb-ensure-clean
+    files: \.ipynb$
+    language: python
+    language_version: python3
+

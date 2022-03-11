@@ -32,7 +32,7 @@ def count_repeated_values(values):
 
     >>> import numpy as np
     >>> from landlab.utils.count_repeats import count_repeated_values
-    >>> counts = count_repeated_values(np.array([20, 30, 40], dtype=np.int))
+    >>> counts = count_repeated_values(np.array([20, 30, 40], dtype=int))
     >>> len(counts)
     1
     >>> counts[0]
@@ -44,7 +44,7 @@ def count_repeated_values(values):
     values occuring two or more times.
 
     >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30],
-    ...     dtype=np.int))
+    ...     dtype=int))
     >>> len(counts)
     3
     >>> counts[0]
@@ -56,7 +56,7 @@ def count_repeated_values(values):
 
     The input array remains unchanged.
 
-    >>> x = np.array([20, 30, 30, 40], dtype=np.int)
+    >>> x = np.array([20, 30, 30, 40], dtype=int)
     >>> counts = count_repeated_values(x)
     >>> x
     array([20, 30, 30, 40])
@@ -64,7 +64,7 @@ def count_repeated_values(values):
     counts = []
 
     (unique_values, unique_inds) = np.unique(values, return_index=True)
-    x_inds = np.arange(len(values), dtype=np.int)
+    x_inds = np.arange(len(values), dtype=int)
     while len(unique_values) > 0:
         counts.append((unique_values, x_inds[unique_inds]))
         values = np.delete(values, unique_inds)

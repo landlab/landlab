@@ -146,7 +146,7 @@ def test_steady_state_with_basic_solver_option():
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
-    for i in range(5000):
+    for _ in range(5000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt  # m
@@ -203,7 +203,7 @@ def test_can_run_with_hex():
     ed = ErosionDeposition(mg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt
@@ -214,7 +214,7 @@ def test_can_run_with_hex():
     a18 = mg.at_node["drainage_area"][18]
     a28 = mg.at_node["drainage_area"][28]
     s = mg.at_node["topographic__steepest_slope"]
-    s18 = sa_factor * (a18 ** -0.5)
-    s28 = sa_factor * (a28 ** -0.5)
+    s18 = sa_factor * (a18**-0.5)
+    s28 = sa_factor * (a28**-0.5)
     testing.assert_equal(np.round(s[18], 3), np.round(s18, 3))
     testing.assert_equal(np.round(s[28], 3), np.round(s28, 3))
