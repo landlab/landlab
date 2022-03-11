@@ -10,7 +10,7 @@ FlowDirectorSteepest
     :show-inheritance:
 
 FlowDirectorD8
---------------------
+--------------
 
 .. automodule:: landlab.components.flow_director.flow_director_d8
     :members:
@@ -26,7 +26,7 @@ FlowDirectorMFD
     :show-inheritance:
 
 FlowDirectorDinf
---------------------
+----------------
 
 .. automodule:: landlab.components.flow_director.flow_director_dinf
     :members:
