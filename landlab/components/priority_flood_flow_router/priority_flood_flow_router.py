@@ -25,8 +25,10 @@ from landlab.utils.return_array import return_array_at_node
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc, _D8_flowDir
 
+# try:
+#     import richdem as rd
 try:
-    import richdem as rd
+    import _richdem
 except ModuleNotFoundError:
 
     class richdem:
@@ -38,7 +40,10 @@ except ModuleNotFoundError:
     rd = richdem()
     WITH_RICHDEM = False
 else:
+    import richdem as rd
+
     WITH_RICHDEM = True
+    del _richdem
 
 
 # Codes for depression status
