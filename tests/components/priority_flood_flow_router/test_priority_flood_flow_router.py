@@ -15,13 +15,16 @@ from landlab.components.priority_flood_flow_router.cfuncs import (
 )
 from landlab.grid.nodestatus import NodeStatus
 
+if not PriorityFloodFlowRouter.WITH_RICHDEM:
+    pytestmark = pytest.mark.skip(reason="richdem is not installed")
+
 
 def test_check_fields():
     """Check to make sure the right fields have been created."""
     # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     z = mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
+        "topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node"
     )
 
     PriorityFloodFlowRouter(mg)

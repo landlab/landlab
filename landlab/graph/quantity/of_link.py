@@ -89,4 +89,4 @@ def get_length_of_link(graph):
     nodes_at_link = graph.nodes_at_link
     dx = graph.x_of_node[nodes_at_link[:, 0]] - graph.x_of_node[nodes_at_link[:, 1]]
     dy = graph.y_of_node[nodes_at_link[:, 0]] - graph.y_of_node[nodes_at_link[:, 1]]
-    return np.sqrt(dx ** 2 + dy ** 2)
+    return np.sqrt(dx**2 + dy**2)

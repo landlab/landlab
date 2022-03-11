@@ -5,9 +5,9 @@ import yaml
 
 _loader = yaml.SafeLoader
 _loader.add_implicit_resolver(
-    u"tag:yaml.org,2002:float",
+    "tag:yaml.org,2002:float",
     re.compile(
-        u"""^(?:
+        """^(?:
                [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
                |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
                |\\.[0-9_]+(?:[eE][-+][0-9]+)?
@@ -16,7 +16,7 @@ _loader.add_implicit_resolver(
                |\\.(?:nan|NaN|NAN))$""",
         re.X,
     ),
-    list(u"-+0123456789."),
+    list("-+0123456789."),
 )
 
 

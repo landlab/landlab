@@ -17,7 +17,6 @@ from functools import partial
 
 import numpy as np
 import numpy.matlib as npm
-import richdem as rd
 
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.grid.nodestatus import NodeStatus
@@ -25,6 +24,27 @@ from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc, _D8_flowDir
+
+# try:
+#     import richdem as rd
+try:
+    import _richdem
+except ModuleNotFoundError:
+
+    class richdem:
+        def __getattribute__(self, name):
+            raise RuntimeError(
+                "PriorityFloodFlowRouter requires richdem but richdem is not installed"
+            )
+
+    rd = richdem()
+    WITH_RICHDEM = False
+else:
+    import richdem as rd
+
+    WITH_RICHDEM = True
+    del _richdem
+
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -326,6 +346,8 @@ class PriorityFloodFlowRouter(Component):
             "doc": "Node array of proportion of flow sent to each receiver.",
         },
     }
+
+    WITH_RICHDEM = WITH_RICHDEM
 
     def __init__(
         self,
@@ -808,7 +830,7 @@ class PriorityFloodFlowRouter(Component):
             q = self._hill_discharges
 
         # Create weight for flow accum: both open (status ==1) and closed nodes (status ==4) will have zero weight
-        wg = np.full(self.grid.number_of_nodes, self.grid.dx ** 2)
+        wg = np.full(self.grid.number_of_nodes, self.grid.dx**2)
 
         # Only core nodes (status == 0) need to receive a weight
         wg[self._grid.status_at_node != NodeStatus.CORE] = 0

@@ -198,7 +198,7 @@ class DischargeDiffuser(Component):
         # do the sediment diffusion
         for dir in ("W", "E", "S", "N"):
             self._grad_on_link(pad_eta, dir)
-            Cslope = np.sqrt(self._slx ** 2 + self._sly ** 2)
+            Cslope = np.sqrt(self._slx**2 + self._sly**2)
             self._link_sed_flux_from_slope(Cslope, self._slope, dir)
 
         try:

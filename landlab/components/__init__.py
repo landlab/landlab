@@ -1,5 +1,6 @@
 from .bedrock_landslider import BedrockLandslider
 from .chi_index import ChiFinder
+from .carbonate import CarbonateProducer
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -34,6 +35,7 @@ from .overland_flow import (
     KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
+    LinearDiffusionOverlandFlowRouter,
     OverlandFlow,
     OverlandFlowBates,
 )
@@ -65,6 +67,7 @@ from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
     BedrockLandslider,
+    CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
@@ -99,6 +102,7 @@ COMPONENTS = [
     LandslideProbability,
     LateralEroder,
     LinearDiffuser,
+    LinearDiffusionOverlandFlowRouter,
     ListricKinematicExtender,
     LithoLayers,
     Lithology,

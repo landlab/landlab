@@ -374,7 +374,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
-    np.divide(out, np.sqrt(grid.dy ** 2.0 + grid.dx ** 2.0), out=out)
+    np.divide(out, np.sqrt(grid.dy**2.0 + grid.dx**2.0), out=out)
 
     return out
 

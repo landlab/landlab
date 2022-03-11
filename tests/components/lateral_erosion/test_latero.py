@@ -362,7 +362,7 @@ def test_latero_steady_inlet():
             U * dt
         )  # uplift the landscape
 
-    da = mg.at_node["surface_water__discharge"] / dx ** 2
+    da = mg.at_node["surface_water__discharge"] / dx**2
     num_sedflux = mg.at_node["qs"]
     analytical_sedflux = U * da
 

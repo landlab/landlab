@@ -1,0 +1,3 @@
+Allow *landlab* to be installed without the *richdem* package in the case that
+*richdem* is not available for a particular platform or Python version.
+

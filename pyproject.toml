@@ -32,3 +32,43 @@ include_trailing_comma = true
 force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
+
+[tool.towncrier]
+directory = "news"
+package = "landlab"
+filename = "CHANGES.rst"
+single_file = true
+underlines = "-`^"
+issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
+title_format = "{version} ({project_date})"
+
+[[tool.towncrier.type]]
+directory = "component"
+name = "New Components"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "notebook"
+name = "New Tutorial Notebooks"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "New Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "docs"
+name = "Documentation Enhancements"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Other Changes and Additions"
+showcontent = true
+
