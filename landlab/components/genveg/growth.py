@@ -164,5 +164,6 @@ class PlantGrowth(Component):
         
     def run_one_step(self):
         print('Inside growth')
+        #Add photosythesis code here
 
         pass
