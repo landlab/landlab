@@ -741,7 +741,7 @@ class GroundwaterDupuitPercolator(Component):
             # calculate criteria for timestep
             dt_vn = self._vn_coefficient * np.min(
                 np.divide(
-                    (self._n_link * self._grid.length_of_link ** 2),
+                    (self._n_link * self._grid.length_of_link**2),
                     (4 * self._K * hlink),
                     where=hlink > 0,
                     out=np.ones_like(self._q) * 1e15,

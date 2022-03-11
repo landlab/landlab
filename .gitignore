@@ -77,6 +77,8 @@ test-results.xml
 
 *.synctex.gz
 
+.hypothesis/
+
 installfiles.txt
 
 # Ignore all .c files as, currently, they are all cython generated.
@@ -124,3 +126,7 @@ landlab/components/spatial_precip/Durations_winter.csv
 docs/build_log.txt
 
 .eggs/README.txt
+
+
+# Hypothesis
+.hypothesis

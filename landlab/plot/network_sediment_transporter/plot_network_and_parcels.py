@@ -256,44 +256,21 @@ def plot_network_and_parcels(
     # endpoints. Also get the ranges so a buffer can be placed around the
     # network.
 
-    segments = []
     if "x_of_polyline" in grid.at_link:
-
-        x_of_polylines = grid["link"]["x_of_polyline"]
-        y_of_polylines = grid["link"]["y_of_polyline"]
-        for x, y in zip(x_of_polylines, y_of_polylines):
-            segment = np.array((np.array(x), np.array(y))).T
-            segments.append(segment)
-
-        xmin, ymin = np.concatenate(segments).min(axis=0)
-        xmax, ymax = np.concatenate(segments).max(axis=0)
-
-        xbuffer = map_buffer * (xmax - xmin)
-        ybuffer = map_buffer * (ymax - ymin)
-
-        xlim = (xmin - xbuffer, xmax + xbuffer)
-        ylim = (ymin - ybuffer, ymax + ybuffer)
-
+        xy_of_polylines = _get_xy_of_polylines(
+            grid.at_link["x_of_polyline"], grid.at_link["y_of_polyline"]
+        )
     else:
+        xy_of_polylines = grid.xy_of_node[grid.nodes_at_link]
 
-        for i in range(grid.size("link")):
-            nal = grid.nodes_at_link[i]
-            segment = np.array(
-                (np.array(grid.x_of_node[nal]), np.array(grid.y_of_node[nal]))
-            ).T
-            segments.append(segment)
-
-        xbuffer = map_buffer * (grid.x_of_node.max() - grid.x_of_node.min())
-        ybuffer = map_buffer * (grid.y_of_node.max() - grid.y_of_node.min())
-        xlim = (grid.x_of_node.min() - xbuffer, grid.x_of_node.max() + xbuffer)
-        ylim = (grid.y_of_node.min() - ybuffer, grid.y_of_node.max() + ybuffer)
+    xlim, ylim = _calc_xy_limits(xy_of_polylines, buffer_frac=map_buffer)
 
     # Add Linesegments and Configure.
 
     # if there is a link attribute.
     if link_attribute is not None:
         line_segments = LineCollection(
-            segments,
+            xy_of_polylines,
             cmap=network_cmap,
             norm=network_norm,
             linewidth=network_linewidth,
@@ -326,7 +303,7 @@ def plot_network_and_parcels(
     # if link values are constant.
     else:
         line_segments = LineCollection(
-            segments, colors=network_color, linewidth=network_linewidth, zorder=1
+            xy_of_polylines, colors=network_color, linewidth=network_linewidth, zorder=1
         )
         ax.add_collection(line_segments)
 
@@ -483,3 +460,103 @@ def plot_network_and_parcels(
     ax.axis("equal")
 
     return fig
+
+
+def _get_xy_of_polylines(x_of_polylines, y_of_polylines):
+    """Zip together x and y coordinate arrays.
+
+    Parameters
+    ----------
+    x_of_polylines : ndarray
+        x coordinates of a series of polyline segments.
+    y_of_polylines : ndarray
+        y coordinates of a series of polyline segments.
+
+    Returns
+    -------
+    ndarray
+        An ndarray of zipped polyline coordinates.
+
+    Examples
+    --------
+    >>> x = [[0, 1, 2], [3, 4], [4, 3, 2, 1]]
+    >>> y = [[5, 7, 6], [9, 8], [4, 5, 6, 7]]
+    >>> xy_of_polylines = _get_xy_of_polylines(x, y)
+    >>> len(xy_of_polylines)
+    3
+    >>> xy_of_polylines[0]
+    array([[0, 5],
+           [1, 7],
+           [2, 6]])
+    >>> xy_of_polylines[1]
+    array([[3, 9],
+           [4, 8]])
+    >>> xy_of_polylines[2]
+    array([[4, 4],
+           [3, 5],
+           [2, 6],
+           [1, 7]])
+    """
+    return [np.stack(xy, axis=1) for xy in zip(x_of_polylines, y_of_polylines)]
+
+
+def _calc_xy_limits(xy_of_segment, buffer_frac=0.0):
+    """Calculate xy limits with an optional buffer.
+
+    Parameters
+    ----------
+    xy_of_segment : iterable of ndarray
+        xy coordinates of each segment.
+    buffer_frac : float, optional
+        Size of buffer as a fraction of the size of the bounding
+        box of all the segments. A value of zero mean the limits
+        will be 'tight'.
+
+    Returns
+    -------
+    x_limits, y_limits
+        x and y limits.
+
+    Examples
+    --------
+    >>> xy_of_segments = ([[0, 1], [1, 2]], [[4, 5], [2, 3], [6, 6]], [[2, 9]])
+    >>> _calc_xy_limits(xy_of_segments)
+    ((0.0, 6.0), (1.0, 9.0))
+    >>> _calc_xy_limits(xy_of_segments, buffer_frac=0.5)
+    ((-3.0, 9.0), (-3.0, 13.0))
+    """
+    segments = np.concatenate(xy_of_segment)
+
+    x_limits = _calc_limits(segments[:, 0], buffer_frac=buffer_frac)
+    y_limits = _calc_limits(segments[:, 1], buffer_frac=buffer_frac)
+
+    return x_limits, y_limits
+
+
+def _calc_limits(values, buffer_frac=0.0):
+    """Calculate min and max limits with a buffer on each end.
+
+    Parameters
+    ----------
+    values : iterable
+        Values to find limits of.
+    buffer_frac : float, optional
+        Size of buffer, as a fraction of peak-to-peak, to add to the
+        upper and lower limit.
+
+    Returns
+    -------
+    limits : tuple
+        Lower and upper limits.
+
+    Examples
+    --------
+    >>> _calc_limits([1, 3, 5, 4, 2])
+    (1.0, 5.0)
+    >>> _calc_limits([1, 3, 5, 4, 2], buffer_frac=0.25)
+    (0.0, 6.0)
+    """
+    values = np.asarray(values)
+    min_value, max_value = values.min(), values.max()
+    buffer_width = buffer_frac * (max_value - min_value)
+    return min_value - buffer_width, max_value + buffer_width

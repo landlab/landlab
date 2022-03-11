@@ -399,7 +399,7 @@ class DepthDependentTaylorDiffuser(Component):
             courant_slope_term = 0.0
             courant_s_over_scrit = self._slope.max() / self._slope_crit
             for i in range(0, 2 * self._nterms, 2):
-                courant_slope_term += courant_s_over_scrit ** i
+                courant_slope_term += courant_s_over_scrit**i
                 if np.any(np.isinf(courant_slope_term)):
                     message = (
                         "Soil flux term is infinite in Courant condition "
@@ -410,7 +410,7 @@ class DepthDependentTaylorDiffuser(Component):
             # Calculate De Max
             De_max = self._K * (courant_slope_term)
             # Calculate longest stable timestep
-            self._dt_max = self._courant_factor * (self._grid.dx ** 2) / De_max
+            self._dt_max = self._courant_factor * (self._grid.dx**2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
@@ -452,7 +452,7 @@ class DepthDependentTaylorDiffuser(Component):
         slope_term = 0.0
         s_over_scrit = self._slope / self._slope_crit
         for i in range(0, 2 * self._nterms, 2):
-            slope_term += s_over_scrit ** i
+            slope_term += s_over_scrit**i
             if np.any(np.isinf(slope_term)):
                 message = (
                     "Soil flux term is infinite. This is likely due to "

@@ -42,7 +42,7 @@ def test_simple_water_table():
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
-    for i in range(100):
+    for _ in range(100):
         gdp.run_one_step(1e3)
 
     assert_equal(np.round(gdp._thickness[4], 5), 0.001)
@@ -64,7 +64,7 @@ def test_simple_surface_leakage():
     grid.add_ones("topographic__elevation", at="node")
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1.0e-6)
 
-    for i in range(1000):
+    for _ in range(1000):
         gdp.run_one_step(1e3)
 
     assert_almost_equal(gdp._qs[4], 1e-6)
@@ -92,7 +92,7 @@ def test_simple_water_table_adaptive_dt():
         recharge_rate=1.0e-8,
         hydraulic_conductivity=0.01,
     )
-    for i in range(10):
+    for _ in range(10):
         gdp.run_with_adaptive_time_step_solver(1e4)
 
     assert_equal(np.round(gdp._thickness[4], 5), 0.001)
@@ -135,7 +135,7 @@ def test_conservation_of_mass_adaptive_dt():
     storage_0 = gdp.calc_total_storage()
 
     dt = 1e4
-    for i in range(500):
+    for _ in range(500):
         gdp.run_with_adaptive_time_step_solver(dt)
         fa.run_one_step()
 
@@ -174,7 +174,7 @@ def test_symmetry_of_solution():
     gdp = GroundwaterDupuitPercolator(
         hmg, recharge_rate=1e-7, hydraulic_conductivity=1e-4
     )
-    for i in range(1000):
+    for _ in range(1000):
         gdp.run_one_step(1e3)
 
     tc = hmg.at_node["aquifer__thickness"]

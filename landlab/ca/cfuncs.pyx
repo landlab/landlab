@@ -22,7 +22,7 @@ cdef int _CORE = NodeStatus.CORE
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t
 
-DTYPE_INT = np.int
+DTYPE_INT = int
 ctypedef np.int_t DTYPE_INT_t
 
 DTYPE_INT8 = np.int8

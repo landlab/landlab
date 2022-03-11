@@ -11,7 +11,7 @@ from scipy.optimize._zeros import _brentq as brentq
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 
-DTYPE_INT = np.int
+DTYPE_INT = int
 ctypedef np.int_t DTYPE_INT_t
 
 

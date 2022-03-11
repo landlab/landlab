@@ -64,7 +64,11 @@ The next step is it create this environment, called *landlab_dev*.
 
 .. code-block:: bash
 
-   $ conda env create --file=environment-dev.yml
+   $ conda create -n landlab_dev python
+   $ conda install -n landlab_dev --file=requirements.txt -c conda-forge
+   $ conda install -n landlab_dev --file=requirements-testing.txt -c conda-forge
+   $ conda install -n landlab_dev --file=requirements-notebooks.txt -c conda-forge
+   $ conda install -n landlab_dev --file=requirements-dev.txt -c conda-forge
 
 The conda environment described by ``environment-dev.yml`` contains the minimal
 set of dependencies necessary to run the Landlab tests and notebooks, and keep
@@ -74,7 +78,8 @@ packages into the conda environment.
 
 In addition, this environment does not have everything needed to build the
 documentation. These requirements are specified in the file
-``landlab/docs/environment.yml``.
+``landlab/docs/environment.yml`` or the ``requirements-docs.txt``
+requirements file.
 
 Activate that environment so that you will be using that version of python and
 all of the dependencies you just installed.

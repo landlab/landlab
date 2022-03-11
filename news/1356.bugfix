@@ -1,0 +1,3 @@
+Clip active layer thickness to zero in the NetworkSedimentTransporter component. This
+eliminates an ``invalid value encountered in power`` warning.
+
