@@ -8,11 +8,5 @@
   reason: "stalls travis builds"
 - file: nst_scaling_profiling.ipynb
   reason: "stalls travis builds"
-- file: PriorityFlood_LandscapeEvolutionModel.ipynb
-  unless: "sys_platform != 'win32' or python_version < '3.10'"
-  reason: "requires richdem, bmi-topography"
-- file: PriorityFlood_realDEMs.ipynb
-  unless: "sys_platform != 'win32' or python_version < '3.10'"
-  reason: "requires richdem, bmi-topography"
 - file: test_networkcreator_otherDEMs.ipynb
   reason: "wip"
