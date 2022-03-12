@@ -206,12 +206,20 @@ def _search_zero_crossings(y):
     Examples
     --------
     >>> from landlab.plot.layers import _search_zero_crossings
-    >>> _search_zero_crossings([2, 1, -1])
-    array([1])
+
+    The returned index is to the element before the zero-crossing.
+
+    >>> list(_search_zero_crossings([2, 1, -1]))
+    [1]
+    >>> list(_search_zero_crossings([-2, -2, 1, 2]))
+    [1]
+    >>> list(_search_zero_crossings([-2, -2, 1, 2, -1]))
+    [1, 3]
+
+    These are not zero-crossings.
+
     >>> len(_search_zero_crossings([2, 0, 0, -2])) == 0
     True
-    >>> _search_zero_crossings([-2, -2, 1, 2])
-    array([1])
     >>> len(_search_zero_crossings([2, 0, 1])) == 0
     True
     >>> len(_search_zero_crossings([2, 3, 4])) == 0
