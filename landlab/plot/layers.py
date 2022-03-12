@@ -69,75 +69,104 @@ def plot_layers(
     legend_location : string, optional
         Where to put the legend.
     """
+    elevation_at_layer = np.asarray(elevation_at_layer)
     elevation_at_layer = np.expand_dims(
-        np.asarray(elevation_at_layer),
+        elevation_at_layer,
         axis=tuple(np.arange(2 - elevation_at_layer.ndim)),
     )
 
-    n_layers = np.minimum(n_layers, len(elevation_at_layer))
+    if len(elevation_at_layer) == 0:
+        raise ValueError(
+            f"no layers to plot (elevation_at_layer.shape is {np.shape(elevation_at_layer)}"
+        )
 
     if x is None:
         x = np.arange(elevation_at_layer.shape[1])
 
+    n_layers = np.minimum(n_layers, len(elevation_at_layer))
+    if layer_stop < 0:
+        layer_stop = len(elevation_at_layer) + layer_stop + 1
+    layers_to_plot = np.linspace(layer_start, layer_stop - 1, n_layers, dtype=int)
+
     top_surface = elevation_at_layer[-1]
     bottom_surface = elevation_at_layer[0]
 
-    x_water, y_water = _insert_shorelines(x, top_surface, sea_level=sea_level)
-    if color_water:
-        plt.fill_between(
-            x_water, y_water, sea_level, where=y_water <= sea_level, fc=color_water
-        )
-    water_surface = np.full_like(x_water, sea_level, dtype=float)
-    water_surface[y_water > sea_level] = np.nan
-    plt.plot(x_water, water_surface, color="b")
-
-    plt.fill_between(
-        x,
-        bottom_surface,
-        np.full_like(bottom_surface, bottom_surface.min()),
-        color=color_bedrock,
-    )
-    plt.plot(x, bottom_surface, color="k")
-    plt.plot(x, top_surface, color="g")
-
-    if layer_stop < 0:
-        layer_stop = len(elevation_at_layer) + layer_stop + 1
-
-    layers_to_plot = np.linspace(layer_start, layer_stop - 1, n_layers, dtype=int)
-    if len(layers_to_plot):
-        plt.plot(
+    if len(layers_to_plot) > 0:
+        _plot_layers(
             x,
-            elevation_at_layer[layers_to_plot].T,
-            color=layer_line_color,
-            linewidth=layer_line_width,
+            elevation_at_layer[layers_to_plot],
+            color=color_layer,
+            lc=layer_line_color,
+            lw=layer_line_width,
         )
+    _plot_water(x, top_surface, sea_level=sea_level, fc=color_water)
+    _plot_bedrock(x, bottom_surface, fc=color_bedrock)
+    _plot_surface(x, top_surface, sea_level=sea_level)
 
-    if color_layer is not None and len(layers_to_plot):
-        cmap = cm.get_cmap(color_layer)
-        for layer, (lower, upper) in enumerate(
-            pairwise(elevation_at_layer[layers_to_plot])
-        ):
-            plt.fill_between(
-                x,
-                lower,
-                upper,
-                fc=cmap(layers_to_plot[layer] * 256 // len(elevation_at_layer)),
-            )
-
-    if legend_location:
-        legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
-        items = [
-            ("Ocean", color_water),
-            ("Bedrock", color_bedrock),
-        ]
-        legend = [legend_item(label=label, fc=color) for label, color in items if color]
-        legend and plt.legend(handles=legend, loc=legend_location)
+    legend_location and _plot_legend(
+        legend_location, color_water=color_water, color_bedrock=color_bedrock
+    )
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     title and plt.title(title)
 
     plt.show()
+
+
+def _plot_water(x, y, sea_level=0.0, fc=(0.8, 1.0, 1.0)):
+    x_water, y_water = _insert_shorelines(x, y, sea_level=sea_level)
+    if fc is not None:
+        plt.fill_between(x_water, y_water, sea_level, where=y_water <= sea_level, fc=fc)
+
+    water_surface = np.full_like(x_water, sea_level, dtype=float)
+    water_surface[y_water > sea_level] = np.nan
+    plt.plot(x_water, water_surface, color="b")
+
+
+def _plot_bedrock(x, y, fc=(0.8, 0.8, 0.8)):
+    if fc is not None:
+        plt.fill_between(
+            x,
+            y,
+            np.full_like(y, y.min()),
+            color=fc,
+        )
+    plt.plot(x, y, color="k")
+
+
+def _plot_surface(x, y, sea_level=0.0):
+    under_water = y <= sea_level
+    plt.plot(x[~under_water], y[~under_water], color="g")
+    plt.plot(x[under_water], y[under_water], color="b")
+
+
+def _plot_layers(x, layers, color=None, lc="k", lw=0.5):
+    if color is not None:
+        cmap = cm.get_cmap(color)
+        for layer, (lower, upper) in enumerate(pairwise(layers)):
+            plt.fill_between(
+                x,
+                lower,
+                upper,
+                fc=cmap(layer * 256 // len(layers)),
+            )
+    plt.plot(
+        x,
+        layers.T,
+        color=lc,
+        linewidth=lw,
+    )
+
+
+def _plot_legend(legend_location, color_water=None, color_bedrock=None):
+    legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
+    items = [
+        ("Ocean", color_water),
+        ("Bedrock", color_bedrock),
+    ]
+    legend = [legend_item(label=label, fc=color) for label, color in items if color]
+    legend and plt.legend(handles=legend, loc=legend_location)
 
 
 def _insert_shorelines(x, y, sea_level=0.0):
