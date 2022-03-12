@@ -32,13 +32,49 @@ def plot_layers(
     y_label="Elevation",
     legend_location="lower left",
 ):
-    elevation_at_layer = np.asarray(elevation_at_layer)
+    """Plot a stack of sediment layers as a cross section.
+
+    Parameters
+    ----------
+    elevation_at_layer : array-like of shape *(n_layers, n_stacks)*
+        Elevation to each layer along the profile.
+    x : array-like, optional
+        Distance to each stack along the cross-section. If not provided,
+        stack number will be used.
+    sea_level : float, optional
+        Elevation of sea level.
+    color_water : tuple of float, optional
+        Tuple of *(red, green, blue)* values for water.
+    color_bedrock : tuple of float, optional
+        Tuple of *(red, green, blue)* values for bedrock.
+    color_layer : string, optional
+        Colormap to use to color in the layers.
+    layer_start : int, optional
+        First layer to plot.
+    layer_stop : int, optional
+        Last layer to plot.
+    n_layers : int, optional
+        Number of layers to plot.
+    layer_line_width : float, optional
+        Width of line used to plot layer surfaces.
+    layer_line_color : string, optional
+        Color of the line used to plot layer surfaces.
+    title : string, optional
+        Text to be used for the graph's title. The default is to not
+        include a title.
+    x_label : string, optional
+        Text to be used for the x (horizontal) axis label.
+    y_label : string, optional
+        Text to be used for the y (vertical) axis label.
+    legend_location : string, optional
+        Where to put the legend.
+    """
     elevation_at_layer = np.expand_dims(
-        elevation_at_layer, axis=tuple(np.arange(2 - elevation_at_layer.ndim))
+        np.asarray(elevation_at_layer),
+        axis=tuple(np.arange(2 - elevation_at_layer.ndim)),
     )
 
     n_layers = np.minimum(n_layers, len(elevation_at_layer))
-    legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
 
     if x is None:
         x = np.arange(elevation_at_layer.shape[1])
@@ -89,6 +125,7 @@ def plot_layers(
             )
 
     if legend_location:
+        legend_item = partial(Patch, edgecolor="k", linewidth=0.5)
         items = [
             ("Ocean", color_water),
             ("Bedrock", color_bedrock),
@@ -115,8 +152,8 @@ def _insert_shorelines(x, y, sea_level=0.0):
     x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
 
     y_relative_to_sea_level = y - sea_level
-    shorelines = _search_shorelines(y_relative_to_sea_level)
-    x_of_shoreline = _interp_shorelines(x, y_relative_to_sea_level, shorelines)
+    shorelines = _search_zero_crossings(y_relative_to_sea_level)
+    x_of_shoreline = _interp_zero_crossings(x, y_relative_to_sea_level, shorelines)
 
     return (
         np.insert(x, shorelines + 1, x_of_shoreline),
@@ -124,7 +161,7 @@ def _insert_shorelines(x, y, sea_level=0.0):
     )
 
 
-def _search_shorelines(y):
+def _search_zero_crossings(y):
     """Search an array for changes in sign.
 
     Parameters
@@ -139,32 +176,33 @@ def _search_shorelines(y):
 
     Examples
     --------
-    >>> from landlab.plot.layers import _search_shorelines
-    >>> _search_shorelines([2, 1, -1])
+    >>> from landlab.plot.layers import _search_zero_crossings
+    >>> _search_zero_crossings([2, 1, -1])
     array([1])
-    >>> _search_shorelines([2, 0, 0, -2])
-    array([2])
-    >>> _search_shorelines([-2, -2, 1, 2])
+    >>> len(_search_zero_crossings([2, 0, 0, -2])) == 0
+    True
+    >>> _search_zero_crossings([-2, -2, 1, 2])
     array([1])
-    >>> len(_search_shorelines([2, 0, 1])) == 0
+    >>> len(_search_zero_crossings([2, 0, 1])) == 0
     True
-    >>> len(_search_shorelines([2, 3, 4])) == 0
+    >>> len(_search_zero_crossings([2, 3, 4])) == 0
     True
-    >>> len(_search_shorelines([0, 0, 0])) == 0
+    >>> len(_search_zero_crossings([0, 0, 0])) == 0
     True
     """
     sign = np.sign(y)
 
-    zeros = sign == 0
-    if not np.all(zeros):
-        while np.any(zeros):
-            sign[zeros] = np.roll(sign, 1)[zeros]
-            zeros = sign == 0
+    # zeros = sign == 0
+    # if not np.all(zeros):
+    #     while np.any(zeros):
+    #         sign[zeros] = np.roll(sign, 1)[zeros]
+    #         zeros = sign == 0
 
-    return np.where(sign[1:] != sign[:-1])[0]
+    # return np.where(sign[1:] != sign[:-1])[0]
+    return np.where(sign[1:] * sign[:-1] < 0)[0]
 
 
-def _interp_shorelines(x, y, shorelines):
+def _interp_zero_crossings(x, y, shorelines):
     """Interpolate between adjacent elements to find shoreline positions.
 
     Parameters
@@ -183,10 +221,10 @@ def _interp_shorelines(x, y, shorelines):
 
     Examples
     --------
-    >>> from landlab.plot.layers import _interp_shorelines
-    >>> _interp_shorelines([0, 1, 2], [1, -1, -1], [0])
+    >>> from landlab.plot.layers import _interp_zero_crossings
+    >>> _interp_zero_crossings([0, 1, 2], [1, -1, -1], [0])
     array([ 0.5])
-    >>> _interp_shorelines([0, 1, 2, 3], [1, -1, -1, 4], [0, 2])
+    >>> _interp_zero_crossings([0, 1, 2, 3], [1, -1, -1, 4], [0, 2])
     array([ 0.5, 2.2])
     """
     x_of_shoreline = []
