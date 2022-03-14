@@ -135,7 +135,7 @@ class MaterialLayers(EventLayers):
         array([[ 2.5,  3.5,  2. ]])
 
         Because the attributes of this layer and the previous layer
-        are the same (e.g. they don't exist), MaterialLayer will combined
+        are the same (e.g. they don't exist), MaterialLayer will combine
         them. This is the primary difference between MaterialLayers and
         EventLayers.
 
