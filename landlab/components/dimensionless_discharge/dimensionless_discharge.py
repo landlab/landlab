@@ -111,9 +111,9 @@ class DimensionlessDischarge(Component):
             "dtype": float,
             "intent": "in",
             "optional": False,
-            "units": "m/s",
+            "units": "m**2/s",
             "mapping": "node",
-            "doc": "Volumetric discharge of surface water",
+            "doc": "Volumetric discharge of surface water per unit width",
         },
         "channel_bottom_sediment_grain__d50_diameter": {
             "dtype": float,
