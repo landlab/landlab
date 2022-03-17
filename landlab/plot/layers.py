@@ -22,9 +22,6 @@ def plot_layers(
     color_water=(0.8, 1.0, 1.0),
     color_bedrock=(0.8, 0.8, 0.8),
     color_layer=None,
-    layer_start=0,
-    layer_stop=-1,
-    n_layers=5,
     layer_line_width=0.5,
     layer_line_color="k",
     title=None,
@@ -34,10 +31,14 @@ def plot_layers(
 ):
     """Plot a stack of sediment layers as a cross section.
 
+    Create a plot of the elevation sediment layers, including surfaces for
+    sea level and bedrock.
+
     Parameters
     ----------
     elevation_at_layer : array-like of shape *(n_layers, n_stacks)*
-        Elevation to each layer along the profile.
+        Elevation to each layer along the profile. Layers are provided
+        row-by-row, with the bottom-most layer being the first row.
     x : array-like, optional
         Distance to each stack along the cross-section. If not provided,
         stack number will be used.
@@ -49,12 +50,6 @@ def plot_layers(
         Tuple of *(red, green, blue)* values for bedrock.
     color_layer : string, optional
         Colormap to use to color in the layers.
-    layer_start : int, optional
-        First layer to plot.
-    layer_stop : int, optional
-        Last layer to plot.
-    n_layers : int, optional
-        Number of layers to plot.
     layer_line_width : float, optional
         Width of line used to plot layer surfaces.
     layer_line_color : string, optional
@@ -83,18 +78,13 @@ def plot_layers(
     if x is None:
         x = np.arange(elevation_at_layer.shape[1])
 
-    n_layers = np.minimum(n_layers, len(elevation_at_layer))
-    if layer_stop < 0:
-        layer_stop = len(elevation_at_layer) + layer_stop + 1
-    layers_to_plot = np.linspace(layer_start, layer_stop - 1, n_layers, dtype=int)
-
     top_surface = elevation_at_layer[-1]
     bottom_surface = elevation_at_layer[0]
 
-    if len(layers_to_plot) > 0:
+    if len(elevation_at_layer) > 0:
         _plot_layers(
             x,
-            elevation_at_layer[layers_to_plot],
+            elevation_at_layer,  # [layers_to_plot],
             color=color_layer,
             lc=layer_line_color,
             lw=layer_line_width,
@@ -191,7 +181,7 @@ def _insert_shorelines(x, y, sea_level=0.0):
 
 
 def _search_zero_crossings(y):
-    """Search an array for changes in sign.
+    """Search an array for changes in sign between elements.
 
     Parameters
     ----------
@@ -240,7 +230,7 @@ def _search_zero_crossings(y):
 
 
 def _interp_zero_crossings(x, y, shorelines):
-    """Interpolate between adjacent elements to find shoreline positions.
+    """Interpolate between adjacent elements to find x-locations of zero-crossings.
 
     Parameters
     ----------
