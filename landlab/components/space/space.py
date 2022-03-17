@@ -41,55 +41,57 @@ class Space(_GeneralizedErosionDeposition):
     ---------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import (FlowAccumulator,
-    ...                                 DepressionFinderAndRouter,
-    ...                                 Space,
-    ...                                 FastscapeEroder)
-    >>> np.random.seed(seed = 5000)
+    >>> from landlab.components import (
+    ...     FlowAccumulator,
+    ...     DepressionFinderAndRouter,
+    ...     Space,
+    ...     FastscapeEroder,
+    ... )
+    >>> np.random.seed(seed=5000)
 
     Define grid and initial topography:
 
-    *  5x5 grid with baselevel in the lower left corner
+    *  5x5 grid with base level in the lower left corner
     *  All other boundary nodes closed
     *  Initial topography is plane tilted up to the upper right with
        noise
 
     >>> mg = RasterModelGrid((5, 5), xy_spacing=10.0)
-    >>> _ = mg.add_zeros('topographic__elevation', at='node')
-    >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. +
-    ...     mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.)
-    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-    ...                                        left_is_closed=True,
-    ...                                        right_is_closed=True,
-    ...                                        top_is_closed=True)
+    >>> _ = mg.add_zeros("topographic__elevation", at="node")
+    >>> mg.at_node["topographic__elevation"] += (
+    ...     mg.node_y / 10.0 + mg.node_x / 10.0 + np.random.rand(len(mg.node_y)) / 10.0
+    ... )
+    >>> mg.set_closed_boundaries_at_grid_edges(
+    ...     bottom_is_closed=True,
+    ...     left_is_closed=True,
+    ...     right_is_closed=True,
+    ...     top_is_closed=True,
+    ... )
     >>> mg.set_watershed_boundary_condition_outlet_id(
-    ...     0, mg.at_node['topographic__elevation'], -9999.)
-    >>> fsc_dt = 100.
-    >>> space_dt = 100.
+    ...     0, mg.at_node['topographic__elevation'], -9999.0
+    ... )
+    >>> fsc_dt = 100.0
+    >>> space_dt = 100.0
 
     Instantiate Fastscape eroder, flow router, and depression finder
 
-    >>> fr = FlowAccumulator(mg, flow_director='D8')
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> df = DepressionFinderAndRouter(mg)
-    >>> fsc = FastscapeEroder(
-    ...     mg,
-    ...     K_sp=.001,
-    ...     m_sp=.5,
-    ...     n_sp=1)
+    >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
 
     Burn in an initial drainage network using the Fastscape eroder:
 
-    >>> for x in range(100):
+    >>> for _ in range(100):
     ...     fr.run_one_step()
     ...     df.map_depressions()
     ...     fsc.run_one_step(dt=fsc_dt)
-    ...     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
+    ...     mg.at_node["topographic__elevation"][0] -= 0.001 # Uplift
 
     Add some soil to the drainage network:
 
-    >>> _ = mg.add_zeros('soil__depth', at='node', dtype=float)
-    >>> mg.at_node['soil__depth'] += 0.5
-    >>> mg.at_node['topographic__elevation'] += mg.at_node['soil__depth']
+    >>> _ = mg.add_zeros("soil__depth", at="node", dtype=float)
+    >>> mg.at_node["soil__depth"] += 0.5
+    >>> mg.at_node["topographic__elevation"] += mg.at_node["soil__depth"]
 
     Instantiate the Space component:
 
@@ -104,25 +106,26 @@ class Space(_GeneralizedErosionDeposition):
     ...     m_sp=0.5,
     ...     n_sp = 1.0,
     ...     sp_crit_sed=0,
-    ...     sp_crit_br=0)
+    ...     sp_crit_br=0,
+    ... )
 
     Now run the Space component for 2000 short timesteps:
 
-    >>> for x in range(2000): #Space component loop
+    >>> for _ in range(2000):  # Space component loop
     ...     fr.run_one_step()
     ...     df.map_depressions()
     ...     ha.run_one_step(dt=space_dt)
-    ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * space_dt
+    ...     mg.at_node["bedrock__elevation"][0] -= 2e-6 * space_dt
 
     Now we test to see if soil depth and topography are right:
 
-    >>> np.around(mg.at_node['soil__depth'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(mg.at_node["soil__depth"], decimals=3)  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.492,
             0.491,  0.5  ,  0.5  ,  0.492,  0.492,  0.49 ,  0.5  ,  0.5  ,
             0.491,  0.49 ,  0.484,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,
             0.5  ])
 
-    >>> np.around(mg.at_node['topographic__elevation'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(mg.at_node["topographic__elevation"], decimals=3)  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.428,
             0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
             0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
