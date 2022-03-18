@@ -62,6 +62,8 @@ jobs:
         run: pip install -e .[tests]
 
       - name: Test
+        env:
+          HYPOTHESIS_PROFILE: "ci"
         run: |
           python -c 'import landlab; print(landlab.__version__)'
           pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv -n auto
