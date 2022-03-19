@@ -27,6 +27,10 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | bedrock__elevation                               | elevation of the bedrock surface         |
 +--------------------------------------------------+------------------------------------------+
+| carbonate_production_rate                        | Carbonate production rate                |
++--------------------------------------------------+------------------------------------------+
+| carbonate_thickness                              | Carbonate thickness                      |
++--------------------------------------------------+------------------------------------------+
 | channel__bed_shear_stress                        | Shear exerted on the bed of the channel, |
 |                                                  | assuming all discharge travels along a   |
 |                                                  | single, self-formed channel              |
@@ -237,7 +241,7 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | reach_length                                     | Length of each reach                     |
 +--------------------------------------------------+------------------------------------------+
-| sea_level__elevation                             | Position of sea level                    |
+| sea_level__elevation                             | Sea level elevation                      |
 +--------------------------------------------------+------------------------------------------+
 | sediment__deposition_coeff                       | Fraction of incoming sediment that is    |
 |                                                  | deposited on the node                    |
@@ -360,12 +364,18 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | surface_water__depth                             | Depth of water on the surface            |
 +--------------------------------------------------+------------------------------------------+
+| surface_water__depth_at_link                     | Depth of water on the surface at grid    |
+|                                                  | links                                    |
++--------------------------------------------------+------------------------------------------+
 | surface_water__discharge                         | Volumetric discharge of surface water    |
 +--------------------------------------------------+------------------------------------------+
 | surface_water__discharge_loss                    | Total volume of water per second lost    |
 |                                                  | during all flow out of the node          |
 +--------------------------------------------------+------------------------------------------+
 | surface_water__specific_discharge                | rate of seepage to surface               |
++--------------------------------------------------+------------------------------------------+
+| surface_water__unit_discharge                    | Volumetric discharge of surface water    |
+|                                                  | per unit width                           |
 +--------------------------------------------------+------------------------------------------+
 | surface_water__velocity                          | Speed of water flow above the surface    |
 +--------------------------------------------------+------------------------------------------+
@@ -427,6 +437,8 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | water__velocity                                  | flow velocity component in the direction |
 |                                                  | of the link                              |
++--------------------------------------------------+------------------------------------------+
+| water_depth                                      | Water depth                              |
 +--------------------------------------------------+------------------------------------------+
 | water_surface__gradient                          | Downstream gradient of the water         |
 |                                                  | surface.                                 |

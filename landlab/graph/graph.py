@@ -159,7 +159,11 @@ class NetworkGraph:
         self.freeze()
 
         if sort:
-            NetworkGraph.sort(self)
+            (
+                self._sorted_nodes,
+                self._sorted_links,
+                self._sorted_patches,
+            ) = NetworkGraph.sort(self)
 
         self._origin = (0.0, 0.0)
 

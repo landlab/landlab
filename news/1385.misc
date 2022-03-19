@@ -1,0 +1,3 @@
+Updated the coding style to conform to new version of black. This was, primarily,
+hugging the ``**`` operator.
+
