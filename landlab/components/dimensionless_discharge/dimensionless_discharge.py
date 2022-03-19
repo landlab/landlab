@@ -197,7 +197,7 @@ class DimensionlessDischarge(Component):
 
     def _calc_threshold(self):
         self.grid.at_node["dimensionless_discharge_threshold"] = self._c / (
-            self._stream_slopes ** self._n
+            self._stream_slopes**self._n
         )
 
     def _elevationToSlope(self):
@@ -216,7 +216,7 @@ class DimensionlessDischarge(Component):
         ] / np.sqrt(
             ((self._soil_density - self._water_density) / self._water_density)
             * self._gravity
-            * (self._channel_bottom_sediment_grain__d50_diameter ** 3)
+            * (self._channel_bottom_sediment_grain__d50_diameter**3)
         )
 
         self.grid.at_node["dimensionless_discharge_above_threshold"] = (

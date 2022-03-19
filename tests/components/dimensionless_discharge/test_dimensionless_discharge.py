@@ -69,5 +69,6 @@ def test_dimensionless_discharge_threshold_values():
         10.94510988,
     ]
     assert_array_almost_equal(
-        watershed_grid.at_node["dimensionless_discharge_threshold"], expected_values,
+        watershed_grid.at_node["dimensionless_discharge_threshold"],
+        expected_values,
     )
