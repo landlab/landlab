@@ -2,135 +2,153 @@
 Changelog for landlab
 =====================
 
-
-2.4.2 (unreleased)
-------------------
-
-- Nothing changed yet.
-
+ .. towncrier release notes start
 
 2.4.1 (2021-12-02)
 ------------------
 
-- Fixed the building of source distributions for prerelease and release
-  workflows (#1372); fixed a bug that causes release workflows to not
-  be triggered (#1371)
+New Tutorial Notebooks
+``````````````````````
 
-- Added two ABM tutorial notebooks (#1364)
+- Added two ABM tutorial notebooks (`#1364 <https://github.com/landlab/landlab/issues/1364>`_)
+
+
+Other Changes and Additions
+```````````````````````````
+
+- fixed a bug that causes release workflows to not be triggered (`#1371 <https://github.com/landlab/landlab/issues/1371>`_)
+- Fixed the building of source distributions for prerelease and release
+  workflows (`#1372 <https://github.com/landlab/landlab/issues/1372>`_)
+
 
 2.4.0 (2021-11-29)
 ------------------
 
-- Changed GitHub actions to use cibuildwheel for building wheels (#1368)
+Other Changes and Additions
+```````````````````````````
+
+- Changed GitHub actions to use cibuildwheel for building wheels (`#1368 <https://github.com/landlab/landlab/issues/1368>`_)
 
 
 2.4.0b0 (2021-11-28)
 --------------------
 
-- Added BedrockLandslider component (#1362)
+New Components
+``````````````
 
-- Added PriorityFloodFlowRouter and SpaceLargeScaleEroder components (#1351)
+- ListricKinematicExtender: Simulate Extensional Tectonic Motion on a Listric Fault Plane (`#1283 <https://github.com/landlab/landlab/issues/1283>`_)
+- PriorityFloodFlowRouter and SpaceLargeScaleEroder (`#1352 <https://github.com/landlab/landlab/issues/1352>`_)
+- Added BedrockLandslider component (`#1362 <https://github.com/landlab/landlab/issues/1362>`_)
 
-- Infer data types of fields when reading from shape files (#1357)
 
-- Fixed pits and division by zero in lateral_erosion component (#1353)
+New Tutorial Notebooks
+``````````````````````
 
-- Check that notebooks are both clean and blackened as part of continuous integration (#1355)
+- Added tutorial notebook for depth dependent taylor diffuser (`#1306 <https://github.com/landlab/landlab/issues/1306>`_)
+- Added tutorial notebook for chi finder (`#1307 <https://github.com/landlab/landlab/issues/1307>`_)
+- Added tutorial notebook for kinwave impl (`#1308 <https://github.com/landlab/landlab/issues/1308>`_)
+- Added tutorial notebook for taylor diffuser (`#1309 <https://github.com/landlab/landlab/issues/1309>`_)
+- Added notebook tutorials for two components (both written by Jordan Adams):
+  * ``DepthSlopeProductErosion``,
+  * ``DetachmentLtdErosion``
 
-- Removed usages of np.int from Cython code (#1354)
+  Added a tutorial showing how to "D4 pit fill" a DEM, and a version of the simple ``hugo_site.asc`` DEM that has been pit-filled. (`#1313 <https://github.com/landlab/landlab/issues/1313>`_)
+- Added tutorial notebook for Space component (`#1314 <https://github.com/landlab/landlab/issues/1314>`_)
+- Added tutorial notebook for erosiondeposition ttl (`#1315 <https://github.com/landlab/landlab/issues/1315>`_)
+- Added tutorial notebook for erodep (`#1317 <https://github.com/landlab/landlab/issues/1317>`_)
+- Added tutorial notebook for StreamPowerSmoothThresholdEroder (`#1331 <https://github.com/landlab/landlab/issues/1331>`_)
 
-- Added a link to launch landlab notebooks on the CSDMS JupyterHub (#1347)
 
-- Added new references to landlab (#1344)
+New Features
+````````````
 
-- Fixed documentation errors in green ampt component (#1343)
+- Infer data types of fields when reading from shape files (`#1357 <https://github.com/landlab/landlab/issues/1357>`_)
 
-- Added a pre-commit configuration file (#1338)
 
-- Drop the "file:" prefix when referencing pip requirements files (#1339)
+Bug Fixes
+`````````
 
-- Changed continuous integration to always check the docs build; run the link checker on docs  (#1336)
+- Fixed ability to pass a masked array to imshow_grid_at_node (`#1297 <https://github.com/landlab/landlab/issues/1297>`_)
+- Fixed xarray 'axis' keyword error in map function (`#1300 <https://github.com/landlab/landlab/issues/1300>`_)
+- Fixed a missing absolute value in Courant condition in dupuit_percolator (`#1311 <https://github.com/landlab/landlab/issues/1311>`_)
+- Fixed pits and division by zero in lateral_erosion component (`#1353 <https://github.com/landlab/landlab/issues/1353>`_)
 
-- Added tutorial notebook for smooth thresh eroder (#1331)
 
-- Added tutorial notebook for Space component (#1314)
+Documentation Enhancements
+``````````````````````````
 
-- Fixed warnings related to unnecessary use of numpy number types (#1323)
+- Updated installation instructions (`#1287 <https://github.com/landlab/landlab/issues/1287>`_)
+- Minor updates to documentation (`#1290 <https://github.com/landlab/landlab/issues/1290>`_)
+- Run the link checker on docs (`#1336 <https://github.com/landlab/landlab/issues/1336>`_)
+- Fixed documentation errors in green ampt component (`#1343 <https://github.com/landlab/landlab/issues/1343>`_)
+- Added new references to landlab (`#1344 <https://github.com/landlab/landlab/issues/1344>`_)
+- Added a link to launch landlab notebooks on the CSDMS JupyterHub (`#1347 <https://github.com/landlab/landlab/issues/1347>`_)
 
-- Fixed ability to pass a masked array to imshow_grid_at_node (#1297)
 
-- Fixed a missing absolute value in Courant condition in dupuit_percolator (#1311)
+Other Changes and Additions
+```````````````````````````
 
-- Added tutorial notebook for erodep (#1317)
-
-- Added tutorial notebook for erosiondeposition ttl (#1315)
-
-- Added tutorial notebook for kinwave impl (#1308)
-
-- Added tutorial notebook for dep slope eroder
-
-- Added tutorial notebook for depth dependent taylor diffuser (#1306)
-
-- Added tutorial notebook for taylor diffuser (#1309)
-
-- Added tutorial notebook for chi finder (#1307)
-
-- Fixed xarray 'axis' keyword error in map function (#1300)
-
-- Minor updates to documentation (#1290)
-
-- Gt/kinematic extender (#1283)
-
-- Updated installation instructions (#1287)
+- Fixed warnings related to unnecessary use of numpy number types (`#1323 <https://github.com/landlab/landlab/issues/1323>`_)
+- Changed continuous integration to always check the docs build (`#1336 <https://github.com/landlab/landlab/issues/1336>`_)
+- Added a pre-commit configuration file (`#1338 <https://github.com/landlab/landlab/issues/1338>`_)
+- Drop the "file:" prefix when referencing pip requirements files (`#1339 <https://github.com/landlab/landlab/issues/1339>`_)
+- Removed usages of np.int from Cython code (`#1354 <https://github.com/landlab/landlab/issues/1354>`_)
+- Check that notebooks are both clean and blackened as part of continuous integration (`#1355 <https://github.com/landlab/landlab/issues/1355>`_)
 
 
 2.3.0 (2021-03-19)
 ------------------
 
-- Fixed a bug when adding a missing at_grid field when testing components (#1286)
+New Components
+``````````````
 
-- Cleaned up landlab metadata files (#1285)
+- Added a tidal flow component (`#1225 <https://github.com/landlab/landlab/issues/1225>`_)
+- Added ExponentialWeathererIntegrated component (`#1254 <https://github.com/landlab/landlab/issues/1254>`_)
+- Added simple submarine diffuser component (`#1269 <https://github.com/landlab/landlab/issues/1269>`_)
 
-- Removed versioneer, we'll use zest.releaser from now on the manage versions (#1285)
 
-- Added release and prerelease github actions (#1275)
+New Tutorial Notebooks
+``````````````````````
 
-- Fixed a bug in the FlowAccumulator to update pit present logic to also include node
-  flood status (#1277)
+- Added tutorial for river input to LEMs (`#1258 <https://github.com/landlab/landlab/issues/1258>`_)
 
-- Fixed an error in the streampower notebook (#1260)
 
-- Added building and testing of landlab with Python 3.9 (#1274)
+New Features
+````````````
 
-- Added additional references for 2020/21 (#1273)
+- Added recharge to the GroundwaterDupuitPercolator callback (`#1223 <https://github.com/landlab/landlab/issues/1223>`_)
+- Added Wavefront OBJ output (`#1241 <https://github.com/landlab/landlab/issues/1241>`_)
 
-- Added simple submarine diffuser component (#1269)
 
-- Changed to use GitHub Actions for CI (#1270)
+Bug Fixes
+`````````
 
-- Added tutorial for river input to LEMs (#1258)
+- Fixed bug in Flow router/depression finder which incorrectly directed flow (`#1248 <https://github.com/landlab/landlab/issues/1248>`_)
+- Fixed an error in the streampower notebook (`#1260 <https://github.com/landlab/landlab/issues/1260>`_)
+- Fixed a bug in the FlowAccumulator to update pit present logic to also include node flood status (`#1277 <https://github.com/landlab/landlab/issues/1277>`_)
+- Fixed a bug when adding a missing at_grid field when testing components (`#1286 <https://github.com/landlab/landlab/issues/1286>`_)
 
-- Added a tidal flow component (#1225)
 
-- Added a reference to the papers and presentations list (#1255)
+Documentation Enhancements
+``````````````````````````
 
-- Fixed bug in Flow router/depression finder which incorrectly directed flow (#1248)
+- Fixed documentation bugs (`#1233 <https://github.com/landlab/landlab/issues/1233>`_)
+- Added two 2020 publications (`#1243 <https://github.com/landlab/landlab/issues/1243>`_)
+- Added docs for the flow accumulator (`#1251 <https://github.com/landlab/landlab/issues/1251>`_)
+- Added a reference to the papers and presentations list (`#1255 <https://github.com/landlab/landlab/issues/1255>`_)
+- Added additional references for 2020 and 2021 (`#1273 <https://github.com/landlab/landlab/issues/1273>`_)
 
-- Added ExponentialWeathererIntegrated component (#1254)
 
-- Added docs for the flow accumulator (#1251)
+Other Changes and Additions
+```````````````````````````
 
-- Added Wavefront OBJ output (#1241)
+- NetworkSedimentTtransporter JOSS paper fixes (`#1235 <https://github.com/landlab/landlab/issues/1235>`_)
+- Small changes to JOSS paper (`#1237 <https://github.com/landlab/landlab/issues/1237>`_)
+- Changed to use GitHub Actions for CI (`#1270 <https://github.com/landlab/landlab/issues/1270>`_)
+- Added building and testing of landlab with Python 3.9 (`#1274 <https://github.com/landlab/landlab/issues/1274>`_)
+- Added release and prerelease github actions (`#1275 <https://github.com/landlab/landlab/issues/1275>`_)
+- Cleaned up landlab metadata files; Removed versioneer, we'll use zest.releaser from now on the manage versions (`#1285 <https://github.com/landlab/landlab/issues/1285>`_)
 
-- Added two 2020 publications (#1243)
-
-- Small changes to JOSS paper (#1237)
-
-- Added recharge to the GroundwaterDupuitPercolator callback (#1223)
-
-- NetworkSedimentTtransporter JOSS paper fixes (#1235)
-
-- Fixed documentation bugs (#1233)
 
 1.5.1 (2018-06-22)
 ------------------
