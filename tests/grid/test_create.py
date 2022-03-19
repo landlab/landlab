@@ -3,7 +3,7 @@ from io import StringIO
 
 import numpy as np
 import pytest
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis.strategies import text
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
@@ -488,7 +488,6 @@ def test_norm_grid_description():
 
 
 @given(units=text())
-@settings(deadline=None)
 def test_field_units(units):
     params = {
         "RasterModelGrid": [
@@ -515,7 +514,6 @@ def test_field_units(units):
 
 
 @given(units=text())
-@settings(deadline=None)
 def test_repeated_units(units):
     params = {
         "RasterModelGrid": [
