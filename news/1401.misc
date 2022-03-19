@@ -1,0 +1,3 @@
+Turn off *hypothesis* deadline setting globally when running continuous
+integration tests.
+
