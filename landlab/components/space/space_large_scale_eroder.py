@@ -491,6 +491,7 @@ class SpaceLargeScaleEroder(Component):
 
     def run_one_step_basic(self, dt=10):
         node_status = self.grid.status_at_node
+
         z = self.grid.at_node["topographic__elevation"]
         br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
@@ -505,9 +506,11 @@ class SpaceLargeScaleEroder(Component):
             & (self._q[stack_flip_ud] > 0.0)
         ]
         slope = (z - z[r]) / self._link_lengths[link_to_rcvr]
+
         # Choose a method for calculating erosion:
         self._Q_to_the_m[:] = np.power(self._q, self._m_sp)
         self._calc_erosion_rates()
+
         if "flood_status_code" in self.grid.at_node:
             flood_status = self.grid.at_node["flood_status_code"]
             flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]

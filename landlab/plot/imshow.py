@@ -3,7 +3,9 @@
 
 Plotting functions
 ++++++++++++++++++
+
 .. autosummary::
+
     ~landlab.plot.imshow.imshow_grid
     ~landlab.plot.imshow.imshowhs_grid
     ~landlab.plot.imshow.imshow_grid_at_cell
@@ -35,16 +37,20 @@ def imshow_grid_at_node(grid, values, **kwds):
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
+
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
+
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
+
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
+
     This function happily works with both regular and irregular grids.
 
     Parameters
@@ -129,20 +135,25 @@ def imshow_grid_at_node(grid, values, **kwds):
 def imshowhs_grid_at_node(grid, values, **kwds):
     """Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
+
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
+
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
+
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshowhs_grid`, as desired.
+
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
+
     For now, this function only works with regular grids.
     Developed by: Benjamin Campforts
 
@@ -308,8 +319,8 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
-    """
-    Map view of grid data over all grid cells.
+    """Map view of grid data over all grid cells.
+
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
 
@@ -365,6 +376,7 @@ def imshow_grid_at_cell(grid, values, **kwds):
         filename (with file extension). The function will then call
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
+
     Raises
     ------
     ValueError
@@ -1120,20 +1132,24 @@ def _imshowhs_grid_values(
 
 def imshow_grid(grid, values, **kwds):
     """Prepare a map view of data over all nodes or cells in the grid.
+
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
     is shaded with its own value. Outer edges of perimeter cells are
     extrapolated. Closed elements are colored uniformly (default black,
     overridden with kwd 'color_for_closed'); other open boundary nodes get
     their actual values.
+
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_for_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
+
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
+
     This function happily works with both regular and irregular grids.
 
     Parameters
@@ -1211,20 +1227,25 @@ def imshow_grid(grid, values, **kwds):
 def imshowhs_grid(grid, values, **kwds):
     """Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
+
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
+
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
+
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshowhs_grid`, as desired.
+
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
+
     For now, this function only works with regular grids.
 
     Parameters
