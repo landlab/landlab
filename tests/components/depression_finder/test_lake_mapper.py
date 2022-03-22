@@ -1404,7 +1404,7 @@ def test_three_pits():
 
     # test conservation of mass:
     assert mg.at_node["drainage_area"].reshape((10, 10))[1:-1, 1].sum() == approx(
-        8.0 ** 2
+        8.0**2
     )
     # ^all the core nodes
 
@@ -1561,7 +1561,7 @@ def test_composite_pits():
 
     # test conservation of mass:
     assert mg.at_node["drainage_area"].reshape((10, 10))[1:-1, 1].sum() == approx(
-        8.0 ** 2
+        8.0**2
     )
     # ^all the core nodes
 
@@ -2030,10 +2030,10 @@ def test_precision_in_cython():
             [0.0, 90.0, 90.0, 90.0, 90.0, 0.0],
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         ],
-        dtype=np.float,
+        dtype=float,
     )
 
-    np_2D_init_topo = np.flipud(input_topo.astype(np.float))
+    np_2D_init_topo = np.flipud(input_topo.astype(float))
     map_shape = np_2D_init_topo.shape
     np_1D_init_topo = np_2D_init_topo.ravel()
 

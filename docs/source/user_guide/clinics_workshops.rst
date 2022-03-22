@@ -3,8 +3,60 @@
 Clinics and Workshops
 =====================
 
+2020
+----
+
+Exploring Surface Processes using CSDMS Modeling Tools: How to Build Coupled Models
+```````````````````````````````````````````````````````````````````````````````````
+
+An online short course on model coupling
+presented by G. Tucker, B. Campforts, E. Hutton, and M. Piper
+at the 2020 GSA Annual Meeting, October 23.
+
+- Presentation and code: `<https://github.com/csdms/gsa-2020>`_
+
+University of Texas Jackson School of Geosciences Landlab Clinic 2020
+`````````````````````````````````````````````````````````````````````
+
+A Landlab clinic presented by N. Gasparini at UT-Austin on September 10, 2020.
+
+- Presentation and code: `<https://github.com/landlab/UT_Landlab_Clinic>`_
+
+Exploring Surface Processes using CSDMS Tools: How to Build Coupled Models
+``````````````````````````````````````````````````````````````````````````
+
+An online workshop on model coupling
+presented by E. Hutton, M. Piper, G. Tucker, and I. Overeem
+at the 2020 CSDMS Annual Meeting, May 20-21.
+
+- Presentation and code: `<https://github.com/csdms/csdms-2020>`_
+
+Penn State Landlab Clinic 2020
+``````````````````````````````
+
+A Landlab clinic presented by N. Gasparini at Penn State on January 22, 2020.
+
+- Presentation and code: `<https://github.com/landlab/psu-clinic-2020>`_
+
+
 2019
 ----
+
+Exploring Surface Processes: How to Build Coupled Models
+````````````````````````````````````````````````````````
+
+A hands-on workshop presented by A. Ashton, N. Gasparini, N. Lyons, I. Overeem, and M. Piper
+at the 2019 AGU Fall Meeting in San Francisco, CA.
+
+- Presentation and code: `<https://github.com/csdms/agu-2019>`_
+
+River, Coastal and Estuarine Morphodynamics (RCEM) Symposium
+````````````````````````````````````````````````````````````
+
+A hands-on workshop presented by K. Barnhart, E. Hutton, and G. Tucker
+at RCEM 2019, November 16-21 in Auckland, New Zealand.
+
+- Presentation and code: `<https://github.com/csdms/rcem-2019>`_
 
 UW Waterhackweek (Mar 2019): Landlab Modeling Framework and Use Cases
 `````````````````````````````````````````````````````````````````````
@@ -14,6 +66,7 @@ Istanbulluoglu
 
 - `View cyberseminar online <https://www.youtube.com/watch?v=m10UA5_gsuM&feature=youtu.be>`_
 - `Waterhackweek 2019 Landlab materials on HydroShare <https://www.hydroshare.org/resource/0e005873929f41818dd1371da292ba07/>`_
+
 
 2018
 ----

@@ -8,3 +8,5 @@
   reason: "stalls travis builds"
 - file: nst_scaling_profiling.ipynb
   reason: "stalls travis builds"
+- file: test_networkcreator_otherDEMs.ipynb
+  reason: "wip"

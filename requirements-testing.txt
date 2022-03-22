@@ -1,5 +1,7 @@
 coveralls
+hypothesis
 pytest
 pytest-cov
 pytest-datadir
+pytest-xdist
 pyyaml

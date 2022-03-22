@@ -1,4 +1,6 @@
+from .bedrock_landslider import BedrockLandslider
 from .chi_index import ChiFinder
+from .carbonate import CarbonateProducer
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -25,25 +27,29 @@ from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
+from .marine_sediment_transport import SimpleSubmarineDiffuser
 from .network_sediment_transporter import (
     NetworkSedimentTransporter, BedParcelInitializer
 )
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
+    KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
+    LinearDiffusionOverlandFlowRouter,
     OverlandFlow,
     OverlandFlowBates,
 )
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
-from .space import Space
+from .space import Space, SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -54,6 +60,7 @@ from .stream_power import (
     StreamPowerSmoothThresholdEroder,
 )
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
+from .tectonics import ListricKinematicExtender
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
@@ -61,6 +68,8 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    BedrockLandslider,
+    CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
@@ -78,6 +87,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
+    PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
@@ -87,12 +97,15 @@ COMPONENTS = [
     GroundwaterDupuitPercolator,
     HackCalculator,
     HeightAboveDrainageCalculator,
+    KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
     LakeMapperBarnes,
     LandslideProbability,
     LateralEroder,
     LinearDiffuser,
+    LinearDiffusionOverlandFlowRouter,
+    ListricKinematicExtender,
     LithoLayers,
     Lithology,
     LossyFlowAccumulator,
@@ -107,11 +120,13 @@ COMPONENTS = [
     Profiler,
     Radiation,
     SedDepEroder,
+    SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
+    SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,

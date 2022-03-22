@@ -236,7 +236,12 @@ def _get_raster_spacing(coords):
 
 
 def read_netcdf(
-    nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_value=-9999.0,
+    nc_file,
+    grid=None,
+    name=None,
+    just_grid=False,
+    halo=0,
+    nodata_value=-9999.0,
 ):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 

@@ -115,9 +115,9 @@ class PerronNLDiffuse(Component):
         self._delta_y = grid.dy
         self._one_over_delta_x = 1.0 / self._delta_x
         self._one_over_delta_y = 1.0 / self._delta_y
-        self._one_over_delta_x_sqd = self._one_over_delta_x ** 2.0
-        self._one_over_delta_y_sqd = self._one_over_delta_y ** 2.0
-        self._b = 1.0 / self._S_crit ** 2.0
+        self._one_over_delta_x_sqd = self._one_over_delta_x**2.0
+        self._one_over_delta_y_sqd = self._one_over_delta_y**2.0
+        self._b = 1.0 / self._S_crit**2.0
 
         ncols = grid.number_of_node_columns
         self._ncols = ncols

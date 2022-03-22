@@ -113,7 +113,7 @@ class DepthDependentDiffuser(Component):
 
     Johnstone, S., Hilley, G. (2015). Lithologic control on the form of
     soil-mantled hillslopes Geology  43(1), 83-86.
-    https://dx.doi.org/10.1130/g36052.1
+    https://doi.org/10.1130/G36052.1
 
     """
 

@@ -1,106 +1,7 @@
-"""Calculates erosion rate as a function of the depth-slope product.
+"""Landlab component that simulates detachment-limited river erosion.
 
-Erosion rate = k_e * ((Tau**a - Tau_crit**a))
-
-k_e = erodibility coefficient
-Tau = bed shear stress
-    = density of fluid (rho) * gravitational acceleration (g) * water depths (h) * slopes (S)
-Tau_crit = critical shear stress
-a = positive exponent
-
-Note this equation was presented in Tucker, G.T., 2004, Drainage basin
-sensitivityto tectonic and climatic forcing: Implications of a stochastic
-model for the role of entrainment and erosion thresholds,
-Earth Surface Processes and Landforms.
-
-More generalized than other erosion components, as it doesn't require the
-upstream node order, links to flow receiver and flow receiver fields. Instead,
-takes in the water depth and slope fields on NODES calculated by the
-OverlandFlow class and erodes the landscape in response to the hydrograph
-generted by that method.
-
-As of right now, this component relies on the OverlandFlow component
-for stability. There are no stability criteria implemented in this class.
-To ensure model stability, use StreamPowerEroder or FastscapeEroder
-components instead.
-
-.. codeauthor:: Jordan Adams
-
-Examples
---------
->>> import numpy as np
->>> from landlab import RasterModelGrid
->>> from landlab.components import DepthSlopeProductErosion
-
-Create a grid on which to calculate detachment ltd sediment transport.
-
->>> grid = RasterModelGrid((5, 5))
-
-The grid will need some data to provide the detachment limited sediment
-transport component. To check the names of the fields that provide input to
-the detachment ltd transport component, use the *input_var_names* class
-property.
-
-Create fields of data for each of these input variables.
-
-First create toopgraphy. This is a flat surface of elevation 10 m.
->>> grid.at_node['topographic__elevation'] = np.ones(grid.number_of_nodes)
->>> grid.at_node['topographic__elevation'] *= 10.
->>> grid.at_node['topographic__elevation'] = np.array([
-...      10., 10., 10., 10., 10.,
-...      10., 10., 10., 10., 10.,
-...      10., 10., 10., 10., 10.,
-...      10., 10., 10., 10., 10.,
-...      10., 10., 10., 10., 10.])
-
-Now we'll add an arbitrary water depth field on top of that topography.
->>> grid.at_node['surface_water__depth'] = np.array([
-...      5., 5., 5., 5., 5.,
-...      4., 4., 4., 4., 4.,
-...      3., 3., 3., 3., 3.,
-...      2., 2., 2., 2., 2.,
-...      1., 1., 1., 1., 1.])
-
-Using the set topography, now we will calculate slopes on all nodes.
-
-First calculating slopes on links
->>> grid.at_link['water_surface__slope'] = grid.calc_grad_at_link('surface_water__depth')
-
-Now putting slopes on nodes
-
->>> grid['node']['water_surface__slope'] = (grid['link']['water_surface__slope'][grid.links_at_node] * grid.active_link_dirs_at_node).max(axis=1) # doctest: +NORMALIZE_WHITESPACE
->>> grid.at_node['water_surface__slope']
-array([ 0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,
-        1.,  0., -0.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.])
-
-
-Instantiate the `DepthSlopeProductErosion` component to work on this grid, and
-run it. In this simple case, we need to pass it a time step ('dt') and also
-an erodibility factor ('k_e').
-
->>> dt = 1.
->>> dspe = DepthSlopeProductErosion(
-...     grid,
-...     k_e=0.00005,
-...     g=9.81,
-...     slope='water_surface__slope')
->>> dspe.run_one_step(dt=dt, )
-
-Now we test to see how the topography changed as a function of the erosion
-rate. First, we'll look at the erosion rate:
-
->>> dspe.dz   # doctest: +NORMALIZE_WHITESPACE
-array([ 0.    , -2.4525, -2.4525, -2.4525,  0.    ,  0.    , -1.962 ,
-       -1.962 , -1.962 ,  0.    ,  0.    , -1.4715, -1.4715, -1.4715,
-        0.    ,  0.    , -0.981 , -0.981 , -0.981 ,  0.    ,  0.    ,
-        0.    ,  0.    ,  0.    ,  0.    ])
-
-Now, our updated topography...
->>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
-         8.038 ,   8.038 ,   8.038 ,  10.    ,  10.    ,   8.5285,
-         8.5285,   8.5285,  10.    ,  10.    ,   9.019 ,   9.019 ,
-         9.019 ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ])
+This component calculates changes in elevation in response to
+vertical incision.
 """
 
 import numpy as np
@@ -110,11 +11,124 @@ from landlab import Component
 
 
 class DepthSlopeProductErosion(Component):
+    """Calculate erosion rate as a function of the depth-slope product.
 
-    """Landlab component that simulates detachment-limited river erosion.
+    Erosion rate is calculated as, ``erosion_rate = k_e * ((tau ** a - tau_crit ** a))``
 
-    This component calculates changes in elevation in response to
-    vertical incision.
+    *k_e*
+        Erodibility coefficient
+    *tau*
+        Bed shear stress: ``tau = rho * g * h * S``
+    *rho*
+        Density of fluid
+    *g*
+        Gravitational acceleration
+    *h*
+        Water depths
+    *S*
+        Slope
+    *tau_crit*
+        Critical shear stress
+    *a*
+        Positive exponent
+
+
+    Note this equation was presented in Tucker, G.T., 2004, Drainage basin
+    sensitivity to tectonic and climatic forcing: Implications of a stochastic
+    model for the role of entrainment and erosion thresholds,
+    Earth Surface Processes and Landforms.
+
+    More generalized than other erosion components, as it doesn't require the
+    upstream node order, links to flow receiver and flow receiver fields. Instead,
+    takes in the water depth and slope fields on NODES calculated by the
+    OverlandFlow class and erodes the landscape in response to the hydrograph
+    generted by that method.
+
+    As of right now, this component relies on the OverlandFlow component
+    for stability. There are no stability criteria implemented in this class.
+    To ensure model stability, use StreamPowerEroder or FastscapeEroder
+    components instead.
+
+    .. codeauthor:: Jordan Adams
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import DepthSlopeProductErosion
+
+    Create a grid on which to calculate detachment ltd sediment transport.
+
+    >>> grid = RasterModelGrid((5, 5))
+
+    The grid will need some data to provide the detachment limited sediment
+    transport component. To check the names of the fields that provide input to
+    the detachment ltd transport component, use the *input_var_names* class
+    property.
+
+    Create fields of data for each of these input variables.
+
+    First create topography. This is a flat surface of elevation 10 m.
+
+    >>> grid.at_node['topographic__elevation'] = np.ones(grid.number_of_nodes)
+    >>> grid.at_node['topographic__elevation'] *= 10.
+    >>> grid.at_node['topographic__elevation'] = np.array([
+    ...      10., 10., 10., 10., 10.,
+    ...      10., 10., 10., 10., 10.,
+    ...      10., 10., 10., 10., 10.,
+    ...      10., 10., 10., 10., 10.,
+    ...      10., 10., 10., 10., 10.])
+
+    Now we'll add an arbitrary water depth field on top of that topography.
+
+    >>> grid.at_node['surface_water__depth'] = np.array([
+    ...      5., 5., 5., 5., 5.,
+    ...      4., 4., 4., 4., 4.,
+    ...      3., 3., 3., 3., 3.,
+    ...      2., 2., 2., 2., 2.,
+    ...      1., 1., 1., 1., 1.])
+
+    Using the set topography, now we will calculate slopes on all nodes.
+
+    First calculating slopes on links
+
+    >>> grid.at_link['water_surface__slope'] = grid.calc_grad_at_link('surface_water__depth')
+
+    Now putting slopes on nodes
+
+    >>> grid['node']['water_surface__slope'] = (grid['link']['water_surface__slope'][grid.links_at_node] * grid.active_link_dirs_at_node).max(axis=1) # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.at_node['water_surface__slope']
+    array([ 0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,
+            1.,  0., -0.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.])
+
+    Instantiate the `DepthSlopeProductErosion` component to work on this grid, and
+    run it. In this simple case, we need to pass it a time step ('dt') and also
+    an erodibility factor ('k_e').
+
+    >>> dt = 1.
+    >>> dspe = DepthSlopeProductErosion(
+    ...     grid,
+    ...     k_e=0.00005,
+    ...     g=9.81,
+    ...     slope='water_surface__slope')
+    >>> dspe.run_one_step(dt=dt, )
+
+    Now we test to see how the topography changed as a function of the erosion
+    rate. First, we'll look at the erosion rate:
+
+    >>> dspe.dz   # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.    , -2.4525, -2.4525, -2.4525,  0.    ,  0.    , -1.962 ,
+           -1.962 , -1.962 ,  0.    ,  0.    , -1.4715, -1.4715, -1.4715,
+            0.    ,  0.    , -0.981 , -0.981 , -0.981 ,  0.    ,  0.    ,
+            0.    ,  0.    ,  0.    ,  0.    ])
+
+    Now, our updated topography...
+
+    >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+    array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
+             8.038 ,   8.038 ,   8.038 ,  10.    ,  10.    ,   8.5285,
+             8.5285,   8.5285,  10.    ,  10.    ,   9.019 ,   9.019 ,
+             9.019 ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ])
     """
 
     _name = "DepthSlopeProductErosion"
@@ -227,7 +241,7 @@ class DepthSlopeProductErosion(Component):
         self._E[less_than_tc] = 0.0
 
         self._E[greater_than_tc] = self._k_e * (
-            (self._tau[greater_than_tc] ** self._a) - (self._tau_crit ** self._a)
+            (self._tau[greater_than_tc] ** self._a) - (self._tau_crit**self._a)
         )
 
         self._E[self._E < 0.0] = 0.0

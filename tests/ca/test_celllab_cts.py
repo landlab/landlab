@@ -337,7 +337,7 @@ def test_setup_transition_data():
 
 
 def test_transitions_as_ids():
-    """Test passing from-state and to-state IDs instead of tuples """
+    """Test passing from-state and to-state IDs instead of tuples"""
 
     mg = HexModelGrid((3, 2), spacing=1.0, orientation="vertical", reorient_links=True)
     nsd = {0: "zero", 1: "one"}

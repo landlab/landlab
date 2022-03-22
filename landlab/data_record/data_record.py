@@ -275,7 +275,7 @@ class DataRecord(object):
             self._check_element_id_values(_grid_elements, _element_ids)
 
             # create coordinates for the dimension 'item_id':
-            self._item_ids = np.array(range(self._number_of_items), dtype=np.int)
+            self._item_ids = np.array(range(self._number_of_items), dtype=int)
 
             # create initial dictionaries of variables:
             if time is not None:
@@ -284,7 +284,7 @@ class DataRecord(object):
                     "element_id": (
                         ["item_id", "time"],
                         _element_ids,
-                        {"dtype": np.int},
+                        {"dtype": int},
                     ),
                 }
                 coords = {"time": self._times, "item_id": self._item_ids}
@@ -292,7 +292,7 @@ class DataRecord(object):
                 # no time
                 data_vars_dict = {
                     "grid_element": (["item_id"], _grid_elements),
-                    "element_id": (["item_id"], _element_ids, {"dtype": np.int}),
+                    "element_id": (["item_id"], _element_ids, {"dtype": int}),
                 }
                 coords = {"item_id": self._item_ids}
 
@@ -447,25 +447,30 @@ class DataRecord(object):
 
         Example of a DataRecord with dimensions time and item_id:
 
-        >>> my_items3 = {'grid_element': np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1],[3]])}
+        >>> my_items3 = {
+        ...     "grid_element": np.array([["node"], ["link"]]),
+        ...     "element_id": np.array([[1],[3]]),
+        ... }
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3 = DataRecord(grid,
-        ...                  time=[0.],
-        ...                  items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.], items=my_items3)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
 
-        >>> dr3.add_record(time=[2.0],
-        ...                item_id=[0],
-        ...                new_item_loc={'grid_element' : np.array([['node']]),
-        ...                             'element_id' : np.array([[6]])},
-        ...                new_record={'item_size':(
-        ...                           ['item_id', 'time'], np.array([[0.2]]))})
+        >>> dr3.add_record(
+        ...     time=[2.0],
+        ...     item_id=[0],
+        ...     new_item_loc={
+        ...         'grid_element' : np.array([['node']]),
+        ...         'element_id' : np.array([[6]])
+        ...     },
+        ...     new_record={
+        ...         'item_size':(['item_id', 'time'], np.array([[0.2]]))
+        ...     }
+        ... )
         >>> dr3.dataset['element_id'].values
         array([[  1.,   6.],
                [  3.,  nan]])
@@ -475,8 +480,7 @@ class DataRecord(object):
         The 'add_record' method can also be used to add a non item-related
         record:
 
-        >>> dr3.add_record(time=[50.0],
-        ...                new_record={'mean_elev': (['time'], [110])})
+        >>> dr3.add_record(time=[50.0], new_record={'mean_elev': (['time'], [110])})
         >>> dr3.dataset['mean_elev'].to_dataframe()
               mean_elev
         time
@@ -1072,7 +1076,7 @@ class DataRecord(object):
         ...                 data_vars={'ages' : (['item_id'], np.array(ages)),
         ...                             'volumes' : (
         ...                                 ['item_id'], np.array(volumes))})
-        >>> s = dr.calc_aggregate_value(func=np.sum, data_variable='ages')
+        >>> s = dr.calc_aggregate_value(func=xr.Dataset.sum, data_variable="ages")
         >>> s
         array([ 46.,  14.,  15.,  16.,   8.,  10.,  nan,  nan,  nan])
         >>> len(s) == grid.number_of_nodes
@@ -1087,9 +1091,9 @@ class DataRecord(object):
         greater than 10 we would to the following:
 
         >>> f = dr.dataset['ages'] > 10.
-        >>> v_f = dr.calc_aggregate_value(func=np.sum,
-        ...                               data_variable='volumes',
-        ...                               filter_array=f)
+        >>> v_f = dr.calc_aggregate_value(
+        ...     func=xr.Dataset.sum, data_variable='volumes', filter_array=f
+        ... )
         >>> v_f
         array([  8.,   3.,   4.,   5.,  nan,  nan,  nan,  nan,  nan])
 
@@ -1097,10 +1101,12 @@ class DataRecord(object):
         of np.nan we could use the keyword argument ``fill_value``.
 
         >>> f = dr.dataset['ages'] > 10.
-        >>> v_f = dr.calc_aggregate_value(func=np.sum,
-        ...                               data_variable='volumes',
-        ...                               filter_array=f,
-        ...                               fill_value=0.)
+        >>> v_f = dr.calc_aggregate_value(
+        ...     func=xr.Dataset.sum,
+        ...     data_variable="volumes",
+        ...     filter_array=f,
+        ...     fill_value=0.,
+        ... )
         >>> v_f
         array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
 
@@ -1108,19 +1114,21 @@ class DataRecord(object):
         ``False`` (np.nan is the default value).
 
         >>> f = dr.dataset['ages'] > 4000.
-        >>> v_f = dr.calc_aggregate_value(func=np.sum,
-        ...                               data_variable='volumes',
-        ...                               filter_array=f)
+        >>> v_f = dr.calc_aggregate_value(
+        ...     func=xr.Dataset.sum, data_variable="volumes", filter_array=f
+        ... )
         >>> v_f
         array([  nan,   nan,   nan,   nan,  nan,  nan,  nan,  nan,  nan])
 
         Other values can be specified for ``fill_value``.
 
         >>> f = dr.dataset['ages'] > 4000.
-        >>> v_f = dr.calc_aggregate_value(func=np.sum,
-        ...                               data_variable='volumes',
-        ...                               filter_array=f,
-        ...                               fill_value=0.)
+        >>> v_f = dr.calc_aggregate_value(
+        ...     func=xr.Dataset.sum,
+        ...     data_variable="volumes",
+        ...     filter_array=f,
+        ...     fill_value=0.,
+        ... )
         >>> v_f
         array([  0.,   0.,   0.,   0.,  0.,  0.,  0.,  0.,  0.])
         """
@@ -1140,7 +1148,7 @@ class DataRecord(object):
             filtered = self._dataset.where(my_filter).groupby("element_id")
 
             # Calculate values
-            vals = filtered.apply(func, *args, **kwargs)  # .reduce
+            vals = filtered.map(func, *args, **kwargs)  # .reduce
 
             # Create a nan array that we will fill with the results of the sum
             # this should be the size of the number of elements, even if there are

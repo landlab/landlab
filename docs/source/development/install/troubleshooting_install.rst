@@ -14,7 +14,7 @@ address this, re-run the following lines and then test the installation.
 .. code-block:: bash
 
    $ conda install --yes --file=requirements.txt
-   $ python setup.py develop
+   $ pip install -e .
 
 .. _what_do_if_cant_merge_pr:
 
@@ -70,7 +70,7 @@ again from the main Landlab local folder
 
 .. code-block:: bash
 
-   $ python setup.py develop
+   $ pip install -e .
 
 as described above in the main text. If this is happening when you call
 this install function rather than when you try to actually run some
@@ -80,7 +80,7 @@ I see errors about Cython when I try to *install* Landlab
 ---------------------------------------------------------
 
 If you see errors referring to Cython when you try to run
-``python setup.py develop``, it indicates you have a problem with your
+``pip install -e .``, it indicates you have a problem with your
 local compilers. This can happen both the first time you ever try this,
 or also subsequently, apparently at random. On a Mac, check first that
 you have the free Apple Xcode app (get it from the app store). If you do
