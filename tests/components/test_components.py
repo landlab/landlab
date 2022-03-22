@@ -1,105 +1,140 @@
+import numpy as np
 import pandas as pd
 import pytest
 
 from landlab import FieldError, RasterModelGrid
 from landlab.components import COMPONENTS
 
-_VALID_LOCS = ("grid", "node", "link", "patch", "corner", "face", "cell")
+_VALID_LOCS = {"grid", "node", "link", "patch", "corner", "face", "cell"}
 
+_REQUIRED_ATTRS = {"doc", "mapping", "dtype", "intent", "optional", "units"}
 
-_REQ_ATTRS = ["doc", "mapping", "dtype", "intent", "optional", "units"]
+_EXCLUDE_COMPONENTS = {
+    "ChannelProfiler",
+    "DrainageDensity",
+    "gFlex",
+    "HackCalculator",
+    "Lithology",
+    "LithoLayers",
+    "NetworkSedimentTransporter",
+    "Profiler",
+    "SoilMoisture",
+    "Vegetation",
+}
 
 
 @pytest.mark.parametrize("Comp", COMPONENTS)
-def test_component_metadata(Comp):
-    if Comp.name not in (
-        "ChannelProfiler",
-        "DrainageDensity",
-        "gFlex",
-        "HackCalculator",
-        "Lithology",
-        "LithoLayers",
-        "NetworkSedimentTransporter",
-        "Profiler",
-        "SoilMoisture",
-        "Vegetation",
-    ):
-        grid = RasterModelGrid((10, 10))
+def test_component_info_unit_agnostic(Comp):
+    """Check for a valid _units_agnostic attribute"""
+    assert Comp._unit_agnostic in (True, False)
 
-        assert Comp._unit_agnostic in (True, False)
 
-        # verify that we can create it
-        for name in Comp._info.keys():
-            if "in" in Comp._info[name]["intent"]:
-                at = Comp.var_loc(name)
-                dtype = Comp.var_type(name)
-                if at == "grid":
-                    grid.at_grid[name] = 0
-                else:
-                    grid.add_zeros(at, name, dtype=dtype)
+def _add_input_fields_to_grid(cls, grid):
+    for name, meta in cls._info.items():
+        if meta["intent"].startswith("in"):
+            at = cls.var_loc(name)
+            dtype = cls.var_type(name)
+            if at == "grid":
+                grid.at_grid[name] = np.array(0, dtype=dtype)
+            else:
+                grid.add_zeros(name, at=at, dtype=dtype)
 
-        _ = Comp(grid)
+    return grid
 
-        # verify that all output fields are made
-        for name in Comp._info.keys():
-            if "out" in Comp._info[name]["intent"]:
-                if not Comp._info[name]["optional"]:
-                    at = Comp._info[name]["mapping"]
-                    if name not in grid[at]:
-                        raise ValueError(
-                            "{component} is missing output variable: {name} at {at}".format(
-                                component=Comp._name, name=name, at=at
-                            )
-                        )
 
-                    field = grid[at][name]
-                    dtype = Comp._info[name]["dtype"]
+@pytest.mark.parametrize("Comp", COMPONENTS)
+def test_component_output_fields(Comp):
+    """Check that required output fields exist with correct dtypes and locations"""
+    if Comp.name in _EXCLUDE_COMPONENTS:
+        pytest.skip("component explicitly excluded")
 
-                    try:
-                        assert field.dtype == dtype
-                    except AssertionError:
-                        raise FieldError(
-                            "{component} output required variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                                component=Comp._name,
-                                name=name,
-                                at=at,
-                                dtype=dtype,
-                                actual=field.dtype,
-                            )
-                        )
+    component_name = Comp._name
+    grid = RasterModelGrid((10, 10))
 
-        # verify all info exist:
-        for name in Comp._info.keys():
-            info = Comp._info[name].copy()
-            at = Comp._info[name]["mapping"]
-            for attribute in _REQ_ATTRS:
-                if attribute in info:
-                    info.pop(attribute)
-                else:
-                    raise ValueError(
-                        "{component} is missing attribute {attribute} about variable: {name} at {at}".format(
-                            component=Comp._name, name=name, at=at, attribute=attribute
-                        )
-                    )
+    _add_input_fields_to_grid(Comp, grid)
+    Comp(grid)
 
-            if len(info) > 0:
+    for name, meta in Comp._info.items():
+        if meta["intent"].endswith("out") and not meta["optional"]:
+            at = meta["mapping"]
+            if name not in grid[at]:
                 raise ValueError(
-                    "{component} has an extra attribute {attribute} about variable: {name} at {at}".format(
-                        component=Comp._name, name=name, at=at, attribute=attribute
-                    )
+                    f"{component_name} is missing output variable: {name} at {at}"
                 )
 
-            # TODO: Verify that all units are UDUNITS compatible.
+            expected_dtype = meta["dtype"]
+            actual_dtype = grid[at][name].dtype
 
-            # TODO: Verify that all dtypes are valid.
-
-            # TODO: Verify that all mappings are valid grid locations.
-            if Comp._info[name]["mapping"] not in _VALID_LOCS:
-                raise ValueError(
-                    "{component} mapping for variable: {name} is invalid: {at}".format(
-                        component=Comp._name, name=name, at=at,
-                    )
+            if actual_dtype != expected_dtype:
+                raise FieldError(
+                    f"{component_name} output required variable: {name} at {at} has "
+                    f"incorrect dtype. dtype must be {expected_dtype} and is "
+                    f"{actual_dtype}"
                 )
+
+
+@pytest.mark.parametrize("Comp", COMPONENTS)
+def test_component_info_missing_attrs(Comp):
+    """Check that in/out fields are not missing attributes"""
+    component_name = Comp._name
+
+    for name, meta in Comp._info.items():
+        at = meta["mapping"]
+
+        missing = ", ".join(sorted(_REQUIRED_ATTRS - set(meta)))
+        if missing:
+            raise ValueError(
+                f"{component_name} is missing attributes ({missing}) about variable: "
+                f"{name} at {at}"
+            )
+
+
+@pytest.mark.parametrize("Comp", COMPONENTS)
+def test_component_info_unknown_attrs(Comp):
+    """Check that in/out fields have valid attributes"""
+    component_name = Comp._name
+
+    for name, meta in Comp._info.items():
+        at = meta["mapping"]
+
+        unknown = ", ".join(sorted(set(meta) - _REQUIRED_ATTRS))
+        if unknown:
+            raise ValueError(
+                f"{component_name} has extra attributes ({unknown}) about variable: "
+                f"{name} at {at}"
+            )
+
+
+@pytest.mark.parametrize("Comp", COMPONENTS)
+def test_component_info_valid_dtype(Comp):
+    """Check that fields have a valid numpy dtype"""
+    component_name = Comp._name
+
+    for name, meta in Comp._info.items():
+        dtype = meta["dtype"]
+        try:
+            np.dtype(dtype)
+        except TypeError:
+            raise ValueError(
+                f"{component_name} has a bad dtype ({dtype}) for variable: {name}"
+            )
+
+
+@pytest.mark.parametrize("Comp", COMPONENTS)
+def test_component_info_valid_locations(Comp):
+    """Check that fields are defined at valid locations"""
+    component_name = Comp._name
+
+    # verify all info exist:
+    for name, meta in Comp._info.items():
+        at = meta["mapping"]
+
+        # TODO: Verify that all units are UDUNITS compatible.
+
+        if at not in _VALID_LOCS:
+            raise ValueError(
+                f"{component_name} mapping for variable: {name} is invalid: {at}"
+            )
 
 
 def test_consistent_doc_names():

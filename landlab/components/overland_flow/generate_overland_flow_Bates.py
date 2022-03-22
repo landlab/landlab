@@ -16,7 +16,7 @@ from landlab import Component
 
 
 class OverlandFlowBates(Component):
-    u"""Simulate overland flow using Bates et al. (2010).
+    """Simulate overland flow using Bates et al. (2010).
 
     Landlab component that simulates overland flow using the Bates et al.,
     (2010) approximations of the 1D shallow water equations to be used for 2D
@@ -246,7 +246,7 @@ class OverlandFlowBates(Component):
             * self._dt
             * self._mannings_n_squared
             * abs(self._q[self._active_links])
-            / hflow ** self._ten_thirds
+            / hflow**self._ten_thirds
         )
 
         # Update our water depths

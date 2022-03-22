@@ -1,5 +1,3 @@
-
-
 # fix redirects
 import os
 

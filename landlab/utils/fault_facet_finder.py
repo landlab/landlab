@@ -122,7 +122,7 @@ class find_facets(object):
     def define_aspect_node_subset_local(
         self, dist_tolerance=4.0, angle_tolerance=15.0, dip_dir="E"
     ):
-        """"""
+        """ """
         grid = self.grid
         try:
             print("using subset")
@@ -358,7 +358,7 @@ class find_facets(object):
                 # max_diff = 3.*np.median(dist_diffs) #######this might need
                 # attention if there's a heavy tail on the distances
                 if grad < 1:
-                    mod = np.sqrt(1.0 + grad ** 2.0)
+                    mod = np.sqrt(1.0 + grad**2.0)
                 else:
                     mod = np.sqrt(1.0 + (1.0 / grad) ** 2.0)
                 max_diff = 1.9 * mod * grid.dx

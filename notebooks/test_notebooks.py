@@ -1,53 +1,103 @@
-import os
 import pathlib
 import subprocess
-import tempfile
+from pkg_resources import evaluate_marker
 
 import pytest
 import yaml
 
+from run_notebook_checks import _notebook_check_is_clean
+
 
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
+_EXCLUDE = dict()
 with open(_exclude_file, "r") as fp:
-    _EXCLUDE = dict([(item["file"], item["reason"]) for item in yaml.safe_load(fp)])
+    for item in yaml.safe_load(fp):
+        filename, reason = item["file"], item["reason"]
+        try:
+            unless = item["unless"]
+        except KeyError:
+            exclude = True
+        else:
+            exclude = not evaluate_marker(unless)
+        if exclude:
+            _EXCLUDE[filename] = reason
 
 
-def _notebook_run(path):
-    """Execute a notebook via nbconvert and collect output.
-       :returns (parsed nb object, execution errors)
+def _notebook_check(notebook):
+    """Check a notebook for errors.
+    Parameters
+    ----------
+    notebook : Notebook node
+        Path the to notebook to execute.
+    Returns
+    -------
+    errors : list of str
+        A list of the errors encountered in the notebook cells.
     """
-    import nbformat
-
-    _, notebook = os.path.split(path)
-    base, ext = os.path.splitext(notebook)
-
-    with tempfile.NamedTemporaryFile("w", suffix=".ipynb") as fp:
-        args = [
-            "jupyter",
-            "nbconvert",
-            "--to",
-            "notebook",
-            "--execute",
-            "--ExecutePreprocessor.kernel_name=python",
-            "--ExecutePreprocessor.timeout=-1",
-            "--output",
-            fp.name,
-            "--output-dir=.",
-            path,
-        ]
-        subprocess.check_call(args)
-
-        nb = nbformat.read(fp.name, nbformat.current_nbformat, encoding="UTF-8")
-
     errors = [
         output
-        for cell in nb.cells
+        for cell in notebook.cells
         if "outputs" in cell
         for output in cell["outputs"]
         if output.output_type == "error"
     ]
 
-    return nb, errors
+    return errors
+
+
+def _notebook_run(path_to_notebook):
+    """Execute a notebook via nbconvert and collect output.
+
+    Parameters
+    ----------
+    path_to_notebook : str or Path
+        Path to the notebook to execute.
+
+    Returns
+    -------
+    nb : NotebookNode
+        The parsed notebook object
+    """
+    import uuid
+
+    import nbformat
+
+    unique_name = pathlib.Path(
+        "{prefix}{suffix}".format(prefix=str(uuid.uuid4()), suffix=".ipynb")
+    )
+
+    try:
+        subprocess.check_call(
+            [
+                "jupyter",
+                "nbconvert",
+                "--to",
+                "notebook",
+                "--execute",
+                "--ExecutePreprocessor.kernel_name=python",
+                "--ExecutePreprocessor.timeout=-1",
+                "--output",
+                str(unique_name),
+                "--output-dir=.",
+                str(path_to_notebook),
+            ]
+        )
+    except subprocess.CalledProcessError:
+        raise
+    else:
+        nb = nbformat.read(unique_name, nbformat.current_nbformat)
+    finally:
+        try:
+            unique_name.unlink()
+        except FileNotFoundError:
+            pass
+
+    return nb
+
+
+@pytest.mark.notebook
+def test_notebook_is_clean(notebook):
+    assert _notebook_check_is_clean(notebook)
 
 
 @pytest.mark.notebook
@@ -58,5 +108,5 @@ def test_notebook(tmpdir, notebook):
         pass
 
     with tmpdir.as_cwd():
-        nb, errors = _notebook_run(notebook)
-        assert not errors
+        nb = _notebook_run(notebook)
+        assert _notebook_check(nb) == []

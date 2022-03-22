@@ -143,7 +143,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
         raise ValueError("number of dimensions in coordinates doesn't match loc")
 
     if out is None:
-        out = np.empty(coords[0].size, dtype=np.float)
+        out = np.empty(coords[0].size, dtype=float)
 
     alpha = get_flexure_parameter(eet, youngs, n_dim, gamma_mantle=gamma_mantle)
 

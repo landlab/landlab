@@ -1,9 +1,11 @@
-bmipy<1
+bmipy
 matplotlib
 netcdf4
+numpy
 pyyaml
 pyshp
 scipy
 statsmodels
 pandas
-xarray>=0.16
+xarray >= 0.16
+richdem

@@ -48,17 +48,15 @@ use is described :ref:`on this page <teaching_tutorials>`.
 Landlab 2.0
 -----------
 
-In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
-in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
-support of Python 2.7 with this transition.
+In late April 2020 Landlab reached version 2.0.
+Landlab dropped support of Python 2.7 with this transition.
 
 Supported Python Versions
 -------------------------
 
 Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
 binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
-and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 and 3.7
-(3.8 coming soon).
+and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6, 3.7, 3.8, and 3.9.
 
 Documentation Outline
 ---------------------
@@ -90,7 +88,6 @@ Landlab News
 
 To keep in touch with the latest Landlab news:
 
--  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
 -  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
 
 Citing Landlab
@@ -102,15 +99,15 @@ If you use any portion of Landlab, you must cite the following papers:
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
 E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
 toolkit for building, coupling, and exploring two-dimensional numerical models
-of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
+of Earth-surface dynamics, Earth Surface Dynamics, 5(1), p 21-46,
 10.5194/esurf-5-21-2017.
 
-`Barnhart, K. R. <https://doi.org/10.5194/esurf-2020-12>`__,
+`Barnhart, K. R. <https://doi.org/10.5194/esurf-8-379-2020>`__,
 Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
 Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
-and Bandaragoda, C.: Short communication: Landlab v2.0: A software package for
-Earth surface dynamics, Earth Surf. Dynam. Discuss.,
-https://doi.org/10.5194/esurf-2020-12, in review, 2020.
+and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
+Earth surface dynamics, Earth Surf. Dynam., 8(2), p 379-397,
+doi:10.5194/esurf-8-379-2020.
 
 
 BibTeX format:
@@ -127,8 +124,9 @@ BibTeX format:
                    toolkit for building, coupling, and exploring
                    two-dimensional numerical models of
                    Earth-surface dynamics},
-          number = {5},
-          pages = {21-46},
+          volume = {5},
+          number = {1},
+          pages = {21--46},
           doi = {10.5194/esurf-5-21-2017}}
 
  @article{barnhart2020short,
@@ -139,12 +137,13 @@ BibTeX format:
                     S. S. and Adams, J. M. and Bandaragoda, C.},
           title = {Short communication: Landlab v2.0: A software
                    package for Earth surface dynamics},
-          journal = {Earth Surface Dynamics Discussions},
-          volume = {2020},
+          journal = {Earth Surface Dynamics},
+          volume = {8},
           year = {2020},
-          pages = {1--25},
-          url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
-          doi = {10.5194/esurf-2020-12}
+          number = {2},
+          pages = {379--397},
+          url = {https://esurf.copernicus.org/articles/8/379/2020/},
+          doi = {10.5194/esurf-8-379-2020}
           }
 
 If you are working with Landlab components and utilities, many of them have

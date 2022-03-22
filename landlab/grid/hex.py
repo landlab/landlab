@@ -141,7 +141,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             node_layout=dataset.attrs["node_layout"],
         )
 
-    def as_dataset(self, include="*", exclude=None):
+    def as_dataset(self, include="*", exclude=None, time=None):
         dataset = xr.Dataset(
             {
                 "shape": (("dim",), list(self.shape)),
@@ -155,7 +155,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             },
         )
         return dataset.update(
-            super(HexModelGrid, self).as_dataset(include=include, exclude=exclude)
+            super(HexModelGrid, self).as_dataset(
+                include=include, exclude=exclude, time=None
+            )
         )
 
     @property
@@ -273,10 +275,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         stores a handle to the current plotting axis. Both of these are then
         used by hexplot().
         """
-        from numpy import array, sqrt, zeros
         import matplotlib
-        from matplotlib.patches import Polygon
         from matplotlib.collections import PatchCollection
+        from matplotlib.patches import Polygon
+        from numpy import array, sqrt, zeros
 
         # color
         if color_map is None:
@@ -353,9 +355,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         LLCATS: GINF
         """
-        from numpy import array, amin, amax
-        import matplotlib.pyplot as plt
         import copy
+
+        import matplotlib.pyplot as plt
+        from numpy import amax, amin, array
 
         try:
             self._hexplot_configured

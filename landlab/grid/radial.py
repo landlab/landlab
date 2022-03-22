@@ -130,7 +130,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
             xy_of_center=dataset["xy_of_center"],
         )
 
-    def as_dataset(self, include="*", exclude=None):
+    def as_dataset(self, include="*", exclude=None, time=None):
         dataset = xr.Dataset(
             {
                 "n_rings": self.number_of_rings,
@@ -141,7 +141,9 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
             attrs={"grid_type": "radial"},
         )
         return dataset.update(
-            super(RadialModelGrid, self).as_dataset(include=include, exclude=exclude)
+            super(RadialModelGrid, self).as_dataset(
+                include=include, exclude=exclude, time=time
+            )
         )
 
     @property

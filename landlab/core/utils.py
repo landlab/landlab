@@ -29,7 +29,7 @@ import shutil
 import numpy as np
 import pkg_resources
 
-SIZEOF_INT = np.dtype(np.int).itemsize
+SIZEOF_INT = np.dtype(int).itemsize
 
 
 class ExampleData:
@@ -170,7 +170,7 @@ def as_id_array(array):
     >>> y
     array([0, 1, 2, 3, 4])
 
-    >>> x = np.arange(5, dtype=np.int)
+    >>> x = np.arange(5, dtype=int)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
@@ -179,37 +179,37 @@ def as_id_array(array):
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> y.dtype == np.int
+    >>> y.dtype == int
     True
 
     >>> x = np.arange(5, dtype=np.int64)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> y.dtype == np.int
+    >>> y.dtype == int
     True
 
     >>> x = np.arange(5, dtype=np.intp)
     >>> y = as_id_array(x)
     >>> y
     array([0, 1, 2, 3, 4])
-    >>> y.dtype == np.int
+    >>> y.dtype == int
     True
 
     >>> x = np.arange(5, dtype=np.intp)
     >>> y = np.where(x < 3)[0]
     >>> y.dtype == np.intp
     True
-    >>> as_id_array(y).dtype == np.int
+    >>> as_id_array(y).dtype == int
     True
     """
     try:
-        if array.dtype == np.int:
-            return array.view(np.int)
+        if array.dtype == int:
+            return array.view(int)
         else:
-            return array.astype(np.int)
+            return array.astype(int)
     except AttributeError:
-        return np.asarray(array, dtype=np.int)
+        return np.asarray(array, dtype=int)
 
 
 def make_optional_arg_into_id_array(number_of_elements, *args):
@@ -252,7 +252,7 @@ def make_optional_arg_into_id_array(number_of_elements, *args):
     array([1, 2, 3, 4])
     """
     if len(args) == 0:
-        ids = np.arange(number_of_elements, dtype=np.int)
+        ids = np.arange(number_of_elements, dtype=int)
     elif len(args) == 1:
         ids = as_id_array(np.asarray(args[0])).reshape((-1,))
     else:
@@ -500,31 +500,31 @@ def sort_points_by_x_then_y(pts):
 def anticlockwise_argsort_points(pts, midpt=None):
     """Argort points into anticlockwise order around a supplied center.
 
-        Sorts CCW from east. Assumes a convex hull.
+    Sorts CCW from east. Assumes a convex hull.
 
-        Parameters
-        ----------
-        pts : Nx2 NumPy array of float
-        (x,y) points to be sorted
-        midpt : len-2 NumPy array of float (optional)
-        (x, y) of point about which to sort. If not provided, mean of pts is
-        used.
+    Parameters
+    ----------
+    pts : Nx2 NumPy array of float
+    (x,y) points to be sorted
+    midpt : len-2 NumPy array of float (optional)
+    (x, y) of point about which to sort. If not provided, mean of pts is
+    used.
 
-        Returns
-        -------
-        pts : N NumPy array of int
-            sorted (x,y) points
+    Returns
+    -------
+    pts : N NumPy array of int
+        sorted (x,y) points
 
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab.core.utils import anticlockwise_argsort_points
-        >>> pts = np.zeros((4, 2))
-        >>> pts[:,0] = np.array([-3., -1., -1., -3.])
-        >>> pts[:,1] = np.array([-1., -3., -1., -3.])
-        >>> sortorder = anticlockwise_argsort_points(pts)
-        >>> np.all(sortorder == np.array([2, 0, 3, 1]))
-        True
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import anticlockwise_argsort_points
+    >>> pts = np.zeros((4, 2))
+    >>> pts[:,0] = np.array([-3., -1., -1., -3.])
+    >>> pts[:,1] = np.array([-1., -3., -1., -3.])
+    >>> sortorder = anticlockwise_argsort_points(pts)
+    >>> np.all(sortorder == np.array([2, 0, 3, 1]))
+    True
     """
     if midpt is None:
         midpt = pts.mean(axis=0)
@@ -637,15 +637,16 @@ def get_categories_from_grid_methods(grid_type):
     """
     import inspect
     import re
-    from landlab import (
-        ModelGrid,
-        RasterModelGrid,
-        HexModelGrid,
-        RadialModelGrid,
-        VoronoiDelaunayGrid,
-        NetworkModelGrid,
-    )
     from copy import copy
+
+    from landlab import (
+        HexModelGrid,
+        ModelGrid,
+        NetworkModelGrid,
+        RadialModelGrid,
+        RasterModelGrid,
+        VoronoiDelaunayGrid,
+    )
 
     grid_str_to_grid = {
         "ModelGrid": ModelGrid,

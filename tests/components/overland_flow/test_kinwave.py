@@ -45,8 +45,9 @@ def test_grid_shape(kin_wave_of):
 
 
 def test_run_one_step():
-    from landlab import RasterModelGrid
     import numpy as np
+
+    from landlab import RasterModelGrid
     from landlab.components.overland_flow import KinwaveOverlandFlowModel
 
     grid = RasterModelGrid((10, 10), xy_spacing=0.5)

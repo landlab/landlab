@@ -43,6 +43,7 @@ Flow routing
    flow_accum
    flow_routing
    lake_fill
+   priority_flood_flow_router
    sink_fill
 
 Shallow water hydrodynamics
@@ -79,6 +80,7 @@ Landslides
 .. toctree::
   :maxdepth: 2
 
+  bedrock_landslider
   landslides
 
 Vegetation
@@ -114,6 +116,23 @@ Weathering
   :maxdepth: 2
 
   weathering
+
+Subaqueous / Submarine Processes
+--------------------------------
+
+.. toctree::
+  :maxdepth: 2
+
+  carbonate
+  marine_sediment_transport
+
+Tectonics
+---------
+
+.. toctree::
+  :maxdepth: 2
+
+  tectonics
 
 Terrain Analysis
 ----------------
