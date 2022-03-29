@@ -19,6 +19,7 @@ from .flow_director import (
     FlowDirectorSteepest,
 )
 from .fracture_grid import FractureGridGenerator
+from .genveg import VegParams, PlantGrowth
 from .gflex import gFlex
 from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
@@ -112,6 +113,7 @@ COMPONENTS = [
     OverlandFlow,
     OverlandFlowBates,
     PerronNLDiffuse,
+    PlantGrowth,
     PotentialEvapotranspiration,
     PotentialityFlowRouter,
     PrecipitationDistribution,
@@ -136,6 +138,7 @@ COMPONENTS = [
     TrickleDownProfiler,
     VegCA,
     Vegetation,
+    VegParams,
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
