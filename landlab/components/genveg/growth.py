@@ -4,7 +4,7 @@ is driven by a photosynthesis model. Vegetation growth depends on the availabili
 of carbohydrate produced by photosynthetically active plant parts. 
 """
 from matplotlib.pyplot import grid
-from landlab.components import Radiation
+#from landlab.components import Radiation
 from landlab import Component
 
 class PlantGrowth(Component):
@@ -75,7 +75,7 @@ class PlantGrowth(Component):
             ftype: dict, int, optional,
                 functional type of plant class
             ph_type: dict, string, required,
-                photosynthesis type (option are: C3 or C4)
+                photosynthesis type (option are: CAM, C3 or C4)
             gs_start: dict, int, required,
                 growing season start day of year
             gs_end: dict, int, required,
@@ -163,7 +163,157 @@ class PlantGrowth(Component):
                 raise ValueError(msg)
         
     def run_one_step(self):
-        print('Inside growth')
         #Add photosythesis code here
+        if day[j] == beginGrow:
+            twlvg = 0.25
+            twstg = 0.1
+            twrtg = 0.15
+            
+        ##################################################
+        #Calculate Vegetation Structure Metrics Each Day
+        ##################################################
+        
+        totLeafWeight = twlvd + twlvg #twlvd = total (t) weight(w) leaves(lv), d @ dead and g is living or green
+        np.round(totLeafWeight, 4)
+        print('Leaf Weight: {}'.format(totLeafWeight))
+        totStemWeight = twstd + twstg #total weight of stems where d at end is dead and g is living or green
+        print('Stem Weight: {}'.format(totStemWeight))
+        totRootWeight = twrtd + twrtg #total weight of roots where d at end is dead and g is living or green
+        print('Root Weight: {}'.format(totRootWeight))
+            
+        ##################################################
+        #Growth and Respiration
+        ##################################################
+        
+        
+        #maintenance respiration
+        if day[j] < endGrow and day[j] >= beginGrow:
+            print('day: {} '.format(j)) 
+            if day[j] < endGrow:
+                kmLVG = kmLVG_prime * pow(2,((Light.iloc[j]['meantemp'] - 25)/10))  #repiration coefficient for lvs, temp dependence from Teh 2006
+                print('kmlvg: {}'.format(kmLVG))
+                kmSTG = kmSTG_prime* pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) #respiration coefficient for stems, temp depencence from Teh 2006 page 134
+                print('kmSTG: {}'.format(kmSTG))
+                
+                kmRTG = kmRTG_prime * pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) #respiration coefficient for roots, temp dependence from Teh 2006 page 134
+                print('kmRTG: {}'.format(kmRTG))
+                
+                rmPrime = (kmLVG * twlvg) + (kmSTG * twstg) + (kmRTG * twrtg)  #maintenance respiration per day from Teh 2006
+                print('rmPrime: {}'.format(rmPrime))
+                
+                plantAge = twlvg/totLeafWeight #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
+                print('plant age: {}'.format(plantAge))
+    
+                if math.isnan(plantAge):
+                    plantAge = 0
+                
+                respMaint = rmPrime * plantAge  #plant age dependence from Teh 2006 page 145
+                print('respMaint: {}'.format(respMaint))
+        
+            #if then statement stops respiration at end of growing season
+            if day[j] >= endGrow:
+            #if day[j] >= endGrow and day[j] < beginGrow:
+                respMaint = 0
+            
+            #glucose requirement for growth
+            glocseReg = (FracDM_LVG * glucoseReqLVG) + (FracDM_STG * glucoseReqSTG) + (FracDM_RTG * glucoseReqRTG) #from Teh 2006 page 148
+            print('glocseReg: {}'.format(glocseReg))
+            
+            #writes results for daily respiration, plant age, and maintenance respiration
+            dailyrespiration.iloc[j] = rmPrime
+            print('daily respiration: {}'.format(dailyrespiration))
+            dailyplantage[j] = plantAge
+            print('daily plant age: {}'.format(dailyplantage))
+            dailyrespMaint[j] = respMaint
+            print('dailyrespMaint: {}'.format(dailyrespMaint))
+                
+                
+            #Enter photosynthesis loop  
+            
+            if day[j] < endGrow:
+                #dailyphoto = []
+                for hr in range(0,3):  #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
+                    parMicroE = (Light.iloc[j,hr]) * (868/208.32) #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
+                    np.round_(parMicroE, decimals = 4) 
+                    print('day: {}'.format(day[j]))
+                    print('parMicroE: {}'.format(parMicroE))
+                    intSolarRad = parMicroE*math.exp(-(PlantParameters['k'])*twlvg)  #from Charisma instructions: tells how much of the light a plant is going to get as PAR in microeinsteins based on how many leaves are on the plant
+                    np.round_(intSolarRad, decimals = 4)
+                    print('intSolarRad: {}'.format(intSolarRad))
+                    intLightpH = intSolarRad/(intSolarRad+Hi) #amoung of light absorbed, per half saturaion constants from Charisma eq. 3. the monod or michaelis/menten function is adequate for describing the photosynthetic response to light
+                    np.round_(intLightpH, decimals = 4)
+                    print('intLightpH: {}'.format(intLightpH))
+                    photosynthesis = (PlantParameters['pMax']) * intLightpH #pMax is the maximum rate of photosynthesis, species specific
+                    np.round_(photosynthesis, decimals = 4) 
+                    print('photosynthesis: {}'.format(photosynthesis))
+                    fgross.iloc[hr] = photosynthesis #calculates gross assimilation of fgross(like APT) via photosynthesis at specific hour calculate growth per day at three times per day, morning, middday, and evenning and this amount is weighted based on how much light is hitting hte plant based on the latitude of your study site
+                    print('fgross: {}'.format(fgross[hr]))
+                    dtga.iloc[hr] = fgross[hr]*wgaus[hr] #weights fgross for specific time of day
+                    print('dtga: {}'.format(dtga[hr]))
+                    round(dtga[hr],5)
+                
+                
+                
+            dtgaCollapsed = sum(dtga)*twlvg  #calculates total biomass gained across plant (twlvg is amount of leaver/green matter): you feed the model total biomass and then from that we determine how much leaf mass there is and so then basically an average of how much that average leaf will produce multiplied by the number of leaves, this is assuming that all leaves are mature
+            print('dtgaCollapsed: {}'.format(dtgaCollapsed))
+            assimilatedCH2O = dtgaCollapsed*Light['daylength'][day[j]] #total biomass for day length
+            print('Day length: {}'.format(Light['daylength'][day[j]]))
+            print('assimilatedCH2): {}'.format(assimilatedCH2O))
+            gphot = assimilatedCH2O*(30/44) #converts carbohydrates to glucose where photosynthesis unit is glucose and then we later convert that glucose to biomass in another section
+            print('gphot: {}'.format(gphot))
+            dailyphoto.iloc[j] = gphot
+            print('dailyphoto: {}'.format(dailyphoto))
+            
+        #if then statement ends glucose generation at end of growing season 
+        if day[j] >= endGrow:
+            gphot = 0
 
-        pass
+
+
+    def PAR(day, lat):
+    
+        degree_to_rad = 0.017453292  #required to convert degrees to radians
+        #rad_to_degree = (-math.asin((math.sin(23.45*degree_to_rad))*(math.cos(2*math.pi*(day+10)/365))))
+    
+    
+    
+        tmpvec = []
+        declination = (-math.asin((math.sin(23.45*degree_to_rad))*(math.cos(2*math.pi*(day+10)/365))))
+        
+        #Intermediate variables
+        sinld = ((math.sin(lat*degree_to_rad))*(math.sin(declination)))   #radians
+        cosld = math.cos(lat*degree_to_rad)*math.cos(declination)  #radians
+        
+        aob = (sinld/cosld)  #radians
+        
+        temp1 = math.asin(aob)
+        
+        daylength = 12 * (1 + 2 * temp1/math.pi)   #calculates daylength based on declination and latitude
+        
+        dsinB = 3600 * (daylength * sinld + 24 * cosld * math.sqrt(1 - aob * aob)/math.pi)
+        dsinBE = 3600 * (daylength * (sinld + 0.4 * (sinld * sinld + cosld * cosld * 0.5)) + 12 * cosld * (2 + 3 * 0.4 * sinld) * math.sqrt(1 - aob * aob)/math.pi)
+        
+        sc = 1370 * (1 + 0.033 * math.cos(2 * math.pi * day/365))  #solar constant
+        
+        dso = sc * dsinB  #Daily solar radiation
+        
+        for hr in range(0,3):
+            hour1 = 12 + (daylength * 0.5 * (xgauss[hr]))  #calculates hour in which photosynthesis is applied
+            print(hour1)
+            
+            sinb_tmp = sinld + cosld * math.cos(2 * math.pi * (hour1 + 12)/24)
+            print(sinb_tmp)
+            
+            sinB = max(pd.Series([0, sinb_tmp]))  #calculates sin of solar elevation, max functions prevents values less than 0
+            print(sinB)
+            
+            PAR1 = 0.5 * dso * sinB * (1 + 0.4 * sinB) / dsinBE  #dso can be replaced with values from FAO chart
+            print(PAR1)
+            
+            PAR1 = PAR1 * (868/208.32)  #convert to correct units
+            print(PAR1)
+            
+            tmpvec.append(PAR1)  #output of function is vector of 3 values that represents time of day
+            
+            
+        return tmpvec  #returns a vector of light values in MicroEinsteins
