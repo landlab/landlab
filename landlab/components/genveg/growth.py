@@ -213,7 +213,7 @@ class PlantGrowth(Component):
                 respMaint = 0
             
             #glucose requirement for growth
-            glocseReg = (FracDM_LVG * glucoseReqLVG) + (FracDM_STG * glucoseReqSTG) + (FracDM_RTG * glucoseReqRTG) #from Teh 2006 page 148
+            self.glu_req = (FracDM_LVG * glucoseReqLVG) + (FracDM_STG * glucoseReqSTG) + (FracDM_RTG * glucoseReqRTG) #from Teh 2006 page 148
 
             
             #writes results for daily respiration, plant age, and maintenance respiration
