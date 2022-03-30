@@ -164,7 +164,7 @@ class PlantGrowth(Component):
         
     def run_one_step(self):
         #Add photosythesis code here
-        if day[j] == beginGrow:
+        if self.current_day == self.gs_start:
             twlvg = 0.25
             twstg = 0.1
             twrtg = 0.15
@@ -174,12 +174,9 @@ class PlantGrowth(Component):
         ##################################################
         
         totLeafWeight = twlvd + twlvg #twlvd = total (t) weight(w) leaves(lv), d @ dead and g is living or green
-        np.round(totLeafWeight, 4)
-        print('Leaf Weight: {}'.format(totLeafWeight))
         totStemWeight = twstd + twstg #total weight of stems where d at end is dead and g is living or green
-        print('Stem Weight: {}'.format(totStemWeight))
         totRootWeight = twrtd + twrtg #total weight of roots where d at end is dead and g is living or green
-        print('Root Weight: {}'.format(totRootWeight))
+
             
         ##################################################
         #Growth and Respiration
@@ -187,85 +184,78 @@ class PlantGrowth(Component):
         
         
         #maintenance respiration
-        if day[j] < endGrow and day[j] >= beginGrow:
-            print('day: {} '.format(j)) 
-            if day[j] < endGrow:
+        if self.current_day < self.gs_end and self.current_day >= self.gs_start:
+
+            if self.current_day < self.gs_end:
                 kmLVG = kmLVG_prime * pow(2,((Light.iloc[j]['meantemp'] - 25)/10))  #repiration coefficient for lvs, temp dependence from Teh 2006
-                print('kmlvg: {}'.format(kmLVG))
+  
                 kmSTG = kmSTG_prime* pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) #respiration coefficient for stems, temp depencence from Teh 2006 page 134
-                print('kmSTG: {}'.format(kmSTG))
+
                 
                 kmRTG = kmRTG_prime * pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) #respiration coefficient for roots, temp dependence from Teh 2006 page 134
-                print('kmRTG: {}'.format(kmRTG))
+
                 
                 rmPrime = (kmLVG * twlvg) + (kmSTG * twstg) + (kmRTG * twrtg)  #maintenance respiration per day from Teh 2006
-                print('rmPrime: {}'.format(rmPrime))
+
                 
                 plantAge = twlvg/totLeafWeight #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
-                print('plant age: {}'.format(plantAge))
+
     
                 if math.isnan(plantAge):
                     plantAge = 0
                 
                 respMaint = rmPrime * plantAge  #plant age dependence from Teh 2006 page 145
-                print('respMaint: {}'.format(respMaint))
+
         
             #if then statement stops respiration at end of growing season
-            if day[j] >= endGrow:
-            #if day[j] >= endGrow and day[j] < beginGrow:
+            if self.current_day >= self.gs_end:
+
                 respMaint = 0
             
             #glucose requirement for growth
-            glocseReg = (FracDM_LVG * glucoseReqLVG) + (FracDM_STG * glucoseReqSTG) + (FracDM_RTG * glucoseReqRTG) #from Teh 2006 page 148
-            print('glocseReg: {}'.format(glocseReg))
+            self.glu_req = (FracDM_LVG * glucoseReqLVG) + (FracDM_STG * glucoseReqSTG) + (FracDM_RTG * glucoseReqRTG) #from Teh 2006 page 148
+
             
             #writes results for daily respiration, plant age, and maintenance respiration
-            dailyrespiration.iloc[j] = rmPrime
-            print('daily respiration: {}'.format(dailyrespiration))
-            dailyplantage[j] = plantAge
-            print('daily plant age: {}'.format(dailyplantage))
-            dailyrespMaint[j] = respMaint
-            print('dailyrespMaint: {}'.format(dailyrespMaint))
+            dailyrespiration.iloc[j] = rmPrime  #how to handle
+
+            dailyplantage[j] = plantAge    #how to handle
+
+            dailyrespMaint[j] = respMaint   #how to handle
+            
                 
                 
             #Enter photosynthesis loop  
             
-            if day[j] < endGrow:
+            if self.current_day < self.gs_end:
                 #dailyphoto = []
                 for hr in range(0,3):  #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
                     parMicroE = (Light.iloc[j,hr]) * (868/208.32) #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
-                    np.round_(parMicroE, decimals = 4) 
-                    print('day: {}'.format(day[j]))
-                    print('parMicroE: {}'.format(parMicroE))
+                   
                     intSolarRad = parMicroE*math.exp(-(PlantParameters['k'])*twlvg)  #from Charisma instructions: tells how much of the light a plant is going to get as PAR in microeinsteins based on how many leaves are on the plant
-                    np.round_(intSolarRad, decimals = 4)
-                    print('intSolarRad: {}'.format(intSolarRad))
+
                     intLightpH = intSolarRad/(intSolarRad+Hi) #amoung of light absorbed, per half saturaion constants from Charisma eq. 3. the monod or michaelis/menten function is adequate for describing the photosynthetic response to light
-                    np.round_(intLightpH, decimals = 4)
-                    print('intLightpH: {}'.format(intLightpH))
+
                     photosynthesis = (PlantParameters['pMax']) * intLightpH #pMax is the maximum rate of photosynthesis, species specific
-                    np.round_(photosynthesis, decimals = 4) 
-                    print('photosynthesis: {}'.format(photosynthesis))
+
                     fgross.iloc[hr] = photosynthesis #calculates gross assimilation of fgross(like APT) via photosynthesis at specific hour calculate growth per day at three times per day, morning, middday, and evenning and this amount is weighted based on how much light is hitting hte plant based on the latitude of your study site
-                    print('fgross: {}'.format(fgross[hr]))
+                   
                     dtga.iloc[hr] = fgross[hr]*wgaus[hr] #weights fgross for specific time of day
-                    print('dtga: {}'.format(dtga[hr]))
-                    round(dtga[hr],5)
+                    
                 
                 
                 
             dtgaCollapsed = sum(dtga)*twlvg  #calculates total biomass gained across plant (twlvg is amount of leaver/green matter): you feed the model total biomass and then from that we determine how much leaf mass there is and so then basically an average of how much that average leaf will produce multiplied by the number of leaves, this is assuming that all leaves are mature
-            print('dtgaCollapsed: {}'.format(dtgaCollapsed))
-            assimilatedCH2O = dtgaCollapsed*Light['daylength'][day[j]] #total biomass for day length
-            print('Day length: {}'.format(Light['daylength'][day[j]]))
-            print('assimilatedCH2): {}'.format(assimilatedCH2O))
+            
+            assimilatedCH2O = dtgaCollapsed*Light['daylength'][self.current_day] #total biomass for day length
+
             gphot = assimilatedCH2O*(30/44) #converts carbohydrates to glucose where photosynthesis unit is glucose and then we later convert that glucose to biomass in another section
-            print('gphot: {}'.format(gphot))
-            dailyphoto.iloc[j] = gphot
-            print('dailyphoto: {}'.format(dailyphoto))
+            
+            dailyphoto.iloc[j] = gphot  ##how do we want to handle something like this?
+            
             
         #if then statement ends glucose generation at end of growing season 
-        if day[j] >= endGrow:
+        if self.current_day >= self.gs_end:
             gphot = 0
 
 
