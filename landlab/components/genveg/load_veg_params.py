@@ -30,10 +30,12 @@ class VegParams:
         processes=[]
     ):
         if fpath=='None':
-            self.growthparams={
+            self.plant_factors={
                 'name':['Corn'],
                 'type': [1],
                 'ptype': ['C4'],
+            }
+            self.growthparams= {
                 'gs_start': [91],
                 'gs_end': [290],
                 'gs_sen': [228],
@@ -41,7 +43,8 @@ class VegParams:
                 'glu_req': [1.444,1.513,1.463],
                 'le_k':[0.02],
                 'hi':[9],
-                'p_max':[0.055]
+                'p_max':[0.055],
+                'allocate':[0.2,0.3,0.5],
             }
             if 'plantsize' in processes:
                 self.sizeparams={
@@ -96,51 +99,127 @@ class VegParams:
                     #Create list of values for a community on each tab
                     for i in coms:    
                         df_in=xlin.parse(i, usecols='B,D',skiprows=[1,4,18,30,34,37,40])
-                        group_in=df_in.groupby('Variable Name').agg(pd.Series.tolist)
-                        x=pd.concat([x,group_in],axis=1,join='outer')
-                        keyval=x.loc['name'].at['Values'][0]
-                        x.rename(columns={'Values': keyval}, inplace=True)
-                    self.x=x.T.to_dict()
+                        keyval=i
+                        growth_keys=[
+                            'name',
+                            'type',
+                            'ptype',
+                            'gs_start',
+                            'gs_end',
+                            'senes',
+                            'res_co',
+                            'glu_req',
+                            'le_k',
+                            'hi',
+                            'p_max',
+                            'allocate'
+                        ]
+                        grow=df_in[df_in['Variable Name'].isin(growth_keys)]
+                        group_grow=grow.groupby('Variable Name').agg(pd.Series.tolist)
+                        group_grow.rename(columns={'Values': 'growparams'}, inplace=True)
+                        grow=group_grow.to_dict()
+                        if 'plantsize' in processes:
+                            size_keys=[
+                                'pl_dens_max',
+                                'pl_stems_max',
+                                'stem_ht_max',
+                                'stem_mass_max',
+                                'stem_tca',
+                                'min_mass'
+                            ]
+                            size=df_in[df_in["Variable Name"].isin(size_keys)]
+                            group_size=size.groupby('Variable Name').agg(pd.Series.tolist)
+                            group_size.rename(columns={'Values': 'sizeparams'}, inplace=True)
+                            size=group_size.to_dict()
+                            if 'dispersal' in processes:
+                                disp_keys=[
+                                    'disp_dist',
+                                    'disp_size_rat',
+                                    'disp_cost'
+                                ]
+                                disp=df_in[df_in["Variable Name"].isin(disp_keys)]
+                                group_disp=disp.groupby('Variable Name').agg(pd.Series.tolist)
+                                group_disp.rename(columns={'Values': 'dispparams'}, inplace=True)
+                                disp=group_disp.to_dict()
+                            else:
+                                disp={{}}
+                            if 'storage' in processes:
+                                stor_keys=[
+                                    'r_wint_die',
+                                    'r_wint_stor'
+                                ]
+                                stor=df_in[df_in["Variable Name"].isin(stor_keys)]
+                                group_stor=stor.groupby('Variable Name').agg(pd.Series.tolist)
+                                group_stor.rename(columns={'Values': 'storparams'}, inplace=True)
+                                stor=group_stor.to_dict()
+                            else:
+                                stor={{}}
+                        else:
+                            size={{}}
+                        if 'colonize' in processes:
+                            col_keys=[
+                                'col_prob',
+                                'col_dt'
+                            ]
+                            col=df_in[df_in["Variable Name"].isin(col_keys)]
+                            group_col=col.groupby('Variable Name').agg(pd.Series.tolist)
+                            group_col.rename(columns={'Values': 'colparams'}, inplace=True)
+                            col=group_col.to_dict()
+                        else:
+                            col={{}}
+                        if 'mortality' in processes:
+                            mort_keys=[
+                                's1_name',
+                                's1_days',
+                                's1_pred',
+                                's1_rate',
+                                's1_weight'
+                                's2_name',
+                                's2_days',
+                                's2_pred',
+                                's2_rate',
+                                's2_weight',
+                                's3_name',
+                                's3_days',
+                                's3_pred',
+                                's3_rate',
+                                's3_weight',
+                                's4_name',
+                                's4_days',
+                                's4_pred',
+                                's4_rate',
+                                's4_weight',
+                                's5_name',
+                                's5_days',
+                                's5_pred',
+                                's5_rate',
+                                's5_weight'
+                            ]
+                            mort=df_in[df_in["Variable Name"].isin(mort_keys)]
+                            group_mort=mort.groupby('Variable Name').agg(pd.Series.tolist)
+                            group_mort.rename(columns={'Values': 'mortparams'}, inplace=True)
+                            mort=group_mort.to_dict()
+                        else:
+                            mort={{}}
+                        vegparams={keyval:{**grow,**size,**disp,**stor,**col,**mort}}
                 else: 
                     if exten == 'csv':
                         #Add Carra's code here and load into dict called x
                         pass
                     else:
                         raise ValueError('File extension not recognized')
-                #Make list of vegparams keys to create new dictionary    
-                param_keys={
-                    'ftype',
-                    'ph_type',
-                    'gs_start',
-                    'gs_end',
-                    'senes',
-                    'res_co',
-                    'glu_req',
-                    'le_k',
-                    'hi',
-                    'p_max',
-                    'allocate'
-                }
-                #Create growth parameter dictionary
-                self.growthparams={ key:value for key,value in self.x.items() if key in param_keys}
                 
-                #Check to see if plant size is required
-                if 'plantsize' in processes:
-                    param_keys={
-                        'pl_dens_max',
-                        'pl_stems_max',
-                        'stem_ht_max',
-                        'stem_mass_max',
-                        'stem_tca',
-                        'min_mass'
-                    }
-                    self.sizeparams={ key:value for key,value in self.x.items() if key in param_keys}
+                #Make list of vegparams keys to create new dictionary    
+               
+        self.vegparams=vegparams
+                
+
                     #Calculate derived size parameters
-                    rsratio=[]
-                    stem_mass_unit=[]
-                    stem_dens_max=[]
-                    ag_mass_max=[]
-                    bg_mass_max=[]
+                    #rsratio=[]
+                    #stem_mass_unit=[]
+                    #stem_dens_max=[]
+                    #ag_mass_max=[]
+                    #bg_mass_max=[]
                     #for j in range(len(coms)):
                     #    rsratio.append([self.sizeparams['allocate'][j][0]/(self.sizeparams['allocate'][j][1]+self.sizeparams['allocate'][j][2])])
                     #    stem_mass_unit.append([self.sizeparams['stem_mass_max'][j][0]/self.sizeparams['stem_ht_max'][j][0]])
@@ -154,73 +233,7 @@ class VegParams:
                     #self.sizeparams['stem_dens_max']=stem_dens_max
                     #self.sizeparams['ag_mass_max']=ag_mass_max
                     #self.sizeparams['bg_mass_max']=bg_mass_max
-
-                    if 'dispersal' in processes:
-                        param_keys={
-                            'disp_dist',
-                            'disp_size_rat',
-                            'disp_cost'
-                            }
-                        self.dispparams={ key:value for key,value in self.x.items() if key in param_keys}
-                    else:
-                        self.dispparams={}
-                    if 'storage' in processes:
-                        param_keys={
-                            'r_wint_die',
-                            'r_wint_stor',
-                            }
-                        self.storparams={ key:value for key,value in self.x.items() if key in param_keys}
-                    else:
-                        self.storparams={}
-                if 'colonize' in processes:
-                    param_keys={
-                        'col_prob',
-                        'col_dt'
-                    }
-                    self.colparams={ key:value for key,value in self.x.items() if key in param_keys}
-                else:
-                    self.colparams={}
                 
-                if 'mortality' in processes:
-                    param_keys={
-                        's1_name',
-                        's1_days',
-                        's1_pred',
-                        's1_rate',
-                        's1_weight'
-                        's2_name',
-                        's2_days',
-                        's2_pred',
-                        's2_rate',
-                        's2_weight',
-                        's3_name',
-                        's3_days',
-                        's3_pred',
-                        's3_rate',
-                        's3_weight',
-                        's4_name',
-                        's4_days',
-                        's4_pred',
-                        's4_rate',
-                        's4_weight',
-                        's5_name',
-                        's5_days',
-                        's5_pred',
-                        's5_rate',
-                        's5_weight'
-                    }
-                    self.mortparams={ key:value for key,value in self.x.items() if key in param_keys}
-                else:
-                    self.mortparams={}
-        out={'veg_params':{
-                'plant_ids': self.x['name'],
-                'growthparams':self.growthparams,
-                'sizeparams':self.sizeparams,
-                'dispparams':self.dispparams,
-                'storparams':self.storparams,
-                'colparams':self.colparams,
-                'mortparams':self.mortparams
-            }
-        }
+
         with open(outfile,'w') as outfile:
-            yaml.dump(out, outfile, default_flow_style=True)            
+            yaml.dump(self.vegparams, outfile, default_flow_style=True)            
