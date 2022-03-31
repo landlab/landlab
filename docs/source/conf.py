@@ -128,12 +128,22 @@ autoclass_content = "both"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinxdoc"
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    "description": "An open-source Python package for building numerical models of Earth surface dynamics.",
+    "logo": "landlab_logo.jpg",
+    "logo_name": False,
+    "github_user": "landlab",
+    "github_repo": "landlab",
+    "extra_nav_links": {
+        "landlab @ GitHub": "https://github.com/landlab/landlab/",
+        "Contact Us": "https://github.com/landlab/landlab/issues",
+    },
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -147,18 +157,18 @@ html_theme = "sphinxdoc"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "images/landlab_logo.jpg"
+# html_logo = "images/landlab_logo.jpg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = None
-# html_favicon = "images/favicon.ico"
+# html_favicon = None
+html_favicon = "images/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = ["_static", "images"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -170,6 +180,10 @@ html_static_path = ["_static"]
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
+html_sidebars = {
+    "**": ["about.html", "searchbox.html", "navigation.html", "sidebaroutro.html"]
+}
+
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -347,5 +361,3 @@ napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
-
-html_style = "landlab.css"
