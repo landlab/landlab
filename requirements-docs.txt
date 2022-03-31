@@ -2,7 +2,7 @@ pandoc
 nbformat
 jupyter_client
 ipython
-sphinx
+sphinx>=4
 sphinx_rtd_theme
 tornado
 entrypoints
