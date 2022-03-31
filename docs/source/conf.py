@@ -70,8 +70,8 @@ if os.getenv("GITHUB_ACTIONS"):
 master_doc = "index"
 
 # General information about the project.
-project = u"landlab"
-copyright = str(date.today().year) + u", The Landlab Team"
+project = "landlab"
+copyright = str(date.today().year) + ", The Landlab Team"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -152,7 +152,8 @@ html_logo = "images/landlab_logo.jpg"
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "images/favicon.ico"
+html_favicon = None
+# html_favicon = "images/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -218,7 +219,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "landlab.tex", u"landlab Documentation", u"Author", "manual"),
+    ("index", "landlab.tex", "landlab Documentation", "Author", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -246,7 +247,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "landlab", u"landlab Documentation", [u"Author"], 1)]
+man_pages = [("index", "landlab", "landlab Documentation", ["Author"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -261,8 +262,8 @@ texinfo_documents = [
     (
         "index",
         "landlab",
-        u"landlab Documentation",
-        u"Author",
+        "landlab Documentation",
+        "Author",
         "landlab",
         "One line description of project.",
         "Miscellaneous",
@@ -285,10 +286,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u"landlab"
-epub_author = u"Author"
-epub_publisher = u"Author"
-epub_copyright = u"2013, Author"
+epub_title = "landlab"
+epub_author = "Author"
+epub_publisher = "Author"
+epub_copyright = "2013, Author"
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
