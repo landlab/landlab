@@ -27,51 +27,63 @@ class VegParams:
         self,
         fpath='None',
         outfile='veg_params.yml',
-        processes=[]
+        processes=[],
+        vegparams={}
     ):
         if fpath=='None':
-            self.plant_factors={
-                'name':['Corn'],
-                'type': [1],
-                'ptype': ['C4'],
-            }
-            self.growthparams= {
-                'gs_start': [91],
-                'gs_end': [290],
-                'gs_sen': [228],
-                'res_co': [0.015,0.015,0.03],
-                'glu_req': [1.444,1.513,1.463],
-                'le_k':[0.02],
-                'hi':[9],
-                'p_max':[0.055],
-                'allocate':[0.2,0.3,0.5],
+            self.vegparams={'Corn': {
+                    'plant_factors':{
+                        'species':['Corn'],
+                        'growth_form': [1],
+                        'annual_perennial': ['C4']
+                    },
+                    'growthparams': {
+                        'ptype':['C3'],
+                        'growing_season_start': [91],
+                        'growing_season_end': [290],
+                        'senescence_start': [228],
+                        'respiration_coefficient': [0.015,0.015,0.03],
+                        'glucose_requirement': [1.444,1.513,1.463],
+                        'k_light_extinct':[0.02],
+                        'light_half_sat':[9],
+                        'p_max':[0.055],
+                        'plant_part_allocation':[0.2,0.3,0.5],
+                        'plant_part_min':[0.01,0.1,0.5]
+                    }
+                }
             }
             if 'plantsize' in processes:
                 self.sizeparams={
-                    'pl_dens_max': [1],
-                    'stems_max': [3],
-                    'stem_ht_max': [2.5],
-                    'stem_mass_max': [72],
-                    'allocate': [0.45,0.3,0.25],
-                    'stem_tca': [0.231],
-                    'min_mass':[0.01,0.1,0.5]
+                    'max_plant_density': [1],
+                    'max_n_stems': [3],
+                    'max_height_stem': [2.5],
+                    'max_mass_stem': [72],
+                    'total_cs_area_stems': [0.231]                    
                 }
-                if 'dispersal' in processes:
+                if 'dispersion' in processes:
                     self.dispparams={
-                        'disp_dist': [2],
+                        'max_dist_dispersion': [2],
                         'disp_size_rat': [0.5],
                         'disp_cost': [0]
                     }
+                else: self.dispparams={}
+                self.vegparams['Corn']['dispparams']={**self.dispparams}
                 if 'storage' in processes:
                     self.storparams={
                         'r_wint_die': [0.25],
                         'r_wint_stor': [0.25]
                     }
+                else: self.storparams={}
+                self.vegparams['Corn']['storparams']={**self.storparams}
+            else: self.sizeparams={}
+            self.vegparams['sizeparams']={**self.sizeparams}
             if 'colonize' in processes:
                 self.colparams={
                     'col_prob': [0.01],
                     'col_dt': [365]
                 }
+            else: self.colparams={}
+            self.vegparams['Corn']['colparams']={**self.colparams}
             if 'mortality' in processes:
                 self.mortparams={
                     's1_name': 'Mortality factor',
@@ -80,6 +92,8 @@ class VegParams:
                     's1_rate': [0,0.1,0.9,1],
                     's1_weight':[1000,1,1,1000]
                 }
+            else: self.mortparams={}
+            self.vegparams['Corn']['mortparams']={**self.mortparams}
         else: 
             ispathvalid=fpath.is_file()   
             if ispathvalid==False:
@@ -98,21 +112,28 @@ class VegParams:
                     x=pd.DataFrame()
                     #Create list of values for a community on each tab
                     for i in coms:    
-                        df_in=xlin.parse(i, usecols='B,D',skiprows=[1,4,18,30,34,37,40])
-                        keyval=i
+                        df_in=xlin.parse(i, usecols='B,D',skiprows=[1,5,25,31,35,38,41])
+                        factor_keys=[
+                            'species',
+                            'growth_form',
+                            'annual_perennial',
+                        ]
+                        factor=df_in[df_in['Variable Name'].isin(factor_keys)]
+                        group_factor=factor.groupby('Variable Name').agg(pd.Series.tolist)
+                        group_factor.rename(columns={'Values': 'plant_factors'}, inplace=True)
+                        factor=group_factor.to_dict()                        
                         growth_keys=[
-                            'name',
-                            'type',
                             'ptype',
-                            'gs_start',
-                            'gs_end',
-                            'senes',
-                            'res_co',
-                            'glu_req',
-                            'le_k',
+                            'growing_season_start',
+                            'growing_season_end',
+                            'senescence_start',
+                            'respiration_coefficient',
+                            'glucose_requirement',
+                            'k_light_extinct',
                             'hi',
-                            'p_max',
-                            'allocate'
+                            'light_half_sat',
+                            'plant_part_allocation',
+                            'plant_part_min'
                         ]
                         grow=df_in[df_in['Variable Name'].isin(growth_keys)]
                         group_grow=grow.groupby('Variable Name').agg(pd.Series.tolist)
@@ -120,12 +141,10 @@ class VegParams:
                         grow=group_grow.to_dict()
                         if 'plantsize' in processes:
                             size_keys=[
-                                'pl_dens_max',
-                                'pl_stems_max',
-                                'stem_ht_max',
-                                'stem_mass_max',
-                                'stem_tca',
-                                'min_mass'
+                                'max_plant_density',
+                                'max_n_stems',
+                                'max_height_stem',
+                                'total_cs_area_stems'
                             ]
                             size=df_in[df_in["Variable Name"].isin(size_keys)]
                             group_size=size.groupby('Variable Name').agg(pd.Series.tolist)
@@ -133,9 +152,9 @@ class VegParams:
                             size=group_size.to_dict()
                             if 'dispersal' in processes:
                                 disp_keys=[
-                                    'disp_dist',
-                                    'disp_size_rat',
-                                    'disp_cost'
+                                    'max_dist_dispersion',
+                                    'min_size_dispersion',
+                                    'carb_cost_dispersion'
                                 ]
                                 disp=df_in[df_in["Variable Name"].isin(disp_keys)]
                                 group_disp=disp.groupby('Variable Name').agg(pd.Series.tolist)
@@ -145,28 +164,28 @@ class VegParams:
                                 disp={{}}
                             if 'storage' in processes:
                                 stor_keys=[
-                                    'r_wint_die',
-                                    'r_wint_stor'
+                                    'wint_dieoff_roots',
+                                    'wint_stor_to_roots'
                                 ]
                                 stor=df_in[df_in["Variable Name"].isin(stor_keys)]
                                 group_stor=stor.groupby('Variable Name').agg(pd.Series.tolist)
                                 group_stor.rename(columns={'Values': 'storparams'}, inplace=True)
                                 stor=group_stor.to_dict()
                             else:
-                                stor={{}}
+                                stor={}
                         else:
-                            size={{}}
+                            size={}
                         if 'colonize' in processes:
                             col_keys=[
-                                'col_prob',
-                                'col_dt'
+                                'prob_colonization',
+                                'time_to_colonization'
                             ]
                             col=df_in[df_in["Variable Name"].isin(col_keys)]
                             group_col=col.groupby('Variable Name').agg(pd.Series.tolist)
                             group_col.rename(columns={'Values': 'colparams'}, inplace=True)
                             col=group_col.to_dict()
                         else:
-                            col={{}}
+                            col={}
                         if 'mortality' in processes:
                             mort_keys=[
                                 's1_name',
@@ -195,13 +214,13 @@ class VegParams:
                                 's5_rate',
                                 's5_weight'
                             ]
-                            mort=df_in[df_in["Variable Name"].isin(mort_keys)]
+                            mort=df_in[df_in['Variable Name'].isin(mort_keys)]
                             group_mort=mort.groupby('Variable Name').agg(pd.Series.tolist)
                             group_mort.rename(columns={'Values': 'mortparams'}, inplace=True)
                             mort=group_mort.to_dict()
                         else:
-                            mort={{}}
-                        vegparams={keyval:{**grow,**size,**disp,**stor,**col,**mort}}
+                            mort={}
+                        vegparams[i]={**factor, **grow,**size,**disp,**stor,**col,**mort}
                 else: 
                     if exten == 'csv':
                         #Add Carra's code here and load into dict called x
@@ -211,7 +230,7 @@ class VegParams:
                 
                 #Make list of vegparams keys to create new dictionary    
                
-        self.vegparams=vegparams
+                self.vegparams=vegparams
                 
 
                     #Calculate derived size parameters
