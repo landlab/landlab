@@ -1,3 +1,12 @@
+"""
+Landlab component that ....[INSERT DESCRIPTION HERE]
+
+.. codeauthor:: [UPDATE LIST HERE - add Muneer and Jeff?] Allison Pfeiffer, Katy Barnhart, Jon Czuba, Eric Hutton
+
+
+Last edit was sometime after April 2022
+"""
+
 import warnings
 
 import numpy as np
@@ -10,6 +19,13 @@ _OUT_OF_NETWORK = -2
 
 
 class BedParcelInitializerBase:
+    """
+        [INSERT very simple description of what the bed parcel initializers are]
+
+
+    """
+
+
     def __init__(
         self,
         grid,
@@ -167,6 +183,8 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
     ...     grid, discharge_at_link = discharge
     ... )
     >>> parcels = initialize_parcels()
+
+    [INSERT SOMETHING TO TEST WHAT PARCEL OUTPUT SHOULD BE... and equivalent for other examples below]
 
     """
 
