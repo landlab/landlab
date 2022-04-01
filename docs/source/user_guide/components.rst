@@ -14,14 +14,6 @@ relatively standardized way of interacting with and using each different one.
 Landlab components exist as classes, and can be imported from
 ``landlab.components``.
 
-    We emphasize that at the moment most Landlab components are under active
-    development, and it is possible that    changes may occur to things such as
-    input argument format with little or no warning. Please let the Landlab
-    development team know if you're making heavy use of a component so we can
-    avoid unnecessarily breaking your code in future Landlab releases!
-    Components are presented as-is in this beta release and we don't make any
-    guarantees about the stability or otherwise of the implementations.
-
 To develop your own Landlab component, see
 :ref:`this page <dev_contributing>`
 and
@@ -163,7 +155,7 @@ Landlab components always want to see a Python dictionary as their input, as
 illustrated above. However, Landlab does offer a native file
 reader called `load_params` that allows you to create dictionaries to pass to
 components from input files. This function recognizes both
-`"yaml" <https://yaml.org/start.html>`_ formatted data files, e.g.,
+`"yaml" <https://yaml.org/spec/1.2/>`_ formatted data files, e.g.,
 
 .. code-block:: yaml
 

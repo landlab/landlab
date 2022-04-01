@@ -146,7 +146,7 @@ and run
 
 .. code-block:: bash
 
-    $ python setup.py develop
+    $ pip install -e .
 
 and test:
 

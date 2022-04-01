@@ -123,10 +123,10 @@ def reverse_one_to_many(ids, min_counts=0):
 
 
 def reorder_links_at_patch(graph):
-    from ..quantity.of_patch import get_area_of_patch
-    from ..quantity.of_link import get_midpoint_of_link
     from ..matrix.ext.matrix import roll_id_matrix_rows
     from ..object.ext.at_patch import get_rightmost_edge_at_patch
+    from ..quantity.of_link import get_midpoint_of_link
+    from ..quantity.of_patch import get_area_of_patch
     from .ext.remap_element import reverse_element_order
 
     if graph.number_of_patches == 0:

@@ -1174,7 +1174,7 @@ class SpatialPrecipitationDistribution(Component):
                     # ^Samples from distribution of storm areas
 
                     r = np.sqrt(area_val / np.pi)  # value here shd be selected
-                    rsq = r ** 2
+                    rsq = r**2
                     # based on area above in meters to match the UTM values
 
                     # This way of handling storm locations is really quite
@@ -1335,7 +1335,7 @@ class SpatialPrecipitationDistribution(Component):
                     # Xin -> only the open nodes, note
                     self._gauge_dist_km[:entries] = np.sqrt(gdist[mask_name]) / 1000.0
                     self._temp_dataslots2[:entries] = gdist[mask_name] / 1.0e6
-                    self._temp_dataslots2[:entries] *= -2.0 * recess_val ** 2
+                    self._temp_dataslots2[:entries] *= -2.0 * recess_val**2
                     np.exp(
                         self._temp_dataslots2[:entries],
                         out=self._temp_dataslots2[:entries],

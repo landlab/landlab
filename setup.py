@@ -2,21 +2,48 @@
 
 import os
 import re
-from distutils.extension import Extension
 
 import pkg_resources
 from setuptools import Extension, find_packages, setup
-from setuptools.command.develop import develop
-from setuptools.command.install import install
 
-import versioneer
 
 numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
 
 
+def read(filename):
+    with open(filename, "r", encoding="utf-8") as fp:
+        return fp.read()
+
+
+def read_requirements(filename):
+    """Read requirements from a file, adding dependency specifications where needed.
+
+    Dependency specifications could be included in the requirements file but,
+    since the requirements file is also used by conda and conda doesn't
+    understand dependency specifications, we add them here.
+    """
+    lines = [line.strip() for line in read(filename).splitlines()]
+    requirements = []
+    for requirement in lines:
+        if requirement.startswith(("richdem", "bmi-topography")):
+            requirement += "; sys_platform != 'win32' or python_version < '3.10'"
+        requirements.append(requirement)
+
+    return requirements
+
+
+long_description = "\n\n".join(
+    [
+        read("README.rst"),
+        read("AUTHORS.rst"),
+        read("CHANGES.rst"),
+    ]
+)
+
+
 def find_extensions(path="."):
     extensions = []
-    for root, dirs, files in os.walk(os.path.normpath(path)):
+    for root, _dirs, files in os.walk(os.path.normpath(path)):
         extensions += [
             os.path.join(root, fname) for fname in files if fname.endswith(".pyx")
         ]
@@ -26,68 +53,46 @@ def find_extensions(path="."):
     ]
 
 
-def register(**kwds):
-    import httplib, urllib
-
-    data = urllib.urlencode(kwds)
-    header = {
-        "Content-type": "application/x-www-form-urlencoded",
-        "Accept": "text/plain",
-    }
-    conn = httplib.HTTPConnection("csdms.colorado.edu")
-    conn.request("POST", "/register/", data, header)
-
-
-def register_landlab():
-    try:
-        from sys import argv
-        import platform
-
-        data = {
-            "name": "landlab",
-            "version": __version__,
-            "platform": platform.platform(),
-            "desc": ";".join(argv),
-        }
-        register(**data)
-    except Exception:
-        pass
-
-
-class install_and_register(install):
-    def run(self):
-        install.run(self)
-        register_landlab()
-
-
-class develop_and_register(develop):
-    def run(self):
-        develop.run(self)
-        register_landlab()
-
+install_requires = read_requirements("requirements.txt")
+extras_require = {
+    "tests": read_requirements("requirements-testing.txt"),
+    "docs": read_requirements("requirements-docs.txt"),
+    "dev": read_requirements("requirements-dev.txt"),
+    "notebooks": read_requirements("requirements-notebooks.txt"),
+}
 
 setup(
     name="landlab",
-    version=versioneer.get_version(),
+    version="2.4.2.dev0",
     author="Eric Hutton",
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",
     description="Plugin-based component modeling tool.",
-    long_description=open("README.rst").read(),
-    python_requires=">=3.6",
-    setup_requires=["cython", "numpy"],
-    install_requires=open("requirements.txt", "r").read().splitlines(),
+    long_description=long_description,
+    python_requires=">=3.7",
+    install_requires=install_requires,
+    extras_require=extras_require,
     include_package_data=True,
     classifiers=[
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Cython",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering :: Physics",
+    ],
+    keywords=[
+        "bmi",
+        "component modeling",
+        "earth science",
+        "gridding engine",
+        "model coupling",
+        "numerical modeling",
     ],
     packages=find_packages(),
     package_data={
@@ -103,9 +108,6 @@ setup(
             "test_*/*asc",
         ]
     },
-    cmdclass=versioneer.get_cmdclass(
-        {"install": install_and_register, "develop": develop_and_register}
-    ),
     entry_points={"console_scripts": ["landlab=landlab.cmd.landlab:main"]},
     include_dirs=[numpy_incl],
     ext_modules=find_extensions("landlab"),

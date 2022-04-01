@@ -58,7 +58,7 @@ def test_without_depression_handling():
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     )
     assert_array_equal(
-        ed._qs_in,
+        ed.sediment_influx,
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     )
 
@@ -143,7 +143,7 @@ def test_with_depression_handling():
         ],
     )
     assert_array_almost_equal(
-        ed._qs_in,
+        ed.sediment_influx,
         [
             0.0,
             0.0,
@@ -210,7 +210,7 @@ def test_adaptive_solver_without_depression_handling():
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     )
     assert_array_equal(
-        ed._qs_in,
+        ed.sediment_influx,
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     )
 
@@ -295,7 +295,7 @@ def test_adaptive_solver_with_depression_handling():
         ],
     )
     assert_array_almost_equal(
-        ed._qs_in,
+        ed.sediment_influx,
         [
             0.0,
             0.0,

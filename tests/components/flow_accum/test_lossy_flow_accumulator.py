@@ -26,7 +26,7 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 def test_loss_func_arguments():
     """Check the loss_function only has one argument."""
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
+    mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
 
     def funcgood(x):
         return 0.0
@@ -147,7 +147,7 @@ def test_check_fields():
 
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     z = mg.add_field(
-        "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
+        "topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node"
     )
 
     LossyFlowAccumulator(mg)
@@ -172,28 +172,28 @@ def test_director_adding_methods_are_equivalent_Steepest():
 
     mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
-        "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
+        "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="D4")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
-        "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
+        "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="Steepest")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
-        "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
+        "topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorSteepest)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
-        "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
+        "topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node"
     )
     fd = FlowDirectorSteepest(mg3)
     fa3 = LossyFlowAccumulator(mg3, flow_director=fd)
@@ -212,28 +212,28 @@ def test_director_adding_methods_are_equivalent_D8():
 
     mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
-        "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
+        "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="D8")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
-        "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
+        "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="FlowDirectorD8")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
-        "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
+        "topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorD8)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
-        "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
+        "topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node"
     )
     fd = FlowDirectorD8(mg3)
     fa3 = LossyFlowAccumulator(mg3, flow_director=fd)
@@ -252,28 +252,28 @@ def test_director_adding_methods_are_equivalent_Dinf():
 
     mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
-        "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
+        "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="DINF")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
-        "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
+        "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="FlowDirectorDINF")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
-        "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
+        "topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorDINF)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
-        "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
+        "topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node"
     )
     fd = FlowDirectorDINF(mg3)
     fa3 = LossyFlowAccumulator(mg3, flow_director=fd)
@@ -292,28 +292,28 @@ def test_director_adding_methods_are_equivalent_MFD():
 
     mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
-        "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
+        "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="MFD")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
-        "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
+        "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="FlowDirectorMFD")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
-        "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
+        "topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorMFD)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
-        "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
+        "topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node"
     )
     fd = FlowDirectorMFD(mg3)
     fa3 = LossyFlowAccumulator(mg3, flow_director=fd)
@@ -344,12 +344,12 @@ def test_error_for_to_many_with_depression():
 
     mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
-        "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
+        "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
     )
 
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
-        "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
+        "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
     )
 
     with pytest.raises(NotImplementedError):

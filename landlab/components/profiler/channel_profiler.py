@@ -602,12 +602,11 @@ class ChannelProfiler(_BaseProfiler):
             bad_wshed = True
 
         if bad_wshed:
-            msg = (
+            raise ValueError(
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with channel_definition_field"
-                " area. {vals}".format(vals=starting_da)
+                f" area. {starting_da}"
             )
-            raise ValueError(msg)
 
         self._outlet_nodes = outlet_nodes
 
@@ -760,8 +759,7 @@ class ChannelProfiler(_BaseProfiler):
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-        """Create expected flattened structures for ids, distances, and colors.
-        """
+        """Create expected flattened structures for ids, distances, and colors."""
         self._nodes = []
 
         self._distance_along_profile = []

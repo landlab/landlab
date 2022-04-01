@@ -1,10 +1,11 @@
 from io import BytesIO
 
 import numpy as np
+import pytest
 import shapefile
 from numpy.testing import assert_array_equal
 from pytest import approx, raises
-from shapefile import ShapefileException
+from shapefile import POINT, POLYLINE, ShapefileException
 
 from landlab import ExampleData
 from landlab.io.shapefile import read_shapefile
@@ -169,8 +170,8 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
                 "Elev_m": "topographic__elevation",
                 "ToLink": "shapefile_to",
             },
-            link_field_dtype={"ToLink": np.int},
-            node_field_dtype={"ToLink": np.int},
+            link_field_dtype={"ToLink": int},
+            node_field_dtype={"ToLink": int},
             threshold=0.01,
         )
 
@@ -222,8 +223,8 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
         assert grid.y_of_node[22] == approx(5374213.8330760002)
 
         # verify dtype changes.
-        assert grid.at_link["shapefile_to"].dtype == np.int
-        assert grid.at_node["shapefile_to"].dtype == np.int
+        assert grid.at_link["shapefile_to"].dtype == int
+        assert grid.at_node["shapefile_to"].dtype == int
 
         # verify that fields are mapped correctly. choose two links and two nodes
         # to test.
@@ -270,7 +271,7 @@ def test_bad_points():
     shx = BytesIO()
     dbf = BytesIO()
     w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    w.shapeType = 3
+    w.shapeType = POLYLINE
     w.field("spam", "N")
     w.line([[[5, 5], [10, 10]]])
     w.record(37)
@@ -285,7 +286,7 @@ def test_bad_points():
     p_shx = BytesIO()
     p_dbf = BytesIO()
     p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    w.shapeType = 3
+    w.shapeType = POLYLINE
     p_w.field("spam", "N")
     p_w.line([[[5, 5], [10, 10]]])
     p_w.record(37)
@@ -304,7 +305,7 @@ def test_points_but_too_far():
     shx = BytesIO()
     dbf = BytesIO()
     w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    w.shapeType = 3
+    w.shapeType = POLYLINE
     w.field("spam", "N")
     w.line([[[5, 5], [10, 10]]])
     w.record(37)
@@ -319,7 +320,7 @@ def test_points_but_too_far():
     p_shx = BytesIO()
     p_dbf = BytesIO()
     p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    p_w.shapeType = 1
+    p_w.shapeType = POINT
     p_w.field("eggs", "N")
     p_w.point(5, 0)
     p_w.record(2)
@@ -340,7 +341,7 @@ def test_points_but_not_one_one():
     shx = BytesIO()
     dbf = BytesIO()
     w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    w.shapeType = 3
+    w.shapeType = POLYLINE
     w.field("spam", "N")
     w.line([[[5, 5], [10, 10]]])
     w.record(37)
@@ -355,7 +356,7 @@ def test_points_but_not_one_one():
     p_shx = BytesIO()
     p_dbf = BytesIO()
     p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    p_w.shapeType = 1
+    p_w.shapeType = POINT
     p_w.field("eggs", "N")
     p_w.point(5, 0)
     p_w.record(2)
@@ -378,7 +379,7 @@ def test_points_but_one_missing():
     shx = BytesIO()
     dbf = BytesIO()
     w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-    w.shapeType = 3
+    w.shapeType = POLYLINE
     w.field("spam", "N")
     w.line([[[5, 5], [10, 10]]])
     w.record(37)
@@ -393,7 +394,7 @@ def test_points_but_one_missing():
     p_shx = BytesIO()
     p_dbf = BytesIO()
     p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    p_w.shapeType = 1
+    p_w.shapeType = POINT
     p_w.field("eggs", "N")
     p_w.point(5, 0)
     p_w.record(2)
@@ -443,7 +444,7 @@ def test_simple_reorder():
 
             w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
 
-            w.shapeType = 3
+            w.shapeType = POLYLINE
             w.field("spam", "N")
 
             for o in order:
@@ -455,7 +456,7 @@ def test_simple_reorder():
             p_shx = BytesIO()
             p_dbf = BytesIO()
             p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-            p_w.shapeType = 1
+            p_w.shapeType = POINT
             p_w.field("eggs", "N")
             for po in p_order:
                 p_w.point(*points[po])
@@ -474,3 +475,40 @@ def test_simple_reorder():
             assert_array_equal(grid.at_link["spam"], np.array([100, 239, 37]))
 
             del grid, w, shp, shx, dbf
+
+
+@pytest.mark.parametrize(
+    "dtype", [int, float, bool, np.int32, np.int64, np.complex128, object, None]
+)
+def test_field_dtype(tmpdir, dtype):
+    # test of the small methow network with
+    shp_file = "MethowSubBasin.shp"
+    points_shapefile = "MethowSubBasin_Nodes_4.shp"
+
+    with tmpdir.as_cwd():
+        ExampleData("io/shapefile", case="methow").fetch()
+
+        grid = read_shapefile(
+            shp_file,
+            points_shapefile=points_shapefile,
+            node_fields=["usarea_km2", "ToLink", "Elev_m"],
+            link_fields=["usarea_km2", "ToLink"],
+            link_field_conversion={
+                "usarea_km2": "drainage_area",
+                "ToLink": "shapefile_to",
+            },
+            node_field_conversion={
+                "usarea_km2": "drainage_area",
+                "Elev_m": "topographic__elevation",
+                "ToLink": "shapefile_to",
+            },
+            link_field_dtype={"ToLink": dtype},
+            node_field_dtype={"ToLink": dtype},
+            threshold=0.01,
+        )
+
+    if dtype is None:
+        dtype = float
+
+    assert grid.at_node["shapefile_to"].dtype == dtype
+    assert grid.at_link["shapefile_to"].dtype == dtype

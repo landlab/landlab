@@ -11,7 +11,7 @@ from landlab.graph.sort.intpair import (
 
 def test_pair_isin_one_pair():
     src = np.asarray(
-        [[0, 1], [1, 2], [2, 5], [5, 8], [8, 7], [7, 6], [6, 3], [3, 0]], dtype=np.int
+        [[0, 1], [1, 2], [2, 5], [5, 8], [8, 7], [7, 6], [6, 3], [3, 0]], dtype=int
     )
     pairs = np.asarray([[4, 8]], dtype=int)
     out = pair_isin(src, pairs)
@@ -21,7 +21,7 @@ def test_pair_isin_one_pair():
 
 def test_pair_isin_1():
     src = np.asarray(
-        [[0, 1], [1, 2], [2, 5], [5, 8], [8, 7], [7, 6], [6, 3], [3, 0]], dtype=np.int
+        [[0, 1], [1, 2], [2, 5], [5, 8], [8, 7], [7, 6], [6, 3], [3, 0]], dtype=int
     )
     pairs = np.asarray(
         [
@@ -71,7 +71,7 @@ def test_pair_isin_1():
 
 
 def test_pair_isin():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
 
     pairs = np.asarray([[1, 1], [3, 1], [1, 2], [5, 1]], dtype=int)
     out = pair_isin(src, pairs)
@@ -80,7 +80,7 @@ def test_pair_isin():
 
 
 def test_pair_isin_with_out_keyword():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
 
     pairs = np.asarray([[1, 1], [3, 1], [1, 2], [5, 1]], dtype=int)
     out = np.empty(len(pairs), dtype=bool)
@@ -91,7 +91,7 @@ def test_pair_isin_with_out_keyword():
 
 
 def test_map_pairs():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     data = np.arange(len(src), dtype=int)
 
     pairs = np.asarray([[1, 1], [3, 1]], dtype=int)
@@ -101,11 +101,11 @@ def test_map_pairs():
 
 
 def test_map_pairs_with_out_keyword():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     data = np.arange(len(src), dtype=int)
 
     pairs = np.asarray([[1, 1], [3, 1]], dtype=int)
-    out = np.empty(len(pairs), dtype=np.int)
+    out = np.empty(len(pairs), dtype=int)
     rtn = map_pairs_to_values((src, data), pairs, out=out)
 
     assert rtn is out
@@ -113,7 +113,7 @@ def test_map_pairs_with_out_keyword():
 
 
 def test_map_pairs_with_sorter_keyword():
-    src = np.asarray([[0, 1], [1, 1], [3, 1], [2, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [3, 1], [2, 1], [4, 1]], dtype=int)
     data = np.array([0, 1, 3, 2, 4], dtype=int)
 
     pairs = np.asarray([[1, 1], [3, 1]], dtype=int)
@@ -123,7 +123,7 @@ def test_map_pairs_with_sorter_keyword():
 
 
 def test_map_pairs_at_end():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     data = np.arange(len(src), dtype=int)
 
     pairs = np.asarray([[1, 1], [3, 1], [4, 1], [1, 4], [4, 2]], dtype=int)
@@ -133,7 +133,7 @@ def test_map_pairs_at_end():
 
 
 def test_map_pairs_transposed():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     data = np.arange(len(src), dtype=int)
 
     pairs = np.asarray([[1, 0], [1, 3]], dtype=int)
@@ -143,7 +143,7 @@ def test_map_pairs_transposed():
 
 
 def test_map_pairs_all_missing():
-    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     data = np.arange(len(src), dtype=int)
 
     pairs = np.asarray([[5, 1], [1, 42]], dtype=int)
@@ -153,7 +153,7 @@ def test_map_pairs_all_missing():
 
 
 def test_map_pairs_big_data():
-    n_src_pairs = 2 ** 20
+    n_src_pairs = 2**20
     src = np.random.randint(n_src_pairs * 2, size=n_src_pairs * 2, dtype=int).reshape(
         (-1, 2)
     )
@@ -168,7 +168,7 @@ def test_map_pairs_big_data():
 
 
 def test_map_rolling_pairs():
-    src = np.asarray([[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]], dtype=int)
     data = np.asarray([0, 1, 2, 3, 4], dtype=int)
 
     pairs = np.asarray([[0, 1, 2, 3], [0, 2, 3, 4]], dtype=int)
@@ -178,7 +178,7 @@ def test_map_rolling_pairs():
 
 
 def test_map_rolling_pairs_with_out_keyword():
-    src = np.asarray([[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]], dtype=int)
     data = np.asarray([0, 1, 2, 3, 4], dtype=int)
 
     pairs = np.asarray([[0, 1, 2, 3], [0, 2, 3, 4]], dtype=int)
@@ -190,7 +190,7 @@ def test_map_rolling_pairs_with_out_keyword():
 
 
 def test_map_rolling_pairs_with_size_of_row():
-    src = np.asarray([[0, 1], [1, 2], [2, 3], [2, 0], [3, 4], [4, 0]], dtype=np.int)
+    src = np.asarray([[0, 1], [1, 2], [2, 3], [2, 0], [3, 4], [4, 0]], dtype=int)
     data = np.asarray([0, 1, 2, 3, 4, 5], dtype=int)
 
     pairs = np.asarray([[0, 1, 2, -1], [0, 2, -1, -1]], dtype=int)
@@ -200,7 +200,7 @@ def test_map_rolling_pairs_with_size_of_row():
 
 
 def test_offset_2d():
-    pairs = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    pairs = np.asarray([[0, 1], [1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     out = np.empty(len(pairs), dtype=int)
     offset_to_sorted_block(pairs, out)
 
@@ -208,7 +208,7 @@ def test_offset_2d():
 
 
 def test_offset_2d_with_missing_at_start():
-    pairs = np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    pairs = np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     out = np.empty(5, dtype=int)
     offset_to_sorted_block(pairs, out)
 
@@ -216,7 +216,7 @@ def test_offset_2d_with_missing_at_start():
 
 
 def test_offset_2d_with_missing_in_middle():
-    pairs = np.asarray([[0, 1], [1, 1], [3, 1], [4, 1]], dtype=np.int)
+    pairs = np.asarray([[0, 1], [1, 1], [3, 1], [4, 1]], dtype=int)
     out = np.empty(5, dtype=int)
     offset_to_sorted_block(pairs, out)
 
@@ -233,7 +233,7 @@ def test_offset_with_different_strides():
 
 
 def test_offset_with_sort_out():
-    pairs = np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    pairs = np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     out = np.empty(4, dtype=int)
     offset_to_sorted_block(pairs, out)
 
@@ -241,7 +241,7 @@ def test_offset_with_sort_out():
 
 
 def test_offset_with_long_out():
-    pairs = np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]], dtype=np.int)
+    pairs = np.asarray([[1, 1], [2, 1], [3, 1], [4, 1]], dtype=int)
     out = np.empty(7, dtype=int)
     offset_to_sorted_block(pairs, out)
 

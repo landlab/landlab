@@ -394,7 +394,7 @@ class StreamPowerEroder(Component):
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / self._W[defined_flow_receivers]
-                / (flow_link_lengths ** self._n)
+                / (flow_link_lengths**self._n)
             )
 
         else:
@@ -402,7 +402,7 @@ class StreamPowerEroder(Component):
                 self._K[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
-                / (flow_link_lengths ** self._n)
+                / (flow_link_lengths**self._n)
             )
 
         # Handle flooded nodes, if any (no erosion there)

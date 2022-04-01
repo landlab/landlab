@@ -144,7 +144,7 @@ def test_links_at_patch():
                 [12, 15, 11, 8],
                 [13, 16, 12, 9],
             ],
-            dtype=np.int,
+            dtype=int,
         )
     )
 

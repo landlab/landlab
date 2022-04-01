@@ -206,7 +206,7 @@ def test_q_as_array():
     )
 
 
-def test_sediment__flux_already_created():
+def test_sediment__outflux_already_created():
     """
     Test that an existing sediment flux grid field is not changed by
     instantiating ErosionDeposition.
@@ -218,7 +218,7 @@ def test_sediment__flux_already_created():
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("topographic__elevation", at="node")
-    qs = mg.add_zeros("sediment__flux", at="node")
+    qs = mg.add_zeros("sediment__outflux", at="node")
     qs[:] += 1.0  # add 1.0 m3/yr of flux
 
     mg["node"]["topographic__elevation"] += (
@@ -241,7 +241,14 @@ def test_sediment__flux_already_created():
 
     # Instantiate the ErosionDeposition component...
     ed = ErosionDeposition(
-        mg, K=0.01, F_f=0.0, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0.0, solver="basic",
+        mg,
+        K=0.01,
+        F_f=0.0,
+        v_s=0.001,
+        m_sp=0.5,
+        n_sp=1.0,
+        sp_crit=0.0,
+        solver="basic",
     )
 
     # ensure that 'sediment__flux' field is everywhere equal to 1.0 m3/yr.

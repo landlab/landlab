@@ -1,0 +1,74 @@
+name: PyPI
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - '!v[0-9]+.[0-9]+.[0-9]+[ab][0-9]+'
+
+
+env:
+  TWINE_USERNAME: __token__
+  TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+jobs:
+  build-and-publish:
+    name: Build and publish to PyPI
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    env:
+      CIBW_BUILD: 'cp38-* cp39-* cp310-*'
+      CIBW_SKIP: '*-musllinux_*'
+      CIBW_ARCHS_MACOS: "x86_64 arm64"
+      CIBW_ARCHS_LINUX: "auto aarch64"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+          channel-priority: true
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
+      - name: Install cibuildwheel
+        run: |
+          conda install pip
+          python --version
+          pip --version
+          python -m pip install cibuildwheel==2.3.0 twine
+
+      - name: Show conda installation info
+        run: |
+          conda info
+          conda list
+
+      - name: Build source distribution
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pip install numpy
+          python setup.py sdist --dist-dir wheelhouse
+          twine upload --skip-existing wheelhouse/*.tar.gz
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Upload distributions
+        run: |
+          twine upload --skip-existing wheelhouse/*.whl
