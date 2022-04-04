@@ -104,3 +104,11 @@ def example_flow_director(example_nmg):
     fd = FlowDirectorSteepest(example_nmg)
     fd.run_one_step()
     return fd
+
+@pytest.fixture()
+def example_parcels(example_nmg):
+    parcel_initializer = BedParcelInitializerUserD50(example_nmg,
+                                           user_d50 = 0.05)
+
+    parcels = parcel_initializer()
+    return parcels

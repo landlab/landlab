@@ -184,7 +184,6 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
     ... )
     >>> parcels = initialize_parcels()
 
-    [INSERT SOMETHING TO TEST WHAT PARCEL OUTPUT SHOULD BE... and equivalent for other examples below]
 
     """
 
@@ -411,15 +410,10 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
     """
     This function creates a landlab DataRecord to represent parcels of sediment
     on a river network (represented by a NetworkModelGrid). The function
-    takes a coefficient and exponent in a grain size-drainage area power law
-    scaling relationship, as well as channel attribute (`drainage_area`,
-    `channel_width`, `reach_length`, `channel_slope`) fields attached to the
-    NetworkModelGrid.
+    takes
 
-    This function currently estimates median parcel grain size at a link
-    using a power-law scaling relationship between drainage area and median
-    grain size (d50 = cA**n), assuming a lognormal parcel grain size
-    distribution.
+
+    [XXX NEED TO FILL IN]
 
     authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
@@ -450,7 +444,7 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
         median number of parcels in a link.
     extra_parcel_attributes : str or list of str, optional
         name of user-defined parcel attribute to be added to parcel data record,
-        which will be returned as an empty parcel attribute
+        which will be returned as an empty parcel attribute.
 
     Examples
     --------
@@ -574,11 +568,19 @@ def _parcel_characteristics(
 def _determine_approx_parcel_volume(
     total_parcel_volume_at_link, median_number_of_starting_parcels
 ):
+    """
+    What size parcels should we use?
+
+    """
     median_link_volume = np.median(total_parcel_volume_at_link)
     return median_link_volume / median_number_of_starting_parcels
 
 
 def calc_total_parcel_volume(width, length, sediment_thickness):
+    """
+    Simple rectangular prism geometry. Total parcel vol in each link = L*W*H
+    """
+
     return width * length * sediment_thickness
 
 
