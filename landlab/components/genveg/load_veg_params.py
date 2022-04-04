@@ -33,20 +33,20 @@ class VegParams:
         if fpath=='None':
             self.vegparams={'Corn': {
                     'plant_factors':{
-                        'species':['Corn'],
-                        'growth_form': [1],
-                        'annual_perennial': ['C4']
+                        'species':'Corn',
+                        'growth_form': 1,
+                        'annual_perennial': 'C4'
                     },
-                    'growthparams': {
-                        'ptype':['C3'],
-                        'growing_season_start': [91],
-                        'growing_season_end': [290],
-                        'senescence_start': [228],
+                    'growparams': {
+                        'ptype':'C3',
+                        'growing_season_start': 91,
+                        'growing_season_end': 290,
+                        'senescence_start': 228,
                         'respiration_coefficient': [0.015,0.015,0.03],
                         'glucose_requirement': [1.444,1.513,1.463],
-                        'k_light_extinct':[0.02],
-                        'light_half_sat':[9],
-                        'p_max':[0.055],
+                        'k_light_extinct':0.02,
+                        'light_half_sat':9,
+                        'p_max':0.055,
                         'plant_part_allocation':[0.2,0.3,0.5],
                         'plant_part_min':[0.01,0.1,0.5]
                     }
@@ -54,40 +54,40 @@ class VegParams:
             }
             if 'plantsize' in processes:
                 self.sizeparams={
-                    'max_plant_density': [1],
-                    'max_n_stems': [3],
-                    'max_height_stem': [2.5],
-                    'max_mass_stem': [72],
-                    'total_cs_area_stems': [0.231]                    
+                    'max_plant_density': 1,
+                    'max_n_stems': 3,
+                    'max_height_stem': 2.5,
+                    'max_mass_stem': 72,
+                    'total_cs_area_stems': 0.231                    
                 }
                 if 'dispersion' in processes:
                     self.dispparams={
-                        'max_dist_dispersion': [2],
-                        'disp_size_rat': [0.5],
-                        'disp_cost': [0]
+                        'max_dist_dispersion': 2,
+                        'disp_size_rat': 0.5,
+                        'disp_cost': 0
                     }
                 else: self.dispparams={}
                 self.vegparams['Corn']['dispparams']={**self.dispparams}
                 if 'storage' in processes:
                     self.storparams={
-                        'r_wint_die': [0.25],
-                        'r_wint_stor': [0.25]
+                        'r_wint_die': 0.25,
+                        'r_wint_stor': 0.25
                     }
                 else: self.storparams={}
                 self.vegparams['Corn']['storparams']={**self.storparams}
             else: self.sizeparams={}
-            self.vegparams['sizeparams']={**self.sizeparams}
+            self.vegparams['Corn']['sizeparams']={**self.sizeparams}
             if 'colonize' in processes:
                 self.colparams={
-                    'col_prob': [0.01],
-                    'col_dt': [365]
+                    'col_prob': 0.01,
+                    'col_dt': 365
                 }
             else: self.colparams={}
             self.vegparams['Corn']['colparams']={**self.colparams}
             if 'mortality' in processes:
                 self.mortparams={
                     's1_name': 'Mortality factor',
-                    's1_days': [365],
+                    's1_days': 365,
                     's1_pred': [1,2,3,4],
                     's1_rate': [0,0.1,0.9,1],
                     's1_weight':[1000,1,1,1000]
@@ -113,15 +113,14 @@ class VegParams:
                     #Create list of values for a community on each tab
                     for i in coms:    
                         df_in=xlin.parse(i, usecols='B,D',skiprows=[1,5,25,31,35,38,41])
+                        #Define plant factor keys and create plant factor dictionary
                         factor_keys=[
                             'species',
                             'growth_form',
                             'annual_perennial',
                         ]
-                        factor=df_in[df_in['Variable Name'].isin(factor_keys)]
-                        group_factor=factor.groupby('Variable Name').agg(pd.Series.tolist)
-                        group_factor.rename(columns={'Values': 'plant_factors'}, inplace=True)
-                        factor=group_factor.to_dict()                        
+                        factor=self._makedict(df_in, factor_keys, 'plant_factors')    
+                        #Define growth parameter keys and create growthparams dictionary                   
                         growth_keys=[
                             'ptype',
                             'growing_season_start',
@@ -135,10 +134,8 @@ class VegParams:
                             'plant_part_allocation',
                             'plant_part_min'
                         ]
-                        grow=df_in[df_in['Variable Name'].isin(growth_keys)]
-                        group_grow=grow.groupby('Variable Name').agg(pd.Series.tolist)
-                        group_grow.rename(columns={'Values': 'growparams'}, inplace=True)
-                        grow=group_grow.to_dict()
+                        grow=self._makedict(df_in, growth_keys, 'growparams')
+                        #If plantsize is required process, define plant size parameter keys and create sizeparams dictionary
                         if 'plantsize' in processes:
                             size_keys=[
                                 'max_plant_density',
@@ -146,46 +143,38 @@ class VegParams:
                                 'max_height_stem',
                                 'total_cs_area_stems'
                             ]
-                            size=df_in[df_in["Variable Name"].isin(size_keys)]
-                            group_size=size.groupby('Variable Name').agg(pd.Series.tolist)
-                            group_size.rename(columns={'Values': 'sizeparams'}, inplace=True)
-                            size=group_size.to_dict()
-                            if 'dispersal' in processes:
+                            size=self._makedict(df_in, size_keys, 'sizeparams')
+                            #If dispersion is required process, define dispersion parameter keys and create dispparams dictionary
+                            if 'dispersion' in processes:
                                 disp_keys=[
                                     'max_dist_dispersion',
                                     'min_size_dispersion',
                                     'carb_cost_dispersion'
                                 ]
-                                disp=df_in[df_in["Variable Name"].isin(disp_keys)]
-                                group_disp=disp.groupby('Variable Name').agg(pd.Series.tolist)
-                                group_disp.rename(columns={'Values': 'dispparams'}, inplace=True)
-                                disp=group_disp.to_dict()
+                                disp=self._makedict(df_in, disp_keys, 'dispparams')
                             else:
-                                disp={{}}
+                                disp={}
+                            #If winter storage is required process, define storage parameter keys and create storparams dictionary
                             if 'storage' in processes:
                                 stor_keys=[
                                     'wint_dieoff_roots',
                                     'wint_stor_to_roots'
                                 ]
-                                stor=df_in[df_in["Variable Name"].isin(stor_keys)]
-                                group_stor=stor.groupby('Variable Name').agg(pd.Series.tolist)
-                                group_stor.rename(columns={'Values': 'storparams'}, inplace=True)
-                                stor=group_stor.to_dict()
+                                stor=self._makedict(df_in, stor_keys, 'storparams')
                             else:
                                 stor={}
                         else:
                             size={}
+                        #If colonization is required process, define coloniation parameters keys and create colparams dictionary
                         if 'colonize' in processes:
                             col_keys=[
                                 'prob_colonization',
                                 'time_to_colonization'
                             ]
-                            col=df_in[df_in["Variable Name"].isin(col_keys)]
-                            group_col=col.groupby('Variable Name').agg(pd.Series.tolist)
-                            group_col.rename(columns={'Values': 'colparams'}, inplace=True)
-                            col=group_col.to_dict()
+                            col=self._makedict(df_in, col_keys, 'colparams')
                         else:
                             col={}
+                        #If mortality is required process, define mortality parameter keys and create mortparams dictionary
                         if 'mortality' in processes:
                             mort_keys=[
                                 's1_name',
@@ -214,12 +203,10 @@ class VegParams:
                                 's5_rate',
                                 's5_weight'
                             ]
-                            mort=df_in[df_in['Variable Name'].isin(mort_keys)]
-                            group_mort=mort.groupby('Variable Name').agg(pd.Series.tolist)
-                            group_mort.rename(columns={'Values': 'mortparams'}, inplace=True)
-                            mort=group_mort.to_dict()
+                            mort=self._makedict(df_in, mort_keys, 'mortparams')
                         else:
                             mort={}
+                        #Unpack all subdictionaries and combine into master vegparams dictionary for species/community
                         vegparams[i]={**factor, **grow,**size,**disp,**stor,**col,**mort}
                 else: 
                     if exten == 'csv':
@@ -227,8 +214,6 @@ class VegParams:
                         pass
                     else:
                         raise ValueError('File extension not recognized')
-                
-                #Make list of vegparams keys to create new dictionary    
                
                 self.vegparams=vegparams
                 
@@ -253,6 +238,24 @@ class VegParams:
                     #self.sizeparams['ag_mass_max']=ag_mass_max
                     #self.sizeparams['bg_mass_max']=bg_mass_max
                 
-
+        #Save vegparams dictionary to yaml for future use
         with open(outfile,'w') as outfile:
-            yaml.dump(self.vegparams, outfile, default_flow_style=True)            
+            yaml.dump(self.vegparams, outfile, default_flow_style=True)
+
+#Private method to read in dataframe from Excel and return a formatted dictionary
+    def _makedict(self, df, keys, name):
+        #Only read in variables with defined key names
+        temp=df[df['Variable Name'].isin(keys)]
+        novals=np.where(pd.isnull(temp))
+        if len(novals) > 0:
+            msg='Cannot build dictionary for {}. One of the variable values is missing. Please check the input file and try again.'.format(name)
+            raise ValueError(msg)
+        else:
+            #Aggregate and group variables with multiple values as a list
+            group_temp=temp.groupby('Variable Name').agg(pd.Series.tolist)
+            #Replace single element lists with float, int, or string
+            group_temp['Values'] = group_temp['Values'].apply(lambda x: x[0] if len(x)==1 else x)
+            #Rename column to defined name and turn into dictionary of that name
+            group_temp.rename(columns={'Values': name}, inplace=True)
+            temp=group_temp.to_dict()
+            return temp

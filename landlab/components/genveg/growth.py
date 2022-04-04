@@ -36,25 +36,48 @@ class PlantGrowth(Component):
     def __init__(
         self,
         grid,
-        plant_ids,
-        growthparams={
-            'ftype': {'Corn':['1']},
-            'ph_type': {'Corn':['C4']},
-            'gs_start': {'Corn':[65]},
-            'gs_end': {'Corn':[270]},
-            'gs_length': {'Corn':[205]},
-            'senes': {'Corn':[209]},
-            'res_co': {'Corn':[0.15]},
-            'glu_req': {'Corn':[55]},
-            'le_k': {'Corn':[30]},
-            'hi': {'Corn':[0.1]},
-            'p_max': {'Corn':[2.5]}
+        vegparams={'Corn': 
+            {
+                'colparams': {}, 
+                'dispparams': {}, 
+                'growthparams': {
+                    'glucose_requirement': [1.444, 1.513, 1.463], 
+                    'growing_season_end': 290, 
+                    'growing_season_start': 91, 
+                    'k_light_extinct':0.02, 
+                    'light_half_sat': 9, 
+                    'p_max': 0.055, 
+                    'plant_part_allocation': [0.2, 0.3, 0.5], 
+                    'plant_part_min': [0.01, 0.1, 0.5], 
+                    'ptype': 'C3', 
+                    'respiration_coefficient': [0.015, 0.015, 0.03], 
+                    'senescence_start': 228
+                }, 
+                'mortparams': {
+                    's1_days': 365, 
+                    's1_name': 'Mortality factor', 
+                    's1_pred': [1, 2, 3, 4], 
+                    's1_rate': [0, 0.1, 0.9, 1], 
+                    's1_weight': [1000, 1, 1, 1000]
+                },
+                'plant_factors': {
+                    'annual_perennial': 'C4', 
+                    'growth_form': 1, 
+                    'species': 'Corn'
+                }, 
+                'sizeparams': {
+                    'max_height_stem': 2.5, 
+                    'max_mass_stem': 72, 
+                    'max_n_stems': 3, 
+                    'max_plant_density': 1, 
+                    'total_cs_area_stems': 0.231
+                },
+                'storparams': {
+                    'r_wint_die': 0.25, 
+                    'r_wint_stor': 0.25
+                    } 
+                }
         },
-        sizeparams={},
-        dispparams={},
-        storparams={},
-        colparams={},
-        mortparams={},
         dt=1,
         current_day=0 
     ):
@@ -64,39 +87,48 @@ class PlantGrowth(Component):
         grid: RasterModelGrid
             A Landlab ModelGrid
 
-        plant_ids: dict, required,
-            names of plant communities to be simulated
-
-        growthparams: dict, required,
-            dictionary of named growth parameters with below keys.
-            A separate dict is stored for each type of plant with 
-            the key as the unique plant type ID as a str.
-
-            ftype: dict, int, optional,
-                functional type of plant class
-            ph_type: dict, string, required,
-                photosynthesis type (option are: CAM, C3 or C4)
-            gs_start: dict, int, required,
-                growing season start day of year
-            gs_end: dict, int, required,
-                growing season end day of year
-            gs_length: dict, int, required,
-                growing season length in days
-            senes: dict, int, required,
-                start of senescence period after plant reaches peak biomass
-            res_co: dict, float, required,
-                respiration coefficient
-            glu_req: dict, float, required,
-                glucose requirement
-            le_k: dict, float, required,
-                light extinction coefficient
-            hi: dict, float, required,
-                something
-            p_max: dict, float, required,
-                maximum photosyntehtic output
-            allocate: dict, float <1, required
-                3-element list of proportion of biomass in roots, stems, and leaves
-                Values must be between 0-1 and all sum to 1
+        vegparams: dict, required,
+            a nested dictionary of named vegetation parameters for each
+            species or community and process of interest with below sub-dictionaries.
+            plant_factors: dict, required,
+                dictionary of plant characteristics describing the
+                species or community of interest with below keys
+                species: string, required,
+                    name of species or community used to identify plant
+                growth_form: string, required,
+                    USDA plant growth habit
+                annual_perennial: string, required,
+                    plant growth duration, annual (1 year) or
+                    perennial (multiple years)
+            growparams: dict, required,
+                dictionary of paramaters required to simulate plant growth
+                ptype: string, required,
+                    photosythesis type, either 'C3', 'C4', or 'CAM'
+                gs_start: int, required,
+                    growing season start day of year,
+                    must be between 1-365
+                gs_end: int, required,
+                    growing season end day of year,
+                    must be between 1-365
+                gs_length: int, required,
+                    growing season length in days,
+                    must be less than or equal to 365
+                senes: int, required,
+                    start of senescence period after plant reaches peak biomass,
+                    must be between gs_start and gs_end
+                res_co: float, required,
+                    respiration coefficient
+                glu_req: float, required,
+                    glucose requirement
+                le_k: float, required,
+                    light extinction coefficient
+                hi: float, required,
+                    something
+                p_max: float, required,
+                    maximum photosyntehtic output
+                allocate: list, float <1, required
+                    3-element list of proportion of biomass in roots, stems, and leaves
+                    Values must be between 0-1 and all sum to 1
 
         dt: int, required,
             time step interval
@@ -119,24 +151,51 @@ class PlantGrowth(Component):
         except KeyError:
             msg =("GenVeg requires initial vegetation functional type distribution as an at-cell field.")
             raise ValueError(msg)
+
+        #Check to see if grid contains required environmental fields
+        try:
+            self._air_temp = self._grid['cell']['air__temperature_C'][:].copy()
+        except KeyError:
+            msg=('GenVeg requires air temperature in Celcius for each time step.')
+            raise ValueError(msg)
         
-        self.plant_ids=plant_ids
-        self.num_ids=len(self.plant_ids)
-        self.growth_params=growthparams
+        try:
+            self._radiation = self._grid["cell"]["radiation__net_flux"][:].copy()
+        except KeyError:
+            msg=('GenVeg requires incoming radiation flux for each time step')
+            raise ValueError(msg)
+        
         self.dt=dt
         self.current_day=current_day
 
-        #Verify that all named plant classes have defined growth parameters
-        self._check_params(self.growth_params)
-
         #Calculate calculated parameters for speed and error check growth parameter values
-        new_item={}
-        for item in self.plant_ids:
-            end=self.growth_params['gs_end'][item][0]
-            begin=self.growth_params['gs_start'][item][0]
-            length=end-begin+1
-            new_item.update({item:[length]})
-            allo=self.growth_params['allocate'][item]
+        for item in self.vegparams:
+            growdict=self.vegparams[item]['growparams']
+            #Check validity of growing season beginning and ending days, senescence beginning, and calculate growing season length
+            end=growdict['growing_season_end']
+            begin=growdict['growing_season_start']
+            senes=growdict['senescence_start']
+            if begin > 0 & begin  < 366 & end > 0 & end < 366 & end > begin & senes > begin & senes < end:
+                length=end-begin+1
+            elif begin < 1 | begin > 365:
+                msg='Growing season beginning must be between 1-365'
+                raise ValueError(msg)
+            elif end < 1 | end > 365:
+                msg='Growing season end must be between 1-365'
+                raise ValueError(msg)
+            elif end < begin:
+                msg='Growing season beginning must be before growing season end'
+                raise ValueError(msg)
+            elif senes < begin | senes > end:
+                msg='Start of senescence must be within the growing season'
+                raise ValueError(msg)
+            else:
+                msg='Growing season beginning and end must be integer values between 1-365'
+                raise ValueError(msg)
+            self.vegparams[item]['growparams']['growing_season_length']=length
+
+            #Check plant part allocation to determine if all parts are between 0 and 1 and all sum to 1
+            allo=growdict['plant_part_allocation']
             allosum=0
             for vals in allo:
                 if vals <= 1 and vals >=0:
@@ -146,20 +205,6 @@ class PlantGrowth(Component):
                     raise ValueError(msg)
             if allosum != 1.0:
                 msg='Biomass allocation for plant ID ' +item +' must sum to 1'
-                raise ValueError(msg)
-        
-        self.growth_params['gs_length']=new_item
-
-
-    def _check_params(self,check):
-        """Check to make sure the number of parameters is consistent
-        with the number of vegetation classes in the parameter dictionary
-        """
-        for items in check:
-            num_entries=len(check.get(items).keys())
-            if num_entries != self.num_ids:
-                msg = ('The number of values in ' + items + ' does not'
-                'match the number of plant types')
                 raise ValueError(msg)
         
     def run_one_step(self):
