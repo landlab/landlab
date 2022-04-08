@@ -1,3 +1,4 @@
+spyder
 bmipy
 matplotlib
 netcdf4
