@@ -11,11 +11,11 @@ from landlab.components import (
     BedParcelInitializerArea,
     BedParcelInitializerUserD50,
     BedParcelInitializerDischarge,
-    parcel_characteristics,
-    determine_approx_parcel_volume,
+    _parcel_characteristics,
+    _determine_approx_parcel_volume,
     calc_total_parcel_volume,
-    calc_D50_discharge,
-    calc_D50_calc_d50_depth,
+    calc_d50_discharge,
+    calc_d50_depth,
     calc_d50_dArea_scaling,
     )
 

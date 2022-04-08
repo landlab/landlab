@@ -1,8 +1,10 @@
 """
-Landlab component that ....[INSERT DESCRIPTION HERE]
+Landlab components to initialize river bed sediment "parcels", represented as
+items in a landlab DataRecord, in each link in a river network (represented by
+a landlab NetworkModelGrid). The different BedParcelInitializers allow the user
+to define the median grain size on a given link several different ways.
 
-.. codeauthor:: [UPDATE LIST HERE - add Muneer and Jeff?] Allison Pfeiffer, Katy Barnhart, Jon Czuba, Eric Hutton
-
+.. codeauthor:: Eric Hutton, Allison Pfeiffer, Muneer Ahammad, and Jon Czuba
 
 Last edit was sometime after April 2022
 """
@@ -19,12 +21,6 @@ _OUT_OF_NETWORK = -2
 
 
 class BedParcelInitializerBase:
-    """
-        [INSERT very simple description of what the bed parcel initializers are]
-
-
-    """
-
 
     def __init__(
         self,
@@ -371,6 +367,7 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
     >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
+    >>> grid.at_link["drainage_area"] = np.full(grid.number_of_links, 100.0)
 
     >>> initialize_parcels = BedParcelInitializerArea(
     ...     grid, drainage_area_coefficient=0.1, drainage_area_exponent=0.3
@@ -410,10 +407,11 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
     """
     This function creates a landlab DataRecord to represent parcels of sediment
     on a river network (represented by a NetworkModelGrid). The function
-    takes
+    takes either a scalar value or an array of 'size(number_of_links)' to
+    assign the median grain size for parcels on each link in the network grid.
 
-
-    [XXX NEED TO FILL IN]
+    This function creates a lognormal grain size distribution for the parcels
+    in the link.
 
     authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
@@ -608,6 +606,29 @@ def calc_d50_discharge(
     -------
     ndarray of float
         d50.
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
+    ... calc_d50_discharge)
+    >>> from numpy.testing import assert_almost_equal
+    >>> w = 20
+    >>> S = 0.01
+    >>> Q = 100
+    >>> n = 0.05
+    >>> g = 9.81
+    >>> rho_w = 1000
+    >>> rho_s = 3000
+    >>> tau_c_50 = 0.05
+    >>> expected_value = (
+    ...     (rho_w*g*n**(3/5)*Q**(3/5)*w**(-3/5)*S**(7/10))
+    ...     /((rho_s-rho_w)*g*tau_c_50))
+    >>> print(np.round(expected_value, decimals=3))
+    0.173
+    >>> assert_almost_equal(
+    ...    calc_d50_discharge(20,0.01,100,0.05,9.81,1000,3000,0.05),
+    ...    expected_value)
+
     """
 
     return (
@@ -639,6 +660,27 @@ def calc_d50_depth(
     -------
     ndarray of float
         d50.
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
+    ... calc_d50_depth)
+    >>> from numpy.testing import assert_almost_equal
+    >>> slope = 0.01
+    >>> depth = 1
+    >>> tau_c_multiplier = 1
+    >>> rho_w = 1000
+    >>> rho_s = 3000
+    >>> tau_c_50 = 0.05
+    >>> expected_value = (
+    ...     (rho_w * depth * slope) /
+    ...     ( (rho_s-rho_w) * tau_c_50 * tau_c_multiplier))
+    >>> print(np.round(expected_value, decimals=3))
+    0.1
+    >>> assert_almost_equal(
+    ...    calc_d50_depth(.01,1,1,1000,3000,0.05),
+    ...    expected_value)
+
     """
 
     return (rho_water * flow_depth * slope) / (
@@ -658,6 +700,24 @@ def calc_d50_dArea_scaling(drainage_area, a, n):
     -------
     ndarray of float
         d50.
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
+    ... calc_d50_dArea_scaling)
+    >>> from numpy.testing import assert_almost_equal
+    >>> drainage_area = 10
+    >>> drainage_area_coefficient = 1
+    >>> drainage_area_exponent = -0.1
+    >>> expected_value = (
+    ...     drainage_area_coefficient *
+    ...     ( drainage_area) ** (drainage_area_exponent))
+    >>> print(np.round(expected_value, decimals=3))
+    0.794
+    >>> assert_almost_equal(
+    ...    calc_d50_dArea_scaling(10, 1, -0.1),
+    ...    expected_value)
+
     """
     d50 = a * drainage_area ** n
 
