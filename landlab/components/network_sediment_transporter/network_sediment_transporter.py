@@ -65,11 +65,6 @@ class NetworkSedimentTransporter(Component):
     Examples of its usage can be found in the NetworkSedimentTransporter
     notebooks (located in the "notebooks" folder).
 
-    Attributes
-    ----------
-    OUT_OF_NETWORK : int
-        Indicates a parcel is out of network.
-
     Examples
     ----------
     >>> import numpy as np

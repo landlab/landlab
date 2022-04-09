@@ -39,21 +39,6 @@ class MaterialLayers(EventLayers):
     number_of_stacks : int
         Number of layer stacks to track.
 
-    Attributes
-    ----------
-    allocated
-    dz
-    thickness
-    number_of_layers
-    number_of_stacks
-    surface_index
-    z
-
-    Methods
-    -------
-    add
-    get_surface_values
-
     Examples
     --------
     >>> from landlab.layers.materiallayers import MaterialLayers
