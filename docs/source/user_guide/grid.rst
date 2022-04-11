@@ -108,23 +108,23 @@ and are working in your favorite
 
 .. code-block:: python
 
-    from landlab import RasterModelGrid
+    >>> from landlab import RasterModelGrid
 
 Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spacing (dx) of 5:
 
 .. code-block:: python
 
-    mg = RasterModelGrid((10, 40), 5.)
+    >>> mg = RasterModelGrid((10, 40), 5.)
 
 *mg* is now a grid object with 400 ``( 10*40 )`` nodes and 750 ``( 40*(10-1) + 30*(10-1) )`` links.
 
 .. code-block:: python
 
-    mg.number_of_node_columns
+    >>> mg.number_of_node_columns
     40
-    mg.number_of_nodes
+    >>> mg.number_of_nodes
     400
-    mg.number_of_links
+    >>> mg.number_of_links
     750
 
 .. _fields:
@@ -151,13 +151,13 @@ whose length is equal to the number of nodes in the grid.
 
 .. code-block:: python
 
-    z = mg.add_zeros("elevation", at="node")
+    >>> z = mg.add_zeros("elevation", at="node")
 
 Here *z* is an array of zeros. We can verify that *z* has the same length as the number of nodes:
 
 .. code-block:: python
 
-    z.size  # or len(z)
+    >>> z.size  # or len(z)
     400
 
 Note that *z* is a reference to the data stored in the model field. This means that if you change z, you
@@ -165,13 +165,13 @@ also change the data in the ModelGrid's elevation field. Therefore, you can acce
 
 .. code-block:: python
 
-    mg.at_node["elevation"][5] = 1000.0
+    >>> mg.at_node["elevation"][5] = 1000.0
 
 or the alternative notation:
 
 .. code-block:: python
 
-    mg['node']['elevation'][5]
+    >>> mg['node']['elevation'][5]
     1000.
 
 Now the sixth element in the model's elevation field array, or in *z*, is equal to 1000.  (Remember that the first element of a Python array has an index of 0 (zero)).
@@ -180,7 +180,7 @@ You can see all of the field data available at the nodes on *mg* with the follow
 
 .. code-block:: python
 
-    mg.at_node.keys()
+    >>> mg.at_node.keys()
     ['elevation']
 
 You may recognize this as a dictionary-type structure, where
@@ -190,7 +190,7 @@ There are currently no data values (fields) assigned to the links, as shown by t
 
 .. code-block:: python
 
-    mg.at_link.keys()
+    >>> mg.at_link.keys()
     []
 
 It is also possible, and indeed, often quite useful, to initialize a field from an
@@ -205,9 +205,9 @@ that prevents accidentally overwriting an existing field.
 
 .. code-block:: python
 
-    import numpy as np
-    elevs_in = np.random.rand(mg.number_of_nodes)
-    mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
+    >>> import numpy as np
+    >>> elevs_in = np.random.rand(mg.number_of_nodes)
+    >>> mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
@@ -219,7 +219,7 @@ properties available through the ModelGrid, you can specify a subset of the fiel
 
 .. code-block:: python
 
-    core_node_elevs = mg.at_node["elevation"][mg.core_nodes]
+    >>> core_node_elevs = mg.at_node["elevation"][mg.core_nodes]
 
 The first set of brackets, in this case *elevation*, indicates the field data array, and the second set of brackets, in this case *mg.core_nodes* (itself an array of core node IDs), is a NumPy filter that specifies which *elevation* elements to return.
 
@@ -228,8 +228,8 @@ element type is provided:
 
 .. code-block:: python
 
-    veg = mg.add_ones("percent_vegetation", at="cell")
-    mg.at_cell.keys()
+    >>> veg = mg.add_ones("percent_vegetation", at="cell")
+    >>> mg.at_cell.keys()
     ['percent_vegetation']
 
 Here *veg* is an array of ones that has the same length as the number of cells. Because there are
@@ -237,7 +237,7 @@ no cells around the edge of a grid, there are fewer cells than nodes:
 
 .. code-block:: python
 
-    mg.at_cell['percent_vegetation'].size
+    >>> mg.at_cell['percent_vegetation'].size
     304
 
 As you can see, fields are convenient because you don't have to keep track of how many nodes, links, cells, etc.
@@ -253,13 +253,13 @@ accessed individually through the properties
 
 .. code-block:: python
 
-    from landlab.components.flexure import Flexure
-    flexer = Flexure(rg)
-    flexer._input_var_names
+    >>> from landlab.components.flexure import Flexure
+    >>> flexer = Flexure(rg)
+    >>> flexer._input_var_names
     {'lithosphere__elevation',
      'lithosphere__overlying_pressure',
      'planet_surface_sediment__deposition_increment'}
-    flexer._output_var_names
+    >>> flexer._output_var_names
     {'lithosphere__elevation', 'lithosphere__elevation_increment'}
 
 We also maintain this list of all the
@@ -316,8 +316,10 @@ Field access
 
 Each of these is then followed by the field name as a string in square brackets, e.g.,
 
->>> grid.at_node['my_field_name'] #or
->>> grid['node']['my_field_name']
+.. code-block:: python
+
+    >>> grid.at_node['my_field_name'] #or
+    >>> grid['node']['my_field_name']
 
 You can also use these commands to create fields from existing arrays,
 as long as you don't want to take advantage of the added control ``add_field()`` gives you.
@@ -362,7 +364,7 @@ elevation array z, which is also accessible from the elevation field on *mg*.
 
 .. code-block:: python
 
-    gradients = mg.calculate_gradients_at_active_links(z)
+    >>> gradients = mg.calculate_gradients_at_active_links(z)
 
 Now gradients have been calculated at all links that are active, or links on which
 flow is possible (see boundary conditions below).
@@ -514,18 +516,18 @@ alongside these changes automatically:
 
 .. code-block:: python
 
-    mg - RasterModelGrid((5,5))
-    mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    mg.number_of_active_links
+    >>> grid = RasterModelGrid((5,5))
+    >>> grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
+    >>> grid.number_of_active_links
     18
-    mg.status_at_node[[6, 8]] = mg.BC_NODE_IS_CLOSED
-    mg.status_at_node.reshape((5,5))
+    >>> grid.status_at_node[[6, 8]] = mg.BC_NODE_IS_CLOSED
+    >>> grid.status_at_node.reshape((5,5))
     array([[4, 4, 4, 4, 4],
            [1, 4, 0, 4, 1],
            [1, 0, 0, 0, 1],
            [1, 0, 0, 0, 1],
            [4, 4, 4, 4, 4]], dtype=int8)
-    mg.number_of_active_links  # links were inactivated automatically when we closed nodes
+    >>> grid.number_of_active_links  # links were inactivated automatically when we closed nodes
     12
 
 Note that while setting Landlab boundary conditions on the grid is straightforward, it
@@ -589,9 +591,9 @@ Use the *name* keyword to add the elevation to a field in the imported grid.
 
 .. code-block:: python
 
-    from landlab.io import read_esri_ascii
-    (mg, z) = read_esri_ascii("myARCoutput.txt", name="topographic__elevation")
-    mg.at_node.keys()
+    >>> from landlab.io import read_esri_ascii
+    >>> (mg, z) = read_esri_ascii("myARCoutput.txt", name="topographic__elevation")
+    >>> mg.at_node.keys()
     ['topographic__elevation']
 
 **read_netcdf** allows import of the open source netCDF format for DEMs. Fields will
@@ -600,8 +602,8 @@ Returns a :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.Ra
 
 .. code-block:: python
 
-    from landlab.io.netcdf import read_netcdf
-    mg = read_netcdf("mynetcdf.nc")
+    >>> from landlab.io.netcdf import read_netcdf
+    >>> mg = read_netcdf("mynetcdf.nc")
 
 
 After import, you can use :py:func:`landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
@@ -631,18 +633,16 @@ and used as follows:
 
 .. code-block:: python
 
-    from landlab.plot.imshow import imshow_node_grid
-    from pylab import show, figure
-    mg - RasterModelGrid((50, 50), 1.)  # make a grid to plot
-    z - mg.node_x * 0.1 #make an arbitrary sloping surface
-    #create the data as a field
-    mg.add_field("topographic_elevation", z, at="node", units="meters", copy=True)
-    figure('Elevations from the field')  # new fig, with a name
-    imshow_node_grid(mg, 'topographic_elevation')
-    figure('You can also use values directly, not fields')
-    #...but if you, do you'll lose the units, figure naming capabilities, etc
-    imshow_node_grid(mg, z)
-    show()
+    >>> from landlab.plot.imshow import imshow_node_grid
+    >>> from pylab import show, figure
+    >>> mg = RasterModelGrid((50, 50), 1.)  # make a grid to plot
+    >>> z - mg.node_x * 0.1  # Make an arbitrary sloping surface
+    >>> mg.add_field("topographic_elevation", z, at="node", units="meters", copy=True)  # Create the data as a field
+    >>> figure('Elevations from the field')  # new fig, with a name
+    >>> imshow_node_grid(mg, 'topographic_elevation')
+    >>> figure('You can also use values directly, not fields')  # ...but if you, do you'll lose the units, figure naming capabilities, etc
+    >>> imshow_node_grid(mg, z)
+    >>> show()
 
 Note that :py:func:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`
 is clever enough to examine the grid object you pass it,
@@ -678,13 +678,13 @@ which you can then take slices of, e.g., we can do this:
 
 .. code-block:: python
 
-    from pylab import plot, show
-    mg = RasterModelGrid((10, 10), 1.)
-    z = mg.node_x * 0.1
-    my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
-    my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
-    plot(my_ycoords, my_section)
-    show()
+    >>> from pylab import plot, show
+    >>> mg = RasterModelGrid((10, 10), 1.)
+    >>> z = mg.node_x * 0.1
+    >>> my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
+    >>> my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
+    >>> plot(my_ycoords, my_section)
+    >>> show()
 
 
 Visualizing river profiles

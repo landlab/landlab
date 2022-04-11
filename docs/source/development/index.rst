@@ -24,10 +24,10 @@ The most important things to remember are to:
 
 Supported Python Versions
 -------------------------
-Python 3.6, 3.7, and 3.8
+Python 3.8, 3.9, and 3.10
 
 If you need to introduce a new dependency, that dependency must be compatible
-with Python  3.6+.
+with Python 3.8+ and be available on Linux, Mac, and Windows.
 
 Installation, Contribution, and Development Practices
 -----------------------------------------------------
