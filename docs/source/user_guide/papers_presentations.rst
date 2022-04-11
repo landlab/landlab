@@ -10,11 +10,11 @@ Peer-reviewed journal articles
 2022
 ````
 
-Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 < https://doi.org/10.1002/esp.5278>`__.
+Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
 
 Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `https://doi.org/10.5194/esurf-10-329-2022 <https://doi.org/10.5194/esurf-10-329-2022>`__.
 
-Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, ` https://doi.org/10.1029/2021JG006616 < https://doi.org/10.1029/2021JG006616>`__.
+Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, `https://doi.org/10.1029/2021JG006616 <https://doi.org/10.1029/2021JG006616>`__.
 
 Litwin, D. G., Tucker, G. E., Barnhart, K. R., & Harman, C. J. (2022). **Groundwater affects the geomorphic and hydrologic properties of coevolved landscapes.** *Journal of Geophysical Research: Earth Surface,* 127(1), e2021JF006239, `https://doi.org/10.1029/2021JF006239 <https://doi.org/10.1029/2021JF006239>`__.
 
@@ -91,7 +91,7 @@ Walker, S. J., Wilkinson, S. N., van Dijk, A. I., & Hairsine, P. B. (2020). **A 
 2019
 ````
 
-Baldazo, D., Parras, J., & Zazo, S. (2019). Decentralized multi-agent deep reinforcement learning in swarms of drones for flood monitoring. In 2019 27th European Signal Processing Conference (EUSIPCO) (pp. 1-5). IEEE.
+Baldazo, D., Parras, J., & Zazo, S. (2019). **Decentralized multi-agent deep reinforcement learning in swarms of drones for flood monitoring.** In *2019 27th European Signal Processing Conference (EUSIPCO)* (pp. 1-5). IEEE.
 
 Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R.,
 Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart,
