@@ -4,7 +4,6 @@ import numpy as np
 
 from landlab.components.network_sediment_transporter.sediment_pulser_at_links import SedimentPulserAtLinks
 from landlab.components.network_sediment_transporter.sediment_pulser_each_parcel import SedimentPulserEachParcel
-
 from landlab import RasterModelGrid
 
 def test_basic_init_each_parcel(example_nmg, example_parcels):

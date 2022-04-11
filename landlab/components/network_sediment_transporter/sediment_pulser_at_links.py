@@ -26,8 +26,9 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import NetworkModelGrid
-    >>> from landlab.utils.parcels.sediment_pulser_at_links import SedimentPulserAtLinks
+    >>> from landlab.components.network_sediment_transporter.sediment_pulser_at_links import SedimentPulserAtLinks
     
     Create the network model grid the parcels will be added to.
     

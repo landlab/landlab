@@ -18,7 +18,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     SedimentPulserEachParcel instance with the time that pulses are added to 
     the channel network and a sediment pulse table (PulseDF) 
     
-    PulseDF is a pandas dataframe that at a minimum, it must have columns 'Link#'
+    PulseDF is a pandas dataframe. At a minimum, the dataframe must have columns 'Link#'
     'normalized_downstream_distance' and 'pulse_volume'. Optionally, the parcel 
     volume that the pulse is divided into and grain characteristics of each pulse
     can also be specified in PulseDF.
@@ -27,8 +27,10 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
     Examples
     --------
+    >>> import numpy as np
+    >>> import pandas as pd
     >>> from landlab import NetworkModelGrid
-    >>> from landlab.utils.parcels.sediment_pulser_at_links import SedimentPulserAtLinks
+    >>> from landlab.components.network_sediment_transporter.sediment_pulser_each_parcel import SedimentPulserEachParcel
 
     Create the network model grid. Pulses are added to the links of the network
     model grid.
@@ -150,9 +152,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
     def _sediment_pulse_dataframe(self, time, PulseDF):
         
-        """
-        converts PulseDF to a dataset that describes the network location and
-        attributes of each individual parcel
+        """Converts PulseDF to a DataRecord formatted for the NetworkSedimentTransporter
+        component
 
         Parameters
         ----------

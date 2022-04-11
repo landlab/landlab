@@ -38,7 +38,7 @@ class SedimentPulserBase:
     Examples
     --------
     >>> from landlab import NetworkModelGrid
-    >>> from landlab.utils.sediment_pulser_base import SedimentPulserBase
+    >>> from landlab.components.network_sediment_transporter.sediment_pulser_base import SedimentPulserBase
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
     >>> x_of_node = (0, 0, 100, -50, -100, 50, -150, -100)
@@ -47,12 +47,14 @@ class SedimentPulserBase:
     >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
     >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
-    >>> make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
-    
-
-    >>> make_pulse = SedimentPulser(grid)
+    >>> make_pulse_base = SedimentPulserBase(grid)
     >>> make_pulse.parcels
     None
+    
+    SedimentPulserBase does not have any methods for adding a pulse
+    
+    >>> a_pulse = make_pulse_base()
+    NotImplementedError: the base component has no call method
     
 
     """
@@ -79,7 +81,9 @@ class SedimentPulserBase:
             msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
             raise ValueError(msg)
             
-
+    def __call__(self):
+        """__call__ is not implemented for this component."""
+        raise NotImplementedError("the base component has no call method")
 
     def calc_lognormal_distribution_parameters(self, mu_x, sigma_x):
         '''        

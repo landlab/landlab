@@ -32,6 +32,19 @@ def test_calc_lognormal_distribution_parameters(example_nmg2):
     np.testing.assert_allclose(np.array([mu_y,sigma_y]), 
                                np.array([mu_y_e, sigma_y_e]), rtol = 1e-4)    
     
+
+
+def test_call_SedimentPulserBase(example_nmg2):
+    """test exception raised if SedimentPulserBase is called"""
+    grid = example_nmg2
+    make_pulse = SedimentPulserBase(grid)               
+    
+    with pytest.raises(NotImplementedError) as exc_info:
+        parcels = make_pulse()  
+    msg_e = "the base component has no call method"
+    assert exc_info.match(msg_e)
+
+
 # @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
 class Test_SedimentPulserAtLinks(object):
     def test_normal_1(self, example_nmg2):
