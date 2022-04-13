@@ -10,20 +10,32 @@ from urllib.request import urlopen
 
 
 def main(version=None):
-    fetcher = NotebookFetcher(version)
+    notebooks = NotebookFetcher(version)
 
-    out(f"fetching notebooks for landlab {fetcher.version}")
-    out(f"{fetcher.url}")
+    out(f"fetching notebooks for landlab {notebooks.version}")
+    out(f"{notebooks.url}")
 
-    stream = fetcher.open()
-    if stream:
-        with tarfile.open(fileobj=stream, mode="r|gz") as tfile:
-            base = NotebookExtractor(tfile).extract()
+    try:
+        stream = notebooks.open()
+    except NotebookError as error:
+        err(str(error))
+        return -1
 
-        out(f"notebooks have been extracted into {base}")
-        print(base)
-    else:
-        sys.exit(-1)
+    with tarfile.open(fileobj=stream, mode="r|gz") as tfile:
+        base = NotebookExtractor(tfile).extract()
+
+    out(f"notebooks have been extracted into {base}")
+    print(base)
+
+    return 0
+
+
+class NotebookError(Exception):
+    def __init__(self, msg):
+        self._msg = msg
+
+    def __str__(self):
+        return self._msg
 
 
 class NotebookFetcher:
@@ -49,13 +61,12 @@ class NotebookFetcher:
             stream = urlopen(self.url)
         except HTTPError as error:
             if error.code == 404:
-                err(
-                    f"unable to find notebooks for requested landlab version ({self.version})"
-                )
+                msg = f"unable to find notebooks for requested landlab version ({self.version})"
             else:
-                err(f"unable to fetch notebooks: {error.reason}")
-            stream = None
-        return stream
+                msg = f"unable to fetch notebooks ({error.reason})"
+            raise NotebookError(msg)
+        else:
+            return stream
 
 
 class NotebookExtractor:
@@ -96,4 +107,4 @@ if __name__ == "__main__":
     parser.add_argument("version", nargs="?", default="")
     args = parser.parse_args()
 
-    main(args.version)
+    sys.exit(main(args.version))
