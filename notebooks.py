@@ -1,9 +1,9 @@
 import argparse
 import os
-import packaging.version
 import pathlib
 import sys
 import tarfile
+from packaging.version import Version
 from urllib.error import HTTPError
 from urllib.parse import urljoin
 from urllib.request import urlopen
@@ -31,7 +31,10 @@ class NotebookFetcher:
     URL = "https://github.com/landlab/landlab/archive/refs"
 
     def __init__(self, version=None):
-        self._version = f"v{packaging.version.parse(version)}" if version else "master"
+        if not version:
+            self._version = "master"
+        else:
+            self._version = "v" + Version(version).base_version
 
     @property
     def version(self):
