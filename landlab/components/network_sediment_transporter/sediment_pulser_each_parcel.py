@@ -64,8 +64,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     >>> print(parcels.dataset['element_id'].values)
     array([[1],[3],[3],[5],[5],[5],[2]]))
 
-    """
-     
+    """     
     def __init__(
         self,
         grid,
@@ -254,17 +253,15 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             density = np.array([]) 
             for i, row in PulseDF.iterrows():       
                 density = np.concatenate((density,np.ones(p_np[i])*row['rho_sediment']))   
-            density = np.expand_dims(density, axis=1)
         else:
-            density = self._rho_sediment * np.ones(np.shape(element_id))          
+            density = self._rho_sediment * np.ones(np.shape(starting_link))          
         
         if 'abrasion_rate' in PulseDF.columns:
             abrasion_rate = np.array([]) 
             for i, row in PulseDF.iterrows():       
                 abrasion_rate = np.concatenate((abrasion_rate,np.ones(p_np[i])*row['abrasion_rate']))   
-            abrasion_rate = np.expand_dims(abrasion_rate, axis=1)
         else:
-            abrasion_rate = self._abrasion_rate* np.ones(np.shape(element_id))           
+            abrasion_rate = self._abrasion_rate* np.ones(np.shape(starting_link))          
                     
         if 'D50' in PulseDF.columns and 'D_sd' in PulseDF.columns:
             grain_size = np.array([]) 
@@ -290,8 +287,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         
         return {
             "starting_link": (["item_id"], starting_link),
-            "abrasion_rate": (["item_id", "time"], abrasion_rate),
-            "density": (["item_id", "time"], density),
+            "abrasion_rate": (["item_id"], abrasion_rate),
+            "density": (["item_id"], density),
             "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
             "active_layer": (["item_id", "time"], active_layer),
             "location_in_link": (["item_id", "time"], location_in_link),
