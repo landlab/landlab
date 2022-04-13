@@ -270,9 +270,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     
         element_id = np.expand_dims(element_id, axis=1)
         grain_size = np.expand_dims(grain_size, axis=1)
-        volume = np.expand_dims(volume, axis=1)
-        abrasion_rate = np.expand_dims(abrasion_rate, axis=1)
-        density = np.expand_dims(density, axis=1)        
+        volume = np.expand_dims(volume, axis=1)    
     
         # time of arrivial (time instance called)
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
@@ -289,8 +287,8 @@ class SedimentPulserAtLinks(SedimentPulserBase):
            
         return {
             "starting_link": (["item_id"], starting_link),
-            "abrasion_rate": (["item_id", "time"], abrasion_rate),
-            "density": (["item_id", "time"], density),
+            "abrasion_rate": (["item_id"], abrasion_rate),
+            "density": (["item_id"], density),
             "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
             "active_layer": (["item_id", "time"], active_layer),
             "location_in_link": (["item_id", "time"], location_in_link),
