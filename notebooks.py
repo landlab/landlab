@@ -84,6 +84,9 @@ class NotebookExtractor:
             if len(parts) > 1 and parts[1] == "notebooks":
                 self._names.append(tarinfo.name)
                 yield tarinfo
+            elif parts[-1] == "requirements-notebooks.txt":
+                self._names.append(tarinfo.name)
+                yield tarinfo
 
     @property
     def names(self):
