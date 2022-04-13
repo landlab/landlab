@@ -543,7 +543,7 @@ def _parcel_characteristics(
     )
     location_in_link = np.expand_dims(np.random.rand(np.sum(n_parcels_at_link)), axis=1)
 
-    active_layer = np.empty_like(element_id, dtype=float)
+    active_layer = np.ones(np.shape(element_id))
     variables = {
         "starting_link": (["item_id"], starting_link),
         "abrasion_rate": (["item_id"], abrasion_rate),
