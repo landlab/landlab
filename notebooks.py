@@ -44,9 +44,21 @@ class NotebookFetcher:
 
     def __init__(self, version=None):
         if not version:
+            version = NotebookFetcher.landlab_version()
+
+        if not version:
             self._version = "master"
         else:
             self._version = "v" + Version(version).base_version
+
+    @staticmethod
+    def landlab_version():
+        try:
+            from landlab import __version__
+        except ModuleNotFoundError:
+            return None
+        else:
+            return __version__
 
     @property
     def version(self):
