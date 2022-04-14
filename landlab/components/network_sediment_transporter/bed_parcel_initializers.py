@@ -31,7 +31,7 @@ class BedParcelInitializerBase:
         rho_water=1000.0,
         gravity=scipy.constants.g,
         std_dev=2.1,
-        sed_thickness=4,
+        sed_thickness=2,
         abrasion_rate=0.0,
         median_number_of_starting_parcels=100,
         extra_parcel_attributes=None,
@@ -40,7 +40,7 @@ class BedParcelInitializerBase:
             raise TypeError("grid must be a NetworkModelGrid")
 
         if np.min(sed_thickness) < 0.05:
-            warnings.warn(f"sed_thickness is unrealistically low ({sed_thickness} m)")
+            warnings.warn(f"sed_thickness is unrealistically low ({sed_thickness}*d84)")
 
         if np.max(np.abs(tau_c_50 - 0.055)) > 0.35:
             warnings.warn(f"tau_c_50 is unrealistic ({tau_c_50})")
