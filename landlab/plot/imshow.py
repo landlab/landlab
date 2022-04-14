@@ -32,14 +32,7 @@ except ImportError:
 
 
 def imshow_grid_at_node(grid, values, **kwds):
-    """imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
-    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
-    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
-    allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
-    color_for_background=None, show_elements=False, output=None)
-
-    Prepare a map view of data over all nodes in the grid.
-
+    """Prepare a map view of data over all nodes in the grid.
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
@@ -140,9 +133,7 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 
 def imshowhs_grid_at_node(grid, values, **kwds):
-    """imshowhs_grid_at_node(grid, values, **kwds)
-
-    Prepare a map view of data over all nodes in the grid using a hillshade
+    """Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
 
     Data is plotted as cells shaded with the value at the node at its center.
@@ -164,7 +155,6 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     the plot.
 
     For now, this function only works with regular grids.
-
     Developed by: Benjamin Campforts
 
     Parameters
@@ -197,8 +187,8 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
-    thicks_km : bool, optional
-        Display thicks in km instead of m
+    ticks_km : bool, optional
+        Display ticks in km instead of m
         Default: False
     allow_colorbar : bool
         If True, include the colorbar.
@@ -280,11 +270,17 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     cbar_tick_size : float, optional
         colorbar tick size. The default is 10.
     cbar_label_color : str, optional
+        colorbar label color. The default is 'black'.
+    cbar_ticks_color : str, optional
         colorbar tick color. The default is 'black'.
     cbar_label_fontweight : str, optional
         colorbar font weight. The default is 'bold'.
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
+    y_label_offSet_var_1 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+    y_label_offSet_var_2 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
 
     Returns
     -------
@@ -323,14 +319,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
-    """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
-    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
-    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
-    allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
-    color_for_closed='black', color_for_background=None, show_elements=False,
-    output=None)
-
-    Map view of grid data over all grid cells.
+    """Map view of grid data over all grid cells.
 
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
@@ -607,7 +596,7 @@ def _imshowhs_grid_values(
     vmin=None,
     vmax=None,
     norm=None,
-    thicks_km=False,
+    ticks_km=False,
     shrink=1.0,
     color_for_closed=None,
     color_for_background=None,
@@ -638,8 +627,11 @@ def _imshowhs_grid_values(
     colorbar_label_x=0.5,
     cbar_tick_size=10,
     cbar_label_color="black",
+    cbar_tick_color="black",
     cbar_label_fontweight="bold",
     add_label_bbox=False,
+    y_label_offSet_var_1=3,
+    y_label_offSet_var_2=-1.25,
 ):
     plot_type_options = ["DEM", "Hillshade", "Drape1", "Drape2"]
     if plot_type not in plot_type_options:
@@ -703,7 +695,7 @@ def _imshowhs_grid_values(
         else:
             ve = 3
         extent = np.array([x[0] - dx, x[-1] + dx, y[-1] + dy, y[0] - dy])
-        if thicks_km:
+        if ticks_km:
             extent /= 1e3
 
         ax1 = plt.gca()
@@ -874,8 +866,8 @@ def _imshowhs_grid_values(
                 axins1.xaxis.set_ticks_position(cb_ticks_position)
                 cb.ax.tick_params(
                     labelsize=cbar_tick_size,
-                    color=cbar_label_color,
-                    labelcolor=cbar_label_color,
+                    color=cbar_tick_color,
+                    labelcolor=cbar_tick_color,
                 )
 
                 # if colorbar_label:
@@ -982,8 +974,8 @@ def _imshowhs_grid_values(
                         )
                     cb.ax.tick_params(
                         labelsize=cbar_tick_size,
-                        color=cbar_label_color,
-                        labelcolor=cbar_label_color,
+                        color=cbar_tick_color,
+                        labelcolor=cbar_tick_color,
                     )
                     axins1.xaxis.set_ticks_position(cb_ticks_position)
 
@@ -996,7 +988,7 @@ def _imshowhs_grid_values(
                         fontweight=cbar_label_fontweight,
                         bbox=bbox_prop,
                     )
-                    axins1.xaxis.set_label_coords(0.5, 3.5)
+                    axins1.xaxis.set_label_coords(0.5, y_label_offSet_var_1)
 
                     axins2 = inset_axes(
                         ax1,
@@ -1047,8 +1039,8 @@ def _imshowhs_grid_values(
                         )
                     cb.ax.tick_params(
                         labelsize=cbar_tick_size,
-                        color=cbar_label_color,
-                        labelcolor=cbar_label_color,
+                        color=cbar_tick_color,
+                        labelcolor=cbar_tick_color,
                     )
 
                     axins2.xaxis.set_ticks_position(cb_ticks_position)
@@ -1061,7 +1053,7 @@ def _imshowhs_grid_values(
                         fontweight=cbar_label_fontweight,
                         bbox=bbox_prop,
                     )
-                    axins2.xaxis.set_label_coords(0.5, -1.75)
+                    axins2.xaxis.set_label_coords(0.5, y_label_offSet_var_2)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
@@ -1139,13 +1131,7 @@ def _imshowhs_grid_values(
 
 
 def imshow_grid(grid, values, **kwds):
-    """imshow_grid(grid, values, plot_name=None, var_name=None, var_units=None,
-    grid_units=None, symmetric_cbar=False, cmap='pink', limits=(values.min(),
-    values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
-    colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
-    show_elements=False, color_for_background=None)
-
-    Prepare a map view of data over all nodes or cells in the grid.
+    """Prepare a map view of data over all nodes or cells in the grid.
 
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
@@ -1239,9 +1225,7 @@ def imshow_grid(grid, values, **kwds):
 
 
 def imshowhs_grid(grid, values, **kwds):
-    """imshowhs_grid(grid, values, **kwds)
-
-    Prepare a map view of data over all nodes in the grid using a hillshade
+    """Prepare a map view of data over all nodes in the grid using a hillshade
     topography map in the background.
 
     Data is plotted as cells shaded with the value at the node at its center.
@@ -1294,8 +1278,8 @@ def imshowhs_grid(grid, values, **kwds):
     norm : matplotlib.colors.Normalize
         The normalizing object which scales data, typically into the interval
         [0, 1]. Ignore in most cases.
-    thicks_km : bool, optional
-        Display thicks in km instead of m
+    ticks_km : bool, optional
+        Display ticks in km instead of m
     allow_colorbar : bool
         If True, include the colorbar.
     shrink : float
@@ -1382,6 +1366,10 @@ def imshowhs_grid(grid, values, **kwds):
         colorbar font weight. The default is 'bold'.
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
+    y_label_offSet_var_1 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+    y_label_offSet_var_2 : float, optional
+        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
 
     Returns
     -------
