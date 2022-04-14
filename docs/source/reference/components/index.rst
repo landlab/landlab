@@ -247,11 +247,3 @@ Alphabetical Listing of Modules
    uniform_precip
    vegetation_dynamics
    weathering
-
-Module contents
----------------
-
-.. automodule:: landlab.components
-   :members:
-   :undoc-members:
-   :show-inheritance:
