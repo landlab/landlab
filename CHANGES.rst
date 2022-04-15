@@ -10,8 +10,8 @@ Changelog for landlab
 New Components
 ``````````````
 
-- CarbonateProducer: Grow carbonate strata using growth function of Bosscher and Schlager (1992). (`#1284 <https://github.com/landlab/landlab/issues/1284>`_)
-- Added a new component, ``DimensionlessDischarge``, that calculates the dimensionless discharge value, debris flow threshold value, and boolean for predicted debris flow for stream segments. (`#1377 <https://github.com/landlab/landlab/issues/1377>`_)
+- ``CarbonateProducer`` Grow carbonate strata using growth function of Bosscher and Schlager (1992). (`#1284 <https://github.com/landlab/landlab/issues/1284>`_)
+- ``DimensionlessDischarge``, that calculates the dimensionless discharge value, debris flow threshold value, and boolean for predicted debris flow for stream segments. (`#1377 <https://github.com/landlab/landlab/issues/1377>`_)
 - ``LinearDiffusionOverlandFlowRouter``: overland flow using the linearized diffusion-wave approximation. (`#1383 <https://github.com/landlab/landlab/issues/1383>`_)
 
 
@@ -20,7 +20,7 @@ New Tutorial Notebooks
 
 - Added a notebook that shows how to use USGS NHDPlus HR datasets with the
   ``NetworkSedimentTransporter`` component (`#1345 <https://github.com/landlab/landlab/issues/1345>`_)
-- Created a new notebook that demonstrates ways to create a ``NetworkModelGrid`` from a DEM fetched from *OpenTopography* using the *Topography* utility. (`#1400 <https://github.com/landlab/landlab/issues/1400>`_)
+- Addded a new notebook that demonstrates ways to create a ``NetworkModelGrid`` from a DEM fetched from *OpenTopography* using the *Topography* utility. (`#1400 <https://github.com/landlab/landlab/issues/1400>`_)
 
 
 New Features
@@ -49,7 +49,7 @@ Bug Fixes
   *richdem* is not available for a particular platform or Python version. (`#1379 <https://github.com/landlab/landlab/issues/1379>`_)
 - Resolved instabilities related to the use of very small ``H*`` values when using the ``Space_Large_Scale_Eroder``. (`#1397 <https://github.com/landlab/landlab/issues/1397>`_)
 - Fixed a broken reference in the ``PriorityFloodFlowDirector`` where the gradient of the hillslopes are being updated. (`#1397 <https://github.com/landlab/landlab/issues/1397>`_)
-- Fix a bug that incorrectly diagnosed if the *richdem* engine was installed and working correctly. (`#1399 <https://github.com/landlab/landlab/issues/1399>`_)
+- Fixed a bug that incorrectly diagnosed if the *richdem* engine was installed and working correctly. (`#1399 <https://github.com/landlab/landlab/issues/1399>`_)
 
 
 Documentation Enhancements
@@ -74,9 +74,7 @@ Other Changes and Additions
 - Turn off *hypothesis* deadline setting globally when running continuous
   integration tests. (`#1401 <https://github.com/landlab/landlab/issues/1401>`_)
 - Updated the documentation to build with newer versions of *Sphinx*. (`#1404 <https://github.com/landlab/landlab/issues/1404>`_)
-- Added several new *landlab*-using references.
-
-  [skip ci] (`#1407 <https://github.com/landlab/landlab/issues/1407>`_)
+- Added several new *landlab*-using references. (`#1407 <https://github.com/landlab/landlab/issues/1407>`_)
 
 
 2.4.1 (2021-12-02)
