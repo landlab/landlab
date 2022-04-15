@@ -1,7 +1,4 @@
 .. _release:
 
-*************
-Release Notes
-*************
+.. include:: ../../../CHANGES.rst
 
-When active, this page will provide a compilation of release notes.
