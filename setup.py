@@ -63,7 +63,7 @@ extras_require = {
 
 setup(
     name="landlab",
-    version="2.5.0",
+    version="2.5.1.dev0",
     author="Eric Hutton",
     author_email="eric.hutton@colorado.edu",
     url="https://github.com/landlab",
