@@ -2,7 +2,7 @@
    :target: https://doi.org/10.5281/zenodo.154179
 
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
-    :target: https://readthedocs.org/projects/landlab/?badge=latest
+    :target: https://landlab.readthedocs.org
 
 .. image:: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/test.yml
