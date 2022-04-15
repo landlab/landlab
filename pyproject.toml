@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "landlab"
-description = "Plugin-based component modeling tool."
+description = "Open-source Python package for numerical modeling of Earth surface dynamics."
 authors = [
   {email = "mcflugen@gmail.com"},
   {name = "The landlab team"}
