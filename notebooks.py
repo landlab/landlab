@@ -1,8 +1,13 @@
+#! /usr/bin/env python
+"""Fetch landlab tutorial and teaching notebooks for a given version of landlab.
+"""
 import argparse
+import json
 import os
 import pathlib
 import sys
 import tarfile
+import urllib
 from packaging.version import Version
 from urllib.error import HTTPError
 from urllib.parse import urljoin
@@ -39,8 +44,18 @@ class NotebookError(Exception):
 
 
 class NotebookFetcher:
+    """Fetch the landlab notebooks.
+
+    Parameters
+    ----------
+    version : str, optional
+        A landlab version to get the notebooks for. If not provided,
+        fetch notebooks for the currently installed version of landlab.
+        If landlab's not installed, get the latest development notebooks.
+    """
 
     URL = "https://github.com/landlab/landlab/archive/refs"
+    API_URL = "https://api.github.com/repos/landlab/landlab/tags"
 
     def __init__(self, version=None):
         if not version:
@@ -49,10 +64,18 @@ class NotebookFetcher:
         if not version:
             self._version = "master"
         else:
+            version = NotebookFetcher.get_closest_version(version)
             self._version = "v" + Version(version).base_version
 
     @staticmethod
     def landlab_version():
+        """The currently installed version of landlab.
+
+        Returns
+        -------
+        version : str
+            The version of landlab that is installed or ``None`` if not installed.
+        """
         try:
             from landlab import __version__
         except ModuleNotFoundError:
@@ -69,6 +92,9 @@ class NotebookFetcher:
         return urljoin(NotebookFetcher.URL, f"{self.version}.tar.gz")
 
     def open(self):
+        if Version(self._version) < Version("2"):
+            raise NotebookError("notebooks are not available for landlab < 2")
+
         try:
             stream = urlopen(self.url)
         except HTTPError as error:
@@ -79,6 +105,33 @@ class NotebookFetcher:
             raise NotebookError(msg)
         else:
             return stream
+
+    @staticmethod
+    def get_available_versions():
+        response = urllib.request.urlopen(NotebookFetcher.API_URL)
+        if response.status == 200:
+            tags = json.loads(response.read())
+        else:
+            tags = []
+
+        versions = []
+        for tag in tags:
+            if tag["name"].startswith("v"):
+                versions.append(Version(tag["name"]))
+
+        return sorted(versions)
+
+    @staticmethod
+    def get_closest_version(ver):
+        import bisect
+
+        versions = sorted(NotebookFetcher.get_available_versions())
+
+        if Version(ver) <= versions[0]:
+            closest = versions[0]
+        else:
+            closest = versions[bisect.bisect_right(versions, Version(ver)) - 1]
+        return str(closest)
 
 
 class NotebookExtractor:
