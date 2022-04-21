@@ -1,13 +1,25 @@
-#! /usr/bin/env python
-"""Fetch landlab tutorial and teaching notebooks for a given version of landlab.
+"""Get the landlab tutorial and teaching notebooks.
+
+Run this script to fetch the set of *landlab* notebooks compatible with
+an installed version of landlab.
+
+Usage
+-----
+
+Get notebooks for a currently installed *landlab*,
+
+    $ python -m notebooks
+
+To get notebooks for a particular version of *landlab*, provide
+a version number as an argument. For example,
+
+    $ python -m notebooks 2.5.0
 """
 import argparse
-import json
 import os
 import pathlib
 import sys
 import tarfile
-import urllib
 from packaging.version import Version
 from urllib.error import HTTPError
 from urllib.parse import urljoin
@@ -30,6 +42,10 @@ def main(version=None):
         base = NotebookExtractor(tfile).extract()
 
     out(f"notebooks have been extracted into {base}")
+    out("To run the notebooks first install the required dependencies:")
+    out(f"    $ conda install --file={base}/requirements-notebooks.txt")
+    out("and then open the welcome notebook:")
+    out(f"    $ jupyter notebook {base}/notebooks/welcome.ipynb")
     print(base)
 
     return 0
@@ -44,44 +60,14 @@ class NotebookError(Exception):
 
 
 class NotebookFetcher:
-    """Fetch the landlab notebooks.
-
-    Parameters
-    ----------
-    version : str, optional
-        A landlab version to get the notebooks for. If not provided,
-        fetch notebooks for the currently installed version of landlab.
-        If landlab's not installed, get the latest development notebooks.
-    """
 
     URL = "https://github.com/landlab/landlab/archive/refs"
-    API_URL = "https://api.github.com/repos/landlab/landlab/tags"
 
     def __init__(self, version=None):
         if not version:
-            version = NotebookFetcher.landlab_version()
-
-        if not version:
             self._version = "master"
         else:
-            version = NotebookFetcher.get_closest_version(version)
             self._version = "v" + Version(version).base_version
-
-    @staticmethod
-    def landlab_version():
-        """The currently installed version of landlab.
-
-        Returns
-        -------
-        version : str
-            The version of landlab that is installed or ``None`` if not installed.
-        """
-        try:
-            from landlab import __version__
-        except ModuleNotFoundError:
-            return None
-        else:
-            return __version__
 
     @property
     def version(self):
@@ -92,9 +78,6 @@ class NotebookFetcher:
         return urljoin(NotebookFetcher.URL, f"{self.version}.tar.gz")
 
     def open(self):
-        if Version(self._version) < Version("2"):
-            raise NotebookError("notebooks are not available for landlab < 2")
-
         try:
             stream = urlopen(self.url)
         except HTTPError as error:
@@ -105,33 +88,6 @@ class NotebookFetcher:
             raise NotebookError(msg)
         else:
             return stream
-
-    @staticmethod
-    def get_available_versions():
-        response = urllib.request.urlopen(NotebookFetcher.API_URL)
-        if response.status == 200:
-            tags = json.loads(response.read())
-        else:
-            tags = []
-
-        versions = []
-        for tag in tags:
-            if tag["name"].startswith("v"):
-                versions.append(Version(tag["name"]))
-
-        return sorted(versions)
-
-    @staticmethod
-    def get_closest_version(ver):
-        import bisect
-
-        versions = sorted(NotebookFetcher.get_available_versions())
-
-        if Version(ver) <= versions[0]:
-            closest = versions[0]
-        else:
-            closest = versions[bisect.bisect_right(versions, Version(ver)) - 1]
-        return str(closest)
 
 
 class NotebookExtractor:
@@ -171,8 +127,16 @@ def err(text):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="fetch landlab notebooks")
-    parser.add_argument("version", nargs="?", default="")
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "version",
+        metavar="VERSION",
+        nargs="?",
+        default="",
+        help="a landlab version (e.g. 2.5.0)",
+    )
     args = parser.parse_args()
 
     sys.exit(main(args.version))
