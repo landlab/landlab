@@ -40,6 +40,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
 ]
 
 if os.getenv("READTHEDOCS"):
