@@ -1,4 +1,4 @@
-"""
+D84_D50"""
 Landlab components to initialize river bed sediment "parcels", represented as
 items in a landlab DataRecord, in each link in a river network (represented by
 a landlab NetworkModelGrid). The different BedParcelInitializers allow the user
@@ -30,7 +30,7 @@ class BedParcelInitializerBase:
         rho_sediment=2650.0,
         rho_water=1000.0,
         gravity=scipy.constants.g,
-        std_dev=2.1,
+        D84_D50=2.1,
         sed_thickness=2,
         abrasion_rate=0.0,
         median_number_of_starting_parcels=100,
@@ -51,7 +51,7 @@ class BedParcelInitializerBase:
         self._rho_sediment = rho_sediment
         self._rho_water = rho_water
         self._gravity = gravity
-        self._std_dev = std_dev
+        self._D84_D50 = D84_D50
         self._abrasion_rate = abrasion_rate
         self._extra_parcel_attributes = extra_parcel_attributes
         self._sed_thickness = sed_thickness
@@ -61,7 +61,7 @@ class BedParcelInitializerBase:
 
         d50 = self.calc_d50()
 
-        d84 = d50 * self._std_dev
+        d84 = d50 * self._D84_D50
 
         total_parcel_volume_at_link = calc_total_parcel_volume(
             self._grid.at_link["channel_width"],
@@ -76,7 +76,7 @@ class BedParcelInitializerBase:
             total_parcel_volume_at_link,
             max_parcel_volume,
             d50,
-            self._std_dev,
+            self._D84_D50,
             self._rho_sediment,
             self._abrasion_rate,
             self._extra_parcel_attributes,
@@ -147,8 +147,8 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
         Density of water [kg / m^3].
     gravity : float, optional
         Accelertion due to gravity [m / s^2].
-    std_dev : float, optional
-        Standard deviation of lognormal distribution of grain size.
+    D84_D50 : float, optional
+        Ratio of D84:D50, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
         Sediment thickness in multiples of d84.
     abrasion_rate : float, optional
@@ -249,8 +249,8 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
         Density of water [kg / m^3].
     gravity : float, optional
         Accelertion due to gravity [m / s^2].
-    std_dev : float, optional
-        Standard deviation of lognormal distribution of grain size.
+    D84_D50 : float, optional
+        Ratio of D84:D50, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
         Sediment thickness in multiples of d84.
     abrasion_rate : float, optional
@@ -341,8 +341,8 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
         Density of water [kg / m^3].
     gravity : float, optional
         Accelertion due to gravity [m / s^2].
-    std_dev : float, optional
-        Standard deviation of lognormal distribution of grain size.
+    D84_D50 : float, optional
+        Ratio of D84:D50, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
         Sediment thickness in multiples of d84.
     abrasion_rate : float, optional
@@ -432,8 +432,8 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
         Density of water [kg / m^3].
     gravity : float, optional
         Accelertion due to gravity [m / s^2].
-    std_dev : float, optional
-        Standard deviation of lognormal distribution of grain size.
+    D84_D50 : float, optional
+        Ratio of D84:D50, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
         Sediment thickness in multiples of d84.
     abrasion_rate : float, optional
@@ -498,7 +498,7 @@ def _parcel_characteristics(
     total_parcel_volume_at_link,
     max_parcel_volume,
     d50,
-    std_dev,
+    D84_D50,
     rho_sediment,
     abrasion_rate,
     extra_parcel_attributes,
@@ -523,7 +523,7 @@ def _parcel_characteristics(
     for link, n_parcels in enumerate(n_parcels_at_link):
         element_id[offset : offset + n_parcels] = link
         grain_size[offset : offset + n_parcels] = np.random.lognormal(
-            np.log(d50[link]), np.log(std_dev), n_parcels
+            np.log(d50[link]), np.log(D84_D50), n_parcels
         )
         volume[offset] = total_parcel_volume_at_link[link] - (
             (n_parcels - 1) * max_parcel_volume
