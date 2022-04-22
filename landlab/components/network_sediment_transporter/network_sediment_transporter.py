@@ -1170,7 +1170,7 @@ def _calculate_parcel_volume_post_abrasion(
     travel_distance: float or array
         Travel distance for each parcel during this timestep, in ___.
     abrasion_rate: float or array
-        Mean grain size of the 'active' sediment parcels.
+        Volumetric abrasion exponent (1/m).
 
     Examples
     --------
