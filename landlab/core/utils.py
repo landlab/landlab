@@ -34,6 +34,9 @@ SIZEOF_INT = np.dtype(int).itemsize
 
 class ExampleData:
     def __init__(self, example, case=""):
+        self._example = example
+        self._case = case
+
         self._base = pathlib.Path(
             pkg_resources.resource_filename(
                 "landlab", str(pathlib.Path("data").joinpath(example, case))
@@ -77,6 +80,15 @@ class ExampleData:
     def __iter__(self):
         for p in self.base.iterdir():
             yield p.name
+
+    def __truediv__(self, path):
+        return self.base / path
+
+    def __str__(self):
+        return str(self.base)
+
+    def __repr__(self):
+        return f"ExampleData({self._example!r}, case={self._case!r})"
 
 
 def degrees_to_radians(degrees):

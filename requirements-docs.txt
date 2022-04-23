@@ -9,3 +9,4 @@ entrypoints
 nbsphinx>=0.2.12
 sphinxcontrib_github_alt
 sphinx-inline-tabs
+tabulate
