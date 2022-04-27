@@ -1,4 +1,4 @@
-D84_D50"""
+"""
 Landlab components to initialize river bed sediment "parcels", represented as
 items in a landlab DataRecord, in each link in a river network (represented by
 a landlab NetworkModelGrid). The different BedParcelInitializers allow the user

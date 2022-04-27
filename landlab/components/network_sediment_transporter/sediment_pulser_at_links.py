@@ -98,7 +98,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
             parcel_volume : float
                 parcel volume [m^3]
             abrasion_rate: float
-                rate that grain size decreases with distance along channel [mm/km?]
+                volumetric abrasion exponent [1/m]
         """
      
 

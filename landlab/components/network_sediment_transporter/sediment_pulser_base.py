@@ -33,7 +33,7 @@ class SedimentPulserBase:
     parcel_volume : float, optional
         parcel volume used for all parcels that do not have a specified volume
     abrasion_rate: float, optional
-        Volumetric abrasion exponent [1/m]
+        volumetric abrasion exponent [1/m]
        
 
     Examples
