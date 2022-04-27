@@ -23,6 +23,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     volume that the pulse is divided into and grain characteristics of each pulse
     can also be specified in PulseDF.
     
+    
+    authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt - with help from Eric Hutton and Katy Barnhart
 
 
     Examples
@@ -88,8 +90,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 Tracks parcel location and attributes
             D50: float, optional
                 median grain size [m]
-            D_sd: float, optional
-                standard deviation of grain sizes [m]
+            D84_D50: float, optional
+                ratio of 84th percentile grain size to the median grain size
             rho_sediment : float, optional
                 Sediment grain density [kg/m^3].
             parcel_volume : float
@@ -164,7 +166,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 'link_#', 'pulse_volume', 'normalized_downstream_distance'
             
             Optionally, PulseDF can include the following columns:
-               'D50', 'D_sd', 'abrasion_rate', 'rho_sediment', 'parcel_volume'
+               'D50', 'D84_D50', 'abrasion_rate', 'rho_sediment', 'parcel_volume'
                              
             Values in each columne are defined as follows:
                 
@@ -173,7 +175,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             'normalized_downstream_distance': float - distance from link inlet 
                                                       divided by link length
             'D50': float - median grain size [m]
-            'D_sd': float - grain-size standard deviation [m]
+            'D84_D50': float - grain-size standard deviation [m]
             'abrasion_rate': float - rate that grain size decreases with 
                                      distance along channel [mm/km?]
             'rho_sediment': float - density grains [kg/m^3]
@@ -263,22 +265,22 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         else:
             abrasion_rate = self._abrasion_rate* np.ones(np.shape(starting_link))          
                     
-        if 'D50' in PulseDF.columns and 'D_sd' in PulseDF.columns:
+        if 'D50' in PulseDF.columns and 'D84_D50' in PulseDF.columns:
             grain_size = np.array([]) 
             for i, row in PulseDF.iterrows():       
-                # det D50 and D_sd
+                # det D50 and D84_D50
                 n_parcels = p_np[i]
                 D50 = row['D50']
-                D_sd = row['D_sd']
-                D50_log, D_sd_log = self.calc_lognormal_distribution_parameters(mu_x = D50, sigma_x = D_sd)
-                grain_size_pulse = np.random.lognormal(D50_log, D_sd_log, n_parcels)
+                D84_D50 = row['D84_D50']
+                # D50_log, D_sd_log = self.calc_lognormal_distribution_parameters(mu_x = D50, sigma_x = D_sd)             
+                grain_size_pulse = np.random.lognormal(np.log(D50), np.log(D84_D50), n_parcels)
                 grain_size = np.concatenate((grain_size,grain_size_pulse))
         else:
             n_parcels = sum(p_np)
             D50 = self._D50
-            D_sd = self._D_sd
-            D50_log, D_sd_log = self.calc_lognormal_distribution_parameters(mu_x = D50, sigma_x = D_sd)
-            grain_size = np.random.lognormal(D50_log, D_sd_log, n_parcels)       
+            D84_D50 = self._D84_D50
+            # D50_log, D_sd_log = self.calc_lognormal_distribution_parameters(mu_x = D50, sigma_x = D_sd)
+            grain_size = np.random.lognormal(np.log(D50), np.log(D84_D50), n_parcels)       
         
         grain_size = np.expand_dims(grain_size, axis=1)
                    
