@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
 from hypothesis import given
 from hypothesis.strategies import integers, lists
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pytest import approx
 
 from landlab.graph import TriGraph
