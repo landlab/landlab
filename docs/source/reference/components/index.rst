@@ -82,6 +82,7 @@ Landslides
 
   bedrock_landslider
   landslides
+  dimensionless_discharge
 
 Vegetation
 ----------
@@ -212,6 +213,7 @@ Alphabetical Listing of Modules
    depth_dependent_taylor_soil_creep
    detachment_ltd_erosion
    diffusion
+   dimensionless_discharge
    drainage_density
    erosion_deposition
    fire_generator
@@ -247,11 +249,3 @@ Alphabetical Listing of Modules
    uniform_precip
    vegetation_dynamics
    weathering
-
-Module contents
----------------
-
-.. automodule:: landlab.components
-   :members:
-   :undoc-members:
-   :show-inheritance:
