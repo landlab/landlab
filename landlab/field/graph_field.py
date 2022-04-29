@@ -44,6 +44,8 @@ def reshape_for_storage(array, field_size=None):
     >>> data = np.arange(6).reshape((2, 3))
     >>> reshape_for_storage(data, 2) is data
     True
+
+    :meta private:
     """
     shape = shape_for_storage(array, field_size)
     if shape == array.shape or array.ndim == 0:
@@ -54,6 +56,8 @@ def reshape_for_storage(array, field_size=None):
 
 def shape_for_storage(array, field_size=None):
     """The shape an array will be stored as.
+
+    :meta private:
 
     Parameters
     ----------
@@ -146,6 +150,8 @@ class FieldDataset(dict):
     needed. The setitem method is also overriden so that when arrays
     are added they are stored reshaped in the landlab style. That
     is, shaped as `(n_elements, values_per_element)`.
+
+    :meta private:
 
     Examples
     --------
@@ -345,10 +351,6 @@ class GraphFields:
     separated into *groups*. A typical use for this class would be to define
     the groups as being locations on a grid where the values are defined.
     For instance, the groups could be *node*, *cell*, *link*, and *face*.
-
-    Attributes
-    ----------
-    groups
 
     Examples
     --------

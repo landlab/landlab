@@ -7,10 +7,31 @@ Papers and Presentations
 Peer-reviewed journal articles
 ------------------------------
 
+2022
+````
+
+Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
+
+Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `https://doi.org/10.5194/esurf-10-329-2022 <https://doi.org/10.5194/esurf-10-329-2022>`__.
+
+Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, `https://doi.org/10.1029/2021JG006616 <https://doi.org/10.1029/2021JG006616>`__.
+
+Litwin, D. G., Tucker, G. E., Barnhart, K. R., & Harman, C. J. (2022). **Groundwater affects the geomorphic and hydrologic properties of coevolved landscapes.** *Journal of Geophysical Research: Earth Surface,* 127(1), e2021JF006239, `https://doi.org/10.1029/2021JF006239 <https://doi.org/10.1029/2021JF006239>`__.
+
+Reitman, N. G., Mueller, K. J., & Tucker, G. E. (2022). **Surface slip variability on strike‐slip faults.** *Earth Surface Processes and Landforms,* 47(4), 908-935, `https://doi.org/10.1002/esp.5294 <https://doi.org/10.1002/esp.5294>`__.
+
+Tucker, G. E., Hutton, E. W., Piper, M. D., Campforts, B., Gan, T., Barnhart, K. R., ... & Syvitski, J. (2022). **CSDMS: a community platform for numerical modeling of Earth surface processes.** *Geoscientific Model Development,* 15(4), 1413-1439, `https://doi.org/10.5194/gmd-15-1413-2022 <https://doi.org/10.5194/gmd-15-1413-2022>`__.
+
+Uhlemann, S., Dafflon, B., Wainwright, H. M., Williams, K. H., Minsley, B., Zamudio, K., ... & Hubbard, S. (2022). **Surface parameters and bedrock properties covary across a mountainous watershed: Insights from machine learning and geophysics.** *Science Advances,* 8(12), eabj2479.`https://doi.org/10.1126/sciadv.abj2479 <https://doi.org/10.1126/sciadv.abj2479>`__.
+
 2021
 ````
 
+Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245.`https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
+
 Chen, H., Wang, X., Lu, H., & Van Balen, R. (2021). **Anthropogenic impacts on Holocene fluvial dynamics in the Chinese Loess Plateau, an evaluation based on landscape evolution modelling.** *Geomorphology,* 392, 107935, `https://doi.org/10.1016/j.geomorph.2021.107935 <https://doi.org/10.1016/j.geomorph.2021.107935>`__.
+
+Garcia-Estève, C., Caniven, Y., Cattin, R., Dominguez, S., & Sylvain, R. (2021). **Morphotectonic Evolution of an Alluvial Fan: Results of a Joint Analog and Numerical Modeling Approach.** *Geosciences,* 11(10), 412, `https://doi.org/10.3390/geosciences11100412 <https://doi.org/10.3390/geosciences11100412>`__.
 
 Hooshyar, M., & Porporato, A. (2021). **Mean Dynamics and Elevation‐Contributing Area Covariance in Landscape Evolution Models.** *Water Resources Research,* 57(8), e2021WR029727, `https://doi.org/10.1029/2021WR029727 <https://doi.org/10.1029/2021WR029727>`__.
 
@@ -20,13 +41,15 @@ Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Riv
 
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
 
-Quichimbo, E. A., Singer, M. B., Michaelides, K., Hobley, D. E. J., Rosolem, R., & Cuthbert, M. O. (2021). **DRYP 1.0: A parsimonious hydrological model of DRYland Partitioning of the water balance.** *Geoscientific Model Development Discussions \[preprint\],* `https://doi.org/10.5194/gmd-2021-137 <https://doi.org/10.5194/gmd-2021-137>`__.
+Quichimbo, E. A., Singer, M. B., Michaelides, K., Hobley, D. E., Rosolem, R., & Cuthbert, M. O. (2021). **DRYP 1.0: a parsimonious hydrological model of DRYland Partitioning of the water balance.** *Geoscientific Model Development,* 14(11), 6893-6917, `https://doi.org/10.5194/gmd-14-6893-2021 <https://doi.org/10.5194/gmd-14-6893-2021>`__.
 
 Sharma, H., Ehlers, T. A., Glotzbach, C., Schmid, M., & Tielbörger, K. (2021). **Effect of rock uplift and Milankovitch timescale variations in precipitation and vegetation cover on catchment erosion rates.** *Earth Surface Dynamics,* 9(4), 1045-1072, `https://doi.org/10.5194/esurf-9-1045-2021 <https://doi.org/10.5194/esurf-9-1045-2021>`__.
 
 Sheehan, C. E., & Ward, D. J. (2021). **An Autogenic Cycle of Fluvial Transience in Dipping, Layered Rocks.** *Geophysical Research Letters,* 48(1), e2020GL090246, `https://doi.org/10.1029/2020GL090246 <https://doi.org/10.1029/2020GL090246>`__.
 
 Shen, H., Lynch, B., Poulsen, C. J., & Yanites, B. J. (2021). **A modeling framework (WRF-Landlab) for simulating orogen-scale climate-erosion coupling.** *Computers & Geosciences,* 146, 104625, `https://doi.org/10.1016/j.cageo.2020.104625 <https://doi.org/10.1016/j.cageo.2020.104625>`__.
+
+Spencer, B. M., Thigpen, J. R., Gallen, S. F., Dortch, J. M., Hodges, K. V., Law, R. D., & Mako, C. A. (2021). **An Evaluation of Erosional‐Geodynamic Thresholds for Rapid Orogenic Denudation.** *Journal of Geophysical Research: Solid Earth,* 126(12), e2021JB022353, `https://doi.org/10.1029/2021JB022353 <https://doi.org/10.1029/2021JB022353>`__.
 
 2020
 ````
@@ -67,6 +90,8 @@ Walker, S. J., Wilkinson, S. N., van Dijk, A. I., & Hairsine, P. B. (2020). **A 
 
 2019
 ````
+
+Baldazo, D., Parras, J., & Zazo, S. (2019). **Decentralized multi-agent deep reinforcement learning in swarms of drones for flood monitoring.** In *2019 27th European Signal Processing Conference (EUSIPCO)* (pp. 1-5). IEEE.
 
 Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R.,
 Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart,
