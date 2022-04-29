@@ -3,6 +3,7 @@ Tests written by Jeff Keck and Allison Pfeiffer
 """
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab.components import (
@@ -22,34 +23,33 @@ from landlab.components import (
 from landlab.data_record import DataRecord
 
 ## Basic test: that you can call the four initializers
-def test_call_area_BPI(example_nmg):
-    initialize_parcels = BedParcelInitializerArea(grid,
+def test_call_area_BPI(example_nmg2):
+    initialize_parcels = BedParcelInitializerArea(example_nmg2,
                               drainage_area_coefficient = 0.18,
                               drainage_area_exponent = -0.12
                               )
     _ = initialize_parcels()
 
 
-def test_call_discharge_BPI(example_nmg):
-    discharge_at_link = np.full(example_nmg.number_of_links, 10.0)  # m^3 / s
-    initialize_parcels = BedParcelInitializerDischarge(grid,
-                              drainage_area_coefficient = 0.18,
-                              drainage_area_exponent = -0.12
+def test_call_discharge_BPI(example_nmg2):
+    discharge_at_link = np.full(example_nmg2.number_of_links, 10.0)  # m^3 / s
+    initialize_parcels = BedParcelInitializerDischarge(example_nmg2,
+                              discharge_at_link = np.full(example_nmg2.number_of_links, 10.0)
                               )
     _ = initialize_parcels()
 
 
-def test_call_depth_BPI(example_nmg):
-    depth_at_link = np.full(example_nmg.number_of_links, 10.0)  # m
-    initialize_parcels = BedParcelInitializerDepth(grid,
+def test_call_depth_BPI(example_nmg2):
+    depth_at_link = np.full(example_nmg2.number_of_links, 10.0)  # m
+    initialize_parcels = BedParcelInitializerDepth(example_nmg2,
                                 flow_depth_at_link = depth_at_link,
                                 )
     _ = initialize_parcels()
 
 
-def test_call_userD50_BPI(example_nmg):
-    d50_at_link = np.full(example_nmg.number_of_links, 0.08)  # m
-    initialize_parcels = BedParcelInitializerDepth(grid,
+def test_call_userD50_BPI(example_nmg2):
+    d50_at_link = np.full(example_nmg2.number_of_links, 0.08)  # m
+    initialize_parcels = BedParcelInitializerUserD50(example_nmg2,
                                 user_d50 = d50_at_link,
                                 )
     _ = initialize_parcels()
@@ -71,26 +71,19 @@ def test_det_approx_parcel_volume():
 
 # %% Test to make sure we're getting correct correct d50 correct_values
 
-def test_calc_D50_discharge(example_nmg, example_parcel_initializer):
+def test_calc_D50_discharge(example_nmg2):
     """test calc D50 grain size give correct values"""
-    correct_values = np.array([0.195218575, #  see manual computations.xlsx
-                             0.317133511,
-                             0.247064737,
-                             0.317133511,
-                             0.271272098,
-                             0.360303937,
-                             0.317133511])
-    discharge_at_link = np.full(example_nmg.number_of_links, 10.0)
-    D50 = calc_D50_discharge(
-                    example_nmg._grid.at_link["channel_width"],
-                    example_nmg._grid.at_link["channel_slope"],
-                    discharge_at_link,
-                    mannings_n=example_parcel_initializer._mannings_n,
-                    gravity=example_parcel_initializer._gravity,
-                    rho_water=example_parcel_initializer._rho_water,
-                    rho_sediment=example_parcel_initializer._rho_sediment,
-                    tau_50=example_parcel_initializer._tau_50,
+    correct_values = np.array([22,22])
+
+    D50 = calc_d50_discharge(
+                    width_vals,
+                    slope_vals,
+                    discharge_vals,
+                    etc
                 )
+
+    # XXXXXXXXXX Replace code above with simple calculation. Pass easy values, calculate answer
+
     np.testing.assert_almost_equal(D50, correct_values)
 
 
@@ -106,7 +99,7 @@ class Test_calc_d50_dArea_scaling(object):
         """test normal values 2"""
         D50e = 0.1
         a = 0.1; n = 0; CA = 10 # km^2
-        D50 = calc_d50_dArea_scaling(user_D50 = [a,b] ,drainage_area = CA)
+        D50 = calc_d50_dArea_scaling(drainage_area = CA, a = a, n = n)
         np.testing.assert_allclose(D50, D50e, rtol = 1e-4)
 
 
@@ -125,30 +118,26 @@ def test_calc_d50_depth():
 
 
 # %% Test for errors raised
-def test_D50_not_specified(example_parcel_initializer):
+def test_D50_not_specified(example_nmg2):
     """test ValueError exception raised if D50 input is None"""
     with pytest.raises(ValueError):
-        initialize_parcels = BedParcelInitializerUserD50(grid,
+        initialize_parcels = BedParcelInitializerUserD50(example_nmg2,
                                     user_d50 = None,
                                     )
         _ = initialize_parcels()
 
-#XXX This is where I should go through and test all the errors
-
-
 # %% Test for expected correct values
 
 class Test_BedParcelInitializer(object):
-    def test_normal_BPI(self, example_nmg):
+    def test_normal_BPI(self, example_nmg2):
         """
         Minimum attributes specified, most attributes should use
         defaults specified at instantiation. uses BedParcelInitializerDischarge.
         """
         np.random.seed(seed=5)
-        grid = example_nmg
-        discharge = np.full(grid.number_of_links, 1.0)
+        discharge = np.full(example_nmg2.number_of_links, 1.0)
         initialize_parcels = BedParcelInitializerDischarge(
-                                grid,
+                                example_nmg2,
                                 discharge_at_link = discharge,
                                 median_number_of_starting_parcels=1)
 
@@ -192,16 +181,15 @@ class Test_BedParcelInitializer(object):
         np.testing.assert_allclose(D, De, rtol = 1e-4)
         np.testing.assert_allclose(V, Ve, rtol = 1e-4)
 
-    def test_normal_BPI_abrasion(self, example_nmg):
+    def test_normal_BPI_abrasion(self, example_nmg2):
         """
         Test normal outputs of bed parcel initializer with abrasion.
         uses BedParcelInitializerDischarge.
         """
         np.random.seed(seed=5)
-        grid = example_nmg
-        discharge = np.full(grid.number_of_links, 1.0)
+        discharge = np.full(example_nmg2.number_of_links, 1.0)
         initialize_parcels = BedParcelInitializerDischarge(
-                                grid,
+                                example_nmg2,
                                 discharge_at_link = discharge,
                                 median_number_of_starting_parcels=1,
                                 abrasion_rate = 0.1,)
