@@ -497,7 +497,7 @@ class GraphFields:
         >>> fields.at_core_node.size
         2
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         dataset_name = "at_" + loc
         if loc not in self._groups:
@@ -544,7 +544,7 @@ class GraphFields:
         >>> fields.has_group('cell')
         False
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         return name in self._groups
 
@@ -588,7 +588,7 @@ class GraphFields:
         >>> fields.has_field("cell", "topographic__elevation")
         False
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         if len(args) == 2:
             group, field = args
@@ -630,7 +630,7 @@ class GraphFields:
         >>> list(fields.keys('node'))
         ['topographic__elevation']
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         return self[group].keys()
 
@@ -655,7 +655,7 @@ class GraphFields:
         >>> fields.size('node')
         4
 
-        LLCATS: GINF FIELDINF
+        :meta landlab: info-grid, info-field
         """
         return self[group].size
 
@@ -716,7 +716,7 @@ class GraphFields:
         Traceback (most recent call last):
         GroupError: cell
 
-        LLCATS: FIELDIO
+        :meta landlab: field-io
         """
         if len(args) == 2:
             group, field = args
@@ -813,7 +813,7 @@ class GraphFields:
         Traceback (most recent call last):
         ValueError: Array has incorrect size.
 
-        LLCATS: FIELDIO
+        :meta landlab: field-io
         """
         if len(args) == 2:
             group, field = args
@@ -858,7 +858,7 @@ class GraphFields:
         KeyError
             If either *field* or *group* does not exist.
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         if len(args) == 2:
             group, field = args
@@ -905,7 +905,7 @@ class GraphFields:
         >>> list(field.keys('node'))
         []
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         if len(args) == 0:
             group = kwds.pop("at", kwds.pop("centering", "node"))
@@ -961,7 +961,7 @@ class GraphFields:
         >>> list(field.keys('node'))
         []
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         allocated = self.empty(*args, **kwds)
         allocated.fill(1)
@@ -1001,7 +1001,7 @@ class GraphFields:
         >>> list(field.keys('node'))
         []
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         allocated = self.empty(*args, **kwds)
         allocated.fill(0)
@@ -1082,7 +1082,7 @@ class GraphFields:
         Traceback (most recent call last):
         FieldError: topographic__elevation
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         if len(args) == 3:
             at, name, value_array = args
@@ -1135,7 +1135,7 @@ class GraphFields:
         KeyError
             If the named field does not exist.
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         try:
             ds = getattr(self, "at_" + loc)
@@ -1180,7 +1180,7 @@ class GraphFields:
         landlab.field.GraphFields.zeros : Equivalent method that
             initializes the data to 0.
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         if len(args) == 2:
             loc, name = args
@@ -1253,7 +1253,7 @@ class GraphFields:
         >>> field.at_node['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         data = self.add_empty(*args, **kwds)
         data.fill(1)
@@ -1294,7 +1294,7 @@ class GraphFields:
         landlab.field.GraphFields.add_ones : Equivalent method that
             initializes the data to 1.
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         data = self.add_empty(*args, **kwds)
         data.fill(0)
@@ -1325,7 +1325,7 @@ class GraphFields:
         array :
             A reference to the newly-created array.
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         if len(args) == 3:
             at, name, fill_value = args

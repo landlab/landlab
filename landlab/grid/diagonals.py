@@ -140,7 +140,7 @@ class DiagonalsMixIn(object):
                [ 8, -1, -1,  5], [10,  9,  4,  7], [-1, 11,  6, -1],
                [-1, -1, -1,  9], [-1, -1,  8, 11], [-1, -1, 10, -1]])
 
-        LLCATS: NINF LINF CONN
+        :meta landlab: info-node, info-link, connectivity
         """
         return create_diagonals_at_node(self.shape)
 
@@ -207,7 +207,7 @@ class DiagonalsMixIn(object):
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
 
-        LLCATS: NINF CONN
+        :meta landlab: info-node, connectivity
         """
         node_is_at_tail = np.choose(
             self.diagonal_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
@@ -317,7 +317,7 @@ class DiagonalsMixIn(object):
         >>> np.all(diagonals_at_node == grid.diagonals_at_node)
         True
 
-        LLCATS: NINF LINF CONN
+        :meta landlab: info-node, info-link, connectivity
         """
         diagonals_at_node = self.diagonals_at_node.copy()
         diagonals_at_node[diagonals_at_node >= 0] += self.number_of_links
@@ -373,7 +373,7 @@ class DiagonalsMixIn(object):
                 4.,  4.,  5.,  5.,  5.,
                 5.,  5.,  5.,  5.,  5.])
 
-        LLCATS: LINF MEAS
+        :meta landlab: info-link, quantity
         """
         return np.hstack((super().length_of_link, self.length_of_diagonal))
 

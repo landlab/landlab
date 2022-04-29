@@ -197,7 +197,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> graph.number_of_rings
         1
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         return self._shape[0]
 
@@ -215,7 +215,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> graph.spacing_of_rings
         2.0
 
-        LLCATS: GINF MEAS
+        :meta landlab: info-grid, quantity
         """
         return self._ring_spacing
 
@@ -235,7 +235,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,  1.,  2.,  1.,
                 1.,  2.,  2.,  2.,  2.,  2.])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         return np.sqrt(
             np.square(self.x_of_node - self._xy_of_center[0])
@@ -257,6 +257,6 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> graph.number_of_nodes_in_ring
         array([ 6, 12, 24, 48])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         return as_id_array(self._shape[1] * 2 ** np.arange(self.number_of_rings))
