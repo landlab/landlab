@@ -64,7 +64,11 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     Check the element_id of each parcel
     
     >>> print(parcels.dataset['element_id'].values)
-    array([[2],[2],[6],[6],[6]])
+    [[2]
+     [2]
+     [6]
+     [6]
+     [6]]
     """
 
     def __init__(

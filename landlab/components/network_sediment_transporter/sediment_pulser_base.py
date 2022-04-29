@@ -49,12 +49,13 @@ class SedimentPulserBase:
     >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
     >>> make_pulse_base = SedimentPulserBase(grid)
-    >>> make_pulse.parcels
-    None
+    >>> make_pulse_base._parcels
     
     SedimentPulserBase does not have any methods for adding a pulse
     
     >>> a_pulse = make_pulse_base()
+    Traceback (most recent call last):
+    ...
     NotImplementedError: the base component has no call method
     
 

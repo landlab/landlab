@@ -52,19 +52,24 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     
     Define the PulseDF and time of the pulse
 
-    >>> PulseDF = pd.DataFrame({'pulse_volume': [0.2, 1, 1.1, 0.5],
-                                      'link_#': [1, 3, 5, 2],
-                                      'normalized_downstream_distance': [0.8,0.7,0.5,0.2]})    
+    >>> PulseDF = pd.DataFrame({'pulse_volume': [0.2, 1, 1.1, 0.5],'link_#': [1, 3, 5, 2],'normalized_downstream_distance': [0.8,0.7,0.5,0.2]})    
     >>> time = 7
     
     Run the instance
     
     >>> parcels = make_pulse(time, PulseDF)
+    Parcels not provided, created a new DataRecord
     
     check element_id of each parcel
     
     >>> print(parcels.dataset['element_id'].values)
-    array([[1],[3],[3],[5],[5],[5],[2]]))
+    [[1]
+    [3]
+    [3]
+    [5]
+    [5]
+    [5]
+    [2]]
 
     """     
     def __init__(
