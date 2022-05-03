@@ -125,7 +125,7 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
 
     authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
-    last updated: Feb 2021
+    last updated: April 2022
 
     Parameters
     ----------
@@ -133,8 +133,8 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
         landlab *ModelGrid* to place sediment parcels on.
     time : float, optional
         The initial time to add to the record.
-    discharge_at_link: float, optional
-        Dominant/formative discharge at each link in the network.
+    discharge_at_link: float
+        Dominant/formative discharge at each link in the network.[m^3 / s]
     mannings_n : float, optional
         Manning's n value for all links, used to calculate median parcel grain
         size at a link.
@@ -227,7 +227,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
 
     authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
-    last updated: Feb 2021
+    last updated: April 2022
 
     Parameters
     ----------
