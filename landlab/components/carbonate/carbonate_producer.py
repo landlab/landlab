@@ -2,8 +2,8 @@
 from contextlib import contextmanager
 
 import numpy as np
-from landlab import Component
 
+from landlab import Component
 
 _EPSILON = 1.0e-6  # tiny negative depth avoid fast carb growth at zero depth
 
