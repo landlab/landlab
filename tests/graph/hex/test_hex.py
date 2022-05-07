@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis.strategies import integers, lists
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pytest import approx
 
 from landlab.graph import TriGraph
@@ -109,7 +109,6 @@ def test_create_hex():
 
 
 @given(shape=lists(integers(min_value=3, max_value=32), min_size=2, max_size=2))
-@settings(deadline=None)
 def test_spacing(shape):
     """Test spacing of nodes."""
     graph = TriGraph(shape)
@@ -122,7 +121,6 @@ def test_spacing(shape):
 @given(shape=lists(integers(min_value=3, max_value=32), min_size=2, max_size=2))
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
 @pytest.mark.parametrize("node_layout", ("hex", "rect"))
-@settings(deadline=None)
 def test_origin_keyword(node_layout, orientation, shape):
     """Test setting the origin."""
     graph = TriGraph(shape)

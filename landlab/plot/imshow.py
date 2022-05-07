@@ -259,6 +259,8 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     cbar_tick_size : float, optional
         colorbar tick size. The default is 10.
     cbar_label_color : str, optional
+        colorbar label color. The default is 'black'.
+    cbar_ticks_color : str, optional
         colorbar tick color. The default is 'black'.
     cbar_label_fontweight : str, optional
         colorbar font weight. The default is 'bold'.
@@ -306,8 +308,8 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
-    """
-    Map view of grid data over all grid cells.
+    """Map view of grid data over all grid cells.
+
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
 
@@ -613,6 +615,7 @@ def _imshowhs_grid_values(
     colorbar_label_x=0.5,
     cbar_tick_size=10,
     cbar_label_color="black",
+    cbar_tick_color="black",
     cbar_label_fontweight="bold",
     add_label_bbox=False,
     y_label_offSet_var_1=3,
@@ -851,8 +854,8 @@ def _imshowhs_grid_values(
                 axins1.xaxis.set_ticks_position(cb_ticks_position)
                 cb.ax.tick_params(
                     labelsize=cbar_tick_size,
-                    color=cbar_label_color,
-                    labelcolor=cbar_label_color,
+                    color=cbar_tick_color,
+                    labelcolor=cbar_tick_color,
                 )
 
                 # if colorbar_label:
@@ -959,8 +962,8 @@ def _imshowhs_grid_values(
                         )
                     cb.ax.tick_params(
                         labelsize=cbar_tick_size,
-                        color=cbar_label_color,
-                        labelcolor=cbar_label_color,
+                        color=cbar_tick_color,
+                        labelcolor=cbar_tick_color,
                     )
                     axins1.xaxis.set_ticks_position(cb_ticks_position)
 
@@ -1024,8 +1027,8 @@ def _imshowhs_grid_values(
                         )
                     cb.ax.tick_params(
                         labelsize=cbar_tick_size,
-                        color=cbar_label_color,
-                        labelcolor=cbar_label_color,
+                        color=cbar_tick_color,
+                        labelcolor=cbar_tick_color,
                     )
 
                     axins2.xaxis.set_ticks_position(cb_ticks_position)
@@ -1117,6 +1120,7 @@ def _imshowhs_grid_values(
 
 def imshow_grid(grid, values, **kwds):
     """Prepare a map view of data over all nodes or cells in the grid.
+
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
     is shaded with its own value. Outer edges of perimeter cells are
