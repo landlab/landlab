@@ -573,6 +573,16 @@ def test_imshowhs_grid_11():
         )
 
 
+def test_imshowhs_grid_12():
+    """
+    Test imshowhs without units
+    """
+    # %%
+    mg = landlab.RasterModelGrid((4, 5))
+    _ = mg.add_zeros("topographic__elevation", at="node")
+    _ = landlab.plot.imshowhs_grid(mg, "topographic__elevation")
+
+
 def test_hex_mfd():
     """
     Currently no support for hex
