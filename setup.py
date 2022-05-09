@@ -108,7 +108,7 @@ setup(
             "test_*/*asc",
         ]
     },
-    entry_points={"console_scripts": ["landlab=landlab.cmd.landlab:main"]},
+    entry_points={"console_scripts": ["landlab=landlab.cmd.landlab:landlab"]},
     include_dirs=[numpy_incl],
     ext_modules=find_extensions("landlab"),
 )
