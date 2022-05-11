@@ -127,14 +127,6 @@ Subaqueous / Submarine Processes
   carbonate
   marine_sediment_transport
 
-Tectonics
----------
-
-.. toctree::
-  :maxdepth: 2
-
-  tectonics
-
 Terrain Analysis
 ----------------
 
@@ -154,12 +146,12 @@ Tectonics
 ---------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   flexure
-  flexure.ext
   gflex
   normal_fault
+  tectonics
 
 Fire
 ----
