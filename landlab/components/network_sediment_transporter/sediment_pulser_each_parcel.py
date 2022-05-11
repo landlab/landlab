@@ -276,15 +276,13 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 # det D50 and D84_D50
                 n_parcels = p_np[i]
                 D50 = row['D50']
-                D84_D50 = row['D84_D50']
-                # D50_log, D_sd_log = self.calc_lognormal_distribution_parameters(mu_x = D50, sigma_x = D_sd)             
+                D84_D50 = row['D84_D50']           
                 grain_size_pulse = np.random.lognormal(np.log(D50), np.log(D84_D50), n_parcels)
                 grain_size = np.concatenate((grain_size,grain_size_pulse))
         else:
             n_parcels = sum(p_np)
             D50 = self._D50
             D84_D50 = self._D84_D50
-            # D50_log, D_sd_log = self.calc_lognormal_distribution_parameters(mu_x = D50, sigma_x = D_sd)
             grain_size = np.random.lognormal(np.log(D50), np.log(D84_D50), n_parcels)       
         
         grain_size = np.expand_dims(grain_size, axis=1)

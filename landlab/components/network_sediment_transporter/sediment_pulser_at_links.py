@@ -279,7 +279,8 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
         
         # link location (distance from link inlet / link length) is stochastically determined
-        location_in_link = np.expand_dims(np.random.rand(np.sum(n_parcels_at_link)), axis=1)
+        # location_in_link = np.expand_dims(np.random.rand(np.sum(n_parcels_at_link)), axis=1)
+        location_in_link = np.expand_dims(np.random.uniform(size = np.sum(n_parcels_at_link)), axis=1)
     
         # All parcels in pulse are in the active layer (1) rather than subsurface (0)
         active_layer = np.ones(np.shape(element_id))
