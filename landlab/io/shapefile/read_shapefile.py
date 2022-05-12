@@ -177,10 +177,6 @@ def read_shapefile(
     >>> w.line([[[5,5],[0,10]]])
     >>> w.record(239)
     >>> w.close()
-    >>> _ = shp.seek(0, os.SEEK_SET)
-    >>> _ = shx.seek(0, os.SEEK_SET)
-    >>> _ = dbf.seek(0, os.SEEK_SET)
-
 
     Now create a NetworkModelGrid with read_shapefile:
 
@@ -215,10 +211,6 @@ def read_shapefile(
     >>> w.line([[[5,5],[0,10]]])
     >>> w.record(239)
     >>> w.close()
-    >>> _ = shp.seek(0, os.SEEK_SET)
-    >>> _ = shx.seek(0, os.SEEK_SET)
-    >>> _ = dbf.seek(0, os.SEEK_SET)
-
 
     >>> p_shp = BytesIO()
     >>> p_shx = BytesIO()
@@ -235,9 +227,6 @@ def read_shapefile(
     >>> p_w.point(10, 10)
     >>> p_w.record(6)
     >>> p_w.close()
-    >>> _ = p_shp.seek(0, os.SEEK_SET)
-    >>> _ = p_shx.seek(0, os.SEEK_SET)
-    >>> _ = p_dbf.seek(0, os.SEEK_SET)
 
     Now read in both files together.
 
