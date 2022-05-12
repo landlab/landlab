@@ -425,9 +425,7 @@ def test_points_but_one_missing():
         (1, 3, 2, 0),
     ],
 )
-def test_simple_reorder(order, p_order):
-
-    # orders = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
+def test_simple_reorder(tmpdir, order, p_order):
 
     lines = [
         [[[5, 5], [10, 10]]],
@@ -437,50 +435,29 @@ def test_simple_reorder(order, p_order):
 
     records = [37, 100, 239]
 
-    # point_orders = [
-    #     (0, 1, 2, 3),
-    #     (0, 2, 3, 1),
-    #     (0, 3, 2, 1),
-    #     (0, 2, 3, 1),
-    #     (1, 0, 2, 3),
-    #     (1, 0, 3, 2),
-    #     (1, 2, 3, 0),
-    #     (1, 3, 2, 0),
-    # ]
-
     points = [(5, 0), (5, 5), (0, 10), (10, 10)]
     point_records = [2, 4, 8, 6]
 
-    #     for order in orders:
-    #
-    #         for p_order in point_orders:
+    with tmpdir.as_cwd():
 
-    shp = BytesIO()
-    shx = BytesIO()
-    dbf = BytesIO()
+        with shapefile.Writer("line") as w:
+            w.shapeType = POLYLINE
+            w.field("spam", "N")
 
-    w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+            for o in order:
+                w.line(lines[o])
+                w.record(records[o])
 
-    w.shapeType = POLYLINE
-    w.field("spam", "N")
+        p_w = shapefile.Writer(shp="point.shp")
 
-    for o in order:
-        w.line(lines[o])
-        w.record(records[o])
-    w.close()
+        with shapefile.Writer("point") as p_w:
+            p_w.shapeType = POINT
+            p_w.field("eggs", "N")
+            for po in p_order:
+                p_w.point(*points[po])
+                p_w.record(point_records[po])
 
-    p_shp = BytesIO()
-    p_shx = BytesIO()
-    p_dbf = BytesIO()
-    p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-    p_w.shapeType = POINT
-    p_w.field("eggs", "N")
-    for po in p_order:
-        p_w.point(*points[po])
-        p_w.record(point_records[po])
-    p_w.close()
-
-    grid = read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
+        grid = read_shapefile("line.shp", points_shapefile="point.shp")
 
     assert_array_equal(grid.nodes, [0, 1, 2, 3])
     assert_array_equal(grid.x_of_node, [5.0, 5.0, 0.0, 10.0])
@@ -488,8 +465,6 @@ def test_simple_reorder(order, p_order):
     assert_array_equal(grid.nodes_at_link, [[0, 1], [2, 1], [1, 3]])
     assert "spam" in grid.at_link
     assert_array_equal(grid.at_link["spam"], [100, 239, 37])
-
-    # del grid, w, shp, shx, dbf
 
 
 @pytest.mark.parametrize(
