@@ -3,7 +3,7 @@ matplotlib
 netcdf4
 numpy
 pyyaml
-pyshp < 2.3.0
+pyshp != 2.3.0
 scipy
 statsmodels
 pandas
