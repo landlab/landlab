@@ -161,6 +161,8 @@ def read_shapefile(
     First, we make a simple shapefile
 
     >>> from io import BytesIO
+    >>> import os
+
     >>> import shapefile
     >>> shp = BytesIO()
     >>> shx = BytesIO()
@@ -175,6 +177,10 @@ def read_shapefile(
     >>> w.line([[[5,5],[0,10]]])
     >>> w.record(239)
     >>> w.close()
+    >>> _ = shp.seek(0, os.SEEK_SET)
+    >>> _ = shx.seek(0, os.SEEK_SET)
+    >>> _ = dbf.seek(0, os.SEEK_SET)
+
 
     Now create a NetworkModelGrid with read_shapefile:
 
@@ -209,6 +215,10 @@ def read_shapefile(
     >>> w.line([[[5,5],[0,10]]])
     >>> w.record(239)
     >>> w.close()
+    >>> _ = shp.seek(0, os.SEEK_SET)
+    >>> _ = shx.seek(0, os.SEEK_SET)
+    >>> _ = dbf.seek(0, os.SEEK_SET)
+
 
     >>> p_shp = BytesIO()
     >>> p_shx = BytesIO()
@@ -225,10 +235,13 @@ def read_shapefile(
     >>> p_w.point(10, 10)
     >>> p_w.record(6)
     >>> p_w.close()
+    >>> _ = p_shp.seek(0, os.SEEK_SET)
+    >>> _ = p_shx.seek(0, os.SEEK_SET)
+    >>> _ = p_dbf.seek(0, os.SEEK_SET)
 
     Now read in both files together.
 
-    >>> grid = read_shapefile(shp,dbf=dbf,points_shapefile=p_shp,points_dbf=p_dbf)
+    >>> grid = read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
     >>> grid.nodes
     array([0, 1, 2, 3])
     >>> grid.x_of_node
