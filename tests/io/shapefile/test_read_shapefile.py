@@ -408,9 +408,26 @@ def test_points_but_one_missing():
         read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
 
 
-def test_simple_reorder():
+@pytest.mark.parametrize(
+    "order",
+    [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)],
+)
+@pytest.mark.parametrize(
+    "p_order",
+    [
+        (0, 1, 2, 3),
+        (0, 2, 3, 1),
+        (0, 3, 2, 1),
+        (0, 2, 3, 1),
+        (1, 0, 2, 3),
+        (1, 0, 3, 2),
+        (1, 2, 3, 0),
+        (1, 3, 2, 0),
+    ],
+)
+def test_simple_reorder(order, p_order):
 
-    orders = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
+    # orders = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
 
     lines = [
         [[[5, 5], [10, 10]]],
@@ -420,61 +437,59 @@ def test_simple_reorder():
 
     records = [37, 100, 239]
 
-    point_orders = [
-        (0, 1, 2, 3),
-        (0, 2, 3, 1),
-        (0, 3, 2, 1),
-        (0, 2, 3, 1),
-        (1, 0, 2, 3),
-        (1, 0, 3, 2),
-        (1, 2, 3, 0),
-        (1, 3, 2, 0),
-    ]
+    # point_orders = [
+    #     (0, 1, 2, 3),
+    #     (0, 2, 3, 1),
+    #     (0, 3, 2, 1),
+    #     (0, 2, 3, 1),
+    #     (1, 0, 2, 3),
+    #     (1, 0, 3, 2),
+    #     (1, 2, 3, 0),
+    #     (1, 3, 2, 0),
+    # ]
 
     points = [(5, 0), (5, 5), (0, 10), (10, 10)]
     point_records = [2, 4, 8, 6]
 
-    for order in orders:
+    #     for order in orders:
+    #
+    #         for p_order in point_orders:
 
-        for p_order in point_orders:
+    shp = BytesIO()
+    shx = BytesIO()
+    dbf = BytesIO()
 
-            shp = BytesIO()
-            shx = BytesIO()
-            dbf = BytesIO()
+    w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
 
-            w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+    w.shapeType = POLYLINE
+    w.field("spam", "N")
 
-            w.shapeType = POLYLINE
-            w.field("spam", "N")
+    for o in order:
+        w.line(lines[o])
+        w.record(records[o])
+    w.close()
 
-            for o in order:
-                w.line(lines[o])
-                w.record(records[o])
-            w.close()
+    p_shp = BytesIO()
+    p_shx = BytesIO()
+    p_dbf = BytesIO()
+    p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+    p_w.shapeType = POINT
+    p_w.field("eggs", "N")
+    for po in p_order:
+        p_w.point(*points[po])
+        p_w.record(point_records[po])
+    p_w.close()
 
-            p_shp = BytesIO()
-            p_shx = BytesIO()
-            p_dbf = BytesIO()
-            p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
-            p_w.shapeType = POINT
-            p_w.field("eggs", "N")
-            for po in p_order:
-                p_w.point(*points[po])
-                p_w.record(point_records[po])
-            p_w.close()
+    grid = read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
 
-            grid = read_shapefile(
-                shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf
-            )
+    assert_array_equal(grid.nodes, [0, 1, 2, 3])
+    assert_array_equal(grid.x_of_node, [5.0, 5.0, 0.0, 10.0])
+    assert_array_equal(grid.y_of_node, [0.0, 5.0, 10.0, 10.0])
+    assert_array_equal(grid.nodes_at_link, [[0, 1], [2, 1], [1, 3]])
+    assert "spam" in grid.at_link
+    assert_array_equal(grid.at_link["spam"], [100, 239, 37])
 
-            assert_array_equal(grid.nodes, np.array([0, 1, 2, 3]))
-            assert_array_equal(grid.x_of_node, np.array([5.0, 5.0, 0.0, 10.0]))
-            assert_array_equal(grid.y_of_node, np.array([0.0, 5.0, 10.0, 10.0]))
-            assert_array_equal(grid.nodes_at_link, np.array([[0, 1], [2, 1], [1, 3]]))
-            assert "spam" in grid.at_link
-            assert_array_equal(grid.at_link["spam"], np.array([100, 239, 37]))
-
-            del grid, w, shp, shx, dbf
+    # del grid, w, shp, shx, dbf
 
 
 @pytest.mark.parametrize(
