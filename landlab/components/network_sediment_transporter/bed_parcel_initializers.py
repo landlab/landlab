@@ -20,7 +20,7 @@ from landlab.grid.network import NetworkModelGrid
 _OUT_OF_NETWORK = -2
 
 
-class BedParcelInitializerBase:
+class BedParcelInitializerBase(Component):
 
     def __init__(
         self,
