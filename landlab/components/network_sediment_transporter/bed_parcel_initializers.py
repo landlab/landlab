@@ -182,7 +182,22 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
 
 
     """
+    _name = "BedParcelInitializerDischarge"
 
+    _unit_agnostic = False
+
+    __version__ = "1.0"
+
+    _info = {
+        "discharge_at_link": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m^3 / s",
+            "mapping": "link",
+            "doc": "Dominant/formative discharge at each link in the network",
+        },
+    }
     def __init__(
         self, grid, time=[0.0], discharge_at_link=None, mannings_n=0.035, **kwds
     ):
@@ -280,6 +295,23 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     ... )
     >>> parcels = initialize_parcels()
     """
+    _name = "BedParcelInitializerDepth"
+
+    _unit_agnostic = False
+
+    __version__ = "1.0"
+
+    _info = {
+        "flow_depth_at_link": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "link",
+            "doc": "Dominant/formative flow depth at each link in the network",
+        },
+    }
+
 
     def __init__(
         self, grid, time=[0.0], flow_depth_at_link=None, tau_c_multiplier=1.0, **kwds
@@ -374,6 +406,46 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     ... )
     >>> parcels = initialize_parcels()
     """
+    _name = "BedParcelInitializerArea"
+
+    _unit_agnostic = False
+
+    __version__ = "1.0"
+
+    _info = {
+        "time": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "s",
+            "mapping": "link",
+            "doc": "The initial time to add to the record",
+        },
+        "drainage_area_coefficient": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "--",
+            "mapping": "link",
+            "doc": "Coefficient in a power law grain size-drainage area scaling relationship",
+        },
+        "drainage_area_exponent": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "--",
+            "mapping": "link",
+            "doc": "Exponent in a power law grain size-drainage area scaling relationship.",
+        },
+        "TESTING": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "intent=out where does this show up",
+        },
+    }
 
     def __init__(
         self,
@@ -406,7 +478,7 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
 class BedParcelInitializerUserD50(BedParcelInitializerBase):
     """
     This function creates a landlab DataRecord to represent parcels of sediment
-    on a river network (represented by a NetworkModelGrid). The function
+    on a river network (represented by a landlab :py:class:`~landlab.grid.network.NetworkModelGrid`). The function
     takes either a scalar value or an array of 'size(number_of_links)' to
     assign the median grain size for parcels on each link in the network grid.
 
@@ -462,6 +534,39 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
     >>> initialize_parcels = BedParcelInitializerUserD50(grid, user_d50=0.05)
     >>> parcels = initialize_parcels()
     """
+
+    _name = "BedParcelInitializerUserD50"
+
+    _unit_agnostic = False
+
+    __version__ = "1.0"
+
+    _info = {
+        "time": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "s",
+            "mapping": "link",
+            "doc": "The initial time to add to the record",
+        },
+        "user_d50": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "link",
+            "doc": "Median grain size of the bed sediment in each link",
+        },
+        "TESTING": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "intent=out where does this show up",
+        },
+    }
 
     def __init__(self, grid, time=[0.0], user_d50=None, **kwds):
 
