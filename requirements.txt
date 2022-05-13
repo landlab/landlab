@@ -5,7 +5,7 @@ matplotlib
 netcdf4
 numpy
 pandas
-pyshp
+pyshp != 2.3.0
 pyyaml
 richdem
 scipy
