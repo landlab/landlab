@@ -39,7 +39,7 @@ dependencies = [
   "netcdf4",
   "numpy",
   "pyyaml",
-  "pyshp",
+  "pyshp != 2.3.0",
   "scipy",
   "statsmodels",
   "pandas",
