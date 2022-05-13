@@ -13,7 +13,7 @@ import warnings
 
 import numpy as np
 import scipy.constants
-
+from landlab import Component
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 

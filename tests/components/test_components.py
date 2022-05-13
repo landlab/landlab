@@ -20,6 +20,12 @@ _EXCLUDE_COMPONENTS = {
     "Profiler",
     "SoilMoisture",
     "Vegetation",
+    "BedParcelInitializerDischarge",
+    "BedParcelInitializerDepth",
+    "BedParcelInitializerArea",
+    "BedParcelInitializerUserD50",
+    "SedimentPulserEachParcel",
+    "SedimentPulserAtLinks"
 }
 
 

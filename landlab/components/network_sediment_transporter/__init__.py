@@ -3,6 +3,6 @@ from .bed_parcel_initializers import BedParcelInitializerDischarge, BedParcelIni
 
 __all__ = ["NetworkSedimentTransporter",
         "BedParcelInitializerDischarge",
-        "BedParcelInitializerUserD50",
+        "BedParcelInitializerDepth",
         "BedParcelInitializerArea",
         "BedParcelInitializerUserD50"]
