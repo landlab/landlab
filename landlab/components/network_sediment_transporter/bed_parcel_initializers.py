@@ -682,6 +682,7 @@ def _determine_approx_parcel_volume(
 def calc_total_parcel_volume(width, length, sediment_thickness):
     """
     Simple rectangular prism geometry. Total parcel vol in each link = L*W*H
+
     """
 
     return width * length * sediment_thickness

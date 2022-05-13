@@ -10,13 +10,15 @@ from landlab.components import (
     BedParcelInitializerArea,
     BedParcelInitializerUserD50,
     BedParcelInitializerDischarge,
+    )
+
+from landlab.components.network_sediment_transporter.bed_parcel_initializers import(
     _determine_approx_parcel_volume,
     calc_total_parcel_volume,
     calc_d50_discharge,
     calc_d50_depth,
     calc_d50_dArea_scaling,
-    )
-
+)
 
 # Basic test: that you can call the four initializers
 def test_call_area_BPI(example_nmg2):
