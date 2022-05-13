@@ -35,12 +35,6 @@ from .network_sediment_transporter.bed_parcel_initializers import (
     BedParcelInitializerDepth,
     BedParcelInitializerArea,
     BedParcelInitializerUserD50,
-    _parcel_characteristics,
-    _determine_approx_parcel_volume,
-    calc_total_parcel_volume,
-    calc_d50_discharge,
-    calc_d50_depth,
-    calc_d50_dArea_scaling,
 )
 
 from .nonlinear_diffusion import PerronNLDiffuse

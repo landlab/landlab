@@ -4,15 +4,12 @@ Tests written by Jeff Keck and Allison Pfeiffer
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
 
 from landlab.components import (
-    NetworkSedimentTransporter,
     BedParcelInitializerDepth,
     BedParcelInitializerArea,
     BedParcelInitializerUserD50,
     BedParcelInitializerDischarge,
-    _parcel_characteristics,
     _determine_approx_parcel_volume,
     calc_total_parcel_volume,
     calc_d50_discharge,
@@ -20,9 +17,8 @@ from landlab.components import (
     calc_d50_dArea_scaling,
     )
 
-from landlab.data_record import DataRecord
 
-## Basic test: that you can call the four initializers
+# Basic test: that you can call the four initializers
 def test_call_area_BPI(example_nmg2):
     initialize_parcels = BedParcelInitializerArea(example_nmg2,
                               drainage_area_coefficient = 0.18,
@@ -32,7 +28,6 @@ def test_call_area_BPI(example_nmg2):
 
 
 def test_call_discharge_BPI(example_nmg2):
-    discharge_at_link = np.full(example_nmg2.number_of_links, 10.0)  # m^3 / s
     initialize_parcels = BedParcelInitializerDischarge(example_nmg2,
                               discharge_at_link = np.full(example_nmg2.number_of_links, 10.0)
                               )
@@ -73,7 +68,6 @@ def test_det_approx_parcel_volume():
 
 def test_calc_D50_discharge():
     """test calc D50 grain size give correct values"""
-    correct_values = np.array([22,22])
     width = 20
     slope = 0.01
     discharge = 100
@@ -82,9 +76,9 @@ def test_calc_D50_discharge():
     rho_water = 1000
     rho_sediment = 3000
     tau_c_50 = 0.05
-    
+
     D50e = 0.173286
-    
+
     D50 = calc_d50_discharge(
                             width,
                             slope,
@@ -96,7 +90,7 @@ def test_calc_D50_discharge():
                             tau_c_50,
                             )
 
-    
+
     np.testing.assert_allclose(D50, D50e, rtol = 1e-4)
 
 
@@ -167,21 +161,16 @@ class Test_BedParcelInitializer(object):
         AR = parcels.dataset['abrasion_rate']
         De = np.ones(8)*2650
         D = parcels.dataset['density']
-        TAe = np.expand_dims(np.zeros(8), axis =1) 
+        TAe = np.expand_dims(np.zeros(8), axis =1)
         #   TAe = np.array([[ 0.08074127], [ 0.7384403 ], [ 0.44130922], [ 0.15830987],
         #                 [ 0.87993703], [ 0.27408646], [ 0.41423502], [ 0.29607993]])
         TA = parcels.dataset['time_arrival_in_link']
         ALe = np.expand_dims(np.ones(8), axis=1)
         AL = parcels.dataset['active_layer']
-        LLe = np.array([[ 0.62878791], [ 0.57983781], [ 0.5999292 ], [ 0.26581912],
-                        [ 0.28468588], [ 0.25358821], [ 0.32756395], [ 0.1441643 ]])
         LL = parcels.dataset['location_in_link']
         De = np.array([[ 0.06802885], [ 0.06232028], [ 0.37674903], [ 0.06607135],
                     [ 0.07391346], [ 0.29280262], [ 0.04609956], [ 0.05135768]])
         D = parcels.dataset['D']
-        Ve = np.array([[ 100372.02376292], [ 100372.02376292], [ 100372.02376292],
-                       [ 100372.02376292], [ 100372.02376292], [ 100372.02376292],
-                       [ 100372.02376292], [ 100372.02376292]])
         V = parcels.dataset['volume']
 
         assert list(GE.values) == list(GEe)
@@ -226,19 +215,14 @@ class Test_BedParcelInitializer(object):
         D = parcels.dataset['density']
         # TAe = np.array([[ 0.08074127], [ 0.7384403 ], [ 0.44130922], [ 0.15830987],
         #                 [ 0.87993703], [ 0.27408646], [ 0.41423502], [ 0.29607993]])
-        TAe = np.expand_dims(np.zeros(8), axis =1) 
+        TAe = np.expand_dims(np.zeros(8), axis =1)
         TA = parcels.dataset['time_arrival_in_link']
         ALe = np.expand_dims(np.ones(8), axis=1)
         AL = parcels.dataset['active_layer']
-        LLe = np.array([[ 0.62878791], [ 0.57983781], [ 0.5999292 ], [ 0.26581912],
-                        [ 0.28468588], [ 0.25358821], [ 0.32756395], [ 0.1441643 ]])
         LL = parcels.dataset['location_in_link']
         De = np.array([[ 0.06802885], [ 0.06232028], [ 0.37674903], [ 0.06607135],
                     [ 0.07391346], [ 0.29280262], [ 0.04609956], [ 0.05135768]])
         D = parcels.dataset['D']
-        Ve = np.array([[ 100372.02376292], [ 100372.02376292], [ 100372.02376292],
-                       [ 100372.02376292], [ 100372.02376292], [ 100372.02376292],
-                       [ 100372.02376292], [ 100372.02376292]])
         V = parcels.dataset['volume']
 
         assert list(GE.values) == list(GEe)
@@ -255,4 +239,3 @@ class Test_BedParcelInitializer(object):
         assert (D < 0).any() == False
         # np.testing.assert_allclose(V, Ve, rtol = 1e-4)
         assert (V < 0).any() == False
-        
