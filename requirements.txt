@@ -1,11 +1,13 @@
+# Requirements extracted from pyproject.toml
+# [project.dependencies]
 bmipy
 matplotlib
 netcdf4
 numpy
-pyyaml
+pandas
 pyshp != 2.3.0
+pyyaml
+richdem
 scipy
 statsmodels
-pandas
 xarray >= 0.16
-richdem
