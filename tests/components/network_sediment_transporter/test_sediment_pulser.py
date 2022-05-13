@@ -186,10 +186,6 @@ class Test_SedimentPulserAtLinks(object):
         ALe = np.array([[  1.,  np.nan], [  1.,  np.nan], [ np.nan,   1.], [ np.nan,   1.],
                         [ np.nan,   1.], [ np.nan,   1.], [ np.nan,   1.]])
         AL = parcels.dataset['active_layer']
-        LLe = np.array([[ 0.20671916,         np.nan], [ 0.91861091,         np.nan],
-                        [        np.nan,  0.08074127], [        np.nan,  0.7384403 ],
-                        [        np.nan,  0.44130922], [        np.nan,  0.15830987],
-                        [        np.nan,  0.87993703]])
         LL = parcels.dataset['location_in_link'].values
         LL = LL[~np.isnan(LL)]
         D = parcels.dataset['D'].values
@@ -483,7 +479,6 @@ class Test_SedimentPulserEachParcel(object):
         SL = parcels.dataset['starting_link']
         ARe = np.array([ 0.   ,  0.   ,  0.005,  0.005,  0.   ,  0.   ])
         AR = parcels.dataset['abrasion_rate']
-        De = np.array([ 2650.,  2650.,  2650.,  2650.,  2650.,  2650.])
         D = parcels.dataset['density']
         TAe = np.array([[  7.,  np.nan,  np.nan,  np.nan],
                        [  7.,  np.nan,  np.nan,  np.nan],

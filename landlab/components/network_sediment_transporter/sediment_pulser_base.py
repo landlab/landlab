@@ -5,7 +5,6 @@ from landlab.grid.network import NetworkModelGrid
 
 class SedimentPulserBase:
 
-    
     """
     This utility is the base class of the SedimentPulserAtLinks and 
     SedimentPulserEachPulse utilities.
