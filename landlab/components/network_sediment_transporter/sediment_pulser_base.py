@@ -1,27 +1,28 @@
 import numpy as np
 
-from landlab.data_record import DataRecord
+# from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
-class SedimentPulserBase:
+from landlab import Component
+
+class SedimentPulserBase(Component):
 
     """
-    This utility is the base class of the SedimentPulserAtLinks and 
-    SedimentPulserEachPulse utilities.
-    
-    The SedimentPulserAtLinks and SedimentPulserEachPulse utilities run the
-    landlab DataRecord "add_item" method on a DataRecord configured for the 
-    NetworkSedimentTransporter component. 
-    
+    Base class of SedimentPulserAtLinks and SedimentPulserEachPulse
 
-    authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt - with help from Eric Hutton and Katy Barnhart
+    SedimentPulserAtLinks and SedimentPulserEachPulse run the landlab DataRecord
+    "add_item" method on a DataRecord configured for NetworkSedimentTransporter
+
+
+    authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
+            - with help from Eric Hutton and Katy Barnhart
 
 
     Parameters
     ----------
     grid : ModelGrid
         landlab *ModelGrid* to place sediment parcels on.
-    parcels: landlab DataRecord 
+    parcels: landlab DataRecord
         Tracks parcel location and variables
     D50: float, optional
         median grain size [m]
@@ -33,7 +34,7 @@ class SedimentPulserBase:
         parcel volume used for all parcels that do not have a specified volume
     abrasion_rate: float, optional
         volumetric abrasion exponent [1/m]
-       
+
 
     Examples
     --------
@@ -49,27 +50,34 @@ class SedimentPulserBase:
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
     >>> make_pulse_base = SedimentPulserBase(grid)
     >>> make_pulse_base._parcels
-    
+
     SedimentPulserBase does not have any methods for adding a pulse
-    
+
     >>> a_pulse = make_pulse_base()
     Traceback (most recent call last):
     ...
     NotImplementedError: the base component has no call method
-    
+
 
     """
+
+    _name = 'SedimentPulserBase'
+
+    _unit_agnostic = False
+
+    _info = {} # works with the DataRecord
+
     def __init__(
         self,
         grid,
         parcels = None,
         D50 = 0.05,
-        D84_D50 = 2.1,      
+        D84_D50 = 2.1,
         rho_sediment = 2650.0,
         parcel_volume = 0.5,
         abrasion_rate = 0.0
         ):
-        
+
         self._grid = grid
         self._parcels = parcels
         self._D50 = D50
@@ -77,15 +85,15 @@ class SedimentPulserBase:
         self._rho_sediment = rho_sediment
         self._parcel_volume = parcel_volume
         self._abrasion_rate = abrasion_rate
- 
+
         if not isinstance(grid, NetworkModelGrid):
             msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
             raise ValueError(msg)
-            
+
     def __call__(self):
         """__call__ is not implemented for this component."""
         raise NotImplementedError("the base component has no call method")
 
- 
-    
+
+
     

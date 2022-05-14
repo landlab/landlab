@@ -71,6 +71,12 @@ class SedimentPulserAtLinks(SedimentPulserBase):
      [6]
      [6]]
     """
+    _name = "SedimentPulserAtLinks"
+
+    _unit_agnostic = False
+
+    _info = {} # works with the DataRecord
+
 
     def __init__(
         self,
@@ -188,7 +194,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         # before running, check that no inputs < 0
         # check for negative inputs
         if (np.array([D50, D84_D50, rho_sediment, parcel_volume, abrasion_rate]) < 0).any():
-           raise AssertionError("parcel attributes cannot be less than zero")
+            raise AssertionError("parcel attributes cannot be less than zero")
         # before running, check if time to pulse
         if not self._time_to_pulse(time):
             # if not time to pulse, return the existing parcels
@@ -282,7 +288,8 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
 
         # link location (distance from link inlet / link length) is stochastically determined
-        location_in_link = np.expand_dims(np.random.uniform(size = np.sum(n_parcels_at_link)), axis=1)
+        location_in_link = np.expand_dims(np.random.uniform(size = np.sum(n_parcels_at_link)),
+                                          axis=1)
 
         # All parcels in pulse are in the active layer (1) rather than subsurface (0)
         active_layer = np.ones(np.shape(element_id))
