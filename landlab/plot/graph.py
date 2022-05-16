@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_nodes(graph, color="r", with_id=True, markersize=10):
+def plot_nodes(graph, color="r", with_id=True, markersize=4):
     for node in range(len(graph.x_of_node)):
         x, y = graph.x_of_node[node], graph.y_of_node[node]
         plt.plot(
@@ -41,35 +41,59 @@ def plot_links(
             plt.text(x + dx * 0.5, y + dy * 0.5, link, size=16, color=color)
 
 
-def plot_patches(graph, color="g"):
+def plot_patches(graph, color="g", with_id=False):
+    from matplotlib.patches import Polygon
+
     for patch, nodes in enumerate(graph.nodes_at_patch):
         x, y = np.mean(graph.x_of_node[nodes]), np.mean(graph.y_of_node[nodes])
-        plt.text(x, y, patch, color=color, size=16)
+        plt.gca().add_patch(
+            Polygon(graph.xy_of_node[nodes], ec=color, fc=None, alpha=0.5)
+        )
+        if with_id:
+            plt.text(
+                x,
+                y,
+                patch,
+                color=color,
+                size=16,
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
 
 
 def plot_graph(graph, at="node,link,patch", with_id=True):
-    locs = [loc.strip() for loc in at.split(",")]
-    for loc in locs:
-        if loc not in ("node", "link", "patch", "corner", "face", "cell"):
-            raise ValueError('{at}: "at" element not understood'.format(at=loc))
+    EVERYWHERE = {"node", "link", "patch", "corner", "face", "cell"}
 
-    plt.plot(graph.x_of_node, graph.y_of_node, ".", color="r")
+    if isinstance(with_id, str):
+        with_id = {loc.strip() for loc in with_id.split(",")}
+    else:
+        with_id = EVERYWHERE if with_id else set()
+    unknown = ", ".join(sorted(with_id - EVERYWHERE))
+    if unknown:
+        raise ValueError(f"{unknown}: 'with_id' element not understood")
+
+    locs = {loc.strip() for loc in at.split(",")}
+    unknown = ", ".join(sorted(locs - EVERYWHERE))
+    if unknown:
+        raise ValueError(f"{unknown}: 'at' element not understood")
+
+    # plt.plot(graph.x_of_node, graph.y_of_node, ".", color="r")
     plt.xlim([min(graph.x_of_node) - 0.5, max(graph.x_of_node) + 0.5])
     plt.ylim([min(graph.y_of_node) - 0.5, max(graph.y_of_node) + 0.5])
 
     if "node" in locs:
-        plot_nodes(graph, with_id=with_id, markersize=10)
+        plot_nodes(graph, with_id="node" in with_id, markersize=4)
     if "link" in locs:
-        plot_links(graph, with_id=with_id, linewidth=None, as_arrow=False)
+        plot_links(graph, with_id="link" in with_id, linewidth=None, as_arrow=True)
     if "patch" in locs:
-        plot_patches(graph)
+        plot_patches(graph, with_id="patch" in with_id)
 
     if "corner" in locs:
-        plot_nodes(graph.dual, color="c")
+        plot_nodes(graph.dual, color="c", with_id="corner" in with_id)
     if "face" in locs:
-        plot_links(graph.dual, linestyle="dotted", color="k")
+        plot_links(graph.dual, linestyle="dotted", color="k", with_id="face" in with_id)
     if "cell" in locs and graph.number_of_cells > 0:
-        plot_patches(graph.dual, color="m")
+        plot_patches(graph.dual, color="m", with_id="cell" in with_id)
 
     plt.xlabel("x")
     plt.ylabel("y")
