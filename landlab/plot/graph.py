@@ -45,6 +45,7 @@ def plot_patches(graph, color="g", with_id=False):
     from matplotlib.patches import Polygon
 
     for patch, nodes in enumerate(graph.nodes_at_patch):
+        nodes = nodes[nodes >= 0]
         x, y = np.mean(graph.x_of_node[nodes]), np.mean(graph.y_of_node[nodes])
         plt.gca().add_patch(
             Polygon(graph.xy_of_node[nodes], ec=color, fc=None, alpha=0.5)
