@@ -63,6 +63,19 @@ def plot_patches(graph, color="g", with_id=False):
 
 
 def plot_graph(graph, at="node,link,patch", with_id=True):
+    """Plot elements of a graph.
+
+    Parameters
+    ----------
+    graph : graph-like
+        A landlab graph-like object.
+    at : str
+        Comma-separated list of elements to plot.
+    with_id : str or bool
+        Indicate which elements should be plotted with their corresponding id.
+        Either a comma-separated list of grid elements or ``True`` to include
+        ids for all elements of ``False`` for no elements.
+    """
     EVERYWHERE = {"node", "link", "patch", "corner", "face", "cell"}
 
     if isinstance(with_id, str):
