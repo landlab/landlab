@@ -5,6 +5,7 @@ from landlab.grid.network import NetworkModelGrid
 
 from landlab import Component
 
+
 class SedimentPulserBase(Component):
 
     """
@@ -61,22 +62,22 @@ class SedimentPulserBase(Component):
 
     """
 
-    _name = 'SedimentPulserBase'
+    _name = "SedimentPulserBase"
 
     _unit_agnostic = False
 
-    _info = {} # works with the DataRecord
+    _info = {}  # works with the DataRecord
 
     def __init__(
         self,
         grid,
-        parcels = None,
-        D50 = 0.05,
-        D84_D50 = 2.1,
-        rho_sediment = 2650.0,
-        parcel_volume = 0.5,
-        abrasion_rate = 0.0
-        ):
+        parcels=None,
+        D50=0.05,
+        D84_D50=2.1,
+        rho_sediment=2650.0,
+        parcel_volume=0.5,
+        abrasion_rate=0.0,
+    ):
 
         self._grid = grid
         self._parcels = parcels
@@ -93,7 +94,3 @@ class SedimentPulserBase(Component):
     def __call__(self):
         """__call__ is not implemented for this component."""
         raise NotImplementedError("the base component has no call method")
-
-
-
-    

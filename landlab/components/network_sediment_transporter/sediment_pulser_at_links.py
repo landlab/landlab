@@ -1,9 +1,12 @@
 import numpy as np
 
 from landlab.data_record import DataRecord
-from landlab.components.network_sediment_transporter.sediment_pulser_base import SedimentPulserBase
+from landlab.components.network_sediment_transporter.sediment_pulser_base import (
+    SedimentPulserBase,
+)
 
 _OUT_OF_NETWORK = -2
+
 
 class SedimentPulserAtLinks(SedimentPulserBase):
     """
@@ -71,19 +74,14 @@ class SedimentPulserAtLinks(SedimentPulserBase):
      [6]
      [6]]
     """
+
     _name = "SedimentPulserAtLinks"
 
     _unit_agnostic = False
 
-    _info = {} # works with the DataRecord
+    _info = {}  # works with the DataRecord
 
-
-    def __init__(
-        self,
-        grid,
-        time_to_pulse = None,
-        **kwgs
-        ):
+    def __init__(self, grid, time_to_pulse=None, **kwgs):
 
         """
         instantiate SedimentPulserAtLinks
@@ -112,7 +110,6 @@ class SedimentPulserAtLinks(SedimentPulserBase):
                 volumetric abrasion exponent [1/m]
         """
 
-
         SedimentPulserBase.__init__(self, grid, **kwgs)
 
         # set time_to_pulse to True if not specified
@@ -121,10 +118,17 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         else:
             self._time_to_pulse = time_to_pulse
 
-
-    def __call__(self, time, links = None, n_parcels_at_link = None, D50 = None,
-                 D84_D50 = None, rho_sediment = None, parcel_volume = None,
-                 abrasion_rate = None):
+    def __call__(
+        self,
+        time,
+        links=None,
+        n_parcels_at_link=None,
+        D50=None,
+        D84_D50=None,
+        rho_sediment=None,
+        parcel_volume=None,
+        abrasion_rate=None,
+    ):
 
         """
         specify the time, link(s) and attributes of pulses added to a
@@ -158,11 +162,12 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         """
 
         # check user provided links and number of parcels sent to each link
-        assert (links is not None and n_parcels_at_link is not None
-                ), "must provide links and number of parcels entered into each link"
+        assert (
+            links is not None and n_parcels_at_link is not None
+        ), "must provide links and number of parcels entered into each link"
 
         links = np.array(links)
-        n_parcels_at_link  =np.array(n_parcels_at_link)
+        n_parcels_at_link = np.array(n_parcels_at_link)
 
         # any parameters not specified with __Call__ method use default values
         # specified in the base class
@@ -193,15 +198,16 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
         # before running, check that no inputs < 0
         # check for negative inputs
-        if (np.array([D50, D84_D50, rho_sediment, parcel_volume, abrasion_rate]) < 0).any():
+        if (
+            np.array([D50, D84_D50, rho_sediment, parcel_volume, abrasion_rate]) < 0
+        ).any():
             raise AssertionError("parcel attributes cannot be less than zero")
         # before running, check if time to pulse
         if not self._time_to_pulse(time):
             # if not time to pulse, return the existing parcels
-            print('user provided time not a time-to-pulse, parcels have not changed')
+            print("user provided time not a time-to-pulse, parcels have not changed")
 
             return self._parcels
-
 
         # create items and variables for DataRecord
         variables, items = self._sediment_pulse_stochastic(
@@ -212,7 +218,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
             D50,
             D84_D50,
             abrasion_rate,
-            rho_sediment
+            rho_sediment,
         )
 
         # if DataRecord does not exist, create one
@@ -230,7 +236,8 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
         return self._parcels
 
-    def _sediment_pulse_stochastic(self,
+    def _sediment_pulse_stochastic(
+        self,
         time,
         links,
         n_parcels_at_link,
@@ -238,8 +245,8 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         D50,
         D84_D50,
         abrasion_rate,
-        rho_sediment
-        ):
+        rho_sediment,
+    ):
         """
         converts lists of link ids and link parcel parameters to a dataset
         that describes the network location and attributes of each individual parcel
@@ -255,16 +262,16 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         # to the number of parcels
 
         # link id, D50 and volume
-        element_id = np.empty(np.sum(n_parcels_at_link),dtype=int)
+        element_id = np.empty(np.sum(n_parcels_at_link), dtype=int)
         grain_size = np.empty(np.sum(n_parcels_at_link))
         volume = np.empty(np.sum(n_parcels_at_link))
         offset = 0
         for link, n_parcels in enumerate(n_parcels_at_link):
-            element_id[offset:offset + n_parcels] = links[link]
-            grain_size[offset:offset + n_parcels] = np.random.lognormal(
+            element_id[offset : offset + n_parcels] = links[link]
+            grain_size[offset : offset + n_parcels] = np.random.lognormal(
                 np.log(D50[link]), np.log(D84_D50[link]), n_parcels
             )
-            volume[offset:offset + n_parcels] = parcel_volume[link] % n_parcels
+            volume[offset : offset + n_parcels] = parcel_volume[link] % n_parcels
             offset += n_parcels
         starting_link = element_id.copy()
 
@@ -273,10 +280,12 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         density_L = []
         for c, ei in enumerate(np.unique(element_id)):
             element_id_subset = element_id[element_id == ei]
-            abrasion_rate_L = abrasion_rate_L+list(np.full_like(element_id_subset,
-                                                                abrasion_rate[c], dtype=float))
-            density_L = density_L+list(np.full_like(element_id_subset,
-                                                    rho_sediment[c], dtype=float))
+            abrasion_rate_L = abrasion_rate_L + list(
+                np.full_like(element_id_subset, abrasion_rate[c], dtype=float)
+            )
+            density_L = density_L + list(
+                np.full_like(element_id_subset, rho_sediment[c], dtype=float)
+            )
         abrasion_rate = np.array(abrasion_rate_L)
         density = np.array(density_L)
 
@@ -288,14 +297,15 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
 
         # link location (distance from link inlet / link length) is stochastically determined
-        location_in_link = np.expand_dims(np.random.uniform(size = np.sum(n_parcels_at_link)),
-                                          axis=1)
+        location_in_link = np.expand_dims(
+            np.random.uniform(size=np.sum(n_parcels_at_link)), axis=1
+        )
 
         # All parcels in pulse are in the active layer (1) rather than subsurface (0)
         active_layer = np.ones(np.shape(element_id))
 
         # specify that parcels are in the links of the network model grid
-        grid_element = ["link"]*np.size(element_id)
+        grid_element = ["link"] * np.size(element_id)
         grid_element = np.expand_dims(grid_element, axis=1)
 
         return {

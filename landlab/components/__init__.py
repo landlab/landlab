@@ -37,11 +37,11 @@ from .network_sediment_transporter.bed_parcel_initializers import (
     BedParcelInitializerUserD50,
 )
 
-from .network_sediment_transporter.sediment_pulser_at_links import (
-    SedimentPulserAtLinks) 
+from .network_sediment_transporter.sediment_pulser_at_links import SedimentPulserAtLinks
 
 from .network_sediment_transporter.sediment_pulser_each_parcel import (
-    SedimentPulserEachParcel)
+    SedimentPulserEachParcel,
+)
 
 
 from .nonlinear_diffusion import PerronNLDiffuse

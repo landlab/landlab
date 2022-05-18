@@ -5,7 +5,10 @@ from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
-from landlab.components.network_sediment_transporter.bed_parcel_initializers import BedParcelInitializerUserD50
+from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
+    BedParcelInitializerUserD50,
+)
+
 
 @pytest.fixture()
 def example_nmg():
@@ -63,18 +66,18 @@ def example_nmg2():
     grid.add_field(
         "flow_depth", 0.01121871 * np.ones(grid.size("link")), at="link"
     )  # Why such an odd, low flow depth? Well, it doesn't matter... and oops.-AP
-    
+
     grid.add_field(
-        "channel_slope", 
-        [0.05,0.1,0.07,0.1,0.08,0.12,0.1],
-        at = "link",
-        )    
-    
+        "channel_slope",
+        [0.05, 0.1, 0.07, 0.1, 0.08, 0.12, 0.1],
+        at="link",
+    )
+
     grid.add_field(
-        "drainage_area", 
-        [1.7,0.2,1,0.3,0.8,0.2,0.4],
-        at = "link",
-        ) # km2
+        "drainage_area",
+        [1.7, 0.2, 1, 0.3, 0.8, 0.2, 0.4],
+        at="link",
+    )  # km2
 
     return grid
 
@@ -151,8 +154,7 @@ def example_flow_director(example_nmg):
 
 @pytest.fixture()
 def example_parcels(example_nmg):
-    parcel_initializer = BedParcelInitializerUserD50(example_nmg,
-                                           user_d50 = 0.05)
+    parcel_initializer = BedParcelInitializerUserD50(example_nmg, user_d50=0.05)
 
     parcels = parcel_initializer()
     return parcels

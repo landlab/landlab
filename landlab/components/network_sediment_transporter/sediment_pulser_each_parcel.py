@@ -1,9 +1,12 @@
 import numpy as np
 
 from landlab.data_record import DataRecord
-from landlab.components.network_sediment_transporter.sediment_pulser_base import SedimentPulserBase
+from landlab.components.network_sediment_transporter.sediment_pulser_base import (
+    SedimentPulserBase,
+)
 
 _OUT_OF_NETWORK = -2
+
 
 class SedimentPulserEachParcel(SedimentPulserBase):
 
@@ -74,19 +77,16 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     [2]]
 
     """
+
     _name = "SedimentPulserEachParcel"
 
     _unit_agnostic = False
 
-    _info = {} # works with the DataRecord
+    _info = {}  # works with the DataRecord
 
-    def __init__(
-        self,
-        grid,
-        **kwgs
-        ):
+    def __init__(self, grid, **kwgs):
 
-        SedimentPulserBase.__init__(self, grid,**kwgs)
+        SedimentPulserBase.__init__(self, grid, **kwgs)
 
         """
         instantiate SedimentPulserEachParcel
@@ -113,8 +113,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 volumetric abrasion exponent [1/m]
         """
 
-    def __call__(self, time, PulseDF = None):
-
+    def __call__(self, time, PulseDF=None):
 
         """specify the location and attributes of each pulse of material added to
         a Network Model Grid DataRecord
@@ -137,18 +136,24 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 a DataRecord containing all information on each individual parcel
         """
 
-        if PulseDF is None: # if no PulseDF provided, raise error. Should at least provide an empty PulseDF
-            msg = 'PulseDF was not specified'
+        if (
+            PulseDF is None
+        ):  # if no PulseDF provided, raise error. Should at least provide an empty PulseDF
+            msg = "PulseDF was not specified"
             raise ValueError(msg)
 
-        if PulseDF.empty == True: # if empty, pulser stops, returns the existing parcels, call stops
+        if (
+            PulseDF.empty == True
+        ):  # if empty, pulser stops, returns the existing parcels, call stops
             return self._parcels
-            print('PulseDF is EMPTY')
+            print("PulseDF is EMPTY")
 
-        variables, items = self._sediment_pulse_dataframe(time,  # create variabels and and items needed to create the data record
-            PulseDF)
+        variables, items = self._sediment_pulse_dataframe(
+            time,  # create variabels and and items needed to create the data record
+            PulseDF,
+        )
 
-        if self._parcels is None: # if no parcels, create parcels
+        if self._parcels is None:  # if no parcels, create parcels
             self._parcels = DataRecord(
                 self._grid,
                 items=items,
@@ -156,10 +161,10 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 data_vars=variables,
                 dummy_elements={"link": [_OUT_OF_NETWORK]},
             )
-            print('Parcels not provided, created a new DataRecord')
-        else: # else use the add item method to add parcels
+            print("Parcels not provided, created a new DataRecord")
+        else:  # else use the add item method to add parcels
             self._parcels.add_item(time=[time], new_item=items, new_item_spec=variables)
-            print('Added parcels to DataRecord')
+            print("Added parcels to DataRecord")
         return self._parcels
 
     def _sediment_pulse_dataframe(self, time, PulseDF):
@@ -205,31 +210,31 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
         """
         # split pulse into parcels.
-        p_np = [] # list of number of parcels in each pulse
-        volume = np.array([]) # list of parcel volumes from all pulses
+        p_np = []  # list of number of parcels in each pulse
+        volume = np.array([])  # list of parcel volumes from all pulses
         for index, row in PulseDF.iterrows():
 
             # set the maximum allowable parcel volume using either
             # the default value or value in PulseDF
-            if 'parcel_volume' in PulseDF:
-                mpv = row['parcel_volume']
+            if "parcel_volume" in PulseDF:
+                mpv = row["parcel_volume"]
             else:
                 mpv = self._parcel_volume
 
             # split the pulse into parcels
-            if row['pulse_volume'] < mpv:
+            if row["pulse_volume"] < mpv:
                 # only one partial parcel volume
-                v_p = np.array([row['pulse_volume']])
+                v_p = np.array([row["pulse_volume"]])
             else:
                 # number of whole parcels
-                n_wp = int(np.floor(row['pulse_volume']/mpv))
+                n_wp = int(np.floor(row["pulse_volume"] / mpv))
                 # array of volumes, whole parcels
-                v_wp = np.ones(n_wp)*mpv
+                v_wp = np.ones(n_wp) * mpv
                 # volume of last parcel, a partial parcel
-                v_pp = np.array([row['pulse_volume']%mpv])
+                v_pp = np.array([row["pulse_volume"] % mpv])
                 # array of all parcel volumes
                 # partial parcel included if volume > 0
-                if v_pp>0:
+                if v_pp > 0:
                     v_p = np.concatenate((v_wp, v_pp))
                 else:
                     v_p = v_wp
@@ -237,23 +242,24 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             p_np.append(len(v_p))
         volume = np.expand_dims(volume, axis=1)
 
-
         # link location
         LinkDistanceRatio = np.array([])
-        for i,val in enumerate(PulseDF['normalized_downstream_distance'].values):
+        for i, val in enumerate(PulseDF["normalized_downstream_distance"].values):
             # parcels from the same pulse enter channel at the same point
-            LinkDistanceRatio = np.concatenate((LinkDistanceRatio,np.ones(p_np[i])*val))
+            LinkDistanceRatio = np.concatenate(
+                (LinkDistanceRatio, np.ones(p_np[i]) * val)
+            )
         location_in_link = np.expand_dims(LinkDistanceRatio, axis=1)
 
         # element id and starting link
         element_id = np.array([])
         for i, row in PulseDF.iterrows():
-            element_id = np.concatenate((element_id,np.ones(p_np[i])*row['link_#']))
+            element_id = np.concatenate((element_id, np.ones(p_np[i]) * row["link_#"]))
         starting_link = element_id.copy()
         element_id = np.expand_dims(element_id.astype(int), axis=1)
 
         # specify that parcels are in the links of the network model grid
-        grid_element = ["link"]*np.size(element_id)
+        grid_element = ["link"] * np.size(element_id)
         grid_element = np.expand_dims(grid_element, axis=1)
 
         # time of arrivial (time instance called)
@@ -262,29 +268,35 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         # All parcels in pulse are in the active layer (1) rather than subsurface (0)
         active_layer = np.ones(np.shape(element_id))
 
-        if 'rho_sediment' in PulseDF.columns:
+        if "rho_sediment" in PulseDF.columns:
             density = np.array([])
             for i, row in PulseDF.iterrows():
-                density = np.concatenate((density,np.ones(p_np[i])*row['rho_sediment']))
+                density = np.concatenate(
+                    (density, np.ones(p_np[i]) * row["rho_sediment"])
+                )
         else:
             density = self._rho_sediment * np.ones(np.shape(starting_link))
 
-        if 'abrasion_rate' in PulseDF.columns:
+        if "abrasion_rate" in PulseDF.columns:
             abrasion_rate = np.array([])
             for i, row in PulseDF.iterrows():
-                abrasion_rate = np.concatenate((abrasion_rate,np.ones(p_np[i])*row['abrasion_rate']))
+                abrasion_rate = np.concatenate(
+                    (abrasion_rate, np.ones(p_np[i]) * row["abrasion_rate"])
+                )
         else:
-            abrasion_rate = self._abrasion_rate* np.ones(np.shape(starting_link))
+            abrasion_rate = self._abrasion_rate * np.ones(np.shape(starting_link))
 
-        if 'D50' in PulseDF.columns and 'D84_D50' in PulseDF.columns:
+        if "D50" in PulseDF.columns and "D84_D50" in PulseDF.columns:
             grain_size = np.array([])
             for i, row in PulseDF.iterrows():
                 # det D50 and D84_D50
                 n_parcels = p_np[i]
-                D50 = row['D50']
-                D84_D50 = row['D84_D50']
-                grain_size_pulse = np.random.lognormal(np.log(D50), np.log(D84_D50), n_parcels)
-                grain_size = np.concatenate((grain_size,grain_size_pulse))
+                D50 = row["D50"]
+                D84_D50 = row["D84_D50"]
+                grain_size_pulse = np.random.lognormal(
+                    np.log(D50), np.log(D84_D50), n_parcels
+                )
+                grain_size = np.concatenate((grain_size, grain_size_pulse))
         else:
             n_parcels = sum(p_np)
             D50 = self._D50

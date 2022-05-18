@@ -25,7 +25,7 @@ _EXCLUDE_COMPONENTS = {
     "BedParcelInitializerArea",
     "BedParcelInitializerUserD50",
     "SedimentPulserEachParcel",
-    "SedimentPulserAtLinks"
+    "SedimentPulserAtLinks",
 }
 
 

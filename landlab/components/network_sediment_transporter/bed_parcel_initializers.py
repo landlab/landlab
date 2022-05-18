@@ -21,7 +21,6 @@ _OUT_OF_NETWORK = -2
 
 
 class BedParcelInitializerBase(Component):
-
     def __init__(
         self,
         grid,
@@ -182,6 +181,7 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
 
 
     """
+
     _name = "BedParcelInitializerDischarge"
 
     _unit_agnostic = False
@@ -198,6 +198,7 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
             "doc": "Dominant/formative discharge at each link in the network",
         },
     }
+
     def __init__(
         self, grid, time=[0.0], discharge_at_link=None, mannings_n=0.035, **kwds
     ):
@@ -295,6 +296,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     ... )
     >>> parcels = initialize_parcels()
     """
+
     _name = "BedParcelInitializerDepth"
 
     _unit_agnostic = False
@@ -311,7 +313,6 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
             "doc": "Dominant/formative flow depth at each link in the network",
         },
     }
-
 
     def __init__(
         self, grid, time=[0.0], flow_depth_at_link=None, tau_c_multiplier=1.0, **kwds
@@ -406,6 +407,7 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     ... )
     >>> parcels = initialize_parcels()
     """
+
     _name = "BedParcelInitializerArea"
 
     _unit_agnostic = False
@@ -825,6 +827,6 @@ def calc_d50_dArea_scaling(drainage_area, a, n):
     ...    expected_value)
 
     """
-    d50 = a * drainage_area ** n
+    d50 = a * drainage_area**n
 
     return d50
