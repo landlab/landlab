@@ -244,7 +244,6 @@ class Test_BedParcelInitializer(object):
         TA = parcels.dataset["time_arrival_in_link"]
         ALe = np.expand_dims(np.ones(8), axis=1)
         AL = parcels.dataset["active_layer"]
-        LL = parcels.dataset["location_in_link"]
         De = np.array(
             [
                 [0.06802885],
