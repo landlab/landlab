@@ -20,6 +20,7 @@ from landlab.components.network_sediment_transporter.bed_parcel_initializers imp
     calc_d50_dArea_scaling,
 )
 
+
 # Basic test: that you can call the four initializers
 def test_call_area_BPI(example_nmg2):
     initialize_parcels = BedParcelInitializerArea(
@@ -206,12 +207,9 @@ class Test_BedParcelInitializer(object):
         np.testing.assert_allclose(D, De, rtol=1e-4)
         np.testing.assert_array_less(TAe, TA)
         np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        # np.testing.assert_allclose(LL, LLe, rtol = 1e-4)
-        assert (LL < 0).any() == False
-        # np.testing.assert_allclose(D, De, rtol = 1e-4)
-        assert (D < 0).any() == False
-        # np.testing.assert_allclose(V, Ve, rtol = 1e-4)
-        assert (V < 0).any() == False
+        np.testing.assert_array_less(LL, 1)
+        np.testing.assert_array_less(0, D)
+        np.testing.assert_array_less(0, V)
 
     def test_normal_BPI_abrasion(self, example_nmg2):
         """
@@ -271,8 +269,5 @@ class Test_BedParcelInitializer(object):
         np.testing.assert_array_less(TAe, TA)
         np.testing.assert_allclose(AL, ALe, rtol=1e-4)
         # np.testing.assert_allclose(LL, LLe, rtol = 1e-4)
-        assert (LL < 0).any() == False
-        # np.testing.assert_allclose(D, De, rtol = 1e-4)
-        assert (D < 0).any() == False
-        # np.testing.assert_allclose(V, Ve, rtol = 1e-4)
-        assert (V < 0).any() == False
+        np.testing.assert_array_less(0, D)
+        np.testing.assert_array_less(0, V)

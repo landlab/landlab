@@ -1,6 +1,3 @@
-import numpy as np
-
-# from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
 from landlab import Component

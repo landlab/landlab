@@ -107,7 +107,7 @@ class BedParcelInitializerBase(Component):
         raise NotImplementedError("calc_d50")
 
 
-## End of base class
+# End of base class
 
 
 class BedParcelInitializerDischarge(BedParcelInitializerBase):
@@ -600,7 +600,7 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
             )
 
 
-### BedParcelInitializerBase helper functions
+# BedParcelInitializerBase helper functions
 def _parcel_characteristics(
     total_parcel_volume_at_link,
     max_parcel_volume,
@@ -690,7 +690,7 @@ def calc_total_parcel_volume(width, length, sediment_thickness):
     return width * length * sediment_thickness
 
 
-### calc_d50 helper functions
+# calc_d50 helper functions
 
 
 def calc_d50_discharge(

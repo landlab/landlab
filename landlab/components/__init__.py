@@ -134,6 +134,8 @@ COMPONENTS = [
     Profiler,
     Radiation,
     SedDepEroder,
+    SedimentPulserAtLinks,
+    SedimentPulserEachParcel,
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,

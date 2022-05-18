@@ -120,13 +120,7 @@ class Test_SedimentPulserAtLinks(object):
         TA = parcels.dataset["time_arrival_in_link"]
         ALe = np.expand_dims(np.ones(5), axis=1)
         AL = parcels.dataset["active_layer"]
-        LLe = np.array(
-            [[0.2968005], [0.18772123], [0.08074127], [0.7384403], [0.44130922]]
-        )
         LL = parcels.dataset["location_in_link"]
-        De = np.array(
-            [[0.41619156], [0.23469752], [0.72848837], [0.09952961], [0.13016663]]
-        )
         D50_1 = D50[0]  # grain size
         D84_D50_1 = 2.1
         D_sd_1 = D50_1 * D84_D50_1 - D50_1
