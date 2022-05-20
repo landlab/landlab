@@ -12,6 +12,8 @@ Plotting functions
     ~landlab.plot.imshow.imshow_grid_at_node
     ~landlab.plot.imshow.imshowhs_grid_at_node
 """
+from warnings import warn
+
 import numpy as np
 from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -1207,11 +1209,23 @@ def imshow_grid(grid, values, **kwds):
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
     """
-    values_at = kwds.pop("values_at", "node")
-    values_at = kwds.pop("at", values_at)
+    if "values_at" in kwds:
+        warn(
+            "the 'values_at' keyword is deprecated, use the 'at' keyword instead",
+            DeprecationWarning,
+        )
+        kwds.setdefault("at", kwds.pop("values_at"))
+    values_at = kwds.pop("at", None)
 
-    if isinstance(values, str):
-        values = grid.field_values(values_at, values)
+    if values_at is None:
+        values_at = _guess_location(grid, values)
+
+    if values_at is None:
+        raise TypeError("unable to determine location of values, use 'at' keyword")
+    elif values_at not in {"node", "cell"}:
+        raise TypeError(
+            f"value location, {values_at!r}, is not supported (must be one of 'node', 'cell')"
+        )
 
     if isinstance(values, str):
         values = grid.field_values(values_at, values)
@@ -1220,8 +1234,62 @@ def imshow_grid(grid, values, **kwds):
         imshow_grid_at_node(grid, values, **kwds)
     elif values_at == "cell":
         imshow_grid_at_cell(grid, values, **kwds)
+
+
+def _guess_location(
+    grid, values, search_order=("node", "cell", "link", "patch", "corner", "face")
+):
+    """Make an educated guess as to where a field is located on a grid."""
+    if isinstance(values, str):
+        return _guess_location_from_name(grid, values)
     else:
-        raise TypeError("value location %s not understood" % values_at)
+        return _guess_location_from_size(grid, values)
+
+
+def _guess_location_from_name(
+    grid, name, search_order=("node", "cell", "link", "patch", "corner", "face")
+):
+    """Given a name, make an educated guess as to where a field is located on a grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    name : str
+        Name of a field.
+
+    Returns
+    -------
+    str or None
+        Grid element where the field is likely defined.
+    """
+    for location in search_order:
+        if grid.has_field(name, at=location):
+            return location
+    return None
+
+
+def _guess_location_from_size(
+    grid, values, search_order=("node", "cell", "link", "patch", "corner", "face")
+):
+    """Given an array, make an educated guess as to where a field is located on a grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    values : array-like
+        An array of values.
+
+    Returns
+    -------
+    str or None
+        Grid element where the field is likely defined.
+    """
+    for location in search_order:
+        if values.size == grid.number_of_elements(location):
+            return location
+    return None
 
 
 def imshowhs_grid(grid, values, **kwds):
