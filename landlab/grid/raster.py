@@ -6,8 +6,6 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
-import warnings
-
 import numpy as np
 import xarray as xr
 
@@ -62,47 +60,6 @@ def _node_has_boundary_neighbor(mg, id, method="d8"):
 _node_has_boundary_neighbor = np.vectorize(_node_has_boundary_neighbor, excluded=["mg"])
 
 
-class RasterModelGridPlotter(object):
-
-    """MixIn that provides plotting functionality.
-
-    Inhert from this class to provide a ModelDataFields object with the
-    method function, ``imshow``, that plots a data field.
-    """
-
-    def imshow(self, *args, **kwds):
-        """Plot a data field.
-
-        This is a wrapper for `plot.imshow_grid`, and can take the same
-        keywords. See that function for full documentation.
-
-        Parameters
-        ----------
-        values : str, or array-like
-            Name of a field or an array of values to plot.
-
-        See Also
-        --------
-        landlab.plot.imshow_grid
-
-        LLCATS: GINF
-        """
-        from landlab.plot import imshow_grid
-
-        if len(args) == 1:
-            values = args[0]
-        elif len(args) == 2:
-            at, values = args
-            warnings.warn(f"use grid.imshow(values, at={at!r})", DeprecationWarning)
-            if at != kwds.get("at", at):
-                raise ValueError(f"multiple locations provided ({at}, {kwds['at']})")
-            kwds["at"] = at
-        else:
-            raise TypeError(f"imshow expected 1 or 2 arguments, got {len(args)}")
-
-        imshow_grid(self, values, **kwds)
-
-
 def grid_edge_is_closed_from_dict(boundary_conditions):
     """Get a list of closed-boundary status at grid edges.
 
@@ -143,9 +100,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
     ]
 
 
-class RasterModelGrid(
-    DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid, RasterModelGridPlotter
-):
+class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
     """A 2D uniform rectilinear grid.
 
