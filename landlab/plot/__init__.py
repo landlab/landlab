@@ -1,9 +1,5 @@
-from .imshow import (
-    imshow_grid,
-    imshow_grid_at_node,
-    imshowhs_grid,
-    imshowhs_grid_at_node,
-)
+from .imshow import imshow_grid, imshow_grid_at_node
+from .imshowhs import imshowhs_grid, imshowhs_grid_at_node
 from .network_sediment_transporter import plot_network_and_parcels
 from .layers import plot_layers
 
