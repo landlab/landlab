@@ -6,6 +6,7 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import warnings
 
 import numpy as np
 import xarray as xr
@@ -69,7 +70,7 @@ class RasterModelGridPlotter(object):
     method function, ``imshow``, that plots a data field.
     """
 
-    def imshow(self, group, var_name, **kwds):
+    def imshow(self, *args, **kwds):
         """Plot a data field.
 
         This is a wrapper for `plot.imshow_grid`, and can take the same
@@ -77,10 +78,8 @@ class RasterModelGridPlotter(object):
 
         Parameters
         ----------
-        group : str
-            Name of group.
-        var_name : str
-            Name of field
+        values : str, or array-like
+            Name of a field or an array of values to plot.
 
         See Also
         --------
@@ -90,8 +89,18 @@ class RasterModelGridPlotter(object):
         """
         from landlab.plot import imshow_grid
 
-        kwds["values_at"] = group
-        imshow_grid(self, var_name, **kwds)
+        if len(args) == 1:
+            values = args[0]
+        elif len(args) == 2:
+            at, values = args
+            warnings.warn(f"use grid.imshow(values, at={at!r})", DeprecationWarning)
+            if at != kwds.get("at", at):
+                raise ValueError(f"multiple locations provided ({at}, {kwds['at']})")
+            kwds["at"] = at
+        else:
+            raise TypeError(f"imshow expected 1 or 2 arguments, got {len(args)}")
+
+        imshow_grid(self, values, **kwds)
 
 
 def grid_edge_is_closed_from_dict(boundary_conditions):
