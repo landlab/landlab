@@ -69,31 +69,26 @@ def plot_graph(graph, at="node,link,patch", with_id=True):
     ----------
     graph : graph-like
         A landlab graph-like object.
-    at : str
+    at : str or iterable of str
         Comma-separated list of elements to plot.
-    with_id : str or bool
+    with_id : str, iterable of str or bool
         Indicate which elements should be plotted with their corresponding id.
         Either a comma-separated list of grid elements or ``True`` to include
         ids for all elements of ``False`` for no elements.
     """
     EVERYWHERE = {"node", "link", "patch", "corner", "face", "cell"}
 
-    if isinstance(with_id, str):
-        with_id = {loc.strip() for loc in with_id.split(",")}
-    else:
+    if isinstance(with_id, bool):
         with_id = EVERYWHERE if with_id else set()
-    unknown = ", ".join(sorted(with_id - EVERYWHERE))
-    if unknown:
-        raise ValueError(f"{unknown}: 'with_id' element not understood")
+    else:
+        with_id = _parse_locations_as_set(with_id)
+    locs = _parse_locations_as_set(at)
 
-    locs = {loc.strip() for loc in at.split(",")}
-    unknown = ", ".join(sorted(locs - EVERYWHERE))
-    if unknown:
-        raise ValueError(f"{unknown}: 'at' element not understood")
+    ax = plt.axes()
 
     # plt.plot(graph.x_of_node, graph.y_of_node, ".", color="r")
-    plt.xlim([min(graph.x_of_node) - 0.5, max(graph.x_of_node) + 0.5])
-    plt.ylim([min(graph.y_of_node) - 0.5, max(graph.y_of_node) + 0.5])
+    ax.set_xlim([min(graph.x_of_node) - 0.5, max(graph.x_of_node) + 0.5])
+    ax.set_ylim([min(graph.y_of_node) - 0.5, max(graph.y_of_node) + 0.5])
 
     if "node" in locs:
         plot_nodes(graph, with_id="node" in with_id, markersize=4)
@@ -109,8 +104,45 @@ def plot_graph(graph, at="node,link,patch", with_id=True):
     if "cell" in locs and graph.number_of_cells > 0:
         plot_patches(graph.dual, color="m", with_id="cell" in with_id)
 
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.gca().set_aspect(1.0)
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_aspect(1.0)
 
-    plt.show()
+    return ax
+
+
+def _parse_locations_as_set(locations):
+    """Parse grid element locations as a set.
+
+    Parameters
+    ----------
+    locations : str or iterable of str
+        Grid locations.
+
+    Returns
+    -------
+    set
+        Grid locations as strings.
+
+    Raises
+    ------
+    ValueError
+        If any of the locations are invalid.
+    """
+    EVERYWHERE = {"node", "link", "patch", "corner", "face", "cell"}
+
+    if isinstance(locations, str):
+        as_set = set(locations.split(","))
+    else:
+        as_set = set(locations)
+
+    as_set = {item.strip() for item in as_set}
+
+    unknown = sorted(as_set - EVERYWHERE)
+    if unknown:
+        unknown = [repr(item) for item in unknown]
+        raise ValueError(
+            f"unknown location{'s' if len(unknown) > 1 else ''} ({', '.join(unknown)})"
+        )
+
+    return as_set
