@@ -62,7 +62,7 @@ def plot_patches(graph, color="g", with_id=False):
             )
 
 
-def plot_graph(graph, at="node,link,patch", with_id=True):
+def plot_graph(graph, at="node,link,patch", with_id=True, axes=None):
     """Plot elements of a graph.
 
     Parameters
@@ -75,6 +75,13 @@ def plot_graph(graph, at="node,link,patch", with_id=True):
         Indicate which elements should be plotted with their corresponding id.
         Either a comma-separated list of grid elements or ``True`` to include
         ids for all elements of ``False`` for no elements.
+    axes : , optional
+        Add the plot to an existing matplotlib ``Axes``, otherwise, create a new one.
+
+    Returns
+    -------
+    ``Axes``
+        The ``Axes`` containing the plot.
     """
     EVERYWHERE = {"node", "link", "patch", "corner", "face", "cell"}
 
@@ -84,9 +91,8 @@ def plot_graph(graph, at="node,link,patch", with_id=True):
         with_id = _parse_locations_as_set(with_id)
     locs = _parse_locations_as_set(at)
 
-    ax = plt.axes()
+    ax = plt.axes() if axes is None else axes
 
-    # plt.plot(graph.x_of_node, graph.y_of_node, ".", color="r")
     ax.set_xlim([min(graph.x_of_node) - 0.5, max(graph.x_of_node) + 0.5])
     ax.set_ylim([min(graph.y_of_node) - 0.5, max(graph.y_of_node) + 0.5])
 

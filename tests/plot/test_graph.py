@@ -45,3 +45,13 @@ def test_plot_graph(at):
         assert len(_axes_arrows(ax)) == grid.number_of_elements(at)
     else:
         assert len(ax.lines) == grid.number_of_elements(at)
+
+
+def test_plot_graph_onto_existing():
+    grid = RasterModelGrid((3, 4))
+    ax = plot_graph(grid, at="node")
+    plot_graph(grid, at="cell", axes=ax)
+
+    assert (
+        len(ax.patches) + len(ax.lines) == grid.number_of_nodes + grid.number_of_cells
+    )
