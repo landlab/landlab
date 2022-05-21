@@ -13,7 +13,6 @@ import numpy as np
 from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-from ..grid.raster import RasterModelGrid
 from .event_handler import query_grid_on_button_press
 
 
@@ -354,14 +353,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
         grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
     )
 
-    if isinstance(grid, RasterModelGrid):
-        shape = grid.shape
-    else:
-        raise NotImplementedError(
-            "For now, only RasterModelGrids are supported in the imshowhs functions"
-        )
-
-    ax = _imshowhs_grid_values(grid, values_at_node.reshape(shape), **kwds)
+    ax = _imshowhs_grid_values(grid, values_at_node, **kwds)
 
     if isinstance(values, str):
         plt.title(values)
@@ -427,6 +419,13 @@ def _imshowhs_grid_values(
     y_label_offSet_var_1=3,
     y_label_offSet_var_2=-1.25,
 ):
+    from ..grid.raster import RasterModelGrid
+
+    if not isinstance(grid, RasterModelGrid):
+        raise NotImplementedError(
+            "For now, only RasterModelGrids are supported in the imshowhs functions"
+        )
+
     plot_type_options = ["DEM", "Hillshade", "Drape1", "Drape2"]
     if plot_type not in plot_type_options:
         raise ValueError(
@@ -458,6 +457,8 @@ def _imshowhs_grid_values(
         cmap.set_bad(color=color_for_closed)
     else:
         cmap.set_bad(alpha=0.0)
+
+    values.shape = grid.shape
 
     if isinstance(grid, RasterModelGrid):
         # somethingToPlot is a flag indicating if any pixels should be plotted.
