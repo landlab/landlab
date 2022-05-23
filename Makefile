@@ -57,6 +57,13 @@ pretty: ## reformat files to make them look pretty
 	find landlab tests -name '*.py' | xargs isort
 	black setup.py landlab tests
 
+requirements: ## create requirements files from pyproject.toml
+	python requirements.py > requirements.txt
+	python requirements.py dev > requirements-dev.txt
+	python requirements.py docs > requirements-docs.txt
+	python requirements.py notebooks > requirements-notebooks.txt
+	python requirements.py testing > requirements-testing.txt
+
 test: ## run tests quickly with the default Python
 	pytest -n4
 

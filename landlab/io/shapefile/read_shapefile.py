@@ -4,6 +4,7 @@
 import pathlib
 
 import numpy as np
+import pandas as pd
 import shapefile as ps
 
 from landlab.graph.graph import NetworkGraph
@@ -23,6 +24,67 @@ def _read_shapefile(file, dbf):
     return sf
 
 
+_NUMPY_DTYPE = {
+    "integer": (int, float),
+    "mixed": (float, complex),
+    "mixed-integer": (int, complex),
+    "mixed-integer-float": (float,),
+    "floating": (float,),
+    "complex": (complex,),
+    "boolean": (bool,),
+}
+
+
+def _infer_data_type(array, dtype=None):
+    """Infer the type of a numpy array.
+
+    Infer the data type of a numpy array based on its values. This function
+    is most useful when used on arrays that have *dtype=object* but all of
+    its elements are of a standard data type.
+
+    Parameters
+    ----------
+    array : array_like
+        Input data to infer its data type.
+    dtype : data-type, optional
+        If not provided, infer data type from array elements; otherwise,
+        try to cast to the provided data type.
+
+    Returns
+    -------
+    out : ndarray
+        Array interpretation of the input array with either the provided
+        data type or one inferred from its elements.
+
+    Examples
+    --------
+    >>> import numpy as np
+
+    >>> _infer_data_type([1, 2, 3])
+    array([1, 2, 3])
+    >>> _infer_data_type([1, 2, 3], dtype=float)
+    array([ 1.,  2.,  3.])
+    >>> _infer_data_type(np.array([1.0, 2.0, 3.0], dtype=object))
+    array([ 1.,  2.,  3.])
+    >>> _infer_data_type([[1, 2, 3]])
+    array([[1, 2, 3]])
+    >>> _infer_data_type([None, 1, 2, 3])
+    array([ nan,   1.,   2.,   3.])
+    """
+    array = np.asarray(array, dtype=dtype)
+    if dtype is None and not np.issubdtype(array.dtype, np.number):
+        infered_dtype = pd.api.types.infer_dtype(array, skipna=True)
+        for dtype in _NUMPY_DTYPE.get(infered_dtype, ()):
+            try:
+                _array = np.asarray(array.flatten(), dtype=dtype)
+            except (TypeError, ValueError):
+                pass
+            else:
+                array = _array.reshape(array.shape)
+                break
+    return array
+
+
 def read_shapefile(
     file,
     dbf=None,
@@ -39,8 +101,8 @@ def read_shapefile(
 ):
     """Read shapefile and create a NetworkModelGrid.
 
-    There are a number of assumptions that are requied about the shapefile.
-        * The shape file must be a polyline shapefile.
+    There are a number of assumptions that are required about the shapefile.
+        * The shapefile must be a polyline shapefile.
         * All polylines must be their own object (e.g. no multi-part
           polylines).
         * Polyline endpoints match perfectly.
@@ -99,6 +161,8 @@ def read_shapefile(
     First, we make a simple shapefile
 
     >>> from io import BytesIO
+    >>> import os
+
     >>> import shapefile
     >>> shp = BytesIO()
     >>> shx = BytesIO()
@@ -166,7 +230,7 @@ def read_shapefile(
 
     Now read in both files together.
 
-    >>> grid = read_shapefile(shp,dbf=dbf,points_shapefile=p_shp,points_dbf=p_dbf)
+    >>> grid = read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
     >>> grid.nodes
     array([0, 1, 2, 3])
     >>> grid.x_of_node
@@ -184,6 +248,14 @@ def read_shapefile(
     >>> grid.at_node["eggs"]
     array([2, 4, 8, 6])
     """
+    if node_fields is not None:
+        node_fields = set(node_fields)
+    if link_fields is not None:
+        link_fields = set(link_fields)
+
+    if not points_shapefile and node_fields:
+        raise ValueError("node_fields is provided without a points shapefile")
+
     sf = _read_shapefile(file, dbf)
 
     link_field_conversion = link_field_conversion or dict()
@@ -226,17 +298,22 @@ def read_shapefile(
     fields = {rec[0]: [] for rec in records}
 
     # store which link fields to retain
-    link_fields_to_retain = link_fields or list(fields.keys())
+    if link_fields is None:
+        link_fields = set(fields.keys())
+
     if store_polyline_vertices:
-        link_fields_to_retain.append("x_of_polyline")
-        link_fields_to_retain.append("y_of_polyline")
-    if store_polyline_vertices:
+        link_fields.update(["x_of_polyline", "y_of_polyline"])
         fields["x_of_polyline"] = []
         fields["y_of_polyline"] = []
 
+    if not link_fields.issubset(fields):
+        raise ValueError(
+            "requested link fields to retain are not contained in the shapefile."
+        )
+
     record_order = [rec[0] for rec in records]
 
-    # itterate through shapes and records
+    # iterate through shapes and records
     shapeRecs = sf.shapeRecords()
     for sr in shapeRecs:
 
@@ -304,13 +381,12 @@ def read_shapefile(
     )
 
     # add values to fields.
-    for field_name in fields:
-        if field_name in link_fields_to_retain:
-            mapped_field_name = link_field_conversion.get(field_name, field_name)
-            mapped_dtype = link_field_dtype.get(field_name, None)
-            grid.at_link[mapped_field_name] = np.asarray(
-                fields[field_name], dtype=mapped_dtype
-            )[sorted_links]
+    for field_name in link_fields:
+        mapped_field_name = link_field_conversion.get(field_name, field_name)
+        grid.at_link[mapped_field_name] = _infer_data_type(
+            np.take(fields[field_name], sorted_links),
+            dtype=link_field_dtype.get(field_name, None),
+        )
 
     # if a points shapefile is added, bring in and use.
     if points_shapefile:
@@ -320,11 +396,17 @@ def read_shapefile(
         psf_fields = {rec[0]: [] for rec in psf_records}
 
         # store which node fields to retain
-        node_fields_to_retain = node_fields or list(psf_fields.keys())
+        if node_fields is None:
+            node_fields = set(psf_fields)
+
+        if not node_fields.issubset(psf_fields):
+            raise ValueError(
+                "requested node fields to retain are not contained in the shapefile."
+            )
 
         # we don't need to store node xy, just need to store which index each
         # node maps to on the new grid.
-        psf_node_mapping = -1 * np.ones(grid.x_of_node.shape, dtype=int)
+        psf_node_mapping = np.full(grid.x_of_node.shape, -1, dtype=int)
 
         # loop through each node
         psf_shapeRecs = psf.shapeRecords()
@@ -335,36 +417,28 @@ def read_shapefile(
             x_diff = grid.x_of_node - point_x
             y_diff = grid.y_of_node - point_y
 
-            dist = np.sqrt(x_diff ** 2 + y_diff ** 2)
+            dist = np.sqrt(x_diff**2 + y_diff**2)
 
             # check that the distance is small.
             if np.min(dist) > threshold:
-                msg = (
+                raise ValueError(
                     "landlab.io.shapefile: a point in the points shapefile "
-                    "is {dist} away from the closet polyline junction in the ".format(
-                        dist=np.min(dist)
-                    ),
+                    f"is {np.min(dist)} away from the closet polyline junction in the "
                     "polyline shapefile. This is larger than the threshold"
-                    "value of {thresh}. This may mean that the threshold".format(
-                        thresh=threshold
-                    ),
-                    "or that something is wrong with the points file.",
+                    f"value of {threshold}. This may mean that the threshold"
+                    "or that something is wrong with the points file."
                 )
-                raise ValueError(msg)
 
             ind = np.nonzero(dist == np.min(dist))[0]
             # verify that there is only one closest.
 
             if psf_node_mapping[ind[0]] >= 0:
-                msg = (
+                raise ValueError(
                     "landlab.io.shapefile requires that the points file "
                     "have a 1-1 mapping to the polylines file. More than one "
                     "at-node point provided maps to the node with Landlab ID "
-                    "{ind}, (x,y). This point has coordinates of ({x}, {y})".format(
-                        ind=ind[0], x=point_x, y=point_y
-                    )
+                    f"{ind[0]}, (x,y). This point has coordinates of ({point_x}, {point_y})"
                 )
-                raise ValueError(msg)
 
             psf_node_mapping[ind[0]] = node_idx
 
@@ -373,21 +447,19 @@ def read_shapefile(
                 psf_fields[field_name].append(sr.record[rec_idx])
 
         if np.any(psf_node_mapping < 0):
-            msg = (
+            raise ValueError(
                 "landlab.io.shapefile requires that the points file "
                 "contain the same number of points as polyline junctions. "
                 "The points file contains fewer points than polyline junctions."
             )
-            raise ValueError(msg)
 
         # add values to nodes.
-        for field_name in psf_fields:
-            if field_name in node_fields_to_retain:
-                mapped_field_name = node_field_conversion.get(field_name, field_name)
-                mapped_dtype = node_field_dtype.get(field_name, None)
+        for field_name in node_fields:
+            mapped_field_name = node_field_conversion.get(field_name, field_name)
 
-                grid.at_node[mapped_field_name] = np.asarray(
-                    psf_fields[field_name], dtype=mapped_dtype
-                )[psf_node_mapping]
+            grid.at_node[mapped_field_name] = _infer_data_type(
+                np.take(psf_fields[field_name], psf_node_mapping),
+                dtype=node_field_dtype.get(field_name, None),
+            )
 
     return grid

@@ -33,11 +33,7 @@ jobs:
               conda list
     
           - name: Install dependencies
-            run: |
-              conda install mamba
-              mamba install --file=requirements.txt
-              pip install -r requirements-docs.txt
-              pip install -e .
+            run: pip install -e ".[docs]"
 
           - name: Build documentation
-            run: make -C docs clean html linkcheck
+            run: make -C docs clean html

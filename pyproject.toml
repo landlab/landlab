@@ -1,5 +1,122 @@
 [build-system]
 requires = ["cython", "numpy", "setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "landlab"
+description = "Open-source Python package for numerical modeling of Earth surface dynamics."
+authors = [
+  {email = "mcflugen@gmail.com"},
+  {name = "The landlab team"}
+]
+maintainers = [
+  {email = "mcflugen@gmail.com"},
+  {name = "The landlab team"}
+]
+keywords = [
+  "bmi",
+  "component modeling",
+  "earth science",
+  "gridding engine",
+  "model coupling",
+  "numerical modeling",
+]
+license = {file = "LICENSE.rst"}
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Cython",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+requires-python = ">=3.8"
+dependencies = [
+  "bmipy",
+  "matplotlib",
+  "netcdf4",
+  "numpy",
+  "pyyaml",
+  "pyshp != 2.3.0",
+  "scipy",
+  "statsmodels",
+  "pandas",
+  "xarray >= 0.16",
+  "richdem ; sys_platform != 'win32' or python_version < '3.10'",
+]
+dynamic = ["readme", "version"]
+
+[project.urls]
+homepage = "https://github.com/landlab"
+documentation = "https://landlab.readthedocs.io"
+repository = "https://github.com/landlab"
+changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.rst"
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "flake8",
+  "flake8-bugbear",
+  "isort",
+  "pre-commit",
+]
+docs = [
+  "pandoc",
+  "nbformat",
+  "jupyter_client",
+  "ipython",
+  "sphinx>=4",
+  "sphinx_rtd_theme",
+  "tabulate",
+  "tornado",
+  "entrypoints",
+  "nbsphinx>=0.2.12",
+  "sphinxcontrib_github_alt",
+]
+testing = [
+  "coveralls",
+  "hypothesis",
+  "pytest",
+  "pytest-cov",
+  "pytest-datadir",
+  "pytest-xdist",
+  "pyyaml",
+]
+notebooks = [
+  "dask[array]",
+  "jupyter",
+  "holoviews",
+  "nbformat",
+  "mesa",
+  "bmi-topography >= 0.5",
+]
+
+[project.scripts]
+landlab = "landlab.cmd.landlab:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+landlab = [
+  "tests/*txt",
+  "data/*asc",
+  "data/*nc",
+  "data/*shp",
+  "test/*shx",
+  "data/*dbf",
+  "preciptest.in",
+  "test_*/*nc",
+  "test_*/*asc",
+]
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
+version = {attr = "landlab._version.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -29,3 +146,43 @@ include_trailing_comma = true
 force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
+
+[tool.towncrier]
+directory = "news"
+package = "landlab"
+filename = "CHANGES.rst"
+single_file = true
+underlines = "-`^"
+issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
+title_format = "{version} ({project_date})"
+
+[[tool.towncrier.type]]
+directory = "component"
+name = "New Components"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "notebook"
+name = "New Tutorial Notebooks"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "feature"
+name = "New Features"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "bugfix"
+name = "Bug Fixes"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "docs"
+name = "Documentation Enhancements"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "misc"
+name = "Other Changes and Additions"
+showcontent = true
+

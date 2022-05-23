@@ -1,9 +1,12 @@
+from .bedrock_landslider import BedrockLandslider
+from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
 from .diffusion import LinearDiffuser
+from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
@@ -33,17 +36,19 @@ from .overland_flow import (
     KinematicWaveRengers,
     KinwaveImplicitOverlandFlow,
     KinwaveOverlandFlowModel,
+    LinearDiffusionOverlandFlowRouter,
     OverlandFlow,
     OverlandFlowBates,
 )
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
-from .space import Space
+from .space import Space, SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -62,6 +67,8 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    BedrockLandslider,
+    CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
@@ -70,6 +77,7 @@ COMPONENTS = [
     DepthSlopeProductErosion,
     DetachmentLtdErosion,
     DischargeDiffuser,
+    DimensionlessDischarge,
     DrainageDensity,
     ErosionDeposition,
     ExponentialWeatherer,
@@ -79,6 +87,7 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
+    PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
@@ -95,6 +104,7 @@ COMPONENTS = [
     LandslideProbability,
     LateralEroder,
     LinearDiffuser,
+    LinearDiffusionOverlandFlowRouter,
     ListricKinematicExtender,
     LithoLayers,
     Lithology,
@@ -116,6 +126,7 @@ COMPONENTS = [
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
+    SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,

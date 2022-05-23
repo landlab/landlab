@@ -116,7 +116,7 @@ def test_mass_conserve_with_depression_finder_ErosionDeposition(
     # assert that the mass loss over the surface is exported through the one
     # outlet.
     net_change = dz[grid2.core_nodes].sum() + (
-        ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
+        ed.sediment_influx[1] * dt / grid2.cell_area_at_node[11]
     )
     assert_array_almost_equal(net_change, 0.0, decimal=10)
 
@@ -154,6 +154,6 @@ def test_mass_conserve_with_depression_finder_Space(
     # assert that the mass loss over the surface is exported through the one
     # outlet.
     net_change = mass_change[grid2.core_nodes].sum() + (
-        ed._qs_in[1] * dt / grid2.cell_area_at_node[11]
+        ed.sediment_influx[1] * dt / grid2.cell_area_at_node[11]
     )
     assert_array_almost_equal(net_change, 0.0, decimal=10)

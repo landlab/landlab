@@ -32,4 +32,4 @@ Contributors
 - `alangston <https://github.com/alangston>`_
 - `Kristen Thyng <https://github.com/kthyng>`_
 - `Dylan Ward <https://github.com/ddoubleprime>`_
-
+- `Benjamin Campforts  <https://github.com/BCampforts>`_

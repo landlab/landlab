@@ -364,6 +364,8 @@ def resize_array(array, newsize, exact=False):
     >>> bigger_x = resize_array(x, 4, exact=True)
     >>> bigger_x.shape == (4, 3)
     True
+
+    :meta private:
     """
     newsize = int(newsize)
     allocated = array.shape[0]
@@ -468,21 +470,6 @@ class EventLayers:
     make a new layer if only erosion occurs and if the attributes of the new
     layer are equivalent to the attributes of the material at the surface of the
     layer stack.
-
-    Attributes
-    ----------
-    allocated
-    dz
-    thickness
-    number_of_layers
-    number_of_stacks
-    surface_index
-    z
-
-    Methods
-    -------
-    add
-    get_surface_values
 
     Parameters
     ----------

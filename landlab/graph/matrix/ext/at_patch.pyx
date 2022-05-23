@@ -3,7 +3,7 @@ cimport numpy as np
 cimport cython
 
 
-DTYPE = np.int
+DTYPE = int
 ctypedef np.int_t DTYPE_t
 
 

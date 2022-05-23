@@ -37,3 +37,11 @@ KinwaveOverlandFlowModel
     :members:
     :undoc-members:
     :show-inheritance:
+
+LinearDiffusionOverlandFlowRouter
+---------------------------------
+
+.. automodule:: landlab.components.overland_flow.linear_diffusion_overland_flow_router
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis.strategies import integers, lists
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pytest import approx
 
@@ -48,16 +50,18 @@ def test_number_of_nodes_vertical_hex():
     assert VerticalHexTriGraph.number_of_nodes((3, 3)) == 10
 
 
-def test_number_of_nodes_symetric_rect(hex_shape):
+@given(shape=lists(integers(min_value=3, max_value=1024), min_size=2, max_size=2))
+def test_number_of_nodes_symetric_rect(shape):
     assert VerticalRectTriGraph.number_of_nodes(
-        hex_shape
-    ) == HorizontalRectTriGraph.number_of_nodes(hex_shape[::-1])
+        shape
+    ) == HorizontalRectTriGraph.number_of_nodes(shape[::-1])
 
 
-def test_number_of_nodes_symetric_hex(hex_shape):
+@given(shape=lists(integers(min_value=3, max_value=1024), min_size=2, max_size=2))
+def test_number_of_nodes_symetric_hex(shape):
     assert VerticalHexTriGraph.number_of_nodes(
-        hex_shape
-    ) == HorizontalHexTriGraph.number_of_nodes(hex_shape[::-1])
+        shape
+    ) == HorizontalHexTriGraph.number_of_nodes(shape[::-1])
 
 
 @pytest.mark.parametrize("n_rows", (3,))
@@ -104,25 +108,27 @@ def test_create_hex():
     assert graph.number_of_patches == 6
 
 
-def test_spacing(small_hex_shape):
+@given(shape=lists(integers(min_value=3, max_value=32), min_size=2, max_size=2))
+def test_spacing(shape):
     """Test spacing of nodes."""
-    graph = TriGraph(small_hex_shape)
+    graph = TriGraph(shape)
     assert_array_almost_equal(graph.length_of_link, 1.0)
 
-    graph = TriGraph(small_hex_shape, spacing=2)
+    graph = TriGraph(shape, spacing=2)
     assert_array_almost_equal(graph.length_of_link, 2.0)
 
 
+@given(shape=lists(integers(min_value=3, max_value=32), min_size=2, max_size=2))
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
 @pytest.mark.parametrize("node_layout", ("hex", "rect"))
-def test_origin_keyword(node_layout, orientation, small_hex_shape):
+def test_origin_keyword(node_layout, orientation, shape):
     """Test setting the origin."""
-    graph = TriGraph(small_hex_shape)
+    graph = TriGraph(shape)
 
     assert np.min(graph.x_of_node) == approx(0.0)
     assert np.min(graph.y_of_node) == approx(0.0)
 
-    graph = TriGraph(small_hex_shape, xy_of_lower_left=(0.5, 0.25))
+    graph = TriGraph(shape, xy_of_lower_left=(0.5, 0.25))
 
     assert np.min(graph.x_of_node[0]) == approx(0.5)
     assert np.min(graph.y_of_node[0]) == approx(0.25)

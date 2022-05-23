@@ -1404,7 +1404,7 @@ def test_three_pits():
 
     # test conservation of mass:
     assert mg.at_node["drainage_area"].reshape((10, 10))[1:-1, 1].sum() == approx(
-        8.0 ** 2
+        8.0**2
     )
     # ^all the core nodes
 
@@ -1561,7 +1561,7 @@ def test_composite_pits():
 
     # test conservation of mass:
     assert mg.at_node["drainage_area"].reshape((10, 10))[1:-1, 1].sum() == approx(
-        8.0 ** 2
+        8.0**2
     )
     # ^all the core nodes
 

@@ -43,6 +43,7 @@ Flow routing
    flow_accum
    flow_routing
    lake_fill
+   priority_flood_flow_router
    sink_fill
 
 Shallow water hydrodynamics
@@ -79,7 +80,9 @@ Landslides
 .. toctree::
   :maxdepth: 2
 
+  bedrock_landslider
   landslides
+  dimensionless_discharge
 
 Vegetation
 ----------
@@ -121,15 +124,8 @@ Subaqueous / Submarine Processes
 .. toctree::
   :maxdepth: 2
 
+  carbonate
   marine_sediment_transport
-
-Tectonics
----------
-
-.. toctree::
-  :maxdepth: 2
-
-  tectonics
 
 Terrain Analysis
 ----------------
@@ -150,12 +146,12 @@ Tectonics
 ---------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   flexure
-  flexure.ext
   gflex
   normal_fault
+  tectonics
 
 Fire
 ----
@@ -209,6 +205,7 @@ Alphabetical Listing of Modules
    depth_dependent_taylor_soil_creep
    detachment_ltd_erosion
    diffusion
+   dimensionless_discharge
    drainage_density
    erosion_deposition
    fire_generator
@@ -244,11 +241,3 @@ Alphabetical Listing of Modules
    uniform_precip
    vegetation_dynamics
    weathering
-
-Module contents
----------------
-
-.. automodule:: landlab.components
-   :members:
-   :undoc-members:
-   :show-inheritance:
