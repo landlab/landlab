@@ -186,7 +186,7 @@ class GravelRiverTransporter(Component):
         self._dzdt[cores] = (
             (self._sediment_influx[cores] - self._sediment_outflux[cores])
             / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-        ) - self._abrasion
+        ) - self._abrasion[cores]
 
     def run_one_step(self, dt):
         """Advance solution by time interval dt.
