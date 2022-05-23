@@ -2,9 +2,17 @@ import numpy as np
 from landlab import Component
 
 
-class AlluvialTransporter1(Component):
+class GravelRiverTransporter(Component):
 
     _info = {
+        "bedload_sediment__rate_of_loss_to_abrasion": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/y",
+            "mapping": "node",
+            "doc": "Rate of bedload sediment volume loss to abrasion per unit area",
+        },
         "bedload_sediment__volume_influx": {
             "dtype": float,
             "intent": "out",
@@ -20,6 +28,14 @@ class AlluvialTransporter1(Component):
             "units": "m**2/y",
             "mapping": "node",
             "doc": "Volumetric outgoing streamwise bedload sediment transport rate",
+        },
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
             "dtype": int,
@@ -71,7 +87,13 @@ class AlluvialTransporter1(Component):
         },
     }
 
-    def __init__(self, grid, intermittency_factor=0.01, transport_coefficient=0.041):
+    def __init__(
+        self,
+        grid,
+        intermittency_factor=0.01,
+        transport_coefficient=0.041,
+        abrasion_coefficient=0.0,
+    ):
         """Initialize AlluvialTransporter1."""
 
         super().__init__(grid)
@@ -79,16 +101,19 @@ class AlluvialTransporter1(Component):
         # Parameters
         self._trans_coef = transport_coefficient
         self._intermittency_factor = intermittency_factor
+        self._abrasion_coef = abrasion_coefficient
 
         # Fields and arrays
         self._elev = grid.at_node["topographic__elevation"]
         self._discharge = grid.at_node["surface_water__discharge"]
         self._slope = grid.at_node["topographic__steepest_slope"]
         self._receiver_node = grid.at_node["flow__receiver_node"]
+        self._receiver_link = grid.at_node["flow__link_to_receiver_node"]
         super().initialize_output_fields()
         self._sediment_influx = grid.at_node["bedload_sediment__volume_influx"]
         self._sediment_outflux = grid.at_node["bedload_sediment__volume_outflux"]
         self._dzdt = grid.at_node["sediment__rate_of_change"]
+        self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
 
         # Constants
         self._SEVEN_SIXTHS = 7.0 / 6.0
@@ -118,6 +143,15 @@ class AlluvialTransporter1(Component):
             * self._intermittency_factor
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
+        )
+
+    def calc_abrasion_rate(self):
+        """Update the rate of bedload loss to abrasion, per unit area."""
+        cores = self._grid.core_nodes
+        self._abrasion[cores] = (
+            self._abrasion_coef
+            * self._sediment_outflux[cores]
+            / self._grid.length_of_link[self._receiver_link[cores]]
         )
 
     def calc_sediment_rate_of_change(self):
@@ -150,8 +184,9 @@ class AlluvialTransporter1(Component):
             cores
         ]
         self._dzdt[cores] = (
-            self._sediment_influx[cores] - self._sediment_outflux[cores]
-        ) / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
+            (self._sediment_influx[cores] - self._sediment_outflux[cores])
+            / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
+        ) - self._abrasion
 
     def run_one_step(self, dt):
         """Advance solution by time interval dt.
