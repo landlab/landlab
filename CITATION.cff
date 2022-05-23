@@ -38,9 +38,6 @@ authors:
     family-names: Knuth
     given-names: Jenny
   -
-    family-names: Knuth
-    given-names: Jenny
-  -
     family-names: Mouchene
     given-names: Margaux
   -
@@ -70,20 +67,28 @@ title: "landlab"
 identifiers:
   -
     type: doi
-    values: "10.5194/esurf-2020-12"
-    description: "Software description paper for Landlab version 2"
+    value: 10.5194/esurf-8-379-2020
+    description: >-
+      "Short communication: Landlab v2.0: A software package for
+      Earth surface dynamics". Earth Surface Dynamics Discussions,
+      May 2020, Volume 8, Issue 2
   -
     type: doi
-    values: "10.5194/esurf-5-21-2017"
-    description: "Software description paper for Landlab version 1"
+    value: 10.5194/esurf-5-21-2017
+    description: >-
+      "Creative computing with Landlab: an open-source
+       toolkit for building, coupling, and exploring
+       two-dimensional numerical models of
+       Earth-surface dynamics". Earth Surface Dynamics,
+       January 2017, Volume 5, Issue 1
   -
     type: doi
-    values: "10.5281/zenodo.595872"
-    description: The concept DOI for the collection containing all versions of the Citation File Format.
-  -
-    type: doi
-    values: "10.5281/zenodo.3776837"
+    value: 10.5281/zenodo.3776837
     description: The versioned DOI for the version 2.0.1 of landlab.
+  -
+    type: doi
+    value: 10.5281/zenodo.595872
+    description: The concept DOI for the collection containing all versions of landlab.
 repository-code: "https://github.com/landlab/landlab"
 url: "https://landlab.readthedocs.io"
 date-released: "2020-04-29"
@@ -95,6 +100,5 @@ keywords:
   - "model coupling"
   - "numerical modeling"
 license: MIT
-doi: "10.5281/zenodo.595872"
-repository-code: "https://github.com/landlab/landlab"
+doi: 10.5281/zenodo.595872
 ...
