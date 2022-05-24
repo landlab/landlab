@@ -94,7 +94,7 @@ class GravelRiverTransporter(Component):
         transport_coefficient=0.041,
         abrasion_coefficient=0.0,
     ):
-        """Initialize AlluvialTransporter1."""
+        """Initialize GravelRiverTransporter."""
 
         super().__init__(grid)
 
@@ -118,6 +118,42 @@ class GravelRiverTransporter(Component):
         # Constants
         self._SEVEN_SIXTHS = 7.0 / 6.0
 
+    def calc_implied_depth(self, grain_diameter=0.01):
+        """Utility function that calculates and returns water depth implied by
+        slope and grain diameter, using Wickert & Schildgen (2019) equation 8.
+
+        The equation is
+
+            h = ((rho_s - rho / rho)) (1 + epsilon) tau_c* (D / S)
+
+        where the factors on the right are sediment and water density, excess
+        shear-stress factor, critical Shields stress, grain diameter, and slope
+        gradient. Here the prefactor on D/S assumes sediment density of 2650 kg/m3,
+        water density of 1000 kg/m3, shear-stress factor of 0.2, and critical
+        Shields stress of 0.0495, giving a value of 0.09801.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[3:] = 10.0
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> transporter = GravelRiverTransporter(grid)
+        >>> depth = transporter.calc_implied_depth()
+        >>> int(depth[4] * 1000)
+        98
+        """
+        DEPTH_FACTOR = 0.09801
+        depth = np.zeros(self._grid.number_of_nodes)
+        nonzero_slope = self._slope > 0.0
+        depth[nonzero_slope] = (
+            DEPTH_FACTOR * grain_diameter / self._slope[nonzero_slope]
+        )
+        return depth
+
     def calc_transport_capacity(self):
         """Calculate and return bed-load transport capacity.
 
@@ -133,7 +169,7 @@ class GravelRiverTransporter(Component):
         >>> elev[3:] = 1.0
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> transporter = AlluvialTransporter1(grid)
+        >>> transporter = GravelRiverTransporter(grid)
         >>> transporter.calc_transport_capacity()
         >>> round(transporter._sediment_outflux[4], 4)
         0.019
@@ -169,7 +205,7 @@ class GravelRiverTransporter(Component):
         >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> transporter = AlluvialTransporter1(grid)
+        >>> transporter = GravelRiverTransporter(grid)
         >>> transporter.calc_sediment_rate_of_change()
         >>> np.round(transporter._sediment_outflux[4:7], 3)
         array([ 0.   ,  0.038,  0.019])
@@ -203,7 +239,7 @@ class GravelRiverTransporter(Component):
         >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> transporter = AlluvialTransporter1(grid)
+        >>> transporter = GravelRiverTransporter(grid)
         >>> transporter.run_one_step(1000.0)
         >>> np.round(elev[4:7], 4)
         array([ 0.    ,  0.9981,  1.9981])
