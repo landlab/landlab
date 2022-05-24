@@ -93,6 +93,7 @@ class GravelRiverTransporter(Component):
         intermittency_factor=0.01,
         transport_coefficient=0.041,
         abrasion_coefficient=0.0,
+        sediment_porosity=0.35,
     ):
         """Initialize GravelRiverTransporter."""
 
@@ -102,6 +103,7 @@ class GravelRiverTransporter(Component):
         self._trans_coef = transport_coefficient
         self._intermittency_factor = intermittency_factor
         self._abrasion_coef = abrasion_coefficient
+        self._porosity_factor = 1.0 / (1.0 - sediment_porosity)
 
         # Fields and arrays
         self._elev = grid.at_node["topographic__elevation"]
@@ -153,6 +155,56 @@ class GravelRiverTransporter(Component):
             DEPTH_FACTOR * grain_diameter / self._slope[nonzero_slope]
         )
         return depth
+
+    def calc_implied_width(self, grain_diameter=0.01, time_unit="y"):
+        """Utility function that calculates and returns channel width implied by
+        discharge, slope, and grain diameter, using Wickert & Schildgen (2019)
+        equation 16.
+
+        The equation is
+
+            b = kb Q S**(7/6) / D**(3/2)
+
+        where the dimensional prefactor, which includes sediment and water
+        density, gravitational acceleration, critical Shields stress, and the
+        transport factor epsilon, is
+
+            kb = 0.17 g**(-1/2) (((rho_s - rho) / rho) (1 + eps) tau_c*)**(-5/3)
+
+        Using g = 9.8 m/s2, rho_s = 2650 (quartz), rho = 1000 kg/m3, eps = 0.2,
+        and tau_c* = 0.0495, kb ~ 2.61 s/m**(1/2). Converting to years,
+        kb = 8.26e-8.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=10000.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[3:] = 100.0
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> transporter = GravelRiverTransporter(grid)
+        >>> width = transporter.calc_implied_width()
+        >>> int(width[4] * 100)
+        3833
+        >>> grid.at_node["surface_water__discharge"] *= 1. / (3600 * 24 * 365.25)
+        >>> width = transporter.calc_implied_width(time_unit="s")
+        >>> int(width[4] * 100)
+        3838
+        """
+        if time_unit[0] == "y":
+            width_fac = 8.26e-8
+        else:
+            width_fac = 2.61  # assume seconds if not years
+        width = np.zeros(self._grid.number_of_nodes)
+        width = (
+            width_fac
+            * self._discharge
+            * self._slope ** (7.0 / 6.0)
+            / (grain_diameter**1.5)
+        )
+        return width
 
     def calc_transport_capacity(self):
         """Calculate and return bed-load transport capacity.
@@ -212,7 +264,7 @@ class GravelRiverTransporter(Component):
         >>> np.round(transporter._sediment_influx[4:7], 3)
         array([ 0.038,  0.019,  0.   ])
         >>> np.round(transporter._dzdt[5:7], 8)
-        array([ -1.90000000e-06,  -1.90000000e-06])
+        array([ -2.93000000e-06,  -2.93000000e-06])
         """
         self.calc_transport_capacity()
         cores = self.grid.core_nodes
@@ -220,7 +272,8 @@ class GravelRiverTransporter(Component):
             cores
         ]
         self._dzdt[cores] = (
-            (self._sediment_influx[cores] - self._sediment_outflux[cores])
+            self._porosity_factor
+            * (self._sediment_influx[cores] - self._sediment_outflux[cores])
             / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
         ) - self._abrasion[cores]
 
@@ -242,7 +295,7 @@ class GravelRiverTransporter(Component):
         >>> transporter = GravelRiverTransporter(grid)
         >>> transporter.run_one_step(1000.0)
         >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.9981,  1.9981])
+        array([ 0.    ,  0.9971,  1.9971])
         """
         self.calc_sediment_rate_of_change()
         self._elev += self._dzdt * dt
