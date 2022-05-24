@@ -234,7 +234,23 @@ class GravelRiverTransporter(Component):
         )
 
     def calc_abrasion_rate(self):
-        """Update the rate of bedload loss to abrasion, per unit area."""
+        """Update the rate of bedload loss to abrasion, per unit area.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[3:] = 10.0
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> transporter = GravelRiverTransporter(grid, abrasion_coefficient=0.0002)
+        >>> transporter.calc_transport_capacity()
+        >>> transporter.calc_abrasion_rate()
+        >>> int(transporter._abrasion[4] * 1e8)
+        38
+        """
         cores = self._grid.core_nodes
         self._abrasion[cores] = (
             self._abrasion_coef
