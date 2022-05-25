@@ -236,6 +236,14 @@ class GravelRiverTransporter(Component):
     def calc_abrasion_rate(self):
         """Update the rate of bedload loss to abrasion, per unit area.
 
+        Here we use the average of incoming and outgoing sediment flux to
+        calculate the loss rate to abrasion.
+
+        The factor dx (node spacing) appears in the denominator to represent
+        flow segment length (i.e., length of the link along which water is
+        flowing in the cell) divided by cell area. This would need to be updated
+        to handle non-raster and/or non-uniform grids.
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
@@ -254,8 +262,9 @@ class GravelRiverTransporter(Component):
         cores = self._grid.core_nodes
         self._abrasion[cores] = (
             self._abrasion_coef
-            * self._sediment_outflux[cores]
-            / self._grid.length_of_link[self._receiver_link[cores]]
+            * 0.5
+            * (self._sediment_outflux[cores] + self._sediment_influx[cores])
+            / self._grid.dx
         )
 
     def calc_sediment_rate_of_change(self):
@@ -283,15 +292,17 @@ class GravelRiverTransporter(Component):
         array([ -2.93000000e-06,  -2.93000000e-06])
         """
         self.calc_transport_capacity()
+        if self._abrasion_coef > 0.0:
+            self.calc_abrasion_rate()
         cores = self.grid.core_nodes
         self._sediment_influx[self._receiver_node[cores]] = self._sediment_outflux[
             cores
         ]
-        self._dzdt[cores] = (
-            self._porosity_factor
-            * (self._sediment_influx[cores] - self._sediment_outflux[cores])
+        self._dzdt[cores] = self._porosity_factor * (
+            (self._sediment_influx[cores] - self._sediment_outflux[cores])
             / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-        ) - self._abrasion[cores]
+            - self._abrasion[cores]
+        )
 
     def run_one_step(self, dt):
         """Advance solution by time interval dt.
