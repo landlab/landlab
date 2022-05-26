@@ -161,6 +161,8 @@ def read_shapefile(
     First, we make a simple shapefile
 
     >>> from io import BytesIO
+    >>> import os
+
     >>> import shapefile
     >>> shp = BytesIO()
     >>> shx = BytesIO()
@@ -228,7 +230,7 @@ def read_shapefile(
 
     Now read in both files together.
 
-    >>> grid = read_shapefile(shp,dbf=dbf,points_shapefile=p_shp,points_dbf=p_dbf)
+    >>> grid = read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
     >>> grid.nodes
     array([0, 1, 2, 3])
     >>> grid.x_of_node
