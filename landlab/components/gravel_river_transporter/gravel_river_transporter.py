@@ -1,6 +1,30 @@
 import numpy as np
 from landlab import Component
 
+_ONE_SIXTH = 1.0 / 6.0
+
+
+def make_empty_matrix_and_rhs(grid):
+    from scipy.sparse import csc_matrix
+
+    mat = csc_matrix(
+        (grid.number_of_core_nodes, grid.number_of_core_nodes),
+    )
+    rhs = np.zeros(grid.number_of_core_nodes)
+    return mat, rhs
+
+
+def zero_out_matrix(grid, mat, rcvr, mat_id):
+    for i in grid.core_nodes:
+        j = mat_id[i]
+        mat[j, j] = 0.0
+        r = rcvr[i]
+        if grid.status_at_node[r] == grid.BC_NODE_IS_CORE:
+            k = mat_id[r]
+            mat[j, k] = 0.0
+            mat[k, k] = 0.0
+            mat[k, j] = 0.0
+
 
 class GravelRiverTransporter(Component):
 
@@ -124,6 +148,14 @@ class GravelRiverTransporter(Component):
         # Solver type
         if solver == "explicit":
             self.run_one_step = self.run_one_step_simple_explicit
+        elif solver == "matrix":
+            from landlab.utils.matrix import get_core_node_at_node
+            from scipy.sparse.linalg import spsolve
+
+            self.run_one_step = self.run_one_step_matrix_inversion
+            self._mat, self._rhs = make_empty_matrix_and_rhs(grid)
+            self._mat_id = np.zeros(grid.number_of_nodes, dtype=int)
+            self._mat_id = get_core_node_at_node(grid)
         else:
             raise ValueError("Solver type not recognized")
 
@@ -333,3 +365,70 @@ class GravelRiverTransporter(Component):
         """
         self.calc_sediment_rate_of_change()
         self._elev += self._dzdt * dt
+
+    def _fill_matrix_and_rhs(self, dt):
+        """Fill out entries in a sparse matrix and corresponding right-hand side
+        vector.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=100.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[:] = 0.01 * grid.x_of_node
+        >>> grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+        >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
+        >>> fa = FlowAccumulator(grid)
+        >>> transporter = GravelRiverTransporter(grid, solver="matrix")
+        >>> transporter._mat.toarray()
+        array([[ 0.,  0.],
+               [ 0.,  0.]])
+        >>> fa.run_one_step()
+        >>> transporter._receiver_node[5:7]
+        array([4, 5])
+        >>> transporter._fill_matrix_and_rhs(1000.0)
+        >>> np.round(transporter._mat.toarray(), 4)
+        array([[ 1.0057, -0.0019],
+               [-0.0019,  1.0019]])
+        """
+        prefac = (
+            self._trans_coef * self._intermittency_factor * dt
+        ) / self.grid.dx**2
+        a = prefac * (1.0 / self.grid.dx + self._abrasion_coef / 2)
+        b = prefac * (1.0 / self.grid.dx - self._abrasion_coef / 2)
+        f = self._discharge * (self._slope ** (_ONE_SIXTH))
+
+        zero_out_matrix(self.grid, self._mat, self._receiver_node, self._mat_id)
+        for i in self.grid.core_nodes:
+            j = self._mat_id[i]
+            self._rhs[j] = self._elev[i]
+            self._mat[j, j] += 1 + a * f[i]
+            r = self._receiver_node[i]
+            if self.grid.status_at_node[r] == self.grid.BC_NODE_IS_CORE:
+                k = self._mat_id[r]
+                self._mat[j, k] -= a * f[i]
+                self._mat[k, k] += b * f[i]
+                self._mat[k, j] -= b * f[i]
+            else:
+                self._rhs[j] += a * f[i] * self._elev[r]
+
+    def run_one_step_matrix_inversion(self, dt):
+        """Advance solution by time interval dt.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=100.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[:] = 0.01 * grid.x_of_node
+        >>> grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+        >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> transporter = GravelRiverTransporter(grid, solver="explicit")
+        >>> transporter.run_one_step(1000.0)
+        """
+        pass
