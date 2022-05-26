@@ -14,13 +14,3 @@ landlab.field.graph\_field module
    :members:
    :undoc-members:
    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: landlab.field
-   :members:
-   :undoc-members:
-   :show-inheritance:
-   :noindex:

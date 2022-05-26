@@ -1,14 +1,23 @@
 import hypothesis.extra.numpy as hynp
 import numpy as np
 import pytest
-from hypothesis import given, settings
+from hypothesis import given
 from hypothesis.strategies import composite, floats, integers, lists
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.grid.create_network import (
-    _reduce_to_fewest_nodes,
+    AlongChannelSpacingAtLeast,
+    AtMostNodes,
+    ChannelSegment,
+    ChannelSegmentConnector,
+    JustEndNodes,
+    SegmentLinkCollector,
+    SegmentNodeCoordinateCollector,
+    SegmentNodeReindexer,
+    SpacingAtLeast,
     _reduce_nodes,
+    _reduce_to_fewest_nodes,
     create_network_links,
     create_xy_of_node,
     get_node_fields,
@@ -17,15 +26,6 @@ from landlab.grid.create_network import (
     pairwise,
     reindex_network_nodes,
     spacing_from_drainage_area,
-    AlongChannelSpacingAtLeast,
-    ChannelSegment,
-    ChannelSegmentConnector,
-    AtMostNodes,
-    JustEndNodes,
-    SegmentLinkCollector,
-    SegmentNodeCoordinateCollector,
-    SegmentNodeReindexer,
-    SpacingAtLeast,
 )
 
 
@@ -533,7 +533,6 @@ def test_create_xy_of_node_with_branch():
         max_size=1024,
     ),
 )
-@settings(deadline=None)
 def test_create_xy_of_node_one_segement(nodes):
     grid = RasterModelGrid((16, 64), xy_spacing=(2.0, 3.0))
     network = ChannelSegmentConnector(nodes)

@@ -9,10 +9,10 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
-import pkg_resources
 from numpy import set_printoptions
 
 from ._registry import registry
+from ._version import __version__
 from .core.errors import MissingKeyError, ParameterValueError
 from .core.model_component import Component
 from .core.model_parameter_loader import load_params
@@ -40,8 +40,8 @@ finally:
 
 cite_as = registry.format_citations
 
-__version__ = pkg_resources.get_distribution("landlab").version
 __all__ = [
+    "__version__",
     "registry",
     "MissingKeyError",
     "ParameterValueError",
@@ -63,5 +63,3 @@ __all__ = [
     "imshowhs_grid",
     "imshowhs_grid_at_node",
 ]
-
-del pkg_resources

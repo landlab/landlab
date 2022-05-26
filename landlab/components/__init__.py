@@ -1,10 +1,12 @@
 from .bedrock_landslider import BedrockLandslider
+from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
 from .diffusion import LinearDiffuser
+from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
@@ -66,6 +68,7 @@ from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
     BedrockLandslider,
+    CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
     DepressionFinderAndRouter,
@@ -74,6 +77,7 @@ COMPONENTS = [
     DepthSlopeProductErosion,
     DetachmentLtdErosion,
     DischargeDiffuser,
+    DimensionlessDischarge,
     DrainageDensity,
     ErosionDeposition,
     ExponentialWeatherer,
