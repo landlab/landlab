@@ -1,5 +1,6 @@
 import numpy as np
 from landlab import Component
+from scipy.sparse.linalg import spsolve
 
 _ONE_SIXTH = 1.0 / 6.0
 
@@ -150,7 +151,6 @@ class GravelRiverTransporter(Component):
             self.run_one_step = self.run_one_step_simple_explicit
         elif solver == "matrix":
             from landlab.utils.matrix import get_core_node_at_node
-            from scipy.sparse.linalg import spsolve
 
             self.run_one_step = self.run_one_step_matrix_inversion
             self._mat, self._rhs = make_empty_matrix_and_rhs(grid)
@@ -391,6 +391,8 @@ class GravelRiverTransporter(Component):
         >>> np.round(transporter._mat.toarray(), 4)
         array([[ 1.0057, -0.0019],
                [-0.0019,  1.0019]])
+        >>> transporter._rhs
+        array([ 1.,  2.])
         """
         prefac = (
             self._trans_coef * self._intermittency_factor * dt
@@ -428,7 +430,12 @@ class GravelRiverTransporter(Component):
         >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> transporter = GravelRiverTransporter(grid, solver="explicit")
+        >>> transporter = GravelRiverTransporter(grid, solver="matrix")
+        >>> transporter.run_one_step == transporter.run_one_step_matrix_inversion
+        True
         >>> transporter.run_one_step(1000.0)
+        >>> np.round(transporter._elev[5:7], 3)
+        array([ 0.998,  1.998])
         """
-        pass
+        self._fill_matrix_and_rhs(dt)
+        self._elev[self.grid.core_nodes] = spsolve(self._mat, self._rhs)
