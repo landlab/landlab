@@ -2,7 +2,7 @@
 """
 Unit tests for landlab.components.gravel_river_transporter.gravel_river_transporter
 """
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_raises
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, GravelRiverTransporter
@@ -51,3 +51,12 @@ def test_analytical_solution_one_cell():
     assert_allclose(transporter._sediment_outflux[4], Qs_pred, rtol=1.0e-4)
     assert_allclose(transporter._slope[4], S_pred, rtol=1.0e-4)
     assert_allclose(transporter._abrasion[4], Ea_pred, rtol=1.0e-4)
+
+
+def test_exception_handling():
+    grid = RasterModelGrid((3, 3))
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    FlowAccumulator(grid)
+    assert_raises(
+        ValueError, GravelRiverTransporter, grid, solver="not one we actually have"
+    )

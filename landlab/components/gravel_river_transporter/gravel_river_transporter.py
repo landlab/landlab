@@ -94,6 +94,7 @@ class GravelRiverTransporter(Component):
         transport_coefficient=0.041,
         abrasion_coefficient=0.0,
         sediment_porosity=0.35,
+        solver="explicit",
     ):
         """Initialize GravelRiverTransporter."""
 
@@ -119,6 +120,12 @@ class GravelRiverTransporter(Component):
 
         # Constants
         self._SEVEN_SIXTHS = 7.0 / 6.0
+
+        # Solver type
+        if solver == "explicit":
+            self.run_one_step = self.run_one_step_simple_explicit
+        else:
+            raise ValueError("Solver type not recognized")
 
     def calc_implied_depth(self, grain_diameter=0.01):
         """Utility function that calculates and returns water depth implied by
@@ -257,7 +264,7 @@ class GravelRiverTransporter(Component):
         >>> transporter.calc_transport_capacity()
         >>> transporter.calc_abrasion_rate()
         >>> int(transporter._abrasion[4] * 1e8)
-        38
+        19
         """
         cores = self._grid.core_nodes
         self._abrasion[cores] = (
@@ -304,7 +311,7 @@ class GravelRiverTransporter(Component):
             - self._abrasion[cores]
         )
 
-    def run_one_step(self, dt):
+    def run_one_step_simple_explicit(self, dt):
         """Advance solution by time interval dt.
 
         Examples
@@ -319,7 +326,7 @@ class GravelRiverTransporter(Component):
         >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> transporter = GravelRiverTransporter(grid)
+        >>> transporter = GravelRiverTransporter(grid, solver="explicit")
         >>> transporter.run_one_step(1000.0)
         >>> np.round(elev[4:7], 4)
         array([ 0.    ,  0.9971,  1.9971])
