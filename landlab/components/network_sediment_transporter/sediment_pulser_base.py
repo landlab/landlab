@@ -15,7 +15,6 @@ class SedimentPulserBase(Component):
     authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
             - with help from Eric Hutton and Katy Barnhart
 
-
     Parameters
     ----------
     grid : ModelGrid

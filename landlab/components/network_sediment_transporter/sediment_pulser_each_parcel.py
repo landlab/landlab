@@ -143,7 +143,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             raise ValueError(msg)
 
         if (
-            PulseDF.empty == True
+            PulseDF.empty is True
         ):  # if empty, pulser stops, returns the existing parcels, call stops
             return self._parcels
             print("PulseDF is EMPTY")
@@ -212,7 +212,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         # split pulse into parcels.
         p_np = []  # list of number of parcels in each pulse
         volume = np.array([])  # list of parcel volumes from all pulses
-        for index, row in PulseDF.iterrows():
+        for _index, row in PulseDF.iterrows():
 
             # set the maximum allowable parcel volume using either
             # the default value or value in PulseDF
@@ -243,13 +243,13 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         volume = np.expand_dims(volume, axis=1)
 
         # link location
-        LinkDistanceRatio = np.array([])
+        link_distance_ratio = np.array([])
         for i, val in enumerate(PulseDF["normalized_downstream_distance"].values):
             # parcels from the same pulse enter channel at the same point
-            LinkDistanceRatio = np.concatenate(
-                (LinkDistanceRatio, np.ones(p_np[i]) * val)
+            link_distance_ratio = np.concatenate(
+                (link_distance_ratio, np.ones(p_np[i]) * val)
             )
-        location_in_link = np.expand_dims(LinkDistanceRatio, axis=1)
+        location_in_link = np.expand_dims(link_distance_ratio, axis=1)
 
         # element id and starting link
         element_id = np.array([])
