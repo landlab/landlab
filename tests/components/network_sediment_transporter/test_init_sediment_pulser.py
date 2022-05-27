@@ -24,6 +24,6 @@ def test_grid_is_nmg():
     """test ValueError exception is raised when nmg is a mg"""
     nmg = RasterModelGrid((5, 5))
     with pytest.raises(ValueError):
-        initialize_parcels = SedimentPulserAtLinks(nmg)
+        _ = SedimentPulserAtLinks(nmg)
     with pytest.raises(ValueError):
-        initialize_parcels2 = SedimentPulserEachParcel(nmg)
+        _ = SedimentPulserEachParcel(nmg)

@@ -12,8 +12,6 @@ from landlab.components.network_sediment_transporter.sediment_pulser_each_parcel
     SedimentPulserEachParcel,
 )
 
-from landlab import RasterModelGrid
-
 
 def always_time_to_pulse(time):
     return True
@@ -30,7 +28,7 @@ def test_call_SedimentPulserBase(example_nmg2):
     make_pulse = SedimentPulserBase(grid)
 
     with pytest.raises(NotImplementedError) as exc_info:
-        parcels = make_pulse()
+        _ = make_pulse()
     msg_e = "the base component has no call method"
     assert exc_info.match(msg_e)
 
@@ -289,7 +287,7 @@ class Test_SedimentPulserAtLinks(object):
             time=time, links=links, n_parcels_at_link=n_parcels_at_link
         )
 
-        assert parcels == None
+        assert parcels is None
 
 
 # @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
@@ -692,7 +690,7 @@ class Test_SedimentPulserEachParcel(object):
         time = 7
 
         with pytest.raises(ValueError) as exc_info:
-            parcels = make_pulse(time, PulseDF)
+            _ = make_pulse(time, PulseDF)
         msg_e = "PulseDF was not specified"
         assert exc_info.match(msg_e)
 
