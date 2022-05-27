@@ -19,6 +19,7 @@ from ..core.utils import add_module_functions_to_class
 from ..field.graph_field import GraphFields
 from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
+from ..plot.imshow import ModelGridPlotterMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
 from .decorators import (
@@ -257,7 +258,9 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
+class ModelGrid(
+    GraphFields, EventLayersMixIn, MaterialLayersMixIn, ModelGridPlotterMixIn
+):
 
     """Base class for 2D structured or unstructured grids for numerical models.
 

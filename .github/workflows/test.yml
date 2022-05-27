@@ -59,7 +59,7 @@ jobs:
           pip install -e .
 
       - name: Install testing requirements
-        run: pip install -e .[tests]
+        run: pip install -e .[testing]
 
       - name: Test
         env:
