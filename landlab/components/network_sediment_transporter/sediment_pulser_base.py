@@ -35,6 +35,7 @@ class SedimentPulserBase(Component):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter.sediment_pulser_base import SedimentPulserBase
 
