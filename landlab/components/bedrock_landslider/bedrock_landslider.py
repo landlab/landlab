@@ -225,6 +225,7 @@ class BedrockLandslider(Component):
         self,
         grid,
         angle_int_frict=1.0,
+        threshold_slope=None,
         cohesion_eff=1e4,
         landslides_return_time=1e5,
         rho_r=2700,
@@ -245,6 +246,9 @@ class BedrockLandslider(Component):
             Landlab ModelGrid object
         angle_int_frict: float, optional
             Materials angle of internal friction in [m/m]
+        threshold_slope: float, optional
+            Threshold slope used in non-linear deposition scheme [m/m]
+            Default value is set to angle_int_frict if not specified
         cohesion_eff : float, optional
             Effective cohesion of material [m L^-1 T^-2].
         landslides_return_time  : float, optional
@@ -293,6 +297,10 @@ class BedrockLandslider(Component):
 
         # Store grid and parameters
         self._angle_int_frict = angle_int_frict
+        if threshold_slope is None:
+            self._threshold_slope = angle_int_frict
+        else:
+            self._threshold_slope = threshold_slope
         self._cohesion_eff = cohesion_eff
         self._rho_r = rho_r
         self._grav = grav
@@ -643,8 +651,8 @@ class BedrockLandslider(Component):
 
         # L following carretier 2016
         transport_length_hill = np.where(
-            slope < self._angle_int_frict,
-            self.grid.dx / (1 - (slope / self._angle_int_frict) ** 2),
+            slope < self._threshold_slope,
+            self.grid.dx / (1 - (slope / self._threshold_slope) ** 2),
             1e6,
         )
 
