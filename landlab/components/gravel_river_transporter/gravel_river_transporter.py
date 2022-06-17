@@ -418,6 +418,10 @@ class GravelRiverTransporter(Component):
     def run_one_step_matrix_inversion(self, dt):
         """Advance solution by time interval dt.
 
+        Notes
+        -----
+        Does not update abrasion rate or sediment outflux fields.
+
         Examples
         --------
         >>> import numpy as np

@@ -95,9 +95,7 @@ def test_analytical_solution_one_cell_matrix_solver():
     ) ** (6.0 / 7.0)
     Ea_pred = abrasion_coef * (Qs_pred / 2.0) / dx  # factor of 2 is cell midpoint
 
-    # assert_allclose(transporter._sediment_outflux[4], Qs_pred, rtol=1.0e-4)
     assert_allclose(transporter._slope[4], S_pred, rtol=1.0e-4)
-    # assert_allclose(transporter._abrasion[4], Ea_pred, rtol=1.0e-4)
 
 
 def test_exception_handling():
