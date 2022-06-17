@@ -395,7 +395,7 @@ class GravelRiverTransporter(Component):
         array([ 1.,  2.])
         """
         prefac = (
-            self._trans_coef * self._intermittency_factor * dt
+            self._trans_coef * self._intermittency_factor * self._porosity_factor * dt
         ) / self.grid.dx**2
         a = prefac * (1.0 / self.grid.dx + self._abrasion_coef / 2)
         b = prefac * (1.0 / self.grid.dx - self._abrasion_coef / 2)
