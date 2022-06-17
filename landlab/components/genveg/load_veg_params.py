@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pathlib
 import yaml
+from scipy.optimize import curve_fit
 
 #Create veg_params class type for input data and calculated params
 class VegParams:
@@ -35,10 +36,12 @@ class VegParams:
                     'plant_factors':{
                         'species':'Corn',
                         'growth_form': 1,
-                        'annual_perennial': 'C4'
+                        'monocot_dicot': 'monocot',
+                        'angio_gymno': 'angiosperm',
+                        'annual_perennial': 'annual',
+                        'ptype':'C3'
                     },
                     'growparams': {
-                        'ptype':'C3',
                         'growing_season_start': 91,
                         'growing_season_end': 290,
                         'senescence_start': 228,
@@ -47,7 +50,8 @@ class VegParams:
                         'k_light_extinct':0.02,
                         'light_half_sat':9,
                         'p_max':0.055,
-                        'plant_part_allocation':[0.2,0.3,0.5],
+                        'root_to_leaf_coeffs': [0.031,0.951,0],
+                        'root_to_stem_coeffs': [-0.107, 1.098, 0.0216],
                         'plant_part_min':[0.01,0.1,0.5]
                     }
                 }
@@ -86,11 +90,9 @@ class VegParams:
             self.vegparams['Corn']['colparams']={**self.colparams}
             if 'mortality' in processes:
                 self.mortparams={
-                    's1_name': 'Mortality factor',
-                    's1_days': 365,
-                    's1_pred': [1,2,3,4],
-                    's1_rate': [0,0.1,0.9,1],
-                    's1_weight':[1000,1,1,1000]
+                    'mort_factor_1': 'Mortality factor',
+                    'mort_factor_1_duration': 365,
+                    'mort_factor_1_coeffs': [0,0]
                 }
             else: self.mortparams={}
             self.vegparams['Corn']['mortparams']={**self.mortparams}
@@ -112,29 +114,61 @@ class VegParams:
                     x=pd.DataFrame()
                     #Create list of values for a community on each tab
                     for i in coms:    
-                        df_in=xlin.parse(i, usecols='B,D',skiprows=[1,5,25,31,35,38,41])
+                        df_in=xlin.parse(i, usecols='B,D',skiprows=[1,8,30,36,40,43,46])
                         #Define plant factor keys and create plant factor dictionary
                         factor_keys=[
                             'species',
                             'growth_form',
+                            'monocot_dicot',
+                            'angio_gymno',
                             'annual_perennial',
+                            'ptype'
                         ]
                         factor=self._makedict(df_in, factor_keys, 'plant_factors')    
                         #Define growth parameter keys and create growthparams dictionary                   
                         growth_keys=[
-                            'ptype',
                             'growing_season_start',
                             'growing_season_end',
                             'senescence_start',
                             'respiration_coefficient',
                             'glucose_requirement',
                             'k_light_extinct',
-                            'hi',
                             'light_half_sat',
-                            'plant_part_allocation',
+                            'p_max',
                             'plant_part_min'
                         ]
                         grow=self._makedict(df_in, growth_keys, 'growparams')
+                        leaf_coeffs=df_in[df_in['Variable Name']=='root_to_leaf_coeffs']
+                        stem_coeffs=df_in[df_in['Variable Name']=='root_to_stem_coeffs']
+                        if leaf_coeffs['Values'].isnull().values.any():
+                            if factor['plant_factors']['growth_form']=='shrub':
+                                if factor['plant_factors']['growth_form']=='shrub':
+                                    if factor['plant_factors']['angio_gymno'] == 'angiosperm':
+                                        grow['growparams']['root_to_leaf_coeffs'] = [0.090,0.889,-0.0254]
+                                    elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
+                                        grow['growparams']['root_to_leaf_coeffs'] = [0.243,0.924,-0.0282]
+                                elif factor['plant_factors']['monocot_dicot'] == 'monocot':
+                                    grow['growparams']['root_to_leaf_coeffs'] = [0.031,0.951,0]
+                                elif factor['plant_factors']['monocot_dicot'] == 'dicot':
+                                    grow['growparams']['root_to_leaf_coeffs'] = [0.259,0.916,0]
+                        else:
+                            key=['root_to_leaf_coeffs']
+                            leafcoeff_dict = self._makedict(leaf_coeffs, key, 'growparams')
+                            grow['growparams'].update(leafcoeff_dict['growparams'])
+                        if stem_coeffs['Values'].isnull().values.any():
+                            if factor['plant_factors']['growth_form']=='shrub':
+                                if factor['plant_factors']['angio_gymno'] == 'angiosperm':
+                                    grow['growparams']['root_to_stem_coeffs'] = [-0.097,1.071,0.0179]
+                                elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
+                                    grow['growparams']['root_to_stem_coeffs'] = [-0.070,1.236,-0.0186]
+                            elif factor['plant_factors']['monocot_dicot'] == 'monocot':
+                                grow['growparams']['root_to_leaf_coeffs'] = [-0.107,1.098,0.0216]
+                            elif factor['plant_factors']['monocot_dicot'] == 'dicot':
+                                grow['growparams']['root_to_stem_coeffs'] = [-0.111,1.029,0]
+                        else:
+                            key=['root_to_stem_coeffs']
+                            stemcoeff_dict = self._makedict(stem_coeffs, key, 'growparams')
+                            grow['growparams'].update(stemcoeff_dict['growparams'])
                         #If plantsize is required process, define plant size parameter keys and create sizeparams dictionary
                         if 'plantsize' in processes:
                             size_keys=[
@@ -176,38 +210,37 @@ class VegParams:
                             col={}
                         #If mortality is required process, define mortality parameter keys and create mortparams dictionary
                         if 'mortality' in processes:
-                            mort_keys=[
-                                's1_name',
-                                's1_days',
-                                's1_pred',
-                                's1_rate',
-                                's1_weight'
-                                's2_name',
-                                's2_days',
-                                's2_pred',
-                                's2_rate',
-                                's2_weight',
-                                's3_name',
-                                's3_days',
-                                's3_pred',
-                                's3_rate',
-                                's3_weight',
-                                's4_name',
-                                's4_days',
-                                's4_pred',
-                                's4_rate',
-                                's4_weight',
-                                's5_name',
-                                's5_days',
-                                's5_pred',
-                                's5_rate',
-                                's5_weight'
-                            ]
-                            mort=self._makedict(df_in, mort_keys, 'mortparams')
+                            mort={}
+                            factor=[]
+                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_1']
+                            factor.append(factordf['Values'].tolist())
+                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_2']
+                            factor.append(factordf['Values'].tolist())
+                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_3']
+                            factor.append(factordf['Values'].tolist())
+                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_4']
+                            factor.append(factordf['Values'].tolist())
+                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_5']
+                            factor.append(factordf['Values'].tolist())
+                            self.mortparams['mort_factor']=factor
+                            duration=[]
+                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_1_duration']
+                            duration.append(durdf['Values'].tolist())
+                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_2_duration']
+                            duration.append(durdf['Values'].tolist())
+                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_3_duration']
+                            duration.append(durdf['Values'].tolist())                            
+                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_4_duration']
+                            duration.append(durdf['Values'].tolist())                            
+                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_5_duration']
+                            duration.append(durdf['Values'].tolist())                            
+                            self.mortparams['mort_duration']=duration
+                            coeffs=self._build_logistic(df_in)
+                            self.mortparams['mort_factor_coeffs']=coeffs
                         else:
                             mort={}
                         #Unpack all subdictionaries and combine into master vegparams dictionary for species/community
-                        vegparams[i]={**factor, **grow,**size,**disp,**stor,**col,**mort}
+                        vegparams[i]={**factor, **grow, **size, **disp, **stor, **col, **mort}
                 else: 
                     if exten == 'csv':
                         #Add Carra's code here and load into dict called x
@@ -246,8 +279,7 @@ class VegParams:
     def _makedict(self, df, keys, name):
         #Only read in variables with defined key names
         temp=df[df['Variable Name'].isin(keys)]
-        novals=np.where(pd.isnull(temp))
-        if len(novals) > 0:
+        if temp['Values'].isnull().values.any():
             msg='Cannot build dictionary for {}. One of the variable values is missing. Please check the input file and try again.'.format(name)
             raise ValueError(msg)
         else:
@@ -259,3 +291,65 @@ class VegParams:
             group_temp.rename(columns={'Values': name}, inplace=True)
             temp=group_temp.to_dict()
             return temp
+
+#Private method to build logistic mortality function for up to five acute mortality factors
+    def _build_logistic(self, df):
+        xs=[]
+        ys=[]
+        weights=[]
+        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_1_predictor']
+        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_1_response']
+        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_1_weight']
+        xs.append(xsdf['Values'].tolist())
+        ys.append(ysdf['Values'].tolist())
+        weights.append(weightsdf['Values'].tolist())
+        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_2_predictor']
+        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_2_response']
+        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_2_weight']
+        xs.append(xsdf['Values'].tolist())
+        ys.append(ysdf['Values'].tolist())
+        weights.append(weightsdf['Values'].tolist())
+        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_3_predictor']
+        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_3_response']
+        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_3_weight']
+        xs.append(xsdf['Values'].tolist())
+        ys.append(ysdf['Values'].tolist())
+        weights.append(weightsdf['Values'].tolist())
+        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_4_predictor']
+        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_4_response']
+        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_4_weight']
+        xs.append(xsdf['Values'].tolist())
+        ys.append(ysdf['Values'].tolist())
+        weights.append(weightsdf['Values'].tolist())
+        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_5_predictor']
+        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_5_response']
+        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_5_weight']
+        xs.append(xsdf['Values'].tolist())
+        ys.append(ysdf['Values'].tolist())
+        weights.append(weightsdf['Values'].tolist())
+        S=[]
+        for ind in range(len(xs)):
+            #Check to make sure input arrays are same length
+            if len(xs[ind])!=len(ys[ind]): 
+                msg=('Predictor and response variable arrays must be same length')
+                S[ind]=[]
+                raise ValueError(msg)
+            elif xs[ind]==[] | len(xs)[ind]==1:
+                msg=('Not enough points to generate logistic function. Assuming zero mortality.')
+                S[ind]=[0,0]
+            #Direct solve for coefficients if only two points provided to prevent solver errors
+            elif len(xs)==2:
+                #sets survival greater than or equal to 1 to 0.9999 to prevent function errors
+                ys[ys >= 1]=0.9999 
+                #sets survival less than or equal to 0 to 0.0001 to prevent function errors
+                ys[ys <= 0]=0.0001
+                #Solve for constant b(2) (see function below)
+                S[ind][0,1]=-(np.log((0-ys[0,1])/ys[0,1])-np.log((1-ys[0,0])/ys[0,0]))/(xs[0,1]-xs[0,0])
+                S[ind][0,0]=((1-ys[0,1])/ys[0,1])/np.exp(-xs[0,1]*S[0,1])
+            else:
+                def _cfunc(x,a,b):
+                    return 1/(1+a*np.exp(-b*x))
+                S[ind], pcov = curve_fit(_cfunc, xs, ys, p0=None, sigma=weights)
+        return S
+        
+
