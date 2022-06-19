@@ -217,7 +217,7 @@ class PlantGrowth(Component):
             aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
             astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
             coeffs=[aleaf,b1leaf,b2leaf,astem,b1stem,b2stem]
-            self._last_veg_root_biomass, self._last_veg_leaf_biomass, self._last_veg_stem_biomass=_init_biomass_allocation(item, coeffs )
+            self._last_veg_root_biomass, self._last_veg_leaf_biomass, self._last_veg_stem_biomass=self._init_biomass_allocation(item, coeffs)
 
 
         
@@ -228,7 +228,7 @@ class PlantGrowth(Component):
             growdict=self.vegparams[species]['growparams']
             if self.current_day == growdict['gs_start']:
                 #allocate biomass - I don't think it how we want to do it in the long term but for now.
-                self._last_veg_root_biomass, self._last_veg_leaf_biomass, self._last_veg_stem_biomass=_init_biomass_allocation(item, coeffs )
+                self._last_veg_root_biomass, self._last_veg_leaf_biomass, self._last_veg_stem_biomass=self._init_biomass_allocation(item, coeffs )
     
             ##################################################
             #Calculate Vegetation Structure Metrics Each Day
@@ -397,27 +397,17 @@ class PlantGrowth(Component):
         rowind=0
 
         #Loop through grid array
-        for row in Tbio:
-            #initialize row variables
-            colind=0
-            rootrow=np.empty([])
-            leafrow=np.empty([])
-            stemrow=np.empty([])
-            for tot in row:
-                #Calculate initial guess on allocation based on total biomass
-                zGuess = np.full((3),tot/3)
-                #call to system of equations to solve for 
-                z=fsolve(_solverFuncs,zGuess,(coeffs,tot))
-                #Transform from log10 values
-                zvals=10**z
-                rootrow[colind]=zvals[0]
-                leafrow[colind]=zvals[1]
-                stemrow[colind]=zvals[2]
-                colind+=1
-            root[rowind,:]=rootrow
-            leaf[rowind,:]=leafrow
-            stem[rowind]=stemrow
-            rowind +=1
+        for cell in Tbio:
+            #Calculate initial guess on allocation based on total biomass
+            zGuess = cell/3
+            #call to system of equations to solve for 
+            z=fsolve(self._solverFuncs,zGuess,(coeffs,cell))
+            #Transform from log10 values
+            zvals=10**z
+            root[cell]=zvals[0]
+            leaf[cell]=zvals[1]
+            stem[cell]=zvals[2]
+            colind+=1
             #Only save values to cells where species matches
             root_all[self._last_veg_species==species]=root[self._last_veg_species==species]
             leaf_all[self._last_veg_species==species]=leaf[self._last_veg_species==species]
