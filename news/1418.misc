@@ -1,0 +1,2 @@
+Fixed some failing read_shapefile tests related to a new version of pyshp by requiring pyshp != v2.3.0.
+

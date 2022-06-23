@@ -17,21 +17,3 @@ MaterialLayers will likely use less memory than EventLayers.
 
      eventlayers
      materiallayers
-
-
-Extensions
-----------
-
-.. toctree::
-   :maxdepth: 2
-
-   layers_ext
-
-
-Module contents
----------------
-
-.. automodule:: landlab.layers
-  :members:
-  :undoc-members:
-  :show-inheritance:

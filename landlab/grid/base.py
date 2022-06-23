@@ -19,6 +19,7 @@ from ..core.utils import add_module_functions_to_class
 from ..field.graph_field import GraphFields
 from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
+from ..plot.imshow import ModelGridPlotterMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
 from .decorators import (
@@ -257,7 +258,9 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
+class ModelGrid(
+    GraphFields, EventLayersMixIn, MaterialLayersMixIn, ModelGridPlotterMixIn
+):
 
     """Base class for 2D structured or unstructured grids for numerical models.
 
@@ -268,36 +271,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     understand the Delaunay triangulation, but rather simply accepts
     an input grid from the user. Also a :class:`~.HexModelGrid` for hexagonal.
 
-    Attributes
-    ----------
-    at_node : dict-like
-        Values at nodes.
-    at_cell : dict-like
-        Values at cells.
-    at_link : dict-like
-        Values at links.
-    at_face : dict-like
-        Values at faces.
-    at_grid: dict-like
-        Global values
-    BAD_INDEX : int
-        Indicates a grid element is undefined.
-    BC_NODE_IS_CORE : int
-        Indicates a node is *core*.
-    BC_NODE_IS_FIXED_VALUE : int
-        Indicates a boundary node has a fixed value.
-    BC_NODE_IS_FIXED_GRADIENT : int
-        Indicates a boundary node has a fixed gradient.
-    BC_NODE_IS_LOOPED : int
-        Indicates a boundary node is wrap-around.
-    BC_NODE_IS_CLOSED : int
-        Indicates a boundary node is closed
-    BC_LINK_IS_ACTIVE : int
-        Indicates a link is *active*, and can carry flux.
-    BC_LINK_IS_FIXED : int
-        Indicates a link has a fixed gradient value, and behaves as a boundary
-    BC_LINK_IS_INACTIVE : int
-        Indicates a link is *inactive*, and cannot carry flux.
 
     Other Parameters
     ----------------

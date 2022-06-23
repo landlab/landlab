@@ -3,8 +3,6 @@
 
 from pprint import pprint
 
-from landlab import RasterModelGrid
-
 
 def query_grid_on_button_press(event, grid):
     """Print and returns node information using an imshow plot.
@@ -29,7 +27,9 @@ def query_grid_on_button_press(event, grid):
     query_results :
         Dictionary containing grid query results.
     """
-    if type(grid) is not RasterModelGrid:
+    from ..grid.raster import RasterModelGrid
+
+    if not isinstance(grid, RasterModelGrid):
         raise TypeError("Only raster grids can be queried.")
 
     if all([event.xdata, event.ydata]):

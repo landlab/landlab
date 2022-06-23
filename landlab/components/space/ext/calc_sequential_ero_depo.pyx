@@ -15,6 +15,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_UINT8 = np.uint8
 ctypedef np.uint8_t DTYPE_UINT8_t
 
+from libc.stdio cimport printf
 
 
 def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
@@ -78,7 +79,12 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
                         * (((depo_rate/ (1 - phi)/ (sed_erosion_loc/ (1 - phi))) - 1)* exp(H_loc/ H_star)+1) 
                         - 1 
                         )
-                )    
+                )
+            # In case soil depth evolves to infinity, fall back to no entrainment            
+            if H_loc == np.inf:
+                H_loc =H[node_id]+ (depo_rate / (1 - phi) - sed_erosion_loc/ (1 - phi)) * dt  
+                
+                
         H_loc = max(0,H_loc)
         ero_bed = bed_erosion_loc* (exp(-H_loc / H_star))
         qs_out_adj =  qs_in[node_id] - ((H_loc - H_Before)*(1-phi)*cell_area[node_id]/dt) +(1.0-F_f)*ero_bed* cell_area[node_id]# should always be bigger than 0

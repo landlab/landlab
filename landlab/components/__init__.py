@@ -1,11 +1,12 @@
 from .bedrock_landslider import BedrockLandslider
-from .chi_index import ChiFinder
 from .carbonate import CarbonateProducer
+from .chi_index import ChiFinder
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
 from .diffusion import LinearDiffuser
+from .dimensionless_discharge import DimensionlessDischarge
 from .discharge_diffuser import DischargeDiffuser
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
@@ -28,9 +29,21 @@ from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .marine_sediment_transport import SimpleSubmarineDiffuser
-from .network_sediment_transporter import (
-    NetworkSedimentTransporter, BedParcelInitializer
+from .network_sediment_transporter import NetworkSedimentTransporter
+from .network_sediment_transporter.bed_parcel_initializers import (
+    BedParcelInitializerDischarge,
+    BedParcelInitializerDepth,
+    BedParcelInitializerArea,
+    BedParcelInitializerUserD50,
 )
+
+from .network_sediment_transporter.sediment_pulser_at_links import SedimentPulserAtLinks
+
+from .network_sediment_transporter.sediment_pulser_each_parcel import (
+    SedimentPulserEachParcel,
+)
+
+
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
@@ -78,6 +91,7 @@ COMPONENTS = [
     DepthSlopeProductErosion,
     DetachmentLtdErosion,
     DischargeDiffuser,
+    DimensionlessDischarge,
     DrainageDensity,
     ErosionDeposition,
     ExponentialWeatherer,
@@ -120,6 +134,8 @@ COMPONENTS = [
     Profiler,
     Radiation,
     SedDepEroder,
+    SedimentPulserAtLinks,
+    SedimentPulserEachParcel,
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
@@ -132,7 +148,10 @@ COMPONENTS = [
     SteepnessFinder,
     StreamPowerEroder,
     StreamPowerSmoothThresholdEroder,
-    BedParcelInitializer,
+    BedParcelInitializerDischarge,
+    BedParcelInitializerDepth,
+    BedParcelInitializerArea,
+    BedParcelInitializerUserD50,
     TaylorNonLinearDiffuser,
     TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,
