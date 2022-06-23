@@ -1012,7 +1012,7 @@ class NetworkSedimentTransporter(Component):
 # %% Methods referenced above, separated for purposes of testing
 
 
-def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
+def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-8):
     """Recalculate channel slope based on elevation.
 
     Parameters
@@ -1040,7 +1040,7 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     chan_slope = (z_up - z_down) / dx
 
     if chan_slope < 0.0:
-        chan_slope = 0.0
+        chan_slope = threshold
         warnings.warn(
             "NetworkSedimentTransporter: Negative channel slope encountered.",
             UserWarning,
