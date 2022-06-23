@@ -4,6 +4,7 @@ import pytest
 from matplotlib.backends.backend_pdf import PdfPages
 
 import landlab
+from landlab.plot.imshow import _guess_location_from_name, _guess_location_from_size
 
 
 @pytest.mark.slow
@@ -13,13 +14,13 @@ def test_imshow_grid():
     pp = PdfPages("test.pdf")
 
     values = np.arange(rmg.number_of_nodes)
-    landlab.plot.imshow_grid(rmg, values, values_at="node", limits=(0, 20))
+    landlab.plot.imshow_grid(rmg, values, at="node", limits=(0, 20))
     pp.savefig()
 
     plt.clf()
     rmg.status_at_node[7] = rmg.BC_NODE_IS_CLOSED
     values = np.arange(rmg.number_of_cells)
-    landlab.plot.imshow_grid(rmg, values, values_at="cell", symmetric_cbar=True)
+    landlab.plot.imshow_grid(rmg, values, at="cell", symmetric_cbar=True)
     pp.savefig()
     pp.close()
 
@@ -28,14 +29,14 @@ def test_imshow_grid_input():
     rmg = landlab.RasterModelGrid((4, 5))
     values = np.arange(rmg.number_of_nodes - 1)
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshow_grid(rmg, values, values_at="node", limits=(0, 20))
+        _ = landlab.plot.imshow_grid(rmg, values, at="node", limits=(0, 20))
 
 
 def test_imshowhs_grid_input():
     rmg = landlab.RasterModelGrid((4, 5))
     values = np.arange(rmg.number_of_nodes - 1)
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(rmg, values, values_at="node", limits=(0, 20))
+        _ = landlab.plot.imshowhs_grid(rmg, values, at="node", limits=(0, 20))
 
 
 def test_imshowhs_grid_input_Layer1():
@@ -616,3 +617,71 @@ def test_at_other():
     _ = mg.add_field("topographic__elevation", np.zeros((24,)), at="corner")
     with pytest.raises(TypeError):
         _ = landlab.plot.imshowhs_grid(mg, "topographic__elevation", at="corner")
+
+
+@pytest.mark.parametrize("at", ["node", "cell"])
+def test_imshow_grid_guess_from_name(at):
+    grid = landlab.RasterModelGrid((3, 4))
+    grid.add_zeros("z", at=at)
+    landlab.plot.imshow_grid(grid, "z")
+
+
+@pytest.mark.parametrize("at", ["node", "cell"])
+def test_imshow_grid_guess_from_size(at):
+    grid = landlab.RasterModelGrid((3, 4))
+    values = grid.zeros(at=at)
+    landlab.plot.imshow_grid(grid, values)
+
+
+def test_imshow_grid_unknown_location():
+    expected = "unable to determine location of values, use 'at' keyword"
+    grid = landlab.RasterModelGrid((5, 3))
+    values = np.empty(grid.number_of_links + 1)
+    with pytest.raises(TypeError, match=expected):
+        landlab.plot.imshow_grid(grid, values)
+    with pytest.raises(TypeError, match=expected):
+        landlab.plot.imshow_grid(grid, "foo")
+
+
+@pytest.mark.parametrize("at", ["link", "patch", "corner", "face"])
+def test_imshow_grid_unsupported_location(at):
+    expected = "value location, \\'[a-z]+\\', is not supported \\(must be one of 'node', 'cell'\\)"
+    grid = landlab.RasterModelGrid((5, 3))
+    grid.add_zeros("z", at=at)
+    with pytest.raises(TypeError, match=expected):
+        landlab.plot.imshow_grid(grid, "z")
+    with pytest.raises(TypeError, match=expected):
+        landlab.plot.imshow_grid(grid, grid[at]["z"])
+
+
+def test_values_at_is_deprecated():
+    grid = landlab.RasterModelGrid((5, 3))
+    grid.add_zeros("topographic__elevation", at="node")
+    with pytest.deprecated_call(
+        match="the 'values_at' keyword is deprecated, use the 'at' keyword instead"
+    ):
+        landlab.plot.imshow_grid(grid, "topographic__elevation", values_at="node")
+
+
+@pytest.mark.parametrize("at", ["node", "link", "patch", "corner", "face", "cell"])
+def test_guess_location(at):
+    grid = landlab.RasterModelGrid((3, 4))
+    values = grid.add_zeros("z", at=at)
+
+    assert _guess_location_from_name(grid, "z") == at
+    assert _guess_location_from_name(grid, "foo") is None
+
+    guess = _guess_location_from_size(grid, np.empty_like(values))
+    assert grid.number_of_elements(guess) == values.size
+    assert _guess_location_from_size(grid, np.empty(grid.number_of_links + 1)) is None
+
+
+@pytest.mark.parametrize("actual", ["node", "cell"])
+@pytest.mark.parametrize("at", ["link", "patch", "corner", "face"])
+def test_location_node_cell_first(actual, at):
+    grid = landlab.RasterModelGrid((3, 4))
+    values = grid.add_zeros("z", at=actual)
+    grid.add_zeros("z", at=at)
+
+    assert _guess_location_from_name(grid, "z") == actual
+    assert _guess_location_from_size(grid, np.empty_like(values)) == actual

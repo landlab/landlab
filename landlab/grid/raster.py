@@ -6,7 +6,6 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
-
 import numpy as np
 import xarray as xr
 
@@ -61,39 +60,6 @@ def _node_has_boundary_neighbor(mg, id, method="d8"):
 _node_has_boundary_neighbor = np.vectorize(_node_has_boundary_neighbor, excluded=["mg"])
 
 
-class RasterModelGridPlotter(object):
-
-    """MixIn that provides plotting functionality.
-
-    Inhert from this class to provide a ModelDataFields object with the
-    method function, ``imshow``, that plots a data field.
-    """
-
-    def imshow(self, group, var_name, **kwds):
-        """Plot a data field.
-
-        This is a wrapper for `plot.imshow_grid`, and can take the same
-        keywords. See that function for full documentation.
-
-        Parameters
-        ----------
-        group : str
-            Name of group.
-        var_name : str
-            Name of field
-
-        See Also
-        --------
-        landlab.plot.imshow_grid
-
-        LLCATS: GINF
-        """
-        from landlab.plot import imshow_grid
-
-        kwds["values_at"] = group
-        imshow_grid(self, var_name, **kwds)
-
-
 def grid_edge_is_closed_from_dict(boundary_conditions):
     """Get a list of closed-boundary status at grid edges.
 
@@ -134,9 +100,7 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
     ]
 
 
-class RasterModelGrid(
-    DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid, RasterModelGridPlotter
-):
+class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
     """A 2D uniform rectilinear grid.
 
