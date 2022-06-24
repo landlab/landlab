@@ -88,19 +88,111 @@ def test_analytical_solution_one_cell_matrix_solver():
         elev[grid.core_nodes] += uplift_rate * dt
         transporter.run_one_step(dt)
 
-    # Analytical solutions for sediment flux, slope, and abrasion rate
+    # Analytical solution for slope (matrix solver does not compute sediment
+    # flux or abrasion rate)
     Qs_pred = (uplift_rate * dx * dx * (1.0 - porosity)) / (abrasion_coef * dx / 2 + 1)
     S_pred = (
         Qs_pred / (trans_coef * intermittency_fac * bankfull_runoff_rate * dx * dx)
     ) ** (6.0 / 7.0)
-    Ea_pred = abrasion_coef * (Qs_pred / 2.0) / dx  # factor of 2 is cell midpoint
-
     assert_allclose(transporter._slope[4], S_pred, rtol=1.0e-4)
+
+
+def test_analytical_solution_four_cells_basic_solver():
+
+    # parameters
+    dx = 1000.0  # node spacing, m
+    initial_slope = 0.0001  # starting topographic slope, m/m
+    bankfull_runoff_rate = 10.0  # r, m/y
+    trans_coef = 0.041  # this is kQ
+    intermittency_fac = 0.01  # this is I
+    abrasion_length_scale = 2000.0  # this is the inverse of beta, in m
+    dt = 10000.0  # time step, years
+    uplift_rate = 0.0001  # U, m/y
+    porosity = 0.35  # lambda_p
+    nsteps = 400  # number of time steps
+
+    # Derived parameters
+    abrasion_coef = 1.0 / abrasion_length_scale  # this is beta, 1/m
+
+    grid = RasterModelGrid((3, 6), xy_spacing=dx)
+    grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+    grid.status_at_node[11] = grid.BC_NODE_IS_FIXED_VALUE
+
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    elev[:] = initial_slope * (grid.x_of_node.max() - grid.x_of_node)
+
+    fa = FlowAccumulator(grid, runoff_rate=bankfull_runoff_rate)
+    fa.run_one_step()
+    transporter = GravelRiverTransporter(
+        grid,
+        abrasion_coefficient=abrasion_coef,
+        solver="explicit",
+    )
+
+    for i in range(nsteps):
+        fa.run_one_step()
+        elev[grid.core_nodes] += uplift_rate * dt
+        transporter.run_one_step(dt)
+
+    # Compare with analytical solutions in upper cell
+    Qs_pred = (uplift_rate * dx * dx * (1.0 - porosity)) / (abrasion_coef * dx / 2 + 1)
+    assert_allclose(transporter._sediment_outflux[7], Qs_pred, rtol=1.0e-3)
+    S_pred = (
+        Qs_pred / (trans_coef * intermittency_fac * bankfull_runoff_rate * dx * dx)
+    ) ** (6.0 / 7.0)
+    assert_allclose(transporter._slope[7], S_pred, rtol=1.0e-3)
+    Ea_pred = abrasion_coef * (Qs_pred / 2) / dx
+    assert_allclose(transporter._abrasion[7], Ea_pred, rtol=1.0e-3)
+
+
+def test_analytical_solution_four_cells_matrix_solver():
+
+    # parameters
+    dx = 1000.0  # node spacing, m
+    initial_slope = 0.0001  # starting topographic slope, m/m
+    bankfull_runoff_rate = 10.0  # r, m/y
+    trans_coef = 0.041  # this is kQ
+    intermittency_fac = 0.01  # this is I
+    abrasion_length_scale = 2000.0  # this is the inverse of beta, in m
+    dt = 10000.0  # time step, years
+    uplift_rate = 0.0001  # U, m/y
+    porosity = 0.35  # lambda_p
+    nsteps = 400  # number of time steps
+
+    # Derived parameters
+    abrasion_coef = 1.0 / abrasion_length_scale  # this is beta, 1/m
+
+    grid = RasterModelGrid((3, 6), xy_spacing=dx)
+    grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+    grid.status_at_node[11] = grid.BC_NODE_IS_FIXED_VALUE
+
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    elev[:] = initial_slope * (grid.x_of_node.max() - grid.x_of_node)
+
+    fa = FlowAccumulator(grid, runoff_rate=bankfull_runoff_rate)
+    fa.run_one_step()
+    transporter = GravelRiverTransporter(
+        grid,
+        abrasion_coefficient=abrasion_coef,
+        solver="matrix",
+    )
+
+    for i in range(nsteps):
+        fa.run_one_step()
+        elev[grid.core_nodes] += uplift_rate * dt
+        transporter.run_one_step(dt)
+
+    # Compare with analytical solution for slope in upper cell
+    Qs_pred = (uplift_rate * dx * dx * (1.0 - porosity)) / (abrasion_coef * dx / 2 + 1)
+    S_pred = (
+        Qs_pred / (trans_coef * intermittency_fac * bankfull_runoff_rate * dx * dx)
+    ) ** (6.0 / 7.0)
+    assert_allclose(transporter._slope[7], S_pred, rtol=1.0e-3)
 
 
 def test_exception_handling():
     grid = RasterModelGrid((3, 3))
-    elev = grid.add_zeros("topographic__elevation", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
     FlowAccumulator(grid)
     assert_raises(
         ValueError, GravelRiverTransporter, grid, solver="not one we actually have"
