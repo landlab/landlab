@@ -155,7 +155,7 @@ class NetworkSedimentTransporter(Component):
     ...         nmg,
     ...         one_parcel,
     ...         flow_director,
-    ...         bed_porosity=0.03,
+    ...         bed_porosity=0.3,
     ...         g=9.81,
     ...         fluid_density=1000,
     ...         transport_method="WilcockCrowe",
@@ -260,6 +260,7 @@ class NetworkSedimentTransporter(Component):
         transport_method="WilcockCrowe",
         active_layer_method="WongParker",
         active_layer_d_multiplier=2,
+        slope_threshold=1e-4,
     ):
         """
         Parameters
@@ -296,6 +297,9 @@ class NetworkSedimentTransporter(Component):
         active_layer_method: string, optional
             Option for treating sediment active layer as a constant or variable
             (default, "WongParker")
+        slope_threshold: float, optional
+            Minimum channel slope at any given link. Slopes lower than this
+            value will default to the threshold. Default is 1e-4
         """
         if not isinstance(grid, NetworkModelGrid):
             msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
@@ -355,6 +359,7 @@ class NetworkSedimentTransporter(Component):
         self._time_idx = 0
         self._time = 0.0
         self._distance_traveled_cumulative = np.zeros(self._num_parcels)
+        self._slope_threshold = slope_threshold
 
         # check the transport method is valid.
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
@@ -456,6 +461,7 @@ class NetworkSedimentTransporter(Component):
                 self._grid.at_node["topographic__elevation"][upstream_node_id],
                 self._grid.at_node["topographic__elevation"][downstream_node_id],
                 self._grid.at_link["reach_length"][i],
+                self._slope_threshold,
             )
 
     def _calculate_mean_D_and_rho(self):
@@ -1012,7 +1018,7 @@ class NetworkSedimentTransporter(Component):
 # %% Methods referenced above, separated for purposes of testing
 
 
-def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
+def _recalculate_channel_slope(z_up, z_down, dx, threshold):
     """Recalculate channel slope based on elevation.
 
     Parameters
@@ -1023,17 +1029,19 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
         Downstream elevation.
     dz : float
         Distance.
+    threshold : float
+        Minimum channel slope threshold.
 
     Examples
     --------
     >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _recalculate_channel_slope
     >>> import pytest
-    >>> _recalculate_channel_slope(10., 0., 10.)
+    >>> _recalculate_channel_slope(10., 0., 10.,0.0001)
     1.0
-    >>> _recalculate_channel_slope(0., 0., 10.)
+    >>> _recalculate_channel_slope(0., 0., 10.,0.0001)
     0.0001
     >>> with pytest.warns(UserWarning):
-    ...     _recalculate_channel_slope(0., 10., 10.)
+    ...     _recalculate_channel_slope(0., 10., 10.,0.0001)
     0.0
 
     """
