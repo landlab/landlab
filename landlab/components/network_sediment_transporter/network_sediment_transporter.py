@@ -260,7 +260,7 @@ class NetworkSedimentTransporter(Component):
         transport_method="WilcockCrowe",
         active_layer_method="WongParker",
         active_layer_d_multiplier=2,
-        slope_threshold = 1e-4
+        slope_threshold=1e-4,
     ):
         """
         Parameters
@@ -461,7 +461,7 @@ class NetworkSedimentTransporter(Component):
                 self._grid.at_node["topographic__elevation"][upstream_node_id],
                 self._grid.at_node["topographic__elevation"][downstream_node_id],
                 self._grid.at_link["reach_length"][i],
-                self._slope_threshold
+                self._slope_threshold,
             )
 
     def _calculate_mean_D_and_rho(self):
