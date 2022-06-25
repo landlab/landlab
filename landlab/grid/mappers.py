@@ -722,7 +722,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     ...                                 -1., -2., -1.,
     ...                                  0.,  0.,  0.,  0.,
     ...                                 -1., -2., -1.])
-    >>> map_upwind_node_link_max_to_node(rmg, 'grad')
+    >>> np.round(map_upwind_node_link_max_to_node(rmg, 'grad'))
     array([ 0.,  1.,  2.,  1.,
             0.,  1.,  2.,  1.,
             0.,  1.,  2.,  1.])
