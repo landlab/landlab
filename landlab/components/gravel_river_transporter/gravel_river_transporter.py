@@ -334,9 +334,10 @@ class GravelRiverTransporter(Component):
         if self._abrasion_coef > 0.0:
             self.calc_abrasion_rate()
         cores = self.grid.core_nodes
-        self._sediment_influx[self._receiver_node[cores]] = self._sediment_outflux[
-            cores
-        ]
+        self._sediment_influx[:] = 0.0
+        for c in cores:  # send sediment downstream
+            r = self._receiver_node[c]
+            self._sediment_influx[r] += self._sediment_outflux[c]
         self._dzdt[cores] = self._porosity_factor * (
             (self._sediment_influx[cores] - self._sediment_outflux[cores])
             / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
