@@ -177,7 +177,8 @@ class PlantGrowth(Component):
         except KeyError:
             msg=('GenVeg requires incoming radiation flux for each time step')
             raise ValueError(msg)
-        self._last_twg = self._last_veg_biomass/self._last_veg_n_plant
+        
+        self._last_twg = np.where(self._last_veg_n_plant!=0, self._last_veg_biomass, np.nan)/np.where(self._last_veg_n_plant!=0,self._last_veg_n_plant,np.nan)
         
         self.vegparams=vegparams
         self.dt=dt
@@ -213,6 +214,8 @@ class PlantGrowth(Component):
             #during initialization step, first day of growing season, or is this it's own function 
             #that can be called here or at start?
 
+            print(growdict['root_to_leaf_coeffs'])
+            print(growdict['root_to_stem_coeffs'])
             #Set coefficients to variable names to pass to solver function
             aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
             astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
@@ -226,20 +229,24 @@ class PlantGrowth(Component):
         for species in self.vegparams:
             factordict=self.vegparams[species]['plant_factors']
             growdict=self.vegparams[species]['growparams']
-            if self.current_day == growdict['gs_start']:
+            if self.current_day == growdict['growing_season_start']:
                 #allocate biomass - I don't think it how we want to do it in the long term but for now.
-                self._last_veg_root_biomass, self._last_veg_leaf_biomass, self._last_veg_stem_biomass=self._init_biomass_allocation(item, coeffs )
+                for item in self._last_veg_biomass:
+                    aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
+                    astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
+                    coeffs=[aleaf,b1leaf,b2leaf,astem,b1stem,b2stem]
+                    self._last_veg_root_biomass, self._last_veg_leaf_biomass, self._last_veg_stem_biomass=self._init_biomass_allocation(item, coeffs )
     
             ##################################################
             #Calculate Vegetation Structure Metrics Each Day
             ##################################################
             
             #twlvd = total (t) weight(w) leaves(lv), d @ dead and g is living or green
-            totLeafWeight = twlvd + twlvg 
+            #totLeafWeight = twlvd + twlvg 
             #total weight of stems where d at end is dead and g is living or green
-            totStemWeight = twstd + twstg 
+            #totStemWeight = twstd + twstg 
             #total weight of roots where d at end is dead and g is living or green
-            totRootWeight = twrtd + twrtg 
+            #totRootWeight = twrtd + twrtg 
 
             ##################################################
             #Growth and Respiration
@@ -320,30 +327,32 @@ class PlantGrowth(Component):
 
                 
                 
-            #if then statement ends glucose generation at end of growing season 
-            if self.current_day == growdict['gs_end']:
-                gphot = 0
+                #if then statement ends glucose generation at end of growing season 
+                if self.current_day == growdict['growing_season_end']:
+                    gphot = 0
 
-            #direct solve method for calculating change in biomass
-            #coefficients rename
-            aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
-            astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
-            #Calculate the change in leaf and stem mass per unit change in root mass given the current size of the root biomass
-            delta_leaf_unit_root=0.43429448190325176*b1leaf/self._last_root_biomass + \
-                        0.37722339402322774*b2leaf*np.log(self._last_root_biomass)/self._last_root_biomass
-            delta_stem_unit_root=0.43429448190325176*b1stem/self._last_root_biomass + \
-                        0.37722339402322774*b2stem*np.log(self._last_root_biomass)/self._last_root_biomass
-            #Calculate the total change in biomass this timestep
-            delta_tot=(gphot-respMaint)/_glu_req
-            #Calculate the change in root biomass this timestep
-            #Solve for delta root: delta_tot=delta_root+delta_leaf_unit_root*delta_root+delta_stem_unit_root*delta_root
-            delta_root=delta_tot/(1+delta_leaf_unit_root+delta_stem_unit_root)
-            delta_leaf=delta_leaf_unit_root*delta_root
-            delta_stem=delta_stem_unit_root*delta_root
-            self._current_vegetation_biomass=self._last_vegetation_biomass+delta_tot
-            self._current_root_biomass=self._last_root_biomass+delta_root
-            self._current_leaf_biomass=self._last_leaf_biomass+delta_leaf
-            self._current_stem_biomass=self._last_stem_biomass+delta_stem
+                #direct solve method for calculating change in biomass
+                #coefficients rename
+                aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
+                astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
+                #Calculate the change in leaf and stem mass per unit change in root mass given the current size of the root biomass
+                delta_leaf_unit_root=np.zeros_like(self._last_veg_leaf_biomass)
+                delta_leaf_unit_root[self._last_veg_leaf_biomass!=0]=0.43429448190325176*b1leaf/self._last_veg_root_biomass[self._last_veg_root_biomass!=0] + \
+                            0.37722339402322774*b2leaf*np.log(self._last_veg_root_biomass[self._last_veg_root_biomass!=0])/self._last_veg_root_biomass[self._last_veg_root_biomass!=0]
+                delta_stem_unit_root=np.zeros_like(self._last_veg_stem_biomass)
+                delta_stem_unit_root[self._last_veg_root_biomass!=0]=0.43429448190325176*b1stem/self._last_veg_root_biomass[self._last_veg_root_biomass!=0] + \
+                            0.37722339402322774*b2stem*np.log(self._last_veg_root_biomass[self._last_veg_root_biomass!=0])/self._last_veg_root_biomass[self._last_veg_root_biomass!=0]
+                #Calculate the total change in biomass this timestep
+                delta_tot=(gphot-respMaint)/_glu_req
+                #Calculate the change in root biomass this timestep
+                #Solve for delta root: delta_tot=delta_root+delta_leaf_unit_root*delta_root+delta_stem_unit_root*delta_root
+                delta_root=delta_tot/(1+delta_leaf_unit_root+delta_stem_unit_root)
+                delta_leaf=delta_leaf_unit_root*delta_root
+                delta_stem=delta_stem_unit_root*delta_root
+                self._current_vegetation_biomass=self._last_veg_biomass+delta_tot
+                self._current_root_biomass=self._last_veg_root_biomass+delta_root
+                self._current_leaf_biomass=self._last_veg_leaf_biomass+delta_leaf
+                self._current_stem_biomass=self._last_veg_stem_biomass+delta_stem
 
 
     def _PAR(self, day, lat):
@@ -354,6 +363,7 @@ class PlantGrowth(Component):
     
     
         tmpvec = []
+        #Change to use numpy as np 
         declination = (-math.asin((math.sin(23.45*degree_to_rad))*(math.cos(2*math.pi*(day+10)/365))))
         
         #Intermediate variables
@@ -400,30 +410,34 @@ class PlantGrowth(Component):
     def _init_biomass_allocation(self, species, coeffs):
         #Initialize arrays to calculate root, leaf and stem biomass to
         Tbio=self._last_veg_biomass
-        root=np.zeros_like(Tbio)
-        leaf=np.zeros_like(Tbio)
-        stem=np.zeros_like(Tbio)
+        root=[]
+        leaf=[]
+        stem=[]
         root_all=np.zeros_like(Tbio)
         leaf_all=np.zeros_like(Tbio)
         stem_all=np.zeros_like(Tbio)
-        rowind=0
-
+        
         #Loop through grid array
         for cell in Tbio:
             #Calculate initial guess on allocation based on total biomass
-            zGuess = cell/3
+            zGuess = np.full(3,cell/3)
             #call to system of equations to solve for 
             z=fsolve(self._solverFuncs,zGuess,(coeffs,cell))
             #Transform from log10 values
             zvals=10**z
-            root[cell]=zvals[0]
-            leaf[cell]=zvals[1]
-            stem[cell]=zvals[2]
-            colind+=1
-            #Only save values to cells where species matches
-            root_all[self._last_veg_species==species]=root[self._last_veg_species==species]
-            leaf_all[self._last_veg_species==species]=leaf[self._last_veg_species==species]
-            stem_all[self._last_veg_species==species]=stem[self._last_veg_species==species]
+            root.append(zvals[0])
+            leaf.append(zvals[1])
+            stem.append(zvals[2])
+        
+        #Convert to numpy array
+        root=np.array(root)
+        leaf=np.array(leaf)
+        stem=np.array(stem)
+        
+        #Only save values to cells where species matches
+        root_all[self._last_veg_species==species]=root[self._last_veg_species==species]
+        leaf_all[self._last_veg_species==species]=leaf[self._last_veg_species==species]
+        stem_all[self._last_veg_species==species]=stem[self._last_veg_species==species]
         
         return root_all, leaf_all, stem_all
 

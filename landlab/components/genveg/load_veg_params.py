@@ -142,15 +142,14 @@ class VegParams:
                         stem_coeffs=df_in[df_in['Variable Name']=='root_to_stem_coeffs']
                         if leaf_coeffs['Values'].isnull().values.any():
                             if factor['plant_factors']['growth_form']=='shrub':
-                                if factor['plant_factors']['growth_form']=='shrub':
-                                    if factor['plant_factors']['angio_gymno'] == 'angiosperm':
-                                        grow['growparams']['root_to_leaf_coeffs'] = [0.090,0.889,-0.0254]
-                                    elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
-                                        grow['growparams']['root_to_leaf_coeffs'] = [0.243,0.924,-0.0282]
-                                elif factor['plant_factors']['monocot_dicot'] == 'monocot':
-                                    grow['growparams']['root_to_leaf_coeffs'] = [0.031,0.951,0]
-                                elif factor['plant_factors']['monocot_dicot'] == 'dicot':
-                                    grow['growparams']['root_to_leaf_coeffs'] = [0.259,0.916,0]
+                                if factor['plant_factors']['angio_gymno'] == 'angiosperm':
+                                    grow['growparams']['root_to_leaf_coeffs'] = [0.090,0.889,-0.0254]
+                                elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
+                                    grow['growparams']['root_to_leaf_coeffs'] = [0.243,0.924,-0.0282]
+                            elif factor['plant_factors']['monocot_dicot'] == 'monocot':
+                                grow['growparams']['root_to_leaf_coeffs'] = [0.031,0.951,0]
+                            elif factor['plant_factors']['monocot_dicot'] == 'dicot':
+                                grow['growparams']['root_to_leaf_coeffs'] = [0.259,0.916,0]
                         else:
                             key=['root_to_leaf_coeffs']
                             leafcoeff_dict = self._makedict(leaf_coeffs, key, 'growparams')
@@ -162,7 +161,7 @@ class VegParams:
                                 elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
                                     grow['growparams']['root_to_stem_coeffs'] = [-0.070,1.236,-0.0186]
                             elif factor['plant_factors']['monocot_dicot'] == 'monocot':
-                                grow['growparams']['root_to_leaf_coeffs'] = [-0.107,1.098,0.0216]
+                                grow['growparams']['root_to_stem_coeffs'] = [-0.107,1.098,0.0216]
                             elif factor['plant_factors']['monocot_dicot'] == 'dicot':
                                 grow['growparams']['root_to_stem_coeffs'] = [-0.111,1.029,0]
                         else:
