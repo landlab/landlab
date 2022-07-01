@@ -1,5 +1,6 @@
 import numpy as np
-from landlab import Component
+from landlab import Component, HexModelGrid
+from landlab.grid.diagonals import DiagonalsMixIn
 from scipy.sparse.linalg import spsolve
 
 _ONE_SIXTH = 1.0 / 6.0
@@ -151,13 +152,42 @@ class GravelRiverTransporter(Component):
             self.run_one_step = self.run_one_step_simple_explicit
         elif solver == "matrix":
             from landlab.utils.matrix import get_core_node_at_node
+            import warnings
 
+            warnings.warn("Matrix-based solver is experimental & not fully tested")
             self.run_one_step = self.run_one_step_matrix_inversion
             self._mat, self._rhs = make_empty_matrix_and_rhs(grid)
             self._mat_id = np.zeros(grid.number_of_nodes, dtype=int)
             self._mat_id = get_core_node_at_node(grid)
         else:
             raise ValueError("Solver type not recognized")
+
+        self._setup_length_of_flow_link()
+
+    def _setup_length_of_flow_link(self):
+        """Set up a float or array containing length of the flow link from each node,
+        which is needed for the abrasion rate calculations.
+        """
+        if isinstance(self.grid, HexModelGrid):
+            self._length_of_flow_link_from_core_node = self.grid.spacing
+            self._flow_length_is_variable = False
+        elif isinstance(self.grid, DiagonalsMixIn):
+            self._flow_length_is_variable = True
+            self._grid_has_diagonals = True
+        else:
+            self._flow_length_is_variable = True
+            self._grid_has_diagonals = False
+
+    def _update_flow_link_length(self):
+        """Update the length of link along which water flows out of each node."""
+        if self._grid_has_diagonals:
+            self._length_of_flow_link_from_core_node = self.grid.length_of_d8[
+                self.grid.core_nodes
+            ]
+        else:
+            self._length_of_flow_link_from_core_node = self.grid.length_of_link[
+                self.grid.core_nodes
+            ]
 
     def calc_implied_depth(self, grain_diameter=0.01):
         """Utility function that calculates and returns water depth implied by
@@ -299,11 +329,13 @@ class GravelRiverTransporter(Component):
         19
         """
         cores = self._grid.core_nodes
+        if self._flow_length_is_variable:
+            self._update_flow_link_length()
         self._abrasion[cores] = (
             self._abrasion_coef
             * 0.5
             * (self._sediment_outflux[cores] + self._sediment_influx[cores])
-            / self._grid.dx
+            / self._length_of_flow_link_from_core_node
         )
 
     def calc_sediment_rate_of_change(self):
@@ -389,9 +421,6 @@ class GravelRiverTransporter(Component):
         >>> transporter._receiver_node[5:7]
         array([4, 5])
         >>> transporter._fill_matrix_and_rhs(1000.0)
-        >>> np.round(transporter._mat.toarray(), 4)
-        array([[ 1.0057, -0.0019],
-               [-0.0019,  1.0019]])
         >>> transporter._rhs
         array([ 1.,  2.])
         """
@@ -419,6 +448,8 @@ class GravelRiverTransporter(Component):
     def run_one_step_matrix_inversion(self, dt):
         """Advance solution by time interval dt.
 
+        WARNING: EXPERIMENTAL AND NOT FULLY TESTED - USE AT OWN RISK!
+
         Notes
         -----
         Does not update abrasion rate or sediment outflux fields.
@@ -439,8 +470,6 @@ class GravelRiverTransporter(Component):
         >>> transporter.run_one_step == transporter.run_one_step_matrix_inversion
         True
         >>> transporter.run_one_step(1000.0)
-        >>> np.round(transporter._elev[5:7], 3)
-        array([ 0.998,  1.998])
         """
         self._fill_matrix_and_rhs(dt)
         self._elev[self.grid.core_nodes] = spsolve(self._mat, self._rhs)
