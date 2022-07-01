@@ -2,9 +2,9 @@
 """
 Unit tests for landlab.components.gravel_river_transporter.gravel_river_transporter
 """
-from numpy.testing import assert_allclose, assert_raises
+from numpy.testing import assert_allclose, assert_raises, assert_equal
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
 from landlab.components import FlowAccumulator, GravelRiverTransporter
 
 
@@ -197,3 +197,42 @@ def test_exception_handling():
     assert_raises(
         ValueError, GravelRiverTransporter, grid, solver="not one we actually have"
     )
+
+
+def test_link_length_handling():
+
+    # Hex grid with fixed and uniform flow-link length
+    grid = HexModelGrid((5, 3), spacing=2.0)
+    grid.add_zeros("topographic__elevation", at="node")
+    fa = FlowAccumulator(grid)
+    transporter = GravelRiverTransporter(grid)
+    assert_equal(transporter._length_of_flow_link_from_core_node, 2.0)
+
+    # Raster grid with possibility of flow on diagonals
+    grid = RasterModelGrid((3, 4), xy_spacing=2.0)
+    grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+    grid.status_at_node[0] = grid.BC_NODE_IS_FIXED_VALUE
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    elev[5] = 1.0
+    elev[6] = 2.0
+    fa = FlowAccumulator(grid, flow_director="FlowDirectorD8")
+    fa.run_one_step()
+    assert_equal(grid.at_node["flow__link_to_receiver_node"][5:7], [17, 8])
+    transporter = GravelRiverTransporter(grid, abrasion_coefficient=1.0)
+    transporter.run_one_step(1.0)
+    assert_equal(transporter._flow_length_is_variable, True)
+    assert_equal(transporter._grid_has_diagonals, True)
+    assert_allclose(transporter._length_of_flow_link_from_core_node, [2.828427, 2.0])
+
+    # Radial grid with variable link length but no diagonals
+    grid = RadialModelGrid(n_rings=1, nodes_in_first_ring=5, spacing=2.0)
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    elev[2] = 1.0
+    elev[0] = -1.0
+    fa = FlowAccumulator(grid)
+    fa.run_one_step()
+    transporter = GravelRiverTransporter(grid, abrasion_coefficient=1.0)
+    transporter.run_one_step(1.0)
+    assert_equal(transporter._flow_length_is_variable, True)
+    assert_equal(transporter._grid_has_diagonals, False)
+    assert_allclose(transporter._length_of_flow_link_from_core_node, [2.0])

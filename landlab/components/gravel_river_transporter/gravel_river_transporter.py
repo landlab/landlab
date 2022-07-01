@@ -182,11 +182,11 @@ class GravelRiverTransporter(Component):
         """Update the length of link along which water flows out of each node."""
         if self._grid_has_diagonals:
             self._length_of_flow_link_from_core_node = self.grid.length_of_d8[
-                self.grid.core_nodes
+                self._receiver_link[self.grid.core_nodes]
             ]
         else:
             self._length_of_flow_link_from_core_node = self.grid.length_of_link[
-                self.grid.core_nodes
+                self._receiver_link[self.grid.core_nodes]
             ]
 
     def calc_implied_depth(self, grain_diameter=0.01):
