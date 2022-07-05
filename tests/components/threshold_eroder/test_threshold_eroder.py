@@ -1,9 +1,7 @@
 #! /usr/bin/env python
 """Unit tests for landlab.components.threshold_eroder.py"""
 import numpy as np
-from numpy.testing import (
-    assert_array_almost_equal
-)
+from numpy.testing import assert_array_almost_equal
 
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import (
