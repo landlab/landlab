@@ -1,0 +1,3 @@
+Fixed a bug in notebooks that use *bmi-topography* where an incorrect API key was being used.
+
+
