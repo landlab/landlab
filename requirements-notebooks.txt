@@ -1,6 +1,8 @@
-dask[array]
-jupyter
-holoviews
-nbformat
-mesa
+# Requirements extracted from pyproject.toml
+# [project.optional-dependencies] notebooks
 bmi-topography >= 0.5
+dask[array]
+holoviews
+jupyter
+mesa
+nbformat
