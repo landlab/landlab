@@ -14,7 +14,7 @@ from .cfuncs import _thresholder
 
 class ThresholdEroder(Component):
 
-    r"""Threhold eroder.
+    """Threshold eroder.
 
     Threshold eroder that cuts off slopes at a given threshold slope (Sc) and assumes material to dissolve away
 
@@ -83,6 +83,20 @@ class ThresholdEroder(Component):
     """
 
     _name = "ThresholdEroder"
+    
+    _unit_agnostic = True
+    
+    _cite_as = """@Article{gmd-13-3863-2020,
+                  AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
+                  TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
+                  JOURNAL = {Geoscientific Model Development},
+                  VOLUME = {13},
+                  YEAR = {2020},
+                  NUMBER = {9},
+                  PAGES = {3863--3886},
+                  URL = {https://doi.org/10.5194/gmd-13-3863-2020},
+                  DOI = {10.5194/gmd-13-3863-2020}
+                  }"""
 
     _info = {
         "topographic__elevation": {
