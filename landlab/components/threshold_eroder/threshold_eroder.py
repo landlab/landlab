@@ -83,9 +83,9 @@ class ThresholdEroder(Component):
     """
 
     _name = "ThresholdEroder"
-    
+
     _unit_agnostic = True
-    
+
     _cite_as = """@Article{gmd-13-3863-2020,
                   AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
                   TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
