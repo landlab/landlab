@@ -219,6 +219,10 @@ class ThresholdEroder(Component):
             self._elev,
             self._slope_crit,
         )
+        
+        if self._soilFlag:
+            self._bed[:] = np.minimum(self._bed[:],self._elev[:])
+            self._soil[:] = self._elev[:] - self._bed[:]
 
     def run_one_step(self):
         """Advance one timestep.
