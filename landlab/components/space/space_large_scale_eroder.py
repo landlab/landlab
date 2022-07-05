@@ -259,7 +259,7 @@ class SpaceLargeScaleEroder(Component):
         discharge_field="surface_water__discharge",
         erode_flooded_nodes=False,
         thickness_lim=100,
-        tools = False
+        tools=False,
     ):
         """Initialize the SpaceLargeScaleEroder model.
 
@@ -399,8 +399,9 @@ class SpaceLargeScaleEroder(Component):
 
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
-        
+
         self._tools = tools
+
     @property
     def K_br(self):
         """Erodibility of bedrock(units depend on m_sp)."""
@@ -434,20 +435,20 @@ class SpaceLargeScaleEroder(Component):
         """Volumetric sediment influx to each node."""
         return self.grid.at_node["sediment__influx"]
 
-    '''
+    """
     calc_fQs: based on : Gasparini, N.M., Bras, R.L., and Whipple, K.X., 2006, Numerical modeling of non–steady-state river profi le evolution using a sediment-fl ux-dependent incision model, in
     Willett, S.D., Hovius, N., Brandon, M.T., and Fisher, D.M., eds., Tectonics, climate, and landscape evolution: Geological Society of America Special Paper 398, Penrose
     Conference Series, p. 127–141, doi: 10.1130/2006.2398(08).
-     '''
-     
-    def _calc_fQs(self,Qs_Qc):
-        f_qs  = 1-4*np.power(Qs_Qc-0.5,2)
-        f_qs2 = 2.6*(Qs_Qc)+0.1
-        f_qs[Qs_Qc<0.1]=f_qs2[Qs_Qc<0.1]
-        #Transport limited domain
-        f_qs[f_qs<0]=0
+     """
+
+    def _calc_fQs(self, Qs_Qc):
+        f_qs = 1 - 4 * np.power(Qs_Qc - 0.5, 2)
+        f_qs2 = 2.6 * (Qs_Qc) + 0.1
+        f_qs[Qs_Qc < 0.1] = f_qs2[Qs_Qc < 0.1]
+        # Transport limited domain
+        f_qs[f_qs < 0] = 0
         return f_qs
-    
+
     def _calc_erosion_rates(self, f_Qs_QC):
         """Calculate erosion rates."""
 
@@ -523,32 +524,30 @@ class SpaceLargeScaleEroder(Component):
         slope = (z - z[r]) / self._link_lengths[link_to_rcvr]
         # Choose a method for calculating erosion:
         self._Q_to_the_m[:] = np.power(self._q, self._m_sp)
-        
-        
+
         if self._tools:
             # Calculate tool effect
-            A=self.grid.at_node["drainage_area"]
-            S=self._slope
-            S[S<0]=0
+            A = self.grid.at_node["drainage_area"]
+            S = self._slope
+            S[S < 0] = 0
             # TODO correct for runoff variabilty, look into nt
-            nt=self._n_sp        
-            Qc = self._K_br*np.multiply(np.power(A,1.5),np.power(S,nt))
-            Qc[self._slope<=0]=0       
-            Qs_QC= np.divide(self._qs,Qc)
-            Qs_QC[self._slope<=0]=0
-            f_Qs_QC=self._calc_fQs(Qs_QC)
+            nt = self._n_sp
+            Qc = self._K_br * np.multiply(np.power(A, 1.5), np.power(S, nt))
+            Qc[self._slope <= 0] = 0
+            Qs_QC = np.divide(self._qs, Qc)
+            Qs_QC[self._slope <= 0] = 0
+            f_Qs_QC = self._calc_fQs(Qs_QC)
         else:
             f_Qs_QC = np.ones((self._slope.shape))
-        
-        
-        ''' test Qs_Qc
+
+        """ test Qs_Qc
         # TODO correct for runoff variabilty, look into nt
         from matplotlib import pyplot as plt
         plt.figure()
         plt.plot(Qs_QC,f_Qs_QC)
         plt.show()
-        '''
-        
+        """
+
         self._calc_erosion_rates(f_Qs_QC)
         if "flood_status_code" in self.grid.at_node:
             flood_status = self.grid.at_node["flood_status_code"]
