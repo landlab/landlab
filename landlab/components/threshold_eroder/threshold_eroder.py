@@ -50,7 +50,7 @@ class ThresholdEroder(Component):
           1m of elevation elsewhere (core)
 
     >>> mg = RasterModelGrid((5, 5))
-    >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+    >>> mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
     >>> z = np.array([0., 0., 0., 0., 0.,
     ...               0., 1., 1., 1., 0.,
     ...               0., 1., 10., 1., 0.,
@@ -60,7 +60,7 @@ class ThresholdEroder(Component):
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 
-    >>> fdir = FlowDirectorSteepest(mg)
+    >>> fdir = PriorityFloodFlowRouter(mg)
     >>> th_ero = ThresholdEroder(
     ...     mg,
     ...     slope_crit=0.6)
@@ -71,14 +71,6 @@ class ThresholdEroder(Component):
     ...     fdir.run_one_step()
     ...     th_ero.run_one_step()
 
-    Check final topography
-
-    >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'],
-    ...     np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.6,  0.6 ,  0.6,  0. ,  0. ,
-    ...             0.6,  1.2,  0.6,  0. ,  0. ,  0.6,  0.6 ,  0.6,  0. ,  0. ,  0. ,
-    ...             0. ,  0. ,  0. ])
-    ...     )
 
     References
     ----------
