@@ -206,7 +206,7 @@ def test_link_length_handling():
     grid.add_zeros("topographic__elevation", at="node")
     fa = FlowAccumulator(grid)
     transporter = GravelRiverTransporter(grid)
-    assert_equal(transporter._length_of_flow_link_from_core_node, 2.0)
+    assert_allclose(transporter._flow_link_length_over_cell_area, 0.57735, rtol=1.0e-6)
 
     # Raster grid with possibility of flow on diagonals
     grid = RasterModelGrid((3, 4), xy_spacing=2.0)
@@ -222,7 +222,9 @@ def test_link_length_handling():
     transporter.run_one_step(1.0)
     assert_equal(transporter._flow_length_is_variable, True)
     assert_equal(transporter._grid_has_diagonals, True)
-    assert_allclose(transporter._length_of_flow_link_from_core_node, [2.828427, 2.0])
+    assert_allclose(
+        transporter._flow_link_length_over_cell_area, [0.707107, 0.5], rtol=1.0e-6
+    )
 
     # Radial grid with variable link length but no diagonals
     grid = RadialModelGrid(n_rings=1, nodes_in_first_ring=5, spacing=2.0)
@@ -235,4 +237,4 @@ def test_link_length_handling():
     transporter.run_one_step(1.0)
     assert_equal(transporter._flow_length_is_variable, True)
     assert_equal(transporter._grid_has_diagonals, False)
-    assert_allclose(transporter._length_of_flow_link_from_core_node, [2.0])
+    assert_allclose(transporter._flow_link_length_over_cell_area, [0.5505524])
