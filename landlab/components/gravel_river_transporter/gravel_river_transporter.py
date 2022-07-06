@@ -169,7 +169,9 @@ class GravelRiverTransporter(Component):
         which is needed for the abrasion rate calculations.
         """
         if isinstance(self.grid, HexModelGrid):
-            self._length_of_flow_link_from_core_node = self.grid.spacing
+            self._flow_link_length_over_cell_area = (
+                self.grid.spacing / self.grid.area_of_cell[0]
+            )
             self._flow_length_is_variable = False
         elif isinstance(self.grid, DiagonalsMixIn):
             self._flow_length_is_variable = True
@@ -178,16 +180,19 @@ class GravelRiverTransporter(Component):
             self._flow_length_is_variable = True
             self._grid_has_diagonals = False
 
-    def _update_flow_link_length(self):
-        """Update the length of link along which water flows out of each node."""
+    def _update_flow_link_length_over_cell_area(self):
+        """Update the ratio of the length of link along which water flows out of
+        each node to the area of the node's cell."""
         if self._grid_has_diagonals:
-            self._length_of_flow_link_from_core_node = self.grid.length_of_d8[
-                self._receiver_link[self.grid.core_nodes]
-            ]
+            self._flow_link_length_over_cell_area = (
+                self.grid.length_of_d8[self._receiver_link[self.grid.core_nodes]]
+                / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
+            )
         else:
-            self._length_of_flow_link_from_core_node = self.grid.length_of_link[
-                self._receiver_link[self.grid.core_nodes]
-            ]
+            self._flow_link_length_over_cell_area = (
+                self.grid.length_of_link[self._receiver_link[self.grid.core_nodes]]
+                / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
+            )
 
     def calc_implied_depth(self, grain_diameter=0.01):
         """Utility function that calculates and returns water depth implied by
@@ -330,12 +335,12 @@ class GravelRiverTransporter(Component):
         """
         cores = self._grid.core_nodes
         if self._flow_length_is_variable:
-            self._update_flow_link_length()
+            self._update_flow_link_length_over_cell_area()
         self._abrasion[cores] = (
             self._abrasion_coef
             * 0.5
             * (self._sediment_outflux[cores] + self._sediment_influx[cores])
-            / self._length_of_flow_link_from_core_node
+            * self._flow_link_length_over_cell_area
         )
 
     def calc_sediment_rate_of_change(self):
