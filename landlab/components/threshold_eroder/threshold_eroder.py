@@ -115,6 +115,14 @@ class ThresholdEroder(Component):
             "mapping": "node",
             "doc": "The steepest *downhill* slope",
         },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
         "flow__upstream_node_order": {
             "dtype": int,
             "intent": "in",
