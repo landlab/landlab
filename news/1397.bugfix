@@ -1,2 +1,0 @@
-Fix a broken reference in the PriorityFloodFlowDirector where the gradient of the hillslopes are being updated.
-Resolve instabilities related to the use of very small H* values when using the "Space_Large_Scale_Eroder".
