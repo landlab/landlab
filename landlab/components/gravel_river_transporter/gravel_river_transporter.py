@@ -29,6 +29,10 @@ def zero_out_matrix(grid, mat, rcvr, mat_id):
 
 
 class GravelRiverTransporter(Component):
+    """Model drainage network evolution for a network of transport-limited
+    gravel-bed rivers with downstream abrasion."""
+
+    _unit_agnostic = True
 
     _info = {
         "bedload_sediment__rate_of_loss_to_abrasion": {
