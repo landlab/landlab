@@ -3,7 +3,9 @@
 
 Plotting functions
 ++++++++++++++++++
+
 .. autosummary::
+
     ~landlab.plot.imshow.imshow_grid
     ~landlab.plot.imshow.imshow_grid_at_cell
     ~landlab.plot.imshow.imshow_grid_at_node
@@ -14,6 +16,7 @@ import numpy as np
 
 from ..field import FieldError
 from .event_handler import query_grid_on_button_press
+
 
 try:
     import matplotlib.pyplot as plt
@@ -70,16 +73,20 @@ def imshow_grid_at_node(grid, values, **kwds):
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
     other open boundary nodes get their actual values.
+
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
+
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
+
     Node coordinates are printed when a mouse button is pressed on a cell in
     the plot.
+
     This function happily works with both regular and irregular grids.
 
     Parameters
@@ -214,6 +221,7 @@ def imshow_grid_at_cell(grid, values, **kwds):
         filename (with file extension). The function will then call
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
+
     Raises
     ------
     ValueError
@@ -428,14 +436,17 @@ def imshow_grid(grid, values, **kwds):
     extrapolated. Closed elements are colored uniformly (default black,
     overridden with kwd 'color_for_closed'); other open boundary nodes get
     their actual values.
+
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
     Landlab BC_NODE_IS_CLOSED. Used together with the color_for_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
+
     Use matplotlib functions like xlim, ylim to modify your plot after calling
     :func:`imshow_grid`, as desired.
+
     This function happily works with both regular and irregular grids.
 
     Parameters
