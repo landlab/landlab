@@ -586,8 +586,11 @@ class PriorityFloodFlowRouter(Component):
 
             # Calculate flow direction (proportion) and accumulation using RichDEM
             with self._suppress_output():
+                aa= cp.deepcopy(self._depression_free_dem)
+                aa[self._closed==1] = -9999                
+                
                 props_Pf = rd.FlowProportions(
-                    dem=self._depression_free_dem,
+                    dem=aa,
                     method=flow_metric,
                     exponent=self._exponent,
                 )
