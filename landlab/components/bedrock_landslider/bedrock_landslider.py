@@ -237,6 +237,7 @@ class BedrockLandslider(Component):
         verbose_landslides=False,
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=None,
+        min_deposition_slope = 0,
     ):
         """Initialize the BedrockLandslider model.
 
@@ -311,6 +312,7 @@ class BedrockLandslider(Component):
         self._verbose_landslides = verbose_landslides
         self._landslides_on_boundary_nodes = landslides_on_boundary_nodes
         self._critical_sliding_nodes = critical_sliding_nodes
+        self._min_deposition_slope = min_deposition_slope
 
         # Data structures to store properties of simulated landslides.
         self._landslides_size = []
@@ -655,15 +657,18 @@ class BedrockLandslider(Component):
             self.grid.dx / (1 - (slope / self._threshold_slope) ** 2),
             1e6,
         )
-
+        
         flux_out = np.zeros(topo.shape)
         dh_hill = np.zeros(topo.shape)
         topo_copy = np.array(topo)
         max_depo = np.zeros(topo.shape)
+        length_adjacent_cells = np.array([self.grid.dx,self.grid.dx,self.grid.dx,self.grid.dx, 
+                                 self.grid.dx*np.sqrt(2),self.grid.dx*np.sqrt(2),self.grid.dx*np.sqrt(2),self.grid.dx*np.sqrt(2)])
 
         _landslide_runout(
             self.grid.dx,
             self._phi,
+            self._min_deposition_slope,
             stack_rev_sel,
             receivers,
             fract_receivers,
@@ -673,6 +678,7 @@ class BedrockLandslider(Component):
             dh_hill,
             topo_copy,
             max_depo,
+            length_adjacent_cells,
         )
         sed_flux[:] = flux_out
 
