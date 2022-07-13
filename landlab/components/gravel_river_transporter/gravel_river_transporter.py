@@ -3,7 +3,6 @@ from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 from scipy.sparse.linalg import spsolve
 
-_ONE_SIXTH = 1.0 / 6.0
 
 
 def make_empty_matrix_and_rhs(grid):
@@ -73,7 +72,27 @@ class GravelRiverTransporter(Component):
         Bulk porosity of bed sediment
     solver : string (default "explicit")
         Solver type (currently only "explicit" is tested and operational)
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulator
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
+    >>> elev = grid.add_zeros("topographic__elevation", at="node")
+    >>> grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+    >>> grid.status_at_node[5] = grid.BC_NODE_IS_FIXED_VALUE
+    >>> fa = FlowAccumulator(grid, runoff_rate=10.0)
+    >>> fa.run_one_step()
+    >>> transporter = GravelRiverTransporter(grid, abrasion_coefficient=0.0005)
+    >>> for _ in range(200):
+    ...     fa.run_one_step()
+    ...     elev[grid.core_nodes] += 1.0
+    ...     transporter.run_one_step(10000.0)
+    >>> int(elev[4] * 100)
+    2366
     """
+
+    _ONE_SIXTH = 1.0 / 6.0
 
     _unit_agnostic = True
 
@@ -481,7 +500,7 @@ class GravelRiverTransporter(Component):
         ) / self.grid.dx**2
         a = prefac * (1.0 / self.grid.dx + self._abrasion_coef / 2)
         b = prefac * (1.0 / self.grid.dx - self._abrasion_coef / 2)
-        f = self._discharge * (self._slope ** (_ONE_SIXTH))
+        f = self._discharge * (self._slope ** (self._ONE_SIXTH))
 
         zero_out_matrix(self.grid, self._mat, self._receiver_node, self._mat_id)
         for i in self.grid.core_nodes:
