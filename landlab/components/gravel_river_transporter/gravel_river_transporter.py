@@ -30,7 +30,50 @@ def zero_out_matrix(grid, mat, rcvr, mat_id):
 
 class GravelRiverTransporter(Component):
     """Model drainage network evolution for a network of transport-limited
-    gravel-bed rivers with downstream abrasion."""
+    gravel-bed rivers with downstream abrasion.
+
+    GravelRiverTransporter is designed to operate together with a flow-routing
+    component such as PriorityFloodFlowRouter, so that each grid node has
+    a defined flow direction toward one of its neighbor nodes. Each core node
+    is assumed to contain one outgoing fluvial channel, and (depending on
+    the drainage structure) zero, one, or more incoming channels. These channels are
+    treated as effectively sub-grid-scale features that are embedded in valleys
+    that have a width of one grid cell. The rate of gravel transport out of
+    a given node is calculated as the product of bankfull discharge, channel
+    gradient (to the 7/6 power), a dimensionless transport coefficient, and
+    an intermittency factor that represents the fraction of time that bankfull
+    flow occurs. The derivation of the transport law is given by Wickert &
+    Schildgen (2019), and it derives from the assumption that channels are
+    gravel-bedded and that they "instantaneously" adjust their width such that
+    bankfull bed shear stress is just slightly higher than the threshold for
+    grain motion. The substrate is assumed to consist entirely of gravel-size
+    material with a given bulk porosity. The component calculates the loss of
+    gravel-sized material to abrasion (i.e., conversion to finer sediment, which
+    is not explicitly tracked) as a function of the volumetric transport rate,
+    an abrasion coefficient with units of inverse length, and the local transport
+    distance (for example, if a grid node is carrying a gravel load Qs to a
+    neighboring node dx meters downstream, the rate of gravel loss in volume per
+    time per area at the node will be beta Qs dx, where beta is the abrasion
+    coefficient). Sediment mass conservation is calculated across each entire
+    grid cell. For example, if a cell has surface area A, a total volume influx
+    Qin, and downstream transport rate Qs, the resulting rate of change of
+    elevation will be (Qin - Qs / (A (1 - phi)), where phi is porosity.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A Landlab model grid object
+    intermittency_factor : float (default 0.01)
+        Fraction of time that bankfull flow occurs
+    transport_coefficient : float (default 0.041)
+        Dimensionless transport efficiency factor (see Wickert & Schildgen 2019)
+    abrasion_coefficient : float (default 0.0 1/m)
+        Abrasion coefficient with units of inverse length
+    sediment_porosity : float (default 0.35)
+        Bulk porosity of bed sediment
+    solver : string (default "explicit")
+        Solver type (currently only "explicit" is tested and operational)
+    """
 
     _unit_agnostic = True
 
