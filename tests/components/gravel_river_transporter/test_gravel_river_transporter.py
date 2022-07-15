@@ -124,9 +124,7 @@ def test_analytical_solution_four_cells_basic_solver():
     fa = FlowAccumulator(grid, runoff_rate=bankfull_runoff_rate)
     fa.run_one_step()
     transporter = GravelRiverTransporter(
-        grid,
-        abrasion_coefficient=abrasion_coef,
-        solver="explicit",
+        grid, abrasion_coefficient=abrasion_coef, solver="explicit",
     )
 
     for i in range(nsteps):
@@ -172,9 +170,7 @@ def test_analytical_solution_four_cells_matrix_solver():
     fa = FlowAccumulator(grid, runoff_rate=bankfull_runoff_rate)
     fa.run_one_step()
     transporter = GravelRiverTransporter(
-        grid,
-        abrasion_coefficient=abrasion_coef,
-        solver="matrix",
+        grid, abrasion_coefficient=abrasion_coef, solver="matrix",
     )
 
     for i in range(nsteps):
