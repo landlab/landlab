@@ -83,7 +83,7 @@ class PlantGrowth(Component):
                 }
         },
         dt=1,
-        current_day=0 
+        current_day=np.datetime64('2010-01-01') 
     ):
         """Instantiate PlantGrowth
         Parameters
@@ -214,8 +214,6 @@ class PlantGrowth(Component):
             #during initialization step, first day of growing season, or is this it's own function 
             #that can be called here or at start?
 
-            print(growdict['root_to_leaf_coeffs'])
-            print(growdict['root_to_stem_coeffs'])
             #Set coefficients to variable names to pass to solver function
             aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
             astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
@@ -224,7 +222,7 @@ class PlantGrowth(Component):
 
 
         
-    def run_one_step(self):
+    def run_one_step(self, dt):
         #Add photosythesis code here
         for species in self.vegparams:
             factordict=self.vegparams[species]['plant_factors']
@@ -254,17 +252,18 @@ class PlantGrowth(Component):
                       
             #maintenance respiration
             #if then statement stops respiration at end of growing season
-            if self.current_day == growdict['growing_season_end']:
+            if self.current_jday == growdict['growing_season_end']:
                 respMaint = 0
 
             if self.current_day < growdict['growing_season_end'] and self.current_day >= growdict['growing_season_start']:
 
                 #repiration coefficient for lvs, temp dependence from Teh 2006
-                kmLVG = kmLVG_prime * pow(2,((Light.iloc[j]['meantemp'] - 25)/10))  
+                #change to read temperature off grid
+                kmLVG = growdict['respiration_coefficient'][1] * pow(2,((Light.iloc[j]['meantemp'] - 25)/10))  
                 #respiration coefficient for stems, temp depencence from Teh 2006 page 134
-                kmSTG = kmSTG_prime* pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) 
+                kmSTG = growdict['respiration_coefficient'][2]* pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) 
                 #respiration coefficient for roots, temp dependence from Teh 2006 page 134
-                kmRTG = kmRTG_prime * pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) 
+                kmRTG = growdict['respiration_coefficient'][0] * pow(2,((Light.iloc[j]['meantemp'] - 25)/10)) 
                 #maintenance respiration per day from Teh 2006
                 rmPrime = (kmLVG * twlvg) + (kmSTG * twstg) + (kmRTG * twrtg)  
                 #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
@@ -297,6 +296,7 @@ class PlantGrowth(Component):
                 #determine how we want to read in light. Ideally this would be dynamic
                 dtga=0
                 #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
+                #change to read solar radiation from grid
                 for hr in range(0,3):  
                     #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
                     parMicroE = (Light.iloc[j,hr]) * (868/208.32) 
@@ -328,7 +328,7 @@ class PlantGrowth(Component):
                 
                 
                 #if then statement ends glucose generation at end of growing season 
-                if self.current_day == growdict['growing_season_end']:
+                if self.current_jday == growdict['growing_season_end']:
                     gphot = 0
 
                 #direct solve method for calculating change in biomass
@@ -353,8 +353,9 @@ class PlantGrowth(Component):
                 self._current_root_biomass=self._last_veg_root_biomass+delta_root
                 self._current_leaf_biomass=self._last_veg_leaf_biomass+delta_leaf
                 self._current_stem_biomass=self._last_veg_stem_biomass+delta_stem
+        self.current_day += np.timedelta64(self.dt,'D')
 
-
+#May be able to eliminate this since using built in solar radiation component
     def _PAR(self, day, lat):
         #required to convert degrees to radians
         degree_to_rad = 0.017453292  
@@ -451,6 +452,7 @@ class PlantGrowth(Component):
         F[1]=coeffs[0]+coeffs[1]*r+coeffs[2]*r**2-l
         F[2]=coeffs[3]+coeffs[4]*r+coeffs[5]*r**2-s
         return F
+        
     def _mortality(self):
         biomass=self._last_veg_biomass
         type=self._last_veg_type
