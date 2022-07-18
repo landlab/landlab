@@ -83,7 +83,7 @@ class PlantGrowth(Component):
                 }
         },
         dt=1,
-        current_day=np.datetime64('2010-01-01') 
+        current_day=np.datetime64('2010-01-01')
     ):
         """Instantiate PlantGrowth
         Parameters
@@ -139,7 +139,7 @@ class PlantGrowth(Component):
         dt: int, required,
             time step interval
 
-        current_day: int, required,
+        current_day: datetime, required,
             day of simulation
         """
         
@@ -178,6 +178,11 @@ class PlantGrowth(Component):
             msg=('GenVeg requires incoming radiation flux for each time step')
             raise ValueError(msg)
         
+        # From chapter 2 of Teh 2006 (pg. 31; equation 2.13)
+
+        (_,self.latitude)=self._grid.xy_of_reference
+        self._lat_rad = np.radians(self._latitude)
+
         self._last_twg = np.where(self._last_veg_n_plant!=0, self._last_veg_biomass, np.nan)/np.where(self._last_veg_n_plant!=0,self._last_veg_n_plant,np.nan)
         
         self.vegparams=vegparams
@@ -223,7 +228,12 @@ class PlantGrowth(Component):
 
         
     def run_one_step(self, dt):
+        #Calculate current day-of-year
+        jday_td=self.current_day-np.datetime64(str(self.current_day.astype('datetime64[Y]'))+'-01-01')
+        self._current_jday=jday_td.astype(int)
+
         #Add photosythesis code here
+        
         for species in self.vegparams:
             factordict=self.vegparams[species]['plant_factors']
             growdict=self.vegparams[species]['growparams']
@@ -256,6 +266,10 @@ class PlantGrowth(Component):
                 respMaint = 0
 
             if self.current_day < growdict['growing_season_end'] and self.current_day >= growdict['growing_season_start']:
+
+                #Calculate current daylength based on current day-of-year and latitude of grid origin
+                _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - self._current_jday)))
+                _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
 
                 #repiration coefficient for lvs, temp dependence from Teh 2006
                 #change to read temperature off grid
