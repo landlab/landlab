@@ -7,7 +7,7 @@ from scipy.sparse.linalg import spsolve
 def make_empty_matrix_and_rhs(grid):
     from scipy.sparse import csc_matrix
 
-    mat = csc_matrix((grid.number_of_core_nodes, grid.number_of_core_nodes),)
+    mat = csc_matrix((grid.number_of_core_nodes, grid.number_of_core_nodes))
     rhs = np.zeros(grid.number_of_core_nodes)
     return mat, rhs
 
@@ -341,7 +341,7 @@ class GravelRiverTransporter(Component):
             width_fac
             * self._discharge
             * self._slope ** (7.0 / 6.0)
-            / (grain_diameter ** 1.5)
+            / (grain_diameter**1.5)
         )
         return width
 
@@ -369,7 +369,7 @@ class GravelRiverTransporter(Component):
             self._trans_coef
             * self._intermittency_factor
             * self._discharge
-            * self._slope ** self._SEVEN_SIXTHS
+            * self._slope**self._SEVEN_SIXTHS
         )
 
     def calc_abrasion_rate(self):
@@ -496,7 +496,7 @@ class GravelRiverTransporter(Component):
         """
         prefac = (
             self._trans_coef * self._intermittency_factor * self._porosity_factor * dt
-        ) / self.grid.dx ** 2
+        ) / self.grid.dx**2
         a = prefac * (1.0 / self.grid.dx + self._abrasion_coef / 2)
         b = prefac * (1.0 / self.grid.dx - self._abrasion_coef / 2)
         f = self._discharge * (self._slope ** (self._ONE_SIXTH))
