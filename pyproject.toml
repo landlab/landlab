@@ -114,7 +114,6 @@ landlab = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["landlab*"]
-exclude = ["tests*"]
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
