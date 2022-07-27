@@ -644,9 +644,13 @@ class PriorityFloodFlowRouter(Component):
                 props_Pf = props_Pf.astype(np.float64)  # should be float64
                 # Now, make sure sum is 1 in 64 bits
                 props_Pf[props_Pf == -1] = 0
-                rc64_temp = props_Pf / npm.repmat(
+                proportion_matrix = npm.repmat(
                     np.reshape(props_Pf.sum(axis=1), [props_Pf.shape[0], 1]), 1, 8
                 )
+                rc64_temp = np.where(
+                    proportion_matrix ==0, 
+                    props_Pf,
+                    props_Pf / proportion_matrix)
                 props_Pf[props_Pf[:, 0] != 1, :] = rc64_temp[props_Pf[:, 0] != 1, :]
                 props_Pf[props_Pf == 0] = -1
 
