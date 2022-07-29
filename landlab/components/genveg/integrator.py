@@ -84,7 +84,8 @@ class GenVeg(Component,PlantGrowth):
 
 
     def run_one_step(self, dt):
-        new_plants=self._grow(self.current_day, self.dt)
+        new_plant_arr=self._grow(self.current_day, self.dt)
+        new_plants=self.make_plant_df()
         n_plants=new_plants.groupby(by='cell_index', as_index=False).agg('count')
         biomass_plants=new_plants.groupby(by='cell_index', as_index=False).agg('sum')
         biomass_plants['total_biomass']=biomass_plants['leaf_biomass']+biomass_plants['stem_biomass']+biomass_plants['root_biomass']
