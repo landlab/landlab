@@ -10,6 +10,7 @@ import pandas as pd
 from scipy.optimize import fsolve
 from .growth import PlantGrowth
 import warnings
+from landlab.data_record import DataRecord
 
 class GenVeg(Component,PlantGrowth):
     """
@@ -75,12 +76,31 @@ class GenVeg(Component,PlantGrowth):
         n_plants=np.count_nonzero(np.where(self._grid.at_cell['vegetation__plant_species']=='null',0,1), axis=1)
         _ = self._grid.add_field('vegetation__n_plants',n_plants, at='cell')
 
+
+
         #Calculate initial total biomass per cell
         self._grid.add_empty('vegetation__total_biomass',at='cell')
         biomass_plants=self.plants.groupby(by='cell_index', as_index=False).agg('sum')
         biomass_plants['total_biomass']=biomass_plants['leaf_biomass']+biomass_plants['stem_biomass']+biomass_plants['root_biomass']
         cells_with_plants=biomass_plants.cell_index.tolist()
         self._grid.at_cell['vegetation__total_biomass'][cells_with_plants]=biomass_plants.total_biomass.tolist()
+
+
+    #Initalize dataframe
+        self._record_df = pd.DataFrame({c: pd.Series(dtype=t) for c, t in {'pid': 'int', 'cell_index': 'int', 'species': 'U10', 'leaf_biomass': 'float', 'stem_biomass': 'float', 'root_biomass': 'float', 'timestep': 'int'}.items()})
+    #Instantiate data record
+        self._record = DataRecord(
+            self._grid, 
+            time = [0], 
+            items = {
+                "grid_element": "cell",
+                "element_id" : np.reshape(self._grid.at_cell['cell'],(self._grid.at_cell.size,1)),
+            },
+            data_vars = {
+                "vegetation_total_biomass": (["item_id", "time"], np.zeros((self._grid.at_cell.size,1))),
+                "vegetation_n_plants": (["item_id", "time"], np.zeros((self._grid.at_cell.size,1)))
+            },
+            attrs={"vegetation_total_biomass":"g",})
 
 
     def run_one_step(self, dt):
@@ -96,6 +116,25 @@ class GenVeg(Component,PlantGrowth):
         
         self.current_day +=1
 
+
     def plant_ID(self):
         return self.plants
+    
+    def save_output(self, startdate, savetime=7):
+        if ((self.current_day-startdate).astype(int)/savetime).is_integer():
+            time_index = int((self.current_day-startdate).astype(int)/savetime)
+            new_plants = self.make_plant_df()
+            new_plants['timestep'] = time_index
+            self._record_df = pd.concat([self._record_df, new_plants], ignore_index=True)
+            self._record.add_record(time = np.array([time_index]))
+            self._record.ffill_grid_element_and_id()
+            for i in range(self._record.number_of_items):
+
+                self._record.dataset['vegetation_total_biomass'].values[i, time_index] = self._grid.at_cell['vegetation__total_biomass'][i]
+                self._record.dataset['vegetation_n_plants'].values[i, time_index] = self._grid.at_cell['vegetation__n_plants'][i]
+
+        return(self._record_df, self._record)    
+            #for i in range(self._record.number_of_items):
+            #    self._record.dataset['vegetation_total_biomass'].values[i, time_index] = self._grid.at_cell['vegetation__total_biomass'][i]
+           #    self._record.dataset['vegetation_n_plants'].values[i, time_index] = self._grid.at_cell['vegetation__n_plants'][i]
 
