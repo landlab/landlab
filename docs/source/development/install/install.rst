@@ -65,10 +65,8 @@ The next step is it create this environment, called *landlab_dev*.
 .. code-block:: bash
 
    $ conda create -n landlab_dev python
-   $ conda install -n landlab_dev --file=requirements.txt -c conda-forge
-   $ conda install -n landlab_dev --file=requirements-testing.txt -c conda-forge
-   $ conda install -n landlab_dev --file=requirements-notebooks.txt -c conda-forge
-   $ conda install -n landlab_dev --file=requirements-dev.txt -c conda-forge
+   $ conda create -n landlab_dev -c conda-forge --file=requirements.txt --file=requirements-dev.txt --file=requirements-testing.txt --file=requirements-notebooks.txt
+
 
 The conda environment described by ``environment-dev.yml`` contains the minimal
 set of dependencies necessary to run the Landlab tests and notebooks, and keep
