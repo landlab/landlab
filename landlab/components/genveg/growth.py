@@ -3,6 +3,7 @@ Growth component of GenVeg - this is the main driver of vegetation growth and
 is driven by a photosynthesis model. Vegetation growth depends on the availability
 of carbohydrate produced by photosynthetically active plant parts. 
 """
+from ctypes import sizeof
 from typing import OrderedDict
 from xml.dom import IndexSizeErr
 from matplotlib.pyplot import grid
@@ -12,6 +13,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import fsolve
 import numpy.lib.recfunctions as nprf
+from sympy import symbols, diff, lambdify, log
 import warnings
 
 class PlantGrowth(object):
@@ -165,12 +167,13 @@ class PlantGrowth(object):
         self.plants=plants
         
         if self.plants.empty:
-            self._estimate_initial_plant_biomass()
+            self.plant_array=self._estimate_initial_plant_biomass()
             self.plants=self.make_plant_df()
  
         #Set constants for PAR formula
         self._wgaus = [0.2778, 0.4444, 0.2778]
         self._xgaus = [0.1127, 0.5, 0.8873]
+        self.delta_tot=[]
 
         #Calculate calculated parameters for speed and error check growth parameter values
         for item in self.vegparams:
@@ -206,6 +209,9 @@ class PlantGrowth(object):
         """The plants dataframe"""
         return self.plants
 
+    def inc_growth(self):
+        return self.delta_tot
+
     def _grow(self, current_day, dt):
         #Calculate current day-of-year
         jday_td=current_day-np.datetime64(str(current_day.astype('datetime64[Y]'))+'-01-01')
@@ -223,6 +229,7 @@ class PlantGrowth(object):
             #_last_veg_biomass=_last_veg_root_biomass+_last_veg_leaf_biomass+_last_veg_stem_biomass
             #_gridradiation=pd.DataFrame(data=self._grid["cell"]["radiation__net_flux"],columns=['Radiation'])
             _radiation=self._grid['cell']['radiation__net_flux'][_last_biomass['cell_index']]
+            _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
             #_gridradiation.reset_index(inplace=True)
             #_gridradiation=_gridradiation.rename(columns={'index':'cell_index'})
             #_rad_join=pd.merge(self.plants,_gridradiation)
@@ -255,11 +262,11 @@ class PlantGrowth(object):
 
                 #repiration coefficient for lvs, temp dependence from Teh 2006
                 #change to read temperature off grid
-                kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_radiation - 25)/10))  
+                kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_temperature - 25)/10))  
                 #respiration coefficient for stems, temp depencence from Teh 2006 page 134
-                kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_radiation - 25)/10)) 
+                kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_temperature - 25)/10)) 
                 #respiration coefficient for roots, temp dependence from Teh 2006 page 134
-                kmRTG = growdict['respiration_coefficient'][0] * pow(2,((_radiation - 25)/10)) 
+                kmRTG = growdict['respiration_coefficient'][0] * pow(2,((_temperature - 25)/10)) 
                 #maintenance respiration per day from Teh 2006
                 rmPrime = (kmLVG * _last_biomass['leaf_biomass']) + (kmSTG * _last_biomass['stem_biomass']) + (kmRTG * _last_biomass['root_biomass'])  
                 #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
@@ -289,10 +296,11 @@ class PlantGrowth(object):
                 #determine how we want to read in light. Ideally this would be dynamic
                 dtga=0
                 #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
+                rad_est=self._PAR()
                 #change to read solar radiation from grid
                 for hr in range(0,3):  
                     #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
-                    parMicroE = (_radiation) * (868/208.32) #are we leaving as W/m2 or leaving microeinsteins??? FOR FUTURE!!!
+                    parMicroE = (rad_est[hr]*np.ones_like(_radiation)) /(868/208.32) #are we leaving as W/m2 or leaving microeinsteins??? FOR FUTURE!!!
                     #from Charisma instructions: tells how much of the light a plant is going to get as PAR in microeinsteins based on how many leaves are on the plant
                     intSolarRad = parMicroE*np.exp(-(growdict['k_light_extinct'])*_last_biomass['leaf_biomass'])  
                     #amount of light absorbed, per half saturaion constants from Charisma eq. 3. the monod or michaelis/menten function is adequate for describing the photosynthetic response to light
@@ -328,71 +336,75 @@ class PlantGrowth(object):
                 #coefficients rename
                 aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
                 astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
-                #Calculate the change in leaf and stem mass per unit change in root mass given the current size of the root biomass
-                delta_leaf_unit_root=np.zeros_like(_last_biomass['leaf_biomass'])
-                delta_leaf_unit_root[_last_biomass['root_biomass']>0]=0.43429448190325176*b1leaf/_last_biomass['root_biomass'][_last_biomass['root_biomass']>0] + \
-                            0.37722339402322774*b2leaf*np.log(_last_biomass['root_biomass'][_last_biomass['root_biomass']>0])/_last_biomass['root_biomass'][_last_biomass['root_biomass']>0]
-                delta_stem_unit_root=np.zeros_like(_last_biomass['stem_biomass'])
-                delta_stem_unit_root[_last_biomass['root_biomass']>0]=0.43429448190325176*b1stem/_last_biomass['root_biomass'][_last_biomass['root_biomass']>0] + \
-                            0.37722339402322774*b2stem*np.log(_last_biomass['root_biomass'][_last_biomass['root_biomass']>0])/_last_biomass['root_biomass'][_last_biomass['root_biomass']>0]
-                #Calculate the total change in biomass this timestep
+                #set up sympy equations
+                rootsym=symbols('rootsym')              
+                dleaf=diff(10**(aleaf+b1leaf*log(rootsym,10)+b2leaf*(log(rootsym,10))**2),rootsym)
+                dstem=diff(10**(astem+b1stem*log(rootsym,10)+b2stem*(log(rootsym,10))**2),rootsym)
+                #Generate numpy expressions and solve for rate change in leaf and stem biomass per unit mass of root
+                fleaf=lambdify(rootsym,dleaf,'numpy')
+                fstem=lambdify(rootsym,dstem,'numpy')
+                delta_leaf_unit_root=fleaf(_last_biomass['root_biomass'])
+                delta_stem_unit_root=fstem(_last_biomass['root_biomass'])
+                #Calculate total new biomass and floor at zero
                 delta_tot=(gphot-respMaint)/_glu_req
-                #Calculate the change in root biomass this timestep
-                #Solve for delta root: delta_tot=delta_root+delta_leaf_unit_root*delta_root+delta_stem_unit_root*delta_root
+                delta_tot=np.where(delta_tot<0,0,delta_tot)
+                #Calculate biomass that goes to root, stem, and leaf
                 delta_root=delta_tot/(1+delta_leaf_unit_root+delta_stem_unit_root)
                 delta_leaf=delta_leaf_unit_root*delta_root
                 delta_stem=delta_stem_unit_root*delta_root
+                #save for intermediate output
+                self.delta_tot=delta_leaf
+                #update biomass in plant array
                 self.plant_array['root_biomass'][inds]=_last_biomass['root_biomass']+delta_root
                 self.plant_array['leaf_biomass'][inds]=_last_biomass['leaf_biomass']+delta_leaf
                 self.plant_array['stem_biomass'][inds]=_last_biomass['stem_biomass']+delta_stem
 
-        return self.plant_array
-
 #May be able to eliminate this since using built in solar radiation component
-    def _PAR(self, day, lat):
+    def _PAR(self):
         #required to convert degrees to radians
         degree_to_rad = 0.017453292  
         #rad_to_degree = (-math.asin((math.sin(23.45*degree_to_rad))*(math.cos(2*math.pi*(day+10)/365))))
+        lat=self._lat_rad
     
         tmpvec = []
         #Change to use numpy as np 
-        declination = (-np.asin((np.sin(23.45*degree_to_rad))*(np.cos(2*np.pi*(day+10)/365))))
+        declination = (-1*np.arcsin((np.sin(23.45*degree_to_rad))*(np.cos(2*np.pi*(self._current_jday+10)/365))))
         
         #Intermediate variables
         #radians
-        sinld = ((np.sin(lat*degree_to_rad))*(np.sin(declination)))
+        sinld = ((np.sin(lat))*(np.sin(declination)))
         #radians   
-        cosld = np.cos(lat*degree_to_rad)*np.cos(declination)  
+        cosld = np.cos(lat)*np.cos(declination)  
         #radians
         aob = (sinld/cosld)  
         
-        temp1 = np.asin(aob)
+        temp1 = np.arcsin(aob)
         #calculates daylength based on declination and latitude
         daylength = 12 * (1 + 2 * temp1/np.pi)   
         
         dsinB = 3600 * (daylength * sinld + 24 * cosld * np.sqrt(1 - aob * aob)/np.pi)
         dsinBE = 3600 * (daylength * (sinld + 0.4 * (sinld * sinld + cosld * cosld * 0.5)) + 12 * cosld * (2 + 3 * 0.4 * sinld) * np.sqrt(1 - aob * aob)/np.pi)
         #solar constant
-        sc = 1370 * (1 + 0.033 * np.cos(2 * np.pi * day/365))  
+        sc = 1370 * (1 + 0.033 * np.cos(2 * np.pi * self._current_jday/365))  
         #Daily solar radiation
         dso = sc * dsinB  
         
         for hr in range(0,3):
             #calculates hour in which photosynthesis is applied
             hour1 = 12 + (daylength * 0.5 * (self._xgaus[hr]))  
-            print(hour1)
+
             
             sinb_tmp = sinld + cosld * np.cos(2 * np.pi * (hour1 + 12)/24)
-            print(sinb_tmp)
+
             #calculates sin of solar elevation, max functions prevents values less than 0
-            sinB = max(np.Series([0, sinb_tmp]))  
-            print(sinB)
+            sinB = max([0, sinb_tmp])  
+
             #dso can be replaced with values from FAO chart
             PAR1 = 0.5 * dso * sinB * (1 + 0.4 * sinB) / dsinBE  
-            print(PAR1)
+
             #convert to correct units
             PAR1 = PAR1 * (868/208.32)  
-            print(PAR1)
+
             #output of function is vector of 3 values that represents time of day
             tmpvec.append(PAR1)  
             
@@ -430,8 +442,9 @@ class PlantGrowth(object):
             aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
             astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
             coeffs=[aleaf,b1leaf,b2leaf,astem,b1stem,b2stem]
+            min_weight=growdict['plant_part_min'][0]+growdict['plant_part_min'][1]+growdict['plant_part_min'][2]
             inds=np.where(plant_array['species']==item)
-            total_biomass=np.random.rand(inds[0].size)
+            total_biomass=np.random.rand(inds[0].size)*min_weight+2*min_weight
             root_bio,leaf_bio,stem_bio=self._init_biomass_allocation(total_biomass, coeffs)
             #biomass=np.concatenate((biomass,species_biomass), axis=0)
             plant_array['root_biomass'][inds]=root_bio
@@ -441,7 +454,7 @@ class PlantGrowth(object):
         #biomass['pid']=pidset
         #self.plants=self.plants.set_index('pid').join(biomass.set_index('pid'))
         #self.plants.reset_index(inplace=True)
-        self.plant_array=plant_array
+        return plant_array
     
     def _init_biomass_allocation(self, Tbio,coeffs):
         #Initialize arrays to calculate root, leaf and stem biomass to

@@ -52,6 +52,7 @@ class GenVeg(Component,PlantGrowth):
         
         self.dt=dt
         self.current_day=current_day
+        self.start_date=current_day
 
         #Check to see if there are plants on the grid
         try:
@@ -119,13 +120,16 @@ class GenVeg(Component,PlantGrowth):
 
     def plant_ID(self):
         return self.plants
+
+    def plant_array_vals(self):
+        return self.plant_array
     
-    def save_output(self, startdate, savetime=7):
-        if ((self.current_day-startdate).astype(int)/savetime).is_integer():
-            time_index = int((self.current_day-startdate).astype(int)/savetime)
-            new_plants = self.make_plant_df()
-            new_plants['timestep'] = time_index
-            self._record_df = pd.concat([self._record_df, new_plants], ignore_index=True)
+    def save_output(self, savetime=7):
+        if ((self.current_day-self.start_date).astype(int)/savetime).is_integer():
+            time_index = int((self.current_day-self.start_date).astype(int)/savetime)
+            self.plants = self.make_plant_df()
+            self.plants['timestep'] = time_index
+            self._record_df = pd.concat([self._record_df, self.plants], ignore_index=True)
             self._record.add_record(time = np.array([time_index]))
             self._record.ffill_grid_element_and_id()
             for i in range(self._record.number_of_items):
