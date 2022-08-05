@@ -717,22 +717,22 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
-    ...                                  0.,  0.,  0.,  0.,
-    ...                                 -1., -2., -1.,
-    ...                                  0.,  0.,  0.,  0.,
-    ...                                 -1., -2., -1.])
-    >>> map_upwind_node_link_max_to_node(rmg, 'grad')
-    array([ 0.,  1.,  2.,  1.,
-            0.,  1.,  2.,  1.,
-            0.,  1.,  2.,  1.])
+    >>> rmg.at_link['grad'] = np.array([-1.1, -1.2, -1.3,
+    ...                                  1.4,  1.5,  1.6, -1.7,
+    ...                                 -1.8, -1.9,  2.0,
+    ...                                  2.1,  2.2, -2.3,  2.4,
+    ...                                  2.5,  2.6, -2.7])
+    >>> map_upwind_node_link_max_to_node(rmg, 'grad').reshape((3, 4))
+    array([[ 1.4,  1.5,  1.6,  1.3],
+           [ 2.1,  2.2,  2. ,  2.4],
+           [ 2.5,  2.6,  2.3,  2.7]])
 
     >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_upwind_node_link_max_to_node(rmg, 'grad', out=values_at_nodes)
-    >>> values_at_nodes
-    array([ 0.,  1.,  2.,  1.,
-            0.,  1.,  2.,  1.,
-            0.,  1.,  2.,  1.])
+    >>> values_at_nodes.reshape((3, 4))
+    array([[ 1.4,  1.5,  1.6,  1.3],
+           [ 2.1,  2.2,  2. ,  2.4],
+           [ 2.5,  2.6,  2.3,  2.7]])
     >>> rtn is values_at_nodes
     True
 
