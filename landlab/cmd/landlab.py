@@ -2,7 +2,7 @@ import os
 import sys
 from functools import partial
 
-import click
+import rich_click as click
 from jinja2 import Environment
 
 from landlab import (
@@ -28,6 +28,18 @@ GRIDS = [
     RadialModelGrid,
 ]
 
+
+click.rich_click.ERRORS_SUGGESTION = (
+    "Try running the '--help' flag for more information."
+)
+click.rich_click.ERRORS_EPILOGUE = (
+    "To find out more, visit https://github.com/landlab/landlab"
+)
+click.rich_click.STYLE_ERRORS_SUGGESTION = "yellow italic"
+click.rich_click.SHOW_ARGUMENTS = True
+click.rich_click.GROUP_ARGUMENTS_OPTIONS = False
+click.rich_click.SHOW_METAVARS_COLUMN = True
+click.rich_click.USE_MARKDOWN = True
 
 out = partial(click.secho, bold=True, file=sys.stderr)
 err = partial(click.secho, fg="red", file=sys.stderr)
