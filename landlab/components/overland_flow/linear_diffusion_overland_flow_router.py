@@ -157,6 +157,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         infilt_depth_scale=0.001,
         velocity_scale=1.0,
         cfl_factor=0.2,
+        solver="explicit",
     ):
         """Initialize the LinearDiffusionOverlandFlowRouter.
 
@@ -215,7 +216,13 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         self._inactive_links = grid.status_at_link == grid.BC_LINK_IS_INACTIVE
 
-        self._cfl_param = cfl_factor * 0.5 * np.amin(grid.length_of_link) ** 2
+        if solver == "explicit":
+            self.run_one_step = self._run_one_step_explicit
+            self._cfl_param = cfl_factor * 0.5 * np.amin(grid.length_of_link) ** 2
+        elif solver == "implicit":
+            self.run_one_step = self._run_one_step_implicit
+        else:
+            raise ValueError("Unrecognized solver option; use 'explicit' or 'implicit'")
 
     @property
     def rain_rate(self):
@@ -283,7 +290,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         # Very crude numerical hack: prevent negative water depth (TODO: better)
         self._depth.clip(min=0.0, out=self._depth)
 
-    def run_one_step(self, dt):
+    def _run_one_step_explicit(self, dt):
         """Calculate water flow for a time period `dt`.
 
         Default units for dt are *seconds*. We use a time-step subdivision
@@ -295,3 +302,10 @@ class LinearDiffusionOverlandFlowRouter(Component):
             dt_this_iter = min(dtmax, remaining_time)  # step we'll actually use
             self.update_for_one_iteration(dt_this_iter)
             remaining_time -= dt_this_iter
+
+    def _run_one_step_implicit(self, dt):
+        """Calculate water flow for a time period `dt`.
+
+        Uses an implicit solver that builds and inverts a matrix.
+        """
+        pass
