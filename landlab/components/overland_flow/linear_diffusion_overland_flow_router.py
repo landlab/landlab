@@ -157,7 +157,6 @@ class LinearDiffusionOverlandFlowRouter(Component):
         infilt_depth_scale=0.001,
         velocity_scale=1.0,
         cfl_factor=0.2,
-        solver="explicit",
     ):
         """Initialize the LinearDiffusionOverlandFlowRouter.
 
@@ -202,7 +201,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self._rain = rain_rate
         self._infilt = infilt_rate
         self._infilt_depth_scale = infilt_depth_scale
-        self._vel_coef = 1.0 / (roughness**2 * velocity_scale)
+        self._vel_coef = 1.0 / (roughness ** 2 * velocity_scale)
 
         self._elev = grid.at_node["topographic__elevation"]
 
@@ -215,14 +214,6 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self._water_surf_elev = grid.at_node["water_surface__elevation"]
 
         self._inactive_links = grid.status_at_link == grid.BC_LINK_IS_INACTIVE
-
-        if solver == "explicit":
-            self.run_one_step = self._run_one_step_explicit
-            self._cfl_param = cfl_factor * 0.5 * np.amin(grid.length_of_link) ** 2
-        elif solver == "implicit":
-            self.run_one_step = self._run_one_step_implicit
-        else:
-            raise ValueError("Unrecognized solver option; use 'explicit' or 'implicit'")
 
     @property
     def rain_rate(self):
@@ -247,7 +238,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         """Calculate maximum time-step size using CFL criterion for explicit
         FTCS diffusion."""
         max_water_depth = np.amax(self._depth, initial=_MICRO_DEPTH)
-        max_diffusivity = self._vel_coef * max_water_depth**_SEVEN_THIRDS
+        max_diffusivity = self._vel_coef * max_water_depth ** _SEVEN_THIRDS
         return self._cfl_param / max_diffusivity
 
     def update_for_one_iteration(self, iter_dt):
@@ -269,7 +260,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
 
         # Calculate velocity using the linearized Manning equation.
         self._vel[:] = (
-            -self._vel_coef * self._depth_at_link**_FOUR_THIRDS * self._wsgrad
+            -self._vel_coef * self._depth_at_link ** _FOUR_THIRDS * self._wsgrad
         )
 
         # Calculate discharge
@@ -290,7 +281,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         # Very crude numerical hack: prevent negative water depth (TODO: better)
         self._depth.clip(min=0.0, out=self._depth)
 
-    def _run_one_step_explicit(self, dt):
+    def _run_one_step(self, dt):
         """Calculate water flow for a time period `dt`.
 
         Default units for dt are *seconds*. We use a time-step subdivision
@@ -302,10 +293,3 @@ class LinearDiffusionOverlandFlowRouter(Component):
             dt_this_iter = min(dtmax, remaining_time)  # step we'll actually use
             self.update_for_one_iteration(dt_this_iter)
             remaining_time -= dt_this_iter
-
-    def _run_one_step_implicit(self, dt):
-        """Calculate water flow for a time period `dt`.
-
-        Uses an implicit solver that builds and inverts a matrix.
-        """
-        pass
