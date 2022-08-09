@@ -1,6 +1,6 @@
 #! /usr/env/python
 """Python implementation of FramedVoronoiGrid, a grid class used to create and
-manage unstructured Voronoi-Delaunay grids for 2D numerical models, with a structured 
+manage unstructured Voronoi-Delaunay grids for 2D numerical models, with a structured
 perimeter layout
 
 Do NOT add new documentation here. Grid documentation is now built in a
@@ -15,24 +15,25 @@ import numpy
 from ..graph import DualFramedVoronoiGraph
 from .base import ModelGrid
 
+
 class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     """A grid of Voronoi Delaunay cells with a structured perimeter layout.
 
     This inherited class implements a irregular 2D grid with Voronoi Delaunay cells and
     irregular patches. It is a special type of VoronoiDelaunay grid in which
-    the initial set of points is arranged in a fixed lattice (e.g. like a rectangular 
+    the initial set of points is arranged in a fixed lattice (e.g. like a rectangular
     raster grid) named here "layout" and the core points are then moved aroung their
     initial position by a random distance, lower than a certain threshold.
-    
+
     Inheritance diagram
     -------------------
                        ModelGrid                                                                       DelaunayGraph
     FramedVoronoiGrid /                                                                               /
-                      \                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
+                      |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
                        DualFramedVoronoiGraph /
                                               \
                                                DualGraph
-                                                        ~ use of static Graph.sort()                                          
+                                                        ~ use of static Graph.sort()
     Examples
     --------
     Create a grid with 2 rows and 3 columns of nodes.
@@ -49,7 +50,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     array([  0.        ,  10.73417072,  20.        ])
     >>> grid.y_of_node[0::3]       # doctest: +NORMALIZE_WHITESPACE
     array([  0.   ,   7.499,  17.499,  30.   ])
-    
+
     >>> grid = FramedVoronoiGrid((3, 5), orientation="horizontal", node_layout="rect", xy_spacing=(10., 10.), xy_min_spacing=5., random_seed=True)
     >>> grid.boundary_nodes
     array([ 0,  1,  2,  3,  4,  5,  9, 10, 11, 12, 13, 14])
@@ -61,9 +62,9 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         xy_spacing=(1.0, 1.0),
         xy_of_lower_left=(0.0, 0.0),
         orientation="horizontal",
-        node_layout="rect",     
-        xy_min_spacing=(0.5, 0.5), 
-        random_seed=True, 
+        node_layout="rect",
+        xy_min_spacing=(0.5, 0.5),
+        random_seed=True,
         seed=(200, 500),
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
@@ -76,13 +77,13 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         of points is arranged in a regular lattice determined by the parameters:
         shape, xy_spacing, orientation, node_layout. The coordinates of
         the core points are then randomly moved while the perimeter points
-        remaining fixed, in a way determined by the parameters: xy_min_spacing, 
-        random_seed and seed. 
+        remaining fixed, in a way determined by the parameters: xy_min_spacing,
+        random_seed and seed.
 
         Parameters
         ----------
         shape : int or tuple of int
-            For a rectangular layout, number of rows and columns of nodes. 
+            For a rectangular layout, number of rows and columns of nodes.
             If int, rows number = columns number = value
         xy_spacing : float or tuple of float, optional
             Node spacing along x and y coordinates. If float, same spacing at x and y.
@@ -92,26 +93,26 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         orientation : string, optional
             'horizontal' only
         node_layout : string, optional
-            'rect' only. The grid layout of nodes. 
+            'rect' only. The grid layout of nodes.
         xy_min_spacing: float or tuple of float, optional
-            Final minimal spacing between nodes. Random moves of the core nodes 
-            around their position cannot be above this threshold: 
+            Final minimal spacing between nodes. Random moves of the core nodes
+            around their position cannot be above this threshold:
             (xy_spacing - xy_min_spacing) /2
             If float, same minimal spacing for x and y.
         random_seed: bool, optional
             If True, the moves of coordinates are completely random. False is used
             when reproducibility of moves is needed. Move pseudo-randomness is
-            then controlled by the parameter seed. 
+            then controlled by the parameter seed.
         seed: int or tuple of int, optional
             Seeds used to generate the random x and y moves. This parameter is unused
-            when random_seed = True. 
+            when random_seed = True.
         xy_of_reference : tuple, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
         xy_axis_name: tuple of str, optional
             x y axis names.
         xy_axis_units: str, optional
-            x y axis units.        
+            x y axis units.
 
         Returns
         -------
@@ -135,9 +136,9 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
             orientation=orientation,
             node_layout=node_layout,
             sort=True,
-            xy_min_spacing=xy_min_spacing, 
-            random_seed=random_seed, 
-            seed=seed
+            xy_min_spacing=xy_min_spacing,
+            random_seed=random_seed,
+            seed=seed,
         )
         ModelGrid.__init__(
             self,
@@ -150,7 +151,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
             self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=numpy.uint8
         )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
-     
+
     @classmethod
     def from_dict(cls, kwds):
         args = ()

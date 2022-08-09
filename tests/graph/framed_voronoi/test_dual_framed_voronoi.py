@@ -1,8 +1,7 @@
-import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-from pytest import approx
+from numpy.testing import assert_array_equal
 
 from landlab.graph import DualFramedVoronoiGraph
+
 
 def test_rect_create():
     """Test creating a dual hex graph with rectangular layout."""
@@ -16,16 +15,21 @@ def test_rect_create():
     assert graph.number_of_faces == 13
     assert graph.number_of_cells == 2
 
+
 def test_adjacent_corners_at_corner():
-    graph = DualFramedVoronoiGraph((3, 3), node_layout="rect", sort=True, random_seed=False)
+    graph = DualFramedVoronoiGraph(
+        (3, 3), node_layout="rect", sort=True, random_seed=False
+    )
     assert_array_equal(
         graph.adjacent_corners_at_corner,
-        [[ 2, -1, -1],
-       [ 3,  2, -1],
-       [ 4,  0,  1],
-       [ 6,  1, -1],
-       [ 5,  2, -1],
-       [ 6,  4, -1],
-       [ 7,  5,  3],
-       [ 6, -1, -1]],
+        [
+            [2, -1, -1],
+            [3, 2, -1],
+            [4, 0, 1],
+            [6, 1, -1],
+            [5, 2, -1],
+            [6, 4, -1],
+            [7, 5, 3],
+            [6, -1, -1],
+        ],
     )

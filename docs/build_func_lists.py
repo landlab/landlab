@@ -32,9 +32,17 @@ grid_types = (
     "VoronoiDelaunayGrid",
     "HexModelGrid",
     "RadialModelGrid",
+    "FramedVoronoiGrid",
 )
-str_sequence = ("Base class", "Raster", "Irregular Voronoi-cell", "Hexagonal", "Radial")
-paths = ("base", "raster", "voronoi", "hex", "radial")
+str_sequence = (
+    "Base class",
+    "Raster",
+    "Irregular Voronoi-cell",
+    "Hexagonal",
+    "Radial",
+    "Framed Voronoi-cell",
+)
+paths = ("base", "raster", "voronoi", "hex", "radial", "framed_voronoi")
 
 autosummary = "\n\n.. currentmodule:: landlab \n\n.. autosummary::\n\n"
 

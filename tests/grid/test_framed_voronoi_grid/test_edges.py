@@ -40,10 +40,3 @@ def test_edges_are_readonly():
     assert not grid.perimeter_nodes.flags["WRITEABLE"]
     with pytest.raises(ValueError):
         getattr(grid, "nodes_at_" + edge_name)[0] = 999
-
-
-def test_perimeter_is_cached():
-    grid = FramedVoronoiGrid((3, 4))
-    edge_name = "bottom_edge"
-    x = grid.perimeter_nodes
-    assert grid.perimeter_nodes is x
