@@ -27,13 +27,14 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
 
     Inheritance diagram
     x xxxxxxxxxxxxxxx x
-                       ModelGrid                                                                       DelaunayGraph
-    FramedVoronoiGrid /                                                                               /
-                      |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
-                       DualFramedVoronoiGraph /
-                                              \
-                                               DualGraph
-                                                        ~ use of static Graph.sort()
+    x                  ModelGrid                                                                       DelaunayGraph
+    x FramedVoronoiGrid /                                                                               /
+    x                  |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
+    x                  DualFramedVoronoiGraph /
+    x                                         \
+    x                                          DualGraph
+    x                                                   ~ use of static Graph.sort()
+    
     Examples
     --------
     Create a grid with 2 rows and 3 columns of nodes.
