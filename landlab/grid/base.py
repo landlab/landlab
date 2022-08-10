@@ -29,6 +29,7 @@ from .decorators import (
 )
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
+from .grid_funcs import find_nearest_node
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
@@ -2940,6 +2941,46 @@ class ModelGrid(
         assert np.all(self._all_node_distances_map >= 0.0)
 
         return self._all_node_distances_map, self._all_node_azimuths_map
+
+    def find_nearest_node(self, coords, mode=None):
+        """Node nearest a point or array of points.
+
+        Find the index to the node(s) nearest the given x, y coordinates.
+        Coordinates are provided as numpy arrays in the *coords* tuple.
+
+        Returns the indices of the nodes nearest the given coordinates.
+
+        Parameters
+        ----------
+        coords : tuple of array-like
+            Coordinates of points; (x, y). Note this ordering is not LL
+            standard.
+        mode : None
+            This dummy variable is overriden in the version of this method
+            that operates on a raster grid. Do not set here.
+
+        Returns
+        -------
+        array-like
+            IDs of the nearest nodes.
+
+        Notes
+        -----
+        This irregular grid function is fairly slow. For a raster, the
+        overridden function is much faster.
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid((4, 5))
+        >>> hmg.find_nearest_node([-1., -1.])
+        array([0])
+        >>> hmg.find_nearest_node((np.array([3.1, 4.2]), np.array([0.2, 1.7])))
+        array([ 2, 15])
+
+        LLCATS: NINF SUBSET
+        """
+        return find_nearest_node(self, coords)
 
     # def node_has_boundary_neighbor(self, ids):
     def node_has_boundary_neighbor(self):
