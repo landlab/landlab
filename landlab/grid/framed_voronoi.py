@@ -34,7 +34,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     x                                         \
     x                                          DualGraph
     x                                                   ~ use of static Graph.sort()
-    
+
     Examples
     --------
     Create a grid with 2 rows and 3 columns of nodes.
