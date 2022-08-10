@@ -1,0 +1,16 @@
+#setup.py conf file
+cython_compile:
+    file_selection:
+        force: True # If True, setup.py takes all filles in walk_paths
+        walk_paths:
+            - landlab/components/flow_director
+            #- tests
+        exclude_words_in_path:
+            - .ipynb_checkpoints
+            - ext
+        exclude_words_in_filename:
+    cythonize_arguments:
+        force: True # If True, cythonize all extensions selected
+        compiler_directives:
+            embedsignature: True
+            language_level: 3
