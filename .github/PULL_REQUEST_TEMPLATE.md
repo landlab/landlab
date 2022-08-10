@@ -29,7 +29,7 @@
     folder.
 -->
 
-- [ ] Add a CHANGELOG entry if necessary?
+- [ ] Add a [news fragment](https://landlab.readthedocs.io/en/master/development/contribution/index.html#news-entries) file entry if necessary?
 - [ ] Add / update tests if necessary?
 - [ ] Add new / update outdated documentation?
 - [ ] All tests have passed?
