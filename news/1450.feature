@@ -1,0 +1,1 @@
+Added a new class of grid, *FramedVoronoiGrid* which inherits from VoronoiDelaunayGrid.
