@@ -8,6 +8,7 @@ nbsphinx>=0.2.12
 pandoc
 sphinx>=4
 sphinx_rtd_theme
+sphinxcontrib.towncrier
 sphinxcontrib_github_alt
 tabulate
 tornado
