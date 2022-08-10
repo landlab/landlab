@@ -53,13 +53,14 @@ class HorizontalRectVoronoiGraph:
         """Calculation of the x-y coordinates this way:
         1. Generate a rectangular, regular meshgrid.
         2. Move the coordinates of the core nodes over a random distance around their
-            initial position, within a threshold calculated from xy_spacing and
-            xy_min_spacing.
+        ....initial position, within a threshold calculated from xy_spacing and
+        ....xy_min_spacing.
         3. Rectify the y-coordinates of the nodes of the left and right to ensure
-            that the leftmost node of a row has a lower y than the rightmost node.
-            This ensures that the ids of these nodes are not modified by subsequent
-            sorting operations on the graph and make it possible to get the
-            perimeter nodes in simple way.
+        ....that the leftmost node of a row has a lower y than the rightmost node.
+        ....This ensures that the ids of these nodes are not modified by subsequent
+        ....sorting operations on the graph and make it possible to get the
+        ....perimeter nodes in simple way.
+
         Parameters
         ----------
         shape : int or tuple of int.
