@@ -1,5 +1,5 @@
 landlab.graph.framed_voronoi package
-=============================
+====================================
 
 Subpackages
 -----------
@@ -12,7 +12,7 @@ Submodules
 ----------
 
 landlab.graph.framed_voronoi.dual_framed_voronoi module
------------------------------------------
+-------------------------------------------------------
 
 .. automodule:: landlab.graph.framed_voronoi.dual_framed_voronoi
     :members:
@@ -20,7 +20,7 @@ landlab.graph.framed_voronoi.dual_framed_voronoi module
     :show-inheritance:
 
 landlab.graph.framed_voronoi.framed_voronoi module
-------------------------------------
+--------------------------------------------------
 
 .. automodule:: landlab.graph.framed_voronoi.framed_voronoi
     :members:

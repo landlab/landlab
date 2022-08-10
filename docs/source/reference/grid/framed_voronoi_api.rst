@@ -1,5 +1,5 @@
 API for landlab.grid.framed_voronoi
-------------------------
+-----------------------------------
 
 .. automodule:: landlab.grid.framed_voronoi
    :members:
