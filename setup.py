@@ -86,7 +86,11 @@ for i in range(len(filenames)):
     pyx_path = os.path.join(roots[i], filenames[i])
     params = {"sources": [pyx_path]}
     yaml_path = os.path.join(roots[i], "setup_" + filenames[i][: -len(".pyx")] + ".yml")
-    ext_name = re.sub(re.escape(os.path.sep), ".", pyx_path[: -len(".pyx")]).lstrip(".").lstrip("/")
+    ext_name = (
+        re.sub(re.escape(os.path.sep), ".", pyx_path[: -len(".pyx")])
+        .lstrip(".")
+        .lstrip("/")
+    )
 
     if os.path.exists(yaml_path):
         with open(yaml_path) as f:
