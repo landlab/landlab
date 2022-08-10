@@ -3,8 +3,8 @@ cython_compile:
     file_selection:
         force: True # If True, setup.py takes all filles in walk_paths
         walk_paths:
-            - landlab/components/flow_director
-            #- tests
+            - landlab
+            - tests
         exclude_words_in_path:
             - .ipynb_checkpoints
             - ext
