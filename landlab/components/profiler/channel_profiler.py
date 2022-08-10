@@ -602,12 +602,11 @@ class ChannelProfiler(_BaseProfiler):
             bad_wshed = True
 
         if bad_wshed:
-            msg = (
+            raise ValueError(
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with channel_definition_field"
-                " area. {vals}".format(vals=starting_da)
+                f" area. {starting_da}"
             )
-            raise ValueError(msg)
 
         self._outlet_nodes = outlet_nodes
 

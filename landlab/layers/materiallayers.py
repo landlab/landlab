@@ -39,21 +39,6 @@ class MaterialLayers(EventLayers):
     number_of_stacks : int
         Number of layer stacks to track.
 
-    Attributes
-    ----------
-    allocated
-    dz
-    thickness
-    number_of_layers
-    number_of_stacks
-    surface_index
-    z
-
-    Methods
-    -------
-    add
-    get_surface_values
-
     Examples
     --------
     >>> from landlab.layers.materiallayers import MaterialLayers
@@ -135,7 +120,7 @@ class MaterialLayers(EventLayers):
         array([[ 2.5,  3.5,  2. ]])
 
         Because the attributes of this layer and the previous layer
-        are the same (e.g. they don't exist), MaterialLayer will combined
+        are the same (e.g. they don't exist), MaterialLayer will combine
         them. This is the primary difference between MaterialLayers and
         EventLayers.
 

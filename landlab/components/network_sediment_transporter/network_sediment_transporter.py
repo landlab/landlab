@@ -65,11 +65,6 @@ class NetworkSedimentTransporter(Component):
     Examples of its usage can be found in the NetworkSedimentTransporter
     notebooks (located in the "notebooks" folder).
 
-    Attributes
-    ----------
-    OUT_OF_NETWORK : int
-        Indicates a parcel is out of network.
-
     Examples
     ----------
     >>> import numpy as np
@@ -531,15 +526,26 @@ class NetworkSedimentTransporter(Component):
             )
 
             # calcuate taustar
-            taustar = tau / (
+            # taustar = tau / (
+            #     (self._rhos_mean_active - self._fluid_density)
+            #     * self._g
+            #     * self._d_mean_active
+            # )
+            taustar = np.zeros_like(tau)
+            np.divide(
+                tau,
                 (self._rhos_mean_active - self._fluid_density)
                 * self._g
-                * self._d_mean_active
+                * self._d_mean_active,
+                where=self._rhos_mean_active > self._fluid_density,
+                out=taustar,
             )
 
             # calculate active layer thickness
             self._active_layer_thickness = (
-                0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
+                0.515
+                * self._d_mean_active
+                * (3.09 * (taustar - 0.0549).clip(0.0, None) ** 0.56)
             )  # in units of m
 
         elif self._active_layer_method == "GrainSizeDependent":
@@ -714,8 +720,11 @@ class NetworkSedimentTransporter(Component):
         Sarray = np.zeros(self._num_parcels)
         Harray = np.zeros(self._num_parcels)
         Larray = np.zeros(self._num_parcels)
-        D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
-        active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
+        # D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
+        # active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
+        D_mean_activearray = np.full(self._num_parcels, np.nan)
+        active_layer_thickness_array = np.full(self._num_parcels, np.nan)
+
         #        rhos_mean_active = np.zeros(self._num_parcels)
         #        rhos_mean_active.fill(np.nan)
 

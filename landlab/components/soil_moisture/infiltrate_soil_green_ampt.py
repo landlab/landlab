@@ -9,13 +9,11 @@ class SoilInfiltrationGreenAmpt(Component):
 
     """Infiltrate surface water into a soil following the Green-Ampt method.
 
-    This code is based on an overland flow model by Francis Rengers and
-    colleagues, after Julien et al., 1995. The infiltration scheme follows the
-    Green and Ampt equation.
-
-    It was implemented in Landlab by DEJH, March '16. Please cite
-    Rengers et al., 2016, Model Predictions of Water Runoff in Steep
-    Catchments after Wildfire, WRR.
+    This component calculates the infiltation of surface water into the soil,
+    using the Green-Ampt method. The component tracks the depth of infiltrated
+    water over time, in the field soil_water_infiltration__depth. It also
+    modifies the depth of surface water (surface_water__depth) as surface water
+    progressively infiltrates into the soil below.
 
     Examples
     --------
@@ -42,6 +40,18 @@ class SoilInfiltrationGreenAmpt(Component):
             0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
             0.2001147 ,  0.2001147 ])
 
+    Notes
+    -----
+    This code is based on an overland flow model by Francis Rengers and
+    colleagues, after Julien et al., 1995. The infiltration scheme follows the
+    Green and Ampt equation. It was implemented in Landlab by DEJH, March 2016.
+
+    **Where to learn more**
+
+    A description of the Green-Ampt infiltration equation can be found in many
+    hydrology texts, as well as online resources. The original theory was
+    published by Green and Ampt (1911).
+
     References
     ----------
     **Required Software Citation(s) Specific to this Component**
@@ -56,6 +66,8 @@ class SoilInfiltrationGreenAmpt(Component):
     modeling of spatially-varied surface runoff, J. Am. Water Resour. As., 31,
     523–536, doi:10.1111/j.17521688.1995.tb04039.x, 1995.
 
+    Green, W. H., & Ampt, G. A. (1911). Studies on Soil Phyics. The Journal of
+    Agricultural Science, 4(1), 1-24.
     """
 
     _name = "SoilInfiltrationGreenAmpt"

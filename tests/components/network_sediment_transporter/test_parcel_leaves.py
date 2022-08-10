@@ -35,7 +35,7 @@ def test_parcel_leaves(example_nmg, example_flow_director):
         dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     )
 
-    timesteps = 5
+    timesteps = 10
 
     example_nmg.at_link["flow_depth"] = example_nmg.at_link["flow_depth"] * 20
 
@@ -53,5 +53,5 @@ def test_parcel_leaves(example_nmg, example_flow_director):
 
     # Parcel should exit, then runtime error is raised
     with pytest.raises(RuntimeError):
-        for t in range(timesteps):
+        for _ in range(timesteps):
             nst.run_one_step(dt)

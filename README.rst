@@ -2,7 +2,7 @@
    :target: https://doi.org/10.5281/zenodo.154179
 
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
-    :target: https://readthedocs.org/projects/landlab/?badge=latest
+    :target: https://landlab.readthedocs.org
 
 .. image:: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/test.yml
@@ -111,9 +111,21 @@ run the following commands:
 
 .. code-block:: bash
 
-    $ conda env create --file=environment-dev.yml
-    $ conda activate landlab_dev
+    $ conda create -n landlab python
+    $ conda install -n landlab --file=requirements.txt
+    $ conda activate landlab
     $ pip install -e .
+
+This will install *landlab* and it's dependencies. You may want to install
+some additional utilities used for developing, testing, and running *landlab*
+notebooks. This can be done with the following:
+
+.. code-block:: bash
+
+    $ conda install --file=requirements-dev.txt
+    $ conda install --file=requirements-testing.txt
+    $ conda install --file=requirements-notebooks.txt
+
 
 How do I verify I've installed Landlab correctly?
 -------------------------------------------------
@@ -164,20 +176,37 @@ of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
 Are there any examples of using Landlab I can look at?
 ------------------------------------------------------
 
-The Landlab package contains a directory at ``landlab/notebooks`` which contains
-Jupyter notebooks describe core concepts and give examples of using components.
+The Landlab package contains a directory, ``landlab/notebooks``, with
+Jupyter Notebooks describing core concepts and giving examples of using components.
 The file ``landlab/notebooks/welcome.ipynb`` provides a table of contents to
-the notebooks and is the recommended starting place. To launch an instance of
+the notebooks and is the recommended starting place.
+Additionally, there are a set of notebooks curated to teach physical processes
+located in the directory ``landlab/notebooks/teaching``.
+
+Run on Binder
+`````````````
+
+To launch an instance of
 Binder and `explore the notebooks click here`_.
 
 .. _explore the notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
 
-In addition there are a set of notebooks curated to teach physical processes
-located in the directory ``landlab/notebooks/teaching``.
-
-To launch an Binder instance that goes straight to these `teaching notebooks click here`_.
+To launch a Binder instance that goes straight to the `teaching notebooks click here`_.
 
 .. _teaching notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb
+
+Run on the CSDMS JupyterHub
+```````````````````````````
+
+The Landlab notebooks can also be run on the CSDMS JupyterHub.
+To sign up for a free account,
+`visit the CSDMS wiki`_ and follow the instructions there.
+Then, click to explore the `example notebooks`_,
+or to go straight to the `teaching notebooks`_.
+
+.. _visit the CSDMS wiki: https://csdms.colorado.edu/wiki/JupyterHub
+.. _example notebooks: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=tree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb&branch=master
+.. _teaching notebooks: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=tree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master
 
 
 What License does Landlab use?
