@@ -7,7 +7,6 @@ cython_compile:
             - tests
         exclude_words_in_path:
             - .ipynb_checkpoints
-            - ext
         exclude_words_in_filename:
     cythonize_arguments:
         force: True # If True, cythonize all extensions selected
