@@ -26,7 +26,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     initial position by a random distance, lower than a certain threshold.
 
     Inheritance diagram
-    -------------------
+    *******************
                        ModelGrid                                                                       DelaunayGraph
     FramedVoronoiGrid /                                                                               /
                       |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
