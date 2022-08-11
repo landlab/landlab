@@ -27,9 +27,9 @@ extensions.
 Otherwise, and if the filenames end by .pyx:
 - either force is set to True, and the file is added to the extensions
 - of force set to False, the file is added either if
--      - there is no c or cpp file
+-      - there is no c or cpp file.
 -      - there is a c or cpp file, but the timestamp is older than the one
--        of the .pyx file
+-        of the .pyx file.
 """
 setup_select = setup_cython["cython_compile"]["file_selection"]
 for walk_path in setup_select["walk_paths"]:
