@@ -23,5 +23,5 @@ jobs:
 
       - name: Lint
         run: |
-          pip install flake8
-          flake8 landlab tests
+          pip install nox
+          nox -s lint
