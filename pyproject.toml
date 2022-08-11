@@ -61,6 +61,7 @@ dev = [
   "flake8-bugbear",
   "isort",
   "pre-commit",
+  "nox",
 ]
 docs = [
   "pandoc",
