@@ -21,7 +21,7 @@ filenames = []
 """
 To get the paths and filenames of the extensions to update,
 we walk through the files included in walk_paths. If the directory names
-or filenames contains one of the exclude_words_in_path or 
+or filenames contains one of the exclude_words_in_path or
 exclude_words_in_filename they are not included in the list of
 extensions.
 Otherwise, and if the filenames end by .pyx:
@@ -64,9 +64,7 @@ for walk_path in setup_select["walk_paths"]:
                 if os.path.exists(pyx_path[: -len(".pyx")] + ext):
                     c_path = pyx_path[: -len(".pyx")] + ext
                     break
-            if (c_path == "" or 
-                os.path.getmtime(c_path) < os.path.getmtime(pyx_path)
-               ):
+            if c_path == "" or os.path.getmtime(c_path) < os.path.getmtime(pyx_path):
                 roots += [root]
                 filenames += [fname]
 
@@ -118,10 +116,10 @@ for i in range(len(filenames)):
                     new_params[k] = new_v
             if len(new_params) > 0:
                 params = new_params
-                
+
     ext = Extension(name=ext_name, **params)
     module_list.append(ext)
-    
+
 """
 Now we launch the setup. Within this setup we cythonize all modules with the
 general params given in the setup_cython.yml conf file
