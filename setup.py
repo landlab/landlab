@@ -21,8 +21,9 @@ filenames = []
 """
 To get the paths and filenames of the extensions to update,
 we walk through the files included in walk_paths. If the directory names
-or filenames contains one of the exclude_words_in_path or exclude_words_in_filename
-they are not included in the list of extensions.
+or filenames contains one of the exclude_words_in_path or 
+exclude_words_in_filename they are not included in the list of
+extensions.
 Otherwise, and if the filenames end by .pyx:
 - either force is set to True, and the file is added to the extensions
 - of force set to False, the file is added either if
@@ -63,7 +64,9 @@ for walk_path in setup_select["walk_paths"]:
                 if os.path.exists(pyx_path[: -len(".pyx")] + ext):
                     c_path = pyx_path[: -len(".pyx")] + ext
                     break
-            if c_path == "" or os.path.getmtime(c_path) < os.path.getmtime(pyx_path):
+            if (c_path == "" or 
+                os.path.getmtime(c_path) < os.path.getmtime(pyx_path)
+               ):
                 roots += [root]
                 filenames += [fname]
 
@@ -73,7 +76,7 @@ above. If the .pyx file is not associated to a setup_xxx.yml conf file,
 no compilation params are given to the extension.
 Otherwise, the params of the setup_xxx.yml file are given, with
 the potential conversion of the define_macros params into a tuple
-(expected by the class Extension).
+(expected by the class Extension). Params without value are excluded.
 A list of possible params to write in the setup_xxx.yml file is
 yielded here:
 https://setuptools.pypa.io/en/latest/userguide/ext_modules.html
@@ -103,19 +106,32 @@ for i in range(len(filenames)):
                 if z is not None:
                     for j in range(len(z)):
                         z[j] = (z[j][0], z[j][1])
-        params = w
-
+            new_params = {}
+            for k, v in w.items():
+                if v is not None:
+                    new_v = v
+                    if isinstance(v, list):
+                        new_v = []
+                        for p in v:
+                            if p is not None:
+                                new_v.append(p)
+                    new_params[k] = new_v
+            if len(new_params) > 0:
+                params = new_params
+                
     ext = Extension(name=ext_name, **params)
     module_list.append(ext)
-
+    
 """
-Now we launch the setup. Within this setup we cythonize all modules with the general params
-given in the setup_cython.yml conf file
+Now we launch the setup. Within this setup we cythonize all modules with the
+general params given in the setup_cython.yml conf file
 The possible params to set in the conf file are here:
 https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html
-Note that our script implements compiler directives but not Cython compiler options
+Note that our script implements compiler directives but not Cython compiler
+options
 """
 params = setup_cython["cython_compile"]["cythonize_arguments"]
+ext_modules = cythonize(module_list=module_list, **params)
 setup(
     ext_modules=cythonize(module_list=module_list, **params),
     include_dirs=[numpy.get_include()],
