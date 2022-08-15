@@ -19,7 +19,6 @@ Information about the grid as a whole
 
 '''
 """
-import re
 from copy import copy
 
 import numpy as np

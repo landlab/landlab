@@ -46,7 +46,7 @@ class DepressionFinderAndRouter(Component):
     boundary conditions are.
     However, the outputs from the lake will all still be correct.
 
-    Note the routing part of this component is not yet compatible with
+    Note the routing part of this component may not yet be fully compatible with
     irregular grids.
 
     The prinary method of this class is
@@ -1137,7 +1137,10 @@ class DepressionFinderAndRouter(Component):
 
                 if new_link.size == 0:
                     new_link = self._grid.BAD_INDEX
-                self._links[outlet_node] = new_link
+                if np.min(new_link) == np.max(new_link) and np.min(new_link) == -1:
+                    self._links[outlet_node] = -1
+                else:
+                    self._links[outlet_node] = new_link
 
                 # make a check
                 assert (

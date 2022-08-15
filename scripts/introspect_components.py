@@ -60,11 +60,8 @@ components folder.
 NOTE TO DEJH: This is missing some names; see, e.g., gFlex.
 """
 
-import dircache
 import fnmatch
-import glob
 import os.path as path
-import pkgutil
 from copy import copy
 from os import walk
 
@@ -74,7 +71,7 @@ terminate_chars_map = {"[": "]", "{": "}", "(": ")"}
 
 abspath = path.abspath(comp.__path__[0])
 poss_comp_files = []
-for root, dirnames, filenames in walk(abspath):
+for root, _, filenames in walk(abspath):
     for filename in fnmatch.filter(filenames, "*.py"):
         poss_comp_files.append(path.join(root, filename))
 
@@ -141,7 +138,7 @@ for LLcomp in poss_comp_files:
         if cat_lines and found_a_name:
             # print('EXEC: ', LLcomp)
             exec(cat_lines)  # eval(prop) is now an obj
-            if prop is " _name":
+            if prop == " _name":
                 last_name = eval(prop.lstrip())
                 comp_elements[eval(prop.lstrip())] = {}
             else:
@@ -218,7 +215,7 @@ for name in comp_elements.keys():
                     + "defined in _input/_output_var_names"
                 )
             else:
-                if prop is "_var_mapping":
+                if prop == "_var_mapping":
                     for element in this_un[prop].values():
                         if not (element in poss_elements):
                             problems.append(
