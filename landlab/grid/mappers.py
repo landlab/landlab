@@ -117,49 +117,49 @@ def map_link_head_node_to_link(grid, var_name, out=None):
 def map_link_tail_node_to_link(grid, var_name, out=None):
     """Map values from a link tail nodes to links.
 
-     map_link_tail_node_to_link iterates across the grid and
-     identifies the node at the "tail", or the "from" node for each link. For
-     each link, the value of 'var_name' at the "from" node is mapped to the
-     corresponding link.
+    map_link_tail_node_to_link iterates across the grid and
+    identifies the node at the "tail", or the "from" node for each link. For
+    each link, the value of 'var_name' at the "from" node is mapped to the
+    corresponding link.
 
-     In a RasterModelGrid, each one node has two adjacent "link tails". This
-     means each node value is mapped to two corresponding links.
+    In a RasterModelGrid, each one node has two adjacent "link tails". This
+    means each node value is mapped to two corresponding links.
 
-     Parameters
-     ----------
-     grid : ModelGrid
-         A landlab ModelGrid.
-     var_name : array or field name
-         Values defined at nodes.
-     out : ndarray, optional
-         Buffer to place mapped values into or `None` to create a new array.
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at nodes.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
 
-     Returns
-     -------
-     ndarray
-         Mapped values at links.
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
 
-     Examples
-     --------
-     >>> import numpy as np
-     >>> from landlab.grid.mappers import map_link_tail_node_to_link
-     >>> from landlab import RasterModelGrid
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.mappers import map_link_tail_node_to_link
+    >>> from landlab import RasterModelGrid
 
-     >>> rmg = RasterModelGrid((3, 4))
-     >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
-     ...                               4,  5,  6,  7,
-     ...                               8,  9, 10, 11])
-     >>> map_link_tail_node_to_link(rmg, 'z')
-     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
-              5.,   6.,   7.,   8.,   9.,  10.])
+    >>> rmg = RasterModelGrid((3, 4))
+    >>> rmg.at_node['z'] = np.array([ 0,  1,  2,  3,
+    ...                               4,  5,  6,  7,
+    ...                               8,  9, 10, 11])
+    >>> map_link_tail_node_to_link(rmg, 'z')
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
+             5.,   6.,   7.,   8.,   9.,  10.])
 
-     >>> values_at_links = rmg.empty(at='link')
-     >>> rtn = map_link_tail_node_to_link(rmg, 'z', out=values_at_links)
-     >>> values_at_links
-     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
-              5.,   6.,   7.,   8.,   9.,  10.])
-     >>> rtn is values_at_links
-     True
+    >>> values_at_links = rmg.empty(at='link')
+    >>> rtn = map_link_tail_node_to_link(rmg, 'z', out=values_at_links)
+    >>> values_at_links
+    array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   4.,
+             5.,   6.,   7.,   8.,   9.,  10.])
+    >>> rtn is values_at_links
+    True
 
     :meta landlab: info-node, info-link, map
     """

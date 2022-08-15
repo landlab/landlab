@@ -1175,10 +1175,8 @@ class GraphFields:
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        landlab.field.GraphFields.empty : Equivalent method that
-            does not initialize the new array.
-        landlab.field.GraphFields.zeros : Equivalent method that
-            initializes the data to 0.
+        landlab.field.GraphFields.empty : Equivalent method that does not initialize the new array.
+        landlab.field.GraphFields.zeros : Equivalent method that initializes the data to 0.
 
         :meta landlab: field-add
         """
@@ -1232,10 +1230,8 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        andlab.field.GraphFields.add_empty : Equivalent method that
-            does not initialize the new array.
-        andlab.field.GraphFields.add_zeros : Equivalent method that
-            initializes the data to 0.
+        andlab.field.GraphFields.add_empty : Equivalent method that does not initialize the new array.
+        andlab.field.GraphFields.add_zeros : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1289,10 +1285,8 @@ class GraphFields:
         See also
         --------
         numpy.zeros : See for a description of optional keywords.
-        landlab.field.GraphFields.add_empty : Equivalent method that
-            does not initialize the new array.
-        landlab.field.GraphFields.add_ones : Equivalent method that
-            initializes the data to 1.
+        landlab.field.GraphFields.add_empty : Equivalent method that does not initialize the new array.
+        landlab.field.GraphFields.add_ones : Equivalent method that initializes the data to 1.
 
         :meta landlab: field-add
         """
