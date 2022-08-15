@@ -61,6 +61,7 @@ dev = [
   "flake8-bugbear",
   "isort",
   "pre-commit",
+  "nox",
 ]
 docs = [
   "pandoc",
@@ -75,6 +76,7 @@ docs = [
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
   "sphinxcontrib.towncrier",
+  "sphinx-jinja",
 ]
 testing = [
   "coveralls",

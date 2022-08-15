@@ -19,7 +19,6 @@ This script is designed to be run as part of the commit process for LL.
 Any changes made directly to the above files will be lost whenever this script
 is run.
 """
-import re
 from copy import copy
 
 import numpy as np
