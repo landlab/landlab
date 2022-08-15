@@ -26,40 +26,57 @@ for learning Landlab
 Launch notebooks locally
 ------------------------
 
-How you installed Landlab determines the steps to launch notebooks that use a
-copy of Landlab on your computer.
+To run the tutorials locally, you will first need to install *landlab*
+on your computer. If you have not already done so, please see the *landlab*
+:ref:`installation guide<install>`.
+Because several of the notebooks depend on packages that cannot be
+installed using *pip*, we recommend you use *conda* to install the
+tutorial notebook requirements.
 
-User installations
-``````````````````
+Get the notebooks
+`````````````````
 
-If you installed using a prepackaged binary, the most common method, the
-notebooks can be run in a conda environment.
-:ref:`These instructions <conda_environment>` describe how to create a conda
-environment for the notebooks.
+If you have the *landlab* source code, you already have the notebooks (they are
+in the *notebooks/* folder).
 
-Once the conda environment has been created, it must be activated and then the
-notebooks can be launched:
-
-.. code-block:: bash
-
-   $ conda activate landlab_notebooks
-   $ jupyter notebook notebooks/welcome.ipynb
-
-Developer installations
-```````````````````````
-
-If you installed using the
-:ref:`developer install instructions <developer_install>`, the tutorials exist
-on your computer within the ``notebooks`` folder of your local Landlab clone.
-
-If you installed Landlab within an environment, the environment must be
-activated and then the notebooks can be launched. The following code assumes
-that the environment name is `landlab_dev`:
+If you don't have a copy of the source code, you can run the
+`notebooks.py`_
+script to fetch the set of notebooks that matches your version of *landlab*.
+This can be done either by running,
 
 .. code-block:: bash
 
-   $ conda activate landlab_dev
-   $ jupyter notebook notebooks/welcome.ipynb
+   $ curl -L https://raw.githubusercontent.com/landlab/landlab/mcflugen/fetch-notebooks-script/notebooks.py | python -
+
+or by downloading the script and running the following from the terminal,
+
+.. code-block:: bash
+
+   $ python -m notebooks
+ 
+.. _notebooks.py: https://github.com/landlab/landlab/blob/mcflugen/fetch-notebooks-script/notebooks.py
+
+Install dependencies
+````````````````````
+
+The dependencies required to run the notebooks are listed in the file, *requirements-notebooks.txt*
+and can be installed with *conda*, 
+
+.. code-block:: bash
+
+   $ conda install --file=requirements-notebooks.txt
+
+
+Run the tutorials
+`````````````````
+
+It's now time to run the tutorials. Opening the welcome page is a good place to start
+but you can also open individual notebooks as well.
+
+.. code-block:: bash
+
+    $ jupyter notebook notebooks/welcome.ipynb
+
 
 Contributing new or modified tutorials
 --------------------------------------

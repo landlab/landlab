@@ -4,86 +4,105 @@
 Installation Instructions
 =========================
 
-If you want to use Landlab to explore Earth surface dynamics, this is almost
-certainly the correct place to get install instruction. If you want to change
-the Landlab source code go to the
-:ref:`developer install instructions <developer_install>`.
+In order to use *landlab* you will first need Python >=3.8. While not
+necessary, we recommend using the 
+`Anaconda Python distribution <https://www.anaconda.com/distribution/>`_
+as it provides a large number of third-party packages useful for
+scientific computing.
 
-In order to run Landlab you will need a python distribution. We recommend the
-`Anaconda distribution <https://www.anaconda.com/distribution/>`_
-(version 3.6 or higher).
+To install *landlab*, simply run the following in your terminal of choice:
 
-You can install Landlab using either the pip or conda package management tools.
-We distribute Landlab through `PyPI <https://pypi.org/project/landlab/>`_
-and `conda-forge <https://anaconda.org/conda-forge/landlab>`_.
+.. tab:: conda
 
-The following instructions will just install Landlab and its dependencies.
-There may be some additional dependencies necessary to run the Landlab
-notebooks or develop a model with Landlab (e.g., spyder). Below we also provide
-instructions to install a conda environment which includes everything you need
-to run the notebooks.
+  .. code-block:: bash
 
-Conda instructions
-------------------
+    $ conda install landlab -c conda-forge
 
-Installation
-````````````
-In a terminal type:
+.. tab:: pip
+
+  .. code-block:: bash
+
+    $ pip install landlab
+
+or, if you simply can't wait for the latest release, you can install *landlab*
+directly from GitHub,
 
 .. code-block:: bash
 
-  $ conda install landlab -c conda-forge
+   $ pip install git+https://github.com/landlab/landlab
 
-If you work with many different packages that require conflicting dependencies,
-consider reading about (and using)
-`conda environments <https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments>`_.
 
-Updating
-````````
+Source code
+-----------
 
-In a terminal type:
+*landlab* is actively being developed on GitHub, where the code is freely-available.
+If you would like to modify or contribute code, you can either clone our
+repository
+
+.. code-block:: bash
+
+   $ git clone git://github.com/landlab/landlab.git
+
+or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
+(a zip file is available for Windows users):
 
 .. code-block:: bash
 
-  $ conda update landlab
+   $ curl -OL https://github.com/landlab/landlab/tarball/master
 
-Uninstall
-`````````
+Once you have a copy of the source code, you can install it into your current
+Python,
 
-In a terminal type:
+.. tab:: conda
 
-.. code-block:: bash
+  .. code-block:: bash
+
+     $ cd landlab
+     $ conda install --file=requirements.txt
+     $ pip install -e .
+
+.. tab:: pip
+
+  .. code-block:: bash
+
+     $ cd landlab
+     $ pip install -e .
+
+
+Updating and uninstalling
+-------------------------
+
+You can update an existing *landlab* installation to a newer version
+(if available) by running the following,
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+    $ conda update landlab
+
+.. tab:: pip
+
+  .. code-block:: bash
+
+    $ pip -U install landlab
+    
+
+
+To uninstall *landlab*,
+
+.. tab:: conda
+
+  .. code-block:: bash
 
     $ conda uninstall landlab
 
-Pip Instructions
-----------------
+.. tab:: pip
 
-Installation
-````````````
-In a terminal type:
-
-.. code-block:: bash
-
-  $ pip install landlab
-
-Updating
-````````
-
-In a terminal type:
-
-.. code-block:: bash
-
-  $ pip install --upgrade landlab
-
-Uninstall
-`````````
-
-In a terminal type:
-
-.. code-block:: bash
+  .. code-block:: bash
 
     $ pip uninstall landlab
+    
 
 .. _conda_environment:
 
