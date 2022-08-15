@@ -40,6 +40,7 @@ dependencies = [
   "numpy",
   "pyyaml",
   "pyshp != 2.3.0",
+  "rich_click",
   "scipy",
   "statsmodels",
   "pandas",
@@ -74,6 +75,9 @@ docs = [
   "entrypoints",
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
+  "sphinx_inline_tabs",
+  "sphinx_jinja",
+  "sphinx-toolbox",
 ]
 testing = [
   "coveralls",
@@ -94,7 +98,7 @@ notebooks = [
 ]
 
 [project.scripts]
-landlab = "landlab.cmd.landlab:main"
+landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
