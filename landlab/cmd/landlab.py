@@ -1,9 +1,11 @@
+import inspect
 import os
 import sys
+import textwrap
+from collections import defaultdict
 from functools import partial
 
 import rich_click as click
-from jinja2 import Environment
 
 from landlab import (
     ModelGrid,
@@ -11,12 +13,6 @@ from landlab import (
     VoronoiDelaunayGrid,
     HexModelGrid,
     RadialModelGrid,
-)
-from landlab.core.utils import (
-    # CATEGORIES,
-    get_category_from_class,
-    # get_categories_from_class,
-    get_funcs_by_category,
 )
 
 
@@ -27,6 +23,28 @@ GRIDS = [
     HexModelGrid,
     RadialModelGrid,
 ]
+
+CATEGORIES = {
+    "boundary-condition",
+    "connectivity",
+    "deprecated",
+    "field-add",
+    "field-io",
+    "gradient",
+    "info-cell",
+    "info-corner",
+    "info-face",
+    "info-field",
+    "info-grid",
+    "info-link",
+    "info-node",
+    "info-patch",
+    "map",
+    "quantity",
+    "subset",
+    "surface",
+    "uncategorized",
+}
 
 
 click.rich_click.ERRORS_SUGGESTION = (
@@ -66,63 +84,8 @@ def landlab(cd, silent, verbose) -> None:
     os.chdir(cd)
 
 
-@landlab.command()
-@click.argument("category", type=str)
-@click.option("--title", help="section title", default=None)
-@click.option(
-    "-t", "--template", help="template file", type=click.File(mode="r"), default="-"
-)
-def render(category, title, template):
-    title = title or category
-
-    # env = Environment(loader=FileSystemLoader("templates"))
-    # template = env.get_template(template)
-
-    _template = Environment().from_string(template.read())
-
-    grids = {
-        ".".join([grid.__module__, grid.__name__]): get_category_from_class(
-            grid, category
-        )
-        for grid in GRIDS
-    }
-
-    print(_template.render(title=title, category=category, grids=grids))
-
-
-@landlab.command()
-@click.argument("grid", type=str)
-@click.option("--title", help="section title", default=None)
-@click.option(
-    "-t", "--template", help="template file", type=click.File(mode="r"), default="-"
-)
-def render_grid(grid, title, template):
-    title = title or grid
-
-    # env = Environment(loader=FileSystemLoader("templates"))
-    # template = env.get_template(template)
-
-    _template = Environment().from_string(template.read())
-
-    # categories = {category: get_funcs_by_category(grid) for category in CATEGORIES}
-    categories = get_funcs_by_category(RasterModelGrid)
-
-    print(_template.render(title=title, grid=grid, categories=categories))
-
-
-@landlab.command()
-@click.argument("category", nargs=-1)
-@click.option("--with-prefix", is_flag=True)
-def filter(category, with_prefix):
-    for _category in category:
-        for grid in GRIDS:
-            for func in get_category_from_class(grid, _category):
-                prefix = f"{grid.__module__}.{grid.__name__}." if with_prefix else ""
-                print(f"{prefix}{func}")
-
-
-@landlab.command()
-def list():
+@landlab.command(name="list")
+def _list():
     for cls in get_all_components():
         print(cls.__name__)
 
@@ -171,6 +134,51 @@ def validate(component):
         click.Abort()
     else:
         out("💥 All good! 💥")
+
+
+@landlab.command()
+@click.pass_context
+def index(ctx):
+    verbose = ctx.parent.params["verbose"]
+    silent = ctx.parent.params["silent"]
+
+    index = dict(grids={})
+    for cls in GRIDS:
+        index["grids"][cls.__name__] = _categorize_class(cls)
+        index["grids"][cls.__name__]["field-io"] += [
+            f"{cls.__module__}.{cls.__name__}.at_node",
+            f"{cls.__module__}.{cls.__name__}.at_link",
+            f"{cls.__module__}.{cls.__name__}.at_patch",
+            f"{cls.__module__}.{cls.__name__}.at_corner",
+            f"{cls.__module__}.{cls.__name__}.at_face",
+            f"{cls.__module__}.{cls.__name__}.at_cell",
+        ]
+
+    for grid, cats in index["grids"].items():
+        print(f"[grids.{grid}]")
+        for cat, funcs in cats.items():
+            print(f"{cat} = [")
+            print(
+                textwrap.indent(
+                    os.linesep.join([repr(f) + "," for f in sorted(funcs)]), "  "
+                )
+            )
+            print("]")
+        print("")
+
+    if verbose and not silent:
+        summary = defaultdict(int)
+        for grid, cats in index["grids"].items():
+            for cat, funcs in cats.items():
+                summary[cat] += len(funcs)
+
+        out("[summary]")
+        out(f"grids = [{', '.join(sorted(index['grids']))}]")
+        out(f"entries = {sum(summary.values())}")
+        out("")
+        out("[summary.categories]")
+        for cat in sorted(summary):
+            out(f"{cat} = {summary[cat]}")
 
 
 def get_all_components():
@@ -320,3 +328,23 @@ def _validate(args):
                 print(f"Error: {cls.__name__}: {error}")
 
     return failures
+
+
+def _categorize_class(cls):
+    funcs = {cat: [] for cat in CATEGORIES}
+
+    for name, func in inspect.getmembers(cls):
+        if not name.startswith("_"):
+            full_name = ".".join([cls.__module__, cls.__name__, name])
+            for cat in _extract_landlab_category(inspect.getdoc(func)):
+                funcs[cat].append(full_name)
+    return funcs
+
+
+def _extract_landlab_category(s: str):
+    from sphinx.util.docstrings import separate_metadata
+
+    return [
+        cat.strip() or "uncategorized"
+        for cat in separate_metadata(s)[1].get("landlab", "").split(",")
+    ]
