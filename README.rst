@@ -29,6 +29,8 @@ Landlab
 What does Landlab do?
 ---------------------
 
+.. start-intro
+
 Landlab is an open-source Python-language package for numerical modeling of
 Earth surface dynamics. It contains
 
@@ -54,23 +56,88 @@ of re-invention by providing standardized components that they can re-use.
 Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_
 at CSDMS to learn more.
 
-How do I install Landlab?
--------------------------
 
-First you'll need a Python distribution and either the conda or pip package
-manager. If you don't know what you want, we recommend the Anaconda Python
-distribution.
+.. note::
 
-Two main installation options exist for Landlab. Most people will likely want
-to
-`install a prepackaged binary <https://landlab.readthedocs.io/en/latest/install/index.html>`_.
-We distribute through both conda-forge and pip.
+  In April 2020 Landlab switched to version 2.0. Landlab dropped
+  support of Python 2.7 with this transition.
 
-Landlab 2.0
-```````````
+.. end-intro
 
-In April 2020 Landlab switched to version 2.0. Landlab dropped
-support of Python 2.7 with this transition.
+Installation
+------------
+
+.. start-install-release
+
+In order to use *landlab* you will first need Python >=3.8. While not
+necessary, we recommend using the 
+`Anaconda Python distribution <https://www.anaconda.com/distribution/>`_
+as it provides a large number of third-party packages useful for
+scientific computing.
+
+To install *landlab*, simply run the following in your terminal of choice:
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+    $ conda install landlab -c conda-forge
+
+.. tab:: pip
+
+  .. code-block:: bash
+
+    $ pip install landlab
+
+or, if you simply can't wait for the latest release, you can install *landlab*
+directly from GitHub,
+
+.. code-block:: bash
+
+   $ pip install git+https://github.com/landlab/landlab
+
+.. end-install-release
+
+Source code
+-----------
+
+.. start-install-source
+
+*landlab* is actively being developed on GitHub, where the code is freely-available.
+If you would like to modify or contribute code, you can either clone our
+repository
+
+.. code-block:: bash
+
+   $ git clone git://github.com/landlab/landlab.git
+
+or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
+(a zip file is available for Windows users):
+
+.. code-block:: bash
+
+   $ curl -OL https://github.com/landlab/landlab/tarball/master
+
+Once you have a copy of the source code, you can install it into your current
+Python,
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+     $ cd landlab
+     $ conda install --file=requirements.txt
+     $ pip install -e .
+
+.. tab:: pip
+
+  .. code-block:: bash
+
+     $ cd landlab
+     $ pip install -e .
+     
+
+.. end-install-source
 
 Supported Python Versions
 `````````````````````````
@@ -217,60 +284,73 @@ MIT (see the file LICENSE.txt)
 I used Landlab and want to cite it. How do I do this correctly?
 ---------------------------------------------------------------
 
-The following references refer to the entire Landlab package.
+.. start-citing
+
+If you use any portion of Landlab, you must cite the following papers:
 
 `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
 E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
 toolkit for building, coupling, and exploring two-dimensional numerical models
-of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
+of Earth-surface dynamics, Earth Surface Dynamics, 5(1), p 21-46,
 10.5194/esurf-5-21-2017.
 
-`Barnhart, K. R. <https://doi.org/10.5194/esurf-2020-12>`__,
+`Barnhart, K. R. <https://doi.org/10.5194/esurf-8-379-2020>`__,
 Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
 Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
-and Bandaragoda, C.: Short communication: Landlab v2.0: A software package for
-Earth surface dynamics, Earth Surf. Dynam. Discuss.,
-https://doi.org/10.5194/esurf-2020-12, in review, 2020.
+and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
+Earth surface dynamics, Earth Surf. Dynam., 8(2), p 379-397,
+doi:10.5194/esurf-8-379-2020.
+
 
 BibTeX format:
 ::
 
-  @article{Hobley2017,
-           Author = {Hobley, D. E. J. and Adams, J. M. and
-                     Nudurupati, S. S. and Hutton, E. W. H.
-                     and Gasparini, N. M. and Istanbulluoglu,
-                     E. and Tucker, G. E.},
-           Journal = {Earth Surface Dynamics},
-           Year = {2017},
-           Title = {Creative computing with Landlab: an open-source
-                    toolkit for building, coupling, and exploring
-                    two-dimensional numerical models of
-                    Earth-surface dynamics},
-           Number = {5},
-           Pages = {21-46},
-           Doi = {10.5194/esurf-5-21-2017}}
+ @article{Hobley2017,
+          author = {Hobley, D. E. J. and Adams, J. M. and
+                    Nudurupati, S. S. and Hutton, E. W. H.
+                    and Gasparini, N. M. and Istanbulluoglu,
+                    E. and Tucker, G. E.},
+          journal = {Earth Surface Dynamics},
+          year = {2017},
+          title = {Creative computing with Landlab: an open-source
+                   toolkit for building, coupling, and exploring
+                   two-dimensional numerical models of
+                   Earth-surface dynamics},
+          volume = {5},
+          number = {1},
+          pages = {21--46},
+          doi = {10.5194/esurf-5-21-2017}}
 
-  @article{barnhart2020short,
-           Author = {Barnhart, K. R. and Hutton, E. W. H. and
-                     Tucker, G. E. and Gasparini, N. M. and
-                     Istanbulluoglu, E. and Hobley, D. E. J. and
-                     Lyons, N. J. and Mouchene, M. and Nudurupati,
-                     S. S. and Adams, J. M. and Bandaragoda, C.},
-           Title = {Short communication: Landlab v2.0: A software
-                    package for Earth surface dynamics},
-           Journal = {Earth Surface Dynamics Discussions},
-           Volume = {2020},
-           Year = {2020},
-           Pages = {1--25},
-           Url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
-           Doi = {10.5194/esurf-2020-12}
-           }
+ @article{barnhart2020short,
+          author = {Barnhart, K. R. and Hutton, E. W. H. and
+                    Tucker, G. E. and Gasparini, N. M. and
+                    Istanbulluoglu, E. and Hobley, D. E. J. and
+                    Lyons, N. J. and Mouchene, M. and Nudurupati,
+                    S. S. and Adams, J. M. and Bandaragoda, C.},
+          title = {Short communication: Landlab v2.0: A software
+                   package for Earth surface dynamics},
+          journal = {Earth Surface Dynamics},
+          volume = {8},
+          year = {2020},
+          number = {2},
+          pages = {379--397},
+          url = {https://esurf.copernicus.org/articles/8/379/2020/},
+          doi = {10.5194/esurf-8-379-2020}
+          }
 
-In addition, depending on what parts of Landlab you use, you may need to cite
-component-specific. Refer to the References section of each component and
-`this page <https://landlab.readthedocs.io/en/master/citation_registry.html#cite-as>`_
-which discusses the Landlab Citation Registry tool.
+If you are working with Landlab components and utilities, many of them have
+their own publication. Please cite it to acknowledge the component authors.
+
+Citation information for each component can be found as follows:
+
+- Where relevant, software citation and general references, are listed in the
+  Component API documentation under the References section.
+- Software citations are included in component metadata. We have created a
+  tool called the "Citation Registry" which creates a .bib file for software
+  citations used in an application. See example usage :ref:`here <cite_as>`.
+
+.. end-citing
 
 I think I found a bug. What should I do?
 ----------------------------------------
@@ -303,6 +383,8 @@ in the documentation describes the package structure.
 How was Landlab funded?
 -----------------------
 
+.. start-funding
+
 Landlab is funded by the US National Science Foundation. It has been supported
 by the following grants:
 
@@ -321,3 +403,4 @@ by the following grants:
 * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
   (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
 
+.. end-funding
