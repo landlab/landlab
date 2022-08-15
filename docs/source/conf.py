@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
 ]
