@@ -8,6 +8,7 @@ def test_priority_queue():
 def test_init_flow_direction_queues():
     breach.test_init_flow_direction_queues()
 
+
 def test_set_flooded_and_outlet():
     breach.test_set_flooded_and_outlet()
 
