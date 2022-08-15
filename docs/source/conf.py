@@ -13,6 +13,7 @@
 
 import os
 import sys
+import tomli
 from datetime import date
 
 import landlab
@@ -23,8 +24,6 @@ import landlab
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 #                                                 os.pardir)))
 sys.path.insert(0, os.path.abspath("../.."))
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, ".")
 
 # -- General configuration -----------------------------------------------------
 
@@ -40,6 +39,9 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
+    "sphinx_jinja",
+    "sphinx_toolbox.collapse",
 ]
 
 if os.getenv("READTHEDOCS"):
@@ -361,3 +363,10 @@ napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
+
+
+with open("../../index.toml", "rb") as fp:
+    cats = tomli.load(fp)
+cats["grids"].pop("ModelGrid")
+
+jinja_contexts = {"llcats": cats}
