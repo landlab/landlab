@@ -77,6 +77,7 @@ docs = [
   "sphinxcontrib_github_alt",
   "sphinxcontrib.towncrier",
   "sphinx-jinja",
+  "sphinx-inline-tabs",
 ]
 testing = [
   "coveralls",
