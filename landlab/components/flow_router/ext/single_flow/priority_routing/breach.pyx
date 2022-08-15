@@ -1,9 +1,7 @@
 #distutils: language = c++
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: extra_compile_args = -Xpreprocessor
-#distutils: extra_compile_args = -fopenmp
-#distutils: extra_link_args = -Xpreprocessor
-#distutils: extra_link_args = -fopenmp
+#distutils: extra_compile_args = -Xpreprocessor -fopenmp
+#distutils: extra_link_args = -Xpreprocessor -fopenmp
 """ Contains the cython functions for the component method 
 Flow_router.run_directions(). Flow directions and depression handling are done
 adapting Barnes et al., 2014 algorithm #4."""
