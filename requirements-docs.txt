@@ -10,5 +10,6 @@ sphinx>=4
 sphinx_rtd_theme
 sphinxcontrib.towncrier
 sphinxcontrib_github_alt
+sphinx-inline-tabs
 tabulate
 tornado
