@@ -138,6 +138,14 @@ class LinearDiffusionOverlandFlowRouter(Component):
             "mapping": "link",
             "doc": "Downstream gradient of the water surface.",
         },
+        "water_surface__elevation": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Elevation of the water surface.",
+        },
     }
 
     def __init__(
@@ -203,8 +211,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
         self._vel = grid.at_link["water__velocity"]
         self._disch = grid.at_link["water__specific_discharge"]
         self._wsgrad = grid.at_link["water_surface__gradient"]
-
-        self._water_surf_elev = np.zeros(grid.number_of_nodes)
+        self._water_surf_elev = grid.at_node["water_surface__elevation"]
 
         self._inactive_links = grid.status_at_link == grid.BC_LINK_IS_INACTIVE
 
