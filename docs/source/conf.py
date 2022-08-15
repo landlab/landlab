@@ -12,19 +12,13 @@
 # serve to show the default.
 
 import os
-import sys
+import pathlib
 from datetime import date
 
 import landlab
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-#                                                 os.pardir)))
-sys.path.insert(0, os.path.abspath("../.."))
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, ".")
+docs_dir = os.path.dirname(__file__)
+
 
 # -- General configuration -----------------------------------------------------
 
@@ -40,6 +34,9 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
+    "sphinxcontrib.towncrier",
+    "sphinx_jinja",
 ]
 
 if os.getenv("READTHEDOCS"):
@@ -361,3 +358,10 @@ napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
+
+# -- Options for towncrier_draft extension --------------------------------------------
+
+towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
+towncrier_draft_include_empty = True
+# towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
