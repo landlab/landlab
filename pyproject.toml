@@ -62,6 +62,7 @@ dev = [
   "flake8-bugbear",
   "isort",
   "pre-commit",
+  "nox",
 ]
 docs = [
   "pandoc",
@@ -75,9 +76,9 @@ docs = [
   "entrypoints",
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
-  "sphinx_inline_tabs",
-  "sphinx_jinja",
-  "sphinx-toolbox",
+  "sphinxcontrib.towncrier",
+  "sphinx-jinja",
+  "sphinx-inline-tabs",
 ]
 testing = [
   "coveralls",

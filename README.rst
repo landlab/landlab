@@ -1,5 +1,5 @@
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.154179.svg
-   :target: https://doi.org/10.5281/zenodo.154179
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3776837.svg
+   :target: https://doi.org/10.5281/zenodo.3776837
 
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
     :target: https://landlab.readthedocs.org
@@ -306,38 +306,44 @@ doi:10.5194/esurf-8-379-2020.
 BibTeX format:
 ::
 
- @article{Hobley2017,
-          author = {Hobley, D. E. J. and Adams, J. M. and
-                    Nudurupati, S. S. and Hutton, E. W. H.
-                    and Gasparini, N. M. and Istanbulluoglu,
-                    E. and Tucker, G. E.},
-          journal = {Earth Surface Dynamics},
-          year = {2017},
-          title = {Creative computing with Landlab: an open-source
-                   toolkit for building, coupling, and exploring
-                   two-dimensional numerical models of
-                   Earth-surface dynamics},
-          volume = {5},
-          number = {1},
-          pages = {21--46},
-          doi = {10.5194/esurf-5-21-2017}}
+  @article{hobley2017creative,
+    title={
+      Creative computing with Landlab: an open-source toolkit for building,
+      coupling, and exploring two-dimensional numerical models of
+      Earth-surface dynamics
+    },
+    author={
+      Hobley, Daniel EJ and Adams, Jordan M and Nudurupati, Sai Siddhartha and
+      Hutton, Eric WH and Gasparini, Nicole M and Istanbulluoglu, Erkan and
+      Tucker, Gregory E
+    },
+    journal={Earth Surface Dynamics},
+    volume={5},
+    number={1},
+    pages={21--46},
+    year={2017},
+    publisher={Copernicus GmbH},
+    url={https://esurf.copernicus.org/articles/5/21/2017/},
+    doi={10.5194/esurf-5-21-2017}
+  }
 
- @article{barnhart2020short,
-          author = {Barnhart, K. R. and Hutton, E. W. H. and
-                    Tucker, G. E. and Gasparini, N. M. and
-                    Istanbulluoglu, E. and Hobley, D. E. J. and
-                    Lyons, N. J. and Mouchene, M. and Nudurupati,
-                    S. S. and Adams, J. M. and Bandaragoda, C.},
-          title = {Short communication: Landlab v2.0: A software
-                   package for Earth surface dynamics},
-          journal = {Earth Surface Dynamics},
-          volume = {8},
-          year = {2020},
-          number = {2},
-          pages = {379--397},
-          url = {https://esurf.copernicus.org/articles/8/379/2020/},
-          doi = {10.5194/esurf-8-379-2020}
-          }
+  @article{barnhart2020landlab,
+    title={Landlab v2. 0: a software package for Earth surface dynamics},
+    author={
+      Barnhart, Katherine R and Hutton, Eric WH and Tucker, Gregory E and
+      Gasparini, Nicole M and Istanbulluoglu, Erkan and Hobley, Daniel EJ and
+      Lyons, Nathan J and Mouchene, Margaux and Nudurupati, Sai Siddhartha and
+      Adams, Jordan M and others
+    },
+    journal={Earth Surface Dynamics},
+    volume={8},
+    number={2},
+    pages={379--397},
+    year={2020},
+    publisher={Copernicus GmbH}
+    url = {https://esurf.copernicus.org/articles/8/379/2020/},
+    doi = {10.5194/esurf-8-379-2020}
+  }
 
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
@@ -351,6 +357,7 @@ Citation information for each component can be found as follows:
   citations used in an application. See example usage :ref:`here <cite_as>`.
 
 .. end-citing
+
 
 I think I found a bug. What should I do?
 ----------------------------------------

@@ -14,6 +14,7 @@
 import os
 import sys
 import tomli
+import pathlib
 from datetime import date
 
 import landlab
@@ -24,6 +25,8 @@ import landlab
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 #                                                 os.pardir)))
 sys.path.insert(0, os.path.abspath("../.."))
+docs_dir = os.path.dirname(__file__)
+
 
 # -- General configuration -----------------------------------------------------
 
@@ -40,8 +43,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx_inline_tabs",
+    "sphinxcontrib.towncrier",
     "sphinx_jinja",
-    "sphinx_toolbox.collapse",
 ]
 
 if os.getenv("READTHEDOCS"):
@@ -363,6 +366,13 @@ napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
+
+# -- Options for towncrier_draft extension --------------------------------------------
+
+towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
+towncrier_draft_include_empty = True
+# towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
 
 
 with open("../../index.toml", "rb") as fp:
