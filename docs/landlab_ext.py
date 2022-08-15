@@ -27,7 +27,6 @@ comment_re = re.compile(r"(\(\*.*?\*\))")
 
 
 def doctree_read(app, doctree):
-    env = app.builder.env
     for node in doctree.traverse(addnodes.productionlist):
         for production in node:
             if not isinstance(production, addnodes.production):
