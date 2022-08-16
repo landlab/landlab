@@ -1,9 +1,11 @@
 import os
 import pathlib
 import shutil
-from itertools import chain
 
 import nox
+
+
+PROJECT = "landlab"
 
 
 @nox.session
@@ -28,6 +30,14 @@ def cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
     session.run("landlab", "--help")
+    session.run("landlab", "--version")
+    session.run("landlab", "index", "--help")
+    session.run("landlab", "list", "--help")
+    session.run("landlab", "provided-by", "--help")
+    session.run("landlab", "provides", "--help")
+    session.run("landlab", "used-by", "--help")
+    session.run("landlab", "uses", "--help")
+    session.run("landlab", "validate", "--help")
 
 
 @nox.session
@@ -55,6 +65,17 @@ def docs(session: nox.Session) -> None:
     if os.path.exists("build"):
         shutil.rmtree("build")
     session.run("sphinx-build", "-b", "html", "-W", "./source", "build/html")
+
+
+@nox.session
+def requirements(session: nox.Session) -> None:
+    session.install("tomli")
+
+    session.run("python", "requirements.py")
+    session.run("python", "requirements.py", "dev")
+    session.run("python", "requirements.py", "docs")
+    session.run("python", "requirements.py", "notebooks")
+    session.run("python", "requirements.py", "testing")
 
 
 @nox.session
@@ -104,18 +125,62 @@ def publish_pypi(session):
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    PROJECT = "landlab"
-    ROOT = pathlib.Path(__file__).parent
+    root = pathlib.Path(__file__).parent
+    folders = (
+        [root] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
+    )
+
+    for folder in folders:
+        with session.chdir(folder):
+            _clean()
+
+
+@nox.session(python=False)
+def nuke(session):
+    root = pathlib.Path(__file__).parent
+
+    folders = (
+        [root] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
+    )
+
+    for folder in folders:
+        with session.chdir(folder):
+            _clean() and _nuke()
+
+
+def _clean():
+    patterns_to_clean = ["*.py[co]", "*.so", "__pycache__"]
 
     shutil.rmtree("build", ignore_errors=True)
     shutil.rmtree("wheelhouse", ignore_errors=True)
     shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
     shutil.rmtree(".pytest_cache", ignore_errors=True)
     shutil.rmtree(".venv", ignore_errors=True)
-    for p in chain(
-        ROOT.rglob("*.py[co]"), ROOT.rglob("*.so"), ROOT.rglob("__pycache__")
-    ):
+
+    for pattern in patterns_to_clean:
+        _clean_pattern(pattern)
+
+    return True
+
+
+def _nuke():
+    patterns_to_nuke = [".ipynb_checkpoints"]
+
+    for pattern in patterns_to_nuke:
+        _clean_pattern(pattern)
+
+    return True
+
+
+def _clean_pattern(pattern):
+    nox_dir = pathlib.Path(".nox")
+
+    for p in pathlib.Path(".").rglob(pattern):
+        if nox_dir in p.parents:
+            continue
         if p.is_dir():
+            # print(f"$ rm -r {str(p)}")
             p.rmdir()
         else:
+            # print(f"$ rm {str(p)}")
             p.unlink()
