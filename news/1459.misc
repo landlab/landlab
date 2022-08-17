@@ -1,1 +1,1 @@
-Create pytest on the cython func of FlowDirectorSteepest.
+Added unit tests for the cython function, *adjust_flow_receivers*, used by the *FlowDirectorSteepest* component.
