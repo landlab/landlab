@@ -1,0 +1,4 @@
+Added two new *nox* sessions: *requirements* and *nuke*. *requirements*
+recreates the various requirements files while *nuke* does an extra bit of
+cleaning.
+
