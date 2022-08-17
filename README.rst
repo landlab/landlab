@@ -276,10 +276,10 @@ or to go straight to the `teaching notebooks`_.
 .. _teaching notebooks: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=tree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master
 
 
-What License does Landlab use?
-------------------------------
+License
+-------
 
-MIT (see the file LICENSE.txt)
+*landlab* is licensed under the MIT License.
 
 I used Landlab and want to cite it. How do I do this correctly?
 ---------------------------------------------------------------
