@@ -8,8 +8,17 @@ def test_adjust_flow_receivers():
     params = {"shape": (7, 4), "spacing": 10, "node_layout": "hex"}
     g = HexModelGrid(**params)
     nodes_n = g.number_of_nodes
-    random_generator = np.random.Generator(np.random.PCG64(seed=500))
-    z = g.add_field("topographic__elevation", 10 * random_generator.random(nodes_n))
+    z = np.array(
+        [5.66743143, 8.53977988, 6.45357199, 4.11156813, 4.68031945]
+        + [8.21361221, 3.12523171, 7.8622079, 4.35550157, 2.47630211]
+        + [4.42145537, 8.96951584, 5.57024205, 5.28644224, 2.75982042]
+        + [8.74862188, 2.59199246, 8.05920356, 1.20861705, 4.31320515]
+        + [3.49732191, 5.16016994, 3.69042619, 4.72153783, 1.93599482]
+        + [2.49611195, 4.9459002, 2.71301982, 4.8779288, 6.39422443]
+        + [9.37963598, 8.29564356, 6.35885287, 6.11800132, 9.41483585]
+        + [8.8676027, 0.46845509]
+    )
+    g.add_field("topographic__elevation", z)
     receiver = -1 * np.ones(nodes_n, dtype=int)
     receiver_link = -1 * np.ones(nodes_n, dtype=int)
     steepest_slope = np.zeros(nodes_n, dtype=float)
