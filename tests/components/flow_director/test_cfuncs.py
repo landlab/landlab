@@ -1,7 +1,83 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab import HexModelGrid
+from landlab import RasterModelGrid, HexModelGrid
 import landlab.components.flow_director.cfuncs as _cfuncs
+
+
+def test_raster_plane_dipping_north():
+    grid = RasterModelGrid((3, 4))
+    z = np.array(
+        [
+            [2.0, 2.0, 2.0, 2.0],
+            [1.0, 1.0, 1.0, 1.0],
+            [0.0, 0.0, 0.0, 0.0],
+        ]
+    ).flatten()
+
+    steepest_slope = np.zeros(grid.number_of_nodes)
+    receiver = np.arange(grid.number_of_nodes)
+    receiver_link = np.full(grid.number_of_nodes, -1, dtype=int)
+    active_links = np.arange(grid.number_of_links, dtype=int)
+
+    _cfuncs.adjust_flow_receivers(
+        grid.node_at_link_head,
+        grid.node_at_link_tail,
+        z,
+        grid.calc_grad_at_link(z),
+        active_links,
+        receiver,
+        receiver_link,
+        steepest_slope,
+    )
+
+    assert_array_equal(
+        receiver.reshape(grid.shape), [[4, 5, 6, 7], [8, 9, 10, 11], [8, 9, 10, 11]]
+    )
+    assert_array_equal(
+        receiver_link.reshape(grid.shape),
+        [[3, 4, 5, 6], [10, 11, 12, 13], [-1, -1, -1, -1]],
+    )
+    assert_array_almost_equal(
+        steepest_slope.reshape(grid.shape), [[1, 1, 1, 1], [1, 1, 1, 1], [0, 0, 0, 0]]
+    )
+
+
+def test_raster_plane_dipping_south():
+    grid = RasterModelGrid((3, 4))
+    z = np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0],
+            [1.0, 1.0, 1.0, 1.0],
+            [2.0, 2.0, 2.0, 2.0],
+        ]
+    ).flatten()
+
+    steepest_slope = np.zeros(grid.number_of_nodes)
+    receiver = np.arange(grid.number_of_nodes)
+    receiver_link = np.full(grid.number_of_nodes, -1, dtype=int)
+    active_links = np.arange(grid.number_of_links, dtype=int)
+
+    _cfuncs.adjust_flow_receivers(
+        grid.node_at_link_head,
+        grid.node_at_link_tail,
+        z,
+        grid.calc_grad_at_link(z),
+        active_links,
+        receiver,
+        receiver_link,
+        steepest_slope,
+    )
+
+    assert_array_equal(
+        receiver.reshape(grid.shape), [[0, 1, 2, 3], [0, 1, 2, 3], [4, 5, 6, 7]]
+    )
+    assert_array_equal(
+        receiver_link.reshape(grid.shape),
+        [[-1, -1, -1, -1], [3, 4, 5, 6], [10, 11, 12, 13]],
+    )
+    assert_array_almost_equal(
+        steepest_slope.reshape(grid.shape), [[0, 0, 0, 0], [1, 1, 1, 1], [1, 1, 1, 1]]
+    )
 
 
 def test_adjust_flow_receivers():
