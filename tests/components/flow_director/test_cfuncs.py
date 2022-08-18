@@ -1,67 +1,38 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab import HexModelGrid
 import landlab.components.flow_director.cfuncs as _cfuncs
 
 
 def test_adjust_flow_receivers():
-    params = {"shape": (7, 4), "spacing": 10, "node_layout": "hex"}
-    g = HexModelGrid(**params)
-    nodes_n = g.number_of_nodes
-    z = np.array(
-        [5.66743143, 8.53977988, 6.45357199, 4.11156813, 4.68031945]
-        + [8.21361221, 3.12523171, 7.8622079, 4.35550157, 2.47630211]
-        + [4.42145537, 8.96951584, 5.57024205, 5.28644224, 2.75982042]
-        + [8.74862188, 2.59199246, 8.05920356, 1.20861705, 4.31320515]
-        + [3.49732191, 5.16016994, 3.69042619, 4.72153783, 1.93599482]
-        + [2.49611195, 4.9459002, 2.71301982, 4.8779288, 6.39422443]
-        + [9.37963598, 8.29564356, 6.35885287, 6.11800132, 9.41483585]
-        + [8.8676027, 0.46845509]
-    )
-    g.add_field("topographic__elevation", z)
+    # Grid of 5 nodes with these coordinates:
+    # x = [0., 0., 3., 2., 3.]; y = [0., 4., 0., 2., 4.]
+    # All nodes are linked (7 links)
+    nodes_n = 5
+    z = np.array([0.0, 1.0, 0.0, 4.0, 5.0])  # elevation
     receiver = -1 * np.ones(nodes_n, dtype=int)
     receiver_link = -1 * np.ones(nodes_n, dtype=int)
     steepest_slope = np.zeros(nodes_n, dtype=float)
-    src_nodes = g.node_at_link_tail[g.active_links]
-    dst_nodes = g.node_at_link_head[g.active_links]
-    link_slope = -g.calc_grad_at_link(z)[g.active_links]
+    src_nodes = np.array([0, 0, 1, 0, 1, 3, 2, 3])  # tails
+    dst_nodes = np.array([1, 2, 2, 3, 4, 2, 4, 4])  # heads
+    link_slope = np.array(
+        [-0.33333333, -0.0, 0.4472136, -1.0, -1.0]
+        + [1.41421356, -2.23606798, -0.33333333]
+    )
 
     _cfuncs.adjust_flow_receivers(
         src_nodes,
         dst_nodes,
         z,
         link_slope,
-        g.active_links,
+        np.arange(7),
         receiver,
         receiver_link,
         steepest_slope,
     )
-    assert_array_equal(src_nodes, g.node_at_link_tail[g.active_links])
-    assert_array_equal(dst_nodes, g.node_at_link_head[g.active_links])
-    assert_array_equal(
-        receiver,
-        np.array(
-            [-1, 6, 6, -1, 10, 6, -1, 6, -1, -1, 9, 18, 18, 14, -1, 16, 9]
-            + [18, -1, 18, 27, 20, 16, 24, 18, 18, 25, -1, 23, 24, 24, 36]
-            + [26, -1, 29, 31, -1]
-        ),
-    )
-    assert_array_equal(
-        receiver_link,
-        np.array(
-            [-1, 6, 7, -1, 16, 12, -1, 13, -1, -1, 25, 35, 36, 29, -1, 42]
-            + [31, 44, -1, 45, 58, 47, 49, 61, 53, 54, 63, -1, 66, 68, 69]
-            + [85, 73, -1, 81, 84, -1]
-        ),
-    )
+    assert_array_equal(src_nodes, np.array([0, 0, 1, 0, 1, 3, 2, 3]))
+    assert_array_equal(dst_nodes, np.array([1, 2, 2, 3, 4, 2, 4, 4]))
+    assert_array_equal(receiver, np.array([-1, 2, -1, 2, 2]))
+    assert_array_equal(receiver_link, np.array([-1, 2, -1, 5, 6]))
     assert_array_almost_equal(
-        steepest_slope,
-        np.array(
-            [0.0, 0.54145482, 0.33283403, 0.0, 0.02588641, 0.50883805, 0.0]
-            + [0.47369762, 0.0, 0.0, 0.19451533, 0.77608988, 0.4361625, 0.25266218]
-            + [0.0, 0.61566294, 0.01156903, 0.68505865, 0.0, 0.31045881, 0.07843021]
-            + [0.1662848, 0.10984337, 0.2785543, 0.07273778, 0.12874949, 0.24497883]
-            + [0.0, 0.0156391, 0.44582296, 0.74436412, 0.78271885, 0.14129527, 0.0]
-            + [0.30206114, 0.05719591, 0.0]
-        ),
+        steepest_slope, np.array([0.0, 0.4472136, 0.0, 1.41421356, 2.23606798])
     )
