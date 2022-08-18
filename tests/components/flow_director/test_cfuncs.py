@@ -1,7 +1,35 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab import RasterModelGrid
+from landlab import HexModelGrid, RasterModelGrid
 import landlab.components.flow_director.cfuncs as _cfuncs
+
+
+def test_hex():
+    grid = HexModelGrid((3, 3))
+    z = grid.x_of_node
+
+    steepest_slope = np.zeros(grid.number_of_nodes)
+    receiver = np.arange(grid.number_of_nodes)
+    receiver_link = np.full(grid.number_of_nodes, -1, dtype=int)
+    active_links = np.arange(grid.number_of_links, dtype=int)
+
+    _cfuncs.adjust_flow_receivers(
+        grid.node_at_link_head,
+        grid.node_at_link_tail,
+        z,
+        grid.calc_grad_at_link(z),
+        active_links,
+        receiver,
+        receiver_link,
+        steepest_slope,
+    )
+
+    assert_array_equal(receiver, [3, 0, 1, 3, 3, 4, 5, 3, 7, 8])
+    assert_array_equal(
+        receiver_link,
+        [2, 0, 1, -1, 8, 9, 10, 11, 17, 18],
+    )
+    assert_array_almost_equal(steepest_slope, [0.5, 1, 1, 0, 1, 1, 1, 0.5, 1, 1])
 
 
 def test_raster_plane_dipping_north():
