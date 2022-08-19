@@ -35,5 +35,5 @@ repos:
     entry: nb-ensure-clean
     files: \.ipynb$
     language: python
-    language_version: python3
+    language_version: python3.8
 
