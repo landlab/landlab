@@ -1,7 +1,8 @@
 import numpy as np
+from scipy.sparse.linalg import spsolve
+
 from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
-from scipy.sparse.linalg import spsolve
 
 
 def make_empty_matrix_and_rhs(grid):
@@ -216,8 +217,9 @@ class GravelRiverTransporter(Component):
         if solver == "explicit":
             self.run_one_step = self.run_one_step_simple_explicit
         elif solver == "matrix":
-            from landlab.utils.matrix import get_core_node_at_node
             import warnings
+
+            from landlab.utils.matrix import get_core_node_at_node
 
             warnings.warn("Matrix-based solver is experimental & not fully tested")
             self.run_one_step = self.run_one_step_matrix_inversion
