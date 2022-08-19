@@ -16,20 +16,20 @@ class ThresholdEroder(Component):
 
     """Threshold eroder.
 
-    Threshold eroder that cuts off slopes at a given threshold slope (Sc) and 
+    Threshold eroder that cuts off slopes at a given threshold slope (Sc) and
     assumes material to dissolve away
 
     .. math::
 
         S(S>Sc) = Sc
 
-    To be coupled with FlowDirectorSteepest or PriorityFloodFlowRouter for the 
-    calculation of steepest slope at each timestep. Note that ThresholdEroder 
-    run_one_step() cuts off slopes and computes new elevations based on the 
-    steepest slopes as calculated by the FlowDirectorSteepest or 
-    PriorityFloodFlowRouter. If slopes over the entire model grid need be set 
+    To be coupled with FlowDirectorSteepest or PriorityFloodFlowRouter for the
+    calculation of steepest slope at each timestep. Note that ThresholdEroder
+    run_one_step() cuts off slopes and computes new elevations based on the
+    steepest slopes as calculated by the FlowDirectorSteepest or
+    PriorityFloodFlowRouter. If slopes over the entire model grid need be set
     to a threshold slope, several iterations of running the flow router and the
-    Threshold eroder are required. 
+    Threshold eroder are required.
 
     Component written by Benjamin Campforts, 2022
 
