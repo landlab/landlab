@@ -153,7 +153,7 @@ class ThresholdEroder(Component):
             "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "Elevation of the bedrock",
+            "doc": "elevation of the bedrock surface",
         },
     }
 
