@@ -22,8 +22,7 @@ class ThresholdEroder(Component):
 
         S(S>Sc) = Sc
 
-    Works on regular raster-type grid (RasterModelGrid, dx=dy).
-    To be coupled with FlowDirectorSteepest for the calculation of steepest
+    To be coupled with FlowDirectorSteepest or PriorityFloodFlowRouter for the calculation of steepest
     slope at each timestep.
 
     Component written by Benjamin Campforts, 2021
@@ -159,7 +158,7 @@ class ThresholdEroder(Component):
 
     def __init__(self, grid, slope_crit=1.0):
 
-        """Initialize Diffuser.
+        """Initialize Threshold Eroder.
 
         Parameters
         ----------
@@ -168,7 +167,7 @@ class ThresholdEroder(Component):
         slope_crit: float (default=1.)
             Critical slope [L/L]
         """
-        super(ThresholdEroder, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
@@ -203,7 +202,7 @@ class ThresholdEroder(Component):
         if "soil__depth" in self._grid.at_node.keys():
             if "bedrock__elevation" not in self._grid.at_node.keys():
                 raise Exception(
-                    "If soil__depth is provide as a field, also bedrock__elevation mut be provided as a field"
+                    "If soil__depth is provided as a field, also bedrock__elevation mut be provided as a field"
                 )
             self._soilFlag = True
             self._soil = self._grid.at_node["soil__depth"]
@@ -219,12 +218,6 @@ class ThresholdEroder(Component):
         grid : ModelGrid
             Landlab ModelGrid object
         """
-
-        # slope_b =( self._elev-self._elev[self._r])/self._link_lengths[self._link_to_reciever]
-        # for node in self._stack:
-        #     dist_to_r = self._link_lengths[self._link_to_reciever[node]]
-        #     self._elev[node]  = np.minimum(self._elev[node],self._elev[self._r[node]] + self._slope_crit*dist_to_r)
-
         _thresholder(
             self._stack,
             self._link_to_reciever,
@@ -245,7 +238,5 @@ class ThresholdEroder(Component):
 
         Parameters
         ----------
-        dt: float (time)
-            The imposed timestep.
         """
         self.erode()

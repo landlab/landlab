@@ -19,6 +19,11 @@ cpdef _thresholder(np.ndarray[DTYPE_INT64_t, ndim=1] stack,
     
     """
     Calcualte D8 flow dirs
+    stack: the flow upstream node order
+    link_to_rcvr: Link to receiver
+    receivers: receivers
+    linkLengths: length of links
+    el: topographic elevation
     """
     cdef int node
     
