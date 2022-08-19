@@ -92,8 +92,9 @@ cdef void _init_flow_direction_queues(
 cdef void _set_flooded_and_outlet(cnp.int_t donor_id, cnp.float_t [:] z,
     cnp.int_t [:] receivers, cnp.int_t [:] outlet_nodes,
     cnp.int_t [:] depression_outlet_nodes, cnp.int_t [:] flooded_nodes,
-    cnp.float_t [:] depression_depths, cnp.int_t flooded_status,
-    cnp.int_t bad_index) nogil:
+    cnp.float_t [:] depression_depths, cnp.float_t [:] depression_free_elevations,
+    cnp.int_t flooded_status, cnp.int_t bad_index,
+    cnp.float_t min_elevation_relative_diff) nogil:
     """ Updates the base-level outlet nodes (outlet_nodes), the depression outlet
     nodes (depression_outlet_nodes), the flooded status (flooded_nodes), and the
     depths of the depressions (depression_depths) for the node donor_id depending
@@ -118,10 +119,15 @@ cdef void _set_flooded_and_outlet(cnp.int_t donor_id, cnp.float_t [:] z,
     depression_depths: memoryview(double).
         Depths of the depression (if existing) below the level of the depression outlet
         for each node, ordered by node id.
+    depression_free_elevations: memoryview(double).
+        Elevation of the surface corrected from depressions.
     flooded_status: long.
         Constant for flooded status.
     bad_index: long.
         Constant for bad index.
+    min_elevation_relative_diff: double
+        Minimum relative difference in elevation for the depression_free_elevations
+        surface.
     """
     cdef:
         cnp.int_t receiver_id = receivers[donor_id]
@@ -140,6 +146,9 @@ cdef void _set_flooded_and_outlet(cnp.int_t donor_id, cnp.float_t [:] z,
         depression_outlet_nodes[donor_id] = receiver_depression_outlet
         flooded_nodes[donor_id] = flooded_status
         depression_depths[donor_id] = z[receiver_depression_outlet] - z[donor_id]
+        depression_free_elevations[donor_id] = (
+            (1 + min_elevation_relative_diff) * depression_free_elevations[receiver_id]
+        )
 
 @cython.boundscheck(False)
 cdef void _set_receiver(cnp.int_t donor_id, cnp.int_t receiver_id,
@@ -235,9 +244,11 @@ cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
     cnp.float_t[:] sorted_dupli_gradients, const cnp.int_t[:] sorted_dupli_links,
     const cnp.int_t[:, :] head_start_end_indexes, cnp.int_t [:] outlet_nodes,
     cnp.int_t [:] depression_outlet_nodes, cnp.int_t[:] flooded_nodes,
-    cnp.float_t[:] depression_depths, cnp.int_t[:] links_to_receivers,
-    cnp.int_t[:] receivers, cnp.float_t[:] steepest_slopes, cnp.float_t[:] z,
-    cnp.int_t flooded_status, cnp.int_t bad_index, cnp.int_t neighbors_max_number):
+    cnp.float_t[:] depression_depths, cnp.float_t[:] depression_free_elevations,
+    cnp.int_t[:] links_to_receivers, cnp.int_t[:] receivers,
+    cnp.float_t[:] steepest_slopes, cnp.float_t[:] z, cnp.int_t flooded_status,
+    cnp.int_t bad_index, cnp.int_t neighbors_max_number,
+    cnp.float_t min_elevation_relative_diff):
     """
     Main function implementing the flow directing through breaching depressions.
     Updates outlet_nodes, depression_outlet_nodes, flooded_nodes, links_to_receivers,
@@ -274,6 +285,8 @@ cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
     depression_depths: memoryview(double).
         Depths of the depression (if existing) below the level of the depression outlet
         for each node, ordered by node ids.
+    depression_free_elevations: memoryview(double).
+        Elevation of the surface corrected from depressions.
     links_to_receivers: memoryview(long).
         Ids of the links between a donor and a receiver, ordered by the ids of the
         donor nodes.
@@ -290,6 +303,9 @@ cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
         Constant for bad index.
     neighbors_max_number: long
         Maximum number of neighbors in the grid.
+    min_elevation_relative_diff: double
+        Minimum relative difference in elevation for the depression_free_elevations
+        surface.
     """
     cdef:
         cnp.int_t [:] done
@@ -327,7 +343,8 @@ cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
             _set_receiver(donor_id, receiver_id, receivers, done, &done_n)
             _set_flooded_and_outlet(donor_id, z, receivers, outlet_nodes,
                 depression_outlet_nodes, flooded_nodes, depression_depths,
-                flooded_status, bad_index)
+                depression_free_elevations, flooded_status, bad_index,
+                min_elevation_relative_diff)
             _set_donor_properties(donor_id, receiver_id, sorted_pseudo_tails,
                 head_start_end_indexes, sorted_dupli_links, sorted_dupli_gradients,
                 z, steepest_slopes, links_to_receivers)
@@ -339,9 +356,11 @@ def _direct_flow(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
     cnp.float_t[:] sorted_dupli_gradients, const cnp.int_t[:] sorted_dupli_links,
     const cnp.int_t[:, :] head_start_end_indexes, cnp.int_t [:] outlet_nodes,
     cnp.int_t [:] depression_outlet_nodes, cnp.int_t[:] flooded_nodes,
-    cnp.float_t[:] depression_depths, cnp.int_t[:] links_to_receivers,
-    cnp.int_t[:] receivers, cnp.float_t[:] steepest_slopes, cnp.float_t[:] z,
-    cnp.int_t flooded_status, cnp.int_t bad_index, cnp.int_t neighbors_max_number):
+    cnp.float_t[:] depression_depths, cnp.float_t[:] depression_free_elevations,
+    cnp.int_t[:] links_to_receivers, cnp.int_t[:] receivers,
+    cnp.float_t[:] steepest_slopes, cnp.float_t[:] z, cnp.int_t flooded_status,
+    cnp.int_t bad_index, cnp.int_t neighbors_max_number,
+    cnp.float_t min_elevation_relative_diff):
     """
     Main function calling the function that implements flow directing through
     breaching depressions. Updates outlet_nodes, depression_outlet_nodes,
@@ -378,6 +397,8 @@ def _direct_flow(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
     depression_depths: memoryview(double).
         Depths of the depression (if existing) below the level of the depression outlet
         for each node, ordered by node ids.
+    depression_free_elevations: memoryview(double).
+        Elevation of the surface corrected from depressions.
     links_to_receivers: memoryview(long).
         Ids of the links between a donor and a receiver, ordered by the ids of the
         donor nodes.
@@ -394,11 +415,15 @@ def _direct_flow(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
         Constant for bad index.
     neighbors_max_number: long
         Maximum number of neighbors in the grid.
+    min_elevation_relative_diff: double
+        Minimum relative difference in elevation for the depression_free_elevations
+        surface.
     """
     _direct_flow_c(nodes_n, base_level_nodes, closed_nodes,
                     sorted_pseudo_tails, sorted_dupli_gradients,
                     sorted_dupli_links, head_start_end_indexes,
                     outlet_nodes, depression_outlet_nodes,
-                    flooded_nodes, depression_depths, links_to_receivers, receivers,
-                    steepest_slopes, z, flooded_status, bad_index,
-                    neighbors_max_number)
+                    flooded_nodes, depression_depths, depression_free_elevations,
+                    links_to_receivers, receivers, steepest_slopes, z,
+                    flooded_status, bad_index, neighbors_max_number,
+                    min_elevation_relative_diff)
