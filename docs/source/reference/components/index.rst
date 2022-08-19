@@ -33,6 +33,7 @@ Fluvial geomorphology
    erosion_deposition
    space
    network_sediment_transporter
+   gravel_river_transporter
 
 Flow routing
 ------------
