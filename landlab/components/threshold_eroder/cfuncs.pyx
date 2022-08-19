@@ -3,16 +3,16 @@ cimport numpy as np
 cimport cython
 
 
-DTYPE_INT64 = np.int64
-ctypedef np.int64_t DTYPE_INT64_t
+DTYPE_INT = np.int
+ctypedef np.int_t DTYPE_INT_t
 
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
+DTYPE_FLOAT = np.float64
+ctypedef np.float64_t DTYPE_FLOAT_t
 
 
-cpdef _thresholder(np.ndarray[DTYPE_INT64_t, ndim=1] stack,
-             np.ndarray[DTYPE_INT64_t, ndim=1] link_to_rcvr,             
-             np.ndarray[DTYPE_INT64_t, ndim=1] receivers,
+cpdef _thresholder(np.ndarray[DTYPE_INT_t, ndim=1] stack,
+             np.ndarray[DTYPE_INT_t, ndim=1] link_to_rcvr,             
+             np.ndarray[DTYPE_INT_t, ndim=1] receivers,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] linkLengths,
              np.ndarray[DTYPE_FLOAT_t, ndim=1] el,
              DTYPE_FLOAT_t slope_thres):
