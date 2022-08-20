@@ -1,8 +1,8 @@
 import numpy as np
-cimport numpy as np
-cimport cython
 
-from libc.stdlib cimport malloc, free, qsort
+cimport cython
+cimport numpy as np
+from libc.stdlib cimport free, malloc, qsort
 
 from ...sort.ext.argsort cimport unique_int
 

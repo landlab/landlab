@@ -1,5 +1,6 @@
-cimport numpy as np
 cimport cython
+cimport numpy as np
+
 import numpy as np
 
 DTYPE_INT = np.int

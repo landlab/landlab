@@ -1,16 +1,14 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
-
-from libc.stdlib cimport malloc, free, qsort
+cimport numpy as np
 from libc.math cimport atan2
-
+from libc.stdlib cimport free, malloc, qsort
 
 DTYPE = int
 ctypedef np.int_t DTYPE_t
 
-from libc.stdlib cimport malloc, free, qsort
-
+from libc.stdlib cimport free, malloc, qsort
 
 ctypedef np.int_t INT_t
 ctypedef np.float_t FLOAT_t
