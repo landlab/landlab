@@ -5,6 +5,7 @@ import shutil
 import nox
 
 PROJECT = "landlab"
+ROOT = pathlib.Path(__file__).parent
 
 
 @nox.session
@@ -60,10 +61,23 @@ def docs(session: nox.Session) -> None:
     """Build the docs."""
     session.install(".[docs]")
 
-    session.chdir("docs")
+    clean_docs(session)
+    session.run(
+        "sphinx-build",
+        "-b",
+        "html",
+        "-W",
+        str(ROOT / "docs/source"),
+        str(ROOT / "docs/build/html"),
+    )
+
+
+@nox.session(python=False, name="clean-docs")
+def clean_docs(session: nox.Session) -> None:
+    """Clean up the docs folder."""
+    session.chdir(ROOT / "docs")
     if os.path.exists("build"):
         shutil.rmtree("build")
-    session.run("sphinx-build", "-b", "html", "-W", "./source", "build/html")
 
 
 @nox.session
@@ -125,9 +139,8 @@ def publish_pypi(session):
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    root = pathlib.Path(__file__).parent
     folders = (
-        [root] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
+        [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
     )
 
     for folder in folders:
@@ -137,10 +150,8 @@ def clean(session):
 
 @nox.session(python=False)
 def nuke(session):
-    root = pathlib.Path(__file__).parent
-
     folders = (
-        [root] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
+        [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
     )
 
     for folder in folders:
