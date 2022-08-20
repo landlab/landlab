@@ -4,7 +4,6 @@ import shutil
 
 import nox
 
-
 PROJECT = "landlab"
 
 
@@ -71,11 +70,12 @@ def docs(session: nox.Session) -> None:
 def requirements(session: nox.Session) -> None:
     session.install("tomli")
 
-    session.run("python", "requirements.py")
-    session.run("python", "requirements.py", "dev")
-    session.run("python", "requirements.py", "docs")
-    session.run("python", "requirements.py", "notebooks")
-    session.run("python", "requirements.py", "testing")
+    with open("requirements.txt", "w") as fp:
+        session.run("python", "requirements.py", stdout=fp)
+
+    for extra in ["dev", "docs", "notebooks", "testing"]:
+        with open(f"requirements-{extra}.txt", "w") as fp:
+            session.run("python", "requirements.py", extra, stdout=fp)
 
 
 @nox.session
