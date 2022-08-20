@@ -139,13 +139,35 @@ def publish_pypi(session):
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
+    patterns_to_clean = ["*.py[co]", "__pycache__"]
     folders = (
         [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
     )
 
     for folder in folders:
         with session.chdir(folder):
-            _clean()
+
+            shutil.rmtree("build", ignore_errors=True)
+            shutil.rmtree("wheelhouse", ignore_errors=True)
+            shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
+            shutil.rmtree(".pytest_cache", ignore_errors=True)
+            shutil.rmtree(".venv", ignore_errors=True)
+
+            for pattern in patterns_to_clean:
+                _clean_rglob(pattern)
+
+
+@nox.session(python=False, name="clean-checkpoints")
+def clean_checkpoints(session):
+    """Remove jupyter notebook checkpoint files."""
+    folders = (
+        [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
+    )
+
+    for folder in folders:
+        with session.chdir(folder):
+            _clean_rglob("*-checkpoint.ipynb")
+            _clean_rglob(".ipynb_checkpoints")
 
 
 @nox.session(python=False)
@@ -154,44 +176,22 @@ def nuke(session):
         [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
     )
 
+    clean_checkpoints(session)
+    clean_docs(session)
+    clean(session)
+
     for folder in folders:
         with session.chdir(folder):
-            _clean() and _nuke()
+            _clean_rglob("*.so")
 
 
-def _clean():
-    patterns_to_clean = ["*.py[co]", "__pycache__"]
-
-    shutil.rmtree("build", ignore_errors=True)
-    shutil.rmtree("wheelhouse", ignore_errors=True)
-    shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
-    shutil.rmtree(".pytest_cache", ignore_errors=True)
-    shutil.rmtree(".venv", ignore_errors=True)
-
-    for pattern in patterns_to_clean:
-        _clean_pattern(pattern)
-
-    return True
-
-
-def _nuke():
-    patterns_to_nuke = [".ipynb_checkpoints", "*.so"]
-
-    for pattern in patterns_to_nuke:
-        _clean_pattern(pattern)
-
-    return True
-
-
-def _clean_pattern(pattern):
+def _clean_rglob(pattern):
     nox_dir = pathlib.Path(".nox")
 
     for p in pathlib.Path(".").rglob(pattern):
         if nox_dir in p.parents:
             continue
         if p.is_dir():
-            # print(f"$ rm -r {str(p)}")
             p.rmdir()
         else:
-            # print(f"$ rm {str(p)}")
             p.unlink()
