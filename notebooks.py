@@ -20,10 +20,11 @@ import os
 import pathlib
 import sys
 import tarfile
-from packaging.version import Version
 from urllib.error import HTTPError
 from urllib.parse import urljoin
 from urllib.request import urlopen
+
+from packaging.version import Version
 
 
 def main(version=None):

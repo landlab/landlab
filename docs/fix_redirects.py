@@ -1,7 +1,6 @@
 # fix redirects
-import os
-
 import fileinput
+import os
 
 _SRC = "source"
 

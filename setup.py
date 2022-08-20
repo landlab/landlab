@@ -6,7 +6,6 @@ import re
 import pkg_resources
 from setuptools import Extension, setup
 
-
 numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
 
 

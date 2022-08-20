@@ -5,9 +5,9 @@ from jinja2 import TemplateNotFound
 from pygments.lexer import RegexLexer
 from pygments.token import Comment, Generic, String, Text
 from sphinx import addnodes
-
-# this is hack is needed to use our layout.html on ReadTheDocs
-from sphinx.jinja2glue import BuiltinTemplateLoader
+from sphinx.jinja2glue import (  # this is hack is needed to use our layout.html on ReadTheDocs
+    BuiltinTemplateLoader,
+)
 
 
 class LandlabLexer(RegexLexer):
