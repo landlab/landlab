@@ -9,7 +9,7 @@ ROOT = pathlib.Path(__file__).parent
 
 
 @nox.session
-def tests(session: nox.Session) -> None:
+def test(session: nox.Session) -> None:
     """Run the tests."""
     session.install("pytest")
     session.install(".[dev,testing]")
@@ -18,15 +18,15 @@ def tests(session: nox.Session) -> None:
     # "--fail-under=100",
 
 
-@nox.session
-def notebooks(session: nox.Session) -> None:
+@nox.session(name="test-notebooks")
+def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install(".[dev,notebooks,testing]")
     session.run("pytest", "notebooks", "--run-notebook", "-n", "auto", "-vvv")
 
 
-@nox.session
-def cli(session: nox.Session) -> None:
+@nox.session(name="test-cli")
+def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
     session.run("landlab", "--help")
@@ -56,8 +56,8 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/master")
 
 
-@nox.session
-def docs(session: nox.Session) -> None:
+@nox.session(name="build-docs")
+def build_docs(session: nox.Session) -> None:
     """Build the docs."""
     session.install(".[docs]")
 
@@ -72,16 +72,9 @@ def docs(session: nox.Session) -> None:
     )
 
 
-@nox.session(python=False, name="clean-docs")
-def clean_docs(session: nox.Session) -> None:
-    """Clean up the docs folder."""
-    session.chdir(ROOT / "docs")
-    if os.path.exists("build"):
-        shutil.rmtree("build")
-
-
-@nox.session
-def requirements(session: nox.Session) -> None:
+@nox.session(name="build-requirements")
+def build_requirements(session: nox.Session) -> None:
+    """Create requirements files from pyproject.toml."""
     session.install("tomli")
 
     with open("requirements.txt", "w") as fp:
@@ -139,12 +132,7 @@ def publish_pypi(session):
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    patterns_to_clean = ["*.py[co]", "__pycache__"]
-    folders = (
-        [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
-    )
-
-    for folder in folders:
+    for folder in _args_to_folders(session.posargs):
         with session.chdir(folder):
 
             shutil.rmtree("build", ignore_errors=True)
@@ -153,36 +141,46 @@ def clean(session):
             shutil.rmtree(".pytest_cache", ignore_errors=True)
             shutil.rmtree(".venv", ignore_errors=True)
 
-            for pattern in patterns_to_clean:
+            for pattern in ["*.py[co]", "__pycache__"]:
                 _clean_rglob(pattern)
 
 
 @nox.session(python=False, name="clean-checkpoints")
 def clean_checkpoints(session):
     """Remove jupyter notebook checkpoint files."""
-    folders = (
-        [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
-    )
-
-    for folder in folders:
+    for folder in _args_to_folders(session.posargs):
         with session.chdir(folder):
             _clean_rglob("*-checkpoint.ipynb")
             _clean_rglob(".ipynb_checkpoints")
 
 
+@nox.session(python=False, name="clean-docs")
+def clean_docs(session: nox.Session) -> None:
+    """Clean up the docs folder."""
+    session.chdir(ROOT / "docs")
+    if os.path.exists("build"):
+        shutil.rmtree("build")
+
+
+@nox.session(python=False, name="clean-ext")
+def clean_ext(session: nox.Session) -> None:
+    """Clean shared libraries for extension modules."""
+    for folder in _args_to_folders(session.posargs):
+        with session.chdir(folder):
+            _clean_rglob("*.so")
+
+
 @nox.session(python=False)
 def nuke(session):
-    folders = (
-        [ROOT] if not session.posargs else [pathlib.Path(f) for f in session.posargs]
-    )
-
+    """Run all clean sessions."""
     clean_checkpoints(session)
     clean_docs(session)
     clean(session)
+    clean_ext(session)
 
-    for folder in folders:
-        with session.chdir(folder):
-            _clean_rglob("*.so")
+
+def _args_to_folders(args):
+    return [ROOT] if not args else [pathlib.Path(f) for f in args]
 
 
 def _clean_rglob(pattern):
