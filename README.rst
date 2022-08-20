@@ -281,8 +281,8 @@ License
 
 *landlab* is licensed under the MIT License.
 
-I used Landlab and want to cite it. How do I do this correctly?
----------------------------------------------------------------
+Citing Landlab
+--------------
 
 .. start-citing
 
@@ -386,28 +386,3 @@ How is the Landlab package structured?
 The
 `following page <https://landlab.readthedocs.io/en/master/development/package_organization.html>`_
 in the documentation describes the package structure.
-
-How was Landlab funded?
------------------------
-
-.. start-funding
-
-Landlab is funded by the US National Science Foundation. It has been supported
-by the following grants:
-
-* A Collaborative NSF SI2-SSE proposal to
-  University of Colorado (Greg Tucker,
-  `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
-  and the University of Washington (Erkan Istanbulluoglu,
-  `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
-* A Collaborative NSF SI2-SSI proposal to
-  University of Colorado (Greg Tucker and Dan Hobley,
-  `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
-  Tulane University (Nicole Gasparini,
-  `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
-  and the University of Washington (Erkan Istanbulluoglu,
-  `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
-* A NSF EAR Postdoctoral Fellowship to Katy Barnhart
-  (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
-
-.. end-funding
