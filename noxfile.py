@@ -160,7 +160,7 @@ def nuke(session):
 
 
 def _clean():
-    patterns_to_clean = ["*.py[co]", "*.so", "__pycache__"]
+    patterns_to_clean = ["*.py[co]", "__pycache__"]
 
     shutil.rmtree("build", ignore_errors=True)
     shutil.rmtree("wheelhouse", ignore_errors=True)
@@ -175,7 +175,7 @@ def _clean():
 
 
 def _nuke():
-    patterns_to_nuke = [".ipynb_checkpoints"]
+    patterns_to_nuke = [".ipynb_checkpoints", "*.so"]
 
     for pattern in patterns_to_nuke:
         _clean_pattern(pattern)
