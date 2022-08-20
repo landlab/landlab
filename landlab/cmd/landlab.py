@@ -181,6 +181,28 @@ def index(ctx):
             out(f"{cat} = {summary[cat]}")
 
 
+@landlab.command()
+@click.pass_context
+def fields(ctx):
+    verbose = ctx.parent.params["verbose"]
+    silent = ctx.parent.params["silent"]
+
+    fields = {}
+    for cls in get_all_components():
+        if verbose and not silent:
+            out(f"checking {cls.__name__}... {len(cls._info)} fields")
+        for name, desc in cls._info.items():
+            fields[name] = desc["doc"]
+
+    print("[fields]")
+    for field, desc in fields.items():
+        print(f"{field} = {desc!r}")
+
+    if not silent:
+        out("[summary]")
+        out(f"count = {len(fields)}")
+
+
 def get_all_components():
     from landlab.components import COMPONENTS
     from landlab.core.model_component import Component
