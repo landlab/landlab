@@ -22,14 +22,8 @@ The following is an introduction to their properties and methods:
    hex
    radial
    network
+   grid_summary
 
-Systematic Information about Grid Elements
-------------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   auto/index
 
 Additional Methods and Properties
 ---------------------------------
