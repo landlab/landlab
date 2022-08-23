@@ -47,8 +47,8 @@ extensions = [
     "sphinx_jinja",
 ]
 
-if os.getenv("READTHEDOCS"):
-    template_bridge = "landlab_ext.MyTemplateLoader"
+# if os.getenv("READTHEDOCS"):
+#     template_bridge = "landlab_ext.MyTemplateLoader"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
