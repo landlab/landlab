@@ -224,16 +224,9 @@ class PlantGrowth(object):
             inds=np.where(self.plant_array['species']==species)
             _last_biomass=self.plant_array[inds]
             _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']
-            #_last_veg_leaf_biomass=self.plants.leaf_biomass.loc[self.plants['species']==species].to_numpy()
-            #_last_veg_stem_biomass=self.plants.stem_biomass.loc[self.plants['species']==species].to_numpy()
-            #_last_veg_biomass=_last_veg_root_biomass+_last_veg_leaf_biomass+_last_veg_stem_biomass
-            #_gridradiation=pd.DataFrame(data=self._grid["cell"]["radiation__net_flux"],columns=['Radiation'])
             _radiation=self._grid['cell']['radiation__net_flux'][_last_biomass['cell_index']]
             _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
-            #_gridradiation.reset_index(inplace=True)
-            #_gridradiation=_gridradiation.rename(columns={'index':'cell_index'})
-            #_rad_join=pd.merge(self.plants,_gridradiation)
-            #_radiation =_rad_join.Radiation.loc[_rad_join['species']==species].to_numpy()
+
             ##################################################
             #Calculate Vegetation Structure Metrics Each Day
             ##################################################
@@ -261,7 +254,6 @@ class PlantGrowth(object):
                 _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
 
                 #repiration coefficient for lvs, temp dependence from Teh 2006
-                #change to read temperature off grid
                 kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_temperature - 25)/10))  
                 #respiration coefficient for stems, temp depencence from Teh 2006 page 134
                 kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_temperature - 25)/10)) 
@@ -270,6 +262,7 @@ class PlantGrowth(object):
                 #maintenance respiration per day from Teh 2006
                 rmPrime = (kmLVG * _last_biomass['leaf_biomass']) + (kmSTG * _last_biomass['stem_biomass']) + (kmRTG * _last_biomass['root_biomass'])  
                 #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
+                #THIS NEEDS TO BE UPDATED
                 plantAge = _last_biomass['leaf_biomass']/_last_biomass['leaf_biomass']
                 #plant age dependence from Teh 2006 page 145    
                 respMaint = rmPrime * plantAge  
@@ -280,53 +273,33 @@ class PlantGrowth(object):
                            ((_last_biomass['stem_biomass']/_total_biomass) * growdict['glucose_requirement'][2]) + \
                            ((_last_biomass['root_biomass']/_total_biomass) * growdict['glucose_requirement'][0]) 
 
-                
-                #writes results for daily respiration, plant age, and maintenance respiration
-                #I don't know if we need to write these anywhere but we can write to a spearate test grid for now (NOT the main grid)
-                #dailyrespiration.iloc[j] = rmPrime  #how to handle
 
                 #dailyplantage[j] = plantAge    #how to handle
 
-                #dailyrespMaint[j] = respMaint   #how to handle
-                
-                    
-                    
             #Enter photosynthesis loop  
-                #dailyphoto = []
-                #determine how we want to read in light. Ideally this would be dynamic
                 dtga=0
                 #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
-                rad_est=self._PAR()
+                rad_est=self._PAR(_declination, _daylength)
                 #change to read solar radiation from grid
                 for hr in range(0,3):  
                     #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
-                    parMicroE = (rad_est[hr]*np.ones_like(_radiation)) /(868/208.32) #are we leaving as W/m2 or leaving microeinsteins??? FOR FUTURE!!!
+                    parMicroE = (rad_est[hr]*np.ones_like(_radiation)) /(868/208.32) #are we leaving as W/m2 or leaving microeinsteins??? Check units on this. I think it is already in microEinsteins
                     #from Charisma instructions: tells how much of the light a plant is going to get as PAR in microeinsteins based on how many leaves are on the plant
                     intSolarRad = parMicroE*np.exp(-(growdict['k_light_extinct'])*_last_biomass['leaf_biomass'])  
                     #amount of light absorbed, per half saturaion constants from Charisma eq. 3. the monod or michaelis/menten function is adequate for describing the photosynthetic response to light
                     intLightpH = intSolarRad/(intSolarRad+growdict['light_half_sat']) 
                     #pMax is the maximum rate of photosynthesis, species specific
                     photosynthesis = (growdict['p_max']) * intLightpH 
-                    #calculates gross assimilation of fgross(like APT) via photosynthesis at specific hour calculate growth per day at three times per day, morning, middday, and evenning and this amount is weighted based on how much light is hitting hte plant based on the latitude of your study site
-                    #fgross.iloc[hr] = photosynthesis 
                     #weights fgross for specific time of day
                     dtgastep = photosynthesis*self._wgaus[hr]
                     dtga+=dtgastep
                         
-                    
-                    
                 #calculates total biomass gained across plant (twlvg is amount of leaver/green matter): you feed the model total biomass and then from that we determine how much leaf mass there is and so then basically an average of how much that average leaf will produce multiplied by the number of leaves, this is assuming that all leaves are mature
                 dtgaCollapsed = dtga*_last_biomass['leaf_biomass']  
                 #total biomass for day length
                 assimilatedCH2O = dtgaCollapsed*_daylength 
                 #converts carbohydrates to glucose where photosynthesis unit is glucose and then we later convert that glucose to biomass in another section
                 gphot = assimilatedCH2O*(30/44) 
-                
-                #I don't think we need to write all of this out except for testing
-                ##how do we want to handle something like this?
-                #dailyphoto.iloc[j] = gphot  just commenting out for easy purpose in case we need it later
-
-                
                 
                 #if then statement ends glucose generation at end of growing season 
                 if self._current_jday == growdict['growing_season_end']:
@@ -360,30 +333,21 @@ class PlantGrowth(object):
                 self.plant_array['stem_biomass'][inds]=_last_biomass['stem_biomass']+delta_stem
 
 #May be able to eliminate this since using built in solar radiation component
-    def _PAR(self):
-        #required to convert degrees to radians
-        degree_to_rad = 0.017453292  
-        #rad_to_degree = (-math.asin((math.sin(23.45*degree_to_rad))*(math.cos(2*math.pi*(day+10)/365))))
+    def _PAR(self, _declination, _daylength):
         lat=self._lat_rad
     
         tmpvec = []
-        #Change to use numpy as np 
-        declination = (-1*np.arcsin((np.sin(23.45*degree_to_rad))*(np.cos(2*np.pi*(self._current_jday+10)/365))))
         
         #Intermediate variables
         #radians
-        sinld = ((np.sin(lat))*(np.sin(declination)))
+        sinld = ((np.sin(lat))*(np.sin(_declination)))
         #radians   
-        cosld = np.cos(lat)*np.cos(declination)  
+        cosld = np.cos(lat)*np.cos(_declination)  
         #radians
         aob = (sinld/cosld)  
         
-        temp1 = np.arcsin(aob)
-        #calculates daylength based on declination and latitude
-        daylength = 12 * (1 + 2 * temp1/np.pi)   
-        
-        dsinB = 3600 * (daylength * sinld + 24 * cosld * np.sqrt(1 - aob * aob)/np.pi)
-        dsinBE = 3600 * (daylength * (sinld + 0.4 * (sinld * sinld + cosld * cosld * 0.5)) + 12 * cosld * (2 + 3 * 0.4 * sinld) * np.sqrt(1 - aob * aob)/np.pi)
+        dsinB = 3600 * (_daylength * sinld + 24 * cosld * np.sqrt(1 - aob * aob)/np.pi)
+        dsinBE = 3600 * (_daylength * (sinld + 0.4 * (sinld * sinld + cosld * cosld * 0.5)) + 12 * cosld * (2 + 3 * 0.4 * sinld) * np.sqrt(1 - aob * aob)/np.pi)
         #solar constant
         sc = 1370 * (1 + 0.033 * np.cos(2 * np.pi * self._current_jday/365))  
         #Daily solar radiation
@@ -391,9 +355,7 @@ class PlantGrowth(object):
         
         for hr in range(0,3):
             #calculates hour in which photosynthesis is applied
-            hour1 = 12 + (daylength * 0.5 * (self._xgaus[hr]))  
-
-            
+            hour1 = 12 + (_daylength * 0.5 * (self._xgaus[hr]))  
             sinb_tmp = sinld + cosld * np.cos(2 * np.pi * (hour1 + 12)/24)
 
             #calculates sin of solar elevation, max functions prevents values less than 0
@@ -418,26 +380,32 @@ class PlantGrowth(object):
         return plant_df
     
     def _estimate_initial_plant_biomass(self):
+        #Define datatypes for record array
         dtypes=[('pid',int),('cell_index',int),('species','U10')]        
+        #Create temporary variables to build initial plant list
         pidval=0
         buildlist=[]
+        #Loop through grid
         for cell in range(self._grid.number_of_cells):
             cell_index=cell
             cell_plants=self._grid['cell']['vegetation__plant_species'][cell]
+            #Loop through list of plants stored on grid
             for plant in cell_plants:
                 if plant != 'null':
                     buildlist.append((pidval,cell_index,plant))
-                    #cellindexlist.append(cell_index)
-                    #specieslist.append(plant)
-                    #newrow=[pidval,species,cell_index]
-                    #self.plants.loc[pidval]=newrow
                     pidval += 1
+        #Create plant record array            
         plant_array=np.rec.array(buildlist,dtype=dtypes)
+        #Create nan arrays and fill undefined variables
         fillnan=np.empty(len(plant_array))
         fillnan[:]=np.nan
         plant_array=nprf.append_fields(plant_array,('leaf_biomass','stem_biomass','root_biomass'),data=[fillnan,fillnan,fillnan])
-        #Set coefficients to variable names to pass to solver function
+        
+        ####################################################################################################
+        #THIS IS BRUTE FORCE AND WILL NEED TO BE CHANGED. IT ASSUMES THAT INITIAL BIOMASS IS 2X MINIMUM
+        ####################################################################################################       
         for item in self.vegparams:
+            #Set coefficients to variable names to pass to solver function
             growdict=self.vegparams[item]['growparams']
             aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
             astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
@@ -445,25 +413,18 @@ class PlantGrowth(object):
             min_weight=growdict['plant_part_min'][0]+growdict['plant_part_min'][1]+growdict['plant_part_min'][2]
             inds=np.where(plant_array['species']==item)
             total_biomass=np.random.rand(inds[0].size)*min_weight+2*min_weight
+            #Call biomass allocation method
             root_bio,leaf_bio,stem_bio=self._init_biomass_allocation(total_biomass, coeffs)
-            #biomass=np.concatenate((biomass,species_biomass), axis=0)
             plant_array['root_biomass'][inds]=root_bio
             plant_array['leaf_biomass'][inds]=leaf_bio
             plant_array['stem_biomass'][inds]=stem_bio
-        #biomass=pd.DataFrame(biomass, columns=['leaf_biomass','stem_biomass','root_biomass'])
-        #biomass['pid']=pidset
-        #self.plants=self.plants.set_index('pid').join(biomass.set_index('pid'))
-        #self.plants.reset_index(inplace=True)
         return plant_array
     
     def _init_biomass_allocation(self, Tbio,coeffs):
-        #Initialize arrays to calculate root, leaf and stem biomass to
+        #Initialize arrays to calculate root, leaf and stem biomass from total
         root=[]
         leaf=[]
         stem=[]
-        root_all=np.zeros_like(Tbio)
-        leaf_all=np.zeros_like(Tbio)
-        stem_all=np.zeros_like(Tbio)
         
         #Loop through grid array
         for cell in Tbio:
@@ -480,11 +441,7 @@ class PlantGrowth(object):
         #Convert to numpy array
         root=np.array(root)
         leaf=np.array(leaf)
-        stem=np.array(stem)
-
-        biomass=np.vstack((leaf,stem, root))
-        biomass=np.transpose(biomass)
-       
+        stem=np.array(stem)      
         return root, leaf, stem
 
     def _solverFuncs(self,x,coeffs,totval):
@@ -497,7 +454,8 @@ class PlantGrowth(object):
         F[1]=coeffs[0]+coeffs[1]*r+coeffs[2]*r**2-l
         F[2]=coeffs[3]+coeffs[4]*r+coeffs[5]*r**2-s
         return F
-        
+
+    #Initial recode of simple mortality function        
     def _mortality(self):
         biomass=self._last_veg_biomass
         type=self._last_veg_type
