@@ -237,7 +237,7 @@ class BedrockLandslider(Component):
         verbose_landslides=False,
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=None,
-        min_deposition_slope = 0,
+        min_deposition_slope=0,
     ):
         """Initialize the BedrockLandslider model.
 
@@ -657,13 +657,23 @@ class BedrockLandslider(Component):
             self.grid.dx / (1 - (slope / self._threshold_slope) ** 2),
             1e6,
         )
-        
+
         flux_out = np.zeros(topo.shape)
         dh_hill = np.zeros(topo.shape)
         topo_copy = np.array(topo)
         max_depo = np.zeros(topo.shape)
-        length_adjacent_cells = np.array([self.grid.dx,self.grid.dx,self.grid.dx,self.grid.dx, 
-                                 self.grid.dx*np.sqrt(2),self.grid.dx*np.sqrt(2),self.grid.dx*np.sqrt(2),self.grid.dx*np.sqrt(2)])
+        length_adjacent_cells = np.array(
+            [
+                self.grid.dx,
+                self.grid.dx,
+                self.grid.dx,
+                self.grid.dx,
+                self.grid.dx * np.sqrt(2),
+                self.grid.dx * np.sqrt(2),
+                self.grid.dx * np.sqrt(2),
+                self.grid.dx * np.sqrt(2),
+            ]
+        )
 
         _landslide_runout(
             self.grid.dx,
