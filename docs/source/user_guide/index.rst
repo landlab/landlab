@@ -76,7 +76,6 @@ Additional resources
     :maxdepth: 2
 
     field_definitions
-    field_io
     time_steps
     examples
     faq
