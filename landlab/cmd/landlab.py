@@ -63,7 +63,7 @@ out = partial(click.secho, bold=True, file=sys.stderr)
 err = partial(click.secho, fg="red", file=sys.stderr)
 
 
-@click.group()  # chain=True)
+@click.group(chain=True)
 @click.version_option()
 @click.option(
     "--cd",
@@ -154,6 +154,7 @@ def index(ctx):
             f"{cls.__module__}.{cls.__name__}.at_cell",
         ]
 
+    print("# Generated using `landlab index`")
     for grid, cats in index["grids"].items():
         print(f"[grids.{grid}]")
         for cat, funcs in cats.items():
@@ -187,16 +188,34 @@ def fields(ctx):
     verbose = ctx.parent.params["verbose"]
     silent = ctx.parent.params["silent"]
 
-    fields = {}
+    fields = defaultdict(lambda: defaultdict(list))
     for cls in get_all_components():
         if verbose and not silent:
             out(f"checking {cls.__name__}... {len(cls._info)} fields")
-        for name, desc in cls._info.items():
-            fields[name] = desc["doc"]
 
+        for name, desc in cls._info.items():
+            fields[name]["desc"].append(desc["doc"])
+            if desc["intent"].startswith("in"):
+                fields[name]["used_by"].append(f"{cls.__module__}.{cls.__name__}")
+            if desc["intent"].endswith("out"):
+                fields[name]["provided_by"].append(f"{cls.__module__}.{cls.__name__}")
+
+    print("# Generated using `landlab fields`")
     print("[fields]")
-    for field, desc in fields.items():
-        print(f"{field} = {desc!r}")
+    for field, info in fields.items():
+        print("")
+        print(f"[fields.{field}]")
+        print(f"desc = {info['desc'][0]!r}")
+        if info["used_by"]:
+            used_by = [repr(f) for f in info["used_by"]]
+            print(f"used_by = [{', '.join(used_by)}]")
+        else:
+            print("used_by = []")
+        if info["provided_by"]:
+            provided_by = [repr(f) for f in info["provided_by"]]
+            print(f"provided_by = [{', '.join(provided_by)}]")
+        else:
+            print("provided_by = []")
 
     if not silent:
         out("[summary]")
