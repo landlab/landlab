@@ -375,7 +375,7 @@ towncrier_draft_include_empty = True
 towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
 
 
-with open("../../index.toml", "rb") as fp:
+with open("../index.toml", "rb") as fp:
     cats = tomli.load(fp)
 cats["grids"].pop("ModelGrid")
 
