@@ -53,12 +53,12 @@ API for each grid type
 .. toctree::
    :maxdepth: 1
 
-   base_api
-   raster_api
-   voronoi_api
-   hex_api
-   radial_api
-   network_api
+   base
+   raster
+   voronoi
+   hex
+   radial
+   network
 
 Additional Grid Base Classes
 ----------------------------
