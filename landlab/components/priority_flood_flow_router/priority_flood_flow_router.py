@@ -393,6 +393,10 @@ class PriorityFloodFlowRouter(Component):
                 "use default Landlab flow accumulator instead"
             )
 
+        # save elevations as class properites.
+        self._surface = surface
+        self._surface_values = return_array_at_node(grid, surface)
+
         node_cell_area = self._grid.cell_area_at_node.copy()
         node_cell_area[self._grid.closed_boundary_nodes] = 0.0
         self._node_cell_area = node_cell_area
@@ -513,6 +517,20 @@ class PriorityFloodFlowRouter(Component):
         self._create_richdem_properties()
 
     @property
+    def surface_values(self):
+        """Values of the surface over which flow is directed."""
+        return self._surface_values
+
+    def _changed_surface(self):
+        """Check if the surface values have changed.
+
+        If the surface values are stored as a field, it is important to
+        check if they have changed since the component was instantiated.
+        """
+        if isinstance(self._surface, str):
+            self._surface_values = return_array_at_node(self._grid, self._surface)
+
+    @property
     def node_drainage_area(self):
         """Return the drainage area."""
         return self._grid["node"]["drainage_area"]
@@ -525,7 +543,7 @@ class PriorityFloodFlowRouter(Component):
     def _create_richdem_properties(self):
         self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
-                self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
+                self._surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
         )
@@ -633,8 +651,7 @@ class PriorityFloodFlowRouter(Component):
             recvr_link[props_Pf <= 0] = -1
 
             slope_temp = (
-                self.grid.at_node["topographic__elevation"].reshape(-1, 1)
-                - self.grid.at_node["topographic__elevation"][rcvrs]
+                self._surface_values.reshape(-1, 1) - self._surface_values[rcvrs]
             ) / (self.grid.dx * np.sqrt(self.grid.at_node["squared_length_adjacent"]))
 
             if flow_metric in PSINGLE_FMs:
@@ -710,7 +727,7 @@ class PriorityFloodFlowRouter(Component):
         receivers[np.nonzero(self._grid.status_at_node)] = -1
         steepest_slope = np.zeros((receivers.shape), dtype=float)
         el_dep_free = self._depression_free_dem.reshape(self.grid.number_of_nodes)
-        el_ori = self.grid.at_node["topographic__elevation"]
+        el_ori = self._surface_values
         dist = np.multiply(
             [1, 1, 1, 1, np.sqrt(2), np.sqrt(2), np.sqrt(2), np.sqrt(2)], dx
         )
@@ -795,7 +812,7 @@ class PriorityFloodFlowRouter(Component):
     def remove_depressions(self):
         self._depression_free_dem = cp.deepcopy(
             rd.rdarray(
-                self.grid.at_node["topographic__elevation"].reshape(self.grid.shape),
+                self._surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
         )
