@@ -1,6 +1,10 @@
+.. _api.grid.grid_summary:
+
+===============
 Grid Cheatsheet
 ===============
 
+--------------------------------
 Getting Information about a Grid
 --------------------------------
 
@@ -8,39 +12,39 @@ The following attributes, properties, and methods provide data about the grid,
 its geometry, and the connectivity among the various elements. Each grid
 element has an ID number, which is also its position in an array that
 contains information about that type of element. For example, the *x*
-coordinate of node 5 would be found at `grid.node_x[5]`.
+coordinate of node 5 would be found at ``grid.x_of_node[5]``.
 
-The naming of grid-element arrays is *attribute*`_at_`*element*, where
+The naming of grid-element arrays is ``<attribute>_at_<element>``, where
 *attribute* is the name of the data in question, and *element* is the element
-to which the attribute applies. For example, the property `node_at_cell`
+to which the attribute applies. For example, the property ``node_at_cell``
 contains the ID of the node associated with each cell. For example,
-`node_at_cell[3]` contains the *node ID* of the node associated with cell 3.
+``node_at_cell[3]`` contains the *ID* of the node associated with cell 3.
 The *attribute* is singular if there is only one value per element; for
 example, there is only one node associated with each cell. It is plural when
 there are multiple values per element; for example, the `faces_at_cell` array
 contains multiple faces for each cell. Exceptions to these general rules are
 functions that return indices of a subset of all elements of a particular type.
 For example, you can obtain an array with IDs of only the core nodes using
-`core_nodes`, while `active_links` provides an array of IDs of active links
+``core_nodes``, while `active_links` provides an array of IDs of active links
 (only). Finally, attributes that represent a measurement of something, such as
-the length of a link or the surface area of a cell, are described using `_of_`,
-as in the example `area_of_cell`.
+the length of a link or the surface area of a cell, are described using ``_of_``,
+as in the example ``area_of_cell``.
 
-    
+
 .. contents::
   :local:
 
-
-Grid Elements
-~~~~~~~~~~~~~
+  
+Nodes, Links, and Patches
+=========================
 
 .. jinja:: llcats
   
   .. currentmodule:: landlab
     
-  {% for grid, cats in grids |dictsort %}
+  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
   
-  .. tab:: {{ grid }}
+  .. tab:: {{ label }}
     
     {% for cat, label in [('info-node', 'Nodes'), ('info-link', 'Links'), ('info-patch', 'Patches')] %}
     
@@ -49,22 +53,23 @@ Grid Elements
         .. autosummary::
           :nosignatures:
         
-          {% for func in cats[cat] %}
+          {% for func in grids[grid][cat] %}
             ~{{func}}      
           {% endfor %}
     {% endfor %}
   {% endfor %} 
-  
-Dual-Grid Elements
-~~~~~~~~~~~~~~~~~~
+
+
+Corners, Faces, and Cells
+=========================
 
 .. jinja:: llcats
   
   .. currentmodule:: landlab
     
-  {% for grid, cats in grids |dictsort %}
+  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
   
-  .. tab:: {{ grid }}
+  .. tab:: {{ label }}
     
     {% for cat, label in [('info-corner', 'Corners'), ('info-face', 'Faces'), ('info-cell', 'Cells')] %}
     
@@ -73,7 +78,7 @@ Dual-Grid Elements
         .. autosummary::
           :nosignatures:
         
-          {% for func in cats[cat] %}
+          {% for func in grids[grid][cat] %}
             ~{{func}}      
           {% endfor %}
     {% endfor %}
@@ -81,15 +86,30 @@ Dual-Grid Elements
 
 
 Grid
-~~~~
+====
+
+.. _api.grid.grid_summary.bc:
+
+Boundary condition control
+--------------------------
+
+These are the primary properties for getting and setting the grid boundary
+conditions. Changes made to :meth:`~.ModelGrid.status_at_node` automatically
+update the conditions defined at other grid elements.
+
+Subsets of grid elements
+------------------------
+
+These methods are useful in identifying subsets of grid elements, e.g., closest node
+to a point; nodes at edges.
 
 .. jinja:: llcats
   
   .. currentmodule:: landlab
     
-  {% for grid, cats in grids |dictsort %}
+  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
   
-  .. tab:: {{ grid }}
+  .. tab:: {{ label }}
     
     {% for cat, label in [('boundary-condition', 'Boundary Conditions'), ('subset', 'Subsetting')] %}
     
@@ -98,7 +118,7 @@ Grid
         .. autosummary::
           :nosignatures:
         
-          {% for func in cats[cat] %}
+          {% for func in grids[grid][cat] %}
             ~{{func}}      
           {% endfor %}
     {% endfor %}
@@ -106,15 +126,109 @@ Grid
 
 
 Fields
-~~~~~~
+======
+
+:class:`~.ModelGrid` inherits from the :class:`~.GraphFields` class. This
+provides :class:`~.ModelGrid`, and its subclasses, with the ability to, optionally,
+store data values associated with the different types grid elements
+(nodes, cells, etc.). In particular, as part of :meth:`~.ModelGrid.__init__`,
+data field *groups* are added to the :class:`~.ModelGrid` that provide containers to
+put data fields into. There is one group for each of the eight grid elements
+(node, cell, link, face, core_node, core_cell, active_link, and active_face).
+
+Create Field Arrays
+-------------------
+
+:class:`~.ModelGrid` inherits several useful methods for creating new data
+fields and adding new data fields to a :class:`~.ModelGrid` instance. Methods to add or
+create a new data array follow the ``numpy`` syntax for creating arrays. The
+following methods create and, optionally, initialize new arrays. These arrays
+are of the correct size but a new field will not be added to the field:
+
+.. autosummary::
+    :nosignatures:
+
+    ~landlab.field.graph_field.GraphFields.empty
+    ~landlab.field.graph_field.GraphFields.ones
+    ~landlab.field.graph_field.GraphFields.zeros
+
+Add Fields to a ModelGrid
+-------------------------
+
+Unlike the equivalent ``numpy`` functions, these do not take a size argument
+as the size of the returned arrays is determined from the size of the
+:class:`~.ModelGrid`. However, the keyword arguments are the same as those of the ``numpy``
+equivalents.
+
+The following methods will create a new array and add a reference to that
+array to the ModelGrid:
+
+.. autosummary::
+    :nosignatures:
+
+    ~landlab.grid.raster.RasterModelGrid.add_empty
+    ~landlab.grid.raster.RasterModelGrid.add_field
+    ~landlab.grid.raster.RasterModelGrid.add_ones
+    ~landlab.grid.raster.RasterModelGrid.add_zeros
+    ~landlab.grid.raster.RasterModelGrid.delete_field
+
+These methods operate in the same way as the previous set except that, in
+addition to creating a new array, the newly-created array is added to the
+ModelGrid. The calling signature is the same but with the addition of an
+argument that gives the name of the new field as a string. The additional
+method, :meth:`~.GraphFields.add_field`, adds a previously allocation
+array to the ModelGrid. If the array is of the incorrect size it will raise
+``ValueError``.
+
+Query Fields
+------------
+
+Use the following methods/attributes get information about the stored data
+fields:
+
+.. autosummary::
+    :nosignatures:
+
+    ~landlab.field.graph_field.GraphFields.size
+    ~landlab.field.graph_field.GraphFields.keys
+    ~landlab.field.graph_field.GraphFields.has_group
+    ~landlab.field.graph_field.GraphFields.has_field
+    ~landlab.grid.raster.RasterModelGrid.field_units
+    ~landlab.grid.raster.RasterModelGrid.field_values
+    ~landlab.field.graph_field.GraphFields.groups
+
+Example: ``grid.has_field("my_field_name", at="node")``.
+
+.. _api.grid.grid_summary.mappers:
+
+Mappers
+-------
+
+These methods allow mapping of values defined on one grid element onto a
+second, e.g., mapping upwind node values onto links, or mean link values onto
+nodes.
+
+Gradients, fluxes, and divergences on the grid
+----------------------------------------------
+
+Landlab is designed to easily calculate gradients in quantities across the
+grid, and to construct fluxes and flux divergences from them. Because these
+calculations tend to be a little more involved than property lookups, the
+methods tend to start with ``calc_``.
+
+Surface analysis
+----------------
+
+These methods permit the kinds of surface analysis that you might expect to
+find in GIS software.
 
 .. jinja:: llcats
   
   .. currentmodule:: landlab
     
-  {% for grid, cats in grids |dictsort %}
+  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
   
-  .. tab:: {{ grid }}
+  .. tab:: {{ label }}
           
     {% for cat, label in [('field-add', 'New'), ('field-io', 'Access'), ('map', 'Mappers'), ('gradient', 'Gradients'), ('surface', 'Analysis')] %}
     
@@ -123,7 +237,7 @@ Fields
         .. autosummary::
           :nosignatures:
         
-          {% for func in cats[cat] %}
+          {% for func in grids[grid][cat] %}
             ~{{func}}      
           {% endfor %}
     {% endfor %}
@@ -131,15 +245,15 @@ Fields
 
 
 Deprecated and Uncategorized
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 .. jinja:: llcats
   
   .. currentmodule:: landlab
     
-  {% for grid, cats in grids |dictsort %}
+  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
   
-  .. tab:: {{ grid }}
+  .. tab:: {{ label }}
     
     {% for cat, label in [('uncategorized', 'Uncategorized'), ('deprecated', 'Deprecated')] %}
     
@@ -148,127 +262,9 @@ Deprecated and Uncategorized
         .. autosummary::
           :nosignatures:
         
-          {% for func in cats[cat] %}
+          {% for func in grids[grid][cat] %}
             ~{{func}}      
           {% endfor %}
     {% endfor %}
   {% endfor %}
   
-
-Data Fields
-~~~~~~~~~~~
-
-
-:class:`~.ModelGrid` inherits from the :class:`~.GraphFields` class. This
-provides `~.ModelGrid`, and its subclasses, with the ability to, optionally,
-store data values that are associated with the different types grid elements
-(nodes, cells, etc.). In particular, as part of ``ModelGrid.__init__()``,
-data field *groups* are added to the `ModelGrid` that provide containers to
-put data fields into. There is one group for each of the eight grid elements
-(node, cell, link, face, core_node, core_cell, active_link, and active_face).
-
-To access these groups, use the same methods as accessing groups with
-`~.GraphFields`. ``ModelGrid.__init__()`` adds the following attributes to
-itself that provide access to the values groups:
-
-
-.. jinja:: llcats
-
-  .. currentmodule:: landlab
-    
-  {% for grid, cats in grids.items() %}
-  
-  .. tab:: {{ grid }}
-    
-      .. tab:: Access
-        
-        Each of these attributes returns a ``dict``-like object whose keys are value
-        names as strings and values are numpy arrays that gives quantities at
-        grid elements.
-          
-        .. autosummary::
-          :nosignatures:
-          
-          ~landlab.{{grid}}.at_node
-          ~landlab.{{grid}}.at_cell
-          ~landlab.{{grid}}.at_link
-          ~landlab.{{grid}}.at_face
-          ~landlab.{{grid}}.at_patch
-          ~landlab.{{grid}}.at_corner
-            
-      .. tab:: New
-      
-        :class:`~.ModelGrid` inherits several useful methods for creating new data
-        fields and adding new data fields to a ModelGrid instance. Methods to add or
-        create a new data array follow the ``numpy`` syntax for creating arrays. The
-        folowing methods create and, optionally, initialize new arrays. These arrays
-        are of the correct size but a new field will not be added to the field:
-            
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in cats["field-add"] %}
-            ~{{func}}      
-          {% endfor %}
-          
-      .. tab:: Element Mapping
-        
-        These methods allow mapping of values defined on one grid element type onto a
-        second, e.g., mapping upwind node values onto links, or mean link values onto
-        nodes.
-        
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in cats["map"] %}
-            ~{{func}}      
-          {% endfor %}
-      
-      .. tab:: Element Mapping
-            
-        Landlab is designed to easily calculate gradients in quantities across the
-        grid, and to construct fluxes and flux divergences from them. Because these
-        calculations tend to be a little more involved than property lookups, the
-        methods tend to start with `calc_`.
-        
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in cats["map"] %}
-            ~{{func}}      
-          {% endfor %}
-      
-      .. tab:: Modifying Fields
-                
-        :class:`~.ModelGrid` inherits several useful methods for creating new data
-        fields and adding new data fields to a ModelGrid instance. Methods to add or
-        create a new data array follow the ``numpy`` syntax for creating arrays. The
-        folowing methods create and, optionally, initialize new arrays. These arrays
-        are of the correct size but a new field will not be added to the field:
-        
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in cats["field-io"] %}
-            ~{{func}}      
-          {% endfor %}
-      
-      .. tab:: Field
-          
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in cats["info-field"] %}
-            ~{{func}}      
-          {% endfor %}
-      
-      .. tab:: Boundary
-              
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in cats["boundary-condition"] %}
-            ~{{func}}      
-          {% endfor %}
-    
-  {% endfor %}
