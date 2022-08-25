@@ -56,20 +56,20 @@ of re-invention by providing standardized components that they can re-use.
 Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_
 at CSDMS to learn more.
 
-
-.. note::
-
-  In April 2020 Landlab switched to version 2.0. Landlab dropped
-  support of Python 2.7 with this transition.
-
 .. end-intro
+
+-----------
+
+`Read the documentation on ReadTheDocs! <https://landlab.readthedocs.io/>`_
+
+-----------
 
 Installation
 ------------
 
 .. start-install-release
 
-In order to use *landlab* you will first need Python >=3.8. While not
+In order to use *landlab* you will first need Python. While not
 necessary, we recommend using the 
 `Anaconda Python distribution <https://www.anaconda.com/distribution/>`_
 as it provides a large number of third-party packages useful for
@@ -119,7 +119,7 @@ or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
    $ curl -OL https://github.com/landlab/landlab/tarball/master
 
 Once you have a copy of the source code, you can install it into your current
-Python,
+Python environment,
 
 .. tab:: conda
 
@@ -135,110 +135,11 @@ Python,
 
      $ cd landlab
      $ pip install -e .
-     
+
 
 .. end-install-source
 
-Supported Python Versions
-`````````````````````````
 
-Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
-binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
-and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 through 3.9.
-
-Conda Environment with Pre-packaged Binary Distribution
-```````````````````````````````````````````````````````
-
-To create a conda environment that installs a pre-packaged binary and all the
-dependencies necessary to run the notebooks, clone the repository, navigate to
-within the top level directory and use the following command:
-
-.. code-block:: bash
-
-    $ conda env create --file=environment.yml
-
-Then activate the environment and open the welcome notebook execute the
-following:
-
-.. code-block:: bash
-
-    $ conda activate landlab_notebooks
-    $ jupyter notebook notebooks/welcome.ipynb
-
-Developer Installation
-``````````````````````
-
-Individuals interested in modifying the Landlab source code should follow the
-`developer installation instructions <https://landlab.readthedocs.io/en/latest/development/install/index.html>`_
-which describe cloning the source code, creating a conda environment for
-development, compiling, and testing the code.
-
-In short, clone the repository, navigate to the top level directory, and
-run the following commands:
-
-.. code-block:: bash
-
-    $ conda create -n landlab python
-    $ conda install -n landlab --file=requirements.txt
-    $ conda activate landlab
-    $ pip install -e .
-
-This will install *landlab* and it's dependencies. You may want to install
-some additional utilities used for developing, testing, and running *landlab*
-notebooks. This can be done with the following:
-
-.. code-block:: bash
-
-    $ conda install --file=requirements-dev.txt
-    $ conda install --file=requirements-testing.txt
-    $ conda install --file=requirements-notebooks.txt
-
-
-How do I verify I've installed Landlab correctly?
--------------------------------------------------
-
-Landlab uses pytest to discover and run tests. These include docstring tests
-located within the core source code (``landlab/landlab`` directory) and unit
-tests located within the ``landlab/tests`` directory. Presuming you have used a
-source code installation with the above conda environment, you will be able to
-test your install with
-
-.. code-block::
-
-    $ pytest
-
-from within the ``landlab_dev`` conda environment. Additional instructions,
-including how the unit tests directory is structured can be found under the
-`testing section`_ of the landlab documentation.
-
-.. _testing section: https://landlab.readthedocs.io/en/master/development/install/test.html
-
-What are Landlab's dependencies?
---------------------------------
-
-The core package dependencies are specified by ``requirements.txt`` and used
-by ``setup.py``. There are some additional dependencies that exist for
-running the notebooks or modifying the source code and testing.
-
-Details of how we structure our dependencies can be found under the
-`dependencies section`_ of the landlab documentation.
-
-.. _dependencies section: https://landlab.readthedocs.io/en/master/development/practices/dependencies.html
-
-How do I learn more about Landlab?
-----------------------------------
-
-Our documentation is hosted on ReadTheDocs at https://landlab.readthedocs.io/.
-This includes a User Guide and API reference.
-
-The following paper describes the design of Landlab.
-
-`Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
-J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
-E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
-toolkit for building, coupling, and exploring two-dimensional numerical models
-of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
-10.5194/esurf-5-21-2017.
 
 Are there any examples of using Landlab I can look at?
 ------------------------------------------------------
@@ -286,64 +187,66 @@ Citing Landlab
 
 .. start-citing
 
-If you use any portion of Landlab, you must cite the following papers:
+If you use any portion of Landlab, please cite the following papers:
 
-`Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
-J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
-E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
-toolkit for building, coupling, and exploring two-dimensional numerical models
-of Earth-surface dynamics, Earth Surface Dynamics, 5(1), p 21-46,
-10.5194/esurf-5-21-2017.
+.. tab:: Reference
 
-`Barnhart, K. R. <https://doi.org/10.5194/esurf-8-379-2020>`__,
-Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
-Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
-and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
-Earth surface dynamics, Earth Surf. Dynam., 8(2), p 379-397,
-doi:10.5194/esurf-8-379-2020.
+  `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
+  J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
+  E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
+  toolkit for building, coupling, and exploring two-dimensional numerical models
+  of Earth-surface dynamics, Earth Surface Dynamics, 5(1), p 21-46,
+  10.5194/esurf-5-21-2017.
+  
+  `Barnhart, K. R. <https://doi.org/10.5194/esurf-8-379-2020>`__,
+  Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
+  Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
+  and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
+  Earth surface dynamics, Earth Surf. Dynam., 8(2), p 379-397,
+  doi:10.5194/esurf-8-379-2020.
 
+.. tab:: BibTeX
 
-BibTeX format:
-::
-
-  @article{hobley2017creative,
-    title={
-      Creative computing with Landlab: an open-source toolkit for building,
-      coupling, and exploring two-dimensional numerical models of
-      Earth-surface dynamics
-    },
-    author={
-      Hobley, Daniel EJ and Adams, Jordan M and Nudurupati, Sai Siddhartha and
-      Hutton, Eric WH and Gasparini, Nicole M and Istanbulluoglu, Erkan and
-      Tucker, Gregory E
-    },
-    journal={Earth Surface Dynamics},
-    volume={5},
-    number={1},
-    pages={21--46},
-    year={2017},
-    publisher={Copernicus GmbH},
-    url={https://esurf.copernicus.org/articles/5/21/2017/},
-    doi={10.5194/esurf-5-21-2017}
-  }
-
-  @article{barnhart2020landlab,
-    title={Landlab v2. 0: a software package for Earth surface dynamics},
-    author={
-      Barnhart, Katherine R and Hutton, Eric WH and Tucker, Gregory E and
-      Gasparini, Nicole M and Istanbulluoglu, Erkan and Hobley, Daniel EJ and
-      Lyons, Nathan J and Mouchene, Margaux and Nudurupati, Sai Siddhartha and
-      Adams, Jordan M and others
-    },
-    journal={Earth Surface Dynamics},
-    volume={8},
-    number={2},
-    pages={379--397},
-    year={2020},
-    publisher={Copernicus GmbH}
-    url = {https://esurf.copernicus.org/articles/8/379/2020/},
-    doi = {10.5194/esurf-8-379-2020}
-  }
+  ::
+  
+    @article{hobley2017creative,
+      title={
+        Creative computing with Landlab: an open-source toolkit for building,
+        coupling, and exploring two-dimensional numerical models of
+        Earth-surface dynamics
+      },
+      author={
+        Hobley, Daniel EJ and Adams, Jordan M and Nudurupati, Sai Siddhartha and
+        Hutton, Eric WH and Gasparini, Nicole M and Istanbulluoglu, Erkan and
+        Tucker, Gregory E
+      },
+      journal={Earth Surface Dynamics},
+      volume={5},
+      number={1},
+      pages={21--46},
+      year={2017},
+      publisher={Copernicus GmbH},
+      url={https://esurf.copernicus.org/articles/5/21/2017/},
+      doi={10.5194/esurf-5-21-2017}
+    }
+  
+    @article{barnhart2020landlab,
+      title={Landlab v2. 0: a software package for Earth surface dynamics},
+      author={
+        Barnhart, Katherine R and Hutton, Eric WH and Tucker, Gregory E and
+        Gasparini, Nicole M and Istanbulluoglu, Erkan and Hobley, Daniel EJ and
+        Lyons, Nathan J and Mouchene, Margaux and Nudurupati, Sai Siddhartha and
+        Adams, Jordan M and others
+      },
+      journal={Earth Surface Dynamics},
+      volume={8},
+      number={2},
+      pages={379--397},
+      year={2020},
+      publisher={Copernicus GmbH}
+      url = {https://esurf.copernicus.org/articles/8/379/2020/},
+      doi = {10.5194/esurf-8-379-2020}
+    }
 
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
@@ -358,31 +261,28 @@ Citation information for each component can be found as follows:
 
 .. end-citing
 
+Contact
+-------
 
-I think I found a bug. What should I do?
-----------------------------------------
+.. start-contact
 
-Please make an Issue describing the bug so we can address it, or work with you
-to address it. Please try to provide a
-`minimal, reproducible example <https://stackoverflow.com/help/minimal-reproducible-example>`_.
+The recommended way to contact the Landlab team is with a
+`GitHub Issue <https://github.com/landlab/landlab/issues>`_.
 
-I found something in the documentation that isn't clear. What should I do?
---------------------------------------------------------------------------
+* **Bug reports**: Please make an Issue describing the bug so we can address it, or work
+  with you to address it. Please try to provide a `minimal, reproducible example
+  <https://stackoverflow.com/help/minimal-reproducible-example>`_.
+* **Documentation**: If something in our documentation is not clear to you, please make an
+  issue describing the what isn't clear. Someone will tag
+  the most appropriate member of the core Landlab team. We will work to clarify
+  your question and revise the documentation so that it is clear for the next user.
 
-Please make an Issue describing the what isn't clear to you. Someone will tag
-the most appropriate member of the core Landlab team. We will work to clarify
-your question and revise the documentation so that it is clear for the next user.
+Keep in touch with the latest *landlab* news by following us on `Twitter <https://twitter.com/landlabtoolkit>`_.
 
-I'm interested in contributing to Landlab. Where do I get started?
-------------------------------------------------------------------
+During :ref:`workshops and clinics <clinics_workshops>`, we sometimes use the
+`Landlab Slack channel <https://landlab.slack.com>`_.
 
-Thank you for your interest! Refer to ``CONTRIBUTING.md`` and
-`this <https://landlab.readthedocs.io/en/master/development/index.html#development>`_
-page in the documentation that describes contribution guidelines.
+.. end-contact
 
-How is the Landlab package structured?
---------------------------------------
 
-The
-`following page <https://landlab.readthedocs.io/en/master/development/package_organization.html>`_
-in the documentation describes the package structure.
+
