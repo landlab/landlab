@@ -1,6 +1,12 @@
 Installation
 ============
 
+.. note::
+
+  In April 2020 Landlab switched to version 2.0. Landlab dropped
+  support of Python 2.7 with this transition.
+
+
 Release Install
 ---------------
 
