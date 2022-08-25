@@ -27,6 +27,12 @@ class BedrockLandslider(Component):
     Geosci Model Dev: 13(9):3863–86.
     `https://dx.doi.org/10.5194/esurf-6-1-2018 <https://dx.doi.org/10.5194/esurf-6-1-2018>`_
 
+    Campforts, B., Shobe, C. M., Overeem, I., & Tucker, G. E. (2022).
+    The Art of Landslides: How Stochastic Mass Wasting Shapes Topography and
+    Influences Landscape Dynamics.
+    Journal of Geophysical Research: Earth Surface,
+    127(8), 1–16. https://doi.org/10.1029/2022JF006745
+
 
     Examples
     --------
