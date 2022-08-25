@@ -112,14 +112,6 @@ class ThresholdEroder(Component):
             "mapping": "node",
             "doc": "Land surface topographic elevation",
         },
-        "topographic__steepest_slope": {
-            "dtype": float,
-            "intent": "in",
-            "optional": False,
-            "units": "m/m",
-            "mapping": "node",
-            "doc": "The steepest *downhill* slope",
-        },
         "flow__receiver_node": {
             "dtype": int,
             "intent": "in",
@@ -170,7 +162,7 @@ class ThresholdEroder(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        slope_crit: float (default=1.)
+        slope_crit: float optional
             Critical slope [L/L]
         """
         super().__init__(grid)
@@ -186,35 +178,24 @@ class ThresholdEroder(Component):
             raise NotImplementedError(msg)
 
         # Store grid and parameters
-
         self._slope_crit = slope_crit
 
-        # Create fields:
-        # Elevation
-        self._elev = self._grid.at_node["topographic__elevation"]
-        # Downstream steepest slope at node:
-        self._steepest = self._grid.at_node["topographic__steepest_slope"]
-        self._r = self._grid.at_node["flow__receiver_node"]
-        self._link_to_reciever = grid.at_node["flow__link_to_receiver_node"]
+        # Link lengths depending on raster type:
         if isinstance(grid, RasterModelGrid):
             self._link_lengths = grid.length_of_d8
         else:
             self._link_lengths = grid.length_of_link
 
-        self._stack = self.grid.at_node["flow__upstream_node_order"]
-
+        # Create fields
         self.initialize_output_fields()
 
-        if "soil__depth" in self._grid.at_node.keys():
+        if "soil__depth" in self._grid.at_node:
             if "bedrock__elevation" not in self._grid.at_node.keys():
                 raise Exception(
                     "If soil__depth is provided as a field, also bedrock__elevation mut be provided as a field"
                 )
-            self._soilFlag = True
             self._soil = self._grid.at_node["soil__depth"]
             self._bed = self._grid.at_node["bedrock__elevation"]
-        else:
-            self._soilFlag = False
 
     def erode(self):
         """Erode landscape to threshold and dissolve sediment.
@@ -225,17 +206,21 @@ class ThresholdEroder(Component):
             Landlab ModelGrid object
         """
         _thresholder(
-            self._stack,
-            self._link_to_reciever,
-            self._r,
+            self.grid.at_node["flow__upstream_node_order"],
+            self.grid.at_node["flow__link_to_receiver_node"],
+            self._grid.at_node["flow__receiver_node"],
             self._link_lengths,
-            self._elev,
+            self._grid.at_node["topographic__elevation"],
             self._slope_crit,
         )
 
-        if self._soilFlag:
-            self._bed[:] = np.minimum(self._bed[:], self._elev[:])
-            self._soil[:] = self._elev[:] - self._bed[:]
+        if "soil__depth" in self._grid.at_node:
+            self._bed[:] = np.minimum(
+                self._bed[:], self._grid.at_node["topographic__elevation"][:]
+            )
+            self._soil[:] = (
+                self._grid.at_node["topographic__elevation"][:] - self._bed[:]
+            )
 
     def run_one_step(self):
         """Advance one timestep.
