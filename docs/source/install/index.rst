@@ -4,70 +4,16 @@
 Installation Instructions
 =========================
 
-In order to use *landlab* you will first need Python >=3.8. While not
-necessary, we recommend using the 
-`Anaconda Python distribution <https://www.anaconda.com/distribution/>`_
-as it provides a large number of third-party packages useful for
-scientific computing.
+.. include:: ../../../README.rst
+  :start-after: .. start-install-release
+  :end-before: .. end-install-release
 
-To install *landlab*, simply run the following in your terminal of choice:
-
-.. tab:: conda
-
-  .. code-block:: bash
-
-    $ conda install landlab -c conda-forge
-
-.. tab:: pip
-
-  .. code-block:: bash
-
-    $ pip install landlab
-
-or, if you simply can't wait for the latest release, you can install *landlab*
-directly from GitHub,
-
-.. code-block:: bash
-
-   $ pip install git+https://github.com/landlab/landlab
-
-
-Source code
+From source
 -----------
 
-*landlab* is actively being developed on GitHub, where the code is freely-available.
-If you would like to modify or contribute code, you can either clone our
-repository
-
-.. code-block:: bash
-
-   $ git clone git://github.com/landlab/landlab.git
-
-or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
-(a zip file is available for Windows users):
-
-.. code-block:: bash
-
-   $ curl -OL https://github.com/landlab/landlab/tarball/master
-
-Once you have a copy of the source code, you can install it into your current
-Python,
-
-.. tab:: conda
-
-  .. code-block:: bash
-
-     $ cd landlab
-     $ conda install --file=requirements.txt
-     $ pip install -e .
-
-.. tab:: pip
-
-  .. code-block:: bash
-
-     $ cd landlab
-     $ pip install -e .
-
+.. include:: ../../../README.rst
+  :start-after: .. start-install-release
+  :end-before: .. end-install-release
 
 Updating and uninstalling
 -------------------------
@@ -86,7 +32,6 @@ You can update an existing *landlab* installation to a newer version
   .. code-block:: bash
 
     $ pip -U install landlab
-    
 
 
 To uninstall *landlab*,
