@@ -17,20 +17,37 @@ Landlab: A modular Earth Surface Dynamics modeling library
  installation
  Tutorial notebooks <getting_started/index>
  user_guide/index
- citing
- funding
 
 .. toctree::
  :caption: Development
  :maxdepth: 1
 
- API Reference <reference/index>
+ Installation for developers <install/index>
  development/index
- Release Notes <changes>
- Contributors <authors>
- License <license>
- Used by <usedby>
+ API Reference <reference/index>
  
+.. toctree::
+  :caption: Useful Links
+  :maxdepth: 1
+  
+  changes
+  contact
+  citing
+  funding
+  Contributors <authors>
+  License <license>
+  Used by <usedby>
+  
+..
+  .. toctree::
+     :caption: Documentation Outline
+     :maxdepth: 2
+  
+     install/index
+     getting_started/index
+     user_guide/index
+     reference/index
+     development/index
 
 ..
   The most current source code is always available from our `git
@@ -50,43 +67,3 @@ Landlab: A modular Earth Surface Dynamics modeling library
   use is described :ref:`on this page <teaching_tutorials>`.
 
 
-
-Documentation Outline
----------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   install/index
-   getting_started/index
-   user_guide/index
-   reference/index
-   development/index
-
-Contact
--------
-
-Questions? Feedback? Found a bug or something unexpected?
-
-Need an improvement/addition to Landlab?
-
-Want to contribute?
-
-The recommended way to contact the Landlab development team is with a
-`GitHub Issue <https://github.com/landlab/landlab/issues>`_.
-
-Landlab News
-------------
-
-To keep in touch with the latest Landlab news:
-
--  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
-
-
-.. _contact:
-
-Workshops and Clinics
----------------------
-
-During :ref:`workshops and clinics <clinics_workshops>`, we sometimes use the
-`Landlab Slack channel <https://landlab.slack.com>`_.
