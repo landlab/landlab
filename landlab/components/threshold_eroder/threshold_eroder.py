@@ -19,7 +19,8 @@ class ThresholdEroder(Component):
 
         S(S>Sc) = Sc
 
-    To be coupled with FlowDirectorSteepest or PriorityFloodFlowRouter for the
+    To be coupled with :class:`~.flow_director_steepest.FlowDirectorSteepest` or
+    :class:`~.priority_flood_flow_router.PriorityFloodFlowRouter` for the
     calculation of steepest slope at each timestep. Note that ThresholdEroder
     run_one_step() cuts off slopes and computes new elevations based on the
     steepest slopes as calculated by the FlowDirectorSteepest or
@@ -33,7 +34,7 @@ class ThresholdEroder(Component):
     ----------
     grid : ModelGrid
         Landlab ModelGrid object
-    slope_crit: float, (default=1.)
+    slope_crit: float, optional
         Critical slope [L/L]
 
     Examples
@@ -41,22 +42,26 @@ class ThresholdEroder(Component):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import ThresholdEroder,PriorityFloodFlowRouter
+    >>> from landlab.components import ThresholdEroder, PriorityFloodFlowRouter
 
     Define grid and initial topography:
 
-        - 3x5 grid
-        - east and west boundaries are open, north and south are closed
-        - Initial topography is plane at base level on the boundaries and
-          1m of elevation elsewhere (core)
+    - 3x5 grid
+    - east and west boundaries are open, north and south are closed
+    - Initial topography is plane at base level on the boundaries and
+      1m of elevation elsewhere (core)
 
     >>> mg = RasterModelGrid((5, 5))
     >>> mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
-    >>> z = np.array([0., 0., 0., 0., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 1., 10., 1., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 0., 0., 0., 0.])
+    >>> z = np.array(
+    ...     [
+    ...         [0., 0., 0., 0., 0.],
+    ...         [0., 1., 1., 1., 0.],
+    ...         [0., 1., 10., 1., 0.],
+    ...         [0., 1., 1., 1., 0.],
+    ...         [0., 0., 0., 0., 0.],
+    ...     ]
+    ... )
     >>> _ = mg.add_field("topographic__elevation", z, at="node")
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
@@ -156,7 +161,7 @@ class ThresholdEroder(Component):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        slope_crit: float optional
+        slope_crit: float, optional
             Critical slope [L/L]
         """
         super().__init__(grid)
@@ -189,13 +194,7 @@ class ThresholdEroder(Component):
                 )
 
     def erode(self):
-        """Erode landscape to threshold and dissolve sediment.
-
-        Parameters
-        ----------
-        grid : ModelGrid
-            Landlab ModelGrid object
-        """
+        """Erode landscape to threshold and dissolve sediment."""
         _thresholder(
             self.grid.at_node["flow__upstream_node_order"],
             self.grid.at_node["flow__link_to_receiver_node"],
@@ -217,11 +216,5 @@ class ThresholdEroder(Component):
             )
 
     def run_one_step(self):
-        """Advance one timestep.
-
-        Advance threshold erosion component.
-
-        Parameters
-        ----------
-        """
+        """Advance threshold erosion component one timestep."""
         self.erode()
