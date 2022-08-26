@@ -16,7 +16,8 @@ MAX_HEIGHT_SLOPE = 100  # in m
 
 
 class BedrockLandslider(Component):
-    """
+    """Calculate the location and magnitude of episodic bedrock landsliding.
+
     Landlab component that calculates the location and magnitude of episodic
     bedrock landsliding following the Cullman criterion.
     See the publication:
@@ -47,15 +48,12 @@ class BedrockLandslider(Component):
     * 5x5 grid
     * Initial topography is set to plateau value of 10
 
-    >>> nr = 5
-    >>> nc = 5
-    >>> dx = 1
-    >>> mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=1.0)
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> s = mg.add_zeros("soil__depth", at='node')
     >>> b = mg.add_zeros("bedrock__elevation", at='node')
 
-    make plateau at 10m
+    Make plateau at 10m
 
     >>> b += 10
 
@@ -73,15 +71,16 @@ class BedrockLandslider(Component):
     ... )
     >>> hy = BedrockLandslider(mg, landslides_return_time=1)
 
-    run flow director and BedrockLandslider for one timestep
-    >>> fd.run_one_step()
-    >>> vol_suspended_sediment_yield ,volume_leaving = hy.run_one_step(dt=1)
+    Run the flow director and BedrockLandslider for one timestep
 
-    After one timestep, we can predict eactly where the landslide will occur.
-    The return time is set to 1 year so that probability for sliding is 100%
-    The angle of internal driction is 1m/m, the topographical gradient is 10 m/m
-    At cardinal cells, the sliding plain will be at (1+10)/2 = 5.5 m/m.
-    With a dx of 1, the cardial cell next to the critical sliding node must
+    >>> fd.run_one_step()
+    >>> vol_suspended_sediment_yield, volume_leaving = hy.run_one_step(dt=1)
+
+    After one timestep, we can predict exactly where the landslide will occur.
+    The return time is set to 1 year so that probability for sliding is 100%.
+    The angle of internal friction is 1 m/m, the topographical gradient is 10 m/m.
+    At cardinal cells, the sliding plane will be at $(1 + 10) / 2 = 5.5$ m/m.
+    With a *dx* of 1, the cardinal cell next to the critical sliding node must
     be 5.5 m and the diagonal one at 5.5 * sqrt(2) = 7.8 m
 
     >>> testing.assert_almost_equal(
@@ -258,7 +257,7 @@ class BedrockLandslider(Component):
             Default value is set to angle_int_frict if not specified
         cohesion_eff : float, optional
             Effective cohesion of material [m L^-1 T^-2].
-        landslides_return_time  : float, optional
+        landslides_return_time : float, optional
             Return time for stochastic landslide events to occur
         rho_r : float, optional
             Bulk density rock [m L^-3].
@@ -378,7 +377,7 @@ class BedrockLandslider(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
 
         Returns
@@ -410,9 +409,9 @@ class BedrockLandslider(Component):
         flood_status = self.grid.at_node["flood_status_code"]
         flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
 
-        """In the following section the location of critical nodes where
-        landsldies are initatated is calcualted, unless these critical nodes
-        are provided as critical_sliding_nodes"""
+        # In the following section the location of critical nodes where
+        # landsldies are initatated is calcualted, unless these critical nodes
+        # are provided as critical_sliding_nodes
         if self._critical_sliding_nodes is None:
             # Calculate gradients
             height_cell = topo - topo[self.grid.at_node["flow__receiver_node"]]
@@ -613,19 +612,19 @@ class BedrockLandslider(Component):
 
     def _landslide_runout(self, dt):
         """
-        calculate landslide runout using a non-local deposition algorithm based on:
-            * Carretier S., Martinod P., Reich M., Godderis Y. (2016) Modelling
-              sediment clasts transport during landscape evolution.
-              Earth Surf Dyn: 4(1):237–51.
-            * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
-              (2020) HyLands 1.0: a hybrid landscape evolution model to simulate
-              the impact of landslides and landslide-derived sediment on landscape
-              evolution. Geosci Model Dev: 13(9):3863–86.
+        Calculate landslide runout using a non-local deposition algorithm based on:
+        * Carretier S., Martinod P., Reich M., Godderis Y. (2016) Modelling
+          sediment clasts transport during landscape evolution.
+          Earth Surf Dyn: 4(1):237–51.
+        * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
+          (2020) HyLands 1.0: a hybrid landscape evolution model to simulate
+          the impact of landslides and landslide-derived sediment on landscape
+          evolution. Geosci Model Dev: 13(9):3863–86.
 
         Parameters
         ----------
         dt : float
-            timestep.
+            Timestep.
 
         Returns
         -------
@@ -717,7 +716,7 @@ class BedrockLandslider(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
 
         Returns
