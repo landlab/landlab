@@ -341,7 +341,7 @@ def test_matches_detachment_solution():
     # Instantiate the SpaceLargeScaleEroder component...
     sp = SpaceLargeScaleEroder(
         mg,
-        K_sed=0.00001,
+        K_sed=0.00001 * np.ones_like(z),
         K_br=K_br,
         F_f=F_f,
         phi=0.1,
