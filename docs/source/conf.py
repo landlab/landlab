@@ -12,19 +12,13 @@
 # serve to show the default.
 
 import os
-import sys
+import pathlib
 from datetime import date
 
 import landlab
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
-#                                                 os.pardir)))
-sys.path.insert(0, os.path.abspath("../.."))
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, ".")
+docs_dir = os.path.dirname(__file__)
+
 
 # -- General configuration -----------------------------------------------------
 
@@ -40,6 +34,9 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
+    "sphinxcontrib.towncrier",
+    "sphinx_jinja",
 ]
 
 if os.getenv("READTHEDOCS"):
@@ -70,8 +67,8 @@ if os.getenv("GITHUB_ACTIONS"):
 master_doc = "index"
 
 # General information about the project.
-project = u"landlab"
-copyright = str(date.today().year) + u", The Landlab Team"
+project = "landlab"
+copyright = str(date.today().year) + ", The Landlab Team"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -128,12 +125,22 @@ autoclass_content = "both"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinxdoc"
+html_theme = "alabaster"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    "description": "An open-source Python package for building numerical models of Earth surface dynamics.",
+    "logo": "landlab_logo.jpg",
+    "logo_name": False,
+    "github_user": "landlab",
+    "github_repo": "landlab",
+    "extra_nav_links": {
+        "landlab @ GitHub": "https://github.com/landlab/landlab/",
+        "Contact Us": "https://github.com/landlab/landlab/issues",
+    },
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -147,17 +154,18 @@ html_theme = "sphinxdoc"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "images/landlab_logo.jpg"
+# html_logo = "images/landlab_logo.jpg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
+# html_favicon = None
 html_favicon = "images/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_static_path = ["_static", "images"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -169,6 +177,10 @@ html_static_path = ["_static"]
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
+html_sidebars = {
+    "**": ["about.html", "searchbox.html", "navigation.html", "sidebaroutro.html"]
+}
+
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -218,7 +230,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "landlab.tex", u"landlab Documentation", u"Author", "manual"),
+    ("index", "landlab.tex", "landlab Documentation", "Author", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -246,7 +258,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "landlab", u"landlab Documentation", [u"Author"], 1)]
+man_pages = [("index", "landlab", "landlab Documentation", ["Author"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -261,8 +273,8 @@ texinfo_documents = [
     (
         "index",
         "landlab",
-        u"landlab Documentation",
-        u"Author",
+        "landlab Documentation",
+        "Author",
         "landlab",
         "One line description of project.",
         "Miscellaneous",
@@ -285,10 +297,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u"landlab"
-epub_author = u"Author"
-epub_publisher = u"Author"
-epub_copyright = u"2013, Author"
+epub_title = "landlab"
+epub_author = "Author"
+epub_publisher = "Author"
+epub_copyright = "2013, Author"
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
@@ -347,4 +359,9 @@ napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
 
-html_style = "landlab.css"
+# -- Options for towncrier_draft extension --------------------------------------------
+
+towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
+towncrier_draft_include_empty = True
+# towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"

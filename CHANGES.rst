@@ -1,8 +1,83 @@
-=====================
-Changelog for landlab
-=====================
+=============
+Release Notes
+=============
 
- .. towncrier release notes start
+.. towncrier-draft-entries:: Not yet released
+
+.. towncrier release notes start
+
+2.5.0 (2022-04-15)
+------------------
+
+New Components
+``````````````
+
+- ``CarbonateProducer`` Grow carbonate strata using growth function of Bosscher and Schlager (1992). (`#1284 <https://github.com/landlab/landlab/issues/1284>`_)
+- ``DimensionlessDischarge``, that calculates the dimensionless discharge value, debris flow threshold value, and boolean for predicted debris flow for stream segments. (`#1377 <https://github.com/landlab/landlab/issues/1377>`_)
+- ``LinearDiffusionOverlandFlowRouter``: overland flow using the linearized diffusion-wave approximation. (`#1383 <https://github.com/landlab/landlab/issues/1383>`_)
+
+
+New Tutorial Notebooks
+``````````````````````
+
+- Added a notebook that shows how to use USGS NHDPlus HR datasets with the
+  ``NetworkSedimentTransporter`` component (`#1345 <https://github.com/landlab/landlab/issues/1345>`_)
+- Addded a new notebook that demonstrates ways to create a ``NetworkModelGrid`` from a DEM fetched from *OpenTopography* using the *Topography* utility. (`#1400 <https://github.com/landlab/landlab/issues/1400>`_)
+
+
+New Features
+````````````
+
+- Added the ability for a user to add layers at grid elements other than cells (i.e.
+  nodes, links, etc.).  Previously, the *at_layer* variables could only be at cell elements. (`#1292 <https://github.com/landlab/landlab/issues/1292>`_)
+- Added the ability to define the units of a field when creating a grid from a file
+  through the ``create_grid`` function. (`#1358 <https://github.com/landlab/landlab/issues/1358>`_)
+- Added the ``network_grid_from_raster`` function that creates a ``NetworkModelGrid``
+  from a ``RasterModelGrid``. This function extracts channel segments from the
+  source grid to become links of the newly-created grid. (`#1360 <https://github.com/landlab/landlab/issues/1360>`_)
+- Added *sediment__influx* and *sediment__outflux* fields to the ``ErosionDeposition``,
+  ``LateralEroder``, ``SpaceLargeScaleEroder``, and ``Space`` components. (`#1370 <https://github.com/landlab/landlab/issues/1370>`_)
+- Added ``ticks_km``, ``cbar_ticks_color`` keywords to the ``imshowhs_grid`` function for more control of colorbar ticks. (`#1397 <https://github.com/landlab/landlab/issues/1397>`_)
+- Added control on location of the ylabels of colorbars in the ``imshowhs_grid`` function using the ``y_label_offSet_var_1`` and ``y_label_offSet_var_2`` keywords. (`#1397 <https://github.com/landlab/landlab/issues/1397>`_)
+- Added a new utility, *plot_layers*, that plots sediment layers along with sea level and bedrock. (`#1398 <https://github.com/landlab/landlab/issues/1398>`_)
+
+
+Bug Fixes
+`````````
+
+- Clip active layer thickness to zero in the NetworkSedimentTransporter component. This
+  eliminates an ``invalid value encountered in power`` warning. (`#1356 <https://github.com/landlab/landlab/issues/1356>`_)
+- Allow *landlab* to be installed without the *richdem* package in the case that
+  *richdem* is not available for a particular platform or Python version. (`#1379 <https://github.com/landlab/landlab/issues/1379>`_)
+- Resolved instabilities related to the use of very small ``H*`` values when using the ``Space_Large_Scale_Eroder``. (`#1397 <https://github.com/landlab/landlab/issues/1397>`_)
+- Fixed a broken reference in the ``PriorityFloodFlowDirector`` where the gradient of the hillslopes are being updated. (`#1397 <https://github.com/landlab/landlab/issues/1397>`_)
+- Fixed a bug that incorrectly diagnosed if the *richdem* engine was installed and working correctly. (`#1399 <https://github.com/landlab/landlab/issues/1399>`_)
+
+
+Documentation Enhancements
+``````````````````````````
+
+- Added missing documentation files for ``BedrockLandslider`` and ``SpaceLargeScaleEroder``. (`#1373 <https://github.com/landlab/landlab/issues/1373>`_)
+- Set up *[towncrier](https://towncrier.readthedocs.io/en/actual-freaking-docs/)*
+  to update and manage the *landlab* changelog. New fragments are placed in the
+  ``news/`` folder. (`#1396 <https://github.com/landlab/landlab/issues/1396>`_)
+
+
+Other Changes and Additions
+```````````````````````````
+
+- Added an OpenTopography API key to notebooks that use *bmi-topography* to fetch
+  data from OpenTopography. (`#1384 <https://github.com/landlab/landlab/issues/1384>`_)
+- Updated the coding style to conform to new version of black. This was, primarily,
+  hugging the ``**`` operator. (`#1385 <https://github.com/landlab/landlab/issues/1385>`_)
+- The notebooks are tested only with Python 3.9. (`#1399 <https://github.com/landlab/landlab/issues/1399>`_)
+- Added Python 3.10 to continuous integration tests and dropped Python 3.7. (`#1399 <https://github.com/landlab/landlab/issues/1399>`_)
+- Speed up our continuous integration tests by about 2x by running them in parallel using *pytest-xdist*. (`#1399 <https://github.com/landlab/landlab/issues/1399>`_)
+- Turn off *hypothesis* deadline setting globally when running continuous
+  integration tests. (`#1401 <https://github.com/landlab/landlab/issues/1401>`_)
+- Updated the documentation to build with newer versions of *Sphinx*. (`#1404 <https://github.com/landlab/landlab/issues/1404>`_)
+- Added several new *landlab*-using references. (`#1407 <https://github.com/landlab/landlab/issues/1407>`_)
+
 
 2.4.1 (2021-12-02)
 ------------------
