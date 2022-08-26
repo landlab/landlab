@@ -13,6 +13,7 @@ Landlab: A modular Earth Surface Dynamics modeling library
 .. toctree::
  :caption: Getting Started
  :maxdepth: 1
+ :hidden:
 
  installation
  Tutorial notebooks <getting_started/index>
@@ -21,14 +22,16 @@ Landlab: A modular Earth Surface Dynamics modeling library
 .. toctree::
  :caption: Development
  :maxdepth: 1
+ :hidden:
 
- Installation for developers <install/index>
+ install/index
  development/index
  API Reference <reference/index>
  
 .. toctree::
   :caption: Useful Links
   :maxdepth: 1
+  :hidden:
   
   changes
   contact
