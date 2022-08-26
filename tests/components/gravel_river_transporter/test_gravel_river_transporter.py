@@ -2,9 +2,9 @@
 """
 Unit tests for landlab.components.gravel_river_transporter.gravel_river_transporter
 """
-from numpy.testing import assert_allclose, assert_raises, assert_equal
+from numpy.testing import assert_allclose, assert_equal, assert_raises
 
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
+from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 from landlab.components import FlowAccumulator, GravelRiverTransporter
 
 
