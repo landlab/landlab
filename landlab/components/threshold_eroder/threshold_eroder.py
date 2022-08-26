@@ -3,10 +3,6 @@
 
 @author: benjamincampforts
 """
-
-
-import numpy as np
-
 from landlab import Component, RasterModelGrid
 
 from .cfuncs import _thresholder
@@ -37,7 +33,7 @@ class ThresholdEroder(Component):
     ----------
     grid : ModelGrid
         Landlab ModelGrid object
-    slope_crit: float (default=1.)
+    slope_crit: float, (default=1.)
         Critical slope [L/L]
 
     Examples
@@ -66,9 +62,7 @@ class ThresholdEroder(Component):
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 
     >>> fdir = PriorityFloodFlowRouter(mg)
-    >>> th_ero = ThresholdEroder(
-    ...     mg,
-    ...     slope_crit=0.6)
+    >>> th_ero = ThresholdEroder(mg, slope_crit=0.6)
 
     Run the components for ten short timepsteps
 
@@ -168,14 +162,13 @@ class ThresholdEroder(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that ThresholdEroder is compatible "
                 "with route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         # Store grid and parameters
         self._slope_crit = slope_crit
@@ -194,8 +187,6 @@ class ThresholdEroder(Component):
                 raise Exception(
                     "If soil__depth is provided as a field, also bedrock__elevation mut be provided as a field"
                 )
-            self._soil = self._grid.at_node["soil__depth"]
-            self._bed = self._grid.at_node["bedrock__elevation"]
 
     def erode(self):
         """Erode landscape to threshold and dissolve sediment.
@@ -215,11 +206,14 @@ class ThresholdEroder(Component):
         )
 
         if "soil__depth" in self._grid.at_node:
-            self._bed[:] = np.minimum(
-                self._bed[:], self._grid.at_node["topographic__elevation"][:]
+            self._grid.at_node["bedrock__elevation"].clip(
+                None,
+                self._grid.at_node["topographic__elevation"],
+                out=self._grid.at_node["bedrock__elevation"],
             )
-            self._soil[:] = (
-                self._grid.at_node["topographic__elevation"][:] - self._bed[:]
+            self._grid.at_node["soil__depth"][:] = (
+                self._grid.at_node["topographic__elevation"]
+                - self._grid.at_node["bedrock__elevation"]
             )
 
     def run_one_step(self):
