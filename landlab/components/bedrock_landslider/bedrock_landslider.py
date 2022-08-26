@@ -37,14 +37,14 @@ class BedrockLandslider(Component):
 
     Examples
     --------
-    Make a raster model grid and create a plateau
 
     >>> import numpy as np
     >>> from numpy import testing
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import PriorityFloodFlowRouter, BedrockLandslider
 
-    Make a raster model grid and create a plateau
+    Make a ``RasterModelGrid`` and create a plateau.
+
     * 5x5 grid
     * Initial topography is set to plateau value of 10
 
@@ -53,7 +53,7 @@ class BedrockLandslider(Component):
     >>> s = mg.add_zeros("soil__depth", at='node')
     >>> b = mg.add_zeros("bedrock__elevation", at='node')
 
-    Make plateau at 10m
+    Make plateau at 10 m
 
     >>> b += 10
 
@@ -62,7 +62,8 @@ class BedrockLandslider(Component):
     >>> b[2] = 0
     >>> z[:] = b + s
 
-    Instantiate flow accumulation and BedrockLandslider
+    Instantiate the :class:`~.priority_flood_flow_router.PriorityFloodFlowRouter` for flow accumulation
+    and the ``BedrockLandslider``
 
     >>> fd = PriorityFloodFlowRouter(
     ...     mg,
@@ -71,7 +72,7 @@ class BedrockLandslider(Component):
     ... )
     >>> hy = BedrockLandslider(mg, landslides_return_time=1)
 
-    Run the flow director and BedrockLandslider for one timestep
+    Run the flow director and ``BedrockLandslider`` for one timestep
 
     >>> fd.run_one_step()
     >>> vol_suspended_sediment_yield, volume_leaving = hy.run_one_step(dt=1)
@@ -79,9 +80,9 @@ class BedrockLandslider(Component):
     After one timestep, we can predict exactly where the landslide will occur.
     The return time is set to 1 year so that probability for sliding is 100%.
     The angle of internal friction is 1 m/m, the topographical gradient is 10 m/m.
-    At cardinal cells, the sliding plane will be at $(1 + 10) / 2 = 5.5$ m/m.
+    At cardinal cells, the sliding plane will be at *(1 + 10) / 2 = 5.5* m/m.
     With a *dx* of 1, the cardinal cell next to the critical sliding node must
-    be 5.5 m and the diagonal one at 5.5 * sqrt(2) = 7.8 m
+    be 5.5 m and the diagonal one at *5.5 * sqrt(2) = 7.8* m
 
     >>> testing.assert_almost_equal(
     ...     [5.5 * np.sqrt(2), 5.5, 5.5 * np.sqrt(2)], z[6:9], decimal=5
