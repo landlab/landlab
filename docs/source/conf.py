@@ -47,9 +47,6 @@ extensions = [
     "sphinx_jinja",
 ]
 
-# if os.getenv("READTHEDOCS"):
-#     template_bridge = "landlab_ext.MyTemplateLoader"
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -133,21 +130,31 @@ autoclass_content = "both"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "alabaster"
+# html_theme = "alabaster"
+html_theme = "furo"
+html_title = "landlab"
+html_logo = "_static/landlab_logo.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "description": "An open-source Python package for building numerical models of Earth surface dynamics.",
-    "logo": "landlab_logo.jpg",
-    "logo_name": False,
-    "github_user": "landlab",
-    "github_repo": "landlab",
-    "extra_nav_links": {
-        "landlab @ GitHub": "https://github.com/landlab/landlab/",
-        "Contact Us": "https://github.com/landlab/landlab/issues",
-    },
+    "announcement": "<em>Landlab 2.5 released!</em>",
+    "source_repository": "https://github.com/landlab/landlab/",
+    "source_branch": "master",
+    "source_directory": "docs/source",
+    "sidebar_hide_name": True,
+    "footer_icons": [
+        {
+            "name": "power",
+            "url": "https://csdms.colorado.edu",
+            "html": """
+               <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.1" viewBox="0 0 16 16" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 0l-6 8h6l-4 8 14-10h-8l6-6z"></path></svg>
+               <b><i>Powered by CSDMS</i></b>
+            """,
+            "class": "",
+        },
+    ],
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -185,9 +192,6 @@ html_static_path = ["_static", "images"]
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
-html_sidebars = {
-    "**": ["about.html", "searchbox.html", "navigation.html", "sidebaroutro.html"]
-}
 
 
 # Additional templates that should be rendered to pages, maps page names to
