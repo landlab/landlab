@@ -1,0 +1,1 @@
+Fixed a bug where the *SpaceLargeScaleEroder* now allows for the user to pass a node-based array of erodibility coefficients
