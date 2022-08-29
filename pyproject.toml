@@ -80,6 +80,7 @@ docs = [
   "sphinxcontrib.towncrier",
   "sphinx-jinja",
   "sphinx-inline-tabs",
+  "towncrier<22.8.0"
 ]
 testing = [
   "coveralls",
