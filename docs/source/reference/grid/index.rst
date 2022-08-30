@@ -22,7 +22,6 @@ The following is an introduction to their properties and methods:
    hex
    radial
    network
-   grid_summary
 
 
 Additional Methods and Properties

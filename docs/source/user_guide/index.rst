@@ -76,18 +76,10 @@ Additional resources
     :maxdepth: 2
 
     field_definitions
+    grid_summary
     time_steps
     examples
     faq
-
-Presentations, Clinics, and Classroom Use
------------------------------------------
-
-.. toctree::
-    :maxdepth: 2
-
-    papers_presentations
-    clinics_workshops
 
 Overland flow User Guide
 ------------------------
