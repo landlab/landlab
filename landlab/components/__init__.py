@@ -1,4 +1,4 @@
-from .bedrock_landslider import BedrockLandslider
+#from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
 from .depression_finder import DepressionFinderAndRouter
@@ -20,6 +20,11 @@ from .flow_director import (
     FlowDirectorSteepest,
 )
 from .fracture_grid import FractureGridGenerator
+from .genveg import (
+    VegParams, 
+    PlantGrowth, 
+    GenVeg
+)
 from .gflex import gFlex
 from .gravel_river_transporter import GravelRiverTransporter
 from .groundwater import GroundwaterDupuitPercolator
@@ -44,12 +49,12 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
-from .priority_flood_flow_router import PriorityFloodFlowRouter
+#from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
-from .space import Space, SpaceLargeScaleEroder
+#from .space import Space, SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -61,7 +66,7 @@ from .stream_power import (
 )
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
 from .tectonics import ListricKinematicExtender
-from .threshold_eroder import ThresholdEroder
+#from .threshold_eroder import ThresholdEroder
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
@@ -69,7 +74,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
-    BedrockLandslider,
+    #BedrockLandslider,
     CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
@@ -89,12 +94,13 @@ COMPONENTS = [
     Flexure,
     Flexure1D,
     FlowAccumulator,
-    PriorityFloodFlowRouter,
+    #PriorityFloodFlowRouter,
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
     FractureGridGenerator,
+    GenVeg,
     gFlex,
     GravelRiverTransporter,
     GroundwaterDupuitPercolator,
@@ -128,8 +134,8 @@ COMPONENTS = [
     SinkFillerBarnes,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
-    Space,
-    SpaceLargeScaleEroder,
+    #Space,
+    #SpaceLargeScaleEroder,
     SpatialPrecipitationDistribution,
     SpeciesEvolver,
     SteepnessFinder,
@@ -139,7 +145,7 @@ COMPONENTS = [
     TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,
     TrickleDownProfiler,
-    ThresholdEroder,
+    #ThresholdEroder,
     VegCA,
     Vegetation,
 ]
