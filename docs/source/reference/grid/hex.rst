@@ -5,3 +5,4 @@ API for landlab.grid.hex
    :members:
    :undoc-members:
    :show-inheritance:
+   :inherited-members:
