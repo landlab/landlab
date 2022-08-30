@@ -20,7 +20,7 @@ Landlab: A modular Earth Surface Dynamics modeling library
  user_guide/index
 
 .. toctree::
- :caption: Development
+ :caption: Contributing
  :maxdepth: 1
  :hidden:
 

@@ -1,8 +1,8 @@
 .. _api.grid.grid_summary:
 
-===============
-Grid Cheatsheet
-===============
+====================
+List of Grid Methods
+====================
 
 --------------------------------
 Getting Information about a Grid
@@ -31,98 +31,12 @@ the length of a link or the surface area of a cell, are described using ``_of_``
 as in the example ``area_of_cell``.
 
 
-.. contents::
-  :local:
-
+.. toctree::
+  :caption: Summary of grid methods
+  :glob:
+  :hidden:
   
-Nodes, Links, and Patches
-=========================
-
-.. jinja:: llcats
-  
-  .. currentmodule:: landlab
-    
-  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
-  
-  .. tab:: {{ label }}
-    
-    {% for cat, label in [('info-node', 'Nodes'), ('info-link', 'Links'), ('info-patch', 'Patches')] %}
-    
-      .. tab:: {{label}}
-      
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in grids[grid][cat] %}
-            ~{{func}}      
-          {% endfor %}
-    {% endfor %}
-  {% endfor %} 
-
-
-Corners, Faces, and Cells
-=========================
-
-.. jinja:: llcats
-  
-  .. currentmodule:: landlab
-    
-  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
-  
-  .. tab:: {{ label }}
-    
-    {% for cat, label in [('info-corner', 'Corners'), ('info-face', 'Faces'), ('info-cell', 'Cells')] %}
-    
-      .. tab:: {{label}}
-      
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in grids[grid][cat] %}
-            ~{{func}}      
-          {% endfor %}
-    {% endfor %}
-  {% endfor %}  
-
-
-Grid
-====
-
-.. _api.grid.grid_summary.bc:
-
-Boundary condition control
---------------------------
-
-These are the primary properties for getting and setting the grid boundary
-conditions. Changes made to :meth:`~.ModelGrid.status_at_node` automatically
-update the conditions defined at other grid elements.
-
-Subsets of grid elements
-------------------------
-
-These methods are useful in identifying subsets of grid elements, e.g., closest node
-to a point; nodes at edges.
-
-.. jinja:: llcats
-  
-  .. currentmodule:: landlab
-    
-  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
-  
-  .. tab:: {{ label }}
-    
-    {% for cat, label in [('boundary-condition', 'Boundary Conditions'), ('subset', 'Subsetting')] %}
-    
-      .. tab:: {{label}}
-      
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in grids[grid][cat] %}
-            ~{{func}}      
-          {% endfor %}
-    {% endfor %}
-  {% endfor %}  
+  grid_methods/*
 
 
 Fields
@@ -136,8 +50,8 @@ data field *groups* are added to the :class:`~.ModelGrid` that provide container
 put data fields into. There is one group for each of the eight grid elements
 (node, cell, link, face, core_node, core_cell, active_link, and active_face).
 
-Create Field Arrays
--------------------
+Creating Fields
+===============
 
 :class:`~.ModelGrid` inherits several useful methods for creating new data
 fields and adding new data fields to a :class:`~.ModelGrid` instance. Methods to add or
@@ -152,8 +66,8 @@ are of the correct size but a new field will not be added to the field:
     ~landlab.field.graph_field.GraphFields.ones
     ~landlab.field.graph_field.GraphFields.zeros
 
-Add Fields to a ModelGrid
--------------------------
+Adding Fields to a grid
+=======================
 
 Unlike the equivalent ``numpy`` functions, these do not take a size argument
 as the size of the returned arrays is determined from the size of the
@@ -180,8 +94,8 @@ method, :meth:`~.GraphFields.add_field`, adds a previously allocation
 array to the ModelGrid. If the array is of the incorrect size it will raise
 ``ValueError``.
 
-Query Fields
-------------
+Field info
+==========
 
 Use the following methods/attributes get information about the stored data
 fields:
@@ -197,74 +111,9 @@ fields:
     ~landlab.grid.raster.RasterModelGrid.field_values
     ~landlab.field.graph_field.GraphFields.groups
 
-Example: ``grid.has_field("my_field_name", at="node")``.
+Example:
 
-.. _api.grid.grid_summary.mappers:
+.. code:: python
 
-Mappers
--------
+  >>> grid.has_field("my_field_name", at="node")
 
-These methods allow mapping of values defined on one grid element onto a
-second, e.g., mapping upwind node values onto links, or mean link values onto
-nodes.
-
-Gradients, fluxes, and divergences on the grid
-----------------------------------------------
-
-Landlab is designed to easily calculate gradients in quantities across the
-grid, and to construct fluxes and flux divergences from them. Because these
-calculations tend to be a little more involved than property lookups, the
-methods tend to start with ``calc_``.
-
-Surface analysis
-----------------
-
-These methods permit the kinds of surface analysis that you might expect to
-find in GIS software.
-
-.. jinja:: llcats
-  
-  .. currentmodule:: landlab
-    
-  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
-  
-  .. tab:: {{ label }}
-          
-    {% for cat, label in [('field-add', 'New'), ('field-io', 'Access'), ('map', 'Mappers'), ('gradient', 'Gradients'), ('surface', 'Analysis')] %}
-    
-      .. tab:: {{label}}
-      
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in grids[grid][cat] %}
-            ~{{func}}      
-          {% endfor %}
-    {% endfor %}
-  {% endfor %}  
-
-
-Deprecated and Uncategorized
-----------------------------
-
-.. jinja:: llcats
-  
-  .. currentmodule:: landlab
-    
-  {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi')] %}
-  
-  .. tab:: {{ label }}
-    
-    {% for cat, label in [('uncategorized', 'Uncategorized'), ('deprecated', 'Deprecated')] %}
-    
-      .. tab:: {{label}}
-      
-        .. autosummary::
-          :nosignatures:
-        
-          {% for func in grids[grid][cat] %}
-            ~{{func}}      
-          {% endfor %}
-    {% endfor %}
-  {% endfor %}
-  
