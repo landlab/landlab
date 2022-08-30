@@ -298,7 +298,7 @@ The recommended way to contact the Landlab team is with a
 
 Keep in touch with the latest *landlab* news by following us on `Twitter <https://twitter.com/landlabtoolkit>`_.
 
-During :ref:`workshops and clinics <clinics_workshops>`, we sometimes use the
+During workshops and clinics, we sometimes use the
 `Landlab Slack channel <https://landlab.slack.com>`_.
 
 .. end-contact
