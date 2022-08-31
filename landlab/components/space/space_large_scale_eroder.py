@@ -524,10 +524,7 @@ class SpaceLargeScaleEroder(Component):
 
         self.sediment_influx[:] = 0
 
-        if np.isscalar(self._K_sed):
-            K_sed_vector = np.ones_like(self._q) * self._K_sed
-        else:
-            K_sed_vector = self._K_sed
+        K_sed_vector = np.broadcast_to(self._K_sed, self._q.shape)
 
         vol_SSY_riv = _sequential_ero_depo(
             stack_flip_ud_sel,
