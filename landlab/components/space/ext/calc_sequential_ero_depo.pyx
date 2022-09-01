@@ -31,11 +31,11 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] H,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] br,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,                    
-                    np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,                                    
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
                     DTYPE_FLOAT_t v,
                     DTYPE_FLOAT_t phi,
-                    DTYPE_FLOAT_t F_f,                    
-                    DTYPE_FLOAT_t K_sed,
+                    DTYPE_FLOAT_t F_f,        
                     DTYPE_FLOAT_t H_star,
                     DTYPE_FLOAT_t dt,                    
                     DTYPE_FLOAT_t thickness_lim):
@@ -64,7 +64,7 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
             H_loc += (depo_rate / (1 - phi) - sed_erosion_loc/ (1 - phi)) * dt        
         else:              
             # Blowup
-            if (depo_rate == (K_sed * Q_to_the_m[node_id] * slope_loc)) :                        
+            if (depo_rate == (K_sed[node_id] * Q_to_the_m[node_id] * slope_loc)) :                        
                 H_loc = H_loc * log(
                     ((sed_erosion_loc/ (1 - phi)) / H_star)
                     * dt
