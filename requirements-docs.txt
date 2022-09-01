@@ -14,3 +14,4 @@ sphinxcontrib.towncrier
 sphinxcontrib_github_alt
 tabulate
 tornado
+towncrier<22.8
