@@ -17,7 +17,6 @@ import numpy as np
 from ..field import FieldError
 from .event_handler import query_grid_on_button_press
 
-
 try:
     import matplotlib.pyplot as plt
     from matplotlib.collections import LineCollection, PatchCollection
