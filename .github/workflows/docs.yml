@@ -30,10 +30,9 @@ jobs:
           - name: Show conda installation info
             run: |
               conda info
-              conda list
     
           - name: Install dependencies
-            run: pip install -e ".[docs]"
+            run: pip install nox
 
           - name: Build documentation
-            run: make -C docs clean html
+            run: nox -s docs
