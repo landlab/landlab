@@ -524,6 +524,8 @@ class SpaceLargeScaleEroder(Component):
 
         self.sediment_influx[:] = 0
 
+        K_sed_vector = np.broadcast_to(self._K_sed, self._q.shape)
+
         vol_SSY_riv = _sequential_ero_depo(
             stack_flip_ud_sel,
             r,
@@ -539,10 +541,10 @@ class SpaceLargeScaleEroder(Component):
             br,
             self._sed_erosion_term,
             self._br_erosion_term,
+            K_sed_vector,
             self._v_s,
             self._phi,
             self._F_f,
-            self._K_sed,
             self._H_star,
             dt,
             self._thickness_lim,
