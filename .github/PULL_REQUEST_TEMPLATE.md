@@ -35,6 +35,7 @@
 - [ ] All tests have passed?
 - [ ] Formatted code with black?
 - [ ] Removed lint reported by flake8?
+- [ ] Sucessful documentation built? (if documentation added or modified)
 
 <!-- Thanks for your time and effort. If you have any feedback in regards
      to your experience contributing here, please let us know!
