@@ -4,14 +4,25 @@
 
 @author: barnhark
 """
-
+import os
 import textwrap
-from tabulate import tabulate
+
 import numpy as np
 import pandas as pd
+from tabulate import tabulate
+
 from landlab.components import COMPONENTS
 
-#%%
+# Table 2, List field names and definitions
+
+dst = os.path.join(".", *["source", "user_guide", "field_definitions.rst"])
+
+intro_text = """.. _standard_name_definitions:
+
+Landlab Standard Name Definitions
+=================================
+
+"""
 
 out = []
 for comp in COMPONENTS:
@@ -23,7 +34,6 @@ for comp in COMPONENTS:
 df = pd.DataFrame(out)
 
 unique_fields = df.field.unique().astype(str)
-#%%
 
 # Table 1, List field name and description
 table = []
@@ -37,9 +47,19 @@ for field in np.sort(unique_fields):
 
 out = tabulate(table, headers, tablefmt="grid")
 
+with open(dst, "w") as f:
+    f.write(intro_text)
+    f.write(out)
 
-#%%
 # Table 2, List field IO by component
+dst = os.path.join(".", *["source", "user_guide", "field_io.rst"])
+
+intro_text = """.. _standard_name_mapping:
+
+Landlab Standard Name Field-Component Mapping
+=============================================
+
+"""
 
 table = []
 headers = ("Field Name", "Provided By", "Used By")
@@ -67,5 +87,6 @@ for field in np.sort(unique_fields):
 
 out = tabulate(table, headers, tablefmt="grid")
 
-with open("temp.txt", "w") as f:
+with open(dst, "w") as f:
+    f.write(intro_text)
     f.write(out)

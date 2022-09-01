@@ -1,0 +1,118 @@
+# YAML 1.2
+---
+cff-version: "1.2.0"
+message: "If you use this software, please cite it using these metadata."
+abstract : "Landlab is an open-source Python-language package for numerical modeling of Earth surface dynamics."
+type: software
+authors: 
+  -
+    family-names: Hutton
+    given-names: Eric
+    orcid: "https://orcid.org/0000-0002-5864-6459"
+  -
+    family-names: Barnhart
+    given-names: Katy  
+    orcid: "https://orcid.org/0000-0001-5682-455X"
+  -
+    family-names: Hobley
+    given-names: Dan
+    orcid: "https://orcid.org/0000-0003-2371-0534"
+  -
+    family-names: Tucker
+    given-names: Greg
+    orcid: "https://orcid.org/0000-0003-0364-5800"
+  -
+    family-names: Nudurupati
+    given-names: Sai
+    orcid: "https://orcid.org/0000-0002-2090-7561"
+  -
+    family-names: Adams
+    given-names: Jordan
+    orcid: "https://orcid.org/0000-0003-0137-9879"
+  -
+    family-names: Gasparini
+    given-names: Nicole
+    orcid: "https://orcid.org/0000-0002-0803-3697"
+  -
+    family-names: Shobe
+    given-names: Charlie
+    orcid: "https://orcid.org/0000-0003-3015-1283"
+  -
+    family-names: Strauch
+    given-names: Ronda
+    orcid: "https://orcid.org/0000-0003-3093-8449"
+  -
+    family-names: Knuth
+    given-names: Jenny
+    orcid: "https://orcid.org/0000-0001-7066-7992"
+  -
+    family-names: Mouchene
+    given-names: Margaux
+    orcid: "https://orcid.org/0000-0002-8243-3517"
+  -
+    family-names: Lyons
+    given-names: Nathan
+    orcid: "https://orcid.org/0000-0001-6965-3374"
+  -
+    family-names: Litwin
+    given-names: David
+    orcid: "https://orcid.org/0000-0002-8097-4029"
+  -
+    family-names: Glade
+    given-names: Rachel
+    orcid: "https://orcid.org/0000-0002-0345-1953"
+  -
+    name: Giuseppecipolla95
+  -
+    family-names: Manaster
+    given-names: Amanda
+  -
+    family-names: Abby
+    given-names: Langston
+  -
+    family-names: Thyng
+    given-names: Kristen
+    orcid: "https://orcid.org/0000-0002-8746-614X"
+  -
+    family-names: Rengers
+    given-names: Francis
+    orcid: "https://orcid.org/0000-0002-1825-0943"
+title: "landlab"
+identifiers:
+  -
+    type: doi
+    value: 10.5194/esurf-8-379-2020
+    description: >-
+      "Short communication: Landlab v2.0: A software package for
+      Earth surface dynamics". Earth Surface Dynamics Discussions,
+      May 2020, Volume 8, Issue 2
+  -
+    type: doi
+    value: 10.5194/esurf-5-21-2017
+    description: >-
+      "Creative computing with Landlab: an open-source
+       toolkit for building, coupling, and exploring
+       two-dimensional numerical models of
+       Earth-surface dynamics". Earth Surface Dynamics,
+       January 2017, Volume 5, Issue 1
+  -
+    type: doi
+    value: 10.5281/zenodo.3776837
+    description: The versioned DOI for the version 2.0.1 of landlab.
+  -
+    type: doi
+    value: 10.5281/zenodo.595872
+    description: The concept DOI for the collection containing all versions of landlab.
+repository-code: "https://github.com/landlab/landlab"
+url: "https://landlab.readthedocs.io"
+date-released: "2020-04-29"
+keywords:
+  - "bmi"
+  - "component modeling"
+  - "earth science"
+  - "gridding engine"
+  - "model coupling"
+  - "numerical modeling"
+license: MIT
+doi: 10.5281/zenodo.595872
+...

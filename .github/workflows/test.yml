@@ -2,6 +2,16 @@ name: Test
 
 on: [push, pull_request]
 
+# on:
+#   push:
+#       paths:
+#           - "landlab/**"
+#           - "tests/**"
+#   pull_request:
+#       paths:
+#           - "landlab/**"
+#           - "tests/**"
+
 jobs:
   build-and-test:
     name: Run the tests
@@ -21,7 +31,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: [3.7, 3.8, 3.9]
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v2
@@ -38,23 +48,25 @@ jobs:
           conda info
           conda list
 
-      - name: Install requirements
+      - name: Install and test richdem engine
         run: |
           conda install mamba
-          mamba install --file=requirements.txt
-          mamba list
+          mamba install richdem -c conda-forge
+          python -c 'import _richdem'
 
       - name: Build and install package
         run: |
           pip install -e .
 
-      - name: Install testing dependencies
-        run: mamba install --file=requirements-testing.txt
+      - name: Install testing requirements
+        run: pip install -e .[testing]
 
       - name: Test
+        env:
+          HYPOTHESIS_PROFILE: "ci"
         run: |
           python -c 'import landlab; print(landlab.__version__)'
-          pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
+          pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv -n auto
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'

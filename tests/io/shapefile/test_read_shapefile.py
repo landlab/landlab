@@ -1,6 +1,7 @@
 from io import BytesIO
 
 import numpy as np
+import pytest
 import shapefile
 from numpy.testing import assert_array_equal
 from pytest import approx, raises
@@ -169,8 +170,8 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
                 "Elev_m": "topographic__elevation",
                 "ToLink": "shapefile_to",
             },
-            link_field_dtype={"ToLink": np.int},
-            node_field_dtype={"ToLink": np.int},
+            link_field_dtype={"ToLink": int},
+            node_field_dtype={"ToLink": int},
             threshold=0.01,
         )
 
@@ -222,8 +223,8 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting(tmpdir):
         assert grid.y_of_node[22] == approx(5374213.8330760002)
 
         # verify dtype changes.
-        assert grid.at_link["shapefile_to"].dtype == np.int
-        assert grid.at_node["shapefile_to"].dtype == np.int
+        assert grid.at_link["shapefile_to"].dtype == int
+        assert grid.at_node["shapefile_to"].dtype == int
 
         # verify that fields are mapped correctly. choose two links and two nodes
         # to test.
@@ -407,9 +408,24 @@ def test_points_but_one_missing():
         read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
 
 
-def test_simple_reorder():
-
-    orders = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
+@pytest.mark.parametrize(
+    "order",
+    [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)],
+)
+@pytest.mark.parametrize(
+    "p_order",
+    [
+        (0, 1, 2, 3),
+        (0, 2, 3, 1),
+        (0, 3, 2, 1),
+        (0, 2, 3, 1),
+        (1, 0, 2, 3),
+        (1, 0, 3, 2),
+        (1, 2, 3, 0),
+        (1, 3, 2, 0),
+    ],
+)
+def test_simple_reorder(tmpdir, order, p_order):
 
     lines = [
         [[[5, 5], [10, 10]]],
@@ -419,58 +435,70 @@ def test_simple_reorder():
 
     records = [37, 100, 239]
 
-    point_orders = [
-        (0, 1, 2, 3),
-        (0, 2, 3, 1),
-        (0, 3, 2, 1),
-        (0, 2, 3, 1),
-        (1, 0, 2, 3),
-        (1, 0, 3, 2),
-        (1, 2, 3, 0),
-        (1, 3, 2, 0),
-    ]
-
     points = [(5, 0), (5, 5), (0, 10), (10, 10)]
     point_records = [2, 4, 8, 6]
 
-    for order in orders:
+    with tmpdir.as_cwd():
 
-        for p_order in point_orders:
-
-            shp = BytesIO()
-            shx = BytesIO()
-            dbf = BytesIO()
-
-            w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-
+        with shapefile.Writer("line") as w:
             w.shapeType = POLYLINE
             w.field("spam", "N")
 
             for o in order:
                 w.line(lines[o])
                 w.record(records[o])
-            w.close()
 
-            p_shp = BytesIO()
-            p_shx = BytesIO()
-            p_dbf = BytesIO()
-            p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+        p_w = shapefile.Writer(shp="point.shp")
+
+        with shapefile.Writer("point") as p_w:
             p_w.shapeType = POINT
             p_w.field("eggs", "N")
             for po in p_order:
                 p_w.point(*points[po])
                 p_w.record(point_records[po])
-            p_w.close()
 
-            grid = read_shapefile(
-                shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf
-            )
+        grid = read_shapefile("line.shp", points_shapefile="point.shp")
 
-            assert_array_equal(grid.nodes, np.array([0, 1, 2, 3]))
-            assert_array_equal(grid.x_of_node, np.array([5.0, 5.0, 0.0, 10.0]))
-            assert_array_equal(grid.y_of_node, np.array([0.0, 5.0, 10.0, 10.0]))
-            assert_array_equal(grid.nodes_at_link, np.array([[0, 1], [2, 1], [1, 3]]))
-            assert "spam" in grid.at_link
-            assert_array_equal(grid.at_link["spam"], np.array([100, 239, 37]))
+    assert_array_equal(grid.nodes, [0, 1, 2, 3])
+    assert_array_equal(grid.x_of_node, [5.0, 5.0, 0.0, 10.0])
+    assert_array_equal(grid.y_of_node, [0.0, 5.0, 10.0, 10.0])
+    assert_array_equal(grid.nodes_at_link, [[0, 1], [2, 1], [1, 3]])
+    assert "spam" in grid.at_link
+    assert_array_equal(grid.at_link["spam"], [100, 239, 37])
 
-            del grid, w, shp, shx, dbf
+
+@pytest.mark.parametrize(
+    "dtype", [int, float, bool, np.int32, np.int64, np.complex128, object, None]
+)
+def test_field_dtype(tmpdir, dtype):
+    # test of the small methow network with
+    shp_file = "MethowSubBasin.shp"
+    points_shapefile = "MethowSubBasin_Nodes_4.shp"
+
+    with tmpdir.as_cwd():
+        ExampleData("io/shapefile", case="methow").fetch()
+
+        grid = read_shapefile(
+            shp_file,
+            points_shapefile=points_shapefile,
+            node_fields=["usarea_km2", "ToLink", "Elev_m"],
+            link_fields=["usarea_km2", "ToLink"],
+            link_field_conversion={
+                "usarea_km2": "drainage_area",
+                "ToLink": "shapefile_to",
+            },
+            node_field_conversion={
+                "usarea_km2": "drainage_area",
+                "Elev_m": "topographic__elevation",
+                "ToLink": "shapefile_to",
+            },
+            link_field_dtype={"ToLink": dtype},
+            node_field_dtype={"ToLink": dtype},
+            threshold=0.01,
+        )
+
+    if dtype is None:
+        dtype = float
+
+    assert grid.at_node["shapefile_to"].dtype == dtype
+    assert grid.at_link["shapefile_to"].dtype == dtype

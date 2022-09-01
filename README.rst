@@ -1,8 +1,8 @@
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.154179.svg
-   :target: https://doi.org/10.5281/zenodo.154179
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3776837.svg
+   :target: https://doi.org/10.5281/zenodo.3776837
 
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
-    :target: https://readthedocs.org/projects/landlab/?badge=latest
+    :target: https://landlab.readthedocs.org
 
 .. image:: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/test.yml
@@ -111,9 +111,21 @@ run the following commands:
 
 .. code-block:: bash
 
-    $ conda env create --file=environment-dev.yml
-    $ conda activate landlab_dev
+    $ conda create -n landlab python
+    $ conda install -n landlab --file=requirements.txt
+    $ conda activate landlab
     $ pip install -e .
+
+This will install *landlab* and it's dependencies. You may want to install
+some additional utilities used for developing, testing, and running *landlab*
+notebooks. This can be done with the following:
+
+.. code-block:: bash
+
+    $ conda install --file=requirements-dev.txt
+    $ conda install --file=requirements-testing.txt
+    $ conda install --file=requirements-notebooks.txt
+
 
 How do I verify I've installed Landlab correctly?
 -------------------------------------------------
@@ -164,20 +176,37 @@ of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
 Are there any examples of using Landlab I can look at?
 ------------------------------------------------------
 
-The Landlab package contains a directory at ``landlab/notebooks`` which contains
-Jupyter notebooks describe core concepts and give examples of using components.
+The Landlab package contains a directory, ``landlab/notebooks``, with
+Jupyter Notebooks describing core concepts and giving examples of using components.
 The file ``landlab/notebooks/welcome.ipynb`` provides a table of contents to
-the notebooks and is the recommended starting place. To launch an instance of
+the notebooks and is the recommended starting place.
+Additionally, there are a set of notebooks curated to teach physical processes
+located in the directory ``landlab/notebooks/teaching``.
+
+Run on Binder
+`````````````
+
+To launch an instance of
 Binder and `explore the notebooks click here`_.
 
 .. _explore the notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
 
-In addition there are a set of notebooks curated to teach physical processes
-located in the directory ``landlab/notebooks/teaching``.
-
-To launch an Binder instance that goes straight to these `teaching notebooks click here`_.
+To launch a Binder instance that goes straight to the `teaching notebooks click here`_.
 
 .. _teaching notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb
+
+Run on the CSDMS JupyterHub
+```````````````````````````
+
+The Landlab notebooks can also be run on the CSDMS JupyterHub.
+To sign up for a free account,
+`visit the CSDMS wiki`_ and follow the instructions there.
+Then, click to explore the `example notebooks`_,
+or to go straight to the `teaching notebooks`_.
+
+.. _visit the CSDMS wiki: https://csdms.colorado.edu/wiki/JupyterHub
+.. _example notebooks: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=tree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb&branch=master
+.. _teaching notebooks: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=tree%2Flandlab%2Fnotebooks%2Fteaching%2Fwelcome_teaching.ipynb&branch=master
 
 
 What License does Landlab use?
@@ -197,46 +226,55 @@ toolkit for building, coupling, and exploring two-dimensional numerical models
 of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
 10.5194/esurf-5-21-2017.
 
-`Barnhart, K. R. <https://doi.org/10.5194/esurf-2020-12>`__,
+`Barnhart, K. R. <https://doi.org/10.5194/esurf-8-379-2020>`__,
 Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
 Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
-and Bandaragoda, C.: Short communication: Landlab v2.0: A software package for
-Earth surface dynamics, Earth Surf. Dynam. Discuss.,
-https://doi.org/10.5194/esurf-2020-12, in review, 2020.
+and Bandaragoda, C., 2020, Short communication: Landlab v2.0: A software package for
+Earth surface dynamics, Earth Surf. Dynam. Discuss., 8, pp 379-397,
+https://doi.org/10.5194/esurf-8-379-2020, in review, 2020.
 
 BibTeX format:
 ::
 
-  @article{Hobley2017,
-           Author = {Hobley, D. E. J. and Adams, J. M. and
-                     Nudurupati, S. S. and Hutton, E. W. H.
-                     and Gasparini, N. M. and Istanbulluoglu,
-                     E. and Tucker, G. E.},
-           Journal = {Earth Surface Dynamics},
-           Year = {2017},
-           Title = {Creative computing with Landlab: an open-source
-                    toolkit for building, coupling, and exploring
-                    two-dimensional numerical models of
-                    Earth-surface dynamics},
-           Number = {5},
-           Pages = {21-46},
-           Doi = {10.5194/esurf-5-21-2017}}
+  @article{hobley2017creative,
+    title={
+      Creative computing with Landlab: an open-source toolkit for building,
+      coupling, and exploring two-dimensional numerical models of
+      Earth-surface dynamics
+    },
+    author={
+      Hobley, Daniel EJ and Adams, Jordan M and Nudurupati, Sai Siddhartha and
+      Hutton, Eric WH and Gasparini, Nicole M and Istanbulluoglu, Erkan and
+      Tucker, Gregory E
+    },
+    journal={Earth Surface Dynamics},
+    volume={5},
+    number={1},
+    pages={21--46},
+    year={2017},
+    publisher={Copernicus GmbH},
+    url={https://esurf.copernicus.org/articles/5/21/2017/},
+    doi={10.5194/esurf-5-21-2017}
+  }
 
-  @article{barnhart2020short,
-           Author = {Barnhart, K. R. and Hutton, E. W. H. and
-                     Tucker, G. E. and Gasparini, N. M. and
-                     Istanbulluoglu, E. and Hobley, D. E. J. and
-                     Lyons, N. J. and Mouchene, M. and Nudurupati,
-                     S. S. and Adams, J. M. and Bandaragoda, C.},
-           Title = {Short communication: Landlab v2.0: A software
-                    package for Earth surface dynamics},
-           Journal = {Earth Surface Dynamics Discussions},
-           Volume = {2020},
-           Year = {2020},
-           Pages = {1--25},
-           Url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
-           Doi = {10.5194/esurf-2020-12}
-           }
+  @article{barnhart2020landlab,
+    title={Landlab v2. 0: a software package for Earth surface dynamics},
+    author={
+      Barnhart, Katherine R and Hutton, Eric WH and Tucker, Gregory E and
+      Gasparini, Nicole M and Istanbulluoglu, Erkan and Hobley, Daniel EJ and
+      Lyons, Nathan J and Mouchene, Margaux and Nudurupati, Sai Siddhartha and
+      Adams, Jordan M and others
+    },
+    journal={Earth Surface Dynamics},
+    volume={8},
+    number={2},
+    pages={379--397},
+    year={2020},
+    publisher={Copernicus GmbH}
+    url = {https://esurf.copernicus.org/articles/8/379/2020/},
+    doi = {10.5194/esurf-8-379-2020}
+  }
+
 
 In addition, depending on what parts of Landlab you use, you may need to cite
 component-specific. Refer to the References section of each component and

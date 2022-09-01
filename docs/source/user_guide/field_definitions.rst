@@ -1,24 +1,35 @@
 .. _standard_name_definitions:
 
-
 Landlab Standard Name Definitions
 =================================
 
 +--------------------------------------------------+------------------------------------------+
 | Field Name                                       | Definition                               |
 +==================================================+==========================================+
+| LS_sediment__flux                                | Sediment flux originating from           |
+|                                                  | landslides                 (volume per   |
+|                                                  | unit time of sediment entering each      |
+|                                                  | node)                                    |
++--------------------------------------------------+------------------------------------------+
 | aquifer__thickness                               | thickness of saturated zone              |
 +--------------------------------------------------+------------------------------------------+
 | aquifer_base__elevation                          | elevation of impervious layer            |
 +--------------------------------------------------+------------------------------------------+
 | aquifer_base__gradient                           | gradient of the aquifer base in the link |
-|                                                  | directio                                 |
+|                                                  | direction                                |
 +--------------------------------------------------+------------------------------------------+
 | area_coefficient                                 | Area coefficient to define channels.     |
 +--------------------------------------------------+------------------------------------------+
 | area_exponent                                    | Area exponent to define channels.        |
 +--------------------------------------------------+------------------------------------------+
+| average_surface_water__specific_discharge        | average surface water specific discharge |
+|                                                  | over variable timesteps                  |
++--------------------------------------------------+------------------------------------------+
 | bedrock__elevation                               | elevation of the bedrock surface         |
++--------------------------------------------------+------------------------------------------+
+| carbonate_production_rate                        | Carbonate production rate                |
++--------------------------------------------------+------------------------------------------+
+| carbonate_thickness                              | Carbonate thickness                      |
 +--------------------------------------------------+------------------------------------------+
 | channel__bed_shear_stress                        | Shear exerted on the bed of the channel, |
 |                                                  | assuming all discharge travels along a   |
@@ -41,6 +52,9 @@ Landlab Standard Name Definitions
 | channel__width                                   | Width of the a single channel carrying   |
 |                                                  | all runoff through the node              |
 +--------------------------------------------------+------------------------------------------+
+| channel_bottom_sediment_grain__d50_diameter      | soil grain size average in stream        |
+|                                                  | segment                                  |
++--------------------------------------------------+------------------------------------------+
 | channel_sediment__relative_flux                  | The fluvial_sediment_flux_into_node      |
 |                                                  | divided by the                           |
 |                                                  | fluvial_sediment_transport_capacity      |
@@ -53,24 +67,51 @@ Landlab Standard Name Definitions
 |                                                  | node, assuming the Meyer-Peter Muller    |
 |                                                  | transport equation                       |
 +--------------------------------------------------+------------------------------------------+
+| channel_slope                                    | Slope of the river channel through each  |
+|                                                  | reach                                    |
++--------------------------------------------------+------------------------------------------+
+| channel_width                                    | Flow width of the channel, assuming      |
+|                                                  | constant width                           |
++--------------------------------------------------+------------------------------------------+
 | channelization_threshold                         | Channelization threshold for use with    |
 |                                                  | area and slope coefficients and          |
 |                                                  | exponents.                               |
++--------------------------------------------------+------------------------------------------+
+| cumulative_subsidence_depth                      | Cumulative depth of tectonic subsidence  |
 +--------------------------------------------------+------------------------------------------+
 | depression__depth                                | Depth of depression below its spillway   |
 |                                                  | point                                    |
 +--------------------------------------------------+------------------------------------------+
 | depression__outlet_node                          | If a depression, the id of the outlet    |
 |                                                  | node for that depression, otherwise      |
-|                                                  | BAD_INDEX_VALUE                          |
+|                                                  | grid.BAD_INDEX                           |
++--------------------------------------------------+------------------------------------------+
+| depression_free_elevation                        | Filled land surface topographic          |
+|                                                  | elevation, at closed borders, value      |
+|                                                  | equals -1!                               |
++--------------------------------------------------+------------------------------------------+
+| dimensionless_discharge                          | Dimensionless discharge value for a      |
+|                                                  | stream segment.                          |
++--------------------------------------------------+------------------------------------------+
+| dimensionless_discharge_above_threshold          | True if dimensionless discharge value is |
+|                                                  | above threshold value, false otherwise.  |
++--------------------------------------------------+------------------------------------------+
+| dimensionless_discharge_threshold                | Dimensionless discharge threshold for    |
+|                                                  | each stream segment.                     |
 +--------------------------------------------------+------------------------------------------+
 | distance_to_divide                               | Distance from drainage divide.           |
 +--------------------------------------------------+------------------------------------------+
 | drainage_area                                    | Upstream accumulated surface area        |
 |                                                  | contributing to the node's discharge     |
 +--------------------------------------------------+------------------------------------------+
+| ebb_tide_flow__velocity                          | Horizontal flow velocity along links     |
+|                                                  | during ebb tide                          |
++--------------------------------------------------+------------------------------------------+
 | flood_status_code                                | Map of flood status (_PIT,               |
 |                                                  | _CURRENT_LAKE, _UNFLOODED, or _FLOODED). |
++--------------------------------------------------+------------------------------------------+
+| flood_tide_flow__velocity                        | Horizontal flow velocity along links     |
+|                                                  | during flood tide                        |
 +--------------------------------------------------+------------------------------------------+
 | flow__data_structure_delta                       | Node array containing the elements       |
 |                                                  | delta[1:] of the data structure 'delta'  |
@@ -101,12 +142,33 @@ Landlab Standard Name Definitions
 | flow__upstream_node_order                        | Node array containing downstream-to-     |
 |                                                  | upstream ordered list of node IDs        |
 +--------------------------------------------------+------------------------------------------+
+| flow_depth                                       | Flow depth of the channel                |
++--------------------------------------------------+------------------------------------------+
 | fracture_at_node                                 | presence (1) or absence (0) of fracture  |
 +--------------------------------------------------+------------------------------------------+
 | groundwater__specific_discharge                  | discharge per width in link dir          |
 +--------------------------------------------------+------------------------------------------+
 | groundwater__velocity                            | velocity of groundwater in link          |
 |                                                  | direction                                |
++--------------------------------------------------+------------------------------------------+
+| height_above_drainage__elevation                 | Elevation above the nearest channel node |
++--------------------------------------------------+------------------------------------------+
+| hill_drainage_area                               | Node array of proportion of flow sent to |
+|                                                  | each receiver.                           |
++--------------------------------------------------+------------------------------------------+
+| hill_flow__receiver_node                         | Node array of receivers (node that       |
+|                                                  | receives flow from current node)         |
++--------------------------------------------------+------------------------------------------+
+| hill_flow__receiver_proportions                  | Node array of proportion of flow sent to |
+|                                                  | each receiver.                           |
++--------------------------------------------------+------------------------------------------+
+| hill_flow__upstream_node_order                   | Node array containing downstream-to-     |
+|                                                  | upstream ordered list of node IDs        |
++--------------------------------------------------+------------------------------------------+
+| hill_surface_water__discharge                    | Node array of proportion of flow sent to |
+|                                                  | each receiver.                           |
++--------------------------------------------------+------------------------------------------+
+| hill_topographic__steepest_slope                 | The steepest *downhill* slope            |
 +--------------------------------------------------+------------------------------------------+
 | hillslope_sediment__unit_volume_flux             | Volume flux per unit width along links   |
 +--------------------------------------------------+------------------------------------------+
@@ -116,8 +178,18 @@ Landlab Standard Name Definitions
 | is_pit                                           | Boolean flag indicating whether a node   |
 |                                                  | is a pit.                                |
 +--------------------------------------------------+------------------------------------------+
+| landslide__deposition                            | Total deposition of derived sediment     |
++--------------------------------------------------+------------------------------------------+
+| landslide__erosion                               | Total erosion caused by landsliding      |
++--------------------------------------------------+------------------------------------------+
 | landslide__probability_of_failure                | number of times FS is <=1 out of number  |
 |                                                  | of iterations user selected              |
++--------------------------------------------------+------------------------------------------+
+| landslide_sediment_point_source                  | Landslide derived sediment, as point     |
+|                                                  | sources on all the                       |
+|                                                  | critical nodes where landslides          |
+|                                                  | initiate,                 before         |
+|                                                  | landslide runout is calculated           |
 +--------------------------------------------------+------------------------------------------+
 | lateral_erosion__depth_increment                 | Change in elevation at each node from    |
 |                                                  | lateral erosion during time step         |
@@ -135,6 +207,8 @@ Landlab Standard Name Definitions
 | lithosphere_surface__increment_of_elevation      | The change in elevation of the top of    |
 |                                                  | the lithosphere (the land surface) in    |
 |                                                  | one timestep                             |
++--------------------------------------------------+------------------------------------------+
+| mean_water__depth                                | Tidal mean water depth                   |
 +--------------------------------------------------+------------------------------------------+
 | plant__age                                       | Age of plant                             |
 +--------------------------------------------------+------------------------------------------+
@@ -165,6 +239,10 @@ Landlab Standard Name Definitions
 | rainfall__total_depth_per_year                   | Depth of water delivered in total in     |
 |                                                  | each model year                          |
 +--------------------------------------------------+------------------------------------------+
+| reach_length                                     | Length of each reach                     |
++--------------------------------------------------+------------------------------------------+
+| sea_level__elevation                             | Sea level elevation                      |
++--------------------------------------------------+------------------------------------------+
 | sediment__deposition_coeff                       | Fraction of incoming sediment that is    |
 |                                                  | deposited on the node                    |
 +--------------------------------------------------+------------------------------------------+
@@ -174,18 +252,24 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | sediment__erosion_rate                           | Erosion rate on node                     |
 +--------------------------------------------------+------------------------------------------+
-| sediment__flux                                   | Sediment flux (volume per unit time of   |
-|                                                  | sediment entering each node)             |
-+--------------------------------------------------+------------------------------------------+
 | sediment__flux_in                                | Incoming sediment rate on node (=qs/dx)  |
 +--------------------------------------------------+------------------------------------------+
 | sediment__flux_out                               | Outgoing sediment rate on node =         |
 |                                                  | sediment eroded on node + sediment       |
 |                                                  | transported across node from upstream    |
 +--------------------------------------------------+------------------------------------------+
+| sediment__influx                                 | Sediment flux (volume per unit time of   |
+|                                                  | sediment entering each node)             |
++--------------------------------------------------+------------------------------------------+
+| sediment__outflux                                | Sediment flux (volume per unit time of   |
+|                                                  | sediment leaving each node)              |
++--------------------------------------------------+------------------------------------------+
 | sediment__transfer_rate                          | Rate of transferred sediment across a    |
 |                                                  | node (incoming sediment - deposited      |
 |                                                  | sediment on node)                        |
++--------------------------------------------------+------------------------------------------+
+| sediment_deposit__thickness                      | Thickness of deposition or erosion in    |
+|                                                  | latest time step                         |
 +--------------------------------------------------+------------------------------------------+
 | sediment_fill__depth                             | Depth of sediment added at eachnode      |
 +--------------------------------------------------+------------------------------------------+
@@ -240,6 +324,12 @@ Landlab Standard Name Definitions
 | soil_moisture__saturation_fraction               | relative volumetric water content        |
 |                                                  | (theta) - limits=[0,1]                   |
 +--------------------------------------------------+------------------------------------------+
+| soil_production__dt_produced_depth               | thickness of soil produced at nodes over |
+|                                                  | time dt                                  |
++--------------------------------------------------+------------------------------------------+
+| soil_production__dt_weathered_depth              | thickness of bedrock weathered at nodes  |
+|                                                  | over time dt                             |
++--------------------------------------------------+------------------------------------------+
 | soil_production__rate                            | rate of soil production at nodes         |
 +--------------------------------------------------+------------------------------------------+
 | soil_water_infiltration__depth                   | Water column height above the surface    |
@@ -247,6 +337,13 @@ Landlab Standard Name Definitions
 |                                                  | that this is NOT the actual depth of the |
 |                                                  | wetted front, which also depends on the  |
 |                                                  | porosity.                                |
++--------------------------------------------------+------------------------------------------+
+| squared_length_adjacent                          | Length to adjacent nodes, squared        |
+|                                                  | (calcualted in advance to save time      |
+|                                                  | during calculation                       |
++--------------------------------------------------+------------------------------------------+
+| subsidence_rate                                  | Rate of tectonic subsidence in           |
+|                                                  | hangingwall area                         |
 +--------------------------------------------------+------------------------------------------+
 | surface__evapotranspiration                      | actual sum of evaporation and plant      |
 |                                                  | transpiration                            |
@@ -267,6 +364,9 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | surface_water__depth                             | Depth of water on the surface            |
 +--------------------------------------------------+------------------------------------------+
+| surface_water__depth_at_link                     | Depth of water on the surface at grid    |
+|                                                  | links                                    |
++--------------------------------------------------+------------------------------------------+
 | surface_water__discharge                         | Volumetric discharge of surface water    |
 +--------------------------------------------------+------------------------------------------+
 | surface_water__discharge_loss                    | Total volume of water per second lost    |
@@ -274,8 +374,15 @@ Landlab Standard Name Definitions
 +--------------------------------------------------+------------------------------------------+
 | surface_water__specific_discharge                | rate of seepage to surface               |
 +--------------------------------------------------+------------------------------------------+
+| surface_water__unit_discharge                    | Volumetric discharge of surface water    |
+|                                                  | per unit width                           |
++--------------------------------------------------+------------------------------------------+
+| surface_water__velocity                          | Speed of water flow above the surface    |
++--------------------------------------------------+------------------------------------------+
 | surface_water_inflow__discharge                  | water volume inflow rate to the cell     |
 |                                                  | around each node                         |
++--------------------------------------------------+------------------------------------------+
+| taxa__richness                                   | The number of taxa at each node          |
 +--------------------------------------------------+------------------------------------------+
 | topographic__elevation                           | Land surface topographic elevation       |
 +--------------------------------------------------+------------------------------------------+
@@ -287,6 +394,9 @@ Landlab Standard Name Definitions
 |                                                  | face ) that drains to node               |
 +--------------------------------------------------+------------------------------------------+
 | topographic__steepest_slope                      | The steepest *downhill* slope            |
++--------------------------------------------------+------------------------------------------+
+| upper_crust_thickness                            | Thickness of upper crust (arbitrary      |
+|                                                  | datum)                                   |
 +--------------------------------------------------+------------------------------------------+
 | vegetation__cover_fraction                       | fraction of land covered by vegetation   |
 +--------------------------------------------------+------------------------------------------+
@@ -315,6 +425,8 @@ Landlab Standard Name Definitions
 | volume__lateral_erosion                          | Array tracking volume eroded at each     |
 |                                                  | node from lateral erosion                |
 +--------------------------------------------------+------------------------------------------+
+| water__depth                                     | depth of water under current sea level   |
++--------------------------------------------------+------------------------------------------+
 | water__discharge_in                              | Incoming water discharge at node.        |
 +--------------------------------------------------+------------------------------------------+
 | water__specific_discharge                        | flow discharge component in the          |
@@ -326,10 +438,10 @@ Landlab Standard Name Definitions
 | water__velocity                                  | flow velocity component in the direction |
 |                                                  | of the link                              |
 +--------------------------------------------------+------------------------------------------+
+| water_depth                                      | Water depth                              |
++--------------------------------------------------+------------------------------------------+
 | water_surface__gradient                          | Downstream gradient of the water         |
 |                                                  | surface.                                 |
 +--------------------------------------------------+------------------------------------------+
 | water_table__elevation                           | elevation of water table                 |
-+--------------------------------------------------+------------------------------------------+
-| water_table__velocity                            | rate of change of water table elevation  |
 +--------------------------------------------------+------------------------------------------+

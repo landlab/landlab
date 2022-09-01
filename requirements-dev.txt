@@ -1,3 +1,7 @@
+# Requirements extracted from pyproject.toml
+# [project.optional-dependencies] dev
 black
 flake8
+flake8-bugbear
 isort
+pre-commit

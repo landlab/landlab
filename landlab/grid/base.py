@@ -19,6 +19,7 @@ from ..core.utils import add_module_functions_to_class
 from ..field.graph_field import GraphFields
 from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
+from ..plot.imshow import ModelGridPlotterMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
 from .decorators import (
@@ -257,7 +258,9 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
+class ModelGrid(
+    GraphFields, EventLayersMixIn, MaterialLayersMixIn, ModelGridPlotterMixIn
+):
 
     """Base class for 2D structured or unstructured grids for numerical models.
 
@@ -268,36 +271,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     understand the Delaunay triangulation, but rather simply accepts
     an input grid from the user. Also a :class:`~.HexModelGrid` for hexagonal.
 
-    Attributes
-    ----------
-    at_node : dict-like
-        Values at nodes.
-    at_cell : dict-like
-        Values at cells.
-    at_link : dict-like
-        Values at links.
-    at_face : dict-like
-        Values at faces.
-    at_grid: dict-like
-        Global values
-    BAD_INDEX : int
-        Indicates a grid element is undefined.
-    BC_NODE_IS_CORE : int
-        Indicates a node is *core*.
-    BC_NODE_IS_FIXED_VALUE : int
-        Indicates a boundary node has a fixed value.
-    BC_NODE_IS_FIXED_GRADIENT : int
-        Indicates a boundary node has a fixed gradient.
-    BC_NODE_IS_LOOPED : int
-        Indicates a boundary node is wrap-around.
-    BC_NODE_IS_CLOSED : int
-        Indicates a boundary node is closed
-    BC_LINK_IS_ACTIVE : int
-        Indicates a link is *active*, and can carry flux.
-    BC_LINK_IS_FIXED : int
-        Indicates a link has a fixed gradient value, and behaves as a boundary
-    BC_LINK_IS_INACTIVE : int
-        Indicates a link is *inactive*, and cannot carry flux.
 
     Other Parameters
     ----------------
@@ -421,6 +394,18 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     def fields(self, include="*", exclude=None):
         """List of fields held by the grid.
 
+        The returned field names are returned as their canonical names. This is,
+        as a string of the for "at_<location>:<name>". This allows for fields with
+        the same name to be defined at different grid locations. You could have,
+        for example, a variable "elevation" defined at both *nodes* and
+        *links*.
+
+        Both the *include* and *exclude* patterns are glob-style expressions,
+        not regular expressions. If either *include* or *exclude* are lists,
+        then the patterns are matched using an "or".
+
+        The *include* filters are applied before the *exclude* filters.
+
         Parameters
         ----------
         include : str, or iterable of str, optional
@@ -437,6 +422,10 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
+
+        Add some fields to the grid. Notice that we have defined a field
+        named "elevation" at both *nodes* and *links*.
+
         >>> _ = grid.add_full("elevation", 3.0, at="node")
         >>> _ = grid.add_full("elevation", 4.0, at="link")
         >>> _ = grid.add_full("temperature", 5.0, at="node")
@@ -447,15 +436,35 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         ['at_node:elevation', 'at_node:temperature']
         >>> sorted(grid.fields(include="at_node*", exclude="*temp*"))
         ['at_node:elevation']
+
+        Fields can also be defined at *layers*. In the following example
+        we've filtered the results to just return the layer fields.
+
+        >>> grid.event_layers.add(1.0, rho=0.5)
+        >>> sorted(grid.fields(include="at_layer*"))
+        ['at_layer:rho']
+
+        If a list, the fields are matched with an "or".
+
+        >>> sorted(grid.fields(include=["at_node*", "*elevation*"]))
+        ['at_link:elevation', 'at_node:elevation', 'at_node:temperature']
         """
         if isinstance(include, str):
             include = [include]
         if isinstance(exclude, str):
             exclude = [exclude]
 
+        layer_groups = set(["_".join(["layer", at]) for at in self.groups])
+        layer_groups.add("layer")
+
         canonical_names = set()
-        for at in self.groups | set(["layer"]):
-            canonical_names.update(["at_{0}:{1}".format(at, name) for name in self[at]])
+        for at in self.groups | layer_groups:
+            try:
+                canonical_names.update(
+                    ["at_{0}:{1}".format(at, name) for name in self[at]]
+                )
+            except KeyError:
+                pass
 
         names = set()
         for pattern in include:
@@ -465,8 +474,71 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         return names
 
-    def as_dataset(self, include="*", exclude=None):
+    def as_dataarray(self, name, at=None, time=None):
+        """Create an xarray DataArray representation of a grid field.
+
+        Parameters
+        ----------
+        name : str
+            Name of a field. This can either be a canonical field name (of the
+            form "at_<element>:<field_name>", or just the field name. In the
+            latter case, use the *at* keyword to specify where the field is
+            defined.
+        at : str, optional
+            The grid elements on which the field is defined. Use this only if
+            *name* is not a canonical field name that already contains the grid
+            element.
+
+        Returns
+        -------
+        DataArray
+            The field represented as a newly-created *xarray* *DataArray*.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> _ = grid.add_full("elevation", 3.0, at="node")
+
+        >>> grid.as_dataarray("at_node:elevation")
+        <xarray.DataArray 'at_node:elevation' (node: 12)>
+        array([ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
+        Dimensions without coordinates: node
+
+        >>> all(
+        ...     grid.as_dataarray("at_node:elevation")
+        ...     == grid.as_dataarray("elevation", at="node")
+        ... )
+        True
+        """
+        if at is None:
+            at, field_name = name[len("at_") :].split(":")
+        else:
+            field_name = name
+        values = getattr(self, f"at_{at}")[field_name]
+
+        if at == "layer":  # For backward compatibility
+            at = "layer_cell"
+
+        dims = at.split("_")
+
+        if at == "grid":
+            dims = [f"{field_name}_per_grid"] if values.shape else []
+
+        if time is not None and "layer" not in dims:
+            dims = ["time"] + dims
+            values = values[None]
+
+        return xr.DataArray(values, dims=dims, name=f"at_{at}:{field_name}")
+
+    def as_dataset(self, include="*", exclude=None, time=None):
         """Create an xarray Dataset representation of a grid.
+
+        This method creates a new xarray Dataset object that contains the grid's
+        data fields. A particular grid type (e.g. a *RasterModelGrid*) should
+        define its own *as_dataset* method to represent that particular
+        grid type as a *Dataset* and then call this method to add the
+        data fields.
 
         Parameters
         ----------
@@ -479,22 +551,46 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         -------
         Dataset
             An xarray Dataset representation of a *ModelGrid*.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+
+        Add some fields to the grid. Notice that we have defined a field
+        named "elevation" at both *nodes* and *links*.
+
+        >>> _ = grid.add_full("elevation", 3.0, at="node")
+        >>> _ = grid.add_full("elevation", 4.0, at="link")
+        >>> _ = grid.add_full("temperature", 5.0, at="node")
+
+        >>> ds = grid.as_dataset()
+        >>> sorted(ds.dims.items())
+        [('dim', 2), ('link', 17), ('node', 12)]
+        >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
+        ['at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+
+        >>> grid.event_layers.add(1.0, rho=0.5)
+
+        >>> ds = grid.as_dataset()
+        >>> sorted(ds.dims.items())
+        [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
+        >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
-        layer_names = set([name for name in names if name.startswith("at_layer")])
-        names.difference_update(layer_names)
-
         data = {}
         for name in names:
-            dim, field_name = name[len("at_") :].split(":")
-            data[name] = ((dim,), getattr(self, "at_" + dim)[field_name])
+            array = self.as_dataarray(name, time=time)
+            data[array.name] = array
 
-        for name in layer_names:
-            dim, field_name = name[len("at_") :].split(":")
-            data[name] = (("layer", "cell"), self.at_layer[field_name])
-
+        if self.event_layers.number_of_layers > 0:
+            data["at_layer_cell:thickness"] = (("layer", "cell"), self.event_layers.dz)
         data["status_at_node"] = (("node",), self.status_at_node)
+
+        if time is not None:
+            data["time"] = (("time",), [time])
 
         return xr.Dataset(data)
 
@@ -2670,7 +2766,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             len_subset = self.number_of_nodes
 
         if out_distance is None:
-            out_distance = np.empty(len_subset, dtype=np.float)
+            out_distance = np.empty(len_subset, dtype=float)
         if out_distance.size != len_subset:
             raise ValueError("output array size mismatch for distances")
 
@@ -2680,7 +2776,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             else:
                 az_shape = (len_subset,)
             if out_azimuth is None:
-                out_azimuth = np.empty(az_shape, dtype=np.float)
+                out_azimuth = np.empty(az_shape, dtype=float)
             if out_azimuth.shape != az_shape:
                 raise ValueError("output array mismatch for azimuths")
 

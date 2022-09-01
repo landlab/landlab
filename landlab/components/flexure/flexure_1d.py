@@ -310,7 +310,7 @@ class Flexure1D(Component):
             self._rigidity
         except AttributeError:
             self._rigidity = (
-                self._eet ** 3.0 * self._youngs / (12.0 * (1.0 - self._POISSON ** 2.0))
+                self._eet**3.0 * self._youngs / (12.0 * (1.0 - self._POISSON**2.0))
             )
         finally:
             return self._rigidity
@@ -414,7 +414,7 @@ class Flexure1D(Component):
             Deflections caused by the loading.
         """
         if out is None:
-            out = np.zeros_like(loads, dtype=np.float)
+            out = np.zeros_like(loads, dtype=float)
 
         loads = loads.reshape((-1, loads.shape[-1]))
         dz = out[..., :].reshape((-1, out.shape[-1]))

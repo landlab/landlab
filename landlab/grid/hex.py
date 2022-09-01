@@ -141,7 +141,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             node_layout=dataset.attrs["node_layout"],
         )
 
-    def as_dataset(self, include="*", exclude=None):
+    def as_dataset(self, include="*", exclude=None, time=None):
         dataset = xr.Dataset(
             {
                 "shape": (("dim",), list(self.shape)),
@@ -155,7 +155,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             },
         )
         return dataset.update(
-            super(HexModelGrid, self).as_dataset(include=include, exclude=exclude)
+            super(HexModelGrid, self).as_dataset(
+                include=include, exclude=exclude, time=None
+            )
         )
 
     @property

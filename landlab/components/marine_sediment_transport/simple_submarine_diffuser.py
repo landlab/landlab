@@ -70,7 +70,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             "optional": False,
             "units": "m",
             "mapping": "grid",
-            "doc": "Position of sea level",
+            "doc": "Sea level elevation",
         },
         "topographic__elevation": {
             "dtype": "float",

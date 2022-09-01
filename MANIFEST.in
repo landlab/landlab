@@ -26,9 +26,11 @@ exclude .readthedocs.yaml
 exclude conftest.py
 exclude CONTRIBUTING.md
 exclude environment*yml
+exclude .pre-commit-config.yaml
 
 recursive-exclude docs *
 recursive-exclude joss *
+recursive-exclude news *
 recursive-exclude notebooks *
 recursive-exclude scripts *py
 recursive-exclude scripts *sh

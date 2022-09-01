@@ -92,7 +92,7 @@ def flow_directions(
     num_nodes = len(elev)
     steepest_slope = np.zeros(num_nodes)
     receiver = np.arange(num_nodes)
-    receiver_link = BAD_INDEX_VALUE + np.zeros(num_nodes, dtype=np.int)
+    receiver_link = BAD_INDEX_VALUE + np.zeros(num_nodes, dtype=int)
 
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope

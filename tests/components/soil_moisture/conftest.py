@@ -23,9 +23,9 @@ def si():
     grid = RasterModelGrid((10, 10), xy_spacing=25)
     grid.add_ones("soil_water_infiltration__depth", at="node", dtype=float)
     grid.add_ones("surface_water__depth", at="node")
-    hydraulic_conductivity = 2.5 * (10 ** -5)
+    hydraulic_conductivity = 2.5 * (10**-5)
     grid.at_node["surface_water__depth"] *= 0.5
-    grid.at_node["soil_water_infiltration__depth"] *= 10 ** -5
+    grid.at_node["soil_water_infiltration__depth"] *= 10**-5
     return SoilInfiltrationGreenAmpt(
         grid,
         hydraulic_conductivity=hydraulic_conductivity,
