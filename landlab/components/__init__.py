@@ -21,6 +21,7 @@ from .flow_director import (
 )
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .gravel_river_transporter import GravelRiverTransporter
 from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
 from .hand_calculator import HeightAboveDrainageCalculator
@@ -74,6 +75,7 @@ from .stream_power import (
 )
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
 from .tectonics import ListricKinematicExtender
+from .threshold_eroder import ThresholdEroder
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
@@ -108,6 +110,7 @@ COMPONENTS = [
     FlowDirectorSteepest,
     FractureGridGenerator,
     gFlex,
+    GravelRiverTransporter,
     GroundwaterDupuitPercolator,
     HackCalculator,
     HeightAboveDrainageCalculator,
@@ -156,6 +159,7 @@ COMPONENTS = [
     TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,
     TrickleDownProfiler,
+    ThresholdEroder,
     VegCA,
     Vegetation,
 ]

@@ -61,6 +61,7 @@ dev = [
   "flake8-bugbear",
   "isort",
   "pre-commit",
+  "nox",
 ]
 docs = [
   "pandoc",
@@ -74,6 +75,10 @@ docs = [
   "entrypoints",
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
+  "sphinxcontrib.towncrier",
+  "sphinx-jinja",
+  "sphinx-inline-tabs",
+  "towncrier<22.8",
 ]
 testing = [
   "coveralls",
@@ -113,6 +118,7 @@ landlab = [
 ]
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["landlab*"]
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
