@@ -5,6 +5,7 @@ import textwrap
 from collections import defaultdict
 from functools import partial
 
+import numpy as np
 import rich_click as click
 
 from landlab import (
@@ -63,7 +64,7 @@ out = partial(click.secho, bold=True, file=sys.stderr)
 err = partial(click.secho, fg="red", file=sys.stderr)
 
 
-@click.group(chain=True)
+@click.group()  # chain=True)
 @click.version_option()
 @click.option(
     "--cd",
@@ -136,11 +137,17 @@ def validate(component):
         out("💥 All good! 💥")
 
 
-@landlab.command()
+@landlab.group(chain=True)
 @click.pass_context
 def index(ctx):
-    verbose = ctx.parent.params["verbose"]
-    silent = ctx.parent.params["silent"]
+    pass
+
+
+@index.command()
+@click.pass_context
+def grids(ctx):
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
 
     index = dict(grids={})
     for cls in GRIDS:
@@ -154,7 +161,7 @@ def index(ctx):
             f"{cls.__module__}.{cls.__name__}.at_cell",
         ]
 
-    print("# Generated using `landlab index`")
+    print("# Generated using `landlab index grids`")
     for grid, cats in index["grids"].items():
         print(f"[grids.{grid}]")
         for cat, funcs in cats.items():
@@ -182,11 +189,53 @@ def index(ctx):
             out(f"{cat} = {summary[cat]}")
 
 
-@landlab.command()
+@index.command()
+@click.pass_context
+def components(ctx):
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+
+    from sphinx.util.docstrings import prepare_docstring
+
+    index = dict(components={})
+    for cls in get_all_components():
+        if verbose and not silent:
+            out(f"indexing: {cls.__name__}")
+        index["components"][cls.__name__] = {
+            "name": f"{cls.__module__}.{cls.__name__}",
+            "unit_agnostic": cls._unit_agnostic,
+            "info": cls._info,
+            "summary": prepare_docstring(cls.__doc__)[0],
+        }
+
+    print("# Generated using `landlab index components`")
+    for component, info in index["components"].items():
+        print("")
+        print(f"[components.{component}]")
+        print(f"name = {info['name']!r}")
+        print(f"unit_agnostic = {'true' if info['unit_agnostic'] else 'false'}")
+        print(f"summary = {info['summary']!r}")
+
+        for name, values in info["info"].items():
+            print("")
+            print(f"[components.{component}.info.{name}]")
+            print(f"dtype = '{np.dtype(values['dtype'])!s}'")
+            print(f"intent = {values['intent']!r}")
+            print(f"optional = {'true' if values['optional'] else 'false'}")
+            print(f"units = {values['units']!r}")
+            print(f"mapping = {values['mapping']!r}")
+            print(f"doc = {values['doc']!r}")
+
+    if not silent:
+        out("[summary]")
+        out(f"count = {len(index['components'])}")
+
+
+@index.command()
 @click.pass_context
 def fields(ctx):
-    verbose = ctx.parent.params["verbose"]
-    silent = ctx.parent.params["silent"]
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
 
     fields = defaultdict(lambda: defaultdict(list))
     for cls in get_all_components():
@@ -200,20 +249,27 @@ def fields(ctx):
             if desc["intent"].endswith("out"):
                 fields[name]["provided_by"].append(f"{cls.__module__}.{cls.__name__}")
 
-    print("# Generated using `landlab fields`")
+    print("# Generated using `landlab index fields`")
     print("[fields]")
     for field, info in fields.items():
         print("")
         print(f"[fields.{field}]")
         print(f"desc = {info['desc'][0]!r}")
         if info["used_by"]:
-            used_by = [repr(f) for f in info["used_by"]]
-            print(f"used_by = [{', '.join(used_by)}]")
+            # used_by = [repr(f) for f in info["used_by"]]
+            # print(f"used_by = [{', '.join(used_by)}]")
+            print("used_by = [")
+            for component in info["used_by"]:
+                print(f"  {component!r},")
+            print("]")
         else:
             print("used_by = []")
         if info["provided_by"]:
-            provided_by = [repr(f) for f in info["provided_by"]]
-            print(f"provided_by = [{', '.join(provided_by)}]")
+            print("provided_by = [")
+            for component in info["provided_by"]:
+                print(f"  {component!r},")
+            print("]")
+
         else:
             print("provided_by = []")
 
