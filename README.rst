@@ -89,13 +89,6 @@ To install *landlab*, simply run the following in your terminal of choice:
 
     $ pip install landlab
 
-or, if you simply can't wait for the latest release, you can install *landlab*
-directly from GitHub,
-
-.. code-block:: bash
-
-   $ pip install git+https://github.com/landlab/landlab
-
 .. end-install-release
 
 Source code
