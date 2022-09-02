@@ -75,6 +75,7 @@ Additional resources
 .. toctree::
     :maxdepth: 2
 
+    component_list
     field_definitions
     grid_summary
     time_steps
