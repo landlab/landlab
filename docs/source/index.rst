@@ -34,7 +34,7 @@ Landlab: A modular Earth Surface Dynamics modeling library
   :hidden:
   
   changes
-  contact
+  contact_us
   citing
   funding
   Contributors <authors>
