@@ -7,7 +7,9 @@ Developer Install
 .. important::
 
   The following commands will install *landlab* into your current environment. Although
-  not necessary, we **highly recommend you install landlab into its own environment**.
+  not necessary, we **highly recommend** you install landlab into
+  `its own environment <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands>`_.
+
 
 If you will be modifying code or contributing new code to *landlab*, you will first
 need to get *landlab*'s source code and then install *landlab* from that code.
