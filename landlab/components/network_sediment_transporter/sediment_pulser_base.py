@@ -85,7 +85,9 @@ class SedimentPulserBase(Component):
         self._abrasion_rate = abrasion_rate
 
         if not isinstance(grid, NetworkModelGrid):
-            raise ValueError("NetworkSedimentTransporter: grid must be NetworkModelGrid")
+            raise ValueError(
+                "NetworkSedimentTransporter: grid must be NetworkModelGrid"
+            )
 
     def __call__(self):
         """__call__ is not implemented for this component."""

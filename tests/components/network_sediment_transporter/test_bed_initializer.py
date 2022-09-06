@@ -21,6 +21,7 @@ from landlab.components.network_sediment_transporter.bed_parcel_initializers imp
 )
 from landlab.data_record import DataRecord
 
+
 # Basic test: that you can call the four initializers, create DataRecord
 def test_call_area_BPI(example_nmg2):
     initialize_parcels = BedParcelInitializerArea(
@@ -36,7 +37,6 @@ def test_call_discharge_BPI(example_nmg2):
     )
     parcels = initialize_parcels()
     assert isinstance(parcels, DataRecord)
-
 
 
 def test_call_depth_BPI(example_nmg2):

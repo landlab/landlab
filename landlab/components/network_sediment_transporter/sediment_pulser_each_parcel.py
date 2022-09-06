@@ -149,7 +149,6 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             warnings.warn("Pulse DataFrame is EMPTY")
             return self._parcels
 
-
         variables, items = self._sediment_pulse_dataframe(
             time,  # create variabels and and items needed to create the data record
             PulseDF,
