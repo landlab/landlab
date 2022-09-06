@@ -144,8 +144,9 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         if (
             PulseDF.empty is True
         ):  # if empty, pulser stops, returns the existing parcels, call stops
+            warnings.warn("Pulse DataFrame is EMPTY")
             return self._parcels
-            print("PulseDF is EMPTY")
+
 
         variables, items = self._sediment_pulse_dataframe(
             time,  # create variabels and and items needed to create the data record
@@ -160,10 +161,12 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 data_vars=variables,
                 dummy_elements={"link": [_OUT_OF_NETWORK]},
             )
-            print("Parcels not provided, created a new DataRecord")
+
+            warnings.warn("Parcels not provided, created a new DataRecord")
+
         else:  # else use the add item method to add parcels
             self._parcels.add_item(time=[time], new_item=items, new_item_spec=variables)
-            print("Added parcels to DataRecord")
+
         return self._parcels
 
     def _sediment_pulse_dataframe(self, time, PulseDF):

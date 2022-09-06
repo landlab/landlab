@@ -178,7 +178,7 @@ class NetworkSedimentTransporter(Component):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    A JOSS submission has been prepared.
+    Pfeiffer, A., Barnhart, K., Czuba, J., & Hutton, E. (2020). NetworkSedimentTransporter: A Landlab component for bed material transport through river networks. Journal of Open Source Software, 5(53).
 
     **Additional References**
 

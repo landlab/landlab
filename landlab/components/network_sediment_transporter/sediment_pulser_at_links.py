@@ -1,9 +1,7 @@
 import numpy as np
 
 from landlab.data_record import DataRecord
-from landlab.components.network_sediment_transporter.sediment_pulser_base import (
-    SedimentPulserBase,
-)
+from .sediment_pulser_base import SedimentPulserBase
 
 _OUT_OF_NETWORK = -2
 
@@ -94,20 +92,18 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         time_to_pulse: function, optional
             defines the condition when a pulse occurs using the _pulse_characteristics
             method. If not specified, a pulse occurs whenever the instance is run
-
-        **kwgs include:
-            parcels: landlab DataRecord
-                Tracks parcel location and variables
-            D50: float, optional
-                median grain size [m]
-            D84_D50: float, optional
-                ratio of 84th percentile grain size to the median grain size
-            rho_sediment : float, optional
-                Sediment grain density [kg/m^3].
-            parcel_volume : float
-                parcel volume [m^3]
-            abrasion_rate: float
-                volumetric abrasion exponent [1/m]
+        parcels: landlab DataRecord
+            Tracks parcel location and variables
+        D50: float, optional
+            median grain size [m]
+        D84_D50: float, optional
+            ratio of 84th percentile grain size to the median grain size
+        rho_sediment : float, optional
+            Sediment grain density [kg/m^3].
+        parcel_volume : float
+            parcel volume [m^3]
+        abrasion_rate: float
+            volumetric abrasion exponent [1/m]
         """
 
         SedimentPulserBase.__init__(self, grid, **kwgs)

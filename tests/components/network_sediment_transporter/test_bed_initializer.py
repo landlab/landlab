@@ -19,21 +19,24 @@ from landlab.components.network_sediment_transporter.bed_parcel_initializers imp
     calc_d50_depth,
     calc_d50_dArea_scaling,
 )
+from landlab.data_record import DataRecord
 
-
-# Basic test: that you can call the four initializers
+# Basic test: that you can call the four initializers, create DataRecord
 def test_call_area_BPI(example_nmg2):
     initialize_parcels = BedParcelInitializerArea(
         example_nmg2, drainage_area_coefficient=0.18, drainage_area_exponent=-0.12
     )
-    _ = initialize_parcels()
+    parcels = initialize_parcels()
+    assert isinstance(parcels, DataRecord)
 
 
 def test_call_discharge_BPI(example_nmg2):
     initialize_parcels = BedParcelInitializerDischarge(
         example_nmg2, discharge_at_link=np.full(example_nmg2.number_of_links, 10.0)
     )
-    _ = initialize_parcels()
+    parcels = initialize_parcels()
+    assert isinstance(parcels, DataRecord)
+
 
 
 def test_call_depth_BPI(example_nmg2):
@@ -42,7 +45,8 @@ def test_call_depth_BPI(example_nmg2):
         example_nmg2,
         flow_depth_at_link=depth_at_link,
     )
-    _ = initialize_parcels()
+    parcels = initialize_parcels()
+    assert isinstance(parcels, DataRecord)
 
 
 def test_call_userD50_BPI(example_nmg2):
@@ -51,7 +55,8 @@ def test_call_userD50_BPI(example_nmg2):
         example_nmg2,
         user_d50=d50_at_link,
     )
-    _ = initialize_parcels()
+    parcels = initialize_parcels()
+    assert isinstance(parcels, DataRecord)
 
 
 # %% Tests of BPI base class helper functions
@@ -145,7 +150,7 @@ def test_D50_not_specified(example_nmg2):
             example_nmg2,
             user_d50=None,
         )
-        _ = initialize_parcels()
+        initialize_parcels()
 
 
 # %% Test for expected correct values

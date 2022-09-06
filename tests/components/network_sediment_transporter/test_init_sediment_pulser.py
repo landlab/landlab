@@ -1,12 +1,7 @@
 import pytest
 
 
-from landlab.components.network_sediment_transporter.sediment_pulser_at_links import (
-    SedimentPulserAtLinks,
-)
-from landlab.components.network_sediment_transporter.sediment_pulser_each_parcel import (
-    SedimentPulserEachParcel,
-)
+from landlab.components import SedimentPulserAtLinks, SedimentPulserEachParcel
 from landlab import RasterModelGrid
 
 
