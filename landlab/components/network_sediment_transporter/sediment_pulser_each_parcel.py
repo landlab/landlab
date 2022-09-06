@@ -63,7 +63,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     Run the instance
 
     >>> parcels = make_pulse(time, PulseDF)
-    Parcels not provided, created a new DataRecord
+
+    This should yield a UserWarning: Parcels not provided, created a new DataRecord
 
     check element_id of each parcel
 
