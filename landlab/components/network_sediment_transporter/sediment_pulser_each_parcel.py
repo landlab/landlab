@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from landlab.data_record import DataRecord
 from landlab.components.network_sediment_transporter.sediment_pulser_base import (
