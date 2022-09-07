@@ -138,7 +138,7 @@ def test_xy_of_node_rect_horizontal(n_rows, n_cols):
         (3, 3): (
             [0.0, 1.0, 2.0, 0.0, 1.07341707, 2.0, 0.0, 1.0, 2.0],
             [0.0, 0.0, 0.0, 0.749, 1.03337157, 1.251, 2.0, 2.0, 2.0],
-        )
+        ),
     }
     x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node(
         (n_rows, n_cols), random_seed=False
