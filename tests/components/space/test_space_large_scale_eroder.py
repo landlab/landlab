@@ -296,8 +296,8 @@ def test_br_field_already_on_grid():
     )
 
 
-# %%
-def test_matches_detachment_solution():
+@pytest.mark.parametrize("k_sed", (0.00001, [0.00001] * 25))
+def test_matches_detachment_solution(k_sed):
     # %%
     """
     Test that model matches the detachment-limited analytical solution
@@ -341,7 +341,7 @@ def test_matches_detachment_solution():
     # Instantiate the SpaceLargeScaleEroder component...
     sp = SpaceLargeScaleEroder(
         mg,
-        K_sed=0.00001,
+        K_sed=k_sed,
         K_br=K_br,
         F_f=F_f,
         phi=0.1,
