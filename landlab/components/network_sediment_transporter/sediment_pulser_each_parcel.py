@@ -85,34 +85,46 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
     _info = {}  # works with the DataRecord
 
-    def __init__(self, grid, **kwgs):
-
-        SedimentPulserBase.__init__(self, grid, **kwgs)
-
+    def __init__(
+        self,
+        grid,
+        parcels=None,
+        D50=0.05,
+        D84_D50=2.1,
+        rho_sediment=2650.0,
+        parcel_volume=0.5,
+        abrasion_rate=0.0,
+    ):
         """
         instantiate SedimentPulserEachParcel
 
         Parameters
         ----------
-
-
         grid : ModelGrid
             landlab *ModelGrid* to place sediment parcels on.
-
-        **kwgs include:
-            parcels: landlab DataRecord
-                Tracks parcel location and attributes
-            D50: float, optional
-                median grain size [m]
-            D84_D50: float, optional
-                ratio of 84th percentile grain size to the median grain size
-            rho_sediment : float, optional
-                Sediment grain density [kg/m^3].
-            parcel_volume : float
-                parcel volume [m^3]
-            abrasion_rate: float
-                volumetric abrasion exponent [1/m]
+        parcels: landlab DataRecord, optional
+            Tracks parcel location and attributes
+        D50: float, optional
+            median grain size [m]
+        D84_D50: float, optional
+            ratio of 84th percentile grain size to the median grain size
+        rho_sediment : float, optional
+            Sediment grain density [kg/m^3].
+        parcel_volume : float, optional
+            parcel volume [m^3]
+        abrasion_rate: float, optional
+            volumetric abrasion exponent [1/m]
         """
+        SedimentPulserBase.__init__(
+            self,
+            grid,
+            parcels=parcels,
+            D50=D50,
+            D84_D50=D84_D50,
+            rho_sediment=rho_sediment,
+            parcel_volume=parcel_volume,
+            abrasion_rate=abrasion_rate,
+        )
 
     def __call__(self, time, PulseDF=None):
 
