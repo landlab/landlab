@@ -19,6 +19,7 @@ from .flow_director import (
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
+from .flow_router import FlowRouter
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
 from .gravel_river_transporter import GravelRiverTransporter
@@ -94,6 +95,7 @@ COMPONENTS = [
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
+    FlowRouter,
     FractureGridGenerator,
     gFlex,
     GravelRiverTransporter,
