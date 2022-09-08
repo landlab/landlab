@@ -1,13 +1,14 @@
+import hypothesis.extra.numpy as hynp
+import pytest
+from hypothesis import given
+from hypothesis.strategies import floats, integers
+from numpy.testing import assert_array_equal
+
 from landlab.plot.layers import (
     _insert_shorelines,
     _interp_zero_crossings,
     _search_zero_crossings,
 )
-from hypothesis.strategies import integers, floats
-from hypothesis import given
-from numpy.testing import assert_array_equal
-import hypothesis.extra.numpy as hynp
-import pytest
 
 
 @given(

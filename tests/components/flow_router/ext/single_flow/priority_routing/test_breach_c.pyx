@@ -1,5 +1,11 @@
-#distutils: language = c++
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+#distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
+#distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
+
+# NB: apparently not possible to add language: C++ in this file 
+# because of the extracompile -std=c++11 (necessary to understand the
+# priorityqueue template. To be compiled in C++, 
+# must add a .pxd file with the instruction # distutils: language = c++
 
 import numpy as np
 cimport numpy as cnp
@@ -65,16 +71,21 @@ def test_set_flooded_and_outlet():
     # on a grid of 5 nodes
     cdef:
         cnp.int_t donor_id = 2, bad_index = -1, flooded_status = 3
+        cnp.float_t min_elevation_relative_diff = 1e-2
         cnp.float_t [:] z = np.array([0.1, 67.1, 42.1, 70.3, 34.5])
         cnp.int_t [:] receivers = np.array([0, 0, 1, -1, -1])
         cnp.int_t [:] outlet_nodes = np.array([0, 0, -1, -1, -1])
         cnp.int_t [:] depression_outlet_nodes = np.array([-1, -1, -1, -1, -1])
         cnp.int_t [:] flooded_nodes = np.zeros(5, dtype=int)
         cnp.float_t [:] depression_depths = np.zeros(5, dtype=float)
+        cnp.float_t [:] depression_free_elevations = (
+            np.array([0.1, 67.1, 42.1, 70.3, 34.5])
+        )
 
     breach_c._set_flooded_and_outlet(donor_id, z, receivers, outlet_nodes,
-        depression_outlet_nodes, flooded_nodes, depression_depths, flooded_status,
-        bad_index)
+        depression_outlet_nodes, flooded_nodes, depression_depths,
+        depression_free_elevations, flooded_status, bad_index,
+        min_elevation_relative_diff)
     
     assert donor_id == 2
     assert_array_almost_equal(z, np.array([0.1, 67.1, 42.1, 70.3, 34.5]))
@@ -83,6 +94,8 @@ def test_set_flooded_and_outlet():
     assert_array_equal(depression_outlet_nodes, np.array([-1, -1, 1, -1, -1]))
     assert_array_equal(flooded_nodes, np.array([0, 0, 3, 0, 0]))
     assert_array_almost_equal(depression_depths, np.array([0, 0, 67.1 - 42.1, 0, 0]))
+    assert_array_almost_equal(depression_free_elevations,
+            np.array([0.1, 67.1, 67.771, 70.3, 34.5]))
     assert flooded_status == 3
     assert bad_index == -1
 
@@ -90,8 +103,9 @@ def test_set_flooded_and_outlet():
     receivers = np.array([0, 0, 1, 2, -1])
 
     breach_c._set_flooded_and_outlet(donor_id, z, receivers, outlet_nodes,
-        depression_outlet_nodes, flooded_nodes, depression_depths, flooded_status,
-        bad_index)
+        depression_outlet_nodes, flooded_nodes, depression_depths,
+        depression_free_elevations, flooded_status, bad_index,
+        min_elevation_relative_diff)
     assert donor_id == 3
     assert_array_almost_equal(z, np.array([0.1, 67.1, 42.1, 70.3, 34.5]))
     assert_array_equal(receivers, np.array([0, 0, 1, 2, -1]))
@@ -99,6 +113,8 @@ def test_set_flooded_and_outlet():
     assert_array_equal(depression_outlet_nodes, np.array([-1, -1, 1, -1, -1]))
     assert_array_equal(flooded_nodes, np.array([0, 0, 3, 0, 0]))
     assert_array_almost_equal(depression_depths, np.array([0, 0, 67.1 - 42.1, 0, 0]))
+    assert_array_almost_equal(depression_free_elevations,
+            np.array([ 0.1, 67.1, 67.771, 70.3, 34.5]))
     assert flooded_status == 3
     assert bad_index == -1
 
@@ -174,6 +190,7 @@ def test_direct_flow_c():
     # Grid of 25 nodes
     cdef:
         cnp.int_t nodes_n = 25, flooded_status = 3, bad_index = -1
+        cnp.float_t min_elevation_relative_diff = 1e-2
         cnp.int_t neighbors_max_number = 50
         cnp.int_t[:] base_level_nodes = np.array([0, 1, 2, 4,
             5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24])
@@ -237,15 +254,17 @@ def test_direct_flow_c():
             4.00867748, 6.62157669, 9.65585909, 4.80900059, 2.64112287,
             5.8741712,  0.5857857,  5.95696968, 4.42523296, 5.33407687,
             5.92247815, 4.09472964, 7.03500768, 0.38934984, 1.03435662])
+        cnp.float_t[:] depression_free_elevations = z.copy()
         cnp.float_t[:] z_0 = np.copy(z)
 
     breach_c._direct_flow_c(nodes_n, base_level_nodes, closed_nodes,
                     sorted_pseudo_tails, sorted_dupli_gradients,
                     sorted_dupli_links, head_start_end_indexes,
                     outlet_nodes, depression_outlet_nodes,
-                    flooded_nodes, depression_depths, links_to_receivers, receivers,
-                    steepest_slopes, z, flooded_status, bad_index,
-                    neighbors_max_number)
+                    flooded_nodes, depression_depths, depression_free_elevations,
+                    links_to_receivers, receivers, steepest_slopes, z,
+                    flooded_status, bad_index, neighbors_max_number,
+                    min_elevation_relative_diff)
     assert nodes_n == 25
     assert flooded_status == 3
     assert bad_index == -1
@@ -290,6 +309,7 @@ def test_direct_flow():
     cdef:
         cnp.int_t nodes_n = 25, flooded_status = 3, bad_index = -1
         cnp.int_t neighbors_max_number = 50
+        cnp.float_t min_elevation_relative_diff = 1e-2
         cnp.int_t[:] base_level_nodes = np.array([0, 1, 2, 4,
             5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24])
         cnp.int_t[:] base_level_nodes_0 = np.copy(base_level_nodes)
@@ -352,15 +372,17 @@ def test_direct_flow():
             4.00867748, 6.62157669, 9.65585909, 4.80900059, 2.64112287,
             5.8741712,  0.5857857,  5.95696968, 4.42523296, 5.33407687,
             5.92247815, 4.09472964, 7.03500768, 0.38934984, 1.03435662])
+        cnp.float_t[:] depression_free_elevations = z.copy()
         cnp.float_t[:] z_0 = np.copy(z)
 
     breach._direct_flow(nodes_n, base_level_nodes, closed_nodes,
                     sorted_pseudo_tails, sorted_dupli_gradients,
                     sorted_dupli_links, head_start_end_indexes,
                     outlet_nodes, depression_outlet_nodes,
-                    flooded_nodes, depression_depths, links_to_receivers, receivers,
-                    steepest_slopes, z, flooded_status, bad_index,
-                    neighbors_max_number)
+                    flooded_nodes, depression_depths, depression_free_elevations,
+                    links_to_receivers, receivers, steepest_slopes, z,
+                    flooded_status, bad_index, neighbors_max_number,
+                    min_elevation_relative_diff)
     assert nodes_n == 25
     assert flooded_status == 3
     assert bad_index == -1

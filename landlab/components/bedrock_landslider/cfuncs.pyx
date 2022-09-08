@@ -12,6 +12,7 @@ ctypedef np.float64_t DTYPE_FLOAT_t
 cpdef _landslide_runout(
     DTYPE_FLOAT_t dx,
     DTYPE_FLOAT_t phi,
+    DTYPE_FLOAT_t min_deposition_slope,
     np.ndarray[DTYPE_INT_t, ndim=1] stack_rev_sel,
     np.ndarray[DTYPE_INT_t, ndim=2] receivers,
     np.ndarray[DTYPE_FLOAT_t, ndim=2] fract,
@@ -21,6 +22,7 @@ cpdef _landslide_runout(
     np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
     np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] length_adjacent_cells,
 ):
     """
     Calculate landslide runout using a non-local deposition algorithm, see:
@@ -48,7 +50,9 @@ cpdef _landslide_runout(
         
         for r in range(receivers.shape[1]):
             rcvr = receivers[donor, r]
-            max_D[rcvr] = max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr])
+            
+            max_D_angle = H_i_temp[donor] - min_deposition_slope*length_adjacent_cells[r] - H_i_temp[rcvr]
+            max_D[rcvr] = min(max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr]),max_D_angle)
             
             proportion = fract[donor, r]
             if proportion > 0. and donor != rcvr:
