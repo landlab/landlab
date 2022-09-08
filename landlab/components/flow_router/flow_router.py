@@ -20,7 +20,10 @@ from landlab.components.depression_finder.floodstatus import FloodStatus
 
 class FlowRouter(Component):
     """
-    The FlowRouter carries out 2 operations:
+    The FlowRouter carries out 2 operations:    
+    WORK TO DO: check for active
+    links (when links between two core nodes or a core node and boundary
+    node are inactive)
 
     (1) Public method run_flow_directions() calculates flow directions over a
     surface (usually the elevation, node field "topographic__elevation")
@@ -311,6 +314,7 @@ class FlowRouter(Component):
 
         Examples
         --------
+
         1. RasterModelGrid.
 
         >>> # Libraries
@@ -532,6 +536,7 @@ class FlowRouter(Component):
         the landlab framework and grids and to cython optimization:
 
         **Algorithm**
+
         Numbers are steps described in Barnes et al., 2014's algorithm. Some
         minor adaptations are not indicated here, refer to the code.
 
@@ -541,7 +546,7 @@ class FlowRouter(Component):
         3: Let Done be initialized to FALSE
         4: for all Nodes on the open boundaries of Elevations do:
         5:   Push Node onto To_do with priority Elevations(Node)
-        5b       (i.e. member with the lowest elevation should be popped first)
+        5b:      (i.e. member with the lowest elevation should be popped first)
         6:   Done(Node) <- true
         7-9: Not implemented
         10:  Directions(Node) point to themselves
@@ -554,6 +559,7 @@ class FlowRouter(Component):
         19:     Closed(Neighbor) <- true
         20:     Push Neighbor onto To_do with priority Elevations(Neighbors)
 
+<<<<<<< HEAD
         **Remarks**
         - strictly speaking, and for optimization reasons, this algorithm is
         not always steepest descent and and our adaptation favors flow to
@@ -611,6 +617,7 @@ class FlowRouter(Component):
         ...     [10., 20., 25., 15.] +
         ...     [5., 0., 5.])
         ...     )
+
         >>> # Creation of the router
         >>> router_params = {"grid": g}
         >>> router = FlowRouter(**router_params)
@@ -777,6 +784,7 @@ class FlowRouter(Component):
         ...     [10., 20., 25., 15.] +
         ...     [5., 0., 5.])
         ...     )
+
         >>> # Creation of the router
         >>> router_params = {"grid": g, "runoff_rate": 2.}
         >>> router = FlowRouter(**router_params)
@@ -901,6 +909,7 @@ class FlowRouter(Component):
         ...     [10., 20., 25., 15.] +
         ...     [5., 0., 5.])
         ...     )
+
         >>> # Creation of the router
         >>> router_params = {"grid": g, "runoff_rate": 2.}
         >>> router = FlowRouter(**router_params)
