@@ -1,5 +1,6 @@
-#distutils: language = c++
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+#distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
+#distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
 
 import numpy as np
 cimport numpy as cnp
