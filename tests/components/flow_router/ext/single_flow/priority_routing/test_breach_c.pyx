@@ -2,6 +2,11 @@
 #distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
 #distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
 
+# NB: apparently not possible to add language: C++ in this file 
+# because of the extracompile -std=c++11 (necessary to understand the
+# priorityqueue template. To be compiled in C++, 
+# must add a .pxd file with the instruction # distutils: language = c++
+
 import numpy as np
 cimport numpy as cnp
 cimport cython
