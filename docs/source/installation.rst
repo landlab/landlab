@@ -1,18 +1,14 @@
+.. _basic_install:
+
+=======
 Install
 =======
-
-.. note::
-
-  In April 2020 Landlab switched to version 2.0. Landlab dropped
-  support of Python 2.7 with this transition.
-
-Release Install
----------------
 
 .. important::
 
   The following commands will install *landlab* into your current environment. Although
-  not necessary, we **highly recommend you install landlab into its own environment**.
+  not necessary, we **highly recommend** you install landlab into its own
+  :ref:`virtual environment <virtual_environments>`.
 
 .. include:: ../../README.rst
     :start-after: .. start-install-release
