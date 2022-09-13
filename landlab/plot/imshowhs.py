@@ -526,6 +526,9 @@ def _imshowhs_grid_values(
                 dy=dy,
                 fraction=0.4,
             )
+            # Closed nodes will always be white. This should be updated to
+            # color_for_closed in future versions.
+            rgb[:, :, 3][values.mask] = 0
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
         elif plot_type == "Hillshade":
@@ -849,7 +852,9 @@ def _imshowhs_grid_values(
                         bbox=bbox_prop,
                     )
                     axins2.xaxis.set_label_coords(0.5, y_label_offSet_var_2)
-
+        # If nothing to plot
+        else:
+            ax1.invert_yaxis()
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
         if grid_units[1] == "-" and grid_units[0] == "-":
