@@ -546,7 +546,7 @@ class FlowRouter(Component):
         3: Let Done be initialized to FALSE
         4: for all Nodes on the open boundaries of Elevations do:
         5:   Push Node onto To_do with priority Elevations(Node)
-        5b:      (i.e. member with the lowest elevation should be popped first)
+        5b:     (i.e. member with the lowest elevation should be popped first)
         6:   Done(Node) <- true
         7-9: Not implemented
         10:  Directions(Node) point to themselves
@@ -559,7 +559,6 @@ class FlowRouter(Component):
         19:     Closed(Neighbor) <- true
         20:     Push Neighbor onto To_do with priority Elevations(Neighbors)
 
-<<<<<<< HEAD
         **Remarks**
         - strictly speaking, and for optimization reasons, this algorithm is
         not always steepest descent and and our adaptation favors flow to
