@@ -22,7 +22,7 @@ def imshowhs_grid(grid, values, **kwds):
 
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
-    colored uniformly (default black, overridden with kwd 'color_for_closed');
+    colored uniformly (default white);
     other open boundary nodes get their actual values.
 
     *values* can be a field name, a regular array, or a masked array. If a
@@ -77,8 +77,9 @@ def imshowhs_grid(grid, values, **kwds):
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
-        Color to use for closed nodes (default 'black'). If None, closed
-        (or masked) nodes will be transparent.
+        Color to use for closed nodes (default 'white'). If None, closed
+        (or masked) nodes will be transparent.  color_for_closed can only be
+        white or None momentarily.
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
@@ -192,7 +193,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
-    colored uniformly (default black, overridden with kwd 'color_for_closed');
+    colored uniformly (default white);
     other open boundary nodes get their actual values.
 
     *values* can be a field name, a regular array, or a masked array. If a
@@ -249,8 +250,9 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
-        Color to use for closed nodes (default 'black'). If None, closed
-        (or masked) nodes will be transparent.
+        Color to use for closed nodes (default 'white'). If None, closed
+        (or masked) nodes will be transparent. color_for_closed can only be
+        white or None momentarily.
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
@@ -384,7 +386,7 @@ def _imshowhs_grid_values(
     norm=None,
     ticks_km=False,
     shrink=1.0,
-    color_for_closed=None,
+    color_for_closed="white",
     color_for_background=None,
     output=None,
     plot_type="DEM",
@@ -454,6 +456,8 @@ def _imshowhs_grid_values(
     cmap = plt.get_cmap(cmap)
 
     if color_for_closed is not None:
+        if color_for_closed != "white":
+            raise ValueError("color_for_closed can only be white or None momentarily")
         cmap.set_bad(color=color_for_closed)
     else:
         cmap.set_bad(alpha=0.0)
@@ -526,14 +530,15 @@ def _imshowhs_grid_values(
                 dy=dy,
                 fraction=0.4,
             )
-            # Closed nodes will always be white. This should be updated to
-            # color_for_closed in future versions.
-            rgb[:, :, 3][values.mask] = 0
+            if color_for_closed is not None:
+                rgb[:, :, 3][values.mask] = 0
+
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
         elif plot_type == "Hillshade":
             hs_values = ls.hillshade(values.data, vert_exag=ve, dx=dx, dy=dy)
-            hs_values = np.ma.masked_where(values.mask, hs_values)
+            if color_for_closed is not None:
+                hs_values = np.ma.masked_where(values.mask, hs_values)
             ima = plt.imshow(
                 hs_values,
                 cmap="gray",
@@ -597,13 +602,13 @@ def _imshowhs_grid_values(
             #     extent=extent,
             # )
             hs_values = ls.hillshade(values.data, vert_exag=ve, dx=dx, dy=dy)
-            hs_values = np.ma.masked_where(values.mask, hs_values)
+            if color_for_closed is not None:
+                hs_values = np.ma.masked_where(values.mask, hs_values)
             ima = plt.imshow(
                 hs_values,
                 cmap="gray",
                 extent=extent,
             )
-            ima = ax1.imshow(val1, extent=extent, alpha=alpha, **kwds)
             if plt_contour:
                 plt.contour(
                     x[0:-1] * 1e-3,
