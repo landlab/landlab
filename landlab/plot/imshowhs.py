@@ -532,11 +532,19 @@ def _imshowhs_grid_values(
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
         elif plot_type == "Hillshade":
+            hs_values = ls.hillshade(values.data, vert_exag=ve, dx=dx, dy=dy)
+            hs_values = np.ma.masked_where(values.mask, hs_values)
             ima = plt.imshow(
-                ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
+                hs_values,
                 cmap="gray",
                 extent=extent,
             )
+
+            # ima = plt.imshow(
+            #     ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
+            #     cmap="gray",
+            #     extent=extent,
+            # )
             allow_colorbar = False
 
         elif plot_type == "Drape1" or plot_type == "Drape2":
@@ -583,8 +591,15 @@ def _imshowhs_grid_values(
                     kwds["vmin"] = vmin
                 if vmax is not None:
                     kwds["vmax"] = vmax
-            plt.imshow(
-                ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
+            # plt.imshow(
+            #     ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
+            #     cmap="gray",
+            #     extent=extent,
+            # )
+            hs_values = ls.hillshade(values.data, vert_exag=ve, dx=dx, dy=dy)
+            hs_values = np.ma.masked_where(values.mask, hs_values)
+            ima = plt.imshow(
+                hs_values,
                 cmap="gray",
                 extent=extent,
             )
