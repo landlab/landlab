@@ -489,7 +489,7 @@ def _imshowhs_grid_values(
             ve = vertical_exa
         else:
             ve = 3
-        extent = np.array([x[0] - dx, x[-1] + dx, y[-1] + dy, y[0] - dy])
+        extent = np.array([x[0], x[-1], y[-1], y[0]])
         if ticks_km:
             extent /= 1e3
 
