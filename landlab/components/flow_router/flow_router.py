@@ -92,10 +92,10 @@ class FlowRouter(Component):
 
     References
     ----------
-    Required Software Citation(s) Specific to this Component
-    --------------------------------------------------------
-    Additional References
-    ---------------------
+    **Required Software Citation(s) Specific to this Component**
+
+    **Additional References**
+
     Barnes, R., Lehman, C., Mulla, D. (2014). An efficient assignment of
     drainage direction over flat surfaces in raster digital elevation models.
     Computers & Geosciences, 62, 128-135.
@@ -106,9 +106,9 @@ class FlowRouter(Component):
     Processing, 28, 328-344. https://dx.doi.org/10.1016/S0734-189X(84)80011-0
     """
 
-    from ext.single_flow.priority_routing import init_tools as _init_tools_funcs
-    from ext.single_flow.priority_routing import breach as _breach_funcs
-    from ext.single_flow.accumulation import accumulation as _accumulation_funcs
+    from .ext.single_flow.priority_routing import init_tools as _init_tools_funcs
+    from .ext.single_flow.priority_routing import breach as _breach_funcs
+    from .ext.single_flow.accumulation import accumulation as _accumulation_funcs
 
     _name = "FlowRouter"
     _unit_agnostic = True
@@ -296,7 +296,7 @@ class FlowRouter(Component):
 
         Examples
         --------
-        1. RasterModelGrid
+        1. RasterModelGrid.
 
         >>> # Libraries
         >>> import numpy as np
@@ -316,12 +316,14 @@ class FlowRouter(Component):
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
-        Set up a external water influx if none
+        Set up a external water influx if none.
+
         >>> g.at_node["water__unit_flux_in"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1., 1.,
         1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-        2. NetworkModelGrid
+        2. NetworkModelGrid.
+
         >>> from landlab import NetworkModelGrid
         >>> # Creation of the grid
         >>> params = {"yx_of_node": ((0, 100, 200, 200, 300, 400, 400, 125),
@@ -336,11 +338,13 @@ class FlowRouter(Component):
         >>> router_params = {"grid": g}
         >>> router = FlowRouter(**router_params)
 
-        Includes creation of an outlet (status_at_node = 1)
+        Includes creation of an outlet (status_at_node = 1).
+
         >>> g.status_at_node
         array([1, 0, 0, 0, 0, 0, 0, 0], dtype=uint8)
 
-        Set up of an cell area of 1
+        Set up of an cell area of 1.
+
         >>> g.at_node["cell_area_at_node"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
         """
@@ -523,7 +527,7 @@ class FlowRouter(Component):
         3: Let Done be initialized to FALSE
         4: for all Nodes on the open boundaries of Elevations do:
         5:   Push Node onto To_do with priority Elevations(Node)
-        .       (i.e. member with the lowest elevation should be popped first)
+        |       (i.e. member with the lowest elevation should be popped first)
         6:   Done(Node) <- true
         7-9: Not implemented
         10:  Directions(Node) point to themselves
@@ -537,7 +541,7 @@ class FlowRouter(Component):
         20:     Push Neighbor onto To_do with priority Elevations(Neighbors)
 
         Remarks
-        -------
+        = = = =
         - strictly speaking, and for optimization reasons, this algorithm is
         .  not always steepest descent and and our adaptation favors flow to
         . the base-level nodes (open boundary nodes and one of the perimeter
@@ -568,7 +572,7 @@ class FlowRouter(Component):
 
         Examples
         --------
-        HexModelGrid
+        HexModelGrid.
 
         >>> # Libraries
         >>> import numpy as np
@@ -590,7 +594,8 @@ class FlowRouter(Component):
         >>> router.run_flow_directions()
 
         Depression-free surface that can be used by a multiple flow director
-        component
+        component.
+
         >>> g.at_node["depression_free__elevation"]
         array([ 5.66743143,  8.53977988,  6.45357199,  4.11156813, 4.68031945,
             8.21361221,  5.57024205,  7.8622079 ,  4.35550157,  2.47630211,
@@ -602,7 +607,8 @@ class FlowRouter(Component):
             8.8676027 ,  0.46845509])
 
         Receivers ordered by the node id of the donors, used to calculate flow
-        accumulation
+        accumulation.
+
         >>> g.at_node["flow__receiver_node"]
         array([ 0,  1,  2,  3,  4, 10, 12,  8,  8,  9,  9, 18, 19, 14, 14, 15,
             9,
@@ -610,13 +616,15 @@ class FlowRouter(Component):
            34, 35, 36])
 
         Flooded nodes that can be used to prevent river incision in lakes (by
-        the Space component, for instance)
-        Flooded nodes are coded 3
+        the Space component, for instance).
+        Flooded nodes are coded 3.
+
         >>> g.at_node["flood_status_code"]
         array([0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0,
             0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-        Depths of depressions
+        Depths of depressions.
+
         >>> g.at_node["depression__depth"]
         array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.      ,
             0.        ,  2.44501033,  0.        ,  0.        ,  0.        ,
@@ -627,13 +635,15 @@ class FlowRouter(Component):
             0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
             0.        ,  0.        ])
 
-        Set up a external water influx if none
+        Set up a external water influx if none.
+
         >>> g.at_node["water__unit_flux_in"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1., 1.,
             1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
             1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-        Steepest slopes at nodes, which can be used by a landslider component
+        Steepest slopes at nodes, which can be used by a landslider component.
+
         >>> g.at_node["topographic__steepest_slope"]
         array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.     ,
              0.37921568,  0.        ,  0.35067063,  0.        ,  0.        ,
@@ -744,7 +754,7 @@ class FlowRouter(Component):
 
         Examples
         --------
-        HexModelGrid
+        HexModelGrid.
 
         >>> # Libraries
         >>> import numpy as np
@@ -766,14 +776,16 @@ class FlowRouter(Component):
         >>> router.run_flow_directions()
         >>> router.run_flow_accumulations()
 
-        Generates an array of nodes ordered from downstream to upstream:
+        Generates an array of nodes ordered from downstream to upstream.
+
         >>> g.at_node["flow__upstream_node_order"]
         array([ 4,  8,  7,  9, 16, 17, 23, 10,  5, 14, 13, 15, 21, 22, 27,
             26, 20,
             19, 25, 18, 11, 24, 29, 30, 12,  6, 28, 32, 33, 34, 35, 36, 31,
             0, 1,  2,  3])
 
-        Calculates drainage areas
+        Calculates drainage areas.
+
         >>> g.at_node["drainage_area"]
         array([   0.      ,    0.      ,    0.      ,    0.      ,    0.   ,
               86.60254 ,   86.60254 ,   86.60254 ,   86.60254 ,  433.0127  ,
@@ -785,7 +797,8 @@ class FlowRouter(Component):
               0.      ,
                0.      ,   86.602545])
 
-        Calculates discharges
+        Calculates discharges.
+
         >>> g.at_node["surface_water__discharge"]
         array([    0.     ,     0.     ,     0.     ,     0.     ,     0.  ,
              173.20508,   173.20508,   173.20508,   173.20508,   866.0254 ,
@@ -894,7 +907,8 @@ class FlowRouter(Component):
         >>> router.run_one_step()
 
         Calculates discharges (and all the fields described in
-        run_flow_directions() and run_flow_accumulations()
+        run_flow_directions() and run_flow_accumulations().
+
         >>> g.at_node["surface_water__discharge"]
         array([    0.     ,     0.     ,     0.     ,     0.     ,     0.   ,
              173.20508,   173.20508,   173.20508,   173.20508,   866.0254 ,
