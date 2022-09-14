@@ -272,7 +272,7 @@ def test_imshowhs_grid_6a():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
     )
 
 
@@ -302,7 +302,7 @@ def test_imshowhs_grid_6b():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         vmin=0,
         vmax=9,
     )
@@ -334,7 +334,7 @@ def test_imshowhs_grid_6c():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         vmin=0,
         vmax=99,
     )
@@ -366,7 +366,7 @@ def test_imshowhs_grid_6d():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         vmin=0,
         vmax=999,
     )
@@ -399,7 +399,7 @@ def test_imshowhs_grid_6e():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         add_double_colorbar=True,
         vmin=0,
         vmax=99999,
@@ -434,7 +434,7 @@ def test_imshowhs_grid_7():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         thres_drape2=1,
         cmap2=None,
         add_double_colorbar=True,
@@ -469,7 +469,7 @@ def test_imshowhs_grid_8():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         thres_drape2=1,
         cmap2=None,
         add_double_colorbar=True,
@@ -504,7 +504,7 @@ def test_imshowhs_grid_9():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed=None,
         thres_drape2=1,
         cmap2=None,
         add_double_colorbar=True,
