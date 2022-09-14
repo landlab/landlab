@@ -1,2 +1,2 @@
-Fixed a bug in the tutorial notebook for the BedrockLandslider. The topographic__elevation field in the``HyLandsTutorial``
-was not correctly updated. Now it is. 
+Fixed a bug in the *HyLandsTutorial* notebook where the *BedrockLandslider*'s
+*topographic__elevation* field was not being updated correctly.
