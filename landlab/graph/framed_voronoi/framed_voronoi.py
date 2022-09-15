@@ -129,12 +129,12 @@ class HorizontalRectVoronoiGraph:
             xy_random_generator[1].random(n_core_nodes) * max_move[1] * 2 - max_move[1],
         )
 
-        k = 0
-        for i in range(1, n_rows - 1):
-            for j in range(1, n_cols - 1):
-                x_of_node[i, j] += x_y_random_move[0][k]
-                y_of_node[i, j] += x_y_random_move[1][k]
-                k += 1
+        x_of_node[1:-1, 1:-1] += np.reshape(
+            x_y_random_move[0], (n_rows - 2, n_cols - 2)
+        )
+        y_of_node[1:-1, 1:-1] += np.reshape(
+            x_y_random_move[1], (n_rows - 2, n_cols - 2)
+        )
         # Control the node id attribution for left and right edge. For instance, for a 3x3 grid,
         # make sure that node 3 is at the left of the 2nd row and node 5 at the right.
         # For this, for each core row, set y of the leftmost node as the minimal y of the row
