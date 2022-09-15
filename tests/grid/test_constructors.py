@@ -97,32 +97,9 @@ def test_hex_from_dict():
 
     # assert things.
     true_x_node = np.array(
-        [
-            37.0,
-            39.0,
-            41.0,
-            43.0,
-            36.0,
-            38.0,
-            40.0,
-            42.0,
-            44.0,
-            35.0,
-            37.0,
-            39.0,
-            41.0,
-            43.0,
-            45.0,
-            36.0,
-            38.0,
-            40.0,
-            42.0,
-            44.0,
-            37.0,
-            39.0,
-            41.0,
-            43.0,
-        ]
+        [37.0, 39.0, 41.0, 43.0, 36.0, 38.0, 40.0, 42.0]
+        + [44.0, 35.0, 37.0, 39.0, 41.0, 43.0, 45.0, 36.0]
+        + [38.0, 40.0, 42.0, 44.0, 37.0, 39.0, 41.0, 43.0]
     )
     assert_array_equal(true_x_node, mg.x_of_node)
     assert (mg.x_of_node.min(), mg.y_of_node.min()) == (35, 55)
@@ -206,9 +183,6 @@ def test_framed_voronoi_from_dict():
         "xy_spacing": (10.0, 15.0),
         "xy_of_lower_left": (1.0, 2.0),
         "xy_min_spacing": (5.0, 7.5),
-        "orientation": "horizontal",
-        "node_layout": "rect",
-        "random_seed": False,
         "seed": (200, 500),
         "xy_of_reference": (0.5, 3.0),
         "xy_axis_name": ("a", "b"),
@@ -220,119 +194,42 @@ def test_framed_voronoi_from_dict():
     assert mg._xy_spacing == (10.0, 15.0)
     assert mg._xy_of_lower_left == (1.0, 2.0)
     assert mg._xy_min_spacing == (5.0, 7.5)
-    assert mg._orientation == "horizontal"
-    assert mg._node_layout == "rect"
-    assert not mg._random_seed
     assert mg._seed == (200, 500)
     assert mg.xy_of_reference == (0.5, 3.0)
     assert mg._axis_name == ("a", "b")
     assert mg._axis_units == ("l", "l")
 
-    true_x = np.array(
-        [
-            1.0,
-            11.0,
-            21.0,
-            31.0,
-            41.0,
-            51.0,
-            1.0,
-            39.38915671,
-            11.73417072,
-            28.64950826,
-            21.81959986,
-            51.0,
-            1.0,
-            31.13460221,
-            11.36748325,
-            40.37121407,
-            21.25582009,
-            51.0,
-            1.0,
-            20.34996285,
-            8.80397049,
-            30.28757262,
-            39.70778522,
-            51.0,
-            1.0,
-            11.0,
-            21.0,
-            31.0,
-            41.0,
-            51.0,
-        ]
-    )
-    true_y = np.array(
-        [
-            2.0,
-            2.0,
-            2.0,
-            2.0,
-            2.0,
-            2.0,
-            13.249,
-            16.333676,
-            17.500574,
-            18.090179,
-            19.654835,
-            20.751,
-            28.249,
-            30.593924,
-            31.76024,
-            34.146656,
-            34.410209,
-            35.751,
-            43.249,
-            45.107227,
-            46.516626,
-            46.566092,
-            49.977137,
-            50.751,
-            62.0,
-            62.0,
-            62.0,
-            62.0,
-            62.0,
-            62.0,
-        ]
-    )
-    true_adjacent_nodes_at_node = np.array(
+    true_x = np.zeros(30)
+    true_y = np.zeros(30)
+    true_x[0:7] = np.array([1.0, 11.0, 21.0, 31.0, 41.0, 51.0, 1.0])
+    true_x[11:13] = np.array([51.0, 1.0])
+    true_x[17:19] = np.array([51.0, 1.0])
+    true_x[23:30] = np.array([51.0, 1.0, 11.0, 21.0, 31.0, 41.0, 51.0])
+    true_y[0:7] = np.array([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 13.249])
+    true_y[11:13] = np.array([20.751, 28.249])
+    true_y[17:19] = np.array([35.751, 43.249])
+    true_y[23:30] = np.array([50.751, 62.0, 62.0, 62.0, 62.0, 62.0, 62.0])
+    true_adjacent_nodes_at_node_0_2 = np.array(
         [
             [1, 6, -1, -1, -1, -1, -1],
             [2, 8, 6, 0, -1, -1, -1],
-            [3, 9, 10, 8, 1, -1, -1],
-            [4, 7, 9, 2, -1, -1, -1],
-            [5, 7, 3, -1, -1, -1, -1],
-            [11, 7, 4, -1, -1, -1, -1],
-            [8, 12, 0, 1, -1, -1, -1],
-            [11, 15, 13, 9, 3, 4, 5],
-            [10, 14, 12, 6, 1, 2, -1],
-            [13, 10, 2, 3, 7, -1, -1],
-            [13, 16, 14, 8, 2, 9, -1],
-            [17, 15, 7, 5, -1, -1, -1],
-            [14, 18, 6, 8, -1, -1, -1],
-            [15, 21, 16, 10, 9, 7, -1],
-            [16, 19, 20, 18, 12, 8, 10],
-            [17, 22, 21, 13, 7, 11, -1],
-            [21, 19, 14, 10, 13, -1, -1],
-            [23, 22, 15, 11, -1, -1, -1],
-            [20, 24, 12, 14, -1, -1, -1],
-            [21, 26, 25, 20, 14, 16, -1],
-            [25, 24, 18, 14, 19, -1, -1],
-            [22, 27, 26, 19, 16, 13, 15],
-            [23, 28, 27, 21, 15, 17, -1],
-            [29, 28, 22, 17, -1, -1, -1],
-            [25, 18, 20, -1, -1, -1, -1],
-            [26, 24, 20, 19, -1, -1, -1],
-            [27, 25, 19, 21, -1, -1, -1],
-            [28, 26, 21, 22, -1, -1, -1],
+        ]
+    )
+    true_adjacent_nodes_at_node_28_30 = np.array(
+        [
             [29, 27, 22, 23, -1, -1, -1],
             [28, 23, -1, -1, -1, -1, -1],
         ]
     )
-    assert_array_almost_equal(mg.x_of_node, true_x)
-    assert_array_almost_equal(mg.y_of_node, true_y)
-    assert_array_almost_equal(mg.adjacent_nodes_at_node, true_adjacent_nodes_at_node)
+
+    for i in [0, 1, 2, 3, 4, 5, 6, 11, 12, 17, 18, 23, 24, 25, 26, 27, 28, 29]:
+        assert_array_almost_equal(mg.x_of_node[i], true_x[i])
+        assert_array_almost_equal(mg.y_of_node[i], true_y[i])
+
+    assert_array_almost_equal(
+        mg.adjacent_nodes_at_node[0:2] + mg.adjacent_nodes_at_node[28:30],
+        true_adjacent_nodes_at_node_0_2 + true_adjacent_nodes_at_node_28_30,
+    )
 
 
 def test_voronoi_from_dict():

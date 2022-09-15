@@ -5,15 +5,15 @@ from landlab import FramedVoronoiGrid
 
 
 def test_rect_number_of_patches():
-    grid = FramedVoronoiGrid((4, 3), node_layout="rect")
+    grid = FramedVoronoiGrid((4, 3))
     assert grid.number_of_patches == 12
 
-    grid = FramedVoronoiGrid((3, 4), node_layout="rect")
+    grid = FramedVoronoiGrid((3, 4))
     assert grid.number_of_patches == 12
 
 
 def test_rect_nodes_at_patch():
-    grid = FramedVoronoiGrid((3, 3), node_layout="rect", random_seed=False)
+    grid = FramedVoronoiGrid((3, 3))
     assert_array_equal(
         grid.nodes_at_patch,
         [
@@ -30,7 +30,7 @@ def test_rect_nodes_at_patch():
 
 
 def test_rect_links_at_patch():
-    grid = FramedVoronoiGrid((3, 3), node_layout="rect", random_seed=False)
+    grid = FramedVoronoiGrid((3, 3))
     assert_array_equal(
         grid.links_at_patch,
         np.array(

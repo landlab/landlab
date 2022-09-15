@@ -5,7 +5,7 @@ from landlab import FramedVoronoiGrid
 
 
 def test_rect_patches_at_node():
-    grid = FramedVoronoiGrid((3, 3), node_layout="rect", random_seed=False)
+    grid = FramedVoronoiGrid((3, 3))
     assert_array_equal(
         grid.patches_at_node,
         np.array(

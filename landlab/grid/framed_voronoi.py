@@ -25,16 +25,6 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     raster grid) named here "layout" and the core points are then moved aroung their
     initial position by a random distance, lower than a certain threshold.
 
-    Inheritance diagram
-    x xxxxxxxxxxxxxxx x
-    x                  ModelGrid                                                                       DelaunayGraph
-    x FramedVoronoiGrid /                                                                               /
-    x                  |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
-    x                  DualFramedVoronoiGraph /
-    x                                         \
-    x                                          DualGraph
-    x                                                   ~ use of static Graph.sort()
-
     Examples
     --------
     Create a grid with 2 rows and 3 columns of nodes.
@@ -44,7 +34,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     >>> grid.number_of_nodes
     6
 
-    >>> grid = FramedVoronoiGrid((4, 3), orientation="horizontal", node_layout="rect", xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), random_seed=False, seed=(200, 500))
+    >>> grid = FramedVoronoiGrid((4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=(200, 500))
     >>> grid.status_at_node
     array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
     >>> grid.x_of_node[3:6]        # doctest: +NORMALIZE_WHITESPACE
@@ -52,9 +42,21 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     >>> grid.y_of_node[0::3]       # doctest: +NORMALIZE_WHITESPACE
     array([  0.   ,   7.499,  17.499,  30.   ])
 
-    >>> grid = FramedVoronoiGrid((3, 5), orientation="horizontal", node_layout="rect", xy_spacing=(10., 10.), xy_min_spacing=5., random_seed=True)
+    >>> grid = FramedVoronoiGrid((3, 5), xy_spacing=(10., 10.), xy_min_spacing=5., seed=None)
     >>> grid.boundary_nodes
     array([ 0,  1,  2,  3,  4,  5,  9, 10, 11, 12, 13, 14])
+    """
+
+    """
+    Inheritance diagram
+    x xxxxxxxxxxxxxxx x
+    x                  ModelGrid                                                                       DelaunayGraph
+    x FramedVoronoiGrid /                                                                               /
+    x                  |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
+    x                  DualFramedVoronoiGraph /
+    x                                         \
+    x                                          DualGraph
+    x                                                   ~ use of static Graph.sort()
     """
 
     def __init__(
@@ -62,10 +64,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         shape,
         xy_spacing=(1.0, 1.0),
         xy_of_lower_left=(0.0, 0.0),
-        orientation="horizontal",
-        node_layout="rect",
         xy_min_spacing=(0.5, 0.5),
-        random_seed=True,
         seed=(200, 500),
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
@@ -76,37 +75,31 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         Create a irregular 2D grid with voronoi cells and triangular patches.
         It is a special type of VoronoiDelaunay grid in which the initial set
         of points is arranged in a regular lattice determined by the parameters:
-        shape, xy_spacing, orientation, node_layout. The coordinates of
+        shape, xy_spacing. The coordinates of
         the core points are then randomly moved while the perimeter points
         remaining fixed, in a way determined by the parameters: xy_min_spacing,
-        random_seed and seed.
+        seed.
 
         Parameters
         ----------
-        shape : int or tuple of int
-            For a rectangular layout, number of rows and columns of nodes.
-            If int, rows number = columns number = value
+        shape : tuple of int
+            Number of rows and columns of nodes.
         xy_spacing : float or tuple of float, optional
             Node spacing along x and y coordinates. If float, same spacing at x and y.
         xy_of_lower_left : tuple, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
             no node may be present at this coordinate. Default is (0., 0.).
-        orientation : string, optional
-            'horizontal' only
-        node_layout : string, optional
-            'rect' only. The grid layout of nodes.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
             around their position cannot be above this threshold:
             (xy_spacing - xy_min_spacing) /2
             If float, same minimal spacing for x and y.
-        random_seed: bool, optional
-            If True, the moves of coordinates are completely random. False is used
-            when reproducibility of moves is needed. Move pseudo-randomness is
-            then controlled by the parameter seed.
-        seed: int or tuple of int, optional
-            Seeds used to generate the random x and y moves. This parameter is unused
-            when random_seed = True.
+        seed: tuple of int, optional
+            Seeds used to generate the random x and y moves.
+            When set, controls a pseudo-randomness of moves to ensure
+            reproducibility.
+            When None, seed is random and the moves of coordinates are
+            completely random.
         xy_of_reference : tuple, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
@@ -134,11 +127,8 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
             shape,
             xy_spacing=xy_spacing,
             xy_of_lower_left=xy_of_lower_left,
-            orientation=orientation,
-            node_layout=node_layout,
             sort=True,
             xy_min_spacing=xy_min_spacing,
-            random_seed=random_seed,
             seed=seed,
         )
         ModelGrid.__init__(

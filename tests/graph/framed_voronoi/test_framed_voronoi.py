@@ -25,30 +25,19 @@ def test_number_of_nodes_horizontal_rect():
 
 
 @pytest.mark.parametrize("n_rows", (3,))
-@pytest.mark.parametrize("node_layout", [("rect")])
-@pytest.mark.parametrize("orientation", [("horizontal")])
 @pytest.mark.parametrize("at", ("nodes", "links", "patches"))
-def test_create_rect_graph(n_rows, node_layout, orientation, at):
+def test_create_rect_graph(n_rows, at):
     expected = {
-        "rect": {
-            "horizontal": {"nodes": 6, "links": 9, "patches": 4},
-        },
+        "nodes": 6, "links": 9, "patches": 4
     }
     shape = (n_rows, 2)
-    if orientation == "horizontal":
-        shape = (n_rows, 2)
-    graph = FramedVoronoiGraph(
-        shape, node_layout=node_layout, orientation=orientation, sort=True
-    )
-    assert (
-        getattr(graph, "number_of_{at}".format(at=at))
-        == expected[node_layout][orientation][at]
-    )
+    graph = FramedVoronoiGraph(shape, sort=True)
+    assert getattr(graph, "number_of_{at}".format(at=at)) == expected[at]
 
 
 def test_create_rect():
     """Test creating a hex graph with rectangular layout."""
-    graph = FramedVoronoiGraph((3, 2), node_layout="rect", sort=True)
+    graph = FramedVoronoiGraph((3, 2), sort=True)
 
     assert graph.number_of_nodes == 6
     assert graph.number_of_links == 9
@@ -64,9 +53,7 @@ def test_spacing(shape):
 
 
 @given(shape=lists(integers(min_value=3, max_value=32), min_size=2, max_size=2))
-@pytest.mark.parametrize("orientation", [("horizontal")])
-@pytest.mark.parametrize("node_layout", [("rect")])
-def test_origin_keyword(node_layout, orientation, shape):
+def test_origin_keyword(shape):
     """Test setting the origin."""
     graph = FramedVoronoiGraph(shape)
 
@@ -82,20 +69,30 @@ def test_origin_keyword(node_layout, orientation, shape):
 def test_rect_orientation():
     """Test horizontal orientation."""
     graph = FramedVoronoiGraph(
-        (3, 3), node_layout="rect", orientation="horizontal", random_seed=False
+        (3, 3),
     )
     assert_array_almost_equal(
-        graph.x_of_node, [0.0, 1.0, 2.0, 0.0, 1.07341707, 2.0, 0.0, 1.0, 2.0]
+        graph.x_of_node[0:4],
+        [0.0, 1.0, 2.0, 0.0],
+    )
+    assert_array_almost_equal(
+        graph.x_of_node[5:9],
+        [2.0, 0.0, 1.0, 2.0],
     )
 
 
 def test_perimeter_nodes_rect():
-    graph = FramedVoronoiGraph((3, 4), node_layout="rect")
+    graph = FramedVoronoiGraph(
+        (3, 4),
+    )
     assert_array_equal(graph.perimeter_nodes, [3, 7, 11, 10, 9, 8, 4, 0, 1, 2])
 
 
 def test_rect_adjacent_nodes_at_node():
-    graph = FramedVoronoiGraph((3, 3), node_layout="rect", sort=True, random_seed=False)
+    graph = FramedVoronoiGraph(
+        (3, 3),
+        sort=True,
+    )
     assert_array_equal(
         graph.adjacent_nodes_at_node,
         [
@@ -113,7 +110,10 @@ def test_rect_adjacent_nodes_at_node():
 
 
 def test_rect_patches_at_node():
-    graph = FramedVoronoiGraph((3, 3), node_layout="rect", sort=True, random_seed=False)
+    graph = FramedVoronoiGraph(
+        (3, 3),
+        sort=True,
+    )
     assert np.array_equal(
         graph.patches_at_node,
         [
@@ -136,16 +136,16 @@ def test_xy_of_node_rect_horizontal(n_rows, n_cols):
     expected = {
         (1, 3): ([0.0, 1.0, 2.0], [0.0, 0.0, 0.0]),
         (3, 3): (
-            [0.0, 1.0, 2.0, 0.0, 1.07341707, 2.0, 0.0, 1.0, 2.0],
-            [0.0, 0.0, 0.0, 0.749, 1.03337157, 1.251, 2.0, 2.0, 2.0],
+            [0.0, 1.0, 2.0],
+            [0.0, 0.0, 0.0],
         ),
     }
     x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node(
-        (n_rows, n_cols), random_seed=False
+        (n_rows, n_cols)
     )
 
-    assert np.all(x_of_node == approx(expected[(n_rows, n_cols)][0]))
-    assert np.all(y_of_node == approx(expected[(n_rows, n_cols)][1]))
+    assert np.all(x_of_node[0:3] == approx(expected[(n_rows, n_cols)][0]))
+    assert np.all(y_of_node[0:3] == approx(expected[(n_rows, n_cols)][1]))
 
 
 @pytest.mark.parametrize("n_cols", (2, 3))

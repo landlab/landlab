@@ -21,14 +21,16 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
     --------
     >>> from landlab.graph import DualFramedVoronoiGraph
 
-    >>> graph = DualFramedVoronoiGraph((3, 3), node_layout='rect', random_seed=False)
+    >>> graph = DualFramedVoronoiGraph((3, 3), seed=(200, 500))
     >>> graph.number_of_nodes
     9
 
-    >>> graph.x_of_node[2:5]    # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.        ,  0.        ,  1.07341707])
-    >>> graph.y_of_node[2:6]    # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.        ,  0.749     ,  1.03337157,  1.251     ])
+    >>> graph.x_of_node[2:4]    # doctest: +NORMALIZE_WHITESPACE
+    array([ 2.,  0.])
+    >>> graph.y_of_node[2:4]    # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.   ,  0.749])
+    >>> graph.y_of_node[5]    # doctest: +NORMALIZE_WHITESPACE
+    1.2509999999999999
     """
 
     def __init__(
@@ -36,29 +38,21 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
         shape,
         xy_spacing=(1.0, 1.0),
         xy_of_lower_left=(0.0, 0.0),
-        orientation="horizontal",
-        node_layout="rect",
         sort=False,
         xy_min_spacing=(0.5, 0.5),
-        random_seed=True,
         seed=(200, 500),
     ):
         """Create the graph.
 
         Parameters
         ----------
-        shape : int or tuple of int
-            For a rectangular layout, number of rows and columns of nodes.
-            If int, rows number = columns number = value
+        shape : tuple of int
+            Number of rows and columns of nodes.
         xy_spacing : float or tuple of float, optional
             Node spacing along x and y coordinates. If float, same spacing at x and y.
         xy_of_lower_left : tuple, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
             no node may be present at this coordinate. Default is (0., 0.).
-        orientation : string, optional
-            'horizontal' only
-        node_layout : string, optional
-            'rect' only. The grid layout of nodes.
         sort: bool
             If true, nodes, links and patches are re-numbered according certain criterias of position
         xy_min_spacing: float or tuple of float, optional
@@ -66,13 +60,12 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
             around their position cannot be above this threshold:
             (xy_spacing - xy_min_spacing) /2
             If float, same minimal spacing for x and y.
-        random_seed: bool, optional
-            If True, the moves of coordinates are completely random. False is used
-            when reproducibility of moves is needed. Move pseudo-randomness is
-            then controlled by the parameter seed.
-        seed: int or tuple of int, optional
-            Seeds used to generate the random x and y moves. This parameter is unused
-            when random_seed = True.
+        seed: tuple of int, optional
+            Seeds used to generate the random x and y moves.
+            When set, controls a pseudo-randomness of moves to ensure
+            reproducibility.
+            When None, seed is random and the moves of coordinates are
+            completely random.
 
         Returns
         -------
@@ -93,11 +86,8 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
             shape,
             xy_spacing=xy_spacing,
             xy_of_lower_left=xy_of_lower_left,
-            orientation=orientation,
-            node_layout=node_layout,
             sort=True,
             xy_min_spacing=xy_min_spacing,
-            random_seed=random_seed,
             seed=seed,
         )
 
