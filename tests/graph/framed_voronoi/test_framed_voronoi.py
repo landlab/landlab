@@ -27,9 +27,7 @@ def test_number_of_nodes_horizontal_rect():
 @pytest.mark.parametrize("n_rows", (3,))
 @pytest.mark.parametrize("at", ("nodes", "links", "patches"))
 def test_create_rect_graph(n_rows, at):
-    expected = {
-        "nodes": 6, "links": 9, "patches": 4
-    }
+    expected = {"nodes": 6, "links": 9, "patches": 4}
     shape = (n_rows, 2)
     graph = FramedVoronoiGraph(shape, sort=True)
     assert getattr(graph, "number_of_{at}".format(at=at)) == expected[at]
@@ -140,9 +138,7 @@ def test_xy_of_node_rect_horizontal(n_rows, n_cols):
             [0.0, 0.0, 0.0],
         ),
     }
-    x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node(
-        (n_rows, n_cols)
-    )
+    x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node((n_rows, n_cols))
 
     assert np.all(x_of_node[0:3] == approx(expected[(n_rows, n_cols)][0]))
     assert np.all(y_of_node[0:3] == approx(expected[(n_rows, n_cols)][1]))

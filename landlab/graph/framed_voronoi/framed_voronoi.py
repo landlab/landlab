@@ -324,7 +324,7 @@ class FramedVoronoiGraph(DelaunayGraph):
 
         Returns
         -------
-        DualFramedVoronoiGraph
+        FramedVoronoiGraph
             A newly-created graph.
 
         Examples
