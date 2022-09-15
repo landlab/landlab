@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LightSource
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-
+from matplotlib.colors import to_rgba
 from .event_handler import query_grid_on_button_press
 
 
@@ -78,8 +78,7 @@ def imshowhs_grid(grid, values, **kwds):
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
         Color to use for closed nodes (default 'white'). If None, closed
-        (or masked) nodes will be transparent.  color_for_closed can only be
-        white or None momentarily.
+        (or masked) nodes will be transparent.
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
@@ -251,8 +250,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
         Color to use for closed nodes (default 'white'). If None, closed
-        (or masked) nodes will be transparent. color_for_closed can only be
-        white or None momentarily.
+        (or masked) nodes will be transparent.
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
@@ -456,8 +454,6 @@ def _imshowhs_grid_values(
     cmap = plt.get_cmap(cmap)
 
     if color_for_closed is not None:
-        if color_for_closed != "white":
-            raise ValueError("color_for_closed can only be white or None momentarily")
         cmap.set_bad(color=color_for_closed)
     else:
         cmap.set_bad(alpha=0.0)
@@ -531,25 +527,26 @@ def _imshowhs_grid_values(
                 fraction=0.4,
             )
             if color_for_closed is not None:
-                rgb[:, :, 3][values.mask] = 0
+                rgb[:, :, :][values.mask] = to_rgba(color_for_closed)
 
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
         elif plot_type == "Hillshade":
+
+            cmap_gray = plt.get_cmap("gray")
+            if color_for_closed is not None:
+                cmap_gray.set_bad(color=color_for_closed)
+            else:
+                cmap_gray.set_bad(alpha=0.0)
             hs_values = ls.hillshade(values.data, vert_exag=ve, dx=dx, dy=dy)
             if color_for_closed is not None:
                 hs_values = np.ma.masked_where(values.mask, hs_values)
             ima = plt.imshow(
                 hs_values,
-                cmap="gray",
+                cmap=cmap_gray,
                 extent=extent,
             )
 
-            # ima = plt.imshow(
-            #     ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
-            #     cmap="gray",
-            #     extent=extent,
-            # )
             allow_colorbar = False
 
         elif plot_type == "Drape1" or plot_type == "Drape2":
@@ -596,17 +593,19 @@ def _imshowhs_grid_values(
                     kwds["vmin"] = vmin
                 if vmax is not None:
                     kwds["vmax"] = vmax
-            # plt.imshow(
-            #     ls.hillshade(values, vert_exag=ve, dx=dx, dy=dy),
-            #     cmap="gray",
-            #     extent=extent,
-            # )
+
+            cmap_gray = plt.get_cmap("gray")
+            if color_for_closed is not None:
+                cmap_gray.set_bad(color=color_for_closed)
+            else:
+                cmap_gray.set_bad(alpha=0.0)
+
             hs_values = ls.hillshade(values.data, vert_exag=ve, dx=dx, dy=dy)
             if color_for_closed is not None:
                 hs_values = np.ma.masked_where(values.mask, hs_values)
             ima = plt.imshow(
                 hs_values,
-                cmap="gray",
+                cmap=cmap_gray,
                 extent=extent,
             )
             if plt_contour:
