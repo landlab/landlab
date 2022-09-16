@@ -35,14 +35,6 @@ def test_rect_face_at_link():
     )
 
 
-def test_rect_length_of_face():
-    grid = FramedVoronoiGrid((3, 3))
-    assert grid.length_of_face[0:2] == approx(
-        np.array([0.21390498, 0.87396377]), abs=1e-5
-    )
-    assert len(grid.length_of_face) == grid.number_of_faces
-
-
 def test_rect_link_at_face():
     grid = FramedVoronoiGrid((3, 3))
     assert_array_equal(grid.link_at_face, np.array([3, 4, 5, 7, 8, 10, 11, 12]))
