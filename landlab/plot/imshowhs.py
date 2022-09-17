@@ -189,7 +189,7 @@ def imshowhs_grid(grid, values, **kwds):
             "For now, only values at nodes can be displayed using the imshowhs functions"
         )
     else:
-        raise TypeError(f"{values_at}: value location not understood" % values_at)
+        raise TypeError(f"{values_at}: value location not understood")
 
     return ax
 
@@ -914,7 +914,7 @@ def _imshowhs_grid_values(
         )
 
     if plot_name is not None:
-        plt.title("%s" % (plot_name))
+        plt.title(f"{plot_name}")
 
     if (
         somethingToPlot
