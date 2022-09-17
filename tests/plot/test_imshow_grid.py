@@ -233,14 +233,11 @@ def test_imshowhs_grid_6a():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
     landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
@@ -264,14 +261,11 @@ def test_imshowhs_grid_6b():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax <10
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
     landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
@@ -300,10 +294,8 @@ def test_imshowhs_grid_6c():
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
     landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
@@ -328,14 +320,11 @@ def test_imshowhs_grid_6d():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax <100
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
     landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
@@ -354,21 +343,17 @@ def test_imshowhs_grid_6d():
         vmin=0,
         vmax=999,
     )
-    # %%
 
 
 def test_imshowhs_grid_6e():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax <100
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
     landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
@@ -388,9 +373,6 @@ def test_imshowhs_grid_6e():
         vmin=0,
         vmax=99999,
     )
-
-
-# %%
 
 
 def test_imshowhs_grid_7():
@@ -425,19 +407,15 @@ def test_imshowhs_grid_7():
     )
 
 
-# %%
 def test_imshowhs_grid_8():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax >10<100
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
     landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
@@ -462,7 +440,6 @@ def test_imshowhs_grid_8():
     )
 
 
-# %%
 def test_imshowhs_grid_9():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax>100
@@ -535,7 +512,6 @@ def test_imshowhs_grid_11():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
@@ -558,49 +534,29 @@ def test_imshowhs_grid_11():
         )
 
 
-def test_imshowhs_grid_12():
-    """
-    Test imshowhs without units
-    """
-    # %%
+@pytest.mark.parametrize("valid_units", [None, "foo"])
+def test_imshowhs_var_units(valid_units):
+    """units should be a string or None"""
     mg = landlab.RasterModelGrid((4, 5))
     mg.add_zeros("topographic__elevation", at="node")
-    landlab.plot.imshowhs_grid(mg, "topographic__elevation")
+    landlab.plot.imshowhs_grid(mg, "topographic__elevation", var_units=valid_units)
 
 
-def test_hex_mfd():
-    """
-    Currently no support for hex
-    """
-    # %%
+def test_hex_grid_not_allowed():
+    """Currently no support for hex"""
     mg = landlab.HexModelGrid((5, 3))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(NotImplementedError):
         landlab.plot.imshowhs_grid(mg, "topographic__elevation")
 
 
-# %%
-def test_at_cell():
-    """
-    Currently no support for at cell
-    """
-    # %%
-    mg = landlab.HexModelGrid((5, 3))
-    mg.add_field("topographic__elevation", np.zeros((7,)), at="cell")
+@pytest.mark.parametrize("at", ["link", "patch", "corner", "face", "cell"])
+def test_at_anything_but_node(at):
+    """Currently no support for anything but node."""
+    mg = landlab.RasterModelGrid((5, 3))
+    mg.add_empty("topographic__elevation", at=at)
     with pytest.raises(NotImplementedError):
-        landlab.plot.imshowhs_grid(mg, "topographic__elevation", at="cell")
-
-
-# %%
-def test_at_other():
-    """
-    Currently no support for non at node valley locations
-    """
-    # %%
-    mg = landlab.HexModelGrid((5, 3))
-    mg.add_field("topographic__elevation", np.zeros((24,)), at="corner")
-    with pytest.raises(TypeError):
-        landlab.plot.imshowhs_grid(mg, "topographic__elevation", at="corner")
+        landlab.plot.imshowhs_grid(mg, "topographic__elevation", at=at)
 
 
 @pytest.mark.parametrize("at", ["node", "cell"])
