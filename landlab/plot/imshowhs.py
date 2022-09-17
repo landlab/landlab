@@ -81,7 +81,7 @@ def imshowhs_grid(grid, values, **kwds):
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
-        Color to use for closed nodes (default 'white'). If ``None``, closed
+        Color to use for closed nodes (default ``None``). If ``None``,
         (or masked) nodes will be transparent.
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default ``None``). If ``None``, the
@@ -257,7 +257,7 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     shrink : float
         Fraction by which to shrink the colorbar.
     color_for_closed : str or None
-        Color to use for closed nodes (default 'white'). If ``None``, closed
+        Color to use for closed nodes (default ``None``). If ``None``,
         (or masked) nodes will be transparent.
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default ``None``). If ``None``, the
@@ -390,7 +390,7 @@ def _imshowhs_grid_values(
     norm=None,
     ticks_km=False,
     shrink=1.0,
-    color_for_closed="white",
+    color_for_closed=None,
     color_for_background=None,
     output=None,
     plot_type="DEM",
@@ -614,6 +614,7 @@ def _imshowhs_grid_values(
                 cmap=cmap_gray,
                 extent=extent,
             )
+            ima = ax1.imshow(val1, extent=extent, alpha=alpha, **kwds)
             if plt_contour:
                 plt.contour(
                     x[0:-1] * 1e-3,
