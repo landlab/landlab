@@ -21,7 +21,7 @@ def drainage_plot(
         colorbar_label = surface
     else:
         colorbar_label = "topographic_elevation"
-    ax_grid = imshow_grid(mg, surface, cmap=surf_cmap, colorbar_label=colorbar_label)
+    imshow_grid(mg, surface, cmap=surf_cmap, colorbar_label=colorbar_label)
 
     if receivers is None:
         receivers = mg.at_node["flow__receiver_node"]
@@ -131,6 +131,6 @@ def drainage_plot(
     )
     sm = plt.cm.ScalarMappable(cmap=propColor, norm=plt.Normalize(vmin=0, vmax=1))
     sm._A = []
-    cx = plt.colorbar(sm, cax=ax_grid)
+    cx = plt.colorbar(sm, ax=ax)
     cx.set_label("Proportion of Flow")
     plt.title(title)
