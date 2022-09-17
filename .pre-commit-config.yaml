@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/psf/black
-  rev: 22.6.0
+  rev: 22.8.0
   hooks:
   - id: black
     name: black
@@ -35,5 +35,5 @@ repos:
     entry: nb-ensure-clean
     files: \.ipynb$
     language: python
-    language_version: python3
+    language_version: python3.8
 
