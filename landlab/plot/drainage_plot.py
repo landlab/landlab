@@ -131,6 +131,6 @@ def drainage_plot(
     )
     sm = plt.cm.ScalarMappable(cmap=propColor, norm=plt.Normalize(vmin=0, vmax=1))
     sm._A = []
-    cx = plt.colorbar(sm)
+    cx = plt.colorbar(sm, cax=ax)
     cx.set_label("Proportion of Flow")
     plt.title(title)
