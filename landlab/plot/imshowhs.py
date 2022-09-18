@@ -184,7 +184,7 @@ def imshowhs_grid(grid, values, **kwds):
 
     if values_at == "node":
         ax = imshowhs_grid_at_node(grid, values, **kwds)
-    elif values_at == "cell":
+    elif values_at in {"link", "patch", "corner", "face", "cell"}:
         raise NotImplementedError(
             "For now, only values at nodes can be displayed using the imshowhs functions"
         )
