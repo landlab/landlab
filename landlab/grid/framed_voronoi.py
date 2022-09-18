@@ -1,5 +1,5 @@
 #! /usr/env/python
-"""Python implementation of FramedVoronoiGrid, a grid class used to create and
+"""Python implementation of :class:`~.FramedVoronoiGrid`, a grid class used to create and
 manage unstructured Voronoi-Delaunay grids for 2D numerical models, with a structured
 perimeter layout
 
@@ -8,6 +8,7 @@ semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 
 @author sebastien lenard
+
 @date 2022, Aug
 """
 
@@ -20,14 +21,15 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     """A grid of Voronoi Delaunay cells with a structured perimeter layout.
 
     This inherited class implements a irregular 2D grid with Voronoi Delaunay cells and
-    irregular patches. It is a special type of VoronoiDelaunay grid in which
-    the initial set of points is arranged in a fixed lattice (e.g. like a rectangular
-    raster grid) named here "layout" and the core points are then moved aroung their
-    initial position by a random distance, lower than a certain threshold.
+    irregular patches. It is a special type of :class:`~.VoronoiDelaunayGrid` grid in which
+    the initial set of points is arranged in a fixed lattice (e.g. like a
+    :class:`~.RasterModelGrid`), named here "layout", and the core points are
+    then moved a random distance from their initial positions, bounded by a user-supplied
+    threshold.
 
     Examples
     --------
-    Create a grid with 2 rows and 3 columns of nodes.
+    Create a grid with 3 rows and 2 columns of nodes.
 
     >>> from landlab import FramedVoronoiGrid
     >>> grid = FramedVoronoiGrid((3, 2), xy_spacing=1.0)
@@ -49,17 +51,15 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     array([ 0,  1,  2,  3,  4,  5,  9, 10, 11, 12, 13, 14])
     """
 
-    """
-    Inheritance diagram
-    x xxxxxxxxxxxxxxx x
-    x                  ModelGrid                                                                       DelaunayGraph
-    x FramedVoronoiGrid /                                                                               /
-    x                  |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
-    x                  DualFramedVoronoiGraph /
-    x                                         \
-    x                                          DualGraph
-    x                                                   ~ use of static Graph.sort()
-    """
+    # Inheritance diagram
+    # x xxxxxxxxxxxxxxx x
+    # x                  ModelGrid                                                                       DelaunayGraph
+    # x FramedVoronoiGrid /                                                                               /
+    # x                  |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
+    # x                  DualFramedVoronoiGraph /
+    # x                                         \
+    # x                                          DualGraph
+    # x                                                   ~ use of static Graph.sort()
 
     def __init__(
         self,
@@ -74,41 +74,41 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     ):
         """Create a grid of voronoi cells with a structured perimeter.
 
-        Create a irregular 2D grid with voronoi cells and triangular patches.
-        It is a special type of VoronoiDelaunay grid in which the initial set
-        of points is arranged in a regular lattice determined by the parameters:
-        shape, xy_spacing. The coordinates of
+        Create an irregular 2D grid with voronoi cells and triangular patches.
+        It is a special type of :class:`~.VoronoiDelaunayGrid` in which the initial set
+        of points is arranged in a regular lattice determined by the parameters
+        *shape*, and *xy_spacing*. The coordinates of
         the core points are then randomly moved while the perimeter points
-        remaining fixed, in a way determined by the parameters: xy_min_spacing,
-        seed.
+        remaining fixed, in a way determined by the parameters *xy_min_spacing*, and
+        *seed*.
 
         Parameters
         ----------
         shape : tuple of int
             Number of rows and columns of nodes.
         xy_spacing : float or tuple of float, optional
-            Node spacing along x and y coordinates. If float, same spacing at x and y.
+            Node spacing along x and y coordinates. If ``float``, same spacing at *x* and *y*.
         xy_of_lower_left : tuple, optional
-            Minimum x-of-node and y-of-node values. Depending on the grid
-            no node may be present at this coordinate. Default is (0., 0.).
+            Minimum *x*-of-node and *y*-of-node values. Depending on the grid,
+            there may not be a node at this coordinate.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
-            around their position cannot be above this threshold:
-            (xy_spacing - xy_min_spacing) /2
-            If float, same minimal spacing for x and y.
+            from their initial positions cannot be above this threshold:
+            ``(xy_spacing - xy_min_spacing) / 2``
+            If ``float``, same minimal spacing for *x* and *y*.
         seed: tuple of int, optional
-            Seeds used to generate the random x and y moves.
-            When set, controls a pseudo-randomness of moves to ensure
+            Seeds used to generate the random *x* and *y* moves.
+            When set, controls the pseudo-randomness of moves to ensure
             reproducibility.
-            When None, seed is random and the moves of coordinates are
+            When ``None``, the seed is random and the moves of coordinates are
             completely random.
         xy_of_reference : tuple, optional
             Coordinate value in projected space of the reference point,
-            `xy_of_lower_left`. Default is (0., 0.)
+            *xy_of_lower_left*.
         xy_axis_name: tuple of str, optional
-            x y axis names.
+            *x* and *y* axis names.
         xy_axis_units: str, optional
-            x y axis units.
+            *x* and *y* axis units.
 
         Returns
         -------
@@ -117,7 +117,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
 
         Examples
         --------
-        Create a grid with 2 rows and 3 columns of nodes.
+        Create a grid with 3 rows and 2 columns of nodes.
 
         >>> from landlab import FramedVoronoiGrid
         >>> grid = FramedVoronoiGrid((3, 2), xy_spacing=1.0)
