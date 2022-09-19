@@ -52,14 +52,17 @@ class ExampleData:
 
         Examples
         --------
+        >>> from tempfile import TemporaryDirectory
         >>> data = ExampleData("io/shapefile")
-        >>> data.fetch()
+        >>> sorted(data)
+        ['methow', 'soque']
 
-        We now remove the created folder because otherwise the test can only
-        pass locally once.
-
-        >>> import shutil
-        >>> shutil.rmtree("methow")
+        >>> import os
+        >>> with TemporaryDirectory() as dir:
+        ...     os.chdir(dir)
+        ...     data.fetch()
+        ...     sorted(os.listdir())
+        ['methow', 'soque']
         """
         dstdir, srcdir = pathlib.Path("."), self.base
 
