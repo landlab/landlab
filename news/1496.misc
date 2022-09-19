@@ -1,0 +1,4 @@
+Modified the doctest for the ``ExampleData`` class to run in a temporary
+directory to prevent it from downloading data to a user's working directory.
+
+
