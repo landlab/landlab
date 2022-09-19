@@ -1,9 +1,7 @@
 """ Implementation of the FramedVoronoiGraph and its static layout:
 HorizontalRectVoronoiGraph. This pattern is inspired from the developments of the HexModelGrid
 
-@author sebastien lenard
-
-@date 2022, Aug
+.. codeauthor:: sebastien lenard
 """
 
 from functools import lru_cache
@@ -67,35 +65,45 @@ class HorizontalRectVoronoiGraph:
         shape : tuple of int
             Number of rows and columns of nodes.
         xy_spacing : float or tuple of float, optional
-            Node spacing along x and y coordinates. If float, same spacing at x and y.
+            Node spacing along x and y coordinates. If ``float``, same spacing at *x* and *y*.
         xy_of_lower_left : tuple, optional
-            Minimum x-of-node and y-of-node values. Depending on the grid.
-            No node may be present at this coordinate.
+            Minimum *x*-of-node and *y*-of-node values. Depending on the grid,
+            a node may not be present at this location.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
             around their initial positions cannot be above this threshold:
             ``(xy_spacing - xy_min_spacing) / 2``.  If ``float``, same minimal
-            spacing for x and y.
+            spacing for *x* and *y*.
         seed: int, optional
-            Seed used to generate the random x and y moves.
-            When set, controls a pseudo-randomness of moves to ensure
-            reproducibility.
-            When None, seed is random and the moves of coordinates are
+            Seed used to generate the random *x* and *y* moves. When set, controls a
+            pseudo-randomness of moves to ensure reproducibility.
+            When ``None``, seed is random and the moves of coordinates are
             completely random.
 
         Returns
         -------
         x_of_node, y_of_node : ndarray of float
-            The arrays of x and y coordinates.
+            The arrays of *x* and *y* coordinates.
 
         Examples
         --------
         >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
-        >>> HorizontalRectVoronoiGraph.xy_of_node((3, 3), seed=200)[0][3]       # doctest: +NORMALIZE_WHITESPACE
-        0.0
-        >>> HorizontalRectVoronoiGraph.xy_of_node((3, 3), seed=200)[0][5]       # doctest: +NORMALIZE_WHITESPACE
-        2.0
-        >>> HorizontalRectVoronoiGraph.xy_of_node((3, 3), seed=200)[1][3]       # doctest: +NORMALIZE_WHITESPACE
+
+        >>> x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node((3, 3), seed=200)
+
+        Coordinates of the lower left node,
+
+        >>> x_of_node[0], y_of_node[0]
+        0.0, 0,0
+
+        *x* coordinates of the left and right edges,
+
+        >>> x_of_node[3], x_of_node[5]
+        0.0, 2.0
+
+        *y* coordinate of the middle row of the left edge,
+
+        >>> y_of_node[3]
         0.749
         """
 
@@ -248,9 +256,9 @@ class FramedVoronoiGraph(DelaunayGraph):
     """VoronoiDelaunay graph based on a fixed lattice.
 
     Graph of an unstructured grid of Voronoi Delaunay cells and
-    irregular patches. It is a special type of VoronoiDelaunay graph in which
-    the initial set of points is arranged in a fixed lattice (e.g. like a rectangular
-    raster grid) named here "layout" and the core points are then moved aroung their
+    irregular patches. It is a special type of :class`~.VoronoiDelaunayGraph` in which
+    the initial set of points is arranged in a fixed lattice (e.g. like a :class:`~.RasterModelGrid`)
+    named here "layout" and the core points are then moved from their
     initial position by a random distance, lower than a certain threshold.
 
     Examples
@@ -290,24 +298,23 @@ class FramedVoronoiGraph(DelaunayGraph):
         shape : tuple of int
             Number of rows and columns of nodes.
         xy_spacing : float or tuple of float, optional
-            Node spacing along x and y coordinates. If float, same spacing x and y
+            Node spacing along *x* and *y* coordinates. If ``float``, same spacing *x* and *y*
             spacing.
         xy_of_lower_left : tuple, optional
-            Minimum x-of-node and y-of-node values. Depending on the grid
-            no node may be present at this coordinate.
+            Minimum *x*-of-node and *y*-of-node values. Depending on the grid,
+            a node may not be present at this location.
         sort: bool
             If ``True``, nodes, links and patches are re-numbered according
-            certain criterias of position.  Currently not used.
+            certain their positions.  Currently not used.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
             around their position cannot be above this threshold:
             ``(xy_spacing - xy_min_spacing) / 2``
-            If ``float``, same minimal spacing for x and y.
+            If ``float``, same minimal spacing for *x* and *y*.
         seed: int, optional
-            Seed used to generate the random x and y moves.
+            Seed used to generate the random *x* and *y* moves.
             When set, controls a pseudo-randomness of moves to ensure
-            reproducibility.
-            When None, seed is random and the moves of coordinates are
+            reproducibility. When ``None``, seed is random and the moves of coordinates are
             completely random.
 
         Returns
@@ -317,7 +324,7 @@ class FramedVoronoiGraph(DelaunayGraph):
 
         Examples
         --------
-        Create a grid with 2 rows and 3 columns of nodes.
+        Create a grid with 3 rows and 2 columns of nodes.
 
         >>> from landlab.graph import FramedVoronoiGraph
         >>> graph = FramedVoronoiGraph((3, 2))

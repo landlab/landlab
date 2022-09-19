@@ -7,9 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 
-@author sebastien lenard
-
-@date 2022, Aug
+.. codeauthor:: sebastien lenard
 """
 
 import numpy

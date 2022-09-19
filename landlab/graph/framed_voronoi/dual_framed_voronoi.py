@@ -51,20 +51,18 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
         xy_spacing : float or tuple of float, optional
             Node spacing along x and y coordinates. If float, same spacing at x and y.
         xy_of_lower_left : tuple, optional
-            Minimum x-of-node and y-of-node values. Depending on the grid
-            no node may be present at this coordinate. Default is (0., 0.).
+            Minimum *x*-of-node and *y*-of-node values. Depending on the grid,
+            there may not be a node present at this location.
         sort: bool
-            If true, nodes, links and patches are re-numbered according certain criterias of position
+            If ``True``, nodes, links and patches are re-numbered according to their position.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
             around their position cannot be above this threshold:
-            (xy_spacing - xy_min_spacing) /2
-            If float, same minimal spacing for x and y.
+            ``(xy_spacing - xy_min_spacing) / 2``
+            If ``float``, same minimal spacing for *x* and *y*.
         seed: int, optional
-            Seed used to generate the random x and y moves.
-            When set, controls a pseudo-randomness of moves to ensure
-            reproducibility.
-            When None, seed is random and the moves of coordinates are
+            Seed used to generate the random *x* and *y* moves. When set, controls a pseudo-randomness
+            of moves to ensure reproducibility. When ``None``, seed is random and the moves of coordinates are
             completely random.
 
         Returns
@@ -74,7 +72,7 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
 
         Examples
         --------
-        Create a grid with 2 rows and 3 columns of nodes.
+        Create a grid with 3 rows and 2 columns of nodes.
 
         >>> from landlab.graph import DualFramedVoronoiGraph
         >>> graph = DualFramedVoronoiGraph((3, 2), xy_spacing=1.0)
