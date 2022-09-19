@@ -66,7 +66,7 @@ this:
 
 .. code-block:: python
 
-    dfn = LinearDiffuser(grid, 'linear_diffusivity'=0.01)
+    dfn = LinearDiffuser(grid, linear_diffusivity=0.01)
 
 These keywords can also be set by passing a Python dictionary, or using a text
 input file (see below).
@@ -101,10 +101,12 @@ website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
 following would work::
 
-    help(LinearDiffuser)
-    help(dfn)
-    LinearDiffuser?
-    dfn?
+.. code-block:: python
+
+    >>> help(LinearDiffuser)
+    >>> help(dfn)
+    >>> LinearDiffuser?
+    >>> dfn?
 
 Quit interactive help in iPython by pressing "q".
 
