@@ -330,11 +330,9 @@ class FramedVoronoiGraph(DelaunayGraph):
         """
         # 1. Check and format input arguments
         #####################################
-        try:
-            shape_ = np.asarray(np.broadcast_to(shape, 2))
-            self._shape = (int(shape_[0]), int(shape_[1]))
-        except TypeError:
-            raise TypeError("shape must be a tuple of ints")
+        self._shape = shape
+        self._seed = seed
+
         try:
             xy_spacing_ = np.asfarray(np.broadcast_to(xy_spacing, 2))
             self._xy_spacing = (float(xy_spacing_[0]), float(xy_spacing_[1]))
@@ -365,8 +363,6 @@ class FramedVoronoiGraph(DelaunayGraph):
             )
         except TypeError:
             raise TypeError("minimal spacing must be a float or a tuple of floats")
-
-        self._seed = seed
 
         # 2. Construction of the layout and the x-y coordinates of nodes
         ################################################################
