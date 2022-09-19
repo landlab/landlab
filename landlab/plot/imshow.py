@@ -383,7 +383,7 @@ def _imshow_grid_values(
 
         scalarMap.set_array(values)
         if allow_colorbar:
-            cb = plt.colorbar(scalarMap, shrink=shrink)
+            cb = plt.colorbar(scalarMap, shrink=shrink, ax=ax)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units

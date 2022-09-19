@@ -2,7 +2,7 @@ from io import StringIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import (
     HexModelGrid,
@@ -10,6 +10,7 @@ from landlab import (
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
+    FramedVoronoiGrid,
 )
 
 
@@ -96,32 +97,9 @@ def test_hex_from_dict():
 
     # assert things.
     true_x_node = np.array(
-        [
-            37.0,
-            39.0,
-            41.0,
-            43.0,
-            36.0,
-            38.0,
-            40.0,
-            42.0,
-            44.0,
-            35.0,
-            37.0,
-            39.0,
-            41.0,
-            43.0,
-            45.0,
-            36.0,
-            38.0,
-            40.0,
-            42.0,
-            44.0,
-            37.0,
-            39.0,
-            41.0,
-            43.0,
-        ]
+        [37.0, 39.0, 41.0, 43.0, 36.0, 38.0, 40.0, 42.0]
+        + [44.0, 35.0, 37.0, 39.0, 41.0, 43.0, 45.0, 36.0]
+        + [38.0, 40.0, 42.0, 44.0, 37.0, 39.0, 41.0, 43.0]
     )
     assert_array_equal(true_x_node, mg.x_of_node)
     assert (mg.x_of_node.min(), mg.y_of_node.min()) == (35, 55)
@@ -197,6 +175,61 @@ def test_network_from_file():
     assert mg.axis_units == ("smoot", "parsec")
     assert mg.axis_name == ("spam", "eggs")
     assert mg.xy_of_reference == (12345, 678910)
+
+
+def test_framed_voronoi_from_dict():
+    params = {
+        "shape": (5, 6),
+        "xy_spacing": (10.0, 15.0),
+        "xy_of_lower_left": (1.0, 2.0),
+        "xy_min_spacing": (5.0, 7.5),
+        "seed": (200, 500),
+        "xy_of_reference": (0.5, 3.0),
+        "xy_axis_name": ("a", "b"),
+        "xy_axis_units": "l",
+    }
+
+    mg = FramedVoronoiGrid.from_dict(params)
+    assert mg._shape == (5, 6)
+    assert mg._xy_spacing == (10.0, 15.0)
+    assert mg._xy_of_lower_left == (1.0, 2.0)
+    assert mg._xy_min_spacing == (5.0, 7.5)
+    assert mg._seed == (200, 500)
+    assert mg.xy_of_reference == (0.5, 3.0)
+    assert mg._axis_name == ("a", "b")
+    assert mg._axis_units == ("l", "l")
+
+    true_x = np.zeros(30)
+    true_y = np.zeros(30)
+    true_x[0:7] = np.array([1.0, 11.0, 21.0, 31.0, 41.0, 51.0, 1.0])
+    true_x[11:13] = np.array([51.0, 1.0])
+    true_x[17:19] = np.array([51.0, 1.0])
+    true_x[23:30] = np.array([51.0, 1.0, 11.0, 21.0, 31.0, 41.0, 51.0])
+    true_y[0:7] = np.array([2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 13.249])
+    true_y[11:13] = np.array([20.751, 28.249])
+    true_y[17:19] = np.array([35.751, 43.249])
+    true_y[23:30] = np.array([50.751, 62.0, 62.0, 62.0, 62.0, 62.0, 62.0])
+    true_adjacent_nodes_at_node_0_2 = np.array(
+        [
+            [1, 6, -1, -1, -1, -1, -1],
+            [2, 8, 6, 0, -1, -1, -1],
+        ]
+    )
+    true_adjacent_nodes_at_node_28_30 = np.array(
+        [
+            [29, 27, 22, 23, -1, -1, -1],
+            [28, 23, -1, -1, -1, -1, -1],
+        ]
+    )
+
+    for i in [0, 1, 2, 3, 4, 5, 6, 11, 12, 17, 18, 23, 24, 25, 26, 27, 28, 29]:
+        assert_array_almost_equal(mg.x_of_node[i], true_x[i])
+        assert_array_almost_equal(mg.y_of_node[i], true_y[i])
+
+    assert_array_almost_equal(
+        mg.adjacent_nodes_at_node[0:2] + mg.adjacent_nodes_at_node[28:30],
+        true_adjacent_nodes_at_node_0_2 + true_adjacent_nodes_at_node_28_30,
+    )
 
 
 def test_voronoi_from_dict():
