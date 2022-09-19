@@ -263,7 +263,7 @@ If you use any portion of Landlab, please cite the following papers:
 .. end-citing-landlab
 
 Citing Landlab Components
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 .. start-citing-components
 
