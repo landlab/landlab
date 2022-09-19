@@ -658,6 +658,7 @@ def get_categories_from_grid_methods(grid_type):
         RadialModelGrid,
         RasterModelGrid,
         VoronoiDelaunayGrid,
+        FramedVoronoiGrid,
     )
 
     grid_str_to_grid = {
@@ -667,6 +668,7 @@ def get_categories_from_grid_methods(grid_type):
         "RadialModelGrid": RadialModelGrid,
         "VoronoiDelaunayGrid": VoronoiDelaunayGrid,
         "NetworkModelGrid": NetworkModelGrid,
+        "FramedVoronoiGrid": FramedVoronoiGrid,
     }
     grid_dict = {}
     cat_dict = {}
