@@ -103,7 +103,7 @@ Source code
 
 .. start-install-source
 
-*landlab* is actively being developed on GitHub, where the code is freely-available.
+*landlab* is actively being developed on GitHub, where the code is freely available.
 If you would like to modify or contribute code, you can either clone our
 repository
 
