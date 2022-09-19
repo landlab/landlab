@@ -1230,8 +1230,8 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        andlab.field.GraphFields.add_empty : Equivalent method that does not initialize the new array.
-        andlab.field.GraphFields.add_zeros : Equivalent method that initializes the data to 0.
+        landlab.field.GraphFields.add_empty : Equivalent method that does not initialize the new array.
+        landlab.field.GraphFields.add_zeros : Equivalent method that initializes the data to 0.
 
         Examples
         --------
