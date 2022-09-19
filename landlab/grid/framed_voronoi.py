@@ -67,7 +67,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         xy_spacing=(1.0, 1.0),
         xy_of_lower_left=(0.0, 0.0),
         xy_min_spacing=(0.5, 0.5),
-        seed=(200, 500),
+        seed=200,
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
         xy_axis_units="-",
@@ -96,8 +96,8 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
             around their position cannot be above this threshold:
             (xy_spacing - xy_min_spacing) /2
             If float, same minimal spacing for x and y.
-        seed: tuple of int, optional
-            Seeds used to generate the random x and y moves.
+        seed: int, optional
+            Seed used to generate the random x and y moves.
             When set, controls a pseudo-randomness of moves to ensure
             reproducibility.
             When None, seed is random and the moves of coordinates are

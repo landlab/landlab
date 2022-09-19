@@ -21,7 +21,7 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
     --------
     >>> from landlab.graph import DualFramedVoronoiGraph
 
-    >>> graph = DualFramedVoronoiGraph((3, 3), seed=(200, 500))
+    >>> graph = DualFramedVoronoiGraph((3, 3), seed=200)
     >>> graph.number_of_nodes
     9
 
@@ -40,7 +40,7 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
         xy_of_lower_left=(0.0, 0.0),
         sort=False,
         xy_min_spacing=(0.5, 0.5),
-        seed=(200, 500),
+        seed=200,
     ):
         """Create the graph.
 
@@ -60,8 +60,8 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
             around their position cannot be above this threshold:
             (xy_spacing - xy_min_spacing) /2
             If float, same minimal spacing for x and y.
-        seed: tuple of int, optional
-            Seeds used to generate the random x and y moves.
+        seed: int, optional
+            Seed used to generate the random x and y moves.
             When set, controls a pseudo-randomness of moves to ensure
             reproducibility.
             When None, seed is random and the moves of coordinates are

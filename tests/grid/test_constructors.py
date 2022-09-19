@@ -183,7 +183,7 @@ def test_framed_voronoi_from_dict():
         "xy_spacing": (10.0, 15.0),
         "xy_of_lower_left": (1.0, 2.0),
         "xy_min_spacing": (5.0, 7.5),
-        "seed": (200, 500),
+        "seed": 200,
         "xy_of_reference": (0.5, 3.0),
         "xy_axis_name": ("a", "b"),
         "xy_axis_units": "l",
@@ -194,7 +194,7 @@ def test_framed_voronoi_from_dict():
     assert mg._xy_spacing == (10.0, 15.0)
     assert mg._xy_of_lower_left == (1.0, 2.0)
     assert mg._xy_min_spacing == (5.0, 7.5)
-    assert mg._seed == (200, 500)
+    assert mg._seed == 200
     assert mg.xy_of_reference == (0.5, 3.0)
     assert mg._axis_name == ("a", "b")
     assert mg._axis_units == ("l", "l")
@@ -212,13 +212,13 @@ def test_framed_voronoi_from_dict():
     true_adjacent_nodes_at_node_0_2 = np.array(
         [
             [1, 6, -1, -1, -1, -1, -1],
-            [2, 8, 6, 0, -1, -1, -1],
+            [2, 7, 6, 0, -1, -1, -1],
         ]
     )
     true_adjacent_nodes_at_node_28_30 = np.array(
         [
-            [29, 27, 22, 23, -1, -1, -1],
-            [28, 23, -1, -1, -1, -1, -1],
+            [29, 27, 22, -1, -1, -1, -1],
+            [28, 22, 23, -1, -1, -1, -1],
         ]
     )
 
@@ -227,8 +227,12 @@ def test_framed_voronoi_from_dict():
         assert_array_almost_equal(mg.y_of_node[i], true_y[i])
 
     assert_array_almost_equal(
-        mg.adjacent_nodes_at_node[0:2] + mg.adjacent_nodes_at_node[28:30],
-        true_adjacent_nodes_at_node_0_2 + true_adjacent_nodes_at_node_28_30,
+        np.concatenate(
+            (mg.adjacent_nodes_at_node[0:2], mg.adjacent_nodes_at_node[28:30])
+        ),
+        np.concatenate(
+            (true_adjacent_nodes_at_node_0_2, true_adjacent_nodes_at_node_28_30)
+        ),
     )
 
 
