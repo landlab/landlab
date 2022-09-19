@@ -94,12 +94,12 @@ class HorizontalRectVoronoiGraph:
         Coordinates of the lower left node,
 
         >>> x_of_node[0], y_of_node[0]
-        0.0, 0,0
+        (0.0, 0.0)
 
         *x* coordinates of the left and right edges,
 
         >>> x_of_node[3], x_of_node[5]
-        0.0, 2.0
+        (0.0, 2.0)
 
         *y* coordinate of the middle row of the left edge,
 
@@ -338,7 +338,7 @@ class FramedVoronoiGraph(DelaunayGraph):
         except TypeError:
             raise TypeError("spacing must be a float or a tuple of floats")
         else:
-            self._xy_spacing = xy_spacing[0], xy_spacing_[1]
+            self._xy_spacing = xy_spacing[0], xy_spacing[1]
 
         try:
             xy_of_lower_left = np.asfarray(np.broadcast_to(xy_of_lower_left, 2))
