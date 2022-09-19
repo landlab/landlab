@@ -362,7 +362,6 @@ class FramedVoronoiGraph(DelaunayGraph):
         else:
             self._xy_min_spacing = xy_min_spacing[0], xy_min_spacing[1]
 
-
         # 2. Construction of the layout and the x-y coordinates of nodes
         ################################################################
         x_of_node, y_of_node = layout.xy_of_node(
