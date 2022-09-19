@@ -3,6 +3,7 @@ from .graph import Graph, NetworkGraph
 from .graph_convention import ConventionConverter, GraphConvention
 from .hex import DualHexGraph, TriGraph
 from .radial import DualRadialGraph, RadialGraph
+from .framed_voronoi import DualFramedVoronoiGraph, FramedVoronoiGraph
 from .structured_quad import (
     DualRectilinearGraph,
     DualStructuredQuadGraph,
@@ -29,6 +30,8 @@ __all__ = [
     "DualHexGraph",
     "RadialGraph",
     "DualRadialGraph",
+    "FramedVoronoiGraph",
+    "DualFramedVoronoiGraph",
     "ConventionConverter",
     "GraphConvention",
 ]

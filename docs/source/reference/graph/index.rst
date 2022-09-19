@@ -16,6 +16,7 @@ Landlab Graph
    sort
    structured_quad
    voronoi
+   framed_voronoi
 
 
 Extensions
