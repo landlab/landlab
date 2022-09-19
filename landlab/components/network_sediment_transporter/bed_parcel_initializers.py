@@ -1,12 +1,10 @@
 """
 Landlab components to initialize river bed sediment "parcels", represented as
-items in a landlab DataRecord, in each link in a river network (represented by
-a landlab NetworkModelGrid). The different BedParcelInitializers allow the user
+items in a landlab :class:`~.DataRecord`, in each link in a river network (represented by
+a landlab :class:`~.NetworkModelGrid`). The different *BedParcelInitializers* allow the user
 to define the median grain size on a given link several different ways.
 
 .. codeauthor:: Eric Hutton, Allison Pfeiffer, Muneer Ahammad, and Jon Czuba
-
-Last edit was sometime after April 2022
 """
 
 import warnings
@@ -82,17 +80,17 @@ class BedParcelInitializerBase(Component):
         )
 
         if np.max(d50) > 0.5:
-            warnings.warn("calculated d50 is unrealistically large ({d50} m)")
+            warnings.warn(f"calculated d50 is unrealistically large ({d50} m)")
 
         if np.min(d50) < 0.002:
             warnings.warn(
-                "calculated d50 is unrealistically low ({d50} m)."
+                f"calculated d50 is unrealistically low ({d50} m)."
                 "The equations used in this initializer are intended for gravel bedded rivers."
             )
 
         if max_parcel_volume < 0.05:
             warnings.warn(
-                "default parcel volume is extremely small ({max_parcel_volume} m)"
+                f"default parcel volume is extremely small ({max_parcel_volume} m)"
             )
 
         return DataRecord(
@@ -107,14 +105,10 @@ class BedParcelInitializerBase(Component):
         raise NotImplementedError("calc_d50")
 
 
-# End of base class
-
-
 class BedParcelInitializerDischarge(BedParcelInitializerBase):
-    """
-    This function creates a landlab DataRecord to represent parcels of sediment
-    on a river network (represented by a NetworkModelGrid). The function takes
-    discharge data for each link as input, as well as channel geometry
+    """Create a landlab :class:`~.DataRecord` to represent parcels of sediment on a river network.
+
+    The function takes discharge data for each link as input, as well as channel geometry
     (`channel_width`, `reach_length`, `channel_slope`) fields attached to the
     NetworkModelGrid.
 
@@ -122,41 +116,39 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
     according to Snyder et al. (2013), assuming a lognormal parcel grain size
     distribution.
 
-    authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
-
-    last updated: April 2022
+    .. codeauthor:: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
     Parameters
     ----------
-    grid : ModelGrid
-        landlab *ModelGrid* to place sediment parcels on.
+    grid : NetworkModelGrid
+        *landlab* :class:`~.NetworkModelGrid` to place sediment parcels on.
     time : float, optional
         The initial time to add to the record.
     discharge_at_link: float
-        Dominant/formative discharge at each link in the network.[m^3 / s]
+        Dominant/formative discharge at each link in the network [m^3 / s].
     mannings_n : float, optional
-        Manning's n value for all links, used to calculate median parcel grain
+        Manning's *n* value for all links, used to calculate median parcel grain
         size at a link.
     tau_c_50 : float, optional
-        Critical Shields stress for d50 at dominant discharge for all links, used to
+        Critical Shields stress for *d50* at dominant discharge for all links, used to
         calculate median parcel grain size.
     rho_sediment : float, optional
         Sediment grain density [kg / m^3].
     rho_water : float, optional
         Density of water [kg / m^3].
     gravity : float, optional
-        Accelertion due to gravity [m / s^2].
+        Acceleration due to gravity [m / s^2].
     D84_D50 : float, optional
-        Ratio of D84:D50, used to set lognormal distribution of grain size.
+        Ratio of *D84:D50,* used to set lognormal distribution of grain size.
     sed_thickness : float, optional
-        Sediment thickness in multiples of d84.
+        Sediment thickness in multiples of *d84*.
     abrasion_rate : float, optional
-        Abrasion rate of parcels during transport in units of 1/m.
+        Abrasion rate of parcels during transport [1/m].
     median_number_of_starting_parcels : int, optional
-        median number of parcels in a link.
+        Median number of parcels in a link.
     extra_parcel_attributes : str or list of str, optional
-        name of user-defined parcel attribute to be added to parcel data record,
-        which will be returned as an empty parcel attribute
+        Name of user-defined parcel attribute to be added to parcel data record,
+        which will be returned as an empty parcel attribute.
 
     Examples
     --------
@@ -169,17 +161,15 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
 
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-    >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, 0.01)  # m / m
-    >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
+    >>> _ = grid.add_full("channel_width", 1.0, at="link")  # m
+    >>> _ = grid.add_full("channel_slope", 0.01, at="link")  # m / m
+    >>> _ = grid.add_full("reach_length", 100.0, at="link")  # m
 
     >>> discharge = np.full(grid.number_of_links, 10.0)  # m^3 / s
     >>> initialize_parcels = BedParcelInitializerDischarge(
-    ...     grid, discharge_at_link = discharge
+    ...     grid, discharge_at_link=discharge
     ... )
     >>> parcels = initialize_parcels()
-
-
     """
 
     _name = "BedParcelInitializerDischarge"
@@ -209,7 +199,9 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
             raise ValueError("User must provide discharge_at_link")
 
         if np.size(discharge_at_link) != grid.number_of_links:
-            raise ValueError("discharge_at_link should be size number_of_links ()")
+            raise ValueError(
+                f"discharge_at_link should be size number_of_links ({grid.number_of_links})"
+            )
 
         self._discharge = discharge_at_link
         self._mannings_n = mannings_n
@@ -230,52 +222,49 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
 
 
 class BedParcelInitializerDepth(BedParcelInitializerBase):
-    """
-    This function creates a landlab DataRecord to represent parcels of sediment
-    on a river network (represented by a NetworkModelGrid). The function takes
-    dominant flow depth for each link as input, as well as channel geometry
-    (`channel_width`, `reach_length`, `channel_slope`) fields attached to the
-    NetworkModelGrid.
+    """Create a *landlab* :class:`~.DataRecord` to represent parcels of sediment on a river network.
+
+    The function takes dominant flow depth for each link as input, as well as channel geometry
+    (*channel_width*, *reach_length*, *channel_slope*) fields attached to the
+    :class:`~.NetworkModelGrid`.
 
     This function currently estimates median parcel grain size at a link
     using the formative Shields stress (as in Pfeiffer et al., 2017), assuming
     a lognormal parcel grain size distribution.
 
-    authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
-
-    last updated: April 2022
+    .. codeauthor:: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
     Parameters
     ----------
     grid : ModelGrid
-        landlab *ModelGrid* to place sediment parcels on.
+        *landlab* :class:`~.ModelGrid` to place sediment parcels on.
     time : float, optional
         The initial time to add to the record.
     flow_depth_at_link: float, optional
         Dominant/formative flow depth at each link in the network.
     tau_c_multiplier: float, optional
         Coefficient to relate critical and dominant/bankfull/formative Shields
-        stress. Dominant/formative/bankfull Shields stress = multiplier * critical
+        stress. Dominant/formative/bankfull Shields stress is calculated as ``multiplier * critical``.
     tau_c_50 : float, optional
-        Critical Shields stress for d50 at dominant discharge for all links, used to
+        Critical Shields stress for *d50* at dominant discharge for all links, used to
         calculate median parcel grain size
     rho_sediment : float, optional
         Sediment grain density [kg / m^3].
     rho_water : float, optional
         Density of water [kg / m^3].
     gravity : float, optional
-        Accelertion due to gravity [m / s^2].
+        Acceleration due to gravity [m / s^2].
     D84_D50 : float, optional
-        Ratio of D84:D50, used to set lognormal distribution of grain size.
+        Ratio of *D84:D50*, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
-        Sediment thickness in multiples of d84.
+        Sediment thickness in multiples of *d84*.
     abrasion_rate : float, optional
-        Abrasion rate of parcels during transport in units of 1/m.
+        Abrasion rate of parcels during transport [1 / m].
     median_number_of_starting_parcels : int, optional
-        median number of parcels in a link.
+        Median number of parcels in a link.
     extra_parcel_attributes : str or list of str, optional
-        name of user-defined parcel attribute to be added to parcel data record,
-        which will be returned as an empty parcel attribute
+        Name of user-defined parcel attribute to be added to parcel data record,
+        which will be returned as an empty parcel attribute.
 
     Examples
     --------
@@ -286,13 +275,14 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     >>> x_of_node = (0, 0, 100, -50, -100, 50, -150, -100)
     >>> nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
-    >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
-    >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
+    >>> _ = grid.add_full("channel_width", 1.0, at="link")  # m
+    >>> _ = grid.add_full("channel_slope", 0.01, at="link")  # m / m
+    >>> _ = grid.add_full("reach_length", 100.0, at="link")  # m
+
 
     >>> depth = np.full(grid.number_of_links, 1.0)  # m
     >>> initialize_parcels = BedParcelInitializerDepth(
-    ...     grid, flow_depth_at_link = depth
+    ...     grid, flow_depth_at_link=depth
     ... )
     >>> parcels = initialize_parcels()
     """
@@ -341,27 +331,24 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
 
 
 class BedParcelInitializerArea(BedParcelInitializerBase):
-    """
-    This function creates a landlab DataRecord to represent parcels of sediment
-    on a river network (represented by a NetworkModelGrid). The function
-    takes a coefficient and exponent in a grain size-drainage area power law
+    """Create a *landlab* :class:`~.DataRecord` to represent parcels of sediment on a river network.
+
+    The function takes a coefficient and exponent in a grain size-drainage area power law
     scaling relationship, as well as channel attribute (`drainage_area`,
-    `channel_width`, `reach_length`, `channel_slope`) fields attached to the
-    NetworkModelGrid.
+    *channel_width*, *reach_length*, *channel_slope*) fields attached to the
+    :class:`~.NetworkModelGrid`.
 
     This function currently estimates median parcel grain size at a link
     using a power-law scaling relationship between drainage area and median
-    grain size (d50 = cA**n), assuming a lognormal parcel grain size
+    grain size (:math:`d_{50} = c A^n`), assuming a lognormal parcel grain size
     distribution.
 
-    authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
-
-    last updated: Feb 2021
+    .. codeauthor:: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
     Parameters
     ----------
     grid : ModelGrid
-        landlab *ModelGrid* to place sediment parcels on.
+        *landlab* :class:`~.ModelGrid` to place sediment parcels on.
     time : float, optional
         The initial time to add to the record.
     drainage_area_coefficient : float, optional
@@ -373,18 +360,18 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     rho_water : float, optional
         Density of water [kg / m^3].
     gravity : float, optional
-        Accelertion due to gravity [m / s^2].
+        Acceleration due to gravity [m / s^2].
     D84_D50 : float, optional
-        Ratio of D84:D50, used to set lognormal distribution of grain size.
+        Ratio of *D84:D50*, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
-        Sediment thickness in multiples of d84.
+        Sediment thickness in multiples of *d84*.
     abrasion_rate : float, optional
-        Abrasion rate of parcels during transport in units of 1/m.
+        Abrasion rate of parcels during transport [1 / m].
     median_number_of_starting_parcels : int, optional
-        median number of parcels in a link.
+        Median number of parcels in a link.
     extra_parcel_attributes : str or list of str, optional
-        name of user-defined parcel attribute to be added to parcel data record,
-        which will be returned as an empty parcel attribute
+        Name of user-defined parcel attribute to be added to parcel data record,
+        which will be returned as an empty parcel attribute.
 
     Examples
     --------
@@ -397,10 +384,11 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
 
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-    >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
-    >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
-    >>> grid.at_link["drainage_area"] = np.full(grid.number_of_links, 100.0)
+    >>> _ = grid.add_full("channel_width", 1.0, at="link")  # m
+    >>> _ = grid.add_full("channel_slope", 0.01, at="link")  # m / m
+    >>> _ = grid.add_full("reach_length", 100.0, at="link")  # m
+    >>> _ = grid.add_full("drainage_area", 100.0, at="link")
+
 
     >>> initialize_parcels = BedParcelInitializerArea(
     ...     grid, drainage_area_coefficient=0.1, drainage_area_exponent=0.3
@@ -439,14 +427,6 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
             "mapping": "link",
             "doc": "Exponent in a power law grain size-drainage area scaling relationship.",
         },
-        "TESTING": {
-            "dtype": float,
-            "intent": "out",
-            "optional": True,
-            "units": "m/m",
-            "mapping": "link",
-            "doc": "intent=out where does this show up",
-        },
     }
 
     def __init__(
@@ -478,44 +458,41 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
 
 
 class BedParcelInitializerUserD50(BedParcelInitializerBase):
-    """
-    This function creates a landlab DataRecord to represent parcels of sediment
-    on a river network (represented by a landlab :py:class:`~landlab.grid.network.NetworkModelGrid`). The function
-    takes either a scalar value or an array of 'size(number_of_links)' to
+    """Create a *landlab* :class:`~.DataRecord` to represent parcels of sediment on a river network.
+
+    The function takes either a scalar value or an array (of of length, *number_of_links*) to
     assign the median grain size for parcels on each link in the network grid.
 
     This function creates a lognormal grain size distribution for the parcels
     in the link.
 
-    authors: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
-
-    last updated: Feb 2021
+    .. codeauthor:: Eric Hutton, Allison Pfeiffer, Muneer Ahammad
 
     Parameters
     ----------
     grid : ModelGrid
-        landlab *ModelGrid* to place sediment parcels on.
+        landlab :class:`~.ModelGrid` to place sediment parcels on.
     time : float, optional
         The initial time to add to the record.
     user_d50 : float, optional
-        Either an array of d50 of size(number_of_links) or a scalar to be
+        Either an array of *d50* (of length *number_of_links*) or a scalar to be
         applied to all links in the network.
     rho_sediment : float, optional
         Sediment grain density [kg / m^3].
     rho_water : float, optional
         Density of water [kg / m^3].
     gravity : float, optional
-        Accelertion due to gravity [m / s^2].
+        Acceleration due to gravity [m / s^2].
     D84_D50 : float, optional
-        Ratio of D84:D50, used to set lognormal distribution of grain size.
+        Ratio of *D84:D50*, used to set lognormal distribution of grain size.
     sed_thickness : float, optional
-        Sediment thickness in multiples of d84.
+        Sediment thickness in multiples of *d84*.
     abrasion_rate : float, optional
-        Abrasion rate of parcels during transport in units of 1/m.
+        Abrasion rate of parcels during transport [1 / m].
     median_number_of_starting_parcels : int, optional
-        median number of parcels in a link.
+        Median number of parcels in a link.
     extra_parcel_attributes : str or list of str, optional
-        name of user-defined parcel attribute to be added to parcel data record,
+        Name of user-defined parcel attribute to be added to parcel data record,
         which will be returned as an empty parcel attribute.
 
     Examples
@@ -529,9 +506,10 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
 
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-    >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
-    >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
+    >>> _ = grid.add_full("channel_width", 1.0, at="link")  # m
+    >>> _ = grid.add_full("channel_slope", 0.01, at="link")  # m / m
+    >>> _ = grid.add_full("reach_length", 100.0, at="link")  # m
+
 
     >>> initialize_parcels = BedParcelInitializerUserD50(grid, user_d50=0.05)
     >>> parcels = initialize_parcels()
@@ -559,14 +537,6 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
             "units": "m",
             "mapping": "link",
             "doc": "Median grain size of the bed sediment in each link",
-        },
-        "TESTING": {
-            "dtype": float,
-            "intent": "out",
-            "optional": True,
-            "units": "m/m",
-            "mapping": "link",
-            "doc": "intent=out where does this show up",
         },
     }
 
@@ -673,19 +643,13 @@ def _parcel_characteristics(
 def _determine_approx_parcel_volume(
     total_parcel_volume_at_link, median_number_of_starting_parcels
 ):
-    """
-    What size parcels should we use?
-
-    """
+    """What size parcels should we use?"""
     median_link_volume = np.median(total_parcel_volume_at_link)
     return median_link_volume / median_number_of_starting_parcels
 
 
 def calc_total_parcel_volume(width, length, sediment_thickness):
-    """
-    Simple rectangular prism geometry. Total parcel vol in each link = L*W*H
-
-    """
+    """Simple rectangular prism geometry. Total parcel vol in each link = L*W*H"""
 
     return width * length * sediment_thickness
 
@@ -706,10 +670,6 @@ def calc_d50_discharge(
     """Calculate median grain size via dominant discharge and channel width
     according to Snyder et al. (2013)
 
-    Parameters
-    ----------
-    see above
-
     Returns
     -------
     ndarray of float
@@ -720,6 +680,7 @@ def calc_d50_discharge(
     >>> from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     ... calc_d50_discharge)
     >>> from numpy.testing import assert_almost_equal
+
     >>> w = 20
     >>> S = 0.01
     >>> Q = 100
@@ -728,15 +689,15 @@ def calc_d50_discharge(
     >>> rho_w = 1000
     >>> rho_s = 3000
     >>> tau_c_50 = 0.05
+
     >>> expected_value = (
-    ...     (rho_w*g*n**(3/5)*Q**(3/5)*w**(-3/5)*S**(7/10))
-    ...     /((rho_s-rho_w)*g*tau_c_50))
+    ...     rho_w * g * n ** (3 / 5) * Q ** (3 / 5) * w ** (-3 / 5) * S ** (7 / 10)
+    ... ) / ((rho_s - rho_w) * g * tau_c_50)
     >>> print(np.round(expected_value, decimals=3))
     0.173
     >>> assert_almost_equal(
-    ...    calc_d50_discharge(20,0.01,100,0.05,9.81,1000,3000,0.05),
-    ...    expected_value)
-
+    ...    calc_d50_discharge(20, 0.01, 100, 0.05, 9.81, 1000, 3000, 0.05), expected_value
+    ... )
     """
 
     return (
@@ -760,35 +721,32 @@ def calc_d50_depth(
     """Calculate median grain size via dominant flow depth according to
     Pfeiffer et al. (2017).
 
-    Parameters
-    ----------
-    see above
-
     Returns
     -------
     ndarray of float
-        d50.
+        *d50*.
 
     Examples
     --------
     >>> from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     ... calc_d50_depth)
     >>> from numpy.testing import assert_almost_equal
+
     >>> slope = 0.01
     >>> depth = 1
     >>> tau_c_multiplier = 1
     >>> rho_w = 1000
     >>> rho_s = 3000
     >>> tau_c_50 = 0.05
-    >>> expected_value = (
-    ...     (rho_w * depth * slope) /
-    ...     ( (rho_s-rho_w) * tau_c_50 * tau_c_multiplier))
+
+    >>> expected_value = (rho_w * depth * slope) / (
+    ...     (rho_s - rho_w) * tau_c_50 * tau_c_multiplier
+    ... )
     >>> print(np.round(expected_value, decimals=3))
     0.1
     >>> assert_almost_equal(
-    ...    calc_d50_depth(.01,1,1,1000,3000,0.05),
-    ...    expected_value)
-
+    ...    calc_d50_depth(.01, 1, 1, 1000, 3000, 0.05), expected_value
+    ... )
     """
 
     return (rho_water * flow_depth * slope) / (
@@ -797,35 +755,27 @@ def calc_d50_depth(
 
 
 def calc_d50_dArea_scaling(drainage_area, a, n):
-    """Calculate median grain size via power law scaling relationship with
-    drinage area.
-
-    Parameters
-    ----------
-    see above
+    """Calculate median grain size via power law scaling relationship with drainage area.
 
     Returns
     -------
     ndarray of float
-        d50.
+        *d50*.
 
     Examples
     --------
     >>> from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     ... calc_d50_dArea_scaling)
     >>> from numpy.testing import assert_almost_equal
+
     >>> drainage_area = 10
     >>> drainage_area_coefficient = 1
     >>> drainage_area_exponent = -0.1
-    >>> expected_value = (
-    ...     drainage_area_coefficient *
-    ...     ( drainage_area) ** (drainage_area_exponent))
+
+    >>> expected_value = drainage_area_coefficient * (drainage_area) ** (drainage_area_exponent)
     >>> print(np.round(expected_value, decimals=3))
     0.794
-    >>> assert_almost_equal(
-    ...    calc_d50_dArea_scaling(10, 1, -0.1),
-    ...    expected_value)
-
+    >>> assert_almost_equal(calc_d50_dArea_scaling(10, 1, -0.1), expected_value)
     """
     d50 = a * drainage_area**n
 
