@@ -5,8 +5,15 @@ from landlab.components import SedimentPulserAtLinks, SedimentPulserEachParcel
 from landlab import RasterModelGrid
 
 
-variable_list = ['_grid', '_parcels', '_D50', '_D84_D50', '_rho_sediment',
-                 '_parcel_volume', '_abrasion_rate']
+variable_list = [
+    "_grid",
+    "_parcels",
+    "_D50",
+    "_D84_D50",
+    "_rho_sediment",
+    "_parcel_volume",
+    "_abrasion_rate",
+]
 
 
 def test_basic_init_each_parcel(example_nmg, example_parcels):
