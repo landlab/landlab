@@ -334,18 +334,18 @@ class FramedVoronoiGraph(DelaunayGraph):
         self._seed = seed
 
         try:
-            xy_spacing_ = np.asfarray(np.broadcast_to(xy_spacing, 2))
-            self._xy_spacing = (float(xy_spacing_[0]), float(xy_spacing_[1]))
+            xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
         except TypeError:
             raise TypeError("spacing must be a float or a tuple of floats")
+        else:
+            self._xy_spacing = xy_spacing[0], xy_spacing_[1]
+
         try:
-            xy_of_lower_left_ = np.asfarray(np.broadcast_to(xy_of_lower_left, 2))
-            self._xy_of_lower_left = (
-                float(xy_of_lower_left_[0]),
-                float(xy_of_lower_left_[1]),
-            )
+            xy_of_lower_left = np.asfarray(np.broadcast_to(xy_of_lower_left, 2))
         except TypeError:
             raise TypeError("xy of lower left must be a float or a tuple of floats")
+        else:
+            self._xy_of_lower_left = xy_of_lower_left[0], xy_of_lower_left[1]
 
         node_layout = self._node_layout = "rect"
         orientation = self._orientation = "horizontal"
@@ -356,13 +356,12 @@ class FramedVoronoiGraph(DelaunayGraph):
         layout = layouts["_".join([orientation, node_layout])]
 
         try:
-            xy_min_spacing_ = np.asfarray(np.broadcast_to(xy_min_spacing, 2))
-            self._xy_min_spacing = (
-                float(xy_min_spacing_[0]),
-                float(xy_min_spacing_[1]),
-            )
+            xy_min_spacing = np.asfarray(np.broadcast_to(xy_min_spacing, 2))
         except TypeError:
             raise TypeError("minimal spacing must be a float or a tuple of floats")
+        else:
+            self._xy_min_spacing = xy_min_spacing[0], xy_min_spacing[1]
+
 
         # 2. Construction of the layout and the x-y coordinates of nodes
         ################################################################
@@ -393,7 +392,7 @@ class FramedVoronoiGraph(DelaunayGraph):
         self._y_of_node = y_of_node
         self._perimeter_links = perimeter_links
 
-        # 3. Instanciation of the parent class
+        # 3. Instantiation of the parent class
         ######################################
         if 1 in shape:
             Graph.__init__(
