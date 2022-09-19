@@ -4,7 +4,7 @@ Additional Resources
 Over time the core Landlab development team has written resources for
 different issues related to installation. These are below. Note that some are
 very out of date. For example, one of them describes an installation of
-python 2.7. We do not recommend installing a python 2.x version.
+Python 2.7. We do not recommend installing a Python 2.x version.
 
 .. toctree::
   :caption: Additional Resources
