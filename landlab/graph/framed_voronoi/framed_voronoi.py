@@ -108,10 +108,15 @@ class HorizontalRectVoronoiGraph:
         """
 
         n_rows, n_cols = shape
-        max_move = [
+        max_move = (
             (xy_spacing[0] - xy_min_spacing[0]) / 2,
             (xy_spacing[1] - xy_min_spacing[1]) / 2,
-        ]
+        )
+
+        if max_move[0] < 0.0 or max_move[1] < 0.0:
+            raise ValueError("minimum spacing must be greater than node spacing")
+        if np.allclose(max_move, 0.0):
+            raise ValueError("at least one of x and y moves must be greater than zero")
 
         # Generation of a rectangular grid, coordinates must be float
         x_of_node, y_of_node = np.meshgrid(
