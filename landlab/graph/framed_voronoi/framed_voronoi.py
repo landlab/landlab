@@ -119,10 +119,7 @@ class HorizontalRectVoronoiGraph:
             np.arange(n_rows, dtype=float) * xy_spacing[1] + xy_of_lower_left[1],
         )
         # Randomly move the coordinates of the core nodes of the grid. Move below +/- (spacing - min_spacing)/2
-        if seed is None:
-            xy_random_generator = np.random.default_rng()
-        else:
-            xy_random_generator = np.random.default_rng(seed=seed)
+        xy_random_generator = np.random.default_rng(seed=seed)
 
         x_moves = xy_random_generator.uniform(-max_move[0], max_move[0], shape)
         y_moves = xy_random_generator.uniform(-max_move[1], max_move[1], shape)
@@ -370,11 +367,6 @@ class FramedVoronoiGraph(DelaunayGraph):
             raise TypeError("minimal spacing must be a float or a tuple of floats")
 
         self._seed = seed
-        if seed is not None:
-            try:
-                self._seed = int(seed)
-            except TypeError:
-                raise TypeError("seed must be None or an int")
 
         # 2. Construction of the layout and the x-y coordinates of nodes
         ################################################################
