@@ -2,6 +2,7 @@
 HorizontalRectVoronoiGraph. This pattern is inspired from the developments of the HexModelGrid
 
 @author sebastien lenard
+
 @date 2022, Aug
 """
 
@@ -15,9 +16,7 @@ from ..voronoi.voronoi import DelaunayGraph
 
 
 class HorizontalRectVoronoiGraph:
-    """This static class implements the horizontal rectangular frame for
-    the FramedVoronoiGraph.
-    """
+    """The horizontal rectangular frame for the FramedVoronoiGraph."""
 
     @staticmethod
     def number_of_nodes(shape):
@@ -29,7 +28,7 @@ class HorizontalRectVoronoiGraph:
 
         Returns
         -------
-        Int
+        int
             Number of nodes
 
         Examples
@@ -49,36 +48,36 @@ class HorizontalRectVoronoiGraph:
         xy_min_spacing=(0.5, 0.5),
         seed=200,
     ):
-        """Calculation of the x-y coordinates this way:
+        """The x and y coordinates of the graph's nodes.
+
+        Calculation of the x-y coordinates is done following these steps:
 
         1. Generate a rectangular, regular meshgrid.
-
         2. Move the coordinates of the core nodes over a random distance around their
-        initial position, within a threshold calculated from xy_spacing and
-        xy_min_spacing.
-
+           initial position, within a threshold calculated from *xy_spacing* and
+           *xy_min_spacing*.
         3. Rectify the y-coordinates of the nodes of the left and right to ensure
-        that the leftmost node of a row has a lower y than the rightmost node.
-        This ensures that the ids of these nodes are not modified by subsequent
-        sorting operations on the graph and make it possible to get the
-        perimeter nodes in simple way.
+           that the leftmost node of a row has a lower y than the rightmost node.
+           This ensures that the ids of these nodes are not modified by subsequent
+           sorting operations on the graph and make it possible to get the
+           perimeter nodes in simple way.
 
         Parameters
         ----------
-        shape : tuple of int.
+        shape : tuple of int
             Number of rows and columns of nodes.
-        xy_spacing : float or tuple of float, optional.
+        xy_spacing : float or tuple of float, optional
             Node spacing along x and y coordinates. If float, same spacing at x and y.
-        xy_of_lower_left : tuple, optional.
+        xy_of_lower_left : tuple, optional
             Minimum x-of-node and y-of-node values. Depending on the grid.
-            no node may be present at this coordinate. Default is (0., 0.).
-        xy_min_spacing: float or tuple of float, optional.
+            No node may be present at this coordinate.
+        xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
-            around their position cannot be above this threshold:
-            (xy_spacing - xy_min_spacing) /2
-            If float, same minimal spacing for x and y.
+            around their initial positions cannot be above this threshold:
+            ``(xy_spacing - xy_min_spacing) / 2``.  If ``float``, same minimal
+            spacing for x and y.
         seed: int, optional
-            Sees used to generate the random x and y moves.
+            Seed used to generate the random x and y moves.
             When set, controls a pseudo-randomness of moves to ensure
             reproducibility.
             When None, seed is random and the moves of coordinates are
@@ -86,7 +85,7 @@ class HorizontalRectVoronoiGraph:
 
         Returns
         -------
-        tuple of ndarray(int).
+        x_of_node, y_of_node : ndarray of float
             The arrays of x and y coordinates.
 
         Examples
@@ -164,7 +163,7 @@ class HorizontalRectVoronoiGraph:
 
         Returns
         -------
-        Int
+        int
             Number of perimeter nodes
 
         Examples
@@ -187,7 +186,7 @@ class HorizontalRectVoronoiGraph:
 
         Returns
         -------
-        ndarray of Int
+        ndarray of int
             Ids of the perimeter nodes
 
         Examples
@@ -208,7 +207,7 @@ class HorizontalRectVoronoiGraph:
 
         Returns
         -------
-        tuple(ndarray of Int)
+        right, top, left, bottom : ndarray of int
             For each edge give the ids of the nodes present at the edge
 
         Examples
@@ -246,7 +245,9 @@ class HorizontalRectVoronoiGraph:
 
 
 class FramedVoronoiGraph(DelaunayGraph):
-    """Graph of a unstructured grid of Voronoi Delaunay cells and
+    """VoronoiDelaunay graph based on a fixed lattice.
+
+    Graph of an unstructured grid of Voronoi Delaunay cells and
     irregular patches. It is a special type of VoronoiDelaunay graph in which
     the initial set of points is arranged in a fixed lattice (e.g. like a rectangular
     raster grid) named here "layout" and the core points are then moved aroung their
@@ -286,22 +287,22 @@ class FramedVoronoiGraph(DelaunayGraph):
 
         Parameters
         ----------
-        shape : int or tuple of int
-            For a rectangular layout, number of rows and columns of nodes.
-            If int, rows number = columns number = value
+        shape : tuple of int
+            Number of rows and columns of nodes.
         xy_spacing : float or tuple of float, optional
-            Node spacing along x and y coordinates. If float, same spacing at x and y.
+            Node spacing along x and y coordinates. If float, same spacing x and y
+            spacing.
         xy_of_lower_left : tuple, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
-            no node may be present at this coordinate. Default is (0., 0.).
+            no node may be present at this coordinate.
         sort: bool
-            If true, nodes, links and patches are re-numbered according certain criterias of position.
-            Currently not used.
+            If ``True``, nodes, links and patches are re-numbered according
+            certain criterias of position.  Currently not used.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
             around their position cannot be above this threshold:
-            (xy_spacing - xy_min_spacing) /2
-            If float, same minimal spacing for x and y.
+            ``(xy_spacing - xy_min_spacing) / 2``
+            If ``float``, same minimal spacing for x and y.
         seed: int, optional
             Seed used to generate the random x and y moves.
             When set, controls a pseudo-randomness of moves to ensure
