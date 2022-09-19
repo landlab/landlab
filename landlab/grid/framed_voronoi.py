@@ -34,7 +34,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     >>> grid.number_of_nodes
     6
 
-    >>> grid = FramedVoronoiGrid((4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=(200, 500))
+    >>> grid = FramedVoronoiGrid((4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=200)
     >>> grid.status_at_node
     array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
     >>> grid.x_of_node[3]
