@@ -267,31 +267,10 @@ def test_framed_voronoi_from_dict():
     true_y[11:13] = np.array([20.751, 28.249])
     true_y[17:19] = np.array([35.751, 43.249])
     true_y[23:30] = np.array([50.751, 62.0, 62.0, 62.0, 62.0, 62.0, 62.0])
-    true_adjacent_nodes_at_node_0_2 = np.array(
-        [
-            [1, 6, -1, -1, -1, -1, -1],
-            [2, 7, 6, 0, -1, -1, -1],
-        ]
-    )
-    true_adjacent_nodes_at_node_28_30 = np.array(
-        [
-            [29, 27, 22, -1, -1, -1, -1],
-            [28, 22, 23, -1, -1, -1, -1],
-        ]
-    )
 
     for i in [0, 1, 2, 3, 4, 5, 6, 11, 12, 17, 18, 23, 24, 25, 26, 27, 28, 29]:
         assert_array_almost_equal(mg.x_of_node[i], true_x[i])
         assert_array_almost_equal(mg.y_of_node[i], true_y[i])
-
-    assert_array_almost_equal(
-        np.concatenate(
-            (mg.adjacent_nodes_at_node[0:2], mg.adjacent_nodes_at_node[28:30])
-        ),
-        np.concatenate(
-            (true_adjacent_nodes_at_node_0_2, true_adjacent_nodes_at_node_28_30)
-        ),
-    )
 
 
 def test_voronoi_from_dict():
