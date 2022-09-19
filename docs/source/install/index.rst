@@ -1,7 +1,3 @@
-=======
-Install
-=======
-
 .. include:: developer_install.rst
   :start-after: .. _install:
 
