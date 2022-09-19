@@ -14,6 +14,7 @@ from landlab import (
     VoronoiDelaunayGrid,
     HexModelGrid,
     RadialModelGrid,
+    FramedVoronoiGrid,
 )
 
 
@@ -23,6 +24,7 @@ GRIDS = [
     VoronoiDelaunayGrid,
     HexModelGrid,
     RadialModelGrid,
+    FramedVoronoiGrid,
 ]
 
 CATEGORIES = {
