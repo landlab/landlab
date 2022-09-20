@@ -2,6 +2,8 @@
 Release Notes
 =============
 
+.. towncrier-draft-entries:: Not yet released
+
 .. towncrier release notes start
 
 2.5.0 (2022-04-15)

@@ -9,6 +9,7 @@ landlab.grid.raster.rst
 landlab.grid.voronoi.rst
 landlab.grid.radial.rst
 landlab.grid.hex.rst
+landlab.grid.framed_voronoi.rst
 
 It takes the files named text_for_XXXX.py.txt, then uses these text blocks
 coupled with lists of grid methods according to the LLCATS system to build the
@@ -19,7 +20,6 @@ This script is designed to be run as part of the commit process for LL.
 Any changes made directly to the above files will be lost whenever this script
 is run.
 """
-import re
 from copy import copy
 
 import numpy as np
@@ -33,6 +33,7 @@ grid_types = (
     "HexModelGrid",
     "RadialModelGrid",
     "NetworkModelGrid",
+    "FramedVoronoiGrid",
 )
 str_sequence = (
     "Base class",
@@ -41,8 +42,9 @@ str_sequence = (
     "Hexagonal",
     "Radial",
     "Network",
+    "Framed Voronoi-cell",
 )
-paths = ("base", "raster", "voronoi", "hex", "radial", "network")
+paths = ("base", "raster", "voronoi", "hex", "radial", "network", "framed_voronoi")
 
 autosummary = ".. currentmodule:: landlab \n\n.. autosummary::\n\n"
 
@@ -67,6 +69,7 @@ grid_name_to_class = {
     "raster": "RasterModelGrid",
     "voronoi": "VoronoiDelaunayGrid",
     "network": "NetworkModelGrid",
+    "framed_voronoi": "FramedVoronoiGrid",
 }
 
 
