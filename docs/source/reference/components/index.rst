@@ -43,6 +43,7 @@ Flow routing
 
    flow_director
    flow_accum
+   flow_router
    flow_routing
    lake_fill
    priority_flood_flow_router
