@@ -215,6 +215,7 @@ Alphabetical Listing of Modules
    flexure
    flow_accum
    flow_director
+   flow_router
    flow_routing
    fracture_grid
    gflex
