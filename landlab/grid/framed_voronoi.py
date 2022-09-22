@@ -7,9 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 
-@author sebastien lenard
-
-@date 2022, Aug
+.. codeauthor:: sebastien lenard
 """
 
 import numpy
@@ -36,7 +34,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     >>> grid.number_of_nodes
     6
 
-    >>> grid = FramedVoronoiGrid((4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=(200, 500))
+    >>> grid = FramedVoronoiGrid((4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=200)
     >>> grid.status_at_node
     array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
     >>> grid.x_of_node[3]
@@ -67,7 +65,7 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
         xy_spacing=(1.0, 1.0),
         xy_of_lower_left=(0.0, 0.0),
         xy_min_spacing=(0.5, 0.5),
-        seed=(200, 500),
+        seed=200,
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
         xy_axis_units="-",
@@ -96,8 +94,8 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
             from their initial positions cannot be above this threshold:
             ``(xy_spacing - xy_min_spacing) / 2``
             If ``float``, same minimal spacing for *x* and *y*.
-        seed: tuple of int, optional
-            Seeds used to generate the random *x* and *y* moves.
+        seed: int, optional
+            Seed used to generate the random *x* and *y* moves.
             When set, controls the pseudo-randomness of moves to ensure
             reproducibility.
             When ``None``, the seed is random and the moves of coordinates are

@@ -177,27 +177,85 @@ def test_network_from_file():
     assert mg.xy_of_reference == (12345, 678910)
 
 
+def test_framed_voronoi_edge_nodes():
+    grid = FramedVoronoiGrid(
+        (5, 6), xy_spacing=(10, 15), xy_of_lower_left=(1, 2), xy_min_spacing=7.5
+    )
+
+    expected_x = (
+        np.array(
+            [
+                [0, 10, 20, 30, 40, 50],
+                [0, 99, 99, 99, 99, 50],
+                [0, 99, 99, 99, 99, 50],
+                [0, 99, 99, 99, 99, 50],
+                [0, 10, 20, 30, 40, 50],
+            ]
+        )
+        + 1.0
+    )
+    expected_y = (
+        np.array(
+            [
+                [0, 0, 0, 0, 0, 0],
+                [15 - 7.5 / 2 - 0.001, 99, 99, 99, 99, 15 + 7.5 / 2 + 0.001],
+                [30 - 7.5 / 2 - 0.001, 99, 99, 99, 99, 30 + 7.5 / 2 + 0.001],
+                [45 - 7.5 / 2 - 0.001, 99, 99, 99, 99, 45 + 7.5 / 2 + 0.001],
+                [60, 60, 60, 60, 60, 60],
+            ]
+        )
+        + 2.0
+    )
+    actual_x = grid.x_of_node.reshape(grid.shape)
+    actual_y = grid.y_of_node.reshape(grid.shape)
+
+    assert_array_almost_equal(expected_x[0, :], actual_x[0, :])
+    assert_array_almost_equal(expected_x[-1, :], actual_x[-1, :])
+    assert_array_almost_equal(expected_x[:, 0], actual_x[:, 0])
+    assert_array_almost_equal(expected_x[:, -1], actual_x[:, -1])
+
+    assert_array_almost_equal(expected_y[0, :], actual_y[0, :])
+    assert_array_almost_equal(expected_y[-1, :], actual_y[-1, :])
+    assert_array_almost_equal(expected_y[:, 0], actual_y[:, 0])
+    assert_array_almost_equal(expected_y[:, -1], actual_y[:, -1])
+
+
+@pytest.mark.parametrize("xy_min_spacing", (1, 0, 3, (3, 4), (1, 10)))
+def test_framed_voronoi_min_spacing(xy_min_spacing):
+    grid = FramedVoronoiGrid(
+        (100, 200), xy_spacing=(3, 10), xy_min_spacing=xy_min_spacing
+    )
+
+    assert np.all(grid.length_of_link >= np.min(xy_min_spacing))
+
+
+@pytest.mark.parametrize("xy_min_spacing", (10, (3, 10), (4, 11)))
+def test_framed_voronoi_bad_min_spacing(xy_min_spacing):
+    with pytest.raises(ValueError):
+        FramedVoronoiGrid((10, 20), xy_spacing=(3, 10), xy_min_spacing=xy_min_spacing)
+
+
 def test_framed_voronoi_from_dict():
     params = {
         "shape": (5, 6),
         "xy_spacing": (10.0, 15.0),
         "xy_of_lower_left": (1.0, 2.0),
         "xy_min_spacing": (5.0, 7.5),
-        "seed": (200, 500),
+        "seed": 200,
         "xy_of_reference": (0.5, 3.0),
         "xy_axis_name": ("a", "b"),
         "xy_axis_units": "l",
     }
 
     mg = FramedVoronoiGrid.from_dict(params)
-    assert mg._shape == (5, 6)
-    assert mg._xy_spacing == (10.0, 15.0)
+    assert mg.shape == (5, 6)
+    assert mg.xy_spacing == (10.0, 15.0)
     assert mg._xy_of_lower_left == (1.0, 2.0)
     assert mg._xy_min_spacing == (5.0, 7.5)
-    assert mg._seed == (200, 500)
+    assert mg._seed == 200
     assert mg.xy_of_reference == (0.5, 3.0)
-    assert mg._axis_name == ("a", "b")
-    assert mg._axis_units == ("l", "l")
+    assert mg.axis_name == ("a", "b")
+    assert mg.axis_units == ("l", "l")
 
     true_x = np.zeros(30)
     true_y = np.zeros(30)
@@ -209,27 +267,10 @@ def test_framed_voronoi_from_dict():
     true_y[11:13] = np.array([20.751, 28.249])
     true_y[17:19] = np.array([35.751, 43.249])
     true_y[23:30] = np.array([50.751, 62.0, 62.0, 62.0, 62.0, 62.0, 62.0])
-    true_adjacent_nodes_at_node_0_2 = np.array(
-        [
-            [1, 6, -1, -1, -1, -1, -1],
-            [2, 8, 6, 0, -1, -1, -1],
-        ]
-    )
-    true_adjacent_nodes_at_node_28_30 = np.array(
-        [
-            [29, 27, 22, 23, -1, -1, -1],
-            [28, 23, -1, -1, -1, -1, -1],
-        ]
-    )
 
     for i in [0, 1, 2, 3, 4, 5, 6, 11, 12, 17, 18, 23, 24, 25, 26, 27, 28, 29]:
         assert_array_almost_equal(mg.x_of_node[i], true_x[i])
         assert_array_almost_equal(mg.y_of_node[i], true_y[i])
-
-    assert_array_almost_equal(
-        mg.adjacent_nodes_at_node[0:2] + mg.adjacent_nodes_at_node[28:30],
-        true_adjacent_nodes_at_node_0_2 + true_adjacent_nodes_at_node_28_30,
-    )
 
 
 def test_voronoi_from_dict():
