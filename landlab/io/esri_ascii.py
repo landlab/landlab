@@ -528,23 +528,18 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     --------
     >>> import numpy as np
     >>> import os
-    >>> import tempfile
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
-    >>> with tempfile.TemporaryDirectory() as dir:
-    ...     os.chdir(dir)
-    ...     files = write_esri_ascii("test.asc", grid)
-    >>> [os.path.basename(name) for name in sorted(files)]
+    >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
     ['test.asc']
 
     >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
-    >>> with tempfile.TemporaryDirectory() as dir:
-    ...     os.chdir(dir)
-    ...     files = write_esri_ascii("test.asc", grid)
-    >>> [os.path.basename(name) for name in sorted(files)]
+    >>> files = write_esri_ascii("test.asc", grid))  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
     ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
     """
     if os.path.exists(path) and not clobber:

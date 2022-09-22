@@ -52,16 +52,13 @@ class ExampleData:
 
         Examples
         --------
-        >>> from tempfile import TemporaryDirectory
         >>> data = ExampleData("io/shapefile")
         >>> sorted(data)
         ['methow', 'soque']
 
         >>> import os
-        >>> with TemporaryDirectory() as dir:
-        ...     os.chdir(dir)
-        ...     data.fetch()
-        ...     sorted(os.listdir())
+        >>> data.fetch()  # doctest: +SKIP
+        >>> sorted(os.listdir())  # doctest: +SKIP
         ['methow', 'soque']
         """
         dstdir, srcdir = pathlib.Path("."), self.base
