@@ -1,12 +1,16 @@
 """
 flow_router.py contains the FlowRouter component. It calculates the flow
 depending on gradients (FlowDirector), overcome depressions
-(DepressionFinderAndRouter), and accumulates flow and calculates
-drainage areas (FlowAccumulator).
+(:class:`landlab.components.flow_director.flow_director_steepest.DepressionFinderAndRouter`),
+and accumulates flow and calculates drainage areas
+(:class:`landlab.components.flow_accumulator.flow_accumulator.FlowAccumulator`).
 
-Related components: PriorityFloodFlowRouter (wrapper of the RichDEM package),
-FlowDirectorSteepest, FlowDirectorD8, FlowAccumulator,
-DepressionFinderAndRouter, LakeMapperBarnes, SinkFillerBarnes
+Related components: :class:`~.PriorityFloodFlowRouter` (wrapper of the RichDEM package),
+:class:`landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest`,
+:class:`landlab.components.flow_director.flow_director_d8.FlowDirectorD8`,
+:class:`landlab.components.flow_accumulator.flow_accumulator.FlowAccumulator`,
+:class:`landlab.components.depression_finder.lake_mapper.DepressionFinderAndRouter`,
+:class:`~.LakeMapperBarnes`, :class:`~.SinkFillerBarnes`
 
 
 @author: Sebastien Lenard sebastien.lenard@gmail.com
@@ -22,31 +26,32 @@ class FlowRouter(Component):
     """
     The FlowRouter carries out 2 operations:
 
-    (1) Public method run_flow_directions() calculates flow directions over a
+    **(1)** Public method run_flow_directions() calculates flow directions over a
     surface (usually the elevation, node field "topographic__elevation")
     from the base-level nodes downstream to upstream. Depressions are resolved
     and the flow bypasses them simultaneously.
 
-    . - The method digs channels from the pit nodes to the nearest nodes (in
-    .   the priority-flood meaning, Barnes et al., 2014) outside of the
-    .   depression containing the pit. This resolves the depression as all
-    .   nodes in the depression now have a drainage path to a base-level node
+    - The method digs channels from the pit nodes to the nearest nodes (in
+      the priority-flood meaning, Barnes et al., 2014) outside of the
+      depression containing the pit. This resolves the depression as all
+      nodes in the depression now have a drainage path to a base-level node.
 
-    . - The method ensures that the highest peaks of the surface and the
-    .   base-level, perimeter, and closed nodes don't receive flow. This
-    .   method also supplies a depression-free elevation surface (node field
-    .   "depression_free__elevation"), which is constructed by filling
-    .   depressions. This filling is done based on a minimum relative
-    .   difference in elevation between two nodes, so that a donor is an
-    .   epsilon higher than its receiver, downstream to the outlet of
-    .   the depression. This surface can be yielded as an input to other
-    .   FlowDirector components to generate flow directions using flow metrics
-    .   not restricted to the ones implemented by FlowRouter (e.g.
-    .   FlowDirectorMFD).
+    - The method ensures that the highest peaks of the surface and the
+      base-level, perimeter, and closed nodes don't receive flow. This
+      method also supplies a depression-free elevation surface (node field
+      "depression_free__elevation"), which is constructed by filling
+      depressions. This filling is done based on a minimum relative
+      difference in elevation between two nodes, so that a donor is an
+      epsilon higher than its receiver, downstream to the outlet of
+      the depression. This surface can be yielded as an input to other
+      FlowDirector components to generate flow directions using flow metrics
+      not restricted to the ones implemented by FlowRouter (e.g.
+      :class:`landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD`).
 
-    (2) Public method run_flow_accumulations() determines the downstream to
+    **(2)** Public method run_flow_accumulations() determines the downstream to
     upstream order of nodes and calculates drainage areas and flow
-    accumulations. The algorithm is similar to the FlowAccumulator.
+    accumulations. The algorithm is similar to the
+    :class:`landlab.components.flow_director.flow_director_mfd.FlowAccumulator`.
 
     The public method run_one_step() can carry out the 2 operations.
 
@@ -57,49 +62,50 @@ class FlowRouter(Component):
     **Remarks on usage**
 
     - FlowRouter is compatible with all grids, including the
-    VoronoiDelaunayGrid and the NetworkModelGrid.
+      :class:`~.VoronoiDelaunayGrid` and the :class:`~.NetworkModelGrid`.
 
     - Flow directions are one-to-one (single flow firection), similarly to the
-    FlowDirectorSteepest (D4 or D8)(O'Callaghan and Mark, 1984).
+      :class:`landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest`
+      (D4 or D8)(O'Callaghan and Mark, 1984).
 
     - We don't have a sink mode. Thus we can't accept a manual supply of sinks
-    (=pits). To calculate directions and keeping the sinks, use the
-    FlowDirector components.
+      (=pits). To calculate directions and keeping the sinks, use the
+      FlowDirector components.
 
     - Once instantiated, the component will not consider any modification of
-    the basic components of the grid: nodes, links, cells, faces, boundary,
-    base-level (neither shift of position, change of status, or change of
-    length).
+      the basic components of the grid: nodes, links, cells, faces, boundary,
+      base-level (neither shift of position, change of status, or change of
+      length).
 
     - If no base-level, we take the perimeter node having the lowest value
-    of the surface.
+      of the surface.
 
-    - For NetworkModelGrid, we take a cell area = 1.
+    - For :class:`~.NetworkModelGrid`, we take a cell area = 1.
 
     - This component has a run limit of 1e9 nodes.
 
     **Remarks on implementation**
 
     - For optimization, the code of the component is partly delegated to
-    Cython.
+      Cython.
 
     - For flow direction and depression overcoming, we constructed and adapted
-    an algorithm  based on the priority flood algorithm description #4 in
-    Barnes et al., 2014. The major differences with the Barnes algorithm is
-    that flow outlets are base-level nodes (and not perimeter nodes), the
-    calculations of fields generated by FlowDirector and FlowAccumulator
-    components, and some performance tweaks linked to the use of Cython.
+      an algorithm  based on the priority flood algorithm description #4 in
+      Barnes et al., 2014. The major differences with the Barnes algorithm is
+      that flow outlets are base-level nodes (and not perimeter nodes), the
+      calculations of fields generated by FlowDirector and FlowAccumulator
+      components, and some performance tweaks linked to the use of Cython.
 
     - The component is not a wrapper of the RichDEM package.
 
     - For flow accumulation, we slightly adapted the algorithm implemented
-    in the FlowAccumulator,
-    based on the upstream/downstream O(n) algorithm of
-    Braun and Willett, 2013.
+      in the FlowAccumulator,
+      based on the upstream/downstream O(n) algorithm of
+      Braun and Willett, 2013.
 
     - No explicit check whether the link is active or not is done. The
-    checks are based on the status of the node, closed or not, assuming
-    that a link is active <=> none of the two nodes are closed.
+      checks are based on the status of the node, closed or not, assuming
+      that a link is active <=> none of the two nodes are closed.
 
     References
     ----------
@@ -290,12 +296,12 @@ class FlowRouter(Component):
             **Options:**
 
             - None: The values of the field "water__unit_flux_in" are not
-            modified.
+              modified.
             - float: A spatially constant value overwrites the values of the
-            "water__unit_flux_in".
+              "water__unit_flux_in".
             - nd.array or str : Spatially variable values permanently
-            overwrites the values of the "water__unit_flux_in". The values
-            are given either by an array or by another existing field "str".
+              overwrites the values of the "water__unit_flux_in". The values
+              are given either by an array or by another existing field "str".
 
         single_flow : bool
             True, the component can calculate all flows as single-to-single
@@ -305,8 +311,9 @@ class FlowRouter(Component):
             depression__outlet_node and flood_status_code. It doesn't
             calculate flow accumulation. This is because the component cannot
             deal with multiple flows and need to be combined with a
-            FlowDirectorMFD, which will setup the other output fields with the
-            right dimensions and will work on the depression_free__elevation
+            :class:`landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD`,
+            which will setup the other output fields
+            with the right dimensions and will work on the depression_free__elevation
             surface (rather than the topographic__elevation surface).
 
         Examples
@@ -555,40 +562,45 @@ class FlowRouter(Component):
         20:     Push Neighbor onto To_do with priority Elevations(Neighbors)
 
         **Remarks**
+        
         - strictly speaking, and for optimization reasons, this algorithm is
-        not always steepest descent and and our adaptation favors flow to
-        the base-level nodes (open boundary nodes and one of the perimeter
-        nodes for NetworkModelGrid)ies of the grid. E.g.
-        3	2	3	4	5
-        3	2	4	5	3
-        2	0	3	4	2
-        2	2	0	2	4
-        3	2	5	4	2
-        top left : 4 and 2 send flow to 2, but the steepest slope for 4 is
-        within the grid, to zero.
+          not always steepest descent and and our adaptation favors flow to
+          the base-level nodes (open boundary nodes and one of the perimeter
+          nodes for NetworkModelGrid)ies of the grid. E.g.
+          3    2    3    4    5
+          3    2    4    5    3
+          2    0    3    4    2
+          2    2    0    2    4
+          3    2    5    4    2
+          top left : 4 and 2 send flow to 2, but the steepest slope for 4 is
+          within the grid, to zero.
 
-        - contrary to Barnes et al., 2014 and similar to the FlowDirectorD8
-        component, we don't prioritize non-diagonal links: indeed, slopes
-        can be higher on diagonals than on non-diagonals.
+        - contrary to Barnes et al., 2014 and similar to the
+          :class:`landlab.components.flow_director.flow_director_d8.FlowDirectorD8`
+          component, we don't prioritize non-diagonal links: indeed, slopes
+          can be higher on diagonals than on non-diagonals.
 
         - "depression_free__elevation", "depression__depth",
-        "depression__outlet_node", "flood_status_code",
-        "flow__link_to_receiver_node", "flow__receiver_node",
-        "outlet_node", "topographic__steepest_slope" are updated here.
+          "depression__outlet_node", "flood_status_code",
+          "flow__link_to_receiver_node", "flow__receiver_node",
+          "outlet_node", "topographic__steepest_slope" are updated here.
 
         - Following FlowDirectorD8, "flow__link_direction" is not updated.
 
         - steepest_slope is not corrected in case of a depression (in theory
-        should be lower because we flood the depression to pass the flow).
+          should be lower because we flood the depression to pass the flow).
 
-        - following the FlowDirectorSteepest and D8 (and
-        DepressionFinderAndRouter), we set closed boundary nodes as their
-        own receivers.
+        - following the
+          :class:`landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest`
+          and :class:`landlab.components.flow_director.flow_director_d8.D8` (and
+          :class:`landlab.components.depression_finder.lake_mapper.DepressionFinderAndRouter`),
+          we set closed boundary nodes as their own receivers.
 
-        - base-level nodes = open boundary nodes, except for NetworkModelGrid.
+        - base-level nodes = open boundary nodes, except for
+          :class:`~.NetworkModelGrid`.
 
         - no flux from and into closed boundary nodes, no flux from open
-        boundary nodes.
+          boundary nodes.
 
         Examples
         --------
@@ -747,11 +759,14 @@ class FlowRouter(Component):
         Hypothesis: base level nodes are nodes that are their own receiver.
         In the following, we consider open boundary nodes are base level of
         each watershed.
-        0 - association nodes (i) to receivers r(i) previously done with flow
-        .   direction algorithm
-        1 - tranformation to get the donors D(i,j)
-        - Calculate the number of donors d_i for each node
-        - Calculate the index delta_i where donor list begins for each node
+        
+        **(0)** association nodes (i) to receivers r(i) previously done with flow
+         direction algorithm.
+
+        **(1)** tranformation to get the donors D(i,j).
+        
+        - Calculate the number of donors d_i for each node.
+        - Calculate the index delta_i where donor list begins for each node.
 
         "drainage_area", "flow__upstream_node_order",
         "surface_water__discharge" are updated here.
