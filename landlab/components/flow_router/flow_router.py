@@ -562,7 +562,7 @@ class FlowRouter(Component):
         20:     Push Neighbor onto To_do with priority Elevations(Neighbors)
 
         **Remarks**
-        
+
         - strictly speaking, and for optimization reasons, this algorithm is
           not always steepest descent and and our adaptation favors flow to
           the base-level nodes (open boundary nodes and one of the perimeter
@@ -759,12 +759,12 @@ class FlowRouter(Component):
         Hypothesis: base level nodes are nodes that are their own receiver.
         In the following, we consider open boundary nodes are base level of
         each watershed.
-        
+
         **(0)** association nodes (i) to receivers r(i) previously done with flow
          direction algorithm.
 
         **(1)** tranformation to get the donors D(i,j).
-        
+
         - Calculate the number of donors d_i for each node.
         - Calculate the index delta_i where donor list begins for each node.
 
