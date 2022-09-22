@@ -1,6 +1,7 @@
 # Requirements extracted from pyproject.toml
 # [project.dependencies]
 bmipy
+gdal < 3.5.2
 matplotlib
 netcdf4
 numpy
