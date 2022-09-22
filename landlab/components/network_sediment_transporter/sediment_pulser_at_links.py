@@ -7,26 +7,24 @@ _OUT_OF_NETWORK = -2
 
 
 class SedimentPulserAtLinks(SedimentPulserBase):
-    """
-    Send a pulse of parcels to specific links in a channel network
+    """Send a pulse of parcels to specific links in a channel network
 
-    SedimentPulserAtLinks is instantiated by specifying the network model grid
-    it will pulse the parcels into and the time(s) when a pulse is allowed to accur.
-    It inherits attributes and functions from the SedimentPulserBase class.
+    :class:`~.SedimentPulserAtLinks` is instantiated by specifying the :class:`~.NetworkModelGrid`
+    it will pulse the parcels into and the time(s) when a pulse is allowed to occur.
+    It inherits attributes and functions from the :class:`~.SedimentPulserBase`.
 
-    SedimentPulserAtLinks is run (adds parcels to DataRecord) by calling the
+    :class:`~.SedimentPulserAtLinks` is run (adds parcels to ``DataRecord``) by calling the
     instance with a list of links and a list of the number of parcels added to each link.
 
     If parcel attributes are constant with time and uniform
-    accross the basin, these constant-uniform-attirbutes can be defined
-    when SedimentPulserAtLinks is instantiated. If parcel attributes vary
+    across the basin, these constant-uniform-attributes can be defined
+    when :class:`~.SedimentPulserAtLinks` is instantiated. If parcel attributes vary
     with location and time, the user specifies the varying parcel attributes
     each time the instance is called with a list for each attribute of length
     equal to the number of links included in the pulse.
 
 
-    authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
-            with help from Eric Hutton and Katy Barnhart
+    .. codeauthor:: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt (with help from Eric Hutton and Katy Barnhart)
 
 
     Examples
@@ -45,13 +43,13 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
 
-    Define a function that contrains which times a pulse is allowed to occur.
+    Define a function that contains which times a pulse is allowed to occur.
     This function says a pulse can occur at any time
 
     >>> def time_to_pulse(time):
     ...     return True
 
-    Instantiate 'SedimentPulserAtLinks'
+    Instantiate :class:`~.SedimentPulserAtLinks`
 
     >>> make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
 
@@ -91,29 +89,28 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         abrasion_rate=0.0,
     ):
 
-        """
-        instantiate SedimentPulserAtLinks
+        """Create :class:`~.SedimentPulserAtLinks`.
 
         Parameters
         ----------
 
         grid : ModelGrid
-            landlab *ModelGrid* to place sediment parcels on.
+            landlab :class:`~.ModelGrid` to place sediment parcels on.
         time_to_pulse: function, optional
-            defines the condition when a pulse occurs using the _pulse_characteristics
+            The condition when a pulse occurs using the ``_pulse_characteristics``
             method. If not specified, a pulse occurs whenever the instance is run
         parcels: landlab DataRecord
-            Tracks parcel location and variables
+            Tracks parcel location and variables.
         D50: float, optional
-            median grain size [m]
+            Median grain size [m].
         D84_D50: float, optional
-            ratio of 84th percentile grain size to the median grain size
+            Ratio of 84th percentile grain size to the median grain size.
         rho_sediment : float, optional
-            Sediment grain density [kg/m^3].
+            Sediment grain density [kg / m^3].
         parcel_volume : float
-            parcel volume [m^3]
+            Parcel volume [m^3]
         abrasion_rate: float
-            volumetric abrasion exponent [1/m]
+            Volumetric abrasion exponent [1 / m]
         """
 
         SedimentPulserBase.__init__(
@@ -147,32 +144,32 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
         """
         specify the time, link(s) and attributes of pulses added to a
-        Network Model Grid at stochastically determined locations within the
-        link(s)
+        :class:`~.NetworkModelGrid` at stochastically determined locations within the
+        link(s).
 
         Parameters
         ----------
         time : integer or datetime64
-            time that the pulse is occurs
+            Time that the pulse is occurs.
         links : list of int
-            link ID # that parcels are added too
+            Link ID # that parcels are added to.
         n_parcels_at_link: list of int
-            number of parcels added to each link listed in links
+            Number of parcels added to each link listed in links
         D50 : list of float, optional
-            median grain size of parcels added to each link listed in links, [m]
+            Median grain size of parcels added to each link listed in links [m].
         D84_D50 : list of float, optional
-            ratio of 84th percentile grain size to the median grain size
+            Ratio of 84th percentile grain size to the median grain size.
         rho_sediment: list of float, optional
-            density of grains [kg/m^3]
+            Density of grains [kg / m^3].
         parcel_volume : list of float, optional
-            volume of each parcel added to link listed in links [m^3]
+            Volume of each parcel added to link listed in links [m^3].
         abrasion_rate: list of float, optional
-            rate that grain size decreases with distance along channel [mm/km?]
+            Rate that grain size decreases with distance along channel [mm / km?].
 
         Returns
         -------
-        self._parcels
-            a DataRecord containing all information on each individual parcel
+        parcels
+            :class:`~.DataRecord` containing all information on each individual parcel.
 
         """
 
@@ -262,14 +259,13 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         abrasion_rate,
         rho_sediment,
     ):
-        """
-        converts lists of link ids and link parcel parameters to a dataset
+        """Convert lists of link ids and link parcel parameters to a dataset
         that describes the network location and attributes of each individual parcel
 
         Returns
         -------
         dict
-            dictionary with keys and data in format for DataRecord
+            Dictionary with keys and data in format for :class:`~.DataRecord`.
 
         """
 

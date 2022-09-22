@@ -5,15 +5,14 @@ from landlab import Component
 
 class SedimentPulserBase(Component):
 
-    """
-    Base class of SedimentPulserAtLinks and SedimentPulserEachPulse
+    """Base class of :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse`.
 
-    SedimentPulserAtLinks and SedimentPulserEachPulse run the landlab DataRecord
-    "add_item" method on a DataRecord configured for NetworkSedimentTransporter
+    :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse` run the landlab
+    :class:`~.DataRecord` :method:`~.DataRecord.add_item`
+    method on a :class:`~.DataRecord` configured for :class:`~.NetworkSedimentTransporter`.
 
 
-    authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
-            - with help from Eric Hutton and Katy Barnhart
+    .. codeauthor: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt (with help from Eric Hutton and Katy Barnhart)
 
     Parameters
     ----------
@@ -55,8 +54,6 @@ class SedimentPulserBase(Component):
     Traceback (most recent call last):
     ...
     NotImplementedError: the base component has no call method
-
-
     """
 
     _name = "SedimentPulserBase"
