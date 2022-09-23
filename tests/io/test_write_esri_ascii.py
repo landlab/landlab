@@ -17,7 +17,7 @@ def test_write_esri_ascii_doctest_one_var(tmpdir):
     with tmpdir.as_cwd():
         files = write_esri_ascii("test.asc", grid)
         assert [os.path.basename(name) for name in sorted(files)] == ["test.asc"]
-        assert os.listdir() == sorted(files)
+        assert sorted(os.listdir()) == sorted(files)
 
 
 def test_write_esri_ascii_doctest_two_vars(tmpdir):
@@ -31,7 +31,7 @@ def test_write_esri_ascii_doctest_two_vars(tmpdir):
             "test_air__temperature.asc",
             "test_land_surface__elevation.asc",
         ]
-        assert os.listdir() == sorted(files)
+        assert sorted(os.listdir()) == sorted(files)
 
 
 def test_grid_with_no_fields(tmpdir):
