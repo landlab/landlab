@@ -862,7 +862,7 @@ class FlowRouter(Component):
         g.at_node["flow__upstream_node_order"][:] = -1 triggers an error in
         _calc_upstream_order_for_nodes."""
         upstream_ordered_nodes[:] = np.full(
-            nodes_n, g.BAD_INDEX, dtype=np.int_
+            nodes_n, g.BAD_INDEX, dtype=np.int
         )  # noqa: E501
 
         # Call to the algorithm.
