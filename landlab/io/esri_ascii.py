@@ -457,6 +457,9 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     """
     from ..grid import RasterModelGrid
 
+    if halo < 0:
+        raise ValueError("negative halo")
+
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
     if isinstance(asc_file, (str, pathlib.Path)):
@@ -469,22 +472,11 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
 
-    # There is no reason for halo to be negative.
-    # Assume that if a negative value is given it should be 0.
-    if halo <= 0:
-        shape = (header["nrows"], header["ncols"])
-        if data.size != shape[0] * shape[1]:
-            raise DataSizeError(shape[0] * shape[1], data.size)
-    else:
-        shape = (header["nrows"] + 2 * halo, header["ncols"] + 2 * halo)
-        # check to see if a nodata_value was given.  If not, assign -9999.
-        if "nodata_value" in header.keys():
-            nodata_value = header["nodata_value"]
-        else:
-            header["nodata_value"] = -9999.0
-            nodata_value = header["nodata_value"]
-        if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
-            raise DataSizeError(shape[0] * shape[1], data.size)
+    shape = (header["nrows"] + 2 * halo, header["ncols"] + 2 * halo)
+    nodata_value = header.get("nodata_value", -9999.0)
+    if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
+        raise DataSizeError(shape[0] * shape[1], data.size)
+
     xy_spacing = (header["cellsize"], header["cellsize"])
     xy_of_lower_left = (
         header["xllcorner"] - halo * header["cellsize"],
@@ -554,12 +546,13 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
-    >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
+    >>> grid.at_node["air__temperature"] = np.arange(20.0)
     >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
     >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
     ['test.asc']
 
     >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
+    >>> grid.at_node["land_surface__elevation"] = np.arange(20.0)
     >>> files = write_esri_ascii("test.asc", grid))  # doctest: +SKIP
     >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
     ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
