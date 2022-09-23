@@ -11,6 +11,21 @@ from landlab.io import read_esri_ascii, write_esri_ascii
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
+def test_write_esri_ascii_doctests(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.at_node["air__temperature"] = np.arange(20.0)
+    with tmpdir.as_cwd():
+        files = write_esri_ascii("test.asc", grid)
+        assert [os.path.basename(name) for name in sorted(files)] == ["test.asc"]
+
+        grid.at_node["land_surface__elevation"] = np.arange(20.0)
+        files = write_esri_ascii("test.asc", grid)
+        assert [os.path.basename(name) for name in sorted(files)] == [
+            "test_air__temperature.asc",
+            "test_land_surface__elevation.asc",
+        ]
+
+
 def test_grid_with_no_fields(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
     with tmpdir.as_cwd():

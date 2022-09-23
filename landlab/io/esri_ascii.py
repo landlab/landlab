@@ -261,14 +261,15 @@ def read_asc_header(asc_file):
     """Read header information from an ESRI ASCII raster file.
 
     The header contains the following variables,
-        - *ncols*: Number of cell columns
-        - *nrows*: Number of cell rows
-        - *xllcenter* or *xllcorner*: X (column) coordinate of lower-left
-            coordinate of grid (by center or lower-left corner of the cell)
-        - *yllcenter*, *yllcorner*: Y (row) coordinate of lower-left
-            coordinate of grid (by center or lower-left corner of the cell)
-        - *cellsize*: Grid spacing between rows and columns
-        - *nodata_value*: No-data value (optional)
+
+    * ``ncols``: Number of cell columns
+    * ``nrows``: Number of cell rows
+    * ``xllcenter`` or ``xllcorner``: X (column) coordinate of lower-left
+        coordinate of grid (by center or lower-left corner of the cell)
+    * ``yllcenter``, ``yllcorner``: Y (row) coordinate of lower-left
+        coordinate of grid (by center or lower-left corner of the cell)
+    * ``cellsize``: Grid spacing between rows and columns
+    * ``nodata_value``: No-data value (optional)
 
     Parameters
     ----------
@@ -282,54 +283,56 @@ def read_asc_header(asc_file):
 
     Raises
     ------
-    MissingRequiredKeyError
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError`
         The header is missing a required key.
-    KeyTypeError
+    :class:`~landlab.io.esri_ascii.KeyTypeError`
         The header has the key but its values is of the wrong type.
 
     Examples
     --------
     >>> from io import StringIO
     >>> from landlab.io.esri_ascii import read_asc_header
-    >>> contents = StringIO('''
-    ...     nrows 100
-    ...     ncols 200
-    ...     cellsize 1.5
-    ...     xllcenter 0.5
-    ...     yllcenter -0.5
-    ... ''')
-    >>> hdr = read_asc_header(contents)
-    >>> hdr['nrows'], hdr['ncols']
+
+    >>> contents = '''
+    ... nrows 100
+    ... ncols 200
+    ... cellsize 1.5
+    ... xllcenter 0.5
+    ... yllcenter -0.5
+    ... '''
+
+    >>> hdr = read_asc_header(StringIO(contents))
+    >>> hdr["nrows"], hdr["ncols"]
     (100, 200)
-    >>> hdr['cellsize']
+    >>> hdr["cellsize"]
     1.5
-    >>> hdr['xllcenter'], hdr['yllcenter']
+    >>> hdr["xllcenter"], hdr["yllcenter"]
     (0.5, -0.5)
 
-    ``MissingRequiredKey`` is raised if the header does not contain all of the
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the header does not contain all of the
     necessary keys.
 
-    >>> contents = StringIO('''
-    ...     ncols 200
-    ...     cellsize 1.5
-    ...     xllcenter 0.5
-    ...     yllcenter -0.5
-    ... ''')
-    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> contents = '''
+    ... ncols 200
+    ... cellsize 1.5
+    ... xllcenter 0.5
+    ... yllcenter -0.5
+    ... '''
+    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
-    ``KeyTypeError`` is raises if a value is of the wrong type. For instance,
-    ``nrows`` and ``ncols`` must be ``int``.
+    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of the wrong type. For instance,
+    *nrows* and *ncols* must be ``int``.
 
-    >>> contents = StringIO('''
-    ...     nrows 100.5
-    ...     ncols 200
-    ...     cellsize 1.5
-    ...     xllcenter 0.5
-    ...     yllcenter -0.5
-    ... ''')
-    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> contents = '''
+    ... nrows 100.5
+    ... ncols 200
+    ... cellsize 1.5
+    ... xllcenter 0.5
+    ... yllcenter -0.5
+    ... '''
+    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
@@ -358,19 +361,19 @@ def _read_asc_data(asc_file):
 
 
 def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
-    """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
+    """Read :py:class:`~.RasterModelGrid` from an ESRI ASCII file.
 
-    Read data from *asc_file*, an ESRI_ ASCII file, into a
-    :py:class:`~landlab.RasterModelGrid`.  *asc_file* is either the name of
+    Read data from *asc_file*, an `ESRI ASCII file`_, into a
+    :class:`~.RasterModelGrid`.  *asc_file* is either the name of
     the data file or is a file-like object.
 
     The grid and data read from the file are returned as a tuple
     (*grid*, *data*) where *grid* is an instance of
-    :py:class:`~landlab.RasterModelGrid` and *data* is a numpy
+    :py:class:`~.RasterModelGrid` and *data* is a numpy
     array of doubles with that has been reshaped to have the number of rows
     and columns given in the header.
 
-    .. _ESRI: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+    .. _ESRI ASCII file: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
 
     Parameters
     ----------
@@ -388,50 +391,69 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     Returns
     -------
     (grid, data) : tuple
-        A newly-created RasterModel grid and the associated node data.
+        A newly-created :class:`~.RasterModelGrid` and the associated node data.
 
     Raises
     ------
-    DataSizeError
+    :class:`~landlab.io.esri_ascii.DataSizeError`
         Data are not the same size as indicated by the header file.
-    MismatchGridDataSizeError
+    :class:`~landlab.io.esri_ascii.MismatchGridDataSizeError`
         If a grid is passed, and the size of the grid does not agree with the
         size of the data.
-    MismatchGridXYSpacing
-        If a grid is passed, and the cellsize listed in the heading does not
-        match the grid dx and dy.
-    MismatchGridXYLowerLeft
-        If a grid is passed and the xllcorner and yllcorner do not match that
+    :class:`~landlab.io.esri_ascii.MismatchGridXYSpacing`
+        If a grid is passed, and the *cellsize* listed in the heading does not
+        match the node spacing of the grid.
+    :class:`~landlab.io.esri_ascii.MismatchGridXYLowerLeft`
+        If a grid is passed and the *xllcorner* and *yllcorner* do not match that
         of the grid.
 
     Examples
     --------
-    Assume that fop is the name of a file that contains text below
-    (make sure you have your path correct):
-    ncols         3
-    nrows         4
-    xllcorner     1.
-    yllcorner     2.
-    cellsize      10.
-    NODATA_value  -9999
-    0. 1. 2.
-    3. 4. 5.
-    6. 7. 8.
-    9. 10. 11.
-    --------
+
     >>> from landlab.io import read_esri_ascii
-    >>> (grid, data) = read_esri_ascii('fop') # doctest: +SKIP
-    >>> #grid is an object of type RasterModelGrid with 4 rows and 3 cols
-    >>> #data contains an array of length 4*3 that is equal to
-    >>> # [9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.]
-    >>> (grid, data) = read_esri_ascii('fop', halo=1) # doctest: +SKIP
-    >>> #now the data has a nodata_value ring of -9999 around it. So array is
-    >>> # [-9999, -9999, -9999, -9999, -9999, -9999,
-    >>> #  -9999, 9., 10., 11., -9999,
-    >>> #  -9999, 6., 7., 8., -9999,
-    >>> #  -9999, 3., 4., 5., -9999,
-    >>> #  -9999, 0., 1., 2. -9999,
-    >>> #  -9999, -9999, -9999, -9999, -9999, -9999]
+    >>> from io import StringIO
+
+    >>> contents = '''
+    ... ncols         3
+    ... nrows         4
+    ... xllcorner     1.
+    ... yllcorner     2.
+    ... cellsize      10.
+    ... NODATA_value  -1
+    ... 0. 1. 2.
+    ... 3. 4. 5.
+    ... 6. 7. 8.
+    ... 9. 10. 11.
+    ... '''
+
+    >>> (grid, data) = read_esri_ascii(StringIO(contents))
+
+    The returned grid is a :class:`~.RasterModelGrid` with 4 rows and 3 columns.
+
+    >>> grid
+    RasterModelGrid((4, 3), xy_spacing=(10.0, 10.0), xy_of_lower_left=(1.0, 2.0))
+
+    Note that the first row of values is the bottom-most of the data file.
+
+    >>> data.reshape(grid.shape)
+    array([[  9.,  10.,  11.],
+           [  6.,   7.,   8.],
+           [  3.,   4.,   5.],
+           [  0.,   1.,   2.]])
+
+    >>> (grid, data) = read_esri_ascii(StringIO(contents), halo=1)
+
+    Because of the halo, the returned grid now has two more rows and columns than before.
+
+    >>> grid
+    RasterModelGrid((6, 5), xy_spacing=(10.0, 10.0), xy_of_lower_left=(-9.0, -8.0))
+    >>> data.reshape(grid.shape)
+    array([[ -1.,  -1.,  -1.,  -1.,  -1.],
+           [ -1.,   9.,  10.,  11.,  -1.],
+           [ -1.,   6.,   7.,   8.,  -1.],
+           [ -1.,   3.,   4.,   5.,  -1.],
+           [ -1.,   0.,   1.,   2.,  -1.],
+           [ -1.,  -1.,  -1.,  -1.,  -1.]])
     """
     from ..grid import RasterModelGrid
 
