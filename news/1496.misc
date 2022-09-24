@@ -1,4 +1,3 @@
-Modified the doctest for the ``ExampleData`` class to run in a temporary
-directory to prevent it from downloading data to a user's working directory.
-
-
+Modified to skip the doctests for ``ExampleData`` and ``write_esri_ascii`` that created
+files in the user's working directory. These doctests are now repeated as unit tests
+that clean up after themselves.
