@@ -53,13 +53,13 @@ class ExampleData:
         Examples
         --------
         >>> data = ExampleData("io/shapefile")
-        >>> data.fetch()
+        >>> sorted(data)
+        ['methow', 'soque']
 
-        We now remove the created folder because otherwise the test can only
-        pass locally once.
-
-        >>> import shutil
-        >>> shutil.rmtree("methow")
+        >>> import os
+        >>> data.fetch()  # doctest: +SKIP
+        >>> sorted(os.listdir())  # doctest: +SKIP
+        ['methow', 'soque']
         """
         dstdir, srcdir = pathlib.Path("."), self.base
 
