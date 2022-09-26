@@ -81,7 +81,7 @@ documentation. These requirements are specified in the file
 ``landlab/docs/environment.yml`` or the ``requirements-docs.txt``
 requirements file.
 
-Activate that environment so that you will be using that version of python and
+Activate that environment so that you will be using that version of Python and
 all of the dependencies you just installed.
 
 .. code-block:: bash
@@ -103,7 +103,7 @@ Conda Environment Tips
 *   In order to use the ``landlab_dev`` environment created during installation,
     you will need to activate it every time you open a new terminal instance.
     Use the command: ``conda activate landlab_dev``.
-*   If you use python tools for your work that are not in the conda environment
+*   If you use Python tools for your work that are not in the conda environment
     but you have previously installed them on your computer (e.g., spyder),
     you will need to add them to the environment. Use the standard terminal
     calls to accomplish this.

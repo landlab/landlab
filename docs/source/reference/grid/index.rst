@@ -24,13 +24,6 @@ The following is an introduction to their properties and methods:
    radial
    network
 
-Systematic Information about Grid Elements
-------------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   auto/index
 
 Additional Methods and Properties
 ---------------------------------
@@ -60,13 +53,13 @@ API for each grid type
 .. toctree::
    :maxdepth: 1
 
-   base_api
-   raster_api
-   voronoi_api
-   framed_voronoi_api
-   hex_api
-   radial_api
-   network_api
+   base
+   raster
+   voronoi
+   framed_voronoi
+   hex
+   radial
+   network
 
 Additional Grid Base Classes
 ----------------------------
