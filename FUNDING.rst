@@ -18,3 +18,7 @@ by the following grants:
   `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
 * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
   (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
+* A Collaborative NSF Frameworks proposal to University of Colorado (Greg Tucker,
+  `2104102 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=2104102&HistoricalAwards=false>`_).
+* A Collaborative NSF Facility proposal to University of Colorado (Greg Tucker,
+  `2148762 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=2148762&HistoricalAwards=false>`_).
