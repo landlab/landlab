@@ -4,4 +4,5 @@ black
 flake8
 flake8-bugbear
 isort
+nox
 pre-commit

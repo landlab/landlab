@@ -1,6 +1,7 @@
 # Requirements extracted from pyproject.toml
 # [project.optional-dependencies] docs
 entrypoints
+furo
 ipython
 jupyter_client
 nbformat
