@@ -1,0 +1,334 @@
+[[tool.rollcall.author]]
+name = '(no author)'
+email = '(no author)@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Allison Pfeiffer'
+email = 'pfeif@uw.edu'
+aliases = [
+  'pfeiffea',
+]
+alternate_emails = [
+  '35848814+pfeiffea@users.noreply.github.com',
+]
+
+[[tool.rollcall.author]]
+name = 'Amanda Manaster'
+email = 'amanaste@uw.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'amanaster2'
+
+[[tool.rollcall.author]]
+name = 'Benjamin Campforts'
+email = 'benjamincampforts@gmail.com'
+aliases = [
+  'Benjamin',
+]
+alternate_emails = [
+]
+github = 'BCampforts'
+
+[[tool.rollcall.author]]
+name = 'Charlie Shobe'
+email = 'cmshobe@email.wm.edu'
+aliases = [
+  'cmshobe',
+]
+alternate_emails = [
+  'cmshobe@users.noreply.github.com',
+]
+
+[[tool.rollcall.author]]
+name = 'Christopher Sheehan'
+email = '56881748+Sheehace@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Dan Hobley'
+email = 'dan.hobley@gmail.com'
+aliases = [
+  'DanielHobley',
+  'SiccarPoint',
+  'danhobley',
+]
+alternate_emails = [
+  'danhobley@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'daniel.hobley@adas.co.uk',
+  'daniel@dhmac.geol.cf.ac.uk',
+  'daniel@v3061-0a9084c0.wifi.cf.ac.uk',
+]
+github = 'SiccarPoint'
+
+[[tool.rollcall.author]]
+name = 'David Litwin'
+email = '45630470+DavidLitwin@users.noreply.github.com'
+aliases = [
+  'DavidLitwin',
+]
+alternate_emails = [
+  'davidglitwin@posteo.net',
+]
+
+[[tool.rollcall.author]]
+name = 'Dylan Ward'
+email = 'dylan.ward@uc.edu'
+aliases = [
+  'Dylan',
+]
+alternate_emails = [
+]
+github = 'ddoubleprime'
+
+[[tool.rollcall.author]]
+name = 'Eric Hutton'
+email = 'mcflugen@gmail.com'
+aliases = [
+  'huttone',
+  'mcflugen',
+]
+alternate_emails = [
+  'huttone@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'huttone@colorado.edu',
+  'mcflugen@users.noreply.github.com',
+]
+
+[[tool.rollcall.author]]
+name = 'Francis Rengers'
+email = 'francis.rengers@colorado.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'frengers'
+
+[[tool.rollcall.author]]
+name = 'Giuseppecipolla95'
+email = '36881480+Giuseppecipolla95@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Greg Tucker'
+email = 'gtucker@colorado.edu'
+aliases = [
+  'gregtucker',
+  'gtucker',
+]
+alternate_emails = [
+  'gregteucro@yahoo.com',
+  'gtucker@093548ea-dc74-4ebb-8037-4be9f23db00a',
+]
+
+[[tool.rollcall.author]]
+name = 'Jenny Knuth'
+email = 'inkboco@gmail.com'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'jennyknuth'
+
+[[tool.rollcall.author]]
+name = 'Jordan Adams'
+email = 'Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu'
+aliases = [
+  'Jordan',
+  'jadams15',
+  'jordan',
+]
+alternate_emails = [
+  'Jordan@Jordan-Adamss-MacBook-Pro.local',
+  'jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'jadams15@tulane.edu',
+  'jadams15@users.noreply.github.com',
+]
+github = 'jadams15'
+
+[[tool.rollcall.author]]
+name = 'Katy Barnhart'
+email = 'krbarnhart@usgs.gov'
+aliases = [
+  'Barnhart, Katherine (Katy) Ruth',
+  'Katherine Barnhart',
+  'Katy',
+  'barnhark',
+  'kbarnhart',
+]
+alternate_emails = [
+  'barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'katy.barnhart@gmail.com',
+  'katybarnhart@Katys-MacBook-Pro.local',
+  'katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu',
+]
+github = 'kbarnhart'
+
+[[tool.rollcall.author]]
+name = 'Kristen Thyng'
+email = 'kthyng@gmail.com'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'kthyng'
+
+[[tool.rollcall.author]]
+name = 'Mark Piper'
+email = 'mark.piper@colorado.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'mdpiper'
+
+[[tool.rollcall.author]]
+name = 'Nathan Lyons'
+email = 'nathan.j.lyons@gmail.com'
+aliases = [
+  'NathanLyons',
+  'nathanlyons',
+]
+alternate_emails = [
+  'njlyons@Icacos.local',
+]
+github = 'nathanlyons'
+
+[[tool.rollcall.author]]
+name = 'Nicole M Gasparini'
+email = 'nicgaspar@gmail.com'
+aliases = [
+  'nicgaspar',
+]
+alternate_emails = [
+  'nicgaspar@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'nicolegasparini@Nicoles-Mac-Pro.local',
+  'nicolegasparini@ngaspari.tulane.edu',
+]
+
+[[tool.rollcall.author]]
+name = 'Rachel Glade'
+email = 'rcglade@gmail.com'
+aliases = [
+  'Glader011235',
+]
+alternate_emails = [
+  'rachel.glade@colorado.edu',
+]
+
+[[tool.rollcall.author]]
+name = 'Ronda Strauch'
+email = 'rstrauch@uw.edu'
+aliases = [
+  'RondaStrauch',
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Sai Nudurupati'
+email = 'saisiddu@uw.edu'
+aliases = [
+  'Sai Siddhartha Nudurupati',
+  'saisiddu',
+]
+alternate_emails = [
+  'saisiddu@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'saisiddu@e-istanbul-3.ce.washington.edu',
+]
+
+[[tool.rollcall.author]]
+name = 'Sebastien Lenard'
+email = 'sebastien.lenard@gmail.com'
+aliases = [
+  'sebastien-lenard',
+]
+alternate_emails = [
+  '91671955+sebastien-lenard@users.noreply.github.com',
+]
+
+[[tool.rollcall.author]]
+name = 'Shelby Ahrendt'
+email = '36043125+shelbyahrendt@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Abby Langston'
+email = 'alangston@ksu.edu'
+aliases = [
+  'alangston',
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Andy Wickert'
+email = 'awickert@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+  'awickert',
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Jay Hariharan'
+email = 'jayaram.hariharan@utexas.edu'
+aliases = [
+  'jay',
+]
+alternate_emails = [
+]
+github = 'elbeejay'
+
+[[tool.rollcall.author]]
+name = 'Josh Wolpert'
+email = '66105693+josh-wolpert@users.noreply.github.com'
+aliases = [
+  'josh-wolpert'
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Margaux Mouchene'
+email = 'margaux.mouchene@laposte.net'
+aliases = [
+  'margauxmouchene',
+]
+alternate_emails = [
+  'margauxmouchene@Margauxs-iMac.local',
+  'margauxmouchene@dhcp-216-222.tulane.edu',
+  'margauxmouchene@dhcp-216-249.tulane.edu',
+  'margauxmouchene@dhcp-216-251.tulane.edu',
+]
+
+[[tool.rollcall.author]]
+name = 'root'
+email = 'root@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'Sarah Lundell'
+email = 's_lundell@att.net'
+aliases = [
+  'slundell123',
+]
+alternate_emails = [
+]
+
