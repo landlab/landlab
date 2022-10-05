@@ -72,7 +72,7 @@ class AuthorsConfig(UserDict):
 
 class GitLog:
     def __init__(self, format):
-        self._format = f'"{format}"'
+        self._format = f"{format}"
         self._args = ["git", "log", f"--format={self._format}"]
 
     def __call__(self):
@@ -108,15 +108,20 @@ class Author:
         )
         self._aliases.discard(self.name)
         self._alternate_emails.discard(self.email)
+        self._extras = {}
 
     @classmethod
     def from_dict(cls, attrs):
-        return cls(
-            attrs["name"],
-            attrs["email"],
-            aliases=attrs.get("aliases", None),
-            alternate_emails=attrs.get("alternate_emails", None),
+        attrs = dict(attrs)
+        author = cls(
+            attrs.pop("name"),
+            attrs.pop("email"),
+            aliases=attrs.pop("aliases", None),
+            alternate_emails=attrs.pop("alternate_emails", None),
         )
+        for k, v in attrs.items():
+            author._extras[k] = v
+        return author
 
     @property
     def name(self):
@@ -162,6 +167,8 @@ class Author:
             + [f"  {email!r}," for email in sorted(self.alternate_emails)]
             + ["]"]
         )
+        for k, v in sorted(self._extras.items(), key=lambda x: x[0]):
+            lines += [f"{k} = {v!r}"]
 
         return os.linesep.join(lines)
 
@@ -172,6 +179,7 @@ class Author:
             self._alternate_emails.add(other.email)
         self._aliases |= set(other.aliases)
         self._alternate_emails |= set(other.alternate_emails)
+        self._extras.update(other._extras)
 
     def __repr__(self):
         aliases = None if not self.aliases else self.aliases
@@ -206,7 +214,7 @@ class AuthorList:
         elif name_or_email in self._email:
             author = self._email[name_or_email]
         else:
-            raise KeyError(f"unknown author: {name_or_email}")
+            raise KeyError(f"unknown author: {name_or_email!r}")
         return author
 
     @classmethod

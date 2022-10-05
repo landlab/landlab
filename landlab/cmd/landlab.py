@@ -282,6 +282,11 @@ def _guess_github_user(author):
     except AttributeError:
         pass
 
+    try:
+        github = author._extras["github"]
+    except KeyError:
+        pass
+
     if github is None:
         for email in author.emails:
             if email.endswith("github.com"):
