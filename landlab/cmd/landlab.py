@@ -1,5 +1,7 @@
 import inspect
+import itertools
 import os
+import pathlib
 import sys
 import textwrap
 from collections import defaultdict
@@ -7,6 +9,8 @@ from functools import partial
 
 import numpy as np
 import rich_click as click
+
+from .authors import AuthorsConfig, AuthorList, GitLog
 
 from landlab import (
     ModelGrid,
@@ -137,6 +141,191 @@ def validate(component):
         click.Abort()
     else:
         out("💥 All good! 💥")
+
+
+@landlab.group()
+@click.option("--ignore", help="users to ignore", multiple=True, type=str)
+@click.option(
+    "--authors-file",
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
+    help="existing authors file",
+)
+@click.pass_context
+def authors(ctx, ignore, authors_file):
+    verbose = ctx.parent.params["verbose"]
+    silent = ctx.parent.params["silent"]
+
+    config = AuthorsConfig(**{k: v for k, v in ctx.params.items() if v})
+
+    ctx.params["authors_file"] = config["authors_file"]
+    ctx.params["ignore"] = config["ignore"]
+    ctx.params["author_format"] = config["author_format"]
+
+    if verbose and not silent:
+        out(f"{str(config)}")
+
+
+@authors.command()
+@click.option("--update-existing/--no-update-existing", default=True)
+@click.option(
+    "--file",
+    default="authors.toml",
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
+    help="existing authors file",
+)
+@click.pass_context
+def create(ctx, update_existing, file):
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+
+    git_log = GitLog("%an, %ae")
+    if verbose and not silent:
+        out(f"{str(git_log)}")
+
+    process = git_log()
+
+    if update_existing and not pathlib.Path(file).is_file():
+        err(f"not a file: {file}")
+        raise click.Abort()
+
+    if update_existing and pathlib.Path(file).is_file():
+        if verbose and not silent:
+            out(f"updating existing authors file: {file}")
+        authors = AuthorList.from_toml(file)
+    else:
+        if verbose and not silent:
+            out("ignoring any existing authors files")
+        authors = AuthorList()
+
+    if process.returncode == 0:
+        authors.update(AuthorList.from_csv(process.stdout))
+        for author in sorted(authors, key=lambda item: item.name):
+            print(author.to_toml())
+            print("")
+    else:
+        err("unable to retrieve commit authors")
+        err(process.stderr)
+
+
+@authors.command()
+@click.pass_context
+def build(ctx):
+    ignore = set(ctx.parent.params["ignore"])
+    authors_file = ctx.parent.params["authors_file"]
+    author_format = ctx.parent.params["author_format"]
+
+    git_log = GitLog("%aN")
+
+    out(f"{str(git_log)}")
+    process = git_log()
+
+    with open(authors_file, "r") as fp:
+        out(f"building authors file: {authors_file}")
+        for line in fp.readlines():
+            if line.startswith(".. rollcall start-author-list"):
+                print(line)
+                break
+            print(line, end="")
+    authors = AuthorList.from_toml("authors.toml")
+
+    commits = defaultdict(int)
+    for author in process.stdout.splitlines():
+        canonical_name = authors.find_author(author.strip()).name
+        commits[canonical_name] += 1
+
+    for author in sorted(authors, key=lambda a: commits[a], reverse=True):
+        github = _guess_github_user(author)
+        if github is None:
+            github = "landlab"
+        author.github = github
+        if ignore.isdisjoint(author.names):
+            print(
+                author_format.format(
+                    name=author.name, github=author.github, email=author.email
+                )
+            )
+            # print(f"* `{author.name} <https://github.com/{author.github}>`_")
+
+
+def _guess_github_user(author):
+    github = None
+
+    try:
+        github = getattr(author, "github")
+    except AttributeError:
+        pass
+
+    if github is None:
+        for email in author.emails:
+            if email.endswith("github.com"):
+                github, _ = email.split("@")
+                if "+" in github:
+                    _, github = github.split("+")
+                break
+
+    if github is None:
+        for name in author.names:
+            if name.isalnum():
+                github = name
+                break
+
+    return github
+
+
+@authors.command()
+@click.option(
+    "--file",
+    default="authors.toml",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
+    help="existing authors file",
+)
+@click.pass_context
+def mailmap(ctx, file):
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+
+    if verbose and not silent:
+        out(f"reading author list: {file}")
+    authors = AuthorList.from_toml(file)
+    for author in authors:
+        good_name, good_email = author.name, author.email
+        for bad_name, bad_email in itertools.product(
+            sorted(author.names), sorted(author.emails)
+        ):
+            print(f"{good_name} <{good_email}> {bad_name} <{bad_email}>")
+
+
+@authors.command()
+@click.option(
+    "--file",
+    default="authors.toml",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
+    help="existing authors file",
+)
+@click.pass_context
+def list(ctx, file):
+    ignore = set(ctx.parent.params["ignore"])
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+
+    git_log = GitLog("%aN")
+    if verbose and not silent:
+        out(f"{str(git_log)}")
+    process = git_log()
+
+    if verbose and not silent:
+        out(f"reading authors from {file}")
+    authors = AuthorList.from_toml(file)
+
+    commits = defaultdict(int)
+    for author in process.stdout.splitlines():
+        canonical_name = authors.find_author(author.strip()).name
+        commits[canonical_name] += 1
+
+    for name, n_commits in sorted(commits.items(), key=lambda x: x[1], reverse=True):
+        author = authors.find_author(name)
+        if ignore.isdisjoint(author.names):
+            print(f"{author.name} <{author.email}> ({n_commits})")
 
 
 @landlab.group(chain=True)
