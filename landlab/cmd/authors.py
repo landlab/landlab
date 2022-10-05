@@ -1,7 +1,7 @@
 import itertools
 import os
 import subprocess
-from collections import ChainMap
+from collections import ChainMap, UserDict
 
 try:
     import tomllib
@@ -9,56 +9,60 @@ except ModuleNotFoundError:
     import tomli as tomllib
 
 
-def load_config():
-    config = load_first_of(["authors.toml", "pyproject.toml"], "rb")
-    return config
-
-
-def load_first_of(files, mode="rb"):
-    files = [files] if isinstance(files, str) else files
-
-    config = {}
-    for name in files:
-        try:
-            with open(name, mode=mode) as fp:
-                config = tomllib.load(fp)["tool"]["rollcall"]
-        except FileNotFoundError:
-            pass
-        except KeyError:
-            pass
-        else:
-            break
-    try:
-        config.pop("author")
-    except KeyError:
-        pass
-    return config
-
-
-class AuthorsConfig:
-    _files = ["authors.toml", "pyproject.toml"]
-    _defaults = {
+class AuthorsConfig(UserDict):
+    _FILES = [".rollcall.toml", "rollcall.toml", "pyproject.toml"]
+    _DEFAULTS = {
         "authors_file": "AUTHORS.rst",
         "ignore": (),
         "author_format": "{name}",
+        "roll_file": ".roll.toml",
     }
 
-    def __init__(self, **kwds):
+    def __init__(self, *args, **kwds):
 
-        self._config = ChainMap(
-            {k: v for k, v in kwds.items() if k in self._defaults},
-            load_first_of(self._files, "rb"),
-            self._defaults,
+        user_data = {
+            k: v for k, v in dict(*args, **kwds).items() if k in self._DEFAULTS
+        }
+
+        self.data = ChainMap(
+            user_data, AuthorsConfig._load_first_of(self._FILES), self._DEFAULTS
         )
-
-    def __getitem__(self, key):
-        return self._config[key]
 
     def __str__(self):
         lines = ["[tool.rollcall]"]
-        for key, value in sorted(self._config.items(), key=lambda item: item[0]):
+        for key, value in sorted(self.data.items(), key=lambda item: item[0]):
             lines.append(f"{key} = {value!r}")
         return os.linesep.join(lines)
+
+    @classmethod
+    def from_toml(cls, toml_file):
+        with open(toml_file, mode="rb") as fp:
+            config = tomllib.load(fp)["tool"]["rollcall"]
+        return cls(config)
+
+    @staticmethod
+    def _load_toml(name):
+        with open(name, mode="rb") as fp:
+            config = tomllib.load(fp)["tool"]["rollcall"]
+        return config
+
+    @staticmethod
+    def _load_first_of(files):
+        for name in files:
+            try:
+                config = AuthorsConfig._load_toml(name)
+            except (FileNotFoundError, KeyError):
+                pass
+            else:
+                break
+        else:
+            config = {}
+
+        try:
+            config.pop("author")
+        except KeyError:
+            pass
+        return config
 
 
 class GitLog:
@@ -74,7 +78,9 @@ class GitLog:
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
-        return process
+        if process.returncode != 0:
+            raise RuntimeError(process.stderr)
+        return process.stdout
 
     def __str__(self):
         return " ".join(self._args)
