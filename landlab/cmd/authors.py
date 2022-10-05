@@ -1,12 +1,17 @@
 import itertools
 import os
 import subprocess
+import textwrap
 from collections import ChainMap, UserDict
 
 try:
     import tomllib
 except ModuleNotFoundError:
     import tomli as tomllib
+
+
+class AuthorsSubprocessError(Exception):
+    pass
 
 
 class AuthorsConfig(UserDict):
@@ -67,7 +72,7 @@ class AuthorsConfig(UserDict):
 
 class GitLog:
     def __init__(self, format):
-        self._format = format
+        self._format = f'"{format}"'
         self._args = ["git", "log", f"--format={self._format}"]
 
     def __call__(self):
@@ -79,7 +84,11 @@ class GitLog:
             stdin=subprocess.PIPE,
         )
         if process.returncode != 0:
-            raise RuntimeError(process.stderr)
+            raise AuthorsSubprocessError(
+                f"`{self} did not run successfully` (exit code was {process.returncode})\n"
+                + textwrap.indent(process.stderr, prefix="  ")
+                + "This error originates from a subprocess."
+            )
         return process.stdout
 
     def __str__(self):

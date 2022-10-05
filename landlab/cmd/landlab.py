@@ -10,7 +10,7 @@ from functools import partial
 import numpy as np
 import rich_click as click
 
-from .authors import AuthorsConfig, AuthorList, GitLog
+from .authors import AuthorsConfig, AuthorsSubprocessError, AuthorList, GitLog
 
 from landlab import (
     ModelGrid,
@@ -181,15 +181,14 @@ def create(ctx, update_existing):
     roll_file = pathlib.Path(ctx.parent.params["roll_file"])
 
     git_log = GitLog("%an, %ae")
-    if verbose and not silent:
-        out(f"{str(git_log)}")
-
     try:
         names_and_emails = git_log()
-    except RuntimeError as error:
-        err("error running `git log`")
+    except AuthorsSubprocessError as error:
         err(error)
         raise click.Abort()
+    else:
+        if verbose and not silent:
+            out(f"{git_log}")
 
     if not silent and update_existing:
         if not roll_file.is_file():
@@ -220,17 +219,15 @@ def build(ctx):
     roll_file = pathlib.Path(ctx.parent.params["roll_file"])
 
     git_log = GitLog("%aN")
-
-    if verbose and not silent:
-        out(f"{str(git_log)}")
     try:
         commit_authors = git_log()
-    except RuntimeError as error:
-        err("unable to get commit authors")
+    except AuthorsSubprocessError as error:
         err(error)
         raise click.Abort()
+    else:
+        if verbose and not silent:
+            out(f"{git_log}")
 
-    # out(f"building authors file: {authors_file}")
     intro = (
         _read_until(authors_file, until=".. rollcall start-author-list")
         if authors_file.is_file()
@@ -334,14 +331,14 @@ def list(ctx, file):
     silent = ctx.parent.parent.params["silent"]
 
     git_log = GitLog("%aN")
-    if verbose and not silent:
-        out(f"{str(git_log)}")
     try:
         commit_authors = git_log()
-    except RuntimeError as error:
-        err("unable to get commit authors")
+    except AuthorsSubprocessError as error:
         err(error)
         raise click.Abort()
+    else:
+        if verbose and not silent:
+            out(f"{git_log}")
 
     if verbose and not silent:
         out(f"reading authors from {file}")
