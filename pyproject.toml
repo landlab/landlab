@@ -194,3 +194,7 @@ directory = "misc"
 name = "Other Changes and Additions"
 showcontent = true
 
+[tool.rollcall]
+ignore = ['(no author)', 'root']
+authors_file = 'AUTHORS.rst'
+author_format = "* `{name} <https://github.com/{github}>`_"
