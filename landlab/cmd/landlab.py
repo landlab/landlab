@@ -150,89 +150,106 @@ def validate(component):
     type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
     help="existing authors file",
 )
+@click.option(
+    "--roll-file",
+    default=".roll.toml",
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
+    help="The file that contains a list of authors",
+)
 @click.pass_context
-def authors(ctx, ignore, authors_file):
+def authors(ctx, ignore, authors_file, roll_file):
     verbose = ctx.parent.params["verbose"]
     silent = ctx.parent.params["silent"]
 
     config = AuthorsConfig(**{k: v for k, v in ctx.params.items() if v})
 
-    ctx.params["authors_file"] = config["authors_file"]
-    ctx.params["ignore"] = config["ignore"]
-    ctx.params["author_format"] = config["author_format"]
+    for k, v in config.items():
+        ctx.params[k] = v
 
     if verbose and not silent:
-        out(f"{str(config)}")
+        config_str = textwrap.indent(str(config), prefix="  ")
+        out("using the following configuration:")
+        out(f"{config_str}")
 
 
 @authors.command()
 @click.option("--update-existing/--no-update-existing", default=True)
-@click.option(
-    "--file",
-    default="authors.toml",
-    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
-    help="existing authors file",
-)
 @click.pass_context
-def create(ctx, update_existing, file):
+def create(ctx, update_existing):
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
+    roll_file = pathlib.Path(ctx.parent.params["roll_file"])
 
     git_log = GitLog("%an, %ae")
     if verbose and not silent:
         out(f"{str(git_log)}")
 
-    process = git_log()
-
-    if update_existing and not pathlib.Path(file).is_file():
-        err(f"not a file: {file}")
+    try:
+        names_and_emails = git_log()
+    except RuntimeError as error:
+        err("error running `git log`")
+        err(error)
         raise click.Abort()
 
-    if update_existing and pathlib.Path(file).is_file():
-        if verbose and not silent:
-            out(f"updating existing authors file: {file}")
-        authors = AuthorList.from_toml(file)
-    else:
-        if verbose and not silent:
-            out("ignoring any existing authors files")
-        authors = AuthorList()
+    if not silent and update_existing:
+        if not roll_file.is_file():
+            err(f"nothing to update ({roll_file})")
+        else:
+            out(f"updating existing author roll ({roll_file})")
 
-    if process.returncode == 0:
-        authors.update(AuthorList.from_csv(process.stdout))
-        for author in sorted(authors, key=lambda item: item.name):
-            print(author.to_toml())
-            print("")
-    else:
-        err("unable to retrieve commit authors")
-        err(process.stderr)
+    authors = (
+        AuthorList.from_toml(roll_file)
+        if update_existing and roll_file.is_file()
+        else AuthorList()
+    )
+
+    authors.update(AuthorList.from_csv(names_and_emails))
+    for author in sorted(authors, key=lambda item: item.name):
+        print(author.to_toml())
+        print("")
 
 
 @authors.command()
 @click.pass_context
 def build(ctx):
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
     ignore = set(ctx.parent.params["ignore"])
-    authors_file = ctx.parent.params["authors_file"]
+    authors_file = pathlib.Path(ctx.parent.params["authors_file"])
     author_format = ctx.parent.params["author_format"]
+    roll_file = pathlib.Path(ctx.parent.params["roll_file"])
 
     git_log = GitLog("%aN")
 
-    out(f"{str(git_log)}")
-    process = git_log()
+    if verbose and not silent:
+        out(f"{str(git_log)}")
+    try:
+        commit_authors = git_log()
+    except RuntimeError as error:
+        err("unable to get commit authors")
+        err(error)
+        raise click.Abort()
 
-    with open(authors_file, "r") as fp:
-        out(f"building authors file: {authors_file}")
-        for line in fp.readlines():
-            if line.startswith(".. rollcall start-author-list"):
-                print(line)
-                break
-            print(line, end="")
-    authors = AuthorList.from_toml("authors.toml")
+    # out(f"building authors file: {authors_file}")
+    intro = (
+        _read_until(authors_file, until=".. rollcall start-author-list")
+        if authors_file.is_file()
+        else ""
+    )
+    if len(intro) == 0:
+        err(f"empty or missing authors file ({authors_file})")
+
+    authors = AuthorList.from_toml(roll_file) if roll_file.is_file() else AuthorList()
+
+    if len(authors) == 0:
+        err(f"missing or empty roll ({roll_file})")
 
     commits = defaultdict(int)
-    for author in process.stdout.splitlines():
+    for author in commit_authors.splitlines():
         canonical_name = authors.find_author(author.strip()).name
         commits[canonical_name] += 1
 
+    print(intro)
     for author in sorted(authors, key=lambda a: commits[a], reverse=True):
         github = _guess_github_user(author)
         if github is None:
@@ -244,7 +261,20 @@ def build(ctx):
                     name=author.name, github=author.github, email=author.email
                 )
             )
-            # print(f"* `{author.name} <https://github.com/{author.github}>`_")
+
+
+def _read_until(path_to_file, until=None):
+    with open(path_to_file, "r") as fp:
+        if until is None:
+            return fp.read()
+
+        lines = []
+        for line in fp.readlines():
+            if line.startswith(until):
+                lines.append(line)
+                break
+            lines.append(line)
+    return "".join(lines)
 
 
 def _guess_github_user(author):
@@ -273,20 +303,15 @@ def _guess_github_user(author):
 
 
 @authors.command()
-@click.option(
-    "--file",
-    default="authors.toml",
-    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
-    help="existing authors file",
-)
 @click.pass_context
-def mailmap(ctx, file):
+def mailmap(ctx):
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
+    roll_file = ctx.parent.params["roll_file"]
 
     if verbose and not silent:
-        out(f"reading author list: {file}")
-    authors = AuthorList.from_toml(file)
+        out(f"reading author list: {roll_file}")
+    authors = AuthorList.from_toml(roll_file)
     for author in authors:
         good_name, good_email = author.name, author.email
         for bad_name, bad_email in itertools.product(
@@ -311,14 +336,19 @@ def list(ctx, file):
     git_log = GitLog("%aN")
     if verbose and not silent:
         out(f"{str(git_log)}")
-    process = git_log()
+    try:
+        commit_authors = git_log()
+    except RuntimeError as error:
+        err("unable to get commit authors")
+        err(error)
+        raise click.Abort()
 
     if verbose and not silent:
         out(f"reading authors from {file}")
     authors = AuthorList.from_toml(file)
 
     commits = defaultdict(int)
-    for author in process.stdout.splitlines():
+    for author in commit_authors.splitlines():
         canonical_name = authors.find_author(author.strip()).name
         commits[canonical_name] += 1
 
