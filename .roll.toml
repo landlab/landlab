@@ -89,12 +89,12 @@ github = 'SiccarPoint'
 
 [[tool.rollcall.author]]
 name = 'David Litwin'
-email = '45630470+DavidLitwin@users.noreply.github.com'
+email = 'davidglitwin@posteo.net'
 aliases = [
   'DavidLitwin',
 ]
 alternate_emails = [
-  'davidglitwin@posteo.net',
+  '45630470+DavidLitwin@users.noreply.github.com',
 ]
 
 [[tool.rollcall.author]]
@@ -170,7 +170,7 @@ github = 'jennyknuth'
 
 [[tool.rollcall.author]]
 name = 'Jordan Adams'
-email = 'Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu'
+email = 'jadams15@tulane.edu'
 aliases = [
   'Jordan',
   'jadams15',
@@ -178,8 +178,8 @@ aliases = [
 ]
 alternate_emails = [
   'Jordan@Jordan-Adamss-MacBook-Pro.local',
+  'Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu',
   'jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a',
-  'jadams15@tulane.edu',
   'jadams15@users.noreply.github.com',
 ]
 github = 'jadams15'
