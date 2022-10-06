@@ -56,7 +56,7 @@ class AuthorsConfig(UserDict):
         for name in files:
             try:
                 config = AuthorsConfig._load_toml(name)
-            except (FileNotFoundError, KeyError):
+            except (OSError, KeyError):
                 pass
             else:
                 break
