@@ -288,7 +288,7 @@ def _guess_github_user(author):
         pass
 
     if github is None:
-        for email in author.emails:
+        for email in sorted(author.emails):
             if email.endswith("github.com"):
                 github, _ = email.split("@")
                 if "+" in github:
@@ -296,7 +296,7 @@ def _guess_github_user(author):
                 break
 
     if github is None:
-        for name in author.names:
+        for name in sorted(author.names):
             if name.isalnum():
                 github = name
                 break
