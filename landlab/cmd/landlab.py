@@ -261,7 +261,7 @@ def build(ctx):
 
 
 def _read_until(path_to_file, until=None):
-    with open(path_to_file, "r") as fp:
+    with open(path_to_file) as fp:
         if until is None:
             return fp.read()
 

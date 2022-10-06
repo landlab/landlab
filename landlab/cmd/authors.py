@@ -79,8 +79,7 @@ class GitLog:
         process = subprocess.run(
             self._args,
             text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             stdin=subprocess.PIPE,
         )
         if process.returncode != 0:
@@ -200,12 +199,12 @@ class AuthorList:
                 self._email[email] = author
 
     def __iter__(self):
-        names = set([author.name for author in self._name.values()])
+        names = {author.name for author in self._name.values()}
         for name in sorted(names):
             yield self._name[name]
 
     def __len__(self):
-        names = set([author.name for author in self._name.values()])
+        names = {author.name for author in self._name.values()}
         return len(names)
 
     def find_author(self, name_or_email):
