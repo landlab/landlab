@@ -247,7 +247,7 @@ def build(ctx):
         commits[canonical_name] += 1
 
     print(intro)
-    for author in sorted(authors, key=lambda a: commits[a], reverse=True):
+    for author in sorted(authors, key=lambda a: commits[a.name], reverse=True):
         github = _guess_github_user(author)
         if github is None:
             github = "landlab"
