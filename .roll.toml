@@ -7,6 +7,15 @@ alternate_emails = [
 ]
 
 [[tool.rollcall.author]]
+name = 'Abby Langston'
+email = 'alangston@ksu.edu'
+aliases = [
+  'alangston',
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
 name = 'Allison Pfeiffer'
 email = 'pfeif@uw.edu'
 aliases = [
@@ -24,6 +33,15 @@ aliases = [
 alternate_emails = [
 ]
 github = 'amanaster2'
+
+[[tool.rollcall.author]]
+name = 'Andy Wickert'
+email = 'awickert@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+  'awickert',
+]
+alternate_emails = [
+]
 
 [[tool.rollcall.author]]
 name = 'Benjamin Campforts'
@@ -132,6 +150,16 @@ alternate_emails = [
 ]
 
 [[tool.rollcall.author]]
+name = 'Jay Hariharan'
+email = 'jayaram.hariharan@utexas.edu'
+aliases = [
+  'jay',
+]
+alternate_emails = [
+]
+github = 'elbeejay'
+
+[[tool.rollcall.author]]
 name = 'Jenny Knuth'
 email = 'inkboco@gmail.com'
 aliases = [
@@ -155,6 +183,15 @@ alternate_emails = [
   'jadams15@users.noreply.github.com',
 ]
 github = 'jadams15'
+
+[[tool.rollcall.author]]
+name = 'Josh Wolpert'
+email = '66105693+josh-wolpert@users.noreply.github.com'
+aliases = [
+  'josh-wolpert',
+]
+alternate_emails = [
+]
 
 [[tool.rollcall.author]]
 name = 'Katy Barnhart'
@@ -182,6 +219,19 @@ aliases = [
 alternate_emails = [
 ]
 github = 'kthyng'
+
+[[tool.rollcall.author]]
+name = 'Margaux Mouchene'
+email = 'margaux.mouchene@laposte.net'
+aliases = [
+  'margauxmouchene',
+]
+alternate_emails = [
+  'margauxmouchene@Margauxs-iMac.local',
+  'margauxmouchene@dhcp-216-222.tulane.edu',
+  'margauxmouchene@dhcp-216-249.tulane.edu',
+  'margauxmouchene@dhcp-216-251.tulane.edu',
+]
 
 [[tool.rollcall.author]]
 name = 'Mark Piper'
@@ -248,6 +298,15 @@ alternate_emails = [
 ]
 
 [[tool.rollcall.author]]
+name = 'Sarah Lundell'
+email = 's_lundell@att.net'
+aliases = [
+  'slundell123',
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
 name = 'Sebastien Lenard'
 email = 'sebastien.lenard@gmail.com'
 aliases = [
@@ -266,56 +325,6 @@ alternate_emails = [
 ]
 
 [[tool.rollcall.author]]
-name = 'Abby Langston'
-email = 'alangston@ksu.edu'
-aliases = [
-  'alangston',
-]
-alternate_emails = [
-]
-
-[[tool.rollcall.author]]
-name = 'Andy Wickert'
-email = 'awickert@093548ea-dc74-4ebb-8037-4be9f23db00a'
-aliases = [
-  'awickert',
-]
-alternate_emails = [
-]
-
-[[tool.rollcall.author]]
-name = 'Jay Hariharan'
-email = 'jayaram.hariharan@utexas.edu'
-aliases = [
-  'jay',
-]
-alternate_emails = [
-]
-github = 'elbeejay'
-
-[[tool.rollcall.author]]
-name = 'Josh Wolpert'
-email = '66105693+josh-wolpert@users.noreply.github.com'
-aliases = [
-  'josh-wolpert'
-]
-alternate_emails = [
-]
-
-[[tool.rollcall.author]]
-name = 'Margaux Mouchene'
-email = 'margaux.mouchene@laposte.net'
-aliases = [
-  'margauxmouchene',
-]
-alternate_emails = [
-  'margauxmouchene@Margauxs-iMac.local',
-  'margauxmouchene@dhcp-216-222.tulane.edu',
-  'margauxmouchene@dhcp-216-249.tulane.edu',
-  'margauxmouchene@dhcp-216-251.tulane.edu',
-]
-
-[[tool.rollcall.author]]
 name = 'root'
 email = 'root@093548ea-dc74-4ebb-8037-4be9f23db00a'
 aliases = [
@@ -323,12 +332,4 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
-name = 'Sarah Lundell'
-email = 's_lundell@att.net'
-aliases = [
-  'slundell123',
-]
-alternate_emails = [
-]
 
