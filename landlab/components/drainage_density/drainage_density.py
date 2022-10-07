@@ -5,6 +5,7 @@ from warnings import warn
 import numpy as np
 
 from landlab import Component
+from .cfuncs import _calc_dists_to_channel
 
 
 class DrainageDensity(Component):
@@ -267,14 +268,16 @@ class DrainageDensity(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
-                "A route-to-multiple flow director has been "
-                "run on this grid. The landlab development team has not "
-                "verified that DrainageDensity is compatible with "
-                "route-to-multiple methods. Please open a GitHub Issue "
-                "to start this process."
-            )
-            raise NotImplementedError(msg)
+            self._MFD = True
+
+            if "flow__receiver_proportions" not in self._grid.at_node:
+                msg = (
+                    "DrainageDensity: flow__receiver_proportions are required "
+                    "when using a route-to multiple method."
+                )
+                raise ValueError(msg)
+        else:
+            self._MFD = False
 
         if channel__mask is not None:
             if area_coefficient is not None:
@@ -327,6 +330,16 @@ class DrainageDensity(Component):
             self._update_channel_mask = self._update_channel_mask_array
             grid.at_node["channel__mask"] = channel__mask
 
+        # Upstream node order
+        self._upstream_order = grid.at_node["flow__upstream_node_order"]
+
+        if self._MFD:
+            self._update_network_arrays()
+        else:
+            self._flow_receivers = self._grid.at_node["flow__receiver_node"]
+            self._stack_links = self._grid.at_node["flow__link_to_receiver_node"]
+            self._steepest_slope = self._grid.at_node["topographic__steepest_slope"]
+
         if channel__mask is None:
             if area_coefficient is None:
                 raise ValueError(
@@ -378,15 +391,6 @@ class DrainageDensity(Component):
         # the channel_network must be uint8, not bool...
         self._channel_network = grid.at_node["channel__mask"]
 
-        # Flow receivers
-        self._flow_receivers = grid.at_node["flow__receiver_node"]
-
-        # Links to receiver nodes
-        self._stack_links = grid.at_node["flow__link_to_receiver_node"]
-
-        # Upstream node order
-        self._upstream_order = grid.at_node["flow__upstream_node_order"]
-
         # Distance to channel
         if "surface_to_channel__minimum_distance" in grid.at_node:
             self._distance_to_channel = grid.at_node[
@@ -412,10 +416,20 @@ class DrainageDensity(Component):
             * np.power(self._grid.at_node["drainage_area"], self._area_exponent)
             * self._slope_coefficient
             * np.power(
-                self._grid.at_node["topographic__steepest_slope"], self._slope_exponent
+                self._steepest_slope, self._slope_exponent
             )
         ) > self._channelization_threshold
         self._grid.at_node["channel__mask"] = channel__mask.astype(np.uint8)
+
+    def _update_network_arrays(self):
+        # Flow receivers and links to receiver nodes
+        # this now needs to be done every timestep b/c of sorting.
+        if self._MFD:
+            proportions = self._grid["node"]["flow__receiver_proportions"]
+            sort_proportions = np.argsort(proportions, axis=1)
+            self._flow_receivers  = np.take_along_axis(self._grid["node"]["flow__receiver_node"], sort_proportions, axis=1)[:,-1]
+            self._stack_links = np.take_along_axis(self._grid["node"]["flow__link_to_receiver_node"], sort_proportions, axis=1)[:,-1]
+            self._steepest_slope = np.take_along_axis(self._grid["node"]["topographic__steepest_slope"], sort_proportions, axis=1)[:,-1]
 
     def calculate_drainage_density(self):
         """Calculate drainage density.
@@ -428,7 +442,8 @@ class DrainageDensity(Component):
         landscape_drainage_density : float (1/m)
             Drainage density over the model domain.
         """
-        from .cfuncs import _calc_dists_to_channel
+
+        self._update_network_arrays()
 
         if self._mask_as_array is False:
             self._update_channel_mask()

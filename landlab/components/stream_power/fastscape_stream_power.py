@@ -169,6 +169,14 @@ class FastscapeEroder(Component):
             "mapping": "node",
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
+        "flow__receiver_proportions": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of proportion of flow sent to each receiver.",
+        },
         "flow__upstream_node_order": {
             "dtype": int,
             "intent": "in",
@@ -227,16 +235,16 @@ class FastscapeEroder(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+        # save a flag for MFD.
+        self._MFD = grid.at_node["flow__receiver_node"].size != grid.size("node")
+
+        if self._MFD:
+            if "flow__receiver_proportions" not in self._grid.at_node:
                 msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that FastscapeEroder is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
+                    "flow__receiver_proportions are required when using a "
+                    "route-to multiple method with FastscapeEroder."
                 )
-                raise NotImplementedError(msg)
+                raise ValueError(msg)
 
         if not erode_flooded_nodes:
             if "flood_status_code" not in self._grid.at_node:
@@ -297,25 +305,28 @@ class FastscapeEroder(Component):
             flooded_nodes = []
 
         upstream_order_IDs = self._grid.at_node["flow__upstream_node_order"]
-        flow_receivers = self._grid["node"]["flow__receiver_node"]
         z = self._grid.at_node["topographic__elevation"]
 
-        defined_flow_receivers = np.not_equal(
-            self._grid.at_node["flow__link_to_receiver_node"], self._grid.BAD_INDEX
-        )
+        if self._MFD:
+            # choose the flow recievers that got the majority of the flow.
+            # discharge is already at NODE, and not at link. This functionally
+            # means that we are solving flow with MFD, but doing erosion on
+            # a timesteps steepest descent pathway.
+
+            proportions = self._grid["node"]["flow__receiver_proportions"]
+            sort_proportions = np.argsort(proportions, axis=1)
+            flow_receivers = np.take_along_axis(self._grid["node"]["flow__receiver_node"], sort_proportions, axis=1)[:,-1]
+            link_carrying_flow = np.take_along_axis(self._grid["node"]["flow__link_to_receiver_node"], sort_proportions, axis=1)[:,-1]
+        else:
+            flow_receivers = self._grid["node"]["flow__receiver_node"]
+            link_carrying_flow = self._grid.at_node["flow__link_to_receiver_node"]
+
+        defined_flow_receivers = np.not_equal(link_carrying_flow, self._grid.BAD_INDEX)
 
         if isinstance(self._grid, RasterModelGrid):
-            flow_link_lengths = self._grid.length_of_d8[
-                self._grid.at_node["flow__link_to_receiver_node"][
-                    defined_flow_receivers
-                ]
-            ]
+            flow_link_lengths = self._grid.length_of_d8[link_carrying_flow][defined_flow_receivers]
         else:
-            flow_link_lengths = self._grid.length_of_link[
-                self._grid.at_node["flow__link_to_receiver_node"][
-                    defined_flow_receivers
-                ]
-            ]
+            flow_link_lengths = self._grid.length_of_link[link_carrying_flow][defined_flow_receivers]
 
         np.power(self._A, self._m, out=self._A_to_the_m)
         self._alpha[defined_flow_receivers] = (
