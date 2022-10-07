@@ -16,13 +16,6 @@ class Deciduous(object):
     def __init__(self):
         self.keep_green_parts=False
 
-def retention_select(string_val):
-    retention={
-        'evergreen':Evergreen,
-        'deciduous':Deciduous
-    }
-    return retention[string_val]()
-
 #Dispersal classes and selection method
 class Clonal(object):
     def __init__(self):
@@ -33,117 +26,121 @@ class Clonal(object):
 class Seed(object):
     def __init__(self):
         pass
-    def dispersal(self):
+    def disperse(self):
         print('New plant emerges from seed some distance within parent plant')
 
 class Random(object):
     def __init__(self):
         pass
-    def dispersal(self):
+    def disperse(self):
         print('New plant randomly appears')
 
-def dispersal_select(string_val):
-    dispersal={
-        'clonal':Clonal,
-        'seed':Seed,
-        'random':Random
-    }
-    return dispersal[string_val]()
-
 #Duration classes and selection method
-class Annual(object):
-    def __init__(self, retention):
-        self.retention=retention_select(retention)
-    
-    def dormancy(self):
+class Duration(object):
+    def __init__(self, **kwargs):
+        pass
+
+class Annual(Duration):
+    def __init__(self):
+        super().__init__()
+
+    def enter_dormancy(self):
         print('I die at dormancy')
     
-    def emergence(self,emerge_size=[0.01,0.1,0.5]):
+    def emerge(self,emerge_size=[0.01,0.1,0.5]):
         print('I start as a seedling between 100 and 200% of the minimum size')
         #emerge size should be the min size for annuals
-        emerge_size_min=sum(emerge_size)
-        emerge_size_max=2*emerge_size_min
-        return emerge_size_min, emerge_size_max
+        return self.initialize_biomass(emerge_size)
     
-    def initial(self, grow_params={'plant_part_min':[0.01,0.1,0.5]}):
+    def initialize_biomass(self, grow_params={'plant_part_min':[0.01,0.1,0.5]}):
         #This function provides the range of mass an initial annual plant can have
         #Since initalization of annuals is the same as emergence, use the same function
-        init_mass_min, init_mass_max=self.emergence(grow_params['plant_part_min'])
-        return init_mass_min, init_mass_max
+        init_size_min=sum(grow_params['plant_part_min'])
+        init_size_max=2*init_size_min
+        return init_size_min, init_size_max
 
-class Perennial(object):
-    def __init__(self, retention):
-        self.retention=retention_select(retention)
-    def dormancy(self):
+class Perennial(Duration):
+    def __init__(self, retention_val):
+        self.retention=self.select_retention_class(retention_val)
+    
+    def select_retention_class(self, retention_val):
+        retention={
+            'evergreen':Evergreen,
+            'deciduous':Deciduous
+        }
+        return retention[retention_val]
+
+    def enter_dormancy(self):
         print('I move carbs among live parts around during dormancy')
     
-    def emergence(self, emerge_min=[0.01,0.1,0.5]):
+    def emerge(self, emerge_min=[0.01,0.1,0.5]):
         print('I will transfer some stored carbohydrate to photosynthetic parts')
 
-    def initial(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
+    def initialize_biomass(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
         #This function provides the range of mass an initial perennial plant can have
         init_min_mass=sum(grow_params['plant_part_min'])
         init_max_mass=sum(grow_params['plant_part_max'])
         return [init_min_mass, init_max_mass]
 
-def duration_select(string_val, retention):
-    duration={
-        'annual':Annual,
-        'perennial':Perennial
-    }
-    return duration[string_val](retention)
 
 #Growth habit classes and selection method
 #Growth habit uses duration properties to assign dormancy and emergence methods
-class Forbherb(object):
-    def __init__(self, duration, retention='None'):
-        self.duration=duration_select(duration, retention)
+class Habit(object):
+    def __init__(self,duration_val, retention_val):
+        self.duration=self.select_duration_class(duration_val, retention_val)
+
+    def select_duration_class(self, duration_val, retention_val):
+        duration={
+            'annual':Annual,
+            'perennial':Perennial(retention_val)
+        }
+        return duration[duration_val]   
+
+class Forbherb(Habit):
+    def __init__(self, duration_val, retention_val='None'):
+        super().__init__(duration_val, retention_val)
         self.green_parts=('leaf', 'stem')
 
-    def dormancy(self):
-        self.duration.dormancy()
+    def enter_dormancy(self):
+        self.duration.enter_dormancy()
 
-    def emergence(self):
+    def emerge(self):
         # Use this to move carbohydrate to aboveground biomass from storage organs and roots
-        pass
+        self.duration.emerge()
 
-    def initial_habit(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
-        self.duration.initial(grow_params)
+    def initialize_biomass(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
+        self.duration.initialize_biomass(grow_params)
 
-class Graminoid(object):
-    def __init__(self, duration, retention='None'):
-        self.duration=duration_select(duration, retention)
+class Graminoid(Habit):
+    def __init__(self, duration_val, retention_val='None'):
+        super().__init__(duration_val,retention_val)
+
         self.green_parts=('leaf','stem')
 
-    def dormancy(self):
-        self.duration.dormancy()
+    def enter_dormancy(self):
+        self.duration.enter_dormancy()
 
-    def initial_habit(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
-        init_mass_min, init_mass_max=self.duration.initial(grow_params)
+    def emerge(self):
+        self.duration.emerge()
+
+    def initialize_biomass(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
+        init_mass_min, init_mass_max=self.duration.initialize_biomass(grow_params)
         return init_mass_min, init_mass_max
 
-class Shrub(object):
-    def __init__(self, duration, retention='None'):
-        self.duration=duration_select(duration, retention)
+class Shrub(Habit):
+    def __init__(self, duration_val, retention_val='None'):
+        super().__init__(duration_val,retention_val)
+        
         self.green_parts=('leaf')
 
-class Tree(object):
-    def __init__(self, duration, retention='None'):
-        self.duration=duration_select(duration, retention)
+class Tree(Habit):
+    def __init__(self, duration_val, retention_val):
+        super().__init__(duration_val, retention_val='None')
+
         self.green_parts=('leaf')
 
-class Vine(object):
+class Vine(Habit):
     pass
-
-def habit_select(string_val, duration, retention):
-    habit={
-        'forb_herb':Forbherb,
-        'graminoid':Graminoid,
-        'shrub':Shrub,
-        'tree':Tree,
-        'vine':Vine
-    }
-    return habit[string_val](duration, retention)
 
 #Growth form classes and selection method
 class Bunch(Seed):
@@ -194,19 +191,6 @@ class Thicketforming(Seed):
     def branch(self):
         print('Limited lateral branching due to dense thickets')
 
-def form_select(string_val):
-    form={
-        'bunch':Bunch,
-        'colonizing':Colonizing,
-        'multiple_stems':Multiplestems,
-        'rhizomatous':Rhizomatous,
-        'single_crown':Singlecrown,
-        'single_stem':Singlestem,
-        'stoloniferous':Stoloniferous,
-        'thicket_forming':Thicketforming
-    }
-    return form[string_val]()
-
 #Shape and orientation classes and selection method
 class Climbing(object):
     pass
@@ -237,21 +221,6 @@ class Semierect(object):
 
 class Vase(object):
     pass
-
-def shape_select(string_val):
-    shape={
-        'climbing':Climbing,
-        'conical':Conical,
-        'decumbent':Decumbent,
-        'erect':Erect,
-        'irregular':Irregular,
-        'oval':Oval,
-        'prostrate':Prostrate,
-        'rounded':Rounded,
-        'semi_erect':Semierect,
-        'vase':Vase
-    }
-    return shape[string_val]()
 
 
 #Define species class that inherits composite class methods
@@ -301,40 +270,98 @@ class Species(object):
                 },
             },
     ):
+        self.validate_plant_factors(species_params['plant_factors'])
+        self.validate_grow_params(species_params['growparams'])
+        
         self.species_params=species_params
-        #read vegetation parameters and select 
-        self.habit=habit_select(
+        
+        self.habit=self.select_habit_class(
             self.species_params['plant_factors']['growth_habit'], 
             self.species_params['plant_factors']['duration'], 
             self.species_params['plant_factors']['leaf_retention']
             )
-        self.form=form_select(self.species_params['plant_factors']['growth_form'])
-        self.shape=shape_select(self.species_params['plant_factors']['shape'])
+        self.form=self.select_form_class(self.species_params['plant_factors']['growth_form'])
+        self.shape=self.select_shape_class(self.species_params['plant_factors']['shape'])
+        
+        self.set_initial_biomass()
 
-        growdict=species_params['growparams']
-        #Check validity of growing season beginning and ending days, senescence beginning, and calculate growing season length
-        end=growdict['growing_season_end']
-        begin=growdict['growing_season_start']
-        senes=growdict['senescence_start']
-        if (begin > 0) & (begin  < 366) & (end > 0) & (end < 366) & (end > begin) & (senes > begin) & (senes < end):
-            length=end-begin+1
-        elif (begin < 1) | (begin > 365):
-            msg='Growing season beginning must be between 1-365'
+    def validate_plant_factors(self,plant_factors):
+        plant_factor_options={
+            'species':[],
+            'growth_habit':['forb_herb','graminoid','shrub','tree','vine'],
+            'monocot_dicot':['monocot','dicot'],
+            'angio_gymno':['angiosperm','gymnosperm'],
+            'duration':['annual','perennial'],
+            'leaf_retention':['deciduous','evergreen'],
+            'growth_form':['bunch','colonizing','multiple_stems','rhizomatous','single_crown','single_stem','stoloniferous','thicket_forming'],
+            'shape':['climbing','columnar','conical','decumbent','erect','irregular','oval','prostrate','rounded','semi_erect','vase'],
+            'p_type':['C3','C4']
+        }
+
+        for key in plant_factors:
+            try: 
+                opt_list=plant_factor_options[key]
+                if opt_list:
+                    if plant_factors[key] not in opt_list:
+                        msg='Invalid '+str(key)+' option'
+                        raise ValueError(msg)
+            except:
+                msg='Unexpected variable name in species parameter dictionary. Please check input parameter file.'
+                raise ValueError(msg)
+
+    def validate_grow_params(self,growparams):
+        multipart_vars=['respiration_coefficient', 'glucose_requirement','root_to_leaf_coeffs','root_to_stem_coeffs']
+        if (growparams['growing_season_start'] < 0) | (growparams['growing_season_start']  > 366):
+            msg='Growing season beginning must be integer values between 1-365'
             raise ValueError(msg)
-        elif (end < 1) | (end > 365):
-            msg='Growing season end must be between 1-365'
+        elif (growparams['growing_season_end'] < growparams['growing_season_start']) | (growparams['growing_season_end'] >366):
+            msg='Growing season end must be between 1-365 and greater than the growing season beginning'
             raise ValueError(msg)
-        elif end < begin:
-            msg='Growing season beginning must be before growing season end'
-            raise ValueError(msg)
-        elif (senes < begin) | (senes > end):
+        elif (growparams['senescence_start'] < growparams['growing_season_start']) | (growparams['senescence_start'] > growparams['growing_season_end']):
             msg='Start of senescence must be within the growing season'
             raise ValueError(msg)
-        else:
-            msg='Growing season beginning and end must be integer values between 1-365'
-            raise ValueError(msg)
-        self.species_params['growparams']['growing_season_length']=length
-        self.initial_mass()
+        for vars in multipart_vars:
+            if len(growparams[vars])<3:
+                msg='Must include respiration coefficients for at least roots, leaves, and stems'
+                raise ValueError(msg)
+
+    def select_habit_class(self, habit_val, duration, retention):
+        habit={
+            'forb_herb':Forbherb,
+            'graminoid':Graminoid,
+            'shrub':Shrub,
+            'tree':Tree,
+            'vine':Vine
+        }
+        return habit[habit_val](duration, retention)
+    
+    def select_form_class(self, form_val):
+        form={
+            'bunch':Bunch,
+            'colonizing':Colonizing,
+            'multiple_stems':Multiplestems,
+            'rhizomatous':Rhizomatous,
+            'single_crown':Singlecrown,
+            'single_stem':Singlestem,
+            'stoloniferous':Stoloniferous,
+            'thicket_forming':Thicketforming
+        }
+        return form[form_val]()
+
+    def select_shape_class(self,shape_val):
+        shape={
+            'climbing':Climbing,
+            'conical':Conical,
+            'decumbent':Decumbent,
+            'erect':Erect,
+            'irregular':Irregular,
+            'oval':Oval,
+            'prostrate':Prostrate,
+            'rounded':Rounded,
+            'semi_erect':Semierect,
+            'vase':Vase
+        }
+        return shape[shape_val]()
 
     def branch(self):
         self.form.branch()
@@ -342,25 +369,12 @@ class Species(object):
     def disperse(self):
         self.form.dispersal()
 
-    def dormancy(self):
-        self.habit.dormancy()
+    def enter_dormancy(self):
+        self.habit.enter_dormancy()
 
     def emerge(self):
-        self.habit.emergence()
+        self.habit.emerge()
 
-    def initial_mass(self):
-        min_mass, max_mass=self.habit.initial_habit()
+    def set_initial_biomass(self):
+        min_mass, max_mass=self.habit.initialize_biomass()
         self.species_params['growparams']['init_biomass']=[min_mass,max_mass]
-        #return [min_mass, max_mass]
-
-
-#retention='Deciduous'
-#duration='Annual'
-#habit='Graminoid'
-#form='Rhizomatous'
-#shape='Erect'
-
-#ammophila=Species(duration, retention, habit, form, shape)
-#ammophila.disperse()
-#ammophila.branch()
-#ammophila.emerge()

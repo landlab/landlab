@@ -35,10 +35,13 @@ class VegParams:
             self.vegparams={'Corn': {
                     'plant_factors':{
                         'species':'Corn',
-                        'growth_form': 1,
+                        'growth_habit': 'forb_herb',
                         'monocot_dicot': 'monocot',
                         'angio_gymno': 'angiosperm',
                         'annual_perennial': 'annual',
+                        'leaf_retention': 'deciduous',
+                        'growth_form':'single_stem',
+                        'shape':'erect',
                         'ptype':'C3'
                     },
                     'growparams': {
@@ -114,17 +117,22 @@ class VegParams:
                     x=pd.DataFrame()
                     #Create list of values for a community on each tab
                     for i in coms:    
-                        df_in=xlin.parse(i, usecols='B,D',skiprows=[1,8,30,36,40,43,46])
+                        df_in=xlin.parse(i, usecols='B,D')
+                        df_in.set_index('Variable Name', inplace=True)
                         #Define plant factor keys and create plant factor dictionary
                         factor_keys=[
                             'species',
-                            'growth_form',
+                            'growth_habit',
                             'monocot_dicot',
                             'angio_gymno',
-                            'annual_perennial',
-                            'ptype'
+                            'duration',
+                            'leaf_retention',
+                            'growth_form',
+                            'shape',
+                            'p_type'
                         ]
                         factor=self._makedict(df_in, factor_keys, 'plant_factors')    
+                        
                         #Define growth parameter keys and create growthparams dictionary                   
                         growth_keys=[
                             'growing_season_start',
@@ -135,39 +143,30 @@ class VegParams:
                             'k_light_extinct',
                             'light_half_sat',
                             'p_max',
-                            'plant_part_min'
+                            'plant_part_min',
+                            'root_to_leaf_coeffs',
+                            'root_to_stem_coeffs'
                         ]
+                        #Replace null values for coefficients with Poorter-derived coefficients if necessary
+                        woody_herb=('herb','woody')[factor['plant_factors']['growth_habit']=='shrub']
+                        opt_2=(factor['plant_factors']['monocot_dicot'], factor['plant_factors']['angio_gymno'])[woody_herb=='woody']
+                        options={
+                            'woody':{
+                                'angiosperm':{'root_to_leaf_coeffs':[0.090,0.889,-0.0254],'root_to_stem_coeffs':[-0.097,1.071,0.0179]},
+                                'gymnosperm':{'root_to_leaf_coeffs':[0.243,0.924,-0.0282],'root_to_stem_coeffs':[-0.070,1.236,-0.0186]}
+                                },
+                            'herb':{
+                                'monocot':{'root_to_leaf_coeffs':[0.031,0.951,0],'root_to_stem_coeffs':[-0.107,1.098,0.0216]},
+                                'dicot':{'root_to_leaf_coeffs':[0.259,0.916,0],'root_to_stem_coeffs':[-0.111,1.029,0]}
+                                }
+                            }
+                        df_fill=options[woody_herb][opt_2]
+                        if df_in.loc['root_to_leaf_coeffs'].isnull().values.any():
+                            df_in.loc['root_to_leaf_coeffs','Values']=df_fill['root_to_leaf_coeffs']
+                        if df_in.loc['root_to_stem_coeffs'].isnull().values.any():
+                            df_in.loc['root_to_stem_coeffs','Values']=df_fill['root_to_stem_coeffs']
                         grow=self._makedict(df_in, growth_keys, 'growparams')
-                        leaf_coeffs=df_in[df_in['Variable Name']=='root_to_leaf_coeffs']
-                        stem_coeffs=df_in[df_in['Variable Name']=='root_to_stem_coeffs']
-                        if leaf_coeffs['Values'].isnull().values.any():
-                            if factor['plant_factors']['growth_form']=='shrub':
-                                if factor['plant_factors']['angio_gymno'] == 'angiosperm':
-                                    grow['growparams']['root_to_leaf_coeffs'] = [0.090,0.889,-0.0254]
-                                elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
-                                    grow['growparams']['root_to_leaf_coeffs'] = [0.243,0.924,-0.0282]
-                            elif factor['plant_factors']['monocot_dicot'] == 'monocot':
-                                grow['growparams']['root_to_leaf_coeffs'] = [0.031,0.951,0]
-                            elif factor['plant_factors']['monocot_dicot'] == 'dicot':
-                                grow['growparams']['root_to_leaf_coeffs'] = [0.259,0.916,0]
-                        else:
-                            key=['root_to_leaf_coeffs']
-                            leafcoeff_dict = self._makedict(leaf_coeffs, key, 'growparams')
-                            grow['growparams'].update(leafcoeff_dict['growparams'])
-                        if stem_coeffs['Values'].isnull().values.any():
-                            if factor['plant_factors']['growth_form']=='shrub':
-                                if factor['plant_factors']['angio_gymno'] == 'angiosperm':
-                                    grow['growparams']['root_to_stem_coeffs'] = [-0.097,1.071,0.0179]
-                                elif factor['plant_factors']['angio_gymno'] == 'gymnosperm':
-                                    grow['growparams']['root_to_stem_coeffs'] = [-0.070,1.236,-0.0186]
-                            elif factor['plant_factors']['monocot_dicot'] == 'monocot':
-                                grow['growparams']['root_to_stem_coeffs'] = [-0.107,1.098,0.0216]
-                            elif factor['plant_factors']['monocot_dicot'] == 'dicot':
-                                grow['growparams']['root_to_stem_coeffs'] = [-0.111,1.029,0]
-                        else:
-                            key=['root_to_stem_coeffs']
-                            stemcoeff_dict = self._makedict(stem_coeffs, key, 'growparams')
-                            grow['growparams'].update(stemcoeff_dict['growparams'])
+
                         #If plantsize is required process, define plant size parameter keys and create sizeparams dictionary
                         if 'plantsize' in processes:
                             size_keys=[
@@ -277,7 +276,8 @@ class VegParams:
 #Private method to read in dataframe from Excel and return a formatted dictionary
     def _makedict(self, df, keys, name):
         #Only read in variables with defined key names
-        temp=df[df['Variable Name'].isin(keys)]
+        #temp=df[df['Variable Name'].isin(keys)]
+        temp=df.loc[keys]
         if temp['Values'].isnull().values.any():
             msg='Cannot build dictionary for {}. One of the variable values is missing. Please check the input file and try again.'.format(name)
             raise ValueError(msg)

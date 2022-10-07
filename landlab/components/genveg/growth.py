@@ -20,17 +20,12 @@ from landlab.components.genveg.species import Species
 class PlantGrowth(Species):
     """
     Add Intro Stuff here
-    """
     _name = "PlantGrowth"
-
     _unit_agnostic = False
-
-
-    _cite_as = """
+    _cite_as = 
     @article{piercygv,
         author = {Piercy, C.D.; Swannack, T.M.; Carrillo, C.C.; Russ, E.R.; Charbonneau, B. M.]
     }
-    """
     #Add all variables to be saved or chosen as outputs here
     _info = {
         "vegetation__total_biomass": {
@@ -42,7 +37,7 @@ class PlantGrowth(Species):
             "doc": "Total plant biomass for the plant class at the end of the time step"
         },
     }
-
+    """
     def __init__(
         self,
         grid,
@@ -122,7 +117,6 @@ class PlantGrowth(Species):
         
         self.species=Species(species_params)
         self.species_params=self.species.species_params
-        #This will move to GenVeg class
         self._grid=grid
         
         # From chapter 2 of Teh 2006 (pg. 31; equation 2.13)
@@ -136,6 +130,7 @@ class PlantGrowth(Species):
         
         if len(self.plants)==0:
             self.plants=self._estimate_initial_plant_biomass()
+            
         rel_time=(self.current_day-start_date).astype(float)
         #Create empty Datarecord to store plant data
         #Instantiate data record
@@ -370,23 +365,23 @@ class PlantGrowth(Species):
         plant_array['stem_biomass']=stem_bio
         return plant_array
     
-    def _init_biomass_allocation(self, Tbio,coeffs):
+    def _init_biomass_allocation(self, total_biomass, solver_coeffs):
         #Initialize arrays to calculate root, leaf and stem biomass from total
         root=[]
         leaf=[]
         stem=[]
         
         #Loop through grid array
-        for cell in Tbio:
-            #Calculate initial guess on allocation based on total biomass
-            zGuess = np.full(3,cell/3)
-            #call to system of equations to solve for 
-            z=fsolve(self._solverFuncs,zGuess,(coeffs,cell))
-            #Transform from log10 values
-            zvals=10**z
-            root.append(zvals[0])
-            leaf.append(zvals[1])
-            stem.append(zvals[2])
+        for total_biomass_in_cell in total_biomass:
+            solver_guess = np.full(3,np.log10(total_biomass_in_cell/3))
+            
+            part_biomass_log10=fsolve(self._solverFuncs,solver_guess,(solver_coeffs,total_biomass_in_cell))
+            
+            part_biomass=10**part_biomass_log10
+            
+            root.append(part_biomass[0])
+            leaf.append(part_biomass[1])
+            stem.append(part_biomass[2])
         
         #Convert to numpy array
         root=np.array(root)
@@ -394,16 +389,17 @@ class PlantGrowth(Species):
         stem=np.array(stem)      
         return root, leaf, stem
 
-    def _solverFuncs(self,x,coeffs,totval):
-        r=x[0]
-        l=x[1]
-        s=x[2]
-        T=totval
-        F = np.empty([(3)])
-        F[0]=10**r+10**l+10**s-T
-        F[1]=coeffs[0]+coeffs[1]*r+coeffs[2]*r**2-l
-        F[2]=coeffs[3]+coeffs[4]*r+coeffs[5]*r**2-s
-        return F
+    def _solverFuncs(self,solver_guess,solver_coeffs,total_biomass):
+        root_part_log10=solver_guess[0]
+        leaf_part_log10=solver_guess[1]
+        stem_part_log10=solver_guess[2]
+        plant_part_biomass_log10 = np.empty([(3)])
+
+        plant_part_biomass_log10[0]=10**root_part_log10+10**leaf_part_log10+10**stem_part_log10-total_biomass
+        plant_part_biomass_log10[1]=solver_coeffs[0]+solver_coeffs[1]*root_part_log10+solver_coeffs[2]*root_part_log10**2-leaf_part_log10
+        plant_part_biomass_log10[2]=solver_coeffs[3]+solver_coeffs[4]*root_part_log10+solver_coeffs[5]*root_part_log10**2-stem_part_log10
+        
+        return plant_part_biomass_log10
 
     #Save plant array output Modify this in future to take user input and add additional parameters that can be saved out
     def save_plant_output(self, rel_time, save_params):

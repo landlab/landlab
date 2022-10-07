@@ -131,3 +131,4 @@ docs/build_log.txt
 # Hypothesis
 .hypothesis
 genveg/test.ipynb
+landlab/components/genveg/load_veg_params_fix.py
