@@ -1,6 +1,4 @@
-import numpy as np
-
-from landlab import Component, HexModelGrid
+from landlab import Component
 
 
 class AreaSlopeTransporter(Component):
@@ -131,11 +129,7 @@ class AreaSlopeTransporter(Component):
     }
 
     def __init__(
-        self,
-        grid,
-        transport_coefficient=0.0055,
-        area_exponent=1.4,
-        slope_exponent=2.1,
+        self, grid, transport_coefficient=0.0055, area_exponent=1.4, slope_exponent=2.1,
     ):
         """Initialize AreaSlopeTransporter."""
 
@@ -179,8 +173,8 @@ class AreaSlopeTransporter(Component):
         """
         self._sediment_outflux[:] = (
             self._trans_coef
-            * self._area**self._area_exponent
-            * self._slope**self._slope_exponent
+            * self._area ** self._area_exponent
+            * self._slope ** self._slope_exponent
         )
 
     def calc_sediment_rate_of_change(self):
@@ -214,9 +208,8 @@ class AreaSlopeTransporter(Component):
             r = self._receiver_node[c]
             self._sediment_influx[r] += self._sediment_outflux[c]
         self._dzdt[cores] = (
-            (self._sediment_influx[cores] - self._sediment_outflux[cores])
-            / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-        )
+            self._sediment_influx[cores] - self._sediment_outflux[cores]
+        ) / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
 
     def run_one_step(self, dt):
         """Advance solution by time interval dt.
