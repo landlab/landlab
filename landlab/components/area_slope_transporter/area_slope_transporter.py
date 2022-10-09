@@ -47,8 +47,8 @@ class AreaSlopeTransporter(Component):
     ...     fa.run_one_step()
     ...     elev[grid.core_nodes] += 1.0
     ...     transporter.run_one_step(10000.0)
-    >>> int(round(elev[4] * 10000))
-    107
+    >>> int(round(elev[4] * 100))
+    1068
     """
 
     _name = "AreaSlopeTransporter"
@@ -174,12 +174,12 @@ class AreaSlopeTransporter(Component):
         >>> fa.run_one_step()
         >>> transporter = AreaSlopeTransporter(grid)
         >>> transporter.calc_transport_capacity()
-        >>> round(transporter._sediment_outflux[4], 4)
-        0.019
+        >>> int(transporter._sediment_outflux[4] * 1000)
+        138
         """
         self._sediment_outflux[:] = (
             self._trans_coef
-            * self._discharge**self._area_exponent
+            * self._area**self._area_exponent
             * self._slope**self._slope_exponent
         )
 
@@ -201,15 +201,13 @@ class AreaSlopeTransporter(Component):
         >>> transporter = AreaSlopeTransporter(grid)
         >>> transporter.calc_sediment_rate_of_change()
         >>> np.round(transporter._sediment_outflux[4:7], 3)
-        array([ 0.   ,  0.038,  0.019])
+        array([ 0.   ,  0.365,  0.138])
         >>> np.round(transporter._sediment_influx[4:7], 3)
-        array([ 0.038,  0.019,  0.   ])
+        array([ 0.365,  0.138,  0.   ])
         >>> np.round(transporter._dzdt[5:7], 8)
-        array([ -2.93000000e-06,  -2.93000000e-06])
+        array([ -2.26400000e-05,  -1.38200000e-05])
         """
         self.calc_transport_capacity()
-        if self._abrasion_coef > 0.0:
-            self.calc_abrasion_rate()
         cores = self.grid.core_nodes
         self._sediment_influx[:] = 0.0
         for c in cores:  # send sediment downstream
@@ -236,9 +234,9 @@ class AreaSlopeTransporter(Component):
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
         >>> transporter = AreaSlopeTransporter(grid)
-        >>> transporter.run_one_step(1000.0)
+        >>> transporter.run_one_step(10000.0)
         >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.9971,  1.9971])
+        array([ 0.    ,  0.7736,  1.8618])
         """
         self.calc_sediment_rate_of_change()
         self._elev += self._dzdt * dt
