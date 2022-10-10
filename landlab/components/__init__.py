@@ -1,3 +1,4 @@
+from .area_slope_transporter import AreaSlopeTransporter
 from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
@@ -69,6 +70,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    AreaSlopeTransporter,
     BedrockLandslider,
     CarbonateProducer,
     ChannelProfiler,
