@@ -443,7 +443,8 @@ class GraphFields:
         if self.has_group(loc) or loc is None:
             self._default_group = loc
         else:
-            raise ValueError("{loc} is not a valid group name".format(loc=loc))
+            groups = ", ".join([repr(name) for name in sorted(self._groups)])
+            raise ValueError(f"{loc!r}: Group does not exists. Not one of {groups}.")
 
     def new_field_location(self, loc, size=None):
         """Add a new quantity to a field.
@@ -506,7 +507,7 @@ class GraphFields:
             )
             self._groups.add(loc)
         else:
-            raise ValueError("{loc} location already exists".format(loc=loc))
+            raise ValueError(f"{loc!r} location already exists")
 
     @property
     def groups(self):
@@ -730,11 +731,12 @@ class GraphFields:
         try:
             fields = self[group]
         except KeyError:
-            raise GroupError(group)
+            groups = ", ".join([repr(g) for g in sorted(self._groups)])
+            raise GroupError(f"{group!r}: Not one of {groups}.")
         try:
             return fields[field]
         except KeyError:
-            raise FieldError(group)
+            raise FieldError(f"{field!r}")
 
     def return_array_or_field_values(self, *args, **kwds):
         """return_array_or_field_values(field, at=None)
@@ -829,8 +831,11 @@ class GraphFields:
         else:
             vals = np.asarray(field)
             if vals.size != self[group].size:
-                msg = "Array has incorrect size."
-                raise ValueError(msg)
+                raise ValueError(
+                    f"Incorrect array size. The array size of {vals.size} does not "
+                    "match that of the group, {group!r}, which has a size of "
+                    f"{self[group].size}."
+                )
         return vals
 
     def field_units(self, *args, **kwds):
@@ -923,7 +928,7 @@ class GraphFields:
 
         size = getattr(self, "at_{group}".format(group=group)).size
         if size is None:
-            raise ValueError("group is not yet sized.")
+            raise ValueError("{group!r}: Group is not yet sized.")
 
         return np.empty(size, **kwds)
 
@@ -1109,7 +1114,10 @@ class GraphFields:
         ds = getattr(self, "at_" + at)
 
         if not clobber and name in ds:
-            raise FieldError("{name}@{at}".format(name=name, at=at))
+            raise FieldError(
+                f"Unable to add field, {name!r}, to the group, {at!r}, because it already exists. "
+                "Use `clobber=True` to replace the existing field. "
+            )
 
         dims = (at,)
         if value_array.ndim > 1:
