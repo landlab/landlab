@@ -127,7 +127,7 @@ def shape_for_storage(array, field_size=None):
 
     if array.size % field_size != 0:
         raise ValueError(
-            "unable to reshape array to field size ({0} != {1})".format(
+            "unable to reshape array to field size ({} != {})".format(
                 array.size, field_size
             )
         )
@@ -225,7 +225,7 @@ class FieldDataset(dict):
                 )
             elif not isinstance(size, int) or size < 0:
                 raise ValueError(
-                    "size must be a positive integer or None ({size})".format(size=size)
+                    f"size must be a positive integer or None ({size})"
                 )
             self._size = size
 
@@ -926,7 +926,7 @@ class GraphFields:
                 "of the shape stored at_grid, use np.array(1)."
             )
 
-        size = getattr(self, "at_{group}".format(group=group)).size
+        size = getattr(self, f"at_{group}").size
         if size is None:
             raise ValueError("{group!r}: Group is not yet sized.")
 
