@@ -148,7 +148,7 @@ def test_layouts_match(method):
 def test_layouts_cython_is_faster(method, size):
     from timeit import timeit
 
-    n_rows, n_cols = 3 * 2 ** size, 4 * 2 ** size
+    n_rows, n_cols = 3 * 2**size, 4 * 2**size
 
     def time_method(impl):
         return timeit(

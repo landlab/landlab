@@ -10,12 +10,12 @@ Plotting functions
     ~landlab.plot.imshow.imshow_grid_at_cell
     ~landlab.plot.imshow.imshow_grid_at_node
 """
+from warnings import warn
+
 import numpy as np
 
-from landlab.grid.raster import RasterModelGrid
-from landlab.plot.event_handler import query_grid_on_button_press
-
 from ..field import FieldError
+from .event_handler import query_grid_on_button_press
 
 try:
     import matplotlib.pyplot as plt
@@ -27,15 +27,47 @@ except ImportError:
     warnings.warn("matplotlib not found", ImportWarning)
 
 
+class ModelGridPlotterMixIn:
+
+    """MixIn that provides plotting functionality.
+
+    Inhert from this class to provide a ModelDataFields object with the
+    method function, ``imshow``, that plots a data field.
+    """
+
+    def imshow(self, *args, **kwds):
+        """Plot a data field.
+
+        This is a wrapper for `plot.imshow_grid`, and can take the same
+        keywords. See that function for full documentation.
+
+        Parameters
+        ----------
+        values : str, or array-like
+            Name of a field or an array of values to plot.
+
+        See Also
+        --------
+        landlab.plot.imshow_grid
+
+        LLCATS: GINF
+        """
+        if len(args) == 1:
+            values = args[0]
+        elif len(args) == 2:
+            at, values = args
+            warn(f"use grid.imshow(values, at={at!r})", DeprecationWarning)
+            if at != kwds.get("at", at):
+                raise ValueError(f"multiple locations provided ({at}, {kwds['at']})")
+            kwds["at"] = at
+        else:
+            raise TypeError(f"imshow expected 1 or 2 arguments, got {len(args)}")
+
+        imshow_grid(self, values, **kwds)
+
+
 def imshow_grid_at_node(grid, values, **kwds):
-    """imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
-    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
-    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
-    allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
-    color_for_background=None, show_elements=False, output=None)
-
-    Prepare a map view of data over all nodes in the grid.
-
+    """Prepare a map view of data over all nodes in the grid.
     Data is plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
     colored uniformly (default black, overridden with kwd 'color_for_closed');
@@ -71,7 +103,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         Units for the variable being plotted, for the colorbar.
     grid_units : tuple of str, optional
         Units for y, and x dimensions. If None, component will look to the
-        gri property `axis_units` for this information. If no units are
+        grid property `axis_units` for this information. If no units are
         specified there, no entry is made.
     symmetric_cbar : bool
         Make the colormap symetric about 0.
@@ -120,12 +152,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
     )
 
-    if isinstance(grid, RasterModelGrid):
-        shape = grid.shape
-    else:
-        shape = (-1,)
-
-    _imshow_grid_values(grid, values_at_node.reshape(shape), **kwds)
+    _imshow_grid_values(grid, values_at_node, **kwds)
 
     if isinstance(values, str):
         plt.title(values)
@@ -136,14 +163,7 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
-    """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
-    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
-    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
-    allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
-    color_for_closed='black', color_for_background=None, show_elements=False,
-    output=None)
-
-    Map view of grid data over all grid cells.
+    """Map view of grid data over all grid cells.
 
     Prepares a map view of data over all cells in the grid.
     Method can take any of the same ``**kwds`` as :func:`imshow_grid_at_node`.
@@ -229,9 +249,6 @@ def imshow_grid_at_cell(grid, values, **kwds):
     values_at_node[grid.node_at_cell] = values_at_cell
     values_at_node.mask[grid.node_at_cell] = False
 
-    if isinstance(grid, RasterModelGrid):
-        values_at_node = values_at_node.reshape(grid.shape)
-
     myimage = _imshow_grid_values(grid, values_at_node, **kwds)
 
     if isinstance(values, str):
@@ -261,6 +278,8 @@ def _imshow_grid_values(
     show_elements=False,
     output=None,
 ):
+    from ..grid.raster import RasterModelGrid
+
     cmap = plt.get_cmap(cmap)
 
     if color_for_closed is not None:
@@ -269,6 +288,8 @@ def _imshow_grid_values(
         cmap.set_bad(alpha=0.0)
 
     if isinstance(grid, RasterModelGrid):
+        values = values.reshape(grid.shape)
+
         if values.ndim != 2:
             raise ValueError("values must have ndim == 2")
 
@@ -310,6 +331,8 @@ def _imshow_grid_values(
     else:
         import matplotlib.cm as cmx
         import matplotlib.colors as colors
+
+        values = values.reshape(-1)
 
         if limits is not None:
             (vmin, vmax) = (limits[0], limits[1])
@@ -360,7 +383,7 @@ def _imshow_grid_values(
 
         scalarMap.set_array(values)
         if allow_colorbar:
-            cb = plt.colorbar(scalarMap, shrink=shrink)
+            cb = plt.colorbar(scalarMap, shrink=shrink, ax=ax)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
@@ -404,13 +427,7 @@ def _imshow_grid_values(
 
 
 def imshow_grid(grid, values, **kwds):
-    """imshow_grid(grid, values, plot_name=None, var_name=None, var_units=None,
-    grid_units=None, symmetric_cbar=False, cmap='pink', limits=(values.min(),
-    values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
-    colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
-    show_elements=False, color_for_background=None)
-
-    Prepare a map view of data over all nodes or cells in the grid.
+    """Prepare a map view of data over all nodes or cells in the grid.
 
     Data is plotted as colored cells. If at='node', the surrounding cell is
     shaded with the value at the node at its center. If at='cell', the cell
@@ -486,11 +503,23 @@ def imshow_grid(grid, values, **kwds):
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
     """
-    values_at = kwds.pop("values_at", "node")
-    values_at = kwds.pop("at", values_at)
+    if "values_at" in kwds:
+        warn(
+            "the 'values_at' keyword is deprecated, use the 'at' keyword instead",
+            DeprecationWarning,
+        )
+        kwds.setdefault("at", kwds.pop("values_at"))
+    values_at = kwds.pop("at", None)
 
-    if isinstance(values, str):
-        values = grid.field_values(values_at, values)
+    if values_at is None:
+        values_at = _guess_location(grid, values)
+
+    if values_at is None:
+        raise TypeError("unable to determine location of values, use 'at' keyword")
+    elif values_at not in {"node", "cell"}:
+        raise TypeError(
+            f"value location, {values_at!r}, is not supported (must be one of 'node', 'cell')"
+        )
 
     if isinstance(values, str):
         values = grid.field_values(values_at, values)
@@ -499,5 +528,59 @@ def imshow_grid(grid, values, **kwds):
         imshow_grid_at_node(grid, values, **kwds)
     elif values_at == "cell":
         imshow_grid_at_cell(grid, values, **kwds)
+
+
+def _guess_location(
+    grid, values, search_order=("node", "cell", "link", "patch", "corner", "face")
+):
+    """Make an educated guess as to where a field is located on a grid."""
+    if isinstance(values, str):
+        return _guess_location_from_name(grid, values)
     else:
-        raise TypeError("value location %s not understood" % values_at)
+        return _guess_location_from_size(grid, values)
+
+
+def _guess_location_from_name(
+    grid, name, search_order=("node", "cell", "link", "patch", "corner", "face")
+):
+    """Given a name, make an educated guess as to where a field is located on a grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    name : str
+        Name of a field.
+
+    Returns
+    -------
+    str or None
+        Grid element where the field is likely defined.
+    """
+    for location in search_order:
+        if grid.has_field(name, at=location):
+            return location
+    return None
+
+
+def _guess_location_from_size(
+    grid, values, search_order=("node", "cell", "link", "patch", "corner", "face")
+):
+    """Given an array, make an educated guess as to where a field is located on a grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    values : array-like
+        An array of values.
+
+    Returns
+    -------
+    str or None
+        Grid element where the field is likely defined.
+    """
+    for location in search_order:
+        if values.size == grid.number_of_elements(location):
+            return location
+    return None

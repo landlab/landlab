@@ -270,7 +270,7 @@ class Flexure(Component):
             np.arange(shape[1]) * xy_spacing[1], np.arange(shape[0]) * xy_spacing[0]
         )
 
-        return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
+        return kei(np.sqrt(dx**2 + dy**2) / alpha)
 
     def update(self):
         """Update fields with current loading conditions."""
@@ -302,7 +302,7 @@ class Flexure(Component):
             Deflections caused by the loading.
         """
         if out is None:
-            out = np.zeros(self._grid.shape, dtype=np.float)
+            out = np.zeros(self._grid.shape, dtype=float)
         dz = out.reshape(self._grid.shape)
         load = loads.reshape(self._grid.shape)
 

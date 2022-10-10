@@ -115,7 +115,7 @@ def test_defined_parcel_transport():
 
     for t in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
-        distance_traveled[np.int(t / dt)] = nst._distance_traveled_cumulative
+        distance_traveled[int(t / dt)] = nst._distance_traveled_cumulative
     # NEED TO CALCULATE THINGS HERE.
     # Transport distance should match?
     Distance_Traveled_Should_Be = [

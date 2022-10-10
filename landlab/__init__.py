@@ -9,10 +9,10 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
-import pkg_resources
 from numpy import set_printoptions
 
 from ._registry import registry
+from ._version import __version__
 from .core.errors import MissingKeyError, ParameterValueError
 from .core.model_component import Component
 from .core.model_parameter_loader import load_params
@@ -24,12 +24,13 @@ from .grid import (
     NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
+    FramedVoronoiGrid,
     VoronoiDelaunayGrid,
     create_grid,
 )
 from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
-from .plot import imshow_grid, imshow_grid_at_node
+from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid, imshowhs_grid_at_node
 
 try:
     set_printoptions(legacy="1.13")
@@ -40,8 +41,8 @@ finally:
 
 cite_as = registry.format_citations
 
-__version__ = pkg_resources.get_distribution("landlab").version
 __all__ = [
+    "__version__",
     "registry",
     "MissingKeyError",
     "ParameterValueError",
@@ -53,6 +54,7 @@ __all__ = [
     "HexModelGrid",
     "RadialModelGrid",
     "RasterModelGrid",
+    "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
     "LinkStatus",
@@ -60,6 +62,6 @@ __all__ = [
     "create_grid",
     "imshow_grid",
     "imshow_grid_at_node",
+    "imshowhs_grid",
+    "imshowhs_grid_at_node",
 ]
-
-del pkg_resources

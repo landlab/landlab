@@ -12,8 +12,9 @@
 # serve to show the default.
 
 import os
-import re
 import sys
+import tomli
+import pathlib
 from datetime import date
 
 import landlab
@@ -24,8 +25,8 @@ import landlab
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 #                                                 os.pardir)))
 sys.path.insert(0, os.path.abspath("../.."))
-sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, ".")
+docs_dir = os.path.dirname(__file__)
+
 
 # -- General configuration -----------------------------------------------------
 
@@ -41,10 +42,10 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_inline_tabs",
+    "sphinxcontrib.towncrier",
+    "sphinx_jinja",
 ]
-
-if os.getenv("READTHEDOCS"):
-    template_bridge = "landlab_ext.MyTemplateLoader"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -56,23 +57,23 @@ source_suffix = ".rst"
 # source_encoding = 'utf-8-sig'
 
 # Regex for links that we know work in browser, but do not work in sphinx/CI (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
-if os.getenv("TRAVIS"):
+if os.getenv("GITHUB_ACTIONS"):
     linkcheck_ignore = [
         r"https://pubs.geoscienceworld.org/gsa/geology.*",  # Added by KRB Dec 2019, at this point two links match this pattern
-        r"https://dx.doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
-        re.escape(
-            r"https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7"
-        ),  # Added by EWHH Feb 2020
+        r"https://doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
         r"https://dx.doi.org/10.1029/2011jf002181",  # Added by EWHH April 2020
         r"https://doi.org/10.1029/2019JB018596",  # Added by EWHH April 2020
+        r"https://doi.org/10.3133/pp294B",  # Added by EWHH September 2021
+        #     r"https://yaml.org/start.html",  # Added by EWHH September 2021
     ]
+    linkcheck_retries = 5
 
 # The master toctree document.
 master_doc = "index"
 
 # General information about the project.
-project = u"landlab"
-copyright = str(date.today().year) + u", The Landlab Team"
+project = "landlab"
+copyright = str(date.today().year) + ", The Landlab Team"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -114,6 +115,7 @@ show_authors = True
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
+pygments_dark_style = "monokai"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -129,12 +131,32 @@ autoclass_content = "both"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinxdoc"
+# html_theme = "alabaster"
+html_theme = "furo"
+html_title = "landlab"
+html_logo = "_static/landlab_logo.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    "announcement": "<em>Landlab 2.5 released!</em>",
+    "source_repository": "https://github.com/landlab/landlab/",
+    "source_branch": "master",
+    "source_directory": "docs/source",
+    "sidebar_hide_name": True,
+    "footer_icons": [
+        {
+            "name": "power",
+            "url": "https://csdms.colorado.edu",
+            "html": """
+               <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.1" viewBox="0 0 16 16" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 0l-6 8h6l-4 8 14-10h-8l6-6z"></path></svg>
+               <b><i>Powered by CSDMS</i></b>
+            """,
+            "class": "",
+        },
+    ],
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -148,12 +170,13 @@ html_theme = "sphinxdoc"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "images/landlab_logo.jpg"
+# html_logo = "images/landlab_logo.jpg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-html_favicon = "images/favicon.ico"
+# html_favicon = None
+html_favicon = "_static/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -170,6 +193,7 @@ html_static_path = ["_static"]
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
+
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -208,18 +232,18 @@ htmlhelp_basename = "landlabdoc"
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    #'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    #'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    #'preamble': '',
+    #  The paper size ('letterpaper' or 'a4paper').
+    # 'papersize': 'letterpaper',
+    #  The font size ('10pt', '11pt' or '12pt').
+    # 'pointsize': '10pt',
+    #  Additional stuff for the LaTeX preamble.
+    # 'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ("index", "landlab.tex", u"landlab Documentation", u"Author", "manual"),
+    ("index", "landlab.tex", "landlab Documentation", "Author", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -247,7 +271,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [("index", "landlab", u"landlab Documentation", [u"Author"], 1)]
+man_pages = [("index", "landlab", "landlab Documentation", ["Author"], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -262,8 +286,8 @@ texinfo_documents = [
     (
         "index",
         "landlab",
-        u"landlab Documentation",
-        u"Author",
+        "landlab Documentation",
+        "Author",
         "landlab",
         "One line description of project.",
         "Miscellaneous",
@@ -286,10 +310,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u"landlab"
-epub_author = u"Author"
-epub_publisher = u"Author"
-epub_copyright = u"2013, Author"
+epub_title = "landlab"
+epub_author = "Author"
+epub_publisher = "Author"
+epub_copyright = "2013, Author"
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
@@ -348,4 +372,16 @@ napoleon_google_docstring = False
 napoleon_include_init_with_doc = True
 napoleon_include_special_with_doc = True
 
-html_style = "landlab.css"
+# -- Options for towncrier_draft extension --------------------------------------------
+
+towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
+towncrier_draft_include_empty = True
+# towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
+
+
+with open("../index.toml", "rb") as fp:
+    cats = tomli.load(fp)
+cats["grids"].pop("ModelGrid")
+
+jinja_contexts = {"llcats": cats}

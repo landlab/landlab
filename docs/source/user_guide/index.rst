@@ -25,93 +25,81 @@ taking advantage of codes that have already been written.
 A list of papers and presentations using Landlab can be found :ref:`here <papers>`.
 
 
-Introduction to Python
-----------------------
-
 .. toctree::
+    :caption: Introduction to Python
     :maxdepth: 2
+    :hidden:
 
     python_numpy_intro
 
 
-The Landlab Grid
-----------------
-
 .. toctree::
+    :caption: The Landlab Grid
     :maxdepth: 2
+    :hidden:
 
     grid
 
-Model with Landlab and Components
----------------------------------
 
 .. toctree::
+    :caption: Model with Landlab and Components
     :maxdepth: 2
+    :hidden:
 
     components
     build_a_model
 
-Landlab and Units
------------------
 
 .. toctree::
+    :caption: Landlab and Units
     :maxdepth: 2
+    :hidden:
 
     units
 
 
-Landlab Tutorial Library
-------------------------
-
 .. toctree::
+    :caption: Landlab Tutorial Library
     :maxdepth: 2
+    :hidden:
 
     tutorials
     teaching_tutorials
 
-Additional resources
---------------------
 
 .. toctree::
+    :caption: Additional resources
     :maxdepth: 2
+    :hidden:
 
+    component_list
     field_definitions
-    field_io
+    grid_summary
     time_steps
     examples
     faq
 
-Presentations, Clinics, and Classroom Use
------------------------------------------
 
 .. toctree::
+    :caption: Overland flow User Guide
     :maxdepth: 2
-
-    papers_presentations
-    clinics_workshops
-
-Overland flow User Guide
-------------------------
-
-.. toctree::
-    :maxdepth: 2
+    :hidden:
 
     overland_flow_user_guide
 
-CellLab-CTS User Guide
-----------------------
 
 .. toctree::
+    :caption: CellLab-CTS User Guide
     :maxdepth: 2
+    :hidden:
 
     cell_lab_user_guide
 
 
-Major Version Transition Guides
--------------------------------
-
 .. toctree::
+    :caption: Major Version Transition Guides
     :maxdepth: 2
+    :hidden:
 
     landlab_zero_to_one
     landlab_one_to_two

@@ -393,7 +393,7 @@ class PotentialEvapotranspiration(Component):
             # Sunset Hour Angle - ASCE-EWRI Task Committee Report,
             # Jan-2005 - Eqn 28,(60)
         self._ws = (np.pi / 2.0) - np.arctan(
-            (-1 * np.tan(self._phi) * np.tan(self._sdecl)) / (self._x ** 2.0)
+            (-1 * np.tan(self._phi) * np.tan(self._sdecl)) / (self._x**2.0)
         )
 
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,

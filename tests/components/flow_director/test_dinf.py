@@ -247,7 +247,7 @@ def test_D_infinity_SW_slope():
 def test_D_infinity_WSW_slope():
     mg = RasterModelGrid((10, 10))
     mg.add_field(
-        "topographic__elevation", mg.node_y * (2 ** 0.5 - 1.0) + mg.node_x, at="node"
+        "topographic__elevation", mg.node_y * (2**0.5 - 1.0) + mg.node_x, at="node"
     )
     fa = FlowAccumulator(mg, flow_director="FlowDirectorDINF")
     fa.run_one_step()

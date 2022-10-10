@@ -141,7 +141,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             node_layout=dataset.attrs["node_layout"],
         )
 
-    def as_dataset(self, include="*", exclude=None):
+    def as_dataset(self, include="*", exclude=None, time=None):
         dataset = xr.Dataset(
             {
                 "shape": (("dim",), list(self.shape)),
@@ -155,7 +155,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             },
         )
         return dataset.update(
-            super(HexModelGrid, self).as_dataset(include=include, exclude=exclude)
+            super(HexModelGrid, self).as_dataset(
+                include=include, exclude=exclude, time=None
+            )
         )
 
     @property
@@ -196,7 +198,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.number_of_node_columns
         5
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self.shape[1]
 
@@ -219,7 +221,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.number_of_node_rows
         5
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self._shape[0]
 
@@ -351,7 +353,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             Another Landlab function capable of producing hexplots, with a
             fuller-featured set of options.
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         import copy
 
@@ -435,7 +437,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -506,7 +508,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
