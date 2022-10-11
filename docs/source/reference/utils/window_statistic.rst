@@ -1,5 +1,5 @@
 landlab.utils.window_statistic module
-=============================
+=====================================
 
 .. automodule:: landlab.utils.window_statistic
     :members:
