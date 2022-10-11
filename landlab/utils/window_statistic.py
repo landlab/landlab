@@ -91,8 +91,8 @@ def calculate_window_statistic(
     Returns
     -------
     output : ndarray
-        Output array containing the calculated values of the statistic.
-        Same length as input field.
+        Output array containing the calculated values of the statistic. Same 
+        length as input field.
 
     Examples
     --------
