@@ -158,6 +158,7 @@ def validate(component):
 )
 @click.pass_context
 def authors(ctx, ignore, authors_file, roll_file):
+    """Commands for working with lists of authors."""
     verbose = ctx.parent.params["verbose"]
     silent = ctx.parent.params["silent"]
 
@@ -176,6 +177,7 @@ def authors(ctx, ignore, authors_file, roll_file):
 @click.option("--update-existing/--no-update-existing", default=True)
 @click.pass_context
 def create(ctx, update_existing):
+    """Create a database of contributors."""
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
     roll_file = pathlib.Path(ctx.parent.params["roll_file"])
@@ -211,6 +213,7 @@ def create(ctx, update_existing):
 @authors.command()
 @click.pass_context
 def build(ctx):
+    """Build an authors file."""
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
     ignore = set(ctx.parent.params["ignore"])
@@ -261,6 +264,22 @@ def build(ctx):
 
 
 def _read_until(path_to_file, until=None):
+    """Read a file until a line starting with a given string.
+
+    Parameters
+    ----------
+    path_to_file : str or path-like
+        The file to read.
+    until : str, optional
+        Read lines until reaching a line that starts with ``until``.
+        If not provided, read the entire file.
+
+    Returns
+    -------
+    str
+        The contents of the file up to, and including, the search
+        string.
+    """
     with open(path_to_file) as fp:
         if until is None:
             return fp.read()
@@ -275,6 +294,7 @@ def _read_until(path_to_file, until=None):
 
 
 def _guess_github_user(author):
+    """Guess an author's github username."""
     github = None
 
     try:
@@ -307,6 +327,7 @@ def _guess_github_user(author):
 @authors.command()
 @click.pass_context
 def mailmap(ctx):
+    """Create a mailmap file from an author list."""
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
     roll_file = ctx.parent.params["roll_file"]
