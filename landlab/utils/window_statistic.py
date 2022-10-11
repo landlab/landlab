@@ -84,7 +84,7 @@ def calculate_window_statistic(
     calc_on_closed_nodes : boolean, optional (default is True)
         Toggle calculation over all nodes including closed nodes (True) or all
         nodes except closed nodes (False).
-    ``kwargs`` : optional
+    kwargs : optional
         Keyword arguments passed to func that are additional to the array of
         node values within the search window.
 
@@ -104,7 +104,8 @@ def calculate_window_statistic(
     >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z += np.arange(len(z))
 
-    # Calculate relief using np.ptp function.
+    Calculate relief using np.ptp function.
+
     >>> relief = calculate_window_statistic(
     ...     grid, 'topographic__elevation', np.ptp, search_radius=15)
     >>> grid.at_node['topographic__elevation']
@@ -120,7 +121,8 @@ def calculate_window_statistic(
            13.,  14.,  14.,  14.,  14.,  13.,
             7.,   8.,   8.,   8.,   8.,   7.])
 
-    # Calculate relief using np.ptp function excluding closed nodes.
+    Calculate relief using np.ptp function excluding closed nodes.
+
     >>> relief = calculate_window_statistic(
     ...     grid,'topographic__elevation', np.ptp,search_radius=15,
     ...     calc_on_closed_nodes=False)
@@ -137,7 +139,8 @@ def calculate_window_statistic(
              7.,   8.,   8.,   8.,   8.,   7.,
             nan,  nan,  nan,  nan,  nan,  nan])
 
-    # Calculate 90th percentile using np.percentile function and **kwargs.
+    Calculate 90th percentile using np.percentile function and ``kwargs``.
+
     >>> perc_90 = calculate_window_statistic(
     ...     grid,'topographic__elevation', np.percentile,search_radius=15,
     ...     calc_on_closed_nodes=False, q=90)
@@ -154,8 +157,9 @@ def calculate_window_statistic(
            18.7, 19.5, 20.5, 21.5, 22.5, 22.7,
             nan,  nan,  nan,  nan,  nan,  nan])
 
-    # Calculate relief above 90th percentile elevation using a user-defined
-    # function and ``kwargs``.
+    Calculate relief above 90th percentile elevation using a user-defined
+    function and ``kwargs``.
+
     >>> def max_minus_percentile(elev,q):
     ...     output = np.max(elev) - np.percentile(elev,q)
     ...     return output
