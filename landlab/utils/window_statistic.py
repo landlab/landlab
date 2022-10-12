@@ -10,8 +10,8 @@ def calculate_window_statistic(
     grid, field, func, search_radius, calc_on_closed_nodes=True, **kwargs
 ):
     """Calculate a statistic using a function within a search window.
-    This works on grid nodes (not other grid elements e.g. links) for
-    any ModelGrid type.
+    This only works on grid nodes (not other grid elements e.g. links) for
+    any :class:`~.ModelGrid` type.
 
     This utility outputs an array of length equal to the grid's number of
     nodes. Each element of the output array represents the node location in
@@ -21,9 +21,9 @@ def calculate_window_statistic(
 
     The grid below contains six columns and five rows with cell spacing set
     to 10 distance units. This utility iteratively evaluates all nodes in the
-    grid. The diagram shows evaluation of node ID 15 (marked "x"). If the
+    grid. The diagram shows evaluation of node ID 15 (marked ``x``). If the
     search radius is set to 20, twice the cell spacing, each node marked with
-    a * is within the search window.
+    a ``*`` is within the search window.
     ::
 
         · · * · · ·
@@ -57,14 +57,14 @@ def calculate_window_statistic(
     are input as ``kwargs``.
 
     For example, if the input field is "topographic__elevation" and the input
-    function is np.ptp (peak-to-peak, meaning max minus min value), then the
+    function is ``np.ptp`` (peak-to-peak, meaning max minus min value), then the
     output at node 15 will be the maximum elevation within the search window
     minus the minimum elevation within the search window (also known as relief).
-    The np.percentile function, however, requires not only the input field,
+    The ``np.percentile`` function, however, requires not only the input field,
     but also an input value to define the "q-th percentile" to be calculated.
-    This second input would be added as a ``kwarg`` (e.g. q=90) at the end of
-    the inputs for calculate_window_statistic. Both of these scenarios are
-    shown in the doc string examples below.
+    This second input would be added as a ``kwarg`` (e.g. ``q=90``) at the end of
+    the inputs for :func:`~calculate_window_statistic`. Both of these scenarios are
+    shown in the examples below.
 
     Parameters
     ----------
@@ -74,18 +74,18 @@ def calculate_window_statistic(
         An existing grid field on which to calculate the statistic of interest.
         Must exist in grid.
     func : function
-        The function that calculates the window statistic of 'field'.
+        The function that calculates the window statistic of *field*.
         The first parameter of the function must be the values at nodes within
         the window, which are used used to calculate the statistic for the
         node under evaluation. Additional parameters of the function can be
         passed with ``kwargs``.
     search_radius : float
         Radius of window within which the statistic is calculated.
-    calc_on_closed_nodes : boolean, optional (default is True)
-        Toggle calculation over all nodes including closed nodes (True) or all
-        nodes except closed nodes (False).
+    calc_on_closed_nodes : boolean, optional
+        Toggle calculation over all nodes including closed nodes (``True``) or all
+        nodes except closed nodes (``False``).
     kwargs : optional
-        Keyword arguments passed to func that are additional to the array of
+        Keyword arguments passed to *func* that are additional to the array of
         node values within the search window.
 
     Returns
@@ -99,16 +99,18 @@ def calculate_window_statistic(
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.utils import window_statistic
+
     >>> grid = RasterModelGrid((5, 6), xy_spacing=10.0)
-    >>> grid.set_closed_boundaries_at_grid_edges(False,True,False,True)
+    >>> grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z += np.arange(len(z))
 
-    Calculate relief using np.ptp function.
+    Calculate relief using ``np.ptp`` function.
 
     >>> relief = calculate_window_statistic(
-    ...     grid, 'topographic__elevation', np.ptp, search_radius=15)
-    >>> grid.at_node['topographic__elevation']
+    ...     grid, "topographic__elevation", np.ptp, search_radius=15
+    ... )
+    >>> grid.at_node["topographic__elevation"]
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
@@ -121,12 +123,15 @@ def calculate_window_statistic(
            13.,  14.,  14.,  14.,  14.,  13.,
             7.,   8.,   8.,   8.,   8.,   7.])
 
-    Calculate relief using np.ptp function excluding closed nodes.
+    Calculate relief using ``np.ptp`` function excluding closed nodes.
 
     >>> relief = calculate_window_statistic(
-    ...     grid,'topographic__elevation', np.ptp,search_radius=15,
-    ...     calc_on_closed_nodes=False)
-    >>> grid.at_node['topographic__elevation']
+    ...     grid,
+    ...     "topographic__elevation",
+    ...     np.ptp,search_radius=15,
+    ...     calc_on_closed_nodes=False,
+    ... )
+    >>> grid.at_node["topographic__elevation"]
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
@@ -139,12 +144,16 @@ def calculate_window_statistic(
              7.,   8.,   8.,   8.,   8.,   7.,
             nan,  nan,  nan,  nan,  nan,  nan])
 
-    Calculate 90th percentile using np.percentile function and ``kwargs``.
+    Calculate 90th percentile using ``np.percentile`` function and ``kwargs``.
 
     >>> perc_90 = calculate_window_statistic(
-    ...     grid,'topographic__elevation', np.percentile,search_radius=15,
-    ...     calc_on_closed_nodes=False, q=90)
-    >>> grid.at_node['topographic__elevation']
+    ...     grid,
+    ...     "topographic__elevation",
+    ...     np.percentile,search_radius=15,
+    ...     calc_on_closed_nodes=False,
+    ...     q=90
+    ... )
+    >>> grid.at_node["topographic__elevation"]
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
@@ -160,17 +169,18 @@ def calculate_window_statistic(
     Calculate relief above 90th percentile elevation using a user-defined
     function and ``kwargs``.
 
-    >>> def max_minus_percentile(elev,q):
-    ...     output = np.max(elev) - np.percentile(elev,q)
+    >>> def max_minus_percentile(elev, q):
+    ...     output = np.max(elev) - np.percentile(elev, q)
     ...     return output
     >>> rel_above_90th_perc = calculate_window_statistic(
     ...     grid,
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     max_minus_percentile,
     ...     search_radius=15,
     ...     calc_on_closed_nodes=False,
-    ...     q=90)
-    >>> grid.at_node['topographic__elevation']
+    ...     q=90,
+    ... )
+    >>> grid.at_node["topographic__elevation"]
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
             6.,   7.,   8.,   9.,  10.,  11.,
            12.,  13.,  14.,  15.,  16.,  17.,
