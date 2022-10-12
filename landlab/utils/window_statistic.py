@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Function to calculate node statistics in a moving window."""
 
 import numpy as np
@@ -10,8 +9,11 @@ def calculate_window_statistic(
     grid, field, func, search_radius, calc_on_closed_nodes=True, **kwargs
 ):
     """Calculate a statistic using a function within a search window.
-    This only works on grid nodes (not other grid elements e.g. links) for
-    any :class:`~.ModelGrid` type.
+
+    .. note::
+
+        This only works on grid **nodes** (not other grid elements e.g. links) for
+        any :class:`~.ModelGrid` type.
 
     This utility outputs an array of length equal to the grid's number of
     nodes. Each element of the output array represents the node location in
@@ -193,7 +195,6 @@ def calculate_window_statistic(
             0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
             nan,  nan,  nan,  nan,  nan,  nan])
     """
-
     if field not in grid.at_node:
         raise FieldError(f"A {field} field is required at the nodes of the input grid.")
 
