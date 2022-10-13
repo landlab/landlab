@@ -129,7 +129,11 @@ class AreaSlopeTransporter(Component):
     }
 
     def __init__(
-        self, grid, transport_coefficient=0.0055, area_exponent=1.4, slope_exponent=2.1,
+        self,
+        grid,
+        transport_coefficient=0.0055,
+        area_exponent=1.4,
+        slope_exponent=2.1,
     ):
         """Initialize AreaSlopeTransporter."""
 
@@ -173,8 +177,8 @@ class AreaSlopeTransporter(Component):
         """
         self._sediment_outflux[:] = (
             self._trans_coef
-            * self._area ** self._area_exponent
-            * self._slope ** self._slope_exponent
+            * self._area**self._area_exponent
+            * self._slope**self._slope_exponent
         )
 
     def calc_sediment_rate_of_change(self):
