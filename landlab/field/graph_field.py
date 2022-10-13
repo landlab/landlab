@@ -184,7 +184,7 @@ class FieldDataset(dict):
 
     def __init__(self, name, size=None, fixed_size=True):
         """Create a container to hold a collection of *Landlab* fields.
-        
+
         Parameters
         ----------
         name : str
@@ -236,9 +236,7 @@ class FieldDataset(dict):
                     )
                 )
             elif not isinstance(size, int) or size < 0:
-                raise ValueError(
-                    f"size must be a positive integer or None ({size})"
-                )
+                raise ValueError(f"size must be a positive integer or None ({size})")
             self._size = size
 
     @property
@@ -277,7 +275,7 @@ class FieldDataset(dict):
 
     def set_units(self, name, new_units):
         """Assign units to a field.
-        
+
         Parameters
         ----------
         name : str
@@ -298,7 +296,7 @@ class FieldDataset(dict):
 
     def set_value(self, name, value_array, attrs=None):
         """Assign values to a field.
-        
+
         Parameters
         ----------
         name : str
@@ -342,12 +340,12 @@ class FieldDataset(dict):
 
     def pop(self, name):
         """Remove a field from the dataset.
-        
+
         Parameters
         ----------
         name : str
             The name of the field to remove.
-        
+
         Returns
         -------
         numpy.ndarray
@@ -373,12 +371,12 @@ class FieldDataset(dict):
 
     def __contains__(self, name):
         """Return if the dataset contains a named field.
-        
+
         Parameters
         ----------
         name : str
             A field name.
-        
+
         Returns
         -------
         bool
@@ -1334,7 +1332,7 @@ class GraphFields:
         as that for the equivalent *numpy* function.
 
         :meta landlab: field-add
-        
+
         Parameters
         ----------
         name : str
