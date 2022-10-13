@@ -108,7 +108,7 @@ class AreaSlopeTransporter(Component):
             "optional": False,
             "units": "m**2",
             "mapping": "node",
-            "doc": "Drainage area",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "topographic__elevation": {
             "dtype": float,
