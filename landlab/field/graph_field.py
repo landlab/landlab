@@ -1170,9 +1170,10 @@ class GraphFields:
 
         if not clobber and name in ds:
             raise FieldError(
-                f"Unable to add field, {name!r}, to the group, {at!r}, because a field "
-                "with that names already exists in that group. "
+                f"Unable to add the field, {name!r}, to the group, {at!r}, because a field "
+                "with that name already exists in that group. "
                 "Use `clobber=True` to replace the existing field. "
+                f"For example, grid.add_field({name!r}, at={at!r}, clobber=True)"
             )
 
         dims = (at,)
