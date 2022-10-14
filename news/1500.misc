@@ -1,0 +1,3 @@
+Improved the error message that's reported when a user attempts to add a field
+to a grid that already contains a field with that name.
+
