@@ -416,7 +416,7 @@ class GraphFields:
     Examples
     --------
     Create two groups of data fields defined at *node* and *cell*. Each set can
-    have a differnt number of values.
+    have a different number of values.
 
     >>> from landlab.field import GraphFields
     >>> fields = GraphFields()
@@ -943,7 +943,7 @@ class GraphFields:
 
         Return a new array of the data field size, without initializing
         entries. Keyword arguments are the same as that for the equivalent
-        numpy function.
+        *numpy* function.
 
         Parameters
         ----------
@@ -1078,7 +1078,7 @@ class GraphFields:
         copy of the provided array.
 
         In the case of adding to the collection *grid*, the added field is a
-        numpy scalar rather than a numpy array.
+        *numpy* scalar rather than a *numpy* array.
 
         Parameters
         ----------
@@ -1217,7 +1217,7 @@ class GraphFields:
         Create a new array of the data field size, without initializing
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
-        are the same as that for the equivalent numpy function.
+        are the same as that for the equivalent *numpy* function.
 
         This method is not valid for the group *grid*.
 
@@ -1273,7 +1273,7 @@ class GraphFields:
         Create a new array of the data field size, filled with ones, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
-        as that for the equivalent numpy function.
+        as that for the equivalent *numpy* function.
 
         This method is not valid for the group *grid*.
 
