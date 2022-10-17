@@ -37,6 +37,7 @@ docs_dir = os.path.dirname(__file__)
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx.ext.mathjax",
@@ -379,6 +380,15 @@ towncrier_draft_include_empty = True
 # towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
 towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
 
+# -- Options for intersphinx extension ---------------------------------------
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+}
 
 with open("../index.toml", "rb") as fp:
     cats = tomli.load(fp)
