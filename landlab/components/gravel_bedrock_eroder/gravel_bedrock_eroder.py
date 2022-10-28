@@ -113,6 +113,14 @@ class GravelBedrockEroder(Component):
             "mapping": "node",
             "doc": "Volumetric outgoing streamwise bedload sediment transport rate",
         },
+        "bedrock__abrasion_rate": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/y",
+            "mapping": "node",
+            "doc": "rate of bedrock lowering by abrasion",
+        },
         "bedrock__elevation": {
             "dtype": float,
             "intent": "out",
@@ -120,6 +128,22 @@ class GravelBedrockEroder(Component):
             "units": "m",
             "mapping": "node",
             "doc": "elevation of the bedrock surface",
+        },
+        "bedrock__exposure_fraction": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "fractional exposure of bedrock",
+        },
+        "bedrock__plucking_rate": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/y",
+            "mapping": "node",
+            "doc": "rate of bedrock lowering by plucking",
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -195,6 +219,8 @@ class GravelBedrockEroder(Component):
         abrasion_coefficient=0.0,
         sediment_porosity=0.35,
         depth_decay_scale=1.0,
+        plucking_coefficient=1.0e-6,
+        coarse_fraction_from_plucking=1.0,
     ):
         """Initialize GravelRiverTransporter."""
 
@@ -206,6 +232,8 @@ class GravelBedrockEroder(Component):
         self._abrasion_coef = abrasion_coefficient
         self._porosity_factor = 1.0 / (1.0 - sediment_porosity)
         self._depth_decay_scale = depth_decay_scale
+        self._plucking_coef = plucking_coefficient
+        self._pluck_coarse_frac = coarse_fraction_from_plucking
 
         # Fields and arrays
         self._elev = grid.at_node["topographic__elevation"]
@@ -226,6 +254,9 @@ class GravelBedrockEroder(Component):
         self._sediment_outflux = grid.at_node["bedload_sediment__volume_outflux"]
         self._dzdt = grid.at_node["sediment__rate_of_change"]
         self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
+        self._rock_exposure_fraction = grid.at_node["bedrock__exposure_fraction"]
+        self._rock_abrasion_rate = grid.at_node["bedrock__abrasion_rate"]
+        self._pluck_rate = grid.at_node["bedrock__plucking_rate"]
 
         # Constants
         self._SEVEN_SIXTHS = 7.0 / 6.0
@@ -351,6 +382,13 @@ class GravelBedrockEroder(Component):
         )
         return width
 
+    def calc_rock_exposure_fraction(self):
+        """Update the bedrock exposure fraction.
+
+        TODO: ADD TEST(S)
+        """
+        self._rock_exposure_fraction = np.exp(-self._sed / self._depth_decay_scale)
+
     def calc_transport_capacity(self):
         """Calculate and return bed-load transport capacity.
 
@@ -381,7 +419,7 @@ class GravelBedrockEroder(Component):
             * self._intermittency_factor
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
-            * (1.0 - np.exp(-self._sed / self._depth_decay_scale))
+            * (1.0 - self._rock_exposure_fraction)
         )
 
     def calc_abrasion_rate(self):
@@ -422,6 +460,27 @@ class GravelBedrockEroder(Component):
             * self._flow_link_length_over_cell_area
         )
 
+    def calc_bedrock_abrasion_rate(self):
+        """Update the rate of bedrock abrasion.
+
+        Note: assumes _abrasion (of sediment) and _rock_exposure_fraction
+        have already been updated.
+        TODO: ADD TEST(S) HERE
+        """
+        self._rock_abrasion_rate = self._abrasion * self._rock_exposure_fraction
+
+    def calc_bedrock_plucking_rate(self):
+        """Update the rate of bedrock erosion by plucking.
+
+        TODO: ADD TEST(S) HERE
+        """
+        self._pluck_rate = (
+            self._plucking_coef
+            * self._discharge
+            * self._slope**self._SEVEN_SIXTHS
+            * self._rock_exposure_fraction
+        )
+
     def calc_sediment_rate_of_change(self):
         """Update the rate of thickness change of coarse sediment at each core node.
 
@@ -459,6 +518,7 @@ class GravelBedrockEroder(Component):
         self._dzdt[cores] = self._porosity_factor * (
             (self._sediment_influx[cores] - self._sediment_outflux[cores])
             / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
+            + (self._pluck_rate[cores] * self._pluck_coarse_frac)
             - self._abrasion[cores]
         )
 
