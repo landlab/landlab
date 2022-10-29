@@ -571,6 +571,7 @@ class GravelBedrockEroder(Component):
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
         >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder.calc_transport_capacity()
         >>> eroder.calc_sediment_rate_of_change()
         >>> np.round(eroder._sediment_outflux[4:7], 3)
         array([ 0.   ,  0.038,  0.019])
@@ -579,9 +580,6 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._dHdt[5:7], 8)
         array([ -2.93000000e-06,  -2.93000000e-06])
         """
-        self.calc_transport_capacity()
-        if self._abrasion_coef > 0.0:
-            self.calc_abrasion_rate()
         cores = self.grid.core_nodes
         self._sediment_influx[:] = 0.0
         for c in cores:  # send sediment downstream
@@ -617,7 +615,13 @@ class GravelBedrockEroder(Component):
         array([ 0.    ,  0.9971,  1.9971])
         """
         self.calc_rock_exposure_fraction()
+        self.calc_transport_capacity()
+        self.calc_bedrock_plucking_rate()
+        if self._abrasion_coef > 0.0:
+            self.calc_abrasion_rate()
+            self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
-        #self.calc_bedrock_lowering_rate() TODO: ADD THIS FN
+        self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
         self._sed += self._dHdt * dt
+        self._bedrock__elevation -= self._rock_lowering_rate * dt
         self._elev[:] = self._bedrock__elevation + self._sed
