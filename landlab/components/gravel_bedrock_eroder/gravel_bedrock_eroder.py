@@ -482,9 +482,35 @@ class GravelBedrockEroder(Component):
 
         Note: assumes _abrasion (of sediment) and _rock_exposure_fraction
         have already been updated.
-        TODO: ADD TEST(S) HERE
+
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=100.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[:] = 0.01 * grid.x_of_node
+        >>> sed = grid.add_zeros("soil__depth", at="node")
+        >>> sed[:] = 1.0
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficient=1.0e-4)
+        >>> eroder.calc_rock_exposure_fraction()
+        >>> round(eroder._rock_exposure_fraction[6], 4)
+        0.3679
+        >>> eroder.calc_transport_capacity()
+        >>> np.round(eroder._sediment_outflux[5:7], 3)
+        array([ 0.024,  0.012])
+        >>> eroder.calc_abrasion_rate()
+        >>> np.round(eroder._abrasion[5:7], 9)
+        array([  1.20000000e-08,   6.00000000e-09])
+        >>> eroder.calc_bedrock_abrasion_rate()
+        >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
+        array([  4.40000000e-09,   2.20000000e-09])
         """
-        self._rock_abrasion_rate = self._abrasion * self._rock_exposure_fraction
+        self._rock_abrasion_rate = (
+                self._abrasion
+                * self._rock_exposure_fraction
+        )
 
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
