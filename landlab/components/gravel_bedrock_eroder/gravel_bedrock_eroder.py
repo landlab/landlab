@@ -616,6 +616,8 @@ class GravelBedrockEroder(Component):
         >>> np.round(elev[4:7], 4)
         array([ 0.    ,  0.9971,  1.9971])
         """
+        self.calc_rock_exposure_fraction()
         self.calc_sediment_rate_of_change()
+        #self.calc_bedrock_lowering_rate() TODO: ADD THIS FN
         self._sed += self._dHdt * dt
         self._elev[:] = self._bedrock__elevation + self._sed
