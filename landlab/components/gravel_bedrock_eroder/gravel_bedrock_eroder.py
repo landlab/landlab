@@ -61,6 +61,8 @@ class GravelBedrockEroder(Component):
     depth_decay_scale : float (default 1.0)
         Scale for depth decay in bedrock exposure function
 
+    TODO: ADD EXAMPLE(S) WITH ROCK INVOLVED
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -74,12 +76,14 @@ class GravelBedrockEroder(Component):
     >>> fa = FlowAccumulator(grid, runoff_rate=10.0)
     >>> fa.run_one_step()
     >>> eroder = GravelBedrockEroder(grid, abrasion_coefficient=0.0005)
+    >>> rock_elev = grid.at_node["bedrock__elevation"]
     >>> for _ in range(200):
-    ...     fa.run_one_step()
+    ...     rock_elev[grid.core_nodes] += 1.0
     ...     elev[grid.core_nodes] += 1.0
+    ...     fa.run_one_step()
     ...     eroder.run_one_step(10000.0)
     >>> int(elev[4] * 100)
-    2366
+    2266
     """
 
     _ONE_SIXTH = 1.0 / 6.0
@@ -144,6 +148,14 @@ class GravelBedrockEroder(Component):
             "units": "m/y",
             "mapping": "node",
             "doc": "rate of bedrock lowering by plucking",
+        },
+        "bedrock__lowering_rate": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/y",
+            "mapping": "node",
+            "doc": "Rate of lowering of bedrock surface",
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -252,7 +264,8 @@ class GravelBedrockEroder(Component):
         super().initialize_output_fields()
         self._sediment_influx = grid.at_node["bedload_sediment__volume_influx"]
         self._sediment_outflux = grid.at_node["bedload_sediment__volume_outflux"]
-        self._dzdt = grid.at_node["sediment__rate_of_change"]
+        self._dHdt = grid.at_node["sediment__rate_of_change"]
+        self._rock_lowering_rate = grid.at_node["bedrock__lowering_rate"]
         self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
         self._rock_exposure_fraction = grid.at_node["bedrock__exposure_fraction"]
         self._rock_abrasion_rate = grid.at_node["bedrock__abrasion_rate"]
@@ -563,7 +576,7 @@ class GravelBedrockEroder(Component):
         array([ 0.   ,  0.038,  0.019])
         >>> np.round(eroder._sediment_influx[4:7], 3)
         array([ 0.038,  0.019,  0.   ])
-        >>> np.round(eroder._dzdt[5:7], 8)
+        >>> np.round(eroder._dHdt[5:7], 8)
         array([ -2.93000000e-06,  -2.93000000e-06])
         """
         self.calc_transport_capacity()
@@ -574,7 +587,7 @@ class GravelBedrockEroder(Component):
         for c in cores:  # send sediment downstream
             r = self._receiver_node[c]
             self._sediment_influx[r] += self._sediment_outflux[c]
-        self._dzdt[cores] = self._porosity_factor * (
+        self._dHdt[cores] = self._porosity_factor * (
             (self._sediment_influx[cores] - self._sediment_outflux[cores])
             / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
             + (self._pluck_rate[cores] * self._pluck_coarse_frac)
@@ -604,4 +617,5 @@ class GravelBedrockEroder(Component):
         array([ 0.    ,  0.9971,  1.9971])
         """
         self.calc_sediment_rate_of_change()
-        self._elev += self._dzdt * dt
+        self._sed += self._dHdt * dt
+        self._elev[:] = self._bedrock__elevation + self._sed
