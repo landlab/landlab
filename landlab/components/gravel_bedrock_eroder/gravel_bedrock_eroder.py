@@ -385,7 +385,24 @@ class GravelBedrockEroder(Component):
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.
 
-        TODO: ADD TEST(S)
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=100.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> sed = grid.add_zeros("soil__depth", at="node")
+        >>> sed[4] = 1000.0
+        >>> sed[5] = 0.0
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder.calc_rock_exposure_fraction()
+        >>> eroder._rock_exposure_fraction[4:6]
+        array([ 0.,  1.])
+        >>> sed[4] = 1.0  # exposure frac should be 1/e ~ 0.3679
+        >>> sed[5] = 2.0  # exposure frac should be 1/e^2 ~ 0.1353
+        >>> eroder.calc_rock_exposure_fraction()
+        >>> np.round(eroder._rock_exposure_fraction[4:6], 4)
+        array([ 0.3679,  0.1353])
         """
         self._rock_exposure_fraction = np.exp(-self._sed / self._depth_decay_scale)
 
