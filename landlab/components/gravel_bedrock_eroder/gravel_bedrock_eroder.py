@@ -472,7 +472,23 @@ class GravelBedrockEroder(Component):
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
 
-        TODO: ADD TEST(S) HERE
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=100.0)
+        >>> elev = grid.add_zeros("topographic__elevation", at="node")
+        >>> elev[4] = 1.0
+        >>> sed = grid.add_zeros("soil__depth", at="node")
+        >>> fa = FlowAccumulator(grid)
+        >>> fa.run_one_step()
+        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder.calc_rock_exposure_fraction()
+        >>> eroder.calc_bedrock_plucking_rate()
+        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01**(7./ 6.)
+        >>> round(predicted_plucking_rate, 9)  # Kp Q S^(7/6)
+        4.6416e-05
+        >>> int(round(eroder._pluck_rate[4] * 1e9))
+        46416
         """
         self._pluck_rate = (
             self._plucking_coef
