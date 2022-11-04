@@ -551,7 +551,7 @@ class GravelBedrockEroder(Component):
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
             * self._rock_exposure_fraction
-        )
+        )/self._grid.dx
 
     def calc_sediment_influx(self):
         """Update the volume influx at each node."""
