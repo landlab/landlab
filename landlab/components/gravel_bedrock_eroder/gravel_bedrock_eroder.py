@@ -520,10 +520,7 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
         array([  4.40000000e-09,   2.20000000e-09])
         """
-        self._rock_abrasion_rate = (
-                self._abrasion
-                * self._rock_exposure_fraction
-        )
+        self._rock_abrasion_rate = self._abrasion * self._rock_exposure_fraction
 
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
@@ -551,7 +548,7 @@ class GravelBedrockEroder(Component):
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
             * self._rock_exposure_fraction
-        )/self._grid.dx
+        ) / self._grid.dx
 
     def calc_sediment_influx(self):
         """Update the volume influx at each node."""
