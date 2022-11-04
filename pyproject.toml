@@ -40,6 +40,7 @@ dependencies = [
   "numpy",
   "pyyaml",
   "pyshp != 2.3.0",
+  "rich_click",
   "scipy",
   "statsmodels",
   "pandas",
@@ -73,6 +74,7 @@ docs = [
   "tabulate",
   "tornado",
   "entrypoints",
+  "furo",
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
   "sphinxcontrib.towncrier",
@@ -99,7 +101,7 @@ notebooks = [
 ]
 
 [project.scripts]
-landlab = "landlab.cmd.landlab:main"
+landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true

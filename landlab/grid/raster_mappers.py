@@ -183,7 +183,7 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     array([  0.,   0.,   1.,   2.,   3.,  11.,  13.,  15.,  10.,  25.,  27.,
             29.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -236,7 +236,7 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     array([  0. ,   0. ,   0.5,   1. ,   1.5,   5.5,   6.5,   7.5,   5. ,
             12.5,  13.5,  14.5])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -291,7 +291,7 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
              3.,   7.,   8.,   9.,
             10.,  14.,  15.,  16.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -345,7 +345,7 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
     array([  0.,   0.,   0.,   0.,   0.,   4.,   5.,   6.,   0.,  11.,  12.,
             13.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -399,7 +399,7 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     array([  3.,  5.,  7.,   6.,  17.,  19.,  21.,  13.,  14.,  15.,  16.,
              0.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -453,7 +453,7 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     array([  1.5,   2.5,   3.5,   3. ,   8.5,   9.5,  10.5,   6.5,   7. ,
              7.5,   8. ,   0. ])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -507,7 +507,7 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
     array([  3.,   4.,   5.,   6.,  10.,  11.,  12.,  13.,  14.,  15.,  16.,
              0.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -560,7 +560,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     >>> map_min_of_outlinks_to_node(rmg, 'z')
     array([ 0.,  1.,  2.,  0.,  7.,  8.,  9.,  0.,  0.,  0.,  0.,  0.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -615,7 +615,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
              6.66666667,   7.5       ,   8.5       ,   9.33333333,
             12.        ,  13.33333333,  14.33333333,  14.5       ])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -681,7 +681,7 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
     array([  0. ,   0.5,   1.5,   2. ,   7. ,   7.5,   8.5,   9. ,  14. ,
             14.5,  15.5,  16. ])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -738,7 +738,7 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     array([ 0. ,  0. ,  0. ,  0. ,  0. , -8. , -8.5, -9. ,  0. ,  0. ,  0. ,
             0. ])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.zeros(centering="node", dtype=float)
@@ -796,7 +796,7 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
     array([  3. ,   4. ,   5. ,   6. ,   6.5,   7.5,   8.5,   9.5,  10. ,
             11. ,  12. ,  13. ])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(centering="node")
@@ -853,7 +853,7 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     array([  0.,   0.,   0.,   0.,   0., -11., -12.,   0.,   0., -11., -12.,
              0.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.zeros(centering="node", dtype=float)

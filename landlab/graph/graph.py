@@ -311,7 +311,7 @@ class NetworkGraph:
         >>> graph.xy_of_node[:, 1]
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return np.stack((self.x_of_node, self.y_of_node)).T.copy()
 
@@ -327,7 +327,7 @@ class NetworkGraph:
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["x_of_node"].values
 
@@ -343,7 +343,7 @@ class NetworkGraph:
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["y_of_node"].values
 
@@ -369,7 +369,7 @@ class NetworkGraph:
         >>> graph.nodes
         array([0, 1, 2, 3, 4, 5])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["node"].values
 
@@ -388,7 +388,7 @@ class NetworkGraph:
         >>> np.sort(graph.perimeter_nodes)
         array([0, 2, 3, 5])
 
-        LLCATS: NINF BC SUBSET
+        :meta landlab: info-node, boundary-condition, subset
         """
         return find_perimeter_nodes(self)
 
@@ -404,7 +404,7 @@ class NetworkGraph:
         >>> graph.number_of_nodes == 6
         True
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds.dims["node"]
 
@@ -429,7 +429,7 @@ class NetworkGraph:
                [3, 6], [4, 7], [5, 8],
                [6, 7], [7, 8]])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["nodes_at_link"].values
 
@@ -450,7 +450,7 @@ class NetworkGraph:
         >>> graph.node_at_link_tail
         array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.nodes_at_link[:, 0]
 
@@ -471,7 +471,7 @@ class NetworkGraph:
         >>> graph.node_at_link_head
         array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.nodes_at_link[:, 1]
 
@@ -519,7 +519,7 @@ class NetworkGraph:
                [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
                [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         try:
             return self._links_at_node
@@ -584,7 +584,7 @@ class NetworkGraph:
         >>> graph.angle_of_link * 180. / np.pi
         array([  0.,   0.,  90.,  90.,  90.,   0.,   0.])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return get_angle_of_link(self)
 
@@ -603,7 +603,7 @@ class NetworkGraph:
         >>> graph.length_of_link
         array([ 2.,  2.,  1.,  1.,  1.,  2.,  2.])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return get_length_of_link(self)
 
@@ -624,7 +624,7 @@ class NetworkGraph:
                [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
                [ 1. ,  1. ], [ 3. ,  1. ]])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return get_midpoint_of_link(self)
 
@@ -685,7 +685,7 @@ class NetworkGraph:
                [ 8,  6,  4, -1, -1],
                [ 7,  5, -1, -1, -1]])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         node_is_at_tail = np.choose(
             self.link_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
@@ -835,7 +835,7 @@ class Graph(NetworkGraph):
         array([[ 0.5,  0.5],
               [ 1.5,  0.5]])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         return get_centroid_of_patch(self)
 
@@ -859,7 +859,7 @@ class Graph(NetworkGraph):
         >>> graph.area_of_patch
         array([ 1.,  1.])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         return get_area_of_patch(self)
 
@@ -881,7 +881,7 @@ class Graph(NetworkGraph):
         >>> graph.number_of_patches == 2
         True
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         try:
             return self.ds.dims["patch"]
@@ -907,7 +907,7 @@ class Graph(NetworkGraph):
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return self.ds["links_at_patch"].values
 
@@ -933,7 +933,7 @@ class Graph(NetworkGraph):
         array([[4, 3, 0, 1],
                [5, 4, 1, 2]])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         nodes_at_patch = get_nodes_at_patch(self)
         sort_spokes_at_hub(
@@ -961,7 +961,7 @@ class Graph(NetworkGraph):
         array([[ 0, -1], [ 1,  0], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         patches_at_node = reverse_one_to_many(self.nodes_at_patch)
         sort_spokes_at_hub(
@@ -990,6 +990,6 @@ class Graph(NetworkGraph):
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         return reverse_one_to_many(self.links_at_patch, min_counts=2)
