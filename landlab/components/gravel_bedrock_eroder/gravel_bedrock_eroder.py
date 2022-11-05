@@ -231,7 +231,7 @@ class GravelBedrockEroder(Component):
         abrasion_coefficient=0.0,
         sediment_porosity=0.35,
         depth_decay_scale=1.0,
-        plucking_coefficient=1.0e-6,
+        plucking_coefficient=1.0e-4,
         coarse_fraction_from_plucking=1.0,
     ):
         """Initialize GravelRiverTransporter."""
@@ -548,6 +548,7 @@ class GravelBedrockEroder(Component):
         """
         self._pluck_rate = (
             self._plucking_coef
+            * self._intermittency_factor
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
             * self._rock_exposure_fraction
