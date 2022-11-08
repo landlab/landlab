@@ -19,12 +19,12 @@ from .core.model_parameter_loader import load_params
 from .core.utils import ExampleData
 from .field import FieldError
 from .grid import (
+    FramedVoronoiGrid,
     HexModelGrid,
     ModelGrid,
     NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
-    FramedVoronoiGrid,
     VoronoiDelaunayGrid,
     create_grid,
 )

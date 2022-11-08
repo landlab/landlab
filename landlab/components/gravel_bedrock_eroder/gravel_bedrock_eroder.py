@@ -1,4 +1,5 @@
 import numpy as np
+
 from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
@@ -544,9 +545,9 @@ class GravelBedrockEroder(Component):
         >>> int(round(eroder._pluck_rate[4] * 1e9))
         464
         """
-        if type(self._grid.spacing)==tuple: 
-            grid_res = (self._grid.spacing[0]+self._grid.spacing[1])/2
-        else: 
+        if type(self._grid.spacing) == tuple:
+            grid_res = (self._grid.spacing[0] + self._grid.spacing[1]) / 2
+        else:
             grid_res = self._grid.spacing
         self._pluck_rate = (
             self._plucking_coef
