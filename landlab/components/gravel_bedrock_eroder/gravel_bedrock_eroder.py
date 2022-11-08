@@ -528,7 +528,8 @@ class GravelBedrockEroder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> grid = RasterModelGrid((3, 3), xy_spacing=100.0)
+        >>> grid_res = 100.0
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=grid_res)
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
         >>> elev[4] = 1.0
         >>> sed = grid.add_zeros("soil__depth", at="node")
@@ -537,18 +538,22 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder.calc_bedrock_plucking_rate()
-        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01**(7./ 6.)
+        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01**(7./ 6.)/grid_res
         >>> round(predicted_plucking_rate, 9)  # Kp Q S^(7/6)
-        4.6416e-05
+        4.64e-07
         >>> int(round(eroder._pluck_rate[4] * 1e9))
-        46416
+        464
         """
+        if type(self._grid.spacing)==tuple: 
+            grid_res = (self._grid.spacing[0]+self._grid.spacing[1])/2
+        else: 
+            grid_res = self._grid.spacing
         self._pluck_rate = (
             self._plucking_coef
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
             * self._rock_exposure_fraction
-        ) / self._grid.dx
+        ) / grid_res
 
     def calc_sediment_influx(self):
         """Update the volume influx at each node."""
