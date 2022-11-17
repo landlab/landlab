@@ -213,7 +213,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         >>> vmg.save('./mytestsave.grid')
         >>> os.remove('mytestsave.grid') #to remove traces of this test
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         import os
         import pickle

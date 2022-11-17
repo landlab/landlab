@@ -1,8 +1,8 @@
 .. _development:
 
-====================
-Guide for Developers
-====================
+===============
+Developer Guide
+===============
 
 If you're intending to make changes to the Landlab code base, or want to
 develop your own components, this set of pages will provide information you

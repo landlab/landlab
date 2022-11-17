@@ -12,11 +12,19 @@
 # serve to show the default.
 
 import os
+import sys
+import tomli
 import pathlib
 from datetime import date
 
 import landlab
 
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
+#                                                 os.pardir)))
+sys.path.insert(0, os.path.abspath("../.."))
 docs_dir = os.path.dirname(__file__)
 
 
@@ -29,6 +37,7 @@ docs_dir = os.path.dirname(__file__)
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
     "sphinx.ext.mathjax",
@@ -38,9 +47,6 @@ extensions = [
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
 ]
-
-if os.getenv("READTHEDOCS"):
-    template_bridge = "landlab_ext.MyTemplateLoader"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -110,6 +116,7 @@ show_authors = True
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"
+pygments_dark_style = "monokai"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -125,21 +132,31 @@ autoclass_content = "both"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "alabaster"
+# html_theme = "alabaster"
+html_theme = "furo"
+html_title = "landlab"
+html_logo = "_static/landlab_logo.png"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "description": "An open-source Python package for building numerical models of Earth surface dynamics.",
-    "logo": "landlab_logo.jpg",
-    "logo_name": False,
-    "github_user": "landlab",
-    "github_repo": "landlab",
-    "extra_nav_links": {
-        "landlab @ GitHub": "https://github.com/landlab/landlab/",
-        "Contact Us": "https://github.com/landlab/landlab/issues",
-    },
+    "announcement": "<em>Landlab 2.5 released!</em>",
+    "source_repository": "https://github.com/landlab/landlab/",
+    "source_branch": "master",
+    "source_directory": "docs/source",
+    "sidebar_hide_name": True,
+    "footer_icons": [
+        {
+            "name": "power",
+            "url": "https://csdms.colorado.edu",
+            "html": """
+               <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.1" viewBox="0 0 16 16" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 0l-6 8h6l-4 8 14-10h-8l6-6z"></path></svg>
+               <b><i>Powered by CSDMS</i></b>
+            """,
+            "class": "",
+        },
+    ],
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -160,12 +177,12 @@ html_theme_options = {
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 # html_favicon = None
-html_favicon = "images/favicon.ico"
+html_favicon = "_static/favicon.ico"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static", "images"]
+html_static_path = ["_static"]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -177,9 +194,6 @@ html_static_path = ["_static", "images"]
 
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {}
-html_sidebars = {
-    "**": ["about.html", "searchbox.html", "navigation.html", "sidebaroutro.html"]
-}
 
 
 # Additional templates that should be rendered to pages, maps page names to
@@ -365,3 +379,19 @@ towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-vers
 towncrier_draft_include_empty = True
 # towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
 towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
+
+# -- Options for intersphinx extension ---------------------------------------
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+}
+
+with open("../index.toml", "rb") as fp:
+    cats = tomli.load(fp)
+cats["grids"].pop("ModelGrid")
+
+jinja_contexts = {"llcats": cats}

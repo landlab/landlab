@@ -138,7 +138,7 @@ def _active_links_at_node(grid, *args):
            [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
 
-    LLCATS: DEPR LINF NINF
+    :meta landlab: deprecated, info-link, info-node
     """
     active_links_at_node = grid.links_at_node.copy()
     active_links_at_node[grid.active_link_dirs_at_node == 0] = -1
