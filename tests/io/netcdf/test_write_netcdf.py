@@ -107,13 +107,13 @@ def test_netcdf_write(tmpdir):
         write_netcdf("test.nc", field, format="NETCDF4")
         root = nc.Dataset("test.nc", "r", format="NETCDF4")
 
-        assert set(root.dimensions) == set(["ni", "nj", "nt"])
+        assert set(root.dimensions) == {"ni", "nj", "nt"}
         assert len(root.dimensions["ni"]) == 3
         assert len(root.dimensions["nj"]) == 4
         assert len(root.dimensions["nt"]) == 1
         assert root.dimensions["nt"].isunlimited()
 
-        assert set(root.variables) == set(["x", "y", "topographic__elevation"])
+        assert set(root.variables) == {"x", "y", "topographic__elevation"}
 
         assert_array_equal(
             np.reshape(root.variables["x"], -1),
@@ -286,16 +286,19 @@ def test_netcdf_write_at_cells(tmpdir):
                 np.reshape(root.variables[name], -1), field.at_cell[name]
             )
 
-        assert set(root.dimensions) == set(["nv", "ni", "nj", "nt"])
+        assert set(root.dimensions) == {"nv", "ni", "nj", "nt"}
         assert len(root.dimensions["nv"]) == 4
         assert len(root.dimensions["ni"]) == 1
         assert len(root.dimensions["nj"]) == 2
         assert len(root.dimensions["nt"]) == 1
         assert root.dimensions["nt"].isunlimited()
 
-        assert set(root.variables) == set(
-            ["x_bnds", "y_bnds", "topographic__elevation", "uplift_rate"]
-        )
+        assert set(root.variables) == {
+            "x_bnds",
+            "y_bnds",
+            "topographic__elevation",
+            "uplift_rate",
+        }
         root.close()
 
 

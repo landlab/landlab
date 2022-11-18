@@ -48,7 +48,7 @@ def test_4x7_grid_vs_analytical_solution():
     dt = 250.0
 
     # Run for 750 ky
-    for i in range(3000):
+    for _ in range(3000):
 
         z[mg.core_nodes] += baselevel_rate * dt
         z_bedrock[mg.core_nodes] += baselevel_rate * dt

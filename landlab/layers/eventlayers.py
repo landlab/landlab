@@ -528,7 +528,7 @@ class EventLayers:
         self._number_of_layers = 0
         self._number_of_stacks = number_of_stacks
         self._surface_index = np.zeros(number_of_stacks, dtype=int)
-        self._attrs = dict()
+        self._attrs = {}
 
         dims = (self.number_of_layers, self.number_of_stacks)
         self._attrs["_dz"] = np.empty(dims, dtype=float)

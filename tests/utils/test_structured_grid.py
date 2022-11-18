@@ -266,60 +266,60 @@ def test_with_link_nodes():
 
 def test_vertical_active_link_count():
     link_count = sgrid.vertical_active_link_count((3, 4))
-    assert 4 == link_count
+    assert link_count == 4
 
     link_count = sgrid.vertical_active_link_count((3, 2))
-    assert 0 == link_count
+    assert link_count == 0
 
     node_status = np.ones((4, 5), dtype=int)
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
-    assert 9 == link_count
+    assert link_count == 9
 
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
     node_status[0, 1] = 0
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
-    assert 8 == link_count
+    assert link_count == 8
 
     node_status[2, 1] = 0
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
-    assert 6 == link_count
+    assert link_count == 6
 
     node_status[2, 2] = 0
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
-    assert 4 == link_count
+    assert link_count == 4
 
     node_status[1, 1] = 0
     link_count = sgrid.vertical_active_link_count((4, 5), node_status=node_status)
-    assert 4 == link_count
+    assert link_count == 4
 
 
 def test_horizontal_active_link_count():
     link_count = sgrid.horizontal_active_link_count((3, 4))
-    assert 3 == link_count
+    assert link_count == 3
 
     link_count = sgrid.horizontal_active_link_count((2, 3))
-    assert 0 == link_count
+    assert link_count == 0
 
     node_status = np.ones((4, 5), dtype=int)
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
-    assert 8 == link_count
+    assert link_count == 8
 
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
     node_status[0, 1] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
-    assert 8 == link_count
+    assert link_count == 8
 
     node_status[2, 1] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
-    assert 6 == link_count
+    assert link_count == 6
 
     node_status[2, 2] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
-    assert 5 == link_count
+    assert link_count == 5
 
     node_status[1, 1] = 0
     link_count = sgrid.horizontal_active_link_count((4, 5), node_status=node_status)
-    assert 3 == link_count
+    assert link_count == 3
 
 
 def test_horizontal_active_link_ids():
@@ -549,19 +549,19 @@ def test_active_inlinks_4x5():
 
 
 def test_face_count():
-    assert 17 == sgrid.face_count((4, 5))
-    assert 4 == sgrid.face_count((3, 3))
-    assert 0 == sgrid.face_count((2, 100))
-    assert 0 == sgrid.face_count((100, 2))
-    assert 0 == sgrid.face_count((100, 1))
+    assert sgrid.face_count((4, 5)) == 17
+    assert sgrid.face_count((3, 3)) == 4
+    assert sgrid.face_count((2, 100)) == 0
+    assert sgrid.face_count((100, 2)) == 0
+    assert sgrid.face_count((100, 1)) == 0
 
 
 def test_active_face_count():
-    assert 17 == sgrid.active_face_count((4, 5))
-    assert 4 == sgrid.active_face_count((3, 3))
-    assert 0 == sgrid.active_face_count((2, 100))
-    assert 0 == sgrid.active_face_count((100, 2))
-    assert 0 == sgrid.active_face_count((100, 1))
+    assert sgrid.active_face_count((4, 5)) == 17
+    assert sgrid.active_face_count((3, 3)) == 4
+    assert sgrid.active_face_count((2, 100)) == 0
+    assert sgrid.active_face_count((100, 2)) == 0
+    assert sgrid.active_face_count((100, 1)) == 0
 
 
 def test_active_faces():

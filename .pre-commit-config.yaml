@@ -21,11 +21,16 @@ repos:
     require_serial: true
     types_or: [python, pyi, jupyter]
     additional_dependencies: [".[jupyter]"]
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.9.2
+
+- repo: https://github.com/pycqa/flake8
+  rev: 4.0.1
   hooks:
-  - id: flake8
-    # additional_dependencies: [flake8-bugbear]
+    - id: flake8
+      additional_dependencies:
+      - flake8-comprehensions
+      # - flake8-bugbear
+      #   - flake8-simplify
+
 - repo: https://gitlab.com/iamlikeme/nbhooks
   rev: 1.0.0
   hooks:

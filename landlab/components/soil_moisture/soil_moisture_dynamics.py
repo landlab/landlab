@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid", "Multi"])
+_VALID_METHODS = {"Grid", "Multi"}
 
 
 def assert_method_is_valid(method):

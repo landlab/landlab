@@ -684,7 +684,7 @@ class LakeMapperBarnes(Component):
         >>> out == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
         """
-        lakemappings = dict()
+        lakemappings = {}
         outlet_ID = self._grid.BAD_INDEX
         while True:
             try:
@@ -887,7 +887,7 @@ class LakeMapperBarnes(Component):
         ...           'ignore_overfill flag at component instantiation.')
         ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
         """
-        lakemappings = dict()
+        lakemappings = {}
         outlet_ID = self._grid.BAD_INDEX
         while True:
             try:

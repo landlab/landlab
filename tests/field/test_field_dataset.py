@@ -86,7 +86,7 @@ def test_add_fields():
     assert_array_equal(ds["air_temperature"], (0, 0, 0))
     assert_array_equal(ds["ground_temperature"], (1, 1, 1))
     assert len(ds) == 2
-    assert sorted(list(ds)) == ["air_temperature", "ground_temperature"]
+    assert sorted(ds) == ["air_temperature", "ground_temperature"]
 
 
 def test_add_fields_fixed_size():
@@ -123,13 +123,13 @@ def test_pop():
     ds = FieldDataset("node")
     ds.set_value("air_temperature", [0, 0, 0])
     ds.set_value("ground_temperature", [1, 1, 1])
-    assert sorted(list(ds)) == ["air_temperature", "ground_temperature"]
+    assert sorted(ds) == ["air_temperature", "ground_temperature"]
 
     assert_array_equal(ds.pop("ground_temperature"), [1, 1, 1])
-    assert sorted(list(ds)) == ["air_temperature"]
+    assert sorted(ds) == ["air_temperature"]
 
     assert_array_equal(ds.pop("air_temperature"), [0, 0, 0])
-    assert sorted(list(ds)) == []
+    assert sorted(ds) == []
 
     with pytest.raises(KeyError):
         ds.pop("air_temperature")
