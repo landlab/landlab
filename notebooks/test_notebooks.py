@@ -1,5 +1,6 @@
 import pathlib
 import subprocess
+from contextlib import suppress
 from pkg_resources import evaluate_marker
 
 import pytest
@@ -87,10 +88,8 @@ def _notebook_run(path_to_notebook):
     else:
         nb = nbformat.read(unique_name, nbformat.current_nbformat)
     finally:
-        try:
+        with suppress(FileNotFoundError):
             unique_name.unlink()
-        except FileNotFoundError:
-            pass
 
     return nb
 
@@ -102,10 +101,8 @@ def test_notebook_is_clean(notebook):
 
 @pytest.mark.notebook
 def test_notebook(tmpdir, notebook):
-    try:
+    with suppress(KeyError):
         pytest.skip(_EXCLUDE[pathlib.Path(notebook).name])
-    except KeyError:
-        pass
 
     with tmpdir.as_cwd():
         nb = _notebook_run(notebook)

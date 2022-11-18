@@ -34,7 +34,7 @@ def test_erodep_slope_area_small_vs():
     ed = ErosionDeposition(rg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
-    for i in range(1000):
+    for _ in range(1000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[rg.core_nodes] += U * dt
@@ -72,7 +72,7 @@ def test_erodep_slope_area_big_vs():
     ed = ErosionDeposition(rg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
-    for i in range(1000):
+    for _ in range(1000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[rg.core_nodes] += U * dt
@@ -109,7 +109,7 @@ def test_erodep_slope_area_with_vs_unity():
     ed = ErosionDeposition(rg, K=K, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
-    for i in range(1000):
+    for _ in range(1000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[rg.core_nodes] += U * dt
@@ -148,7 +148,7 @@ def test_erodep_slope_area_shear_stress_scaling():
     ed = ErosionDeposition(rg, K=K, v_s=vs, m_sp=m_sp, n_sp=n_sp, solver="adaptive")
 
     # ... and run it to steady state.
-    for i in range(1500):
+    for _ in range(1500):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[rg.core_nodes] += U * dt
@@ -188,7 +188,7 @@ def test_erodep_slope_area_with_threshold():
     )
 
     # ... and run it to steady state.
-    for i in range(1000):
+    for _ in range(1000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[rg.core_nodes] += U * dt
