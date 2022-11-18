@@ -211,7 +211,7 @@ class NetworkGraph:
         self._frozen = False
 
     def _add_variable(self, name, var, dims=None, attrs=None):
-        kwds = dict(data=var, dims=dims, attrs=attrs)
+        kwds = {"data": var, "dims": dims, "attrs": attrs}
         self.ds.update({name: xr.DataArray(**kwds)})
         if self._frozen:
             self.freeze()

@@ -1,5 +1,6 @@
 import pathlib
 import subprocess
+from contextlib import suppress
 from pkg_resources import evaluate_marker
 
 import pytest
@@ -9,7 +10,7 @@ from run_notebook_checks import _notebook_check_is_clean
 
 
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
-_EXCLUDE = dict()
+_EXCLUDE = {}
 with open(_exclude_file, "r") as fp:
     for item in yaml.safe_load(fp):
         filename, reason = item["file"], item["reason"]
@@ -87,10 +88,8 @@ def _notebook_run(path_to_notebook):
     else:
         nb = nbformat.read(unique_name, nbformat.current_nbformat)
     finally:
-        try:
+        with suppress(FileNotFoundError):
             unique_name.unlink()
-        except FileNotFoundError:
-            pass
 
     return nb
 
@@ -102,10 +101,8 @@ def test_notebook_is_clean(notebook):
 
 @pytest.mark.notebook
 def test_notebook(tmpdir, notebook):
-    try:
+    with suppress(KeyError):
         pytest.skip(_EXCLUDE[pathlib.Path(notebook).name])
-    except KeyError:
-        pass
 
     with tmpdir.as_cwd():
         nb = _notebook_run(notebook)

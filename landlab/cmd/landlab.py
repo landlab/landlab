@@ -151,7 +151,7 @@ def grids(ctx):
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
 
-    index = dict(grids={})
+    index = {"grids": {}}
     for cls in GRIDS:
         index["grids"][cls.__name__] = _categorize_class(cls)
         index["grids"][cls.__name__]["field-io"] += [
@@ -199,7 +199,7 @@ def components(ctx):
 
     from sphinx.util.docstrings import prepare_docstring
 
-    index = dict(components={})
+    index = {"components": {}}
     for cls in get_all_components():
         if verbose and not silent:
             out(f"indexing: {cls.__name__}")

@@ -258,10 +258,10 @@ def read_shapefile(
 
     sf = _read_shapefile(file, dbf)
 
-    link_field_conversion = link_field_conversion or dict()
-    node_field_conversion = node_field_conversion or dict()
-    link_field_dtype = link_field_dtype or dict()
-    node_field_dtype = node_field_dtype or dict()
+    link_field_conversion = link_field_conversion or {}
+    node_field_conversion = node_field_conversion or {}
+    link_field_dtype = link_field_dtype or {}
+    node_field_dtype = node_field_dtype or {}
 
     if sf.shapeTypeName != "POLYLINE":
         raise ValueError(

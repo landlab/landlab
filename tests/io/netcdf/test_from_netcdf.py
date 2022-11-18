@@ -30,8 +30,8 @@ def test_include_everything(tmpdir, format, include, exclude):
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", format=format)
         actual = from_netcdf("test.nc", include=include)
-        assert set(actual.at_node) == set(["elev", "temp"])
-        assert set(actual.at_link) == set(["elev"])
+        assert set(actual.at_node) == {"elev", "temp"}
+        assert set(actual.at_link) == {"elev"}
 
 
 @pytest.mark.parametrize(

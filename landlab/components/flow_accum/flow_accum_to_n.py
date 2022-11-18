@@ -75,7 +75,7 @@ class _DrainageStack_to_n:
         """
 
         self.num_receivers = num_receivers
-        self.s = list()
+        self.s = []
         self.delta = delta
         self.D = D
 
@@ -135,7 +135,7 @@ class _DrainageStack_to_n:
         try:
             base = set(nodes)
         except TypeError:
-            base = set([nodes])
+            base = {nodes}
 
         # instantiate the time keeping variable i, and a variable to keep track
         # of the visit time. Using visit time allows us to itterate through
@@ -151,7 +151,7 @@ class _DrainageStack_to_n:
         num_visits[list(base)] += 1
 
         i = 1
-        visited = set([])
+        visited = set()
         for node_i in base:
             # select the nodes to visit
             visit = set(self.D[self.delta[node_i] : self.delta[node_i + 1]])
@@ -177,8 +177,8 @@ class _DrainageStack_to_n:
             # increase counter
             i += 1
 
-            visited = set([])
-            new_completes = set([])
+            visited = set()
+            new_completes = set()
 
             for node_i in completed:
 

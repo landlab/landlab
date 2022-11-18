@@ -9,7 +9,7 @@ _TEST_DIR = pathlib.Path(__file__).absolute().parent
 def collect_notebooks(src):
     p = pathlib.Path(src)
     if p.is_dir():
-        return set([_p.absolute() for _p in iter_notebooks_in_dir(p, src)])
+        return {_p.absolute() for _p in iter_notebooks_in_dir(p, src)}
     else:
         raise ValueError("{0}: not a directory".format(src))
 

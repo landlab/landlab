@@ -454,7 +454,7 @@ class ModelGrid(
         if isinstance(exclude, str):
             exclude = [exclude]
 
-        layer_groups = set(["_".join(["layer", at]) for at in self.groups])
+        layer_groups = {"_".join(["layer", at]) for at in self.groups}
         layer_groups.add("layer")
 
         canonical_names = set()

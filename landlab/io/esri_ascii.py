@@ -231,7 +231,7 @@ def _header_is_valid(header):
         The header has the key but its values is of the wrong type.
     """
     header_keys = set(header)
-    required_keys = set(["ncols", "nrows", "cellsize"])
+    required_keys = {"ncols", "nrows", "cellsize"}
 
     if not required_keys.issubset(header_keys):
         raise MissingRequiredKeyError(", ".join(required_keys - header_keys))
@@ -336,7 +336,7 @@ def read_asc_header(asc_file):
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
-    header = dict()
+    header = {}
     for (key, value) in _header_lines(asc_file):
         header[key] = value
 

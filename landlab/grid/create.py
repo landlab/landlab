@@ -114,9 +114,10 @@ def add_field_from_function(grid, name, functions, at="node"):
     ModelGrid
         The grid with the new field.
     """
-    valid_functions = set(_SYNTHETIC_FIELD_CONSTRUCTORS) | set(
-        ["read_esri_ascii", "read_netcdf"]
-    )
+    valid_functions = set(_SYNTHETIC_FIELD_CONSTRUCTORS) | {
+        "read_esri_ascii",
+        "read_netcdf",
+    }
 
     for func_name, func_args in as_list_of_tuples(functions):
         if func_name not in valid_functions:

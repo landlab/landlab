@@ -177,7 +177,7 @@ def _read_netcdf_structured_data(root):
         Data values, reshaped to match that of the grid. Keys are the
         variable names as read from the NetCDF file.
     """
-    fields = dict()
+    fields = {}
     grid_mapping_exists = False
     grid_mapping_dict = None
     for (name, var) in root.variables.items():

@@ -151,7 +151,7 @@ def test_matches_detlim_solution():
         mg, latero_mech="TB", Kv=Kbr, solver="basic", alph=0.0, Kl_ratio=1.0
     )
 
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
         (mg, dzlat) = latero.run_one_step(dt)
@@ -210,7 +210,7 @@ def test_ss_sed_flux():
         mg, latero_mech="UC", alph=1.5, Kv=0.001, Kl_ratio=1.0, solver="basic"
     )
 
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         (mg, dzlat) = latero.run_one_step(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += (
@@ -287,7 +287,7 @@ def test_variable_bedrock_K():
         flow_accumulator=fa,
     )
 
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
         (mg, dzlat) = latero.run_one_step(dt)
@@ -354,7 +354,7 @@ def test_latero_steady_inlet():
         qsinlet=2.5,
     )
 
-    for i in range(2000):
+    for _ in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
         (mg, dzlat) = latero.run_one_step(dt)
