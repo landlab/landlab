@@ -482,8 +482,6 @@ class GravelBedrockEroder(Component):
         19
         """
         cores = self._grid.core_nodes
-        if self._flow_length_is_variable:
-            self._update_flow_link_length_over_cell_area()
         self._abrasion[cores] = (
             self._abrasion_coef
             * 0.5
@@ -545,16 +543,14 @@ class GravelBedrockEroder(Component):
         >>> int(round(eroder._pluck_rate[4] * 1e9))
         464
         """
-        if type(self._grid.spacing) == tuple:
-            grid_res = (self._grid.spacing[0] + self._grid.spacing[1]) / 2
-        else:
-            grid_res = self._grid.spacing
-        self._pluck_rate = (
+
+        cores = self._grid.core_nodes
+        self._pluck_rate[cores] = (
             self._plucking_coef
-            * self._discharge
-            * self._slope**self._SEVEN_SIXTHS
-            * self._rock_exposure_fraction
-        ) / grid_res
+            * self._discharge[cores]
+            * self._slope[cores] ** self._SEVEN_SIXTHS
+            * self._rock_exposure_fraction[cores]
+        ) * self._flow_link_length_over_cell_area
 
     def calc_sediment_influx(self):
         """Update the volume influx at each node."""
@@ -624,6 +620,9 @@ class GravelBedrockEroder(Component):
         self.calc_rock_exposure_fraction()
         self.calc_transport_capacity()
         self.calc_sediment_influx()
+
+        if self._flow_length_is_variable:
+            self._update_flow_link_length_over_cell_area()
         self.calc_bedrock_plucking_rate()
         if self._abrasion_coef > 0.0:
             self.calc_abrasion_rate()
