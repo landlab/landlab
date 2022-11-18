@@ -9,7 +9,7 @@ from run_notebook_checks import _notebook_check_is_clean
 
 
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
-_EXCLUDE = dict()
+_EXCLUDE = {}
 with open(_exclude_file, "r") as fp:
     for item in yaml.safe_load(fp):
         filename, reason = item["file"], item["reason"]

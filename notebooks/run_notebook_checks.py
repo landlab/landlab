@@ -13,9 +13,9 @@ err = partial(click.secho, fg="red", err=True)
 def collect_notebooks(src):
     p = pathlib.Path(src)
     if p.is_dir():
-        return set([_p.absolute() for _p in iter_notebooks_in_dir(p, src)])
+        return {_p.absolute() for _p in iter_notebooks_in_dir(p, src)}
     elif is_a_notebook(p):
-        return set([p.absolute()])
+        return {p.absolute()}
     else:
         raise ValueError("{0}: not a directory or a notebook".format(src))
 
