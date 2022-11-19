@@ -42,7 +42,7 @@ class BedParcelInitializerBase(Component):
         if np.max(np.abs(tau_c_50 - 0.055)) > 0.35:
             warnings.warn(f"tau_c_50 is unrealistic ({tau_c_50})")
 
-        self._time = time
+        self._time = [time]
         self._grid = grid
         self._tau_c_50 = tau_c_50
         self._rho_sediment = rho_sediment
@@ -190,7 +190,7 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
     }
 
     def __init__(
-        self, grid, time=[0.0], discharge_at_link=None, mannings_n=0.035, **kwds
+        self, grid, time=0.0, discharge_at_link=None, mannings_n=0.035, **kwds
     ):
         if np.max(np.abs(mannings_n - 0.035)) > 0.3:
             warnings.warn(f"Manning's n value is unrealistic ({mannings_n})")
@@ -305,7 +305,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     }
 
     def __init__(
-        self, grid, time=[0.0], flow_depth_at_link=None, tau_c_multiplier=1.0, **kwds
+        self, grid, time=0.0, flow_depth_at_link=None, tau_c_multiplier=1.0, **kwds
     ):
 
         if flow_depth_at_link is None:
@@ -432,7 +432,7 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     def __init__(
         self,
         grid,
-        time=[0.0],
+        time=0.0,
         drainage_area_coefficient=None,
         drainage_area_exponent=None,
         **kwds,
@@ -540,7 +540,7 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
         },
     }
 
-    def __init__(self, grid, time=[0.0], user_d50=None, **kwds):
+    def __init__(self, grid, time=0.0, user_d50=None, **kwds):
 
         if user_d50 is None:
             raise ValueError("User must provide user_d50")
