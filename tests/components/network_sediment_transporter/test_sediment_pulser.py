@@ -34,7 +34,7 @@ def test_call_SedimentPulserBase(example_nmg2):
 
 
 # @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
-class Test_SedimentPulserAtLinks(object):
+class Test_SedimentPulserAtLinks:
     def test_normal_1(self, example_nmg2):
         """only time specified, links and number parcels specified,
         should use defaults in base class"""
@@ -291,7 +291,7 @@ class Test_SedimentPulserAtLinks(object):
 
 
 # @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
-class Test_SedimentPulserEachParcel(object):
+class Test_SedimentPulserEachParcel:
     def test_normal_1(self, example_nmg2):
         """minimum attributes specified in Pulse, attributes should use
         defaults specified at instantiation"""

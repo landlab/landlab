@@ -108,7 +108,7 @@ def test_calc_D50_discharge():
     np.testing.assert_allclose(D50, D50e, rtol=1e-4)
 
 
-class Test_calc_d50_dArea_scaling(object):
+class Test_calc_d50_dArea_scaling:
     def test_normal_d50_dArea_scaling(self):
         """test normal values 1"""
         D50e = 0.13182567
@@ -156,7 +156,7 @@ def test_D50_not_specified(example_nmg2):
 # %% Test for expected correct values
 
 
-class Test_BedParcelInitializer(object):
+class Test_BedParcelInitializer:
     def test_normal_BPI(self, example_nmg2):
         """
         Minimum attributes specified, most attributes should use
