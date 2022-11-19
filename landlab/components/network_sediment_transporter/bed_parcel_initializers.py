@@ -22,7 +22,7 @@ class BedParcelInitializerBase(Component):
     def __init__(
         self,
         grid,
-        time=[0.0],
+        time=0.0,
         tau_c_50=0.04,
         rho_sediment=2650.0,
         rho_water=1000.0,
