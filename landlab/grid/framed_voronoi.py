@@ -11,6 +11,7 @@ files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy
+
 from ..graph import DualFramedVoronoiGraph
 from .base import ModelGrid
 

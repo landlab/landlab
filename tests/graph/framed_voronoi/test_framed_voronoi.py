@@ -10,8 +10,8 @@ from numpy.testing import (
 from pytest import approx
 
 from landlab.graph.framed_voronoi.framed_voronoi import (
-    HorizontalRectVoronoiGraph,
     FramedVoronoiGraph,
+    HorizontalRectVoronoiGraph,
 )
 
 

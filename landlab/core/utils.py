@@ -652,13 +652,13 @@ def get_categories_from_grid_methods(grid_type):
     from copy import copy
 
     from landlab import (
+        FramedVoronoiGrid,
         HexModelGrid,
         ModelGrid,
         NetworkModelGrid,
         RadialModelGrid,
         RasterModelGrid,
         VoronoiDelaunayGrid,
-        FramedVoronoiGrid,
     )
 
     grid_str_to_grid = {
