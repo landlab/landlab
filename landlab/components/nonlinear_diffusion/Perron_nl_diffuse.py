@@ -766,9 +766,9 @@ class PerronNLDiffuse(Component):
             bottom_op_mat_data_add = np.empty(0)
         elif self._bottom_flag == 4 or self._bottom_flag == 2:
             # ^i.e., fixed zero gradient (4) or more general case...
-            bottom_op_mat_row_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_col_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_data_add = np.empty((bottom_interior_IDs.size * 3 + 6))
+            bottom_op_mat_row_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_col_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_data_add = np.empty(bottom_interior_IDs.size * 3 + 6)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -848,9 +848,9 @@ class PerronNLDiffuse(Component):
                     )
         elif self._bottom_flag == 3:
             # This will handle both top and bottom BCs...
-            bottom_op_mat_row_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_col_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_data_add = np.empty((bottom_interior_IDs.size * 3 + 6))
+            bottom_op_mat_row_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_col_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_data_add = np.empty(bottom_interior_IDs.size * 3 + 6)
             bottom_op_mat_row_add[: (bottom_interior_IDs.size * 3)] = np.repeat(
                 bottom_interior_IDs, 3
             )
@@ -867,9 +867,9 @@ class PerronNLDiffuse(Component):
                 * (nine_node_map[_bottom_list, :][:, bottom_antimask]).flatten()
             )
             # ^...but the values refer to the TOP of the grid
-            top_op_mat_row_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_col_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_data_add = np.empty((top_interior_IDs.size * 3 + 6))
+            top_op_mat_row_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_col_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_data_add = np.empty(top_interior_IDs.size * 3 + 6)
             top_op_mat_row_add[: (top_interior_IDs.size * 3)] = np.repeat(
                 top_interior_IDs, 3
             )
@@ -979,9 +979,9 @@ class PerronNLDiffuse(Component):
             top_op_mat_col_add = np.empty(0)
             top_op_mat_data_add = np.empty(0)
         elif self._top_flag == 4 or self._top_flag == 2:
-            top_op_mat_row_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_col_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_data_add = np.empty((top_interior_IDs.size * 3 + 6))
+            top_op_mat_row_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_col_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_data_add = np.empty(top_interior_IDs.size * 3 + 6)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -1086,9 +1086,9 @@ class PerronNLDiffuse(Component):
             left_op_mat_col_add = np.empty(0)
             left_op_mat_data_add = np.empty(0)
         elif self._left_flag == 4 or self._left_flag == 2:
-            left_op_mat_row_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_col_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_data_add = np.empty((left_interior_IDs.size * 3 + 4))
+            left_op_mat_row_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_col_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_data_add = np.empty(left_interior_IDs.size * 3 + 4)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -1148,9 +1148,9 @@ class PerronNLDiffuse(Component):
                         ]
                     )
         elif self._left_flag == 3:
-            left_op_mat_row_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_col_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_data_add = np.empty((left_interior_IDs.size * 3 + 4))
+            left_op_mat_row_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_col_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_data_add = np.empty(left_interior_IDs.size * 3 + 4)
             left_op_mat_row_add[: (left_interior_IDs.size * 3)] = np.repeat(
                 left_interior_IDs, 3
             )
@@ -1164,9 +1164,9 @@ class PerronNLDiffuse(Component):
             left_op_mat_data_add[: (left_interior_IDs.size * 3)] = (
                 _delta_t * (nine_node_map[_left_list, :][:, left_antimask]).flatten()
             )
-            right_op_mat_row_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_col_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_data_add = np.empty((right_interior_IDs.size * 3 + 4))
+            right_op_mat_row_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_col_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_data_add = np.empty(right_interior_IDs.size * 3 + 4)
             right_op_mat_row_add[: (right_interior_IDs.size * 3)] = np.repeat(
                 right_interior_IDs, 3
             )
@@ -1252,9 +1252,9 @@ class PerronNLDiffuse(Component):
             right_op_mat_col_add = np.empty(0)
             right_op_mat_data_add = np.empty(0)
         elif self._right_flag == 4 or self._right_flag == 2:
-            right_op_mat_row_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_col_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_data_add = np.empty((right_interior_IDs.size * 3 + 4))
+            right_op_mat_row_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_col_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_data_add = np.empty(right_interior_IDs.size * 3 + 4)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).

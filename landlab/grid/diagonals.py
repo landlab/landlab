@@ -99,7 +99,7 @@ def create_diagonals_at_node(shape, out=None):
     return out
 
 
-class DiagonalsMixIn(object):
+class DiagonalsMixIn:
 
     """Add diagonals to a structured quad grid."""
 

@@ -10,7 +10,7 @@ def collect_notebooks(src):
     if p.is_dir():
         return {_p.absolute() for _p in iter_notebooks_in_dir(p, src)}
     else:
-        raise ValueError("{0}: not a directory".format(src))
+        raise ValueError(f"{src}: not a directory")
 
 
 def iter_notebooks_in_dir(path, root):
@@ -29,7 +29,7 @@ def iter_notebooks_in_dir(path, root):
 def pytest_generate_tests(metafunc):
     if "notebook" in metafunc.fixturenames:
         metafunc.parametrize(
-            "notebook", sorted([str(name) for name in collect_notebooks(_TEST_DIR)])
+            "notebook", sorted(str(name) for name in collect_notebooks(_TEST_DIR))
         )
 
 

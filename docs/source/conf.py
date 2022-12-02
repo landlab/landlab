@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # landlab documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 23 17:33:31 2013.

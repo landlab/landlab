@@ -132,7 +132,7 @@ class Component:
             A newly-created component.
         """
         if os.path.isfile(path):
-            with open(path, "r") as fp:
+            with open(path) as fp:
                 params = load_params(fp)
         else:
             params = load_params(path)
@@ -283,7 +283,7 @@ class Component:
             Units for each field.
         """
         return tuple(
-            sorted([(name, cls._info[name]["units"]) for name in cls._info.keys()])
+            sorted((name, cls._info[name]["units"]) for name in cls._info.keys())
         )
 
     @classmethod
@@ -313,7 +313,7 @@ class Component:
             A description of each field.
         """
         return tuple(
-            sorted([(name, cls._info[name]["doc"]) for name in cls._info.keys()])
+            sorted((name, cls._info[name]["doc"]) for name in cls._info.keys())
         )
 
     @classmethod
@@ -372,7 +372,7 @@ class Component:
             Tuple of variable name and location ('node', 'link', etc.) pairs.
         """
         return tuple(
-            sorted([(name, cls._info[name]["mapping"]) for name in cls._info.keys()])
+            sorted((name, cls._info[name]["mapping"]) for name in cls._info.keys())
         )
 
     @classmethod

@@ -396,9 +396,7 @@ def read_netcdf(
                 grid.add_field(field_name, values, at="node", clobber=True)
 
         if (name is not None) and (name not in grid.at_node):
-            raise ValueError(
-                "Specified field {name} was not in provided NetCDF.".format(name=name)
-            )
+            raise ValueError(f"Specified field {name} was not in provided NetCDF.")
 
     ignore = {"x", "y"}
     for name in names - ignore:

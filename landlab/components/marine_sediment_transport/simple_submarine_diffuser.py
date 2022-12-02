@@ -142,7 +142,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         self._time = 0.0
 
         kwds.setdefault("linear_diffusivity", "kd")
-        super(SimpleSubmarineDiffuser, self).__init__(grid, **kwds)
+        super().__init__(grid, **kwds)
 
     @property
     def wave_base(self):
@@ -238,7 +238,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
 
         self.calc_diffusion_coef()
 
-        super(SimpleSubmarineDiffuser, self).run_one_step(dt)
+        super().run_one_step(dt)
 
         depo = self.grid.at_node["sediment_deposit__thickness"]
         depo[:] = self.grid.at_node["topographic__elevation"] - z_before

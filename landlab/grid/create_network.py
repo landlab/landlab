@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Feb  2 17:50:09 2021
 
@@ -459,8 +458,7 @@ class ChannelSegment:
     def __iter__(self):
         yield self
         for upstream in self._upstream:
-            for segment in upstream:
-                yield segment
+            yield from upstream
 
     def __len__(self):
         return len(self._nodes)
@@ -479,8 +477,7 @@ class ChannelSegment:
         except AttributeError:
             pass
         else:
-            for segment in iter_downstream():
-                yield segment
+            yield from iter_downstream()
 
     def count_segments(self, direction="upstream"):
         count = 0

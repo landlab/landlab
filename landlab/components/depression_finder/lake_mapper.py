@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Find depressions on a topographic surface.
 
 .. codeauthor:: gtucker, DEJH (Flow routing)

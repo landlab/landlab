@@ -183,7 +183,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         discharge_field="surface_water__discharge",
         solver="basic",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
-        **kwds
+        **kwds,
     ):
         """Initialize the ErosionDeposition model.
 
@@ -318,9 +318,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             raise ValueError(msg)
         elif len(kwds) > 0:
             kwdstr = " ".join(list(kwds.keys()))
-            raise ValueError(
-                "Extra kwds passed to ErosionDeposition:{kwds}".format(kwds=kwdstr)
-            )
+            raise ValueError(f"Extra kwds passed to ErosionDeposition:{kwdstr}")
         super().__init__(
             grid,
             m_sp=m_sp,

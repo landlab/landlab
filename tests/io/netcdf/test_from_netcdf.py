@@ -54,7 +54,7 @@ def test_exclude_everything(tmpdir, format, include, exclude):
     "grid_type", ["HexModelGrid", "RadialModelGrid", "RasterModelGrid"]
 )
 def test_from_grid(datadir, grid_type):
-    grid = from_netcdf(datadir / "test-{0}.nc".format(grid_type))
+    grid = from_netcdf(datadir / f"test-{grid_type}.nc")
     assert grid.__class__.__name__ == grid_type
     assert_array_equal(grid.at_node["elev"], 1.0)
     assert_array_equal(grid.at_node["temp"], 1.0)

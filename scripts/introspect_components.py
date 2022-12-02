@@ -109,7 +109,7 @@ for LLcomp in poss_comp_files:
     for prop in props_to_strip_list:
         lines_captured = []
         start_write = False
-        with open(LLcomp, "r") as inFile:
+        with open(LLcomp) as inFile:
             for line in inFile:
                 if prop in line:
                     accumulated_props.add(prop)
@@ -150,7 +150,7 @@ for LLcomp in poss_comp_files:
             bad_components[LLcomp] = "No class is present in file."
 
 for badcomp in bad_components.keys():
-    with open(badcomp, "r") as inFile:
+    with open(badcomp) as inFile:
         noclass = True
         for line in inFile:
             if "class " in line:

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Zone functions and class of SpeciesEvolver."""
 from collections import OrderedDict
 from enum import IntEnum, unique
@@ -286,7 +285,7 @@ def _get_replacement(replacements, new_zone):
             return key
 
 
-class Zone(object):
+class Zone:
     """Zone object of SpeciesEvolver.
 
     The nodes and attributes of the spatial entities that taxa populate. This

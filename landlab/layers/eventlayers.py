@@ -191,7 +191,7 @@ class _BlockSlice:
         """_BlockSlice([start], stop, [step])"""
         if len(args) > 3:
             raise TypeError(
-                "_BlockSlice expected at most 3 arguments, got {0}".format(len(args))
+                f"_BlockSlice expected at most 3 arguments, got {len(args)}"
             )
 
         self._args = tuple(args)
@@ -210,13 +210,13 @@ class _BlockSlice:
 
         if self._stop is not None and self._stop < self._start:
             raise ValueError(
-                "stop ({0}) must be greater than start ({1})".format(
+                "stop ({}) must be greater than start ({})".format(
                     self._stop, self._start
                 )
             )
 
     def __repr__(self):
-        return "_BlockSlice({0})".format(", ".join([repr(arg) for arg in self._args]))
+        return "_BlockSlice({})".format(", ".join([repr(arg) for arg in self._args]))
 
     @property
     def start(self):
@@ -310,16 +310,16 @@ def _valid_keywords_or_raise(kwds, required=(), optional=()):
     if unknown:
         raise TypeError(
             "invalid keyword arguments ({0} not in {{{1}}})".format(
-                ", ".join(sorted([repr(name) for name in unknown])),
-                ", ".join(sorted([repr(name) for name in optional])),
+                ", ".join(sorted(repr(name) for name in unknown)),
+                ", ".join(sorted(repr(name) for name in optional)),
             )
         )
 
     missing = required - keys
     if missing:
         raise TypeError(
-            "missing keyword arguments ({0})".format(
-                ", ".join(sorted([repr(name) for name in missing]))
+            "missing keyword arguments ({})".format(
+                ", ".join(sorted(repr(name) for name in missing))
             )
         )
 
@@ -835,7 +835,7 @@ class EventLayers:
                 self[name][-1] = kwds[name]
             except KeyError:
                 raise ValueError(
-                    "EventLayers: {0} is not being tracked. Error in adding.".format(
+                    "EventLayers: {} is not being tracked. Error in adding.".format(
                         name
                     )
                 )

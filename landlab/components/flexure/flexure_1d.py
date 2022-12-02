@@ -201,7 +201,7 @@ class Flexure1D(Component):
             operate on *all* rows).
         """
         if method not in ("airy", "flexure"):
-            raise ValueError("{method}: method not understood".format(method=method))
+            raise ValueError(f"{method}: method not understood")
 
         super().__init__(grid)
 

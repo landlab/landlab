@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class NodeGrid(object):
+class NodeGrid:
     """__init__((coord0, coord1)) Create a grid of nodes.
 
     Parameters

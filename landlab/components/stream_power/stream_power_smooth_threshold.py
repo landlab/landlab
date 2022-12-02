@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 stream_power_smooth_threshold.py: Defines the StreamPowerSmoothThresholdEroder,
 which is a version of the FastscapeEroder (derived from it).
@@ -191,7 +190,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
         if n_sp != 1.0:
             raise ValueError(
-                ("StreamPowerSmoothThresholdEroder currently only " "supports n_sp = 1")
+                "StreamPowerSmoothThresholdEroder currently only " "supports n_sp = 1"
             )
 
         # Call base-class init

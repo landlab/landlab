@@ -81,7 +81,7 @@ class KeyTypeError(Error):
         self._type = str(expected_type)
 
     def __str__(self):
-        return "Unable to convert %s to %s" % (self._key, self._type)
+        return f"Unable to convert {self._key} to {self._type}"
 
 
 class KeyValueError(Error):
@@ -93,7 +93,7 @@ class KeyValueError(Error):
         self._msg = message
 
     def __str__(self):
-        return "%s: %s" % (self._key, self._msg)  # this line not yet tested
+        return f"{self._key}: {self._msg}"  # this line not yet tested
 
 
 class DataSizeError(Error):
@@ -105,7 +105,9 @@ class DataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "%s != %s" % (self._actual, self._expected)  # this line not yet tested
+        return "{} != {}".format(
+            self._actual, self._expected
+        )  # this line not yet tested
 
 
 class MismatchGridDataSizeError(Error):
@@ -117,7 +119,7 @@ class MismatchGridDataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "(data size) %s != %s (grid size)" % (
+        return "(data size) {} != {} (grid size)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -132,7 +134,7 @@ class MismatchGridXYSpacing(Error):
         self._expected = expected_dx
 
     def __str__(self):
-        return "(data dx) %s != %s (grid dx)" % (
+        return "(data dx) {} != {} (grid dx)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -147,7 +149,7 @@ class MismatchGridXYLowerLeft(Error):
         self._expected = expected_llc
 
     def __str__(self):
-        return "(data lower-left) %s != %s (grid lower-left)" % (
+        return "(data lower-left) {} != {} (grid lower-left)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -463,7 +465,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
     if isinstance(asc_file, (str, pathlib.Path)):
-        with open(asc_file, "r") as f:
+        with open(asc_file) as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
 
@@ -586,7 +588,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     }
 
     for path, name in zip(paths, names):
-        header_lines = ["%s %s" % (key, str(val)) for key, val in list(header.items())]
+        header_lines = [f"{key} {str(val)}" for key, val in list(header.items())]
         data = fields.at_node[name].reshape(header["nrows"], header["ncols"])
         np.savetxt(
             path, np.flipud(data), header=os.linesep.join(header_lines), comments=""

@@ -16,7 +16,7 @@ def collect_notebooks(src):
     elif is_a_notebook(p):
         return {p.absolute()}
     else:
-        raise ValueError("{0}: not a directory or a notebook".format(src))
+        raise ValueError(f"{src}: not a directory or a notebook")
 
 
 def is_a_notebook(path):

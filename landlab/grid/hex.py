@@ -155,9 +155,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             },
         )
         return dataset.update(
-            super(HexModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=None
-            )
+            super().as_dataset(include=include, exclude=exclude, time=None)
         )
 
     @property
@@ -554,14 +552,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                         numpy.where(numpy.asarray(next_to_boundary))[0]
                     ]
                     raise ValueError(
-                        (
-                            "Grid has two potential outlet nodes."
-                            "They have the following node IDs: \n"
-                            + str(potential_locs)
-                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
-                            "to explicitly select one of these "
-                            "IDs as the outlet node."
-                        )
+                        "Grid has two potential outlet nodes."
+                        "They have the following node IDs: \n"
+                        + str(potential_locs)
+                        + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                        "to explicitly select one of these "
+                        "IDs as the outlet node."
                     )
                 else:
                     outlet_loc = min_locs[numpy.where(next_to_boundary)[0][0]]

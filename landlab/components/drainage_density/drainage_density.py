@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Landlab component to calculate drainage density."""
 from warnings import warn
 
@@ -399,11 +398,9 @@ class DrainageDensity(Component):
 
     def _update_channel_mask_array(self):
         raise NotImplementedError(
-            (
-                "If you provided a channel mask to "
-                "DrainageDensity, update it by updating the "
-                "model grid field channel__mask"
-            )
+            "If you provided a channel mask to "
+            "DrainageDensity, update it by updating the "
+            "model grid field channel__mask"
         )
 
     def _update_channel_mask_values(self):

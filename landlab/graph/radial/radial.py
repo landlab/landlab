@@ -75,19 +75,19 @@ class RadialGraphExtras:
         return self.spacing
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def radius_of_ring(self):
         return np.arange(0, self.number_of_rings, dtype=float) * self.spacing_of_rings
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def angle_spacing_of_ring(self):
         return 2.0 * np.pi / self.nodes_per_ring
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes_per_ring(self):
         nodes_per_ring = np.empty(self.number_of_rings, dtype=int)
@@ -96,19 +96,19 @@ class RadialGraphExtras:
         return nodes_per_ring
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def ring_at_node(self):
         return np.repeat(np.arange(self.number_of_rings), self.nodes_per_ring)
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def radius_at_node(self):
         return self.radius_of_ring[self.ring_at_node]
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def angle_at_node(self):
         angle_at_node = np.empty(self.nodes_per_ring.sum(), dtype=float)
@@ -220,7 +220,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         return self._ring_spacing
 
     @property
-    @lru_cache()
+    @lru_cache
     def radius_at_node(self):
         """Distance for center node to each node.
 
@@ -243,7 +243,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         )
 
     @property
-    @lru_cache()
+    @lru_cache
     def number_of_nodes_in_ring(self):
         """Number of nodes in each ring.
 

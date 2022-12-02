@@ -432,7 +432,7 @@ class FramedVoronoiGraph(DelaunayGraph):
         return self._node_layout
 
     @property
-    @lru_cache()
+    @lru_cache
     @make_return_array_immutable
     def perimeter_nodes(self):
         return self._perimeter_nodes

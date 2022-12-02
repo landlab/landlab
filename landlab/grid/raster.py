@@ -231,7 +231,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         self._looped_second_ring_cell_neighbor_list_created = False
 
     def __repr__(self):
-        return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
+        return "RasterModelGrid({}, xy_spacing={}, xy_of_lower_left={})".format(
             repr(self.shape),
             repr((self.dx, self.dy)),
             repr((self.x_of_node.min(), self.y_of_node.min())),
@@ -240,7 +240,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict["type"] != "RasterModelGrid":
-            assert TypeError(("Saved model instance not of " "RasterModelGrid type."))
+            assert TypeError("Saved model instance not of " "RasterModelGrid type.")
 
         xy_spacing = state_dict["xy_spacing"]
         shape = state_dict["shape"]
@@ -345,9 +345,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             attrs={"grid_type": "uniform_rectilinear"},
         )
         return dataset.update(
-            super(RasterModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=time
-            )
+            super().as_dataset(include=include, exclude=exclude, time=time)
         )
 
     @property
@@ -1961,14 +1959,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                 if sum(next_to_boundary) > 1:
                     potential_locs = min_locs[np.where(np.asarray(next_to_boundary))[0]]
                     raise ValueError(
-                        (
-                            "Grid has two potential outlet nodes."
-                            "They have the following node IDs: \n"
-                            + str(potential_locs)
-                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
-                            "to explicitly select one of these "
-                            "IDs as the outlet node."
-                        )
+                        "Grid has two potential outlet nodes."
+                        "They have the following node IDs: \n"
+                        + str(potential_locs)
+                        + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                        "to explicitly select one of these "
+                        "IDs as the outlet node."
                     )
                 else:
                     outlet_loc = min_locs[np.where(next_to_boundary)[0][0]]

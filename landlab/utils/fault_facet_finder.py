@@ -22,7 +22,7 @@ def cmp(a, b):
     return (a > b) - (a < b)
 
 
-class find_facets(object):
+class find_facets:
     """Note that this class assumes the grid does not change during the model
     run. Changes to data stored in the grid should (?) update automatically.
 

@@ -390,7 +390,7 @@ class StructuredQuadGraphTopology:
         return self._shape[1]
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes(self):
         """A shaped array of node ids.
@@ -404,25 +404,25 @@ class StructuredQuadGraphTopology:
         return np.arange(self.shape[0] * self.shape[1]).reshape(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes_at_right_edge(self):
         return np.arange(self.shape[1] - 1, np.prod(self.shape), self.shape[1])
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes_at_top_edge(self):
         return np.arange(self.number_of_nodes - self.shape[1], np.prod(self.shape))
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes_at_left_edge(self):
         return np.arange(0, np.prod(self.shape), self.shape[1])
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes_at_bottom_edge(self):
         return np.arange(self.shape[1])
@@ -430,7 +430,7 @@ class StructuredQuadGraphTopology:
     def nodes_at_edge(self, edge):
         if edge not in ("right", "top", "left", "bottom"):
             raise ValueError("value for edge not understood")
-        return getattr(self, "nodes_at_{edge}_edge".format(edge=edge))
+        return getattr(self, f"nodes_at_{edge}_edge")
 
     @property
     def nodes_at_corners_of_grid(self):
@@ -459,18 +459,18 @@ class StructuredQuadGraphTopology:
         )
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def nodes_at_link(self):
         return self._layout.nodes_at_link(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     def horizontal_links(self):
         return self._layout.horizontal_links(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     def vertical_links(self):
         return self._layout.vertical_links(self.shape)
 
@@ -482,28 +482,28 @@ class StructuredQuadGraphTopology:
         )
 
     @property
-    @lru_cache()
+    @lru_cache
     def perimeter_nodes(self):
         return self._layout.perimeter_nodes(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     def links_at_node(self):
         return self._layout.links_at_node(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     def link_dirs_at_node(self):
         return self._layout.link_dirs_at_node(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def patches_at_link(self):
         return self._layout.patches_at_link(self.shape)
 
     @property
-    @lru_cache()
+    @lru_cache
     @read_only_array
     def patches_at_node(self):
         return self._layout.patches_at_node(self.shape)

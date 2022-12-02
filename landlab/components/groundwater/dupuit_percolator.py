@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """GroundwaterDupuitPercolator Component.
 
 @author: G Tucker, D Litwin, K Barnhart

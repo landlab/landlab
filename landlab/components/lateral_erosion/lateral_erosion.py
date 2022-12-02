@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Grid-based simulation of lateral erosion by channels in a drainage network.
 
 ALangston
@@ -335,11 +334,9 @@ class LateralEroder(Component):
         if solver == "adaptive":
             if not isinstance(flow_accumulator, FlowAccumulator):
                 raise ValueError(
-                    (
-                        "When the adaptive solver is used, a valid "
-                        "FlowAccumulator must be passed on "
-                        "instantiation."
-                    )
+                    "When the adaptive solver is used, a valid "
+                    "FlowAccumulator must be passed on "
+                    "instantiation."
                 )
             self._flow_accumulator = flow_accumulator
 
@@ -457,7 +454,7 @@ class LateralEroder(Component):
         flowdirs = grid.at_node["flow__receiver_node"]
 
         # make a list l, where node status is interior (signified by label 0) in s
-        interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+        interior_s = s[np.where(grid.status_at_node[s] == 0)[0]]
         dwnst_nodes = interior_s.copy()
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
@@ -582,7 +579,7 @@ class LateralEroder(Component):
         s = grid.at_node["flow__upstream_node_order"]
         max_slopes = grid.at_node["topographic__steepest_slope"]
         flowdirs = grid.at_node["flow__receiver_node"]
-        interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+        interior_s = s[np.where(grid.status_at_node[s] == 0)[0]]
         dwnst_nodes = interior_s.copy()
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
@@ -728,7 +725,7 @@ class LateralEroder(Component):
                 max_slopes = grid.at_node["topographic__steepest_slope"]
                 q = grid.at_node["surface_water__discharge"]
                 flowdirs = grid.at_node["flow__receiver_node"]
-                interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+                interior_s = s[np.where(grid.status_at_node[s] == 0)[0]]
                 dwnst_nodes = interior_s.copy()
                 dwnst_nodes = dwnst_nodes[::-1]
 

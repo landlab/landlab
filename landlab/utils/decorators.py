@@ -21,7 +21,7 @@ import numpy as np
 from landlab import FieldError
 
 
-class cache_result_in_object(object):
+class cache_result_in_object:
     def __init__(self, cache_as=None):
         self._attr = cache_as
 
@@ -37,7 +37,7 @@ class cache_result_in_object(object):
         return _wrapped
 
 
-class store_result_in_grid(object):
+class store_result_in_grid:
     def __init__(self, name=None):
         self._attr = name
 
@@ -55,7 +55,7 @@ class store_result_in_grid(object):
         return _wrapped
 
 
-class store_result_in_dataset(object):
+class store_result_in_dataset:
     def __init__(self, dataset=None, name=None):
         self._dataset = dataset
         self._attr = name
@@ -139,7 +139,7 @@ def add_signature_to_doc(func):
     )
 
 
-class use_field_name_or_array(object):
+class use_field_name_or_array:
 
     """Decorate a function so that it accepts a field name or array.
 
@@ -228,7 +228,7 @@ class use_field_name_or_array(object):
         return _wrapped
 
 
-class use_field_name_array_or_value(object):
+class use_field_name_array_or_value:
 
     """Decorate a function so that it accepts a field name, array, or value.
 
@@ -322,11 +322,9 @@ class use_field_name_array_or_value(object):
 
                 if vals.size != expected_size:
                     raise ValueError(
-                        (
-                            "Array passed to function decorated with "
-                            "use_field_name_array_or_value is not "
-                            "the size of fields at " + self._at
-                        )
+                        "Array passed to function decorated with "
+                        "use_field_name_array_or_value is not "
+                        "the size of fields at " + self._at
                     )
             return func(grid, vals, *args, **kwds)
 

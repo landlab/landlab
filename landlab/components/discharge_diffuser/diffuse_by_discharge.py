@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 

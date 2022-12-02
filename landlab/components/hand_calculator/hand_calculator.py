@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Landlab component to calculate height above nearest drainage.
 
 @author: D Litwin

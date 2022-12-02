@@ -460,9 +460,7 @@ class ModelGrid(
         canonical_names = set()
         for at in self.groups | layer_groups:
             try:
-                canonical_names.update(
-                    ["at_{0}:{1}".format(at, name) for name in self[at]]
-                )
+                canonical_names.update([f"at_{at}:{name}" for name in self[at]])
             except KeyError:
                 pass
 
@@ -1375,7 +1373,7 @@ class ModelGrid(
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
         except KeyError:
-            raise TypeError("{name}: element name not understood".format(name=name))
+            raise TypeError(f"{name}: element name not understood")
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -2141,7 +2139,7 @@ class ModelGrid(
         return shaded.clip(0.0)
 
     @property
-    @lru_cache()
+    @lru_cache
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.

@@ -7,7 +7,7 @@ from landlab.layers.eventlayers import (
 )
 
 
-class MaterialLayersMixIn(object):
+class MaterialLayersMixIn:
 
     """MixIn that adds a MaterialLayers attribute to a ModelGrid."""
 
@@ -291,7 +291,7 @@ class MaterialLayers(EventLayers):
                 try:
                     is_compatible = self[name][self.surface_index] == kwds[name]
                 except KeyError:
-                    msg = "MaterialLayers: {0} is not being tracked. Error in adding.".format(
+                    msg = "MaterialLayers: {} is not being tracked. Error in adding.".format(
                         name
                     )
                     raise ValueError(msg)

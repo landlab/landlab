@@ -143,8 +143,8 @@ class _DrainageStack_to_n:
         # the last time it is visited.
 
         i = 0
-        visit_time = -1 * numpy.ones((self.delta.size - 1))
-        num_visits = numpy.zeros((self.delta.size - 1))
+        visit_time = -1 * numpy.ones(self.delta.size - 1)
+        num_visits = numpy.zeros(self.delta.size - 1)
 
         # deal with the first node, which goes to it
         visit_time[list(base)] = i

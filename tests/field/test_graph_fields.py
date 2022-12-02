@@ -262,7 +262,7 @@ def test_nd_field():
     with pytest.raises(ValueError):
         fields.add_field("newest_value", np.ones((13, 4, 5)), at="node")
     with pytest.raises(ValueError):
-        fields.add_field("newestest_value", np.ones((13)), at="node")
+        fields.add_field("newestest_value", np.ones(13), at="node")
 
 
 @given(name=text(), unit_str=text())

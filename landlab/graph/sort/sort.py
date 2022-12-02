@@ -566,7 +566,7 @@ def sort_spokes_at_hub_on_graph(graph, spoke=None, at="node", inplace=False):
         plural = "patches"
     else:
         plural = spoke + "s"
-    spokes_at_hub = getattr(graph, "{plural}_at_{hub}".format(plural=plural, hub=at))
+    spokes_at_hub = getattr(graph, f"{plural}_at_{at}")
 
     if inplace:
         out = spokes_at_hub
@@ -661,13 +661,13 @@ def calc_angle_of_spoke_on_graph(graph, spoke=None, at="node", badval=None):
            [   0.,   nan,  180.,  270.],
            [  nan,   nan,  180.,  270.]])
     """
-    xy_of_hub = getattr(graph, "xy_of_{hub}".format(hub=at))
-    xy_of_spoke = getattr(graph, "xy_of_{spoke}".format(spoke=spoke))
+    xy_of_hub = getattr(graph, f"xy_of_{at}")
+    xy_of_spoke = getattr(graph, f"xy_of_{spoke}")
     if spoke == "patch":
         plural = "patches"
     else:
         plural = spoke + "s"
-    spokes_at_hub = getattr(graph, "{plural}_at_{hub}".format(plural=plural, hub=at))
+    spokes_at_hub = getattr(graph, f"{plural}_at_{at}")
 
     angle_of_spoke = calc_angle_of_spoke(
         spokes_at_hub, xy_of_hub, xy_of_spoke, badval=badval

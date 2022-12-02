@@ -686,7 +686,7 @@ class FlowAccumulator(Component):
         flow_director="FlowDirectorSteepest",
         runoff_rate=None,
         depression_finder=None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the FlowAccumulator component.
 
@@ -761,9 +761,7 @@ class FlowAccumulator(Component):
 
         if len(self._kwargs) > 0:
             kwdstr = " ".join(list(self._kwargs.keys()))
-            raise ValueError(
-                "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
-            )
+            raise ValueError(f"Extra kwargs passed to FlowAccumulator:{kwdstr}")
 
     @property
     def surface_values(self):

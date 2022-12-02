@@ -133,26 +133,24 @@ def _where_to_add_values(grid, at, where):
     if where is None:
         where = np.full(grid.size(at), True, dtype=bool)
     elif isinstance(where, (tuple, list)):
-        where = np.isin(getattr(grid, "status_at_{0}".format(at)), where)
+        where = np.isin(getattr(grid, f"status_at_{at}"), where)
     else:
         where = np.asarray(where, dtype=bool)
         if where.size != grid.size(at):
-            raise ValueError(
-                "array size mismatch ({0} != {1})".format(where.size, grid.size(at))
-            )
+            raise ValueError(f"array size mismatch ({where.size} != {grid.size(at)})")
 
     return where
 
 
 def _convert_where(where, at):
     if at not in _STATUS:
-        raise AttributeError("boundary conditions are not defined at {0}".format(at))
+        raise AttributeError(f"boundary conditions are not defined at {at}")
 
     if isinstance(where, str):
         try:
             return _STATUS[at][where]
         except KeyError:
-            raise ValueError("'{0}' status does not exists for {1}.".format(where, at))
+            raise ValueError(f"'{where}' status does not exists for {at}.")
     else:
         return where
 
