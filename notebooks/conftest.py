@@ -2,7 +2,6 @@ import pathlib
 
 import pytest
 
-
 _TEST_DIR = pathlib.Path(__file__).absolute().parent
 
 

@@ -9,14 +9,13 @@ import numpy as np
 import rich_click as click
 
 from landlab import (
+    FramedVoronoiGrid,
+    HexModelGrid,
     ModelGrid,
+    RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    HexModelGrid,
-    RadialModelGrid,
-    FramedVoronoiGrid,
 )
-
 
 GRIDS = [
     ModelGrid,

@@ -6,8 +6,8 @@ Created on Thu Sep 19 18:31:09 2019
 @author: barnhark
 """
 
-import os
 import glob
+import os
 import subprocess
 
 files = glob.glob("*.md")

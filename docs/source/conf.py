@@ -12,10 +12,11 @@
 # serve to show the default.
 
 import os
-import sys
-import tomli
 import pathlib
+import sys
 from datetime import date
+
+import tomli
 
 import landlab
 

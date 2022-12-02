@@ -9,9 +9,6 @@ Fill sinks in a landscape to the brim, following the Barnes et al.
 
 import heapq
 import itertools
-
-# ^ this simply in case Katy updates to add more fields, that we would also
-# need to update...
 from collections import deque
 
 import numpy as np
