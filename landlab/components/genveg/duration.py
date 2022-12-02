@@ -23,8 +23,9 @@ class Annual(Duration):
             plants['root_biomass'] = 0
             plants['leaf_biomass'] = 0
             plants['stem_biomass'] = 0 
+        print('I die at dormancy and my biomass is: {}'.format(plants))
         return plants
-        print('I die at dormancy and my biomass is: {}'.format(total_biomass))
+        
     
     def emerge(self,emerge_size=[0.01,0.1,0.5]):
         print('I start as a seedling between 100 and 200% of the minimum size')
