@@ -6,7 +6,7 @@ CellLab-CTS User Guide
 
 Created: August 2015, Greg Tucker
 
-Last updated: April 2020 GT 
+Last updated: April 2020 GT
 
 Introduction
 ------------

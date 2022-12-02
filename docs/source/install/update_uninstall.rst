@@ -30,5 +30,3 @@ To uninstall *landlab*,
   .. code-block:: bash
 
     $ pip uninstall landlab
-
-
