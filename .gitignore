@@ -130,3 +130,6 @@ docs/build_log.txt
 
 # Hypothesis
 .hypothesis
+
+# nox virtual envs
+.nox
