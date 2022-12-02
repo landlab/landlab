@@ -284,6 +284,7 @@ class PlantGrowth(Species):
             self.plants['root_biomass']=_last_biomass['root_biomass']+delta_root
             self.plants['leaf_biomass']=_last_biomass['leaf_biomass']+delta_leaf
             self.plants['stem_biomass']=_last_biomass['stem_biomass']+delta_stem
+            self.species.enter_dormancy(growdict, self.plants)
 
 #May be able to eliminate this since using built in solar radiation component
     def _PAR(self, _declination, _daylength):
@@ -363,6 +364,7 @@ class PlantGrowth(Species):
         plant_array['root_biomass']=root_bio
         plant_array['leaf_biomass']=leaf_bio
         plant_array['stem_biomass']=stem_bio
+
         return plant_array
     
     def _init_biomass_allocation(self, total_biomass, solver_coeffs):

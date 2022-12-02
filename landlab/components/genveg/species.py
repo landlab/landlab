@@ -152,8 +152,9 @@ class Species(object):
     def disperse(self):
         self.form.dispersal()
 
-    def enter_dormancy(self):
-        self.habit.enter_dormancy()
+    def enter_dormancy(self, grow_params = {'senescence_start':270,'growing_season_end':285}, current_day=0, plants=(np.recarray((0,),
+            dtype=[('species','U10'),('pid',int),('cell_index',int),('root_biomass',float),('leaf_biomass',float),('stem_biomass',float)]))):
+        self.habit.enter_dormancy(grow_params, current_day, plants)
 
     def emerge(self):
         self.habit.emerge()
