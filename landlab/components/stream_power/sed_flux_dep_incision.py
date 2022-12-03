@@ -662,7 +662,7 @@ class SedDepEroder(Component):
                 + "recognised!"
             )
 
-        for i in range(self._pseudoimplicit_repeats):
+        for _ in range(self._pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
             sed_vol_added = prefactor_for_volume * sed_flux_fn
             rel_sed_flux = rel_sed_flux_in + sed_vol_added / trans_cap_vol_out

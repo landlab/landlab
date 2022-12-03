@@ -2069,7 +2069,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
-        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
+        for i, lakenodes in enumerate(self.lake_dict.values()):
             lakeareas[i] = self._grid.cell_area_at_node[lakenodes].sum()
         return lakeareas
 
@@ -2127,7 +2127,7 @@ class LakeMapperBarnes(Component):
         """
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
         col_vols = self._grid.cell_area_at_node * self.lake_depths
-        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
+        for i, lakenodes in enumerate(self.lake_dict.values()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 

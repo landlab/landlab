@@ -49,8 +49,7 @@ class store_result_in_grid:
                 getattr(grid, name)
             except AttributeError:
                 setattr(grid, name, func(grid))
-            finally:
-                return getattr(grid, name)
+            return getattr(grid, name)
 
         return _wrapped
 
@@ -384,12 +383,12 @@ def deprecated(use, version):
 
         doc_lines = (func.__doc__ or "").split(os.linesep)
 
-        for lineno, line in enumerate(doc_lines):
+        for _lineno, line in enumerate(doc_lines):
             if len(line.rstrip()) == 0:
                 break
 
-        head = doc_lines[:lineno]
-        body = doc_lines[lineno:]
+        head = doc_lines[:_lineno]
+        body = doc_lines[_lineno:]
 
         head = textwrap.dedent(os.linesep.join(head))
         body = textwrap.dedent(os.linesep.join(body))

@@ -394,7 +394,7 @@ def strip_grid_from_method_docstring(funcs):
     """
     import re
 
-    for name, func in funcs.items():
+    for func in funcs.values():
         # strip the entry under "Parameters":
         func.__doc__ = re.sub("grid *:.*?\n.*?\n *", "", func.__doc__)
         # # cosmetic magic to get a two-line signature to line up right:

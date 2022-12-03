@@ -447,8 +447,7 @@ class EventLayersMixIn:
             self._event_layers
         except AttributeError:
             self._event_layers = EventLayers(self.number_of_cells)
-        finally:
-            return self._event_layers
+        return self._event_layers
 
     @property
     def at_layer(self):

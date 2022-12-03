@@ -1443,7 +1443,7 @@ class PerronNLDiffuse(Component):
             self._bc_set_code = self._grid.bc_set_code
         else:
             self._gear_timestep(dt, self._grid)
-            for i in range(self._internal_repeats):
+            for _ in range(self._internal_repeats):
                 # Initialize the variables for the step:
                 self._set_variables(self._grid)
                 # Solve interior of grid:

@@ -179,8 +179,8 @@ def _read_netcdf_structured_data(root):
     for (name, var) in root.variables.items():
         # identify if a grid mapping variable exist and do not pass it as a field
         if name not in _COORDINATE_NAMES and hasattr(var, "grid_mapping"):
-            grid_mapping = getattr(var, "grid_mapping")
-            if type(grid_mapping) is bytes:
+            grid_mapping = var.grid_mapping
+            if isinstance(grid_mapping, bytes):
                 grid_mapping = grid_mapping.decode("utf-8")
             grid_mapping_exists = True
 

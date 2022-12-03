@@ -276,7 +276,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             prefix = re.compile(f"^{at}(es)?_at_")
         else:
             prefix = re.compile(f"^{at}(s)?_at_")
-        for name, var in self._mesh.variables.items():
+        for name in self._mesh.variables:
             if prefix.search(name):
                 matches.add(name)
         return matches
@@ -284,7 +284,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def ids_with_suffix(self, at):
         matches = set()
         suffix = re.compile(f"at_{at}$")
-        for name, var in self._mesh.variables.items():
+        for name in self._mesh.variables:
             if suffix.search(name):
                 matches.add(name)
         return matches

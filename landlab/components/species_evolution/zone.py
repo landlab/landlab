@@ -242,7 +242,7 @@ def _get_successors(
 
         successors = []
 
-        for i, n in enumerate(ns_i_p):
+        for n in ns_i_p:
             dp = n._get_largest_intersection(
                 ps_i_ns, exclusions=list(replacements.keys())
             )
@@ -324,7 +324,8 @@ class Zone:
         area = self._controller._grid.cell_area_at_node[self._mask].sum()
         return area
 
-    def _get_largest_intersection(self, zones, exclusions=[]):
+    def _get_largest_intersection(self, zones, exclusions=None):
+        exclusions = set() if exclusions is None else set(exclusions)
         node_intersection_count = []
         for z in zones:
             if z in exclusions:

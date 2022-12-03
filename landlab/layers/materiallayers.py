@@ -18,8 +18,7 @@ class MaterialLayersMixIn:
             self._material_layers
         except AttributeError:
             self._material_layers = MaterialLayers(self.number_of_cells)
-        finally:
-            return self._material_layers
+        return self._material_layers
 
 
 class MaterialLayers(EventLayers):

@@ -178,7 +178,7 @@ def grids(ctx):
 
     if verbose and not silent:
         summary = defaultdict(int)
-        for grid, cats in index["grids"].items():
+        for cats in index["grids"].values():
             for cat, funcs in cats.items():
                 summary[cat] += len(funcs)
 

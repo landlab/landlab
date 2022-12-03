@@ -263,7 +263,7 @@ class DischargeDiffuser(Component):
         # this involves iteration to a stable solution
         # #####IMPLEMENT IT
         # calc the new K based on incoming discharges
-        for init in range(1):
+        for _ in range(1):
             Knew[:, 1:] += awz[:, 1:] + K[:, :-1]
             Knew[:, 0] += awz[:, 0] + K[:, 0]
             Knew[:, :-1] += aez[:, :-1] + K[:, 1:]
@@ -400,6 +400,6 @@ if __name__ == "__main__":
     Qw_in[0] = 0.5 * np.pi
     Qs_in[0] = (1.0 - S_crit) * 0.5 * np.pi
     dd = DischargeDiffuser(mg, S_crit)
-    for i in range(5):  # 501
+    for _ in range(5):  # 501
         dd.run_one_step(0.01)  # 0.08
     imshow_grid_at_node(mg, "topographic__elevation")

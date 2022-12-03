@@ -1222,8 +1222,8 @@ class DepressionFinderAndRouter(Component):
                 is_outlet[self._depression_outlet_map[i]] = True
 
         n = 0
-        for r in range(self._grid.number_of_node_rows):
-            for c in range(self._grid.number_of_node_columns):
+        for _ in range(self._grid.number_of_node_rows):
+            for _ in range(self._grid.number_of_node_columns):
                 if is_outlet[n]:
                     print("o", end=" ")
                 elif self._flood_status[n] == _UNFLOODED:

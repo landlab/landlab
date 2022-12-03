@@ -291,8 +291,7 @@ class Flexure1D(Component):
             self._alpha
         except AttributeError:
             self._alpha = np.power(4 * self.rigidity / self.gamma_mantle, 0.25)
-        finally:
-            return self._alpha
+        return self._alpha
 
     @property
     def rigidity(self):
@@ -303,8 +302,7 @@ class Flexure1D(Component):
             self._rigidity = (
                 self._eet**3.0 * self._youngs / (12.0 * (1.0 - self._POISSON**2.0))
             )
-        finally:
-            return self._rigidity
+        return self._rigidity
 
     @property
     def gamma_mantle(self):
@@ -313,8 +311,7 @@ class Flexure1D(Component):
             self._gamma_mantle
         except AttributeError:
             self._gamma_mantle = (self._rho_mantle - self._rho_water) * self._gravity
-        finally:
-            return self._gamma_mantle
+        return self._gamma_mantle
 
     @property
     def method(self):

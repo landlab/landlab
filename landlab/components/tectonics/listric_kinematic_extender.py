@@ -83,7 +83,7 @@ class ListricKinematicExtender(Component):
         fault_location=None,
         detachment_depth=1.0e4,
         track_crustal_thickness=False,
-        fields_to_shift=[],
+        fields_to_shift=None,
     ):
         """Deform vertically and horizontally to represent tectonic extension.
 
@@ -108,6 +108,8 @@ class ListricKinematicExtender(Component):
             that should be shifted horizontally whenever cumulative extension
             exceeds one cell width. Default empty.
         """
+        fields_to_shift = [] if fields_to_shift is None else fields_to_shift
+
         is_raster = isinstance(grid, RasterModelGrid)
         is_hex = isinstance(grid, HexModelGrid)
         if not (is_raster or is_hex):

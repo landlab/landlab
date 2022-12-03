@@ -322,6 +322,6 @@ class SinkFillerBarnes(LakeMapperBarnes):
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
         col_vols = self._grid.cell_area_at_node * self._sed_fill_depth
-        for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
+        for i, fillnodes in enumerate(self.fill_dict.values()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols
