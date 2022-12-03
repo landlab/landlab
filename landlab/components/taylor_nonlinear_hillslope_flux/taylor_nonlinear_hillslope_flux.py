@@ -235,16 +235,14 @@ class TaylorNonLinearDiffuser(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
 
         # slope gradient
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("topographic__slope", at="link")
+        if "topographic__slope" not in self._grid.at_link:
+            self._grid.add_zeros("topographic__slope", at="link")
+        self._slope = self._grid.at_link["topographic__slope"]
 
         # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("soil__flux", at="link")
+        if "soil__flux" not in self._grid.at_link:
+            self._grid.add_zeros("soil__flux", at="link")
+        self._flux = self._grid.at_link["soil__flux"]
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

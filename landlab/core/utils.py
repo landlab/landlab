@@ -295,9 +295,10 @@ def get_functions_from_module(mod, pattern=None, exclude=None):
     """
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
-        if pattern is None or re.search(pattern, name):
-            if exclude is None or (re.search(exclude, name) is None):
-                funcs[name] = func
+        if (pattern is None or re.search(pattern, name)) and (
+            exclude is None or re.search(exclude, name) is None
+        ):
+            funcs[name] = func
     return funcs
 
 

@@ -313,13 +313,15 @@ class PerronNLDiffuse(Component):
             or self._left_flag == 3
             or self._right_flag == 3
         )
-        if self._fixed_grad_BCs_present:
-            if self._values_to_diffuse != grid.fixed_gradient_of:
-                raise ValueError(
-                    "Boundary conditions set in the grid don't "
-                    "apply to the data the diffuser is trying to "
-                    "work with"
-                )
+        if (
+            self._fixed_grad_BCs_present
+            and self._values_to_diffuse != grid.fixed_gradient_of
+        ):
+            raise ValueError(
+                "Boundary conditions set in the grid don't "
+                "apply to the data the diffuser is trying to "
+                "work with"
+            )
 
         if np.any(grid.status_at_node == 2):
             self._fixed_grad_offset_map = np.empty(nrows * ncols, dtype=float)

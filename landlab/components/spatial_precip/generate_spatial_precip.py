@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 from scipy.stats import fisk, genextreme
 
@@ -1078,7 +1080,7 @@ class SpatialPrecipitationDistribution(Component):
                 seas_time = 0.0  # tracks elapsed season time in hours
                 Storm_running_sum_seas = np.zeros((2, num_opennodes))
                 # ^ 1st col is running total, 2nd is data to add to it
-                if seas == 0 and not style == "winter":
+                if seas == 0 and style != "winter":
                     self._current_season = "M"
                     # This is the pdf fitted to all available station precip
                     # data (normal dist). It will be sampled below.
@@ -1122,14 +1124,13 @@ class SpatialPrecipitationDistribution(Component):
                 )[seas]
                 self._season_rf_limit = season_rf_limit
                 self._Ptot_ann_global[syear] += season_rf_limit
-                if seas == 0 and not style == "winter":
+                if seas == 0 and style != "winter":
                     self._Ptot_monsoon_global[syear] = season_rf_limit
                 Storm_total_local_seas = np.zeros((self._max_numstorms, num_opennodes))
                 seas_cum_Ptot_gauge = np.zeros(numgauges)
                 self._entries = 0
-                seas_storm_count = 0
 
-                for storm in range(self._max_numstorms):
+                for seas_storm_count, storm in enumerate(range(self._max_numstorms)):
                     self._rain_int_gauge.fill(0.0)
                     int_arr_val = genextreme.rvs(
                         c=Int_arr_pdf_GEV["shape"],
@@ -1242,7 +1243,7 @@ class SpatialPrecipitationDistribution(Component):
                             0.1090,
                             0.1182,
                         ]
-                    if seas == 0 and not style == "winter":
+                    if seas == 0 and style != "winter":
                         duration_val = genextreme.rvs(
                             c=Duration_pdf["shape"],
                             loc=Duration_pdf["mu"],
@@ -1311,14 +1312,12 @@ class SpatialPrecipitationDistribution(Component):
                     recess_val = np.random.normal(
                         loc=Recess_pdf_norm["mu"], scale=Recess_pdf_norm["sigma"]
                     )
-                    try:
+                    with contextlib.suppress(KeyError):
                         recess_val = np.clip(
                             recess_val,
                             Recess_pdf_norm["trunc_interval"][0],
                             Recess_pdf_norm["trunc_interval"][1],
                         )
-                    except KeyError:
-                        pass  # this one is OK <0., I think
                     self._recess_val = recess_val
                     # this pdf of recession coefficients determines how
                     # intensity declines with distance from storm center (see
@@ -1397,7 +1396,7 @@ class SpatialPrecipitationDistribution(Component):
                     self._opennodes
                 ] = Storm_running_sum_seas[0, :]
                 self._storm_running_sum_1st_seas += Storm_running_sum_seas[0, :]
-                if yield_seasons is True:
+                if yield_seasons:
                     yield seas_storm_count
 
             self._total_rf_year[opennodes] = self._storm_running_sum_of_seasons
@@ -1697,10 +1696,10 @@ if __name__ == "__main__":
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 1400.0
     rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
-    count = 0
     total_t = 0.0
-    for dt, interval_t in rain.yield_storms(style="whole_year", limit="total_time"):
-        count += 1
+    for count, dt, interval_t in enumerate(
+        rain.yield_storms(style="whole_year", limit="total_time")
+    ):
         total_t += dt + interval_t
         print(dt, interval_t)
         if count % 100 == 0:

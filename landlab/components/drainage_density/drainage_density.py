@@ -387,14 +387,11 @@ class DrainageDensity(Component):
         self._upstream_order = grid.at_node["flow__upstream_node_order"]
 
         # Distance to channel
-        if "surface_to_channel__minimum_distance" in grid.at_node:
-            self._distance_to_channel = grid.at_node[
-                "surface_to_channel__minimum_distance"
-            ]
-        else:
-            self._distance_to_channel = grid.add_zeros(
+        if "surface_to_channel__minimum_distance" not in grid.at_node:
+            grid.add_zeros(
                 "surface_to_channel__minimum_distance", at="node", dtype=float
             )
+        self._distance_to_channel = grid.at_node["surface_to_channel__minimum_distance"]
 
     def _update_channel_mask_array(self):
         raise NotImplementedError(

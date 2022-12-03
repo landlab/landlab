@@ -1160,8 +1160,7 @@ class GraphFields:
         if at is None:
             raise ValueError("no group specified")
 
-        attrs = {"long_name": name}
-        attrs["units"] = units
+        attrs = {"long_name": name, "units": units}
 
         if copy:
             value_array = value_array.copy()

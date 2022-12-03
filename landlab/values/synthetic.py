@@ -299,16 +299,14 @@ def _plane_function(x, y, point, normal):
 
 
 def _get_x_and_y(grid, at):
-    if isinstance(grid, NetworkModelGrid):
-        if at != "node":
-            msg = (
-                "Synthetic fields based on x and y values at grid elements "
-                "(e.g. sine, plane) are supported for NetworkModelGrid "
-                "only at node. If you need this at other grid elements, "
-                "open a GitHub issue to learn how to contribute this "
-                "functionality."
-            )
-            raise ValueError(msg)
+    if isinstance(grid, NetworkModelGrid) and at != "node":
+        raise ValueError(
+            "Synthetic fields based on x and y values at grid elements "
+            "(e.g. sine, plane) are supported for NetworkModelGrid "
+            "only at node. If you need this at other grid elements, "
+            "open a GitHub issue to learn how to contribute this "
+            "functionality."
+        )
     if at == "node":
         x, y = grid.xy_of_node[:, 0], grid.xy_of_node[:, 1]
     elif at == "link":
@@ -318,12 +316,11 @@ def _get_x_and_y(grid, at):
     elif at == "face":
         x, y = grid.xy_of_face[:, 0], grid.xy_of_face[:, 1]
     else:
-        msg = (
+        raise ValueError(
             "landlab.values.synthetic: ",
             "X and Y values are require for the requested synthetic field "
             "but do not exist for the grid-element provided: " + at,
         )
-        raise ValueError(msg)
     return x, y
 
 

@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import contextlib
+
 import numpy as np
 
 from ..utils.decorators import cache_result_in_object, make_return_array_immutable
@@ -390,10 +392,8 @@ class DiagonalsMixIn:
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
 
     @property
     @cache_result_in_object()

@@ -129,9 +129,8 @@ def network_grid_from_segments(grid, nodes_at_segment, include="*", exclude=None
     channel_network = ChannelSegmentConnector(*nodes_at_segment)
 
     for segment in channel_network.root:
-        if len(segment.upstream) == 1:
-            if len(segment.upstream[0]) > 0:
-                print("segments can be joined")
+        if len(segment.upstream) == 1 and len(segment.upstream[0]) > 0:
+            print("segments can be joined")
 
     xy_of_node = create_xy_of_node(channel_network.root, grid)
     at_node = get_node_fields(
@@ -480,16 +479,17 @@ class ChannelSegment:
             yield from iter_downstream()
 
     def count_segments(self, direction="upstream"):
-        count = 0
+        # count = 0
         if direction == "upstream":
             iter = self.__iter__
         elif direction == "downstream":
             iter = self.iter_downstream
         else:
             raise ValueError(f"direction not understood ({direction})")
-        for _ in iter():
-            count += 1
-        return count - 1
+        # for _ in iter():
+        #     count += 1
+        # return count - 1
+        return sum(1 for _ in iter()) - 1
 
     @property
     def downstream(self):

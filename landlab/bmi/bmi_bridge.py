@@ -528,9 +528,8 @@ def wrap_as_bmi(cls):
         def get_grid_nodes_per_face(self, grid, nodes_per_face):
             if grid == 0:
                 return np.full(self._base.grid.number_of_nodes, 3, dtype=int)
-            elif grid == 1:
-                if isinstance(self._base.grid, HexModelGrid):
-                    return np.full(self._base.grid.number_of_faces, 6, dtype=int)
+            elif grid == 1 and isinstance(self._base.grid, HexModelGrid):
+                return np.full(self._base.grid.number_of_faces, 6, dtype=int)
 
         def get_grid_size(self, grid):
             if grid == 0:

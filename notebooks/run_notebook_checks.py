@@ -60,10 +60,7 @@ def _notebook_check_is_clean(path_to_notebook):
     import nbformat
 
     nb = nbformat.read(path_to_notebook, nbformat.current_nbformat)
-    for cell in nb.cells:
-        if not _notebook_cell_is_clean(cell):
-            return False
-    return True
+    return all(_notebook_cell_is_clean(cell) for cell in nb.cells)
 
 
 @dataclass

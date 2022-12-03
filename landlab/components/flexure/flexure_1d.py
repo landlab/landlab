@@ -62,6 +62,7 @@ array([[ 0.,  0.,  0.,  0.],
        [ 0.,  0.,  1.,  1.],
        [ 0.,  0.,  0.,  0.]])
 """
+import contextlib
 
 import numpy as np
 
@@ -227,10 +228,8 @@ class Flexure1D(Component):
     def eet(self, new_val):
         if new_val <= 0:
             raise ValueError("Effective elastic thickness must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._rigidity, self._alpha
-        except AttributeError:
-            pass
         self._eet = float(new_val)
 
     @property
@@ -242,10 +241,8 @@ class Flexure1D(Component):
     def youngs(self, new_val):
         if new_val <= 0:
             raise ValueError("Young's modulus must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._rigidity, self._alpha
-        except AttributeError:
-            pass
         self._youngs = float(new_val)
 
     @property
@@ -257,10 +254,8 @@ class Flexure1D(Component):
     def rho_water(self, new_val):
         if new_val <= 0:
             raise ValueError("Water density must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._rho_water = float(new_val)
 
     @property
@@ -272,10 +267,8 @@ class Flexure1D(Component):
     def rho_mantle(self, new_val):
         if new_val <= 0:
             raise ValueError("Mantle density must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._rho_mantle = float(new_val)
 
     @property
@@ -287,10 +280,8 @@ class Flexure1D(Component):
     def gravity(self, new_val):
         if new_val <= 0:
             raise ValueError("Acceleration due to gravity must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._gravity = float(new_val)
 
     @property

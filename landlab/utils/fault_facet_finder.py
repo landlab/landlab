@@ -300,10 +300,8 @@ class find_facets:
         profile_x_facet_pts = []
         profile_z_facet_pts = []
         profile_S_facet_pts = []
-        count = 0
-        for i in unique_starting_pts:
-            count += 1
-            print("Running ", count, " of ", unique_starting_pts.size)
+        for count, i in enumerate(unique_starting_pts):
+            print(f"Running {count} of {unique_starting_pts.size}")
             # set the local angle of the ft trace:
             ft_pt_distances_to_node = self.grid.calc_distances_of_nodes_to_point(
                 (grid.node_x[i], grid.node_y[i]), node_subset=self.ft_trace_node_ids
@@ -314,7 +312,7 @@ class find_facets:
             (grad, offset) = np.polyfit(x, y, 1)
             condition = np.equal(self.closest_ft_node[pcn], i)
             nodes_possible = pcn[condition]
-            print(nodes_possible.size, " nodes")
+            print(f"{nodes_possible.size} nodes")
             if nodes_possible.size > 10.0:
                 # their_az = self.angle_to_ft[nodes_possible]
                 # their_diff_angles = self.diff_angles[nodes_possible]

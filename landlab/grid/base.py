@@ -6,6 +6,7 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
 import fnmatch
 from functools import lru_cache
 
@@ -459,10 +460,8 @@ class ModelGrid(
 
         canonical_names = set()
         for at in self.groups | layer_groups:
-            try:
+            with contextlib.suppress(KeyError):
                 canonical_names.update([f"at_{at}:{name}" for name in self[at]])
-            except KeyError:
-                pass
 
         names = set()
         for pattern in include:
@@ -2187,22 +2186,16 @@ class ModelGrid(
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
         try:
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_inlink_matrix"]
-        except KeyError:
-            pass
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_outlink_matrix"]
-        except KeyError:
-            pass
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.

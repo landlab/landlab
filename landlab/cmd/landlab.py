@@ -1,3 +1,4 @@
+import contextlib
 import inspect
 import os
 import sys
@@ -358,10 +359,8 @@ def _used_by(classes):
     """Get variables used by components."""
     used = []
     for cls in classes:
-        try:
+        with contextlib.suppress(TypeError):
             used += cls.input_var_names
-        except TypeError:
-            pass
 
     return used
 
@@ -370,10 +369,8 @@ def _provided_by(classes):
     """Get variables provided by components."""
     provided = []
     for cls in classes:
-        try:
+        with contextlib.suppress(TypeError):
             provided += cls.output_var_names
-        except TypeError:
-            pass
 
     return provided
 

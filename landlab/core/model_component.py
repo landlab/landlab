@@ -97,22 +97,15 @@ class Component:
                     )
 
             # if optional input exists, check dtype
-            if in_true and optional:
+            if in_true and optional and name in self._grid[at]:
+                field = self._grid[at][name]
+                dtype = self._info[name]["dtype"]
 
-                if name in self._grid[at]:
-                    field = self._grid[at][name]
-                    dtype = self._info[name]["dtype"]
-
-                    if field.dtype != dtype:
-                        raise FieldError(
-                            "{component} optional input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                                component=self._name,
-                                name=name,
-                                at=at,
-                                dtype=dtype,
-                                actual=field.dtype,
-                            )
-                        )
+                if field.dtype != dtype:
+                    raise FieldError(
+                        f"{self._name} optional input variable: {name} at {at} has "
+                        f"incorrect dtype. dtype must be {dtype} and is {field.dtype}"
+                    )
 
     @classmethod
     def from_path(cls, grid, path):

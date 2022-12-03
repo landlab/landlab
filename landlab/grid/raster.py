@@ -6,6 +6,8 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
+
 import numpy as np
 import xarray as xr
 
@@ -275,17 +277,18 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         state_dict = {}
 
         # save basic information about the shape and size of the grid
-        state_dict["type"] = "RasterModelGrid"
-        state_dict["xy_spacing"] = (self.dx, self.dy)
-        state_dict["shape"] = self.shape
-        state_dict["xy_of_lower_left"] = self.xy_of_lower_left
-        state_dict["xy_of_reference"] = self.xy_of_reference
-        state_dict["xy_axis_name"] = self.axis_name
-        state_dict["xy_axis_units"] = self.axis_units
-
-        # save status information at nodes (status at link set based on status
-        # at node
-        state_dict["status_at_node"] = np.asarray(self._node_status)
+        state_dict = {
+            "type": "RasterModelGrid",
+            "xy_spacing": (self.dx, self.dy),
+            "shape": self.shape,
+            "xy_of_lower_left": self.xy_of_lower_left,
+            "xy_of_reference": self.xy_of_reference,
+            "xy_axis_name": self.axis_name,
+            "xy_axis_units": self.axis_units,
+            # save status information at nodes (status at link set based on status
+            # at node
+            "status_at_node": np.asarray(self._node_status),
+        }
 
         groups = {}
         for at in ("node", "link", "patch", "corner", "face", "cell", "grid"):
@@ -990,10 +993,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         else:
             self.fixed_value_node_properties["internal_flag"] = True
             self.fixed_value_node_properties["fixed_value_of"] = value_of
-        try:
+        with contextlib.suppress(NameError):
             self.fixed_value_node_properties["values"] = values_to_use
-        except NameError:
-            pass  # the flag will catch this case
 
     def set_looped_boundaries(self, top_bottom_are_looped, sides_are_looped):
         """Create wrap-around boundaries.
