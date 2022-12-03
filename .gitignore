@@ -83,6 +83,7 @@ installfiles.txt
 
 # Ignore all .c files as, currently, they are all cython generated.
 *.c
+*.cpp
 
 landlab/io/mysave.grid
 
