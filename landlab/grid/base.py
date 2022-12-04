@@ -8,7 +8,7 @@ files `docs/text_for_[gridfile].py.txt`.
 """
 import contextlib
 import fnmatch
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -2137,8 +2137,7 @@ class ModelGrid(
 
         return shaded.clip(0.0)
 
-    @property
-    @lru_cache
+    @cached_property
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.

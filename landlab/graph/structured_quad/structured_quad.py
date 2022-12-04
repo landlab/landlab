@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -389,8 +389,7 @@ class StructuredQuadGraphTopology:
     def number_of_node_columns(self):
         return self._shape[1]
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def nodes(self):
         """A shaped array of node ids.
@@ -403,26 +402,22 @@ class StructuredQuadGraphTopology:
         """
         return np.arange(self.shape[0] * self.shape[1]).reshape(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def nodes_at_right_edge(self):
         return np.arange(self.shape[1] - 1, np.prod(self.shape), self.shape[1])
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def nodes_at_top_edge(self):
         return np.arange(self.number_of_nodes - self.shape[1], np.prod(self.shape))
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def nodes_at_left_edge(self):
         return np.arange(0, np.prod(self.shape), self.shape[1])
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def nodes_at_bottom_edge(self):
         return np.arange(self.shape[1])
@@ -458,19 +453,16 @@ class StructuredQuadGraphTopology:
             self.number_of_node_columns - 1,
         )
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def nodes_at_link(self):
         return self._layout.nodes_at_link(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     def horizontal_links(self):
         return self._layout.horizontal_links(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     def vertical_links(self):
         return self._layout.vertical_links(self.shape)
 
@@ -481,29 +473,24 @@ class StructuredQuadGraphTopology:
             (n_rows * n_cols - 1, (n_rows - 1) * n_cols, 0, n_cols - 1), dtype=int
         )
 
-    @property
-    @lru_cache
+    @cached_property
     def perimeter_nodes(self):
         return self._layout.perimeter_nodes(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     def links_at_node(self):
         return self._layout.links_at_node(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     def link_dirs_at_node(self):
         return self._layout.link_dirs_at_node(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def patches_at_link(self):
         return self._layout.patches_at_link(self.shape)
 
-    @property
-    @lru_cache
+    @cached_property
     @read_only_array
     def patches_at_node(self):
         return self._layout.patches_at_node(self.shape)

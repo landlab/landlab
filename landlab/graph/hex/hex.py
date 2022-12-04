@@ -51,7 +51,7 @@ array([[ 0. ,  1. ,  2. ,  3. ],
 12
 """
 
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -862,8 +862,7 @@ class TriGraph(HexGraphExtras, DelaunayGraph):
     def node_layout(self):
         return self._node_layout
 
-    @property
-    @lru_cache
+    @cached_property
     @make_return_array_immutable
     def perimeter_nodes(self):
         return self._perimeter_nodes
