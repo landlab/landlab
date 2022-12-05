@@ -1,0 +1,3 @@
+
+Added additional linters via pre-commit hooks and removed the newly discovered
+lint.
