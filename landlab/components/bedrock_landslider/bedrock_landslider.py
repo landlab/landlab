@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Grid-based simulation of bedrock landslides.
 
 Benjamin Campforts
@@ -283,7 +282,7 @@ class BedrockLandslider(Component):
             This cancels the stochastic part of the algorithm and allows the
             user to form landslides at the provided critical nodes.
         """
-        super(BedrockLandslider, self).__init__(grid)
+        super().__init__(grid)
 
         topo = self.grid.at_node["topographic__elevation"]
         soil = self.grid.at_node["soil__depth"]
@@ -582,9 +581,7 @@ class BedrockLandslider(Component):
                         # if one of the LS pixels also appears in critical_landslide_nodes list,
                         # remove it there so that no new landslide is initialized
                         critical_landslide_nodes = critical_landslide_nodes[
-                            np.where(
-                                (critical_landslide_nodes != upstream_neighbors[0])
-                            )
+                            np.where(critical_landslide_nodes != upstream_neighbors[0])
                         ]
 
                         landslide__ero[upstream_neighbors[0]] = (

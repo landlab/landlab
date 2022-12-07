@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Created on Mon Oct 19.
 
 @author: dejh

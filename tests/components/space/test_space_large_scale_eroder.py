@@ -67,7 +67,7 @@ def test_inputFields_bedrock():
     fa.run_one_step()
     _ = SpaceLargeScaleEroder(mg)
 
-    assert "bedrock__elevation" in mg.at_node.keys()
+    assert "bedrock__elevation" in mg.at_node
 
 
 # %%

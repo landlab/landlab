@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """hex_lattice_tectonicizer.py.
 
 Models discrete normal-fault offset on a 2D hex lattice with a rectangular
@@ -69,7 +68,7 @@ def is_perim_link(link, grid):
     )
 
 
-class HexLatticeTectonicizer(object):
+class HexLatticeTectonicizer:
     """Handles tectonics and baselevel for CellLab-CTS models.
 
     This is the base class from which classes to represent particular

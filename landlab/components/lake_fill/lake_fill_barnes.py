@@ -9,9 +9,6 @@ Fill sinks in a landscape to the brim, following the Barnes et al.
 
 import heapq
 import itertools
-
-# ^ this simply in case Katy updates to add more fields, that we would also
-# need to update...
 from collections import deque
 
 import numpy as np
@@ -305,16 +302,16 @@ class LakeMapperBarnes(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that LakeMapperBarnes is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that LakeMapperBarnes is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
         self._pit = []
         self._closed = self._grid.zeros("node", dtype=bool)
@@ -337,9 +334,7 @@ class LakeMapperBarnes(Component):
 
         # get the neighbour call set up:
         if method not in {"Steepest", "D8"}:
-            raise ValueError(
-                "{method}: method must be 'Steepest' or 'D8'".format(method=method)
-            )
+            raise ValueError(f"{method}: method must be 'Steepest' or 'D8'")
         if method == "D8":
             if isinstance(grid, RasterModelGrid):
                 self._allneighbors = np.concatenate(
@@ -577,16 +572,16 @@ class LakeMapperBarnes(Component):
             nopit = True
         else:
             nopit = False
-        if not (nopit or noopen):
+        if (
+            not (nopit or noopen) and topopen == toppit
+        ):  # intentionally tight comparison
             # not clear how this occurs, but present in Barnes ->
             # DEJH suspects this should be an elevation comparison given the
             # text description. Regardless, this is only to ensure
             # repeatability, so it's not vital even if these cases don't
             # trigger
-            if topopen == toppit:  # intentionally tight comparison
-                # print('yessssss')
-                c = openq.pop_task()
-                self._PitTop = LARGE_ELEV
+            c = openq.pop_task()
+            self._PitTop = LARGE_ELEV
         if not nopit:
             c = heapq.heappop(pitq)
             if np.isclose(self._PitTop, LARGE_ELEV):
@@ -1182,9 +1177,8 @@ class LakeMapperBarnes(Component):
                         self._neighbor_arrays, self._link_arrays
                     ):
                         for (n, l) in zip(neighbor_set[c, :], link_set[c, :]):
-                            if closedq[n] == 2:  # fully closed
-                                continue
-                            elif n == -1:
+                            # fully closed
+                            if (closedq[n] == 2) or (n == -1):
                                 continue
                             elif self._grid.status_at_node[n] != NodeStatus.CORE:
                                 closedq[n] = 2
@@ -1650,18 +1644,16 @@ class LakeMapperBarnes(Component):
         ensures the information about the lake and the water surface
         topography are all updated cleanly and correctly.
         """
-        if "flow__receiver_node" in self._grid.at_node:
-            if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
-                "node"
-            ):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that LakeMapperBarnes is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
+            "flow__receiver_node"
+        ].size != self._grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that LakeMapperBarnes is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
         # do the prep:
         # create the StasblePriorityQueue locaslly to permit garbage collection
         _open = StablePriorityQueue()
@@ -2077,7 +2069,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
-        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
+        for i, lakenodes in enumerate(self.lake_dict.values()):
             lakeareas[i] = self._grid.cell_area_at_node[lakenodes].sum()
         return lakeareas
 
@@ -2135,7 +2127,7 @@ class LakeMapperBarnes(Component):
         """
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
         col_vols = self._grid.cell_area_at_node * self.lake_depths
-        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
+        for i, lakenodes in enumerate(self.lake_dict.values()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 

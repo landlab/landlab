@@ -8,23 +8,22 @@ Although functions marked as deprecated are currently still available, **they wi
 a future *Landlab* release and so their use is discouraged.
 
 .. jinja:: llcats
-  
+
   .. currentmodule:: landlab
-    
+
   {% for grid, label in [('RasterModelGrid', 'Raster'), ('HexModelGrid', 'Hex'), ('RadialModelGrid', 'Radial'), ('VoronoiDelaunayGrid', 'Voronoi'), ('FramedVoronoiGrid', 'FramedVoronoi')] %}
-  
+
   .. tab:: {{ label }}
-    
+
     {% for cat, label in [('uncategorized', 'Uncategorized'), ('deprecated', 'Deprecated')] %}
-    
+
       .. tab:: {{label}}
-      
+
         .. autosummary::
           :nosignatures:
-        
+
           {% for func in grids[grid][cat] %}
-            ~{{func}}      
+            ~{{func}}
           {% endfor %}
     {% endfor %}
   {% endfor %}
-  

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Functions to read shapefiles and create a NetworkModelGrid."""
 import pathlib
 
@@ -265,22 +264,18 @@ def read_shapefile(
 
     if sf.shapeTypeName != "POLYLINE":
         raise ValueError(
-            (
-                "landlab.io.shapefile read requires a polyline "
-                "type shapefile. The provided shapefile does "
-                "not meet these requirements."
-            )
+            "landlab.io.shapefile read requires a polyline "
+            "type shapefile. The provided shapefile does "
+            "not meet these requirements."
         )
 
     if points_shapefile:
         psf = _read_shapefile(points_shapefile, points_dbf)
         if psf.shapeTypeName != "POINT":
             raise ValueError(
-                (
-                    "landlab.io.shapefile read requires a point "
-                    "type shapefile. The provided shapefile does "
-                    "not meet these requirements."
-                )
+                "landlab.io.shapefile read requires a point "
+                "type shapefile. The provided shapefile does "
+                "not meet these requirements."
             )
 
     # get record information, the first element is ('DeletionFlag', 'C', 1, 0)

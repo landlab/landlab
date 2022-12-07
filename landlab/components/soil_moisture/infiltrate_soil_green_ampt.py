@@ -227,7 +227,7 @@ class SoilInfiltrationGreenAmpt(Component):
             try:
                 soil_props = SoilInfiltrationGreenAmpt.SOIL_PROPS[soil_type]
             except KeyError:
-                raise ValueError("{0}: unknown soil type".format(soil_type))
+                raise ValueError(f"{soil_type}: unknown soil type")
 
         return SoilInfiltrationGreenAmpt.calc_pressure_head(*soil_props)
 

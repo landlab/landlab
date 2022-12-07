@@ -4,7 +4,7 @@ HorizontalRectVoronoiGraph. This pattern is inspired from the developments of th
 .. codeauthor:: sebastien lenard
 """
 
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -431,8 +431,7 @@ class FramedVoronoiGraph(DelaunayGraph):
     def node_layout(self):
         return self._node_layout
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def perimeter_nodes(self):
         return self._perimeter_nodes

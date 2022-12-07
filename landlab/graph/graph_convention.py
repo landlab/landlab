@@ -107,7 +107,7 @@ class ConventionConverter:
     @convention.setter
     def convention(self, val):
         if val not in ("nlp", "cfc", "nef"):
-            raise ValueError("convention not understood ({0})".format(val))
+            raise ValueError(f"convention not understood ({val})")
         self._convention = val
 
     @staticmethod
@@ -129,7 +129,7 @@ class ConventionConverter:
         try:
             return cls.CONVENTION[name]
         except KeyError:
-            raise ValueError("convention not understood ({0})".format(name))
+            raise ValueError(f"convention not understood ({name})")
 
     def conform(self, name, from_convention):
         """Convert a name to a new convention.

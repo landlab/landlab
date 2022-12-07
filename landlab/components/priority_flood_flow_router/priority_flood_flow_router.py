@@ -375,7 +375,7 @@ class PriorityFloodFlowRouter(Component):
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
-        super(PriorityFloodFlowRouter, self).__init__(grid)
+        super().__init__(grid)
         # Keep a local reference to the grid
 
         self._suppress_output = partial(

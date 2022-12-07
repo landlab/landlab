@@ -77,7 +77,7 @@ that file in your favourite text editor, and add at the end:
 
 Restart the terminal again, and check the version number now. Should be
 right! (You will probably also want to do something similar with ipython,
-but DEJH didn't explore that...) 
+but DEJH didn't explore that...)
 
 Installing pip
 --------------
