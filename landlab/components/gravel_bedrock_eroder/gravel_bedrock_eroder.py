@@ -4,6 +4,9 @@ from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 
+## Checks:
+# 1. How does sediment flux work?
+#
 class GravelBedrockEroder(Component):
     """Model drainage network evolution for a network of rivers that have
     a layer of gravel alluvium overlying bedrock.
@@ -106,7 +109,7 @@ class GravelBedrockEroder(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "m**2/y",
+            "units": "m**3/y",
             "mapping": "node",
             "doc": "Volumetric incoming streamwise bedload sediment transport rate",
         },
@@ -114,9 +117,17 @@ class GravelBedrockEroder(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "m**2/y",
+            "units": "m**3/y",
             "mapping": "node",
             "doc": "Volumetric outgoing streamwise bedload sediment transport rate",
+        },
+        "transport__capacity": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/y",
+            "mapping": "node",
+            "doc": "Volumetric outgoing streamwise bedload sediment transport capacity",
         },
         "bedrock__abrasion_rate": {
             "dtype": float,
@@ -265,6 +276,7 @@ class GravelBedrockEroder(Component):
         super().initialize_output_fields()
         self._sediment_influx = grid.at_node["bedload_sediment__volume_influx"]
         self._sediment_outflux = grid.at_node["bedload_sediment__volume_outflux"]
+        self._transport_cap = grid.at_node["transport__capacity"]
         self._dHdt = grid.at_node["sediment__rate_of_change"]
         self._rock_lowering_rate = grid.at_node["bedrock__lowering_rate"]
         self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
@@ -445,13 +457,23 @@ class GravelBedrockEroder(Component):
         >>> round(eroder._sediment_outflux[4], 4)
         0.019
         """
-        self._sediment_outflux[:] = (
+        # self._sediment_outflux[:] = (
+        #     self._trans_coef
+        #     * self._intermittency_factor
+        #     * self._discharge
+        #     * self._slope**self._SEVEN_SIXTHS
+        #     * (1.0 - self._rock_exposure_fraction)
+        # )
+        # BC
+        self._transport_cap[:] = (
             self._trans_coef
             * self._intermittency_factor
             * self._discharge
             * self._slope**self._SEVEN_SIXTHS
             * (1.0 - self._rock_exposure_fraction)
         )
+        # Transport capacity is zero if S<0
+        self._transport_cap[self._slope < 0] = 0
 
     def calc_abrasion_rate(self):
         """Update the rate of bedload loss to abrasion, per unit area.
@@ -552,10 +574,31 @@ class GravelBedrockEroder(Component):
             * self._rock_exposure_fraction[cores]
         ) * self._flow_link_length_over_cell_area
 
-    def calc_sediment_influx(self):
+        # Plucking rate is zero if S<0
+        self._pluck_rate[self._slope < 0] = 0
+
+    def calc_sediment_influx(self, dt):
         """Update the volume influx at each node."""
+        # self._sediment_influx[:] = 0.0
+        # for c in self.grid.core_nodes:  # send sediment downstream
+        #     r = self._receiver_node[c]
+        #     self._sediment_influx[r] += self._sediment_outflux[c]
+        # BC
         self._sediment_influx[:] = 0.0
+        self._sediment_outflux[:] = 0.0
         for c in self.grid.core_nodes:  # send sediment downstream
+            # Update outflux based on available material
+            if (
+                self._sediment_outflux[c]
+                > (self._sed[c] * self.grid.area_of_cell[self.grid.cell_at_node[c]])
+                / dt
+            ):
+                raise Exception("Timestep error")
+            # self._sediment_outflux[c] = min(
+            #     self._sediment_influx[c] + (self._sed[c] * self.grid.area_of_cell[self.grid.cell_at_node[c]])/dt,
+            #     self._transport_cap[c]
+            #     )
+            self._sediment_outflux[c] = self._transport_cap[c]
             r = self._receiver_node[c]
             self._sediment_influx[r] += self._sediment_outflux[c]
 
@@ -619,8 +662,7 @@ class GravelBedrockEroder(Component):
         """
         self.calc_rock_exposure_fraction()
         self.calc_transport_capacity()
-        self.calc_sediment_influx()
-
+        self.calc_sediment_influx(dt)
         if self._flow_length_is_variable:
             self._update_flow_link_length_over_cell_area()
         self.calc_bedrock_plucking_rate()
