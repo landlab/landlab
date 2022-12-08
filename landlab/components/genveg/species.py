@@ -11,12 +11,14 @@ class Species(object):
     def __init__(
         self, 
         species_params={
-            'colparams': {}, 
-            'dispparams': {}, 
-            'growparams': {
+            'col_params': {}, 
+            'disp_params': {},
+            'duration_params': {
                 'growing_season_start': 91,
                 'growing_season_end': 290,
                 'senescence_start': 228,
+            },
+            'grow_params': {
                 'respiration_coefficient': [0.015,0.015,0.03],
                 'glucose_requirement': [1.444,1.513,1.463],
                 'k_light_extinct':0.02,
@@ -26,7 +28,7 @@ class Species(object):
                 'root_to_stem_coeffs': [-0.107, 1.098, 0.0216],
                 'plant_part_min':[0.01,0.1,0.5]
             }, 
-            'mortparams': {
+            'mort_params': {
                 's1_days': 365, 
                 's1_name': 'Mortality factor', 
                 's1_pred': [1, 2, 3, 4], 
@@ -41,30 +43,33 @@ class Species(object):
                 'annual_perennial': 'annual',
                 'ptype':'C3'
             }, 
-            'sizeparams': {
+            'size_params': {
                 'max_height_stem': 2.5, 
                 'max_mass_stem': 72, 
                 'max_n_stems': 3, 
                 'max_plant_density': 1
             },
-            'storparams': {
+            'stor_params': {
                 'r_wint_die': 0.25, 
                 'r_wint_stor': 0.25
                 },
             },
     ):
         self.validate_plant_factors(species_params['plant_factors'])
-        self.validate_grow_params(species_params['growparams'])
+        self.validate_duration_params(species_params['duration_params'])        
+        self.validate_grow_params(species_params['grow_params'])
         
-        self.species_params=species_params
+        self.species_plant_factors=species_params['plant_factors']
+        self.species_duration_params=species_params['duration_params']
+        self.species_grow_params=species_params['grow_params']
         
         self.habit=self.select_habit_class(
-            self.species_params['plant_factors']['growth_habit'], 
-            self.species_params['plant_factors']['duration'], 
-            self.species_params['plant_factors']['leaf_retention']
+            self.species_plant_factors['growth_habit'], 
+            self.species_plant_factors['duration'],
+            self.species_plant_factors['leaf_retention']
             )
-        self.form=self.select_form_class(self.species_params['plant_factors']['growth_form'])
-        self.shape=self.select_shape_class(self.species_params['plant_factors']['shape'])
+        self.form=self.select_form_class(self.species_plant_factors['growth_form'])
+        self.shape=self.select_shape_class(self.species_plant_factors['shape'])
         
         self.set_initial_biomass()
 
@@ -92,59 +97,62 @@ class Species(object):
                 msg='Unexpected variable name in species parameter dictionary. Please check input parameter file.'
                 raise ValueError(msg)
 
-    def validate_grow_params(self,growparams):
-        multipart_vars=['respiration_coefficient', 'glucose_requirement','root_to_leaf_coeffs','root_to_stem_coeffs']
-        if (growparams['growing_season_start'] < 0) | (growparams['growing_season_start']  > 366):
+    def validate_duration_params(self,duration_params):
+        if (duration_params['growing_season_start'] < 0) | (duration_params['growing_season_start']  > 366):
             msg='Growing season beginning must be integer values between 1-365'
             raise ValueError(msg)
-        elif (growparams['growing_season_end'] < growparams['growing_season_start']) | (growparams['growing_season_end'] >366):
+        elif (duration_params['growing_season_end'] < duration_params['growing_season_start']) | (duration_params['growing_season_end'] >366):
             msg='Growing season end must be between 1-365 and greater than the growing season beginning'
             raise ValueError(msg)
-        elif (growparams['senescence_start'] < growparams['growing_season_start']) | (growparams['senescence_start'] > growparams['growing_season_end']):
+        elif (duration_params['senescence_start'] < duration_params['growing_season_start']) | (duration_params['senescence_start'] > duration_params['growing_season_end']):
             msg='Start of senescence must be within the growing season'
             raise ValueError(msg)
+
+    
+    def validate_grow_params(self,grow_params):
+        multipart_vars=['respiration_coefficient', 'glucose_requirement','root_to_leaf_coeffs','root_to_stem_coeffs']
         for vars in multipart_vars:
-            if len(growparams[vars])<3:
+            if len(grow_params[vars])<3:
                 msg='Must include respiration coefficients for at least roots, leaves, and stems'
                 raise ValueError(msg)
 
-    def select_habit_class(self, habit_val, duration, retention):
+    def select_habit_class(self, habit_val, duration, retention_val):
         habit={
-            'forb_herb':Forbherb,
-            'graminoid':Graminoid,
-            'shrub':Shrub,
-            'tree':Tree,
-            'vine':Vine
+            'forb_herb':Forbherb(duration),
+            'graminoid':Graminoid(duration),
+            'shrub':Shrub(duration, retention_val),
+            'tree':Tree(duration, retention_val),
+            'vine':Vine(duration, retention_val)
         }
-        return habit[habit_val](duration, retention)
+        return habit[habit_val]
     
     def select_form_class(self, form_val):
         form={
-            'bunch':Bunch,
-            'colonizing':Colonizing,
-            'multiple_stems':Multiplestems,
-            'rhizomatous':Rhizomatous,
-            'single_crown':Singlecrown,
-            'single_stem':Singlestem,
-            'stoloniferous':Stoloniferous,
-            'thicket_forming':Thicketforming
+            'bunch':Bunch(),
+            'colonizing':Colonizing(),
+            'multiple_stems':Multiplestems(),
+            'rhizomatous':Rhizomatous(),
+            'single_crown':Singlecrown(),
+            'single_stem':Singlestem(),
+            'stoloniferous':Stoloniferous(),
+            'thicket_forming':Thicketforming()
         }
-        return form[form_val]()
+        return form[form_val]
 
     def select_shape_class(self,shape_val):
         shape={
-            'climbing':Climbing,
-            'conical':Conical,
-            'decumbent':Decumbent,
-            'erect':Erect,
-            'irregular':Irregular,
-            'oval':Oval,
-            'prostrate':Prostrate,
-            'rounded':Rounded,
-            'semi_erect':Semierect,
-            'vase':Vase
+            'climbing':Climbing(),
+            'conical':Conical(),
+            'decumbent':Decumbent(),
+            'erect':Erect(),
+            'irregular':Irregular(),
+            'oval':Oval(),
+            'prostrate':Prostrate(),
+            'rounded':Rounded(),
+            'semi_erect':Semierect(),
+            'vase':Vase()
         }
-        return shape[shape_val]()
+        return shape[shape_val]
 
     def branch(self):
         self.form.branch()
@@ -152,13 +160,18 @@ class Species(object):
     def disperse(self):
         self.form.dispersal()
 
-    def enter_dormancy(self, grow_params = {'senescence_start':270,'growing_season_end':285}, current_day=0, plants=(np.recarray((0,),
-            dtype=[('species','U10'),('pid',int),('cell_index',int),('root_biomass',float),('leaf_biomass',float),('stem_biomass',float)]))):
-        self.habit.enter_dormancy(grow_params, current_day, plants)
+    def enter_dormancy(
+            self, 
+            current_jday, 
+            plants
+        ):
+        plants=self.habit.duration.enter_dormancy(self.species_duration_params,current_jday,plants)
+        return plants
 
     def emerge(self):
         self.habit.emerge()
 
     def set_initial_biomass(self):
-        min_mass, max_mass=self.habit.initialize_biomass()
-        self.species_params['growparams']['init_biomass']=[min_mass,max_mass]
+        species_grow_params=self.species_grow_params
+        min_mass, max_mass=self.habit.duration.initialize_biomass(species_grow_params)
+        self.species_grow_params['init_biomass']=[min_mass,max_mass]

@@ -85,22 +85,21 @@ class PlantGrowth(Species):
                     annual_perennial: string, required,
                         plant growth duration, annual (1 year) or
                         perennial (multiple years)
-                growparams: dict, required,
-                    dictionary of paramaters required to simulate plant growth
-                    ptype: string, required,
-                        photosythesis type, either 'C3', 'C4', or 'CAM'
+                duration_params: dict, required,
+                    dictionary of parameters defining the growing season,
                     gs_start: int, required,
                         growing season start day of year,
                         must be between 1-365
                     gs_end: int, required,
                         growing season end day of year,
                         must be between 1-365
-                    gs_length: int, required,
-                        growing season length in days,
-                        must be less than or equal to 365
                     senes: int, required,
                         start of senescence period after plant reaches peak biomass,
                         must be between gs_start and gs_end
+                grow_params: dict, required,
+                    dictionary of paramaters required to simulate plant growth
+                    ptype: string, required,
+                        photosythesis type, either 'C3', 'C4', or 'CAM'
                     res_co: float, required,
                         respiration coefficient
                     glu_req: float, required,
@@ -114,9 +113,8 @@ class PlantGrowth(Species):
         """
         #Initialize species object to get correct species parameter list
         species_params=kwargs['species_params']
-        
-        self.species=Species(species_params)
-        self.species_params=self.species.species_params
+        super().__init__(species_params)
+        self.species_name=self.species_plant_factors['species']
         self._grid=grid
         
         # From chapter 2 of Teh 2006 (pg. 31; equation 2.13)
@@ -164,8 +162,8 @@ class PlantGrowth(Species):
     def species_plants(self):
         return self.plants
     
-    def species_params_out(self):
-        return self.species_params
+    def species_grow_params_out(self):
+        return self.species_grow_params
 
     def _grow(self, current_day):
         #Calculate current day-of-year
@@ -173,8 +171,8 @@ class PlantGrowth(Species):
         self._current_jday=jday_td.astype(int)
 
         #Add photosythesis code here
-        factordict=self.species_params['plant_factors']
-        growdict=self.species_params['growparams']
+        growdict=self.species_grow_params
+        durationdict=self.species_duration_params
         _last_biomass=self.plants
         _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']
         _radiation=self._grid['cell']['radiation__net_flux'][_last_biomass['cell_index']]
@@ -197,10 +195,10 @@ class PlantGrowth(Species):
                     
         #maintenance respiration
         #if then statement stops respiration at end of growing season
-        if self._current_jday == growdict['growing_season_end']:
+        if self._current_jday == durationdict['growing_season_end']:
             respMaint = 0
 
-        if self._current_jday < growdict['growing_season_end'] and self._current_jday >= growdict['growing_season_start']:
+        if self._current_jday <= durationdict['growing_season_end'] and self._current_jday >= durationdict['growing_season_start']:
 
             #Calculate current daylength based on current day-of-year and latitude of grid origin
             _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - self._current_jday)))
@@ -255,7 +253,7 @@ class PlantGrowth(Species):
             gphot = assimilatedCH2O*(30/44) 
             
             #if then statement ends glucose generation at end of growing season 
-            if self._current_jday == growdict['growing_season_end']:
+            if self._current_jday == durationdict['growing_season_end']:
                 gphot = 0
 
             #direct solve method for calculating change in biomass
@@ -284,7 +282,7 @@ class PlantGrowth(Species):
             self.plants['root_biomass']=_last_biomass['root_biomass']+delta_root
             self.plants['leaf_biomass']=_last_biomass['leaf_biomass']+delta_leaf
             self.plants['stem_biomass']=_last_biomass['stem_biomass']+delta_stem
-            self.species.enter_dormancy(growdict, self.plants)
+            self.plants=self.enter_dormancy(self._current_jday, self.plants)
 
 #May be able to eliminate this since using built in solar radiation component
     def _PAR(self, _declination, _daylength):
@@ -339,7 +337,7 @@ class PlantGrowth(Species):
             cell_plants=self._grid['cell']['vegetation__plant_species'][cell]
             #Loop through list of plants stored on grid
             for plant in cell_plants:
-                if plant == self.species.species_params['plant_factors']['species']:
+                if plant == self.species_plant_factors['species']:
                     buildlist.append((plant,pidval,cell_index))
                     pidval += 1
         #Create plant record array 
@@ -353,11 +351,11 @@ class PlantGrowth(Species):
         plant_array=nprf.append_fields(plant_array,('leaf_biomass','stem_biomass','root_biomass'),data=[fillnan,fillnan,fillnan])
         
         #Set coefficients to variable names to pass to solver function
-        growdict=self.species.species_params['growparams']
+        growdict=self.species_grow_params
         aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
         astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
         coeffs=[aleaf,b1leaf,b2leaf,astem,b1stem,b2stem]
-        init_mass=self.species.species_params['growparams']['init_biomass']
+        init_mass=growdict['init_biomass']
         total_biomass=np.random.rand(plant_array.size)*(init_mass[1]-init_mass[0])+init_mass[0]
         #Call biomass allocation method
         root_bio,leaf_bio,stem_bio=self._init_biomass_allocation(total_biomass, coeffs)

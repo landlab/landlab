@@ -4,26 +4,32 @@ import numpy as np
 
 #Duration classes and selection method
 class Duration(object):
-    def __init__(self, **kwargs):
+    def __init__(self):
         pass
+        #self.senescence_start=duration_params['senescence_start']
+        #self.growing_season_start=duration_params['growing_season_start']
+        #self.growing_season_end=duration_params['growing_season_end']
 
 class Annual(Duration):
     def __init__(self):
         super().__init__()
 
-    def enter_dormancy(self, grow_params = {'senescence_start':270,'growing_season_end':285}, current_day=0, plants=(np.recarray((0,),
-            dtype=[('species','U10'),('pid',int),('cell_index',int),('root_biomass',float),('leaf_biomass',float),('stem_biomass',float)]))):
+    def enter_dormancy(
+            self,
+            duration_params, 
+            current_jday, 
+            plants
+        ):
         #on or after senescence_day, the plant needs to lost 2% of its daily biomass after calculating new total biomass
-        if current_day >= grow_params['senescence_start'] and current_day < grow_params['growing_season_end']:
+        if current_jday >= duration_params['senescence_start'] and current_jday < duration_params['growing_season_end']:
             plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass']*0.02)
             plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
             plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
         #on growing season end, the total biomass needs to be set to 0
-        if current_day >= grow_params['growing_season_end']:
-            plants['root_biomass'] = 0
-            plants['leaf_biomass'] = 0
-            plants['stem_biomass'] = 0 
-        print('I die at dormancy and my biomass is: {}'.format(plants))
+        if current_jday >= duration_params['growing_season_end']:
+            plants['root_biomass'] = np.zeros_like(plants['root_biomass'])
+            plants['leaf_biomass'] = np.zeros_like(plants['leaf_biomass'])
+            plants['stem_biomass'] = np.zeros_like(plants['stem_biomass']) 
         return plants
         
     
@@ -32,7 +38,7 @@ class Annual(Duration):
         #emerge size should be the min size for annuals
         return self.initialize_biomass(emerge_size)
     
-    def initialize_biomass(self, grow_params={'plant_part_min':[0.01,0.1,0.5]}):
+    def initialize_biomass(self, grow_params):
         #This function provides the range of mass an initial annual plant can have
         #Since initalization of annuals is the same as emergence, use the same function
         init_size_min=sum(grow_params['plant_part_min'])
@@ -41,6 +47,7 @@ class Annual(Duration):
 
 class Perennial(Duration):
     def __init__(self, retention_val):
+        super().__init__()
         self.retention=self.select_retention_class(retention_val)
     
     def select_retention_class(self, retention_val):

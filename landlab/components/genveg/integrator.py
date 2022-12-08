@@ -90,7 +90,6 @@ class GenVeg(Component, PlantGrowth):
                 continue
             species_dict=vegparams[species]
             species_obj=PlantGrowth(self._grid,self.dt, self.current_day, self.start_date, species_params=species_dict)
-            self.species_params=species_obj.species_params
             array_out=species_obj.species_plants()
             plantspecies.append(species_obj)
             #Summarize biomass and number of plants across grid
@@ -129,8 +128,6 @@ class GenVeg(Component, PlantGrowth):
         view=self.record_grid.dataset.to_dataframe()
         return view
 
-    def check_species_params(self):
-        return self.species_params
     
     def save_output(self, save_params=['root_biomass','leaf_biomass','stem_biomass']):
         rel_time=(self.current_day-self.start_date).astype(float)
@@ -149,6 +146,6 @@ class GenVeg(Component, PlantGrowth):
                 out_df=pd.concat([out_df,species_df])
         else:
             for species_obj in self.plant_species:
-                if species_obj.species_params['plant_factors']['species']==species:
+                if species_obj.species_name==species:
                     out_df=species_obj.record_plants.dataset.to_dataframe()
         return out_df
