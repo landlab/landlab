@@ -14,10 +14,10 @@ General class methods and attributes of the `landlab.grid.framed_voronoi` module
 --------------------------------------------------------------------------------
 
 Landlab's partly unstructured, irregular grids are implemented by the class
-`FramedVoronoiGrid`, which inherits from `ModelGrid`. These grids differ 
+`FramedVoronoiGrid`, which inherits from `ModelGrid`. These grids differ
 from fully unstructured grids, which are implemented by the class
 `VoronoiDelaunayGrid`. They are constructed from an initial structured and
-regular grid. Then, the coordinates of the cores are randomly displaced. 
+regular grid. Then, the coordinates of the cores are randomly displaced.
 Displacement is limited to a threshold so that core nodes have a minimal
 distance, which is necessary to run incision and diffusion processes.
 The perimeter nodes are fixed, and this way are determined in an exhaustive

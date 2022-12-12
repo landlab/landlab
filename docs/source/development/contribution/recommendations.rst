@@ -32,4 +32,4 @@ Recommendations
 - Arguments and keyword arguments start with lower case letters.
 - Keyword arguments have reasonable default values (and the grid is the only argument to ``__init__``.
 - Can return or not return information. Some recommendations, Nothing, grid, or a ... or a calculated value.
-- If possible, we recommend that components are unit agnostic. 
+- If possible, we recommend that components are unit agnostic.

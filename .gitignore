@@ -52,7 +52,7 @@ coverage.xml
 *.pot
 
 # Sphinx documentation
-docs/_build/
+docs/build/
 
 # Vim
 *~
@@ -77,56 +77,18 @@ test-results.xml
 
 *.synctex.gz
 
-.hypothesis/
-
-installfiles.txt
+# installfiles.txt
 
 # Ignore all .c files as, currently, they are all cython generated.
 *.c
+*.cpp
 
-landlab/io/mysave.grid
-
-docs/auto_grid_info__BCs.rst
-
-docs/auto_grid_info__cells.rst
-
-docs/auto_grid_info__corners.rst
-
-docs/auto_grid_info__faces.rst
-
-docs/auto_grid_info__grads.rst
-
-docs/auto_grid_info__links.rst
-
-docs/auto_grid_info__mappers.rst
-
-docs/auto_grid_info__nodes.rst
-
-docs/auto_grid_info__patches.rst
-
-docs/auto_grid_info__subsets.rst
-
-docs/auto_grid_info__surf.rst
-
-docs/auto_grid_info__whole.rst
-
-landlab/components/spatial_precip/Durations_summer.csv
-
-landlab/components/spatial_precip/Durations_winter.csv
-
-\.pytest_cache/README\.md
-
-\.pytest_cache/v/cache/lastfailed
-
-\.pytest_cache/v/cache/nodeids
-
-
-\.pytest_cache/v/cache/
-
-docs/build_log.txt
-
-.eggs/README.txt
+# pytest
+.pytest_cache/
 
 
 # Hypothesis
 .hypothesis
+
+# nox virtual envs
+.nox

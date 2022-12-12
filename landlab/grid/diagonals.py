@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import contextlib
+
 import numpy as np
 
 from ..utils.decorators import cache_result_in_object, make_return_array_immutable
@@ -99,7 +101,7 @@ def create_diagonals_at_node(shape, out=None):
     return out
 
 
-class DiagonalsMixIn(object):
+class DiagonalsMixIn:
 
     """Add diagonals to a structured quad grid."""
 
@@ -390,10 +392,8 @@ class DiagonalsMixIn(object):
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
 
     @property
     @cache_result_in_object()

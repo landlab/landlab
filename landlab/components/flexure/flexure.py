@@ -199,7 +199,7 @@ class Flexure(Component):
             Number of processors to use for calculations.
         """
         if method not in ("airy", "flexure"):
-            raise ValueError("{method}: method not understood".format(method=method))
+            raise ValueError(f"{method}: method not understood")
 
         super().__init__(grid)
 

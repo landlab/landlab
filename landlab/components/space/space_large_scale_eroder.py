@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Grid-based simulation of lateral erosion by channels in a drainage network.
 
 Benjamin Campforts
@@ -309,7 +308,7 @@ class SpaceLargeScaleEroder(Component):
                 "to start this process."
             )
 
-        super(SpaceLargeScaleEroder, self).__init__(grid)
+        super().__init__(grid)
 
         self._soil__depth = grid.at_node["soil__depth"]
         self._topographic__elevation = grid.at_node["topographic__elevation"]

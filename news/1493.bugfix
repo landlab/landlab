@@ -1,3 +1,2 @@
 Fixed an issue when plotting the colorbar in the ``plot_drainage`` function
 using *matplotlib* 3.6.
-

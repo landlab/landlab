@@ -46,4 +46,3 @@
       Ask a question or submit an issue: https://github.com/landlab/landlab/issues
       Landlab Slack channel: https://landlab.slack.com
 -->
-

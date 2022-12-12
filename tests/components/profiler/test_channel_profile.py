@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """
 Created on Tue Feb 27 16:25:11 2018
@@ -41,7 +40,7 @@ def test_assertion_error():
     ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
 
     dt = 100
-    for i in range(200):
+    for _ in range(200):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         ld.run_one_step(dt=dt)
@@ -66,7 +65,7 @@ def test_asking_for_too_many_watersheds():
     sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
 
     dt = 100
-    for i in range(200):
+    for _ in range(200):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         mg.at_node["topographic__elevation"][0] -= 0.001
@@ -134,7 +133,7 @@ def profile_example_grid():
     sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
 
     dt = 100
-    for i in range(200):
+    for _ in range(200):
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         mg.at_node["topographic__elevation"][0] -= 0.001
@@ -383,7 +382,7 @@ def test_re_calculating_nodes_and_distance():
     dt = 1000
     uplift_per_step = 0.001 * dt
 
-    for i in range(10):
+    for _ in range(10):
         z[mg.core_nodes] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)
@@ -436,7 +435,7 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     dt = 1000
     uplift_per_step = 0.001 * dt
 
-    for i in range(100):
+    for _ in range(100):
         z[mg.core_nodes] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)

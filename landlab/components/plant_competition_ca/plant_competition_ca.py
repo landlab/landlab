@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid"])
+_VALID_METHODS = {"Grid"}
 GRASS = 0
 SHRUB = 1
 TREE = 2

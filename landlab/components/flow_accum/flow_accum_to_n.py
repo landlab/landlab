@@ -75,7 +75,7 @@ class _DrainageStack_to_n:
         """
 
         self.num_receivers = num_receivers
-        self.s = list()
+        self.s = []
         self.delta = delta
         self.D = D
 
@@ -135,7 +135,7 @@ class _DrainageStack_to_n:
         try:
             base = set(nodes)
         except TypeError:
-            base = set([nodes])
+            base = {nodes}
 
         # instantiate the time keeping variable i, and a variable to keep track
         # of the visit time. Using visit time allows us to itterate through
@@ -143,15 +143,15 @@ class _DrainageStack_to_n:
         # the last time it is visited.
 
         i = 0
-        visit_time = -1 * numpy.ones((self.delta.size - 1))
-        num_visits = numpy.zeros((self.delta.size - 1))
+        visit_time = -1 * numpy.ones(self.delta.size - 1)
+        num_visits = numpy.zeros(self.delta.size - 1)
 
         # deal with the first node, which goes to it
         visit_time[list(base)] = i
         num_visits[list(base)] += 1
 
         i = 1
-        visited = set([])
+        visited = set()
         for node_i in base:
             # select the nodes to visit
             visit = set(self.D[self.delta[node_i] : self.delta[node_i + 1]])
@@ -177,8 +177,8 @@ class _DrainageStack_to_n:
             # increase counter
             i += 1
 
-            visited = set([])
-            new_completes = set([])
+            visited = set()
+            new_completes = set()
 
             for node_i in completed:
 
@@ -675,19 +675,18 @@ def find_drainage_area_and_discharge_to_n_lossy(
             recvr = r[donor, v]
             lrec = link_to_receiver[donor, v]
             proportion = p[donor, v]
-            if proportion > 0:
-                if donor != recvr:
-                    drainage_area[recvr] += proportion * drainage_area[donor]
-                    discharge_head = proportion * discharge[donor]
-                    discharge_remaining = numpy.clip(
-                        loss_function(discharge_head, donor, lrec, grid),
-                        0.0,
-                        float("inf"),
-                    )
-                    grid.at_node["surface_water__discharge_loss"][donor] += (
-                        discharge_head - discharge_remaining
-                    )
-                    discharge[recvr] += discharge_remaining
+            if proportion > 0 and donor != recvr:
+                drainage_area[recvr] += proportion * drainage_area[donor]
+                discharge_head = proportion * discharge[donor]
+                discharge_remaining = numpy.clip(
+                    loss_function(discharge_head, donor, lrec, grid),
+                    0.0,
+                    float("inf"),
+                )
+                grid.at_node["surface_water__discharge_loss"][donor] += (
+                    discharge_head - discharge_remaining
+                )
+                discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge
 

@@ -30,7 +30,7 @@ import numpy as np
 from landlab.plot import imshow
 
 
-class VideoPlotter(object):
+class VideoPlotter:
 
     """Create animations of landlab output.
 

@@ -182,10 +182,9 @@ class CarbonateProducer(Component):
         self._carb_prod_rate = grid.at_node["carbonate_production_rate"]
         self._depth = grid.at_node["water_depth"]
 
-        if "carbonate_thickness" in grid.at_node.keys():
-            self._carbonate_thickness = grid.at_node["carbonate_thickness"]
-        else:
-            self._carbonate_thickness = None
+        if "carbonate_thickness" not in grid.at_node:
+            grid.add_zeros("carbonate_thickness", at="node")
+        self._carbonate_thickness = grid.at_node["carbonate_thickness"]
 
     @property
     def extinction_coefficient(self):
@@ -285,8 +284,8 @@ class CarbonateProducer(Component):
         float array x number of grid nodes
             Reference to updated carbonate_thickness field
         """
-        if self._carbonate_thickness is None:
-            self._carbonate_thickness = self._create_carbonate_thickness_field()
+        # if self._carbonate_thickness is None:
+        #     self._carbonate_thickness = self._create_carbonate_thickness_field()
 
         self.calc_carbonate_production_rate()
         # print(self._depth)

@@ -113,7 +113,7 @@ def unravel(data, offset, out=None, pad=None):
     return out
 
 
-class JaggedArray(object):
+class JaggedArray:
 
     """A container for an array of variable-length arrays.
 
