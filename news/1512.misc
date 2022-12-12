@@ -1,0 +1,3 @@
+
+Fixed a broken *pre-commit* hook that caused an error when checking for lint
+with *flake8*.

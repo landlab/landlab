@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
@@ -181,28 +180,19 @@ class ExponentialWeathererIntegrated(Component):
         self._depth = grid.at_node["soil__depth"]
 
         # weathering rate
-        if "soil_production__rate" in grid.at_node:
-            self._soil_prod_rate = grid.at_node["soil_production__rate"]
-        else:
-            self._soil_prod_rate = grid.add_zeros("soil_production__rate", at="node")
+        if "soil_production__rate" not in grid.at_node:
+            grid.add_zeros("soil_production__rate", at="node")
+        self._soil_prod_rate = grid.at_node["soil_production__rate"]
 
         # soil produced total over dt
-        if "soil_production__dt_produced_depth" in grid.at_node:
-            self._soil_prod_total = grid.at_node["soil_production__dt_produced_depth"]
-        else:
-            self._soil_prod_total = grid.add_zeros(
-                "soil_production__dt_produced_depth", at="node"
-            )
+        if "soil_production__dt_produced_depth" not in grid.at_node:
+            grid.add_zeros("soil_production__dt_produced_depth", at="node")
+        self._soil_prod_total = grid.at_node["soil_production__dt_produced_depth"]
 
         # bedrock weathering total over dt
-        if "soil_production__dt_weathered_depth" in grid.at_node:
-            self._rock_weathered_total = grid.at_node[
-                "soil_production__dt_weathered_depth"
-            ]
-        else:
-            self._rock_weathered_total = grid.add_zeros(
-                "soil_production__dt_weathered_depth", at="node"
-            )
+        if "soil_production__dt_weathered_depth" not in grid.at_node:
+            grid.add_zeros("soil_production__dt_weathered_depth", at="node")
+        self._rock_weathered_total = grid.at_node["soil_production__dt_weathered_depth"]
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""

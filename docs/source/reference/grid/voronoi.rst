@@ -6,4 +6,3 @@ API for landlab.grid.voronoi
    :undoc-members:
    :show-inheritance:
    :inherited-members:
-

@@ -85,7 +85,7 @@ def test_fields1():
     mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
     fa1 = PriorityFloodFlowRouter(mg1, suppress_out=True)
     fa1.run_one_step()
-    assert sorted(list(mg1.at_node.keys())) == [
+    assert sorted(mg1.at_node) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -108,7 +108,7 @@ def test_fields2():
     fa2 = PriorityFloodFlowRouter(mg2, suppress_out=True, accumulate_flow=False)
     fa2.run_one_step()
 
-    assert sorted(list(mg2.at_node.keys())) == [
+    assert sorted(mg2.at_node) == [
         "depression_free_elevation",
         "flood_status_code",
         "flow__link_to_receiver_node",
@@ -130,7 +130,7 @@ def test_fields3():
     mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")
     fa3 = PriorityFloodFlowRouter(mg3, separate_hill_flow=True, suppress_out=True)
     fa3.run_one_step()
-    assert sorted(list(mg3.at_node.keys())) == [
+    assert sorted(mg3.at_node) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -161,7 +161,7 @@ def test_fields4():
         mg4, separate_hill_flow=True, accumulate_flow_hill=True, suppress_out=True
     )
     fa4.run_one_step()
-    assert sorted(list(mg4.at_node.keys())) == [
+    assert sorted(mg4.at_node) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",

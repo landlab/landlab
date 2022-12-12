@@ -20,7 +20,7 @@ def test_calc_flexure_parameter_bad_ndim():
 
 
 def test_subside_point_load():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
     loc = (5000.0, 2500.0)
 
@@ -47,7 +47,7 @@ def test_subside_point_load():
 
 
 def test_point_load_1d_with_scalar_args():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
 
     x = np.arange(0, 10000, 1000.0)
@@ -58,7 +58,7 @@ def test_point_load_1d_with_scalar_args():
 
 
 def test_point_load_1d_is_symetric():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
 
     x = np.arange(0, 11000, 1000.0)
@@ -72,7 +72,7 @@ def test_point_load_1d_is_symetric():
 
 
 def test_point_load_2d_is_symetric():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
 
     n = 11
@@ -95,7 +95,7 @@ def test_point_load_2d_is_symetric():
 
 
 def test_subside_point_load_1d():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
     loc = (5000.0,)
 
@@ -112,7 +112,7 @@ def test_subside_point_load_1d():
 
 
 def test_out_keyword():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
     loc = (5000.0,)
 
@@ -125,7 +125,7 @@ def test_out_keyword():
 
 
 def test_dimension_mismatch():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
     load = 1e9
     loc = (5000.0,)
 
@@ -136,7 +136,8 @@ def test_dimension_mismatch():
 
 
 def test_ndim_too_big():
-    params = dict(eet=65000.0, youngs=7e10)
+    params = {"eet": 65000.0, "youngs": 7e10}
+
     load = 1e9
     loc = ((5000.0, 1000.0, 500.0),)
 

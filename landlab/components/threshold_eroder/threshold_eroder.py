@@ -187,11 +187,14 @@ class ThresholdEroder(Component):
         # Create fields
         self.initialize_output_fields()
 
-        if "soil__depth" in self._grid.at_node:
-            if "bedrock__elevation" not in self._grid.at_node.keys():
-                raise Exception(
-                    "If soil__depth is provided as a field, also bedrock__elevation mut be provided as a field"
-                )
+        if (
+            "soil__depth" in self._grid.at_node
+            and "bedrock__elevation" not in self._grid.at_node
+        ):
+            raise ValueError(
+                "If soil__depth is provided as a field, "
+                "bedrock__elevation must also be provided as a field"
+            )
 
     def erode(self):
         """Erode landscape to threshold and dissolve sediment."""

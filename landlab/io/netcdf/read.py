@@ -8,6 +8,8 @@ Read netcdf
 
     ~landlab.io.netcdf.read.read_netcdf
 """
+import contextlib
+
 import numpy as np
 import xarray as xr
 
@@ -61,10 +63,8 @@ def _read_netcdf_grid_shape(root):
     """
     shape = []
     for axis_name in _AXIS_DIMENSION_NAMES:
-        try:
+        with contextlib.suppress(KeyError):
             shape.append(_length_of_axis_dimension(root, axis_name))
-        except KeyError:
-            pass
     return tuple(shape)
 
 
@@ -83,10 +83,8 @@ def _read_netcdf_coordinate_values(root):
     """
     values = []
     for coordinate_name in _AXIS_COORDINATE_NAMES:
-        try:
+        with contextlib.suppress(KeyError):
             values.append(root.variables[coordinate_name][:].copy())
-        except KeyError:
-            pass
     return tuple(values)
 
 
@@ -105,10 +103,8 @@ def _read_netcdf_coordinate_units(root):
     """
     units = []
     for coordinate_name in _AXIS_COORDINATE_NAMES:
-        try:
+        with contextlib.suppress(KeyError):
             units.append(root.variables[coordinate_name].units)
-        except KeyError:
-            pass
     return tuple(units)
 
 
@@ -177,17 +173,16 @@ def _read_netcdf_structured_data(root):
         Data values, reshaped to match that of the grid. Keys are the
         variable names as read from the NetCDF file.
     """
-    fields = dict()
+    fields = {}
     grid_mapping_exists = False
     grid_mapping_dict = None
     for (name, var) in root.variables.items():
         # identify if a grid mapping variable exist and do not pass it as a field
-        if name not in _COORDINATE_NAMES:
-            if hasattr(var, "grid_mapping"):
-                grid_mapping = getattr(var, "grid_mapping")
-                if type(grid_mapping) is bytes:
-                    grid_mapping = grid_mapping.decode("utf-8")
-                grid_mapping_exists = True
+        if name not in _COORDINATE_NAMES and hasattr(var, "grid_mapping"):
+            grid_mapping = var.grid_mapping
+            if isinstance(grid_mapping, bytes):
+                grid_mapping = grid_mapping.decode("utf-8")
+            grid_mapping_exists = True
 
     dont_use = list(_COORDINATE_NAMES)
     if grid_mapping_exists:
@@ -396,9 +391,7 @@ def read_netcdf(
                 grid.add_field(field_name, values, at="node", clobber=True)
 
         if (name is not None) and (name not in grid.at_node):
-            raise ValueError(
-                "Specified field {name} was not in provided NetCDF.".format(name=name)
-            )
+            raise ValueError(f"Specified field {name} was not in provided NetCDF.")
 
     ignore = {"x", "y"}
     for name in names - ignore:

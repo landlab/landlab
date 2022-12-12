@@ -50,7 +50,7 @@ def test_abrasion(example_nmg, example_parcels, example_flow_director):
 
     dt = 60 * 60 * 24  # (seconds) daily timestep
 
-    for t in range(0, (timesteps * dt), dt):
+    for _ in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
 
     # Parcel volume should decrease according to abrasion rate

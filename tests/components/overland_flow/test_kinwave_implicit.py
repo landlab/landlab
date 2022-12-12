@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
 Unit tests for KinwaveImplicitOverlandFlowModel.
 
@@ -60,7 +59,7 @@ def test_steady_basic_ramp():
 
     # Create component and run it
     kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001 * 3600000.0)
-    for i in range(12):
+    for _ in range(12):
         kw.run_one_step(1.0)
 
     # Look at a column of nodes down the middle. The inflow from uphill should
@@ -77,7 +76,7 @@ def test_steady_basic_ramp():
     # Try with passing in runoff
     kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=360.0)
     kw.depth[:] = 0.0
-    for i in range(22):
+    for _ in range(22):
         kw.run_one_step(1.0)
 
     # Again, look at a column of nodes down the middle. The inflow from uphill
@@ -94,7 +93,7 @@ def test_steady_basic_ramp():
     kw = KinwaveImplicitOverlandFlow(rg)
     assert round(kw.runoff_rate * 1.0e7, 2) == 2.78
     kw.depth[:] = 0.0
-    for i in range(18):
+    for _ in range(18):
         kw.run_one_step(10.0)
 
     # Look at a column of nodes down the middle. The inflow from uphill should
@@ -120,7 +119,7 @@ def test_curved_surface():
 
     # Create component and run it
     kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001 * 3600000.0)
-    for i in range(8):
+    for _ in range(8):
         kw.run_one_step(1.0)
 
     # The inflow discharge to each cell at steady state should equal the

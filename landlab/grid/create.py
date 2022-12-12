@@ -51,7 +51,7 @@ def grid_from_dict(grid_type, params):
     try:
         cls = _MODEL_GRIDS[grid_type]
     except KeyError:
-        raise ValueError("unknown grid type ({0})".format(grid_type))
+        raise ValueError(f"unknown grid type ({grid_type})")
     args, kwargs = _parse_args_kwargs(params)
     return cls(*args, **kwargs)
 
@@ -65,7 +65,7 @@ def grids_from_file(file_like, section=None):
             grids = params[section]
         except KeyError:  # TODO: not tested.
             raise ValueError(
-                "missing required section ({0})".format(section)
+                f"missing required section ({section})"
             )  # TODO: not tested.
     else:  # TODO: not tested.
         grids = params  # TODO: not tested.
@@ -84,7 +84,7 @@ def add_fields_from_dict(grid, fields):
     unknown_locations = set(fields) - set(grid.VALID_LOCATIONS)
     if unknown_locations:
         raise ValueError(
-            "unknown field locations ({0})".format(", ".join(unknown_locations))
+            "unknown field locations ({})".format(", ".join(unknown_locations))
         )
 
     for location, fields_at_location in fields.items():
@@ -114,13 +114,14 @@ def add_field_from_function(grid, name, functions, at="node"):
     ModelGrid
         The grid with the new field.
     """
-    valid_functions = set(_SYNTHETIC_FIELD_CONSTRUCTORS) | set(
-        ["read_esri_ascii", "read_netcdf"]
-    )
+    valid_functions = set(_SYNTHETIC_FIELD_CONSTRUCTORS) | {
+        "read_esri_ascii",
+        "read_netcdf",
+    }
 
     for func_name, func_args in as_list_of_tuples(functions):
         if func_name not in valid_functions:
-            raise ValueError("function not understood ({0})".format(func_name))
+            raise ValueError(f"function not understood ({func_name})")
 
         args, kwargs = _parse_args_kwargs(func_args)
 

@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 from collections import OrderedDict

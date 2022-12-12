@@ -164,7 +164,7 @@ def test_of_array_is_float(hex_graph, of_property):
     ],
 )
 def test_element_count_without_perimeter_nodes(hex_graph, element, expected):
-    assert getattr(hex_graph, "number_of_{0}".format(element)) == expected
+    assert getattr(hex_graph, f"number_of_{element}") == expected
 
 
 @pytest.mark.parametrize(
@@ -181,7 +181,7 @@ def test_element_count_without_perimeter_nodes(hex_graph, element, expected):
 def test_element_count_with_perimeter_nodes(xy_of_hex, element, expected):
     perimeter_links = [[0, 1], [1, 2], [2, 5], [5, 8], [8, 7], [7, 6], [6, 3], [3, 0]]
     graph = VoronoiDelaunayToGraph(xy_of_hex, perimeter_links=perimeter_links)
-    assert getattr(graph, "number_of_{0}".format(element)) == expected
+    assert getattr(graph, f"number_of_{element}") == expected
 
 
 @pytest.mark.parametrize("at", ("node", "link", "cell", "corner", "face", "cell"))

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import numpy as np
 import xarray as xr
 
 
-class DataRecord(object):
+class DataRecord:
     """Data structure to store variables in time and/or space dimensions.
 
     This class uses a xarray Dataset to store variables. This datastructure is
@@ -221,7 +220,7 @@ class DataRecord(object):
         for at in self._permitted_locations:
             for item in self._dummy_elements.get(at, []):
                 if (item < self._grid[at].size) and (item >= 0):
-                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
+                    msg = f"Dummy id {at} {item} invalid"
                     raise ValueError(msg)
 
         # set initial time coordinates, if any
@@ -1028,7 +1027,7 @@ class DataRecord(object):
         filter_array=None,
         fill_value=np.nan,
         args=(),
-        **kwargs
+        **kwargs,
     ):
         """Apply a function to a variable aggregated at grid elements.
 

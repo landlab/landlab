@@ -570,7 +570,7 @@ def test_get_node_fields_two_fields():
     network = ChannelSegmentConnector([0, 5], [5, 6, 7], [5, 9])
 
     fields = get_node_fields(network.root, grid)
-    assert sorted(list(fields)) == ["bar", "foo"]
+    assert sorted(fields) == ["bar", "foo"]
     assert_array_equal(fields["foo"], [0, 50, 60, 70, 90])
     assert_array_equal(fields["bar"], [0, 500, 600, 700, 900])
 
@@ -588,7 +588,7 @@ def test_get_node_fields_include():
     assert_array_equal(fields["foo"], [0, 50, 60, 70, 90])
 
     fields = get_node_fields(network.root, grid, include="at_node:b*")
-    assert sorted(list(fields)) == ["bar", "baz"]
+    assert sorted(fields) == ["bar", "baz"]
     assert_array_equal(fields["bar"], [0, 500, 600, 700, 900])
     assert_array_equal(fields["baz"], [0, 5000, 6000, 7000, 9000])
 
@@ -619,7 +619,7 @@ def test_get_node_fields_ignore_non_node_fields():
 
     fields = get_node_fields(network.root, grid, include="*")
 
-    assert sorted(list(fields)) == ["bar", "foo"]
+    assert sorted(fields) == ["bar", "foo"]
 
 
 def test_network_grid_from_raster():

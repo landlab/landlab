@@ -141,9 +141,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
             attrs={"grid_type": "radial"},
         )
         return dataset.update(
-            super(RadialModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=time
-            )
+            super().as_dataset(include=include, exclude=exclude, time=time)
         )
 
     @property

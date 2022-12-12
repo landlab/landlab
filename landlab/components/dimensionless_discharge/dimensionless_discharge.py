@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Calculate dimensionless discharge of stream sections based on Tang et
 al. (2019)

@@ -295,9 +295,10 @@ def get_functions_from_module(mod, pattern=None, exclude=None):
     """
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
-        if pattern is None or re.search(pattern, name):
-            if exclude is None or (re.search(exclude, name) is None):
-                funcs[name] = func
+        if (pattern is None or re.search(pattern, name)) and (
+            exclude is None or re.search(exclude, name) is None
+        ):
+            funcs[name] = func
     return funcs
 
 
@@ -393,7 +394,7 @@ def strip_grid_from_method_docstring(funcs):
     """
     import re
 
-    for name, func in funcs.items():
+    for func in funcs.values():
         # strip the entry under "Parameters":
         func.__doc__ = re.sub("grid *:.*?\n.*?\n *", "", func.__doc__)
         # # cosmetic magic to get a two-line signature to line up right:
@@ -652,13 +653,13 @@ def get_categories_from_grid_methods(grid_type):
     from copy import copy
 
     from landlab import (
+        FramedVoronoiGrid,
         HexModelGrid,
         ModelGrid,
         NetworkModelGrid,
         RadialModelGrid,
         RasterModelGrid,
         VoronoiDelaunayGrid,
-        FramedVoronoiGrid,
     )
 
     grid_str_to_grid = {

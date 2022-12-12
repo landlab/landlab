@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a Lithology object with different properties."""
 
 import numpy as np
@@ -286,7 +285,7 @@ class Lithology(Component):
                 grid.number_of_nodes, self._number_of_init_layers
             )
         else:
-            raise ValueError(("Lithology passed an invalid option for " "layer type."))
+            raise ValueError("Lithology passed an invalid option for " "layer type.")
 
         # From bottom to top, add layers to the Lithology with attributes.
         for i in range(self._number_of_init_layers - 1, -1, -1):

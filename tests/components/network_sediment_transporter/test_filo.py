@@ -84,7 +84,7 @@ def test_first_in_last_out():
 
     dt = 60 * 60  # (seconds) 1 hour timestep
 
-    for t in range(0, (timesteps * dt), dt):
+    for _ in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
 
     first_in_parcel = np.argmin(time_arrival_in_link)
