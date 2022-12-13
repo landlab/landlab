@@ -18,13 +18,13 @@ Related components: :class:`~.PriorityFloodFlowRouter` (wrapper of the RichDEM p
 """
 import numpy as np
 
-from landlab import Component, RasterModelGrid, NetworkModelGrid
+from landlab import Component, NetworkModelGrid, RasterModelGrid
 from landlab.components.depression_finder.floodstatus import FloodStatus
 
 
 class FlowRouter(Component):
     """
-    The FlowRouter carries out 2 operations:    
+    The FlowRouter carries out 2 operations:
     WORK TO DO: check for active
     links (when links between two core nodes or a core node and boundary
     node are inactive)
@@ -126,9 +126,11 @@ class FlowRouter(Component):
     Processing, 28, 328-344. https://dx.doi.org/10.1016/S0734-189X(84)80011-0
     """
 
-    from .ext.single_flow.priority_routing import init_tools as _init_tools_funcs
-    from .ext.single_flow.priority_routing import breach as _breach_funcs
     from .ext.single_flow.accumulation import accumulation as _accumulation_funcs
+    from .ext.single_flow.priority_routing import (
+        breach as _breach_funcs,
+        init_tools as _init_tools_funcs,
+    )
 
     _name = "FlowRouter"
     _unit_agnostic = True
@@ -284,6 +286,7 @@ class FlowRouter(Component):
             random values.
             If not a str, force to "topographic__elevation". Contrary to
             other components, surface cannot be a nd.array.
+            Surface values are converted to float (type necessary for cython)
 
         diagonals : bool, optional.
             If False, component excludes diagonal links for RasterModelGrid.
@@ -404,7 +407,7 @@ class FlowRouter(Component):
             s = "topographic__elevation"
         if s not in g.at_node:
             g.add_field(s, np.zeros(nodes_n, dtype=float))
-        z = g.at_node[s]
+        z = g.at_node[s] = g.at_node[s].astype(float);
 
         # 1.2. Water influx external to grid
         s = "water__unit_flux_in"
@@ -680,7 +683,7 @@ class FlowRouter(Component):
         # 1. Get the input grid data (steps #4 and #11)
         ##############################################
         g = self._grid
-        z = g.at_node[self._surface]
+        z = g.at_node[self._surface] = g.at_node[self._surface].astype(float);
         diagonals = self._diagonals
         idx = self._link_idx_sorted_by_heads
 
@@ -862,7 +865,7 @@ class FlowRouter(Component):
         g.at_node["flow__upstream_node_order"][:] = -1 triggers an error in
         _calc_upstream_order_for_nodes."""
         upstream_ordered_nodes[:] = np.full(
-            nodes_n, g.BAD_INDEX, dtype=np.int
+            nodes_n, g.BAD_INDEX, dtype=int
         )  # noqa: E501
 
         # Call to the algorithm.

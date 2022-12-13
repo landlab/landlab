@@ -1,9 +1,8 @@
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from landlab.components import FlowRouter
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from landlab import RasterModelGrid, HexModelGrid
-from landlab import NetworkModelGrid
+from landlab import HexModelGrid, NetworkModelGrid, RasterModelGrid
+from landlab.components import FlowRouter
 
 
 def test_run_flow_directions_raster():
@@ -12,73 +11,93 @@ def test_run_flow_directions_raster():
     g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_CLOSED
     nodes_n = g.number_of_nodes
     self = FlowRouter(g)
-    random_generator = np.random.Generator(np.random.PCG64(seed=500))
-    g.at_node["topographic__elevation"] = 10 * random_generator.random(nodes_n)
+    g.at_node["topographic__elevation"] = np.array(
+        [10, 10, 10, 10, 10]
+        + [20, 20, 0, 20, 20]
+        + [30, 0, 10, 20, 10]
+        + [20, 20, 30, 20, 10]
+        + [0, 30, 0, 0, 0]
+    )
     self.run_flow_directions()
 
     assert_array_equal(
         g.at_node["flow__receiver_node"],
         np.array(
-            [0, 1, 2, 3, 4, 5, 12, 8, 4, 9, 10, 12, 8, 8, 14, 15, 12]
-            + [13, 13, 19, 20, 21, 22, 23, 24]
+            [0, 1, 2, 3, 4]
+            + [5, 7, 8, 4, 9]
+            + [10, 7, 8, 8, 14]
+            + [15, 11, 11, 12, 19]
+            + [20, 21, 22, 23, 24]
         ),
     )
     assert_array_almost_equal(
         g.at_node["topographic__steepest_slope"],
         np.array(
             [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 0.0, 0.35067063, 0.0, 0.0]
-            + [0.0, 0.33992738, 0.08589512, 0.09309407, 0.0]
-            + [0.0, 0.0, 0.19606383, 0.0, 0.0]
+            + [0.0, 2.0, 0.0, 0.70710678, 0.0]
+            + [0.0, 0.0, 0.0, 0.0, 0.0]
+            + [0.0, 2.0, 2.12132034, 0.70710678, 0.0]
             + [0.0, 0.0, 0.0, 0.0, 0.0]
         ),
     )
     assert_array_equal(
         g.at_node["flow__link_to_receiver_node"],
         np.array(
-            [-1, -1, -1, -1, -1, -1, 50, 11, 47, -1, -1, 19, 53, 16, -1, -1, 59]
-            + [61, 25, -1, -1, -1, -1, -1, -1]
+            [-1, -1, -1, -1, -1]
+            + [-1, 10, 11, 47, -1]
+            + [-1, 51, 53, 16, -1]
+            + [-1, 23, 58, 60, -1]
+            + [-1, -1, -1, -1, -1]
         ),
     )
     assert_array_equal(
         g.at_node["flood_status_code"],
         np.array(
-            [0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0]
-            + [0, 0]
+            [0, 0, 0, 0, 0]
+            + [0, 0, 3, 0, 0]
+            + [0, 3, 3, 0, 0]
+            + [0, 0, 0, 0, 0]
+            + [0, 0, 0, 0, 0]
         ),
     )
     assert_array_almost_equal(
         g.at_node["depression__depth"],
         np.array(
             [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 2.44501033, 0.0, 0.32481788, 0.0]
+            + [0.0, 0.0, 20.0, 0.0, 0.0]
+            + [0.0, 20.0, 10.0, 0.0, 0.0]
             + [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 2.97824959, 0.0, 4.07782519, 0.0]
             + [0.0, 0.0, 0.0, 0.0, 0.0]
         ),
     )
     assert_array_equal(
         g.at_node["outlet_node"],
         np.array(
-            [0, 1, 2, 3, 4, 5, 4, 4, 4, 9, 10, 4, 4, 4, 14, 15, 4]
-            + [4, 4, 19, 20, 21, 22, 23, 24]
+            [0, 1, 2, 3, 4]
+            + [5, 4, 4, 4, 9]
+            + [10, 4, 4, 4, 14]
+            + [15, 4, 4, 4, 19]
+            + [20, 21, 22, 23, 24]
         ),
     )
     assert_array_equal(
         g.at_node["depression__outlet_node"],
         np.array(
-            [-1, -1, -1, -1, -1, -1, 12, -1, 4, -1, -1, -1, -1, -1, -1, -1, 12]
-            + [-1, 13, -1, -1, -1, -1, -1, -1]
+            [-1, -1, -1, -1, -1]
+            + [-1, -1, 8, -1, -1]
+            + [-1, 8, 8, -1, -1]
+            + [-1, -1, -1, -1, -1]
+            + [-1, -1, -1, -1, -1]
         ),
     )
     assert_array_almost_equal(
         g.at_node["depression_free__elevation"],
         np.array(
-            [5.66743143, 8.53977988, 6.45357199, 4.11156813, 4.68031945]
-            + [8.21361221, 5.57024205, 7.8622079, 4.68031945, 2.47630211]
-            + [4.42145537, 8.96951584, 5.57024205, 5.28644224, 2.75982042]
-            + [8.74862188, 5.57024205, 8.05920356, 5.28644224, 4.31320515]
-            + [3.49732191, 5.16016994, 3.69042619, 4.72153783, 1.93599482]
+            [10.0, 10.0, 10.0, 10.0, 10.0]
+            + [20.0, 20.0, 20.0000002, 20.0, 20.0]
+            + [30.0, 20.0000004, 20.0000002, 20.0, 10.0]
+            + [20.0, 20.0, 30.0, 20.0, 10.0]
+            + [0.0, 30.0, 0.0, 0.0, 0.0]
         ),
     )
 
@@ -86,92 +105,99 @@ def test_run_flow_directions_raster():
 def test_run_flow_directions_hex():
     spacing = 10
 
-    g = HexModelGrid((7, 4), spacing, node_layout="hex")
+    g = HexModelGrid((5, 3), spacing, node_layout="hex")
     g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_FIXED_VALUE
     g.status_at_node[0] = g.BC_NODE_IS_CLOSED
     nodes_n = g.number_of_nodes
 
     self = FlowRouter(g, surface="soil__elevation", diagonals=True, runoff_rate=2.0)
-    random_generator = np.random.Generator(np.random.PCG64(seed=500))
-    g.at_node["soil__elevation"] = 10 * random_generator.random(nodes_n)
+    g.at_node["soil__elevation"] = np.array(
+        [10, 10, 10]
+        + [20, 20, 0, 20]
+        + [30, 0, 10, 20, 10]
+        + [20, 20, 30, 20]
+        + [10, 0, 10]
+    )
     self.run_flow_directions()
 
     assert_array_equal(
         g.at_node["flow__receiver_node"],
         np.array(
-            [0, 1, 2, 3, 4, 10, 12, 3, 8, 9, 9, 18, 19, 14, 14, 15, 9]
-            + [16, 19, 20, 27, 21, 22, 16, 18, 19, 27, 27, 28, 24, 24, 36, 32, 33]
-            + [34, 35, 36]
+            [0, 1, 2]
+            + [3, 1, 1, 6]
+            + [7, 9, 5, 11, 11]
+            + [12, 17, 17, 15]
+            + [16, 17, 18]
         ),
     )
     assert_array_almost_equal(
         g.at_node["topographic__steepest_slope"],
         np.array(
-            [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.37921568, 0.0, 0.37506398, 0.0, 0.0]
-            + [0.19451533, 0.77608988, 0.12570369, 0.25266218, 0.0]
-            + [0.0, 0.01156903, 0.54672111, 0.0, 0.08158832]
-            + [0.07843021, 0.0, 0.0, 0.21295454, 0.07273778]
-            + [0.0, 0.22328804, 0.0, 0.0, 0.44582296]
-            + [0.74436412, 0.78271885, 0.0, 0.0, 0.0]
-            + [0.0, 0.0]
+            [0.0, 0.0, 0.0]
+            + [0.0, 1.0, 0.0, 0.0]
+            + [0.0, 0.0, 1.0, 1.0, 0.0]
+            + [0.0, 2.0, 3.0, 0.0]
+            + [0.0, 0.0, 0.0]
         ),
     )
     assert_array_equal(
         g.at_node["flow__link_to_receiver_node"],
         np.array(
-            [-1, -1, -1, -1, -1, 17, 20, 9, -1, -1, 25, 35, 37, 29, -1, -1, 31]
-            + [43, 45, 46, 58, -1, -1, 50, 53, 55, 64, -1, -1, 68, 69, 85, -1, -1]
+            [-1, -1, -1]
+            + [-1, 4, 5, -1]
+            + [-1, 20, 15, 22, -1]
+            + [-1, 36, 37, -1]
             + [-1, -1, -1]
         ),
     )
     assert_array_equal(
         g.at_node["flood_status_code"],
-        np.array(
-            [0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0]
-            + [0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        np.array(  # fmt: on
+            [0, 0, 0]
+            + [0, 0, 3, 0]
+            + [0, 3, 0, 0, 0]
+            + [0, 0, 0, 0]
+            + [0, 0, 0]  # fmt: off
         ),
     )
     assert_array_almost_equal(
         g.at_node["depression__depth"],
         np.array(
-            [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 2.44501033, 0.0, 0.0, 0.0]
-            + [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 0.0, 0.0, 3.1045881, 0.0]
-            + [0.0, 0.0, 0.0, 0.0, 2.37721033]
-            + [1.8170932, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 0.0, 0.0, 0.0, 0.0]
-            + [0.0, 0.0]
+            [0.0, 0.0, 0.0]
+            + [0.0, 0.0, 10.0, 0.0]
+            + [0.0, 10.0, 0.0, 0.0, 0.0]
+            + [0.0, 0.0, 0.0, 0.0]
+            + [0.0, 0.0, 0.0]
         ),
     )
     assert_array_equal(
         g.at_node["outlet_node"],
         np.array(
-            [0, 1, 2, 3, 4, 9, 27, 3, 8, 9, 9, 27, 27, 14, 14, 15, 9]
-            + [9, 27, 27, 27, 21, 22, 9, 27, 27, 27, 27, 28, 27, 27, 36, 32, 33]
-            + [34, 35, 36]
+            [0, 1, 2]
+            + [3, 1, 1, 6]
+            + [7, 1, 1, 11, 11]
+            + [12, 17, 17, 15]
+            + [16, 17, 18]
         ),
     )
     assert_array_equal(
         g.at_node["depression__outlet_node"],
         np.array(
-            [-1, -1, -1, -1, -1, -1, 12, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-            + [-1, 19, -1, -1, -1, -1, -1, 19, 19, -1, -1, -1, -1, -1, -1, -1, -1]
+            [-1, -1, -1]
+            + [-1, -1, 1, -1]
+            + [-1, 9, -1, -1, -1]
+            + [-1, -1, -1, -1]
             + [-1, -1, -1]
         ),
     )
     assert_array_almost_equal(
         g.at_node["depression_free__elevation"],
         np.array(
-            [5.66743143, 8.53977988, 6.45357199, 4.11156813, 4.68031945]
-            + [8.21361221, 5.57024205, 7.8622079, 4.35550157, 2.47630211]
-            + [4.42145537, 8.96951584, 5.57024205, 5.28644224, 2.75982042]
-            + [8.74862188, 2.59199246, 8.05920356, 4.31320515, 4.31320515]
-            + [3.49732191, 5.16016994, 3.69042619, 4.72153783, 4.31320515]
-            + [4.31320515, 4.9459002, 2.71301982, 4.8779288, 6.39422443]
-            + [9.37963598, 8.29564356, 6.35885287, 6.11800132, 9.41483585]
-            + [8.8676027, 0.46845509]
+            [10.0, 10.0, 10.0]
+            + [20.0, 20.0, 10.0000001, 20.0]
+            + [30.0, 10.0000001, 10.0, 20.0, 10.0]
+            + [20.0, 20.0, 30.0, 20.0]
+            + [10.0, 0.0, 10.0]
         ),
     )
 
