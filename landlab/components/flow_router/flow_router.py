@@ -868,7 +868,7 @@ class FlowRouter(Component):
         upstream_ordered_nodes[:] = np.full(
             nodes_n, g.BAD_INDEX, dtype=int
         )  # noqa: E501
-
+        return
         # Call to the algorithm.
         self._accumulation_funcs._calc_upstream_order_for_nodes(
             base_level_and_closed_nodes,
