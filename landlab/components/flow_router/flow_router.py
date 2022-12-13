@@ -25,6 +25,7 @@ from landlab.components.depression_finder.floodstatus import FloodStatus
 class FlowRouter(Component):
     """
     The FlowRouter carries out 2 operations:
+
     WORK TO DO: check for active
     links (when links between two core nodes or a core node and boundary
     node are inactive)
@@ -286,7 +287,7 @@ class FlowRouter(Component):
             random values.
             If not a str, force to "topographic__elevation". Contrary to
             other components, surface cannot be a nd.array.
-            Surface values are converted to float (type necessary for cython)
+            Surface values are converted to float (type necessary for cython).
 
         diagonals : bool, optional.
             If False, component excludes diagonal links for RasterModelGrid.

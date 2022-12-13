@@ -9,7 +9,6 @@ def test_run_flow_directions_raster():
     spacing = 10
     g = RasterModelGrid((5, 5), (spacing, spacing))
     g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_CLOSED
-    nodes_n = g.number_of_nodes
     self = FlowRouter(g)
     g.at_node["topographic__elevation"] = np.array(
         [10, 10, 10, 10, 10]
@@ -108,7 +107,6 @@ def test_run_flow_directions_hex():
     g = HexModelGrid((5, 3), spacing, node_layout="hex")
     g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_FIXED_VALUE
     g.status_at_node[0] = g.BC_NODE_IS_CLOSED
-    nodes_n = g.number_of_nodes
 
     self = FlowRouter(g, surface="soil__elevation", diagonals=True, runoff_rate=2.0)
     g.at_node["soil__elevation"] = np.array(
@@ -152,13 +150,7 @@ def test_run_flow_directions_hex():
     )
     assert_array_equal(
         g.at_node["flood_status_code"],
-        np.array(  # fmt: on
-            [0, 0, 0]
-            + [0, 0, 3, 0]
-            + [0, 3, 0, 0, 0]
-            + [0, 0, 0, 0]
-            + [0, 0, 0]  # fmt: off
-        ),
+        np.array([0, 0, 0] + [0, 0, 3, 0] + [0, 3, 0, 0, 0] + [0, 0, 0, 0] + [0, 0, 0]),
     )
     assert_array_almost_equal(
         g.at_node["depression__depth"],
