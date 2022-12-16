@@ -14,19 +14,13 @@ class Annual(Duration):
     def __init__(self):
         super().__init__()
 
-    def senesce(
-            self,
-            plants
-        ):
+    def senesce(self, plants):
         plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass'] * 0.02)
         plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
         plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
         return plants
     
-    def enter_dormancy(
-            self,
-            plants
-        ):
+    def enter_dormancy(self, plants):
         plants['root_biomass'] = np.zeros_like(plants['root_biomass'])
         plants['leaf_biomass'] = np.zeros_like(plants['leaf_biomass'])
         plants['stem_biomass'] = np.zeros_like(plants['stem_biomass']) 
