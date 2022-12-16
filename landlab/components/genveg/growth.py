@@ -168,26 +168,20 @@ class PlantGrowth(Species):
     def _grow(self, current_day):
         #Calculate current day-of-year
         jday_td=current_day-np.datetime64(str(current_day.astype('datetime64[Y]'))+'-01-01')
-        self._current_jday=jday_td.astype(int)
-
-        #Add photosythesis code here
+        _current_jday=jday_td.astype(int)
+        
+        #set up shorthand aliases
         growdict=self.species_grow_params
         durationdict=self.species_duration_params
         _last_biomass=self.plants
         _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']
         _radiation=self._grid['cell']['radiation__net_flux'][_last_biomass['cell_index']]
         _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
-
-        ##################################################
-        #Calculate Vegetation Structure Metrics Each Day
-        ##################################################
         
-        #twlvd = total (t) weight(w) leaves(lv), d @ dead and g is living or green
-        #totLeafWeight = twlvd + twlvg 
-        #total weight of stems where d at end is dead and g is living or green
-        #totStemWeight = twstd + twstg 
-        #total weight of roots where d at end is dead and g is living or green
-        #totRootWeight = twrtd + twrtg 
+        #define plant process flags
+        _photosythesis_period=bool((_current_jday>=durationdict['growing_season_start'])&(_current_jday<=durationdict['growing_season_end']))
+        _senescence_period=bool((_current_jday>=durationdict['senescence_start'])&(_current_jday<durationdict['growing_season_end']))
+        _dormant_day=bool(_current_jday==durationdict['growing_season_end'])
 
         ##################################################
         #Growth and Respiration
@@ -195,13 +189,11 @@ class PlantGrowth(Species):
                     
         #maintenance respiration
         #if then statement stops respiration at end of growing season
-        if self._current_jday == durationdict['growing_season_end']:
-            respMaint = 0
 
-        if self._current_jday <= durationdict['growing_season_end'] and self._current_jday >= durationdict['growing_season_start']:
+        if _photosythesis_period:
 
             #Calculate current daylength based on current day-of-year and latitude of grid origin
-            _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - self._current_jday)))
+            _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - _current_jday)))
             _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
 
             #repiration coefficient for lvs, temp dependence from Teh 2006
@@ -221,16 +213,15 @@ class PlantGrowth(Species):
             #glucose requirement for growth save to temp private variable since we are not saving to class
             #from Teh 2006 page 148
             _glu_req = ((_last_biomass['leaf_biomass']/_total_biomass) * growdict['glucose_requirement'][1]) + \
-                        ((_last_biomass['stem_biomass']/_total_biomass) * growdict['glucose_requirement'][2]) + \
-                        ((_last_biomass['root_biomass']/_total_biomass) * growdict['glucose_requirement'][0]) 
-
+                       ((_last_biomass['stem_biomass']/_total_biomass) * growdict['glucose_requirement'][2]) + \
+                       ((_last_biomass['root_biomass']/_total_biomass) * growdict['glucose_requirement'][0]) 
 
             #dailyplantage[j] = plantAge    #how to handle
 
         #Enter photosynthesis loop  
             dtga=0
             #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
-            rad_est=self._PAR(_declination, _daylength)
+            rad_est=self._PAR(_declination, _daylength, _current_jday)
             #change to read solar radiation from grid
             for hr in range(0,3):  
                 #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
@@ -253,7 +244,7 @@ class PlantGrowth(Species):
             gphot = assimilatedCH2O*(30/44) 
             
             #if then statement ends glucose generation at end of growing season 
-            if self._current_jday == durationdict['growing_season_end']:
+            if _current_jday == durationdict['growing_season_end']:
                 gphot = 0
 
             #direct solve method for calculating change in biomass
@@ -282,10 +273,14 @@ class PlantGrowth(Species):
             self.plants['root_biomass']=_last_biomass['root_biomass']+delta_root
             self.plants['leaf_biomass']=_last_biomass['leaf_biomass']+delta_leaf
             self.plants['stem_biomass']=_last_biomass['stem_biomass']+delta_stem
-            self.plants=self.enter_dormancy(self._current_jday, self.plants)
+            
+            if _senescence_period:
+                self.plants=self.senesce(self.plants)
+            if _dormant_day:
+                self.plants=self.enter_dormancy(self.plants)
 
 #May be able to eliminate this since using built in solar radiation component
-    def _PAR(self, _declination, _daylength):
+    def _PAR(self, _declination, _daylength, _current_jday):
         lat=self._lat_rad
     
         tmpvec = []
@@ -301,7 +296,7 @@ class PlantGrowth(Species):
         dsinB = 3600 * (_daylength * sinld + 24 * cosld * np.sqrt(1 - aob * aob)/np.pi)
         dsinBE = 3600 * (_daylength * (sinld + 0.4 * (sinld * sinld + cosld * cosld * 0.5)) + 12 * cosld * (2 + 3 * 0.4 * sinld) * np.sqrt(1 - aob * aob)/np.pi)
         #solar constant
-        sc = 1370 * (1 + 0.033 * np.cos(2 * np.pi * self._current_jday/365))  
+        sc = 1370 * (1 + 0.033 * np.cos(2 * np.pi * _current_jday/365))  
         #Daily solar radiation
         dso = sc * dsinB  
         

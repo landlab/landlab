@@ -160,18 +160,18 @@ class Species(object):
     def disperse(self):
         self.form.dispersal()
 
-    def enter_dormancy(
-            self, 
-            current_jday, 
-            plants
-        ):
-        plants=self.habit.duration.enter_dormancy(self.species_duration_params,current_jday,plants)
+    def enter_dormancy(self, plants):
+        plants=self.habit.enter_dormancy(plants)
         return plants
 
     def emerge(self):
         self.habit.emerge()
 
+    def senesce(self, plants):
+        plants=self.habit.senesce(plants)
+        return plants
+
     def set_initial_biomass(self):
         species_grow_params=self.species_grow_params
-        min_mass, max_mass=self.habit.duration.initialize_biomass(species_grow_params)
+        min_mass, max_mass=self.habit.initialize_biomass(species_grow_params)
         self.species_grow_params['init_biomass']=[min_mass,max_mass]

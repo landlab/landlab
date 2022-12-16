@@ -14,24 +14,23 @@ class Annual(Duration):
     def __init__(self):
         super().__init__()
 
-    def enter_dormancy(
+    def senesce(
             self,
-            duration_params, 
-            current_jday, 
             plants
         ):
-        #on or after senescence_day, the plant needs to lost 2% of its daily biomass after calculating new total biomass
-        if current_jday >= duration_params['senescence_start'] and current_jday < duration_params['growing_season_end']:
-            plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass']*0.02)
-            plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
-            plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
-        #on growing season end, the total biomass needs to be set to 0
-        if current_jday >= duration_params['growing_season_end']:
-            plants['root_biomass'] = np.zeros_like(plants['root_biomass'])
-            plants['leaf_biomass'] = np.zeros_like(plants['leaf_biomass'])
-            plants['stem_biomass'] = np.zeros_like(plants['stem_biomass']) 
+        plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass'] * 0.02)
+        plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
+        plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
         return plants
-        
+    
+    def enter_dormancy(
+            self,
+            plants
+        ):
+        plants['root_biomass'] = np.zeros_like(plants['root_biomass'])
+        plants['leaf_biomass'] = np.zeros_like(plants['leaf_biomass'])
+        plants['stem_biomass'] = np.zeros_like(plants['stem_biomass']) 
+        return plants
     
     def emerge(self,emerge_size=[0.01,0.1,0.5]):
         print('I start as a seedling between 100 and 200% of the minimum size')
@@ -57,8 +56,11 @@ class Perennial(Duration):
         }
         return retention[retention_val]
 
+    def senesce(self):
+        print('I move carbs around during the senescence period')
+
     def enter_dormancy(self):
-        print('I move carbs among live parts around during dormancy')
+        print('I kill green parts at end of growing season')
     
     def emerge(self, emerge_min=[0.01,0.1,0.5]):
         print('I will transfer some stored carbohydrate to photosynthetic parts')
