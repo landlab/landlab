@@ -547,6 +547,7 @@ class GravelBedrockEroder(Component):
         cores = self._grid.core_nodes
         self._pluck_rate[cores] = (
             self._plucking_coef
+            * self._intermittency_factor
             * self._discharge[cores]
             * self._slope[cores] ** self._SEVEN_SIXTHS
             * self._rock_exposure_fraction[cores]
