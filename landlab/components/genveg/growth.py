@@ -116,10 +116,9 @@ class PlantGrowth(Species):
         super().__init__(species_params)
         self.species_name=self.species_plant_factors['species']
         self._grid=grid
-        
-        # From chapter 2 of Teh 2006 (pg. 31; equation 2.13)
-        (_,self._latitude)=self._grid.xy_of_reference
-        self._lat_rad = np.radians(self._latitude)
+        (_,_latitude)=self._grid.xy_of_reference
+        self._lat_rad = np.radians(_latitude)       
+
         
         self.dt=dt
         self.plants=plants
@@ -175,7 +174,7 @@ class PlantGrowth(Species):
         durationdict=self.species_duration_params
         _last_biomass=self.plants
         _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']
-        _radiation=self._grid['cell']['radiation__net_flux'][_last_biomass['cell_index']]
+        _par=self._grid['cell']['radiation__par_tot'][_last_biomass['cell_index']]
         _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
         
         #define plant process flags
@@ -191,8 +190,6 @@ class PlantGrowth(Species):
         #if then statement stops respiration at end of growing season
 
         if _photosythesis_period:
-
-            #Calculate current daylength based on current day-of-year and latitude of grid origin
             _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - _current_jday)))
             _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
 
@@ -219,33 +216,16 @@ class PlantGrowth(Species):
             #dailyplantage[j] = plantAge    #how to handle
 
         #Enter photosynthesis loop  
-            dtga=0
-            #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
-            rad_est=self._PAR(_declination, _daylength, _current_jday)
-            #change to read solar radiation from grid
-            for hr in range(0,3):  
-                #convert to correct units which is microeinsteins which is the unit measure of light and what this model is based on
-                parMicroE = (rad_est[hr]*np.ones_like(_radiation)) /(868/208.32) #are we leaving as W/m2 or leaving microeinsteins??? Check units on this. I think it is already in microEinsteins
-                #from Charisma instructions: tells how much of the light a plant is going to get as PAR in microeinsteins based on how many leaves are on the plant
-                intSolarRad = parMicroE*np.exp(-(growdict['k_light_extinct'])*_last_biomass['leaf_biomass'])  
-                #amount of light absorbed, per half saturaion constants from Charisma eq. 3. the monod or michaelis/menten function is adequate for describing the photosynthetic response to light
-                intLightpH = intSolarRad/(intSolarRad+growdict['light_half_sat']) 
-                #pMax is the maximum rate of photosynthesis, species specific
-                photosynthesis = (growdict['p_max']) * intLightpH 
-                #weights fgross for specific time of day
-                dtgastep = photosynthesis*self._wgaus[hr]
-                dtga+=dtgastep
-                    
-            #calculates total biomass gained across plant (twlvg is amount of leaver/green matter): you feed the model total biomass and then from that we determine how much leaf mass there is and so then basically an average of how much that average leaf will produce multiplied by the number of leaves, this is assuming that all leaves are mature
-            dtgaCollapsed = dtga*_last_biomass['leaf_biomass']  
-            #total biomass for day length
-            assimilatedCH2O = dtgaCollapsed*_daylength 
-            #converts carbohydrates to glucose where photosynthesis unit is glucose and then we later convert that glucose to biomass in another section
-            gphot = assimilatedCH2O*(30/44) 
             
-            #if then statement ends glucose generation at end of growing season 
+            #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
+            #rad_est=self._PAR(_declination, _daylength, _current_jday)
+            #change to read solar radiation from grid
             if _current_jday == durationdict['growing_season_end']:
                 gphot = 0
+            else:
+                gphot=self.photosynthesize(_par, growdict, _last_biomass, _daylength)
+            #if then statement ends glucose generation at end of growing season 
+
 
             #direct solve method for calculating change in biomass
             #coefficients rename

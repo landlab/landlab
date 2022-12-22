@@ -49,6 +49,7 @@ class GenVeg(Component, PlantGrowth):
     #save grid object to class
         super().__init__(grid)
             #Check to see if there are plants on the grid
+
         try:
             self.plants_on_grid=self._grid['cell']['vegetation__plant_species']
         except KeyError:
@@ -62,11 +63,35 @@ class GenVeg(Component, PlantGrowth):
             raise ValueError(msg)
         
         try:
-            self._radiation = self._grid["cell"]["radiation__net_flux"][:].copy()
-        except KeyError:
-            msg=('GenVeg requires incoming radiation flux for each time step')
-            raise ValueError(msg)
+            self._par = self._grid["cell"]["radiation__par_tot"][:].copy()
+        except RuntimeWarning:
+            msg=('GenVeg requires incoming PAR for each timestep. Empiricial estimation will be used for the run.')
+            print(msg)
+            #try:
+            #    self.__albedo_bare=self._grid['cell']['bare_ground_albedo'][:].copy()
+            #except KeyError:
+            #   msg=('Empirical estimation of PAR requires bare ground albedo at-cell field.')
+            #   raise ValueError(msg)
+            #            # From chapter 2 of Teh 2006 (pg. 31; equation 2.13)
+            #try:
+
+            #except KeyError:
+            #    msg=('Empirical estimation of PAR requires lat/long of grid xy reference.')     
+            #try:          
+            #    self._clear_sky_index=self._grid['cell']['air__clear_sky_index'][:].copy()
+            #except KeyError:
+            #    msg=('Empirical estimation of PAR requires a clear sky index value at-cell field')
+            #except RuntimeError:
+ 
+            #    raise RuntimeError(msg)
+            #else:
+            #    self._par_method='empirical_estimation'
+        else:
+            self._par_method='direct_input'
     
+            (_,_latitude)=self._grid.xy_of_reference
+            self._lat_rad = np.radians(_latitude)
+
     #Set initial time variables     
         self.dt=dt
         self.current_day=current_day

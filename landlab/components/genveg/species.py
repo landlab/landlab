@@ -5,6 +5,7 @@ These are used by PlantGrowth to differentiate plant properties and processes fo
 from .habit import *
 from .form import *
 from .shape import *
+from .photosynthesis import *
 
 #Define species class that inherits composite class methods
 class Species(object):
@@ -41,7 +42,7 @@ class Species(object):
                 'monocot_dicot': 'monocot',
                 'angio_gymno': 'angiosperm',
                 'annual_perennial': 'annual',
-                'ptype':'C3'
+                'p_type':'C3'
             }, 
             'size_params': {
                 'max_height_stem': 2.5, 
@@ -61,8 +62,8 @@ class Species(object):
         
         self.species_plant_factors=species_params['plant_factors']
         self.species_duration_params=species_params['duration_params']
-        self.species_grow_params=species_params['grow_params']
-        
+        self.species_grow_params=species_params['grow_params']        
+
         self.habit=self.select_habit_class(
             self.species_plant_factors['growth_habit'], 
             self.species_plant_factors['duration'],
@@ -70,7 +71,8 @@ class Species(object):
             )
         self.form=self.select_form_class(self.species_plant_factors['growth_form'])
         self.shape=self.select_shape_class(self.species_plant_factors['shape'])
-        
+        self.photosynthesis=self.select_photosythesis_type(self.species_plant_factors['p_type'])
+
         self.set_initial_biomass()
 
     def validate_plant_factors(self,plant_factors):
@@ -108,13 +110,20 @@ class Species(object):
             msg='Start of senescence must be within the growing season'
             raise ValueError(msg)
 
-    
     def validate_grow_params(self,grow_params):
         multipart_vars=['respiration_coefficient', 'glucose_requirement','root_to_leaf_coeffs','root_to_stem_coeffs']
         for vars in multipart_vars:
             if len(grow_params[vars])<3:
                 msg='Must include respiration coefficients for at least roots, leaves, and stems'
                 raise ValueError(msg)
+
+    def select_photosythesis_type(self, p_type):
+        photosynthesis_options={
+            'C3': C3(),
+            'C4': C4(),
+            'cam': Cam()
+        }
+        return photosynthesis_options[p_type]
 
     def select_habit_class(self, habit_val, duration, retention_val):
         habit={
@@ -166,6 +175,9 @@ class Species(object):
 
     def emerge(self):
         self.habit.emerge()
+    
+    def photosynthesize(self, _par, growdict, _last_biomass, _daylength):
+        self.photosynthesis.photosynthesize(_par, growdict, _last_biomass, _daylength)
 
     def senesce(self, plants):
         plants=self.habit.senesce(plants)
