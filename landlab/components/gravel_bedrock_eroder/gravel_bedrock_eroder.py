@@ -3,6 +3,7 @@ import numpy as np
 from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
+_DT_MAX = 1.0e-2
 
 class GravelBedrockEroder(Component):
     """Model drainage network evolution for a network of rivers that have
@@ -596,9 +597,26 @@ class GravelBedrockEroder(Component):
             - self._abrasion[cores]
         )
 
-    def run_one_step(self, dt):
-        """Advance solution by time interval dt.
+    def _update_slopes(self):
+        """Update self._slope"""
+        dz = np.maximum(self._elev - self._elev[self._receiver_node], 0.0)
+        if self._flow_length_is_variable:
+            if self._grid_has_diagonals:
+                link_len = self.grid.length_of_d8
+            else:
+                link_len = self.grid.length_of_link
+            self._slope[self.grid.core_nodes] = (
+                dz[self.grid.core_nodes] / link_len[self.grid.core_nodes]
+            )
+        else:
+            self._slope[self.grid.core_nodes] = (
+                dz[self.grid.core_nodes] / self.grid.spacing
+            )
 
+    def update_rates(self):
+        """Update rates of change.
+
+        TODO: move to run one step
         Examples
         --------
         >>> import numpy as np
@@ -618,6 +636,7 @@ class GravelBedrockEroder(Component):
         >>> np.round(elev[4:7], 4)
         array([ 0.    ,  0.9971,  1.9971])
         """
+        self._update_slopes()
         self.calc_rock_exposure_fraction()
         self.calc_transport_capacity()
         self.calc_sediment_influx()
@@ -629,7 +648,54 @@ class GravelBedrockEroder(Component):
             self.calc_abrasion_rate()
             self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
+
+    def _update_rock_sed_and_elev(self, dt):
+        """Update rock elevation, sediment thickness, and elevation
+        using current rates of change extrapolated forward by time dt.
+        """
         self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
         self._sed += self._dHdt * dt
         self._bedrock__elevation -= self._rock_lowering_rate * dt
         self._elev[:] = self._bedrock__elevation + self._sed
+
+    def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
+        """Estimate the maximum possible time-step size that avoids
+        flattening or exhausting sediment."""
+        sed_is_declining = np.logical_and(
+            self._dHdt < 0.0,
+            self._sed > 0.0
+        )
+        if np.any(sed_is_declining):
+            min_time_to_exhaust_sed = np.amin(
+                -self._sed[sed_is_declining] / self._dHdt[sed_is_declining]
+            )
+        else:
+            min_time_to_exhaust_sed = upper_limit_dt
+        dzdt = self._dHdt - self._rock_lowering_rate
+        rate_diff = dzdt[self._receiver_node] - dzdt
+        height_above_rcvr = self._elev - self._elev[self._receiver_node]
+        slope_is_declining = np.logical_and(
+            rate_diff > 0.0,
+            height_above_rcvr > 0.0
+        )
+        if np.any(slope_is_declining):
+            min_time_to_flatten_slope = np.amin(
+                height_above_rcvr[slope_is_declining]
+                / rate_diff[slope_is_declining]
+            )
+        else:
+            min_time_to_flatten_slope = 1.0e6
+        return 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
+
+    def run_one_step(self, global_dt):
+        """Advance solution by time interval global_dt, subdividing
+        into sub-steps as needed."""
+        time_remaining = global_dt
+        while time_remaining > 0.0:
+            self.update_rates()
+            max_dt = self._estimate_max_time_step_size()
+            #print('mdt', max_dt)
+            this_dt = min(max_dt, time_remaining)
+            this_dt = max(this_dt, _DT_MAX)
+            self._update_rock_sed_and_elev(this_dt)
+            time_remaining -= this_dt
