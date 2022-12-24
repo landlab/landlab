@@ -236,7 +236,7 @@ class GravelBedrockEroder(Component):
         plucking_coefficient=1.0e-4,
         coarse_fraction_from_plucking=1.0,
     ):
-        """Initialize GravelRiverTransporter."""
+        """Initialize GravelBedrockEroder."""
 
         super().__init__(grid)
 
