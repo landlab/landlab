@@ -97,7 +97,8 @@ class GenVeg(Component, PlantGrowth):
         self.current_day=current_day
         self.start_date=current_day
         self.time_ind=0
-
+        _current_jday=self._calc_current_jday()
+        rel_time=self._calc_rel_time()
 
     ##Instantiate a plantgrowth object and summarize number of plants and biomass per cell
         #Create empty array to store PlantGrowth objects
@@ -108,13 +109,12 @@ class GenVeg(Component, PlantGrowth):
         tot_plant_all=self._grid.at_cell['vegetation__n_plants']
 
 
-
         #for each species in the parameters file
         for species in vegparams:
             if species=='null':
                 continue
             species_dict=vegparams[species]
-            species_obj=PlantGrowth(self._grid,self.dt, self.current_day, self.start_date, species_params=species_dict)
+            species_obj=PlantGrowth(self._grid,self.dt, _current_jday, rel_time, species_params=species_dict)
             array_out=species_obj.species_plants()
             plantspecies.append(species_obj)
             #Summarize biomass and number of plants across grid
@@ -130,14 +130,12 @@ class GenVeg(Component, PlantGrowth):
         self.plant_species=plantspecies
 
 
-
-
-
     def run_one_step(self):
+        _current_jday=self._calc_current_jday()
         tot_biomass_all=np.zeros_like(self._grid.at_cell['vegetation__total_biomass'])
         tot_plant_all=np.zeros_like(self._grid.at_cell['vegetation__n_plants'])
         for species_obj in self.plant_species:
-            species_obj._grow(self.current_day)
+            species_obj._grow(_current_jday)
             array_out=species_obj.species_plants()
             tot_bio_species=array_out['root_biomass']+array_out['leaf_biomass']+array_out['stem_biomass']
             cell_biomass=np.bincount(array_out['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
@@ -148,6 +146,13 @@ class GenVeg(Component, PlantGrowth):
         self._grid.at_cell['vegetation__n_plants']=tot_plant_all
         self.current_day +=1
 
+    def _calc_current_jday(self):
+        jday_td=self.current_day-np.datetime64(str(self.current_day.astype('datetime64[Y]'))+'-01-01')
+        _current_jday=jday_td.astype(int)
+        return _current_jday
+    
+    def _calc_rel_time(self):
+        return (self.current_day-self.start_date).astype(float)
 
     def view_record_grid(self, ):
         view=self.record_grid.dataset.to_dataframe()
@@ -155,7 +160,7 @@ class GenVeg(Component, PlantGrowth):
 
     
     def save_output(self, save_params=['root_biomass','leaf_biomass','stem_biomass']):
-        rel_time=(self.current_day-self.start_date).astype(float)
+        rel_time=self. _calc_rel_time()
         for species_obj in self.plant_species:
             species_obj.species_plants()
             species_obj.save_plant_output(rel_time, save_params)

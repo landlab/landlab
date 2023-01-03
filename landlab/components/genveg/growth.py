@@ -10,7 +10,6 @@ from matplotlib.pyplot import grid
 from landlab.data_record import DataRecord
 import numpy as np
 import pandas as pd
-from scipy.optimize import fsolve
 import numpy.lib.recfunctions as nprf
 from sympy import symbols, diff, lambdify, log
 import warnings
@@ -42,8 +41,8 @@ class PlantGrowth(Species):
         self,
         grid,
         dt,
-        current_day,
-        start_date,
+        rel_time,
+        _current_jday,
         plants= np.recarray((0,),
             dtype=[('species','U10'),('pid',int),('cell_index',int),('root_biomass',float),('leaf_biomass',float),('stem_biomass',float)]),
         **kwargs
@@ -117,23 +116,22 @@ class PlantGrowth(Species):
         self.species_name=self.species_plant_factors['species']
         self._grid=grid
         (_,_latitude)=self._grid.xy_of_reference
-        self._lat_rad = np.radians(_latitude)       
+        self._lat_rad = np.radians(_latitude)      
 
         
         self.dt=dt
         self.plants=plants
-        self.current_day=current_day
         self.time_ind=1
+        _in_growing_season,_,_=self.set_event_flags(_current_jday)
         
         if len(self.plants)==0:
-            self.plants=self._estimate_initial_plant_biomass()
+            self.plants=self._init_plants_from_grid(_in_growing_season)
             
-        rel_time=(self.current_day-start_date).astype(float)
         #Create empty Datarecord to store plant data
         #Instantiate data record
         self.record_plants = DataRecord(
             self._grid, 
-            time = [(self.current_day-start_date).astype(float)], 
+            time = [rel_time], 
             items = {
                 "grid_element": np.repeat(['cell'], self.plants['pid'].size).reshape(self.plants['pid'].size,1),
                 "element_id": np.reshape(self.plants['cell_index'],(self.plants['pid'].size,1))
@@ -142,12 +140,17 @@ class PlantGrowth(Species):
                 'vegetation__species':(['item_id','time'],np.reshape(self.plants['species'],(self.plants['pid'].size,1))),
                 'vegetation__root_biomass':(['item_id','time'],np.reshape(self.plants['root_biomass'],(self.plants['pid'].size,1))),
                 'vegetation__leaf_biomass':(['item_id','time'],np.reshape(self.plants['leaf_biomass'],(self.plants['pid'].size,1))),
-                'vegetation__stem_biomass':(['item_id','time'],np.reshape(self.plants['stem_biomass'],(self.plants['pid'].size,1)))
-        },
+                'vegetation__stem_biomass':(['item_id','time'],np.reshape(self.plants['stem_biomass'],(self.plants['pid'].size,1))),
+                'vegetation__storage_biomass':(['item_id','time'],np.reshape(self.plants['storage_biomass'],(self.plants['pid'].size,1))),
+                'vegetation__plant_age':(['item_id','time'],np.reshape(self.plants['plant_age'],(self.plants['pid'].size,1)))
+            },
             attrs={"vegetation__species": 'species name, string',
                 "vegetation__root_biomass": 'g',
                 "vegetation__leaf_biomass": 'g',
-                "vegetation__stem_biomass": 'g',}
+                "vegetation__stem_biomass": 'g',
+                "vegetation__storage_biomass": 'g',
+                "vegetation__plant_age": 'days',
+            }
         )
         self.plants=nprf.append_fields(self.plants,('item_id'),data=self.record_plants.item_coordinates)
         #Set constants for PAR formula
@@ -164,23 +167,20 @@ class PlantGrowth(Species):
     def species_grow_params_out(self):
         return self.species_grow_params
 
-    def _grow(self, current_day):
+    def _grow(self, _current_jday):
         #Calculate current day-of-year
-        jday_td=current_day-np.datetime64(str(current_day.astype('datetime64[Y]'))+'-01-01')
-        _current_jday=jday_td.astype(int)
+
         
         #set up shorthand aliases
         growdict=self.species_grow_params
         durationdict=self.species_duration_params
         _last_biomass=self.plants
-        _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']
+        _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']+_last_biomass['storage_biomass']
         _par=self._grid['cell']['radiation__par_tot'][_last_biomass['cell_index']]
         _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
         
-        #define plant process flags
-        _photosythesis_period=bool((_current_jday>=durationdict['growing_season_start'])&(_current_jday<=durationdict['growing_season_end']))
-        _senescence_period=bool((_current_jday>=durationdict['senescence_start'])&(_current_jday<durationdict['growing_season_end']))
-        _dormant_day=bool(_current_jday==durationdict['growing_season_end'])
+        _in_growing_season, _in_senescence_period, _is_dormant_day=self.set_event_flags(_current_jday)
+
 
         ##################################################
         #Growth and Respiration
@@ -188,44 +188,28 @@ class PlantGrowth(Species):
                     
         #maintenance respiration
         #if then statement stops respiration at end of growing season
-
-        if _photosythesis_period:
+        #repiration coefficient temp dependence from Teh 2006
+        kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_temperature - 25)/10))  
+        kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_temperature - 25)/10)) 
+        kmRTG = growdict['respiration_coefficient'][0] * pow(2,((_temperature - 25)/10)) 
+        #maintenance respiration per day from Teh 2006
+        rmPrime = (kmLVG * _last_biomass['leaf_biomass']) + (kmSTG * _last_biomass['stem_biomass']) + (kmRTG * _last_biomass['root_biomass'])  
+        #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
+        #THIS NEEDS TO BE UPDATED
+        plantAge = _last_biomass['leaf_biomass']/_last_biomass['leaf_biomass']
+        #plant age dependence from Teh 2006 page 145    
+        respMaint = rmPrime * plantAge  
+        #from Teh 2006 page 148
+        _glu_req = ((_last_biomass['leaf_biomass']/_total_biomass) * growdict['glucose_requirement'][1]) + \
+                    ((_last_biomass['stem_biomass']/_total_biomass) * growdict['glucose_requirement'][2]) + \
+                    ((_last_biomass['root_biomass']/_total_biomass) * growdict['glucose_requirement'][0]) 
+        
+        
+        if _in_growing_season:
             _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - _current_jday)))
             _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
 
-            #repiration coefficient for lvs, temp dependence from Teh 2006
-            kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_temperature - 25)/10))  
-            #respiration coefficient for stems, temp depencence from Teh 2006 page 134
-            kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_temperature - 25)/10)) 
-            #respiration coefficient for roots, temp dependence from Teh 2006 page 134
-            kmRTG = growdict['respiration_coefficient'][0] * pow(2,((_temperature - 25)/10)) 
-            #maintenance respiration per day from Teh 2006
-            rmPrime = (kmLVG * _last_biomass['leaf_biomass']) + (kmSTG * _last_biomass['stem_biomass']) + (kmRTG * _last_biomass['root_biomass'])  
-            #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
-            #THIS NEEDS TO BE UPDATED
-            plantAge = _last_biomass['leaf_biomass']/_last_biomass['leaf_biomass']
-            #plant age dependence from Teh 2006 page 145    
-            respMaint = rmPrime * plantAge  
-            
-            #glucose requirement for growth save to temp private variable since we are not saving to class
-            #from Teh 2006 page 148
-            _glu_req = ((_last_biomass['leaf_biomass']/_total_biomass) * growdict['glucose_requirement'][1]) + \
-                       ((_last_biomass['stem_biomass']/_total_biomass) * growdict['glucose_requirement'][2]) + \
-                       ((_last_biomass['root_biomass']/_total_biomass) * growdict['glucose_requirement'][0]) 
-
-            #dailyplantage[j] = plantAge    #how to handle
-
-        #Enter photosynthesis loop  
-            
-            #radiation measured 3x daily, roughly correlates to morning, noon, afternoon
-            #rad_est=self._PAR(_declination, _daylength, _current_jday)
-            #change to read solar radiation from grid
-            if _current_jday == durationdict['growing_season_end']:
-                gphot = 0
-            else:
-                gphot=self.photosynthesize(_par, growdict, _last_biomass, _daylength)
-            #if then statement ends glucose generation at end of growing season 
-
+            gphot=self.photosynthesize(_par, growdict, _last_biomass, _daylength)
 
             #direct solve method for calculating change in biomass
             #coefficients rename
@@ -254,53 +238,17 @@ class PlantGrowth(Species):
             self.plants['leaf_biomass']=_last_biomass['leaf_biomass']+delta_leaf
             self.plants['stem_biomass']=_last_biomass['stem_biomass']+delta_stem
             
-            if _senescence_period:
+            if _in_senescence_period:
                 self.plants=self.senesce(self.plants)
-            if _dormant_day:
+            if _is_dormant_day:
                 self.plants=self.enter_dormancy(self.plants)
-
-#May be able to eliminate this since using built in solar radiation component
-    def _PAR(self, _declination, _daylength, _current_jday):
-        lat=self._lat_rad
+        else:
+            delta_tot=-respMaint/_glu_req
+            self.plants['root_biomass']=(_last_biomass['root_biomass']/_total_biomass)*delta_tot+_last_biomass['root_biomass']
+            self.plants['leaf_biomass']=(_last_biomass['leaf_biomass']/_total_biomass)*delta_tot+_last_biomass['leaf_biomass']
+            self.plants['stem_biomass']=(_last_biomass['stem_biomass']/_total_biomass)*delta_tot+_last_biomass['stem_biomass']
     
-        tmpvec = []
-        
-        #Intermediate variables
-        #radians
-        sinld = ((np.sin(lat))*(np.sin(_declination)))
-        #radians   
-        cosld = np.cos(lat)*np.cos(_declination)  
-        #radians
-        aob = (sinld/cosld)  
-        
-        dsinB = 3600 * (_daylength * sinld + 24 * cosld * np.sqrt(1 - aob * aob)/np.pi)
-        dsinBE = 3600 * (_daylength * (sinld + 0.4 * (sinld * sinld + cosld * cosld * 0.5)) + 12 * cosld * (2 + 3 * 0.4 * sinld) * np.sqrt(1 - aob * aob)/np.pi)
-        #solar constant
-        sc = 1370 * (1 + 0.033 * np.cos(2 * np.pi * _current_jday/365))  
-        #Daily solar radiation
-        dso = sc * dsinB  
-        
-        for hr in range(0,3):
-            #calculates hour in which photosynthesis is applied
-            hour1 = 12 + (_daylength * 0.5 * (self._xgaus[hr]))  
-            sinb_tmp = sinld + cosld * np.cos(2 * np.pi * (hour1 + 12)/24)
-
-            #calculates sin of solar elevation, max functions prevents values less than 0
-            sinB = max([0, sinb_tmp])  
-
-            #dso can be replaced with values from FAO chart
-            PAR1 = 0.5 * dso * sinB * (1 + 0.4 * sinB) / dsinBE  
-
-            #convert to correct units
-            PAR1 = PAR1 * (868/208.32)  
-
-            #output of function is vector of 3 values that represents time of day
-            tmpvec.append(PAR1)  
-            
-        #returns a vector of light values in MicroEinsteins    
-        return tmpvec  
-    
-    def _estimate_initial_plant_biomass(self):
+    def _init_plants_from_grid(self,in_growing_season):
         #Define datatypes for record array
         dtypes=[('species','U10'),('pid',int),('cell_index',int)]        
         #Create temporary variables to build initial plant list
@@ -323,58 +271,17 @@ class PlantGrowth(Species):
         #Create nan arrays and fill undefined variables
         fillnan=np.empty(len(plant_array))
         fillnan[:]=np.nan
-        plant_array=nprf.append_fields(plant_array,('leaf_biomass','stem_biomass','root_biomass'),data=[fillnan,fillnan,fillnan])
-        
-        #Set coefficients to variable names to pass to solver function
-        growdict=self.species_grow_params
-        aleaf,b1leaf,b2leaf=growdict['root_to_leaf_coeffs']
-        astem,b1stem,b2stem=growdict['root_to_stem_coeffs']
-        coeffs=[aleaf,b1leaf,b2leaf,astem,b1stem,b2stem]
-        init_mass=growdict['init_biomass']
-        total_biomass=np.random.rand(plant_array.size)*(init_mass[1]-init_mass[0])+init_mass[0]
-        #Call biomass allocation method
-        root_bio,leaf_bio,stem_bio=self._init_biomass_allocation(total_biomass, coeffs)
-        plant_array['root_biomass']=root_bio
-        plant_array['leaf_biomass']=leaf_bio
-        plant_array['stem_biomass']=stem_bio
-
+        plant_array=nprf.append_fields(plant_array,('leaf_biomass','stem_biomass','root_biomass','storage_biomass','plant_age'),data=[fillnan,fillnan,fillnan,fillnan,fillnan])
+        plant_array=self.set_initial_biomass(plant_array,in_growing_season)
         return plant_array
-    
-    def _init_biomass_allocation(self, total_biomass, solver_coeffs):
-        #Initialize arrays to calculate root, leaf and stem biomass from total
-        root=[]
-        leaf=[]
-        stem=[]
         
-        #Loop through grid array
-        for total_biomass_in_cell in total_biomass:
-            solver_guess = np.full(3,np.log10(total_biomass_in_cell/3))
-            
-            part_biomass_log10=fsolve(self._solverFuncs,solver_guess,(solver_coeffs,total_biomass_in_cell))
-            
-            part_biomass=10**part_biomass_log10
-            
-            root.append(part_biomass[0])
-            leaf.append(part_biomass[1])
-            stem.append(part_biomass[2])
-        
-        #Convert to numpy array
-        root=np.array(root)
-        leaf=np.array(leaf)
-        stem=np.array(stem)      
-        return root, leaf, stem
-
-    def _solverFuncs(self,solver_guess,solver_coeffs,total_biomass):
-        root_part_log10=solver_guess[0]
-        leaf_part_log10=solver_guess[1]
-        stem_part_log10=solver_guess[2]
-        plant_part_biomass_log10 = np.empty([(3)])
-
-        plant_part_biomass_log10[0]=10**root_part_log10+10**leaf_part_log10+10**stem_part_log10-total_biomass
-        plant_part_biomass_log10[1]=solver_coeffs[0]+solver_coeffs[1]*root_part_log10+solver_coeffs[2]*root_part_log10**2-leaf_part_log10
-        plant_part_biomass_log10[2]=solver_coeffs[3]+solver_coeffs[4]*root_part_log10+solver_coeffs[5]*root_part_log10**2-stem_part_log10
-        
-        return plant_part_biomass_log10
+   
+    def set_event_flags(self,_current_jday):
+        durationdict=self.species_duration_params
+        _in_growing_season=bool((_current_jday>=durationdict['growing_season_start'])&(_current_jday<=durationdict['growing_season_end']))
+        _in_senescence_period=bool((_current_jday>=durationdict['senescence_start'])&(_current_jday<durationdict['growing_season_end']))
+        _is_dormant_day=bool(_current_jday==durationdict['growing_season_end'])
+        return _in_growing_season,_in_senescence_period,_is_dormant_day
 
     #Save plant array output Modify this in future to take user input and add additional parameters that can be saved out
     def save_plant_output(self, rel_time, save_params):

@@ -20,8 +20,8 @@ class Habit(object):
         plants=self.duration.enter_dormancy(plants)
         return plants
     
-    def initialize_biomass(self, grow_params):
-        init_mass_min, init_mass_max=self.duration.initialize_biomass(grow_params)
+    def set_init_biomass_range(self, grow_params):
+        init_mass_min, init_mass_max=self.duration.set_init_biomass_range(grow_params)
         return init_mass_min, init_mass_max
 
 
