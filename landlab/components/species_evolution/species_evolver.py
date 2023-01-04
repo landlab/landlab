@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Evolve life in a landscape.
 
 Life evolves alongside landscapes by biotic and abiotic processes under complex

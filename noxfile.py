@@ -28,6 +28,14 @@ def cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
     session.run("landlab", "--help")
+    session.run("landlab", "--version")
+    session.run("landlab", "index", "--help")
+    session.run("landlab", "list", "--help")
+    session.run("landlab", "provided-by", "--help")
+    session.run("landlab", "provides", "--help")
+    session.run("landlab", "used-by", "--help")
+    session.run("landlab", "uses", "--help")
+    session.run("landlab", "validate", "--help")
 
 
 @nox.session

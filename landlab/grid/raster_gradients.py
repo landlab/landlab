@@ -55,7 +55,7 @@ def calc_diff_at_d8(grid, node_values, out=None):
            -60.,   0.,   0., -60.,   0.,   0.,   0.,   0., -60.,   0., -60.,
            -60., -60.,   0., -60.,   0.,   0.,   0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = np.empty(grid.number_of_d8)
@@ -101,7 +101,7 @@ def calc_diff_at_diagonal(grid, node_values, out=None):
     >>> grid.calc_diff_at_diagonal(z)
     array([ 0.,  0., -5.,  0., -5., -5., -5.,  0., -5.,  0.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = np.empty(grid.number_of_diagonals)
@@ -140,7 +140,7 @@ def calc_grad_at_d8(grid, node_values, out=None):
            -20.,   0.,   0., -15.,   0.,   0.,   0.,   0., -12.,   0., -12.,
            -12., -12.,   0., -12.,   0.,   0.,   0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     grads = calc_diff_at_d8(grid, node_values, out=out)
     grads /= grid.length_of_d8[: grid.number_of_d8]
@@ -173,7 +173,7 @@ def calc_grad_at_diagonal(grid, node_values, out=None):
     >>> grid.calc_grad_at_diagonal(z)
     array([ 0.,  0., -1.,  0., -1., -1., -1.,  0., -1.,  0.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     grads = calc_diff_at_diagonal(grid, node_values, out=out)
     grads /= grid.length_of_diagonal[: grid.number_of_diagonals]
@@ -223,7 +223,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> grid.calc_grad_at_link('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     grads = gradients.calc_diff_at_link(grid, node_values, out=out)
     grads /= grid.length_of_link[: grid.number_of_links]
@@ -290,7 +290,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
      False,
            fill_value = 1e+20)
 
-    LLCATS: FINF GRAD
+    :meta landlab: info-face, gradient
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = grid.BAD_INDEX
@@ -365,7 +365,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     array([[ 0.6,  0.6,  0.2,  0. ],
            [ 0.4,  0.4, -0.2,  0. ]])
 
-    LLCATS: CNINF GRAD
+    :meta landlab: info-corner, gradient
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
@@ -472,7 +472,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True  True]],
            fill_value = 1e+20)
 
-    LLCATS: NINF LINF GRAD
+    :meta landlab: info-node, info-link, gradient
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = grid.BAD_INDEX
@@ -542,7 +542,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
      array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.9486833 ,  0.        ,  0.31622777]]))
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
 
     # identify the grid neigbors at each location
@@ -628,7 +628,7 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
            [        nan,         nan,         nan],
            [        nan,         nan,         nan]])
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
     try:
         z = grid.at_node[elevs]
@@ -887,7 +887,7 @@ def calc_slope_at_cell_subtriangles(
     >>> np.allclose(np.cos(S[6])[0], 3./5.)
     True
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
 
     # calculate all subtriangle slopes
@@ -996,7 +996,7 @@ def _calc_subtriangle_slopes_at_node(
     >>> np.allclose(np.cos(S[6])[mg.core_nodes], 3./5.)
     True
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
 
     # verify that subtriangle_unit_normals is of the correct form.
@@ -1133,8 +1133,7 @@ def calc_aspect_at_cell_subtriangles(
     (array([ 180.]), array([ 270.]), array([ 90.]), array([ 180.]),
      array([ 0.]), array([ 90.]), array([ 270.]), array([ 0.]))
 
-
-    LLCATS: CINF SURF
+    :meta landlab: info-cell, surface
     """
 
     # calculate all subtriangle slopes
@@ -1249,7 +1248,7 @@ def _calc_subtriangle_aspect_at_node(
      array([  nan,   nan,   nan,   45.,  270.,   nan,  180.,   90.,   nan]),
      array([  nan,   nan,   nan,  270.,    0.,   nan,   90.,  225.,   nan]))
 
-    LLCATS: CINF SURF
+    :meta landlab: info-cell, surface
     """
 
     # verify that subtriangle_unit_normals is of the correct form.
@@ -1426,7 +1425,7 @@ def calc_unit_normals_at_patch_subtriangles(grid, elevs="topographic__elevation"
            [-0.98058068,  0.        ,  0.19611614],
            [-0.98994949,  0.        ,  0.14142136]])
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     try:
         z = grid.at_node[elevs]
@@ -1547,7 +1546,7 @@ def calc_slope_at_patch(
            [ 0.,  1.,  1.,  1.],
            [ 0.,  0.,  0.,  0.]])
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 4
@@ -1662,7 +1661,7 @@ def calc_grad_at_patch(
     >>> np.allclose(ygrad[1:3], xgrad[1:3])
     True
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 4
@@ -1787,7 +1786,7 @@ def calc_slope_at_node(
     ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
     True
 
-    LLCATS: NINF GRAD SURF
+    :meta landlab: info-node, gradient, surface
     """
     if method not in ("patch_mean", "Horn"):
         raise ValueError("method name not understood")

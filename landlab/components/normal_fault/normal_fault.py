@@ -74,9 +74,9 @@ class NormalFault(Component):
         self,
         grid,
         faulted_surface="topographic__elevation",
-        fault_throw_rate_through_time={"time": [0], "rate": [0.001]},
+        fault_throw_rate_through_time=(("time", [0]), ("rate", [0.001])),
         fault_dip_angle=90.0,
-        fault_trace={"x1": 0, "y1": 0, "x2": 1, "y2": 1},
+        fault_trace=(("x1", 0), ("y1", 0), ("x2", 1), ("y2", 1)),
         include_boundaries=False,
     ):
         """Instantiation of a NormalFault.
@@ -253,6 +253,9 @@ class NormalFault(Component):
         >>> nf.current_time
         30000.0
         """
+        fault_throw_rate_through_time = dict(fault_throw_rate_through_time)
+        fault_trace = dict(fault_trace)
+
         super().__init__(grid)
 
         # save a reference to the grid

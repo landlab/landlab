@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This code was designed to plot outputs of the NetworkSedimentTransporter
 landlab component.

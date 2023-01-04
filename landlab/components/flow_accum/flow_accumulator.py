@@ -686,7 +686,7 @@ class FlowAccumulator(Component):
         flow_director="FlowDirectorSteepest",
         runoff_rate=None,
         depression_finder=None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the FlowAccumulator component.
 
@@ -761,9 +761,7 @@ class FlowAccumulator(Component):
 
         if len(self._kwargs) > 0:
             kwdstr = " ".join(list(self._kwargs.keys()))
-            raise ValueError(
-                "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
-            )
+            raise ValueError(f"Extra kwargs passed to FlowAccumulator:{kwdstr}")
 
     @property
     def surface_values(self):
@@ -897,7 +895,7 @@ class FlowAccumulator(Component):
         potential_kwargs = ["partition_method", "diagonals"]
         kw = {}
         for p_k in potential_kwargs:
-            if p_k in self._kwargs.keys():
+            if p_k in self._kwargs:
                 kw[p_k] = self._kwargs.pop(p_k)
 
         # flow director is provided as a string.
@@ -987,7 +985,7 @@ class FlowAccumulator(Component):
             ]
             kw = {}
             for p_k in potential_kwargs:
-                if p_k in self._kwargs.keys():
+                if p_k in self._kwargs:
                     kw[p_k] = self._kwargs.pop(p_k)
 
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
@@ -1184,16 +1182,18 @@ class FlowAccumulator(Component):
             # Depression finder reaccumulates flow at the end of its routine.
             # At the moment, no depression finders work with to-many, so it
             # lives here
-            if self._depression_finder_provided is not None:
-                if update_depression_finder:
-                    # only update depression finder if requested AND if there
-                    # are pits, or there were flooded nodes from last timestep.
-                    if self.pits_present or self.flooded_nodes_present:
-                        self._depression_finder.update()
+            if (
+                self._depression_finder_provided is not None
+                and update_depression_finder
+            ):
+                # only update depression finder if requested AND if there
+                # are pits, or there were flooded nodes from last timestep.
+                if self.pits_present or self.flooded_nodes_present:
+                    self._depression_finder.update()
 
-                    # if FlowDirectorSteepest is used, update the link directions
-                    if self._flow_director._name == "FlowDirectorSteepest":
-                        self._flow_director._determine_link_directions()
+                # if FlowDirectorSteepest is used, update the link directions
+                if self._flow_director._name == "FlowDirectorSteepest":
+                    self._flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))

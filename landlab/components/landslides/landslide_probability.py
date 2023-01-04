@@ -351,7 +351,7 @@ class LandslideProbability(Component):
         groundwater__recharge_max_value=120.0,
         groundwater__recharge_mean=None,
         groundwater__recharge_standard_deviation=None,
-        groundwater__recharge_HSD_inputs=[],
+        groundwater__recharge_HSD_inputs=(),
         seed=0,
     ):
         """

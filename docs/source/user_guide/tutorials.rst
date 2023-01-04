@@ -53,14 +53,14 @@ or by downloading the script and running the following from the terminal,
 .. code-block:: bash
 
    $ python -m notebooks
- 
+
 .. _notebooks.py: https://github.com/landlab/landlab/blob/mcflugen/fetch-notebooks-script/notebooks.py
 
 Install dependencies
 ````````````````````
 
 The dependencies required to run the notebooks are listed in the file, *requirements-notebooks.txt*
-and can be installed with *conda*, 
+and can be installed with *conda*,
 
 .. code-block:: bash
 

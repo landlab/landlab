@@ -40,4 +40,4 @@ and download the Microsoft Visual C++ compiler. In April 2019 this was done by
 first downloading "Build Tools for Visual Studio". Then when installing Build
 Tools there were options for what exactly should be installed. One of these was
 the Visual Studio C++ compilers. Once installed, a restart was required and
-landlab compiled as expected. 
+landlab compiled as expected.

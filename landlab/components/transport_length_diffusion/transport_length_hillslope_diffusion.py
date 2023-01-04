@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Created on Tue Apr 11 10:13:38 2017.
 
 @author: margauxmouchene

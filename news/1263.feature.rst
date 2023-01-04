@@ -1,0 +1,1 @@
+Added the ``calculate_window_statistic`` utility that calculates local grid node statistics within a moving window.

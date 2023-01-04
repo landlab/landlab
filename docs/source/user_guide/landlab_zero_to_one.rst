@@ -177,7 +177,7 @@ default values to be present, and clear to the user, and also allowing
 dynamic Python objects (e.g., an existing array of values) to be passed
 in as arguments. Note however that it is still possible (and indeed
 encouraged) to use an input file, but now you will need to turn it into
-a python dictionary before passing it to the component (see below). The
+a Python dictionary before passing it to the component (see below). The
 recommended way to do this is with the ``load_params`` function, which
 performs typing of arguments automatically and can read a variety of
 file types. However, the older ways of using the Landlab
@@ -228,7 +228,7 @@ migration to this new standardised format.
 grid object will already have been updated as necessary.
 
 5 - All components should now have comprehensive and up-to-date
-documentation. View it on the website, or in an interactive python
+documentation. View it on the website, or in an interactive Python
 session use either ``help(MyComponent)`` or ``MyComponent?``.
 
 Standardisation of Component Standard Field Names

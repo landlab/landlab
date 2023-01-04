@@ -85,7 +85,7 @@ def test_fields1():
     mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
     fa1 = PriorityFloodFlowRouter(mg1, suppress_out=True)
     fa1.run_one_step()
-    assert sorted(list(mg1.at_node.keys())) == [
+    assert sorted(mg1.at_node) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -108,7 +108,7 @@ def test_fields2():
     fa2 = PriorityFloodFlowRouter(mg2, suppress_out=True, accumulate_flow=False)
     fa2.run_one_step()
 
-    assert sorted(list(mg2.at_node.keys())) == [
+    assert sorted(mg2.at_node) == [
         "depression_free_elevation",
         "flood_status_code",
         "flow__link_to_receiver_node",
@@ -130,7 +130,7 @@ def test_fields3():
     mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")
     fa3 = PriorityFloodFlowRouter(mg3, separate_hill_flow=True, suppress_out=True)
     fa3.run_one_step()
-    assert sorted(list(mg3.at_node.keys())) == [
+    assert sorted(mg3.at_node) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -161,7 +161,7 @@ def test_fields4():
         mg4, separate_hill_flow=True, accumulate_flow_hill=True, suppress_out=True
     )
     fa4.run_one_step()
-    assert sorted(list(mg4.at_node.keys())) == [
+    assert sorted(mg4.at_node) == [
         "depression_free_elevation",
         "drainage_area",
         "flood_status_code",
@@ -271,7 +271,7 @@ def test_D8_metric():
     )
     assert_array_equal(reciever.flatten(), pf_r)
 
-    # Uncomment to compare with default Landlab flow accumulator
+    # Compare with default Landlab flow accumulator
     mg1 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     from landlab.components.flow_accum import FlowAccumulator
 
@@ -282,6 +282,62 @@ def test_D8_metric():
     fa1.run_one_step()
     defaultLandl_r = mg1.at_node["flow__receiver_node"]
     assert_array_equal(defaultLandl_r, pf_r)
+
+
+# %%
+def test_various_surface_values():
+    # %%
+
+    topographic__elevation = np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0],
+            [0.0, 30.9, 21.0, 0.0],
+            [0.0, 30.8, 31.8, 0.0],
+            [0.0, 10.0, 11.1, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+        ]
+    )
+
+    topography = np.array(
+        [
+            [0.0, 0.0, 0.0, 0.0],
+            [0.0, 121.0, 110.0, 0.0],
+            [0.0, 131.0, 130.8, 0.0],
+            [0.0, 132.0, 130.9, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+        ]
+    )
+
+    mg2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
+    mg2.add_field("topographic__elevation", topographic__elevation, at="node")
+    mg2.add_field("topography", topography, at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
+
+    fa2 = PriorityFloodFlowRouter(
+        mg2, flow_metric="D8", suppress_out=True, surface="topography"
+    )
+    fa2.run_one_step()
+    pf_r = mg2.at_node["flow__receiver_node"]
+    reciever = np.array(
+        [
+            [0, 1, 2, 3],
+            [4, 1, 2, 7],
+            [8, 6, 6, 11],
+            [12, 14, 10, 15],
+            [16, 17, 18, 19],
+        ]
+    )
+    assert_array_equal(reciever.flatten(), pf_r)
+
+    fa3 = PriorityFloodFlowRouter(
+        mg2, flow_metric="D8", suppress_out=True, surface=topography
+    )
+    fa3.run_one_step()
+    pf_r = mg2.at_node["flow__receiver_node"]
+    assert_array_equal(reciever.flatten(), pf_r)
+
+    topo_fd = fa3.surface_values
+    assert_array_equal(topo_fd, np.reshape(topography, 4 * 5))
 
 
 # %%
@@ -529,6 +585,28 @@ def test_bad_metric_name():
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(Exception):
         PriorityFloodFlowRouter(mg, flow_metric="spam", suppress_out=True)
+
+
+# %%
+def test_bad_hill_metric_name():
+    # %%
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    with pytest.raises(Exception):
+        PriorityFloodFlowRouter(
+            mg, hill_flow_metric="Landlab_is_cool", suppress_out=True
+        )
+
+
+# %%
+def test_bad_depression_handler():
+    # %%
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    with pytest.raises(Exception):
+        PriorityFloodFlowRouter(
+            mg, depression_handler="depression_filler", suppress_out=True
+        )
 
 
 # %%

@@ -17,7 +17,7 @@ def _default_axis_units(n_dims):
     return ("-",) * n_dims
 
 
-class BaseGrid(object):
+class BaseGrid:
     """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)
 
     Parameters
