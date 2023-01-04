@@ -66,7 +66,7 @@ this:
 
 .. code-block:: python
 
-    dfn = LinearDiffuser(grid, 'linear_diffusivity'=0.01)
+    dfn = LinearDiffuser(grid, linear_diffusivity=0.01)
 
 These keywords can also be set by passing a Python dictionary, or using a text
 input file (see below).
@@ -101,10 +101,12 @@ website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
 following would work::
 
-    help(LinearDiffuser)
-    help(dfn)
-    LinearDiffuser?
-    dfn?
+.. code-block:: python
+
+    >>> help(LinearDiffuser)
+    >>> help(dfn)
+    >>> LinearDiffuser?
+    >>> dfn?
 
 Quit interactive help in iPython by pressing "q".
 
@@ -233,12 +235,12 @@ Nonetheless, you may recognize the basic style of the names:
 
 e.g., *topographic__elevation*, *water_surface__gradient*, *water__volume_flux*
 
-We compile two tables to assist users with the Landlab standard names.
+We compile three tables to assist users with the :ref:`Landlab standard names<standard_name_definitions>`.
 
-- First is :ref:`a list of all names with their definitions
-  <standard_name_definitions>`.
-- Second is :ref:`a table listing which components create and use each field
-  <standard_name_mapping>`.
+- First is a list of all names with their definitions.
+- Second is a table listing which components use each field.
+- Third is a table listing which components provide each field.
+
 
 See :ref:`here <standard_name_changes>` for a list of changes to the standard
 name list associated with the release of Landlab version 1.x (relative to 0.x).

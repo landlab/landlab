@@ -24,7 +24,7 @@ Landlab.
 A ``FlowDirAccPf`` tutorial exists in the form of a Jupyter Notebooks accessible
 through the following links:
 
-#TODO adjust links when in main branch. [This](https://github.com/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/flow_direction_and_accumulation/PriorityFlood_realDEMs.ipynb) is a direct link to the notebook. 
+#TODO adjust links when in main branch. [This](https://github.com/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/flow_direction_and_accumulation/PriorityFlood_realDEMs.ipynb) is a direct link to the notebook.
 
 - [Launch the tutorial](https://mybinder.org/v2/gh/BCampforts/landlab/blob/bc/priority_flood/notebooks/tutorials/PriorityFlood/PriorityFlood_realDEMs.ipynb)
 as interactive notebook in your browser, with no need to install software,

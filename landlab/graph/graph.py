@@ -59,7 +59,7 @@ array([[4, 3, 0, 1],
        [8, 7, 4, 5]])
 """
 import json
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -100,7 +100,7 @@ def find_perimeter_nodes(graph):
     return as_id_array(hull.vertices)
 
 
-class thawed(object):
+class thawed:
     def __init__(self, graph):
         self._graph = graph
         self._initially_frozen = graph.frozen
@@ -211,7 +211,7 @@ class NetworkGraph:
         self._frozen = False
 
     def _add_variable(self, name, var, dims=None, attrs=None):
-        kwds = dict(data=var, dims=dims, attrs=attrs)
+        kwds = {"data": var, "dims": dims, "attrs": attrs}
         self.ds.update({name: xr.DataArray(**kwds)})
         if self._frozen:
             self.freeze()
@@ -281,9 +281,7 @@ class NetworkGraph:
         elif isinstance(source, (dict, xr.Dataset)):
             return cls.from_dict(source)
         else:
-            raise ValueError(
-                "source must be dict-like or NetCDF ({type})".format(type=type(source))
-            )
+            raise ValueError(f"source must be dict-like or NetCDF ({type(source)})")
 
     def __str__(self):
         return str(self.ds)
@@ -295,8 +293,7 @@ class NetworkGraph:
     def ndim(self):
         return 2
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def xy_of_node(self):
         """Get x and y-coordinates of node.
@@ -311,7 +308,7 @@ class NetworkGraph:
         >>> graph.xy_of_node[:, 1]
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return np.stack((self.x_of_node, self.y_of_node)).T.copy()
 
@@ -327,7 +324,7 @@ class NetworkGraph:
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["x_of_node"].values
 
@@ -343,17 +340,15 @@ class NetworkGraph:
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["y_of_node"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     def node_x(self):
         return self.x_of_node
 
-    @property
-    @lru_cache()
+    @cached_property
     def node_y(self):
         return self.y_of_node
 
@@ -369,12 +364,11 @@ class NetworkGraph:
         >>> graph.nodes
         array([0, 1, 2, 3, 4, 5])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["node"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def perimeter_nodes(self):
         """Get nodes on the convex hull of a Graph.
@@ -388,7 +382,7 @@ class NetworkGraph:
         >>> np.sort(graph.perimeter_nodes)
         array([0, 2, 3, 5])
 
-        LLCATS: NINF BC SUBSET
+        :meta landlab: info-node, boundary-condition, subset
         """
         return find_perimeter_nodes(self)
 
@@ -404,7 +398,7 @@ class NetworkGraph:
         >>> graph.number_of_nodes == 6
         True
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds.dims["node"]
 
@@ -429,7 +423,7 @@ class NetworkGraph:
                [3, 6], [4, 7], [5, 8],
                [6, 7], [7, 8]])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.ds["nodes_at_link"].values
 
@@ -450,7 +444,7 @@ class NetworkGraph:
         >>> graph.node_at_link_tail
         array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.nodes_at_link[:, 0]
 
@@ -471,7 +465,7 @@ class NetworkGraph:
         >>> graph.node_at_link_head
         array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return self.nodes_at_link[:, 1]
 
@@ -497,8 +491,7 @@ class NetworkGraph:
         except KeyError:
             return 0
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def links_at_node(self):
         """Get links touching a node.
@@ -519,7 +512,7 @@ class NetworkGraph:
                [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
                [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         try:
             return self._links_at_node
@@ -533,8 +526,7 @@ class NetworkGraph:
     def _create_links_and_dirs_at_node(self):
         return get_links_at_node(self, sort=True)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def link_dirs_at_node(self):
         """Get directions of links touching a node.
@@ -564,8 +556,7 @@ class NetworkGraph:
             ) = self._create_links_and_dirs_at_node()
             return self._link_dirs_at_node
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def angle_of_link(self):
         """Get the angle of each link.
@@ -584,12 +575,11 @@ class NetworkGraph:
         >>> graph.angle_of_link * 180. / np.pi
         array([  0.,   0.,  90.,  90.,  90.,   0.,   0.])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return get_angle_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def length_of_link(self):
         """Get the length of links.
@@ -603,12 +593,11 @@ class NetworkGraph:
         >>> graph.length_of_link
         array([ 2.,  2.,  1.,  1.,  1.,  2.,  2.])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return get_length_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def midpoint_of_link(self):
         """Get the middle of links.
@@ -624,18 +613,16 @@ class NetworkGraph:
                [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
                [ 1. ,  1. ], [ 3. ,  1. ]])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return get_midpoint_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def xy_of_link(self):
         return get_midpoint_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def adjacent_nodes_at_node(self):
         """Get adjacent nodes.
@@ -685,7 +672,7 @@ class NetworkGraph:
                [ 8,  6,  4, -1, -1],
                [ 7,  5, -1, -1, -1]])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         node_is_at_tail = np.choose(
             self.link_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
@@ -695,8 +682,7 @@ class NetworkGraph:
 
         return out
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def adjacent_links_at_link(self):
         from .object.ext.at_link import find_adjacent_links_at_link
@@ -709,8 +695,7 @@ class NetworkGraph:
 
         return adjacent_links_at_link
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def unit_vector_at_link(self):
         """Make arrays to store the unit vectors associated with each link.
@@ -740,8 +725,7 @@ class NetworkGraph:
         u = np.diff(self.xy_of_node[self.nodes_at_link], axis=1).reshape((-1, 2))
         return u / np.linalg.norm(u, axis=1).reshape((-1, 1))
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def unit_vector_at_node(self):
         """Get a unit vector for each node.
@@ -814,8 +798,7 @@ class Graph(NetworkGraph):
 
         return sorted_nodes, sorted_links, sorted_patches
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def xy_of_patch(self):
         """Get the centroid of each patch.
@@ -835,12 +818,11 @@ class Graph(NetworkGraph):
         array([[ 0.5,  0.5],
               [ 1.5,  0.5]])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         return get_centroid_of_patch(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def area_of_patch(self):
         """Get the area of each patch.
@@ -859,7 +841,7 @@ class Graph(NetworkGraph):
         >>> graph.area_of_patch
         array([ 1.,  1.])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         return get_area_of_patch(self)
 
@@ -881,7 +863,7 @@ class Graph(NetworkGraph):
         >>> graph.number_of_patches == 2
         True
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         try:
             return self.ds.dims["patch"]
@@ -907,12 +889,11 @@ class Graph(NetworkGraph):
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return self.ds["links_at_patch"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def nodes_at_patch(self):
         """Get the nodes that define a patch.
@@ -933,7 +914,7 @@ class Graph(NetworkGraph):
         array([[4, 3, 0, 1],
                [5, 4, 1, 2]])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         nodes_at_patch = get_nodes_at_patch(self)
         sort_spokes_at_hub(
@@ -941,8 +922,7 @@ class Graph(NetworkGraph):
         )
         return nodes_at_patch
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def patches_at_node(self):
         """Get the patches that touch each node.
@@ -961,7 +941,7 @@ class Graph(NetworkGraph):
         array([[ 0, -1], [ 1,  0], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         patches_at_node = reverse_one_to_many(self.nodes_at_patch)
         sort_spokes_at_hub(
@@ -969,8 +949,7 @@ class Graph(NetworkGraph):
         )
         return patches_at_node
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def patches_at_link(self):
         """Get the patches on either side of each link.
@@ -990,6 +969,6 @@ class Graph(NetworkGraph):
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])
 
-        LLCATS: PINF
+        :meta landlab: info-patch
         """
         return reverse_one_to_many(self.links_at_patch, min_counts=2)

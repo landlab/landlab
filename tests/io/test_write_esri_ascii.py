@@ -11,11 +11,33 @@ from landlab.io import read_esri_ascii, write_esri_ascii
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
+def test_write_esri_ascii_doctest_one_var(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.at_node["air__temperature"] = np.arange(20.0)
+    with tmpdir.as_cwd():
+        files = write_esri_ascii("test.asc", grid)
+        assert [os.path.basename(name) for name in sorted(files)] == ["test.asc"]
+        assert sorted(os.listdir()) == sorted(files)
+
+
+def test_write_esri_ascii_doctest_two_vars(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.at_node["air__temperature"] = np.arange(20.0)
+
+    with tmpdir.as_cwd():
+        grid.at_node["land_surface__elevation"] = np.arange(20.0)
+        files = write_esri_ascii("test.asc", grid)
+        assert [os.path.basename(name) for name in sorted(files)] == [
+            "test_air__temperature.asc",
+            "test_land_surface__elevation.asc",
+        ]
+        assert sorted(os.listdir()) == sorted(files)
+
+
 def test_grid_with_no_fields(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    with tmpdir.as_cwd():
-        with pytest.raises(ValueError):
-            write_esri_ascii("test.asc", grid)
+    with tmpdir.as_cwd(), pytest.raises(ValueError):
+        write_esri_ascii("test.asc", grid)
 
 
 def test_grid_with_one_field(tmpdir):
@@ -87,9 +109,8 @@ def test_names_keyword_with_bad_name(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
     grid.add_field("air__temperature", np.arange(20.0), at="node")
 
-    with tmpdir.as_cwd():
-        with pytest.raises(ValueError):
-            write_esri_ascii("test.asc", grid, names="not_a_name")
+    with tmpdir.as_cwd(), pytest.raises(ValueError):
+        write_esri_ascii("test.asc", grid, names="not_a_name")
 
 
 def test_clobber_keyword(tmpdir):

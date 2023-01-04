@@ -1,4 +1,5 @@
 from .dual import DualGraph
+from .framed_voronoi import DualFramedVoronoiGraph, FramedVoronoiGraph
 from .graph import Graph, NetworkGraph
 from .graph_convention import ConventionConverter, GraphConvention
 from .hex import DualHexGraph, TriGraph
@@ -29,6 +30,8 @@ __all__ = [
     "DualHexGraph",
     "RadialGraph",
     "DualRadialGraph",
+    "FramedVoronoiGraph",
+    "DualFramedVoronoiGraph",
     "ConventionConverter",
     "GraphConvention",
 ]

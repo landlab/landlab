@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"])
+_VALID_METHODS = {"Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"}
 
 
 def _assert_method_is_valid(method):

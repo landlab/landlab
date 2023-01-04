@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert et
 al., submitted to Geoscientific Model Development). The most up-to-date version
 of his code can be found at github.com/awickert/gFlex.

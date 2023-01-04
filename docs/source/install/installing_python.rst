@@ -10,14 +10,14 @@ onto your system. Nevertheless, we *strongly* recommend that if you haven't befo
 you download a complete Python distribution, as this will ensure that all of the Python
 modules that Landlab needs to run are definitely present. Most of the bug reports we
 get about problems installing Landlab relate to conflicts with older or incomplete versions of Python.
-Common symptoms are running the python setup commands at the end of this
+Common symptoms are running the Python setup commands at the end of this
 file, but then not being able to load landlab. Try :ref:`the Test <test_landlab_install>`
 to ensure your current distribution with all its dependencies is the default.
 If you suspect a path or version problem after you've installed one
 of the distributions described below, click :ref:`here <correcting_install_paths>`.
 
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
-preassembled scientific python distribution such as `Continuum IO's
+preassembled scientific Python distribution such as `Continuum IO's
 Anaconda <https://www.anaconda.com/distribution/>`_. Its conda package manager
 makes controlling your Python packages easier. (It is also possible to use `Enthought's
 Canopy <https://assets.enthought.com/downloads/>`_, but be aware you will need to sign
@@ -64,6 +64,6 @@ operating system. For instance, Dan's Macbook Pro shows ``python`` on the path::
 
 On a PC, run ``python`` from your Command Prompt window. You should see a reference to anaconda when it is running.
 
-If you *don't* see reference to your newly installed distribution or the file is not found, click :ref:`here <correcting_install_paths>` to resolve the problem. 
+If you *don't* see reference to your newly installed distribution or the file is not found, click :ref:`here <correcting_install_paths>` to resolve the problem.
 
 Once you have installed a complete Python distribution on your machine, follow :ref:`these instructions <install>` to install Landlab.

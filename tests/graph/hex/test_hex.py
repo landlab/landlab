@@ -84,10 +84,7 @@ def test_create_hex_graph(n_rows, node_layout, orientation, at):
     else:
         shape = (n_rows, 2)
     graph = TriGraph(shape, node_layout=node_layout, orientation=orientation, sort=True)
-    assert (
-        getattr(graph, "number_of_{at}".format(at=at))
-        == expected[node_layout][orientation][at]
-    )
+    assert getattr(graph, f"number_of_{at}") == expected[node_layout][orientation][at]
 
 
 def test_create_rect():

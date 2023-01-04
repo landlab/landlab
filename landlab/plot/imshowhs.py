@@ -445,9 +445,13 @@ def _imshowhs_grid_values(
 
     # Poperties of bounding box of colorbar label, if used:
     if add_label_bbox:
-        bbox_prop = dict(
-            boxstyle="round", pad=0.1, facecolor="white", alpha=0.7, edgecolor="white"
-        )
+        bbox_prop = {
+            "boxstyle": "round",
+            "pad": 0.1,
+            "facecolor": "white",
+            "alpha": 0.7,
+            "edgecolor": "white",
+        }
     else:
         bbox_prop = None
 
@@ -501,7 +505,7 @@ def _imshowhs_grid_values(
         blend_modes = ["hsv", "overlay", "soft"]
         if plot_type == "DEM":
 
-            kwds = dict(cmap=cmap)
+            kwds = {"cmap": cmap}
             (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
             if (limits is None) and ((vmin is None) and (vmax is None)):
                 if symmetric_cbar:
@@ -566,7 +570,7 @@ def _imshowhs_grid_values(
                 shape = (-1,)
             val1 = values_at_node_drape1.reshape(shape)
 
-            kwds = dict(cmap=cmap)
+            kwds = {"cmap": cmap}
             (kwds["vmin"], kwds["vmax"]) = (val1.min(), val1.max())
             if (limits is None) and ((vmin is None) and (vmax is None)):
                 if symmetric_cbar:
@@ -699,7 +703,7 @@ def _imshowhs_grid_values(
 
                 if cmap2 is None:
                     cmap2 = plt.cm.terrain
-                kwds = dict(cmap=cmap2)
+                kwds = {"cmap": cmap2}
                 (kwds["vmin"], kwds["vmax"]) = (val2.min(), val2.max())
                 if (limits is None) and ((vmin is None) and (vmax is None)):
                     if symmetric_cbar:

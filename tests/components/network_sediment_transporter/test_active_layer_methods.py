@@ -52,7 +52,7 @@ def test_grainsize_active_layer(example_nmg, example_parcels, example_flow_direc
 
     dt = 60 * 60 * 24  # (seconds) daily timestep
 
-    for t in range(0, (timesteps * dt), dt):
+    for _ in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
 
     # Active layer thickness should be 3*d_mean
@@ -109,7 +109,7 @@ def test_constant_active_layer(example_nmg, example_parcels, example_flow_direct
 
     dt = 60 * 60 * 24  # (seconds) daily timestep
 
-    for t in range(0, (timesteps * dt), dt):
+    for _ in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
 
     # Active layer thickness should be 10 cm

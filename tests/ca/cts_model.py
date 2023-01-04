@@ -10,7 +10,7 @@ from landlab.io.native_landlab import save_grid
 _DEBUG = False
 
 
-class CTSModel(object):
+class CTSModel:
     """
     Implement a generic CellLab-CTS model.
 
