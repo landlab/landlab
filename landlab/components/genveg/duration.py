@@ -31,7 +31,7 @@ class Annual(Duration):
         #emerge size should be the min size for annuals
         return self.initialize_biomass(emerge_size)
     
-    def initialize_biomass(self, grow_params):
+    def set_init_biomass_range(self, grow_params):
         #This function provides the range of mass an initial annual plant can have
         #Since initalization of annuals is the same as emergence, use the same function
         init_size_min=sum(grow_params['plant_part_min'])
@@ -59,7 +59,7 @@ class Perennial(Duration):
     def emerge(self, emerge_min=[0.01,0.1,0.5]):
         print('I will transfer some stored carbohydrate to photosynthetic parts')
 
-    def initialize_biomass(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
+    def set_init_biomass_range(self, grow_params={'plant_part_min':[0.01,0.1,0.5], 'plant_part_max':[2,2,2]}):
         #This function provides the range of mass an initial perennial plant can have
         init_min_mass=sum(grow_params['plant_part_min'])
         init_max_mass=sum(grow_params['plant_part_max'])

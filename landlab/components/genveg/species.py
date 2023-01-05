@@ -6,6 +6,8 @@ from .habit import *
 from .form import *
 from .shape import *
 from .photosynthesis import *
+from scipy.optimize import fsolve
+import numpy as np
 
 #Define species class that inherits composite class methods
 class Species(object):
@@ -72,8 +74,6 @@ class Species(object):
         self.form=self.select_form_class(self.species_plant_factors['growth_form'])
         self.shape=self.select_shape_class(self.species_plant_factors['shape'])
         self.photosynthesis=self.select_photosythesis_type(self.species_plant_factors['p_type'])
-
-        self.set_initial_biomass()
 
     def validate_plant_factors(self,plant_factors):
         plant_factor_options={
@@ -177,13 +177,64 @@ class Species(object):
         self.habit.emerge()
     
     def photosynthesize(self, _par, growdict, _last_biomass, _daylength):
-        self.photosynthesis.photosynthesize(_par, growdict, _last_biomass, _daylength)
+        gphot=self.photosynthesis.photosynthesize(_par, growdict, _last_biomass, _daylength)
+        return gphot
 
     def senesce(self, plants):
         plants=self.habit.senesce(plants)
         return plants
 
-    def set_initial_biomass(self):
+    def set_initial_biomass(self, plant_array, in_growing_season):
         species_grow_params=self.species_grow_params
-        min_mass, max_mass=self.habit.initialize_biomass(species_grow_params)
-        self.species_grow_params['init_biomass']=[min_mass,max_mass]
+        min_mass, max_mass=self.habit.set_init_biomass_range(species_grow_params)
+        coeffs=species_grow_params['root_to_leaf_coeffs']+species_grow_params['root_to_stem_coeffs']
+        total_biomass=np.random.rand(plant_array.size)*(max_mass-min_mass)+min_mass
+        #Call biomass allocation method
+        root_bio,leaf_bio,stem_bio=self._solve_init_biomass_allocation(total_biomass, coeffs)
+        if 'root' not in self.habit.green_parts:
+            plant_array['root_biomass']=root_bio
+        else:
+            plant_array['root_biomass']=np.zeros_like(root_bio)
+        if (in_growing_season) or ('leaf' not in self.habit.green_parts): 
+            plant_array['leaf_biomass']=leaf_bio
+        else:
+            plant_array['leaf_biomass']=np.zeros_like(leaf_bio)
+        if (in_growing_season) & ('stem' not in self.habit.green_parts):
+            plant_array['stem_biomass']=stem_bio
+        else:
+            plant_array['stem_biomass']=np.zeros_like(stem_bio)
+        return plant_array
+    
+    def _solve_init_biomass_allocation(self, total_biomass, solver_coeffs):
+        #Initialize arrays to calculate root, leaf and stem biomass from total
+        root=[]
+        leaf=[]
+        stem=[]
+        
+        #Loop through grid array
+        for total_biomass_in_cell in total_biomass:
+            solver_guess = np.full(3,np.log10(total_biomass_in_cell/3))            
+            part_biomass_log10=fsolve(self._solverFuncs,solver_guess,(solver_coeffs,total_biomass_in_cell))            
+            part_biomass=10**part_biomass_log10
+            
+            root.append(part_biomass[0])
+            leaf.append(part_biomass[1])
+            stem.append(part_biomass[2])
+        
+        #Convert to numpy array
+        root=np.array(root)
+        leaf=np.array(leaf)
+        stem=np.array(stem)      
+        return root, leaf, stem
+
+    def _solverFuncs(self,solver_guess,solver_coeffs,total_biomass):
+        root_part_log10=solver_guess[0]
+        leaf_part_log10=solver_guess[1]
+        stem_part_log10=solver_guess[2]
+        plant_part_biomass_log10 = np.empty([(3)])
+
+        plant_part_biomass_log10[0]=10**root_part_log10+10**leaf_part_log10+10**stem_part_log10-total_biomass
+        plant_part_biomass_log10[1]=solver_coeffs[0]+solver_coeffs[1]*root_part_log10+solver_coeffs[2]*root_part_log10**2-leaf_part_log10
+        plant_part_biomass_log10[2]=solver_coeffs[3]+solver_coeffs[4]*root_part_log10+solver_coeffs[5]*root_part_log10**2-stem_part_log10
+        
+        return plant_part_biomass_log10
