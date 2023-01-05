@@ -58,4 +58,4 @@ STANDARD_NAME = {
 }
 
 
-LANDLAB_NAME = dict((value, key) for key, value in STANDARD_NAME.items() if key)
+LANDLAB_NAME = {value: key for key, value in STANDARD_NAME.items() if key}

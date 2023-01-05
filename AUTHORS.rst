@@ -33,3 +33,8 @@ Contributors
 - `Kristen Thyng <https://github.com/kthyng>`_
 - `Dylan Ward <https://github.com/ddoubleprime>`_
 - `Benjamin Campforts  <https://github.com/BCampforts>`_
+- `Sebastien Lenard <https://github.com/sebastien-lenard>`_
+- `Shelby Ahrendt <https://github.com/shelbyahrendt>`_
+- `Josh Wolpert <https://github.com/josh-wolpert>`_
+- `Christopher Sheehan <https://github.com/Sheehace>`_
+- `slundell123 <https://github.com/slundell123>`_

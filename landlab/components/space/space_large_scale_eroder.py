@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Grid-based simulation of lateral erosion by channels in a drainage network.
 
 Benjamin Campforts
@@ -309,7 +308,7 @@ class SpaceLargeScaleEroder(Component):
                 "to start this process."
             )
 
-        super(SpaceLargeScaleEroder, self).__init__(grid)
+        super().__init__(grid)
 
         self._soil__depth = grid.at_node["soil__depth"]
         self._topographic__elevation = grid.at_node["topographic__elevation"]
@@ -524,6 +523,8 @@ class SpaceLargeScaleEroder(Component):
 
         self.sediment_influx[:] = 0
 
+        K_sed_vector = np.broadcast_to(self._K_sed, self._q.shape)
+
         vol_SSY_riv = _sequential_ero_depo(
             stack_flip_ud_sel,
             r,
@@ -539,10 +540,10 @@ class SpaceLargeScaleEroder(Component):
             br,
             self._sed_erosion_term,
             self._br_erosion_term,
+            K_sed_vector,
             self._v_s,
             self._phi,
             self._F_f,
-            self._K_sed,
             self._H_star,
             dt,
             self._thickness_lim,

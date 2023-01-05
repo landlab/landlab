@@ -62,6 +62,7 @@ array([[ 0.,  0.,  0.,  0.],
        [ 0.,  0.,  1.,  1.],
        [ 0.,  0.,  0.,  0.]])
 """
+import contextlib
 
 import numpy as np
 
@@ -201,7 +202,7 @@ class Flexure1D(Component):
             operate on *all* rows).
         """
         if method not in ("airy", "flexure"):
-            raise ValueError("{method}: method not understood".format(method=method))
+            raise ValueError(f"{method}: method not understood")
 
         super().__init__(grid)
 
@@ -227,10 +228,8 @@ class Flexure1D(Component):
     def eet(self, new_val):
         if new_val <= 0:
             raise ValueError("Effective elastic thickness must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._rigidity, self._alpha
-        except AttributeError:
-            pass
         self._eet = float(new_val)
 
     @property
@@ -242,10 +241,8 @@ class Flexure1D(Component):
     def youngs(self, new_val):
         if new_val <= 0:
             raise ValueError("Young's modulus must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._rigidity, self._alpha
-        except AttributeError:
-            pass
         self._youngs = float(new_val)
 
     @property
@@ -257,10 +254,8 @@ class Flexure1D(Component):
     def rho_water(self, new_val):
         if new_val <= 0:
             raise ValueError("Water density must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._rho_water = float(new_val)
 
     @property
@@ -272,10 +267,8 @@ class Flexure1D(Component):
     def rho_mantle(self, new_val):
         if new_val <= 0:
             raise ValueError("Mantle density must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._rho_mantle = float(new_val)
 
     @property
@@ -287,10 +280,8 @@ class Flexure1D(Component):
     def gravity(self, new_val):
         if new_val <= 0:
             raise ValueError("Acceleration due to gravity must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._gravity = float(new_val)
 
     @property
@@ -300,8 +291,7 @@ class Flexure1D(Component):
             self._alpha
         except AttributeError:
             self._alpha = np.power(4 * self.rigidity / self.gamma_mantle, 0.25)
-        finally:
-            return self._alpha
+        return self._alpha
 
     @property
     def rigidity(self):
@@ -312,8 +302,7 @@ class Flexure1D(Component):
             self._rigidity = (
                 self._eet**3.0 * self._youngs / (12.0 * (1.0 - self._POISSON**2.0))
             )
-        finally:
-            return self._rigidity
+        return self._rigidity
 
     @property
     def gamma_mantle(self):
@@ -322,8 +311,7 @@ class Flexure1D(Component):
             self._gamma_mantle
         except AttributeError:
             self._gamma_mantle = (self._rho_mantle - self._rho_water) * self._gravity
-        finally:
-            return self._gamma_mantle
+        return self._gamma_mantle
 
     @property
     def method(self):

@@ -304,7 +304,7 @@ def _imshow_grid_values(
             + grid.xy_of_lower_left[0]
         )
 
-        kwds = dict(cmap=cmap)
+        kwds = {"cmap": cmap}
         (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
         if (limits is None) and ((vmin is None) and (vmax is None)):
             if symmetric_cbar:
@@ -383,7 +383,7 @@ def _imshow_grid_values(
 
         scalarMap.set_array(values)
         if allow_colorbar:
-            cb = plt.colorbar(scalarMap, shrink=shrink)
+            cb = plt.colorbar(scalarMap, shrink=shrink, ax=ax)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units

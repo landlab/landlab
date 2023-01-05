@@ -127,7 +127,7 @@ def test_analytical_solution_four_cells_basic_solver():
         grid, abrasion_coefficient=abrasion_coef, solver="explicit"
     )
 
-    for i in range(nsteps):
+    for _ in range(nsteps):
         fa.run_one_step()
         elev[grid.core_nodes] += uplift_rate * dt
         transporter.run_one_step(dt)
@@ -173,7 +173,7 @@ def test_analytical_solution_four_cells_matrix_solver():
         grid, abrasion_coefficient=abrasion_coef, solver="matrix"
     )
 
-    for i in range(nsteps):
+    for _ in range(nsteps):
         fa.run_one_step()
         elev[grid.core_nodes] += uplift_rate * dt
         transporter.run_one_step(dt)

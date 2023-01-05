@@ -1,3 +1,2 @@
 Added a new component, ``GravelRiverTransporter``, that models
 gravel transport and abrasion in a gridded network of river segments.
-

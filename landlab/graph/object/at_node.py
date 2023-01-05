@@ -119,11 +119,10 @@ def sort_links_at_node_by_angle(
         np.asarray(link_dirs_at_node, dtype=np.int8),
     )
 
-    if inplace:
-        if out[0] is not links_at_node or out[1] is not link_dirs_at_node:
-            raise ValueError(
-                "links_at_node and link_dirs_at_node arrays must be ndarray for in-place sort"
-            )
+    if inplace and (out[0] is not links_at_node or out[1] is not link_dirs_at_node):
+        raise ValueError(
+            "links_at_node and link_dirs_at_node arrays must be ndarray for in-place sort"
+        )
 
     if not inplace:
         if out[0] is links_at_node:

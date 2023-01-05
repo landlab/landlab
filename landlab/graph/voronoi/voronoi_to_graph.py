@@ -10,7 +10,7 @@ from ..sort.intpair import pair_isin
 from ..sort.sort import reverse_one_to_one
 
 
-class VoronoiDelaunay(object):
+class VoronoiDelaunay:
     def __init__(self, xy_of_node):
         # What we need:
         # * [x] xy_of_node
@@ -273,18 +273,18 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def ids_with_prefix(self, at):
         matches = set()
         if at == "patch":
-            prefix = re.compile("^{at}(es)?_at_".format(at=at))
+            prefix = re.compile(f"^{at}(es)?_at_")
         else:
-            prefix = re.compile("^{at}(s)?_at_".format(at=at))
-        for name, var in self._mesh.variables.items():
+            prefix = re.compile(f"^{at}(s)?_at_")
+        for name in self._mesh.variables:
             if prefix.search(name):
                 matches.add(name)
         return matches
 
     def ids_with_suffix(self, at):
         matches = set()
-        suffix = re.compile("at_{at}$".format(at=at))
-        for name, var in self._mesh.variables.items():
+        suffix = re.compile(f"at_{at}$")
+        for name in self._mesh.variables:
             if suffix.search(name):
                 matches.add(name)
         return matches
@@ -297,21 +297,19 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         at_ = {}
         if at in self._mesh.coords:
-            x = self._mesh["x_of_{at}".format(at=at)].values[is_a_keeper]
-            y = self._mesh["y_of_{at}".format(at=at)].values[is_a_keeper]
+            x = self._mesh[f"x_of_{at}"].values[is_a_keeper]
+            y = self._mesh[f"y_of_{at}"].values[is_a_keeper]
             data = np.arange(len(x))
 
             at_[at] = xr.DataArray(
                 data=data,
                 coords={
-                    "x_of_{at}".format(at=at): xr.DataArray(x, dims=(at,)),
-                    "y_of_{at}".format(at=at): xr.DataArray(y, dims=(at,)),
+                    f"x_of_{at}": xr.DataArray(x, dims=(at,)),
+                    f"y_of_{at}": xr.DataArray(y, dims=(at,)),
                 },
                 dims=(at,),
             )
-            self._mesh = self._mesh.drop_vars(
-                ["x_of_{at}".format(at=at), "y_of_{at}".format(at=at)]
-            )
+            self._mesh = self._mesh.drop_vars([f"x_of_{at}", f"y_of_{at}"])
 
         for name in self.ids_with_suffix(at):
             var = self._mesh[name]
