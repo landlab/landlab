@@ -269,11 +269,7 @@ def node_finder(grid, i, flowdirs, drain_area):
     diag_neigh = grid.diagonal_adjacent_nodes_at_node[i]
     angle_diff = np.rad2deg(angle_finder(grid, donor, i, receiver))
 
-    if donor == flowdirs[i]:
-        # this is a sink. no lateral ero
-        radcurv_angle = 0.0
-        lat_node = 0
-    elif donor == i:
+    if (donor == flowdirs[i]) or (donor == i):
         # this is a sink. no lateral ero
         radcurv_angle = 0.0
         lat_node = 0

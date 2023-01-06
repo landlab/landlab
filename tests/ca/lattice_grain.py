@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Provide rules and states for a lattice-grain CTS model.
 

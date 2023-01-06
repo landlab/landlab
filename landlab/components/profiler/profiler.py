@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """profiler.py component to create profiles with user-defined endpoints."""
 from collections import OrderedDict

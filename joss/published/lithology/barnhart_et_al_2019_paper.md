@@ -56,7 +56,7 @@ integrated landscape development [CHILD, @tucker2001channel] model [e.g.,
 @Forte2016Complexites] and the FastScape V5 model [@braun2013very;
 @Perne2017Steady]. To provide these capabilities within the Landlab framework,
 there is a need for a Landlab submodule that can treat spatial variations in
-rock materials.  
+rock materials.
 
 This contribution describes ``Lithology``, a Landlab submodule designed to
 support the representation of 3D variations in rock material properties within

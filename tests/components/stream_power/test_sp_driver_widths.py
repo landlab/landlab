@@ -55,7 +55,7 @@ def test_sp_widths():
     )
 
     # perform the loop (once!)
-    for i in range(1):
+    for _ in range(1):
         fr.run_one_step()
         sqrt_A = mg.at_node["drainage_area"] ** 0.5
         widths[mg.core_nodes] = sqrt_A[mg.core_nodes] / sqrt_A[mg.core_nodes].mean()

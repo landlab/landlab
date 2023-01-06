@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 from scipy.stats import fisk, genextreme
 
@@ -361,49 +363,49 @@ class SpatialPrecipitationDistribution(Component):
         total_rf_trend=0.0,
         storminess_trend=0.0,
         monsoon_fraction_of_year=0.42,
-        monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
-        monsoon_storm_duration_GEV={
-            "shape": -0.570252,
-            "sigma": 35.7389,
-            "mu": 34.1409,
-            "trunc_interval": (0.0, 1040.0),
-        },
-        monsoon_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        monsoon_storm_interarrival_GEV={
-            "shape": -0.807971,
-            "sigma": 9.4957,
-            "mu": 10.6108,
-            "trunc_interval": (0.0, 720.0),
-        },
-        monsoon_storm_radial_weakening_gaussian={"sigma": 0.08, "mu": 0.25},
-        winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
-        winter_storm_duration_fisk={
-            "c": 1.0821,
-            "scale": 68.4703,
-            "trunc_interval": (0.0, 5000.0),
-        },
-        winter_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        winter_storm_interarrival_GEV={
-            "shape": 1.1131,
-            "sigma": 53.2671,
-            "mu": 47.4944,
-            "trunc_interval": (0.0, 720.0),
-        },
-        winter_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
+        monsoon_total_rf_gaussian=(("sigma", 64.0), ("mu", 207.0)),
+        monsoon_storm_duration_GEV=(
+            ("shape", -0.570252),
+            ("sigma", 35.7389),
+            ("mu", 34.1409),
+            ("trunc_interval", (0.0, 1040.0)),
+        ),
+        monsoon_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        monsoon_storm_interarrival_GEV=(
+            ("shape", -0.807971),
+            ("sigma", 9.4957),
+            ("mu", 10.6108),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        monsoon_storm_radial_weakening_gaussian=(("sigma", 0.08), ("mu", 0.25)),
+        winter_total_rf_gaussian=(("sigma", 52.0), ("mu", 1.65)),
+        winter_storm_duration_fisk=(
+            ("c", 1.0821),
+            ("scale", 68.4703),
+            ("trunc_interval", (0.0, 5000.0)),
+        ),
+        winter_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        winter_storm_interarrival_GEV=(
+            ("shape", 1.1131),
+            ("sigma", 53.2671),
+            ("mu", 47.4944),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        winter_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
     ):
         """Yield a timeseries giving the number of storms occurring each year
         in a rainfall simulation.
@@ -534,53 +536,53 @@ class SpatialPrecipitationDistribution(Component):
         total_rf_trend=0.0,
         storminess_trend=0.0,
         monsoon_fraction_of_year=0.42,
-        monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
-        monsoon_storm_duration_GEV={
-            "shape": -0.570252,
-            "sigma": 35.7389,
-            "mu": 34.1409,
-            "trunc_interval": (1.0, 1040.0),
-        },
-        monsoon_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        monsoon_storm_interarrival_GEV={
-            "shape": -0.807971,
-            "sigma": 9.4957,
-            "mu": 10.6108,
-            "trunc_interval": (0.0, 720.0),
-        },
-        monsoon_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
-        winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
-        winter_storm_duration_fisk={
-            "c": 1.0821,
-            "scale": 68.4703,
-            "trunc_interval": (1.0, 5000.0),
-        },
-        winter_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        winter_storm_interarrival_GEV={
-            "shape": 1.1131,
-            "sigma": 53.2671,
-            "mu": 47.4944,
-            "trunc_interval": (0.0, 720.0),
-        },
-        winter_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
+        monsoon_total_rf_gaussian=(("sigma", 64.0), ("mu", 207.0)),
+        monsoon_storm_duration_GEV=(
+            ("shape", -0.570252),
+            ("sigma", 35.7389),
+            ("mu", 34.1409),
+            ("trunc_interval", (1.0, 1040.0)),
+        ),
+        monsoon_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        monsoon_storm_interarrival_GEV=(
+            ("shape", -0.807971),
+            ("sigma", 9.4957),
+            ("mu", 10.6108),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        monsoon_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
+        winter_total_rf_gaussian=(("sigma", 52.0), ("mu", 1.65)),
+        winter_storm_duration_fisk=(
+            ("c", 1.0821),
+            ("scale", 68.4703),
+            ("trunc_interval", (1.0, 5000.0)),
+        ),
+        winter_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        winter_storm_interarrival_GEV=(
+            ("shape", 1.1131),
+            ("sigma", 53.2671),
+            ("mu", 47.4944),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        winter_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
     ):
         """Yield a timeseries giving the number if storms occurring each year
         in a rainfall simulation.
@@ -699,53 +701,53 @@ class SpatialPrecipitationDistribution(Component):
         total_rf_trend=0.0,
         storminess_trend=0.0,
         monsoon_fraction_of_year=0.42,
-        monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
-        monsoon_storm_duration_GEV={
-            "shape": -0.570252,
-            "sigma": 35.7389,
-            "mu": 34.1409,
-            "trunc_interval": (1.0, 1040.0),
-        },
-        monsoon_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        monsoon_storm_interarrival_GEV={
-            "shape": -0.807971,
-            "sigma": 9.4957,
-            "mu": 10.6108,
-            "trunc_interval": (0.0, 720.0),
-        },
-        monsoon_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
-        winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
-        winter_storm_duration_fisk={
-            "c": 1.0821,
-            "scale": 68.4703,
-            "trunc_interval": (1.0, 5000.0),
-        },
-        winter_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        winter_storm_interarrival_GEV={
-            "shape": 1.1131,
-            "sigma": 53.2671,
-            "mu": 47.4944,
-            "trunc_interval": (0.0, 720.0),
-        },
-        winter_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
+        monsoon_total_rf_gaussian=(("sigma", 64.0), ("mu", 207.0)),
+        monsoon_storm_duration_GEV=(
+            ("shape", -0.570252),
+            ("sigma", 35.7389),
+            ("mu", 34.1409),
+            ("trunc_interval", (1.0, 1040.0)),
+        ),
+        monsoon_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        monsoon_storm_interarrival_GEV=(
+            ("shape", -0.807971),
+            ("sigma", 9.4957),
+            ("mu", 10.6108),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        monsoon_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
+        winter_total_rf_gaussian=(("sigma", 52.0), ("mu", 1.65)),
+        winter_storm_duration_fisk=(
+            ("c", 1.0821),
+            ("scale", 68.4703),
+            ("trunc_interval", (1.0, 5000.0)),
+        ),
+        winter_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        winter_storm_interarrival_GEV=(
+            ("shape", 1.1131),
+            ("sigma", 53.2671),
+            ("mu", 47.4944),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        winter_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
     ):
         """Yield a timeseries giving the number if storms occurring each season
         in a rainfall simulation. Only meaningfully different from yield_years
@@ -871,53 +873,53 @@ class SpatialPrecipitationDistribution(Component):
         monsoon_fraction_of_year=0.42,
         total_rf_trend=0.0,
         storminess_trend=0.0,
-        monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
-        monsoon_storm_duration_GEV={
-            "shape": -0.570252,
-            "sigma": 35.7389,
-            "mu": 34.1409,
-            "trunc_interval": (1.0, 1040.0),
-        },
-        monsoon_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        monsoon_storm_interarrival_GEV={
-            "shape": -0.807971,
-            "sigma": 9.4957,
-            "mu": 10.6108,
-            "trunc_interval": (0.0, 720.0),
-        },
-        monsoon_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
-        winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
-        winter_storm_duration_fisk={
-            "c": 1.0821,
-            "scale": 68.4703,
-            "trunc_interval": (1.0, 5000.0),
-        },
-        winter_storm_area_GEV={
-            "shape": 0.0,
-            "sigma": 2.83876e07,
-            "mu": 1.22419e08,
-            "trunc_interval": (5.0e06, 3.0e08),
-        },
-        winter_storm_interarrival_GEV={
-            "shape": 1.1131,
-            "sigma": 53.2671,
-            "mu": 47.4944,
-            "trunc_interval": (0.0, 720.0),
-        },
-        winter_storm_radial_weakening_gaussian={
-            "sigma": 0.08,
-            "mu": 0.25,
-            "trunc_interval": (0.15, 0.67),
-        },
+        monsoon_total_rf_gaussian=(("sigma", 64.0), ("mu", 207.0)),
+        monsoon_storm_duration_GEV=(
+            ("shape", -0.570252),
+            ("sigma", 35.7389),
+            ("mu", 34.1409),
+            ("trunc_interval", (1.0, 1040.0)),
+        ),
+        monsoon_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        monsoon_storm_interarrival_GEV=(
+            ("shape", -0.807971),
+            ("sigma", 9.4957),
+            ("mu", 10.6108),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        monsoon_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
+        winter_total_rf_gaussian=(("sigma", 52.0), ("mu", 1.65)),
+        winter_storm_duration_fisk=(
+            ("c", 1.0821),
+            ("scale", 68.4703),
+            ("trunc_interval", (1.0, 5000.0)),
+        ),
+        winter_storm_area_GEV=(
+            ("shape", 0.0),
+            ("sigma", 2.83876e07),
+            ("mu", 1.22419e08),
+            ("trunc_interval", (5.0e06, 3.0e08)),
+        ),
+        winter_storm_interarrival_GEV=(
+            ("shape", 1.1131),
+            ("sigma", 53.2671),
+            ("mu", 47.4944),
+            ("trunc_interval", (0.0, 720.0)),
+        ),
+        winter_storm_radial_weakening_gaussian=(
+            ("sigma", 0.08),
+            ("mu", 0.25),
+            ("trunc_interval", (0.15, 0.67)),
+        ),
     ):
         """This is the underlying process that runs the component, but it
         should be run by a user through the yield_storms and yield_years
@@ -983,6 +985,21 @@ class SpatialPrecipitationDistribution(Component):
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
         """
+        monsoon_total_rf_gaussian = dict(monsoon_total_rf_gaussian)
+        monsoon_storm_duration_GEV = dict(monsoon_storm_duration_GEV)
+        monsoon_storm_area_GEV = dict(monsoon_storm_area_GEV)
+        monsoon_storm_interarrival_GEV = dict(monsoon_storm_interarrival_GEV)
+        monsoon_storm_radial_weakening_gaussian = dict(
+            monsoon_storm_radial_weakening_gaussian
+        )
+        winter_total_rf_gaussian = dict(winter_total_rf_gaussian)
+        winter_storm_duration_fisk = dict(winter_storm_duration_fisk)
+        winter_storm_area_GEV = dict(winter_storm_area_GEV)
+        winter_storm_interarrival_GEV = dict(winter_storm_interarrival_GEV)
+        winter_storm_radial_weakening_gaussian = dict(
+            winter_storm_radial_weakening_gaussian
+        )
+
         FUZZMETHOD = "DEJH"
         FUZZWIDTH = 5.0  # if DEJH
         self._phantom_storm_count = 0
@@ -1078,7 +1095,7 @@ class SpatialPrecipitationDistribution(Component):
                 seas_time = 0.0  # tracks elapsed season time in hours
                 Storm_running_sum_seas = np.zeros((2, num_opennodes))
                 # ^ 1st col is running total, 2nd is data to add to it
-                if seas == 0 and not style == "winter":
+                if seas == 0 and style != "winter":
                     self._current_season = "M"
                     # This is the pdf fitted to all available station precip
                     # data (normal dist). It will be sampled below.
@@ -1122,14 +1139,13 @@ class SpatialPrecipitationDistribution(Component):
                 )[seas]
                 self._season_rf_limit = season_rf_limit
                 self._Ptot_ann_global[syear] += season_rf_limit
-                if seas == 0 and not style == "winter":
+                if seas == 0 and style != "winter":
                     self._Ptot_monsoon_global[syear] = season_rf_limit
                 Storm_total_local_seas = np.zeros((self._max_numstorms, num_opennodes))
                 seas_cum_Ptot_gauge = np.zeros(numgauges)
                 self._entries = 0
-                seas_storm_count = 0
 
-                for storm in range(self._max_numstorms):
+                for seas_storm_count, storm in enumerate(range(self._max_numstorms)):
                     self._rain_int_gauge.fill(0.0)
                     int_arr_val = genextreme.rvs(
                         c=Int_arr_pdf_GEV["shape"],
@@ -1242,7 +1258,7 @@ class SpatialPrecipitationDistribution(Component):
                             0.1090,
                             0.1182,
                         ]
-                    if seas == 0 and not style == "winter":
+                    if seas == 0 and style != "winter":
                         duration_val = genextreme.rvs(
                             c=Duration_pdf["shape"],
                             loc=Duration_pdf["mu"],
@@ -1311,14 +1327,12 @@ class SpatialPrecipitationDistribution(Component):
                     recess_val = np.random.normal(
                         loc=Recess_pdf_norm["mu"], scale=Recess_pdf_norm["sigma"]
                     )
-                    try:
+                    with contextlib.suppress(KeyError):
                         recess_val = np.clip(
                             recess_val,
                             Recess_pdf_norm["trunc_interval"][0],
                             Recess_pdf_norm["trunc_interval"][1],
                         )
-                    except KeyError:
-                        pass  # this one is OK <0., I think
                     self._recess_val = recess_val
                     # this pdf of recession coefficients determines how
                     # intensity declines with distance from storm center (see
@@ -1397,7 +1411,7 @@ class SpatialPrecipitationDistribution(Component):
                     self._opennodes
                 ] = Storm_running_sum_seas[0, :]
                 self._storm_running_sum_1st_seas += Storm_running_sum_seas[0, :]
-                if yield_seasons is True:
+                if yield_seasons:
                     yield seas_storm_count
 
             self._total_rf_year[opennodes] = self._storm_running_sum_of_seasons
@@ -1407,8 +1421,8 @@ class SpatialPrecipitationDistribution(Component):
     def calc_annual_rainfall(
         self,
         style="whole_year",
-        monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
-        winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
+        monsoon_total_rf_gaussian=(("sigma", 64.0), ("mu", 207.0)),
+        winter_total_rf_gaussian=(("sigma", 52.0), ("mu", 1.65)),
     ):
         """Return a tuple of rainfall totals (mm) for the year, with entries
         subdividing the yearly total into seasons as appropriate.
@@ -1444,6 +1458,9 @@ class SpatialPrecipitationDistribution(Component):
         >>> [len(x) == 1 for x in mytotals]
         [True, True, True]
         """
+        monsoon_total_rf_gaussian = dict(monsoon_total_rf_gaussian)
+        winter_total_rf_gaussian = dict(winter_total_rf_gaussian)
+
         assert style in ("whole_year", "monsoonal", "winter")
         if style in ("whole_year", "monsoonal"):
             # sample from normal distribution and saves global value of Ptot
@@ -1697,10 +1714,10 @@ if __name__ == "__main__":
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 1400.0
     rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
-    count = 0
     total_t = 0.0
-    for dt, interval_t in rain.yield_storms(style="whole_year", limit="total_time"):
-        count += 1
+    for count, dt, interval_t in enumerate(
+        rain.yield_storms(style="whole_year", limit="total_time")
+    ):
         total_t += dt + interval_t
         print(dt, interval_t)
         if count % 100 == 0:

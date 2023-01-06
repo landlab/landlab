@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """DepthDependentTaylorNonLinearDiffuser Component.
 
 @author: R Glade

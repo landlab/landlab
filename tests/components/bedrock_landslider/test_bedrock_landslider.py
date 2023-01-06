@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Nov 08 13:50:43 2021
 
@@ -109,7 +108,7 @@ def test_properties_phi_fraction_fines_LS():
 
 def test_sliding_plain():
     """
-    Test that if BedrockLandslider maths are sound and follow the Culmann theory
+    Test if BedrockLandslider maths are sound and follow the Culmann theory
     """
     # Make a raster model grid and create a plateau
     n_rows = 5
@@ -169,6 +168,7 @@ def test_sliding_evolution():
     hy = BedrockLandslider(
         mg,
         angle_int_frict=1,
+        threshold_slope=1,
         landslides_return_time=0.01,
         landslides_on_boundary_nodes=True,
         critical_sliding_nodes=[2],
@@ -228,7 +228,6 @@ def test_boundary_nodes():
         angle_int_frict=1,
         landslides_return_time=0.01,
         landslides_on_boundary_nodes=False,
-        critical_sliding_nodes=[2],
     )
 
     # run flow director and BedrockLandslider for long enough so that surface evolves

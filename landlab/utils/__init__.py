@@ -17,6 +17,7 @@ from .watershed import (
     get_watershed_nodes,
     get_watershed_outlet,
 )
+from .window_statistic import calculate_window_statistic
 
 __all__ = [
     "add_halo",
@@ -34,4 +35,5 @@ __all__ = [
     "return_array_at_link",
     "get_core_node_at_node",
     "get_core_node_matrix",
+    "calculate_window_statistic",
 ]

@@ -4,14 +4,14 @@ cff-version: "1.2.0"
 message: "If you use this software, please cite it using these metadata."
 abstract : "Landlab is an open-source Python-language package for numerical modeling of Earth surface dynamics."
 type: software
-authors: 
+authors:
   -
     family-names: Hutton
     given-names: Eric
     orcid: "https://orcid.org/0000-0002-5864-6459"
   -
     family-names: Barnhart
-    given-names: Katy  
+    given-names: Katy
     orcid: "https://orcid.org/0000-0001-5682-455X"
   -
     family-names: Hobley

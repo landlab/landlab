@@ -57,7 +57,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     -----
     Performs a numerical flux divergence operation on nodes.
 
-    LLCATS: NINF GRAD
+    :meta landlab: info-node, gradient
     """
     if unit_flux.size != grid.number_of_links:
         raise ValueError("Parameter unit_flux must be num links " "long")
@@ -129,7 +129,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     -----
     Performs a numerical flux divergence operation at cells.
 
-    LLCATS: NINF GRAD
+    :meta landlab: info-node, gradient
     """
     if unit_flux.size not in (grid.number_of_links, grid.number_of_faces):
         raise ValueError(
@@ -221,7 +221,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     for these nodes. The current algorithm uses fancy indexing (calling
     _calc_net_face_flux_at_cells) and could probably be made faster.
 
-    LLCATS: NINF GRAD
+    :meta landlab: info-node, gradient
     """
     if out is None:
         out = grid.zeros(at="node")
