@@ -1,21 +1,16 @@
-{BIS: {growparams: {glucose_requirement: [1.444, 1.513, 1.463], growing_season_end: 305,
-      growing_season_start: 45, k_light_extinct: 0.02, light_half_sat: 9, p_max: 0.055,
-      plant_part_min: [0.01, 0.1, 0.5], root_to_leaf_coeffs: [0.09, 0.889, -0.0254],
-      root_to_stem_coeffs: [-0.097, 1.071, 0.0179], senescence_start: 228}, plant_factors: {
-      angio_gymno: angiosperm, annual_perennial: perennial, growth_form: shrub, monocot_dicot: monocot,
-      ptype: C3, species: 'Burial intolerant stabilizer '}, sizeparams: {max_height_stem: 1.0,
-      max_n_stems: 3.0, max_plant_density: 34.0, total_cs_area_stems: 0.231}, storparams: {
-      wint_dieoff_roots: 0.25}}, BTS: {growparams: {glucose_requirement: [1.444, 1.513,
-        1.463], growing_season_end: 305, growing_season_start: 45, k_light_extinct: 0.02,
-      light_half_sat: 9, p_max: 0.055, plant_part_min: [0.01, 0.1, 0.5], root_to_leaf_coeffs: [
-        -0.107, 1.098, 0.0216], senescence_start: 228}, plant_factors: {angio_gymno: angiosperm,
-      annual_perennial: perennial, growth_form: graminoid, monocot_dicot: monocot,
-      ptype: C3, species: Burial tolerant stabilizer}, sizeparams: {max_height_stem: 1.0,
-      max_n_stems: 3.0, max_plant_density: 34.0, total_cs_area_stems: 0.231}, storparams: {
-      wint_dieoff_roots: 0.25}}, DB: {growparams: {glucose_requirement: [1.444, 1.513,
-        1.463], growing_season_end: 305, growing_season_start: 45, k_light_extinct: 0.02,
-      light_half_sat: 9, p_max: 0.055, plant_part_min: [0.01, 0.1, 0.5], root_to_leaf_coeffs: [
-        -0.107, 1.098, 0.0216], senescence_start: 228}, plant_factors: {angio_gymno: angiosperm,
-      annual_perennial: perennial, growth_form: graminoid, monocot_dicot: monocot,
-      ptype: C3, species: Dune Builder}, sizeparams: {max_height_stem: 1.0, max_n_stems: 3.0,
-      max_plant_density: 34.0, total_cs_area_stems: 0.231}, storparams: {wint_dieoff_roots: 0.25}}}
+{Corn: {duration_params: {growing_season_end: 243, growing_season_start: 121, senescence_start: 228},
+    grow_params: {glucose_requirement: [1.444, 1.513, 1.463], k_light_extinct: 0.51,
+      light_half_sat: 100, p_max: 0.0372, plant_part_max: [6,25,30], plant_part_min: [0.01, 0.1, 0.5], respiration_coefficient: [
+        0.015, 0.015, 0.03], root_to_leaf_coeffs: [0.031, 0.951, 0], root_to_stem_coeffs: [
+        -0.107, 1.098, 0.0216]}, plant_factors: {angio_gymno: angiosperm, duration: annual,
+      growth_form: single_stem, growth_habit: graminoid, leaf_retention: deciduous,
+      monocot_dicot: monocot, p_type: C4, shape: erect, species: Corn}, size_params: {
+      max_height_stem: 1.0, max_n_stems: 3.0, max_plant_density: 34.0, total_cs_area_stems: 0.231}},
+  Wheat: {duration_params: {growing_season_end: 305, growing_season_start: 144, senescence_start: 273},
+    grow_params: {glucose_requirement: [1.444, 1.513, 1.463], k_light_extinct: 0.48,
+      light_half_sat: 100, p_max: 0.05, plant_part_max:[1.23, 5, 4],plant_part_min: [0.01, 0.1, 0.5], respiration_coefficient: [
+        0.015, 0.015, 0.03], root_to_leaf_coeffs: [0.031, 0.951, 0], root_to_stem_coeffs: [
+        -0.107, 1.098, 0.0216]}, plant_factors: {angio_gymno: angiosperm, duration: annual,
+      growth_form: bunch, growth_habit: graminoid, leaf_retention: deciduous, monocot_dicot: monocot,
+      p_type: C4, shape: erect, species: Wheat}, size_params: {max_height_stem: 1.0,
+      max_n_stems: 3.0, max_plant_density: 34.0, total_cs_area_stems: 0.231}}}
