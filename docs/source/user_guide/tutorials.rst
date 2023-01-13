@@ -54,7 +54,7 @@ or by downloading the script and running the following from the terminal,
 
    $ python -m notebooks
 
-.. _notebooks.py: https://github.com/landlab/landlab/blob/mcflugen/fetch-notebooks-script/notebooks.py
+.. _notebooks.py: https://github.com/landlab/landlab/blob/master/notebooks.py
 
 Install dependencies
 ````````````````````
