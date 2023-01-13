@@ -158,6 +158,9 @@ class GenVeg(Component, PlantGrowth):
         view=self.record_grid.dataset.to_dataframe()
         return view
 
+    def print_test_output(self):
+        pass
+        #return self.test_output
     
     def save_output(self, save_params=['root_biomass','leaf_biomass','stem_biomass']):
         rel_time=self. _calc_rel_time()

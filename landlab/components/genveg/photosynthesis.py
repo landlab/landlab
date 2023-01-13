@@ -4,7 +4,8 @@ class Photosynthesis(object):
     def __init__(self):
         pass
 
-    def photosynthesize(self, grid_par_W_per_sqm, growdict, last_biomass, daylength):    
+    def photosynthesize(self, grid_par_W_per_sqm, growdict, last_biomass,_glu_req, daylength):
+        print('I am photosynthesizing during the growing season')    
         par_micromol_per_sqm_s = (grid_par_W_per_sqm) * 4.6 
         #from Charisma instructions: tells how much of the light a plant is going to get as PAR in microeinsteins based on how many leaves are on the plant
         intSolarRad = par_micromol_per_sqm_s*np.exp(-(growdict['k_light_extinct'])*last_biomass['leaf_biomass'])  
@@ -18,7 +19,9 @@ class Photosynthesis(object):
         assimilatedCH2O = dtgaCollapsed*daylength 
         #converts carbohydrates to glucose where photosynthesis unit is glucose and then we later convert that glucose to biomass in another section
         gphot = assimilatedCH2O*(30/44)
-        return gphot 
+        delta_tot=np.zeros_like(_glu_req)
+        delta_tot[_glu_req!=0]=gphot[_glu_req!=0]/_glu_req[_glu_req!=0]
+        return delta_tot 
 
         def estimate_PAR (self, 
             jday,             

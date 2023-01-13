@@ -6,7 +6,6 @@ from .habit import *
 from .form import *
 from .shape import *
 from .photosynthesis import *
-from scipy.optimize import fsolve
 import numpy as np
 
 #Define species class that inherits composite class methods
@@ -127,11 +126,11 @@ class Species(object):
 
     def select_habit_class(self, habit_val, duration, retention_val):
         habit={
-            'forb_herb':Forbherb(duration),
-            'graminoid':Graminoid(duration),
-            'shrub':Shrub(duration, retention_val),
-            'tree':Tree(duration, retention_val),
-            'vine':Vine(duration, retention_val)
+            'forb_herb':Forbherb(self.species_grow_params, duration),
+            'graminoid':Graminoid(self.species_grow_params, duration),
+            'shrub':Shrub(self.species_grow_params, duration, retention_val),
+            'tree':Tree(self.species_grow_params, duration, retention_val),
+            'vine':Vine(self.species_grow_params, duration, retention_val)
         }
         return habit[habit_val]
     
@@ -163,6 +162,9 @@ class Species(object):
         }
         return shape[shape_val]
 
+    def test_output(self):
+        return self.habit.duration.emerge_plants
+
     def branch(self):
         self.form.branch()
         
@@ -173,68 +175,35 @@ class Species(object):
         plants=self.habit.enter_dormancy(plants)
         return plants
 
-    def emerge(self):
-        self.habit.emerge()
+    def emerge(self, plants):
+        plants=self.habit.duration.emerge(plants)
+        return plants
     
-    def photosynthesize(self, _par, growdict, _last_biomass, _daylength):
-        gphot=self.photosynthesis.photosynthesize(_par, growdict, _last_biomass, _daylength)
-        return gphot
+    def photosynthesize(self, _par, _last_biomass, _glu_req,_daylength):
+        delta_tot=self.photosynthesis.photosynthesize(_par, self.species_grow_params, _last_biomass, _glu_req, _daylength)
+        return delta_tot
+
+    def respire(self, _temperature, _last_biomass, _glu_req):
+        growdict=self.species_grow_params
+        #repiration coefficient temp dependence from Teh 2006
+        kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_temperature - 25)/10))  
+        kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_temperature - 25)/10)) 
+        kmRTG = growdict['respiration_coefficient'][0] * pow(2,((_temperature - 25)/10)) 
+        #maintenance respiration per day from Teh 2006
+        rmPrime = (kmLVG * _last_biomass['leaf_biomass']) + (kmSTG * _last_biomass['stem_biomass']) + (kmRTG * _last_biomass['root_biomass'])  
+        #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
+        #THIS NEEDS TO BE UPDATED
+        #plantAge = _last_biomass['leaf_biomass']/_last_biomass['leaf_biomass']
+        #plant age dependence from Teh 2006 page 145    
+        respMaint = rmPrime
+        delta_respire=np.zeros_like(_glu_req)
+        delta_respire[_glu_req!=0]=(-respMaint[_glu_req!=0])/_glu_req[_glu_req!=0]
+        return delta_respire
 
     def senesce(self, plants):
         plants=self.habit.senesce(plants)
         return plants
 
-    def set_initial_biomass(self, plant_array, in_growing_season):
-        species_grow_params=self.species_grow_params
-        min_mass, max_mass=self.habit.set_init_biomass_range(species_grow_params)
-        coeffs=species_grow_params['root_to_leaf_coeffs']+species_grow_params['root_to_stem_coeffs']
-        total_biomass=np.random.rand(plant_array.size)*(max_mass-min_mass)+min_mass
-        #Call biomass allocation method
-        root_bio,leaf_bio,stem_bio=self._solve_init_biomass_allocation(total_biomass, coeffs)
-        if 'root' not in self.habit.green_parts:
-            plant_array['root_biomass']=root_bio
-        else:
-            plant_array['root_biomass']=np.zeros_like(root_bio)
-        if (in_growing_season) or ('leaf' not in self.habit.green_parts): 
-            plant_array['leaf_biomass']=leaf_bio
-        else:
-            plant_array['leaf_biomass']=np.zeros_like(leaf_bio)
-        if (in_growing_season) & ('stem' not in self.habit.green_parts):
-            plant_array['stem_biomass']=stem_bio
-        else:
-            plant_array['stem_biomass']=np.zeros_like(stem_bio)
-        return plant_array
-    
-    def _solve_init_biomass_allocation(self, total_biomass, solver_coeffs):
-        #Initialize arrays to calculate root, leaf and stem biomass from total
-        root=[]
-        leaf=[]
-        stem=[]
-        
-        #Loop through grid array
-        for total_biomass_in_cell in total_biomass:
-            solver_guess = np.full(3,np.log10(total_biomass_in_cell/3))            
-            part_biomass_log10=fsolve(self._solverFuncs,solver_guess,(solver_coeffs,total_biomass_in_cell))            
-            part_biomass=10**part_biomass_log10
-            
-            root.append(part_biomass[0])
-            leaf.append(part_biomass[1])
-            stem.append(part_biomass[2])
-        
-        #Convert to numpy array
-        root=np.array(root)
-        leaf=np.array(leaf)
-        stem=np.array(stem)      
-        return root, leaf, stem
-
-    def _solverFuncs(self,solver_guess,solver_coeffs,total_biomass):
-        root_part_log10=solver_guess[0]
-        leaf_part_log10=solver_guess[1]
-        stem_part_log10=solver_guess[2]
-        plant_part_biomass_log10 = np.empty([(3)])
-
-        plant_part_biomass_log10[0]=10**root_part_log10+10**leaf_part_log10+10**stem_part_log10-total_biomass
-        plant_part_biomass_log10[1]=solver_coeffs[0]+solver_coeffs[1]*root_part_log10+solver_coeffs[2]*root_part_log10**2-leaf_part_log10
-        plant_part_biomass_log10[2]=solver_coeffs[3]+solver_coeffs[4]*root_part_log10+solver_coeffs[5]*root_part_log10**2-stem_part_log10
-        
-        return plant_part_biomass_log10
+    def set_initial_biomass(self, plants, in_growing_season):
+        plants=self.habit.duration.set_initial_biomass(plants,in_growing_season)
+        return plants
