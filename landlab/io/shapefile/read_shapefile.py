@@ -378,10 +378,11 @@ def read_shapefile(
     # add values to fields.
     for field_name in link_fields:
         mapped_field_name = link_field_conversion.get(field_name, field_name)
-        grid.at_link[mapped_field_name] = _infer_data_type(
-            np.take(fields[field_name], sorted_links),
-            dtype=link_field_dtype.get(field_name, None),
+
+        values = _convert_array(
+            fields[field_name], dtype=link_field_dtype.get(field_name, None)
         )
+        grid.at_link[mapped_field_name] = np.take(values, sorted_links)
 
     # if a points shapefile is added, bring in and use.
     if points_shapefile:
@@ -458,3 +459,22 @@ def read_shapefile(
             )
 
     return grid
+
+
+def _convert_array(values, dtype=None):
+    try:
+        array = np.asarray(values, dtype=dtype)
+    except ValueError:
+        is_jagged_array = True
+    else:
+        is_jagged_array = False
+
+    if is_jagged_array:
+        array = np.array(
+            [
+                _infer_data_type(value, dtype=dtype)
+                for value in values
+            ],
+            dtype=object,
+        )
+    return array
