@@ -471,10 +471,7 @@ def _convert_array(values, dtype=None):
 
     if is_jagged_array:
         array = np.array(
-            [
-                _infer_data_type(value, dtype=dtype)
-                for value in values
-            ],
+            [_infer_data_type(value, dtype=dtype) for value in values],
             dtype=object,
         )
     return array
