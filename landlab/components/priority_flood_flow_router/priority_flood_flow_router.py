@@ -25,7 +25,6 @@ from landlab.utils.return_array import return_array_at_node
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc, _D8_flowDir
 
-
 # Codes for depression status
 _UNFLOODED = 0
 _PIT = 1
