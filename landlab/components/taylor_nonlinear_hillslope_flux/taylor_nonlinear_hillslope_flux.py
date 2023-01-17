@@ -55,7 +55,9 @@ class TaylorNonLinearDiffuser(Component):
     hillslope diffustivity, D, the maximum slope, Smax, and the critical slope
     Sc.
 
-        Demax = D ( 1 + ( Smax / Sc )**2 ( Smax / Sc )**4 + .. + ( Smax / Sc )**( 2 * ( n - 1 )) )
+        Demax = D * (
+            1 + (Smax / Sc) ** 2 (Smax / Sc) ** 4 + ... + (Smax / Sc) ** (2 * (n - 1))
+        )
 
     The maximum stable time step is given by
 
@@ -144,8 +146,10 @@ class TaylorNonLinearDiffuser(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},

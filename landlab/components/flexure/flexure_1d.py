@@ -162,7 +162,10 @@ class Flexure1D(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+            "doc": (
+                "The change in elevation of the top of the lithosphere (the "
+                "land surface) in one timestep"
+            ),
         },
     }
 

@@ -2087,12 +2087,13 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
             if len(possible_outlets) > 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has %r"
-                    % len(possible_outlets)
+                    "Model grid must only have one node with node status of "
+                    f"BC_NODE_IS_FIXED_VALUE. This grid has {len(possible_outlets)}."
                 )
             if len(possible_outlets) < 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has none"
+                    "Model grid must only have one node with node status of "
+                    "BC_NODE_IS_FIXED_VALUE. This grid has none"
                 )
 
             outlet_id = possible_outlets

@@ -13,11 +13,11 @@ from landlab.core.messages import (
 
 LOREM_IPSUM = os.linesep.join(
     [
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",  # noqa: B950
         "",
         "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
         "",
-        "Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in hac habitasse platea dictumst vestibulum rhoncus.",
+        "Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in hac habitasse platea dictumst vestibulum rhoncus.",  # noqa: B950
     ]
 )
 
@@ -26,7 +26,7 @@ def test_split_paragraphs_cr():
     """Test splitting paragraphs with carriage returns."""
     text = """
 Pharetra pharetra massa massa ultricies mi quis hendrerit.\r\rDictumst vestibulum rhoncus est pellentesque.
-    """
+    """  # noqa: B950
     assert split_paragraphs(text, linesep="\r") == [
         "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
         "Dictumst vestibulum rhoncus est pellentesque.",
@@ -37,7 +37,7 @@ def test_split_paragraphs_lf():
     """Test splitting paragraphs with line feeds."""
     text = """
 Pharetra pharetra massa massa ultricies mi quis hendrerit.\n\nDictumst vestibulum rhoncus est pellentesque.
-    """
+    """  # noqa: B950
     assert split_paragraphs(text, linesep="\n") == [
         "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
         "Dictumst vestibulum rhoncus est pellentesque.",
@@ -48,7 +48,7 @@ def test_split_paragraphs_crlf():
     """Test splitting paragraphs with carriage returns and line feeds."""
     text = """
 Pharetra pharetra massa massa ultricies mi quis hendrerit.\r\n\r\nDictumst vestibulum rhoncus est pellentesque.
-    """
+    """  # noqa: B950
     assert split_paragraphs(text, linesep="\r\n") == [
         "Pharetra pharetra massa massa ultricies mi quis hendrerit.",
         "Dictumst vestibulum rhoncus est pellentesque.",
@@ -72,7 +72,10 @@ def test_leading_whitespace():
 
 def test_one_long_line():
     """Test a line that needs to be wrapped."""
-    msg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+    msg = (
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod "
+        "tempor incididunt ut labore et dolore magna aliqua."
+    )
 
     assert format_message(msg) == os.linesep.join(
         [

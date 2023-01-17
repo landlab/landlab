@@ -832,12 +832,10 @@ class EventLayers:
         for name in kwds:
             try:
                 self[name][-1] = kwds[name]
-            except KeyError:
+            except KeyError as exc:
                 raise ValueError(
-                    "EventLayers: {} is not being tracked. Error in adding.".format(
-                        name
-                    )
-                )
+                    f"{name!r} is not being tracked. Error in adding."
+                ) from exc
 
     def reduce(self, *args, **kwds):
         """reduce([start], stop, [step])

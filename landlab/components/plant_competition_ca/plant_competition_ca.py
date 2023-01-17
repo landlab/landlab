@@ -113,7 +113,10 @@ class VegCA(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+            "doc": (
+                "classification of plants (int), grass=0, shrub=1, tree=2, "
+                "bare=3, shrub_seedling=4, tree_seedling=5"
+            ),
         },
     }
 

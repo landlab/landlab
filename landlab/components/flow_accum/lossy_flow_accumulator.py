@@ -48,27 +48,26 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     LossyFlowAccumulator stores as ModelGrid fields:
 
-        -  Node array of drainage areas: *'drainage_area'*
-        -  Node array of discharges: *'surface_water__discharge'*
-        -  Node array of discharge loss in transit (vol/sec). This is the
-            total loss across all of the downstream links:
-            *'surface_water__discharge_loss'*
-        -  Node array containing downstream-to-upstream ordered list of node
-           IDs: *'flow__upstream_node_order'*
-        -  Node array of all but the first element of the delta data structure:
-            *flow__data_structure_delta*. The first element is always zero.
+    -  Node array of drainage areas: *'drainage_area'*
+    -  Node array of discharges: *'surface_water__discharge'*
+    -  Node array of discharge loss in transit (vol/sec). This is the
+       total loss across all of the downstream links:
+       *'surface_water__discharge_loss'*
+    -  Node array containing downstream-to-upstream ordered list of node
+       IDs: *'flow__upstream_node_order'*
+    -  Node array of all but the first element of the delta data structure:
+       *flow__data_structure_delta*. The first element is always zero.
 
     The FlowDirector component will add additional ModelGrid fields; see the
-    `FlowAccumulator component <https://landlab.readthedocs.io/en/release/reference/components/flow_accum.html>`_
-    for full details. These are:
+    :class:`~landlab.components.FlowAccumulator` for full details. These are:
 
-        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-            there is no receiver: *'flow__receiver_node'*
-        -  Node array of flow proportions: *'flow__receiver_proportions'*
-        -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*
-        -  Node array of downhill slopes from each receiver:
-            *'topographic__steepest_slope'*
-        -  Boolean node array of all local lows: *'flow__sink_flag'*
+    -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+       there is no receiver: *'flow__receiver_node'*
+    -  Node array of flow proportions: *'flow__receiver_proportions'*
+    -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*
+    -  Node array of downhill slopes from each receiver:
+       *'topographic__steepest_slope'*
+    -  Boolean node array of all local lows: *'flow__sink_flag'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -249,7 +248,11 @@ class LossyFlowAccumulator(FlowAccumulator):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+            "doc": (
+                "Node array containing the elements delta[1:] of the data "
+                "structure 'delta' used for construction of the "
+                "downstream-to-upstream node array"
+            ),
         },
         "flow__upstream_node_order": {
             "dtype": int,
@@ -289,7 +292,10 @@ class LossyFlowAccumulator(FlowAccumulator):
             "optional": True,
             "units": "m/s",
             "mapping": "node",
-            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+            "doc": (
+                "External volume water per area per time input to each node "
+                "(e.g., rainfall rate)"
+            ),
         },
     }
 

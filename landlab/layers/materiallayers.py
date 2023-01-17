@@ -289,11 +289,10 @@ class MaterialLayers(EventLayers):
             for name in kwds:
                 try:
                     is_compatible = self[name][self.surface_index] == kwds[name]
-                except KeyError:
-                    msg = "MaterialLayers: {} is not being tracked. Error in adding.".format(
-                        name
-                    )
-                    raise ValueError(msg)
+                except KeyError as exc:
+                    raise ValueError(
+                        f"{name!r} is not being tracked. Error in adding."
+                    ) from exc
 
                 if not np.all(is_compatible[where_deposition]):
                     return False

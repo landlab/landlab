@@ -35,7 +35,9 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     >>> grid.number_of_nodes
     6
 
-    >>> grid = FramedVoronoiGrid((4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=200)
+    >>> grid = FramedVoronoiGrid(
+    ...     (4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=200
+    ... )
     >>> grid.status_at_node
     array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
     >>> grid.x_of_node[3]
@@ -50,15 +52,14 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     array([ 0,  1,  2,  3,  4,  5,  9, 10, 11, 12, 13, 14])
     """
 
-    # Inheritance diagram
-    # x xxxxxxxxxxxxxxx x
-    # x                  ModelGrid                                                                       DelaunayGraph
-    # x FramedVoronoiGrid /                                                                               /
-    # x                  |                        FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
-    # x                  DualFramedVoronoiGraph /
-    # x                                         \
-    # x                                          DualGraph
-    # x                                                   ~ use of static Graph.sort()
+    # Inheritance diagram:
+    #
+    # FramedVoronoiGrid
+    # |-- ModelGrid
+    # `-- DualFramedVoronoiGraph
+    #     |-- FramedVoronoiGraph (Layout: HorizontalRectVoronoiGraph)
+    #     |   `-- DelaunayGraph
+    #     `-- DualGraph (use of static Graph.sort())
 
     def __init__(
         self,
