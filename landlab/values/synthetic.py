@@ -144,13 +144,13 @@ def _where_to_add_values(grid, at, where):
 
 def _convert_where(where, at):
     if at not in _STATUS:
-        raise AttributeError(f"boundary conditions are not defined at {at}")
+        raise AttributeError(f"boundary conditions are not defined at {at!r}")
 
     if isinstance(where, str):
         try:
             return _STATUS[at][where]
         except KeyError:
-            raise ValueError(f"'{where}' status does not exists for {at}.")
+            raise ValueError(f"{where!r} status does not exists for {at!r}.")
     else:
         return where
 
