@@ -583,7 +583,7 @@ def test_bad_metric_name():
     # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         PriorityFloodFlowRouter(mg, flow_metric="spam", suppress_out=True)
 
 
@@ -592,7 +592,7 @@ def test_bad_hill_metric_name():
     # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         PriorityFloodFlowRouter(
             mg, hill_flow_metric="Landlab_is_cool", suppress_out=True
         )
@@ -603,7 +603,7 @@ def test_bad_depression_handler():
     # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         PriorityFloodFlowRouter(
             mg, depression_handler="depression_filler", suppress_out=True
         )

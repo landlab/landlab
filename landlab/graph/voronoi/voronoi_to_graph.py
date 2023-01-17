@@ -33,6 +33,10 @@ class VoronoiDelaunay:
         delaunay = Delaunay(xy_of_node)
         voronoi = Voronoi(xy_of_node)
 
+        voronoi.regions, voronoi.point_region = VoronoiDelaunay._remove_empty_regions(
+            voronoi.regions, voronoi.point_region
+        )
+
         mesh = xr.Dataset(
             {
                 "node": xr.DataArray(
@@ -91,6 +95,34 @@ class VoronoiDelaunay:
         return np.asarray(
             jaggedarray.unravel(jagged.array, jagged.offset, pad=-1), dtype=int
         )
+
+    @staticmethod
+    def _remove_empty_regions(regions, point_region):
+        """Remove regions that have no points.
+
+        Parameters
+        ----------
+        regions : list of list of int
+            Lists of each region's vertices.
+        point_regions : list in int
+            The region associated with each point.
+
+        Returns
+        -------
+        regions, point_regions
+            Copies of the input arrays with empty regions removed.
+        """
+        size_of_region = np.array([len(region) for region in regions], dtype=int)
+        empty_regions = np.where(size_of_region == 0)[0]
+
+        if len(empty_regions):
+            point_region = np.asarray(point_region, dtype=int)
+
+            regions = list(regions)
+            for region in empty_regions[::-1]:
+                regions.pop(region)
+                point_region[point_region >= region] -= 1
+        return regions, point_region
 
     @property
     def number_of_nodes(self):
