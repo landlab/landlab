@@ -15,7 +15,7 @@ from landlab.components.priority_flood_flow_router.cfuncs import (
 )
 from landlab.grid.nodestatus import NodeStatus
 
-if not PriorityFloodFlowRouter.WITH_RICHDEM:
+if not PriorityFloodFlowRouter.load_richdem():
     pytestmark = pytest.mark.skip(reason="richdem is not installed")
 
 
