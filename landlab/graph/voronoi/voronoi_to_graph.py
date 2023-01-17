@@ -116,7 +116,7 @@ class VoronoiDelaunay:
         empty_regions = np.where(size_of_region == 0)[0]
 
         if len(empty_regions):
-            regions = [region for region in regions]
+            regions = list(region for region in regions)
 
             point_region = np.asarray(point_region, dtype=int)
 
