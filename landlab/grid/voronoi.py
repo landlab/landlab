@@ -229,7 +229,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         if path.exists() and not clobber:
             raise ValueError(
-                f"File exists: {repr(str(path))}. "
+                f"File exists: {str(path)!r}. "
                 "Either remove this file and try again or set the "
                 "'clobber' keyword to True"
             )
