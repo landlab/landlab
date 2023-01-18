@@ -58,10 +58,9 @@ class NetworkSedimentTransporter(Component):
     to calculate the transport have units (Wilcock and Crowe, 2003).
 
     There is a function that assists in plotting the output of this component.
-    It is called
-    :py:func:`~landlab.plot.network_sediment_transporter.plot_network_and_parcels`.
-    Examples of its usage can be found in the NetworkSedimentTransporter
-    notebooks (located in the "notebooks" folder).
+    It is called :func:`~.plot.plot_network_and_parcels`.  Examples of its usage
+    can be found in the NetworkSedimentTransporter notebooks (located in the
+    "notebooks" folder).
 
     Examples
     ----------
@@ -72,14 +71,14 @@ class NetworkSedimentTransporter(Component):
 
     The NetworkSedimentTransporter moves "parcels" of sediment down a network
     based on a given flow and a given sediment transport formulation. The river
-    network is represented by a landlab :py:class:`~landlab.grid.network.NetworkModelGrid`.
+    network is represented by a landlab :class:`~.NetworkModelGrid`.
     Flow direction in the network is determined using a landlab flow director.
     Sediment parcels are represented as items within a landlab
-    :py:class:`~landlab.data_record.data_record.DataRecord`. The landlab
-    :py:class:`~landlab.data_record.data_record.DataRecord` is used to track
+    :class:`~.DataRecord`. The landlab
+    :class:`~.DataRecord` is used to track
     the location, grain size, sediment density, and total volume of each parcel.
 
-    Create a :py:class:`~landlab.grid.network.NetworkModelGrid` to represent
+    Create a :class:`~.NetworkModelGrid` to represent
     the river channel network. In this case, the grid is a single line of 4
     nodes connected by 3 links. Each link represents a reach of river.
 
@@ -89,7 +88,7 @@ class NetworkSedimentTransporter(Component):
     >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
     Add required channel and topographic variables to the
-    :py:class:`~landlab.grid.network.NetworkModelGrid`.
+    :class:`~.network.NetworkModelGrid`.
 
     >>> _ = nmg.add_field("bedrock__elevation", [3., 2., 1., 0.], at="node") # m
     >>> _ = nmg.add_field("reach_length", [100., 100., 100.], at="link")  # m
@@ -100,8 +99,8 @@ class NetworkSedimentTransporter(Component):
     ...     "flow_depth", (2 * np.ones(nmg.size("link"))), at="link"
     ... ) # m
 
-    Add ``topographic__elevation`` to the grid because the
-    :py:class:`~landlab.components.FlowDirectorSteepest` will look to it to
+    Add ``"topographic__elevation"`` to the grid because the
+    :class:`~.FlowDirectorSteepest` will look to it to
     determine the direction of sediment transport through the network. Each
     time we run the `NetworkSedimentTransporter` the topography will be
     updated based on the bedrock elevation and the distribution of alluvium.
@@ -112,8 +111,8 @@ class NetworkSedimentTransporter(Component):
     ...     at="node",
     ... )
 
-    Run :py:class:`~landlab.components.FlowDirectorSteepest` to determine the
-    direction of sediment transport through the network.
+    Run :class:`~.FlowDirectorSteepest` to determine the direction of sediment
+    transport through the network.
 
     >>> flow_director = FlowDirectorSteepest(nmg)
     >>> flow_director.run_one_step()
@@ -126,8 +125,7 @@ class NetworkSedimentTransporter(Component):
     Define the sediment characteristics that will be used to create the parcels
     ``DataRecord``.
 
-    >>> items = {"grid_element": "link",
-    ...          "element_id": np.array([[0]])}
+    >>> items = {"grid_element": "link", "element_id": np.array([[0]])}
 
     >>> variables = {
     ...     "starting_link": (["item_id"], np.array([0])),
@@ -140,31 +138,29 @@ class NetworkSedimentTransporter(Component):
     ...     "volume": (["item_id", "time"], np.array([[1]])),
     ... }
 
-    Create the sediment parcel :py:class:`~landlab.data_record.data_record.DataRecord`.
-    In this case, we are creating a single sediment parcel with all of
-    the required attributes.
+    Create the sediment parcel :class:`~.DataRecord`. In this case, we are creating
+    a single sediment parcel with all of the required attributes.
 
     >>> one_parcel = DataRecord(
     ...     nmg,
     ...     items=items,
     ...     time=time,
     ...     data_vars=variables,
-    ...     dummy_elements={
-    ...         "link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
+    ...     dummy_elements={"link": [NetworkSedimentTransporter.OUT_OF_NETWORK]},
     ... )
 
     Instantiate the model run
 
     >>> nst = NetworkSedimentTransporter(
-    ...         nmg,
-    ...         one_parcel,
-    ...         flow_director,
-    ...         bed_porosity=0.03,
-    ...         g=9.81,
-    ...         fluid_density=1000,
-    ...         transport_method="WilcockCrowe",
-    ...         active_layer_method="WongParker"
-    ...     )
+    ...     nmg,
+    ...     one_parcel,
+    ...     flow_director,
+    ...     bed_porosity=0.03,
+    ...     g=9.81,
+    ...     fluid_density=1000,
+    ...     transport_method="WilcockCrowe",
+    ...     active_layer_method="WongParker"
+    ... )
 
     >>> dt = 60  # (seconds) 1 min timestep
 
@@ -274,24 +270,21 @@ class NetworkSedimentTransporter(Component):
         Parameters
         ----------
         grid: NetworkModelGrid
-            A :py:class:`~landlab.grid.network.NetworkModelGrid` in which links
-            are stream channel segments.
+            A :class:`~.NetworkModelGrid` in which links are stream channel segments.
         parcels: DataRecord
-            A landlab :py:class:`~landlab.data_record.data_record.DataRecord`
-            describing the characteristics and location of sediment "parcels".
-            At any given timestep, each parcel is located at a specified point
-            along (location_in_link) a particular link (element_id). Each
-            parcel has a total sediment volume (volume), sediment grain size (D),
-            sediment density (density), and bed material abrasion rate
+            A landlab :class:`~.DataRecord` describing the characteristics and
+            location of sediment "parcels".  At any given timestep, each parcel is
+            located at a specified point along (location_in_link) a particular link
+            (element_id). Each parcel has a total sediment volume (volume), sediment
+            grain size (D), sediment density (density), and bed material abrasion rate
             (abrasion_rate). During a given timestep, parcels may be in the
             "active layer" of most recently deposited sediment
             (active_layer = 1), or they may be buried and not subject to
             transport (active_layer = 0). Whether a sediment parcel is active
             or not is determined based on flow conditions and parcel attributes
             in 'run_one_step'
-        flow_director: :py:class:`~landlab.components.FlowDirectorSteepest`
-            A landlab flow director. Currently, must be
-            :py:class:`~landlab.components.FlowDirectorSteepest`.
+        flow_director: FlowDirectorSteepest
+            A landlab flow director. Currently, must be :class:`~.FlowDirectorSteepest`.
         bed_porosity: float, optional
             Proportion of void space between grains in the river channel bed.
             Default value is 0.3.
@@ -300,10 +293,10 @@ class NetworkSedimentTransporter(Component):
         fluid_density: float, optional
             Density of the fluid (generally, water) in which sediment is
             moving. Default value is 1000 (kg/m^3)
-        transport_method: string
+        transport_method: str
             Sediment transport equation option. Default (and currently only)
             option is "WilcockCrowe".
-        active_layer_method: string, optional
+        active_layer_method: str, optional
             Option for treating sediment active layer as a constant or variable
             (default, "WongParker")
         """
@@ -421,10 +414,10 @@ class NetworkSedimentTransporter(Component):
 
     def _create_new_parcel_time(self):
         """If we are going to track parcels through time in
-        :py:class:`~landlab.data_record.data_record.DataRecord`, we
-        need to add a new time column to the parcels dataframe. This method simply
-        copies over the attributes of the parcels from the former timestep.
-        Attributes will be updated over the course of this step.
+        :class:`~.DataRecord`, we need to add a new time column to the parcels
+        dataframe. This method simply copies over the attributes of the parcels
+        from the former timestep.  Attributes will be updated over the course of
+        this step.
         """
 
         if self._time_idx != 0:
@@ -988,12 +981,13 @@ class NetworkSedimentTransporter(Component):
         When the NetworkSedimentTransporter runs forward in time the following
         steps occur:
 
-            1. A new set of records is created in the Parcels that corresponds to the new time
-            2. If parcels are on the network then:
-                a. Active parcels are identifed based on entrainment critera.
-                b. Effective bed slope is calculated based on inactive parcel volumes.
-                c. Transport rate is calculated.
-                d. Active parcels are moved based on the tranport rate.
+        1. A new set of records is created in the Parcels that corresponds to the new time
+        2. If parcels are on the network then:
+
+           a. Active parcels are identifed based on entrainment critera.
+           b. Effective bed slope is calculated based on inactive parcel volumes.
+           c. Transport rate is calculated.
+           d. Active parcels are moved based on the tranport rate.
 
         Parameters
         ----------
