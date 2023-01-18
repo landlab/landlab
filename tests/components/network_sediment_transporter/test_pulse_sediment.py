@@ -103,9 +103,11 @@ def test_add_pulse():
 
     new_D = 0.03 * np.ones(np.shape(newpar_element_id))
 
+    # BUG: should be able to pass ["link"], but datarecord fills it into an
+    # incorrect array shape-- the length of parcels (NOT new parcels)
     newpar_grid_elements = np.array(
         np.empty((np.shape(newpar_element_id)), dtype=object)
-    )  # BUG: should be able to pass ["link"], but datarecord fills it into an incorrect array shape-- the length of parcels (NOT new parcels)
+    )
     newpar_grid_elements.fill("link")
 
     new_parcels = {

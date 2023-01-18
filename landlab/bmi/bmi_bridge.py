@@ -569,5 +569,5 @@ def wrap_as_bmi(cls):
             at = self._info[name]["mapping"]
             self._base.grid[at][name][inds] = src
 
-    BmiWrapper.__name__ = cls.__name__
+    BmiWrapper.__name__ = f"{cls.__name__}BMI"
     return BmiWrapper

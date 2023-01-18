@@ -151,8 +151,8 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         """
         try:
             spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float") from exc
 
         xy_of_center = tuple(np.broadcast_to(xy_of_center, 2))
 

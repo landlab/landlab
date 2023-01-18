@@ -107,7 +107,10 @@ class Radiation(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+            "doc": (
+                "ratio of total incident shortwave radiation on sloped "
+                "surface to flat surface"
+            ),
         },
         "topographic__elevation": {
             "dtype": float,

@@ -51,7 +51,9 @@ class _FlowDirectorToMany(_FlowDirector):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_to_receiver_node', 'flow__receiver_node', 'flow__receiver_proportions', 'flow__sink_flag', 'topographic__elevation', 'topographic__steepest_slope']
+    ['flow__link_to_receiver_node', 'flow__receiver_node',
+     'flow__receiver_proportions', 'flow__sink_flag', 'topographic__elevation',
+     'topographic__steepest_slope']
     """
 
     _name = "FlowDirectorToMany"

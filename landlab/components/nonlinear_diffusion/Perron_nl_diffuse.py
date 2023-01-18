@@ -428,16 +428,15 @@ class PerronNLDiffuse(Component):
 
         try:
             elev = grid["node"][self._values_to_diffuse]
-        except KeyError:
-            raise NameError("elevations not found in grid!")
+        except KeyError as exc:
+            raise NameError("elevations not found in grid!") from exc
         try:
             _delta_t = self._delta_t
-        except AttributeError:
+        except AttributeError as exc:
             raise NameError(
-                """Timestep not set! Call _gear_timestep(tstep)
-                            after initializing the component, but before
-                            running it."""
-            )
+                "Timestep not set! Call _gear_timestep(tstep) "
+                "after initializing the component, but before running it."
+            ) from exc
         _one_over_delta_x = self._one_over_delta_x
         _one_over_delta_x_sqd = self._one_over_delta_x_sqd
         _one_over_delta_y = self._one_over_delta_y

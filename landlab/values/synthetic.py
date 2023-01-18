@@ -149,8 +149,8 @@ def _convert_where(where, at):
     if isinstance(where, str):
         try:
             return _STATUS[at][where]
-        except KeyError:
-            raise ValueError(f"{where!r} status does not exists for {at!r}.")
+        except KeyError as exc:
+            raise ValueError(f"{where!r} status does not exists for {at!r}.") from exc
     else:
         return where
 

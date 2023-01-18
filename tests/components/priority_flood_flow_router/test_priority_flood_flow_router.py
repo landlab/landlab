@@ -735,7 +735,8 @@ def test_cython_functions():
     )
 
     # We know where the water will flow using the D8 steepest descent algo
-    # Also consider that under equal slopes, the flow will follow Landlab's rotational ordering going first to cardial, then to diagonal cells
+    # Also consider that under equal slopes, the flow will follow Landlab's
+    # rotational ordering going first to cardial, then to diagonal cells
     known_rec = np.array([-1, -1, -1, -1, -1, 4, 7, -1, -1, 13, 11, -1, -1, -1, -1, -1])
 
     testing.assert_array_equal(
@@ -828,7 +829,8 @@ def test_cython_functions():
     )
 
     # We know where the water will flow using the D8 steepest descent algo
-    # Also consider that under equal slopes, the flow will follow Landlab's rotational ordering going first to cardial, then to diagonal cells
+    # Also consider that under equal slopes, the flow will follow Landlab's
+    # rotational ordering going first to cardial, then to diagonal cells
     known_rec = np.array([-1, -1, -1, -1, -1, 0, 5, -1, -1, 5, 5, -1, -1, -1, -1, -1])
 
     testing.assert_array_equal(

@@ -102,4 +102,5 @@ def test_first_in_last_out():
     SO_TRUE = np.ones(np.shape(First_in_lags_behind), dtype=bool)
 
     assert_array_equal(SO_TRUE, First_in_lags_behind)
-    # Asserts that the last-in parcel is consistently in either the same link, or a farther downstream link than the first in parcel
+    # Asserts that the last-in parcel is consistently in either the same
+    # link, or a farther downstream link than the first in parcel

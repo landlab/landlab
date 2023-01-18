@@ -239,10 +239,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         assert self.orientation[0] == "v", "grid orientation must be vertical"
         try:
             (nr, nc) = self._shape
-        except AttributeError:
+        except AttributeError as exc:
             raise AttributeError(
                 "Only rectangular Hex grids have defined rows and columns."
-            )
+            ) from exc
 
         row = node_id // nc
         n_mod_nc = node_id % nc

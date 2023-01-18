@@ -72,7 +72,9 @@ class ExponentialWeathererIntegrated(Component):
     >>> expw.run_one_step(dt)
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> np.allclose(mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 6.9088)
+    >>> np.allclose(
+    ...     mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 6.9088
+    ... )
     True
 
     References
@@ -101,8 +103,10 @@ class ExponentialWeathererIntegrated(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},

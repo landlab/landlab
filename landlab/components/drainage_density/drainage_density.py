@@ -175,7 +175,10 @@ class DrainageDensity(Component):
             "optional": True,
             "units": "-",
             "mapping": "node",
-            "doc": "Channelization threshold for use with area and slope coefficients and exponents.",
+            "doc": (
+                "Channelization threshold for use with area and slope "
+                "coefficients and exponents."
+            ),
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
