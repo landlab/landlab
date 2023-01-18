@@ -159,7 +159,10 @@ class DepressionFinderAndRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "If a depression, the id of the outlet node for that depression, otherwise grid.BAD_INDEX",
+            "doc": (
+                "If a depression, the id of the outlet node for that depression, "
+                "otherwise grid.BAD_INDEX"
+            ),
         },
         "flood_status_code": {
             "dtype": int,
@@ -872,8 +875,10 @@ class DepressionFinderAndRouter(Component):
             self._grid.status_at_node[self._grid.boundary_nodes]
             != self._grid.BC_NODE_IS_CLOSED
         ):
-            msg = "DepressionFinderAndRouter requires that there is at least one open boundary node."
-            raise ValueError(msg)
+            raise ValueError(
+                "DepressionFinderAndRouter requires that there is at least one "
+                "open boundary node."
+            )
 
         self._lake_map.fill(self._grid.BAD_INDEX)
         self._depression_outlet_map.fill(self._grid.BAD_INDEX)
@@ -990,7 +995,13 @@ class DepressionFinderAndRouter(Component):
         >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> rcvr = rg.add_zeros("flow__receiver_node", at="node", dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
-        >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
+        >>> lake_nodes = np.array(
+        ...     [
+        ...         10, 12, 13, 19, 20, 21, 25,
+        ...         26, 27, 28, 29, 30, 33, 34,
+        ...         35, 36, 37, 38, 44, 45, 46
+        ...     ]
+        ... )
         >>> rcvr[9] = 1
         >>> rcvr[11] = 3
         >>> rcvr[14] = 6

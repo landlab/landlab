@@ -13,38 +13,47 @@ class StructuredQuadLayout(ABC):
         n_rows, n_cols = shape
         return (n_rows * n_cols - 1, (n_rows - 1) * n_cols, 0, n_cols - 1)
 
+    @staticmethod
     @abstractmethod
     def links_at_patch(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def nodes_at_link(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def horizontal_links(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def vertical_links(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def perimeter_nodes(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def links_at_node(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def patches_at_link(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def link_dirs_at_node(shape):
         ...
 
+    @staticmethod
     @abstractmethod
     def patches_at_node(shape):
         ...

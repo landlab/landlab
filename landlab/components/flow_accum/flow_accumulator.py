@@ -643,7 +643,11 @@ class FlowAccumulator(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+            "doc": (
+                "Node array containing the elements delta[1:] of the data "
+                "structure 'delta' used for construction of the downstream-to-upstream "
+                "node array"
+            ),
         },
         "flow__upstream_node_order": {
             "dtype": int,
@@ -675,7 +679,10 @@ class FlowAccumulator(Component):
             "optional": True,
             "units": "m/s",
             "mapping": "node",
-            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+            "doc": (
+                "External volume water per area per time input to each node "
+                "(e.g., rainfall rate)"
+            ),
         },
     }
 
@@ -715,12 +722,12 @@ class FlowAccumulator(Component):
         if self._is_Network:
             try:
                 node_cell_area = self._grid.at_node["cell_area_at_node"]
-            except FieldError:
+            except FieldError as exc:
                 raise FieldError(
                     "In order for the FlowAccumulator to work, the "
                     "grid must have an at-node field called "
                     "cell_area_at_node."
-                )
+                ) from exc
         else:
             node_cell_area = self._grid.cell_area_at_node.copy()
             node_cell_area[self._grid.closed_boundary_nodes] = 0.0
@@ -920,12 +927,12 @@ class FlowAccumulator(Component):
 
             try:
                 FlowDirector = DIRECTOR_METHODS[flow_director]
-            except KeyError:
+            except KeyError as exc:
                 raise ValueError(
                     "String provided in flow_director is not a "
                     "valid method or component name. The following"
                     "components are valid imputs:\n" + str(PERMITTED_DIRECTORS)
-                )
+                ) from exc
             self._flow_director = FlowDirector(self._grid, self._surface, **kw)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
@@ -1017,13 +1024,13 @@ class FlowAccumulator(Component):
                     DepressionFinder = DEPRESSION_METHODS[
                         self._depression_finder_provided
                     ]
-                except KeyError:
+                except KeyError as exc:
                     raise ValueError(
                         "Component provided in depression_finder "
                         "is not a valid component. The following "
-                        "components are valid imputs:\n"
-                        + str(PERMITTED_DEPRESSION_FINDERS)
-                    )
+                        "components are valid imputs: "
+                        f"{', '.join(repr(x) for x in PERMITTED_DEPRESSION_FINDERS)}."
+                    ) from exc
 
                 self._depression_finder = DepressionFinder(self._grid, **kw)
             # flow director is provided as an instantiated depression finder

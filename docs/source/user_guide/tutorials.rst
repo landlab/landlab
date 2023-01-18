@@ -46,7 +46,7 @@ This can be done either by running,
 
 .. code-block:: bash
 
-   $ curl -L https://raw.githubusercontent.com/landlab/landlab/mcflugen/fetch-notebooks-script/notebooks.py | python -
+   $ curl -L https://raw.githubusercontent.com/landlab/landlab/master/notebooks.py | python -
 
 or by downloading the script and running the following from the terminal,
 
@@ -54,7 +54,7 @@ or by downloading the script and running the following from the terminal,
 
    $ python -m notebooks
 
-.. _notebooks.py: https://github.com/landlab/landlab/blob/mcflugen/fetch-notebooks-script/notebooks.py
+.. _notebooks.py: https://github.com/landlab/landlab/blob/master/notebooks.py
 
 Install dependencies
 ````````````````````

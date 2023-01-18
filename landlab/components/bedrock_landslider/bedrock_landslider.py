@@ -61,8 +61,8 @@ class BedrockLandslider(Component):
     >>> b[2] = 0
     >>> z[:] = b + s
 
-    Instantiate the :class:`~.priority_flood_flow_router.PriorityFloodFlowRouter` for flow accumulation
-    and the ``BedrockLandslider``
+    Instantiate the :class:`~.priority_flood_flow_router.PriorityFloodFlowRouter`
+    for flow accumulation and the ``BedrockLandslider``
 
     >>> fd = PriorityFloodFlowRouter(
     ...     mg,
@@ -214,17 +214,20 @@ class BedrockLandslider(Component):
         },
     }
 
-    _cite_as = """@Article{gmd-13-3863-2020,
-                  AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
-                  TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
-                  JOURNAL = {Geoscientific Model Development},
-                  VOLUME = {13},
-                  YEAR = {2020},
-                  NUMBER = {9},
-                  PAGES = {3863--3886},
-                  URL = {https://doi.org/10.5194/gmd-13-3863-2020},
-                  DOI = {10.5194/gmd-13-3863-2020}
-                  }"""
+    _cite_as = """
+    @Article{gmd-13-3863-2020,
+        AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
+        TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to
+                 simulate the impact of landslides and landslide-derived sediment
+                 on landscape evolution.},
+        JOURNAL = {Geoscientific Model Development},
+        VOLUME = {13},
+        YEAR = {2020},
+        NUMBER = {9},
+        PAGES = {3863--3886},
+        URL = {https://doi.org/10.5194/gmd-13-3863-2020},
+        DOI = {10.5194/gmd-13-3863-2020}
+    }"""
 
     def __init__(
         self,

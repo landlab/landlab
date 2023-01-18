@@ -131,7 +131,10 @@ class PotentialEvapotranspiration(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+            "doc": (
+                "ratio of total incident shortwave radiation on sloped "
+                "surface to flat surface"
+            ),
         },
         "surface__potential_evapotranspiration_rate": {
             "dtype": float,

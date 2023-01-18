@@ -86,7 +86,7 @@ class NotebookFetcher:
                 msg = f"unable to find notebooks for requested landlab version ({self.version})"
             else:
                 msg = f"unable to fetch notebooks ({error.reason})"
-            raise NotebookError(msg)
+            raise NotebookError(msg) from error
         else:
             return stream
 

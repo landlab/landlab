@@ -106,6 +106,9 @@ def test_voronoi_name_mapping(xy_of_hex):
     delaunay = Delaunay(xy_of_hex)
     graph = VoronoiDelaunay(xy_of_hex)
 
+    voronoi.regions, voronoi.point_region = VoronoiDelaunay._remove_empty_regions(
+        voronoi.regions, voronoi.point_region
+    )
     assert np.all(graph.x_of_node == approx(voronoi.points[:, 0]))
     assert np.all(graph.y_of_node == approx(voronoi.points[:, 1]))
 

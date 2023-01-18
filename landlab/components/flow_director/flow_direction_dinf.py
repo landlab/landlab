@@ -144,10 +144,10 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     """
     try:
         grid.d8s_at_node
-    except AttributeError:
+    except AttributeError as exc:
         raise NotImplementedError(
             "Dinfinity is currently implemented for Raster grids only"
-        )
+        ) from exc
     # get elevs
     elevs = np.copy(return_array_at_node(grid, elevs))
 

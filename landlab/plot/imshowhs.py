@@ -96,14 +96,16 @@ def imshowhs_grid(grid, values, **kwds):
     plot_type : str, optional
         The type of plot that will be plotted.
         There are four options:
+
         * 'DEM': Display a digital elevation map underlain by a shaded relief,
-        based on the same DEM ('topographic__elevation')
-        * 'Hillshade': Display the shaded relief, of the provided DEM ('topographic__elevation')
+          based on the same DEM ('topographic__elevation')
+        * 'Hillshade': Display the shaded relief, of the provided DEM
+          ('topographic__elevation')
         * 'Drape1': Display any kind of provided layer on top of a shaded
-        relief provided in the 'topographic__elevation' field
+          relief provided in the 'topographic__elevation' field
         * 'Drape2': Display two layers on top of a shaded relief provided in
-        the 'topographic__elevation' field
-        The default is "DEM".
+          the 'topographic__elevation' field
+          The default is "DEM".
     drape1 : array_like, masked_array
         Node values to plot on top of a hillshade map. The default is None.
     drape2 : array_like, masked_array
@@ -143,13 +145,17 @@ def imshowhs_grid(grid, values, **kwds):
     bbox_to_anchor : vector, optional
         bbox to anchor. The default is (0, 0, 1, 1).
     cbar_ticks_position : str, optional
-        location of colorbar ticks (below or on top of the colorbar). The default is "top".
+        location of colorbar ticks (below or on top of the colorbar). The default
+        is "top".
     cbar_ticks_position2 : str, optional
-        location of colorbar ticks for colorbar of Drape2 (below or on top of the colorbar). The default is "bottom".
+        location of colorbar ticks for colorbar of Drape2 (below or on top of the
+        colorbar). The default is "bottom".
     colorbar_label_y : float, optional
-        location of colorbar label with respect to the colorbar in y direction. The default is -40.
+        location of colorbar label with respect to the colorbar in y direction.
+        The default is -40.
     colorbar_label_x : float , optional
-        location of colorbar label with respect to the colorbar in x direction. The default is 0.5.
+        location of colorbar label with respect to the colorbar in x direction.
+        The default is 0.5.
     cbar_tick_size : float, optional
         colorbar tick size. The default is 10.
     cbar_label_color : str, optional
@@ -159,9 +165,11 @@ def imshowhs_grid(grid, values, **kwds):
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
     y_label_offSet_var_1 : float, optional
-        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+        Offset of ylabel on colorbar of first variable in plot with two
+        overlaying plots. The default is 3.0.
     y_label_offSet_var_2 : float, optional
-        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
+        Offset of ylabel on colorbar of first variable in plot with two
+        overlaying plots. The default is -1.25.
 
     Returns
     -------
@@ -178,7 +186,8 @@ def imshowhs_grid(grid, values, **kwds):
         ax = imshowhs_grid_at_node(grid, values, **kwds)
     elif values_at == "cell":
         raise NotImplementedError(
-            "For now, only values at nodes can be displayed using the in the imshowhs functions"
+            "For now, only values at nodes can be displayed using the in the "
+            "imshowhs functions"
         )
     else:
         raise TypeError("value location %s not understood" % values_at)
@@ -267,14 +276,16 @@ def imshowhs_grid_at_node(grid, values, **kwds):
         weight of y label. The default is 'bold'.
     plot_type : str, optional
         There are four options:
+
         * 'DEM': Display a digital elevation map underlain by a shaded relief,
-        based on the same DEM ('topographic__elevation')
-        * 'Hillshade': Display the shaded relief, of the provided DEM ('topographic__elevation')
+          based on the same DEM ('topographic__elevation')
+        * 'Hillshade': Display the shaded relief, of the provided DEM
+          ('topographic__elevation')
         * 'Drape1': Display any kind of provided layer on top of a shaded
-        relief provided in the 'topographic__elevation' field
+          relief provided in the 'topographic__elevation' field
         * 'Drape2': Display two layers on top of a shaded relief provided in
-        the 'topographic__elevation' field
-        The default is "DEM".
+          the 'topographic__elevation' field
+          The default is "DEM".
     drape1 : array_like, masked_array
         Node values to plot on top of a hillshade map. The default is None.
     drape2 : array_like, masked_array
@@ -314,13 +325,17 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     bbox_to_anchor : vector, optional
         bbox to anchor. The default is (0, 0, 1, 1).
     cbar_ticks_position : str, optional
-        location of colorbar ticks (below or on top of the colorbar). The default is "top".
+        location of colorbar ticks (below or on top of the colorbar).
+        The default is "top".
     cbar_ticks_position2 : str, optional
-        location of colorbar ticks for colorbar of Drape2 (below or on top of the colorbar). The default is "bottom".
+        location of colorbar ticks for colorbar of Drape2 (below or on top of the
+        colorbar). The default is "bottom".
     colorbar_label_y : float, optional
-        location of colorbar label with respect to the colorbar in y direction. The default is -40.
+        location of colorbar label with respect to the colorbar in y direction.
+        The default is -40.
     colorbar_label_x : float , optional
-        location of colorbar label with respect to the colorbar in x direction. The default is 0.5.
+        location of colorbar label with respect to the colorbar in x direction.
+        The default is 0.5.
     cbar_tick_size : float, optional
         colorbar tick size. The default is 10.
     cbar_label_color : str, optional
@@ -332,9 +347,11 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is False.
     y_label_offSet_var_1 : float, optional
-        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+        Offset of ylabel on colorbar of first variable in plot with two overlaying
+        plots. The default is 3.0.
     y_label_offSet_var_2 : float, optional
-        Offset of ylabel on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
+        Offset of ylabel on colorbar of first variable in plot with two overlaying
+        plots. The default is -1.25.
 
     Returns
     -------
@@ -434,13 +451,15 @@ def _imshowhs_grid_values(
         )
     if plot_type == "Drape1" and drape1 is None:
         raise ValueError(
-            "if plot_type is Drape1, 'drape1' input argument cannot be None. \
-                         Provide at least one array with the size of the number of grid nodes as drape1='field_to_be_plotted'"
+            "if plot_type is Drape1, 'drape1' input argument cannot be None. "
+            "Provide at least one array with the size of the number of grid "
+            "nodes as drape1='field_to_be_plotted'"
         )
     if plot_type == "Drape2" and (drape1 is None or drape2 is None):
         raise ValueError(
-            "if plot_type is Drape2, 'drape1' and 'drape2' input arguments cannot be None. \
-                         Provide an array for both with the size of the number of grid nodes as drape1='field1_to_be_plotted' and drape2='field2_to_be_plotted' "
+            "if plot_type is Drape2, 'drape1' and 'drape2' input arguments cannot be None. "
+            "Provide an array for both with the size of the number of grid nodes as "
+            "drape1='field1_to_be_plotted' and drape2='field2_to_be_plotted'"
         )
 
     # Poperties of bounding box of colorbar label, if used:
@@ -606,7 +625,8 @@ def _imshowhs_grid_values(
             plt.xticks(fontsize=default_fontsize)
             plt.yticks(fontsize=default_fontsize)
 
-            # if Drape2, default behavior is to add colorbar of first layer if add_double_colorbar == False
+            # if Drape2, default behavior is to add colorbar of first layer if
+            # add_double_colorbar == False
             if allow_colorbar and (
                 plot_type == "DEM"
                 or plot_type == "Drape1"
