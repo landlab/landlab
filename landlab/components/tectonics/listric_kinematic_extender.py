@@ -144,7 +144,9 @@ class ListricKinematicExtender(Component):
                     "When handle_thickness is True you must provide an"
                     "'upper_crust_thickness' node field."
                 ) from exc
-            self._cum_subs = grid.add_zeros("cumulative_subsidence_depth", at="node")
+            self._cum_subs = grid.add_zeros(
+                "cumulative_subsidence_depth", at="node", clobber=True
+            )
             self._fields_to_shift.append("upper_crust_thickness")
 
         if isinstance(grid, HexModelGrid):
