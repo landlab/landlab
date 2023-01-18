@@ -36,9 +36,8 @@ def test_write_esri_ascii_doctest_two_vars(tmpdir):
 
 def test_grid_with_no_fields(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
-    with tmpdir.as_cwd():
-        with pytest.raises(ValueError):
-            write_esri_ascii("test.asc", grid)
+    with tmpdir.as_cwd(), pytest.raises(ValueError):
+        write_esri_ascii("test.asc", grid)
 
 
 def test_grid_with_one_field(tmpdir):
@@ -110,9 +109,8 @@ def test_names_keyword_with_bad_name(tmpdir):
     grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
     grid.add_field("air__temperature", np.arange(20.0), at="node")
 
-    with tmpdir.as_cwd():
-        with pytest.raises(ValueError):
-            write_esri_ascii("test.asc", grid, names="not_a_name")
+    with tmpdir.as_cwd(), pytest.raises(ValueError):
+        write_esri_ascii("test.asc", grid, names="not_a_name")
 
 
 def test_clobber_keyword(tmpdir):

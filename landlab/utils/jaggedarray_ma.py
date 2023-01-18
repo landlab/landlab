@@ -42,7 +42,7 @@ array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 import numpy as np
 
 
-class MaskedJaggedArray(object):
+class MaskedJaggedArray:
 
     """A container for an array of variable-length arrays.
 

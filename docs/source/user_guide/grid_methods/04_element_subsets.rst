@@ -18,6 +18,4 @@ to a point; nodes at edges.
       {% for func in grids[grid]['subset'] %}
         ~{{func}}
       {% endfor %}
-  {% endfor %}  
-
-
+  {% endfor %}

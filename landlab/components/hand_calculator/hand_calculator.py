@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Landlab component to calculate height above nearest drainage.
 
 @author: D Litwin
@@ -34,8 +33,12 @@ class HeightAboveDrainageCalculator(Component):
 
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> mg.set_status_at_node_on_edges(right=mg.BC_NODE_IS_CLOSED, bottom=mg.BC_NODE_IS_FIXED_VALUE, \
-                                  left=mg.BC_NODE_IS_CLOSED, top=mg.BC_NODE_IS_CLOSED)
+    >>> mg.set_status_at_node_on_edges(
+    ...     right=mg.BC_NODE_IS_CLOSED,
+    ...     bottom=mg.BC_NODE_IS_FIXED_VALUE,
+    ...     left=mg.BC_NODE_IS_CLOSED,
+    ...     top=mg.BC_NODE_IS_CLOSED,
+    ... )
     >>> elev = np.array([[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4],[5,4,4,4,5]])
     >>> z[:] = elev.reshape(len(z))
     >>> elev
@@ -58,7 +61,7 @@ class HeightAboveDrainageCalculator(Component):
     >>> hd = HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
     >>> hd.run_one_step()
 
-    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)
     array([[ 2.,  0.,  0.,  0.,  0.],
            [ 3.,  2.,  0.,  2.,  3.],
            [ 4.,  2.,  1.,  2.,  4.],
@@ -154,12 +157,9 @@ class HeightAboveDrainageCalculator(Component):
         self._node_order = grid.at_node["flow__upstream_node_order"]
 
         # height above nearest drainage
-        if "height_above_drainage__elevation" in grid.at_node:
-            self._hand = grid.at_node["height_above_drainage__elevation"]
-        else:
-            self._hand = grid.add_zeros(
-                "height_above_drainage__elevation", at="node", dtype=float
-            )
+        if "height_above_drainage__elevation" not in grid.at_node:
+            grid.add_zeros("height_above_drainage__elevation", at="node", dtype=float)
+        self._hand = grid.at_node["height_above_drainage__elevation"]
 
     @property
     def channel_mask(self):

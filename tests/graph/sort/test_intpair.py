@@ -16,7 +16,7 @@ def test_pair_isin_one_pair():
     pairs = np.asarray([[4, 8]], dtype=int)
     out = pair_isin(src, pairs)
 
-    assert tuple(out) == tuple([False])
+    assert tuple(out) == (False,)
 
 
 def test_pair_isin_1():
@@ -47,26 +47,24 @@ def test_pair_isin_1():
     )
     out = pair_isin(src, pairs, sorter=np.argsort(src[:, 0]))
 
-    assert tuple(out) == tuple(
-        [
-            True,
-            False,
-            True,
-            True,
-            False,
-            True,
-            False,
-            False,
-            False,
-            True,
-            False,
-            False,
-            True,
-            True,
-            True,
-            False,
-            False,
-        ]
+    assert tuple(out) == (
+        True,
+        False,
+        True,
+        True,
+        False,
+        True,
+        False,
+        False,
+        False,
+        True,
+        False,
+        False,
+        True,
+        True,
+        True,
+        False,
+        False,
     )
 
 

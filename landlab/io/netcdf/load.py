@@ -61,8 +61,8 @@ def from_netcdf(filename_or_obj, include="*", exclude=None):
 
         try:
             from_dataset = _grid_from_str[grid_type].from_dataset
-        except KeyError:
-            raise RuntimeError("grid type not recognized ({0})".format(grid_type))
+        except KeyError as exc:
+            raise RuntimeError(f"grid type not recognized ({grid_type})") from exc
         else:
             grid = from_dataset(dataset)
 

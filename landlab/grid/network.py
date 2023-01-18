@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 """A class used to create and manage network models in 2D."""
+import contextlib
+
 import numpy as np
 
 from landlab.utils.decorators import make_return_array_immutable
@@ -286,10 +288,8 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
             "_link_status_at_node",
         ]
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
 
         self.bc_set_code += 1
 

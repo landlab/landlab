@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for source_tracking_algorithm.py
 @author: Sai Nudurupati & Erkan Istanbulluoglu

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Wed Nov  4 08:10:22 2015
 
@@ -138,7 +137,7 @@ def testing_flux_divergence_with_hex():
     Node numbers in parentheses; others are link numbers; period indicates
     link head.
     """
-    hmg = HexModelGrid(3, 3, reorient_links=True)
+    hmg = HexModelGrid((3, 3), reorient_links=True)
 
     f = hmg.add_zeros("test_flux", at="link")
     f[:] = np.arange(hmg.number_of_links)
@@ -182,7 +181,7 @@ def testing_flux_divergence_with_hex():
     # gt_calc_gradients_at_faces(hmg, nv)
     # gt_link_flux_divergence_at_cells_with_2darray(hmg, f)
 
-    for i in range(1000):
+    for _ in range(1000):
         gt_grads_at_faces1(hmg, nv)
 
 

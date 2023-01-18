@@ -1,4 +1,2 @@
 Fixed an issue that prevented the docs from building due to a compatibility
 issue with *sphinxcontrib.towncrier* and *towncrier* v22.8.
-
-

@@ -6,4 +6,3 @@ API for landlab.grid.network
    :undoc-members:
    :show-inheritance:
    :inherited-members:
-

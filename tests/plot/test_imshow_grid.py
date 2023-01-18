@@ -585,7 +585,10 @@ def test_imshow_grid_unknown_location():
 
 @pytest.mark.parametrize("at", ["link", "patch", "corner", "face"])
 def test_imshow_grid_unsupported_location(at):
-    expected = "value location, \\'[a-z]+\\', is not supported \\(must be one of 'node', 'cell'\\)"
+    expected = (
+        "value location, \\'[a-z]+\\', is not supported \\(must be "
+        "one of 'node', 'cell'\\)"
+    )
     grid = landlab.RasterModelGrid((5, 3))
     grid.add_zeros("z", at=at)
     with pytest.raises(TypeError, match=expected):

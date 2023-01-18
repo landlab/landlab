@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """ZoneTaxon object of SpeciesEvolver."""
 import numpy as np
 from pandas import Series

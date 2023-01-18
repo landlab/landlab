@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 """

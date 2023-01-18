@@ -6,8 +6,9 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
 import fnmatch
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -454,17 +455,13 @@ class ModelGrid(
         if isinstance(exclude, str):
             exclude = [exclude]
 
-        layer_groups = set(["_".join(["layer", at]) for at in self.groups])
+        layer_groups = {"_".join(["layer", at]) for at in self.groups}
         layer_groups.add("layer")
 
         canonical_names = set()
         for at in self.groups | layer_groups:
-            try:
-                canonical_names.update(
-                    ["at_{0}:{1}".format(at, name) for name in self[at]]
-                )
-            except KeyError:
-                pass
+            with contextlib.suppress(KeyError):
+                canonical_names.update([f"at_{at}:{name}" for name in self[at]])
 
         names = set()
         for pattern in include:
@@ -576,7 +573,8 @@ class ModelGrid(
         >>> sorted(ds.dims.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
-        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
+         'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
@@ -1374,8 +1372,8 @@ class ModelGrid(
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
-        except KeyError:
-            raise TypeError("{name}: element name not understood".format(name=name))
+        except KeyError as exc:
+            raise TypeError(f"{name}: element name not understood") from exc
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -1415,8 +1413,8 @@ class ModelGrid(
         AXES = ("node_y", "node_x")
         try:
             return getattr(self, AXES[axis])
-        except IndexError:
-            raise ValueError("'axis' entry is out of bounds")
+        except IndexError as exc:
+            raise ValueError("'axis' entry is out of bounds") from exc
 
     @property
     def axis_units(self):
@@ -2140,8 +2138,7 @@ class ModelGrid(
 
         return shaded.clip(0.0)
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.
@@ -2189,22 +2186,16 @@ class ModelGrid(
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
         try:
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_inlink_matrix"]
-        except KeyError:
-            pass
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_outlink_matrix"]
-        except KeyError:
-            pass
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.

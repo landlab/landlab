@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 from collections import OrderedDict
@@ -558,10 +557,11 @@ class ChannelProfiler(_BaseProfiler):
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(
-                name=channel_definition_field
+            raise ValueError(
+                f"Required field {channel_definition_field!r} not present. "
+                "This field is required by the ChannelProfiler to define "
+                "the start and stop of channel networks."
             )
-            raise ValueError(msg)
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
 

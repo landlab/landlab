@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Functions to set up a finite-volume solution matrix for a landlab grid."""
 
 import numpy as np

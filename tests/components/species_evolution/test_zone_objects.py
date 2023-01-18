@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Tests for SpeciesEvolver zone objects."""
 import numpy as np
 import pandas as pd
@@ -225,7 +224,7 @@ def test_one_to_many(zone_example_grid):
 
     np.testing.assert_equal(len(sc.zones), 2)
     np.testing.assert_equal(
-        set([z._conn_type for z in sc.zones]), set([None, zn.Connection.ONE_TO_MANY])
+        {z._conn_type for z in sc.zones}, {None, zn.Connection.ONE_TO_MANY}
     )
 
     expected_df = pd.DataFrame(

@@ -8,13 +8,13 @@ Plotting functions
     ~landlab.plot.imshow.imshowhs_grid
     ~landlab.plot.imshow.imshowhs_grid_at_node
 """
-import matplotlib.pyplot as plt
-import numpy as np
 import warnings
 
-from matplotlib.colors import LightSource
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LightSource, to_rgba
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from matplotlib.colors import to_rgba
+
 from .event_handler import query_grid_on_button_press
 
 
@@ -24,15 +24,15 @@ def imshowhs_grid(grid, values, **kwds):
 
     Data are plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
-    colored uniformly (with the color being controlled by the *color_for_closed* keyword);
-    other open boundary nodes get their actual values.
+    colored uniformly (with the color being controlled by the *color_for_closed*
+    keyword); other open boundary nodes get their actual values.
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries are treated as if they were
-    *landlab* :py:attr:`~.NodeStatus.CLOSED` nodes. If closed nodes are also set to be transparent
-    (i.e. ``color_for_closed=None``), this can allow for the construction of overlying
-    layers in a figure (e.g., only defining values in a river network, and then
-    overlaying it on another landscape).
+    *landlab* :py:attr:`~.NodeStatus.CLOSED` nodes. If closed nodes are also set to
+    be transparent (i.e. ``color_for_closed=None``), this can allow for the
+    construction of overlying layers in a figure (e.g., only defining values in a
+    river network, and then overlaying it on another landscape).
 
     Use matplotlib functions like ``xlim``, ``ylim`` to modify your plot after calling
     :func:`imshowhs_grid`, as desired.
@@ -100,13 +100,16 @@ def imshowhs_grid(grid, values, **kwds):
     plot_type : {"DEM", "Hillshade", "Drape1", "Drape2"}, optional
         The type of plot that will be plotted.
 
-        * 'DEM' (the default): Display a digital elevation map underlain by a shaded relief,
+        * 'DEM': Display a digital elevation map underlain by a shaded relief,
           based on the same DEM ('topographic__elevation')
-        * 'Hillshade': Display the shaded relief, of the provided DEM ('topographic__elevation')
+        * 'Hillshade': Display the shaded relief, of the provided DEM
+          ('topographic__elevation')
         * 'Drape1': Display any kind of provided layer on top of a shaded
           relief provided in the 'topographic__elevation' field
         * 'Drape2': Display two layers on top of a shaded relief provided in
           the 'topographic__elevation' field
+
+        The default is "DEM".
     drape1 : array_like, masked_array
         Node values to plot on top of a hillshade map. The default is ``None``.
     drape2 : array_like, masked_array
@@ -146,13 +149,17 @@ def imshowhs_grid(grid, values, **kwds):
     bbox_to_anchor : vector, optional
         Bounding box to anchor. The default is ``(0, 0, 1, 1)``.
     cbar_ticks_position : str, optional
-        Location of colorbar ticks (below or on top of the colorbar). The default is "top".
+        location of colorbar ticks (below or on top of the colorbar). The default
+        is "top".
     cbar_ticks_position2 : str, optional
-        Location of colorbar ticks for colorbar of *Drape2* (below or on top of the colorbar). The default is "bottom".
+        location of colorbar ticks for colorbar of Drape2 (below or on top of the
+        colorbar). The default is "bottom".
     colorbar_label_y : float, optional
-        Location of colorbar label with respect to the colorbar in *y* direction. The default is -40.
+        location of colorbar label with respect to the colorbar in y direction.
+        The default is -40.
     colorbar_label_x : float , optional
-        Location of colorbar label with respect to the colorbar in x direction. The default is 0.5.
+        location of colorbar label with respect to the colorbar in x direction.
+        The default is 0.5.
     cbar_tick_size : float, optional
         Colorbar tick size. The default is 10.
     cbar_label_color : str, optional
@@ -162,9 +169,11 @@ def imshowhs_grid(grid, values, **kwds):
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is ``False``.
     y_label_offSet_var_1 : float, optional
-        Offset of *ylabel* on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+        Offset of ylabel on colorbar of first variable in plot with two
+        overlaying plots. The default is 3.0.
     y_label_offSet_var_2 : float, optional
-        Offset of *ylabel* on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
+        Offset of ylabel on colorbar of first variable in plot with two
+        overlaying plots. The default is -1.25.
 
     Returns
     -------
@@ -186,7 +195,8 @@ def imshowhs_grid(grid, values, **kwds):
         ax = imshowhs_grid_at_node(grid, values, **kwds)
     elif values_at in {"link", "patch", "corner", "face", "cell"}:
         raise NotImplementedError(
-            "For now, only values at nodes can be displayed using the imshowhs functions"
+            "For now, only values at nodes can be displayed using the in the "
+            "imshowhs functions"
         )
     else:
         raise TypeError(f"{values_at}: value location not understood")
@@ -200,15 +210,15 @@ def imshowhs_grid_at_node(grid, values, **kwds):
 
     Data are plotted as cells shaded with the value at the node at its center.
     Outer edges of perimeter cells are extrapolated. Closed elements are
-    colored uniformly (with the color being controlled by the *color_for_closed* keyword);
-    other open boundary nodes get their actual values.
+    colored uniformly (with the color being controlled by the *color_for_closed*
+    keyword); other open boundary nodes get their actual values.
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries are treated as if they were
-    *landlab* :py:attr:`~.NodeStatus.CLOSED` nodes. If closed nodes are also set to be transparent
-    (i.e. ``color_for_closed=None``), this can allow for the construction of overlying
-    layers in a figure (e.g., only defining values in a river network, and then
-    overlaying it on another landscape).
+    *landlab* :py:attr:`~.NodeStatus.CLOSED` nodes. If closed nodes are also set to
+    be transparent (i.e. ``color_for_closed=None``), this can allow for the
+    construction of overlying layers in a figure (e.g., only defining values in a
+    river network, and then overlaying it on another landscape).
 
     Use matplotlib functions like ``xlim``, ``ylim`` to modify your plot after calling
     :func:`imshowhs_grid`, as desired.
@@ -276,13 +286,16 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     plot_type : {"DEM", "Hillshade", "Drape1", "Drape2"}, optional
         The type of plot that will be plotted.
 
-        * 'DEM' (the default): Display a digital elevation map underlain by a shaded relief,
-          based on the same DEM ('topographic__elevation')
-        * 'Hillshade': Display the shaded relief, of the provided DEM ('topographic__elevation')
+        * 'DEM' (the default): Display a digital elevation map underlain by a
+          shaded relief, based on the same DEM ('topographic__elevation')
+        * 'Hillshade': Display the shaded relief, of the provided DEM
+          ('topographic__elevation')
         * 'Drape1': Display any kind of provided layer on top of a shaded
           relief provided in the 'topographic__elevation' field
         * 'Drape2': Display two layers on top of a shaded relief provided in
           the 'topographic__elevation' field
+
+        The default is "DEM".
     drape1 : array_like, masked_array
         Node values to plot on top of a hillshade map. The default is ``None``.
     drape2 : array_like, masked_array
@@ -322,13 +335,17 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     bbox_to_anchor : vector, optional
         Bounding box to anchor. The default is ``(0, 0, 1, 1)``.
     cbar_ticks_position : str, optional
-        Location of colorbar ticks (below or on top of the colorbar). The default is "top".
+        Location of colorbar ticks (below or on top of the colorbar). The default
+        is "top".
     cbar_ticks_position2 : str, optional
-        Location of colorbar ticks for colorbar of *Drape2* (below or on top of the colorbar). The default is "bottom".
+        Location of colorbar ticks for colorbar of *Drape2* (below or on top of the
+        colorbar). The default is "bottom".
     colorbar_label_y : float, optional
-        Location of colorbar label with respect to the colorbar in *y* direction. The default is -40.
+        Location of colorbar label with respect to the colorbar in *y* direction.
+        The default is -40.
     colorbar_label_x : float , optional
-        Location of colorbar label with respect to the colorbar in x direction. The default is 0.5.
+        Location of colorbar label with respect to the colorbar in x direction.
+        The default is 0.5.
     cbar_tick_size : float, optional
         Colorbar tick size. The default is 10.
     cbar_label_color : str, optional
@@ -338,9 +355,11 @@ def imshowhs_grid_at_node(grid, values, **kwds):
     add_label_bbox : bool, optional
         Add a bbox surrounding the colorbar label. The default is ``False``.
     y_label_offSet_var_1 : float, optional
-        Offset of *ylabel* on colorbar of first variable in plot with two overlaying plots. The default is 3.0.
+        Offset of *ylabel* on colorbar of first variable in plot with two overlaying
+        plots. The default is 3.0.
     y_label_offSet_var_2 : float, optional
-        Offset of *ylabel* on colorbar of first variable in plot with two overlaying plots. The default is -1.25.
+        Offset of *ylabel* on colorbar of first variable in plot with two overlaying
+        plots. The default is -1.25.
 
     Returns
     -------
@@ -440,20 +459,25 @@ def _imshowhs_grid_values(
     if plot_type == "Drape1" and drape1 is None:
         raise ValueError(
             "if plot_type is Drape1, 'drape1' input argument cannot be None. "
-            "Provide at least one array with the size of the number of grid nodes as drape1='field_to_be_plotted'"
+            "Provide at least one array with the size of the number of grid "
+            "nodes as drape1='field_to_be_plotted'"
         )
     if plot_type == "Drape2" and (drape1 is None or drape2 is None):
         raise ValueError(
             "if plot_type is Drape2, 'drape1' and 'drape2' input arguments cannot be None. "
-            "Provide an array for both with the size of the number of grid nodes as drape1='field1_to_be_plotted' and "
-            "drape2='field2_to_be_plotted' "
+            "Provide an array for both with the size of the number of grid nodes as "
+            "drape1='field1_to_be_plotted' and drape2='field2_to_be_plotted'"
         )
 
     # Poperties of bounding box of colorbar label, if used:
     if add_label_bbox:
-        bbox_prop = dict(
-            boxstyle="round", pad=0.1, facecolor="white", alpha=0.7, edgecolor="white"
-        )
+        bbox_prop = {
+            "boxstyle": "round",
+            "pad": 0.1,
+            "facecolor": "white",
+            "alpha": 0.7,
+            "edgecolor": "white",
+        }
     else:
         bbox_prop = None
 
@@ -507,7 +531,7 @@ def _imshowhs_grid_values(
         blend_modes = ["hsv", "overlay", "soft"]
         if plot_type == "DEM":
 
-            kwds = dict(cmap=cmap)
+            kwds = {"cmap": cmap}
             (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
             if (limits is None) and ((vmin is None) and (vmax is None)):
                 if symmetric_cbar:
@@ -585,7 +609,7 @@ def _imshowhs_grid_values(
                 shape = (-1,)
             val1 = values_at_node_drape1.reshape(shape)
 
-            kwds = dict(cmap=cmap)
+            kwds = {"cmap": cmap}
             (kwds["vmin"], kwds["vmax"]) = (val1.min(), val1.max())
             if (limits is None) and ((vmin is None) and (vmax is None)):
                 if symmetric_cbar:
@@ -631,7 +655,8 @@ def _imshowhs_grid_values(
             plt.xticks(fontsize=default_fontsize)
             plt.yticks(fontsize=default_fontsize)
 
-            # if Drape2, default behavior is to add colorbar of first layer if add_double_colorbar == False
+            # if Drape2, default behavior is to add colorbar of first layer if
+            # add_double_colorbar == False
             if allow_colorbar and (
                 plot_type == "DEM"
                 or plot_type == "Drape1"
@@ -728,7 +753,7 @@ def _imshowhs_grid_values(
 
                 if cmap2 is None:
                     cmap2 = plt.cm.terrain
-                kwds = dict(cmap=cmap2)
+                kwds = {"cmap": cmap2}
                 (kwds["vmin"], kwds["vmax"]) = (val2.min(), val2.max())
                 if (limits is None) and ((vmin is None) and (vmax is None)):
                     if symmetric_cbar:

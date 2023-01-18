@@ -200,7 +200,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
             flow_accum[j] += a
             # If the node is being visited for the first time, the dictionary
             # 'hsd_upstr' will be updated.
-            if j in hsd_upstr.keys():
+            if j in hsd_upstr:
                 hsd_upstr[j] += copy.copy(stream_buffer)
             # If the node has been already visited, then the upstream segment
             # that was not accounted for in the main stem, would be added to
