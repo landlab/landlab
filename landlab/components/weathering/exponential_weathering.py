@@ -108,9 +108,9 @@ class ExponentialWeatherer(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        soil_production__maximum_rate : float
+        soil_production__maximum_rate : float, array of float
             Maximum weathering rate for bare bedrock
-        soil_production__decay_depth : float
+        soil_production__decay_depth : float, array of float
             Characteristic weathering depth
         """
         super().__init__(grid)
@@ -133,8 +133,12 @@ class ExponentialWeatherer(Component):
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""
         # apply exponential function
-        self._soil_prod_rate[self._grid.core_nodes] = self._w0 * np.exp(
-            -self._depth[self._grid.core_nodes] / self._wstar
+        w0_vector = np.broadcast_to(self._w0, self._depth.shape)
+        wstar_vector = np.broadcast_to(self._wstar, self._depth.shape)
+
+        core = self._grid.core_nodes
+        self._soil_prod_rate[core] = w0_vector[core] * np.exp(
+            -self._depth[core] / wstar_vector[core]
         )
 
     def run_one_step(self):
@@ -154,6 +158,6 @@ class ExponentialWeatherer(Component):
 
     @maximum_weathering_rate.setter
     def maximum_weathering_rate(self, new_val):
-        if new_val <= 0:
+        if np.any(new_val <= 0):
             raise ValueError("Maximum weathering rate must be positive.")
         self._w0 = new_val
