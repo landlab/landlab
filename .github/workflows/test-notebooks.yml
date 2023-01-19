@@ -51,7 +51,7 @@ jobs:
 
       - name: Install richdem requirements
         run: |
-          mamba install richdem -c conda-forge
+          mamba install richdem "gdal<3.5.2" -c conda-forge
           mamba list
 
       - name: Install testing requirements
