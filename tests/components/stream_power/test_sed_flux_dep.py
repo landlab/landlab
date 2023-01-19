@@ -48,7 +48,7 @@ def test_sed_dep():
         g=9.81,
     )
 
-    for i in range(nt):
+    for _ in range(nt):
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift_per_step
         mg = fr.run_one_step()
         mg, _ = sde.run_one_step(dt)
@@ -89,7 +89,7 @@ def test_sed_dep_new():
     dt = 100.0
     up = 0.05
 
-    for i in range(10):
+    for _ in range(10):
         fr.run_one_step()
         sde.run_one_step(dt)
         z[mg.core_nodes] += 20.0 * up

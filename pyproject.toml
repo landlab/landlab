@@ -32,7 +32,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   "bmipy",
   "matplotlib",
@@ -193,4 +193,3 @@ showcontent = true
 directory = "misc"
 name = "Other Changes and Additions"
 showcontent = true
-

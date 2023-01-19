@@ -23,7 +23,6 @@ Grid mapping functions
     ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
     ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
     ~landlab.grid.mappers.map_link_vector_components_to_node
-    ~landlab.grid.mappers.dummy_func_to_demonstrate_docstring_modification
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.
@@ -1490,20 +1489,3 @@ def map_link_vector_components_to_node(grid, data_at_link):
         return map_link_vector_components_to_node_raster(grid, data_at_link)
     else:
         raise NotImplementedError("Only available for HexModelGrid")
-
-
-def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
-    """A dummy function to demonstrate automated docstring changes.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab modelgrid.
-    some_arg : whatever
-        A dummy argument.
-
-    Examples
-    --------
-    ...
-    """
-    pass

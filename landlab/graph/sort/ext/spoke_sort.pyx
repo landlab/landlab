@@ -37,7 +37,7 @@ cdef _argsort_spokes_around_hub(long * spokes, int n_spokes,
     cdef double * angles = <double *>malloc(n_spokes * sizeof(double))
     # cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
     # cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
-    
+
     try:
         point = 0
         for spoke in range(n_spokes):
@@ -68,7 +68,7 @@ cdef _sort_spokes_around_hub(long * spokes, int n_spokes, double * xy_of_spoke,
     # cdef double * angles = <double *>malloc(n_spokes * sizeof(double))
     cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
     cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
-    
+
     try:
         _argsort_spokes_around_hub(spokes, n_spokes, xy_of_spoke, xy_of_hub,
                                    ordered)

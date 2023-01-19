@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a LithoLayers component with different properties."""
 
 import numpy as np
@@ -57,15 +56,17 @@ class LithoLayers(Lithology):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{barnhart2018lithology,
-                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
-                    journal = "Journal of Open Source Software",
-                    volume = "",
-                    pages = "",
-                    year = "2018",
-                    doi = "10.21105/joss.00979",
-                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
-                    }"""
+    _cite_as = """
+    @article{barnhart2018lithology,
+        title = "Lithology: A Landlab submodule for spatially variable rock properties",
+        journal = "Journal of Open Source Software",
+        volume = "",
+        pages = "",
+        year = "2018",
+        doi = "10.21105/joss.00979",
+        author = {Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini
+                  and Gregory E. Tucker},
+    }"""
 
     _info = {}
 

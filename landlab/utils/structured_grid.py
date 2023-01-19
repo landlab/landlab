@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """Utility functions for structured grid of elements with four neighbors."""
 
-
+import contextlib
 import itertools
 
 import numpy as np
@@ -994,10 +994,8 @@ def east_links(shape):
 def active_north_links(shape, node_status=None):
     """Array of active links pointing to the the north."""
     active_north_links_ = np.empty(shape, dtype=int)
-    try:
+    with contextlib.suppress(ValueError):
         links = vertical_active_link_ids(shape, node_status=node_status)
-    except ValueError:
-        pass
     links.shape = (shape[0] - 1, shape[1] - 2)
     active_north_links_[:-1, 1:-1] = links
     active_north_links_[:, (0, -1)] = -1
@@ -1016,10 +1014,8 @@ def active_north_links2(shape, node_status=None):
            [-1, -1, -1, -1]])
     """
     active_north_links_ = np.empty(shape, dtype=int)
-    try:
+    with contextlib.suppress(ValueError):
         links = vertical_active_link_ids2(shape, node_status=node_status)
-    except ValueError:
-        pass
     links.shape = (shape[0] - 1, shape[1] - 2)
     active_north_links_[:-1, 1:-1] = links
     active_north_links_[:, (0, -1)] = -1
@@ -1089,12 +1085,10 @@ def active_west_links(shape, node_status=None):
            [-1, -1, -1, -1]])
     """
     active_west_links_ = np.empty(shape, dtype=int)
-    try:
+    with contextlib.suppress(ValueError):
         active_west_links_[1:-1, 1:] = horizontal_active_link_ids(
             shape, node_status=node_status
         )
-    except ValueError:
-        pass
     active_west_links_[(0, -1), :] = -1
     active_west_links_[:, 0] = -1
 
@@ -1133,12 +1127,10 @@ def active_east_links(shape, node_status=None):
     """
     active_east_links_ = np.empty(shape, dtype=int)
     active_east_links_.fill(-999)
-    try:
+    with contextlib.suppress(ValueError):
         active_east_links_[1:-1, :-1] = horizontal_active_link_ids(
             shape, node_status=node_status
         )
-    except ValueError:
-        pass
     active_east_links_[(0, -1), :] = -1
     active_east_links_[:, -1] = -1
 
@@ -1457,9 +1449,10 @@ def _neighbor_node_ids(ids_with_halo):
         "strides": ids_with_halo.strides,
         "buffer": ids_with_halo,
         "dtype": ids_with_halo.dtype,
+        "offset": ids_with_halo.itemsize * (ids_with_halo.shape[1]),
     }
 
-    kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1])
+    # kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1])
     west_ids = np.ndarray(shape, **kwds)
 
     kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 2)
@@ -1481,9 +1474,9 @@ def _centered_node_ids(ids_with_halo):
         "strides": ids_with_halo.strides,
         "buffer": ids_with_halo,
         "dtype": ids_with_halo.dtype,
+        "offset": ids_with_halo.itemsize * (ids_with_halo.shape[1] + 1),
     }
 
-    kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 1)
     return np.ndarray(shape, **kwds)
 
 

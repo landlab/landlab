@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for landlab.data_record.data_record.DataRecord
 Dimension = time and item_id

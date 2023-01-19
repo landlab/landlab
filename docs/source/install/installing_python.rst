@@ -64,6 +64,6 @@ operating system. For instance, Dan's Macbook Pro shows ``python`` on the path::
 
 On a PC, run ``python`` from your Command Prompt window. You should see a reference to anaconda when it is running.
 
-If you *don't* see reference to your newly installed distribution or the file is not found, click :ref:`here <correcting_install_paths>` to resolve the problem. 
+If you *don't* see reference to your newly installed distribution or the file is not found, click :ref:`here <correcting_install_paths>` to resolve the problem.
 
 Once you have installed a complete Python distribution on your machine, follow :ref:`these instructions <install>` to install Landlab.

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Structure to store data over time for SpeciesEvolver."""
 from collections import OrderedDict
 
@@ -7,7 +6,7 @@ import numpy as np
 from pandas import DataFrame
 
 
-class Record(object):
+class Record:
     """Structure to store data over time for SpeciesEvolver.
 
     This object is intended to be used internally by the SpeciesEvolver
@@ -186,6 +185,6 @@ class Record(object):
         if np.isnan(time):
             time = self.latest_time
         elif time not in self.times:
-            raise ValueError("the time, {} not in record".format(time))
+            raise ValueError(f"the time, {time} not in record")
 
         return time

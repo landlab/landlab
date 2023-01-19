@@ -54,15 +54,17 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
             Minimum *x*-of-node and *y*-of-node values. Depending on the grid,
             there may not be a node present at this location.
         sort: bool
-            If ``True``, nodes, links and patches are re-numbered according to their position.
+            If ``True``, nodes, links and patches are re-numbered according to
+            their position.
         xy_min_spacing: float or tuple of float, optional
             Final minimal spacing between nodes. Random moves of the core nodes
             around their position cannot be above this threshold:
             ``(xy_spacing - xy_min_spacing) / 2``
             If ``float``, same minimal spacing for *x* and *y*.
         seed: int, optional
-            Seed used to generate the random *x* and *y* moves. When set, controls a pseudo-randomness
-            of moves to ensure reproducibility. When ``None``, seed is random and the moves of coordinates are
+            Seed used to generate the random *x* and *y* moves. When set,
+            controls a pseudo-randomness of moves to ensure reproducibility.
+            When ``None``, seed is random and the moves of coordinates are
             completely random.
 
         Returns

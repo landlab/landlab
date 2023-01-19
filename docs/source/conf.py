@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # landlab documentation build configuration file, created by
 # sphinx-quickstart on Tue Apr 23 17:33:31 2013.
@@ -12,10 +11,11 @@
 # serve to show the default.
 
 import os
-import sys
-import tomli
 import pathlib
+import sys
 from datetime import date
+
+import tomli
 
 import landlab
 
@@ -57,10 +57,12 @@ source_suffix = ".rst"
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
-# Regex for links that we know work in browser, but do not work in sphinx/CI (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
+# Regex for links that we know work in browser, but do not work in sphinx/CI
+# (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
 if os.getenv("GITHUB_ACTIONS"):
     linkcheck_ignore = [
-        r"https://pubs.geoscienceworld.org/gsa/geology.*",  # Added by KRB Dec 2019, at this point two links match this pattern
+        # Added by KRB Dec 2019, at this point two links match this pattern
+        r"https://pubs.geoscienceworld.org/gsa/geology.*",
         r"https://doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
         r"https://dx.doi.org/10.1029/2011jf002181",  # Added by EWHH April 2020
         r"https://doi.org/10.1029/2019JB018596",  # Added by EWHH April 2020
@@ -124,7 +126,8 @@ pygments_dark_style = "monokai"
 # If true, keep warnings as "system message" paragraphs in the built documents.
 # keep_warnings = False
 
-# selects what content will be inserted into the main body of an autoclass directive: 'class'(default), 'both', or 'init'
+# selects what content will be inserted into the main body of an autoclass
+# directive: 'class'(default), 'both', or 'init'
 autoclass_content = "both"
 
 
@@ -153,7 +156,7 @@ html_theme_options = {
             "html": """
                <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1.1" viewBox="0 0 16 16" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M6 0l-6 8h6l-4 8 14-10h-8l6-6z"></path></svg>
                <b><i>Powered by CSDMS</i></b>
-            """,
+            """,  # noqa: B950
             "class": "",
         },
     ],

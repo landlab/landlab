@@ -22,7 +22,7 @@ def cmp(a, b):
     return (a > b) - (a < b)
 
 
-class find_facets(object):
+class find_facets:
     """Note that this class assumes the grid does not change during the model
     run. Changes to data stored in the grid should (?) update automatically.
 
@@ -300,10 +300,8 @@ class find_facets(object):
         profile_x_facet_pts = []
         profile_z_facet_pts = []
         profile_S_facet_pts = []
-        count = 0
-        for i in unique_starting_pts:
-            count += 1
-            print("Running ", count, " of ", unique_starting_pts.size)
+        for count, i in enumerate(unique_starting_pts):
+            print(f"Running {count} of {unique_starting_pts.size}")
             # set the local angle of the ft trace:
             ft_pt_distances_to_node = self.grid.calc_distances_of_nodes_to_point(
                 (grid.node_x[i], grid.node_y[i]), node_subset=self.ft_trace_node_ids
@@ -314,13 +312,14 @@ class find_facets(object):
             (grad, offset) = np.polyfit(x, y, 1)
             condition = np.equal(self.closest_ft_node[pcn], i)
             nodes_possible = pcn[condition]
-            print(nodes_possible.size, " nodes")
+            print(f"{nodes_possible.size} nodes")
             if nodes_possible.size > 10.0:
                 # their_az = self.angle_to_ft[nodes_possible]
                 # their_diff_angles = self.diff_angles[nodes_possible]
                 their_elevs = self.elevs[grid.core_nodes][nodes_possible]
                 # their_distances = self.distance_to_ft[nodes_possible]
-                # need to make new distances so we remove the ambiguity of angle around the ft point (i.e., dists from a far-field pt on the ft normal)
+                # need to make new distances so we remove the ambiguity of angle
+                # around the ft point (i.e., dists from a far-field pt on the ft normal)
                 # now make a multiplier to make sure the reference point for
                 # new distances is far from the actual pts:
                 multiplier = 10.0 * np.ptp(grid.node_y[grid.core_nodes[nodes_possible]])
@@ -347,10 +346,10 @@ class find_facets(object):
                     )
                     - dist_to_ft
                 )
-                # note the ft is now the origin, but pts might be back-to-front (consistently, though)
-                # sort the distances. Remove any pts that aren't in a "cluster".
-                # We assume there will be one big "bunched" plane, then a load
-                # of outliers
+                # note the ft is now the origin, but pts might be back-to-front
+                # (consistently, though) sort the distances. Remove any pts that
+                # aren't in a "cluster".  We assume there will be one big "bunched"
+                # plane, then a load of outliers
                 dist_order = np.argsort(dists_along_profile)
                 dist_diffs = np.diff(dists_along_profile[dist_order])
                 print("dists along profile sorted: ", dists_along_profile[dist_order])
@@ -363,7 +362,8 @@ class find_facets(object):
                     mod = np.sqrt(1.0 + (1.0 / grad) ** 2.0)
                 max_diff = 1.9 * mod * grid.dx
                 locs_of_large_diffs = np.where(dist_diffs > max_diff)[0]
-                # there should only be 1 place on the line where there's a cluster, i.e., a large pts_betw_of_max_diffs.
+                # there should only be 1 place on the line where there's a cluster,
+                # i.e., a large pts_betw_of_max_diffs.
                 # This is what we're seeking.
                 # ...this can be empty quite easily
                 pts_betw_large_diffs = np.diff(locs_of_large_diffs)
@@ -397,7 +397,8 @@ class find_facets(object):
                     end_pt_of_cluster = (
                         locs_of_large_diffs[biggest_interval_loc + 1] + 1
                     )  # both referring to the sorted list
-                    # both +1s are to account for required frame of ref changes - indices refer to where the big gaps start, not where they ends
+                    # both +1s are to account for required frame of ref changes -
+                    # indices refer to where the big gaps start, not where they ends
                     # so:
                     dists_to_sorted_pts = dists_along_profile[dist_order][
                         start_pt_of_cluster:end_pt_of_cluster
