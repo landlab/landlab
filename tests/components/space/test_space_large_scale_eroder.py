@@ -67,7 +67,7 @@ def test_inputFields_bedrock():
     fa.run_one_step()
     _ = SpaceLargeScaleEroder(mg)
 
-    assert "bedrock__elevation" in mg.at_node.keys()
+    assert "bedrock__elevation" in mg.at_node
 
 
 # %%
@@ -1064,7 +1064,9 @@ def test_MassBalance():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    # fa = PriorityFloodFlowRouter(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
+    # fa = PriorityFloodFlowRouter(
+    #   mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True
+    # )
     # fa.run_one_step()
 
     # Create a D8 flow handler
@@ -1131,6 +1133,9 @@ def test_MassBalance():
         testing.assert_array_less(
             abs(diff_MB),
             1e-8 * mg.number_of_nodes,
-            err_msg="Mass balance error SpaceLargeScaleEroder! Try to resolve by becreasing timestep",
+            err_msg=(
+                "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
+                "becreasing timestep"
+            ),
             verbose=True,
         )

@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """trickle_down_profiler.py component to create channel profiles."""
 from collections import OrderedDict

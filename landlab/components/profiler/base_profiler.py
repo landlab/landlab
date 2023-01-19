@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """Base class for profile constructors."""
 
@@ -260,7 +259,7 @@ class _BaseProfiler(ABC, Component):
 
         # create segments the way that line collection likes them.
         segments = []
-        for idx, nodes in enumerate(self._nodes):
+        for nodes in self._nodes:
             if endpoints_only:
                 select_nodes = [nodes[0], nodes[-1]]
                 segments.append(

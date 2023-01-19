@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Landlab component for overland flow using the linearized diffusion-wave approximation.
 
 Created on Fri May 27 14:26:13 2016

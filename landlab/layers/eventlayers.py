@@ -191,7 +191,7 @@ class _BlockSlice:
         """_BlockSlice([start], stop, [step])"""
         if len(args) > 3:
             raise TypeError(
-                "_BlockSlice expected at most 3 arguments, got {0}".format(len(args))
+                f"_BlockSlice expected at most 3 arguments, got {len(args)}"
             )
 
         self._args = tuple(args)
@@ -210,13 +210,13 @@ class _BlockSlice:
 
         if self._stop is not None and self._stop < self._start:
             raise ValueError(
-                "stop ({0}) must be greater than start ({1})".format(
+                "stop ({}) must be greater than start ({})".format(
                     self._stop, self._start
                 )
             )
 
     def __repr__(self):
-        return "_BlockSlice({0})".format(", ".join([repr(arg) for arg in self._args]))
+        return "_BlockSlice({})".format(", ".join([repr(arg) for arg in self._args]))
 
     @property
     def start(self):
@@ -310,16 +310,16 @@ def _valid_keywords_or_raise(kwds, required=(), optional=()):
     if unknown:
         raise TypeError(
             "invalid keyword arguments ({0} not in {{{1}}})".format(
-                ", ".join(sorted([repr(name) for name in unknown])),
-                ", ".join(sorted([repr(name) for name in optional])),
+                ", ".join(sorted(repr(name) for name in unknown)),
+                ", ".join(sorted(repr(name) for name in optional)),
             )
         )
 
     missing = required - keys
     if missing:
         raise TypeError(
-            "missing keyword arguments ({0})".format(
-                ", ".join(sorted([repr(name) for name in missing]))
+            "missing keyword arguments ({})".format(
+                ", ".join(sorted(repr(name) for name in missing))
             )
         )
 
@@ -447,8 +447,7 @@ class EventLayersMixIn:
             self._event_layers
         except AttributeError:
             self._event_layers = EventLayers(self.number_of_cells)
-        finally:
-            return self._event_layers
+        return self._event_layers
 
     @property
     def at_layer(self):
@@ -528,7 +527,7 @@ class EventLayers:
         self._number_of_layers = 0
         self._number_of_stacks = number_of_stacks
         self._surface_index = np.zeros(number_of_stacks, dtype=int)
-        self._attrs = dict()
+        self._attrs = {}
 
         dims = (self.number_of_layers, self.number_of_stacks)
         self._attrs["_dz"] = np.empty(dims, dtype=float)
@@ -833,12 +832,10 @@ class EventLayers:
         for name in kwds:
             try:
                 self[name][-1] = kwds[name]
-            except KeyError:
+            except KeyError as exc:
                 raise ValueError(
-                    "EventLayers: {0} is not being tracked. Error in adding.".format(
-                        name
-                    )
-                )
+                    f"{name!r} is not being tracked. Error in adding."
+                ) from exc
 
     def reduce(self, *args, **kwds):
         """reduce([start], stop, [step])

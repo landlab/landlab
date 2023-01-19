@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid"])
+_VALID_METHODS = {"Grid"}
 GRASS = 0
 SHRUB = 1
 TREE = 2
@@ -113,7 +113,10 @@ class VegCA(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+            "doc": (
+                "classification of plants (int), grass=0, shrub=1, tree=2, "
+                "bare=3, shrub_seedling=4, tree_seedling=5"
+            ),
         },
     }
 

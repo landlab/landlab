@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Find depressions on a topographic surface.
 
 .. codeauthor:: gtucker, DEJH (Flow routing)
@@ -160,7 +159,10 @@ class DepressionFinderAndRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "If a depression, the id of the outlet node for that depression, otherwise grid.BAD_INDEX",
+            "doc": (
+                "If a depression, the id of the outlet node for that depression, "
+                "otherwise grid.BAD_INDEX"
+            ),
         },
         "flood_status_code": {
             "dtype": int,
@@ -237,20 +239,19 @@ class DepressionFinderAndRouter(Component):
             else:
                 self._num_nbrs = self._grid.links_at_node.shape[1]
 
-        if "flow__receiver_node" in self._grid.at_node:
-            if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
-                "node"
-            ):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The depression finder is "
-                    "not compatible with the grid anymore. Use "
-                    "DepressionFinderAndRouter with reroute_flow="
-                    "True only with route-to-one methods. If using this "
-                    "component with such a flow directing method is desired "
-                    "please open a GitHub Issue/"
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
+            "flow__receiver_node"
+        ].size != self._grid.size("node"):
+            msg = (
+                "A route-to-multiple flow director has been "
+                "run on this grid. The depression finder is "
+                "not compatible with the grid anymore. Use "
+                "DepressionFinderAndRouter with reroute_flow="
+                "True only with route-to-one methods. If using this "
+                "component with such a flow directing method is desired "
+                "please open a GitHub Issue/"
+            )
+            raise NotImplementedError(msg)
 
         # Make sure the grid includes elevation data.
         self._elev = self._grid.at_node["topographic__elevation"]
@@ -650,10 +651,7 @@ class DepressionFinderAndRouter(Component):
             np.logical_and(not_bad, not_too_high),
             np.logical_and(not_current_lake, not_flooded),
         )
-        if np.any(all_probs):
-            return True
-        else:
-            return False
+        return np.any(all_probs)
 
     def is_valid_outlet(self, the_node):
         """Check if a node is a valid outlet for the depression.
@@ -877,8 +875,10 @@ class DepressionFinderAndRouter(Component):
             self._grid.status_at_node[self._grid.boundary_nodes]
             != self._grid.BC_NODE_IS_CLOSED
         ):
-            msg = "DepressionFinderAndRouter requires that there is at least one open boundary node."
-            raise ValueError(msg)
+            raise ValueError(
+                "DepressionFinderAndRouter requires that there is at least one "
+                "open boundary node."
+            )
 
         self._lake_map.fill(self._grid.BAD_INDEX)
         self._depression_outlet_map.fill(self._grid.BAD_INDEX)
@@ -995,7 +995,13 @@ class DepressionFinderAndRouter(Component):
         >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> rcvr = rg.add_zeros("flow__receiver_node", at="node", dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
-        >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
+        >>> lake_nodes = np.array(
+        ...     [
+        ...         10, 12, 13, 19, 20, 21, 25,
+        ...         26, 27, 28, 29, 30, 33, 34,
+        ...         35, 36, 37, 38, 44, 45, 46
+        ...     ]
+        ... )
         >>> rcvr[9] = 1
         >>> rcvr[11] = 3
         >>> rcvr[14] = 6
@@ -1227,8 +1233,8 @@ class DepressionFinderAndRouter(Component):
                 is_outlet[self._depression_outlet_map[i]] = True
 
         n = 0
-        for r in range(self._grid.number_of_node_rows):
-            for c in range(self._grid.number_of_node_columns):
+        for _ in range(self._grid.number_of_node_rows):
+            for _ in range(self._grid.number_of_node_columns):
                 if is_outlet[n]:
                     print("o", end=" ")
                 elif self._flood_status[n] == _UNFLOODED:
@@ -1281,13 +1287,11 @@ class DepressionFinderAndRouter(Component):
         The order is the same as that returned by *lake_codes*.
         """
         lake_areas = np.empty(self.number_of_lakes)
-        lake_counter = 0
-        for lake_code in self.lake_codes:
+        for lake_counter, lake_code in enumerate(self.lake_codes):
             each_cell_in_lake = self._grid.cell_area_at_node[
                 self._lake_map == lake_code
             ]
             lake_areas[lake_counter] = each_cell_in_lake.sum()
-            lake_counter += 1
         return lake_areas
 
     @property
@@ -1297,10 +1301,8 @@ class DepressionFinderAndRouter(Component):
         The order is the same as that returned by *lake_codes*.
         """
         lake_vols = np.empty(self.number_of_lakes)
-        lake_counter = 0
         col_vols = self._grid.cell_area_at_node * self._depression_depth
-        for lake_code in self.lake_codes:
+        for lake_counter, lake_code in enumerate(self.lake_codes):
             each_cell_in_lake = col_vols[self._lake_map == lake_code]
             lake_vols[lake_counter] = each_cell_in_lake.sum()
-            lake_counter += 1
         return lake_vols

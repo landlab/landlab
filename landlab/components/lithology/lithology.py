@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a Lithology object with different properties."""
 
 import numpy as np
@@ -69,15 +68,17 @@ class Lithology(Component):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{barnhart2018lithology,
-                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
-                    journal = "Journal of Open Source Software",
-                    volume = "",
-                    pages = "",
-                    year = "2018",
-                    doi = "10.21105/joss.00979",
-                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
-                    }"""
+    _cite_as = """
+    @article{barnhart2018lithology,
+        title = "Lithology: A Landlab submodule for spatially variable rock properties",
+        journal = "Journal of Open Source Software",
+        volume = "",
+        pages = "",
+        year = "2018",
+        doi = "10.21105/joss.00979",
+        author = {Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini
+                  and Gregory E. Tucker},
+    }"""
 
     _info = {}
 
@@ -192,12 +193,11 @@ class Lithology(Component):
             self._last_elevation = self._grid["node"]["topographic__elevation"][
                 :
             ].copy()
-        except KeyError:
-            msg = (
+        except KeyError as exc:
+            raise ValueError(
                 "Lithology requires that topographic__elevation already "
                 "exists as an at-node field."
-            )
-            raise ValueError(msg)
+            ) from exc
 
         # save inital information about thicknesses, layers, attributes, and ids.
         self._init_thicknesses = np.asarray(thicknesses)
@@ -286,7 +286,7 @@ class Lithology(Component):
                 grid.number_of_nodes, self._number_of_init_layers
             )
         else:
-            raise ValueError(("Lithology passed an invalid option for " "layer type."))
+            raise ValueError("Lithology passed an invalid option for " "layer type.")
 
         # From bottom to top, add layers to the Lithology with attributes.
         for i in range(self._number_of_init_layers - 1, -1, -1):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_lake_mapper:
 
@@ -1167,7 +1166,7 @@ def test_edge_draining():
     z = mg.node_x.copy()
     guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
     edges = np.concatenate((np.arange(7), np.arange(42, 49)))
-    hole_here = np.array(([15, 16, 22, 23, 29, 30]))
+    hole_here = np.array([15, 16, 22, 23, 29, 30])
     z[guard_sides] = z[13]
     z[edges] = -2.0  # force flow outwards from the tops of the guards
     z[hole_here] = -1.0

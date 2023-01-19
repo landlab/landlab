@@ -1,0 +1,2 @@
+
+Updated *Landlab*'s CI to use Python 3.11 and to drop testing with Python 3.8.

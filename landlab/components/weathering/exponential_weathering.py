@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
@@ -29,7 +28,7 @@ class ExponentialWeatherer(Component):
 
     An alternative version which uses the analytical integral of
     production through time is available at the component
-    :py:class:`ExponentialWeathererIntegrated <landlab.components.ExponentialWeathererIntegrated>`.
+    :py:class:`~landlab.components.ExponentialWeathererIntegrated`.
 
     Examples
     --------
@@ -70,8 +69,10 @@ class ExponentialWeatherer(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -125,10 +126,9 @@ class ExponentialWeatherer(Component):
         self._depth = grid.at_node["soil__depth"]
 
         # weathering rate
-        if "soil_production__rate" in grid.at_node:
-            self._soil_prod_rate = grid.at_node["soil_production__rate"]
-        else:
-            self._soil_prod_rate = grid.add_zeros("soil_production__rate", at="node")
+        if "soil_production__rate" not in grid.at_node:
+            grid.add_zeros("soil_production__rate", at="node")
+        self._soil_prod_rate = grid.at_node["soil_production__rate"]
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""

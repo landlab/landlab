@@ -18,7 +18,7 @@ def test_init():
 def test_new_field_location():
     fields = ModelDataFields()
     fields.new_field_location("node", 12)
-    assert set(["node"]) == fields.groups
+    assert {"node"} == fields.groups
     # assert_set_equal(set(['node']), fields.groups)
 
 
@@ -35,7 +35,7 @@ def test_add_multiple_groups():
     fields.new_field_location("cell", 2)
     fields.new_field_location("face", 7)
     fields.new_field_location("link", 7)
-    assert set(["node", "cell", "face", "link"]) == fields.groups
+    assert {"node", "cell", "face", "link"} == fields.groups
     # assert_set_equal(set(['node', 'cell', 'face', 'link']), fields.groups)
 
 
@@ -144,7 +144,7 @@ def test_getitem():
     fields = ModelDataFields()
     fields.new_field_location("node", 12)
 
-    assert dict() == fields["node"]
+    assert fields["node"] == {}
     with pytest.raises(GroupError):
         fields["cell"]
     with pytest.raises(KeyError):
@@ -155,7 +155,7 @@ def test_at_attribute():
     fields = ModelDataFields()
     fields.new_field_location("node", 12)
 
-    assert dict() == fields.at_node
+    assert fields.at_node == {}
     with pytest.raises(AttributeError):
         fields.at_cell
 
@@ -175,7 +175,7 @@ def test_delete_field():
     fields = ModelDataFields()
     fields.new_field_location("link", 17)
 
-    assert dict() == fields.at_link
+    assert fields.at_link == {}
     with pytest.raises(AttributeError):
         fields.at_node
 
@@ -196,7 +196,7 @@ def test_scalar_field():
     fields = ModelDataFields()
     fields.new_field_location("all_over_the_place", 1)
 
-    assert dict() == fields.at_all_over_the_place
+    assert fields.at_all_over_the_place == {}
     with pytest.raises(AttributeError):
         fields.at_cell
 
@@ -262,7 +262,7 @@ def test_nd_field():
     with pytest.raises(ValueError):
         fields.add_field("newest_value", np.ones((13, 4, 5)), at="node")
     with pytest.raises(ValueError):
-        fields.add_field("newestest_value", np.ones((13)), at="node")
+        fields.add_field("newestest_value", np.ones(13), at="node")
 
 
 @given(name=text(), unit_str=text())

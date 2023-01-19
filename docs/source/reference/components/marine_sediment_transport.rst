@@ -1,4 +1,4 @@
-SimpleSubmarineDiffuser: Calculate underwater sediment transport using water-depth-dependent diffusion 
+SimpleSubmarineDiffuser: Calculate underwater sediment transport using water-depth-dependent diffusion
 ------------------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.marine_sediment_transport.simple_submarine_diffuser

@@ -96,7 +96,10 @@ class DepthSlopeProductErosion(Component):
 
     Now putting slopes on nodes
 
-    >>> grid['node']['water_surface__slope'] = (grid['link']['water_surface__slope'][grid.links_at_node] * grid.active_link_dirs_at_node).max(axis=1) # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.at_node["water_surface__slope"] = (
+    ...     grid.at_link["water_surface__slope"][grid.links_at_node]
+    ...     * grid.active_link_dirs_at_node
+    ... ).max(axis=1)
     >>> grid.at_node['water_surface__slope'][grid.core_nodes]
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
