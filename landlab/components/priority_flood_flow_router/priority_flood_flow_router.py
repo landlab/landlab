@@ -367,12 +367,7 @@ class PriorityFloodFlowRouter(Component):
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
-        if (richdem := self.load_richdem()) is None:
-            raise RuntimeError(
-                "PriorityFloodFlowRouter requires richdem but richdem is not installed"
-            )
-        else:
-            self._richdem = richdem
+        self._richdem = self.load_richdem()
 
         super().__init__(grid)
         # Keep a local reference to the grid
@@ -525,10 +520,12 @@ class PriorityFloodFlowRouter(Component):
     @staticmethod
     def load_richdem():
         try:
-            import _richdem
+            import _richdem  # noqa: F401
             import richdem
-        except ModuleNotFoundError:
-            richdem = None
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
+                "PriorityFloodFlowRouter requires richdem but richdem is not installed"
+            ) from exc
         return richdem
 
     @property
