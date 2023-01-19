@@ -268,7 +268,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "optional": False,
             "units": "-",
             "mapping": "link",
-            "doc": "Direction of flow on link. A value of -1 indicates that water flow goes from head node to tail node, while a value of 1 indicates that water flow goes from tail node to head node.",
+            "doc": (
+                "Direction of flow on link. A value of -1 indicates that "
+                "water flow goes from head node to tail node, while a value "
+                "of 1 indicates that water flow goes from tail node to head node."
+            ),
         },
         "flow__link_to_receiver_node": {
             "dtype": int,

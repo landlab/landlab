@@ -335,7 +335,7 @@ class ComponentRegistry:
             year={1859},
             publisher={Lulu. com}
             }
-        """
+        """  # noqa: B950
         header = ["# Citations"]
         body = []
         for cls in self._registered:

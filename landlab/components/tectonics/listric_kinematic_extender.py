@@ -139,11 +139,14 @@ class ListricKinematicExtender(Component):
         if self._track_thickness:
             try:
                 self._thickness = grid.at_node["upper_crust_thickness"]
-            except KeyError:
+            except KeyError as exc:
                 raise KeyError(
-                    "When handle_thickness is True you must provide an 'upper_crust_thickness' node field."
-                )
-            self._cum_subs = grid.add_zeros("cumulative_subsidence_depth", at="node")
+                    "When handle_thickness is True you must provide an"
+                    "'upper_crust_thickness' node field."
+                ) from exc
+            self._cum_subs = grid.add_zeros(
+                "cumulative_subsidence_depth", at="node", clobber=True
+            )
             self._fields_to_shift.append("upper_crust_thickness")
 
         if isinstance(grid, HexModelGrid):

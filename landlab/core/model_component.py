@@ -87,13 +87,9 @@ class Component:
 
                 if field.dtype != dtype:
                     raise FieldError(
-                        "{component} required input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                            component=self._name,
-                            name=name,
-                            at=at,
-                            dtype=dtype,
-                            actual=field.dtype,
-                        )
+                        f"{self._name} required input variable: {name!r} at {at!r} "
+                        f"has incorrect dtype. dtype must be {dtype!r} and is "
+                        f"{field.dtype!r}"
                     )
 
             # if optional input exists, check dtype

@@ -448,7 +448,8 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     )
     profiler.run_one_step()
 
-    # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
+    # assert that with minimum_channel_threshold set to zero, we get all the way
+    # to the top of the divide.
     for outlet_id in profiler._data_struct:
         seg_tuples = profiler._data_struct[outlet_id].keys()
 

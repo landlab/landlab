@@ -68,15 +68,17 @@ class Lithology(Component):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{barnhart2018lithology,
-                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
-                    journal = "Journal of Open Source Software",
-                    volume = "",
-                    pages = "",
-                    year = "2018",
-                    doi = "10.21105/joss.00979",
-                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
-                    }"""
+    _cite_as = """
+    @article{barnhart2018lithology,
+        title = "Lithology: A Landlab submodule for spatially variable rock properties",
+        journal = "Journal of Open Source Software",
+        volume = "",
+        pages = "",
+        year = "2018",
+        doi = "10.21105/joss.00979",
+        author = {Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini
+                  and Gregory E. Tucker},
+    }"""
 
     _info = {}
 
@@ -191,12 +193,11 @@ class Lithology(Component):
             self._last_elevation = self._grid["node"]["topographic__elevation"][
                 :
             ].copy()
-        except KeyError:
-            msg = (
+        except KeyError as exc:
+            raise ValueError(
                 "Lithology requires that topographic__elevation already "
                 "exists as an at-node field."
-            )
-            raise ValueError(msg)
+            ) from exc
 
         # save inital information about thicknesses, layers, attributes, and ids.
         self._init_thicknesses = np.asarray(thicknesses)

@@ -573,7 +573,8 @@ class ModelGrid(
         >>> sorted(ds.dims.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
-        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
+         'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
@@ -1371,8 +1372,8 @@ class ModelGrid(
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
-        except KeyError:
-            raise TypeError(f"{name}: element name not understood")
+        except KeyError as exc:
+            raise TypeError(f"{name}: element name not understood") from exc
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -1412,8 +1413,8 @@ class ModelGrid(
         AXES = ("node_y", "node_x")
         try:
             return getattr(self, AXES[axis])
-        except IndexError:
-            raise ValueError("'axis' entry is out of bounds")
+        except IndexError as exc:
+            raise ValueError("'axis' entry is out of bounds") from exc
 
     @property
     def axis_units(self):

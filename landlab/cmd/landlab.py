@@ -221,7 +221,7 @@ def components(ctx):
         for name, values in info["info"].items():
             print("")
             print(f"[components.{component}.info.{name}]")
-            print(f"dtype = '{np.dtype(values['dtype'])!s}'")
+            print(f"dtype = {str(np.dtype(values['dtype']))!r}")
             print(f"intent = {values['intent']!r}")
             print(f"optional = {'true' if values['optional'] else 'false'}")
             print(f"units = {values['units']!r}")
