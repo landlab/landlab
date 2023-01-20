@@ -54,7 +54,13 @@ or by downloading the script and running the following from the terminal,
    python -m notebooks
 
 The download script will create a folder called *landlab-<VERSION>*, where *<VERSION>*
-is the version of the notebooks you have requested (e.g. *master* or *2.5.0*).
+is the version of the notebooks you have requested (e.g. *master* or *2.5.0*). If
+you would like to get a specific version of the notebooks, which may not match your
+version of *Landlab*, you can specify that as a command line argument. For example,
+
+.. code-block:: bash
+
+   curl -L https://raw.githubusercontent.com/landlab/landlab/master/notebooks.py | python - 2.4.1
 
 .. _notebooks.py: https://github.com/landlab/landlab/blob/master/notebooks.py
 
