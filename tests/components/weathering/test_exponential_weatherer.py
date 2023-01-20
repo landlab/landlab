@@ -21,7 +21,9 @@ def test_create_weatherer_and_change_rate():
     grid.add_zeros("soil__depth", at="node")
     ew = ExponentialWeatherer(grid, soil_production__maximum_rate=0.0001)
     ew.maximum_weathering_rate = 0.0004
-    assert ew.maximum_weathering_rate == 0.0004
+    np.testing.assert_array_equal(
+        ew.maximum_weathering_rate, np.broadcast_to(0.0004, grid.number_of_nodes)
+    )
 
 
 def test_run_weatherer():
@@ -35,4 +37,6 @@ def test_run_weatherer():
     with pytest.raises(ValueError):
         ew.maximum_weathering_rate = new_value
     ew.maximum_weathering_rate = 0.0004
-    assert ew.maximum_weathering_rate == 0.0004
+    np.testing.assert_array_equal(
+        ew.maximum_weathering_rate, np.broadcast_to(0.0004, grid.number_of_nodes)
+    )

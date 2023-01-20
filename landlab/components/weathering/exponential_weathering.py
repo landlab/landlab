@@ -116,9 +116,10 @@ class ExponentialWeatherer(Component):
         super().__init__(grid)
 
         # Store grid and parameters
-
-        self._wstar = soil_production__decay_depth
-        self._w0 = soil_production__maximum_rate
+        self._wstar = np.broadcast_to(
+            soil_production__decay_depth, grid.number_of_nodes
+        )
+        self._w0 = np.broadcast_to(soil_production__maximum_rate, grid.number_of_nodes)
 
         # Create fields:
         # soil depth
@@ -132,13 +133,9 @@ class ExponentialWeatherer(Component):
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""
-        # apply exponential function
-        w0_vector = np.broadcast_to(self._w0, self._depth.shape)
-        wstar_vector = np.broadcast_to(self._wstar, self._depth.shape)
-
         core = self._grid.core_nodes
-        self._soil_prod_rate[core] = w0_vector[core] * np.exp(
-            -self._depth[core] / wstar_vector[core]
+        self._soil_prod_rate[core] = self._w0[core] * np.exp(
+            -self._depth[core] / self._wstar[core]
         )
 
     def run_one_step(self):
@@ -160,4 +157,4 @@ class ExponentialWeatherer(Component):
     def maximum_weathering_rate(self, new_val):
         if np.any(new_val <= 0):
             raise ValueError("Maximum weathering rate must be positive.")
-        self._w0 = new_val
+        self._w0 = np.broadcast_to(new_val, self.grid.number_of_nodes)
