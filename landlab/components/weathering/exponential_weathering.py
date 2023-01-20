@@ -11,18 +11,16 @@ from landlab import Component
 
 class ExponentialWeatherer(Component):
 
-    r"""
+    """
     This component implements exponential weathering of bedrock on hillslopes.
     Uses exponential soil production function in the style of Ahnert (1976).
 
-    Consider that :math:`w_0` is the maximum soil production rate and
-    that :math:`d^*` is the characteristic soil production depth. The
-    soil production rate :math:`w` is given as a function of the soil
-    depth :math:`d`,
+    Consider that :math:`w0` is the maximum soil production rate and
+    that w_star is the characteristic soil production depth. The
+    soil production rate w0 is given as a function of the soil
+    depth:
 
-    .. math::
-
-        w = w_0 \exp{-\frac{d}{d^*}} \;.
+    soil_production =  w0 * np.exp(-soil__depth/w_star)
 
     The `ExponentialWeatherer` only calculates soil production at core nodes.
 
@@ -102,34 +100,28 @@ class ExponentialWeatherer(Component):
     }
 
     def __init__(
-        self, grid, soil_production__maximum_rate=1.0, soil_production__decay_depth=1.0
+        self, grid, soil_production_maximum_rate=1.0, soil_production_decay_depth=1.0
     ):
         """
         Parameters
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        soil_production__maximum_rate : float, array of float
+        soil_production_maximum_rate : float, array of float
             Maximum weathering rate for bare bedrock
-        soil_production__decay_depth : float, array of float
+        soil_production_decay_depth : float, array of float
             Characteristic weathering depth
         """
         super().__init__(grid)
 
         # Store grid and parameters
-        self._w0 = np.broadcast_to(soil_production__maximum_rate, grid.number_of_nodes)
-        self._wstar = np.broadcast_to(
-            soil_production__decay_depth, grid.number_of_nodes
-        )
+        # soil_production_maximum_rate, value set in setter below
+        self._w0 = None
+        # soil_production_decay_depth, value set in setter below
+        self._wstar = None
 
-        if np.any(self._w0 <= 0):
-            raise ValueError("Maximum weathering rate must be positive.")
-        if np.any(self._wstar <= 0):
-            raise ValueError("Maximum decay depth must be positive.")
-
-        # Create fields:
-        # soil depth
-        self._depth = grid.at_node["soil__depth"]
+        self.maximum_weathering_rate = soil_production_maximum_rate
+        self.decay_depth = soil_production_decay_depth
 
         # weathering rate
         if "soil_production__rate" not in grid.at_node:
@@ -139,7 +131,7 @@ class ExponentialWeatherer(Component):
         """Calculate soil production rate."""
         core = self._grid.core_nodes
         self.grid.at_node["soil_production__rate"][core] = self._w0[core] * np.exp(
-            -self._depth[core] / self._wstar[core]
+            -self.grid.at_node["soil__depth"][core] / self._wstar[core]
         )
 
     def run_one_step(self):
