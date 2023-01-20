@@ -131,13 +131,11 @@ def to_netcdf(
 
 def _add_time_dimension_to_dataset(dataset, time=0.0):
     """Add a time dimension to all variables except those at_layer."""
-    names = set(
-        [
-            name
-            for name in dataset.variables
-            if name.startswith("at_") and not name.startswith("at_layer")
-        ]
-    )
+    names = {
+        name
+        for name in dataset.variables
+        if name.startswith("at_") and not name.startswith("at_layer")
+    }
 
     for name in names:
         dataset[name] = (("time",) + dataset[name].dims, dataset[name].values[None])

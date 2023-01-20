@@ -70,7 +70,7 @@ Installation
 .. start-install-release
 
 In order to use *landlab* you will first need Python. While not
-necessary, we recommend using the 
+necessary, we recommend using the
 `Anaconda Python distribution <https://www.anaconda.com/distribution/>`_
 as it provides a large number of third-party packages useful for
 scientific computing.
@@ -302,6 +302,3 @@ During workshops and clinics, we sometimes use the
 `Landlab Slack channel <https://landlab.slack.com>`_.
 
 .. end-contact
-
-
-

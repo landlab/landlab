@@ -15,10 +15,10 @@ cdef extern from "_priority_queue.hpp" nogil:
         cnp.int_t size()
 
 cdef bool _compare_second(pair[int, double] a, pair[int, double] b) nogil
-  
+
 cdef void _init_flow_direction_queues(
-    const cnp.int_t [:] base_level_nodes, const cnp.int_t [:] closed_nodes, 
-    cnp.float_t [:] z, _priority_queue& to_do, cnp.int_t [:] receivers, 
+    const cnp.int_t [:] base_level_nodes, const cnp.int_t [:] closed_nodes,
+    cnp.float_t [:] z, _priority_queue& to_do, cnp.int_t [:] receivers,
     cnp.int_t [:] outlet_nodes, cnp.int_t [:] done, cnp.int_t* done_n_ptr) nogil
 
 cdef void _set_flooded_and_outlet(cnp.int_t donor_id, cnp.float_t [:] z,

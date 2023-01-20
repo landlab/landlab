@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Base Taxon of SpeciesEvolver."""
 from abc import ABC, abstractmethod
 
@@ -32,7 +31,7 @@ class Taxon(ABC):
         self._parent = None
 
     def __repr__(self):
-        return "<{}, tid={}>".format(self.__class__.__name__, self._tid)
+        return f"<{self.__class__.__name__}, tid={self._tid}>"
 
     @property
     def tid(self):

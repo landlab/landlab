@@ -87,8 +87,7 @@ def test_MS_params():
     istorm_dur = []
     rec = []
     depth = []
-    count = 0
-    for (storm, istorm) in rain.yield_storms(
+    for storm, istorm in rain.yield_storms(
         # style='monsoonal', limit='total_rainfall'):
         style="whole_year",
         limit="total_rainfall",
@@ -106,7 +105,6 @@ def test_MS_params():
         istorm_dur.append(istorm)
         rec.append(rain.storm_recession_value_last_storm)
         depth.append(rain.storm_depth_last_storm)
-        count += 1
     # print('Total number of storms:', count)
     # print('Target_depth:', rain.target_median_total_rainfall_this_season)
     assert np.isclose(np.mean(max_intensity), 35.84806631859928)  # mm/hr

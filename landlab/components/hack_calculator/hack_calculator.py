@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Calculate Hack parameters."""
 import collections
 from itertools import chain

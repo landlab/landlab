@@ -6,4 +6,3 @@ API for landlab.grid.radial
    :undoc-members:
    :show-inheritance:
    :inherited-members:
-

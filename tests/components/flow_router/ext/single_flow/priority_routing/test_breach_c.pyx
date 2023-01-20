@@ -2,9 +2,9 @@
 #distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
 #distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
 
-# NB: apparently not possible to add language: C++ in this file 
+# NB: apparently not possible to add language: C++ in this file
 # because of the extracompile -std=c++11 (necessary to understand the
-# priorityqueue template. To be compiled in C++, 
+# priorityqueue template. To be compiled in C++,
 # must add a .pxd file with the instruction # distutils: language = c++
 
 import numpy as np
@@ -86,7 +86,7 @@ def test_set_flooded_and_outlet():
         depression_outlet_nodes, flooded_nodes, depression_depths,
         depression_free_elevations, flooded_status, bad_index,
         min_elevation_relative_diff)
-    
+
     assert donor_id == 2
     assert_array_almost_equal(z, np.array([0.1, 67.1, 42.1, 70.3, 34.5]))
     assert_array_equal(receivers, np.array([0, 0, 1, -1, -1]))
@@ -210,10 +210,10 @@ def test_direct_flow_c():
            10, 21, 15, 17, 11, 12, 22, 16, 18, 19, 23, 17, 13, 24, 18, 14, 21,
            15, 20, 22, 16, 17, 23, 21, 24, 18, 22, 19, 23])
         cnp.int_t[:] sorted_pseudo_tails_0 = np.copy(sorted_pseudo_tails)
-        cnp.float_t[:] sorted_dupli_gradients = np.array([0.1955672, 
+        cnp.float_t[:] sorted_dupli_gradients = np.array([0.1955672,
             0.04387396, 0.20686654, 0.12232775, 0.04387396,
             0.20499506, 0.22130272, 0.12232775, 0.22909731, 0.20499506,
-            0.16503428, 0.17027403, 0.16503428, 0.05517331, 0.1382939, 
+            0.16503428, 0.17027403, 0.16503428, 0.05517331, 0.1382939,
             0.1955672,  0.30584151, 0.10637057, 0.20686654, 0.05517331,
             0.30061369, 0.24540497, 0.30584151, 0.22130272, 0.24540497,
             0.23433706, 0.22909731, 0.10635323, 0.23433706, 0.17027403,
@@ -249,7 +249,7 @@ def test_direct_flow_c():
         cnp.int_t[:] receivers = -1 * np.ones(25, dtype=int)
         cnp.float_t[:] steepest_slopes = np.zeros(25, dtype=float)
         cnp.float_t[:] z = np.array([2.29047865, 3.60669759, 7.27652998,
-            1.12667805, 6.0777065, 
+            1.12667805, 6.0777065,
             8.15749462, 9.81269383, 0.63744841, 7.99959748, 0.96948555,
             4.00867748, 6.62157669, 9.65585909, 4.80900059, 2.64112287,
             5.8741712,  0.5857857,  5.95696968, 4.42523296, 5.33407687,
@@ -328,10 +328,10 @@ def test_direct_flow():
            10, 21, 15, 17, 11, 12, 22, 16, 18, 19, 23, 17, 13, 24, 18, 14, 21,
            15, 20, 22, 16, 17, 23, 21, 24, 18, 22, 19, 23])
         cnp.int_t[:] sorted_pseudo_tails_0 = np.copy(sorted_pseudo_tails)
-        cnp.float_t[:] sorted_dupli_gradients = np.array([0.1955672, 
+        cnp.float_t[:] sorted_dupli_gradients = np.array([0.1955672,
             0.04387396, 0.20686654, 0.12232775, 0.04387396,
             0.20499506, 0.22130272, 0.12232775, 0.22909731, 0.20499506,
-            0.16503428, 0.17027403, 0.16503428, 0.05517331, 0.1382939, 
+            0.16503428, 0.17027403, 0.16503428, 0.05517331, 0.1382939,
             0.1955672,  0.30584151, 0.10637057, 0.20686654, 0.05517331,
             0.30061369, 0.24540497, 0.30584151, 0.22130272, 0.24540497,
             0.23433706, 0.22909731, 0.10635323, 0.23433706, 0.17027403,
@@ -367,7 +367,7 @@ def test_direct_flow():
         cnp.int_t[:] receivers = -1 * np.ones(25, dtype=int)
         cnp.float_t[:] steepest_slopes = np.zeros(25, dtype=float)
         cnp.float_t[:] z = np.array([2.29047865, 3.60669759, 7.27652998,
-            1.12667805, 6.0777065, 
+            1.12667805, 6.0777065,
             8.15749462, 9.81269383, 0.63744841, 7.99959748, 0.96948555,
             4.00867748, 6.62157669, 9.65585909, 4.80900059, 2.64112287,
             5.8741712,  0.5857857,  5.95696968, 4.42523296, 5.33407687,
@@ -394,7 +394,7 @@ def test_direct_flow():
     assert_array_equal(sorted_dupli_links, sorted_dupli_links_0)
     assert_array_equal(head_start_end_indexes, head_start_end_indexes_0)
     assert_array_almost_equal(depression_depths,
-        np.array([0., 0., 0., 0., 0.,     
+        np.array([0., 0., 0., 0., 0.,
             0., 0., 6.63908157, 0., 0.,
             0., 0., 0., 0., 0.,
             0., 3.50894394, 0., 0., 0.,

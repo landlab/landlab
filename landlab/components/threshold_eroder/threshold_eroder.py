@@ -90,17 +90,20 @@ class ThresholdEroder(Component):
 
     _unit_agnostic = True
 
-    _cite_as = """@Article{gmd-13-3863-2020,
-                  AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
-                  TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
-                  JOURNAL = {Geoscientific Model Development},
-                  VOLUME = {13},
-                  YEAR = {2020},
-                  NUMBER = {9},
-                  PAGES = {3863--3886},
-                  URL = {https://doi.org/10.5194/gmd-13-3863-2020},
-                  DOI = {10.5194/gmd-13-3863-2020}
-                  }"""
+    _cite_as = """
+    @Article{gmd-13-3863-2020,
+      AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
+      TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to
+               simulate the impact of landslides and landslide-derived sediment on
+               landscape evolution.},
+      JOURNAL = {Geoscientific Model Development},
+      VOLUME = {13},
+      YEAR = {2020},
+      NUMBER = {9},
+      PAGES = {3863--3886},
+      URL = {https://doi.org/10.5194/gmd-13-3863-2020},
+      DOI = {10.5194/gmd-13-3863-2020}
+    }"""
 
     _info = {
         "topographic__elevation": {
@@ -187,11 +190,14 @@ class ThresholdEroder(Component):
         # Create fields
         self.initialize_output_fields()
 
-        if "soil__depth" in self._grid.at_node:
-            if "bedrock__elevation" not in self._grid.at_node.keys():
-                raise Exception(
-                    "If soil__depth is provided as a field, also bedrock__elevation mut be provided as a field"
-                )
+        if (
+            "soil__depth" in self._grid.at_node
+            and "bedrock__elevation" not in self._grid.at_node
+        ):
+            raise ValueError(
+                "If soil__depth is provided as a field, "
+                "bedrock__elevation must also be provided as a field"
+            )
 
     def erode(self):
         """Erode landscape to threshold and dissolve sediment."""

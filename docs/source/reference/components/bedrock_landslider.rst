@@ -5,4 +5,3 @@ BedrockLandslider: Location and magnitude of episodic bedrock landsliding
     :members:
     :undoc-members:
     :show-inheritance:
-

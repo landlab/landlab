@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Grid-based simulation of lateral erosion by channels in a drainage network.
 
 ALangston
@@ -298,15 +297,15 @@ class LateralEroder(Component):
             grid, RasterModelGrid
         ), "LateralEroder requires a sqare raster grid."
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The LateralEroder is not currently "
-                    "compatible with route-to-multiple methods. Use a route-to-"
-                    "one flow director."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The LateralEroder is not currently "
+                "compatible with route-to-multiple methods. Use a route-to-"
+                "one flow director."
+            )
 
         if solver not in ("basic", "adaptive"):
             raise ValueError(
@@ -335,29 +334,24 @@ class LateralEroder(Component):
         if solver == "adaptive":
             if not isinstance(flow_accumulator, FlowAccumulator):
                 raise ValueError(
-                    (
-                        "When the adaptive solver is used, a valid "
-                        "FlowAccumulator must be passed on "
-                        "instantiation."
-                    )
+                    "When the adaptive solver is used, a valid "
+                    "FlowAccumulator must be passed on "
+                    "instantiation."
                 )
             self._flow_accumulator = flow_accumulator
 
         # Create fields needed for this component if not already existing
-        if "volume__lateral_erosion" in grid.at_node:
-            self._vol_lat = grid.at_node["volume__lateral_erosion"]
-        else:
-            self._vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
+        if "volume__lateral_erosion" not in grid.at_node:
+            grid.add_zeros("volume__lateral_erosion", at="node")
+        self._vol_lat = grid.at_node["volume__lateral_erosion"]
 
-        if "sediment__influx" in grid.at_node:
-            self._qs_in = grid.at_node["sediment__influx"]
-        else:
-            self._qs_in = grid.add_zeros("sediment__influx", at="node")
+        if "sediment__influx" not in grid.at_node:
+            grid.add_zeros("sediment__influx", at="node")
+        self._qs_in = grid.at_node["sediment__influx"]
 
-        if "lateral_erosion__depth_increment" in grid.at_node:
-            self._dzlat = grid.at_node["lateral_erosion__depth_increment"]
-        else:
-            self._dzlat = grid.add_zeros("lateral_erosion__depth_increment", at="node")
+        if "lateral_erosion__depth_increment" not in grid.at_node:
+            grid.add_zeros("lateral_erosion__depth_increment", at="node")
+        self._dzlat = grid.at_node["lateral_erosion__depth_increment"]
 
         # for backward compatibility (remove in version 3.0.0+)
         grid.at_node["sediment__flux"] = grid.at_node["sediment__influx"]
@@ -436,9 +430,10 @@ class LateralEroder(Component):
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
 
-        # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
-        # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
-        # or add self.dzlat to itself after each time step.
+        # dz_lat needs to be reset. Otherwise, once a lateral node
+        # erode's once, it will continue eroding at every subsequent
+        # time setp. If you want to track all lateral erosion, create
+        # another attribute, or add self.dzlat to itself after each time step.
         self._dzlat.fill(0.0)
 
         if inlet_on is True:
@@ -457,7 +452,7 @@ class LateralEroder(Component):
         flowdirs = grid.at_node["flow__receiver_node"]
 
         # make a list l, where node status is interior (signified by label 0) in s
-        interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+        interior_s = s[np.where(grid.status_at_node[s] == 0)[0]]
         dwnst_nodes = interior_s.copy()
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
@@ -484,18 +479,18 @@ class LateralEroder(Component):
                 # if the lateral node is not 0 or -1 continue. lateral node may be
                 # 0 or -1 if a boundary node was chosen as a lateral node. then
                 # radius of curavature is also 0 so there is no lateral erosion
-                if lat_node > 0:
+                if lat_node > 0 and z[lat_node] > z[i]:
                     # if the elevation of the lateral node is higher than primary node,
                     # calculate a new potential lateral erosion (L/T), which is negative
-                    if z[lat_node] > z[i]:
-                        petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
-                        # the calculated potential lateral erosion is mutiplied by the length of the node
-                        # and the bank height, then added to an array, vol_lat_dt, for volume eroded
-                        # laterally  *per timestep* at each node. This vol_lat_dt is reset to zero for
-                        # each timestep loop. vol_lat_dt is added to itself in case more than one primary
-                        # nodes are laterally eroding this lat_node
-                        # volume of lateral erosion per timestep
-                        vol_lat_dt[lat_node] += abs(petlat) * grid.dx * wd
+                    petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
+                    # the calculated potential lateral erosion is mutiplied by
+                    # the length of the node and the bank height, then added
+                    # to an array, vol_lat_dt, for volume eroded laterally
+                    # *per timestep* at each node. This vol_lat_dt is reset to zero for
+                    # each timestep loop. vol_lat_dt is added to itself in case
+                    # more than one primary nodes are laterally eroding this lat_node
+                    # volume of lateral erosion per timestep
+                    vol_lat_dt[lat_node] += abs(petlat) * grid.dx * wd
 
             # send sediment downstream. sediment eroded from vertical incision
             # and lateral erosion is sent downstream
@@ -511,27 +506,27 @@ class LateralEroder(Component):
         for i in dwnst_nodes:
             lat_node = lat_nodes[i]
             wd = wid_coeff * (da[i] * runoffms) ** wid_exp
-            if lat_node > 0:  # greater than zero now bc inactive neighbors are value -1
-                if z[lat_node] > z[i]:
-                    # vol_diff is the volume that must be eroded from lat_node so that its
-                    # elevation is the same as node downstream of primary node
-                    # UC model: this would represent undercutting (the water height at
-                    # node i), slumping, and instant removal.
-                    if UC == 1:
-                        voldiff = (z[i] + wd - z[flowdirs[i]]) * grid.dx**2
-                    # TB model: entire lat node must be eroded before lateral erosion
-                    # occurs
-                    if TB == 1:
-                        voldiff = (z[lat_node] - z[flowdirs[i]]) * grid.dx**2
-                    # if the total volume eroded from lat_node is greater than the volume
-                    # needed to be removed to make node equal elevation,
-                    # then instantaneously remove this height from lat node. already has
-                    # timestep in it
-                    if vol_lat[lat_node] >= voldiff:
-                        self._dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
-                        # after the lateral node is eroded, reset its volume eroded to
-                        # zero
-                        vol_lat[lat_node] = 0.0
+            # greater than zero now bc inactive neighbors are value -1
+            if lat_node > 0 and z[lat_node] > z[i]:
+                # vol_diff is the volume that must be eroded from lat_node so that its
+                # elevation is the same as node downstream of primary node
+                # UC model: this would represent undercutting (the water height at
+                # node i), slumping, and instant removal.
+                if UC == 1:
+                    voldiff = (z[i] + wd - z[flowdirs[i]]) * grid.dx**2
+                # TB model: entire lat node must be eroded before lateral erosion
+                # occurs
+                if TB == 1:
+                    voldiff = (z[lat_node] - z[flowdirs[i]]) * grid.dx**2
+                # if the total volume eroded from lat_node is greater than the volume
+                # needed to be removed to make node equal elevation,
+                # then instantaneously remove this height from lat node. already has
+                # timestep in it
+                if vol_lat[lat_node] >= voldiff:
+                    self._dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
+                    # after the lateral node is eroded, reset its volume eroded to
+                    # zero
+                    vol_lat[lat_node] = 0.0
         # combine vertical and lateral erosion.
         dz = dzdt + self._dzlat
         # change height of landscape
@@ -563,8 +558,9 @@ class LateralEroder(Component):
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
 
-        # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
-        # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
+        # dz_lat needs to be reset. Otherwise, once a lateral node erode's
+        # once, it will continue eroding at every subsequent time setp.
+        # If you want to track all lateral erosion, create another attribute,
         # or add self.dzlat to itself after each time step.
         self._dzlat.fill(0.0)
 
@@ -582,7 +578,7 @@ class LateralEroder(Component):
         s = grid.at_node["flow__upstream_node_order"]
         max_slopes = grid.at_node["topographic__steepest_slope"]
         flowdirs = grid.at_node["flow__receiver_node"]
-        interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+        interior_s = s[np.where(grid.status_at_node[s] == 0)[0]]
         dwnst_nodes = interior_s.copy()
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
@@ -609,19 +605,20 @@ class LateralEroder(Component):
                     # curvature
                     lat_nodes[i] = lat_node
                     # if the lateral node is not 0 or -1 continue.
-                    if lat_node > 0:
-                        # if the elevation of the lateral node is higher than primary node,
-                        # calculate a new potential lateral erosion (L/T), which is
-                        # negative
-                        if z[lat_node] > z[i]:
-                            petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
-                            # the calculated potential lateral erosion is mutiplied by the length of the node
-                            # and the bank height, then added to an array, vol_lat_dt, for volume eroded
-                            # laterally  *per timestep* at each node. This vol_lat_dt is reset to zero for
-                            # each timestep loop. vol_lat_dt is added to itself more than one primary nodes are
-                            # laterally eroding this lat_node
-                            # volume of lateral erosion per timestep
-                            vol_lat_dt[lat_node] += abs(petlat) * grid.dx * wd
+                    if lat_node > 0 and z[lat_node] > z[i]:
+                        # if the elevation of the lateral node is higher than
+                        # primary node, calculate a new potential lateral
+                        # erosion (L/T), which is negative
+                        petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
+                        # the calculated potential lateral erosion is mutiplied
+                        # by the length of the node and the bank height, then
+                        # added to an array, vol_lat_dt, for volume eroded
+                        # laterally  *per timestep* at each node. This vol_lat_dt
+                        # is reset to zero for each timestep loop. vol_lat_dt
+                        # is added to itself more than one primary nodes are
+                        # laterally eroding this lat_node volume of lateral
+                        # erosion per timestep
+                        vol_lat_dt[lat_node] += abs(petlat) * grid.dx * wd
                 # send sediment downstream. sediment eroded from vertical incision
                 # and lateral erosion is sent downstream
                 qs_in[flowdirs[i]] += (
@@ -637,8 +634,8 @@ class LateralEroder(Component):
             # Limit dt so that this flattening or reversal doesn't happen.
             # How close you allow these two points to get to eachother is
             # determined by the cfl timestep condition, hard coded to equal 0.3
-            # dtn is an arbitrarily large number to begin with, but will be adapted as we step through
-            # the nodes
+            # dtn is an arbitrarily large number to begin with, but will be
+            # adapted as we step through the nodes
             dtn = dt * 50  # starting minimum timestep for this round
             for i in dwnst_nodes:
                 # are points converging? ie, downstream eroding slower than upstream
@@ -669,31 +666,27 @@ class LateralEroder(Component):
             for i in dwnst_nodes:
                 lat_node = lat_nodes[i]
                 wd = wid_coeff * (da[i] * runoffms) ** wid_exp
-                if (
-                    lat_node > 0
-                ):  # greater than zero now bc inactive neighbors are value -1
-                    if z[lat_node] > z[i]:
-                        # vol_diff is the volume that must be eroded from lat_node so that its
-                        # elevation is the same as node downstream of primary node
-                        # UC model: this would represent undercutting (the water height
-                        # at node i), slumping, and instant removal.
-                        if UC == 1:
-                            voldiff = (z[i] + wd - z[flowdirs[i]]) * grid.dx**2
-                        # TB model: entire lat node must be eroded before lateral
-                        # erosion occurs
-                        if TB == 1:
-                            voldiff = (z[lat_node] - z[flowdirs[i]]) * grid.dx**2
-                        # if the total volume eroded from lat_node is greater than the volume
-                        # needed to be removed to make node equal elevation,
-                        # then instantaneously remove this height from lat node. already
-                        # has timestep in it
-                        if vol_lat[lat_node] >= voldiff:
-                            self._dzlat[lat_node] = (
-                                z[flowdirs[i]] - z[lat_node]
-                            )  # -0.001
-                            # after the lateral node is eroded, reset its volume eroded
-                            # to zero
-                            vol_lat[lat_node] = 0.0
+                # greater than zero now bc inactive neighbors are value -1
+                if lat_node > 0 and z[lat_node] > z[i]:
+                    # vol_diff is the volume that must be eroded from lat_node so that its
+                    # elevation is the same as node downstream of primary node
+                    # UC model: this would represent undercutting (the water height
+                    # at node i), slumping, and instant removal.
+                    if UC == 1:
+                        voldiff = (z[i] + wd - z[flowdirs[i]]) * grid.dx**2
+                    # TB model: entire lat node must be eroded before lateral
+                    # erosion occurs
+                    if TB == 1:
+                        voldiff = (z[lat_node] - z[flowdirs[i]]) * grid.dx**2
+                    # if the total volume eroded from lat_node is greater than the volume
+                    # needed to be removed to make node equal elevation,
+                    # then instantaneously remove this height from lat node. already
+                    # has timestep in it
+                    if vol_lat[lat_node] >= voldiff:
+                        self._dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
+                        # after the lateral node is eroded, reset its volume eroded
+                        # to zero
+                        vol_lat[lat_node] = 0.0
 
             # multiply dzdt by timestep size and combine with lateral erosion
             # self._dzlat, which is already a length for the calculated time step
@@ -728,7 +721,7 @@ class LateralEroder(Component):
                 max_slopes = grid.at_node["topographic__steepest_slope"]
                 q = grid.at_node["surface_water__discharge"]
                 flowdirs = grid.at_node["flow__receiver_node"]
-                interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+                interior_s = s[np.where(grid.status_at_node[s] == 0)[0]]
                 dwnst_nodes = interior_s.copy()
                 dwnst_nodes = dwnst_nodes[::-1]
 

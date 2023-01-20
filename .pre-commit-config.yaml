@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/psf/black
-  rev: 22.8.0
+  rev: 22.12.0
   hooks:
   - id: black
     name: black
@@ -21,13 +21,18 @@ repos:
     require_serial: true
     types_or: [python, pyi, jupyter]
     additional_dependencies: [".[jupyter]"]
-- repo: https://gitlab.com/pycqa/flake8
-  rev: 3.9.2
+
+- repo: https://github.com/pycqa/flake8
+  rev: 6.0.0
   hooks:
   - id: flake8
-    # additional_dependencies: [flake8-bugbear]
-- repo: https://gitlab.com/iamlikeme/nbhooks
-  rev: 1.0.0
+    additional_dependencies:
+    - flake8-bugbear
+    - flake8-comprehensions
+    - flake8-simplify
+
+- repo: https://gitlab.com/kennon.mckeever/nbhooks
+  rev: 1.0.1
   hooks:
   - id: nb-ensure-clean
     name: nb-ensure-clean
@@ -35,5 +40,45 @@ repos:
     entry: nb-ensure-clean
     files: \.ipynb$
     language: python
-    language_version: python3.8
 
+- repo: https://github.com/asottile/pyupgrade
+  rev: v3.3.1
+  hooks:
+  - id: pyupgrade
+    args: [--py39-plus]
+
+- repo: https://github.com/PyCQA/isort
+  rev: 5.11.4
+  hooks:
+  - id: isort
+    files: \.py$
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+    - id: check-builtin-literals
+    - id: check-added-large-files
+    - id: check-case-conflict
+    - id: check-toml
+    - id: check-yaml
+    - id: debug-statements
+    - id: end-of-file-fixer
+    - id: forbid-new-submodules
+    - id: mixed-line-ending
+    - id: trailing-whitespace
+
+# - repo: https://github.com/PyCQA/pydocstyle
+#   rev: 6.1.1
+#   hooks:
+#   - id: pydocstyle
+#     files: landlab/.*\.py$
+#     args:
+#     - --convention=numpy
+#     - --add-select=D417
+#     additional_dependencies: [".[toml]"]
+
+# - repo: https://github.com/pre-commit/mirrors-mypy
+#   rev: v0.982
+#   hooks:
+#   - id: mypy
+#     additional_dependencies: [types-all]

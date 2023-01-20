@@ -4,7 +4,7 @@ HorizontalRectVoronoiGraph. This pattern is inspired from the developments of th
 .. codeauthor:: sebastien lenard
 """
 
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -123,7 +123,8 @@ class HorizontalRectVoronoiGraph:
             np.arange(n_cols, dtype=float) * xy_spacing[0] + xy_of_lower_left[0],
             np.arange(n_rows, dtype=float) * xy_spacing[1] + xy_of_lower_left[1],
         )
-        # Randomly move the coordinates of the core nodes of the grid. Move below +/- (spacing - min_spacing)/2
+        # Randomly move the coordinates of the core nodes of the grid. Move
+        # below +/- (spacing - min_spacing) / 2
         xy_random_generator = np.random.default_rng(seed=seed)
 
         x_moves = xy_random_generator.uniform(-max_move[0], max_move[0], shape)
@@ -259,9 +260,10 @@ class FramedVoronoiGraph(DelaunayGraph):
 
     Graph of an unstructured grid of Voronoi Delaunay cells and
     irregular patches. It is a special type of :class`~.VoronoiDelaunayGraph` in which
-    the initial set of points is arranged in a fixed lattice (e.g. like a :class:`~.RasterModelGrid`)
-    named here "layout" and the core points are then moved from their
-    initial position by a random distance, lower than a certain threshold.
+    the initial set of points is arranged in a fixed lattice (e.g. like a
+    :class:`~.RasterModelGrid`) named here "layout" and the core points are
+    then moved from their initial position by a random distance, lower than a
+    certain threshold.
 
     Examples
     --------
@@ -340,15 +342,17 @@ class FramedVoronoiGraph(DelaunayGraph):
 
         try:
             xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
-        except TypeError:
-            raise TypeError("spacing must be a float or a tuple of floats")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float or a tuple of floats") from exc
         else:
             self._xy_spacing = xy_spacing[0], xy_spacing[1]
 
         try:
             xy_of_lower_left = np.asfarray(np.broadcast_to(xy_of_lower_left, 2))
-        except TypeError:
-            raise TypeError("xy of lower left must be a float or a tuple of floats")
+        except TypeError as exc:
+            raise TypeError(
+                "xy of lower left must be a float or a tuple of floats"
+            ) from exc
         else:
             self._xy_of_lower_left = xy_of_lower_left[0], xy_of_lower_left[1]
 
@@ -362,8 +366,10 @@ class FramedVoronoiGraph(DelaunayGraph):
 
         try:
             xy_min_spacing = np.asfarray(np.broadcast_to(xy_min_spacing, 2))
-        except TypeError:
-            raise TypeError("minimal spacing must be a float or a tuple of floats")
+        except TypeError as exc:
+            raise TypeError(
+                "minimal spacing must be a float or a tuple of floats"
+            ) from exc
         else:
             self._xy_min_spacing = xy_min_spacing[0], xy_min_spacing[1]
 
@@ -431,8 +437,7 @@ class FramedVoronoiGraph(DelaunayGraph):
     def node_layout(self):
         return self._node_layout
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def perimeter_nodes(self):
         return self._perimeter_nodes

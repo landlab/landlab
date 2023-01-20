@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
@@ -95,7 +94,10 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
+            "doc": (
+                "Value of the hypothetical field 'K', used to force water "
+                "flux to flow downhill"
+            ),
         },
         "surface_water__depth": {
             "dtype": float,
@@ -127,7 +129,10 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "node",
-            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+            "doc": (
+                "External volume water per area per time input to each node "
+                "(e.g., rainfall rate)"
+            ),
         },
     }
 

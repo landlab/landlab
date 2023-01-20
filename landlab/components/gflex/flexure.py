@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert et
 al., submitted to Geoscientific Model Development). The most up-to-date version
 of his code can be found at github.com/awickert/gFlex.
@@ -123,7 +122,10 @@ class gFlex(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+            "doc": (
+                "The change in elevation of the top of the lithosphere (the "
+                "land surface) in one timestep"
+            ),
         },
         "surface_load__stress": {
             "dtype": float,

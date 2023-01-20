@@ -91,7 +91,7 @@ def _get_dimension_sizes(shape):
     """
     names = _AXIS_DIMENSION_NAMES[-1 : -(len(shape) + 1) : -1]
 
-    sizes = dict()
+    sizes = {}
     for (axis, name) in enumerate(names):
         sizes[name] = shape[-(axis + 1)]
 
@@ -439,7 +439,7 @@ def _add_variables_at_points(root, fields, names=None):
         var.long_name = var_name
 
         if hasattr(fields, "grid_mapping"):
-            setattr(var, "grid_mapping", fields.grid_mapping["name"])
+            var.grid_mapping = fields.grid_mapping["name"]
 
 
 def _add_variables_at_cells(root, fields, names=None):
@@ -530,9 +530,12 @@ def _set_netcdf_grid_mapping_variable(root, grid_mapping):
         setattr(var, attr, grid_mapping[attr])
 
 
-_VALID_NETCDF_FORMATS = set(
-    ["NETCDF3_CLASSIC", "NETCDF3_64BIT", "NETCDF4_CLASSIC", "NETCDF4"]
-)
+_VALID_NETCDF_FORMATS = {
+    "NETCDF3_CLASSIC",
+    "NETCDF3_64BIT",
+    "NETCDF4_CLASSIC",
+    "NETCDF4",
+}
 
 
 def _guess_at_location(fields, names):
