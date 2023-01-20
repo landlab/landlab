@@ -23,6 +23,10 @@ def test_create_weatherer_and_change_rate():
     np.testing.assert_array_equal(
         ew.maximum_weathering_rate, np.broadcast_to(0.0004, grid.number_of_nodes)
     )
+    with pytest.raises(ValueError):
+        ExponentialWeatherer(grid, soil_production__maximum_rate=-0.0001)
+    with pytest.raises(ValueError):
+        ExponentialWeatherer(grid, soil_production__decay_depth=-0.0001)
 
 
 def test_run_weatherer():
@@ -31,11 +35,18 @@ def test_run_weatherer():
     sp_max = np.random.rand(25)
     ew = ExponentialWeatherer(grid, soil_production__maximum_rate=sp_max)
     ew.run_one_step()
+
     new_value = np.random.rand(25)
     new_value[7] = -0.1
     with pytest.raises(ValueError):
         ew.maximum_weathering_rate = new_value
+    with pytest.raises(ValueError):
+        ew.decay_depth = new_value
     ew.maximum_weathering_rate = 0.0004
     np.testing.assert_array_equal(
         ew.maximum_weathering_rate, np.broadcast_to(0.0004, grid.number_of_nodes)
+    )
+    ew.decay_depth = 1
+    np.testing.assert_array_equal(
+        ew.decay_depth, np.broadcast_to(1, grid.number_of_nodes)
     )
