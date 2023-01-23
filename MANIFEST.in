@@ -19,7 +19,6 @@ recursive-include tests *.shx
 recursive-include tests *.txt
 recursive-include tests *.yaml
 
-exclude .codeclimate.yml
 exclude .gitmodules
 exclude .landscape.yaml
 exclude .readthedocs.yaml
