@@ -10,8 +10,8 @@
 .. image:: https://github.com/landlab/landlab/actions/workflows/lint.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/lint.yml
 
-.. image:: https://github.com/landlab/landlab/actions/workflows/notebooks.yml/badge.svg
-    :target: https://github.com/landlab/landlab/actions/workflows/notebooks.yml
+.. image:: https://github.com/landlab/landlab/actions/workflows/test-notebooks.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/test-notebooks.yml
 
 .. image:: https://github.com/landlab/landlab/actions/workflows/docs.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/docs.yml
