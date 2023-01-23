@@ -456,9 +456,6 @@ def test_matches_detachment_solution_n_gr_1():
     )
 
 
-# %%
-
-
 @pytest.mark.slow
 def test_matches_transport_solution():
     # %%
@@ -1036,6 +1033,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     # %%
 
 
+@pytest.mark.slow
 def test_MassBalance():
     # %%
     # set up a 15x15 grid with one open outlet node and low initial elevations.

@@ -8,6 +8,7 @@ Doc tests and unit tests for lateral erosion.
 """
 
 import numpy as np
+import pytest
 from numpy import testing
 
 from landlab import RasterModelGrid
@@ -170,6 +171,7 @@ def test_matches_detlim_solution():
     )
 
 
+@pytest.mark.slow
 def test_ss_sed_flux():
     """
     Test that sediment flux of lateral erosion model matches steady state
@@ -230,6 +232,7 @@ def test_ss_sed_flux():
     )
 
 
+@pytest.mark.slow
 def test_variable_bedrock_K():
     """
     Test that model matches the detachment-limited analytical solution
