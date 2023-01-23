@@ -29,6 +29,7 @@ jobs:
 
           - name: Show conda installation info
             run: |
+              conda install mamba
               conda info
 
           - name: Install dependencies

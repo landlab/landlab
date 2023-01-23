@@ -8,17 +8,17 @@ PROJECT = "landlab"
 ROOT = pathlib.Path(__file__).parent
 
 
-@nox.session
+@nox.session(venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.install("pytest")
+    session.conda_install("richdem")
     session.install(".[dev,testing]")
     session.run("pytest", "--cov=landlab", "-vvv")
     session.run("coverage", "report", "--ignore-errors", "--show-missing")
     # "--fail-under=100",
 
 
-@nox.session(name="test-notebooks")
+@nox.session(name="test-notebooks", venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     session.install(".[dev,notebooks,testing]")
@@ -56,7 +56,7 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/master")
 
 
-@nox.session(name="build-docs", venv_backend="conda")
+@nox.session(name="build-docs", venv_backend="mamba")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
     session.conda_install("richdem")
@@ -69,7 +69,7 @@ def build_docs(session: nox.Session) -> None:
         "html",
         "-W",
         str(ROOT / "docs/source"),
-        str(ROOT / "docs/build/html"),
+        str(ROOT / "build/html"),
     )
 
 
@@ -158,9 +158,9 @@ def clean_checkpoints(session):
 @nox.session(python=False, name="clean-docs")
 def clean_docs(session: nox.Session) -> None:
     """Clean up the docs folder."""
-    session.chdir(ROOT / "docs")
-    if os.path.exists("build"):
-        shutil.rmtree("build")
+    session.chdir(ROOT / "build")
+    if os.path.exists("html"):
+        shutil.rmtree("html")
 
 
 @nox.session(python=False, name="clean-ext")
