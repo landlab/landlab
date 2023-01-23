@@ -362,9 +362,8 @@ class GrainHill(CTSModel):
         # Fill the bottom two rows with grains
         right_side_x = 0.866025403784 * (self.grid.number_of_node_columns - 1)
         for i in range(self.grid.number_of_nodes):
-            if self.grid.node_y[i] < 2.0:
-                if nodex[i] > 0.0 and nodex[i] < right_side_x:
-                    nsg[i] = 7
+            if self.grid.node_y[i] < 2.0 and nodex[i] > 0.0 and nodex[i] < right_side_x:
+                nsg[i] = 7
 
         # Place "wall" particles in the lower-left and lower-right corners
         if self.grid.number_of_node_columns % 2 == 0:

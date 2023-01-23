@@ -4,7 +4,7 @@ import os
 
 _SRC = "source"
 
-with open("build/linkcheck/output.txt", "r") as f:
+with open("build/linkcheck/output.txt") as f:
     link_out = f.readlines()
 
 

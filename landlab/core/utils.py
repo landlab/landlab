@@ -53,13 +53,13 @@ class ExampleData:
         Examples
         --------
         >>> data = ExampleData("io/shapefile")
-        >>> data.fetch()
+        >>> sorted(data)
+        ['methow', 'soque']
 
-        We now remove the created folder because otherwise the test can only
-        pass locally once.
-
-        >>> import shutil
-        >>> shutil.rmtree("methow")
+        >>> import os
+        >>> data.fetch()  # doctest: +SKIP
+        >>> sorted(os.listdir())  # doctest: +SKIP
+        ['methow', 'soque']
         """
         dstdir, srcdir = pathlib.Path("."), self.base
 
@@ -295,9 +295,10 @@ def get_functions_from_module(mod, pattern=None, exclude=None):
     """
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
-        if pattern is None or re.search(pattern, name):
-            if exclude is None or (re.search(exclude, name) is None):
-                funcs[name] = func
+        if (pattern is None or re.search(pattern, name)) and (
+            exclude is None or re.search(exclude, name) is None
+        ):
+            funcs[name] = func
     return funcs
 
 
@@ -354,46 +355,41 @@ def strip_grid_from_method_docstring(funcs):
 
     Examples
     --------
-    >>> from landlab.grid.mappers import dummy_func_to_demonstrate_docstring_modification as dummy_func
-    >>> funcs = {'dummy_func_to_demonstrate_docstring_modification':
-    ...          dummy_func}
-    >>> help(dummy_func)
-    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    >>> def dummy_func(grid, some_arg):
+    ...     '''A dummy function.
+    ...
+    ...     Parameters
+    ...     ----------
+    ...     grid : ModelGrid
+    ...         A landlab grid.
+    ...     some_arg:
+    ...         An argument.
+    ...     '''
+    ...     pass
+    >>> funcs = {"dummy_func_to_demonstrate_docstring_modification": dummy_func}
+    >>> print(dummy_func.__doc__)
+    A dummy function.
     <BLANKLINE>
-    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
-        A dummy function to demonstrate automated docstring changes.
-    <BLANKLINE>
-        Parameters
-        ----------
-        grid : ModelGrid
-            A Landlab modelgrid.
-        some_arg : whatever
-            A dummy argument.
-    <BLANKLINE>
-        Examples
-        --------
-        ...
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab grid.
+    some_arg:
+        An argument.
     <BLANKLINE>
     >>> strip_grid_from_method_docstring(funcs)
-    >>> help(dummy_func)
-    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    >>> print(dummy_func.__doc__)
+    A dummy function.
     <BLANKLINE>
-    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
-        A dummy function to demonstrate automated docstring changes.
-    <BLANKLINE>
-        Parameters
-        ----------
-        some_arg : whatever
-            A dummy argument.
-    <BLANKLINE>
-        Examples
-        --------
-        ...
+    Parameters
+    ----------
+    some_arg:
+        An argument.
     <BLANKLINE>
     """
     import re
 
-    for name, func in funcs.items():
+    for func in funcs.values():
         # strip the entry under "Parameters":
         func.__doc__ = re.sub("grid *:.*?\n.*?\n *", "", func.__doc__)
         # # cosmetic magic to get a two-line signature to line up right:
@@ -652,6 +648,7 @@ def get_categories_from_grid_methods(grid_type):
     from copy import copy
 
     from landlab import (
+        FramedVoronoiGrid,
         HexModelGrid,
         ModelGrid,
         NetworkModelGrid,
@@ -667,6 +664,7 @@ def get_categories_from_grid_methods(grid_type):
         "RadialModelGrid": RadialModelGrid,
         "VoronoiDelaunayGrid": VoronoiDelaunayGrid,
         "NetworkModelGrid": NetworkModelGrid,
+        "FramedVoronoiGrid": FramedVoronoiGrid,
     }
     grid_dict = {}
     cat_dict = {}

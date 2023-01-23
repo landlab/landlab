@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 24 16:28:00 2019
 
@@ -33,9 +32,11 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         # work-around is the following, but ideally verticies should be flipped in GIS.
         # parcel_loc = 0.9999 - parcel_loc
 
-        # get the X, Y vertices of the squiggly line for that link (loaded by import_shapefile.py)
+        # get the X, Y vertices of the squiggly line for that link (loaded by
+        # import_shapefile.py)
 
-        # I am not sure these next 2 lines are necessary here, but I don't know how to do this differently and/or better.
+        # I am not sure these next 2 lines are necessary here, but I don't know
+        # how to do this differently and/or better.
         if "x_of_polyline" in grid.at_link:
             link_x = grid["link"]["x_of_polyline"][parcel_link]
             link_y = grid["link"]["y_of_polyline"][parcel_link]
@@ -83,14 +84,16 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         parcel_y = np.interp(parcel_loc, link_rel_dist, link_y)
         # assert np.isnan(parcel_x) == False
 
-        # save data to a single variable. better would be to save this info as an element of parcels.dataset.X and ...Y
+        # save data to a single variable. better would be to save this info as
+        # an element of parcels.dataset.X and ...Y
         XY = [parcel_x, parcel_y]
 
         # parcels.dataset["X"] = parcel_x
         # parcels.dataset["Y"] = parcel_y
 
     else:
-        # if that parcel is no longer in the system do not try to compute X,Y and instead return NaN
+        # if that parcel is no longer in the system do not try to compute X,Y and
+        # instead return NaN
         XY = [np.nan, np.nan]
 
     # return the X,Y values

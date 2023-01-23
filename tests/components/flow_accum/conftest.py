@@ -71,7 +71,7 @@ def dans_grid1():
 
     mg.add_field("topographic__elevation", z, at="node", units="-")
 
-    class DansGrid(object):
+    class DansGrid:
         pass
 
     dans_grid = DansGrid()
@@ -147,7 +147,7 @@ def internal_closed():
 
     mg.add_field("topographic__elevation", z, at="node", units="-")
 
-    class DansGrid(object):
+    class DansGrid:
         pass
 
     dans_grid = DansGrid()
@@ -271,7 +271,7 @@ def dans_grid2():
 
     mg.add_field("topographic__elevation", z, at="node", units="-")
 
-    class DansGrid(object):
+    class DansGrid:
         pass
 
     dans_grid = DansGrid()

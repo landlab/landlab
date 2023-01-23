@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -74,20 +74,17 @@ class RadialGraphExtras:
     def spacing_of_rings(self):
         return self.spacing
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def radius_of_ring(self):
         return np.arange(0, self.number_of_rings, dtype=float) * self.spacing_of_rings
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def angle_spacing_of_ring(self):
         return 2.0 * np.pi / self.nodes_per_ring
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def nodes_per_ring(self):
         nodes_per_ring = np.empty(self.number_of_rings, dtype=int)
@@ -95,20 +92,17 @@ class RadialGraphExtras:
         nodes_per_ring[1:] = np.round(2.0 * np.pi * np.arange(1, self.number_of_rings))
         return nodes_per_ring
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def ring_at_node(self):
         return np.repeat(np.arange(self.number_of_rings), self.nodes_per_ring)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def radius_at_node(self):
         return self.radius_of_ring[self.ring_at_node]
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def angle_at_node(self):
         angle_at_node = np.empty(self.nodes_per_ring.sum(), dtype=float)
@@ -157,8 +151,8 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         """
         try:
             spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float") from exc
 
         xy_of_center = tuple(np.broadcast_to(xy_of_center, 2))
 
@@ -197,7 +191,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> graph.number_of_rings
         1
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         return self._shape[0]
 
@@ -215,12 +209,11 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> graph.spacing_of_rings
         2.0
 
-        LLCATS: GINF MEAS
+        :meta landlab: info-grid, quantity
         """
         return self._ring_spacing
 
-    @property
-    @lru_cache()
+    @cached_property
     def radius_at_node(self):
         """Distance for center node to each node.
 
@@ -235,15 +228,14 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,  1.,  2.,  1.,
                 1.,  2.,  2.,  2.,  2.,  2.])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         return np.sqrt(
             np.square(self.x_of_node - self._xy_of_center[0])
             + np.square(self.y_of_node - self._xy_of_center[1])
         )
 
-    @property
-    @lru_cache()
+    @cached_property
     def number_of_nodes_in_ring(self):
         """Number of nodes in each ring.
 
@@ -257,6 +249,6 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> graph.number_of_nodes_in_ring
         array([ 6, 12, 24, 48])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         return as_id_array(self._shape[1] * 2 ** np.arange(self.number_of_rings))

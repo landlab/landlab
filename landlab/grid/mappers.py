@@ -23,7 +23,6 @@ Grid mapping functions
     ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
     ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
     ~landlab.grid.mappers.map_link_vector_components_to_node
-    ~landlab.grid.mappers.dummy_func_to_demonstrate_docstring_modification
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.
@@ -93,17 +92,17 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     ...                               8,  9, 10, 11])
     >>> map_link_head_node_to_link(rmg, 'z')
     array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
-             9.,  10.,  11.,   9.,  10.,  11.])
+          9.,  10.,  11.,   9.,  10.,  11.])
 
     >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_link_head_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
-             9.,  10.,  11.,   9.,  10.,  11.])
+          9.,  10.,  11.,   9.,  10.,  11.])
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -161,7 +160,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -224,7 +223,7 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -289,7 +288,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -348,7 +347,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -417,7 +416,7 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     array([   0.,   10.,   20.,    0.,   10.,   20.,   30.,   60.,   50.,
              40.,   70.,   60.,   50.,   40.,   80.,   90.,  100.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -492,7 +491,7 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     array([  10.,   20.,   30.,   70.,   60.,   50.,   40.,   70.,   60.,
              50.,   80.,   90.,  100.,  110.,   90.,  100.,  110.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -551,7 +550,7 @@ def map_node_to_cell(grid, var_name, out=None):
     >>> rtn is values_at_cells
     True
 
-    LLCATS: CINF NINF MAP
+    :meta landlab: info-cell, info-node, map
     """
     if out is None:
         out = grid.empty(at="cell")
@@ -608,7 +607,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -669,7 +668,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -736,7 +735,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -801,7 +800,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -867,7 +866,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -938,7 +937,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -1016,7 +1015,7 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -1096,7 +1095,7 @@ def map_value_at_downwind_node_link_max_to_node(
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -1163,7 +1162,7 @@ def map_mean_of_patch_nodes_to_patch(
     array([ 4.5, 4. , 0. ,
             3.5, 3. , 0. ])
 
-    LLCATS: PINF NINF MAP
+    :meta landlab: info-patch, info-node, map
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1235,7 +1234,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     array([ 5., 4., 0.,
             4., 4., 0.])
 
-    LLCATS: PINF NINF MAP
+    :meta landlab: info-patch, info-node, map
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1307,7 +1306,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     array([ 4., 4., 0.,
             2., 2., 0.])
 
-    LLCATS: PINF NINF MAP
+    :meta landlab: info-patch, info-node, map
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1411,7 +1410,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     >>> np.allclose(ycomp[absent_patches], 0.0)
     False
 
-    LLCATS: PINF LINF MAP
+    :meta landlab: info-patch, info-link, map
     """
     if out is None:
         out = [
@@ -1490,20 +1489,3 @@ def map_link_vector_components_to_node(grid, data_at_link):
         return map_link_vector_components_to_node_raster(grid, data_at_link)
     else:
         raise NotImplementedError("Only available for HexModelGrid")
-
-
-def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
-    """A dummy function to demonstrate automated docstring changes.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab modelgrid.
-    some_arg : whatever
-        A dummy argument.
-
-    Examples
-    --------
-    ...
-    """
-    pass

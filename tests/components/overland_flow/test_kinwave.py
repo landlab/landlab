@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for landlab.components.overland_flow.KinwaveOverlandFlowModel
 

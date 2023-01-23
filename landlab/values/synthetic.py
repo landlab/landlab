@@ -133,26 +133,24 @@ def _where_to_add_values(grid, at, where):
     if where is None:
         where = np.full(grid.size(at), True, dtype=bool)
     elif isinstance(where, (tuple, list)):
-        where = np.isin(getattr(grid, "status_at_{0}".format(at)), where)
+        where = np.isin(getattr(grid, f"status_at_{at}"), where)
     else:
         where = np.asarray(where, dtype=bool)
         if where.size != grid.size(at):
-            raise ValueError(
-                "array size mismatch ({0} != {1})".format(where.size, grid.size(at))
-            )
+            raise ValueError(f"array size mismatch ({where.size} != {grid.size(at)})")
 
     return where
 
 
 def _convert_where(where, at):
     if at not in _STATUS:
-        raise AttributeError("boundary conditions are not defined at {0}".format(at))
+        raise AttributeError(f"boundary conditions are not defined at {at!r}")
 
     if isinstance(where, str):
         try:
             return _STATUS[at][where]
-        except KeyError:
-            raise ValueError("'{0}' status does not exists for {1}.".format(where, at))
+        except KeyError as exc:
+            raise ValueError(f"{where!r} status does not exists for {at!r}.") from exc
     else:
         return where
 
@@ -301,16 +299,14 @@ def _plane_function(x, y, point, normal):
 
 
 def _get_x_and_y(grid, at):
-    if isinstance(grid, NetworkModelGrid):
-        if at != "node":
-            msg = (
-                "Synthetic fields based on x and y values at grid elements "
-                "(e.g. sine, plane) are supported for NetworkModelGrid "
-                "only at node. If you need this at other grid elements, "
-                "open a GitHub issue to learn how to contribute this "
-                "functionality."
-            )
-            raise ValueError(msg)
+    if isinstance(grid, NetworkModelGrid) and at != "node":
+        raise ValueError(
+            "Synthetic fields based on x and y values at grid elements "
+            "(e.g. sine, plane) are supported for NetworkModelGrid "
+            "only at node. If you need this at other grid elements, "
+            "open a GitHub issue to learn how to contribute this "
+            "functionality."
+        )
     if at == "node":
         x, y = grid.xy_of_node[:, 0], grid.xy_of_node[:, 1]
     elif at == "link":
@@ -320,12 +316,11 @@ def _get_x_and_y(grid, at):
     elif at == "face":
         x, y = grid.xy_of_face[:, 0], grid.xy_of_face[:, 1]
     else:
-        msg = (
+        raise ValueError(
             "landlab.values.synthetic: ",
             "X and Y values are require for the requested synthetic field "
             "but do not exist for the grid-element provided: " + at,
         )
-        raise ValueError(msg)
     return x, y
 
 

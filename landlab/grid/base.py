@@ -6,8 +6,9 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
 import fnmatch
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -454,17 +455,13 @@ class ModelGrid(
         if isinstance(exclude, str):
             exclude = [exclude]
 
-        layer_groups = set(["_".join(["layer", at]) for at in self.groups])
+        layer_groups = {"_".join(["layer", at]) for at in self.groups}
         layer_groups.add("layer")
 
         canonical_names = set()
         for at in self.groups | layer_groups:
-            try:
-                canonical_names.update(
-                    ["at_{0}:{1}".format(at, name) for name in self[at]]
-                )
-            except KeyError:
-                pass
+            with contextlib.suppress(KeyError):
+                canonical_names.update([f"at_{at}:{name}" for name in self[at]])
 
         names = set()
         for pattern in include:
@@ -576,7 +573,8 @@ class ModelGrid(
         >>> sorted(ds.dims.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
-        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
+         'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
@@ -629,7 +627,7 @@ class ModelGrid(
     def ndim(self):
         """Number of spatial dimensions of the grid.
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         return 2
 
@@ -660,7 +658,7 @@ class ModelGrid(
         >>> np.any(mg.status_at_link == LinkStatus.FIXED)  # links auto-update
         True
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         return self._node_status
 
@@ -714,7 +712,7 @@ class ModelGrid(
                [-1, -1,  3, -1, -1, -1],
                [-1,  3, -1, -1, -1, -1]])
 
-        LLCATS: NINF CONN BC
+        :meta landlab: info-node, connectivity, boundary-condition
         """
         return np.choose(
             self.status_at_link[self.links_at_node] == LinkStatus.ACTIVE,
@@ -748,7 +746,7 @@ class ModelGrid(
                [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
                dtype=int8)
 
-        LLCATS: NINF LINF CONN
+        :meta landlab: info-node, info-link, connectivity
         """
         return np.choose(
             self.link_status_at_node == LinkStatus.ACTIVE, (0, self.link_dirs_at_node)
@@ -773,7 +771,7 @@ class ModelGrid(
         >>> mg.core_nodes
         array([ 6,  7,  8, 11, 12, 13])
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         return np.where(self.status_at_node == NodeStatus.CORE)[0]
 
@@ -789,7 +787,7 @@ class ModelGrid(
         >>> mg.boundary_nodes
         array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         try:
             return self._boundary_nodes
@@ -812,7 +810,7 @@ class ModelGrid(
         >>> mg.open_boundary_nodes
         array([16, 17, 18])
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         (open_boundary_node_ids,) = np.where(
             (self._node_status != self.BC_NODE_IS_CLOSED)
@@ -833,7 +831,7 @@ class ModelGrid(
         >>> mg.closed_boundary_nodes
         array([15, 16, 17, 18, 19])
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         (closed_boundary_node_ids,) = np.where(
             self._node_status == self.BC_NODE_IS_CLOSED
@@ -853,7 +851,7 @@ class ModelGrid(
         >>> mg.fixed_gradient_boundary_nodes
         array([15, 16, 17, 18, 19])
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         (fixed_gradient_boundary_node_ids,) = np.where(
             self._node_status == self.BC_NODE_IS_FIXED_GRADIENT
@@ -1016,7 +1014,7 @@ class ModelGrid(
         >>> grid.fixed_value_boundary_nodes
         array([16, 17, 18])
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         return np.where(self._node_status == NodeStatus.FIXED_VALUE)[0]
 
@@ -1037,7 +1035,7 @@ class ModelGrid(
         >>> grid.active_faces
         array([0, 2, 5])
 
-        LLCATS: FINF BC
+        :meta landlab: info-face, boundary-condition
         """
         return self.face_at_link[self.active_links]
 
@@ -1054,7 +1052,7 @@ class ModelGrid(
         >>> grid.active_links
         array([ 4,  5,  7,  8,  9, 11, 12])
 
-        LLCATS: LINF BC
+        :meta landlab: info-link, boundary-condition
         """
         return np.where(self.status_at_link == LinkStatus.ACTIVE)[0]
 
@@ -1083,7 +1081,7 @@ class ModelGrid(
         >>> grid.fixed_links
         array([4, 5])
 
-        LLCATS: LINF BC
+        :meta landlab: info-link, boundary-condition
         """
         return np.where(self.status_at_link == LinkStatus.FIXED)[0]
 
@@ -1198,7 +1196,7 @@ class ModelGrid(
         >>> grid.node_at_core_cell
         array([ 6,  7, 11, 12, 13])
 
-        LLCATS: NINF CINF BC CONN
+        :meta landlab: info-node, info-cell, boundary-condition, connectivity
         """
         return np.where(self.status_at_node == NodeStatus.CORE)[0]
 
@@ -1225,7 +1223,7 @@ class ModelGrid(
         >>> grid.core_cells
         array([0, 1, 3, 4, 5])
 
-        LLCATS: CINF BC
+        :meta landlab: info-cell, boundary-condition
         """
         return self.cell_at_node[self.core_nodes]
 
@@ -1251,7 +1249,7 @@ class ModelGrid(
         >>> grid.number_of_active_faces
         3
 
-        LLCATS: FINF BC
+        :meta landlab: info-face, boundary-condition
         """
         return self.active_faces.size
 
@@ -1273,7 +1271,7 @@ class ModelGrid(
         >>> grid.number_of_core_nodes
         5
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         return self.core_nodes.size
 
@@ -1294,7 +1292,7 @@ class ModelGrid(
         >>> grid.number_of_core_cells
         5
 
-        LLCATS: CINF BC
+        :meta landlab: info-cell, boundary-condition
         """
         return self.core_cells.size
 
@@ -1314,7 +1312,7 @@ class ModelGrid(
         >>> mg.number_of_active_links
         10
 
-        LLCATS: LINF BC
+        :meta landlab: info-link, boundary-condition
         """
         return self.active_links.size
 
@@ -1332,7 +1330,7 @@ class ModelGrid(
         >>> mg.number_of_fixed_links
         3
 
-        LLCATS: LINF BC
+        :meta landlab: info-link, boundary-condition
         """
         return self.fixed_links.size
 
@@ -1370,12 +1368,12 @@ class ModelGrid(
         >>> mg.number_of_elements('active_link')
         13
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
-        except KeyError:
-            raise TypeError("{name}: element name not understood".format(name=name))
+        except KeyError as exc:
+            raise TypeError(f"{name}: element name not understood") from exc
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -1410,13 +1408,13 @@ class ModelGrid(
                 0., 1., 2., 3., 4.,
                 0., 1., 2., 3., 4.])
 
-        LLCATS: GINF NINF MEAS
+        :meta landlab: info-grid, info-node, quantity
         """
         AXES = ("node_y", "node_x")
         try:
             return getattr(self, AXES[axis])
-        except IndexError:
-            raise ValueError("'axis' entry is out of bounds")
+        except IndexError as exc:
+            raise ValueError("'axis' entry is out of bounds") from exc
 
     @property
     def axis_units(self):
@@ -1440,7 +1438,7 @@ class ModelGrid(
         >>> mg.axis_units
         ('m', 'm')
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         return self._axis_units
 
@@ -1471,7 +1469,7 @@ class ModelGrid(
         >>> grid.axis_name
         ('lon', 'lat')
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         return self._axis_name
 
@@ -1514,7 +1512,7 @@ class ModelGrid(
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 2, 4, 0, 0, 0, 4, 4, 0, 0,
                2, 4, 0, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
 
-        LLCATS: BC LINF
+        :meta landlab: boundary-condition, info-link
         """
         return set_status_at_link(self.status_at_node[self.nodes_at_link])
 
@@ -1540,7 +1538,7 @@ class ModelGrid(
         >>> np.round(grid.angle_of_link_about_head[:3] / np.pi * 3.0)  # 60 deg segments
         array([ 3.,  5.,  4.])
 
-        LLCATS: LINF MEAS
+        :meta landlab: info-link, quantity
         """
         angles = np.arctan2(-np.sin(self.angle_of_link), -np.cos(self.angle_of_link))
         return np.mod(angles, 2.0 * np.pi, out=angles)
@@ -1551,7 +1549,7 @@ class ModelGrid(
         Resolves values provided defined on links into the x and y directions.
         Returns values_along_x, values_along_y
 
-        LLCATS: LINF
+        :meta landlab: info-link
         """
         return gfuncs.resolve_values_on_links(self, link_values, out=out)
 
@@ -1605,7 +1603,7 @@ class ModelGrid(
                [False, False,  True,  True],
                [False, False,  True,  True]], dtype=bool)
 
-        LLCATS: LINF NINF CONN
+        :meta landlab: info-link, info-node, connectivity
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -1673,7 +1671,7 @@ class ModelGrid(
                [ True, False, False, False],
                [False, False, False, False]], dtype=bool)
 
-        LLCATS: LINF NINF CONN
+        :meta landlab: info-link, info-node, connectivity
         """
         if out is None:
             out = np.empty_like(self.links_at_node, dtype=bool)
@@ -1737,7 +1735,7 @@ class ModelGrid(
                [15, 12],
                [16, 13]])
 
-        LLCATS: LINF NINF CONN
+        :meta landlab: info-link, info-node, connectivity
         """
         if type(values) is str:
             vals = self.at_link[values]
@@ -1808,7 +1806,7 @@ class ModelGrid(
                [16, -1],
                [-1, -1]])
 
-        LLCATS: LINF NINF CONN
+        :meta landlab: info-link, info-node, connectivity
         """
         if type(values) is str:
             vals = self.at_link[values]
@@ -1876,7 +1874,7 @@ class ModelGrid(
         >>> 2 in mg.patches_at_node * mg.patches_present_at_node
         False
 
-        LLCATS: PINF NINF
+        :meta landlab: info-patch, info-node
         """
         try:
             return self._patches_present_mask
@@ -1930,7 +1928,7 @@ class ModelGrid(
         >>> 2 in mg.patches_at_link * mg.patches_present_at_link
         False
 
-        LLCATS: PINF LINF
+        :meta landlab: info-patch, info-link
         """
         try:
             return self._patches_present_link_mask
@@ -1962,7 +1960,7 @@ class ModelGrid(
         >>> mg.number_of_patches_present_at_node
         array([1, 2, 1, 1, 2, 1, 0, 0, 0])
 
-        LLCATS: PINF NINF BC
+        :meta landlab: info-patch, info-node, boundary-condition
         """
         try:
             return self._number_of_patches_present_at_node
@@ -1997,7 +1995,7 @@ class ModelGrid(
         >>> mg.number_of_patches_present_at_link
         array([1, 1, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0])
 
-        LLCATS: PINF LINF BC
+        :meta landlab: info-patch, info-link, boundary-condition
         """
         try:
             return self._number_of_patches_present_at_link
@@ -2098,7 +2096,7 @@ class ModelGrid(
                 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
                 0.625])
 
-        LLCATS: NINF SURF
+        :meta landlab: info-node, surface
         """
         if slp is not None and asp is not None:
             if unit == "degrees":
@@ -2140,8 +2138,7 @@ class ModelGrid(
 
         return shaded.clip(0.0)
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.
@@ -2164,7 +2161,7 @@ class ModelGrid(
                  0.,  12.,  12.,  12.,   0.,
                  0.,   0.,   0.,   0.,   0.])
 
-        LLCATS: CINF NINF CONN
+        :meta landlab: info-cell, info-node, connectivity
         """
         cell_area_at_node = np.zeros(self.number_of_nodes, dtype=float)
         cell_area_at_node[self.node_at_cell] = self.area_of_cell
@@ -2189,22 +2186,16 @@ class ModelGrid(
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
         try:
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_inlink_matrix"]
-        except KeyError:
-            pass
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_outlink_matrix"]
-        except KeyError:
-            pass
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
@@ -2258,7 +2249,7 @@ class ModelGrid(
         >>> mg.status_at_node
         array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=uint8)
 
-        LLCATS: BC NINF
+        :meta landlab: boundary-condition, info-node
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
@@ -2343,7 +2334,7 @@ class ModelGrid(
                4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 2, 2, 2, 2, 2, 4,
                4, 4, 4, 4, 4, 4, 4, 4], dtype=uint8)
 
-        LLCATS: BC NINF
+        :meta landlab: boundary-condition, info-node
         """
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
@@ -2363,7 +2354,7 @@ class ModelGrid(
         >>> grid.unit_vector_sum_xcomponent_at_node
         array([ 1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         return self.unit_vector_at_node[:, 0]
 
@@ -2380,7 +2371,7 @@ class ModelGrid(
         >>> grid.unit_vector_sum_ycomponent_at_node
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         return self.unit_vector_at_node[:, 1]
 
@@ -2569,8 +2560,6 @@ class ModelGrid(
         pre-calculated to have the right values to represent a uniform
         vector with magnitude 5 and orientation 30 degrees counter-clockwise
         from horizontal.
-
-        LLCATS: NINF LINF CONN MAP
         """
         # Break the link-based vector input variable, q, into x- and
         # y-components.
@@ -2625,7 +2614,7 @@ class ModelGrid(
         >>> mg.node_is_boundary([0, 6], boundary_flag=mg.BC_NODE_IS_CLOSED)
         array([False, False], dtype=bool)
 
-        LLCATS: NINF BC
+        :meta landlab: info-node, boundary-condition
         """
         if boundary_flag is None:
             return ~(self._node_status[ids] == NodeStatus.CORE)
@@ -2746,7 +2735,7 @@ class ModelGrid(
         array([[ 0., -1.,  0.,  1.,  0.],
                [-1.,  0.,  0.,  0.,  1.]])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         if len(coord) != 2:
             raise ValueError("coordinate must iterable of length 2")
@@ -2853,7 +2842,7 @@ class ModelGrid(
         >>> distances[0, ::4]
         array([ 0.,  1.,  2.])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         if self._all_node_distances_map is None:
             self._create_all_node_distances_azimuths_maps()
@@ -2889,7 +2878,7 @@ class ModelGrid(
         >>> angles[0, ::5]
         array([  0.,  45.,  45.])
 
-        LLCATS: NINF MEAS
+        :meta landlab: info-node, quantity
         """
         if self._all_node_azimuths_map is None:
             self._create_all_node_distances_azimuths_maps()
@@ -2985,7 +2974,7 @@ class ModelGrid(
         >>> grid.node_has_boundary_neighbor()[((12, 0),)]
         array([False,  True], dtype=bool)
 
-        LLCATS: NINF CONN BC
+        :meta landlab: info-node, connectivity, boundary-condition
         """
         status_of_neighbor = self._node_status[self.adjacent_nodes_at_node]
         neighbor_not_core = status_of_neighbor != NodeStatus.CORE

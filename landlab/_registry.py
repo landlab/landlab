@@ -123,7 +123,7 @@ from . import _info
 from .core.messages import indent_and_wrap
 
 
-class ComponentRegistry(object):
+class ComponentRegistry:
 
     """A registry for instantiated landlab components."""
 
@@ -167,7 +167,7 @@ class ComponentRegistry(object):
         >>> registry.registered
         ('FooBar',)
         """
-        return tuple([ComponentRegistry.get_name(obj) for obj in self._registered])
+        return tuple(ComponentRegistry.get_name(obj) for obj in self._registered)
 
     @staticmethod
     def format_citation(obj):
@@ -214,7 +214,7 @@ class ComponentRegistry(object):
             }
         """
         name = ComponentRegistry.get_name(obj)
-        header = ["## {name}".format(name=name)]
+        header = [f"## {name}"]
 
         cite_as = ComponentRegistry.get_citations(obj)
 
@@ -335,7 +335,7 @@ class ComponentRegistry(object):
             year={1859},
             publisher={Lulu. com}
             }
-        """
+        """  # noqa: B950
         header = ["# Citations"]
         body = []
         for cls in self._registered:
@@ -343,7 +343,7 @@ class ComponentRegistry(object):
         return os.linesep.join(header + [(2 * os.linesep).join(body)])
 
     def __repr__(self):
-        return "ComponentRegistry({0})".format(repr(self.registered))
+        return f"ComponentRegistry({repr(self.registered)})"
 
 
 registry = ComponentRegistry(_info)

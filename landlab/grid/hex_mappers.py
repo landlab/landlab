@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Grid element mappers that are specific to hex grids.
 
 Mapping functions unique to hex grids

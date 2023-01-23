@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_celllab_cts.py: Unit-test function for CellLabCTS.
 
