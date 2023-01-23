@@ -7,11 +7,11 @@
 .. image:: https://github.com/landlab/landlab/actions/workflows/test.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/test.yml
 
-.. image:: https://github.com/landlab/landlab/actions/workflows/flake8.yml/badge.svg
-    :target: https://github.com/landlab/landlab/actions/workflows/flake8.yml
+.. image:: https://github.com/landlab/landlab/actions/workflows/lint.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/lint.yml
 
-.. image:: https://github.com/landlab/landlab/actions/workflows/black.yml/badge.svg
-    :target: https://github.com/landlab/landlab/actions/workflows/black.yml
+.. image:: https://github.com/landlab/landlab/actions/workflows/notebooks.yml/badge.svg
+    :target: https://github.com/landlab/landlab/actions/workflows/notebooks.yml
 
 .. image:: https://github.com/landlab/landlab/actions/workflows/docs.yml/badge.svg
     :target: https://github.com/landlab/landlab/actions/workflows/docs.yml
