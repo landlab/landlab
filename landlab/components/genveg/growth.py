@@ -123,6 +123,10 @@ class PlantGrowth(Species):
         species_params=kwargs['species_params']
         super().__init__(species_params)
         self.species_name=self.species_plant_factors['species']
+        self.total_min_biomass=sum(self.species_grow_params['plant_part_min'])
+        self.growth_min_biomass=self.total_min_biomass-self.species_grow_params['plant_part_min'][3]-self.species_grow_params['plant_part_min'][4]
+        self.growth_max_biomass=sum(self.species_grow_params['plant_part_max'])-self.species_grow_params['plant_part_max'][3]-self.species_grow_params['plant_part_max'][4]
+
         self._grid=grid
         (_,_latitude)=self._grid.xy_of_reference
         self._lat_rad = np.radians(_latitude)      
@@ -153,6 +157,7 @@ class PlantGrowth(Species):
                 'vegetation__leaf_biomass':(['item_id','time'],np.reshape(self.plants['leaf_biomass'],(self.plants['pid'].size,1))),
                 'vegetation__stem_biomass':(['item_id','time'],np.reshape(self.plants['stem_biomass'],(self.plants['pid'].size,1))),
                 'vegetation__storage_biomass':(['item_id','time'],np.reshape(self.plants['storage_biomass'],(self.plants['pid'].size,1))),
+                'vegetation__repro_biomass':(['item_id','time'],np.reshape(self.plants['repro_biomass'],(self.plants['pid'].size,1))),
                 'vegetation__plant_age':(['item_id','time'],np.reshape(self.plants['plant_age'],(self.plants['pid'].size,1)))
             },
             attrs={"vegetation__species": 'species name, string',
@@ -160,6 +165,7 @@ class PlantGrowth(Species):
                 "vegetation__leaf_biomass": 'g',
                 "vegetation__stem_biomass": 'g',
                 "vegetation__storage_biomass": 'g',
+                "vegetation__repro_biomass":'g',
                 "vegetation__plant_age": 'days',
             }
         )
@@ -185,23 +191,28 @@ class PlantGrowth(Species):
         growdict=self.species_grow_params
         _last_biomass=self.plants
         _new_biomass=_last_biomass
-        _total_biomass=_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']+_last_biomass['root_biomass']+_last_biomass['storage_biomass']
-        #from Teh 2006 page 148
-        _glu_req=np.zeros_like(_total_biomass)
-        _glu_req[_total_biomass != 0] = ((_last_biomass['leaf_biomass'][_total_biomass != 0]/_total_biomass[_total_biomass != 0]) * growdict['glucose_requirement'][1]) + \
-                    ((_last_biomass['stem_biomass'][_total_biomass != 0]/_total_biomass[_total_biomass != 0]) * growdict['glucose_requirement'][2]) + \
-                    ((_last_biomass['root_biomass'][_total_biomass != 0]/_total_biomass[_total_biomass != 0]) * growdict['glucose_requirement'][0])
+        _total_biomass=self.sum_plant_parts(_last_biomass,parts='total')
+        filter=np.where(_total_biomass>0)
 
         #calculate variables needed to run plant processes
         _par=self._grid['cell']['radiation__par_tot'][_last_biomass['cell_index']]
         _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
         _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - _current_jday)))
         _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
+
+        #from Teh 2006 page 148
+        _glu_req=np.zeros_like(_total_biomass)
+        i=0
+        for part in self.all_parts:
+            _glu_req[filter]+=(_last_biomass[part][filter]/_total_biomass[filter])*growdict['glucose_requirement'][i]
+            delta_biomass_respire=self.respire(_temperature,_last_biomass,_glu_req) 
+            i+=1
         
         event_flags=self.set_event_flags(_current_jday)
         flags_to_test={
             '_in_growing_season':event_flags['_in_growing_season'],
             '_in_senescence_period':event_flags['_in_senescence_period'],
+            '_in_reproductive_period':event_flags['_in_reproductive_period'],
             '_is_emergence_day':event_flags['_is_emergence_day'], 
             '_is_dormant_day':event_flags['_is_dormant_day']
         }
@@ -209,20 +220,24 @@ class PlantGrowth(Species):
         processes={
             '_in_growing_season':self.photosynthesize,
             '_in_senescence_period':self.senesce,
+            '_in_reproductive_period':self.disperse,
             '_is_emergence_day':self.emerge,
             '_is_dormant_day':self.enter_dormancy
         }
 
-        delta_biomass_respire=self.respire(_temperature,_last_biomass,_glu_req) 
+        
         if event_flags['_in_growing_season']:
-            delta_tot=delta_biomass_respire+processes['_in_growing_season'](_par, _last_biomass, _glu_req, _daylength)
-            delta_tot[delta_tot<0]=0
+            delta_photo=processes['_in_growing_season'](_par, _last_biomass, _glu_req, _daylength)
+            delta_tot=delta_biomass_respire+delta_photo
+            #we will need to add a turnover rate estiamte. Not sure where to include it though.
+            #delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
+            print(delta_photo)
+            print(delta_biomass_respire)
             _new_biomass=self.allocate_biomass_dynamically(delta_tot)
 
         else:
             _new_biomass=self.allocate_biomass_proportionately(delta_biomass_respire, _last_biomass)
         flags_to_test.pop('_in_growing_season')
-
         for process in flags_to_test.items():
             if process[1]:
                 _new_biomass=processes[process[0]](_new_biomass)
@@ -240,7 +255,7 @@ class PlantGrowth(Species):
             #Loop through list of plants stored on grid
             for plant in cell_plants:
                 if plant == self.species_plant_factors['species']:
-                    buildlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0))
+                    buildlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0))
                     pidval += 1
         new_plants=np.array(buildlist, dtype=[
             ('species','U10'),
@@ -249,7 +264,8 @@ class PlantGrowth(Species):
             ('root_biomass',float),
             ('leaf_biomass',float),
             ('stem_biomass',float),
-            ('storage_biomass', float),
+            ('repro_biomass',float),
+            ('storage_biomass',float),
             ('plant_age',float),
             ('item_id',int)
         ])
@@ -273,31 +289,46 @@ class PlantGrowth(Species):
         delta_root=delta_tot/(1+delta_leaf_unit_root+delta_stem_unit_root)
         delta_leaf=delta_leaf_unit_root*delta_root
         delta_stem=delta_stem_unit_root*delta_root
-        #update biomass in plant array and set negative values to zero
+        #update biomass in plant array
         _new_biomass['root_biomass']=self.plants['root_biomass']+delta_root
         _new_biomass['leaf_biomass']=self.plants['leaf_biomass']+delta_leaf
         _new_biomass['stem_biomass']=self.plants['stem_biomass']+delta_stem
-        #self.eliminate_negative_plant_attributes()
+        _new_biomass=self.redistribute_storage_biomass(_new_biomass)
+        _new_biomass=self.adjust_biomass_allocation_towards_ideal(_new_biomass)
+        _new_biomass=self.kill_small_plants(_new_biomass)
+        return _new_biomass
+
+    def redistribute_storage_biomass(self,_new_biomass):
+        _growth_parts_biomass=self.sum_plant_parts(_new_biomass,parts='growth')
+        filter=np.where(_growth_parts_biomass>0)
+        conditions=[
+            (_growth_parts_biomass<self.growth_min_biomass),
+            (_growth_parts_biomass>=self.growth_min_biomass)&(_growth_parts_biomass<=self.growth_max_biomass),
+            (_growth_parts_biomass>self.growth_max_biomass)
+        ]
+        adjustments=[
+            (self.growth_min_biomass-_growth_parts_biomass),
+            np.zeros_like(_new_biomass['root_biomass']),
+            (self.growth_max_biomass-_growth_parts_biomass)
+        ]
+        adjustment=np.select(conditions, adjustments)
+        _new_biomass['storage_biomass'][filter]=_new_biomass['storage_biomass'][filter]-adjustment[filter]
+        for part in self.growth_parts:
+            _new_biomass[part][filter]=_new_biomass[part][filter]+adjustment[filter]*(_new_biomass[part][filter]/_growth_parts_biomass[filter])
+
         return _new_biomass
 
     def allocate_biomass_proportionately(self, delta_tot, _last_biomass):
         _new_biomass=_last_biomass
-        _total_biomass=_last_biomass['root_biomass']+_last_biomass['leaf_biomass']+_last_biomass['stem_biomass']
-        _new_biomass['root_biomass'][_total_biomass!=0]=(
-            (self.plants['root_biomass'][_total_biomass!=0]/_total_biomass[_total_biomass!=0])*
-            delta_tot[_total_biomass!=0]+self.plants['root_biomass'][_total_biomass!=0]
-        )
-        _new_biomass['leaf_biomass'][_total_biomass!=0]=(
-            (self.plants['leaf_biomass'][_total_biomass!=0]/_total_biomass[_total_biomass!=0])*
-            delta_tot[_total_biomass!=0]+self.plants['leaf_biomass'][_total_biomass!=0]
-        )
-        _new_biomass['stem_biomass'][_total_biomass!=0]=(
-            (self.plants['stem_biomass'][_total_biomass!=0]/_total_biomass[_total_biomass!=0])*
-            delta_tot[_total_biomass!=0]+self.plants['stem_biomass'][_total_biomass!=0]
-        )
-        self.eliminate_negative_plant_attributes(_new_biomass)
+        _total_biomass=self.sum_plant_parts(_last_biomass,parts='growth')
+        filter=np.where(_total_biomass!=0)
+        for part in self.growth_parts:
+            _new_biomass[part][filter]=(
+                (_last_biomass[part][filter]/_total_biomass[filter])*
+                delta_tot[filter]+_last_biomass[part][filter]
+            )
+        _new_biomass=self.redistribute_storage_biomass(_new_biomass)
         return _new_biomass
-        
 
     def populate_biomass_allocation_array(self):
         aleaf,b1leaf,b2leaf=self.species_grow_params['root_to_leaf_coeffs']
@@ -306,12 +337,14 @@ class PlantGrowth(Species):
             start=self.species_grow_params['plant_part_min'][0],
             stop=self.species_grow_params['plant_part_max'][0]+0.1,
             step=0.1
-        ).tolist()
-        length_of_array=len(prior_root_biomass)
-        self.biomass_allocation_array=np.recarray((length_of_array,),
-            dtype=[('prior_root_biomass',float),('delta_leaf_unit_root',float),('delta_stem_unit_root',float)])
+        )
+        length_of_array =len(prior_root_biomass)
+        place_zeros=np.zeros(length_of_array)
+        biomass_allocation_map=np.column_stack((prior_root_biomass,place_zeros,place_zeros,place_zeros,place_zeros,place_zeros))
+        biomass_allocation_map=list(map(tuple,biomass_allocation_map))
+        self.biomass_allocation_array=np.array(biomass_allocation_map,
+            dtype=[('prior_root_biomass',float),('total_biomass',float),('delta_leaf_unit_root',float),('delta_stem_unit_root',float),('leaf_biomass',float),('stem_biomass',float)])
 
-        self.biomass_allocation_array['prior_root_biomass']=prior_root_biomass   
         #set up sympy equations
         rootsym=symbols('rootsym')              
         dleaf=diff(10**(aleaf+b1leaf*log(rootsym,10)+b2leaf*(log(rootsym,10))**2),rootsym)
@@ -321,23 +354,68 @@ class PlantGrowth(Species):
         fstem=lambdify(rootsym,dstem,'numpy')
         self.biomass_allocation_array['delta_leaf_unit_root']=fleaf(self.biomass_allocation_array['prior_root_biomass'])
         self.biomass_allocation_array['delta_stem_unit_root']=fstem(self.biomass_allocation_array['prior_root_biomass'])
+        self.biomass_allocation_array['leaf_biomass']=10**(aleaf+b1leaf*np.log10(prior_root_biomass)+b2leaf*(np.log10(prior_root_biomass))**2)
+        self.biomass_allocation_array['stem_biomass']=10**(astem+b1stem*np.log10(prior_root_biomass)+b2stem*(np.log10(prior_root_biomass))**2)
+        self.biomass_allocation_array['total_biomass']=self.biomass_allocation_array['prior_root_biomass']+self.biomass_allocation_array['leaf_biomass']+self.biomass_allocation_array['stem_biomass']
+    
+    def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
+        _total_biomass=self.sum_plant_parts(_new_biomass, parts='growth')
+
+        ideal_leaf=np.interp(
+            _total_biomass, 
+            self.biomass_allocation_array['total_biomass'],
+            self.biomass_allocation_array['leaf_biomass']
+        )
+        ideal_stem=np.interp(
+            _total_biomass, 
+            self.biomass_allocation_array['total_biomass'],
+            self.biomass_allocation_array['stem_biomass']
+        )
+        ideal_root=np.interp(
+            _total_biomass,
+            self.biomass_allocation_array['total_biomass'],
+            self.biomass_allocation_array['prior_root_biomass']
+        )
+
+        current_diff_leaf=ideal_leaf-_new_biomass['leaf_biomass']
+        current_diff_stem=ideal_stem-_new_biomass['stem_biomass']
+        current_diff_root=ideal_root-_new_biomass['root_biomass']
+
+        _new_biomass['root_biomass']=current_diff_root*(1-np.exp(-self.species_grow_params['p_max']*self.dt.astype(int)))+ _new_biomass['root_biomass']
+        _new_biomass['leaf_biomass']=current_diff_leaf*(1-np.exp(-self.species_grow_params['p_max']*self.dt.astype(int)))+ _new_biomass['leaf_biomass']
+        _new_biomass['stem_biomass']=current_diff_stem*(1-np.exp(-self.species_grow_params['p_max']*self.dt.astype(int)))+ _new_biomass['stem_biomass']
+        
+        return _new_biomass
+        
     
     def set_event_flags(self,_current_jday):
         durationdict=self.species_duration_params
+        dispersaldict=self.species_dispersal_params
         flags_to_test={
             '_in_growing_season': bool((_current_jday>durationdict['growing_season_start'])&(_current_jday<durationdict['growing_season_end'])),
             '_is_emergence_day': bool(_current_jday==durationdict['growing_season_start']),
+            '_in_reproductive_period': bool((_current_jday>dispersaldict['reproduction_start'])&(_current_jday<durationdict['senescence_start'])),
             '_in_senescence_period': bool((_current_jday>=durationdict['senescence_start'])&(_current_jday<durationdict['growing_season_end'])),
             '_is_dormant_day': bool(_current_jday==durationdict['growing_season_end'])
         }
         return flags_to_test
 
-    def eliminate_negative_plant_attributes(self, _new_biomass):
-        np.where(_new_biomass['root_biomass']<0,0,_new_biomass['root_biomass'])
-        np.where(_new_biomass['leaf_biomass']<0,0,_new_biomass['leaf_biomass'])
-        np.where(_new_biomass['stem_biomass']<0,0,_new_biomass['stem_biomass'])
+    def kill_small_plants(self, _new_biomass):
+        min_size=sum(self.species_grow_params['plant_part_min'])
+        total_biomass=self.sum_plant_parts(_new_biomass,parts='total')
+        for part in self.all_parts:
+            _new_biomass[part][total_biomass<min_size]=0.0
         return _new_biomass
 
+    def sum_plant_parts(self, _new_biomass, parts='total'):
+        if parts=='total':
+            parts_dict=self.all_parts
+        elif parts=='growth':
+            parts_dict=self.growth_parts
+        _new_tot=np.zeros_like(_new_biomass['root_biomass'])
+        for part in parts_dict:
+            _new_tot+=_new_biomass[part]
+        return _new_tot
 
     #Save plant array output Modify this in future to take user input and add additional parameters that can be saved out
     def save_plant_output(self, rel_time, save_params):
@@ -360,6 +438,8 @@ class PlantGrowth(Species):
         self.record_plants.dataset['vegetation__root_biomass'].values[:,self.time_ind]=self.plants['root_biomass']
         self.record_plants.dataset['vegetation__leaf_biomass'].values[:,self.time_ind]=self.plants['leaf_biomass']
         self.record_plants.dataset['vegetation__stem_biomass'].values[:,self.time_ind]=self.plants['stem_biomass']
+        self.record_plants.dataset['vegetation__storage_biomass'].values[:,self.time_ind]=self.plants['storage_biomass']
+        self.record_plants.dataset['vegetation__repro_biomass'].values[:,self.time_ind]=self.plants['repro_biomass']
         #    item_id= np.reshape(self.plants['item_id'],(self.plants['item_id'].size,1)),
         #    new_record={
         #        'vegetation__species':(['item_id','time'],self.plants['species']),

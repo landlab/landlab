@@ -57,13 +57,17 @@ class Species(object):
                 },
             },
     ):
+        self.growth_parts=['root_biomass','leaf_biomass','stem_biomass']
+        self.all_parts=self.growth_parts+['storage_biomass','repro_biomass']
+
         self.validate_plant_factors(species_params['plant_factors'])
         self.validate_duration_params(species_params['duration_params'])        
         self.validate_grow_params(species_params['grow_params'])
         
         self.species_plant_factors=species_params['plant_factors']
         self.species_duration_params=species_params['duration_params']
-        self.species_grow_params=species_params['grow_params']        
+        self.species_grow_params=species_params['grow_params']
+        self.species_dispersal_params=species_params['dispersal_params']   
 
         self.habit=self.select_habit_class(
             self.species_plant_factors['growth_habit'], 
@@ -168,8 +172,14 @@ class Species(object):
     def branch(self):
         self.form.branch()
         
-    def disperse(self):
-        self.form.dispersal()
+    def disperse(self, plants):
+        #decide how to parameterize reproductive schedule, make repro event
+        #right now we are just taking 20% of available storage and moving to 
+        available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min'][4]
+        plants['repro_biomass']=plants['repro_biomass']+0.2*(available_stored_biomass)
+        plants['storage_biomass']=plants['storage_biomass']-0.2*(available_stored_biomass)
+        plants=self.form.disperse(plants)
+        return plants
 
     def enter_dormancy(self, plants):
         plants=self.habit.enter_dormancy(plants)
@@ -186,19 +196,16 @@ class Species(object):
     def respire(self, _temperature, _last_biomass, _glu_req):
         growdict=self.species_grow_params
         #repiration coefficient temp dependence from Teh 2006
-        kmLVG = growdict['respiration_coefficient'][1] * pow(2,((_temperature - 25)/10))  
-        kmSTG = growdict['respiration_coefficient'][2]* pow(2,((_temperature - 25)/10)) 
-        kmRTG = growdict['respiration_coefficient'][0] * pow(2,((_temperature - 25)/10)) 
-        #maintenance respiration per day from Teh 2006
-        rmPrime = (kmLVG * _last_biomass['leaf_biomass']) + (kmSTG * _last_biomass['stem_biomass']) + (kmRTG * _last_biomass['root_biomass'])  
-        #calculates respiration adjustment based on aboveground biomass, as plants age needs less respiration
-        #THIS NEEDS TO BE UPDATED
-        #plantAge = _last_biomass['leaf_biomass']/_last_biomass['leaf_biomass']
-        #plant age dependence from Teh 2006 page 145    
-        respMaint = rmPrime
-        delta_respire=np.zeros_like(_glu_req)
-        delta_respire[_glu_req!=0]=(-respMaint[_glu_req!=0])/_glu_req[_glu_req!=0]
-        return delta_respire
+        maint_respire=np.zeros_like(_glu_req)
+        i=0
+        for part in self.all_parts:
+            maint_respire+=growdict['respiration_coefficient'][i]*_last_biomass[part]
+
+        maint_respire_adj=maint_respire*2**((_temperature - 25)/10)
+
+        delta_biomass_respire=np.zeros_like(_glu_req)
+        delta_biomass_respire[_glu_req!=0]=(-maint_respire_adj[_glu_req!=0])/_glu_req[_glu_req!=0]
+        return delta_biomass_respire
 
     def senesce(self, plants):
         plants=self.habit.senesce(plants)
@@ -207,3 +214,5 @@ class Species(object):
     def set_initial_biomass(self, plants, in_growing_season):
         plants=self.habit.duration.set_initial_biomass(plants,in_growing_season)
         return plants
+
+        

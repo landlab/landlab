@@ -20,7 +20,7 @@ class VegParams:
     ----------
     fpath: Pathfile object, file path where input file is located. Must be structured Excel or csv file or yaml.
            If blank, model will assume species is corn.
-    processes: a list of vegetation processes to initialize parameters for 'plantsize','dispersal','mortality','colonization','storage'. 
+    processes: a list of vegetation processes to initialize parameters for 'plantsize','dispersal','mortality','colonization'. 
                If blank, model will run basic growth only.
     outfile: optional input to allow for custom file name
     """
@@ -55,7 +55,8 @@ class VegParams:
                         'p_max':0.055,
                         'root_to_leaf_coeffs': [0.031,0.951,0],
                         'root_to_stem_coeffs': [-0.107, 1.098, 0.0216],
-                        'plant_part_min':[0.01,0.1,0.5]
+                        'plant_part_min':[0.01,0.1,0.5],
+                        'plant_part_max':[6,25,30]
                     }
                 }
             }
@@ -69,19 +70,12 @@ class VegParams:
                 }
                 if 'dispersion' in processes:
                     self.disp_params={
-                        'max_dist_dispersion': 2,
+                        'max_dist_dispersal': 2,
                         'disp_size_rat': 0.5,
                         'disp_cost': 0
                     }
                 else: self.disp_params={}
-                self.veg_params['Corn']['disp_params']={**self.disp_params}
-                if 'storage' in processes:
-                    self.stor_params={
-                        'r_wint_die': 0.25,
-                        'r_wint_stor': 0.25
-                    }
-                else: self.stor_params={}
-                self.veg_params['Corn']['stor_params']={**self.stor_params}
+                self.veg_params['Corn']['dispersal_params']={**self.dispersal_params}
             else: self.size_params={}
             self.veg_params['Corn']['size_params']={**self.size_params}
             if 'colonize' in processes:
@@ -136,7 +130,7 @@ class VegParams:
                         duration_keys=[
                             'growing_season_start',
                             'growing_season_end',
-                            'senescence_start'
+                            'senescence_start',
                         ]
                         duration=self._makedict(df_in, duration_keys,'duration_params')
 
@@ -148,6 +142,7 @@ class VegParams:
                             'light_half_sat',
                             'p_max',
                             'plant_part_min',
+                            'plant_part_max',
                             'root_to_leaf_coeffs',
                             'root_to_stem_coeffs'
                         ]
@@ -181,24 +176,16 @@ class VegParams:
                             ]
                             size=self._makedict(df_in, size_keys, 'size_params')
                             #If dispersion is required process, define dispersion parameter keys and create dispparams dictionary
-                            if 'dispersion' in processes:
+                            if 'dispersal' in processes:
                                 disp_keys=[
-                                    'max_dist_dispersion',
-                                    'min_size_dispersion',
-                                    'carb_cost_dispersion'
+                                    'reproduction_start',
+                                    'max_dist_dispersal',
+                                    'min_size_dispersal',
+                                    'carb_cost_dispersal'
                                 ]
-                                disp=self._makedict(df_in, disp_keys, 'disp_params')
+                                disp=self._makedict(df_in, disp_keys, 'dispersal_params')
                             else:
                                 disp={}
-                            #If winter storage is required process, define storage parameter keys and create storparams dictionary
-                            if 'storage' in processes:
-                                stor_keys=[
-                                    'wint_dieoff_roots',
-                                    'wint_stor_to_roots'
-                                ]
-                                stor=self._makedict(df_in, stor_keys, 'stor_params')
-                            else:
-                                stor={}
                         else:
                             size={}
                         #If colonization is required process, define coloniation parameters keys and create colparams dictionary
@@ -242,7 +229,7 @@ class VegParams:
                         else:
                             mort={}
                         #Unpack all subdictionaries and combine into master vegparams dictionary for species/community
-                        vegparams[i]={**factor, **grow, **duration, **size, **disp, **stor, **col, **mort}
+                        vegparams[i]={**factor, **grow, **duration, **size, **disp, **col, **mort}
                 else: 
                     if exten == 'csv':
                         #Add Carra's code here and load into dict called x

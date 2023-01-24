@@ -1,16 +1,21 @@
-{Corn: {duration_params: {growing_season_end: 243, growing_season_start: 121, senescence_start: 228},
-    grow_params: {glucose_requirement: [1.444, 1.513, 1.463], k_light_extinct: 0.51,
-      light_half_sat: 100, p_max: 0.0372, plant_part_max: [6,25,30], plant_part_min: [0.01, 0.1, 0.5], respiration_coefficient: [
-        0.015, 0.015, 0.03], root_to_leaf_coeffs: [0.031, 0.951, 0], root_to_stem_coeffs: [
-        -0.107, 1.098, 0.0216]}, plant_factors: {angio_gymno: angiosperm, duration: annual,
-      growth_form: single_stem, growth_habit: graminoid, leaf_retention: deciduous,
-      monocot_dicot: monocot, p_type: C4, shape: erect, species: Corn}, size_params: {
-      max_height_stem: 1.0, max_n_stems: 3.0, max_plant_density: 34.0, total_cs_area_stems: 0.231}},
-  Wheat: {duration_params: {growing_season_end: 305, growing_season_start: 144, senescence_start: 273},
-    grow_params: {glucose_requirement: [1.444, 1.513, 1.463], k_light_extinct: 0.48,
-      light_half_sat: 100, p_max: 0.05, plant_part_max:[1.23, 5, 4],plant_part_min: [0.01, 0.1, 0.5], respiration_coefficient: [
-        0.015, 0.015, 0.03], root_to_leaf_coeffs: [0.031, 0.951, 0], root_to_stem_coeffs: [
-        -0.107, 1.098, 0.0216]}, plant_factors: {angio_gymno: angiosperm, duration: annual,
+{Corn: {dispersal_params: {carb_cost_dispersal: 0.0, max_dist_dispersal: 4.0, min_size_dispersal: 0.5,
+      reproduction_start: 180.0}, duration_params: {growing_season_end: 243, growing_season_start: 121,
+      senescence_start: 228}, grow_params: {glucose_requirement: [1.444, 1.513, 1.463,
+        1.415, 1.414], k_light_extinct: 0.51, light_half_sat: 100, p_max: 0.0372,
+      plant_part_max: [6, 25, 30, 5, 30], plant_part_min: [0.01, 0.1, 0.5, 0, 0],
+      respiration_coefficient: [0.015, 0.015, 0.03, 0.01, 0.01], root_to_leaf_coeffs: [
+        0.031, 0.951, 0], root_to_stem_coeffs: [-0.107, 1.098, 0.0216]}, plant_factors: {
+      angio_gymno: angiosperm, duration: annual, growth_form: single_stem, growth_habit: graminoid,
+      leaf_retention: deciduous, monocot_dicot: monocot, p_type: C4, shape: erect,
+      species: Corn}, size_params: {max_height_stem: 1.0, max_n_stems: 3.0, max_plant_density: 34.0,
+      total_cs_area_stems: 0.231}}, Wheat: {dispersal_params: {carb_cost_dispersal: 0.0,
+      max_dist_dispersal: 4.0, min_size_dispersal: 0.5, reproduction_start: 180.0},
+    duration_params: {growing_season_end: 305, growing_season_start: 144, senescence_start: 273},
+    grow_params: {glucose_requirement: [1.444, 1.513, 1.463, 1.415, 1.414], k_light_extinct: 0.48,
+      light_half_sat: 100, p_max: 0.05, plant_part_max: [1.23, 5, 4, 1, 4], plant_part_min: [
+        0.01, 0.1, 0.5, 0, 0], respiration_coefficient: [0.015, 0.015, 0.03, 0.01,
+        0.01], root_to_leaf_coeffs: [0.031, 0.951, 0], root_to_stem_coeffs: [-0.107,
+        1.098, 0.0216]}, plant_factors: {angio_gymno: angiosperm, duration: perennial,
       growth_form: bunch, growth_habit: graminoid, leaf_retention: deciduous, monocot_dicot: monocot,
-      p_type: C4, shape: erect, species: Wheat}, size_params: {max_height_stem: 1.0,
+      p_type: C3, shape: erect, species: Wheat}, size_params: {max_height_stem: 1.0,
       max_n_stems: 3.0, max_plant_density: 34.0, total_cs_area_stems: 0.231}}}

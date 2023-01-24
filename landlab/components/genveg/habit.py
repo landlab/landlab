@@ -6,9 +6,12 @@ class Habit(object):
         self.duration=self.select_duration_class(species_grow_params, green_parts, duration_val, retention_val)
         
     def select_duration_class(self, species_grow_params, green_parts, duration_val, retention_val):
+        if duration_val=='perennial':
+            duration_val=retention_val
         duration={
             'annual':Annual(species_grow_params),
-            'perennial':Perennial(species_grow_params, green_parts, retention_val)
+            'deciduous':Deciduous(species_grow_params, green_parts),
+            'evergreen':Evergreen(species_grow_params)
         }
         return duration[duration_val]
 
