@@ -2,7 +2,6 @@ include LICENSE.txt
 include AUTHORS.rst
 include CHANGES.rst
 include README.rst
-include Makefile
 include requirements*txt
 
 recursive-include docs *.txt
@@ -19,8 +18,6 @@ recursive-include tests *.shx
 recursive-include tests *.txt
 recursive-include tests *.yaml
 
-exclude .gitmodules
-exclude .landscape.yaml
 exclude .readthedocs.yaml
 exclude conftest.py
 exclude CONTRIBUTING.md
