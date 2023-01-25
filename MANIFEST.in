@@ -5,7 +5,6 @@ include LICENSE.rst
 include README.rst
 include USEDBY.rst
 include CITATION.cff
-include Makefile
 include requirements*
 include noxfile.py
 include notebooks.py
@@ -24,9 +23,6 @@ recursive-include tests *.txt
 recursive-include tests *.yaml
 recursive-include tests *.pyx *.pxd *.hpp
 
-exclude .codeclimate.yml
-exclude .gitmodules
-exclude .landscape.yaml
 exclude .readthedocs.yaml
 exclude conftest.py
 exclude CONTRIBUTING.md
