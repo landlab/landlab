@@ -93,7 +93,7 @@ def build(session: nox.Session) -> None:
     session.install("build")
     session.run("python", "--version")
     session.run("pip", "--version")
-    session.run("python", "-m", "build", "--outdir", "./wheelhouse")
+    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
 @nox.session
@@ -107,26 +107,26 @@ def release(session):
 @nox.session
 def publish_testpypi(session):
     """Publish wheelhouse/* to TestPyPI."""
-    session.run("twine", "check", "wheelhouse/*")
+    session.run("twine", "check", "build/wheelhouse/*")
     session.run(
         "twine",
         "upload",
         "--skip-existing",
         "--repository-url",
         "https://test.pypi.org/legacy/",
-        "wheelhouse/*.tar.gz",
+        "build/wheelhouse/*.tar.gz",
     )
 
 
 @nox.session
 def publish_pypi(session):
     """Publish wheelhouse/* to PyPI."""
-    session.run("twine", "check", "wheelhouse/*")
+    session.run("twine", "check", "build/wheelhouse/*")
     session.run(
         "twine",
         "upload",
         "--skip-existing",
-        "wheelhouse/*.tar.gz",
+        "build/wheelhouse/*.tar.gz",
     )
 
 
@@ -137,7 +137,7 @@ def clean(session):
         with session.chdir(folder):
 
             shutil.rmtree("build", ignore_errors=True)
-            shutil.rmtree("wheelhouse", ignore_errors=True)
+            shutil.rmtree("build/wheelhouse", ignore_errors=True)
             shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
             shutil.rmtree(".pytest_cache", ignore_errors=True)
             shutil.rmtree(".venv", ignore_errors=True)
