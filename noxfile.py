@@ -21,6 +21,8 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
+    session.conda_install("richdem")
+    session.conda_install("--file", "requirements-notebooks.txt")
     session.install(".[dev,notebooks,testing]")
     session.run("pytest", "notebooks", "--run-notebook", "-n", "auto", "-vvv")
 
@@ -104,7 +106,7 @@ def release(session):
     session.run("fullrelease")
 
 
-@nox.session
+@nox.session(name="publish-testpypi")
 def publish_testpypi(session):
     """Publish wheelhouse/* to TestPyPI."""
     session.run("twine", "check", "build/wheelhouse/*")
@@ -118,7 +120,7 @@ def publish_testpypi(session):
     )
 
 
-@nox.session
+@nox.session(name="publish-pypi")
 def publish_pypi(session):
     """Publish wheelhouse/* to PyPI."""
     session.run("twine", "check", "build/wheelhouse/*")
