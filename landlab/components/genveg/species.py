@@ -12,53 +12,12 @@ import numpy as np
 class Species(object):
     def __init__(
         self, 
-        species_params={
-            'col_params': {}, 
-            'disp_params': {},
-            'duration_params': {
-                'growing_season_start': 91,
-                'growing_season_end': 290,
-                'senescence_start': 228,
-            },
-            'grow_params': {
-                'respiration_coefficient': [0.015,0.015,0.03],
-                'glucose_requirement': [1.444,1.513,1.463],
-                'k_light_extinct':0.02,
-                'light_half_sat':9,
-                'p_max':0.055,
-                'root_to_leaf_coeffs': [0.031,0.951,0],
-                'root_to_stem_coeffs': [-0.107, 1.098, 0.0216],
-                'plant_part_min':[0.01,0.1,0.5]
-            }, 
-            'mort_params': {
-                's1_days': 365, 
-                's1_name': 'Mortality factor', 
-                's1_pred': [1, 2, 3, 4], 
-                's1_rate': [0, 0.1, 0.9, 1], 
-                's1_weight': [1000, 1, 1, 1000]
-            },
-            'plant_factors':{
-                'species':'Corn',
-                'growth_form': 1,
-                'monocot_dicot': 'monocot',
-                'angio_gymno': 'angiosperm',
-                'annual_perennial': 'annual',
-                'p_type':'C3'
-            }, 
-            'size_params': {
-                'max_height_stem': 2.5, 
-                'max_mass_stem': 72, 
-                'max_n_stems': 3, 
-                'max_plant_density': 1
-            },
-            'stor_params': {
-                'r_wint_die': 0.25, 
-                'r_wint_stor': 0.25
-                },
-            },
-    ):
-        self.growth_parts=['root_biomass','leaf_biomass','stem_biomass']
-        self.all_parts=self.growth_parts+['storage_biomass','repro_biomass']
+        species_params
+        ):
+        self.all_parts=list(species_params['grow_params']['glucose_requirement'].keys())
+        self.growth_parts=self.all_parts.copy()
+        self.growth_parts.remove('storage')
+        self.growth_parts.remove('reproductive')
 
         self.validate_plant_factors(species_params['plant_factors'])
         self.validate_duration_params(species_params['duration_params'])        
@@ -175,7 +134,7 @@ class Species(object):
     def disperse(self, plants):
         #decide how to parameterize reproductive schedule, make repro event
         #right now we are just taking 20% of available storage and moving to 
-        available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min'][4]
+        available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
         plants['repro_biomass']=plants['repro_biomass']+0.2*(available_stored_biomass)
         plants['storage_biomass']=plants['storage_biomass']-0.2*(available_stored_biomass)
         plants=self.form.disperse(plants)
@@ -197,9 +156,9 @@ class Species(object):
         growdict=self.species_grow_params
         #repiration coefficient temp dependence from Teh 2006
         maint_respire=np.zeros_like(_glu_req)
-        i=0
+        #can i create a dictionary with alias?
         for part in self.all_parts:
-            maint_respire+=growdict['respiration_coefficient'][i]*_last_biomass[part]
+            maint_respire+=growdict['respiration_coefficient'][part]*_last_biomass[part]
 
         maint_respire_adj=maint_respire*2**((_temperature - 25)/10)
 

@@ -165,7 +165,13 @@ class VegParams:
                         if df_in.loc['root_to_stem_coeffs'].isnull().values.any():
                             df_in.loc['root_to_stem_coeffs','Values']=df_fill['root_to_stem_coeffs']
                         grow=self._makedict(df_in, growth_keys, 'grow_params')
-
+                        multi_part_keys=['glucose_requirement', 'respiration_coefficient','plant_part_min','plant_part_max']
+                        for key in multi_part_keys:
+                            grow['grow_params'][key]=self.replace_part_list_with_dict(grow['grow_params'][key])
+                        grow['grow_params']['total_min_biomass']=sum(grow['grow_params']['plant_part_min'].values())
+                        grow['grow_params']['total_max_biomass']=sum(grow['grow_params']['plant_part_max'].values())
+                        grow['grow_params']['growth_min_biomass']=grow['grow_params']['total_min_biomass']-grow['grow_params']['plant_part_min']['storage']-grow['grow_params']['plant_part_min']['reproductive']
+                        grow['grow_params']['growth_max_biomass']=grow['grow_params']['total_max_biomass']-grow['grow_params']['plant_part_max']['storage']-grow['grow_params']['plant_part_max']['reproductive']
                         #If plantsize is required process, define plant size parameter keys and create sizeparams dictionary
                         if 'plantsize' in processes:
                             size_keys=[
@@ -282,6 +288,14 @@ class VegParams:
             temp=group_temp.to_dict()
             return temp
 
+    def replace_part_list_with_dict(self, val_list):
+        part_list=['root','leaf','stem','storage','reproductive']
+        biomass_list=['root_biomass', 'leaf_biomass','stem_biomass','storage_biomass','repro_biomass']
+        replace_dict={}
+        for i, part in enumerate(part_list):
+            replace_dict[part]=val_list[i]
+            #replace_dict[biomass_list[i]]=val_list[i]
+        return replace_dict
 #Private method to build logistic mortality function for up to five acute mortality factors
     def _build_logistic(self, df):
         xs=[]

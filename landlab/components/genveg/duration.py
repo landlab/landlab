@@ -6,41 +6,20 @@ rng = np.random.default_rng()
 #Duration classes and selection method
 class Duration(object):
     def __init__(self, species_grow_params, green_parts):
-        self.total_min_mass=sum(species_grow_params['plant_part_min'])
-        self.total_new_max_mass=2*self.total_min_mass
-        self.total_max_mass=sum(species_grow_params['plant_part_max'])
-        self.min_part_mass={
-            'root':species_grow_params['plant_part_min'][0],
-            'leaf':species_grow_params['plant_part_min'][1],
-            'stem':species_grow_params['plant_part_min'][2],
-            'storage':species_grow_params['plant_part_min'][3],
-            'reproductive':species_grow_params['plant_part_min'][4]
-        }
-        
-        self.max_part_mass={
-            'root':species_grow_params['plant_part_max'][0],
-            'leaf':species_grow_params['plant_part_max'][1],
-            'stem':species_grow_params['plant_part_max'][2],
-            'storage':species_grow_params['plant_part_max'][3],
-            'reproductive':species_grow_params['plant_part_max'][4]
-        }
-
-        self.growth_min_mass=self.total_min_mass-self.min_part_mass['storage']-self.min_part_mass['reproductive']
-        self.growth_max_mass=self.total_max_mass-self.max_part_mass['storage']-self.max_part_mass['reproductive']
-
+        self.growdict=species_grow_params
+        #self.total_min_biomass=species_grow_params['total_min_biomass']
+        #self.total_new_max_biomass=2*self.total_min_biomass
+        #self.total_max_biomass=species_grow_params['total_max_biomass']
+        #self.plant_part_min=species_grow_params['plant_part_min']        
+        #self.plant_part_max=species_grow_params['plant_part_max']
+        #self.growth_min_biomass=species_grow_params['growth_min_biomass']
+        #self.growth_max_biomass=species_grow_params['growth_max_biomass']
         self.allocation_coeffs=species_grow_params['root_to_leaf_coeffs']+species_grow_params['root_to_stem_coeffs']
         self.green_parts=green_parts
-        self.plant_array_dict={
-            'root':'root_biomass',
-            'leaf':'leaf_biomass',
-            'stem':'stem_biomass',
-            'storage':'storage_biomass',
-            'reproductive':'repro_biomass'
-        }
 
     def set_new_biomass(self, plants):
         print('I create new plants')
-        total_biomass_ideal=rng.uniform(low=self.growth_min_mass,high=self.total_new_max_mass,size=plants.size)
+        total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'],high=2*self.growdict['growth_min_biomass'],size=plants.size)
         plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal, self.allocation_coeffs)
         plants['storage_biomass']=np.zeros_like(plants['root_biomass'])
         plants['repro_biomass']=np.zeros_like(plants['root_biomass'])
@@ -127,14 +106,14 @@ class Perennial(Duration):
         return plants
     
     def set_initial_biomass_all_parts(self, plants, in_growing_season):
-        plants['storage_biomass']=rng.uniform(low=self.min_part_mass['storage'],high=self.max_part_mass['storage'],size=plants.size)
+        plants['storage_biomass']=rng.uniform(low=self.growdict['plant_part_min']['storage'],high=self.growdict['plant_part_max']['storage'],size=plants.size)
         if in_growing_season:
             plants['plant_age']=rng.uniform(low=0, high=self.max_age, size=plants.size)
             if plants['plant_age'>=self.maturation_age]:
-                plants['repro_biomass']=rng.uniform(low=self.min_part_mass['reproductive'], high=self.max_part_mass['reproductive'], size=plants.size)
+                plants['repro_biomass']=rng.uniform(low=self.growdict['plant_part_min']['reproductive'], high=self.growdict['plant_part_max']['reproductive'], size=plants.size)
         else:
-            plants['repro_biomass']=np.full_like(plants['root_biomass'],self.min_part_mass['reproductive'])
-        total_biomass_ideal=rng.uniform(low=self.growth_min_mass, high=self.growth_max_mass,size=plants.size)
+            plants['repro_biomass']=np.full_like(plants['root_biomass'],self.growdict['plant_part_min']['reproductive'])
+        total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'], high=self.growdict['growth_max_biomass'],size=plants.size)
         plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal, self.allocation_coeffs) 
         return plants
 
@@ -153,25 +132,33 @@ class Deciduous(Perennial):
     def __init__(self,species_grow_params, green_parts):
         self.keep_green_parts=False
         super().__init__(species_grow_params, green_parts)
-        all_veg_parts=('root','leaf','stem','storage')
-        self.persistent_parts=[part for part in all_veg_parts if part not in self.green_parts]
+        all_veg_sources=('root','leaf','stem','storage')
+        self.persistent_parts=[part for part in all_veg_sources if part not in self.green_parts]
     
     def emerge(self, plants):
         print('I emerge from dormancy')
-        new_green_biomass=np.zeros_like(plants['root_biomass'])
+        total_mass_persistent_parts=sum(plants[part] for part in self.persistent_parts)
+        min_mass_persistent_parts=sum(self.growdict['plant_part_min'][part] for part in self.persistent_parts)
+        available_mass=total_mass_persistent_parts-min_mass_persistent_parts
+        
+        total_mass_new_green=np.zeros_like(plants['root_biomass'])
+        new_green_biomass={}
         for part in self.green_parts:
-            plants[self.plant_array_dict[part]]=rng.uniform(low=self.min_part_mass[part],high=self.min_part_mass[part]*2,size=plants.size)
-            new_green_biomass += plants[self.plant_array_dict[part]]
-        print(new_green_biomass)
-        total_mass_persistent_parts=sum(plants[self.plant_array_dict[part]] for part in self.persistent_parts)
-        print (total_mass_persistent_parts)
+            new_green_biomass[part]=rng.uniform(low=self.growdict['plant_part_min'][part],high=self.growdict['plant_part_min'][part]*2,size=plants.size)
+            total_mass_new_green += new_green_biomass[part]
+        
+        adjusted_total_new_green=np.minimum(available_mass,total_mass_new_green)
+
+        for part in self.green_parts:
+            plants[part]=plants[part]+(adjusted_total_new_green/total_mass_new_green)*new_green_biomass[part]
+
         for part in self.persistent_parts:
-            plants[self.plant_array_dict[part]]=plants[self.plant_array_dict[part]]-new_green_biomass*(plants[self.plant_array_dict[part]]/total_mass_persistent_parts)
+            plants[part]=plants[part]-(adjusted_total_new_green*plants[part]/total_mass_persistent_parts)
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
         plants=self.set_initial_biomass_all_parts(plants, in_growing_season)
         if not in_growing_season:
             for part in self.green_parts:
-                plants[self.plant_array_dict[part]]=np.zeros_like(plants[self.plant_array_dict[part]])
+                plants[part]=np.zeros_like(plants[part])
         return plants
