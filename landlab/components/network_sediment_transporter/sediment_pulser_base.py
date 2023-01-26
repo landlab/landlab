@@ -1,18 +1,18 @@
-from landlab.grid.network import NetworkModelGrid
-
 from landlab import Component
+from landlab.grid.network import NetworkModelGrid
 
 
 class SedimentPulserBase(Component):
 
     """Base class of :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse`.
 
-    :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse` run the landlab
-    :class:`~.DataRecord` :method:`~.DataRecord.add_item`
-    method on a :class:`~.DataRecord` configured for :class:`~.NetworkSedimentTransporter`.
+    :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse` run the
+    landlab :class:`~.DataRecord` :method:`~.DataRecord.add_item` method on a
+    :class:`~.DataRecord` configured for :class:`~.NetworkSedimentTransporter`.
 
 
-    .. codeauthor: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt (with help from Eric Hutton and Katy Barnhart)
+    .. codeauthor: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
+                   (with help from Eric Hutton and Katy Barnhart)
 
     Parameters
     ----------
@@ -36,7 +36,6 @@ class SedimentPulserBase(Component):
     --------
     >>> import numpy as np
     >>> from landlab import NetworkModelGrid
-    >>> from landlab.components.network_sediment_transporter.sediment_pulser_base import SedimentPulserBase
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
     >>> x_of_node = (0, 0, 100, -50, -100, 50, -150, -100)

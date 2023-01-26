@@ -1,10 +1,11 @@
-import numpy as np
 import warnings
 
-from landlab.data_record import DataRecord
+import numpy as np
+
 from landlab.components.network_sediment_transporter.sediment_pulser_base import (
     SedimentPulserBase,
 )
+from landlab.data_record import DataRecord
 
 _OUT_OF_NETWORK = -2
 
@@ -28,8 +29,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     can also be specified in PulseDF.
 
 
-    authors: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
-             with help from Eric Hutton and Katy Barnhart
+    .. codeauthor: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
+                   (with help from Eric Hutton and Katy Barnhart)
 
 
     Examples
@@ -37,7 +38,6 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     >>> import numpy as np
     >>> import pandas as pd
     >>> from landlab import NetworkModelGrid
-    >>> from landlab.components.network_sediment_transporter.sediment_pulser_each_parcel import SedimentPulserEachParcel
 
     Create the network model grid. Pulses are added to the links of the network
     model grid.
@@ -57,7 +57,13 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
     Define the PulseDF and time of the pulse
 
-    >>> PulseDF = pd.DataFrame({'pulse_volume': [0.2, 1, 1.1, 0.5],'link_#': [1, 3, 5, 2],'normalized_downstream_distance': [0.8,0.7,0.5,0.2]})
+    >>> PulseDF = pd.DataFrame(
+    ...     {
+    ...         "pulse_volume": [0.2, 1, 1.1, 0.5],
+    ...         "link_#": [1, 3, 5, 2],
+    ...         "normalized_downstream_distance": [0.8, 0.7, 0.5, 0.2],
+    ...     }
+    ... )
     >>> time = 7
 
     Run the instance
@@ -148,12 +154,9 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             self._parcels
                 a DataRecord containing all information on each individual parcel
         """
-
-        if (
-            PulseDF is None
-        ):  # if no PulseDF provided, raise error. Should at least provide an empty PulseDF
-            msg = "PulseDF was not specified"
-            raise ValueError(msg)
+        # If no PulseDF provided, raise error. Should at least provide an empty PulseDF
+        if PulseDF is None:
+            raise ValueError("PulseDF was not specified")
 
         if (
             PulseDF.empty is True
@@ -184,8 +187,8 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
     def _sediment_pulse_dataframe(self, time, PulseDF):
 
-        """Converts PulseDF to a DataRecord formatted for the NetworkSedimentTransporter
-        component
+        """Convert PulseDF to a :class:`~.DataRecord` formatted for the
+        :class:`~.NetworkSedimentTransporter`.
 
         Parameters
         ----------

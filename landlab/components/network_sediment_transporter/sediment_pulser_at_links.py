@@ -1,6 +1,7 @@
 import numpy as np
 
 from landlab.data_record import DataRecord
+
 from .sediment_pulser_base import SedimentPulserBase
 
 _OUT_OF_NETWORK = -2
@@ -9,12 +10,14 @@ _OUT_OF_NETWORK = -2
 class SedimentPulserAtLinks(SedimentPulserBase):
     """Send a pulse of parcels to specific links in a channel network
 
-    :class:`~.SedimentPulserAtLinks` is instantiated by specifying the :class:`~.NetworkModelGrid`
-    it will pulse the parcels into and the time(s) when a pulse is allowed to occur.
-    It inherits attributes and functions from the :class:`~.SedimentPulserBase`.
+    :class:`~.SedimentPulserAtLinks` is instantiated by specifying the
+    :class:`~.NetworkModelGrid` it will pulse the parcels into and the time(s) when
+    a pulse is allowed to occur.  It inherits attributes and functions from the
+    :class:`~.SedimentPulserBase`.
 
-    :class:`~.SedimentPulserAtLinks` is run (adds parcels to ``DataRecord``) by calling the
-    instance with a list of links and a list of the number of parcels added to each link.
+    :class:`~.SedimentPulserAtLinks` is run (adds parcels to ``DataRecord``) by
+    calling the instance with a list of links and a list of the number of parcels
+    added to each link.
 
     If parcel attributes are constant with time and uniform
     across the basin, these constant-uniform-attributes can be defined
@@ -24,14 +27,14 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     equal to the number of links included in the pulse.
 
 
-    .. codeauthor:: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt (with help from Eric Hutton and Katy Barnhart)
+    .. codeauthor:: Jeff Keck, Allison Pfeiffer, Shelby Ahrendt
+                    (with help from Eric Hutton and Katy Barnhart)
 
 
     Examples
     --------
     >>> import numpy as np
     >>> from landlab import NetworkModelGrid
-    >>> from landlab.components.network_sediment_transporter.sediment_pulser_at_links import SedimentPulserAtLinks
 
     Create the network model grid the parcels will be added to.
 
@@ -59,7 +62,9 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     >>> time = 11
     >>> links = [2, 6]
     >>> n_parcels_at_link = [2, 3]
-    >>> parcels = make_pulse(time=time, links=links, n_parcels_at_link=n_parcels_at_link)
+    >>> parcels = make_pulse(
+    ...     time=time, links=links, n_parcels_at_link=n_parcels_at_link
+    ... )
 
     Check the element_id of each parcel
 
@@ -307,7 +312,8 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         # time of arrivial (time instance called)
         time_arrival_in_link = np.full(np.shape(element_id), time, dtype=float)
 
-        # link location (distance from link inlet / link length) is stochastically determined
+        # link location (distance from link inlet / link length) is stochastically
+        # determined
         location_in_link = np.expand_dims(
             np.random.uniform(size=np.sum(n_parcels_at_link)), axis=1
         )

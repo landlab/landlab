@@ -300,8 +300,7 @@ class NetworkSedimentTransporter(Component):
             value will default to the threshold.
         """
         if not isinstance(grid, NetworkModelGrid):
-            msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
-            raise ValueError(msg)
+            raise ValueError("grid must be NetworkModelGrid")
 
         # run super. this will check for required inputs specified by _info
         super().__init__(grid)
@@ -309,15 +308,11 @@ class NetworkSedimentTransporter(Component):
         # check key information about the parcels, including that all required
         # attributes are present.
         if not isinstance(parcels, DataRecord):
-            raise ValueError(
-                "NetworkSedimentTransporter: parcels must be an instance of DataRecord"
-            )
+            raise ValueError("parcels must be an instance of DataRecord")
 
         for rpa in _REQUIRED_PARCEL_ATTRIBUTES:
             if rpa not in parcels.dataset:
-                raise ValueError(
-                    f"NetworkSedimentTransporter: {rpa} must be assigned to the parcels"
-                )
+                raise ValueError(f"{rpa} must be assigned to the parcels")
 
         # save key information about the parcels.
         self._parcels = parcels
@@ -333,18 +328,14 @@ class NetworkSedimentTransporter(Component):
         # assert that the flow director is a component and is of type
         # FlowDirectorSteepest
         if not isinstance(flow_director, FlowDirectorSteepest):
-            raise ValueError(
-                "NetworkSedimentTransporter: flow_director must be FlowDirectorSteepest."
-            )
+            raise ValueError("flow_director must be FlowDirectorSteepest.")
 
         # save reference to flow director
         self._fd = flow_director
 
         # verify and save the bed porosity.
         if not 0 <= bed_porosity < 1:
-            raise ValueError(
-                f"NetworkSedimentTransporter: bed_porosity must be between 0 and 1 ({bed_porosity})"
-            )
+            raise ValueError(f"bed_porosity must be between 0 and 1 ({bed_porosity})")
         self._bed_porosity = bed_porosity
 
         # save or create other key properties.
@@ -1011,8 +1002,7 @@ class NetworkSedimentTransporter(Component):
             self._move_parcel_downstream(dt)
 
         else:
-            msg = "No more parcels on grid"
-            raise RuntimeError(msg)
+            raise RuntimeError("No more parcels on grid")
 
 
 # %% Methods referenced above, separated for purposes of testing

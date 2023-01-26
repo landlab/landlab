@@ -6,18 +6,17 @@ import numpy as np
 import pytest
 
 from landlab.components import (
-    BedParcelInitializerDepth,
     BedParcelInitializerArea,
-    BedParcelInitializerUserD50,
+    BedParcelInitializerDepth,
     BedParcelInitializerDischarge,
+    BedParcelInitializerUserD50,
 )
-
 from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     _determine_approx_parcel_volume,
-    calc_total_parcel_volume,
-    calc_d50_discharge,
-    calc_d50_depth,
     calc_d50_dArea_scaling,
+    calc_d50_depth,
+    calc_d50_discharge,
+    calc_total_parcel_volume,
 )
 from landlab.data_record import DataRecord
 

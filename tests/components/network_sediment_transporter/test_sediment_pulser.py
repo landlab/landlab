@@ -1,12 +1,12 @@
-import pytest
 import numpy as np
 import pandas as pd
+import pytest
 
-from landlab.components.network_sediment_transporter.sediment_pulser_base import (
-    SedimentPulserBase,
-)
 from landlab.components.network_sediment_transporter.sediment_pulser_at_links import (
     SedimentPulserAtLinks,
+)
+from landlab.components.network_sediment_transporter.sediment_pulser_base import (
+    SedimentPulserBase,
 )
 from landlab.components.network_sediment_transporter.sediment_pulser_each_parcel import (
     SedimentPulserEachParcel,
