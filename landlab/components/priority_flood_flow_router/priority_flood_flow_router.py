@@ -524,8 +524,8 @@ class PriorityFloodFlowRouter(Component):
             import richdem
         except ModuleNotFoundError as exc:
             raise ModuleNotFoundError(
-                "PriorityFloodFlowRouter requires richdem but richdem is not installed."
-                "You can install richdem either from source, "
+                "PriorityFloodFlowRouter requires richdem but richdem is not installed. "
+                "You can install richdem either from source "
                 "(https://github.com/r-barnes/richdem), or through conda "
                 "(conda install richdem -c conda-forge) or pip (pip install richdem)."
             ) from exc

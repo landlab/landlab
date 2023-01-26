@@ -11,6 +11,13 @@ from landlab.components import (
     SpaceLargeScaleEroder,
 )
 
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    with_richdem = False
+else:
+    with_richdem = True
+
 
 def test_inputFields_flowRouter():
     """
@@ -721,7 +728,7 @@ def test_can_run_with_hex():
         z[mg.core_nodes] += U * dt
 
 
-# %%
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_detachment_solution_PF():
     # %%
     """
@@ -806,6 +813,7 @@ def test_matches_detachment_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_transport_solution_PF():
 
     """
@@ -922,6 +930,7 @@ def test_matches_transport_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_bedrock_alluvial_solution_PF():
     """
     Test that model matches the bedrock-alluvial analytical solution

@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from landlab import FieldError, RasterModelGrid
-from landlab.components import COMPONENTS
+from landlab.components import COMPONENTS, PriorityFloodFlowRouter
 
 _VALID_LOCS = {"grid", "node", "link", "patch", "corner", "face", "cell"}
 
@@ -21,6 +21,12 @@ _EXCLUDE_COMPONENTS = {
     "SoilMoisture",
     "Vegetation",
 }
+
+
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    _EXCLUDE_COMPONENTS.add("PriorityFloodFlowRouter")
 
 
 @pytest.mark.parametrize("Comp", COMPONENTS)
