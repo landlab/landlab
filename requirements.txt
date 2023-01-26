@@ -7,7 +7,7 @@ numpy
 pandas
 pyshp != 2.3.0
 pyyaml
-richdem
+rich_click
 scipy
 statsmodels
 xarray >= 0.16

@@ -26,27 +26,6 @@ from landlab.utils.return_array import return_array_at_node
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc, _D8_flowDir
 
-# try:
-#     import richdem as rd
-try:
-    import _richdem
-except ModuleNotFoundError:
-
-    class richdem:
-        def __getattribute__(self, name):
-            raise RuntimeError(
-                "PriorityFloodFlowRouter requires richdem but richdem is not installed"
-            )
-
-    rd = richdem()
-    WITH_RICHDEM = False
-else:
-    import richdem as rd
-
-    WITH_RICHDEM = True
-    del _richdem
-
-
 # Codes for depression status
 _UNFLOODED = 0
 _PIT = 1
@@ -362,8 +341,6 @@ class PriorityFloodFlowRouter(Component):
         },
     }
 
-    WITH_RICHDEM = WITH_RICHDEM
-
     def __init__(
         self,
         grid,
@@ -390,6 +367,8 @@ class PriorityFloodFlowRouter(Component):
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
+        self._richdem = self.load_richdem()
+
         super().__init__(grid)
         # Keep a local reference to the grid
 
@@ -436,10 +415,12 @@ class PriorityFloodFlowRouter(Component):
 
         if depression_handler == "fill":
             self._depression_handler = partial(
-                rd.FillDepressions, epsilon=epsilon, in_place=True
+                self._richdem.FillDepressions, epsilon=epsilon, in_place=True
             )
         elif depression_handler == "breach":
-            self._depression_handler = partial(rd.BreachDepressions, in_place=True)
+            self._depression_handler = partial(
+                self._richdem.BreachDepressions, in_place=True
+            )
         else:
             raise ValueError("depression_handler should be one of 'fill' or 'breach'")
 
@@ -536,6 +517,20 @@ class PriorityFloodFlowRouter(Component):
         # Create properties specific to RichDEM
         self._create_richdem_properties()
 
+    @staticmethod
+    def load_richdem():
+        try:
+            import _richdem  # noqa: F401
+            import richdem
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
+                "PriorityFloodFlowRouter requires richdem but richdem is not installed."
+                "You can install richdem either from source, "
+                "(https://github.com/r-barnes/richdem), or through conda "
+                "(conda install richdem -c conda-forge) or pip (pip install richdem)."
+            ) from exc
+        return richdem
+
     @property
     def surface_values(self):
         """Values of the surface over which flow is directed."""
@@ -562,7 +557,7 @@ class PriorityFloodFlowRouter(Component):
 
     def _create_richdem_properties(self):
         self._depression_free_dem = cp.deepcopy(
-            rd.rdarray(
+            self._richdem.rdarray(
                 self._surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
@@ -580,7 +575,9 @@ class PriorityFloodFlowRouter(Component):
 
         self._closed = np.zeros(self._grid.number_of_nodes)
         self._closed[self._grid.status_at_node == NodeStatus.CLOSED] = 1
-        self._closed = rd.rdarray(self._closed.reshape(self._grid.shape), no_data=-9999)
+        self._closed = self._richdem.rdarray(
+            self._closed.reshape(self._grid.shape), no_data=-9999
+        )
         self._closed.geotransform = [0, 1, 0, 0, 0, -1]
 
     def _test_water_inputs(self, grid, runoff_rate):
@@ -627,7 +624,7 @@ class PriorityFloodFlowRouter(Component):
             with self._suppress_output():
                 dem_corrected_boundaries = cp.deepcopy(self._depression_free_dem)
                 dem_corrected_boundaries[self._closed == 1] = -9999
-                props_Pf = rd.FlowProportions(
+                props_Pf = self._richdem.FlowProportions(
                     dem=dem_corrected_boundaries,
                     method=flow_metric,
                     exponent=self._exponent,
@@ -832,7 +829,7 @@ class PriorityFloodFlowRouter(Component):
 
     def remove_depressions(self):
         self._depression_free_dem = cp.deepcopy(
-            rd.rdarray(
+            self._richdem.rdarray(
                 self._surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
@@ -878,7 +875,7 @@ class PriorityFloodFlowRouter(Component):
 
         # Only core nodes (status == 0) need to receive a weight
         wg[self._grid.status_at_node != NodeStatus.CORE] = 0
-        wg = rd.rdarray(
+        wg = self._richdem.rdarray(
             wg.reshape(self.grid.shape),
             no_data=-9999,
         )
@@ -886,7 +883,7 @@ class PriorityFloodFlowRouter(Component):
 
         with self._suppress_output():
             a[:] = np.array(
-                rd.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
+                self._richdem.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
                     self.grid.number_of_nodes
                 )
             )
@@ -895,10 +892,10 @@ class PriorityFloodFlowRouter(Component):
             wg = self.grid.at_node["water__unit_flux_in"] * self.grid.dx * self.grid.dx
             # Only core nodes (status == 0) need to receive a weight
             wg[self._grid.status_at_node != NodeStatus.CORE] = 0
-            wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
+            wg = self._richdem.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
             wg.geotransform = [0, 1, 0, 0, 0, -1]
             with self._suppress_output():
-                q_pf = rd.FlowAccumFromProps(props=props_Pf, weights=wg)
+                q_pf = self._richdem.FlowAccumFromProps(props=props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
         else:
             q[:] = self._drainage_area
