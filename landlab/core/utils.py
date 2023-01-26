@@ -54,12 +54,12 @@ class ExampleData:
         --------
         >>> data = ExampleData("io/shapefile")
         >>> sorted(data)
-        ['methow', 'soque']
+        ['methow', 'redb', 'soque']
 
         >>> import os
         >>> data.fetch()  # doctest: +SKIP
         >>> sorted(os.listdir())  # doctest: +SKIP
-        ['methow', 'soque']
+        ['methow', 'redb', 'soque']
         """
         dstdir, srcdir = pathlib.Path("."), self.base
 

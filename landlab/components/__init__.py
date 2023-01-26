@@ -31,6 +31,16 @@ from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .marine_sediment_transport import SimpleSubmarineDiffuser
 from .network_sediment_transporter import NetworkSedimentTransporter
+from .network_sediment_transporter.bed_parcel_initializers import (
+    BedParcelInitializerArea,
+    BedParcelInitializerDepth,
+    BedParcelInitializerDischarge,
+    BedParcelInitializerUserD50,
+)
+from .network_sediment_transporter.sediment_pulser_at_links import SedimentPulserAtLinks
+from .network_sediment_transporter.sediment_pulser_each_parcel import (
+    SedimentPulserEachParcel,
+)
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
 from .overland_flow import (
@@ -123,6 +133,8 @@ COMPONENTS = [
     Profiler,
     Radiation,
     SedDepEroder,
+    SedimentPulserAtLinks,
+    SedimentPulserEachParcel,
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
@@ -135,6 +147,10 @@ COMPONENTS = [
     SteepnessFinder,
     StreamPowerEroder,
     StreamPowerSmoothThresholdEroder,
+    BedParcelInitializerDischarge,
+    BedParcelInitializerDepth,
+    BedParcelInitializerArea,
+    BedParcelInitializerUserD50,
     TaylorNonLinearDiffuser,
     TidalFlowCalculator,
     TransportLengthHillslopeDiffuser,
