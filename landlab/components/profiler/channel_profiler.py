@@ -575,8 +575,9 @@ class ChannelProfiler(_BaseProfiler):
             if (number_of_watersheds is not None) and (
                 len(outlet_nodes) is not number_of_watersheds
             ):
-                msg = "Length of outlet_nodes must equal the" "number_of_watersheds!"
-                raise ValueError(msg)
+                raise ValueError(
+                    "Length of outlet_nodes must equal the" "number_of_watersheds!"
+                )
         else:
             large_outlet_ids = grid.boundary_nodes[
                 np.argsort(self._channel_definition_field[grid.boundary_nodes])

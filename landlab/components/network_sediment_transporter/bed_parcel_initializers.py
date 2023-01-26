@@ -608,12 +608,7 @@ def _parcel_characteristics(
         dtype=int
     )
     if np.min(n_parcels_at_link) < 10:
-        msg = (
-            "BedParcelInitializer: At least one link has only "
-            + str(n_parcels_at_link)
-            + " parcels."
-        )
-        warnings.warn(msg)
+        warnings.warn(f"at least one link has only {n_parcels_at_link} parcels.")
 
     element_id = np.empty(np.sum(n_parcels_at_link), dtype=int)
 
