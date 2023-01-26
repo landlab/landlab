@@ -40,7 +40,7 @@ dependencies = [
   "numpy",
   "pyyaml",
   "pyshp != 2.3.0",
-  "rich_click",
+  "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
