@@ -14,7 +14,7 @@ def test(session: nox.Session) -> None:
     session.conda_install("--file", "requirements.txt")
     session.conda_install("--file", "requirements-testing.txt")
     session.conda_install("richdem")
-    session.install(".", "--no-deps")
+    session.install("-e", ".", "--no-deps")
 
     args = [
         "-n",
@@ -77,7 +77,11 @@ def build_index(session: nox.Session) -> None:
     session.install(".[docs]")
 
     with open(ROOT / "docs" / "index.toml", "w") as fp:
-        session.run("landlab", "index", "grids", "fields", "components", stdout=fp)
+        print("# This file was automatically generated with:", file=fp, flush=True)
+        print("#     nox -s build-index", file=fp, flush=True)
+        session.run(
+            "landlab", "--silent", "index", "grids", "fields", "components", stdout=fp
+        )
 
 
 @nox.session(name="build-docs", venv_backend="mamba")
