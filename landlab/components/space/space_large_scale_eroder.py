@@ -335,7 +335,7 @@ class SpaceLargeScaleEroder(Component):
             decimal=5,
             err_msg=(
                 "The sum of bedrock elevation and topographic elevation should "
-                "be equal",
+                "be equal"
             ),
         )
 
