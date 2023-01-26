@@ -34,4 +34,4 @@ class ParameterValueError(Error):
         self._type = expected_type
 
     def __str__(self):
-        return "%s: %s is not of type %s" % (self._key, self._val, self._type)
+        return f"{self._key}: {self._val} is not of type {self._type}"

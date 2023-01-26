@@ -58,7 +58,7 @@ def test_at_keyword(tmpdir, at):
     for src_at in {"node", "link", "patch", "corner", "face", "cell"}:
         grid.add_field(name, grid.ones(at=src_at) * 10.0, at=src_at)
 
-    include = "at_{0}:*".format(at)
+    include = f"at_{at}:*"
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", format="NETCDF4", include=include)
 
@@ -66,7 +66,7 @@ def test_at_keyword(tmpdir, at):
             actual_fields = {
                 name for name in actual.variables if name.startswith("at_")
             }
-            nc_name = "at_{0}:{1}".format(at, name)
+            nc_name = f"at_{at}:{name}"
 
             assert actual_fields == {nc_name}
             assert_array_equal(actual[nc_name], getattr(grid, "at_" + at)[name])

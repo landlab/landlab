@@ -5,7 +5,6 @@ from functools import partial
 
 import click
 
-
 out = partial(click.secho, bold=True, err=True)
 err = partial(click.secho, fg="red", err=True)
 
@@ -17,7 +16,7 @@ def collect_notebooks(src):
     elif is_a_notebook(p):
         return {p.absolute()}
     else:
-        raise ValueError("{0}: not a directory or a notebook".format(src))
+        raise ValueError(f"{src}: not a directory or a notebook")
 
 
 def is_a_notebook(path):
@@ -61,10 +60,7 @@ def _notebook_check_is_clean(path_to_notebook):
     import nbformat
 
     nb = nbformat.read(path_to_notebook, nbformat.current_nbformat)
-    for cell in nb.cells:
-        if not _notebook_cell_is_clean(cell):
-            return False
-    return True
+    return all(_notebook_cell_is_clean(cell) for cell in nb.cells)
 
 
 @dataclass

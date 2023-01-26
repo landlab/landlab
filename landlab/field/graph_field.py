@@ -1,4 +1,6 @@
-"""Define collections of fields that are attached to a *Landlab* :class:`~landlab.graph.graph.Graph`."""
+"""Define collections of fields that are attached to a *Landlab*
+:class:`~landlab.graph.graph.Graph`.
+"""
 import numpy as np
 import xarray as xr
 
@@ -360,8 +362,8 @@ class FieldDataset(dict):
         if isinstance(name, str):
             try:
                 return self._ds[name].values
-            except KeyError:
-                raise FieldError(name)
+            except KeyError as exc:
+                raise FieldError(name) from exc
         else:
             raise TypeError("field name not a string")
 
@@ -493,8 +495,8 @@ class GraphFields:
         """Get the collection of fields from the named group."""
         try:
             return getattr(self, "at_" + name)
-        except AttributeError:
-            raise GroupError(name)
+        except AttributeError as exc:
+            raise GroupError(name) from exc
 
     @property
     def default_group(self):
@@ -791,13 +793,13 @@ class GraphFields:
 
         try:
             fields = self[group]
-        except KeyError:
+        except KeyError as exc:
             groups = ", ".join([repr(g) for g in sorted(self._groups)])
-            raise GroupError(f"{group!r}: Not one of {groups}.")
+            raise GroupError(f"{group!r}: Not one of {groups}.") from exc
         try:
             return fields[field]
-        except KeyError:
-            raise FieldError(f"{field!r}")
+        except KeyError as exc:
+            raise FieldError(f"{field!r}") from exc
 
     def return_array_or_field_values(self, *args, **kwds):
         """return_array_or_field_values(field, at=None)
@@ -808,8 +810,9 @@ class GraphFields:
         data array. *field* is either a string that is a field in the group
         or an array of the correct size.
 
-        This function is meant to serve like the :class:`~landlab.utils.decorators.use_field_name_or_array`
-        decorator for bound functions.
+        This function is meant to serve like the
+        :class:`~landlab.utils.decorators.use_field_name_or_array` decorator for
+        bound functions.
 
         Parameters
         ----------
@@ -1160,8 +1163,7 @@ class GraphFields:
         if at is None:
             raise ValueError("no group specified")
 
-        attrs = {"long_name": name}
-        attrs["units"] = units
+        attrs = {"long_name": name, "units": units}
 
         if copy:
             value_array = value_array.copy()
@@ -1205,8 +1207,8 @@ class GraphFields:
         """
         try:
             ds = getattr(self, "at_" + loc)
-        except AttributeError:
-            raise KeyError(loc)
+        except AttributeError as exc:
+            raise KeyError(loc) from exc
         ds._ds = ds._ds.drop_vars(name)
 
     def add_empty(self, *args, **kwds):

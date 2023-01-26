@@ -431,7 +431,9 @@ def test_accumulated_area_closes(fd):
 
 
 def test_specifying_routing_method_wrong():
-    """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
+    """Test specifying incorrect method for routing compatability with
+    DepressionFinderAndRouter.
+    """
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 

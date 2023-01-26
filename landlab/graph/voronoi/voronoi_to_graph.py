@@ -10,7 +10,7 @@ from ..sort.intpair import pair_isin
 from ..sort.sort import reverse_one_to_one
 
 
-class VoronoiDelaunay(object):
+class VoronoiDelaunay:
     def __init__(self, xy_of_node):
         # What we need:
         # * [x] xy_of_node
@@ -32,6 +32,10 @@ class VoronoiDelaunay(object):
 
         delaunay = Delaunay(xy_of_node)
         voronoi = Voronoi(xy_of_node)
+
+        voronoi.regions, voronoi.point_region = VoronoiDelaunay._remove_empty_regions(
+            voronoi.regions, voronoi.point_region
+        )
 
         mesh = xr.Dataset(
             {
@@ -91,6 +95,34 @@ class VoronoiDelaunay(object):
         return np.asarray(
             jaggedarray.unravel(jagged.array, jagged.offset, pad=-1), dtype=int
         )
+
+    @staticmethod
+    def _remove_empty_regions(regions, point_region):
+        """Remove regions that have no points.
+
+        Parameters
+        ----------
+        regions : list of list of int
+            Lists of each region's vertices.
+        point_regions : list in int
+            The region associated with each point.
+
+        Returns
+        -------
+        regions, point_regions
+            Copies of the input arrays with empty regions removed.
+        """
+        size_of_region = np.array([len(region) for region in regions], dtype=int)
+        empty_regions = np.where(size_of_region == 0)[0]
+
+        if len(empty_regions):
+            point_region = np.asarray(point_region, dtype=int)
+
+            regions = list(regions)
+            for region in empty_regions[::-1]:
+                regions.pop(region)
+                point_region[point_region >= region] -= 1
+        return regions, point_region
 
     @property
     def number_of_nodes(self):
@@ -273,18 +305,18 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def ids_with_prefix(self, at):
         matches = set()
         if at == "patch":
-            prefix = re.compile("^{at}(es)?_at_".format(at=at))
+            prefix = re.compile(f"^{at}(es)?_at_")
         else:
-            prefix = re.compile("^{at}(s)?_at_".format(at=at))
-        for name, var in self._mesh.variables.items():
+            prefix = re.compile(f"^{at}(s)?_at_")
+        for name in self._mesh.variables:
             if prefix.search(name):
                 matches.add(name)
         return matches
 
     def ids_with_suffix(self, at):
         matches = set()
-        suffix = re.compile("at_{at}$".format(at=at))
-        for name, var in self._mesh.variables.items():
+        suffix = re.compile(f"at_{at}$")
+        for name in self._mesh.variables:
             if suffix.search(name):
                 matches.add(name)
         return matches
@@ -297,21 +329,19 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         at_ = {}
         if at in self._mesh.coords:
-            x = self._mesh["x_of_{at}".format(at=at)].values[is_a_keeper]
-            y = self._mesh["y_of_{at}".format(at=at)].values[is_a_keeper]
+            x = self._mesh[f"x_of_{at}"].values[is_a_keeper]
+            y = self._mesh[f"y_of_{at}"].values[is_a_keeper]
             data = np.arange(len(x))
 
             at_[at] = xr.DataArray(
                 data=data,
                 coords={
-                    "x_of_{at}".format(at=at): xr.DataArray(x, dims=(at,)),
-                    "y_of_{at}".format(at=at): xr.DataArray(y, dims=(at,)),
+                    f"x_of_{at}": xr.DataArray(x, dims=(at,)),
+                    f"y_of_{at}": xr.DataArray(y, dims=(at,)),
                 },
                 dims=(at,),
             )
-            self._mesh = self._mesh.drop_vars(
-                ["x_of_{at}".format(at=at), "y_of_{at}".format(at=at)]
-            )
+            self._mesh = self._mesh.drop_vars([f"x_of_{at}", f"y_of_{at}"])
 
         for name in self.ids_with_suffix(at):
             var = self._mesh[name]

@@ -15,7 +15,9 @@ from landlab.components.priority_flood_flow_router.cfuncs import (
 )
 from landlab.grid.nodestatus import NodeStatus
 
-if not PriorityFloodFlowRouter.WITH_RICHDEM:
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
     pytestmark = pytest.mark.skip(reason="richdem is not installed")
 
 
@@ -583,7 +585,7 @@ def test_bad_metric_name():
     # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         PriorityFloodFlowRouter(mg, flow_metric="spam", suppress_out=True)
 
 
@@ -592,7 +594,7 @@ def test_bad_hill_metric_name():
     # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         PriorityFloodFlowRouter(
             mg, hill_flow_metric="Landlab_is_cool", suppress_out=True
         )
@@ -603,7 +605,7 @@ def test_bad_depression_handler():
     # %%
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         PriorityFloodFlowRouter(
             mg, depression_handler="depression_filler", suppress_out=True
         )
@@ -735,7 +737,8 @@ def test_cython_functions():
     )
 
     # We know where the water will flow using the D8 steepest descent algo
-    # Also consider that under equal slopes, the flow will follow Landlab's rotational ordering going first to cardial, then to diagonal cells
+    # Also consider that under equal slopes, the flow will follow Landlab's
+    # rotational ordering going first to cardial, then to diagonal cells
     known_rec = np.array([-1, -1, -1, -1, -1, 4, 7, -1, -1, 13, 11, -1, -1, -1, -1, -1])
 
     testing.assert_array_equal(
@@ -828,7 +831,8 @@ def test_cython_functions():
     )
 
     # We know where the water will flow using the D8 steepest descent algo
-    # Also consider that under equal slopes, the flow will follow Landlab's rotational ordering going first to cardial, then to diagonal cells
+    # Also consider that under equal slopes, the flow will follow Landlab's
+    # rotational ordering going first to cardial, then to diagonal cells
     known_rec = np.array([-1, -1, -1, -1, -1, 0, 5, -1, -1, 5, 5, -1, -1, -1, -1, -1])
 
     testing.assert_array_equal(

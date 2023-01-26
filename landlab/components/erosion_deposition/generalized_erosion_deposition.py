@@ -171,7 +171,7 @@ class _GeneralizedErosionDeposition(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from landlab.components.erosion_deposition.generalized_erosion_deposition import _GeneralizedErosionDeposition
+
         >>> rg = RasterModelGrid((3, 4))
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = rg.x_of_node + rg.y_of_node

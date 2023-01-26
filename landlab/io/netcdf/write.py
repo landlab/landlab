@@ -439,7 +439,7 @@ def _add_variables_at_points(root, fields, names=None):
         var.long_name = var_name
 
         if hasattr(fields, "grid_mapping"):
-            setattr(var, "grid_mapping", fields.grid_mapping["name"])
+            var.grid_mapping = fields.grid_mapping["name"]
 
 
 def _add_variables_at_cells(root, fields, names=None):

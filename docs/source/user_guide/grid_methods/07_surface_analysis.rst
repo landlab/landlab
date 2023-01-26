@@ -18,4 +18,4 @@ find in GIS software.
       {% for func in grids[grid]['surface'] %}
         ~{{func}}
       {% endfor %}
-  {% endfor %}  
+  {% endfor %}

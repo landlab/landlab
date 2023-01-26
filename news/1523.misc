@@ -1,0 +1,4 @@
+
+Removed the *richdem* package as a mandatory requirement for *landlab*. Users
+needing to use *richdem* (i.e. the `PriorityFloodFlowRouter`) must now install it
+separately.
