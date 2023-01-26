@@ -11,11 +11,25 @@ ROOT = pathlib.Path(__file__).parent
 @nox.session(venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
+    session.conda_install("--file", "requirements.txt")
+    session.conda_install("--file", "requirements-testing.txt")
     session.conda_install("richdem")
-    session.install(".[dev,testing]")
-    session.run("pytest", "--cov=landlab", "-vvv")
-    session.run("coverage", "report", "--ignore-errors", "--show-missing")
-    # "--fail-under=100",
+    session.install(".", "--no-deps")
+
+    args = [
+        "-n",
+        "auto",
+        "--cov",
+        PROJECT,
+        "-vvv",
+        # "--dist", "worksteal",  # this is not available quite yet
+    ]
+    if "CI" in os.environ:
+        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
+    session.run("pytest", *args)
+
+    if "CI" not in os.environ:
+        session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
 @nox.session(name="test-notebooks", venv_backend="mamba")
@@ -56,6 +70,14 @@ def towncrier(session: nox.Session) -> None:
     """Check that there is a news fragment."""
     session.install("towncrier")
     session.run("towncrier", "check", "--compare-with", "origin/master")
+
+
+@nox.session(name="build-index")
+def build_index(session: nox.Session) -> None:
+    session.install(".[docs]")
+
+    with open(ROOT / "docs" / "index.toml", "w") as fp:
+        session.run("landlab", "index", "grids", "fields", "components", stdout=fp)
 
 
 @nox.session(name="build-docs", venv_backend="mamba")
