@@ -4,10 +4,10 @@ from landlab.grid.network import NetworkModelGrid
 
 class SedimentPulserBase(Component):
 
-    """Base class of :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse`.
+    """Base class of :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachParcel`.
 
-    :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachPulse` run the
-    landlab :class:`~.DataRecord` :method:`~.DataRecord.add_item` method on a
+    :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachParcel` run the
+    landlab :class:`~.DataRecord` :meth:`~.DataRecord.add_item` method on a
     :class:`~.DataRecord` configured for :class:`~.NetworkSedimentTransporter`.
 
 
