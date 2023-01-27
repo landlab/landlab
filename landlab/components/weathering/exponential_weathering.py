@@ -11,22 +11,22 @@ from landlab import Component
 
 class ExponentialWeatherer(Component):
 
-    """
-    This component implements exponential weathering of bedrock on hillslopes.
+    """Calculate exponential weathering of bedrock on hillslopes.
+
     Uses exponential soil production function in the style of Ahnert (1976).
 
-    Consider that :math:`w0` is the maximum soil production rate and
-    that w_star is the characteristic soil production depth. The
-    soil production rate w0 is given as a function of the soil
-    depth:
+    Consider that ``w0`` is the maximum soil production rate and
+    that ``w_star`` is the characteristic soil production depth. The
+    soil production rate ``w0`` is given as a function of the soil
+    depth::
 
-    soil_production =  w0 * np.exp(-soil__depth/w_star)
+        soil_production =  w0 * exp(-soil__depth / w_star)
 
-    The `ExponentialWeatherer` only calculates soil production at core nodes.
+    The :class:`~.ExponentialWeatherer` only calculates soil production at core nodes.
 
     An alternative version which uses the analytical integral of
     production through time is available at the component
-    :py:class:`~landlab.components.ExponentialWeathererIntegrated`.
+    :py:class:`~.ExponentialWeathererIntegrated`.
 
     Examples
     --------
@@ -58,7 +58,6 @@ class ExponentialWeatherer(Component):
 
     Armstrong, A. (1976). A three dimensional simulation of slope forms.
     Zeitschrift für Geomorphologie  25, 20 - 28.
-
     """
 
     _name = "ExponentialWeatherer"
