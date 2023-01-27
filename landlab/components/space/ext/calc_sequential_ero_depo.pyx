@@ -1,11 +1,14 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
+cimport numpy as np
+
 
 cdef extern from "math.h":
     double exp(double x) nogil
 
-from libc.math cimport log,exp
+from libc.math cimport exp, log
+
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
 

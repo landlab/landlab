@@ -29,10 +29,11 @@ jobs:
 
           - name: Show conda installation info
             run: |
+              conda install mamba
               conda info
 
           - name: Install dependencies
             run: pip install nox
 
           - name: Build documentation
-            run: nox -s docs
+            run: nox -s build-docs

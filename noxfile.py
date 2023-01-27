@@ -1,30 +1,48 @@
 import os
 import pathlib
 import shutil
-from itertools import chain
 
 import nox
 
+PROJECT = "landlab"
+ROOT = pathlib.Path(__file__).parent
 
-@nox.session
-def tests(session: nox.Session) -> None:
+
+@nox.session(venv_backend="mamba")
+def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.install("pytest")
-    session.install(".[dev,testing]")
-    session.run("pytest", "--cov=landlab", "-vvv")
-    session.run("coverage", "report", "--ignore-errors", "--show-missing")
-    # "--fail-under=100",
+    session.conda_install("--file", "requirements.txt")
+    session.conda_install("--file", "requirements-testing.txt")
+    session.conda_install("richdem")
+    session.install("-e", ".", "--no-deps")
+
+    args = [
+        "-n",
+        "auto",
+        "--cov",
+        PROJECT,
+        "-vvv",
+        # "--dist", "worksteal",  # this is not available quite yet
+    ]
+    if "CI" in os.environ:
+        args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
+    session.run("pytest", *args)
+
+    if "CI" not in os.environ:
+        session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session
-def notebooks(session: nox.Session) -> None:
+@nox.session(name="test-notebooks", venv_backend="mamba")
+def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
+    session.conda_install("richdem")
+    session.conda_install("--file", "requirements-notebooks.txt")
     session.install(".[dev,notebooks,testing]")
     session.run("pytest", "notebooks", "--run-notebook", "-n", "auto", "-vvv")
 
 
-@nox.session
-def cli(session: nox.Session) -> None:
+@nox.session(name="test-cli")
+def test_cli(session: nox.Session) -> None:
     """Test the command line interface."""
     session.install(".")
     session.run("landlab", "--help")
@@ -54,16 +72,46 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/master")
 
 
-@nox.session(venv_backend="conda")
-def docs(session: nox.Session) -> None:
+@nox.session(name="build-index")
+def build_index(session: nox.Session) -> None:
+    session.install(".[docs]")
+
+    with open(ROOT / "docs" / "index.toml", "w") as fp:
+        print("# This file was automatically generated with:", file=fp, flush=True)
+        print("#     nox -s build-index", file=fp, flush=True)
+        session.run(
+            "landlab", "--silent", "index", "grids", "fields", "components", stdout=fp
+        )
+
+
+@nox.session(name="build-docs", venv_backend="mamba")
+def build_docs(session: nox.Session) -> None:
     """Build the docs."""
     session.conda_install("richdem")
     session.install(".[docs]")
 
-    session.chdir("docs")
-    if os.path.exists("build"):
-        shutil.rmtree("build")
-    session.run("sphinx-build", "-b", "html", "-W", "./source", "build/html")
+    clean_docs(session)
+    session.run(
+        "sphinx-build",
+        "-b",
+        "html",
+        "-W",
+        str(ROOT / "docs/source"),
+        str(ROOT / "build/html"),
+    )
+
+
+@nox.session(name="build-requirements")
+def build_requirements(session: nox.Session) -> None:
+    """Create requirements files from pyproject.toml."""
+    session.install("tomli")
+
+    with open("requirements.txt", "w") as fp:
+        session.run("python", "requirements.py", stdout=fp)
+
+    for extra in ["dev", "docs", "notebooks", "testing"]:
+        with open(f"requirements-{extra}.txt", "w") as fp:
+            session.run("python", "requirements.py", extra, stdout=fp)
 
 
 @nox.session
@@ -73,7 +121,7 @@ def build(session: nox.Session) -> None:
     session.install("build")
     session.run("python", "--version")
     session.run("pip", "--version")
-    session.run("python", "-m", "build", "--outdir", "./wheelhouse")
+    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
 @nox.session
@@ -84,46 +132,92 @@ def release(session):
     session.run("fullrelease")
 
 
-@nox.session
+@nox.session(name="publish-testpypi")
 def publish_testpypi(session):
     """Publish wheelhouse/* to TestPyPI."""
-    session.run("twine", "check", "wheelhouse/*")
+    session.run("twine", "check", "build/wheelhouse/*")
     session.run(
         "twine",
         "upload",
         "--skip-existing",
         "--repository-url",
         "https://test.pypi.org/legacy/",
-        "wheelhouse/*.tar.gz",
+        "build/wheelhouse/*.tar.gz",
     )
 
 
-@nox.session
+@nox.session(name="publish-pypi")
 def publish_pypi(session):
     """Publish wheelhouse/* to PyPI."""
-    session.run("twine", "check", "wheelhouse/*")
+    session.run("twine", "check", "build/wheelhouse/*")
     session.run(
         "twine",
         "upload",
         "--skip-existing",
-        "wheelhouse/*.tar.gz",
+        "build/wheelhouse/*.tar.gz",
     )
 
 
 @nox.session(python=False)
 def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
-    PROJECT = "landlab"
-    ROOT = pathlib.Path(__file__).parent
+    for folder in _args_to_folders(session.posargs):
+        with session.chdir(folder):
 
-    shutil.rmtree("build", ignore_errors=True)
-    shutil.rmtree("wheelhouse", ignore_errors=True)
-    shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
-    shutil.rmtree(".pytest_cache", ignore_errors=True)
-    shutil.rmtree(".venv", ignore_errors=True)
-    for p in chain(
-        ROOT.rglob("*.py[co]"), ROOT.rglob("*.so"), ROOT.rglob("__pycache__")
-    ):
+            shutil.rmtree("build", ignore_errors=True)
+            shutil.rmtree("build/wheelhouse", ignore_errors=True)
+            shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
+            shutil.rmtree(".pytest_cache", ignore_errors=True)
+            shutil.rmtree(".venv", ignore_errors=True)
+
+            for pattern in ["*.py[co]", "__pycache__"]:
+                _clean_rglob(pattern)
+
+
+@nox.session(python=False, name="clean-checkpoints")
+def clean_checkpoints(session):
+    """Remove jupyter notebook checkpoint files."""
+    for folder in _args_to_folders(session.posargs):
+        with session.chdir(folder):
+            _clean_rglob("*-checkpoint.ipynb")
+            _clean_rglob(".ipynb_checkpoints")
+
+
+@nox.session(python=False, name="clean-docs")
+def clean_docs(session: nox.Session) -> None:
+    """Clean up the docs folder."""
+    session.chdir(ROOT / "build")
+    if os.path.exists("html"):
+        shutil.rmtree("html")
+
+
+@nox.session(python=False, name="clean-ext")
+def clean_ext(session: nox.Session) -> None:
+    """Clean shared libraries for extension modules."""
+    for folder in _args_to_folders(session.posargs):
+        with session.chdir(folder):
+            _clean_rglob("*.so")
+
+
+@nox.session(python=False)
+def nuke(session):
+    """Run all clean sessions."""
+    clean_checkpoints(session)
+    clean_docs(session)
+    clean(session)
+    clean_ext(session)
+
+
+def _args_to_folders(args):
+    return [ROOT] if not args else [pathlib.Path(f) for f in args]
+
+
+def _clean_rglob(pattern):
+    nox_dir = pathlib.Path(".nox")
+
+    for p in pathlib.Path(".").rglob(pattern):
+        if nox_dir in p.parents:
+            continue
         if p.is_dir():
             p.rmdir()
         else:
