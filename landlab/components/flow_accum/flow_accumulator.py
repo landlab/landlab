@@ -997,13 +997,12 @@ class FlowAccumulator(Component):
 
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
             if self._flow_director._name in ("FlowDirectorMFD", "FlowDirectorDINF"):
-                msg = (
+                raise NotImplementedError(
                     "The depression finder only works with route "
                     "to one FlowDirectors such as "
                     "FlowDirectorSteepest and  FlowDirectorD8. "
                     "Provide a different FlowDirector."
                 )
-                raise NotImplementedError(msg)
 
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):

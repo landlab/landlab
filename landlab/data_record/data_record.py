@@ -220,8 +220,7 @@ class DataRecord:
         for at in self._permitted_locations:
             for item in self._dummy_elements.get(at, []):
                 if (item < self._grid[at].size) and (item >= 0):
-                    msg = f"Dummy id {at} {item} invalid"
-                    raise ValueError(msg)
+                    raise ValueError(f"Dummy id {at} {item} invalid")
 
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
@@ -393,8 +392,7 @@ class DataRecord:
                 valid_elements = np.isin(selected_elements, valid_values)
 
                 if not np.all(valid_elements):
-                    msg = "Invalid element_ids provided."
-                    raise ValueError(msg)
+                    raise ValueError("Invalid element_ids provided.")
 
         if not np.issubdtype(element_id.dtype, np.integer):
             raise ValueError(
