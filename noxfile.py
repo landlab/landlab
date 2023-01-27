@@ -54,9 +54,10 @@ def towncrier(session: nox.Session) -> None:
     session.run("towncrier", "check", "--compare-with", "origin/master")
 
 
-@nox.session
+@nox.session(venv_backend="conda")
 def docs(session: nox.Session) -> None:
     """Build the docs."""
+    session.conda_install("richdem")
     session.install(".[docs]")
 
     session.chdir("docs")

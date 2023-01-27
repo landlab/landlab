@@ -138,14 +138,13 @@ def track_source(grid, hsd_ids, flow_directions=None):
     """
     if flow_directions is None:
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that the source tracking utility is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         r = grid.at_node["flow__receiver_node"]
     else:
@@ -200,7 +199,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
             flow_accum[j] += a
             # If the node is being visited for the first time, the dictionary
             # 'hsd_upstr' will be updated.
-            if j in hsd_upstr.keys():
+            if j in hsd_upstr:
                 hsd_upstr[j] += copy.copy(stream_buffer)
             # If the node has been already visited, then the upstream segment
             # that was not accounted for in the main stem, would be added to

@@ -1,0 +1,3 @@
+
+Fixed a possible memory leak caused by using the *lru_cache* decorator of
+class methods.

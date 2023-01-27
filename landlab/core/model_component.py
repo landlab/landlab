@@ -87,32 +87,21 @@ class Component:
 
                 if field.dtype != dtype:
                     raise FieldError(
-                        "{component} required input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                            component=self._name,
-                            name=name,
-                            at=at,
-                            dtype=dtype,
-                            actual=field.dtype,
-                        )
+                        f"{self._name} required input variable: {name!r} at {at!r} "
+                        f"has incorrect dtype. dtype must be {dtype!r} and is "
+                        f"{field.dtype!r}"
                     )
 
             # if optional input exists, check dtype
-            if in_true and optional:
+            if in_true and optional and name in self._grid[at]:
+                field = self._grid[at][name]
+                dtype = self._info[name]["dtype"]
 
-                if name in self._grid[at]:
-                    field = self._grid[at][name]
-                    dtype = self._info[name]["dtype"]
-
-                    if field.dtype != dtype:
-                        raise FieldError(
-                            "{component} optional input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                                component=self._name,
-                                name=name,
-                                at=at,
-                                dtype=dtype,
-                                actual=field.dtype,
-                            )
-                        )
+                if field.dtype != dtype:
+                    raise FieldError(
+                        f"{self._name} optional input variable: {name} at {at} has "
+                        f"incorrect dtype. dtype must be {dtype} and is {field.dtype}"
+                    )
 
     @classmethod
     def from_path(cls, grid, path):
@@ -132,7 +121,7 @@ class Component:
             A newly-created component.
         """
         if os.path.isfile(path):
-            with open(path, "r") as fp:
+            with open(path) as fp:
                 params = load_params(fp)
         else:
             params = load_params(path)
@@ -283,7 +272,7 @@ class Component:
             Units for each field.
         """
         return tuple(
-            sorted([(name, cls._info[name]["units"]) for name in cls._info.keys()])
+            sorted((name, cls._info[name]["units"]) for name in cls._info.keys())
         )
 
     @classmethod
@@ -313,7 +302,7 @@ class Component:
             A description of each field.
         """
         return tuple(
-            sorted([(name, cls._info[name]["doc"]) for name in cls._info.keys()])
+            sorted((name, cls._info[name]["doc"]) for name in cls._info.keys())
         )
 
     @classmethod
@@ -372,7 +361,7 @@ class Component:
             Tuple of variable name and location ('node', 'link', etc.) pairs.
         """
         return tuple(
-            sorted([(name, cls._info[name]["mapping"]) for name in cls._info.keys()])
+            sorted((name, cls._info[name]["mapping"]) for name in cls._info.keys())
         )
 
     @classmethod

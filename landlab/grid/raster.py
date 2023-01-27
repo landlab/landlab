@@ -6,6 +6,8 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
+
 import numpy as np
 import xarray as xr
 
@@ -231,7 +233,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         self._looped_second_ring_cell_neighbor_list_created = False
 
     def __repr__(self):
-        return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
+        return "RasterModelGrid({}, xy_spacing={}, xy_of_lower_left={})".format(
             repr(self.shape),
             repr((self.dx, self.dy)),
             repr((self.x_of_node.min(), self.y_of_node.min())),
@@ -240,7 +242,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict["type"] != "RasterModelGrid":
-            assert TypeError(("Saved model instance not of " "RasterModelGrid type."))
+            assert TypeError("Saved model instance not of " "RasterModelGrid type.")
 
         xy_spacing = state_dict["xy_spacing"]
         shape = state_dict["shape"]
@@ -275,17 +277,18 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         state_dict = {}
 
         # save basic information about the shape and size of the grid
-        state_dict["type"] = "RasterModelGrid"
-        state_dict["xy_spacing"] = (self.dx, self.dy)
-        state_dict["shape"] = self.shape
-        state_dict["xy_of_lower_left"] = self.xy_of_lower_left
-        state_dict["xy_of_reference"] = self.xy_of_reference
-        state_dict["xy_axis_name"] = self.axis_name
-        state_dict["xy_axis_units"] = self.axis_units
-
-        # save status information at nodes (status at link set based on status
-        # at node
-        state_dict["status_at_node"] = np.asarray(self._node_status)
+        state_dict = {
+            "type": "RasterModelGrid",
+            "xy_spacing": (self.dx, self.dy),
+            "shape": self.shape,
+            "xy_of_lower_left": self.xy_of_lower_left,
+            "xy_of_reference": self.xy_of_reference,
+            "xy_axis_name": self.axis_name,
+            "xy_axis_units": self.axis_units,
+            # save status information at nodes (status at link set based on status
+            # at node
+            "status_at_node": np.asarray(self._node_status),
+        }
 
         groups = {}
         for at in ("node", "link", "patch", "corner", "face", "cell", "grid"):
@@ -345,9 +348,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             attrs={"grid_type": "uniform_rectilinear"},
         )
         return dataset.update(
-            super(RasterModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=time
-            )
+            super().as_dataset(include=include, exclude=exclude, time=time)
         )
 
     @property
@@ -992,10 +993,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         else:
             self.fixed_value_node_properties["internal_flag"] = True
             self.fixed_value_node_properties["fixed_value_of"] = value_of
-        try:
+        with contextlib.suppress(NameError):
             self.fixed_value_node_properties["values"] = values_to_use
-        except NameError:
-            pass  # the flag will catch this case
 
     def set_looped_boundaries(self, top_bottom_are_looped, sides_are_looped):
         """Create wrap-around boundaries.
@@ -1961,14 +1960,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                 if sum(next_to_boundary) > 1:
                     potential_locs = min_locs[np.where(np.asarray(next_to_boundary))[0]]
                     raise ValueError(
-                        (
-                            "Grid has two potential outlet nodes."
-                            "They have the following node IDs: \n"
-                            + str(potential_locs)
-                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
-                            "to explicitly select one of these "
-                            "IDs as the outlet node."
-                        )
+                        "Grid has two potential outlet nodes."
+                        "They have the following node IDs: \n"
+                        + str(potential_locs)
+                        + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                        "to explicitly select one of these "
+                        "IDs as the outlet node."
                     )
                 else:
                     outlet_loc = min_locs[np.where(next_to_boundary)[0][0]]
@@ -2090,12 +2087,13 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
             if len(possible_outlets) > 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has %r"
-                    % len(possible_outlets)
+                    "Model grid must only have one node with node status of "
+                    f"BC_NODE_IS_FIXED_VALUE. This grid has {len(possible_outlets)}."
                 )
             if len(possible_outlets) < 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has none"
+                    "Model grid must only have one node with node status of "
+                    "BC_NODE_IS_FIXED_VALUE. This grid has none"
                 )
 
             outlet_id = possible_outlets

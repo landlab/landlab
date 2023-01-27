@@ -26,7 +26,7 @@ affiliations:
   - name: University of Colorado at Boulder, Community Surface Dynamics Modeling System Integration Facility
     index: 4
   - name: Johns Hopkins University, Department of Earth and Planetary Science
-  - index: 5  
+  - index: 5
 date: 18 November 2019
 bibliography: papers.bib
 ---
@@ -43,7 +43,7 @@ The ``GroundwaterDupuitPercolator`` solves the governing groundwater flow equati
 
 The ``GroundwaterDupuitPercolator`` can be implemented on both regular (e.g. rectangular and hexagonal) and irregular grids determined by the user. Recharge, hydraulic conductivity, and porosity may be specified as single values uniform over the model domain, or as vectors on the nodes (recharge, porosity) or links (hydraulic conductivity) of the grid. Link hydraulic conductivity can also be specified from a two-dimensional hydraulic conductivity tensor using an included function. For mass balance calculations, the model includes methods to determine the total groundwater storage on the grid domain, the total recharge flux in, and total groundwater and surface water fluxes leaving through the boundaries.
 
-The ``GroundwaterDupuitPercolator`` is implemented in Landlab, a Python-based open source Earth surface modeling toolkit [@hobley_creative_2017]. Landlab has a modular framework, which allows for easy coupling of different process components to meet the needs of the modeler. For example, the surface water flux from the ``GroundwaterDupuitPercolator`` can be passed to the ``FlowAccumulator`` module to route overland flow and calculate discharge at nodes. A summary of links to the documentation and example Jupyter notebooks is provided by the submodule [README](https://github.com/landlab/landlab/tree/master/landlab/components/groundwater). A diverse array of components are available, yielding many possibilities for model coupling that have not yet been explored. Given the importance of groundwater for many Earth surface processes, this component is an important contribution to the Landlab environment.  
+The ``GroundwaterDupuitPercolator`` is implemented in Landlab, a Python-based open source Earth surface modeling toolkit [@hobley_creative_2017]. Landlab has a modular framework, which allows for easy coupling of different process components to meet the needs of the modeler. For example, the surface water flux from the ``GroundwaterDupuitPercolator`` can be passed to the ``FlowAccumulator`` module to route overland flow and calculate discharge at nodes. A summary of links to the documentation and example Jupyter notebooks is provided by the submodule [README](https://github.com/landlab/landlab/tree/master/landlab/components/groundwater). A diverse array of components are available, yielding many possibilities for model coupling that have not yet been explored. Given the importance of groundwater for many Earth surface processes, this component is an important contribution to the Landlab environment.
 
 
 # Acknowledgements

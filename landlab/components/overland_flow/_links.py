@@ -185,7 +185,9 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
         Numeric values correspond to the vertical IDs.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.overland_flow._links import vertical_link_ids, vertical_west_link_neighbor
+    >>> from landlab.components.overland_flow._links import (
+    ...     vertical_link_ids, vertical_west_link_neighbor
+    ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_west_link_neighbor(rmg.shape, vertical_links)
@@ -249,7 +251,9 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
         Numeric values correspond to the vertical IDs.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.overland_flow._links import vertical_link_ids, vertical_north_link_neighbor
+    >>> from landlab.components.overland_flow._links import (
+    ...     vertical_link_ids, vertical_north_link_neighbor
+    ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_ids = vertical_link_ids(rmg.shape)
     >>> vertical_north_link_neighbor(rmg.shape, vertical_ids)
@@ -311,7 +315,9 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
         Numeric values correspond to the vertical IDs.
 
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.overland_flow._links import vertical_link_ids, vertical_east_link_neighbor
+    >>> from landlab.components.overland_flow._links import (
+    ...     vertical_link_ids, vertical_east_link_neighbor
+    ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_links = vertical_link_ids(rmg.shape)
     >>> vertical_east_link_neighbor(rmg.shape, vertical_links)

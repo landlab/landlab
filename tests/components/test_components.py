@@ -20,6 +20,12 @@ _EXCLUDE_COMPONENTS = {
     "Profiler",
     "SoilMoisture",
     "Vegetation",
+    "BedParcelInitializerDischarge",
+    "BedParcelInitializerDepth",
+    "BedParcelInitializerArea",
+    "BedParcelInitializerUserD50",
+    "SedimentPulserEachParcel",
+    "SedimentPulserAtLinks",
 }
 
 
@@ -114,10 +120,10 @@ def test_component_info_valid_dtype(Comp):
         dtype = meta["dtype"]
         try:
             np.dtype(dtype)
-        except TypeError:
+        except TypeError as exc:
             raise ValueError(
                 f"{component_name} has a bad dtype ({dtype}) for variable: {name}"
-            )
+            ) from exc
 
 
 @pytest.mark.parametrize("Comp", COMPONENTS)
