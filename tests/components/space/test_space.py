@@ -492,6 +492,7 @@ def test_matches_bedrock_alluvial_solution():
     )
 
 
+@pytest.mark.slow
 def test_can_run_with_hex():
     """Test that model can run with hex model grid."""
 
