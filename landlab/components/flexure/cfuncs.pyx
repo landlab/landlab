@@ -1,12 +1,11 @@
 from multiprocessing import Pool
 
 import numpy as np
-cimport numpy as np
-cimport cython
 
+cimport cython
+cimport numpy as np
 from libc.math cimport fabs
 from libc.stdlib cimport abs
-
 
 DTYPE = np.double
 ctypedef np.double_t DTYPE_t

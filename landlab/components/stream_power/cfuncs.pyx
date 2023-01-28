@@ -1,12 +1,15 @@
 import numpy as np
-cimport numpy as np
-cimport cython
-from scipy.optimize import newton
-#from libc.math cimport fabs
 
+cimport cython
+cimport numpy as np
+
+from scipy.optimize import newton
 # suspect that the function _brentq is in c and thus this is the most effective
 # method for using the brentq method in cython.
 from scipy.optimize._zeros import _brentq as brentq
+
+#from libc.math cimport fabs
+
 
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t

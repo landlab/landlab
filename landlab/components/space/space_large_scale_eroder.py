@@ -329,14 +329,14 @@ class SpaceLargeScaleEroder(Component):
             )
 
         # Check consistency of bedrock, soil and topogarphic elevation fields
-        err_msg = (
-            "The sum of bedrock elevation and topographic elevation should be equal"
-        )
         np.testing.assert_almost_equal(
             grid.at_node["bedrock__elevation"] + grid.at_node["soil__depth"],
             grid.at_node["topographic__elevation"],
             decimal=5,
-            err_msg=err_msg,
+            err_msg=(
+                "The sum of bedrock elevation and topographic elevation should "
+                "be equal"
+            ),
         )
 
         # specific inits

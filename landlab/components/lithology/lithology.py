@@ -211,58 +211,52 @@ class Lithology(Component):
         if self._init_thicknesses.ndim == 2:
             # assert that the 2nd dimension is the same as the number of nodes.
             if self._init_thicknesses.shape[1] != self._grid.number_of_nodes:
-                msg = (
+                raise ValueError(
                     "Thicknesses provided to Lithology are ",
                     "inconsistent with the ModelGrid.",
                 )
-                raise ValueError(msg)
 
             # if IDs is a 2d array assert that it is the same size as thicknesses
             if np.asarray(ids).ndim == 2:
                 if self._init_thicknesses.shape != np.asarray(ids).shape:
-                    msg = (
+                    raise ValueError(
                         "Thicknesses and IDs provided to Lithology are ",
                         "inconsistent with each other.",
                     )
-                    raise ValueError(msg)
                 # if tests pass set value of IDs.
                 self._layer_ids = np.asarray(ids)
 
             # if IDS is a 1d array
             elif np.asarray(ids).ndim == 1:
                 if np.asarray(ids).size != self._number_of_init_layers:
-                    msg = (
+                    raise ValueError(
                         "Number of IDs provided to Lithology is ",
                         "inconsistent with number of layers provided in "
                         "thicknesses.",
                     )
-                    raise ValueError(msg)
                 # if tests pass, broadcast ids to correct shape.
                 self._layer_ids = np.broadcast_to(
                     np.atleast_2d(np.asarray(ids)).T, self._init_thicknesses.shape
                 )
 
             else:
-                msg = (
-                    "IDs must be of shape `(n_layers, )` or `(n_layers, "
-                    "n_nodes)`. Passed array has more than 2 dimensions."
+                raise ValueError(
+                    "IDs must be of shape `(n_layers, )` or `(n_layers, n_nodes)`. "
+                    "Passed array has more than 2 dimensions."
                 )
-                raise ValueError(msg)
 
         elif self._init_thicknesses.ndim == 1:
             if self._init_thicknesses.shape != np.asarray(ids).shape:
-                msg = (
+                raise ValueError(
                     "Thicknesses and IDs provided to Lithology are ",
                     "inconsistent with each other.",
                 )
-                raise ValueError(msg)
             self._layer_ids = np.asarray(ids)
         else:
-            msg = (
-                "Thicknesses must be of shape `(n_layers, )` or `(n_layers, "
-                "n_nodes)`. Passed array has more than 2 dimensions."
+            raise ValueError(
+                "Thicknesses must be of shape `(n_layers, )` or "
+                "`(n_layers, n_nodes)`. Passed array has more than 2 dimensions."
             )
-            raise ValueError(msg)
 
         # assert that attrs are pointing to fields (or create them)
         for at in self._properties:
@@ -504,12 +498,10 @@ class Lithology(Component):
         for at in self._properties:
             for i in self._ids:
                 if i not in self._attrs[at]:
-                    msg = (
-                        "A rock type with ID value " + str(i) + "was "
-                        "specified in Lithology. No value "
-                        "for this ID was provided in property " + at + "."
+                    raise ValueError(
+                        f"A rock type with ID value {i} was specified in Lithology. "
+                        f"No value for this ID was provided in property {at}."
                     )
-                    raise ValueError(msg)
 
     def _update_surface_values(self):
         """Update Lithology surface values."""
@@ -573,11 +565,10 @@ class Lithology(Component):
 
         # verify that Lithology will still have thickness after change
         if np.any((self._layers.thickness + thickness) <= 0):
-            msg = (
+            raise ValueError(
                 "add_layer will result in Lithology having a thickness of "
                 "zero at at least one node."
             )
-            raise ValueError(msg)
 
         # verify that rock type added exists.
         try:
@@ -592,12 +583,11 @@ class Lithology(Component):
             missing_ids = set(new_ids).difference(self._ids)
 
             if np.any(thickness > 0):
-                msg = (
+                raise ValueError(
                     "Lithology add_layer was given a rock type id that does "
                     "not yet exist and will need to deposit. Use a valid "
-                    "rock type or add_rock_type. " + str(missing_ids)
+                    f"rock type or add_rock_type. {missing_ids}"
                 )
-                raise ValueError(msg)
 
         # add_rock_type
         if rock_id is not None:
@@ -641,29 +631,24 @@ class Lithology(Component):
         """
         for at in attrs:
             if at in self._properties:
-                msg = (
+                raise ValueError(
                     "add_property is trying to add an existing "
-                    "attribute, this is not permitted. " + str(at)
+                    f"attribute, this is not permitted. {at}"
                 )
-                raise ValueError(msg)
 
             new_rids = attrs[at].keys()
             for rid in new_rids:
                 if rid not in self._ids:
-                    msg = (
-                        "add_property has an attribute(" + str(at) + ")"
-                        " for rock type " + str(rid) + " that no other rock "
-                        " type has. This is not permitted."
+                    raise ValueError(
+                        f"add_property has an attribute({at}) for rock type {rid!s} "
+                        "that no other rock type has. This is not permitted."
                     )
-                    raise ValueError(msg)
 
             for rid in self._ids:
                 if rid not in new_rids:
-                    msg = (
-                        "add_property needs a value for id " + str(rid) + ""
-                        " and attribute " + str(at) + "."
+                    raise ValueError(
+                        "add_property needs a value for id {rid!s} and attribute {at}."
                     )
-                    raise ValueError(msg)
 
         for at in attrs:
             if at not in self._grid.at_node:
@@ -703,16 +688,14 @@ class Lithology(Component):
         # Check that the new rock type has all existing attributes
         for at in self._properties:
             if at not in attrs:
-                msg = "The new rock type is missing attribute " + str(at) + "."
-                raise ValueError(msg)
+                raise ValueError(f"The new rock type is missing attribute {at!s}.")
         # And no new attributes
         for at in attrs:
             if at not in self._properties:
-                msg = (
-                    "The new rock type has an attribute (e" + str(at) + ") "
+                raise ValueError(
+                    "The new rock type has an attribute (e{at!s}) "
                     "that no other rock type has. This is not permitted."
                 )
-                raise ValueError(msg)
 
         new_ids = []
         for at in attrs:
@@ -720,12 +703,10 @@ class Lithology(Component):
             rids = att_dict.keys()
             for rid in rids:
                 if rid in self._layer_ids:
-                    msg = (
-                        "Rock type ID " + str(rid) + " for attribute "
-                        "" + str(at) + " has already been added. This is "
-                        "not allowed"
+                    raise ValueError(
+                        "Rock type ID {rid!s} for attribute {at!s} "
+                        "has already been added. This is not allowed"
                     )
-                    raise ValueError(msg)
                 else:
                     new_ids.append(rid)
                     self._attrs[at][rid] = att_dict[rid]
@@ -768,19 +749,16 @@ class Lithology(Component):
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
         """
         if at not in self._properties:
-            msg = (
-                "Lithology cannot update the value of " + str(at) + "as "
+            raise ValueError(
+                f"Lithology cannot update the value of {at!s} as "
                 "this attribute does not exist."
             )
-            raise ValueError(msg)
 
         if not self._ids.issuperset([rock_id]):
-            msg = (
-                "Lithology cannot update the value of rock type "
-                "" + str(rock_id) + "for attribute " + str(at) + " as "
-                "this rock type is not yet defined."
+            raise ValueError(
+                f"Lithology cannot update the value of rock type {rock_id!s} "
+                f"for attribute {at!s} as this rock type is not yet defined."
             )
-            raise ValueError(msg)
 
         # set the value in the attribute dictionary
         self._attrs[at][rock_id] = value
