@@ -51,7 +51,7 @@ def test_sp_discharges_old():
     )
 
     # perform the loop (once!)
-    for i in range(1):
+    for _ in range(1):
         fr.run_one_step()
         sp.run_one_step(dt)
 
@@ -128,7 +128,7 @@ def test_sp_discharges_new():
     sp = StreamPowerEroder(mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, threshold_sp=0.0)
 
     # perform the loop (once!)
-    for i in range(1):
+    for _ in range(1):
         fr.run_one_step()
         sp.run_one_step(dt)
 

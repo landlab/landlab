@@ -1,6 +1,7 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
+cimport numpy as np
 
 
 @cython.boundscheck(False)
@@ -38,5 +39,5 @@ def get_surface_index(np.ndarray[np.float_t, ndim=2] layers, int n_layers,
     for col in range(n_stacks):
         for layer in range(top_ind - 1, -1, -1):
             if layers[layer, col] > 0:
-                surface_index[col] = layer 
+                surface_index[col] = layer
                 break

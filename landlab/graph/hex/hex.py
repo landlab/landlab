@@ -51,7 +51,7 @@ array([[ 0. ,  1. ,  2. ,  3. ],
 12
 """
 
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -458,9 +458,11 @@ class HorizontalHexTriGraph:
         --------
         >>> from landlab.graph.hex.hex import HorizontalHexTriGraph
         >>> HorizontalHexTriGraph.nodes_at_edge((5, 3))
-        (array([11, 15]), array([18, 17]), array([16, 12]), array([7, 3]), array([0, 1]), array([2, 6]))
+        (array([11, 15]), array([18, 17]), array([16, 12]), array([7, 3]),
+         array([0, 1]), array([2, 6]))
         >>> HorizontalHexTriGraph.nodes_at_edge((4, 3))
-        (array([11]), array([15, 14, 13]), array([12]), array([7, 3]), array([0, 1]), array([2, 6]))
+        (array([11]), array([15, 14, 13]), array([12]), array([7, 3]), array([0, 1]),
+         array([2, 6]))
         """
         n_rows, n_cols = shape
         (
@@ -640,7 +642,8 @@ class VerticalHexTriGraph:
         --------
         >>> from landlab.graph.hex.hex import VerticalHexTriGraph
         >>> VerticalHexTriGraph.nodes_at_edge((3, 7))
-        (array([ 9, 16]), array([23, 26, 28]), array([29, 27, 24]), array([20, 13]), array([6, 3, 1]), array([0, 2, 5]))
+        (array([ 9, 16]), array([23, 26, 28]), array([29, 27, 24]), array([20, 13]),
+         array([6, 3, 1]), array([0, 2, 5]))
         >>> VerticalHexTriGraph.nodes_at_edge((2, 3))
         (array([2]), array([5]), array([6]), array([4]), array([1]), array([0]))
         >>> VerticalHexTriGraph.nodes_at_edge((2, 4))
@@ -808,8 +811,8 @@ class TriGraph(HexGraphExtras, DelaunayGraph):
 
         try:
             spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float") from exc
 
         self._shape = tuple(shape)
         self._spacing = spacing
@@ -862,8 +865,7 @@ class TriGraph(HexGraphExtras, DelaunayGraph):
     def node_layout(self):
         return self._node_layout
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def perimeter_nodes(self):
         return self._perimeter_nodes

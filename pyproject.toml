@@ -32,7 +32,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   "bmipy",
   "matplotlib",
@@ -40,11 +40,11 @@ dependencies = [
   "numpy",
   "pyyaml",
   "pyshp != 2.3.0",
+  "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
   "xarray >= 0.16",
-  "richdem ; sys_platform != 'win32' or python_version < '3.10'",
 ]
 dynamic = ["readme", "version"]
 
@@ -73,6 +73,7 @@ docs = [
   "tabulate",
   "tornado",
   "entrypoints",
+  "furo",
   "nbsphinx>=0.2.12",
   "sphinxcontrib_github_alt",
   "sphinxcontrib.towncrier",
@@ -99,7 +100,7 @@ notebooks = [
 ]
 
 [project.scripts]
-landlab = "landlab.cmd.landlab:main"
+landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
@@ -153,6 +154,9 @@ force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
 
+[tool.check-manifest]
+ignore = [".nox", "build"]
+
 [tool.towncrier]
 directory = "news"
 package = "landlab"
@@ -191,4 +195,3 @@ showcontent = true
 directory = "misc"
 name = "Other Changes and Additions"
 showcontent = true
-

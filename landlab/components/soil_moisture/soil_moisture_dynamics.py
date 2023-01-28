@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid", "Multi"])
+_VALID_METHODS = {"Grid", "Multi"}
 
 
 def assert_method_is_valid(method):
@@ -113,7 +113,10 @@ class SoilMoisture(Component):
             "optional": False,
             "units": "mm",
             "mapping": "cell",
-            "doc": "Rain in (mm) as a field, allowing spatio-temporal soil moisture saturation analysis.",
+            "doc": (
+                "Rain in (mm) as a field, allowing spatio-temporal soil "
+                "moisture saturation analysis."
+            ),
         },
         "soil_moisture__initial_saturation_fraction": {
             "dtype": float,
@@ -129,7 +132,10 @@ class SoilMoisture(Component):
             "optional": False,
             "units": "mm",
             "mapping": "cell",
-            "doc": "leakage of water into deeper portions of the soil not accessible to the plant",
+            "doc": (
+                "leakage of water into deeper portions of the soil not "
+                "accessible to the plant"
+            ),
         },
         "soil_moisture__saturation_fraction": {
             "dtype": float,
@@ -185,7 +191,10 @@ class SoilMoisture(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+            "doc": (
+                "classification of plants (int), grass=0, shrub=1, tree=2, "
+                "bare=3, shrub_seedling=4, tree_seedling=5"
+            ),
         },
         "vegetation__water_stress": {
             "dtype": float,

@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid"])
+_VALID_METHODS = {"Grid"}
 
 
 def _assert_method_is_valid(method):
@@ -107,7 +107,10 @@ class Radiation(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+            "doc": (
+                "ratio of total incident shortwave radiation on sloped "
+                "surface to flat surface"
+            ),
         },
         "topographic__elevation": {
             "dtype": float,
@@ -248,10 +251,9 @@ class Radiation(Component):
                 - np.sin(self._phi) * np.cos(self._tau)
             )
         )  # Sun's Azhimuth
-        if self._phisun >= 0 and -np.sin(self._tau) <= 0:
-            self._phisun = self._phisun + np.pi
-
-        elif self._phisun <= 0 and -np.sin(self._tau) >= 0:
+        if (self._phisun >= 0 and -np.sin(self._tau) <= 0) or (
+            self._phisun <= 0 and -np.sin(self._tau) >= 0
+        ):
             self._phisun = self._phisun + np.pi
 
         self._flat = np.cos(np.arctan(0)) * np.sin(self._alpha) + np.sin(

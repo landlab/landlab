@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """profiler.py component to create profiles with user-defined endpoints."""
 from collections import OrderedDict
@@ -154,12 +153,11 @@ class Profiler(_BaseProfiler):
         self._cmap = plt.get_cmap(cmap)
 
         if not isinstance(endpoints, list) or len(endpoints) < 2:
-            msg = (
+            raise ValueError(
                 "`endpoints` must be a list of at least 2 node IDs or a "
                 "list of at least two tuples where each tuple contains the "
                 "x, y coordinates of endpoints."
             )
-            raise ValueError(msg)
 
         # Check if `endpoints` are within grid bounds while setting
         # `_end_nodes`.

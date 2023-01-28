@@ -76,8 +76,10 @@ class SoilInfiltrationGreenAmpt(Component):
 
     _cite_as = """
     @article{rengers2016model,
-      author = {Rengers, F K and McGuire, L A and Kean, J W and Staley, D M and Hobley, D E J},
-      title = {{Model simulations of flood and debris flow timing in steep catchments after wildfire}},
+      author = {Rengers, F K and McGuire, L A and Kean, J W and Staley, D M
+                and Hobley, D E J},
+      title = {{Model simulations of flood and debris flow timing in steep
+                catchments after wildfire}},
       doi = {10.1002/2015wr018176},
       pages = {6041 -- 6061},
       number = {8},
@@ -94,7 +96,11 @@ class SoilInfiltrationGreenAmpt(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Water column height above the surface previously absorbed into the soil. Note that this is NOT the actual depth of the wetted front, which also depends on the porosity.",
+            "doc": (
+                "Water column height above the surface previously absorbed "
+                "into the soil. Note that this is NOT the actual depth of "
+                "the wetted front, which also depends on the porosity."
+            ),
         },
         "surface_water__depth": {
             "dtype": float,
@@ -226,8 +232,8 @@ class SoilInfiltrationGreenAmpt(Component):
         else:
             try:
                 soil_props = SoilInfiltrationGreenAmpt.SOIL_PROPS[soil_type]
-            except KeyError:
-                raise ValueError("{0}: unknown soil type".format(soil_type))
+            except KeyError as exc:
+                raise ValueError(f"{soil_type}: unknown soil type") from exc
 
         return SoilInfiltrationGreenAmpt.calc_pressure_head(*soil_props)
 

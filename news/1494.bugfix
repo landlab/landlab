@@ -1,3 +1,2 @@
 Fixed usages of ``plt.gca`` that used keywords to create new axes objects. With
 *matplotlib* 3.6, the way to do this is with ``plt.axes``.
-

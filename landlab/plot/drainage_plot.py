@@ -25,9 +25,8 @@ def drainage_plot(
 
     if receivers is None:
         receivers = mg.at_node["flow__receiver_node"]
-        if proportions is None:
-            if "flow__receiver_proportions" in mg.at_node:
-                proportions = mg.at_node["flow__receiver_proportions"]
+        if proportions is None and "flow__receiver_proportions" in mg.at_node:
+            proportions = mg.at_node["flow__receiver_proportions"]
     else:
         receivers = np.asarray(receivers)
 

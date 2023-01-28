@@ -92,7 +92,7 @@ def synthetic():
     )
     timesteps = 2  # total number of timesteps
     dt = 60 * 60 * 24 * 1  # length of timestep (seconds)
-    for t in range(0, (timesteps * dt), dt):
+    for _ in range(0, (timesteps * dt), dt):
         nst1.run_one_step(dt)
 
     return nst1
@@ -182,7 +182,7 @@ def methow():
     )
     timesteps = 2  # total number of timesteps
     dt = 60 * 60 * 24 * 1  # length of timestep (seconds)
-    for t in range(0, (timesteps * dt), dt):
+    for _ in range(0, (timesteps * dt), dt):
         nst2.run_one_step(dt)
 
     return nst2

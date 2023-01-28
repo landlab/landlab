@@ -20,10 +20,11 @@ import os
 import pathlib
 import sys
 import tarfile
-from packaging.version import Version
 from urllib.error import HTTPError
 from urllib.parse import urljoin
 from urllib.request import urlopen
+
+from packaging.version import Version
 
 
 def main(version=None):
@@ -85,7 +86,7 @@ class NotebookFetcher:
                 msg = f"unable to find notebooks for requested landlab version ({self.version})"
             else:
                 msg = f"unable to fetch notebooks ({error.reason})"
-            raise NotebookError(msg)
+            raise NotebookError(msg) from error
         else:
             return stream
 
@@ -102,10 +103,9 @@ class NotebookExtractor:
     def _notebooks(self):
         for tarinfo in self._tfile:
             parts = pathlib.Path(tarinfo.name).parts
-            if len(parts) > 1 and parts[1] == "notebooks":
-                self._names.append(tarinfo.name)
-                yield tarinfo
-            elif parts[-1] == "requirements-notebooks.txt":
+            if (len(parts) > 1 and parts[1] == "notebooks") or (
+                parts[-1] == "requirements-notebooks.txt"
+            ):
                 self._names.append(tarinfo.name)
                 yield tarinfo
 

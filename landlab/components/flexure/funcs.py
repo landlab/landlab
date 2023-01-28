@@ -126,7 +126,7 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     >>> print(round(dz.max(), 9) / 2.)
     5.265e-07
     """
-    params = params or dict(eet=6500.0, youngs=7.0e10)
+    params = params or {"eet": 6500.0, "youngs": 7.0e10}
     eet, youngs = params["eet"], params["youngs"]
     gamma_mantle = params.get("gamma_mantle", 33000.0)
 

@@ -37,7 +37,7 @@ def test_nodes_at_edge():
     grid = RasterModelGrid((3, 4))
     for edge in ("right", "top", "left", "bottom"):
         assert_array_equal(
-            grid.nodes_at_edge(edge), getattr(grid, "nodes_at_{0}_edge".format(edge))
+            grid.nodes_at_edge(edge), getattr(grid, f"nodes_at_{edge}_edge")
         )
     with pytest.raises(ValueError):
         grid.nodes_at_edge("not-an-edge")

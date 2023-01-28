@@ -32,7 +32,7 @@ So first, check your version:
 
 Note the two dashes.
 If you got 2.7 or higher, congratulations! You win. No further changes to
-python installs are needed. But if you didn't, first check whether you can
+Python installs are needed. But if you didn't, first check whether you can
 simply update through the package manager:
 
 .. code-block:: bash
@@ -41,8 +41,8 @@ simply update through the package manager:
     $ python --version
 
 If you're still seeing a sub-2.7 version number (as I was...), you're going
-to need to download the python source and install it manually. Go to
-`the python download site <https://www.python.org/downloads/>`_, select the
+to need to download the Python source and install it manually. Go to
+`the Python download site <https://www.python.org/downloads/>`_, select the
 link to the highest version
 number of Python 2.X available (2.7.6 at time of writing), and download it
 as a gzipped source tarball. Then:
@@ -77,12 +77,12 @@ that file in your favourite text editor, and add at the end:
 
 Restart the terminal again, and check the version number now. Should be
 right! (You will probably also want to do something similar with ipython,
-but DEJH didn't explore that...) 
+but DEJH didn't explore that...)
 
 Installing pip
 --------------
 
-You now have the right version of python, but if you try, e.g., *import
+You now have the right version of Python, but if you try, e.g., *import
 numpy*, you'll notice you don't have any packages. This is where pip -
 the powerful command line Python package manager - comes in.
 

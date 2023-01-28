@@ -59,7 +59,7 @@ components folder.
 
 NOTE TO DEJH: This is missing some names; see, e.g., gFlex.
 """
-
+import contextlib
 import fnmatch
 import os.path as path
 from copy import copy
@@ -109,7 +109,7 @@ for LLcomp in poss_comp_files:
     for prop in props_to_strip_list:
         lines_captured = []
         start_write = False
-        with open(LLcomp, "r") as inFile:
+        with open(LLcomp) as inFile:
             for line in inFile:
                 if prop in line:
                     accumulated_props.add(prop)
@@ -150,7 +150,7 @@ for LLcomp in poss_comp_files:
             bad_components[LLcomp] = "No class is present in file."
 
 for badcomp in bad_components.keys():
-    with open(badcomp, "r") as inFile:
+    with open(badcomp) as inFile:
         noclass = True
         for line in inFile:
             if "class " in line:
@@ -175,14 +175,10 @@ for badcomp in bad_components.keys():
 all_field_names = set()
 for name in comp_elements.keys():
     this_un = comp_elements[name]
-    try:
+    with contextlib.suppress(TypeError, KeyError):
         all_field_names = all_field_names | this_un["_input_var_names"]
-    except (TypeError, KeyError):
-        pass  # this will get captured in problematic_components
-    try:
+    with contextlib.suppress(TypeError, KeyError):
         all_field_names = all_field_names | this_un["_output_var_names"]
-    except (TypeError, KeyError):
-        pass  # ditto
 
 for name in comp_elements.keys():
     problems = []
@@ -199,9 +195,10 @@ for name in comp_elements.keys():
     if type(name) != str:
         problems.append("The _name " + str(name) + " is not a string.")
     for prop in this_un:
-        if prop in ("_input_var_names", "_output_var_names"):
-            if type(this_un[prop]) != set:
-                problems.append(prop + " is not a set. It should be.")
+        if prop in ("_input_var_names", "_output_var_names") and not isinstance(
+            this_un[prop], set
+        ):
+            problems.append(prop + " is not a set. It should be.")
         if prop in ("_var_units", "_var_mapping", "_var_doc"):
             if type(this_un[prop]) != dict:
                 problems.append(prop + " is not a dict. It should be.")
@@ -217,7 +214,7 @@ for name in comp_elements.keys():
             else:
                 if prop == "_var_mapping":
                     for element in this_un[prop].values():
-                        if not (element in poss_elements):
+                        if element not in poss_elements:
                             problems.append(
                                 str(element)
                                 + " is not a "

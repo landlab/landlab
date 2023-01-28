@@ -44,7 +44,7 @@ BMI_GRID = {
 }
 
 
-class TimeStepper(object):
+class TimeStepper:
 
     """Step through time.
 
@@ -346,11 +346,9 @@ def wrap_as_bmi(cls):
             grid = create_grid(config_file, section="grid")
 
             if not grid:
-                raise ValueError("no grid in config file ({0})".format(config_file))
+                raise ValueError(f"no grid in config file ({config_file})")
             elif isinstance(grid, list):
-                raise ValueError(
-                    "multiple grids in config file ({0})".format(config_file)
-                )
+                raise ValueError(f"multiple grids in config file ({config_file})")
 
             params = load_params(config_file)
             params.pop("grid")
@@ -443,7 +441,7 @@ def wrap_as_bmi(cls):
                     at = self._info[name]["mapping"]
                     self._base.grid[at][name][:] = values.flat
             else:
-                raise KeyError("{name} is not an input item".format(name=name))
+                raise KeyError(f"{name} is not an input item")
 
         def get_grid_origin(self, grid, origin):
             """Get the origin for a structured grid."""
@@ -530,9 +528,8 @@ def wrap_as_bmi(cls):
         def get_grid_nodes_per_face(self, grid, nodes_per_face):
             if grid == 0:
                 return np.full(self._base.grid.number_of_nodes, 3, dtype=int)
-            elif grid == 1:
-                if isinstance(self._base.grid, HexModelGrid):
-                    return np.full(self._base.grid.number_of_faces, 6, dtype=int)
+            elif grid == 1 and isinstance(self._base.grid, HexModelGrid):
+                return np.full(self._base.grid.number_of_faces, 6, dtype=int)
 
         def get_grid_size(self, grid):
             if grid == 0:
@@ -572,5 +569,5 @@ def wrap_as_bmi(cls):
             at = self._info[name]["mapping"]
             self._base.grid[at][name][inds] = src
 
-    BmiWrapper.__name__ = cls.__name__
+    BmiWrapper.__name__ = f"{cls.__name__}BMI"
     return BmiWrapper

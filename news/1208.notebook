@@ -1,0 +1,4 @@
+Added tutorial notebooks for the new
+:class:`BedParcelInitializer <.BedParcelInitializerBase>` and
+:class:`SedimentPulser <.SedimentPulserBase>` components, all associated with the
+:class:`~.NetworkSedimentTransporter`.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Grid-based simulation of lateral erosion by channels in a drainage network.
 
 Benjamin Campforts
@@ -132,7 +131,9 @@ class SpaceLargeScaleEroder(Component):
     ... )
     >>> fig = plt.figure()
     >>> sedfluxplot = plt.subplot()
-    >>> _ = sedfluxplot.plot(np.arange(len(sed_flux)) * timestep, sed_flux, color="k", linewidth=1.0)
+    >>> _ = sedfluxplot.plot(
+    ...     np.arange(len(sed_flux)) * timestep, sed_flux, color="k", linewidth=1.0
+    ... )
     >>> _ = sedfluxplot.set_xlabel("Time [yr]")
     >>> _ = sedfluxplot.set_ylabel(r"Sediment flux [m$^3$/yr]")
 
@@ -149,7 +150,7 @@ class SpaceLargeScaleEroder(Component):
 
     None Listed
 
-    """
+    """  # noqa: B950
 
     _name = "SpaceLargeScaleEroder"
 
@@ -230,17 +231,19 @@ class SpaceLargeScaleEroder(Component):
         },
     }
 
-    _cite_as = """@Article{gmd-10-4577-2017,
-                  AUTHOR = {Shobe, C. M. and Tucker, G. E. and Barnhart, K. R.},
-                  TITLE = {The SPACE~1.0 model: a~Landlab component for 2-D calculation of sediment transport, bedrock erosion, and landscape evolution},
-                  JOURNAL = {Geoscientific Model Development},
-                  VOLUME = {10},
-                  YEAR = {2017},
-                  NUMBER = {12},
-                  PAGES = {4577--4604},
-                  URL = {https://www.geosci-model-dev.net/10/4577/2017/},
-                  DOI = {10.5194/gmd-10-4577-2017}
-                  }"""
+    _cite_as = """
+    @Article{gmd-10-4577-2017,
+        AUTHOR = {Shobe, C. M. and Tucker, G. E. and Barnhart, K. R.},
+        TITLE = {The SPACE~1.0 model: a~Landlab component for 2-D calculation
+                 of sediment transport, bedrock erosion, and landscape evolution},
+        JOURNAL = {Geoscientific Model Development},
+        VOLUME = {10},
+        YEAR = {2017},
+        NUMBER = {12},
+        PAGES = {4577--4604},
+        URL = {https://www.geosci-model-dev.net/10/4577/2017/},
+        DOI = {10.5194/gmd-10-4577-2017}
+    }"""
 
     def __init__(
         self,
@@ -309,7 +312,7 @@ class SpaceLargeScaleEroder(Component):
                 "to start this process."
             )
 
-        super(SpaceLargeScaleEroder, self).__init__(grid)
+        super().__init__(grid)
 
         self._soil__depth = grid.at_node["soil__depth"]
         self._topographic__elevation = grid.at_node["topographic__elevation"]
@@ -326,14 +329,14 @@ class SpaceLargeScaleEroder(Component):
             )
 
         # Check consistency of bedrock, soil and topogarphic elevation fields
-        err_msg = (
-            "The sum of bedrock elevation and topographic elevation should be equal"
-        )
         np.testing.assert_almost_equal(
             grid.at_node["bedrock__elevation"] + grid.at_node["soil__depth"],
             grid.at_node["topographic__elevation"],
             decimal=5,
-            err_msg=err_msg,
+            err_msg=(
+                "The sum of bedrock elevation and topographic elevation should "
+                "be equal"
+            ),
         )
 
         # specific inits

@@ -21,6 +21,7 @@ Utilities and Decorators
   source_tracking_algorithm
   stable_priority_queue
   watershed
+  window_statistic
 
 Additional utilities are located within the `core` submodule:
 
