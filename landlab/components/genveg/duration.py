@@ -7,13 +7,6 @@ rng = np.random.default_rng()
 class Duration(object):
     def __init__(self, species_grow_params, green_parts):
         self.growdict=species_grow_params
-        #self.total_min_biomass=species_grow_params['total_min_biomass']
-        #self.total_new_max_biomass=2*self.total_min_biomass
-        #self.total_max_biomass=species_grow_params['total_max_biomass']
-        #self.plant_part_min=species_grow_params['plant_part_min']        
-        #self.plant_part_max=species_grow_params['plant_part_max']
-        #self.growth_min_biomass=species_grow_params['growth_min_biomass']
-        #self.growth_max_biomass=species_grow_params['growth_max_biomass']
         self.allocation_coeffs=species_grow_params['root_to_leaf_coeffs']+species_grow_params['root_to_stem_coeffs']
         self.green_parts=green_parts
 
