@@ -3,6 +3,8 @@ import numpy as np
 from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
+_DT_MAX = 1.0e-2
+
 
 ## Checks:
 # 1. How does sediment flux work?
@@ -236,17 +238,17 @@ class GravelBedrockEroder(Component):
     }
 
     def __init__(
-        self,
-        grid,
-        intermittency_factor=0.01,
-        transport_coefficient=0.041,
-        abrasion_coefficient=0.0,
-        sediment_porosity=0.35,
-        depth_decay_scale=1.0,
-        plucking_coefficient=1.0e-6,
-        coarse_fraction_from_plucking=1.0,
+            self,
+            grid,
+            intermittency_factor=0.01,
+            transport_coefficient=0.041,
+            abrasion_coefficient=0.0,
+            sediment_porosity=0.35,
+            depth_decay_scale=1.0,
+            plucking_coefficient=1.0e-4,
+            coarse_fraction_from_plucking=1.0,
     ):
-        """Initialize GravelRiverTransporter."""
+        """Initialize GravelBedrockEroder."""
 
         super().__init__(grid)
 
@@ -256,7 +258,13 @@ class GravelBedrockEroder(Component):
         self._abrasion_coef = abrasion_coefficient
         self._porosity_factor = 1.0 / (1.0 - sediment_porosity)
         self._depth_decay_scale = depth_decay_scale
+        if (isinstance(plucking_coefficient, np.ndarray)
+                and len(plucking_coefficient) == self.grid.number_of_nodes):
+            plucking_coefficient = plucking_coefficient[self.grid.core_nodes]
         self._plucking_coef = plucking_coefficient
+        if (isinstance(coarse_fraction_from_plucking, np.ndarray)
+                and len(coarse_fraction_from_plucking) == self.grid.number_of_nodes):
+            coarse_fraction_from_plucking = coarse_fraction_from_plucking[self.grid.core_nodes]
         self._pluck_coarse_frac = coarse_fraction_from_plucking
 
         # Fields and arrays
@@ -276,7 +284,6 @@ class GravelBedrockEroder(Component):
         super().initialize_output_fields()
         self._sediment_influx = grid.at_node["bedload_sediment__volume_influx"]
         self._sediment_outflux = grid.at_node["bedload_sediment__volume_outflux"]
-        self._transport_cap = grid.at_node["transport__capacity"]
         self._dHdt = grid.at_node["sediment__rate_of_change"]
         self._rock_lowering_rate = grid.at_node["bedrock__lowering_rate"]
         self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
@@ -295,7 +302,7 @@ class GravelBedrockEroder(Component):
         """
         if isinstance(self.grid, HexModelGrid):
             self._flow_link_length_over_cell_area = (
-                self.grid.spacing / self.grid.area_of_cell[0]
+                    self.grid.spacing / self.grid.area_of_cell[0]
             )
             self._flow_length_is_variable = False
         elif isinstance(self.grid, DiagonalsMixIn):
@@ -310,13 +317,13 @@ class GravelBedrockEroder(Component):
         each node to the area of the node's cell."""
         if self._grid_has_diagonals:
             self._flow_link_length_over_cell_area = (
-                self.grid.length_of_d8[self._receiver_link[self.grid.core_nodes]]
-                / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
+                    self.grid.length_of_d8[self._receiver_link[self.grid.core_nodes]]
+                    / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
             )
         else:
             self._flow_link_length_over_cell_area = (
-                self.grid.length_of_link[self._receiver_link[self.grid.core_nodes]]
-                / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
+                    self.grid.length_of_link[self._receiver_link[self.grid.core_nodes]]
+                    / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
             )
 
     def calc_implied_depth(self, grain_diameter=0.01):
@@ -353,7 +360,7 @@ class GravelBedrockEroder(Component):
         depth = np.zeros(self._grid.number_of_nodes)
         nonzero_slope = self._slope > 0.0
         depth[nonzero_slope] = (
-            depth_factor * grain_diameter / self._slope[nonzero_slope]
+                depth_factor * grain_diameter / self._slope[nonzero_slope]
         )
         return depth
 
@@ -401,10 +408,10 @@ class GravelBedrockEroder(Component):
         else:
             width_fac = 2.61  # assume seconds if not years
         width = (
-            width_fac
-            * self._discharge
-            * self._slope ** (7.0 / 6.0)
-            / (grain_diameter**1.5)
+                width_fac
+                * self._discharge
+                * self._slope ** (7.0 / 6.0)
+                / (grain_diameter ** 1.5)
         )
         return width
 
@@ -430,7 +437,7 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._rock_exposure_fraction[4:6], 4)
         array([ 0.3679,  0.1353])
         """
-        self._rock_exposure_fraction = np.exp(-self._sed / self._depth_decay_scale)
+        self._rock_exposure_fraction[:] = np.exp(-self._sed / self._depth_decay_scale)
 
     def calc_transport_capacity(self):
         """Calculate and return bed-load transport capacity.
@@ -457,23 +464,13 @@ class GravelBedrockEroder(Component):
         >>> round(eroder._sediment_outflux[4], 4)
         0.019
         """
-        # self._sediment_outflux[:] = (
-        #     self._trans_coef
-        #     * self._intermittency_factor
-        #     * self._discharge
-        #     * self._slope**self._SEVEN_SIXTHS
-        #     * (1.0 - self._rock_exposure_fraction)
-        # )
-        # BC
-        self._transport_cap[:] = (
-            self._trans_coef
-            * self._intermittency_factor
-            * self._discharge
-            * self._slope**self._SEVEN_SIXTHS
-            * (1.0 - self._rock_exposure_fraction)
+        self._sediment_outflux[:] = (
+                self._trans_coef
+                * self._intermittency_factor
+                * self._discharge
+                * self._slope ** self._SEVEN_SIXTHS
+                * (1.0 - self._rock_exposure_fraction)
         )
-        # Transport capacity is zero if S<0
-        self._transport_cap[self._slope < 0] = 0
 
     def calc_abrasion_rate(self):
         """Update the rate of bedload loss to abrasion, per unit area.
@@ -505,10 +502,10 @@ class GravelBedrockEroder(Component):
         """
         cores = self._grid.core_nodes
         self._abrasion[cores] = (
-            self._abrasion_coef
-            * 0.5
-            * (self._sediment_outflux[cores] + self._sediment_influx[cores])
-            * self._flow_link_length_over_cell_area
+                self._abrasion_coef
+                * 0.5
+                * (self._sediment_outflux[cores] + self._sediment_influx[cores])
+                * self._flow_link_length_over_cell_area
         )
 
     def calc_bedrock_abrasion_rate(self):
@@ -568,11 +565,12 @@ class GravelBedrockEroder(Component):
 
         cores = self._grid.core_nodes
         self._pluck_rate[cores] = (
-            self._plucking_coef
-            * self._discharge[cores]
-            * self._slope[cores] ** self._SEVEN_SIXTHS
-            * self._rock_exposure_fraction[cores]
-        ) * self._flow_link_length_over_cell_area
+                                          self._plucking_coef
+                                          * self._intermittency_factor
+                                          * self._discharge[cores]
+                                          * self._slope[cores] ** self._SEVEN_SIXTHS
+                                          * self._rock_exposure_fraction[cores]
+                                  ) * self._flow_link_length_over_cell_area
 
         # Plucking rate is zero if S<0
         self._pluck_rate[self._slope < 0] = 0
@@ -587,18 +585,6 @@ class GravelBedrockEroder(Component):
         self._sediment_influx[:] = 0.0
         self._sediment_outflux[:] = 0.0
         for c in self.grid.core_nodes:  # send sediment downstream
-            # Update outflux based on available material
-            if (
-                self._sediment_outflux[c]
-                > (self._sed[c] * self.grid.area_of_cell[self.grid.cell_at_node[c]])
-                / dt
-            ):
-                raise Exception("Timestep error")
-            # self._sediment_outflux[c] = min(
-            #     self._sediment_influx[c] + (self._sed[c] * self.grid.area_of_cell[self.grid.cell_at_node[c]])/dt,
-            #     self._transport_cap[c]
-            #     )
-            self._sediment_outflux[c] = self._transport_cap[c]
             r = self._receiver_node[c]
             self._sediment_influx[r] += self._sediment_outflux[c]
 
@@ -632,15 +618,32 @@ class GravelBedrockEroder(Component):
         """
         cores = self.grid.core_nodes
         self._dHdt[cores] = self._porosity_factor * (
-            (self._sediment_influx[cores] - self._sediment_outflux[cores])
-            / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-            + (self._pluck_rate[cores] * self._pluck_coarse_frac)
-            - self._abrasion[cores]
+                (self._sediment_influx[cores] - self._sediment_outflux[cores])
+                / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
+                + (self._pluck_rate[cores] * self._pluck_coarse_frac)
+                - self._abrasion[cores]
         )
 
-    def run_one_step(self, dt):
-        """Advance solution by time interval dt.
+    def _update_slopes(self):
+        """Update self._slope"""
+        dz = np.maximum(self._elev - self._elev[self._receiver_node], 0.0)
+        if self._flow_length_is_variable:
+            if self._grid_has_diagonals:
+                link_len = self.grid.length_of_d8
+            else:
+                link_len = self.grid.length_of_link
+            self._slope[self.grid.core_nodes] = (
+                    dz[self.grid.core_nodes] / link_len[self.grid.core_nodes]
+            )
+        else:
+            self._slope[self.grid.core_nodes] = (
+                    dz[self.grid.core_nodes] / self.grid.spacing
+            )
 
+    def update_rates(self):
+        """Update rates of change.
+
+        TODO: move to run one step
         Examples
         --------
         >>> import numpy as np
@@ -660,6 +663,7 @@ class GravelBedrockEroder(Component):
         >>> np.round(elev[4:7], 4)
         array([ 0.    ,  0.9971,  1.9971])
         """
+        self._update_slopes()
         self.calc_rock_exposure_fraction()
         self.calc_transport_capacity()
         self.calc_sediment_influx(dt)
@@ -670,7 +674,54 @@ class GravelBedrockEroder(Component):
             self.calc_abrasion_rate()
             self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
+
+    def _update_rock_sed_and_elev(self, dt):
+        """Update rock elevation, sediment thickness, and elevation
+        using current rates of change extrapolated forward by time dt.
+        """
         self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
         self._sed += self._dHdt * dt
         self._bedrock__elevation -= self._rock_lowering_rate * dt
         self._elev[:] = self._bedrock__elevation + self._sed
+
+    def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
+        """Estimate the maximum possible time-step size that avoids
+        flattening or exhausting sediment."""
+        sed_is_declining = np.logical_and(
+            self._dHdt < 0.0,
+            self._sed > 0.0
+        )
+        if np.any(sed_is_declining):
+            min_time_to_exhaust_sed = np.amin(
+                -self._sed[sed_is_declining] / self._dHdt[sed_is_declining]
+            )
+        else:
+            min_time_to_exhaust_sed = upper_limit_dt
+        dzdt = self._dHdt - self._rock_lowering_rate
+        rate_diff = dzdt[self._receiver_node] - dzdt
+        height_above_rcvr = self._elev - self._elev[self._receiver_node]
+        slope_is_declining = np.logical_and(
+            rate_diff > 0.0,
+            height_above_rcvr > 0.0
+        )
+        if np.any(slope_is_declining):
+            min_time_to_flatten_slope = np.amin(
+                height_above_rcvr[slope_is_declining]
+                / rate_diff[slope_is_declining]
+            )
+        else:
+            min_time_to_flatten_slope = 1.0e6
+        return 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
+
+    def run_one_step(self, global_dt):
+        """Advance solution by time interval global_dt, subdividing
+        into sub-steps as needed."""
+        time_remaining = global_dt
+        while time_remaining > 0.0:
+            self.update_rates()
+            max_dt = self._estimate_max_time_step_size()
+            # print('mdt', max_dt)
+            this_dt = min(max_dt, time_remaining)
+            this_dt = max(this_dt, _DT_MAX)
+            self._update_rock_sed_and_elev(this_dt)
+            time_remaining -= this_dt
