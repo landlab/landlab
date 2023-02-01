@@ -10,5 +10,3 @@
   reason: "stalls travis builds"
 - file: test_networkcreator_otherDEMs.ipynb
   reason: "wip"
-- file:  run_network_generator_OpenTopoDEM.ipynb
-  reason: change to rasterio
