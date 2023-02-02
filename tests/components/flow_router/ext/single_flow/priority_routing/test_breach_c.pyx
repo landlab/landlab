@@ -1,6 +1,6 @@
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: extra_compile_args = -std=c++11
-#distutils: extra_link_args = -std=c++11
+#distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
+#distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
 
 # NB: apparently not possible to add language: C++ in this file
 # because of the extracompile -std=c++11 (necessary to understand the
