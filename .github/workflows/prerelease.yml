@@ -24,9 +24,12 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.0
+        env:
+          CIBW_BEFORE_BUILD_MACOS: brew install libomp
 
       - uses: actions/upload-artifact@v3
         with:
+          name: pypi-artifacts
           path: ./wheelhouse/*.whl
 
   build-sdist:
@@ -40,7 +43,22 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
+          name: pypi-artifacts
           path: dist/*.tar.gz
+
+  show-artifacts:
+    needs: [build_bdist, build_sdist]
+    name: "Show artifacts"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v3
+      with:
+        name: pypi-artifacts
+        path: ${{ github.workspace }}/dist
+
+    - shell: bash
+      run: |
+        ls -l ${{ github.workspace }}/dist
 
   publish-to-test-pypi:
     needs: ["build-wheels", "build-sdist"]
