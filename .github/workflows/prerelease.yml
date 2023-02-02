@@ -47,7 +47,7 @@ jobs:
           path: dist/*.tar.gz
 
   show-artifacts:
-    needs: [build_bdist, build_sdist]
+    needs: ["build-wheels", "build-sdist"]
     name: "Show artifacts"
     runs-on: ubuntu-latest
     steps:
