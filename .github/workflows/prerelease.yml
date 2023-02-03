@@ -84,3 +84,4 @@ jobs:
           repository_url: 'https://test.pypi.org/legacy/'
           skip_existing: true
           print_hash: true
+          verify_metadata: false
