@@ -8,89 +8,73 @@ on:
 jobs:
 
   build-wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.cibw-only }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Windows 64bit
-          - os: windows-latest
-            python: 39
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 310
-            platform_id: win_amd64
-          - os: windows-latest
-            python: 311
-            platform_id: win_amd64
+          # Linux x86_64
+          - cibw-only: "cp39-manylinux_x86_64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp310-manylinux_x86_64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_x86_64"
+            os: "ubuntu-latest"
+
+          # Linux i686
+          - cibw-only: "cp39-manylinux_i686"
+            os: "ubuntu-latest"
+          - cibw-only: "cp310-manylinux_i686"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_i686"
+            os: "ubuntu-latest"
+
+          # Linux aarch64
+          - cibw-only: "cp39-manylinux_aarch64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp310-manylinux_aarch64"
+            os: "ubuntu-latest"
+          - cibw-only: "cp311-manylinux_aarch64"
+            os: "ubuntu-latest"
 
           # Mac x86_64
-          - os: macos-latest
-            python: 39
-            platform: macosx_x86_64
-          - os: macos-latest
-            python: 310
-            platform: macosx_x86_64
-          - os: macos-latest
-            python: 311
-            platform: macosx_x86_64
+          - cibw-only: "cp39-macosx_x86_64"
+            os: "macos-latest"
+          - cibw-only: "cp310-macosx_x86_64"
+            os: "macos-latest"
+          - cibw-only: "cp311-macosx_x86_64"
+            os: "macos-latest"
 
           # Mac arm64
-          - os: macos-latest
-            python: 39
-            platform: macosx_arm64
-          - os: macos-latest
-            python: 310
-            platform: macosx_arm64
-          - os: macos-latest
-            python: 311
-            platform: macosx_arm64
+          - cibw-only: "cp39-macosx_arm64"
+            os: "macos-latest"
+          - cibw-only: "cp310-macosx_arm64"
+            os: "macos-latest"
+          - cibw-only: "cp311-macosx_arm64"
+            os: "macos-latest"
 
-          - os: ubuntu-latest
-            python: 39
-            platform: manylinux2014_aarch64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 310
-            platform: manylinux2014_aarch64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 311
-            platform: manylinux2014_aarch64
-            manylinux_image: manylinux2014
+          # Windows 64bit
+          - cibw-only: "cp39-win_amd64"
+            os: "windows-latest"
+          - cibw-only: "cp310-win_amd64"
+            os: "windows-latest"
+          - cibw-only: "cp311-win_amd64"
+            os: "windows-latest"
 
-          - os: ubuntu-latest
-            python: 39
-            platform: manylinux2014_i686
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 310
-            platform: manylinux2014_i686
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 311
-            platform: manylinux2014_i686
-            manylinux_image: manylinux2014
+          # Windows 32
+          - cibw-only: "cp39-win32"
+            os: "windows-latest"
+          - cibw-only: "cp310-win32"
+            os: "windows-latest"
+          - cibw-only: "cp311-win32"
+            os: "windows-latest"
 
-          - os: ubuntu-latest
-            python: 39
-            platform: manylinux2014_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 310
-            platform: manylinux2014_x86_64
-            manylinux_image: manylinux2014
-          - os: ubuntu-latest
-            python: 311
-            platform: manylinux2014_x86_64
-            manylinux_image: manylinux2014
-
-    env:
-      CIBW_BUILD: 'cp39-* cp310-* cp311-*'
-      CIBW_SKIP: '*-musllinux_*'
-      CIBW_ARCHS_MACOS: "x86_64 arm64"
-      CIBW_ARCHS_LINUX: "auto aarch64"
+    # env:
+    #   CIBW_BUILD: 'cp39-* cp310-* cp311-*'
+    #   CIBW_SKIP: '*-musllinux_*'
+    #   CIBW_ARCHS_MACOS: "x86_64 arm64"
+    #   CIBW_ARCHS_LINUX: "auto aarch64"
 
     steps:
       - uses: actions/checkout@v3
@@ -101,10 +85,15 @@ jobs:
         with:
           platforms: all
 
+      - name: Print build identifiers
+        run: |
+          python -m pip install cibuildwheel==2.11.4
+          python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.12.0
-        env:
-          CIBW_BEFORE_BUILD_MACOS: brew install libomp
+        with:
+          only: ${{ matrix.cibw-only }}
 
       - uses: actions/upload-artifact@v3
         with:
