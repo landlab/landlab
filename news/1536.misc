@@ -1,3 +1,2 @@
 Updated the ci workflows to use a newer version of cibuildwheel when building
 wheels for releases and pre-releases.
-
