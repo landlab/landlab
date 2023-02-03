@@ -79,6 +79,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Use Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
       - name: Set up QEMU  # Needed to build aarch64 wheels
         if: runner.os == 'Linux'
         uses: docker/setup-qemu-action@v2
