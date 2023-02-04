@@ -334,7 +334,7 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
     return links, links_per_node
 
 
-class LinkGrid(object):
+class LinkGrid:
     """Create a grid of links that enter and leave nodes. __init__((node0,
     node1), number_of_nodes=None)
 

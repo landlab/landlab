@@ -1,13 +1,16 @@
-include LICENSE.txt
 include AUTHORS.rst
 include CHANGES.rst
+include FUNDING.rst
+include LICENSE.rst
 include README.rst
-include Makefile
-include requirements*txt
+include USEDBY.rst
+include CITATION.cff
+include requirements*
+include noxfile.py
+include notebooks.py
 
 recursive-include docs *.txt
-recursive-include landlab *.pyx
-recursive-include landlab *.pxd
+recursive-include landlab *.pyx *.pxd *.hpp
 recursive-include landlab README.md
 recursive-include landlab/data *
 recursive-include tests *py
@@ -18,10 +21,8 @@ recursive-include tests *.shp
 recursive-include tests *.shx
 recursive-include tests *.txt
 recursive-include tests *.yaml
+recursive-include tests *.pyx *.pxd *.hpp
 
-exclude .codeclimate.yml
-exclude .gitmodules
-exclude .landscape.yaml
 exclude .readthedocs.yaml
 exclude conftest.py
 exclude CONTRIBUTING.md
@@ -34,3 +35,8 @@ recursive-exclude news *
 recursive-exclude notebooks *
 recursive-exclude scripts *py
 recursive-exclude scripts *sh
+recursive-exclude landlab *.c *.cpp
+recursive-exclude tests *.c *.cpp
+
+prune */__pycache__
+global-exclude *.so *.pyc *.pyo *.pyd *.swp *.bak *~

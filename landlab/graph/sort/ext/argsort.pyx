@@ -1,9 +1,9 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
+cimport numpy as np
+from libc.stdlib cimport free, malloc
 
-
-from libc.stdlib cimport malloc, free
 # from libc.stdlib cimport mergesort, qsort
 
 

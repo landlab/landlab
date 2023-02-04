@@ -3,7 +3,7 @@ import numpy as np
 from ..nodestatus import NodeStatus
 
 
-class StatusGrid(object):
+class StatusGrid:
     def __init__(self, node_status):
         self._node_status = np.array(node_status)
 

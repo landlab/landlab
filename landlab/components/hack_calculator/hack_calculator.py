@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Calculate Hack parameters."""
 import collections
 from itertools import chain
@@ -265,11 +264,10 @@ class HackCalculator(Component):
         if hasattr(self, "_df"):
             return self._df
         else:
-            msg = (
+            raise RuntimeError(
                 "The hack_coefficient_dataframe does not yet exist. "
                 "Try running calculate_hack_parameters"
             )
-            raise RuntimeError(msg)
 
     @property
     def full_hack_dataframe(self):
@@ -293,21 +291,19 @@ class HackCalculator(Component):
                   Hack coefficient fit.
         """
         if not self._save_full_df:
-            msg = (
-                "This instance of a HackCalculator was not set up to save"
-                " the full_hack_dataframe. Try recreating it with "
+            raise NotImplementedError(
+                "This instance of a HackCalculator was not set up to save "
+                "the full_hack_dataframe. Try recreating it with "
                 "save_full_df=True."
             )
-            raise NotImplementedError(msg)
         else:
             if hasattr(self, "_full_df"):
                 return self._full_df
             else:
-                msg = (
+                raise RuntimeError(
                     "The full_hack_dataframe does not yet exist. "
                     "Try running calculate_hack_parameters"
                 )
-                raise RuntimeError(msg)
 
     def calculate_hack_parameters(self):
         """Calculate Hack parameters for desired watersheds."""

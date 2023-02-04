@@ -29,23 +29,23 @@ def test_imshow_grid_input():
     rmg = landlab.RasterModelGrid((4, 5))
     values = np.arange(rmg.number_of_nodes - 1)
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshow_grid(rmg, values, at="node", limits=(0, 20))
+        landlab.plot.imshow_grid(rmg, values, at="node", limits=(0, 20))
 
 
-def test_imshowhs_grid_input():
+def test_imshowhs_grid_array_wrong_size():
     rmg = landlab.RasterModelGrid((4, 5))
     values = np.arange(rmg.number_of_nodes - 1)
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(rmg, values, at="node", limits=(0, 20))
+        landlab.plot.imshowhs_grid(rmg, values, at="node", limits=(0, 20))
 
 
-def test_imshowhs_grid_input_Layer1():
+def test_imshowhs_grid_array_wrong_size_with_field_name():
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
     values1 = np.arange(mg.number_of_nodes - 1)
 
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(
+        landlab.plot.imshowhs_grid(
             mg,
             "topographic__elevation",
             drape1=values1,
@@ -59,14 +59,14 @@ def test_imshowhs_grid_input_Layer1():
         )
 
 
-def test_imshowhs_grid_input_Layer2():
+def test_imshowhs_grid_array_size_mismatch():
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
     values1 = np.arange(mg.number_of_nodes)
     values2 = np.arange(mg.number_of_nodes - 1)
 
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(
+        landlab.plot.imshowhs_grid(
             mg,
             "topographic__elevation",
             drape1=values1,
@@ -82,13 +82,10 @@ def test_imshowhs_grid_input_Layer2():
 
 
 def test_imshowhs_grid_1():
-    """
-    Show DEM draped over the shaded topographic relief
-    """
-    # %%
+    """Show DEM draped over the shaded topographic relief"""
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         var_name="Topo",
@@ -101,15 +98,11 @@ def test_imshowhs_grid_1():
     )
 
 
-# %%
 def test_imshowhs_grid_2():
-    """
-    Show DEM draped over the shaded topographic relief with exaggeration
-    """
-    # %%
+    """Show DEM draped over the shaded topographic relief with exaggeration"""
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         var_name="Topo",
@@ -124,13 +117,10 @@ def test_imshowhs_grid_2():
 
 
 def test_imshowhs_grid_3():
-    """
-    Show Hillshade
-    """
-    # %%
+    """Show Hillshade"""
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         plot_type="Hillshade",
@@ -149,12 +139,11 @@ def test_imshowhs_grid_4a():
     """
     Show Drape1 draped over the shaded topographic relief with exaggeration
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
     # Show Soil thickness draped over the shaded topographic relief
-    _ = landlab.plot.imshowhs_grid(
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["soil__depth"],
@@ -172,12 +161,11 @@ def test_imshowhs_grid_4b():
     """
     Show Drape1 draped over the shaded topographic relief with exaggeration
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
     # Show Soil thickness draped over the shaded topographic relief
-    _ = landlab.plot.imshowhs_grid(
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["soil__depth"],
@@ -197,12 +185,11 @@ def test_imshowhs_grid_4c():
     """
     Show Drape1 draped over the shaded topographic relief with exaggeration
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
     # Show Soil thickness draped over the shaded topographic relief
-    _ = landlab.plot.imshowhs_grid(
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["soil__depth"],
@@ -216,19 +203,16 @@ def test_imshowhs_grid_4c():
     )
 
 
-# %%
-
-
 def test_imshowhs_grid_5():
     """
     Show Drape1 draped over the shaded topographic relief
     """
     # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("Layer_1", at="node")
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("Layer_1", at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["Layer_1"],
@@ -249,15 +233,12 @@ def test_imshowhs_grid_6a():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["Layer_1"],
@@ -272,7 +253,7 @@ def test_imshowhs_grid_6a():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
     )
 
 
@@ -280,15 +261,12 @@ def test_imshowhs_grid_6b():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax <10
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["Layer_1"],
@@ -302,7 +280,7 @@ def test_imshowhs_grid_6b():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         vmin=0,
         vmax=9,
     )
@@ -314,13 +292,11 @@ def test_imshowhs_grid_6c():
     """
     # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["Layer_1"],
@@ -334,7 +310,7 @@ def test_imshowhs_grid_6c():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         vmin=0,
         vmax=99,
     )
@@ -344,15 +320,12 @@ def test_imshowhs_grid_6d():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax <100
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["Layer_1"],
@@ -366,26 +339,22 @@ def test_imshowhs_grid_6d():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         vmin=0,
         vmax=999,
     )
-    # %%
 
 
 def test_imshowhs_grid_6e():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax <100
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1=mg.at_node["Layer_1"],
@@ -399,14 +368,11 @@ def test_imshowhs_grid_6e():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         add_double_colorbar=True,
         vmin=0,
         vmax=99999,
     )
-
-
-# %%
 
 
 def test_imshowhs_grid_7():
@@ -415,11 +381,11 @@ def test_imshowhs_grid_7():
     """
     # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("Layer_1", at="node")
-    _ = mg.add_zeros("Layer_2", at="node")
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("Layer_1", at="node")
+    mg.add_zeros("Layer_2", at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1="topographic__elevation",
@@ -434,27 +400,23 @@ def test_imshowhs_grid_7():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         thres_drape2=1,
         cmap2=None,
         add_double_colorbar=True,
     )
 
 
-# %%
 def test_imshowhs_grid_8():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax >10<100
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    L1 = mg.add_zeros("Layer_1", at="node")
-    L2 = mg.add_zeros("Layer_2", at="node")
-    L1[:] += 10
-    L2[:] += 100
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_full("Layer_1", 10.0, at="node")
+    mg.add_full("Layer_2", 100.0, at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1="topographic__elevation",
@@ -469,7 +431,7 @@ def test_imshowhs_grid_8():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed="white",
         thres_drape2=1,
         cmap2=None,
         add_double_colorbar=True,
@@ -478,18 +440,17 @@ def test_imshowhs_grid_8():
     )
 
 
-# %%
 def test_imshowhs_grid_9():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief, vmax>100
     """
     # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("Layer_1", at="node")
-    _ = mg.add_zeros("Layer_2", at="node")
-    _ = landlab.plot.imshowhs_grid(
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("Layer_1", at="node")
+    mg.add_zeros("Layer_2", at="node")
+    landlab.plot.imshowhs_grid(
         mg,
         "topographic__elevation",
         drape1="topographic__elevation",
@@ -504,7 +465,7 @@ def test_imshowhs_grid_9():
         colorbar_label_y=-55,
         add_label_bbox=True,
         thres_drape1=0.001,
-        color_for_closed="red",
+        color_for_closed=None,
         thres_drape2=1,
         cmap2=None,
         add_double_colorbar=True,
@@ -512,7 +473,7 @@ def test_imshowhs_grid_9():
         vmax=99999,
     )
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(
+        landlab.plot.imshowhs_grid(
             mg,
             "topographic__elevation",
             plot_type="Oops",
@@ -525,12 +486,12 @@ def test_imshowhs_grid_10():
     """
     # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("Layer_1", at="node")
-    _ = mg.add_zeros("Layer_2", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("Layer_1", at="node")
+    mg.add_zeros("Layer_2", at="node")
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(
+        landlab.plot.imshowhs_grid(
             mg,
             "topographic__elevation",
             drape1=mg.at_node["Layer_1"],
@@ -551,14 +512,13 @@ def test_imshowhs_grid_11():
     """
     Show Layer 1 and Layer 2 over the shaded topographic relief
     """
-    # %%
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("Layer_1", at="node")
-    _ = mg.add_zeros("Layer_2", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("Layer_1", at="node")
+    mg.add_zeros("Layer_2", at="node")
     with pytest.raises(ValueError):
-        _ = landlab.plot.imshowhs_grid(
+        landlab.plot.imshowhs_grid(
             mg,
             "topographic__elevation",
             plot_type="Drape1",
@@ -574,49 +534,29 @@ def test_imshowhs_grid_11():
         )
 
 
-def test_imshowhs_grid_12():
-    """
-    Test imshowhs without units
-    """
-    # %%
+@pytest.mark.parametrize("valid_units", [None, "foo"])
+def test_imshowhs_var_units(valid_units):
+    """units should be a string or None"""
     mg = landlab.RasterModelGrid((4, 5))
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = landlab.plot.imshowhs_grid(mg, "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
+    landlab.plot.imshowhs_grid(mg, "topographic__elevation", var_units=valid_units)
 
 
-def test_hex_mfd():
-    """
-    Currently no support for hex
-    """
-    # %%
+def test_hex_grid_not_allowed():
+    """Currently no support for hex"""
     mg = landlab.HexModelGrid((5, 3))
-    _ = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(NotImplementedError):
-        _ = landlab.plot.imshowhs_grid(mg, "topographic__elevation")
+        landlab.plot.imshowhs_grid(mg, "topographic__elevation")
 
 
-# %%
-def test_at_cell():
-    """
-    Currently no support for at cell
-    """
-    # %%
-    mg = landlab.HexModelGrid((5, 3))
-    _ = mg.add_field("topographic__elevation", np.zeros((7,)), at="cell")
+@pytest.mark.parametrize("at", ["link", "patch", "corner", "face", "cell"])
+def test_at_anything_but_node(at):
+    """Currently no support for anything but node."""
+    mg = landlab.RasterModelGrid((5, 3))
+    mg.add_empty("topographic__elevation", at=at)
     with pytest.raises(NotImplementedError):
-        _ = landlab.plot.imshowhs_grid(mg, "topographic__elevation", at="cell")
-
-
-# %%
-def test_at_other():
-    """
-    Currently no support for non at node valley locations
-    """
-    # %%
-    mg = landlab.HexModelGrid((5, 3))
-    _ = mg.add_field("topographic__elevation", np.zeros((24,)), at="corner")
-    with pytest.raises(TypeError):
-        _ = landlab.plot.imshowhs_grid(mg, "topographic__elevation", at="corner")
+        landlab.plot.imshowhs_grid(mg, "topographic__elevation", at=at)
 
 
 @pytest.mark.parametrize("at", ["node", "cell"])
@@ -645,7 +585,10 @@ def test_imshow_grid_unknown_location():
 
 @pytest.mark.parametrize("at", ["link", "patch", "corner", "face"])
 def test_imshow_grid_unsupported_location(at):
-    expected = "value location, \\'[a-z]+\\', is not supported \\(must be one of 'node', 'cell'\\)"
+    expected = (
+        "value location, \\'[a-z]+\\', is not supported \\(must be "
+        "one of 'node', 'cell'\\)"
+    )
     grid = landlab.RasterModelGrid((5, 3))
     grid.add_zeros("z", at=at)
     with pytest.raises(TypeError, match=expected):

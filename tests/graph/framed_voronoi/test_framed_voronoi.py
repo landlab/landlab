@@ -30,7 +30,7 @@ def test_create_rect_graph(n_rows, at):
     expected = {"nodes": 6, "links": 9, "patches": 4}
     shape = (n_rows, 2)
     graph = FramedVoronoiGraph(shape, sort=True)
-    assert getattr(graph, "number_of_{at}".format(at=at)) == expected[at]
+    assert getattr(graph, f"number_of_{at}") == expected[at]
 
 
 def test_create_rect():

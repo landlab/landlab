@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Tests for the base taxon of SpeciesEvolver."""
 from collections import OrderedDict
 

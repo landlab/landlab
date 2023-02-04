@@ -46,8 +46,10 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{BARNES2014117,
-        title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
+    _cite_as = """
+    @article{BARNES2014117,
+        title = {Priority-flood: An optimal depression-filling and
+                 watershed-labeling algorithm for digital elevation models},
         journal = "Computers & Geosciences",
         volume = "62",
         pages = "117 - 127",
@@ -110,16 +112,16 @@ class SinkFillerBarnes(LakeMapperBarnes):
             occurred.
 
         """
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that SinkFillerBarnes is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that SinkFillerBarnes is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
         # Most of the functionality of this component is directly inherited
         # from SinkFillerBarnes, so
@@ -248,18 +250,16 @@ class SinkFillerBarnes(LakeMapperBarnes):
         FlowAccumulator *does* think they are, because these nodes are where
         flow terminates.)
         """
-        if "flow__receiver_node" in self._grid.at_node:
-            if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
-                "node"
-            ):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has "
-                    "not verified that SinkFillerBarnes is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
+            "flow__receiver_node"
+        ].size != self._grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has "
+                "not verified that SinkFillerBarnes is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
         super().run_one_step()
 
@@ -324,6 +324,6 @@ class SinkFillerBarnes(LakeMapperBarnes):
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
         col_vols = self._grid.cell_area_at_node * self._sed_fill_depth
-        for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
+        for i, fillnodes in enumerate(self.fill_dict.values()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols

@@ -1,3 +1,4 @@
+import contextlib
 import inspect
 import os
 import sys
@@ -150,7 +151,7 @@ def grids(ctx):
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
 
-    index = dict(grids={})
+    index = {"grids": {}}
     for cls in GRIDS:
         index["grids"][cls.__name__] = _categorize_class(cls)
         index["grids"][cls.__name__]["field-io"] += [
@@ -177,7 +178,7 @@ def grids(ctx):
 
     if verbose and not silent:
         summary = defaultdict(int)
-        for grid, cats in index["grids"].items():
+        for cats in index["grids"].values():
             for cat, funcs in cats.items():
                 summary[cat] += len(funcs)
 
@@ -198,7 +199,7 @@ def components(ctx):
 
     from sphinx.util.docstrings import prepare_docstring
 
-    index = dict(components={})
+    index = {"components": {}}
     for cls in get_all_components():
         if verbose and not silent:
             out(f"indexing: {cls.__name__}")
@@ -220,7 +221,7 @@ def components(ctx):
         for name, values in info["info"].items():
             print("")
             print(f"[components.{component}.info.{name}]")
-            print(f"dtype = '{np.dtype(values['dtype'])!s}'")
+            print(f"dtype = {str(np.dtype(values['dtype']))!r}")
             print(f"intent = {values['intent']!r}")
             print(f"optional = {'true' if values['optional'] else 'false'}")
             print(f"units = {values['units']!r}")
@@ -358,10 +359,8 @@ def _used_by(classes):
     """Get variables used by components."""
     used = []
     for cls in classes:
-        try:
+        with contextlib.suppress(TypeError):
             used += cls.input_var_names
-        except TypeError:
-            pass
 
     return used
 
@@ -370,10 +369,8 @@ def _provided_by(classes):
     """Get variables provided by components."""
     provided = []
     for cls in classes:
-        try:
+        with contextlib.suppress(TypeError):
             provided += cls.output_var_names
-        except TypeError:
-            pass
 
     return provided
 

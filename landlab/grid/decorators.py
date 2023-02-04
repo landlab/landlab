@@ -16,7 +16,7 @@ import numpy as np
 from ..core.utils import as_id_array
 
 
-class override_array_setitem_and_reset(object):
+class override_array_setitem_and_reset:
 
     """Decorator that calls a grid method after setting array values.
 

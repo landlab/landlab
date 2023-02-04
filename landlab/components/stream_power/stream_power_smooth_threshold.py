@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 stream_power_smooth_threshold.py: Defines the StreamPowerSmoothThresholdEroder,
 which is a version of the FastscapeEroder (derived from it).
@@ -104,8 +103,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -169,29 +170,27 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         erode_flooded_nodes=True,
     ):
         """Initialize StreamPowerSmoothThresholdEroder."""
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that StreamPowerSmoothThresholdEroder is compatible "
-                    "with route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that StreamPowerSmoothThresholdEroder is compatible "
+                "with route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
-        if not erode_flooded_nodes:
-            if "flood_status_code" not in grid.at_node:
-                msg = (
-                    "In order to not erode flooded nodes another component "
-                    "must create the field *flood_status_code*. You want to "
-                    "run a lake mapper/depression finder."
-                )
-                raise ValueError(msg)
+        if not erode_flooded_nodes and "flood_status_code" not in grid.at_node:
+            raise ValueError(
+                "In order to not erode flooded nodes another component "
+                "must create the field *flood_status_code*. You want to "
+                "run a lake mapper/depression finder."
+            )
 
         if n_sp != 1.0:
             raise ValueError(
-                ("StreamPowerSmoothThresholdEroder currently only " "supports n_sp = 1")
+                "StreamPowerSmoothThresholdEroder currently only " "supports n_sp = 1"
             )
 
         # Call base-class init

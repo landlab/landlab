@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """colors.py.
 
 Created on Mon Jan 18 13:28:17 2016

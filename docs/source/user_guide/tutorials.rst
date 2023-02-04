@@ -39,32 +39,56 @@ Get the notebooks
 If you have the *landlab* source code, you already have the notebooks (they are
 in the *notebooks/* folder).
 
-If you don't have a copy of the source code, you can run the
-`notebooks.py`_
+If you don't have a copy of the source code, you can run the `notebooks.py`_
 script to fetch the set of notebooks that matches your version of *landlab*.
 This can be done either by running,
 
 .. code-block:: bash
 
-   $ curl -L https://raw.githubusercontent.com/landlab/landlab/mcflugen/fetch-notebooks-script/notebooks.py | python -
+   curl -L https://raw.githubusercontent.com/landlab/landlab/master/notebooks.py | python -
 
 or by downloading the script and running the following from the terminal,
 
 .. code-block:: bash
 
-   $ python -m notebooks
- 
-.. _notebooks.py: https://github.com/landlab/landlab/blob/mcflugen/fetch-notebooks-script/notebooks.py
+   python -m notebooks
+
+The download script will create a folder called *landlab-<VERSION>*, where *<VERSION>*
+is the version of the notebooks you have requested (e.g. *master* or *2.5.0*). If
+you would like to get a specific version of the notebooks, which may not match your
+version of *Landlab*, you can specify that as a command line argument. For example,
+
+.. code-block:: bash
+
+   curl -L https://raw.githubusercontent.com/landlab/landlab/master/notebooks.py | python - 2.4.1
+
+.. _notebooks.py: https://github.com/landlab/landlab/blob/master/notebooks.py
 
 Install dependencies
 ````````````````````
 
-The dependencies required to run the notebooks are listed in the file, *requirements-notebooks.txt*
-and can be installed with *conda*, 
+Within the downloaded folder is a file named *requirements-notebooks.txt* that
+contains a list of requirements needed to run the notebook tutorials.
 
-.. code-block:: bash
+.. important::
 
-   $ conda install --file=requirements-notebooks.txt
+  The following will install the requirements into your current environment. Although
+  not necessary, we **highly recommend** you install these into a separate
+  :ref:`virtual environment <virtual_environments>`.
+
+Use *mamba* or *conda* to install the requirements.
+
+.. tab:: mamba
+
+  .. code-block:: bash
+
+     mamba install --file=requirements-notebooks.txt
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+     conda install --file=requirements-notebooks.txt
 
 
 Run the tutorials

@@ -15,17 +15,17 @@ def test_fetch(tmpdir, case):
     with tmpdir.as_cwd():
         data.fetch()
 
-        fetched = set(p.name for p in pathlib.Path(".").iterdir())
+        fetched = {p.name for p in pathlib.Path(".").iterdir()}
         assert expected == fetched
 
 
 def test_fetch_all_files(tmpdir):
     with tmpdir.as_cwd():
         ExampleData("io/shapefile", case="methow").fetch()
-        fetched_with_case = set(p.name for p in pathlib.Path(".").iterdir())
+        fetched_with_case = {p.name for p in pathlib.Path(".").iterdir()}
 
         ExampleData("io/shapefile").fetch()
-        fetched_without_case = set(p.name for p in pathlib.Path("methow").iterdir())
+        fetched_without_case = {p.name for p in pathlib.Path("methow").iterdir()}
 
         assert fetched_with_case == fetched_without_case
 

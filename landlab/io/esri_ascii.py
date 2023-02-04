@@ -81,7 +81,7 @@ class KeyTypeError(Error):
         self._type = str(expected_type)
 
     def __str__(self):
-        return "Unable to convert %s to %s" % (self._key, self._type)
+        return f"Unable to convert {self._key} to {self._type}"
 
 
 class KeyValueError(Error):
@@ -93,7 +93,7 @@ class KeyValueError(Error):
         self._msg = message
 
     def __str__(self):
-        return "%s: %s" % (self._key, self._msg)  # this line not yet tested
+        return f"{self._key}: {self._msg}"  # this line not yet tested
 
 
 class DataSizeError(Error):
@@ -105,7 +105,9 @@ class DataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "%s != %s" % (self._actual, self._expected)  # this line not yet tested
+        return "{} != {}".format(
+            self._actual, self._expected
+        )  # this line not yet tested
 
 
 class MismatchGridDataSizeError(Error):
@@ -117,7 +119,7 @@ class MismatchGridDataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "(data size) %s != %s (grid size)" % (
+        return "(data size) {} != {} (grid size)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -132,7 +134,7 @@ class MismatchGridXYSpacing(Error):
         self._expected = expected_dx
 
     def __str__(self):
-        return "(data dx) %s != %s (grid dx)" % (
+        return "(data dx) {} != {} (grid dx)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -147,7 +149,7 @@ class MismatchGridXYLowerLeft(Error):
         self._expected = expected_llc
 
     def __str__(self):
-        return "(data lower-left) %s != %s (grid lower-left)" % (
+        return "(data lower-left) {} != {} (grid lower-left)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -231,7 +233,7 @@ def _header_is_valid(header):
         The header has the key but its values is of the wrong type.
     """
     header_keys = set(header)
-    required_keys = set(["ncols", "nrows", "cellsize"])
+    required_keys = {"ncols", "nrows", "cellsize"}
 
     if not required_keys.issubset(header_keys):
         raise MissingRequiredKeyError(", ".join(required_keys - header_keys))
@@ -248,8 +250,8 @@ def _header_is_valid(header):
 
         try:
             header[key] = to_type(header[key])
-        except ValueError:
-            raise KeyTypeError(key, to_type)
+        except ValueError as exc:
+            raise KeyTypeError(key, to_type) from exc
 
         if not is_valid(header[key]):
             raise KeyValueError(key, "Bad value")
@@ -309,8 +311,8 @@ def read_asc_header(asc_file):
     >>> hdr["xllcenter"], hdr["yllcenter"]
     (0.5, -0.5)
 
-    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the header does not contain all of the
-    necessary keys.
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the
+    header does not contain all of the necessary keys.
 
     >>> contents = '''
     ... ncols 200
@@ -322,8 +324,8 @@ def read_asc_header(asc_file):
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
-    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of the wrong type. For instance,
-    *nrows* and *ncols* must be ``int``.
+    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of
+    the wrong type. For instance, *nrows* and *ncols* must be ``int``.
 
     >>> contents = '''
     ... nrows 100.5
@@ -336,7 +338,7 @@ def read_asc_header(asc_file):
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
-    header = dict()
+    header = {}
     for (key, value) in _header_lines(asc_file):
         header[key] = value
 
@@ -454,7 +456,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
            [ -1.,   3.,   4.,   5.,  -1.],
            [ -1.,   0.,   1.,   2.,  -1.],
            [ -1.,  -1.,  -1.,  -1.,  -1.]])
-    """
+    """  # noqa: B950
     from ..grid import RasterModelGrid
 
     if halo < 0:
@@ -463,7 +465,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
     if isinstance(asc_file, (str, pathlib.Path)):
-        with open(asc_file, "r") as f:
+        with open(asc_file) as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
 
@@ -586,7 +588,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     }
 
     for path, name in zip(paths, names):
-        header_lines = ["%s %s" % (key, str(val)) for key, val in list(header.items())]
+        header_lines = [f"{key} {str(val)}" for key, val in list(header.items())]
         data = fields.at_node[name].reshape(header["nrows"], header["ncols"])
         np.savetxt(
             path, np.flipud(data), header=os.linesep.join(header_lines), comments=""
