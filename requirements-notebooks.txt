@@ -6,3 +6,4 @@ holoviews
 jupyter
 mesa
 nbformat
+rasterio < 1.3.5
