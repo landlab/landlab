@@ -29,6 +29,9 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -122,7 +125,7 @@ where = ["."]
 include = ["landlab*"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
+readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "landlab._version.__version__"}
 
 [tool.pytest.ini_options]
@@ -157,6 +160,11 @@ line_length = 88
 [tool.check-manifest]
 ignore = [".nox", "build"]
 
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-*"
+skip = "*-musllinux_*"
+archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+
 [tool.towncrier]
 directory = "news"
 package = "landlab"
@@ -166,32 +174,11 @@ underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
 title_format = "{version} ({project_date})"
 
-[[tool.towncrier.type]]
-directory = "component"
-name = "New Components"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "notebook"
-name = "New Tutorial Notebooks"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "feature"
-name = "New Features"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "bugfix"
-name = "Bug Fixes"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "docs"
-name = "Documentation Enhancements"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "misc"
-name = "Other Changes and Additions"
-showcontent = true
+type = [
+  {name="New Components", directory="component", showcontent=true},
+  {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
+  {name="New Features", directory="feature", showcontent=true},
+  {name="Bug Fixes", directory="bugfix", showcontent=true},
+  {name="Documentation Enhancements", directory="docs", showcontent=true},
+  {name="Other Changes and Additions", directory="misc", showcontent=true},
+]
