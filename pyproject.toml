@@ -96,9 +96,7 @@ notebooks = [
   "holoviews",
   "nbformat",
   "mesa",
-  # "bmi-topography >= 0.5",
   "bmi-topography < 0.8.1",
-  "rasterio < 1.3.5",
 ]
 
 [project.scripts]
