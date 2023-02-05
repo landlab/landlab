@@ -16,6 +16,10 @@ Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of ve
 2022
 ----
 
+Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic
+mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research:
+Earth Surface,* v. 127(8), e2022JF006745, `https://doi.org/10.1029/2022JF006745 <https://doi.org/10.1029/2022JF006745>`__.
+
 Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
 
 Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
