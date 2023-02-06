@@ -35,10 +35,12 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
-    session.install("rasterio", "--no-deps")
     session.conda_install("richdem")
     session.conda_install("--file", "requirements-notebooks.txt")
     session.install(".[dev,notebooks,testing]")
+    session.install("rasterio==1.3.5", "--no-deps")
+    session.run("conda", "info")
+    session.run("conda", "list")
     session.run("pytest", "notebooks", "--run-notebook", "-n", "auto", "-vvv")
 
 
