@@ -59,7 +59,7 @@ Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Riv
 
 Lipp, A. G., Roberts, G. G., Whittaker, A. C., Gowing, C. J., & Fernandes, V. M. (2021). **Source region geochemistry from unmixing downstream sedimentary elemental compositions.** *Geochemistry, Geophysics, Geosystems,* 22(10), e2021GC009838, `https://doi.org/10.1029/2021GC009838 <https://doi.org/10.1029/2021GC009838>`__.
 
-O’Malley, C. P. B., White, N. J., Stephenson, S. N., & Roberts, G. G. (2021). **Large‐scale tectonic forcing of the African landscape.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006345.
+O’Malley, C. P. B., White, N. J., Stephenson, S. N., & Roberts, G. G. (2021). **Large‐scale tectonic forcing of the African landscape.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006345 https://doi.org/10.1029/2021JF006345.
 
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
 
