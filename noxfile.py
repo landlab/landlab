@@ -42,6 +42,7 @@ def test_notebooks(session: nox.Session) -> None:
     session.conda_install("richdem")
     session.conda_install("--file", "requirements-notebooks.txt")
     session.conda_install("--file", "requirements-testing.txt")
+    session.conda_install("--file", "requirements.txt")
     session.install(".", "--no-deps")
 
     for folder in folders:
