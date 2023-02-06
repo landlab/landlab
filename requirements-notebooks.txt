@@ -1,6 +1,6 @@
 # Requirements extracted from pyproject.toml
 # [project.optional-dependencies] notebooks
-bmi-topography < 0.8.1
+bmi-topography
 dask[array]
 holoviews
 jupyter

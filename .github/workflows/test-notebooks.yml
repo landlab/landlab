@@ -44,4 +44,4 @@ jobs:
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
         run: |
-          nox -s test-notebooks
+          nox --verbose -s test-notebooks
