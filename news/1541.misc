@@ -1,0 +1,2 @@
+
+Changed the ci testing of the notebooks to use nbmake.

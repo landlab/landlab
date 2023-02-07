@@ -22,6 +22,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11"]
+        markers: ["slow", "not slow"]
 
     steps:
       - uses: actions/checkout@v2
@@ -44,4 +45,4 @@ jobs:
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
         run: |
-          nox --verbose -s test-notebooks
+          nox --verbose -s test-notebooks -- -m "${{ matrix.markers }}"
