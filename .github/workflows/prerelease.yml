@@ -70,12 +70,6 @@ jobs:
           - cibw-only: "cp311-win32"
             os: "windows-latest"
 
-    # env:
-    #   CIBW_BUILD: 'cp39-* cp310-* cp311-*'
-    #   CIBW_SKIP: '*-musllinux_*'
-    #   CIBW_ARCHS_MACOS: "x86_64 arm64"
-    #   CIBW_ARCHS_LINUX: "auto aarch64"
-
     steps:
       - uses: actions/checkout@v3
 
