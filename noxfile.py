@@ -12,8 +12,6 @@ ROOT = pathlib.Path(__file__).parent
 @nox.session(venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    markers = session.posargs
-
     session.conda_install("--file", "requirements.txt")
     session.conda_install("--file", "requirements-testing.txt")
     session.conda_install("richdem")
@@ -26,10 +24,7 @@ def test(session: nox.Session) -> None:
         PROJECT,
         "-vvv",
         # "--dist", "worksteal",  # this is not available quite yet
-    ]
-    if markers:
-        for marker in markers:
-            args += ["-m", marker]
+    ] + session.posargs
 
     if "CI" in os.environ:
         args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
