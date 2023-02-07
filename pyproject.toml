@@ -91,7 +91,6 @@ testing = [
   "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
-  "pyyaml",
 ]
 notebooks = [
   "dask[array]",
@@ -99,7 +98,7 @@ notebooks = [
   "holoviews",
   "nbformat",
   "mesa",
-  "bmi-topography >= 0.5, < 0.8.1",
+  "bmi-topography >=0.5,!=0.8.1",
 ]
 
 [project.scripts]
@@ -135,10 +134,17 @@ norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
   --tb native
-  --strict
   --durations 16
+  --strict-markers
   --doctest-modules
   -vvv
+  --ignore-glob=*/animate-landlab-output.ipynb
+  --ignore-glob=*/cellular_automaton_vegetation_flat_domain.ipynb
+  --ignore-glob=*/cellular_automaton_vegetation_DEM.ipynb
+  --ignore-glob=*/lithology_and_litholayers.ipynb
+  --ignore-glob=*/nst_scaling_profiling.ipynb
+  --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
+  --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",

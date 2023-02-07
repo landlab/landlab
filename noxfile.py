@@ -42,10 +42,30 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
+    args = [
+        "pytest",
+        "notebooks",
+        "--nbmake",
+        "--nbmake-kernel=python3",
+        "--nbmake-timeout=3000",
+        "-n",
+        "auto",
+        "-vvv",
+    ] + session.posargs
+
+    session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.conda_install("richdem")
-    session.conda_install("--file", "requirements-notebooks.txt")
-    session.install(".[dev,notebooks,testing]")
-    session.run("pytest", "notebooks", "--run-notebook", "-n", "auto", "-vvv")
+    session.conda_install(
+        "pytest",
+        "pytest-xdist",
+        "--file",
+        "requirements-notebooks.txt",
+        "--file",
+        "requirements.txt",
+    )
+    session.install("-e", ".", "--no-deps")
+
+    session.run(*args)
 
 
 @nox.session(name="test-cli")
