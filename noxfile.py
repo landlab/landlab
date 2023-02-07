@@ -49,7 +49,7 @@ def test_notebooks(session: nox.Session) -> None:
         args += ["-m", marker]
 
     session.install(
-        "git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers", "--no-deps"
+        "git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers"
     )
     session.conda_install("richdem")
     session.conda_install("--file", "requirements-notebooks.txt")
