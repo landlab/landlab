@@ -45,4 +45,4 @@ jobs:
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
         run: |
-          nox --verbose -s test-notebooks -- "${{ matrix.markers }}"
+          nox --verbose -s test-notebooks -- -m "${{ matrix.markers }}"

@@ -43,18 +43,19 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-timeout=3000",
         "-n",
         "auto",
-        "-vvv"
-    ]
-    for marker in session.posargs:
-        args += ["-m", marker]
+        "-vvv",
+    ] + session.posargs
 
-    session.install(
-        "git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers"
-    )
+    session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.conda_install("richdem")
-    session.conda_install("--file", "requirements-notebooks.txt")
-    session.conda_install("--file", "requirements-testing.txt")
-    session.conda_install("--file", "requirements.txt")
+    session.conda_install(
+        "pytest",
+        "pytest-xdist",
+        "--file",
+        "requirements-notebooks.txt",
+        "--file",
+        "requirements.txt",
+    )
     session.install("-e", ".", "--no-deps")
 
     session.run(*args)
