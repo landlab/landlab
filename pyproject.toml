@@ -84,7 +84,6 @@ docs = [
 testing = [
   "coveralls",
   "hypothesis",
-  "nbmake",
   "pytest",
   "pytest-cov",
   "pytest-datadir",

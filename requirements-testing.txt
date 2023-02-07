@@ -2,7 +2,6 @@
 # [project.optional-dependencies] testing
 coveralls
 hypothesis
-nbmake
 pytest
 pytest-cov
 pytest-datadir
