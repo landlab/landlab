@@ -38,6 +38,9 @@ def test_notebooks(session: nox.Session) -> None:
     session.conda_install("richdem")
     session.conda_install("--file", "requirements-notebooks.txt")
     session.install(".[dev,notebooks,testing]")
+    session.install("rasterio==1.3.5", "--no-deps")
+    session.run("conda", "info")
+    session.run("conda", "list")
     session.run("pytest", "notebooks", "--run-notebook", "-n", "auto", "-vvv")
 
 

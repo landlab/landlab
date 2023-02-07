@@ -1,0 +1,3 @@
+
+Fixed a test failure in the ``PriorityFlood_realDEMs.ipynb`` notebook by
+constraining bmi-topography to versions less than 0.8.1.
