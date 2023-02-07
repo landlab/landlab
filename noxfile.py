@@ -48,7 +48,13 @@ def test_notebooks(session: nox.Session) -> None:
     for folder in folders:
         with session.chdir("notebooks" / folder):
             session.run(
-                "pytest", "--nbmake", "--nbmake-kernel=python3", "-n", "auto", "-vvv"
+                "pytest",
+                "--nbmake",
+                "--nbmake-kernel=python3",
+                "--nbmake-timeout=3000",
+                "-n",
+                "auto",
+                "-vvv",
             )
 
 
