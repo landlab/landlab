@@ -54,7 +54,7 @@ def test_notebooks(session: nox.Session) -> None:
     session.conda_install("--file", "requirements-notebooks.txt")
     session.conda_install("--file", "requirements-testing.txt")
     session.conda_install("--file", "requirements.txt")
-    session.install(".", "--no-deps")
+    session.install("-e", ".", "--no-deps")
 
     session.run(*args)
 
