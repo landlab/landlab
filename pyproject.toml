@@ -133,8 +133,8 @@ norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
   --tb native
-  --strict
   --durations 16
+  --strict-markers
   --doctest-modules
   -vvv
   --ignore-glob=*/animate-landlab-output.ipynb

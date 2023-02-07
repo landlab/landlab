@@ -35,27 +35,28 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
-    folders = [
-        pathlib.Path(folder) for folder in session.posargs or ["teaching", "tutorials"]
+    args = [
+        "pytest",
+        "--nbmake",
+        "--nbmake-kernel=python3",
+        "--nbmake-timeout=3000",
+        "-n",
+        "auto",
+        "-vvv"
     ]
+    for marker in session.posargs:
+        args += ["-m", marker]
 
+    session.install(
+        "git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers", "--no-deps"
+    )
     session.conda_install("richdem")
     session.conda_install("--file", "requirements-notebooks.txt")
     session.conda_install("--file", "requirements-testing.txt")
     session.conda_install("--file", "requirements.txt")
     session.install(".", "--no-deps")
 
-    for folder in folders:
-        with session.chdir("notebooks" / folder):
-            session.run(
-                "pytest",
-                "--nbmake",
-                "--nbmake-kernel=python3",
-                "--nbmake-timeout=3000",
-                "-n",
-                "auto",
-                "-vvv",
-            )
+    session.run(*args)
 
 
 @nox.session(name="test-cli")
