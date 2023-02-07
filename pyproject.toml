@@ -88,7 +88,6 @@ testing = [
   "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
-  "pyyaml",
 ]
 notebooks = [
   "dask[array]",
