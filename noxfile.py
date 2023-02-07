@@ -37,7 +37,7 @@ def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     args = [
         "pytest",
-        "notebooks/**/*.ipynb",
+        "notebooks",
         "--nbmake",
         "--nbmake-kernel=python3",
         "--nbmake-timeout=3000",
