@@ -63,6 +63,7 @@ jobs:
           nox -s test -- -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls
+        if: matrix.os == 'ubuntu-latest'
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
@@ -73,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Coveralls Finished
+        if: matrix.os == 'ubuntu-latest'
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel-finished: true
