@@ -67,14 +67,15 @@ jobs:
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
-          flag-name: Unit Test
+          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
+          debug: true
 
   coveralls_finish:
     needs: build-and-test
     runs-on: ubuntu-latest
     steps:
       - name: Coveralls Finished
-        if: matrix.os == 'ubuntu-latest'
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel-finished: true
+          debug: true
