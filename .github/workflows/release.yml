@@ -128,7 +128,7 @@ jobs:
       run: |
         ls -l ${{ github.workspace }}/dist
 
-  publish-to--pypi:
+  publish-to-pypi:
     needs: ["build-wheels", "build-sdist"]
     name: "Publish to PyPI"
     runs-on: ubuntu-latest
