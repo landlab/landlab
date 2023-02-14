@@ -835,8 +835,11 @@ class PriorityFloodFlowRouter(Component):
             )
         )
         self._depression_free_dem.geotransform = [0, 1, 0, 0, 0, -1]
+        closed_boundary_values = self._depression_free_dem[self._closed == 1]
+        self._depression_free_dem[self._closed == 1] = np.inf
         with self._suppress_output():
             self._depression_handler(self._depression_free_dem)
+        self._depression_free_dem[self._closed == 1] = closed_boundary_values
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
