@@ -66,14 +66,13 @@ def get_watershed_mask(grid, outlet_id):
         )
 
     if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-        msg = (
+        raise NotImplementedError(
             "A route-to-multiple flow director has been "
             "run on this grid. The landlab development team has not "
             "verified that get_watershed_mask is compatible with "
             "route-to-multiple methods. Please open a GitHub Issue "
             "to start this process."
         )
-        raise NotImplementedError(msg)
 
     receiver_at_node = grid.at_node["flow__receiver_node"]
     upstream_node_order = grid.at_node["flow__upstream_node_order"]
@@ -341,14 +340,13 @@ def get_watershed_outlet(grid, source_node_id):
         )
 
     if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-        msg = (
+        raise NotImplementedError(
             "A route-to-multiple flow director has been "
             "run on this grid. The landlab development team has not "
             "verified that get_watershed_outlet is compatible with "
             "route-to-multiple methods. Please open a GitHub Issue "
             "to start this process."
         )
-        raise NotImplementedError(msg)
 
     receiver_at_node = grid.at_node["flow__receiver_node"]
     receiver_node = receiver_at_node[source_node_id]

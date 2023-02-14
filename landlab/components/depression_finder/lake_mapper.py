@@ -242,16 +242,15 @@ class DepressionFinderAndRouter(Component):
         if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
             "flow__receiver_node"
         ].size != self._grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The depression finder is "
                 "not compatible with the grid anymore. Use "
-                "DepressionFinderAndRouter with reroute_flow="
-                "True only with route-to-one methods. If using this "
+                "DepressionFinderAndRouter with reroute_flow=True "
+                "only with route-to-one methods. If using this "
                 "component with such a flow directing method is desired "
                 "please open a GitHub Issue/"
             )
-            raise NotImplementedError(msg)
 
         # Make sure the grid includes elevation data.
         self._elev = self._grid.at_node["topographic__elevation"]

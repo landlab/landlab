@@ -40,12 +40,11 @@ dependencies = [
   "numpy",
   "pyyaml",
   "pyshp != 2.3.0",
-  "rich_click",
+  "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
   "xarray >= 0.16",
-  "richdem ; sys_platform != 'win32' or python_version < '3.10'",
 ]
 dynamic = ["readme", "version"]
 
@@ -89,7 +88,6 @@ testing = [
   "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
-  "pyyaml",
 ]
 notebooks = [
   "dask[array]",
@@ -97,7 +95,7 @@ notebooks = [
   "holoviews",
   "nbformat",
   "mesa",
-  "bmi-topography >= 0.5",
+  "bmi-topography >= 0.5,!=0.8.1",
 ]
 
 [project.scripts]
@@ -133,10 +131,17 @@ norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
   --tb native
-  --strict
   --durations 16
+  --strict-markers
   --doctest-modules
   -vvv
+  --ignore-glob=*/animate-landlab-output.ipynb
+  --ignore-glob=*/cellular_automaton_vegetation_flat_domain.ipynb
+  --ignore-glob=*/cellular_automaton_vegetation_DEM.ipynb
+  --ignore-glob=*/lithology_and_litholayers.ipynb
+  --ignore-glob=*/nst_scaling_profiling.ipynb
+  --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
+  --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
@@ -154,6 +159,9 @@ include_trailing_comma = true
 force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
+
+[tool.check-manifest]
+ignore = [".nox", "build"]
 
 [tool.towncrier]
 directory = "news"

@@ -141,14 +141,13 @@ class HeightAboveDrainageCalculator(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that HeightAboveDrainageCalculator is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         self._grid = grid
         self._channel_mask = return_array_at_node(self._grid, channel_mask)
