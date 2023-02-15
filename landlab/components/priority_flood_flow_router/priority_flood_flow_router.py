@@ -620,15 +620,16 @@ class PriorityFloodFlowRouter(Component):
             self._FlowAcc_D8(hill_flow=hill_flow)
         else:
 
+            closed_boundary_values = self._depression_free_dem[self._closed == 1]
+            self._depression_free_dem[self._closed == 1] = np.inf
             # Calculate flow direction (proportion) and accumulation using RichDEM
             with self._suppress_output():
-                dem_corrected_boundaries = cp.deepcopy(self._depression_free_dem)
-                dem_corrected_boundaries[self._closed == 1] = -9999
                 props_Pf = self._richdem.FlowProportions(
-                    dem=dem_corrected_boundaries,
+                    dem=self._depression_free_dem,
                     method=flow_metric,
                     exponent=self._exponent,
                 )
+            self._depression_free_dem[self._closed == 1] = closed_boundary_values
 
             # Calculate flow accumulation using RichDEM
             if (hill_flow and self._accumulate_flow_hill) or (
@@ -839,10 +840,11 @@ class PriorityFloodFlowRouter(Component):
         self._depression_free_dem[self._closed == 1] = np.inf
         with self._suppress_output():
             self._depression_handler(self._depression_free_dem)
-        self._depression_free_dem[self._closed == 1] = closed_boundary_values
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
+
+        self._depression_free_dem[self._closed == 1] = closed_boundary_values
         self.grid.at_node["depression_free_elevation"] = self._depression_free_dem
 
     def _accumulate_flow_RD(self, props_Pf, hill_flow=False):
