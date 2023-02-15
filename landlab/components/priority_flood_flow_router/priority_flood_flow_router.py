@@ -413,17 +413,12 @@ class PriorityFloodFlowRouter(Component):
                 f"{', '.join(repr(x) for x in PMULTIPLE_FMs)}"
             )
 
-        if depression_handler == "fill":
-            self._depression_handler = partial(
-                self._richdem.FillDepressions, epsilon=epsilon, in_place=True
-            )
-        elif depression_handler == "breach":
-            self._depression_handler = partial(
-                self._richdem.BreachDepressions, in_place=True
-            )
+        if (depression_handler == "fill") or (depression_handler == "breach"):
+            self._depression_handler = depression_handler
         else:
             raise ValueError("depression_handler should be one of 'fill' or 'breach'")
 
+        self._epsilon = epsilon
         self._exponent = exponent
         self._separate_hill_flow = separate_hill_flow
         self._update_hill_flow_instantaneous = update_hill_flow_instantaneous
@@ -610,12 +605,7 @@ class PriorityFloodFlowRouter(Component):
 
         # 1: Remove depressions
         if update_depressions:
-            self.remove_depressions()
-
-        # 2: Flow directions and accumulation
-        # D8 flow accumulation in richDEM seems not to differentiate between
-        # cardinal and diagonal cells, so we provide an alternative D8
-        # implementation strategy
+            self.remove_depressions(flow_metric=flow_metric)
         if flow_metric == "D8":
             self._FlowAcc_D8(hill_flow=hill_flow)
         else:
@@ -828,7 +818,7 @@ class PriorityFloodFlowRouter(Component):
             self._slope[:] = steepest_slope
             self._recvr_link[:] = recvr_link
 
-    def remove_depressions(self):
+    def remove_depressions(self, flow_metric="D8"):
         self._depression_free_dem = cp.deepcopy(
             self._richdem.rdarray(
                 self._surface_values.reshape(self.grid.shape),
@@ -838,8 +828,25 @@ class PriorityFloodFlowRouter(Component):
         self._depression_free_dem.geotransform = [0, 1, 0, 0, 0, -1]
         closed_boundary_values = self._depression_free_dem[self._closed == 1]
         self._depression_free_dem[self._closed == 1] = np.inf
+
+        if flow_metric == "D4" or flow_metric == "Rho4":
+            topology = "D4"
+        else:
+            topology = "D8"
         with self._suppress_output():
-            self._depression_handler(self._depression_free_dem)
+            if self._depression_handler == "fill":
+                self._richdem.FillDepressions(
+                    self._depression_free_dem,
+                    epsilon=self._epsilon,
+                    in_place=True,
+                    topology=topology,
+                )
+
+            elif self._depression_handler == "breach":
+                self._richdem.BreachDepressions(
+                    self._depression_free_dem, in_place=True, topology=topology
+                )
+
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
