@@ -815,7 +815,6 @@ def test_matches_detachment_solution_PF():
 @pytest.mark.slow
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_transport_solution_PF():
-
     """
     Test that model matches the transport-limited analytical solution
     for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m)

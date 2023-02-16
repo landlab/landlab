@@ -716,7 +716,6 @@ class GroundwaterDupuitPercolator(Component):
         self._num_substeps = 0
 
         while remaining_time > 0.0:
-
             # Calculate hydraulic gradient
             self._hydr_grad[self._grid.active_links] = (
                 self._grid.calc_grad_at_link(self._wtable) * cosa

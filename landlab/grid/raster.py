@@ -2125,7 +2125,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         # continue running until no new nodes are added.
         while numAdded > 0:
-
             # find all potential new nodes by filtering the nodes connected to
             # the most recent set of new nodes based on their status.
             connected_orthogonal_nodes = self.adjacent_nodes_at_node[newNodes]

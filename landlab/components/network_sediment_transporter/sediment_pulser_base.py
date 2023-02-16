@@ -71,7 +71,6 @@ class SedimentPulserBase(Component):
         parcel_volume=0.5,
         abrasion_rate=0.0,
     ):
-
         self._grid = grid
         self._parcels = parcels
         self._D50 = D50

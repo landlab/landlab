@@ -215,7 +215,7 @@ class VideoPlotter:
                 self.data_list[0],
                 limits=(self.min_limit, self.max_limit),
                 allow_colorbar=False,
-                **self.kwds
+                **self.kwds,
             )
         )
 

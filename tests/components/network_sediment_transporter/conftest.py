@@ -142,7 +142,6 @@ def example_parcels(example_nmg):
 
 @pytest.fixture()
 def example_flow_director(example_nmg):
-
     fd = FlowDirectorSteepest(example_nmg)
     fd.run_one_step()
     return fd

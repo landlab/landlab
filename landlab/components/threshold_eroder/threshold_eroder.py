@@ -157,7 +157,6 @@ class ThresholdEroder(Component):
     }
 
     def __init__(self, grid, slope_crit=1.0):
-
         """Initialize Threshold Eroder.
 
         Parameters

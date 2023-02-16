@@ -19,7 +19,6 @@ from .cfuncs import (
 
 
 class FastscapeEroder(Component):
-
     r"""Fastscape stream power erosion.
 
     This class uses the Braun-Willett Fastscape approach to calculate the

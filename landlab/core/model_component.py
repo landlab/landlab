@@ -402,7 +402,6 @@ class Component:
             optional = self._info[name]["optional"]
             out_true = "out" in self._info[name]["intent"]
             if (out_true) and (not optional) and (name not in self._grid[at]):
-
                 type_in = self.var_type(name)
                 num_elements = self._grid.size(at)
 
@@ -432,7 +431,6 @@ class Component:
             optional = self._info[name]["optional"]
             out_true = "out" in self._info[name]["intent"]
             if (out_true) and (optional) and (name not in self._grid[at]):
-
                 type_in = self.var_type(name)
                 init_vals = self.grid.zeros(at, dtype=type_in)
                 units_in = self.var_units(name)

@@ -579,7 +579,6 @@ class Lithology(Component):
             new_ids = [rock_id]
 
         if not all_ids_present:
-
             missing_ids = set(new_ids).difference(self._ids)
 
             if np.any(thickness > 0):

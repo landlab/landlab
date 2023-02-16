@@ -974,7 +974,6 @@ class FlowAccumulator(Component):
         # now do a similar thing for the depression finder.
         self._depression_finder_provided = depression_finder
         if self._depression_finder_provided is not None:
-
             # collect potential kwargs to pass to depression_finder
             # instantiation
             potential_kwargs = [
@@ -1006,7 +1005,6 @@ class FlowAccumulator(Component):
 
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
-
                 from landlab.components.depression_finder.lake_mapper import (
                     DepressionFinderAndRouter,
                 )
@@ -1034,7 +1032,6 @@ class FlowAccumulator(Component):
                 self._depression_finder = DepressionFinder(self._grid, **kw)
             # flow director is provided as an instantiated depression finder
             elif isinstance(self._depression_finder_provided, Component):
-
                 if (
                     self._depression_finder_provided._name
                     in PERMITTED_DEPRESSION_FINDERS
@@ -1057,7 +1054,6 @@ class FlowAccumulator(Component):
 
             # depression_finder is provided as an uninstantiated depression finder
             else:
-
                 if (
                     self._depression_finder_provided._name
                     in PERMITTED_DEPRESSION_FINDERS
@@ -1183,7 +1179,6 @@ class FlowAccumulator(Component):
         r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
         if self._flow_director._to_n_receivers == "one":
-
             # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.
             # At the moment, no depression finders work with to-many, so it

@@ -12,7 +12,6 @@ from landlab.core.messages import deprecation_message
 
 
 class DepthDependentTaylorDiffuser(Component):
-
     r"""
     This component implements a depth-dependent Taylor series diffusion rule,
     combining concepts of Ganti et al. (2012) and Johnstone and Hilley (2014).
@@ -381,7 +380,6 @@ class DepthDependentTaylorDiffuser(Component):
 
         # begin while loop for time left
         while time_left > 0.0:
-
             # calculate soil__depth
             self._grid.at_node["soil__depth"][:] = (
                 self._grid.at_node["topographic__elevation"]

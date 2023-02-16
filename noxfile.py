@@ -186,7 +186,6 @@ def clean(session):
     """Remove all .venv's, build files and caches in the directory."""
     for folder in _args_to_folders(session.posargs):
         with session.chdir(folder):
-
             shutil.rmtree("build", ignore_errors=True)
             shutil.rmtree("build/wheelhouse", ignore_errors=True)
             shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)

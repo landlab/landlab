@@ -426,7 +426,6 @@ def test_points_but_one_missing():
     ],
 )
 def test_simple_reorder(tmpdir, order, p_order):
-
     lines = [
         [[[5, 5], [10, 10]]],
         [[[5, 0], [5, 5]]],
@@ -439,7 +438,6 @@ def test_simple_reorder(tmpdir, order, p_order):
     point_records = [2, 4, 8, 6]
 
     with tmpdir.as_cwd():
-
         with shapefile.Writer("line") as w:
             w.shapeType = POLYLINE
             w.field("spam", "N")

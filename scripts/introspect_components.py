@@ -243,7 +243,7 @@ for name in comp_elements.keys():
             problematic_components[name] = copy(problems)
 
 # final formatting change to problematic_components:
-for (key, vals) in problematic_components.items():
+for key, vals in problematic_components.items():
     if len(vals) == 0:
         problematic_components.pop(key)
     elif type(vals) is dict:

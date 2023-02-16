@@ -126,7 +126,6 @@ def test_fields2():
 
 
 def test_fields3():
-
     # %% Second FD (no FA is default)
     mg3 = RasterModelGrid((8, 8), xy_spacing=(1, 1))
     mg3.add_field("topographic__elevation", mg3.node_x + mg3.node_y, at="node")

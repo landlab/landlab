@@ -7,7 +7,6 @@ from landlab.grid.network import NetworkModelGrid
 
 
 def test_add_pulse():
-
     y_of_node = (0, 0, 0, 0)
     x_of_node = (0, 100, 200, 300)
     nodes_at_link = ((0, 1), (1, 2), (2, 3))

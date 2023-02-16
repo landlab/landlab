@@ -365,7 +365,6 @@ class PotentialEvapotranspiration(Component):
         self._cell_values["surface__potential_evapotranspiration_rate"][:] = self._PET
 
     def _PriestleyTaylor(self, current_time, Tmax, Tmin, Tavg):
-
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         self._J = np.floor((current_time - np.floor(current_time)) * 365)
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,

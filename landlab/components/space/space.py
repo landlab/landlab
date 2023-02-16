@@ -439,7 +439,6 @@ class Space(_GeneralizedErosionDeposition):
         return self._H
 
     def _calc_qs_in_and_depo_rate(self):
-
         # Choose a method for calculating erosion:
         self._calc_hydrology()
         self._calc_erosion_rates()
@@ -665,7 +664,6 @@ class Space(_GeneralizedErosionDeposition):
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
-
             # Update all the flow-link slopes.
             #
             # For the first iteration, we assume this has already been done

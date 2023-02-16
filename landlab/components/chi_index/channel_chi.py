@@ -325,7 +325,7 @@ class ChiFinder(Component):
         receivers = self._grid.at_node["flow__receiver_node"]
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
-        for (node, integrand) in izip(valid_upstr_order, chi_integrand):
+        for node, integrand in izip(valid_upstr_order, chi_integrand):
             dstr_node = receivers[node]
             chi_array[node] = chi_array[dstr_node] + integrand
         chi_array *= mean_dx
