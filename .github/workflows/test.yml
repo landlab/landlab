@@ -32,6 +32,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.9", "3.10", "3.11"]
+        pytest-marker: ["slow", "not slow"]
 
     steps:
       - uses: actions/checkout@v2
@@ -59,8 +60,22 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
-          nox -s test
+          nox -s test -- -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        uses: AndreMiras/coveralls-python-action@v20201129
+        if: matrix.os == 'ubuntu-latest'
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
+          debug: true
+
+  coveralls_finish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel-finished: true
+          debug: true

@@ -1,6 +1,7 @@
 import os
 import pathlib
 import shutil
+import tempfile
 
 import nox
 
@@ -23,7 +24,8 @@ def test(session: nox.Session) -> None:
         PROJECT,
         "-vvv",
         # "--dist", "worksteal",  # this is not available quite yet
-    ]
+    ] + session.posargs
+
     if "CI" in os.environ:
         args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
     session.run("pytest", *args)
@@ -116,6 +118,7 @@ def build_docs(session: nox.Session) -> None:
         "-b",
         "html",
         "-W",
+        "--keep-going",
         str(ROOT / "docs/source"),
         str(ROOT / "build/html"),
     )
@@ -226,6 +229,45 @@ def nuke(session):
     clean_docs(session)
     clean(session)
     clean_ext(session)
+
+
+@nox.session(name="list-wheels")
+def list_wheels(session):
+    print(os.linesep.join(_get_wheels(session)))
+
+
+@nox.session(name="list-ci-matrix")
+def list_ci_matrix(session):
+    def _os_from_wheel(name):
+        if "linux" in name:
+            return "linux"
+        elif "macos" in name:
+            return "macos"
+        elif "win" in name:
+            return "windows"
+
+    for wheel in _get_wheels(session):
+        print(f"- cibw-only: {wheel}")
+        print(f"  os: {_os_from_wheel(wheel)}")
+
+
+def _get_wheels(session):
+    platforms = session.posargs or ["linux", "macos", "windows"]
+    session.install("cibuildwheel")
+
+    wheels = []
+    for platform in platforms:
+        with tempfile.TemporaryFile("w+") as fp:
+            session.run(
+                "cibuildwheel",
+                "--print-build-identifiers",
+                "--platform",
+                platform,
+                stdout=fp,
+            )
+            fp.seek(0)
+            wheels += fp.read().splitlines()
+    return wheels
 
 
 def _args_to_folders(args):

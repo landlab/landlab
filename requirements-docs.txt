@@ -12,7 +12,6 @@ sphinx-jinja
 sphinx>=4
 sphinx_rtd_theme
 sphinxcontrib.towncrier
-sphinxcontrib_github_alt
 tabulate
 tornado
 towncrier<22.8
