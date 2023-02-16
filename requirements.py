@@ -4,7 +4,6 @@ import os
 
 
 def requirements(extras, include_required=False):
-
     sections = Requirements().get_sections(
         extras, include_required=not extras or include_required
     )

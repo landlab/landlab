@@ -210,7 +210,6 @@ class DimensionlessDischarge(Component):
         return self.grid.calc_slope_at_node(elevs="topographic__elevation")
 
     def run_one_step(self):
-
         # update slopes
         self._stream_slopes = self._elevationToSlope()
 

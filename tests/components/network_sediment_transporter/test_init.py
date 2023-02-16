@@ -4,7 +4,6 @@ from landlab.components import NetworkSedimentTransporter
 
 
 def test_basic_init(example_nmg, example_parcels, example_flow_director):
-
     _ = NetworkSedimentTransporter(
         example_nmg,
         example_parcels,
@@ -17,7 +16,6 @@ def test_basic_init(example_nmg, example_parcels, example_flow_director):
 
 
 def test_bad_flow_director(example_nmg, example_parcels):
-
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             example_nmg,
@@ -31,7 +29,6 @@ def test_bad_flow_director(example_nmg, example_parcels):
 
 
 def test_bad_network_model_grid(example_parcels, example_flow_director):
-
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             "bad_nmg",
@@ -45,7 +42,6 @@ def test_bad_network_model_grid(example_parcels, example_flow_director):
 
 
 def test_bad_parcels(example_nmg, example_flow_director):
-
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             example_nmg,
@@ -59,7 +55,6 @@ def test_bad_parcels(example_nmg, example_flow_director):
 
 
 def test_bad_porosity(example_nmg, example_parcels, example_flow_director):
-
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             example_nmg,
@@ -73,7 +68,6 @@ def test_bad_porosity(example_nmg, example_parcels, example_flow_director):
 
 
 def test_bad_transport_method(example_nmg, example_parcels, example_flow_director):
-
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(
             example_nmg,

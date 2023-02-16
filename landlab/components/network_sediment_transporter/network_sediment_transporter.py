@@ -413,7 +413,6 @@ class NetworkSedimentTransporter(Component):
         """
 
         if self._time_idx != 0:
-
             self._parcels.add_record(time=[self._time])
 
             self._parcels.ffill_grid_element_and_id()
@@ -441,7 +440,6 @@ class NetworkSedimentTransporter(Component):
         """Re-calculate channel slopes during each timestep."""
 
         for i in range(self._grid.number_of_links):
-
             upstream_node_id = self._fd.upstream_node_at_link()[i]
             downstream_node_id = self._fd.downstream_node_at_link()[i]
 
@@ -575,11 +573,9 @@ class NetworkSedimentTransporter(Component):
         volumes = self._parcels.dataset.volume.values[:, -1]
 
         for i in range(self._grid.number_of_links):
-
             if (
                 self._vol_tot[i] > 0
             ):  # only do this check capacity if parcels are in link
-
                 # First In Last Out.
 
                 # Find parcels on this link.
@@ -638,9 +634,7 @@ class NetworkSedimentTransporter(Component):
 
         # Update the node topographic elevations depending on the quantity of stored sediment
         for n in range(self._grid.number_of_nodes):
-
             if number_of_contributors[n] > 0:  # we don't update head node elevations
-
                 upstream_links = upstream_contributing_links_at_node[n]
                 real_upstream_links = upstream_links[
                     upstream_links != self._grid.BAD_INDEX
@@ -745,7 +739,6 @@ class NetworkSedimentTransporter(Component):
 
         # Calc attributes for each link, map to parcel arrays
         for i in range(self._grid.number_of_links):
-
             active_here = np.nonzero(
                 np.logical_and(Linkarray == i, Activearray == _ACTIVE)
             )[0]
@@ -813,7 +806,8 @@ class NetworkSedimentTransporter(Component):
 
         if np.max(self._pvelocity) > 1:
             warnings.warn(
-                "NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s"
+                "NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s",
+                stacklevel=2,
             )
 
         # Assign those things to the grid -- might be useful for plotting
@@ -858,7 +852,6 @@ class NetworkSedimentTransporter(Component):
 
         distance_left_to_travel = distance_to_travel_this_timestep.copy()
         while np.any(distance_left_to_travel > 0.0):
-
             # Step 1: Move parcels downstream.
             on_network = current_link != self.OUT_OF_NETWORK
 
@@ -1041,6 +1034,7 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold):
         warnings.warn(
             "NetworkSedimentTransporter: Negative channel slope encountered.",
             UserWarning,
+            stacklevel=2,
         )
 
     elif chan_slope < threshold:

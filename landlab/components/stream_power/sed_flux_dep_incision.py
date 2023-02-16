@@ -428,7 +428,7 @@ class SedDepEroder(Component):
                 # manually set.
                 # print("Found a shear stress threshold to use: ", self._thresh)
             else:
-                warnings.warn("Found no incision threshold to use.")
+                warnings.warn("Found no incision threshold to use.", stacklevel=2)
                 self._thresh = 0.0
                 self._set_threshold = False
             self._a = a_sp
@@ -439,7 +439,7 @@ class SedDepEroder(Component):
             self._k_w = k_w
             self._mannings_n = mannings_n
             if mannings_n < 0.0 or mannings_n > 0.2:
-                warnings.warn("Manning's n outside it's typical range")
+                warnings.warn("Manning's n outside it's typical range", stacklevel=2)
 
             self._diffusivity_power_on_A = 0.9 * self._c * (1.0 - self._b)
             # ^i.e., q/D**(1/6)

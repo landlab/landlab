@@ -4,7 +4,6 @@ from ..core.messages import deprecation_message
 
 
 class DeprecatedSignature(DeprecationWarning):
-
     msg = "You are using a deprecated calling signature."
 
     def __init__(self, name, old=None, new=None):

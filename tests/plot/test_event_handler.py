@@ -13,7 +13,6 @@ from landlab.plot.event_handler import query_grid_on_button_press
 
 
 def test_query_grid_on_button_press():
-
     rmg = RasterModelGrid((5, 5))
     imshow_grid(rmg, rmg.nodes, cmap="RdYlBu")
 

@@ -257,7 +257,6 @@ class TaylorNonLinearDiffuser(Component):
 
         # begin while loop for time left
         while time_left > 0.0:
-
             # Calculate gradients
             self._slope[:] = self._grid.calc_grad_at_link(self._elev)
             self._slope[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0

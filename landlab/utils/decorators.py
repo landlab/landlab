@@ -405,6 +405,7 @@ def deprecated(use, version):
                         name=func.__name__
                     ),
                     category=DeprecationWarning,
+                    stacklevel=2,
                 )
             return func(*args, **kwargs)
 

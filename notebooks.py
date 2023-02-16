@@ -72,7 +72,6 @@ class NotebookError(Exception):
 
 
 class NotebookFetcher:
-
     URL = "https://github.com/landlab/landlab/archive/refs"
 
     def __init__(self, version):

@@ -316,7 +316,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         runoff_rate=None,
         depression_finder=None,
         loss_function=None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the FlowAccumulator component.
 
@@ -387,7 +387,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             flow_director=flow_director,
             runoff_rate=runoff_rate,
             depression_finder=depression_finder,
-            **kwargs
+            **kwargs,
         )
 
         if loss_function is not None:

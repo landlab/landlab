@@ -39,11 +39,12 @@ class BedParcelInitializerBase(Component):
 
         if np.min(sed_thickness) < 0.05:
             warnings.warn(
-                f"sed_thickness is unrealistically low ({sed_thickness} * d84)"
+                f"sed_thickness is unrealistically low ({sed_thickness} * d84)",
+                stacklevel=2,
             )
 
         if np.max(np.abs(tau_c_50 - 0.055)) > 0.35:
-            warnings.warn(f"tau_c_50 is unrealistic ({tau_c_50})")
+            warnings.warn(f"tau_c_50 is unrealistic ({tau_c_50})", stacklevel=2)
 
         self._time = [time]
         self._grid = grid
@@ -58,7 +59,6 @@ class BedParcelInitializerBase(Component):
         self._median_number_of_starting_parcels = median_number_of_starting_parcels
 
     def __call__(self):
-
         d50 = self.calc_d50()
 
         d84 = d50 * self._D84_D50
@@ -83,17 +83,21 @@ class BedParcelInitializerBase(Component):
         )
 
         if np.max(d50) > 0.5:
-            warnings.warn(f"calculated d50 is unrealistically large ({d50} m)")
+            warnings.warn(
+                f"calculated d50 is unrealistically large ({d50} m)", stacklevel=2
+            )
 
         if np.min(d50) < 0.002:
             warnings.warn(
                 f"calculated d50 is unrealistically low ({d50} m). The equations used "
-                "in this initializer are intended for gravel bedded rivers."
+                "in this initializer are intended for gravel bedded rivers.",
+                stacklevel=2,
             )
 
         if max_parcel_volume < 0.05:
             warnings.warn(
-                f"default parcel volume is extremely small ({max_parcel_volume} m)"
+                f"default parcel volume is extremely small ({max_parcel_volume} m)",
+                stacklevel=2,
             )
 
         return DataRecord(
@@ -199,7 +203,9 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
         self, grid, time=0.0, discharge_at_link=None, mannings_n=0.035, **kwds
     ):
         if np.max(np.abs(mannings_n - 0.035)) > 0.3:
-            warnings.warn(f"Manning's n value is unrealistic ({mannings_n})")
+            warnings.warn(
+                f"Manning's n value is unrealistic ({mannings_n})", stacklevel=2
+            )
 
         if discharge_at_link is None:
             raise ValueError("User must provide discharge_at_link")
@@ -318,7 +324,6 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     def __init__(
         self, grid, time=0.0, flow_depth_at_link=None, tau_c_multiplier=1.0, **kwds
     ):
-
         if flow_depth_at_link is None:
             raise ValueError("User must provide flow_depth_at_link")
 
@@ -457,7 +462,6 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
         drainage_area_exponent=None,
         **kwds,
     ):
-
         if drainage_area_coefficient is None:
             raise ValueError("User must provide drainage_area_coefficient")
 
@@ -565,7 +569,6 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
     }
 
     def __init__(self, grid, time=0.0, user_d50=None, **kwds):
-
         if user_d50 is None:
             raise ValueError("User must provide user_d50")
 
@@ -574,9 +577,7 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
         BedParcelInitializerBase.__init__(self, grid, time=time, **kwds)
 
     def calc_d50(self):
-
         if np.size(self._user_d50) == 1:  # one d50, all links
-
             d50 = np.full_like(self._grid.length_of_link, self._user_d50, dtype=float)
 
             return d50
@@ -584,7 +585,6 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
         elif np.size(self._user_d50) == (
             self._grid.number_of_links
         ):  # different d50 each link
-
             d50 = self._user_d50
 
             return d50
@@ -608,7 +608,9 @@ def _parcel_characteristics(
         dtype=int
     )
     if np.min(n_parcels_at_link) < 10:
-        warnings.warn(f"at least one link has only {n_parcels_at_link} parcels.")
+        warnings.warn(
+            f"at least one link has only {n_parcels_at_link} parcels.", stacklevel=2
+        )
 
     element_id = np.empty(np.sum(n_parcels_at_link), dtype=int)
 
@@ -652,7 +654,6 @@ def _parcel_characteristics(
     }
 
     if extra_parcel_attributes is not None:
-
         for attrib in extra_parcel_attributes:
             variables[attrib] = (["item_id"], np.nan * np.zeros_like(density))
 

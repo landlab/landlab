@@ -10,7 +10,6 @@ import numpy as np
 
 
 def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
-
     # determine the location of that parcel in its link
     parcel_loc = parcels.dataset.location_in_link[
         parcel_number, parcel_time_index
@@ -20,7 +19,6 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
     # recorded, and np.nan as the distance.
 
     if not np.isnan(parcel_loc):
-
         # get link id
         parcel_link = int(
             parcels.dataset.element_id[parcel_number, parcel_time_index].values
