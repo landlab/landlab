@@ -300,7 +300,7 @@ def calc_slope_at_node(
     method="patch_mean",
     ignore_closed_nodes=True,
     return_components=False,
-    **kwds
+    **kwds,
 ):
     """Array of slopes at nodes, averaged over neighboring patches.
 

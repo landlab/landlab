@@ -93,7 +93,6 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         parcel_volume=0.5,
         abrasion_rate=0.0,
     ):
-
         """Create :class:`~.SedimentPulserAtLinks`.
 
         Parameters
@@ -146,7 +145,6 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         parcel_volume=None,
         abrasion_rate=None,
     ):
-
         """
         specify the time, link(s) and attributes of pulses added to a
         :class:`~.NetworkModelGrid` at stochastically determined locations within the

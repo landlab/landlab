@@ -105,7 +105,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         wave_base=60.0,
         shallow_water_diffusivity=100.0,
         tidal_range=2.0,
-        **kwds
+        **kwds,
     ):
         """
         Parameters

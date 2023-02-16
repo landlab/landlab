@@ -5,7 +5,6 @@ from landlab.grid.mappers import map_upwind_node_link_max_to_node
 
 
 def test_map_upwind_node_link_max_to_node():
-
     grid = RasterModelGrid((3, 4))
 
     grid.at_link["grad"] = (

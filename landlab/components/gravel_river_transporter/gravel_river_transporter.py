@@ -221,7 +221,9 @@ class GravelRiverTransporter(Component):
 
             from landlab.utils.matrix import get_core_node_at_node
 
-            warnings.warn("Matrix-based solver is experimental & not fully tested")
+            warnings.warn(
+                "Matrix-based solver is experimental & not fully tested", stacklevel=2
+            )
             self.run_one_step = self.run_one_step_matrix_inversion
             self._mat, self._rhs = make_empty_matrix_and_rhs(grid)
             self._mat_id = np.zeros(grid.number_of_nodes, dtype=int)

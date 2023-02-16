@@ -17,7 +17,6 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_sp_old():
-
     uplift = 0.001
     dt = 1.0
     time_to_run = 10.0

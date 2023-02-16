@@ -165,7 +165,6 @@ def test_consistent_doc_names():
     for field in unique_fields:
         where = df.field == field
         if where.sum() > 1:
-
             sel = df[where]
 
             doc_vals = df.doc[where].values.astype(str)

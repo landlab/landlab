@@ -661,7 +661,6 @@ class ChannelProfiler(_BaseProfiler):
             channel_segment.append(recieving_node)
 
         while channel_upstream:
-
             # add the new node to the channel segment
             channel_segment.append(j)
 
@@ -691,7 +690,6 @@ class ChannelProfiler(_BaseProfiler):
             # there are two or more donors with sufficient discharge, then
             # break, returning those nodes as starting points.
             else:
-
                 # get all upstream drainage areas
                 upstream_das = self._channel_definition_field[supplying_nodes]
 

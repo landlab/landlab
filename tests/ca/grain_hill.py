@@ -76,7 +76,7 @@ class GrainHill(CTSModel):
         prop_reset_value=None,
         callback_fn=None,
         closed_boundaries=(False, False, False, False),
-        **kwds
+        **kwds,
     ):
         """Call the initialize() method."""
         self.initializer(
@@ -100,7 +100,7 @@ class GrainHill(CTSModel):
             prop_reset_value,
             callback_fn,
             closed_boundaries,
-            **kwds
+            **kwds,
         )
 
     def initializer(
@@ -125,7 +125,7 @@ class GrainHill(CTSModel):
         prop_reset_value,
         callback_fn,
         closed_boundaries,
-        **kwds
+        **kwds,
     ):
         """Initialize the grain hill model."""
         self.settling_rate = settling_rate
@@ -157,7 +157,7 @@ class GrainHill(CTSModel):
             prop_data=prop_data,
             prop_reset_value=prop_reset_value,
             closed_boundaries=closed_boundaries,
-            **kwds
+            **kwds,
         )
 
         # Set some things related to property-swapping and/or callback fn
@@ -383,7 +383,6 @@ class GrainHill(CTSModel):
             run_to = to
 
         while self.current_time < run_to:
-
             # Figure out what time to run to this iteration
             next_pause = min(self.next_output, self.next_plot)
             next_pause = min(next_pause, self.next_uplift)

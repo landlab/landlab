@@ -201,7 +201,6 @@ class LithoLayers(Lithology):
 
         # create layers (here listed from the top to the bottom.)
         for i in range(num_layers):
-
             layer_depth = z_surf + z0s[i]
             layer_depth[layer_depth < 0] = 0
 

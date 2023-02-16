@@ -16,7 +16,6 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_MS_params():
-
     # This commented code block ingests MS's grid setup to come close to a
     # version of this topo (DEJH believes there may be a bug in the STORM
     # code's allocation of elevations, which precludes a precise replication)

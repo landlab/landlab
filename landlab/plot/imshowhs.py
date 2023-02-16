@@ -184,6 +184,7 @@ def imshowhs_grid(grid, values, **kwds):
         warnings.warn(
             f"the 'values_at' keyword is deprecated, use `at={kwds['values_at']!r}` instead",
             DeprecationWarning,
+            stacklevel=2,
         )
     values_at = kwds.pop("values_at", "node")
     values_at = kwds.pop("at", values_at)
@@ -530,7 +531,6 @@ def _imshowhs_grid_values(
             alpha2 = 1
         blend_modes = ["hsv", "overlay", "soft"]
         if plot_type == "DEM":
-
             kwds = {"cmap": cmap}
             (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
             if (limits is None) and ((vmin is None) and (vmax is None)):
@@ -562,7 +562,6 @@ def _imshowhs_grid_values(
             ima = ax1.imshow(rgb, extent=extent, **kwds)
 
         elif plot_type == "Hillshade":
-
             cmap_gray = plt.get_cmap("gray")
             if color_for_closed is not None:
                 cmap_gray.set_bad(color=color_for_closed)
@@ -662,7 +661,6 @@ def _imshowhs_grid_values(
                 or plot_type == "Drape1"
                 or (plot_type == "Drape2" and not add_double_colorbar)
             ):
-
                 cb_or = cbar_or
                 cb_ticks_position = cbar_ticks_position
 
@@ -724,7 +722,6 @@ def _imshowhs_grid_values(
                 #     # ax1.xaxis.set_label_coords(0,2.5)
 
             if plot_type == "Drape2":
-
                 # Process values from first drape
 
                 if isinstance(drape2, str):

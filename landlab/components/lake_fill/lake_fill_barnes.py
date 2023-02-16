@@ -1126,7 +1126,7 @@ class LakeMapperBarnes(Component):
 
         # now the actual loop. Work forward lake by lake to avoid unnecessary
         # processing (nodes outside lakes are already correct, by definition).
-        for (outlet, lakenodes) in lake_dict.items():
+        for outlet, lakenodes in lake_dict.items():
             # open the lake:
             closedq[lakenodes] = 0
             # make a deque for liminal nodes:
@@ -1183,7 +1183,7 @@ class LakeMapperBarnes(Component):
                     for neighbor_set, link_set in zip(
                         self._neighbor_arrays, self._link_arrays
                     ):
-                        for (n, l) in zip(neighbor_set[c, :], link_set[c, :]):
+                        for n, l in zip(neighbor_set[c, :], link_set[c, :]):
                             # fully closed
                             if (closedq[n] == 2) or (n == -1):
                                 continue
@@ -1927,7 +1927,7 @@ class LakeMapperBarnes(Component):
             self._lake_map = np.full(
                 self._grid.number_of_nodes, self._grid.BAD_INDEX, dtype=int
             )
-            for (outlet, lakenodes) in self.lake_dict.items():
+            for outlet, lakenodes in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
         else:
             pass  # old map is fine

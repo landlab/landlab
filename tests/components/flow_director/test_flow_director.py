@@ -43,7 +43,6 @@ def test_not_implemented():
 
 
 def test_fields_already_added():
-
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
     r = mg.add_field("flow__receiver_node", mg.nodes, at="node")

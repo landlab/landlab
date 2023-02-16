@@ -33,7 +33,7 @@ def _set_netcdf_attributes(root, attrs):
     attrs : dict
         Attributes as key-value pairs.
     """
-    for (key, val) in attrs.items():
+    for key, val in attrs.items():
         setattr(root, key, val)
 
 
@@ -92,7 +92,7 @@ def _get_dimension_sizes(shape):
     names = _AXIS_DIMENSION_NAMES[-1 : -(len(shape) + 1) : -1]
 
     sizes = {}
-    for (axis, name) in enumerate(names):
+    for axis, name in enumerate(names):
         sizes[name] = shape[-(axis + 1)]
 
     return sizes
@@ -203,7 +203,7 @@ def _set_netcdf_cell_structured_dimensions(root, shape):
     if "nt" not in dims:
         root.createDimension("nt", None)
 
-    for (name, dim_size) in dimensions.items():
+    for name, dim_size in dimensions.items():
         if name not in dims:
             root.createDimension(name, dim_size - 2)
 
@@ -238,7 +238,7 @@ def _set_netcdf_structured_dimensions(root, shape):
     if "nt" not in dims:
         root.createDimension("nt", None)
 
-    for (name, dim_size) in dimensions.items():
+    for name, dim_size in dimensions.items():
         if name not in dims:
             root.createDimension(name, dim_size)
 
@@ -335,7 +335,7 @@ def _add_spatial_variables(root, grid, **kwds):
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
-    for (axis, name) in enumerate(spatial_variable_names):
+    for axis, name in enumerate(spatial_variable_names):
         try:
             var = netcdf_vars[name]
         except KeyError:
@@ -374,7 +374,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
-    for (axis, name) in enumerate(spatial_variable_names):
+    for axis, name in enumerate(spatial_variable_names):
         try:
             var = netcdf_vars[name]
         except KeyError:
@@ -722,7 +722,6 @@ def write_raster_netcdf(
     names=None,
     at=None,
 ):
-
     """Write Raster Model Grid landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.

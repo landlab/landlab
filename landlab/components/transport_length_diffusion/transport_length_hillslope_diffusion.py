@@ -11,7 +11,6 @@ from landlab import Component
 
 
 class TransportLengthHillslopeDiffuser(Component):
-
     r"""Transport length hillslope diffusion.
 
     Hillslope diffusion component in the style of Carretier et al. (2016,
@@ -195,7 +194,6 @@ class TransportLengthHillslopeDiffuser(Component):
     }
 
     def __init__(self, grid, erodibility=0.001, slope_crit=1.0):
-
         """Initialize Diffuser.
 
         Parameters

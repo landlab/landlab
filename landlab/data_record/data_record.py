@@ -384,7 +384,6 @@ class DataRecord:
             selected_elements = element_id[ind]
 
             if selected_elements.size > 0:
-
                 dummy_values = self._dummy_elements.get(at, [])
                 index_values = np.arange(0, max_size)
                 valid_values = np.concatenate((dummy_values, index_values))

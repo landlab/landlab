@@ -133,7 +133,6 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
     """
 
     def __init__(self, node_y_and_x):
-
         RectilinearGraph.__init__(self, node_y_and_x)
 
         dual_graph = RectilinearGraph(DualRectilinearGraph.get_corners(node_y_and_x))
