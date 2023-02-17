@@ -71,7 +71,7 @@ repos:
   rev: "4.1"
   hooks:
   - id: pyroma
-    args: ["-d", "--min=9", "."]
+    args: ["-d", "--min=10", "."]
     additional_dependencies:
     - numpy
     - cython
