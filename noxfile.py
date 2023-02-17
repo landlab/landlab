@@ -54,7 +54,8 @@ def test_notebooks(session: nox.Session) -> None:
         "pytest",
         "pytest-xdist",
         "--file",
-        "notebooks/requirements.in" "--file",
+        "notebooks/requirements.in",
+        "--file",
         "requirements.in",
     )
     session.install("-e", ".", "--no-deps")
