@@ -117,23 +117,26 @@ def build_index(session: nox.Session) -> None:
 @nox.session(name="build-docs")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    # session.conda_install("richdem")
-    # session.install(".[docs]")
-    session.install("-r", "docs/requirements.in")
+    build_dir = ROOT / "build"
+    docs_dir = ROOT / "docs"
+
+    session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".")
 
     clean_docs(session)
+
+    build_dir.mkdir(exist_ok=True)
     session.run(
         "sphinx-build",
         "-b",
         "html",
         "-W",
         "--keep-going",
-        str(ROOT / "docs/source"),
-        str(ROOT / "build/html"),
+        docs_dir / "source",
+        build_dir / "html",
     )
 
-    session.log(f"generated docs at {ROOT / 'build' / 'html'!s}")
+    session.log(f"generated docs at {build_dir / 'html'!s}")
 
 
 @nox.session
