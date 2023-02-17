@@ -48,7 +48,6 @@ def test_4x7_grid_vs_analytical_solution():
 
     # Run for 750 ky
     for _ in range(3000):
-
         z[mg.core_nodes] += baselevel_rate * dt
         z_bedrock[mg.core_nodes] += baselevel_rate * dt
 
@@ -95,7 +94,6 @@ def test_raise_kwargs_error():
 
 
 def test_infinite_taylor_error():
-
     mg = RasterModelGrid((5, 5))
     soilTh = mg.add_zeros("soil__depth", at="node")
     z = mg.add_zeros("topographic__elevation", at="node")

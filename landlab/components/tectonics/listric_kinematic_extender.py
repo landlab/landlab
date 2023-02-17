@@ -234,7 +234,6 @@ class ListricKinematicExtender(Component):
 
         # Shift hangingwall nodes by one cell
         if self._horiz_displacement >= self._ds:
-
             for fieldname in self._fields_to_shift:
                 self.grid.at_node[fieldname][self._hw_downwind] = self.grid.at_node[
                     fieldname

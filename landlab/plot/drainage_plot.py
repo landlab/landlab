@@ -16,7 +16,6 @@ def drainage_plot(
     quiver_cmap="viridis",
     title="Drainage Plot",
 ):
-
     if isinstance(surface, str):
         colorbar_label = surface
     else:

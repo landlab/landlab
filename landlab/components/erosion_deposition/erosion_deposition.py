@@ -446,7 +446,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
-
             # Update all the flow-link slopes.
             #
             # For the first iteration, we assume this has already been done

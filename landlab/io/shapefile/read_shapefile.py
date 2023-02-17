@@ -311,10 +311,8 @@ def read_shapefile(
     # iterate through shapes and records
     shapeRecs = sf.shapeRecords()
     for sr in shapeRecs:
-
         # if not a multi-part polyline:
         if len(sr.shape.parts) == 1:
-
             # get all the points on the polyline and deconstruct into x and y
             points = sr.shape.points
             x, y = zip(*points)

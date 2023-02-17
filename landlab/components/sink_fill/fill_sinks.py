@@ -208,7 +208,7 @@ class SinkFiller(Component):
         if self._apply_slope:
             # new way of doing this - use the upstream structure! Should be
             # both more general and more efficient
-            for (outlet_node, lake_code) in zip(
+            for outlet_node, lake_code in zip(
                 self._lf.lake_outlets, self._lf.lake_codes
             ):
                 lake_nodes = np.where(self._lf.lake_map == lake_code)[0]

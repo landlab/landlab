@@ -242,7 +242,7 @@ def _header_is_valid(header):
         if len(set(keys) & header_keys) != 1:
             raise MissingRequiredKeyError("|".join(keys))
 
-    for (key, requires) in _HEADER_VALUE_TESTS.items():
+    for key, requires in _HEADER_VALUE_TESTS.items():
         to_type, is_valid = requires
 
         if key not in header:
@@ -339,7 +339,7 @@ def read_asc_header(asc_file):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
     header = {}
-    for (key, value) in _header_lines(asc_file):
+    for key, value in _header_lines(asc_file):
         header[key] = value
 
     _header_is_valid(header)

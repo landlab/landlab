@@ -301,7 +301,6 @@ class KinwaveImplicitOverlandFlow(Component):
         # If it's our first iteration, or if the topography may be changing,
         # do flow routing and calculate square root of slopes at links
         if self._changing_topo or self._first_iteration:
-
             # Calculate the ground-surface slope
             self._slope[self._grid.active_links] = self._grid.calc_grad_at_link(
                 self._elev
@@ -344,7 +343,6 @@ class KinwaveImplicitOverlandFlow(Component):
         for i in range(len(self._nodes_ordered) - 1, -1, -1):
             n = self._nodes_ordered[i]
             if self._grid.status_at_node[n] == 0:
-
                 # Solve for new water depth
                 aa = self._alpha[n]
                 cc = self._depth[n]

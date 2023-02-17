@@ -458,7 +458,6 @@ class PriorityFloodFlowRouter(Component):
             self._info["hill_drainage_area"]["optional"] = True
             self._info["hill_surface_water__discharge"]["optional"] = True
         else:
-
             self._info["hill_drainage_area"]["optional"] = False
             self._info["hill_surface_water__discharge"]["optional"] = False
 
@@ -609,7 +608,6 @@ class PriorityFloodFlowRouter(Component):
         if flow_metric == "D8":
             self._FlowAcc_D8(hill_flow=hill_flow)
         else:
-
             closed_boundary_values = self._depression_free_dem[self._closed == 1]
             self._depression_free_dem[self._closed == 1] = np.inf
             # Calculate flow direction (proportion) and accumulation using RichDEM
@@ -692,7 +690,6 @@ class PriorityFloodFlowRouter(Component):
                     self._hill_slope[rcvrs == -1] = 0
 
             else:
-
                 if flow_metric in PSINGLE_FMs:
                     ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
                     self._prps[:] = props_Pf[ij_at_max]

@@ -15,7 +15,6 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_diffusion():
-
     dt = 1.0
     time_to_run = 3.0
     init_elev = 0.0

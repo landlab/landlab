@@ -169,7 +169,6 @@ class HeightAboveDrainageCalculator(Component):
         self._channel_mask = return_array_at_node(self._grid, new_val)
 
     def run_one_step(self):
-
         is_drainage_node = self._channel_mask
         is_drainage_node[self._grid.open_boundary_nodes] = 1
 

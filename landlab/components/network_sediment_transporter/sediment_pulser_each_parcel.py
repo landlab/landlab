@@ -133,7 +133,6 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         )
 
     def __call__(self, time, PulseDF=None):
-
         """specify the location and attributes of each pulse of material added to
         a Network Model Grid DataRecord
 
@@ -161,7 +160,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         if (
             PulseDF.empty is True
         ):  # if empty, pulser stops, returns the existing parcels, call stops
-            warnings.warn("Pulse DataFrame is EMPTY")
+            warnings.warn("Pulse DataFrame is EMPTY", stacklevel=2)
             return self._parcels
 
         variables, items = self._sediment_pulse_dataframe(
@@ -178,7 +177,9 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 dummy_elements={"link": [_OUT_OF_NETWORK]},
             )
 
-            warnings.warn("Parcels not provided, created a new DataRecord")
+            warnings.warn(
+                "Parcels not provided, created a new DataRecord", stacklevel=2
+            )
 
         else:  # else use the add item method to add parcels
             self._parcels.add_item(time=[time], new_item=items, new_item_spec=variables)
@@ -186,7 +187,6 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         return self._parcels
 
     def _sediment_pulse_dataframe(self, time, PulseDF):
-
         """Convert PulseDF to a :class:`~.DataRecord` formatted for the
         :class:`~.NetworkSedimentTransporter`.
 
@@ -231,7 +231,6 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         p_np = []  # list of number of parcels in each pulse
         volume = np.array([])  # list of parcel volumes from all pulses
         for _index, row in PulseDF.iterrows():
-
             # set the maximum allowable parcel volume using either
             # the default value or value in PulseDF
             if "parcel_volume" in PulseDF:

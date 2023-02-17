@@ -531,7 +531,6 @@ class Vegetation(Component):
             PETthreshold = self._ETthresholddown
 
         for cell in range(0, self._grid.number_of_cells):
-
             WUE = self._WUE[cell]
             LAImax = self._LAI_max[cell]
             cb = self._cb[cell]

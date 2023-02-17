@@ -24,7 +24,7 @@ try:
 except ImportError:
     import warnings
 
-    warnings.warn("matplotlib not found", ImportWarning)
+    warnings.warn("matplotlib not found", ImportWarning, stacklevel=2)
 
 
 class ModelGridPlotterMixIn:

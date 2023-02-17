@@ -17,9 +17,42 @@ need to get *landlab*'s source code and then install *landlab* from that code.
 Source Install
 --------------
 
-.. include:: ../../../README.rst
-    :start-after: .. start-install-source
-    :end-before: .. end-install-source
+.. start-install-source
+
+*Landlab* is actively being developed on GitHub, where the code is freely available.
+If you would like to modify or contribute code, you can either clone our
+repository
+
+.. code-block:: bash
+
+   $ git clone git://github.com/landlab/landlab.git
+
+or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
+(a zip file is available for Windows users):
+
+.. code-block:: bash
+
+   $ curl -OL https://github.com/landlab/landlab/tarball/master
+
+Once you have a copy of the source code, you can install it into your current
+Python environment,
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+     $ cd landlab
+     $ conda install --file=requirements.txt
+     $ pip install -e .
+
+.. tab:: pip
+
+  .. code-block:: bash
+
+     $ cd landlab
+     $ pip install -e .
+
+.. end-install-source
 
 Developer Tools
 ---------------
