@@ -43,6 +43,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
@@ -398,3 +399,5 @@ with open("../index.toml", "rb") as fp:
 cats["grids"].pop("ModelGrid")
 
 jinja_contexts = {"llcats": cats}
+
+autodoc_mock_imports = ["richdem"]
