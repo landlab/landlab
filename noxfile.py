@@ -123,8 +123,6 @@ def build_docs(session: nox.Session) -> None:
     session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".")
 
-    clean_docs(session)
-
     build_dir.mkdir(exist_ok=True)
     session.run(
         "sphinx-build",
@@ -135,7 +133,6 @@ def build_docs(session: nox.Session) -> None:
         docs_dir / "source",
         build_dir / "html",
     )
-
     session.log(f"generated docs at {build_dir / 'html'!s}")
 
 
