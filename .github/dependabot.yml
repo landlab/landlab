@@ -9,3 +9,18 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every weekday
       interval: "daily"
+
+  - package-ecosystem: "pip"
+    directory: "docs/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "pip"
+    directory: "notebooks/"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "pip"
+    directory: "."
+    schedule:
+      interval: "daily"
