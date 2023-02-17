@@ -381,8 +381,7 @@ napoleon_include_special_with_doc = True
 
 towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
 towncrier_draft_include_empty = True
-# towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
-towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
 
 # -- Options for intersphinx extension ---------------------------------------
 

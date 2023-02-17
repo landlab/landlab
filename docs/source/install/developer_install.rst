@@ -25,32 +25,39 @@ repository
 
 .. code-block:: bash
 
-   $ git clone git://github.com/landlab/landlab.git
+   git clone git://github.com/landlab/landlab.git
 
-or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
-(a zip file is available for Windows users):
+or download a `zip file <https://github.com/landlab/landlab/archive/refs/heads/master.zip>`_:
 
 .. code-block:: bash
 
-   $ curl -OL https://github.com/landlab/landlab/tarball/master
+   curl -OL https://github.com/landlab/landlab/archive/refs/heads/master.zip
 
 Once you have a copy of the source code, you can install it into your current
 Python environment,
+
+.. tab:: mamba
+
+  .. code-block:: bash
+
+     cd landlab
+     mamba install --file=requirements.in
+     pip install -e .
 
 .. tab:: conda
 
   .. code-block:: bash
 
-     $ cd landlab
-     $ conda install --file=requirements.txt
-     $ pip install -e .
+     cd landlab
+     conda install --file=requirements.in
+     pip install -e .
 
 .. tab:: pip
 
   .. code-block:: bash
 
-     $ cd landlab
-     $ pip install -e .
+     cd landlab
+     pip install -e .
 
 .. end-install-source
 
@@ -62,14 +69,20 @@ may find useful to install. These packages are used for, among other things,
 testing *landlab*, and ensuring your code complies with *landlab*'s development
 standards.
 
+.. tab:: mamba
+
+  .. code-block:: bash
+
+    mamba install --file requirements-dev.txt --file requirements-testing.txt
+
 .. tab:: conda
 
   .. code-block:: bash
 
-    $ conda install --file requirements-dev.txt --file requirements-testing.txt
+    conda install --file requirements-dev.txt --file requirements-testing.txt
 
 .. tab:: pip
 
   .. code-block:: bash
 
-    $ pip install -e ".[dev,testing]"
+    pip install -e ".[dev,testing]"
