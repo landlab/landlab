@@ -248,9 +248,16 @@ def clean_checkpoints(session):
 @nox.session(python=False, name="clean-docs")
 def clean_docs(session: nox.Session) -> None:
     """Clean up the docs folder."""
-    session.chdir(ROOT / "build")
-    if os.path.exists("html"):
-        shutil.rmtree("html")
+    build_dir = ROOT / "build"
+
+    if (build_dir / "html").is_dir():
+        with session.chdir(build_dir):
+            shutil.rmtree("html")
+
+    if (ROOT / "build").is_dir():
+        session.chdir(ROOT / "build")
+        if os.path.exists("html"):
+            shutil.rmtree("html")
 
 
 @nox.session(python=False, name="clean-ext")
