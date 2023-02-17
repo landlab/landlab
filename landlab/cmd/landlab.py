@@ -285,25 +285,6 @@ def fields(ctx):
         out(f"count = {len(fields)}")
 
 
-@landlab.group
-@click.pass_context
-def run(ctx):
-    pass
-
-
-@run.command()
-@click.pass_context
-def overland_flow(ctx):
-    verbose = ctx.parent.parent.params["verbose"]
-    silent = ctx.parent.parent.params["silent"]
-
-    from ..components.overland_flow.overland_flow_runner import OverlandFlowRunner
-
-    runner = OverlandFlowRunner.from_toml("settings.toml")
-
-    runner.run()
-
-
 def get_all_components():
     from landlab.components import COMPONENTS
     from landlab.core.model_component import Component
