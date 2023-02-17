@@ -64,25 +64,40 @@ Python environment,
 Developer Tools
 ---------------
 
-Once you start developing with *landlab*, there are a number of other packages you
-may find useful to install. These packages are used for, among other things,
-testing *landlab*, and ensuring your code complies with *landlab*'s development
-standards.
+Once you start developing with *Landlab*, we recommend that you use `nox`_  to
+automate common tasks such as, for example, running the tests, building the docs, and
+finding lint.
 
-.. tab:: mamba
+.. _nox: https://nox.thea.codes/en/stable/
 
-  .. code-block:: bash
+.. code-block:: bash
 
-    mamba install --file requirements-dev.txt --file requirements-testing.txt
+  pip install nox
 
-.. tab:: conda
+The following list show how to use `nox`_ for some of the more common tasks:
 
-  .. code-block:: bash
-
-    conda install --file requirements-dev.txt --file requirements-testing.txt
-
-.. tab:: pip
+* Run the tests:
 
   .. code-block:: bash
 
-    pip install -e ".[dev,testing]"
+     nox -s test
+* Run the tests on the notebooks:
+
+  .. code-block:: bash
+
+     nox -s test-notebooks
+* Build the docs:
+
+  .. code-block:: bash
+
+     nox -s build-docs
+* Run the linters:
+
+  .. code-block:: bash
+
+     nox -s lint
+* To get a complete list of the available targets:
+
+  .. code-block:: bash
+
+     nox -l
