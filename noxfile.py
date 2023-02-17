@@ -12,8 +12,8 @@ ROOT = pathlib.Path(__file__).parent
 @nox.session(venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.conda_install("--file", "requirements.txt")
-    session.conda_install("--file", "requirements-testing.txt")
+    session.conda_install("--file", "requirements.in")
+    session.conda_install("--file", "requirements-testing.in")
     session.conda_install("richdem")
     session.install("-e", ".", "--no-deps")
 
@@ -54,9 +54,8 @@ def test_notebooks(session: nox.Session) -> None:
         "pytest",
         "pytest-xdist",
         "--file",
-        "requirements-notebooks.txt",
-        "--file",
-        "requirements.txt",
+        "notebooks/requirements.in" "--file",
+        "requirements.in",
     )
     session.install("-e", ".", "--no-deps")
 
@@ -96,21 +95,31 @@ def towncrier(session: nox.Session) -> None:
 
 @nox.session(name="build-index")
 def build_index(session: nox.Session) -> None:
-    session.install(".[docs]")
+    index_file = ROOT / "docs" / "index.toml"
+    header = """
+# This file was automatically generated with:
+#     nox -s build-index
+    """.strip()
 
-    with open(ROOT / "docs" / "index.toml", "w") as fp:
-        print("# This file was automatically generated with:", file=fp, flush=True)
-        print("#     nox -s build-index", file=fp, flush=True)
+    session.install("sphinx")
+    session.install(".")
+
+    with open(index_file, "w") as fp:
+        print(header, file=fp, flush=True)
         session.run(
-            "landlab", "--silent", "index", "grids", "fields", "components", stdout=fp
+            "landlab", "--silent", "index", "components", "fields", "grids", stdout=fp
         )
+    session.log(f"generated index at {index_file!s}")
 
 
-@nox.session(name="build-docs", venv_backend="mamba")
+# @nox.session(name="build-docs", venv_backend="mamba")
+@nox.session(name="build-docs")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    session.conda_install("richdem")
-    session.install(".[docs]")
+    # session.conda_install("richdem")
+    # session.install(".[docs]")
+    session.install("-r", "docs/requirements.in")
+    session.install(".")
 
     clean_docs(session)
     session.run(
@@ -123,18 +132,45 @@ def build_docs(session: nox.Session) -> None:
         str(ROOT / "build/html"),
     )
 
+    session.log(f"generated docs at {ROOT / 'build' / 'html'!s}")
 
-@nox.session(name="build-requirements")
-def build_requirements(session: nox.Session) -> None:
-    """Create requirements files from pyproject.toml."""
-    session.install("tomli")
 
-    with open("requirements.txt", "w") as fp:
-        session.run("python", "requirements.py", stdout=fp)
+@nox.session
+def locks(session: nox.Session) -> None:
+    """Create lock files."""
+    folders = session.posargs or [".", "docs", "notebooks"]
 
-    for extra in ["dev", "docs", "notebooks", "testing"]:
-        with open(f"requirements-{extra}.txt", "w") as fp:
-            session.run("python", "requirements.py", extra, stdout=fp)
+    session.install("pip-tools")
+
+    def upgrade_requirements(src, dst="requirements.txt"):
+        with open(dst, "wb") as fp:
+            session.run("pip-compile", "--upgrade", src, stdout=fp)
+
+    for folder in folders:
+        with session.chdir(ROOT / folder):
+            upgrade_requirements("requirements.in", dst="requirements.txt")
+
+    for folder in folders:
+        session.log(f"updated {ROOT / folder / 'requirements.txt'!s}")
+
+    # session.install("conda-lock[pip_support]")
+    # session.run("conda-lock", "lock", "--mamba", "--kind=lock")
+
+
+@nox.session(name="sync-requirements", python="3.11", venv_backend="conda")
+def sync_requirements(session: nox.Session) -> None:
+    """Sync requirements.in with pyproject.toml."""
+    with open("requirements.in", "w") as fp:
+        session.run(
+            "python",
+            "-c",
+            """
+import os, tomllib
+with open("pyproject.toml", "rb") as fp:
+    print(os.linesep.join(sorted(tomllib.load(fp)["project"]["dependencies"])))
+""",
+            stdout=fp,
+        )
 
 
 @nox.session
