@@ -127,6 +127,21 @@ class Deciduous(Perennial):
         super().__init__(species_grow_params, green_parts)
         all_veg_sources=('root','leaf','stem','storage')
         self.persistent_parts=[part for part in all_veg_sources if part not in self.green_parts]
+
+    def senesce(self, plants):
+        #copied from annual for testing. This needs to be updated
+        plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass'] * 0.02)
+        plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
+        plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
+        return plants
+
+    def enter_dormancy(self, plants):
+        print('I kill green parts at end of growing season')
+        for part in self.persistent_parts:
+            plants[part] = sum(self.senesce) #this is just the sum of the leftover biomass after the growing season ends, but until i dig into how much energy is put into storage, there is just one total sum for each
+        for part in self.green_parts:
+            plants[part] = np.zeros_like(plants[part])
+        return plants  
     
     def emerge(self, plants):
         print('I emerge from dormancy')
