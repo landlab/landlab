@@ -1,0 +1,11 @@
+bmipy
+matplotlib
+netcdf4
+numpy
+pandas
+pyshp != 2.3.0
+pyyaml
+rich-click
+scipy
+statsmodels
+xarray >= 0.16
