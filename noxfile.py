@@ -120,7 +120,7 @@ def build_docs(session: nox.Session) -> None:
     # session.conda_install("richdem")
     # session.install(".[docs]")
     session.install("-r", "docs/requirements.in")
-    session.install(".")
+    session.install("-e", ".")
 
     clean_docs(session)
     session.run(
