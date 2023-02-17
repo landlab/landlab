@@ -1,3 +1,0 @@
-Added a new component, :class:`~.AreaSlopeTransporter`.
-
-The :class:`~.AreaSlopeTransporter` is a generic transport-limited landscape evolution component that models the time rate of change of elevation at a set of grid nodes, each of which has a defined contributing drainage area 𝐴 (field drainage_area) and a local steepest-descent slope gradient, 𝑆, defined from the node itself toward one of its neighboring nodes. The drainage area and slope can be computed with a drainage-routing component such as :class:`~.FlowAccumulator` or :class:`~.PriorityFloodFlowRouter`. The component is designed to function as an integral part of a transport-limited landscape evolution model in the spirit of the Willgoose et al. "SIBERIA" model.
