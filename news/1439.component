@@ -1,2 +1,0 @@
-Added a new component, :class:`~.GravelRiverTransporter`, that models
-gravel transport and abrasion in a gridded network of river segments.

@@ -25,51 +25,79 @@ repository
 
 .. code-block:: bash
 
-   $ git clone git://github.com/landlab/landlab.git
+   git clone git://github.com/landlab/landlab.git
 
-or download the `tarball <https://github.com/landlab/landlab/tarball/master>`_
-(a zip file is available for Windows users):
+or download a `zip file <https://github.com/landlab/landlab/archive/refs/heads/master.zip>`_:
 
 .. code-block:: bash
 
-   $ curl -OL https://github.com/landlab/landlab/tarball/master
+   curl -OL https://github.com/landlab/landlab/archive/refs/heads/master.zip
 
 Once you have a copy of the source code, you can install it into your current
 Python environment,
+
+.. tab:: mamba
+
+  .. code-block:: bash
+
+     cd landlab
+     mamba install --file=requirements.in
+     pip install -e .
 
 .. tab:: conda
 
   .. code-block:: bash
 
-     $ cd landlab
-     $ conda install --file=requirements.txt
-     $ pip install -e .
+     cd landlab
+     conda install --file=requirements.in
+     pip install -e .
 
 .. tab:: pip
 
   .. code-block:: bash
 
-     $ cd landlab
-     $ pip install -e .
+     cd landlab
+     pip install -e .
 
 .. end-install-source
 
 Developer Tools
 ---------------
 
-Once you start developing with *landlab*, there are a number of other packages you
-may find useful to install. These packages are used for, among other things,
-testing *landlab*, and ensuring your code complies with *landlab*'s development
-standards.
+Once you start developing with *Landlab*, we recommend that you use `nox`_  to
+automate common tasks such as, for example, running the tests, building the docs, and
+finding lint.
 
-.. tab:: conda
+.. _nox: https://nox.thea.codes/en/stable/
+
+.. code-block:: bash
+
+  pip install nox
+
+The following list show how to use `nox`_ for some of the more common tasks:
+
+* Run the tests:
 
   .. code-block:: bash
 
-    $ conda install --file requirements-dev.txt --file requirements-testing.txt
-
-.. tab:: pip
+     nox -s test
+* Run the tests on the notebooks:
 
   .. code-block:: bash
 
-    $ pip install -e ".[dev,testing]"
+     nox -s test-notebooks
+* Build the docs:
+
+  .. code-block:: bash
+
+     nox -s build-docs
+* Run the linters:
+
+  .. code-block:: bash
+
+     nox -s lint
+* To get a complete list of the available targets:
+
+  .. code-block:: bash
+
+     nox -l

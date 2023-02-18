@@ -17,23 +17,23 @@ should stick with *pip*.
 
     .. code-block:: bash
 
-        $ conda install mamba -c conda-forge
-        $ mamba create -n landlab
-        $ mamba activate landlab
+        conda install mamba -c conda-forge
+        mamba create -n landlab
+        mamba activate landlab
 
 .. tab:: conda
 
     .. code-block:: bash
 
-        $ conda create -n landlab
-        $ conda activate landlab
+        conda create -n landlab
+        conda activate landlab
 
 .. tab:: venv
 
     .. code-block:: bash
 
-        $ python -m venv .venv
-        $ source .venv/bin/activate
+        python -m venv .venv
+        source .venv/bin/activate
 
 Note that you will need to activate this environment every time you want to use it in a new shell.
 

@@ -1,2 +1,0 @@
-Fixed an issue in the NetworkSedimentTransporter tutorial notebooks related to
-deprecated xarray dataset syntax in the calc_aggregate_value method of ``DataRecord``

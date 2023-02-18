@@ -43,6 +43,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
+    "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinxcontrib.towncrier",
     "sphinx_jinja",
@@ -144,7 +145,7 @@ html_logo = "_static/landlab_logo.png"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "announcement": "<em>Landlab 2.5 released!</em>",
+    "announcement": "<em>Landlab 2.6 released!</em>",
     "source_repository": "https://github.com/landlab/landlab/",
     "source_branch": "master",
     "source_directory": "docs/source",
@@ -380,8 +381,7 @@ napoleon_include_special_with_doc = True
 
 towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
 towncrier_draft_include_empty = True
-# towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
-towncrier_draft_working_directory = pathlib.Path(docs_dir).parent / "towncrier"
+towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
 
 # -- Options for intersphinx extension ---------------------------------------
 
@@ -398,3 +398,5 @@ with open("../index.toml", "rb") as fp:
 cats["grids"].pop("ModelGrid")
 
 jinja_contexts = {"llcats": cats}
+
+autodoc_mock_imports = ["richdem"]
