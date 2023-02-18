@@ -12,8 +12,8 @@ ROOT = pathlib.Path(__file__).parent
 @nox.session(venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    session.conda_install("--file", "requirements.txt")
-    session.conda_install("--file", "requirements-testing.txt")
+    session.conda_install("--file", "requirements.in")
+    session.conda_install("--file", "requirements-testing.in")
     session.conda_install("richdem")
     session.install("-e", ".", "--no-deps")
 
@@ -54,9 +54,9 @@ def test_notebooks(session: nox.Session) -> None:
         "pytest",
         "pytest-xdist",
         "--file",
-        "requirements-notebooks.txt",
+        "notebooks/requirements.in",
         "--file",
-        "requirements.txt",
+        "requirements.in",
     )
     session.install("-e", ".", "--no-deps")
 
@@ -96,45 +96,82 @@ def towncrier(session: nox.Session) -> None:
 
 @nox.session(name="build-index")
 def build_index(session: nox.Session) -> None:
-    session.install(".[docs]")
+    index_file = ROOT / "docs" / "index.toml"
+    header = """
+# This file was automatically generated with:
+#     nox -s build-index
+    """.strip()
 
-    with open(ROOT / "docs" / "index.toml", "w") as fp:
-        print("# This file was automatically generated with:", file=fp, flush=True)
-        print("#     nox -s build-index", file=fp, flush=True)
+    session.install("sphinx")
+    session.install(".")
+
+    with open(index_file, "w") as fp:
+        print(header, file=fp, flush=True)
         session.run(
-            "landlab", "--silent", "index", "grids", "fields", "components", stdout=fp
+            "landlab", "--silent", "index", "components", "fields", "grids", stdout=fp
         )
+    session.log(f"generated index at {index_file!s}")
 
 
-@nox.session(name="build-docs", venv_backend="mamba")
+# @nox.session(name="build-docs", venv_backend="mamba")
+@nox.session(name="build-docs")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    session.conda_install("richdem")
-    session.install(".[docs]")
+    build_dir = ROOT / "build"
+    docs_dir = ROOT / "docs"
 
-    clean_docs(session)
+    session.install("-r", docs_dir / "requirements.in")
+    session.install("-e", ".")
+
+    build_dir.mkdir(exist_ok=True)
     session.run(
         "sphinx-build",
         "-b",
         "html",
         "-W",
         "--keep-going",
-        str(ROOT / "docs/source"),
-        str(ROOT / "build/html"),
+        docs_dir / "source",
+        build_dir / "html",
     )
+    session.log(f"generated docs at {build_dir / 'html'!s}")
 
 
-@nox.session(name="build-requirements")
-def build_requirements(session: nox.Session) -> None:
-    """Create requirements files from pyproject.toml."""
-    session.install("tomli")
+@nox.session
+def locks(session: nox.Session) -> None:
+    """Create lock files."""
+    folders = session.posargs or [".", "docs", "notebooks"]
 
-    with open("requirements.txt", "w") as fp:
-        session.run("python", "requirements.py", stdout=fp)
+    session.install("pip-tools")
 
-    for extra in ["dev", "docs", "notebooks", "testing"]:
-        with open(f"requirements-{extra}.txt", "w") as fp:
-            session.run("python", "requirements.py", extra, stdout=fp)
+    def upgrade_requirements(src, dst="requirements.txt"):
+        with open(dst, "wb") as fp:
+            session.run("pip-compile", "--upgrade", src, stdout=fp)
+
+    for folder in folders:
+        with session.chdir(ROOT / folder):
+            upgrade_requirements("requirements.in", dst="requirements.txt")
+
+    for folder in folders:
+        session.log(f"updated {ROOT / folder / 'requirements.txt'!s}")
+
+    # session.install("conda-lock[pip_support]")
+    # session.run("conda-lock", "lock", "--mamba", "--kind=lock")
+
+
+@nox.session(name="sync-requirements", python="3.11", venv_backend="conda")
+def sync_requirements(session: nox.Session) -> None:
+    """Sync requirements.in with pyproject.toml."""
+    with open("requirements.in", "w") as fp:
+        session.run(
+            "python",
+            "-c",
+            """
+import os, tomllib
+with open("pyproject.toml", "rb") as fp:
+    print(os.linesep.join(sorted(tomllib.load(fp)["project"]["dependencies"])))
+""",
+            stdout=fp,
+        )
 
 
 @nox.session
@@ -208,9 +245,16 @@ def clean_checkpoints(session):
 @nox.session(python=False, name="clean-docs")
 def clean_docs(session: nox.Session) -> None:
     """Clean up the docs folder."""
-    session.chdir(ROOT / "build")
-    if os.path.exists("html"):
-        shutil.rmtree("html")
+    build_dir = ROOT / "build"
+
+    if (build_dir / "html").is_dir():
+        with session.chdir(build_dir):
+            shutil.rmtree("html")
+
+    if (ROOT / "build").is_dir():
+        session.chdir(ROOT / "build")
+        if os.path.exists("html"):
+            shutil.rmtree("html")
 
 
 @nox.session(python=False, name="clean-ext")

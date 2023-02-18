@@ -1,3 +1,0 @@
-
-Fixed a bug that, when using randomly positioned nodes, sometimes resulted in a voronoi
-diagram that contained cells without any vertices.

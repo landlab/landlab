@@ -40,7 +40,7 @@ dependencies = [
   "bmipy",
   "matplotlib",
   "netcdf4",
-  "numpy",
+  "numpy >=1.20",
   "pyyaml",
   "pyshp != 2.3.0",
   "rich-click",
@@ -58,31 +58,7 @@ repository = "https://github.com/landlab"
 changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.rst"
 
 [project.optional-dependencies]
-dev = [
-  "black",
-  "flake8",
-  "flake8-bugbear",
-  "isort",
-  "pre-commit",
-  "nox",
-]
-docs = [
-  "pandoc",
-  "nbformat",
-  "jupyter_client",
-  "ipython",
-  "sphinx>=4",
-  "sphinx_rtd_theme",
-  "tabulate",
-  "tornado",
-  "entrypoints",
-  "furo",
-  "nbsphinx>=0.2.12",
-  "sphinxcontrib.towncrier",
-  "sphinx-jinja",
-  "sphinx-inline-tabs",
-  "towncrier<22.8",
-]
+dev = ["nox"]
 testing = [
   "coveralls",
   "hypothesis",
@@ -90,14 +66,6 @@ testing = [
   "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
-]
-notebooks = [
-  "dask[array]",
-  "jupyter",
-  "holoviews",
-  "nbformat",
-  "mesa",
-  "bmi-topography >=0.5,!=0.8.1",
 ]
 
 [project.scripts]
@@ -118,6 +86,7 @@ landlab = [
   "test_*/*nc",
   "test_*/*asc",
 ]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["landlab*"]
@@ -169,6 +138,10 @@ ignore = [".nox", "build"]
 build = "cp39-* cp310-* cp311-*"
 skip = "*-musllinux_*"
 archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+
+[tool.conda-lock]
+channels = ["conda-forge", "defaults"]
+platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 
 [tool.towncrier]
 directory = "news"
