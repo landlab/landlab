@@ -87,7 +87,7 @@ rich==13.3.1
     # via rich-click
 rich-click==1.6.1
     # via -r requirements.in
-scipy==1.10.0
+scipy==1.10.1
     # via
     #   -r requirements.in
     #   statsmodels
@@ -97,7 +97,5 @@ six==1.16.0
     #   python-dateutil
 statsmodels==0.13.5
     # via -r requirements.in
-tomli==2.0.1
-    # via black
 xarray==2023.2.0
     # via -r requirements.in
