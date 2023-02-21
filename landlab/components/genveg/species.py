@@ -26,7 +26,8 @@ class Species(object):
         self.species_plant_factors=species_params['plant_factors']
         self.species_duration_params=species_params['duration_params']
         self.species_grow_params=species_params['grow_params']
-        self.species_dispersal_params=species_params['dispersal_params']   
+        self.species_dispersal_params=species_params['dispersal_params']  
+        self.species_mort_params=species_params['mortality_params'] 
 
         self.habit=self.select_habit_class(
             self.species_plant_factors['growth_habit'], 

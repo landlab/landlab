@@ -111,8 +111,8 @@ class VegParams:
                     x=pd.DataFrame()
                     #Create list of values for a community on each tab
                     for i in coms:    
-                        df_in=xlin.parse(i, usecols='B,D')
-                        df_in.set_index('Variable Name', inplace=True)
+                        df_in=xlin.parse(i, usecols='B,C,D')
+                        df_in.set_index(['Variable Name','Descriptor'], inplace=True)
                         #Define plant factor keys and create plant factor dictionary
                         factor_keys=[
                             'species',
@@ -146,6 +146,7 @@ class VegParams:
                             'root_to_leaf_coeffs',
                             'root_to_stem_coeffs'
                         ]
+
                         #Replace null values for coefficients with Poorter-derived coefficients if necessary
                         woody_herb=('herb','woody')[factor['plant_factors']['growth_habit']=='shrub']
                         opt_2=(factor['plant_factors']['monocot_dicot'], factor['plant_factors']['angio_gymno'])[woody_herb=='woody']
@@ -164,6 +165,7 @@ class VegParams:
                             df_in.loc['root_to_leaf_coeffs','Values']=df_fill['root_to_leaf_coeffs']
                         if df_in.loc['root_to_stem_coeffs'].isnull().values.any():
                             df_in.loc['root_to_stem_coeffs','Values']=df_fill['root_to_stem_coeffs']
+                        
                         grow=self._makedict(df_in, growth_keys, 'grow_params')
                         multi_part_keys=['glucose_requirement', 'respiration_coefficient','plant_part_min','plant_part_max']
                         for key in multi_part_keys:
@@ -205,33 +207,22 @@ class VegParams:
                             col={}
                         #If mortality is required process, define mortality parameter keys and create mortparams dictionary
                         if 'mortality' in processes:
-                            mort={}
-                            factor=[]
-                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_1']
-                            factor.append(factordf['Values'].tolist())
-                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_2']
-                            factor.append(factordf['Values'].tolist())
-                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_3']
-                            factor.append(factordf['Values'].tolist())
-                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_4']
-                            factor.append(factordf['Values'].tolist())
-                            factordf=pd.loc[df_in['Variable Name'] == 'mort_factor_5']
-                            factor.append(factordf['Values'].tolist())
-                            self.mort_params['mort_factor']=factor
-                            duration=[]
-                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_1_duration']
-                            duration.append(durdf['Values'].tolist())
-                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_2_duration']
-                            duration.append(durdf['Values'].tolist())
-                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_3_duration']
-                            duration.append(durdf['Values'].tolist())                            
-                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_4_duration']
-                            duration.append(durdf['Values'].tolist())                            
-                            durdf=pd.loc[df_in['Variable Name'] == 'mort_factor_5_duration']
-                            duration.append(durdf['Values'].tolist())                            
-                            self.mort_params['mort_duration']=duration
-                            coeffs=self._build_logistic(df_in)
-                            self.mort_params['mort_factor_coeffs']=coeffs
+                            print(df_in)
+                            mort_df=df_in.dropna()
+                            mort_df_group=mort_df.groupby(['Descriptor','Variable Name']).agg(pd.Series.tolist)
+                            factors=mort_df_group.index.levels[0]
+                            mort_dict={}
+                            for factor in factors:
+                                mort_vars=mort_df_group.xs(factor)
+                                names=mort_vars['Values'].loc['name'][0]
+                                duration=mort_vars['Values'].loc['duration'][0]
+                                predictor=np.array(mort_vars['Values'].loc['predictor'])
+                                response=np.array(mort_vars['Values'].loc['response'])
+                                weight=np.ones(len(response))
+                                weight[(response<0.1)|(response>0.9)]=10
+                                weight[(response<0.02)|(response>0.98)]=500
+                                coeffs=self._build_logistic(predictor,response,weight,fit_method='dogbox')
+                                mort_dict[names]={'duration':duration,'coeffs':coeffs.tolist()}
                         else:
                             mort={}
                         #Unpack all subdictionaries and combine into master vegparams dictionary for species/community
@@ -280,13 +271,18 @@ class VegParams:
             raise ValueError(msg)
         else:
             #Aggregate and group variables with multiple values as a list
-            group_temp=temp.groupby('Variable Name').agg(pd.Series.tolist)
+            group_df=temp.groupby(['Variable Name','Descriptor']).agg(pd.Series.tolist)
             #Replace single element lists with float, int, or string
-            group_temp['Values'] = group_temp['Values'].apply(lambda x: x[0] if len(x)==1 else x)
-            #Rename column to defined name and turn into dictionary of that name
-            group_temp.rename(columns={'Values': name}, inplace=True)
-            temp=group_temp.to_dict()
-            return temp
+            temp_dict={}
+            var_names=group_df.index.levels[0]
+            for var in var_names:
+                temp_dict[var]={}
+                group_df_xs=group_df.xs(var)
+                sub_dict_vars=group_df_xs.index.values
+                for sub_var in sub_dict_vars:
+                    dict_entry=(lambda x: x[0] if len(x)==1 else x)(group_df_xs['Values'].loc[sub_var])
+                    temp_dict[var][sub_var]=dict_entry
+            return temp_dict
 
     def replace_part_list_with_dict(self, val_list):
         part_list=['root','leaf','stem','storage','reproductive']
@@ -297,63 +293,39 @@ class VegParams:
             #replace_dict[biomass_list[i]]=val_list[i]
         return replace_dict
 #Private method to build logistic mortality function for up to five acute mortality factors
-    def _build_logistic(self, df):
-        xs=[]
-        ys=[]
-        weights=[]
-        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_1_predictor']
-        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_1_response']
-        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_1_weight']
-        xs.append(xsdf['Values'].tolist())
-        ys.append(ysdf['Values'].tolist())
-        weights.append(weightsdf['Values'].tolist())
-        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_2_predictor']
-        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_2_response']
-        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_2_weight']
-        xs.append(xsdf['Values'].tolist())
-        ys.append(ysdf['Values'].tolist())
-        weights.append(weightsdf['Values'].tolist())
-        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_3_predictor']
-        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_3_response']
-        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_3_weight']
-        xs.append(xsdf['Values'].tolist())
-        ys.append(ysdf['Values'].tolist())
-        weights.append(weightsdf['Values'].tolist())
-        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_4_predictor']
-        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_4_response']
-        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_4_weight']
-        xs.append(xsdf['Values'].tolist())
-        ys.append(ysdf['Values'].tolist())
-        weights.append(weightsdf['Values'].tolist())
-        xsdf=pd.loc[df['Variable Name'] == 'mort_factor_5_predictor']
-        ysdf=pd.loc[df['Variable Name'] == 'mort_factor_5_response']
-        weightsdf=pd.loc[df['Variable Name'] == 'mort_factor_5_weight']
-        xs.append(xsdf['Values'].tolist())
-        ys.append(ysdf['Values'].tolist())
-        weights.append(weightsdf['Values'].tolist())
+    def _build_logistic(self, xs, ys, weights, fit_method):
         S=[]
-        for ind in range(len(xs)):
-            #Check to make sure input arrays are same length
-            if len(xs[ind])!=len(ys[ind]): 
-                msg=('Predictor and response variable arrays must be same length')
-                S[ind]=[]
-                raise ValueError(msg)
-            elif xs[ind]==[] | len(xs)[ind]==1:
-                msg=('Not enough points to generate logistic function. Assuming zero mortality.')
-                S[ind]=[0,0]
-            #Direct solve for coefficients if only two points provided to prevent solver errors
-            elif len(xs)==2:
-                #sets survival greater than or equal to 1 to 0.9999 to prevent function errors
-                ys[ys >= 1]=0.9999 
-                #sets survival less than or equal to 0 to 0.0001 to prevent function errors
-                ys[ys <= 0]=0.0001
-                #Solve for constant b(2) (see function below)
-                S[ind][0,1]=-(np.log((0-ys[0,1])/ys[0,1])-np.log((1-ys[0,0])/ys[0,0]))/(xs[0,1]-xs[0,0])
-                S[ind][0,0]=((1-ys[0,1])/ys[0,1])/np.exp(-xs[0,1]*S[0,1])
-            else:
-                def _cfunc(x,a,b):
-                    return 1/(1+a*np.exp(-b*x))
-                S[ind], pcov = curve_fit(_cfunc, xs, ys, p0=None, sigma=weights)
+        ys[ys<=0]=0.0001
+        ys[ys>=1]=0.999
+        #Check to make sure input arrays are same length
+        if len(xs)!=len(ys): 
+            msg=('Predictor and response variable arrays must be same length')
+            S=[]
+            raise ValueError(msg)
+        elif len(xs)<=1:
+            print(len(xs))
+            msg=('Not enough points to generate logistic function. Assuming zero mortality.')
+            S=[0,0]
+        #Direct solve for coefficients if only two points provided to prevent solver errors
+        elif len(xs)==2:
+            #Solve for constant (see function below)
+            b=-(np.log((1-ys[1])/ys[1])-np.log((1-ys[0])/ys[0]))/(xs[1]-xs[0])
+            a=((1-ys[1])/ys[1])/np.exp(-xs[1]*b)
+            S=[a,b]
+        else:
+            #Find first guess a,b by finding points closest to 0.5 survival and near sigmoid limit
+            x=[0,0]
+            y=[0,0]
+            idx_05=(np.abs(ys-0.5)).argmin()
+            idx_limit=np.gradient(np.gradient(ys,xs),xs).argmax()
+            x[0]=xs[min(idx_05,idx_limit)]
+            y[0]=ys[min(idx_05,idx_limit)]
+            x[1]=xs[max(idx_05,idx_limit)]
+            y[1]=ys[max(idx_05,idx_limit)]
+            b_guess=-(np.log((1-ys[1])/ys[1])-np.log((1-ys[0])/ys[0]))/(xs[1]-xs[0])
+            a_guess=((1-ys[1])/ys[1])/np.exp(-xs[1]*b_guess)
+            S, pcov = curve_fit(self._cfunc, xs, ys, p0=[a_guess, b_guess], sigma=weights, method=fit_method)
         return S
         
-
+    def _cfunc(self, x,a,b):
+        return 1/(1+a*np.exp(-b*x))

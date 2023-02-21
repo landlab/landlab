@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import numpy.lib.recfunctions as nprf
 from sympy import symbols, diff, lambdify, log
+rng = np.random.default_rng()
 import warnings
 
 from landlab.components.genveg.species import Species
@@ -532,24 +533,20 @@ class PlantGrowth(Species):
         
     
     #Initial recode of simple mortality function        
-    def _mortality(self):
-        biomass=self._last_veg_biomass
-        type=self._last_veg_type
-        for item in self.vegparams:
-            mortdict=self.vegparams[item]['mortparams']
-            loop=0
-            for fact in mortdict['mort_factor']:
-                try:
-                    pred=self._grid["cell"][fact][:].copy()
-                    coeffs=mortdict['coeffs'][loop]
-                    surv=1/(1+coeffs[0]*np.exp(-coeffs[1]*pred))
-                    surv[np.isnan(surv)]=1.0
-                    surv[surv<0]=0
-                    rand_dum=np.random.randn(*self._last_veg_biomass.shape)
-                    survd=surv^(1/(mortdict['duration'][loop]/self.dt))
-                    risk=rand_dum<survd
-                    biomass[type==item]=biomass[type==item]*risk[type==item]
-                except KeyError:
-                    msg=(f'No data available for mortality factor {loop}')
-                    raise ValueError(msg)
-        return biomass
+    def _mortality(self, new_biomass):
+        mortdict=self.species_mort_params
+        for fact in mortdict['mort_factor']:
+            try:
+                pred=self._grid['cell'][fact][:].copy()
+                coeffs=mortdict[fact]['coeffs']
+                prob_survival=1/(1+coeffs[0]*np.exp(-coeffs[1]*pred))
+                prob_survival[np.isnan(prob_survival)]=1.0
+                prob_survival[prob_survival<0]=0
+                random_dum=rng(self.plants.shape)
+                prob_survival_daily=prob_survival**(1/(mortdict[fact]['duration']/self.dt.astype(int)))
+                daily_surival=random_dum<prob_survival_daily
+                new_biomass=new_biomass*daily_surival
+            except KeyError:
+                msg=(f'No data available for mortality factor {fact}')
+                raise ValueError(msg)
+        return new_biomass
