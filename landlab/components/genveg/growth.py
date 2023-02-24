@@ -411,8 +411,8 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def populate_biomass_allocation_array(self):
-        aleaf,b1leaf,b2leaf=self.species_grow_params['root_to_leaf_coeffs']
-        astem,b1stem,b2stem=self.species_grow_params['root_to_stem_coeffs']
+        root2leaf=self.species_grow_params['root_to_leaf']
+        root2stem=self.species_grow_params['root_to_stem']
         prior_root_biomass=np.arange(
             start=self.species_grow_params['plant_part_min']['root'],
             stop=self.species_grow_params['plant_part_max']['root']+0.1,
@@ -427,15 +427,15 @@ class PlantGrowth(Species):
 
         #set up sympy equations
         rootsym=symbols('rootsym')              
-        dleaf=diff(10**(aleaf+b1leaf*log(rootsym,10)+b2leaf*(log(rootsym,10))**2),rootsym)
-        dstem=diff(10**(astem+b1stem*log(rootsym,10)+b2stem*(log(rootsym,10))**2),rootsym)
+        dleaf=diff(10**(root2leaf['a']+root2leaf['b1']*log(rootsym,10)+root2leaf['b2']*(log(rootsym,10))**2),rootsym)
+        dstem=diff(10**(root2stem['a']+root2stem['b1']*log(rootsym,10)+root2stem['b2']*(log(rootsym,10))**2),rootsym)
         #Generate numpy expressions and solve for rate change in leaf and stem biomass per unit mass of root
         fleaf=lambdify(rootsym,dleaf,'numpy')
         fstem=lambdify(rootsym,dstem,'numpy')
         self.biomass_allocation_array['delta_leaf_unit_root']=fleaf(self.biomass_allocation_array['prior_root_biomass'])
         self.biomass_allocation_array['delta_stem_unit_root']=fstem(self.biomass_allocation_array['prior_root_biomass'])
-        _leaf_biomasss=10**(aleaf+b1leaf*np.log10(prior_root_biomass)+b2leaf*(np.log10(prior_root_biomass))**2)
-        _stem_biomass=10**(astem+b1stem*np.log10(prior_root_biomass)+b2stem*(np.log10(prior_root_biomass))**2)
+        _leaf_biomasss=10**(root2leaf['a']+root2leaf['b1']*np.log10(prior_root_biomass)+root2leaf['b2']*(np.log10(prior_root_biomass))**2)
+        _stem_biomass=10**(root2stem['a']+root2stem['b1']*np.log10(prior_root_biomass)+root2stem['b2']*(np.log10(prior_root_biomass))**2)
         self.biomass_allocation_array['total_biomass']=self.biomass_allocation_array['prior_root_biomass']+_leaf_biomasss+_stem_biomass
         self.biomass_allocation_array['leaf_mass_frac']=_leaf_biomasss/self.biomass_allocation_array['total_biomass']
         self.biomass_allocation_array['stem_mass_frac']=_stem_biomass/self.biomass_allocation_array['total_biomass']
@@ -471,11 +471,10 @@ class PlantGrowth(Species):
     
     def set_event_flags(self,_current_jday):
         durationdict=self.species_duration_params
-        dispersaldict=self.species_dispersal_params
         flags_to_test={
             '_in_growing_season': bool((_current_jday>durationdict['growing_season_start'])&(_current_jday<durationdict['growing_season_end'])),
             '_is_emergence_day': bool(_current_jday==durationdict['growing_season_start']),
-            '_in_reproductive_period': bool((_current_jday>dispersaldict['reproduction_start'])&(_current_jday<durationdict['senescence_start'])),
+            '_in_reproductive_period': bool((_current_jday>durationdict['reproduction_start'])&(_current_jday<durationdict['senescence_start'])),
             '_in_senescence_period': bool((_current_jday>=durationdict['senescence_start'])&(_current_jday<durationdict['growing_season_end'])),
             '_is_dormant_day': bool(_current_jday==durationdict['growing_season_end'])
         }

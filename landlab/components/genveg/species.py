@@ -21,7 +21,6 @@ class Species(object):
 
         self.validate_plant_factors(species_params['plant_factors'])
         self.validate_duration_params(species_params['duration_params'])        
-        self.validate_grow_params(species_params['grow_params'])
         
         self.species_plant_factors=species_params['plant_factors']
         self.species_duration_params=species_params['duration_params']
@@ -73,12 +72,6 @@ class Species(object):
             msg='Start of senescence must be within the growing season'
             raise ValueError(msg)
 
-    def validate_grow_params(self,grow_params):
-        multipart_vars=['respiration_coefficient', 'glucose_requirement','root_to_leaf_coeffs','root_to_stem_coeffs']
-        for vars in multipart_vars:
-            if len(grow_params[vars])<3:
-                msg='Must include respiration coefficients for at least roots, leaves, and stems'
-                raise ValueError(msg)
 
     def select_photosythesis_type(self, p_type):
         photosynthesis_options={
