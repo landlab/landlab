@@ -258,6 +258,7 @@ class PlantGrowth(Species):
             '_is_dormant_day':self.enter_dormancy
         }
         
+        _new_biomass=self._mortality(_new_biomass, event_flags['_in_growing_season'])
         #Run respiration and photosynthesis to determine carb gained
         _glu_req=np.zeros_like(_total_biomass)
         for part in self.all_parts:
@@ -270,7 +271,6 @@ class PlantGrowth(Species):
             #we will need to add a turnover rate estiamte. Not sure where to include it though.
             #delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
             _new_biomass=self.allocate_biomass_dynamically(delta_tot)
-            _new_biomass=self._mortality(_new_biomass)
         else:
             _new_biomass=self.allocate_biomass_proportionately(delta_biomass_respire)
         event_flags.pop('_in_growing_season')
@@ -531,22 +531,34 @@ class PlantGrowth(Species):
         
     
     #Initial recode of simple mortality function        
-    def _mortality(self, new_biomass):
+    def _mortality(self, new_biomass, _in_growing_season):
+        #set flags for three types of mortality periods
         mortdict=self.species_mort_params
+        mort_period_bool={
+                'during growing season': _in_growing_season==True,
+                'during dormant season': _in_growing_season==False,
+                'year-round': True
+            }
         factors=mortdict['mort_variable_name']
         for fact in factors:
-            try:
-                pred=self._grid['cell'][factors[fact]][new_biomass['cell_index']]
-                coeffs=mortdict['coeffs'][fact]
-                prob_survival=1/(1+coeffs[0]*np.exp(-coeffs[1]*pred))
-                prob_survival[np.isnan(prob_survival)]=1.0
-                prob_survival[prob_survival<0]=0
-                random_dum=rng.random(pred.shape)
-                prob_survival_daily=prob_survival**(1/(mortdict['duration'][fact]/self.dt.astype(int)))
-                daily_surival=random_dum<prob_survival_daily
-                for part in self.all_parts:
-                    new_biomass[part]=new_biomass[part]*daily_surival.astype(int)
-            except KeyError:
-                msg=(f'No data available for mortality factor {factors[fact]}')
-                raise ValueError(msg)
+            #Determine if mortality factor is applied
+            run_mort=mort_period_bool[mortdict['period'][fact]]
+            if not run_mort:
+                continue
+            else:
+                try:
+                    #Assign mortality predictor from grid to plant
+                    pred=self._grid['cell'][factors[fact]][new_biomass['cell_index']]
+                    coeffs=mortdict['coeffs'][fact]
+                    #Calculate the probability of survival and cap from 0-1
+                    prob_survival=1/(1+coeffs[0]*np.exp(-coeffs[1]*pred))
+                    prob_survival[np.isnan(prob_survival)]=1.0
+                    prob_survival[prob_survival<0]=0
+                    prob_survival_daily=prob_survival**(1/(mortdict['duration'][fact]/self.dt.astype(int)))             
+                    daily_surival=prob_survival_daily>rng.random(pred.shape) 
+                    for part in self.all_parts:
+                        new_biomass[part]=new_biomass[part]*daily_surival.astype(int)
+                except KeyError:
+                    msg=(f'No data available for mortality factor {factors[fact]}')
+                    raise ValueError(msg)
         return new_biomass

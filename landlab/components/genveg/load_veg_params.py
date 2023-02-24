@@ -196,7 +196,7 @@ class VegParams:
                     else:
                         raise ValueError('File extension not recognized')
                
-                self.vegparams=param_dict
+            self.vegparams=param_dict
  
         with open(outfile,'w') as outfile:
             yaml.dump(self.vegparams, outfile, default_flow_style=True)
@@ -221,8 +221,8 @@ class VegParams:
         weights[(uni_ys<0.02)|(uni_ys>0.98)]=500
         #Assume no mortality if not enough data provided for sigmoid curve estimate
         if len(uni_xs)<=1:
-            print(len(uni_xs))
             msg=('Not enough points to generate logistic function. Assuming zero mortality.')
+            print(msg)
             S=[0,0]
         #Direct solve for coefficients if only two points provided to prevent solver errors
         elif len(uni_xs)==2:
