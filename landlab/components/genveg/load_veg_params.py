@@ -179,13 +179,14 @@ class VegParams:
                             nested_dict['grow_params']['root_to_stem']=df_fill['root_to_stem']
 
                         #Calculate sigmoid mortality curves
+                        sigmoid_coeffs={}
                         for descriptor in nested_dict['mortality_params']['response']:
                             response=np.array(nested_dict['mortality_params']['response'][descriptor])
                             predictor=np.array(nested_dict['mortality_params']['predictor'][descriptor])
                             response=response[response!=-9999]
                             predictor=predictor[predictor!=-9999]
-                            nested_dict['mortality_params']['coeffs']=self._build_logistic(predictor,response,fit_method='dogbox')
-                            print(nested_dict)
+                            sigmoid_coeffs[descriptor]=self._build_logistic(predictor,response,fit_method='dogbox')
+                        nested_dict['mortality_params']['coeffs']=sigmoid_coeffs
                         #Add species nested dictionary to master parameter dictionary
                         param_dict[nested_dict['plant_factors']['species']]=nested_dict
                 else: 
