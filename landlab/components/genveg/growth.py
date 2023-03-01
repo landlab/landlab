@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import numpy.lib.recfunctions as nprf
 from sympy import symbols, diff, lambdify, log
+rng = np.random.default_rng()
 import warnings
 
 from landlab.components.genveg.species import Species
@@ -234,8 +235,6 @@ class PlantGrowth(Species):
         return self.species_grow_params
 
     def _grow(self, _current_jday):
-        print(_current_jday)
-        print(self.species_plant_factors['species'])
         #set up shorthand aliases
         growdict=self.species_grow_params
         _last_biomass=self.plants
@@ -244,8 +243,8 @@ class PlantGrowth(Species):
         filter=np.where(_total_biomass>0)
 
         #calculate variables needed to run plant processes
-        _par=self._grid['cell']['radiation__par_tot'][_last_biomass['cell_index']]
-        _temperature=self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
+        _par = self._grid['cell']['radiation__par_tot'][_last_biomass['cell_index']]
+        _temperature = self._grid['cell']['air__temperature_C'][_last_biomass['cell_index']]
         _declination = np.radians(23.45) * (np.cos(2 * np.pi / 365 * (172 - _current_jday)))
         _daylength = 24/np.pi*np.arccos(-(np.sin(_declination)*np.sin(self._lat_rad))/(np.cos(_declination)*np.cos(self._lat_rad)))
 
@@ -259,6 +258,7 @@ class PlantGrowth(Species):
             '_is_dormant_day':self.enter_dormancy
         }
         
+        _new_biomass=self._mortality(_new_biomass, event_flags['_in_growing_season'])
         #Run respiration and photosynthesis to determine carb gained
         _glu_req=np.zeros_like(_total_biomass)
         for part in self.all_parts:
@@ -410,8 +410,8 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def populate_biomass_allocation_array(self):
-        aleaf,b1leaf,b2leaf=self.species_grow_params['root_to_leaf_coeffs']
-        astem,b1stem,b2stem=self.species_grow_params['root_to_stem_coeffs']
+        root2leaf=self.species_grow_params['root_to_leaf']
+        root2stem=self.species_grow_params['root_to_stem']
         prior_root_biomass=np.arange(
             start=self.species_grow_params['plant_part_min']['root'],
             stop=self.species_grow_params['plant_part_max']['root']+0.1,
@@ -426,15 +426,15 @@ class PlantGrowth(Species):
 
         #set up sympy equations
         rootsym=symbols('rootsym')              
-        dleaf=diff(10**(aleaf+b1leaf*log(rootsym,10)+b2leaf*(log(rootsym,10))**2),rootsym)
-        dstem=diff(10**(astem+b1stem*log(rootsym,10)+b2stem*(log(rootsym,10))**2),rootsym)
+        dleaf=diff(10**(root2leaf['a']+root2leaf['b1']*log(rootsym,10)+root2leaf['b2']*(log(rootsym,10))**2),rootsym)
+        dstem=diff(10**(root2stem['a']+root2stem['b1']*log(rootsym,10)+root2stem['b2']*(log(rootsym,10))**2),rootsym)
         #Generate numpy expressions and solve for rate change in leaf and stem biomass per unit mass of root
         fleaf=lambdify(rootsym,dleaf,'numpy')
         fstem=lambdify(rootsym,dstem,'numpy')
         self.biomass_allocation_array['delta_leaf_unit_root']=fleaf(self.biomass_allocation_array['prior_root_biomass'])
         self.biomass_allocation_array['delta_stem_unit_root']=fstem(self.biomass_allocation_array['prior_root_biomass'])
-        _leaf_biomasss=10**(aleaf+b1leaf*np.log10(prior_root_biomass)+b2leaf*(np.log10(prior_root_biomass))**2)
-        _stem_biomass=10**(astem+b1stem*np.log10(prior_root_biomass)+b2stem*(np.log10(prior_root_biomass))**2)
+        _leaf_biomasss=10**(root2leaf['a']+root2leaf['b1']*np.log10(prior_root_biomass)+root2leaf['b2']*(np.log10(prior_root_biomass))**2)
+        _stem_biomass=10**(root2stem['a']+root2stem['b1']*np.log10(prior_root_biomass)+root2stem['b2']*(np.log10(prior_root_biomass))**2)
         self.biomass_allocation_array['total_biomass']=self.biomass_allocation_array['prior_root_biomass']+_leaf_biomasss+_stem_biomass
         self.biomass_allocation_array['leaf_mass_frac']=_leaf_biomasss/self.biomass_allocation_array['total_biomass']
         self.biomass_allocation_array['stem_mass_frac']=_stem_biomass/self.biomass_allocation_array['total_biomass']
@@ -470,11 +470,10 @@ class PlantGrowth(Species):
     
     def set_event_flags(self,_current_jday):
         durationdict=self.species_duration_params
-        dispersaldict=self.species_dispersal_params
         flags_to_test={
             '_in_growing_season': bool((_current_jday>durationdict['growing_season_start'])&(_current_jday<durationdict['growing_season_end'])),
             '_is_emergence_day': bool(_current_jday==durationdict['growing_season_start']),
-            '_in_reproductive_period': bool((_current_jday>dispersaldict['reproduction_start'])&(_current_jday<durationdict['senescence_start'])),
+            '_in_reproductive_period': bool((_current_jday>durationdict['reproduction_start'])&(_current_jday<durationdict['senescence_start'])),
             '_in_senescence_period': bool((_current_jday>=durationdict['senescence_start'])&(_current_jday<durationdict['growing_season_end'])),
             '_is_dormant_day': bool(_current_jday==durationdict['growing_season_end'])
         }
@@ -532,24 +531,34 @@ class PlantGrowth(Species):
         
     
     #Initial recode of simple mortality function        
-    def _mortality(self):
-        biomass=self._last_veg_biomass
-        type=self._last_veg_type
-        for item in self.vegparams:
-            mortdict=self.vegparams[item]['mortparams']
-            loop=0
-            for fact in mortdict['mort_factor']:
+    def _mortality(self, new_biomass, _in_growing_season):
+        #set flags for three types of mortality periods
+        mortdict=self.species_mort_params
+        mort_period_bool={
+                'during growing season': _in_growing_season==True,
+                'during dormant season': _in_growing_season==False,
+                'year-round': True
+            }
+        factors=mortdict['mort_variable_name']
+        for fact in factors:
+            #Determine if mortality factor is applied
+            run_mort=mort_period_bool[mortdict['period'][fact]]
+            if not run_mort:
+                continue
+            else:
                 try:
-                    pred=self._grid["cell"][fact][:].copy()
-                    coeffs=mortdict['coeffs'][loop]
-                    surv=1/(1+coeffs[0]*np.exp(-coeffs[1]*pred))
-                    surv[np.isnan(surv)]=1.0
-                    surv[surv<0]=0
-                    rand_dum=np.random.randn(*self._last_veg_biomass.shape)
-                    survd=surv^(1/(mortdict['duration'][loop]/self.dt))
-                    risk=rand_dum<survd
-                    biomass[type==item]=biomass[type==item]*risk[type==item]
+                    #Assign mortality predictor from grid to plant
+                    pred=self._grid['cell'][factors[fact]][new_biomass['cell_index']]
+                    coeffs=mortdict['coeffs'][fact]
+                    #Calculate the probability of survival and cap from 0-1
+                    prob_survival=1/(1+coeffs[0]*np.exp(-coeffs[1]*pred))
+                    prob_survival[np.isnan(prob_survival)]=1.0
+                    prob_survival[prob_survival<0]=0
+                    prob_survival_daily=prob_survival**(1/(mortdict['duration'][fact]/self.dt.astype(int)))             
+                    daily_surival=prob_survival_daily>rng.random(pred.shape) 
+                    for part in self.all_parts:
+                        new_biomass[part]=new_biomass[part]*daily_surival.astype(int)
                 except KeyError:
-                    msg=(f'No data available for mortality factor {loop}')
+                    msg=(f'No data available for mortality factor {factors[fact]}')
                     raise ValueError(msg)
-        return biomass
+        return new_biomass

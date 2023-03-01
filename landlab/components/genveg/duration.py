@@ -7,7 +7,10 @@ rng = np.random.default_rng()
 class Duration(object):
     def __init__(self, species_grow_params, green_parts):
         self.growdict=species_grow_params
-        self.allocation_coeffs=species_grow_params['root_to_leaf_coeffs']+species_grow_params['root_to_stem_coeffs']
+        self.allocation_coeffs={
+            'root_to_leaf':species_grow_params['root_to_leaf'],
+            'root_to_stem':species_grow_params['root_to_stem']
+        }
         self.green_parts=green_parts
 
     def set_new_biomass(self, plants):
@@ -48,14 +51,19 @@ class Duration(object):
         plant_part_biomass_log10 = np.empty([(3)])
 
         plant_part_biomass_log10[0]=10**root_part_log10+10**leaf_part_log10+10**stem_part_log10-total_biomass
-        plant_part_biomass_log10[1]=solver_coeffs[0]+solver_coeffs[1]*root_part_log10+solver_coeffs[2]*root_part_log10**2-leaf_part_log10
-        plant_part_biomass_log10[2]=solver_coeffs[3]+solver_coeffs[4]*root_part_log10+solver_coeffs[5]*root_part_log10**2-stem_part_log10
-        
+        plant_part_biomass_log10[1]=(solver_coeffs['root_to_leaf']['a']+
+            solver_coeffs['root_to_leaf']['b1']*root_part_log10+
+            solver_coeffs['root_to_leaf']['b2']*root_part_log10**2-leaf_part_log10
+            )
+        plant_part_biomass_log10[2]=(solver_coeffs['root_to_stem']['a']+
+            solver_coeffs['root_to_stem']['b1']*root_part_log10+
+            solver_coeffs['root_to_stem']['b2']*root_part_log10**2-stem_part_log10
+            )
         return plant_part_biomass_log10
 
 class Annual(Duration):
     def __init__(self, species_grow_params):
-        green_parts=('root','leaf','stem')
+        green_parts=('root','leaf','stem','storage')
         super().__init__(species_grow_params, green_parts)
 
     def senesce(self, plants):
