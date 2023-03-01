@@ -7,20 +7,11 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      # Check for updates to GitHub Actions every weekday
       interval: "daily"
-
-  - package-ecosystem: "pip"
-    directory: "docs/"
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: "pip"
-    directory: "notebooks/"
-    schedule:
-      interval: "daily"
+    labels: ["skip news", "dependencies"]
 
   - package-ecosystem: "pip"
     directory: "."
     schedule:
       interval: "daily"
+    labels: ["skip news", "dependencies"]
