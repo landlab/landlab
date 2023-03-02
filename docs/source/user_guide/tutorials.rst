@@ -23,6 +23,32 @@ If you're a newbie you might want to skip directly to a recommended syllabus
 for learning Landlab
 `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/syllabus.ipynb>`_.
 
+.. _tutorials_EarthscapeHub:
+
+Launch notebooks on EarthscapeHub
+---------------------------------
+
+Landlab notebooks can also be run on `EarthscapeHub`_.
+
+If you have a *lab* login for class,
+start the Landlab welcome notebook `here`__.
+Likewise,
+if you have a *jupyter* login associated with your CSDMS membership,
+start the welcome notebook `here`__.
+
+To directly access the recommended syllabus for learning Landlab
+on *lab*, start `here`__, and for *jupyter*, start `here`__.
+
+Note that software is grouped into kernels on EarthscapeHub.
+Landlab is installed in the kernel titled "CSDMS";
+select this kernel to run the tutorial notebooks.
+
+.. _EarthscapeHub: https://csdms.colorado.edu/wiki/JupyterHub
+.. __: https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb%3Fautodecode&branch=master
+.. __: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb%3Fautodecode&branch=master
+.. __: https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Ftutorials%2Fsyllabus.ipynb%3Fautodecode&branch=master
+.. __: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Ftutorials%2Fsyllabus.ipynb%3Fautodecode&branch=master
+
 Launch notebooks locally
 ------------------------
 
