@@ -120,7 +120,7 @@ The Landlab notebooks can also be run on `EarthscapeHub`_.
 Visit this link to learn how to sign up for a free account.
 Explore the example notebooks on the
 `lab`__ or `jupyter`__ Hub instance.
-Or, use the teaching notebooks on the 
+Or, use the teaching notebooks on the
 `lab`__ or `jupyter`__ Hub instance.
 Be sure to run all notebooks with the *CSDMS* kernel.
 
