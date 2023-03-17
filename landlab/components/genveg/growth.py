@@ -44,7 +44,7 @@ class PlantGrowth(Species):
         dt,
         rel_time,
         _current_jday,
-           species_params={
+        species_params={
             'col_params': {}, 
             'disp_params': {},
             'duration_params': {
@@ -188,7 +188,7 @@ class PlantGrowth(Species):
         _in_growing_season=event_flags.pop('_in_growing_season')
         self.plants=kwargs.get(
             'plant_array',
-            self._init_plants_from_grid(_in_growing_season)
+            self._init_plants_from_grid(_in_growing_season, kwargs['species_cover'])
         )
         self.call=[]
             
@@ -282,7 +282,7 @@ class PlantGrowth(Species):
 
         self.plants=_new_biomass
 
-    def _init_plants_from_grid(self,in_growing_season):
+    def _init_plants_from_grid(self,in_growing_season, species_cover):
         ###This method initializes the plants in the PlantGrowth class
         #from the vegetation fields stored on the grid. This method
         #is only called if no initial plant array is parameterized 
@@ -294,12 +294,19 @@ class PlantGrowth(Species):
             ('species','U10'),
             ('pid',int),
             ('cell_index',int),
+            ('dist2node', float),
+            ('azi2node', float),
             (('root','root_biomass'),float),
             (('leaf','leaf_biomass'),float),
             (('stem','stem_biomass'),float),
             (('storage','storage_biomass'), float),
             (('reproductive','repro_biomass'),float),
+            ('shoot_sys_width',float),
+            ('root_sys_width', float),
+            ('shoot_sys_height', float),
+            ('root_sys_depth', float),
             ('plant_age',float),
+            ('n_stems',int),
             ('item_id',int)
         ]
         pidval=0
@@ -307,13 +314,23 @@ class PlantGrowth(Species):
         #Loop through grid cells
         for cell_index in range(self._grid.number_of_cells):
             cell_plants=self._grid['cell']['vegetation__plant_species'][cell_index]
+            available_area=species_cover[cell_index]
             #Loop through list of plants stored on grid cell
             for plant in cell_plants:
                 if plant == self.species_plant_factors['species']:
-                    plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0))
+                    if available_area<self.species_morph_params['min_shoot_area']:
+                        continue
+                    plant_area=rng.uniform(low=self.species_morph_params['min_shoot_area'], high=min(self.species_morph_params['max_shoot_area'],available_area))
+                    shoot_width=(4*plant_area/np.pi)**0.5
+                    plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,shoot_width,0.0,0.0,0.0,0.0,0,0))
+                    available_area -= plant_area
                     pidval += 1
         plant_array=np.array(plantlist, dtype=dtypes)
         plant_array=self.set_initial_biomass(plant_array,in_growing_season)
+        plant_array['shoot_sys_height']=(plant_array['leaf']+plant_array['stem'])/(self.species_morph_params['biomass_packing']*np.pi/4*plant_array['shoot_sys_width']**2)
+        plant_array['root_sys_width']=self.calc_lateral_width(plant_array)*2
+        #This may need to change to be realistic
+        plant_array['n_stems']=rng.integers(low=1, high=self.species_morph_params['max_stems'], size=plant_array.size, endpoint=True)
         return plant_array
         
     def allocate_biomass_dynamically(self,delta_tot):

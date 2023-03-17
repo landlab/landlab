@@ -22,11 +22,14 @@ class Species(object):
         self.validate_plant_factors(species_params['plant_factors'])
         self.validate_duration_params(species_params['duration_params'])        
         
+        species_params=self.calculate_derived_params(species_params)
+
         self.species_plant_factors=species_params['plant_factors']
         self.species_duration_params=species_params['duration_params']
         self.species_grow_params=species_params['grow_params']
         self.species_dispersal_params=species_params['dispersal_params']  
-        self.species_mort_params=species_params['mortality_params'] 
+        self.species_mort_params=species_params['mortality_params']
+        self.species_morph_params=species_params['morph_params'] 
 
         self.habit=self.select_habit_class(
             self.species_plant_factors['growth_habit'], 
@@ -72,6 +75,26 @@ class Species(object):
             msg='Start of senescence must be within the growing season'
             raise ValueError(msg)
 
+    def calculate_derived_params(self, species_params):
+        species_params['max_crown_area']=np.pi/4*species_params['max_shoot_sys_width']**2
+        species_params['min_crown_area']=np.pi/4*species_params['min_shoot_sys_width']**2
+        species_params['max_root_area']=np.pi/4*species_params['max_root_sys_width']**2
+        species_params['min_root_area']=np.pi/4*species_params['min_root_sys_width']**2
+        species_params['max_vital_volume']=species_params['max_crown_area']*species_params['max_height']
+        
+        sum_vars=[
+            ['max_total_biomass','plant_part_max', self.all_parts],
+            ['max_growth_biomass','plant_part_max', self.growth_parts],
+            ['min_total_biomass', 'plant_part_min', self.all_parts],
+            ['min_growth_biomass','plant_part_min', self.growth_parts]
+        ]
+        for sum_var in sum_vars:
+            species_params[sum_var[0]]=0
+            for part in sum_var[2]:
+                species_params[sum_var[0]] += species_params['grow_params'][sum_var[1]][part]
+       
+        species_params['biomass_packing']=species_params['max_growth_biomass']/species_params['max_vital_volume']
+        return species_params
 
     def select_photosythesis_type(self, p_type):
         photosynthesis_options={
@@ -125,6 +148,11 @@ class Species(object):
     def branch(self):
         self.form.branch()
         
+    def calc_lateral_width(self, plants):
+        volume=self.shape.calc_volume(plants)
+        plants=self.habit.calc_lateral_width(volume, plants)
+        return plants
+    
     def disperse(self, plants):
         #decide how to parameterize reproductive schedule, make repro event
         #right now we are just taking 20% of available storage and moving to 
@@ -165,7 +193,6 @@ class Species(object):
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
-        plants=self.habit.duration.set_initial_biomass(plants,in_growing_season)
+        plants=self.habit.duration.set_initial_biomass(plants, self.species_morph_params, in_growing_season)
         return plants
 
-        

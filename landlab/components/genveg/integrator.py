@@ -12,6 +12,7 @@ from scipy.optimize import fsolve
 from .growth import PlantGrowth
 import warnings
 from landlab.data_record import DataRecord
+rng = np.random.default_rng()
 
 class GenVeg(Component, PlantGrowth):
     """
@@ -97,38 +98,63 @@ class GenVeg(Component, PlantGrowth):
         self.current_day=current_day
         self.start_date=current_day
         self.time_ind=0
+        self.neighbors=self._grid.looped_neighbors_at_cell()
+        self.nodes=self._grid.node_at_cell
         _current_jday=self._calc_current_jday()
         rel_time=self._calc_rel_time()
 
+    ##Need to modify to allow user to input plant array for hotstarting
     ##Instantiate a plantgrowth object and summarize number of plants and biomass per cell
         #Create empty array to store PlantGrowth objects
         plantspecies=[]
         _ = self._grid.add_zeros('vegetation__total_biomass',at='cell')
         _ = self._grid.add_zeros('vegetation__n_plants',at='cell')
+        _ = self._grid.add_field('vegetation__percent_cover', rng.uniform(low=0, high=1,size=self._grid.number_of_cells), at='cell', units='', clobber=True )
         tot_biomass_all=self._grid.at_cell['vegetation__total_biomass']
         tot_plant_all=self._grid.at_cell['vegetation__n_plants']
-
+        available_cover=self._grid.at_cell['vegetation__percent_cover']
 
         #for each species in the parameters file
         for species in vegparams:
             if species=='null':
                 continue
+            species_cover=rng.uniform(low=np.zeros_like(available_cover), high=available_cover, size=available_cover.size)
             species_dict=vegparams[species]
-            species_obj=PlantGrowth(self._grid,self.dt, _current_jday, rel_time, species_params=species_dict)
+            species_obj=PlantGrowth(self._grid,self.dt, _current_jday, rel_time, species_dict, species_cover=species_cover)
             array_out=species_obj.species_plants()
             plantspecies.append(species_obj)
             #Summarize biomass and number of plants across grid
             tot_bio_species=array_out['root_biomass']+array_out['leaf_biomass']+array_out['stem_biomass']
+            abg_area=np.pi/4*array_out['shoot_sys_width']**2
             cell_biomass=np.bincount(array_out['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
             cell_plant_count=np.bincount(array_out['cell_index'], minlength=self._grid.number_of_cells)
+            plant_area=np.bincount(array_out['cell_index'], weights=abg_area, minlength=self._grid.number_of_cells)
+            available_cover -= plant_area/self._grid.area_of_cell
             tot_biomass_all=tot_biomass_all+cell_biomass
             tot_plant_all=tot_plant_all+cell_plant_count
         
         self._grid.at_cell['vegetation__total_biomass']=tot_biomass_all
         self._grid.at_cell['vegetation__n_plants']=tot_plant_all
+        self._grid.at_cell['vegetation__percent_cover']
+
+        
+        cell_area=self._grid['area_of_cell']
+        abg_area_occ=np.zeros((self._grid['number_of_cells'],len(plantspecies)))
+        blg_area_occ=np.zeros((self._grid['number_of_cells'],len(plantspecies)))
+        for idx, species_obj in enumerate(plantspecies):
+            plant_array=species_obj.species_plants()
+            abg_area = np.pi/4*plant_array['shoot_sys_width']**2
+            blg_area = np.pi/4*plant_array['root_sys_width']**2
+            abg_area_occ+=np.bincount(plant_array['cell_index'],weights=abg_area, minlength=self._grid.number_of_cells)
+            blg_area_occ+=np.bincount(plant_array['cell_index'],weights=blg_area, minlength=self._grid.number_of_cells)
+
+        avail_abg_area=cell_area-abg_area_occ
+        avail_blg_area=cell_area-blg_area_occ
+
+            
+            #add location information for each plant
 
         self.plant_species=plantspecies
-
 
     def run_one_step(self):
         _current_jday=self._calc_current_jday()

@@ -106,7 +106,7 @@ class Perennial(Duration):
         print('I kill green parts at end of growing season')
         return plants
     
-    def set_initial_biomass_all_parts(self, plants, in_growing_season):
+    def set_initial_biomass_all_parts(self, plants, morph_params, in_growing_season):
         plants['storage_biomass']=rng.uniform(low=self.growdict['plant_part_min']['storage'],high=self.growdict['plant_part_max']['storage'],size=plants.size)
         if in_growing_season:
             plants['plant_age']=rng.uniform(low=0, high=self.max_age, size=plants.size)
@@ -114,8 +114,9 @@ class Perennial(Duration):
                 plants['repro_biomass']=rng.uniform(low=self.growdict['plant_part_min']['reproductive'], high=self.growdict['plant_part_max']['reproductive'], size=plants.size)
         else:
             plants['repro_biomass']=np.full_like(plants['root_biomass'],self.growdict['plant_part_min']['reproductive'])
-        total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'], high=self.growdict['growth_max_biomass'],size=plants.size)
-        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal, self.allocation_coeffs) 
+        crown_area=np.pi/4*plants['shoot_sys_width']**2
+        log_total_biomass_ideal=(np.log10(crown_area)/np.log10(morph_params['max_crown_area']))*np.log10(self.growdict['max_growth_biomass'])
+        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(10**log_total_biomass_ideal, self.allocation_coeffs) 
         return plants
 
 class Evergreen(Perennial):
