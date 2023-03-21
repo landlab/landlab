@@ -191,7 +191,7 @@ matplotlib-inline==0.1.6
     # via
     #   ipykernel
     #   ipython
-mesa==1.2.0
+mesa==1.2.1
     # via -r notebooks/requirements.in
 mistune==2.0.5
     # via nbconvert
