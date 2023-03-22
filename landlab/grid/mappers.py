@@ -1504,15 +1504,13 @@ def map_node_to_link_linear_upwind(grid, v, u):
     v'(k) = v(t(k)) where u(k) > 0,
     v'(k) = v(h(k)) where u(k) <= 0
 
-    Here's a sketch of nodes and links in the middle row.
-
     As an example, consider 3x5 raster grid with the following values
     at the nodes in the central row:
 
     0---1---2---3---4
 
-    Consider a uniform velocity value u = 1 at the links. In this case,
-    the mapped link values should be:
+    Consider a uniform velocity value u = 1 at the horizontal links.
+    The mapped link values should be:
 
     .-0-.-1-.-2-.-3-.
 
@@ -1541,4 +1539,47 @@ def map_node_to_link_linear_upwind(grid, v, u):
     vlink[u_is_positive] = v[grid.node_at_link_tail[u_is_positive]]
     vlink[~u_is_positive] = v[grid.node_at_link_head[~u_is_positive]]
     return vlink
+
+
+def map_node_to_link_lax_wendroff(grid, v, c):
+    """Assign to each link a weighted combination of values v at nodes
+    using the Lax-Wendroff method for upwind weighting.
+
+    c is a scalar or link vector that gives the link-parallel signed
+    Courant number. Where c is positive, velocity is in the direction of
+    the link; where negative, velocity is in the opposite direction.
+
+    As an example, consider 3x5 raster grid with the following values
+    at the nodes in the central row:
+
+    0---1---2---3---4
+
+    Consider a uniform Courant value c = +0.2 at the horizontal links.
+    The mapped link values should be:
+
+    .-0.4-.-1.4-.-2.4-.-3.4-.
+
+    Values at links when c = -0.2:
+
+    .-0.6-.-1.6-.-2.6-.-3.6-.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> v = grid.add_zeros('node_value', at='node')
+    >>> v[5:10] = np.arange(5)
+    >>> c = grid.add_zeros('courant_number', at='link')
+    >>> c[grid.horizontal_links] = 0.2
+    >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, c)
+    >>> val_at_link[9:13]
+    array([ 0.4,  1.4,  2.4,  3.4])
+    >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, -c)
+    >>> val_at_link[9:13]
+    array([ 0.6,  1.6,  2.6,  3.6])
+    """
+    return (0.5 * ((1 + c) * v[grid.node_at_link_tail] +
+                   (1 - c) * v[grid.node_at_link_head]))
+
 
