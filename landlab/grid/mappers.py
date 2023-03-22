@@ -1579,7 +1579,6 @@ def map_node_to_link_lax_wendroff(grid, v, c):
     >>> val_at_link[9:13]
     array([ 0.6,  1.6,  2.6,  3.6])
     """
-    return (0.5 * ((1 + c) * v[grid.node_at_link_tail] +
-                   (1 - c) * v[grid.node_at_link_head]))
-
-
+    return 0.5 * (
+        (1 + c) * v[grid.node_at_link_tail] + (1 - c) * v[grid.node_at_link_head]
+    )
