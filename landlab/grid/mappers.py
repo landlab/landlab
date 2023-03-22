@@ -23,6 +23,8 @@ Grid mapping functions
     ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
     ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
     ~landlab.grid.mappers.map_link_vector_components_to_node
+    ~landlab.grid.mappers.map_node_to_link_linear_upwind
+    ~landlab.grid.mappers.map_node_to_link_lax_wendroff
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.
@@ -1489,3 +1491,54 @@ def map_link_vector_components_to_node(grid, data_at_link):
         return map_link_vector_components_to_node_raster(grid, data_at_link)
     else:
         raise NotImplementedError("Only available for HexModelGrid")
+
+
+def map_node_to_link_linear_upwind(grid, v, u):
+    """
+    Assign to each link the value v associated with whichever of its two
+    nodes lies upstream, according to link value u.
+
+    Consider a link k with tail node t(k) and head node t(h). Nodes have
+    value v(n). We want to assign a value to links, v'(k). The assignment is:
+
+    v'(k) = v(t(k)) where u(k) > 0,
+    v'(k) = v(h(k)) where u(k) <= 0
+
+    Here's a sketch of nodes and links in the middle row.
+
+    As an example, consider 3x5 raster grid with the following values
+    at the nodes in the central row:
+
+    0---1---2---3---4
+
+    Consider a uniform velocity value u = 1 at the links. In this case,
+    the mapped link values should be:
+
+    .-0-.-1-.-2-.-3-.
+
+    If u < 0, the link values should be:
+
+    .-1-.-2-.-3-.-4-.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> v = grid.add_zeros('node_value', at='node')
+    >>> v[5:10] = np.arange(5)
+    >>> u = grid.add_zeros('advection_speed', at='link')
+    >>> u[grid.horizontal_links] = 1.0
+    >>> val_at_link = map_node_to_link_linear_upwind(grid, v, u)
+    >>> val_at_link[9:13]
+    array([ 0.,  1.,  2.,  3.])
+    >>> val_at_link = map_node_to_link_linear_upwind(grid, v, -u)
+    >>> val_at_link[9:13]
+    array([ 1.,  2.,  3.,  4.])
+    """
+    u_is_positive = u > 0.0
+    vlink = np.zeros(grid.number_of_links)
+    vlink[u_is_positive] = v[grid.node_at_link_tail[u_is_positive]]
+    vlink[~u_is_positive] = v[grid.node_at_link_head[~u_is_positive]]
+    return vlink
+
