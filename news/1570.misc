@@ -1,1 +1,2 @@
-Add two new mapping functions to assist numerical advection schemes: map_node_to_link_linear_upwind and map_node_to_link_lax_wendroff
+Added two new mapping functions to assist numerical advection schemes:
+:func:`~.map_node_to_link_linear_upwind` and :func:`~.map_node_to_link_lax_wendroff`.
