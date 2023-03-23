@@ -97,5 +97,5 @@ six==1.16.0
     #   python-dateutil
 statsmodels==0.13.5
     # via -r requirements.in
-xarray==2023.2.0
+xarray==2023.3.0
     # via -r requirements.in
