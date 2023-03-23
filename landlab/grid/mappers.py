@@ -23,15 +23,17 @@ Grid mapping functions
     ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
     ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
     ~landlab.grid.mappers.map_link_vector_components_to_node
+    ~landlab.grid.mappers.map_node_to_link_linear_upwind
+    ~landlab.grid.mappers.map_node_to_link_lax_wendroff
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.
 
-Below, the numbering scheme for links in `RasterModelGrid` is illustrated
+Below, the numbering scheme for links in :class:`~.RasterModelGrid` is illustrated
 with an example of a four-row by five column grid (4x5). In this example,
-each * (or X) is a node, the lines represent links, and the ^ and > symbols
+each ``*`` (or ``X``) is a node, the lines represent links, and the ``^`` and ``>`` symbols
 indicate the direction and *head* of each link. Link heads in the
-`RasterModelGrid` always point in the cardinal directions North (N) or East
+:class:`~.RasterModelGrid` always point in the cardinal directions North (N) or East
 (E).::
 
     *--27-->*--28-->*--29-->*--30-->*
@@ -48,9 +50,9 @@ indicate the direction and *head* of each link. Link heads in the
     |       |       |       |       |
     *--0--->*---1-->*--2--->*---3-->*
 
-For example, node 'X' has four link-neighbors. From south and going clockwise,
-these neighbors are [6, 10, 15, 11]. Both link 6 and link 10 have node 'X' as
-their 'head' node, while links 15 and 11 have node 'X' as their tail node.
+For example, node ``X`` has four link-neighbors. From south and going clockwise,
+these neighbors are ``[6, 10, 15, 11]``. Both link 6 and link 10 have node ``X`` as
+their *head* node, while links 15 and 11 have node ``X`` as their *tail* node.
 """
 
 import numpy as np
@@ -1489,3 +1491,128 @@ def map_link_vector_components_to_node(grid, data_at_link):
         return map_link_vector_components_to_node_raster(grid, data_at_link)
     else:
         raise NotImplementedError("Only available for HexModelGrid")
+
+
+def map_node_to_link_linear_upwind(grid, v, u, out=None):
+    """Assign values to links from upstream nodes.
+
+    Assign to each link the value `v` associated with whichever of its two
+    nodes lies upstream, according to link value `u`.
+
+    Consider a link k with tail node `t(k)` and head node `t(h)`. Nodes have
+    value `v(n)`. We want to assign a value to links, `v'(k)`. The assignment is::
+
+        v'(k) = v(t(k)) where u(k) > 0,
+        v'(k) = v(h(k)) where u(k) <= 0
+
+    As an example, consider 3x5 raster grid with the following values
+    at the nodes in the central row::
+
+        0---1---2---3---4
+
+    Consider a uniform velocity value `u = 1` at the horizontal links.
+    The mapped link values should be::
+
+        .-0-.-1-.-2-.-3-.
+
+    If `u < 0`, the link values should be::
+
+        .-1-.-2-.-3-.-4-.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A *Landlab* grid.
+    v : (n_nodes,), ndarray
+        Values at grid nodes.
+    u : (n_links,) ndarray
+        Values at grid links.
+    out : (n_links,) ndarray, optional
+        If provided, place calculated values in this array. Otherwise, create a
+        new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> v = grid.add_zeros("node_value", at="node")
+    >>> v[5:10] = np.arange(5)
+    >>> u = grid.add_zeros("advection_speed", at="link")
+    >>> u[grid.horizontal_links] = 1.0
+    >>> val_at_link = map_node_to_link_linear_upwind(grid, v, u)
+    >>> val_at_link[9:13]
+    array([ 0.,  1.,  2.,  3.])
+    >>> val_at_link = map_node_to_link_linear_upwind(grid, v, -u)
+    >>> val_at_link[9:13]
+    array([ 1.,  2.,  3.,  4.])
+    """
+    if out is None:
+        out = np.empty_like(v, shape=(grid.number_of_links,))
+
+    u_is_positive = u > 0.0
+    out[u_is_positive] = v[grid.node_at_link_tail[u_is_positive]]
+    out[~u_is_positive] = v[grid.node_at_link_head[~u_is_positive]]
+    return out
+
+
+def map_node_to_link_lax_wendroff(grid, v, c, out=None):
+    """Assign values to links using a weighted combination of node values.
+
+    Assign to each link a weighted combination of values `v` at nodes
+    using the Lax-Wendroff method for upwind weighting.
+
+    `c` is a scalar or link vector that gives the link-parallel signed
+    Courant number. Where `c` is positive, velocity is in the direction of
+    the link; where negative, velocity is in the opposite direction.
+
+    As an example, consider 3x5 raster grid with the following values
+    at the nodes in the central row::
+
+        0---1---2---3---4
+
+    Consider a uniform Courant value `c = +0.2` at the horizontal links.
+    The mapped link values should be::
+
+        .-0.4-.-1.4-.-2.4-.-3.4-.
+
+    Values at links when `c = -0.2`::
+
+        .-0.6-.-1.6-.-2.6-.-3.6-.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A *Landlab* grid.
+    v : (n_nodes,) ndarray
+        Values at grid nodes.
+    c : float or (n_links,) ndarray
+        Courant number to use at links.
+    out : (n_links,) ndarray, optional
+        If provided, place calculated values in this array. Otherwise, create a
+        new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> v = grid.add_zeros("node_value", at="node")
+    >>> v[5:10] = np.arange(5)
+    >>> c = grid.add_zeros("courant_number", at="link")
+    >>> c[grid.horizontal_links] = 0.2
+    >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, c)
+    >>> val_at_link[9:13]
+    array([ 0.4,  1.4,  2.4,  3.4])
+    >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, -c)
+    >>> val_at_link[9:13]
+    array([ 0.6,  1.6,  2.6,  3.6])
+    """
+    if out is None:
+        out = np.empty_like(v, shape=(grid.number_of_links,))
+
+    out[:] = 0.5 * (
+        (1 + c) * v[grid.node_at_link_tail] + (1 - c) * v[grid.node_at_link_head]
+    )
+
+    return out
