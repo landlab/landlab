@@ -132,6 +132,9 @@ pygments_dark_style = "monokai"
 autoclass_content = "both"
 
 
+# The default highlight language
+highlight_language = "none"
+
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
