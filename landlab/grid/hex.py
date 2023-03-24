@@ -18,7 +18,7 @@ from .base import ModelGrid
 
 
 class LinkOrientation(IntFlag):
-    """Define the link orientations"""
+    """Define the link orientations."""
 
     E = 1
     ENE = 2
@@ -265,7 +265,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
     @property
     def orientation_of_link(self):
-        """Return (n_links,) array of link orientation codes.
+        """Return array of link orientation codes (one value per link).
+
+        Orientation codes are defined by LinkOrientation class above;
+        1 = E, 2 = ENE, 4 = NNE, 8 = N, 16 = NNW, 32 = ESE (using powers
+        of 2 allows for future applications that might want additive
+        combinations).
 
         Examples
         --------
