@@ -302,28 +302,28 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         For instance, consider a 3x3 hex, in which link IDs are as shown::
 
-               .---17--.---18--.
-              / \     / \     / \
+               o---17--o---18--o
+              / .     / .     / .
              11 12   13  14  15  16
-            /     \ /     \ /     \
-           .---8---.---9---.---10--.
-            \     / \     / \     /
+            /     . /     . /     .
+           o---8---o---9---o---10--o
+            .     / .     / .     /
              2   3   4   5   6   7
-              \ /     \ /     \ /
-               .---0---.---1---.
+              . /     . /     . /
+               o---0---o---1---o
 
         Here's a mapping of the tail-wise and head-wise links, where
         there are valid parallel links::
 
-               .-------.-------.
-              / \     / \     / \
-             /   \   /   \   /   \
-            /     4 3     6 5     \
-           .-----9-.-8--10-.-9-----.
-            \    13 12   15 14    /
-             \   /   \   /   \   /
-              \ /     \ /     \ /
-               .-------.-------.
+               o-------o-------o
+              / .     / .     / .
+             /   .   /   .   /   .
+            /     4 3     6 5     .
+           o-----9-o-8--10-o-9-----o
+            .    13 12   15 14    /
+             .   /   .   /   .   /
+              . /     . /     . /
+               o-------o-------o
 
         The corresponding data structure would be mostly filled with -1, but
         for the 11 active links, it would look like:
