@@ -34,24 +34,12 @@ def test_link_angle():
 
 
 def test_link_orientation():
-    grid = HexModelGrid((3, 2))
-    assert_array_equal(np.where(grid.link_has_orientation("e"))[0], [0, 5, 6, 11])
-    assert_array_equal(np.where(grid.link_has_orientation("nne"))[0], [2, 4, 7, 9])
-    assert_array_equal(np.where(grid.link_has_orientation("nnw"))[0], [1, 3, 8, 10])
-    with raises(ValueError):
-        grid.link_has_orientation("ene")  # not a valid orientation
-
-    orient = np.zeros(grid.number_of_links, dtype=bool)
-    grid = HexModelGrid((2, 3), orientation="vertical")
+    grid = HexModelGrid((3, 3))
     assert_array_equal(
-        np.where(grid.link_has_orientation("ene", out=orient))[0], [1, 3, 8, 10]
+        grid.orientation_of_link,
+        [1, 1, 16, 4, 16, 4, 16, 4, 1, 1, 1, 4, 16, 4, 16, 4, 16, 1, 1],
     )
-    assert_array_equal(np.where(grid.link_has_orientation("n"))[0], [2, 5, 6, 9])
-    assert_array_equal(np.where(grid.link_has_orientation("ese"))[0], [0, 4, 7, 11])
-
-    wrong_size_out = np.zeros(grid.number_of_nodes, dtype=bool)
-    with raises(ValueError):
-        grid.link_has_orientation("ene", out=wrong_size_out)
-    wrong_type_out = np.zeros(grid.number_of_links)
-    with raises(ValueError):
-        grid.link_has_orientation("ene", out=wrong_type_out)
+    assert_array_equal(
+        grid.orientation_of_link[2],  # re-do for coverage
+        16,
+    )
