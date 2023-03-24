@@ -262,46 +262,32 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
         return (row, col)
 
-    def link_has_orientation(self, link_orientation, out=None):
-        """Return True where links have given orientation.
-
-        Parameters
-        ----------
-        link_orientation : str
-            One of: "e", "ene", "nne", "n", "nnw", or "ese"
-        out : (optional) (n_links,) ndarray of bool
-            Array in which to place output
+    @property
+    def orientation_of_link(self):
+        """Return (n_links,) array of link orientation codes.
 
         Examples
         --------
         >>> from landlab import HexModelGrid
         >>> import numpy as np
         >>> grid = HexModelGrid((3, 2))
-        >>> np.where(grid.link_has_orientation("e"))[0]
-        array([ 0,  5,  6, 11])
+        >>> grid.orientation_of_link
+        array([ 1, 16,  4, 16,  4,  1,  1,  4, 16,  4, 16,  1])
+        >>> grid = HexModelGrid((2, 3), orientation="vertical")
+        >>> grid.orientation_of_link
+        array([32,  2,  8,  2, 32,  8,  8, 32,  2,  8,  2, 32])
         """
-        link_orientation = link_orientation.lower()
-        link_orientation_codes = {
-            "horizontal": ["e", "nne", "nnw"],
-            "vertical": ["ene", "n", "ese"],
-        }
-        if link_orientation not in link_orientation_codes[self.orientation]:
-            raise ValueError(
-                "Possible orientations are: "
-                + str(link_orientation_codes[self.orientation])
-            )
-        if out is None:
-            has_orientation = numpy.zeros(self.number_of_links, dtype=bool)
-        elif (
-            isinstance(out, numpy.ndarray)
-            and isinstance(out[0], numpy.bool_)
-            and len(out) == self.number_of_links
-        ):
-            has_orientation = out
-        else:
-            raise ValueError(
-                "out must be boolean array with size = number of grid links"
-            )
+        try:
+            orientation_of_link = self._orientation_of_link
+        except AttributeError:
+            orientation_of_link = self._setup_orientation_of_link()
+        return orientation_of_link
+
+    def _setup_orientation_of_link(self):
+        """Set up array with link orientation codes.
+
+        Orientation codes are contained in the LinkOrientation class.
+        """
         dx = (
             self.x_of_node[self.node_at_link_head]
             - self.x_of_node[self.node_at_link_tail]
@@ -310,18 +296,11 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             self.y_of_node[self.node_at_link_head]
             - self.y_of_node[self.node_at_link_tail]
         )
-        half_spacing = 0.5 * self.spacing
-        tiny = 0.001 * self.spacing
-        if link_orientation == "e" or link_orientation == "ene":
-            has_orientation[:] = numpy.logical_and(dy > -tiny, dx > half_spacing)
-        elif link_orientation == "nne" or link_orientation == "n":
-            has_orientation[:] = numpy.logical_and(dx > -tiny, dy > half_spacing)
-        elif link_orientation == "nnw" or link_orientation == "ese":
-            has_orientation[:] = numpy.logical_and(
-                numpy.sign(dx) != numpy.sign(dy),
-                numpy.minimum(numpy.abs(dx), numpy.abs(dy)) > 0.5 * half_spacing,
-            )
-        return has_orientation
+        code = numpy.round(6 * numpy.arctan2(dy, dx) / numpy.pi).astype(int)
+        code[code < 0] = 5
+        code[:] = 2**code
+        self._orientation_of_link = code
+        return self._orientation_of_link
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """Sets up necessary information for making plots of the hexagonal grid
