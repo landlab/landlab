@@ -7,9 +7,10 @@ semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
 
+from enum import IntFlag
+
 import numpy
 import xarray as xr
-from enum import IntFlag
 
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
