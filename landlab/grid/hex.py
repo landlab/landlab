@@ -289,6 +289,105 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             orientation_of_link = self._setup_orientation_of_link()
         return orientation_of_link
 
+    @property
+    def parallel_links_at_link(self):
+        """
+        Return IDs of links of the same orientation that are connected to
+        each given link's tail or head node.
+
+        The data structure is a # of links x 2 array containing the IDs of the
+        "tail-wise" (connected to tail node) and "head-wise" (connected to head node)
+        links, or -1 if the link is inactive (e.g., on the perimeter) or it has no
+        attached parallel neighbor in the given direction.
+
+        For instance, consider a 3x3 hex, in which link IDs are as shown::
+
+               .---17--.---18--.
+              / \     / \     / \
+             11 12   13  14  15  16
+            /     \ /     \ /     \
+           .---8---.---9---.---10--.
+            \     / \     / \     /
+             2   3   4   5   6   7
+              \ /     \ /     \ /
+               .---0---.---1---.
+
+        Here's a mapping of the tail-wise and head-wise links, where
+        there are valid parallel links::
+
+               .-------.-------.
+              / \     / \     / \
+             /   \   /   \   /   \
+            /     4 3     6 5     \
+           .-----9-.-8--10-.-9-----.
+            \    13 12   15 14    /
+             \   /   \   /   \   /
+              \ /     \ /     \ /
+               .-------.-------.
+
+        The corresponding data structure would be mostly filled with -1, but
+        for the 11 active links, it would look like:
+
+        3: [[-1, 13],
+        4:  [-1, 12],
+        5:  [-1, 15],
+        6:  [-1, 14],
+        8:  [-1,  9],
+        9:  [ 8, 10],
+        10: [ 9, -1],
+        12: [ 4, -1],
+        13: [ 3, -1],
+        14: [ 6, -1],
+        15: [ 5, -1]]
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid((3, 3))
+        >>> pll = grid.parallel_links_at_link
+        >>> pll[3:16]
+        array([[-1, 13],
+               [-1, 12],
+               [-1, 15],
+               [-1, 14],
+               [-1, -1],
+               [-1,  9],
+               [ 8, 10],
+               [ 9, -1],
+               [-1, -1],
+               [ 4, -1],
+               [ 3, -1],
+               [ 6, -1],
+               [ 5, -1]])
+        """
+        try:
+            pll = self._parallel_links_at_link
+        except AttributeError:
+            pll = self._setup_parallel_links_at_link()
+        return pll
+
+    def _setup_parallel_links_at_link(self):
+        """
+        For a regular grid, set up a data structure mapping each link to its parallel
+        and connected neighbors.
+
+        (For example and doctest, see `parallel_links_at_link`)
+        """
+        pll = -numpy.ones((self.number_of_links, 2), dtype=int)
+        cores = self.core_nodes
+        if self.orientation == "horizontal":
+            ht_index = 0
+        else:
+            ht_index = 1
+        pll[self.links_at_node[cores, 0], 0] = self.links_at_node[cores, 3]
+        pll[self.links_at_node[cores, 1], 0] = self.links_at_node[cores, 4]
+        pll[self.links_at_node[cores, 2], ht_index] = self.links_at_node[cores, 5]
+        pll[self.links_at_node[cores, 3], 1] = self.links_at_node[cores, 0]
+        pll[self.links_at_node[cores, 4], 1] = self.links_at_node[cores, 1]
+        pll[self.links_at_node[cores, 5], 1 - ht_index] = self.links_at_node[cores, 2]
+        self._parallel_links_at_link = pll
+        return self._parallel_links_at_link
+
     def _setup_orientation_of_link(self):
         """Set up array with link orientation codes.
 
