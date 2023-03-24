@@ -9,10 +9,22 @@ files `docs/text_for_[gridfile].py.txt`.
 
 import numpy
 import xarray as xr
+from enum import IntFlag
 
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
 from .base import ModelGrid
+
+
+class LinkOrientation(IntFlag):
+    """Define the link orientations"""
+
+    E = 1
+    ENE = 2
+    NNE = 4
+    N = 8
+    NNW = 16
+    ESE = 32
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
