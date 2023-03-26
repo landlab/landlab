@@ -2,6 +2,9 @@
 """
 Solve advection numerically using Total Variation Diminishing method."""
 
+import numpy as np
+from landlab import Component
+
 
 def find_upwind_link_at_link(grid, u):
     """
@@ -50,13 +53,14 @@ def find_upwind_link_at_link(grid, u):
     Examples
     --------
     >>> import numpy as np
+    >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 4))
     >>> uwl = find_upwind_link_at_link(grid, 1.0)
     >>> uwl[grid.active_links]
-    [-1, -1, -1,  7,  8,  4,  5]
+    array([-1, -1, -1,  7,  8,  4,  5])
     >>> uwl = find_upwind_link_at_link(grid, -1.0)
     >>> uwl[grid.active_links]
-    [11, 12,  8,  9, -1, -1, -1]
+    array([11, 12,  8,  9, -1, -1, -1])
     >>> u = np.zeros(grid.number_of_links)
     >>> u[4:6] = -1
     >>> u[7] = -1
@@ -64,7 +68,7 @@ def find_upwind_link_at_link(grid, u):
     >>> u[11:13] = 1
     >>> uwl = find_upwind_link_at_link(grid, u)
     >>> uwl[grid.active_links]
-    [11, 12,  8,  9,  8,  4,  5]
+    array([11, 12,  8,  7,  8,  4,  5])
     """
     try:
         pll = grid.parallel_links_at_link
