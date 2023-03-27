@@ -85,6 +85,34 @@ def find_upwind_link_at_link(grid, u):
     return uwl
 
 
+def upwind_to_local_grad_ratio(grid, v, uwll, out=None):
+    """
+    Calculate and return ratio of upwind to local gradient in v.
+
+    Gradients are defined on links. Upwind is pre-determined via
+    parameter uwll (upwind link at link), which can be obtained
+    using the find_upwind_link_at_link function.
+
+    In Total Variation Diminishing (TVD) numerical schemes, this
+    ratio is input to a flux limiter to calculate the weighting factor
+    for higher-order vs. lower-order terms.
+    """
+    if out is None:
+        out = np.ones(grid.number_of_links)
+    else:
+        out[:] = 1.0
+
+    h = grid.node_at_link_head
+    t = grid.node_at_link_tail
+    local_diff = v[h] - v[t]
+    upwind_exists_and_nonzero_local = np.logical_and(uwll != -1, local_diff != 0.0)
+    out[upwind_exists_and_nonzero_local] = (
+        local_diff[uwll[upwind_exists_and_nonzero_local]]
+        / local_diff[upwind_exists_and_nonzero_local]
+    )
+    return out
+
+
 class AdvectionSolverTVD(Component):
     r"""Component that implements numerical solution for advection using a
     Total Variation Diminishing method.
