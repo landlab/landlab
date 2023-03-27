@@ -70,10 +70,7 @@ def find_upwind_link_at_link(grid, u):
     >>> uwl[grid.active_links]
     array([11, 12,  8,  7,  8,  4,  5])
     """
-    try:
-        pll = grid.parallel_links_at_link
-    except AttributeError:
-        pll = setup_parallel_link_at_link(grid)
+    pll = grid.parallel_links_at_link
     uwl = np.zeros(grid.number_of_links, dtype=int)
     if isinstance(u, np.ndarray):
         uwl[:] = pll[:, 0]
