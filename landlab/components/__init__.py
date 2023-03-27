@@ -1,3 +1,4 @@
+from .advection import AdvectionSolverTVD, find_upwind_link_at_link
 from .area_slope_transporter import AreaSlopeTransporter
 from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
@@ -80,6 +81,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    AdvectionSolverTVD,
     AreaSlopeTransporter,
     BedrockLandslider,
     CarbonateProducer,
