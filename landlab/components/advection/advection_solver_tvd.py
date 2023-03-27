@@ -158,6 +158,7 @@ class AdvectionSolverTVD(Component):
         self,
         grid,
         field_to_advect,
+        advection_direction_is_steady=False,
     ):
         """Initialize AdvectionSolverTVD."""
 
@@ -170,11 +171,17 @@ class AdvectionSolverTVD(Component):
         self._vel = self.grid.at_link["advection__velocity"]
         self._flux_at_link = self.grid.at_link["advection__flux"]
 
+        self._advection_direction_is_steady = advection_direction_is_steady
+        if advection_direction_is_steady:  # if so, only need to do this once
+            self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
+
     def calc_rate_of_change_at_nodes(self):
+        if not self._advection_direction_is_steady:
+            self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
         s_link_low = self.grid.map_node_to_link_linear_upwind(self._scalar, self._vel)
         s_link_high = self.grid.map_node_to_link_lax_wendroff(self._scalar, self._vel)
-        r, _, _, _ = upwind_to_local_grad_ratio(
-            self.grid, self.elev, self.vel, self.uwll
+        r = upwind_to_local_grad_ratio(
+            self.grid, self._scalar, self._upwind_link_at_link
         )
         psi = flux_lim_vanleer(r)
         s_at_link = psi * s_link_high + (1.0 - psi) * s_link_low
