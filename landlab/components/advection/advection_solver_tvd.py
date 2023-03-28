@@ -126,12 +126,19 @@ class AdvectionSolverTVD(Component):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import AdvectionSolverTVD
-    >>> grid = RasterModelGrid((3, 5))
+    >>> grid = RasterModelGrid((3, 7))
     >>> s = grid.add_zeros("advected__quantity", at="node")
-    >>> u = grid.add_ones("advection__velocity", at="link")
+    >>> s[9:12] = np.array([1.0, 2.0, 1.0])
+    >>> u = grid.add_zeros("advection__velocity", at="link")
+    >>> u[grid.horizontal_links] = 1.0
     >>> advec = AdvectionSolverTVD(grid, field_to_advect="advected__quantity")
+    >>> for _ in range(5):
+    ...     advec.update(0.2)
+    >>> np.argmax(s[7:14])
+    4
 
     References
     ----------
@@ -173,7 +180,7 @@ class AdvectionSolverTVD(Component):
         super().__init__(grid)
         self.initialize_output_fields()
 
-        self._scalar = return_array_at_node(field_to_advect)
+        self._scalar = return_array_at_node(self.grid, field_to_advect)
         self._vel = self.grid.at_link["advection__velocity"]
         self._flux_at_link = self.grid.at_link["advection__flux"]
 
@@ -194,7 +201,7 @@ class AdvectionSolverTVD(Component):
         self._flux_at_link[self.grid.active_links] = (
             self._vel[self.grid.active_links] * s_at_link[self.grid.active_links]
         )
-        return -self.grid.calc_flux_div_at_node(self.flux_at_link)
+        return -self.grid.calc_flux_div_at_node(self._flux_at_link)
 
     def update(self, dt):
         roc = self.calc_rate_of_change_at_nodes()
