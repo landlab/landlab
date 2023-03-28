@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Solve advection numerically using Total Variation Diminishing method."""
+"""Solve advection numerically using Total Variation Diminishing method."""
 
 import numpy as np
 
