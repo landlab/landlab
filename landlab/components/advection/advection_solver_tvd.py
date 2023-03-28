@@ -4,6 +4,7 @@
 import numpy as np
 
 from landlab import Component
+from landlab.components.advection.flux_limiters import flux_lim_vanleer
 from landlab.utils.return_array import return_array_at_node
 
 
@@ -125,6 +126,12 @@ class AdvectionSolverTVD(Component):
 
     Examples
     --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import AdvectionSolverTVD
+    >>> grid = RasterModelGrid((3, 5))
+    >>> s = grid.add_zeros("advected__quantity", at="node")
+    >>> u = grid.add_ones("advection__velocity", at="link")
+    >>> advec = AdvectionSolverTVD(grid, field_to_advect="advected__quantity")
 
     References
     ----------

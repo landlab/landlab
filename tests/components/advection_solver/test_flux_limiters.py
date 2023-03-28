@@ -1,4 +1,4 @@
-from landlab.components.advection import flux_lim_vanleer
+from landlab.components.advection.flux_limiters import flux_lim_vanleer
 
 
 def test_flux_lim_vanleer():
