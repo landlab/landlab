@@ -117,9 +117,9 @@ class Species(object):
     def select_form_class(self, form_val):
         form={
             'bunch':Bunch(),
-            'colonizing':Colonizing(),
+            'colonizing':Colonizing(self.species_dispersal_params),
             'multiple_stems':Multiplestems(),
-            'rhizomatous':Rhizomatous(),
+            'rhizomatous':Rhizomatous(self.species_dispersal_params),
             'single_crown':Singlecrown(),
             'single_stem':Singlestem(),
             'stoloniferous':Stoloniferous(),

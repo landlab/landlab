@@ -32,13 +32,12 @@ class Multiplestems(Seed):
         return plants
 
 class Rhizomatous(Clonal):
-    def __init__(self):
-        pass
+    def __init__(self, disperse_params):
+        super().__init__(disperse_params)
+
     def branch(self):
         print('Tiller via rhizomes')
 
-    def disperse(self, plants):
-        return plants
 
 class Singlecrown(Seed):
     def __init__(self):
@@ -61,14 +60,11 @@ class Singlestem(Seed):
         return plants
 
 class Stoloniferous(Clonal):
-    def __init__(self):
-        pass
+    def __init__(sel, disperse_params):
+        super().__init__(disperse_params)
 
     def branch(self):
         print('Branches via stolons')
-
-    def disperse(self, plants):
-        return plants
 
 class Thicketforming(Seed):
     def __init__(self):

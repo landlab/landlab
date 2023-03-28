@@ -225,14 +225,15 @@ class PlantGrowth(Species):
         self._xgaus = [0.1127, 0.5, 0.8873]
         self.delta_tot=[]
 
-    def inc_growth(self):
-        return self.delta_tot
-
     def species_plants(self):
         return self.plants
     
     def species_grow_params_out(self):
         return self.species_grow_params
+    
+    def update_plants(self, var_names, pids, var_vals):
+        for idx, var_name in enumerate(var_names):
+            self.plants[var_name][np.isin(self.plants['pid'], pids)]=var_vals[idx]
 
     def _grow(self, _current_jday):
         #set up shorthand aliases
@@ -294,8 +295,8 @@ class PlantGrowth(Species):
             ('species','U10'),
             ('pid',int),
             ('cell_index',int),
-            ('dist2node', float),
-            ('azi2node', float),
+            ('x_loc', float),
+            ('y_loc', float),
             (('root','root_biomass'),float),
             (('leaf','leaf_biomass'),float),
             (('stem','stem_biomass'),float),
@@ -307,6 +308,9 @@ class PlantGrowth(Species):
             ('root_sys_depth', float),
             ('plant_age',float),
             ('n_stems',int),
+            ('pup_x_loc', float),#I think these don't belong here
+            ('pup_y_loc', float),
+            ('pup_runner_length',float),
             ('item_id',int)
         ]
         pidval=0
@@ -314,17 +318,21 @@ class PlantGrowth(Species):
         #Loop through grid cells
         for cell_index in range(self._grid.number_of_cells):
             cell_plants=self._grid['cell']['vegetation__plant_species'][cell_index]
-            available_area=species_cover[cell_index]
+            cell_cover=species_cover[cell_index]
             #Loop through list of plants stored on grid cell
             for plant in cell_plants:
                 if plant == self.species_plant_factors['species']:
-                    if available_area<self.species_morph_params['min_shoot_area']:
+                    plant_cover=cell_cover[plant]
+                    cover_area=plant_cover*self._grid.area_of_cell
+                    if cover_area<self.species_morph_params['min_shoot_area']:
                         continue
-                    plant_area=rng.uniform(low=self.species_morph_params['min_shoot_area'], high=min(self.species_morph_params['max_shoot_area'],available_area))
-                    shoot_width=(4*plant_area/np.pi)**0.5
-                    plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,shoot_width,0.0,0.0,0.0,0.0,0,0))
-                    available_area -= plant_area
-                    pidval += 1
+                    num_plants=np.floor(2*cover_area/(self.species_morph_params['min_shoot_area']+self.species_morph_params['max_shoot_area']))
+                    area_frac_per_plant=rng.uniform(low=0, high=1, size=num_plants)
+                    area_per_plant=cover_area*(area_frac_per_plant/sum(area_frac_per_plant))
+                    for new_plant_area in area_per_plant:
+                        shoot_width=(4*new_plant_area/np.pi)**0.5
+                        plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,shoot_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,0))
+                        pidval += 1
         plant_array=np.array(plantlist, dtype=dtypes)
         plant_array=self.set_initial_biomass(plant_array,in_growing_season)
         plant_array['shoot_sys_height']=(plant_array['leaf']+plant_array['stem'])/(self.species_morph_params['biomass_packing']*np.pi/4*plant_array['shoot_sys_width']**2)
