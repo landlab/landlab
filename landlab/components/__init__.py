@@ -1,4 +1,4 @@
-from .advection import AdvectionSolverTVD, find_upwind_link_at_link
+from .advection import AdvectionSolverTVD
 from .area_slope_transporter import AreaSlopeTransporter
 from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
