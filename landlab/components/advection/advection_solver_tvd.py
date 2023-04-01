@@ -188,11 +188,13 @@ class AdvectionSolverTVD(Component):
         if advection_direction_is_steady:  # if so, only need to do this once
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
 
-    def calc_rate_of_change_at_nodes(self):
+    def calc_rate_of_change_at_nodes(self, dt):
         if not self._advection_direction_is_steady:
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
         s_link_low = self.grid.map_node_to_link_linear_upwind(self._scalar, self._vel)
-        s_link_high = self.grid.map_node_to_link_lax_wendroff(self._scalar, self._vel)
+        print('sll', s_link_low)
+        s_link_high = self.grid.map_node_to_link_lax_wendroff(self._scalar, dt * self._vel / self.grid.length_of_link)
+        print('slh', s_link_high)
         r = upwind_to_local_grad_ratio(
             self.grid, self._scalar, self._upwind_link_at_link
         )
@@ -204,7 +206,7 @@ class AdvectionSolverTVD(Component):
         return -self.grid.calc_flux_div_at_node(self._flux_at_link)
 
     def update(self, dt):
-        roc = self.calc_rate_of_change_at_nodes()
+        roc = self.calc_rate_of_change_at_nodes(dt)
         self._scalar[self.grid.core_nodes] += roc[self.grid.core_nodes] * dt
 
     def run_one_step(self, dt):
