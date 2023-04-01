@@ -14,7 +14,6 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_storms():
-
     dt = 500.0
     uplift = 0.0001
 

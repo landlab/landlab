@@ -139,8 +139,10 @@ class Flexure(Component):
 
     _unit_agnostic = True
 
-    _cite_as = r"""@article{hutton2008sedflux,
-        title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
+    _cite_as = r"""
+    @article{hutton2008sedflux,
+        title={Sedflux 2.0: An advanced process-response model that generates
+               three-dimensional stratigraphy},
         author={Hutton, Eric WH and Syvitski, James PM},
         journal={Computers \& Geosciences},
         volume={34},
@@ -165,7 +167,10 @@ class Flexure(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+            "doc": (
+                "The change in elevation of the top of the lithosphere (the "
+                "land surface) in one timestep"
+            ),
         },
     }
 
@@ -199,7 +204,7 @@ class Flexure(Component):
             Number of processors to use for calculations.
         """
         if method not in ("airy", "flexure"):
-            raise ValueError("{method}: method not understood".format(method=method))
+            raise ValueError(f"{method}: method not understood")
 
         super().__init__(grid)
 

@@ -1,3 +1,0 @@
-Fixed an issue where notebooks that download DEMs from OpenTopography were
-failing with an error about a missing API key.
-

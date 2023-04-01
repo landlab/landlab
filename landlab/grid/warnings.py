@@ -4,7 +4,6 @@ from ..core.messages import deprecation_message
 
 
 class DeprecatedSignature(DeprecationWarning):
-
     msg = "You are using a deprecated calling signature."
 
     def __init__(self, name, old=None, new=None):
@@ -20,14 +19,13 @@ class DeprecatedSignature(DeprecationWarning):
     @staticmethod
     def _construct_call(name, args, kwds):
         signature = ", ".join(
-            [repr(arg) for arg in args]
-            + ["{k}={v}".format(k=k, v=repr(v)) for k, v in kwds.items()]
+            [repr(arg) for arg in args] + [f"{k}={repr(v)}" for k, v in kwds.items()]
         )
-        return "{name}({signature})".format(name=name, signature=signature)
+        return f"{name}({signature})"
 
     def __str__(self):
         if self._new:
-            use = ">>> grid = {call}".format(call=self._new)
+            use = f">>> grid = {self._new}"
         else:
             use = None
 

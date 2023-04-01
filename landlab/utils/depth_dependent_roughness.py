@@ -35,6 +35,7 @@ array([ 0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
         0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
         0.07559526,  0.07559526,  0.07559526,  0.07559526,  0.07559526])
 """
+import contextlib
 
 import numpy as np
 
@@ -74,11 +75,8 @@ def depth_dependent_mannings_n(
     # Looks for a field called 'mannings_n' attached to the grid instance. If
     # one is found, a FieldError is thrown but ignored. This method
     # REWRITES over the existing Manning's n fields after the calculation.
-    try:
+    with contextlib.suppress(FieldError):
         grid.add_zeros("mannings_n", at="node")
-
-    except FieldError:
-        pass
 
     # Identifies locations where water depth is lower than the value supplied
     # through keyword index_flow_depth.

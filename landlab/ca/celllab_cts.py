@@ -138,7 +138,7 @@ _DEBUG = False
 _CORE = NodeStatus.CORE
 
 
-class Transition(object):
+class Transition:
 
     """A transition from one state to another.
 
@@ -205,7 +205,7 @@ class Transition(object):
         self.prop_update_fn = prop_update_fn
 
 
-class CAPlotter(object):
+class CAPlotter:
 
     """Handle display of a CellLab-CTS grid.
 
@@ -301,7 +301,7 @@ class CAPlotter(object):
         plt.show()
 
 
-class CellLabCTSModel(object):
+class CellLabCTSModel:
 
     """Link-type (or doublet-type) cellular automaton model.
 

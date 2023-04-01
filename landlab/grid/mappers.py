@@ -23,16 +23,17 @@ Grid mapping functions
     ~landlab.grid.mappers.map_value_at_upwind_node_link_max_to_node
     ~landlab.grid.mappers.map_value_at_downwind_node_link_max_to_node
     ~landlab.grid.mappers.map_link_vector_components_to_node
-    ~landlab.grid.mappers.dummy_func_to_demonstrate_docstring_modification
+    ~landlab.grid.mappers.map_node_to_link_linear_upwind
+    ~landlab.grid.mappers.map_node_to_link_lax_wendroff
 
 Each link has a *tail* and *head* node. The *tail* nodes are located at the
 start of a link, while the head nodes are located at end of a link.
 
-Below, the numbering scheme for links in `RasterModelGrid` is illustrated
+Below, the numbering scheme for links in :class:`~.RasterModelGrid` is illustrated
 with an example of a four-row by five column grid (4x5). In this example,
-each * (or X) is a node, the lines represent links, and the ^ and > symbols
+each ``*`` (or ``X``) is a node, the lines represent links, and the ``^`` and ``>`` symbols
 indicate the direction and *head* of each link. Link heads in the
-`RasterModelGrid` always point in the cardinal directions North (N) or East
+:class:`~.RasterModelGrid` always point in the cardinal directions North (N) or East
 (E).::
 
     *--27-->*--28-->*--29-->*--30-->*
@@ -49,9 +50,9 @@ indicate the direction and *head* of each link. Link heads in the
     |       |       |       |       |
     *--0--->*---1-->*--2--->*---3-->*
 
-For example, node 'X' has four link-neighbors. From south and going clockwise,
-these neighbors are [6, 10, 15, 11]. Both link 6 and link 10 have node 'X' as
-their 'head' node, while links 15 and 11 have node 'X' as their tail node.
+For example, node ``X`` has four link-neighbors. From south and going clockwise,
+these neighbors are ``[6, 10, 15, 11]``. Both link 6 and link 10 have node ``X`` as
+their *head* node, while links 15 and 11 have node ``X`` as their *tail* node.
 """
 
 import numpy as np
@@ -93,17 +94,17 @@ def map_link_head_node_to_link(grid, var_name, out=None):
     ...                               8,  9, 10, 11])
     >>> map_link_head_node_to_link(rmg, 'z')
     array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
-             9.,  10.,  11.,   9.,  10.,  11.])
+          9.,  10.,  11.,   9.,  10.,  11.])
 
     >>> values_at_links = rmg.empty(at='link')
     >>> rtn = map_link_head_node_to_link(rmg, 'z', out=values_at_links)
     >>> values_at_links
     array([  1.,   2.,   3.,   4.,   5.,   6.,   7.,   5.,   6.,   7.,   8.,
-             9.,  10.,  11.,   9.,  10.,  11.])
+          9.,  10.,  11.,   9.,  10.,  11.])
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if type(var_name) is str:
         var_name = grid.at_node[var_name]
@@ -161,7 +162,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -224,7 +225,7 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -289,7 +290,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -348,7 +349,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     >>> rtn is values_at_links
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -417,7 +418,7 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     array([   0.,   10.,   20.,    0.,   10.,   20.,   30.,   60.,   50.,
              40.,   70.,   60.,   50.,   40.,   80.,   90.,  100.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -492,7 +493,7 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     array([  10.,   20.,   30.,   70.,   60.,   50.,   40.,   70.,   60.,
              50.,   80.,   90.,  100.,  110.,   90.,  100.,  110.])
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="link")
@@ -551,7 +552,7 @@ def map_node_to_cell(grid, var_name, out=None):
     >>> rtn is values_at_cells
     True
 
-    LLCATS: CINF NINF MAP
+    :meta landlab: info-cell, info-node, map
     """
     if out is None:
         out = grid.empty(at="cell")
@@ -608,7 +609,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -669,7 +670,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -736,7 +737,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -801,7 +802,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -867,7 +868,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -938,7 +939,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -1016,7 +1017,7 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -1096,7 +1097,7 @@ def map_value_at_downwind_node_link_max_to_node(
     >>> rtn is values_at_nodes
     True
 
-    LLCATS: NINF LINF MAP
+    :meta landlab: info-node, info-link, map
     """
     if out is None:
         out = grid.empty(at="node")
@@ -1163,7 +1164,7 @@ def map_mean_of_patch_nodes_to_patch(
     array([ 4.5, 4. , 0. ,
             3.5, 3. , 0. ])
 
-    LLCATS: PINF NINF MAP
+    :meta landlab: info-patch, info-node, map
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1235,7 +1236,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     array([ 5., 4., 0.,
             4., 4., 0.])
 
-    LLCATS: PINF NINF MAP
+    :meta landlab: info-patch, info-node, map
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1307,7 +1308,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     array([ 4., 4., 0.,
             2., 2., 0.])
 
-    LLCATS: PINF NINF MAP
+    :meta landlab: info-patch, info-node, map
     """
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
@@ -1411,7 +1412,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     >>> np.allclose(ycomp[absent_patches], 0.0)
     False
 
-    LLCATS: PINF LINF MAP
+    :meta landlab: info-patch, info-link, map
     """
     if out is None:
         out = [
@@ -1492,18 +1493,126 @@ def map_link_vector_components_to_node(grid, data_at_link):
         raise NotImplementedError("Only available for HexModelGrid")
 
 
-def dummy_func_to_demonstrate_docstring_modification(grid, some_arg):
-    """A dummy function to demonstrate automated docstring changes.
+def map_node_to_link_linear_upwind(grid, v, u, out=None):
+    """Assign values to links from upstream nodes.
+
+    Assign to each link the value `v` associated with whichever of its two
+    nodes lies upstream, according to link value `u`.
+
+    Consider a link k with tail node `t(k)` and head node `t(h)`. Nodes have
+    value `v(n)`. We want to assign a value to links, `v'(k)`. The assignment is::
+
+        v'(k) = v(t(k)) where u(k) > 0,
+        v'(k) = v(h(k)) where u(k) <= 0
+
+    As an example, consider 3x5 raster grid with the following values
+    at the nodes in the central row::
+
+        0---1---2---3---4
+
+    Consider a uniform velocity value `u = 1` at the horizontal links.
+    The mapped link values should be::
+
+        .-0-.-1-.-2-.-3-.
+
+    If `u < 0`, the link values should be::
+
+        .-1-.-2-.-3-.-4-.
 
     Parameters
     ----------
     grid : ModelGrid
-        A Landlab modelgrid.
-    some_arg : whatever
-        A dummy argument.
+        A *Landlab* grid.
+    v : (n_nodes,), ndarray
+        Values at grid nodes.
+    u : (n_links,) ndarray
+        Values at grid links.
+    out : (n_links,) ndarray, optional
+        If provided, place calculated values in this array. Otherwise, create a
+        new array.
 
     Examples
     --------
-    ...
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> v = grid.add_zeros("node_value", at="node")
+    >>> v[5:10] = np.arange(5)
+    >>> u = grid.add_zeros("advection_speed", at="link")
+    >>> u[grid.horizontal_links] = 1.0
+    >>> val_at_link = map_node_to_link_linear_upwind(grid, v, u)
+    >>> val_at_link[9:13]
+    array([ 0.,  1.,  2.,  3.])
+    >>> val_at_link = map_node_to_link_linear_upwind(grid, v, -u)
+    >>> val_at_link[9:13]
+    array([ 1.,  2.,  3.,  4.])
     """
-    pass
+    if out is None:
+        out = np.empty_like(v, shape=(grid.number_of_links,))
+
+    u_is_positive = u > 0.0
+    out[u_is_positive] = v[grid.node_at_link_tail[u_is_positive]]
+    out[~u_is_positive] = v[grid.node_at_link_head[~u_is_positive]]
+    return out
+
+
+def map_node_to_link_lax_wendroff(grid, v, c, out=None):
+    """Assign values to links using a weighted combination of node values.
+
+    Assign to each link a weighted combination of values `v` at nodes
+    using the Lax-Wendroff method for upwind weighting.
+
+    `c` is a scalar or link vector that gives the link-parallel signed
+    Courant number. Where `c` is positive, velocity is in the direction of
+    the link; where negative, velocity is in the opposite direction.
+
+    As an example, consider 3x5 raster grid with the following values
+    at the nodes in the central row::
+
+        0---1---2---3---4
+
+    Consider a uniform Courant value `c = +0.2` at the horizontal links.
+    The mapped link values should be::
+
+        .-0.4-.-1.4-.-2.4-.-3.4-.
+
+    Values at links when `c = -0.2`::
+
+        .-0.6-.-1.6-.-2.6-.-3.6-.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A *Landlab* grid.
+    v : (n_nodes,) ndarray
+        Values at grid nodes.
+    c : float or (n_links,) ndarray
+        Courant number to use at links.
+    out : (n_links,) ndarray, optional
+        If provided, place calculated values in this array. Otherwise, create a
+        new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> v = grid.add_zeros("node_value", at="node")
+    >>> v[5:10] = np.arange(5)
+    >>> c = grid.add_zeros("courant_number", at="link")
+    >>> c[grid.horizontal_links] = 0.2
+    >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, c)
+    >>> val_at_link[9:13]
+    array([ 0.4,  1.4,  2.4,  3.4])
+    >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, -c)
+    >>> val_at_link[9:13]
+    array([ 0.6,  1.6,  2.6,  3.6])
+    """
+    if out is None:
+        out = np.empty_like(v, shape=(grid.number_of_links,))
+
+    out[:] = 0.5 * (
+        (1 + c) * v[grid.node_at_link_tail] + (1 - c) * v[grid.node_at_link_head]
+    )
+
+    return out

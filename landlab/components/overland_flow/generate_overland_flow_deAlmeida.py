@@ -123,7 +123,7 @@ def _active_links_at_node(grid, *args):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import _active_links_at_node
+
     >>> grid = RasterModelGrid((3, 4))
     >>> grid.links_at_node[5]
     array([ 8, 11,  7,  4])
@@ -138,7 +138,7 @@ def _active_links_at_node(grid, *args):
            [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
 
-    LLCATS: DEPR LINF NINF
+    :meta landlab: deprecated, info-link, info-node
     """
     active_links_at_node = grid.links_at_node.copy()
     active_links_at_node[grid.active_link_dirs_at_node == 0] = -1
@@ -784,20 +784,20 @@ class OverlandFlow(Component):
             self._grid.at_link["surface_water__discharge"] = self._q
             #
             #
-            #            self._helper_q = self._grid.map_upwind_node_link_max_to_node(self._q)
-            #            self._helper_s = self._grid.map_upwind_node_link_max_to_node(
-            #                                                    self._water_surface_slope)
+            #  self._helper_q = self._grid.map_upwind_node_link_max_to_node(self._q)
+            #  self._helper_s = self._grid.map_upwind_node_link_max_to_node(
+            #      self._water_surface_slope)
             #
-            #            self._helper_q = self._grid.map_max_of_link_nodes_to_link(self._helper_q)
-            #            self._helper_s = self._grid.map_max_of_link_nodes_to_link(self._helper_s)
+            #  self._helper_q = self._grid.map_max_of_link_nodes_to_link(self._helper_q)
+            #  self._helper_s = self._grid.map_max_of_link_nodes_to_link(self._helper_s)
             #
-            #            self._grid['link']['surface_water__discharge'][
-            #                     self._active_links_at_open_bdy] = self._helper_q[
-            #                     self._active_links_at_open_bdy]
+            #  self._grid['link']['surface_water__discharge'][
+            #     self._active_links_at_open_bdy] = self._helper_q[
+            #     self._active_links_at_open_bdy]
             #
-            #            self._grid['link']['water_surface__gradient'][
-            #                self._active_links_at_open_bdy] = self._helper_s[
-            #                self._active_links_at_open_bdy]
+            #  self._grid['link']['water_surface__gradient'][
+            #     self._active_links_at_open_bdy] = self._helper_s[
+            #     self._active_links_at_open_bdy]
             # Update nodes near boundary locations - nodes adjacent to
             # boundaries may have discharge and water surface slopes
             # artifically reduced due to boundary effects. This step removes
@@ -890,7 +890,6 @@ def find_active_neighbors_for_fixed_links(grid):
     Examples
     --------
     >>> from landlab import NodeStatus, RasterModelGrid
-    >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
 
     >>> grid = RasterModelGrid((4, 5))
     >>> grid.status_at_node[:5] = NodeStatus.FIXED_GRADIENT

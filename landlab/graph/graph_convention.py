@@ -107,7 +107,7 @@ class ConventionConverter:
     @convention.setter
     def convention(self, val):
         if val not in ("nlp", "cfc", "nef"):
-            raise ValueError("convention not understood ({0})".format(val))
+            raise ValueError(f"convention not understood ({val})")
         self._convention = val
 
     @staticmethod
@@ -128,8 +128,8 @@ class ConventionConverter:
         """Get a named convention as a GraphConvention object."""
         try:
             return cls.CONVENTION[name]
-        except KeyError:
-            raise ValueError("convention not understood ({0})".format(name))
+        except KeyError as exc:
+            raise ValueError(f"convention not understood ({name})") from exc
 
     def conform(self, name, from_convention):
         """Convert a name to a new convention.

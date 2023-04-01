@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 
 Unit tests for landlab.data_record.data_record.DataRecord
@@ -417,6 +416,7 @@ def test_dr_2dim_bad_set_data(dr_2dim):
 
 
 # TypeError('item_id must be a list or a 1-d array')
+
 
 # NO DIM
 def test_dr_nodim_bad_get_data(dr_nodim):

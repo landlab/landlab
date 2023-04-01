@@ -57,7 +57,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = grid.empty(at="link")
@@ -99,7 +99,7 @@ def calc_diff_at_link(grid, node_values, out=None):
     >>> rmg.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = grid.empty(at="link")
@@ -143,7 +143,7 @@ def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
            [-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8]])
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     try:
         z = grid.at_node[elevs]
@@ -210,7 +210,7 @@ def calc_slope_at_patch(
     >>> np.allclose(S, np.pi / 4.)
     True
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if unit_normal is not None:
         assert unit_normal.shape[1] == 3
@@ -273,7 +273,7 @@ def calc_grad_at_patch(
     >>> np.allclose(x_grad, 0.)
     True
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if unit_normal is not None:
         assert unit_normal.shape[1] == 3
@@ -300,7 +300,7 @@ def calc_slope_at_node(
     method="patch_mean",
     ignore_closed_nodes=True,
     return_components=False,
-    **kwds
+    **kwds,
 ):
     """Array of slopes at nodes, averaged over neighboring patches.
 
@@ -379,7 +379,7 @@ def calc_slope_at_node(
     array([ 0.77542,  0.78453,  0.78453,  0.77542,  0.77542,  0.78453,
             0.78453,  0.77542,  0.77542,  0.78453,  0.78453,  0.77542])
 
-    LLCATS: NINF GRAD SURF
+    :meta landlab: info-node, gradient, surface
     """
     if method not in ("patch_mean", "Horn"):
         raise ValueError("method name not understood")
@@ -503,7 +503,7 @@ def calc_aspect_at_node(
     Note that a small amount of asymmetry arises at the grid edges due
     to the "missing" nodes beyond the edge of the grid.
 
-    LLCATS: NINF SURF
+    :meta landlab: info-node, surface
     """
     if slope_component_tuple:
         if not isinstance(slope_component_tuple, (tuple, list)):

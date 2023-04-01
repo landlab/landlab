@@ -113,7 +113,7 @@ def unravel(data, offset, out=None, pad=None):
     return out
 
 
-class JaggedArray(object):
+class JaggedArray:
 
     """A container for an array of variable-length arrays.
 
@@ -390,7 +390,7 @@ class JaggedArray(object):
         if out is None:
             out = np.empty(self.number_of_rows, dtype=self._values.dtype)
 
-        for (row_number, row) in enumerate(self):
+        for row_number, row in enumerate(self):
             out[row_number] = func(row)
 
         return out

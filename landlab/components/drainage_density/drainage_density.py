@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Landlab component to calculate drainage density."""
 from warnings import warn
 
@@ -176,7 +175,10 @@ class DrainageDensity(Component):
             "optional": True,
             "units": "-",
             "mapping": "node",
-            "doc": "Channelization threshold for use with area and slope coefficients and exponents.",
+            "doc": (
+                "Channelization threshold for use with area and slope "
+                "coefficients and exponents."
+            ),
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -267,14 +269,13 @@ class DrainageDensity(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that DrainageDensity is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         if channel__mask is not None:
             if area_coefficient is not None:
@@ -388,22 +389,17 @@ class DrainageDensity(Component):
         self._upstream_order = grid.at_node["flow__upstream_node_order"]
 
         # Distance to channel
-        if "surface_to_channel__minimum_distance" in grid.at_node:
-            self._distance_to_channel = grid.at_node[
-                "surface_to_channel__minimum_distance"
-            ]
-        else:
-            self._distance_to_channel = grid.add_zeros(
+        if "surface_to_channel__minimum_distance" not in grid.at_node:
+            grid.add_zeros(
                 "surface_to_channel__minimum_distance", at="node", dtype=float
             )
+        self._distance_to_channel = grid.at_node["surface_to_channel__minimum_distance"]
 
     def _update_channel_mask_array(self):
         raise NotImplementedError(
-            (
-                "If you provided a channel mask to "
-                "DrainageDensity, update it by updating the "
-                "model grid field channel__mask"
-            )
+            "If you provided a channel mask to "
+            "DrainageDensity, update it by updating the "
+            "model grid field channel__mask"
         )
 
     def _update_channel_mask_values(self):

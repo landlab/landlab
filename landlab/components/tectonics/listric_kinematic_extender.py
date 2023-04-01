@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Apply tectonic extension and subsidence kinematically.
 
@@ -84,7 +83,7 @@ class ListricKinematicExtender(Component):
         fault_location=None,
         detachment_depth=1.0e4,
         track_crustal_thickness=False,
-        fields_to_shift=[],
+        fields_to_shift=None,
     ):
         """Deform vertically and horizontally to represent tectonic extension.
 
@@ -109,6 +108,8 @@ class ListricKinematicExtender(Component):
             that should be shifted horizontally whenever cumulative extension
             exceeds one cell width. Default empty.
         """
+        fields_to_shift = [] if fields_to_shift is None else fields_to_shift
+
         is_raster = isinstance(grid, RasterModelGrid)
         is_hex = isinstance(grid, HexModelGrid)
         if not (is_raster or is_hex):
@@ -138,11 +139,14 @@ class ListricKinematicExtender(Component):
         if self._track_thickness:
             try:
                 self._thickness = grid.at_node["upper_crust_thickness"]
-            except KeyError:
+            except KeyError as exc:
                 raise KeyError(
-                    "When handle_thickness is True you must provide an 'upper_crust_thickness' node field."
-                )
-            self._cum_subs = grid.add_zeros("cumulative_subsidence_depth", at="node")
+                    "When handle_thickness is True you must provide an"
+                    "'upper_crust_thickness' node field."
+                ) from exc
+            self._cum_subs = grid.add_zeros(
+                "cumulative_subsidence_depth", at="node", clobber=True
+            )
             self._fields_to_shift.append("upper_crust_thickness")
 
         if isinstance(grid, HexModelGrid):
@@ -230,7 +234,6 @@ class ListricKinematicExtender(Component):
 
         # Shift hangingwall nodes by one cell
         if self._horiz_displacement >= self._ds:
-
             for fieldname in self._fields_to_shift:
                 self.grid.at_node[fieldname][self._hw_downwind] = self.grid.at_node[
                     fieldname

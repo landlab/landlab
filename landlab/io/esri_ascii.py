@@ -81,7 +81,7 @@ class KeyTypeError(Error):
         self._type = str(expected_type)
 
     def __str__(self):
-        return "Unable to convert %s to %s" % (self._key, self._type)
+        return f"Unable to convert {self._key} to {self._type}"
 
 
 class KeyValueError(Error):
@@ -93,7 +93,7 @@ class KeyValueError(Error):
         self._msg = message
 
     def __str__(self):
-        return "%s: %s" % (self._key, self._msg)  # this line not yet tested
+        return f"{self._key}: {self._msg}"  # this line not yet tested
 
 
 class DataSizeError(Error):
@@ -105,7 +105,9 @@ class DataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "%s != %s" % (self._actual, self._expected)  # this line not yet tested
+        return "{} != {}".format(
+            self._actual, self._expected
+        )  # this line not yet tested
 
 
 class MismatchGridDataSizeError(Error):
@@ -117,7 +119,7 @@ class MismatchGridDataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "(data size) %s != %s (grid size)" % (
+        return "(data size) {} != {} (grid size)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -132,7 +134,7 @@ class MismatchGridXYSpacing(Error):
         self._expected = expected_dx
 
     def __str__(self):
-        return "(data dx) %s != %s (grid dx)" % (
+        return "(data dx) {} != {} (grid dx)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -147,7 +149,7 @@ class MismatchGridXYLowerLeft(Error):
         self._expected = expected_llc
 
     def __str__(self):
-        return "(data lower-left) %s != %s (grid lower-left)" % (
+        return "(data lower-left) {} != {} (grid lower-left)".format(
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -231,7 +233,7 @@ def _header_is_valid(header):
         The header has the key but its values is of the wrong type.
     """
     header_keys = set(header)
-    required_keys = set(["ncols", "nrows", "cellsize"])
+    required_keys = {"ncols", "nrows", "cellsize"}
 
     if not required_keys.issubset(header_keys):
         raise MissingRequiredKeyError(", ".join(required_keys - header_keys))
@@ -240,7 +242,7 @@ def _header_is_valid(header):
         if len(set(keys) & header_keys) != 1:
             raise MissingRequiredKeyError("|".join(keys))
 
-    for (key, requires) in _HEADER_VALUE_TESTS.items():
+    for key, requires in _HEADER_VALUE_TESTS.items():
         to_type, is_valid = requires
 
         if key not in header:
@@ -248,8 +250,8 @@ def _header_is_valid(header):
 
         try:
             header[key] = to_type(header[key])
-        except ValueError:
-            raise KeyTypeError(key, to_type)
+        except ValueError as exc:
+            raise KeyTypeError(key, to_type) from exc
 
         if not is_valid(header[key]):
             raise KeyValueError(key, "Bad value")
@@ -261,14 +263,15 @@ def read_asc_header(asc_file):
     """Read header information from an ESRI ASCII raster file.
 
     The header contains the following variables,
-        - *ncols*: Number of cell columns
-        - *nrows*: Number of cell rows
-        - *xllcenter* or *xllcorner*: X (column) coordinate of lower-left
-            coordinate of grid (by center or lower-left corner of the cell)
-        - *yllcenter*, *yllcorner*: Y (row) coordinate of lower-left
-            coordinate of grid (by center or lower-left corner of the cell)
-        - *cellsize*: Grid spacing between rows and columns
-        - *nodata_value*: No-data value (optional)
+
+    * ``ncols``: Number of cell columns
+    * ``nrows``: Number of cell rows
+    * ``xllcenter`` or ``xllcorner``: X (column) coordinate of lower-left
+        coordinate of grid (by center or lower-left corner of the cell)
+    * ``yllcenter``, ``yllcorner``: Y (row) coordinate of lower-left
+        coordinate of grid (by center or lower-left corner of the cell)
+    * ``cellsize``: Grid spacing between rows and columns
+    * ``nodata_value``: No-data value (optional)
 
     Parameters
     ----------
@@ -282,59 +285,61 @@ def read_asc_header(asc_file):
 
     Raises
     ------
-    MissingRequiredKeyError
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError`
         The header is missing a required key.
-    KeyTypeError
+    :class:`~landlab.io.esri_ascii.KeyTypeError`
         The header has the key but its values is of the wrong type.
 
     Examples
     --------
     >>> from io import StringIO
     >>> from landlab.io.esri_ascii import read_asc_header
-    >>> contents = StringIO('''
-    ...     nrows 100
-    ...     ncols 200
-    ...     cellsize 1.5
-    ...     xllcenter 0.5
-    ...     yllcenter -0.5
-    ... ''')
-    >>> hdr = read_asc_header(contents)
-    >>> hdr['nrows'], hdr['ncols']
+
+    >>> contents = '''
+    ... nrows 100
+    ... ncols 200
+    ... cellsize 1.5
+    ... xllcenter 0.5
+    ... yllcenter -0.5
+    ... '''
+
+    >>> hdr = read_asc_header(StringIO(contents))
+    >>> hdr["nrows"], hdr["ncols"]
     (100, 200)
-    >>> hdr['cellsize']
+    >>> hdr["cellsize"]
     1.5
-    >>> hdr['xllcenter'], hdr['yllcenter']
+    >>> hdr["xllcenter"], hdr["yllcenter"]
     (0.5, -0.5)
 
-    ``MissingRequiredKey`` is raised if the header does not contain all of the
-    necessary keys.
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the
+    header does not contain all of the necessary keys.
 
-    >>> contents = StringIO('''
-    ...     ncols 200
-    ...     cellsize 1.5
-    ...     xllcenter 0.5
-    ...     yllcenter -0.5
-    ... ''')
-    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> contents = '''
+    ... ncols 200
+    ... cellsize 1.5
+    ... xllcenter 0.5
+    ... yllcenter -0.5
+    ... '''
+    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
-    ``KeyTypeError`` is raises if a value is of the wrong type. For instance,
-    ``nrows`` and ``ncols`` must be ``int``.
+    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of
+    the wrong type. For instance, *nrows* and *ncols* must be ``int``.
 
-    >>> contents = StringIO('''
-    ...     nrows 100.5
-    ...     ncols 200
-    ...     cellsize 1.5
-    ...     xllcenter 0.5
-    ...     yllcenter -0.5
-    ... ''')
-    >>> read_asc_header(contents) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> contents = '''
+    ... nrows 100.5
+    ... ncols 200
+    ... cellsize 1.5
+    ... xllcenter 0.5
+    ... yllcenter -0.5
+    ... '''
+    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
-    header = dict()
-    for (key, value) in _header_lines(asc_file):
+    header = {}
+    for key, value in _header_lines(asc_file):
         header[key] = value
 
     _header_is_valid(header)
@@ -358,19 +363,19 @@ def _read_asc_data(asc_file):
 
 
 def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
-    """Read :py:class:`~landlab.RasterModelGrid` from an ESRI ASCII file.
+    """Read :py:class:`~.RasterModelGrid` from an ESRI ASCII file.
 
-    Read data from *asc_file*, an ESRI_ ASCII file, into a
-    :py:class:`~landlab.RasterModelGrid`.  *asc_file* is either the name of
+    Read data from *asc_file*, an `ESRI ASCII file`_, into a
+    :class:`~.RasterModelGrid`.  *asc_file* is either the name of
     the data file or is a file-like object.
 
     The grid and data read from the file are returned as a tuple
     (*grid*, *data*) where *grid* is an instance of
-    :py:class:`~landlab.RasterModelGrid` and *data* is a numpy
+    :py:class:`~.RasterModelGrid` and *data* is a numpy
     array of doubles with that has been reshaped to have the number of rows
     and columns given in the header.
 
-    .. _ESRI: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+    .. _ESRI ASCII file: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
 
     Parameters
     ----------
@@ -388,57 +393,79 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     Returns
     -------
     (grid, data) : tuple
-        A newly-created RasterModel grid and the associated node data.
+        A newly-created :class:`~.RasterModelGrid` and the associated node data.
 
     Raises
     ------
-    DataSizeError
+    :class:`~landlab.io.esri_ascii.DataSizeError`
         Data are not the same size as indicated by the header file.
-    MismatchGridDataSizeError
+    :class:`~landlab.io.esri_ascii.MismatchGridDataSizeError`
         If a grid is passed, and the size of the grid does not agree with the
         size of the data.
-    MismatchGridXYSpacing
-        If a grid is passed, and the cellsize listed in the heading does not
-        match the grid dx and dy.
-    MismatchGridXYLowerLeft
-        If a grid is passed and the xllcorner and yllcorner do not match that
+    :class:`~landlab.io.esri_ascii.MismatchGridXYSpacing`
+        If a grid is passed, and the *cellsize* listed in the heading does not
+        match the node spacing of the grid.
+    :class:`~landlab.io.esri_ascii.MismatchGridXYLowerLeft`
+        If a grid is passed and the *xllcorner* and *yllcorner* do not match that
         of the grid.
 
     Examples
     --------
-    Assume that fop is the name of a file that contains text below
-    (make sure you have your path correct):
-    ncols         3
-    nrows         4
-    xllcorner     1.
-    yllcorner     2.
-    cellsize      10.
-    NODATA_value  -9999
-    0. 1. 2.
-    3. 4. 5.
-    6. 7. 8.
-    9. 10. 11.
-    --------
+
     >>> from landlab.io import read_esri_ascii
-    >>> (grid, data) = read_esri_ascii('fop') # doctest: +SKIP
-    >>> #grid is an object of type RasterModelGrid with 4 rows and 3 cols
-    >>> #data contains an array of length 4*3 that is equal to
-    >>> # [9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.]
-    >>> (grid, data) = read_esri_ascii('fop', halo=1) # doctest: +SKIP
-    >>> #now the data has a nodata_value ring of -9999 around it. So array is
-    >>> # [-9999, -9999, -9999, -9999, -9999, -9999,
-    >>> #  -9999, 9., 10., 11., -9999,
-    >>> #  -9999, 6., 7., 8., -9999,
-    >>> #  -9999, 3., 4., 5., -9999,
-    >>> #  -9999, 0., 1., 2. -9999,
-    >>> #  -9999, -9999, -9999, -9999, -9999, -9999]
-    """
+    >>> from io import StringIO
+
+    >>> contents = '''
+    ... ncols         3
+    ... nrows         4
+    ... xllcorner     1.
+    ... yllcorner     2.
+    ... cellsize      10.
+    ... NODATA_value  -1
+    ... 0. 1. 2.
+    ... 3. 4. 5.
+    ... 6. 7. 8.
+    ... 9. 10. 11.
+    ... '''
+
+    >>> (grid, data) = read_esri_ascii(StringIO(contents))
+
+    The returned grid is a :class:`~.RasterModelGrid` with 4 rows and 3 columns.
+
+    >>> grid
+    RasterModelGrid((4, 3), xy_spacing=(10.0, 10.0), xy_of_lower_left=(1.0, 2.0))
+
+    Note that the first row of values is the bottom-most of the data file.
+
+    >>> data.reshape(grid.shape)
+    array([[  9.,  10.,  11.],
+           [  6.,   7.,   8.],
+           [  3.,   4.,   5.],
+           [  0.,   1.,   2.]])
+
+    >>> (grid, data) = read_esri_ascii(StringIO(contents), halo=1)
+
+    Because of the halo, the returned grid now has two more rows and columns than before.
+
+    >>> grid
+    RasterModelGrid((6, 5), xy_spacing=(10.0, 10.0), xy_of_lower_left=(-9.0, -8.0))
+    >>> data.reshape(grid.shape)
+    array([[ -1.,  -1.,  -1.,  -1.,  -1.],
+           [ -1.,   9.,  10.,  11.,  -1.],
+           [ -1.,   6.,   7.,   8.,  -1.],
+           [ -1.,   3.,   4.,   5.,  -1.],
+           [ -1.,   0.,   1.,   2.,  -1.],
+           [ -1.,  -1.,  -1.,  -1.,  -1.]])
+    """  # noqa: B950
     from ..grid import RasterModelGrid
+
+    if halo < 0:
+        raise ValueError("negative halo")
 
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
     if isinstance(asc_file, (str, pathlib.Path)):
-        with open(asc_file, "r") as f:
+        with open(asc_file) as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
 
@@ -447,22 +474,11 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
 
-    # There is no reason for halo to be negative.
-    # Assume that if a negative value is given it should be 0.
-    if halo <= 0:
-        shape = (header["nrows"], header["ncols"])
-        if data.size != shape[0] * shape[1]:
-            raise DataSizeError(shape[0] * shape[1], data.size)
-    else:
-        shape = (header["nrows"] + 2 * halo, header["ncols"] + 2 * halo)
-        # check to see if a nodata_value was given.  If not, assign -9999.
-        if "nodata_value" in header.keys():
-            nodata_value = header["nodata_value"]
-        else:
-            header["nodata_value"] = -9999.0
-            nodata_value = header["nodata_value"]
-        if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
-            raise DataSizeError(shape[0] * shape[1], data.size)
+    shape = (header["nrows"] + 2 * halo, header["ncols"] + 2 * halo)
+    nodata_value = header.get("nodata_value", -9999.0)
+    if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
+        raise DataSizeError(shape[0] * shape[1], data.size)
+
     xy_spacing = (header["cellsize"], header["cellsize"])
     xy_of_lower_left = (
         header["xllcorner"] - halo * header["cellsize"],
@@ -528,28 +544,20 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     --------
     >>> import numpy as np
     >>> import os
-    >>> import tempfile
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
-    >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
-    >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     fname = os.path.join(tmpdirname, 'test.asc')
-    ...     files = write_esri_ascii(fname, grid)
-    >>> for file in files:
-    ...     print(os.path.basename(file))
-    test.asc
+    >>> grid.at_node["air__temperature"] = np.arange(20.0)
+    >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
+    ['test.asc']
 
     >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
-    >>> with tempfile.TemporaryDirectory() as tmpdirname:
-    ...     fname = os.path.join(tmpdirname, 'test.asc')
-    ...     files = write_esri_ascii(fname, grid)
-    >>> files.sort()
-    >>> for file in files:
-    ...     print(os.path.basename(file))
-    test_air__temperature.asc
-    test_land_surface__elevation.asc
+    >>> grid.at_node["land_surface__elevation"] = np.arange(20.0)
+    >>> files = write_esri_ascii("test.asc", grid))  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
+    ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
     """
     if os.path.exists(path) and not clobber:
         raise ValueError("file exists")
@@ -580,7 +588,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     }
 
     for path, name in zip(paths, names):
-        header_lines = ["%s %s" % (key, str(val)) for key, val in list(header.items())]
+        header_lines = [f"{key} {str(val)}" for key, val in list(header.items())]
         data = fields.at_node[name].reshape(header["nrows"], header["ncols"])
         np.savetxt(
             path, np.flipud(data), header=os.linesep.join(header_lines), comments=""

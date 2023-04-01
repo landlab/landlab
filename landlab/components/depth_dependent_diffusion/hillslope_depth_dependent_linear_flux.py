@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
@@ -123,8 +122,10 @@ class DepthDependentDiffuser(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},

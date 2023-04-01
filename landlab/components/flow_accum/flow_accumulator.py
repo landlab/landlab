@@ -643,7 +643,11 @@ class FlowAccumulator(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+            "doc": (
+                "Node array containing the elements delta[1:] of the data "
+                "structure 'delta' used for construction of the downstream-to-upstream "
+                "node array"
+            ),
         },
         "flow__upstream_node_order": {
             "dtype": int,
@@ -675,7 +679,10 @@ class FlowAccumulator(Component):
             "optional": True,
             "units": "m/s",
             "mapping": "node",
-            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+            "doc": (
+                "External volume water per area per time input to each node "
+                "(e.g., rainfall rate)"
+            ),
         },
     }
 
@@ -686,7 +693,7 @@ class FlowAccumulator(Component):
         flow_director="FlowDirectorSteepest",
         runoff_rate=None,
         depression_finder=None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the FlowAccumulator component.
 
@@ -715,12 +722,12 @@ class FlowAccumulator(Component):
         if self._is_Network:
             try:
                 node_cell_area = self._grid.at_node["cell_area_at_node"]
-            except FieldError:
+            except FieldError as exc:
                 raise FieldError(
                     "In order for the FlowAccumulator to work, the "
                     "grid must have an at-node field called "
                     "cell_area_at_node."
-                )
+                ) from exc
         else:
             node_cell_area = self._grid.cell_area_at_node.copy()
             node_cell_area[self._grid.closed_boundary_nodes] = 0.0
@@ -761,9 +768,7 @@ class FlowAccumulator(Component):
 
         if len(self._kwargs) > 0:
             kwdstr = " ".join(list(self._kwargs.keys()))
-            raise ValueError(
-                "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
-            )
+            raise ValueError(f"Extra kwargs passed to FlowAccumulator:{kwdstr}")
 
     @property
     def surface_values(self):
@@ -897,7 +902,7 @@ class FlowAccumulator(Component):
         potential_kwargs = ["partition_method", "diagonals"]
         kw = {}
         for p_k in potential_kwargs:
-            if p_k in self._kwargs.keys():
+            if p_k in self._kwargs:
                 kw[p_k] = self._kwargs.pop(p_k)
 
         # flow director is provided as a string.
@@ -922,12 +927,12 @@ class FlowAccumulator(Component):
 
             try:
                 FlowDirector = DIRECTOR_METHODS[flow_director]
-            except KeyError:
+            except KeyError as exc:
                 raise ValueError(
                     "String provided in flow_director is not a "
                     "valid method or component name. The following"
                     "components are valid imputs:\n" + str(PERMITTED_DIRECTORS)
-                )
+                ) from exc
             self._flow_director = FlowDirector(self._grid, self._surface, **kw)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
@@ -969,7 +974,6 @@ class FlowAccumulator(Component):
         # now do a similar thing for the depression finder.
         self._depression_finder_provided = depression_finder
         if self._depression_finder_provided is not None:
-
             # collect potential kwargs to pass to depression_finder
             # instantiation
             potential_kwargs = [
@@ -987,22 +991,20 @@ class FlowAccumulator(Component):
             ]
             kw = {}
             for p_k in potential_kwargs:
-                if p_k in self._kwargs.keys():
+                if p_k in self._kwargs:
                     kw[p_k] = self._kwargs.pop(p_k)
 
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
             if self._flow_director._name in ("FlowDirectorMFD", "FlowDirectorDINF"):
-                msg = (
+                raise NotImplementedError(
                     "The depression finder only works with route "
                     "to one FlowDirectors such as "
                     "FlowDirectorSteepest and  FlowDirectorD8. "
                     "Provide a different FlowDirector."
                 )
-                raise NotImplementedError(msg)
 
             # depression finder is provided as a string.
             if isinstance(self._depression_finder_provided, str):
-
                 from landlab.components.depression_finder.lake_mapper import (
                     DepressionFinderAndRouter,
                 )
@@ -1019,18 +1021,17 @@ class FlowAccumulator(Component):
                     DepressionFinder = DEPRESSION_METHODS[
                         self._depression_finder_provided
                     ]
-                except KeyError:
+                except KeyError as exc:
                     raise ValueError(
                         "Component provided in depression_finder "
                         "is not a valid component. The following "
-                        "components are valid imputs:\n"
-                        + str(PERMITTED_DEPRESSION_FINDERS)
-                    )
+                        "components are valid imputs: "
+                        f"{', '.join(repr(x) for x in PERMITTED_DEPRESSION_FINDERS)}."
+                    ) from exc
 
                 self._depression_finder = DepressionFinder(self._grid, **kw)
             # flow director is provided as an instantiated depression finder
             elif isinstance(self._depression_finder_provided, Component):
-
                 if (
                     self._depression_finder_provided._name
                     in PERMITTED_DEPRESSION_FINDERS
@@ -1053,7 +1054,6 @@ class FlowAccumulator(Component):
 
             # depression_finder is provided as an uninstantiated depression finder
             else:
-
                 if (
                     self._depression_finder_provided._name
                     in PERMITTED_DEPRESSION_FINDERS
@@ -1179,21 +1179,22 @@ class FlowAccumulator(Component):
         r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
         if self._flow_director._to_n_receivers == "one":
-
             # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.
             # At the moment, no depression finders work with to-many, so it
             # lives here
-            if self._depression_finder_provided is not None:
-                if update_depression_finder:
-                    # only update depression finder if requested AND if there
-                    # are pits, or there were flooded nodes from last timestep.
-                    if self.pits_present or self.flooded_nodes_present:
-                        self._depression_finder.update()
+            if (
+                self._depression_finder_provided is not None
+                and update_depression_finder
+            ):
+                # only update depression finder if requested AND if there
+                # are pits, or there were flooded nodes from last timestep.
+                if self.pits_present or self.flooded_nodes_present:
+                    self._depression_finder.update()
 
-                    # if FlowDirectorSteepest is used, update the link directions
-                    if self._flow_director._name == "FlowDirectorSteepest":
-                        self._flow_director._determine_link_directions()
+                # if FlowDirectorSteepest is used, update the link directions
+                if self._flow_director._name == "FlowDirectorSteepest":
+                    self._flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))

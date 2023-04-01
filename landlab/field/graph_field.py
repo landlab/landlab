@@ -1,3 +1,6 @@
+"""Define collections of fields that are attached to a *Landlab*
+:class:`~landlab.graph.graph.Graph`.
+"""
 import numpy as np
 import xarray as xr
 
@@ -7,11 +10,11 @@ from .errors import FieldError, GroupError
 def reshape_for_storage(array, field_size=None):
     """Reshape an array to be stored as a field.
 
-    For reshaping rules, see ``shape_for_storage``.
+    For reshaping rules, see :func:`~.shape_for_storage`.
 
     Parameters
     ----------
-    array : ndarray
+    array : numpy.ndarray
         The array to be stored.
     field_size : int, optional
         The size of the field.
@@ -55,13 +58,13 @@ def reshape_for_storage(array, field_size=None):
 
 
 def shape_for_storage(array, field_size=None):
-    """The shape an array will be stored as.
+    """Return the shape an array will be stored as.
 
     :meta private:
 
     Parameters
     ----------
-    array : ndarray
+    array : numpy.ndarray
         The array to be stored.
     field_size : int, optional
         The size of the field.
@@ -108,7 +111,7 @@ def shape_for_storage(array, field_size=None):
     >>> shape_for_storage(data, field_size=1) == (1, )
     True
 
-    If the array cannot be shaped into a storage shape, a `ValueError`
+    If the array cannot be shaped into a storage shape, a ``ValueError``
     is raised.
 
     >>> data = np.array(1.)
@@ -127,7 +130,7 @@ def shape_for_storage(array, field_size=None):
 
     if array.size % field_size != 0:
         raise ValueError(
-            "unable to reshape array to field size ({0} != {1})".format(
+            "unable to reshape array to field size ({} != {})".format(
                 array.size, field_size
             )
         )
@@ -141,7 +144,6 @@ def shape_for_storage(array, field_size=None):
 
 
 class FieldDataset(dict):
-
     """Wrap an xarray.Dataset as a landlab field.
 
     This is a light wrapping of xarray.Dataset. The main differences
@@ -183,6 +185,18 @@ class FieldDataset(dict):
     """
 
     def __init__(self, name, size=None, fixed_size=True):
+        """Create a container to hold a collection of *Landlab* fields.
+
+        Parameters
+        ----------
+        name : str
+            The name of the group that identifies the dataset of fields.
+        size : int, optional
+            The size of fields that will be held within the dataset.
+            If not provided, the size will be set later.
+        fixed_size : bool, optional
+            The size of fields held within the dataset cannot change.
+        """
         self._name = name
         self._size = None
         self._fixed_size = bool(fixed_size)
@@ -224,15 +238,12 @@ class FieldDataset(dict):
                     )
                 )
             elif not isinstance(size, int) or size < 0:
-                raise ValueError(
-                    "size must be a positive integer or None ({size})".format(size=size)
-                )
+                raise ValueError(f"size must be a positive integer or None ({size})")
             self._size = size
 
     @property
     def fixed_size(self):
-        """Flag that indicates if arrays added to the dataset must be of a
-        fixed size.
+        """Flag that indicates if arrays added to the dataset must be of a fixed size.
 
         Examples
         --------
@@ -261,19 +272,42 @@ class FieldDataset(dict):
 
     @property
     def units(self):
+        """Return units for each of the fields of the dataset."""
         return self._units
 
     def set_units(self, name, new_units):
+        """Assign units to a field.
+
+        Parameters
+        ----------
+        name : str
+            The name of the field.
+        new_units : str
+            The new units of the field.
+        """
         self._units[name] = self._ds[name].attrs["units"] = new_units
 
     @property
     def dataset(self):
+        """Return the dataset as an :class:`xarray.Dataset`."""
         return self._ds
 
     def keys(self):
+        """Return the name of the fields held in the dataset."""
         return list(self._ds.variables)
 
     def set_value(self, name, value_array, attrs=None):
+        """Assign values to a field.
+
+        Parameters
+        ----------
+        name : str
+            Name of the field in the dataset.
+        value_array : numpy.ndarray
+            Array of values to assign to the field.
+        attrs : dict, optional
+            A `dict` holding attributes to save with the field.
+        """
         attrs = attrs or {}
         attrs.setdefault("units", "?")
 
@@ -307,29 +341,57 @@ class FieldDataset(dict):
         self._units[name] = attrs["units"]
 
     def pop(self, name):
+        """Remove a field from the dataset.
+
+        Parameters
+        ----------
+        name : str
+            The name of the field to remove.
+
+        Returns
+        -------
+        numpy.ndarray
+            The values of the field that was removed.
+        """
         array = self._ds[name].values
         self._ds = self._ds.drop_vars(name)
         return array
 
     def __getitem__(self, name):
+        """Get a field's values by name."""
         if isinstance(name, str):
             try:
                 return self._ds[name].values
-            except KeyError:
-                raise FieldError(name)
+            except KeyError as exc:
+                raise FieldError(name) from exc
         else:
             raise TypeError("field name not a string")
 
     def __setitem__(self, name, value_array):
+        """Assign values to a field by name."""
         self.set_value(name, value_array)
 
     def __contains__(self, name):
+        """Return if the dataset contains a named field.
+
+        Parameters
+        ----------
+        name : str
+            A field name.
+
+        Returns
+        -------
+        bool
+            `True` if the dataset contains the field, otherwise `False`.
+        """
         return name in self._ds
 
     def __str__(self):
+        """Return a human-readable string of the dataset."""
         return str(self._ds)
 
     def __repr__(self):
+        """Return a string representation of the dataset."""
         return "FieldDataset({name}, size={size}, fixed_size={fixed_size})".format(
             name=repr(self._name),
             size=repr(self.size),
@@ -337,55 +399,55 @@ class FieldDataset(dict):
         )
 
     def __len__(self):
+        """Return the number of fields held in the dataset."""
         return len(self._ds.variables)
 
     def __iter__(self):
+        """Iterate through the fields in the dataset."""
         return iter(self._ds.variables)
 
 
 class GraphFields:
-
     """Collection of grouped data-fields.
 
-    The `GraphFields` class holds a set of data fields that are
+    The :class:`GraphFields` class holds a set of data fields that are
     separated into *groups*. A typical use for this class would be to define
     the groups as being locations on a grid where the values are defined.
     For instance, the groups could be *node*, *cell*, *link*, and *face*.
 
     Examples
     --------
-
     Create two groups of data fields defined at *node* and *cell*. Each set can
-    have a differenct number of values.
+    have a different number of values.
 
     >>> from landlab.field import GraphFields
     >>> fields = GraphFields()
-    >>> fields.new_field_location('node', 12)
-    >>> fields.new_field_location('cell', 2)
+    >>> fields.new_field_location("node", 12)
+    >>> fields.new_field_location("cell", 2)
 
     Create some new value arrays for each of the data fields.
 
-    >>> fields.ones('node')
+    >>> fields.ones("node")
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
-    >>> fields.zeros('cell')
+    >>> fields.zeros("cell")
     array([ 0.,  0.])
 
     Create new value arrays and add them to the data fields. Because the data
     fields are in different groups (node and cell), they can have the same
     name.
 
-    >>> fields.add_ones('topographic__elevation', at='node')
+    >>> fields.add_ones("topographic__elevation", at="node")
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
-    >>> fields.at_node['topographic__elevation']
+    >>> fields.at_node["topographic__elevation"]
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-    >>> fields.add_ones('topographic__elevation', at='cell')
+    >>> fields.add_ones("topographic__elevation", at="cell")
     array([ 1.,  1.])
-    >>> fields.at_cell['topographic__elevation']
+    >>> fields.at_cell["topographic__elevation"]
     array([ 1.,  1.])
 
-    Each group acts as a `dict` so, for instance, to get the variables names
-    in a group use the `keys` method,
+    Each group acts as a :class:`dict` so, for instance, to get the variables names
+    in a group use the :meth:`keys` method,
 
     >>> list(fields.at_cell.keys())
     ['topographic__elevation']
@@ -395,28 +457,29 @@ class GraphFields:
     size.
 
     >>> fields = GraphFields()
-    >>> fields.new_field_location('grid', None)
-    >>> fields.at_grid['g'] = 9.81
-    >>> fields.at_grid['g']
+    >>> fields.new_field_location("grid", None)
+    >>> fields.at_grid["g"] = 9.81
+    >>> fields.at_grid["g"]
     array(9.81)
-    >>> fields.at_grid['w'] = (3., 4.)
-    >>> fields.at_grid['w']
+    >>> fields.at_grid["w"] = (3., 4.)
+    >>> fields.at_grid["w"]
     array([ 3.,  4.])
 
     The dimensions of groups can also be specified when the object is
     instantiated. In this case, group sizes are specified as a dictionary
     with keys being group names and values group sizes.
 
-    >>> fields = GraphFields({'node': 6, 'grid': None})
-    >>> fields.at_grid['g'] = 9.81
-    >>> fields.at_node['x'] = [0, 1, 2, 3, 4, 5]
-    >>> fields.at_grid['g']
+    >>> fields = GraphFields({"node": 6, "grid": None})
+    >>> fields.at_grid["g"] = 9.81
+    >>> fields.at_node["x"] = [0, 1, 2, 3, 4, 5]
+    >>> fields.at_grid["g"]
     array(9.81)
-    >>> fields.at_node['x']
+    >>> fields.at_node["x"]
     array([0, 1, 2, 3, 4, 5])
     """
 
     def __init__(self, *args, **kwds):
+        """Create a new collection of field groups."""
         try:
             dims = args[0]
         except IndexError:
@@ -429,13 +492,15 @@ class GraphFields:
         self.default_group = kwds.get("default_group", None)
 
     def __getitem__(self, name):
+        """Get the collection of fields from the named group."""
         try:
             return getattr(self, "at_" + name)
-        except AttributeError:
-            raise GroupError(name)
+        except AttributeError as exc:
+            raise GroupError(name) from exc
 
     @property
     def default_group(self):
+        """Return the name of the group into which fields are put by default."""
         return self._default_group
 
     @default_group.setter
@@ -443,7 +508,8 @@ class GraphFields:
         if self.has_group(loc) or loc is None:
             self._default_group = loc
         else:
-            raise ValueError("{loc} is not a valid group name".format(loc=loc))
+            groups = ", ".join([repr(name) for name in sorted(self._groups)])
+            raise ValueError(f"{loc!r}: Group does not exists. Not one of {groups}.")
 
     def new_field_location(self, loc, size=None):
         """Add a new quantity to a field.
@@ -454,11 +520,11 @@ class GraphFields:
 
         Parameters
         ----------
-        group: str
+        loc: str
             Name of the new group to add to the field.
         size: int, optional
             Number of elements in the new quantity. If not provided, the
-            size is set to be the size of the first field added to the goup.
+            size is set to be the size of the first field added to the group.
 
         Raises
         ------
@@ -476,7 +542,7 @@ class GraphFields:
         >>> fields.new_field_location("cell", 2)
 
         The group names in the collection are retrieved with the *groups*
-        attribute as a `set`.
+        attribute as a :class:`set`.
 
         >>> names = list(fields.groups)
         >>> names.sort()
@@ -497,7 +563,7 @@ class GraphFields:
         >>> fields.at_core_node.size
         2
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         dataset_name = "at_" + loc
         if loc not in self._groups:
@@ -506,7 +572,7 @@ class GraphFields:
             )
             self._groups.add(loc)
         else:
-            raise ValueError("{loc} location already exists".format(loc=loc))
+            raise ValueError(f"{loc!r} location already exists")
 
     @property
     def groups(self):
@@ -515,7 +581,7 @@ class GraphFields:
         Returns
         -------
         set
-            Set of quantity names.
+            Names of field groupings.
         """
         return self._groups
 
@@ -524,13 +590,13 @@ class GraphFields:
 
         Parameters
         ----------
-        group: str
+        name: str
             Name of the group.
 
         Returns
         -------
-        boolean
-            True if the field contains *group*, otherwise False.
+        bool
+            ``True`` if the field contains *group*, otherwise ``False``.
 
         Examples
         --------
@@ -544,7 +610,7 @@ class GraphFields:
         >>> fields.has_group('cell')
         False
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         return name in self._groups
 
@@ -562,7 +628,7 @@ class GraphFields:
 
         Returns
         -------
-        boolean
+        bool
             ``True`` if the group contains the field, otherwise ``False``.
 
         Examples
@@ -588,7 +654,7 @@ class GraphFields:
         >>> fields.has_field("cell", "topographic__elevation")
         False
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         if len(args) == 2:
             group, field = args
@@ -605,9 +671,7 @@ class GraphFields:
             return False
 
     def keys(self, group):
-        """List of field names in a group.
-
-        Returns a list of the field names as a list of strings.
+        """Return the field names in a group.
 
         Parameters
         ----------
@@ -617,25 +681,25 @@ class GraphFields:
         Returns
         -------
         list
-            List of field names.
+            Names of fields held in the given group.
 
         Examples
         --------
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 4)
-        >>> list(fields.keys('node'))
+        >>> fields.new_field_location("node", 4)
+        >>> list(fields.keys("node"))
         []
-        >>> _ = fields.add_empty('topographic__elevation', at='node')
-        >>> list(fields.keys('node'))
+        >>> _ = fields.add_empty("topographic__elevation", at="node")
+        >>> list(fields.keys("node"))
         ['topographic__elevation']
 
-        LLCATS: FIELDINF
+        :meta landlab: info-field
         """
         return self[group].keys()
 
     def size(self, group):
-        """Size of the arrays stored in a group.
+        """Return the size of the arrays stored in a group.
 
         Parameters
         ----------
@@ -651,18 +715,18 @@ class GraphFields:
         --------
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 4)
-        >>> fields.size('node')
+        >>> fields.new_field_location("node", 4)
+        >>> fields.size("node")
         4
 
-        LLCATS: GINF FIELDINF
+        :meta landlab: info-grid, info-field
         """
         return self[group].size
 
     def field_values(self, *args, **kwds):
         """field_values(field, at=None)
 
-        Get values of a field.
+        Return the values of a field.
 
         Given a *group* and a *field*, return a reference to the associated
         data array.
@@ -670,7 +734,7 @@ class GraphFields:
         Parameters
         ----------
         field: str
-            Name of the field withing *group*.
+            Name of the field within *group*.
         at: str, optional
             Name of the group.
 
@@ -681,10 +745,10 @@ class GraphFields:
 
         Raises
         ------
-        GroupError
-            If *group* does not exits
-        FieldError
-            If *field* does not exits
+        landlab.field.errors.GroupError
+            If *group* does not exist
+        landlab.field.errors.FieldError
+            If *field* does not exist
 
         Examples
         --------
@@ -709,14 +773,14 @@ class GraphFields:
         Traceback (most recent call last):
         FieldError: planet_surface__temperature
 
-        If *group* does not exists, Raise GroupError.
+        If *group* does not exists, raise :class:`~landlab.field.errors.GroupError`.
 
         >>> fields.field_values("topographic__elevation", at="cell")
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         GroupError: cell
 
-        LLCATS: FIELDIO
+        :meta landlab: field-io
         """
         if len(args) == 2:
             group, field = args
@@ -729,12 +793,13 @@ class GraphFields:
 
         try:
             fields = self[group]
-        except KeyError:
-            raise GroupError(group)
+        except KeyError as exc:
+            groups = ", ".join([repr(g) for g in sorted(self._groups)])
+            raise GroupError(f"{group!r}: Not one of {groups}.") from exc
         try:
             return fields[field]
-        except KeyError:
-            raise FieldError(group)
+        except KeyError as exc:
+            raise FieldError(f"{field!r}") from exc
 
     def return_array_or_field_values(self, *args, **kwds):
         """return_array_or_field_values(field, at=None)
@@ -745,8 +810,9 @@ class GraphFields:
         data array. *field* is either a string that is a field in the group
         or an array of the correct size.
 
-        This function is meant to serve like the ``use_field_name_or_array``
-        decorator for bound functions.
+        This function is meant to serve like the
+        :class:`~landlab.utils.decorators.use_field_name_or_array` decorator for
+        bound functions.
 
         Parameters
         ----------
@@ -757,15 +823,15 @@ class GraphFields:
 
         Returns
         -------
-        array
+        numpy.ndarray
             The values of the field.
 
         Raises
         ------
-        GroupError
-            If *group* does not exits
-        FieldError
-            If *field* does not exits
+        landlab.field.errors.GroupError
+            If *group* does not exist
+        landlab.field.errors.FieldError
+            If *field* does not exist
 
         Examples
         --------
@@ -805,7 +871,7 @@ class GraphFields:
         Traceback (most recent call last):
         GroupError: cell
 
-        And if the array of values provided is incorrect, raise a ValueError.
+        And if the array of values provided is incorrect, raise a :class:`ValueError`.
 
         >>> vals = np.array([3., 2., 1.])
         >>> fields.return_array_or_field_values(vals, at="node")
@@ -813,7 +879,7 @@ class GraphFields:
         Traceback (most recent call last):
         ValueError: Array has incorrect size.
 
-        LLCATS: FIELDIO
+        :meta landlab: field-io
         """
         if len(args) == 2:
             group, field = args
@@ -829,8 +895,11 @@ class GraphFields:
         else:
             vals = np.asarray(field)
             if vals.size != self[group].size:
-                msg = "Array has incorrect size."
-                raise ValueError(msg)
+                raise ValueError(
+                    f"Incorrect array size. The array size of {vals.size} does not "
+                    "match that of the group, {group!r}, which has a size of "
+                    f"{self[group].size}."
+                )
         return vals
 
     def field_units(self, *args, **kwds):
@@ -858,7 +927,8 @@ class GraphFields:
         KeyError
             If either *field* or *group* does not exist.
 
-        LLCATS: FIELDINF
+
+        :meta landlab: info-field
         """
         if len(args) == 2:
             group, field = args
@@ -876,7 +946,7 @@ class GraphFields:
 
         Return a new array of the data field size, without initializing
         entries. Keyword arguments are the same as that for the equivalent
-        numpy function.
+        *numpy* function.
 
         Parameters
         ----------
@@ -886,26 +956,24 @@ class GraphFields:
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        landlab.field.GraphFields.ones : Equivalent method that
-            initializes the data to 1.
-        landlab.field.GraphFields.zeros : Equivalent method that
-            initializes the data to 0.
+        GraphFields.ones : Equivalent method that initializes the data to 1.
+        GraphFields.zeros : Equivalent method that initializes the data to 0.
 
         Examples
         --------
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
-        >>> field.new_field_location('node', 4)
-        >>> field.empty('node') # doctest: +SKIP
+        >>> field.new_field_location("node", 4)
+        >>> field.empty("node") # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
         ... 2.78134232e-309]) # Uninitialized memory
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> list(field.keys('node'))
+        >>> list(field.keys("node"))
         []
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         if len(args) == 0:
             group = kwds.pop("at", kwds.pop("centering", "node"))
@@ -921,9 +989,9 @@ class GraphFields:
                 "of the shape stored at_grid, use np.array(1)."
             )
 
-        size = getattr(self, "at_{group}".format(group=group)).size
+        size = getattr(self, f"at_{group}").size
         if size is None:
-            raise ValueError("group is not yet sized.")
+            raise ValueError("{group!r}: Group is not yet sized.")
 
         return np.empty(size, **kwds)
 
@@ -931,7 +999,7 @@ class GraphFields:
         """Array, initialized to 1, whose size is that of the field.
 
         Return a new array of the data field size, filled with ones. Keyword
-        arguments are the same as that for the equivalent numpy function.
+        arguments are the same as that for the equivalent *numpy* function.
 
         Parameters
         ----------
@@ -941,27 +1009,25 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        landlab.field.GraphFields.empty : Equivalent method that
-            does not initialize the new array.
-        landlab.field.GraphFields.zeros : Equivalent method that
-            initializes the data to 0.
+        GraphFields.empty : Equivalent method that does not initialize the new array.
+        GraphFields.zeros : Equivalent method that initializes the data to 0.
 
         Examples
         --------
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
-        >>> field.new_field_location('node', 4)
-        >>> field.ones('node')
+        >>> field.new_field_location("node", 4)
+        >>> field.ones("node")
         array([ 1.,  1.,  1.,  1.])
-        >>> field.ones('node', dtype=int)
+        >>> field.ones("node", dtype=int)
         array([1, 1, 1, 1])
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> list(field.keys('node'))
+        >>> list(field.keys("node"))
         []
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         allocated = self.empty(*args, **kwds)
         allocated.fill(1)
@@ -976,40 +1042,37 @@ class GraphFields:
             Name of the group.
 
         Return a new array of the data field size, filled with zeros. Keyword
-        arguments are the same as that for the equivalent numpy function.
+        arguments are the same as that for the equivalent *numpy* function.
 
         This method is not valid for the group *grid*.
 
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
-        landlab.field.GraphFields.empty : Equivalent method that does not
-            initialize the new array.
-        landlab.field.GraphFields.ones : Equivalent
-            method that initializes the data to 1.
+        GraphFields.empty : Equivalent method that does not initialize the new array.
+        GraphFields.ones : Equivalent method that initializes the data to 1.
 
         Examples
         --------
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
-        >>> field.new_field_location('node', 4)
-        >>> field.zeros('node')
+        >>> field.new_field_location("node", 4)
+        >>> field.zeros("node")
         array([ 0.,  0.,  0.,  0.])
 
         Note that a new field is *not* added to the collection of fields.
 
-        >>> list(field.keys('node'))
+        >>> list(field.keys("node"))
         []
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         allocated = self.empty(*args, **kwds)
         allocated.fill(0)
         return allocated
 
     def add_field(self, *args, **kwds):
-        """add_field(name, value_array, at='node', units='-', copy=False,
-        clobber=False)
+        """add_field(name, value_array, at='node', units='-', copy=False, clobber=False)
 
         Add an array of values to the field.
 
@@ -1018,7 +1081,7 @@ class GraphFields:
         copy of the provided array.
 
         In the case of adding to the collection *grid*, the added field is a
-        numpy scalar rather than a numpy array.
+        *numpy* scalar rather than a *numpy* array.
 
         Parameters
         ----------
@@ -1031,22 +1094,22 @@ class GraphFields:
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        copy : boolean, optional
+        copy : bool, optional
             If True, add a *copy* of the array to the field. Otherwise save add
             a reference to the array.
-        clobber : boolean, optional
+        clobber : bool, optional
             Raise an exception if adding to an already existing field.
 
         Returns
         -------
-        numpy.array
+        numpy.ndarray
             The data array added to the field. Depending on the *copy*
             keyword, this could be a copy of *value_array* or *value_array*
             itself.
 
         Raises
         ------
-        ValueError :
+        ValueError
             If *value_array* has a size different from the field.
 
         Examples
@@ -1054,7 +1117,7 @@ class GraphFields:
         >>> import numpy as np
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
-        >>> field.new_field_location('node', 4)
+        >>> field.new_field_location("node", 4)
         >>> values = np.ones(4, dtype=int)
         >>> field.add_field("topographic__elevation", values, at="node")
         array([1, 1, 1, 1])
@@ -1062,7 +1125,7 @@ class GraphFields:
         A new field is added to the collection of fields. The saved value
         array is the same as the one initially created.
 
-        >>> field.at_node['topographic__elevation'] is values
+        >>> field.at_node["topographic__elevation"] is values
         True
 
         If you want to save a copy of the array, use the *copy* keyword. In
@@ -1074,7 +1137,7 @@ class GraphFields:
         ...     "topographic__elevation", values, at="node", copy=True, clobber=True
         ... )
         array([1, 1, 1, 1])
-        >>> field.at_node['topographic__elevation'] is values
+        >>> field.at_node["topographic__elevation"] is values
         False
         >>> field.add_field(
         ...     "topographic__elevation", values, at="node", clobber=False
@@ -1082,7 +1145,7 @@ class GraphFields:
         Traceback (most recent call last):
         FieldError: topographic__elevation
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         if len(args) == 3:
             at, name, value_array = args
@@ -1100,8 +1163,7 @@ class GraphFields:
         if at is None:
             raise ValueError("no group specified")
 
-        attrs = {"long_name": name}
-        attrs["units"] = units
+        attrs = {"long_name": name, "units": units}
 
         if copy:
             value_array = value_array.copy()
@@ -1109,7 +1171,12 @@ class GraphFields:
         ds = getattr(self, "at_" + at)
 
         if not clobber and name in ds:
-            raise FieldError("{name}@{at}".format(name=name, at=at))
+            raise FieldError(
+                f"Unable to add the field, {name!r}, to the group, {at!r}, because a field "
+                "with that name already exists in that group. "
+                "Use `clobber=True` to replace the existing field. "
+                f"For example, grid.add_field({name!r}, at={at!r}, clobber=True)"
+            )
 
         dims = (at,)
         if value_array.ndim > 1:
@@ -1125,7 +1192,7 @@ class GraphFields:
 
         Parameters
         ----------
-        group : str
+        loc : str
             Name of the group.
         name: str
             Name of the field.
@@ -1135,12 +1202,13 @@ class GraphFields:
         KeyError
             If the named field does not exist.
 
-        LLCATS: FIELDCR
+
+        :meta landlab: field-add
         """
         try:
             ds = getattr(self, "at_" + loc)
-        except AttributeError:
-            raise KeyError(loc)
+        except AttributeError as exc:
+            raise KeyError(loc) from exc
         ds._ds = ds._ds.drop_vars(name)
 
     def add_empty(self, *args, **kwds):
@@ -1151,7 +1219,7 @@ class GraphFields:
         Create a new array of the data field size, without initializing
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
-        are the same as that for the equivalent numpy function.
+        are the same as that for the equivalent *numpy* function.
 
         This method is not valid for the group *grid*.
 
@@ -1164,23 +1232,22 @@ class GraphFields:
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        clobber : boolean, optional
+        clobber : bool, optional
             Raise an exception if adding to an already existing field.
 
         Returns
         -------
-        array :
+        numpy.ndarray
             A reference to the newly-created array.
 
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        landlab.field.GraphFields.empty : Equivalent method that
-            does not initialize the new array.
-        landlab.field.GraphFields.zeros : Equivalent method that
-            initializes the data to 0.
+        GraphFields.empty : Equivalent method that does not initialize the new array.
+        GraphFields.zeros : Equivalent method that initializes the data to 0.
 
-        LLCATS: FIELDCR
+
+        :meta landlab: field-add
         """
         if len(args) == 2:
             loc, name = args
@@ -1208,7 +1275,7 @@ class GraphFields:
         Create a new array of the data field size, filled with ones, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
-        as that for the equivalent numpy function.
+        as that for the equivalent *numpy* function.
 
         This method is not valid for the group *grid*.
 
@@ -1221,21 +1288,19 @@ class GraphFields:
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        clobber : boolean, optional
+        clobber : bool, optional
             Raise an exception if adding to an already existing field.
 
         Returns
         -------
-        array :
+        numpy.ndarray
             A reference to the newly-created array.
 
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        andlab.field.GraphFields.add_empty : Equivalent method that
-            does not initialize the new array.
-        andlab.field.GraphFields.add_zeros : Equivalent method that
-            initializes the data to 0.
+        GraphFields.add_empty : Equivalent method that does not initialize the new array.
+        GraphFields.add_zeros : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1253,7 +1318,7 @@ class GraphFields:
         >>> field.at_node['topographic__elevation']
         array([ 1.,  1.,  1.,  1.])
 
-        LLCATS: FIELDCR
+        :meta landlab: field-add
         """
         data = self.add_empty(*args, **kwds)
         data.fill(1)
@@ -1267,7 +1332,9 @@ class GraphFields:
         Create a new array of the data field size, filled with zeros, and
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
-        as that for the equivalent numpy function.
+        as that for the equivalent *numpy* function.
+
+        :meta landlab: field-add
 
         Parameters
         ----------
@@ -1278,7 +1345,7 @@ class GraphFields:
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        clobber : boolean, optional
+        clobber : bool, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -1289,12 +1356,11 @@ class GraphFields:
         See also
         --------
         numpy.zeros : See for a description of optional keywords.
-        landlab.field.GraphFields.add_empty : Equivalent method that
-            does not initialize the new array.
-        landlab.field.GraphFields.add_ones : Equivalent method that
-            initializes the data to 1.
+        GraphFields.add_empty : Equivalent method that does not initialize the new array.
+        GraphFields.add_ones : Equivalent method that initializes the data to 1.
 
-        LLCATS: FIELDCR
+
+        :meta landlab: field-add
         """
         data = self.add_empty(*args, **kwds)
         data.fill(0)
@@ -1314,18 +1380,19 @@ class GraphFields:
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        copy : boolean, optional
+        copy : bool, optional
             If True, add a *copy* of the array to the field. Otherwise save add
             a reference to the array.
-        clobber : boolean, optional
+        clobber : bool, optional
             Raise an exception if adding to an already existing field.
 
         Returns
         -------
-        array :
+        numpy.ndarray
             A reference to the newly-created array.
 
-        LLCATS: FIELDCR
+
+        :meta landlab: field-add
         """
         if len(args) == 3:
             at, name, fill_value = args

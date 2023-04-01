@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """SpeciesEvolver tests."""
 from collections import Counter
 

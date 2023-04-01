@@ -155,9 +155,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             },
         )
         return dataset.update(
-            super(HexModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=None
-            )
+            super().as_dataset(include=include, exclude=exclude, time=None)
         )
 
     @property
@@ -198,7 +196,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.number_of_node_columns
         5
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self.shape[1]
 
@@ -221,7 +219,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.number_of_node_rows
         5
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self._shape[0]
 
@@ -241,10 +239,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         assert self.orientation[0] == "v", "grid orientation must be vertical"
         try:
             (nr, nc) = self._shape
-        except AttributeError:
+        except AttributeError as exc:
             raise AttributeError(
                 "Only rectangular Hex grids have defined rows and columns."
-            )
+            ) from exc
 
         row = node_id // nc
         n_mod_nc = node_id % nc
@@ -353,7 +351,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             Another Landlab function capable of producing hexplots, with a
             fuller-featured set of options.
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         import copy
 
@@ -437,7 +435,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -508,7 +506,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -554,14 +552,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                         numpy.where(numpy.asarray(next_to_boundary))[0]
                     ]
                     raise ValueError(
-                        (
-                            "Grid has two potential outlet nodes."
-                            "They have the following node IDs: \n"
-                            + str(potential_locs)
-                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
-                            "to explicitly select one of these "
-                            "IDs as the outlet node."
-                        )
+                        "Grid has two potential outlet nodes."
+                        "They have the following node IDs: \n"
+                        + str(potential_locs)
+                        + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                        "to explicitly select one of these "
+                        "IDs as the outlet node."
                     )
                 else:
                     outlet_loc = min_locs[numpy.where(next_to_boundary)[0][0]]

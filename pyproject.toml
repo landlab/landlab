@@ -29,22 +29,25 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
   "bmipy",
   "matplotlib",
   "netcdf4",
-  "numpy",
+  "numpy >=1.20",
   "pyyaml",
   "pyshp != 2.3.0",
+  "rich-click",
   "scipy",
   "statsmodels",
   "pandas",
   "xarray >= 0.16",
-  "richdem ; sys_platform != 'win32' or python_version < '3.10'",
 ]
 dynamic = ["readme", "version"]
 
@@ -55,31 +58,7 @@ repository = "https://github.com/landlab"
 changelog = "https://github.com/landlab/landlab/blob/develop/CHANGES.rst"
 
 [project.optional-dependencies]
-dev = [
-  "black",
-  "flake8",
-  "flake8-bugbear",
-  "isort",
-  "pre-commit",
-  "nox",
-]
-docs = [
-  "pandoc",
-  "nbformat",
-  "jupyter_client",
-  "ipython",
-  "sphinx>=4",
-  "sphinx_rtd_theme",
-  "tabulate",
-  "tornado",
-  "entrypoints",
-  "nbsphinx>=0.2.12",
-  "sphinxcontrib_github_alt",
-  "sphinxcontrib.towncrier",
-  "sphinx-jinja",
-  "sphinx-inline-tabs",
-  "towncrier<22.8",
-]
+dev = ["nox"]
 testing = [
   "coveralls",
   "hypothesis",
@@ -87,19 +66,10 @@ testing = [
   "pytest-cov",
   "pytest-datadir",
   "pytest-xdist",
-  "pyyaml",
-]
-notebooks = [
-  "dask[array]",
-  "jupyter",
-  "holoviews",
-  "nbformat",
-  "mesa",
-  "bmi-topography >= 0.5",
 ]
 
 [project.scripts]
-landlab = "landlab.cmd.landlab:main"
+landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
@@ -116,12 +86,13 @@ landlab = [
   "test_*/*nc",
   "test_*/*asc",
 ]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["landlab*"]
 
 [tool.setuptools.dynamic]
-readme = {file = ["README.rst", "AUTHORS.rst", "CHANGES.rst"]}
+readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "landlab._version.__version__"}
 
 [tool.pytest.ini_options]
@@ -131,10 +102,17 @@ norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
   --tb native
-  --strict
   --durations 16
+  --strict-markers
   --doctest-modules
   -vvv
+  --ignore-glob=*/animate-landlab-output.ipynb
+  --ignore-glob=*/cellular_automaton_vegetation_flat_domain.ipynb
+  --ignore-glob=*/cellular_automaton_vegetation_DEM.ipynb
+  --ignore-glob=*/lithology_and_litholayers.ipynb
+  --ignore-glob=*/nst_scaling_profiling.ipynb
+  --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
+  --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
@@ -153,6 +131,18 @@ force_grid_wrap = 0
 combine_as_imports = true
 line_length = 88
 
+[tool.check-manifest]
+ignore = [".nox", "build"]
+
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-*"
+skip = "*-musllinux_*"
+archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+
+[tool.conda-lock]
+channels = ["conda-forge", "defaults"]
+platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
+
 [tool.towncrier]
 directory = "news"
 package = "landlab"
@@ -162,33 +152,11 @@ underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
 title_format = "{version} ({project_date})"
 
-[[tool.towncrier.type]]
-directory = "component"
-name = "New Components"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "notebook"
-name = "New Tutorial Notebooks"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "feature"
-name = "New Features"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "bugfix"
-name = "Bug Fixes"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "docs"
-name = "Documentation Enhancements"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "misc"
-name = "Other Changes and Additions"
-showcontent = true
-
+type = [
+  {name="New Components", directory="component", showcontent=true},
+  {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
+  {name="New Features", directory="feature", showcontent=true},
+  {name="Bug Fixes", directory="bugfix", showcontent=true},
+  {name="Documentation Enhancements", directory="docs", showcontent=true},
+  {name="Other Changes and Additions", directory="misc", showcontent=true},
+]

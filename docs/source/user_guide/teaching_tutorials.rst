@@ -24,6 +24,8 @@ on-the-fly in the classroom.
 
 The easiest way to see what is in the notebooks is through the
 `Binder welcome page for the teaching notebooks <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>`_. This also allows you to run the notebooks online.
+The tutorials can also be run online on
+:ref:`EarthscapeHub <tutorials_EarthscapeHub>`.
 
 The notebooks can also be run locally by `installing Landlab <https://landlab.readthedocs.io/en/latest/install/index.html>`_ on your computer.
 
@@ -44,4 +46,4 @@ are getting an error, please taking a screenshot and upload it.
 
 The development of these Notebooks has been made possible by the Landlab
 project funded by the National Science Foundation (OAC 1450338 to N. Gasparini,
-OAC 1450409 to G. Tucker, OAC 1450412 to E. Istanbulluoglu). 
+OAC 1450409 to G. Tucker, OAC 1450412 to E. Istanbulluoglu).

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import numpy as np
 import xarray as xr
 
 
-class DataRecord(object):
+class DataRecord:
     """Data structure to store variables in time and/or space dimensions.
 
     This class uses a xarray Dataset to store variables. This datastructure is
@@ -221,8 +220,7 @@ class DataRecord(object):
         for at in self._permitted_locations:
             for item in self._dummy_elements.get(at, []):
                 if (item < self._grid[at].size) and (item >= 0):
-                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
-                    raise ValueError(msg)
+                    raise ValueError(f"Dummy id {at} {item} invalid")
 
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
@@ -235,23 +233,23 @@ class DataRecord(object):
         if items is not None:
             try:
                 items.keys()
-            except AttributeError:
+            except AttributeError as exc:
                 # items is not a dict
                 raise TypeError(
                     "You must provide an `items` dictionary "
                     "(see documentation for required format)"
-                )
+                ) from exc
             try:
                 _grid_elements, _element_ids = (
                     items["grid_element"],
                     items["element_id"],
                 )
-            except KeyError:
+            except KeyError as exc:
                 # grid_element and/or element_id not provided
                 raise TypeError(
                     "You must provide an `items` dictionary,"
                     "(see documentation for required format)"
-                )
+                ) from exc
 
             self._number_of_items = len(_element_ids)
             if len(_grid_elements) != self._number_of_items:
@@ -309,12 +307,12 @@ class DataRecord(object):
             try:
                 # check format (dict)
                 data_vars.keys()
-            except AttributeError:
+            except AttributeError as exc:
                 raise TypeError(
                     "Data variables (data_vars) passed to "
                     "DataRecord must be a dictionary (see "
                     "documentation for valid structure)"
-                )
+                ) from exc
             for key in data_vars.keys():
                 # check dict structure and dims:
                 if data_vars[key][0] not in (
@@ -380,12 +378,12 @@ class DataRecord(object):
         for at in self._permitted_locations:
             max_size = self._grid[at].size
 
-            # this needs to work with 2d arrays (rows, col = np.where (so grid element always needs to be at least 2d.))
+            # this needs to work with 2d arrays (rows, col = np.where (so grid
+            # element always needs to be at least 2d.))
             ind = np.nonzero(grid_element == at)
             selected_elements = element_id[ind]
 
             if selected_elements.size > 0:
-
                 dummy_values = self._dummy_elements.get(at, [])
                 index_values = np.arange(0, max_size)
                 valid_values = np.concatenate((dummy_values, index_values))
@@ -393,8 +391,7 @@ class DataRecord(object):
                 valid_elements = np.isin(selected_elements, valid_values)
 
                 if not np.all(valid_elements):
-                    msg = "Invalid element_ids provided."
-                    raise ValueError(msg)
+                    raise ValueError("Invalid element_ids provided.")
 
         if not np.issubdtype(element_id.dtype, np.integer):
             raise ValueError(
@@ -492,8 +489,8 @@ class DataRecord(object):
             try:
                 # check that time is a dim of the DataRecord
                 self._dataset["time"]
-            except KeyError:
-                raise KeyError("This DataRecord does not record time")
+            except KeyError as exc:
+                raise KeyError("This DataRecord does not record time") from exc
 
             if not isinstance(time, (list, np.ndarray)):
                 # check input type
@@ -506,13 +503,13 @@ class DataRecord(object):
                     try:
                         # check that DataRecord holds items
                         self._dataset["item_id"]
-                    except KeyError:
-                        raise KeyError("This DataRecord does not hold items")
+                    except KeyError as exc:
+                        raise KeyError("This DataRecord does not hold items") from exc
                     try:
                         # check that item_id is list or array
                         len(item_id)
-                    except TypeError:
-                        raise TypeError("item_id must be a list or a 1D array")
+                    except TypeError as exc:
+                        raise TypeError("item_id must be a list or a 1D array") from exc
                     if not all(i in self._dataset["item_id"].values for i in item_id):
                         # check that item_id already exist
                         raise ValueError(
@@ -530,12 +527,12 @@ class DataRecord(object):
                         try:
                             new_grid_element = new_item_loc["grid_element"]
                             new_element_id = new_item_loc["element_id"]
-                        except KeyError:
+                        except KeyError as exc:
                             raise KeyError(
                                 "You must provide a "
                                 "new_item_loc dictionary with both "
                                 "grid_element and element_id"
-                            )
+                            ) from exc
                         # check that grid_element and element_id exist
                         # on the grid and have valid format:
                         (
@@ -715,11 +712,11 @@ class DataRecord(object):
                 new_item["element_id"],
             )
 
-        except KeyError:
+        except KeyError as exc:
             raise KeyError(
                 "You must provide a new_item dictionary "
                 "(see documentation for required format)"
-            )
+            ) from exc
 
         number_of_new_items = len(new_item["element_id"])
         # first id of new item = last item in existing datarecord+1
@@ -731,8 +728,8 @@ class DataRecord(object):
         if time is not None:
             try:
                 self._dataset["time"]
-            except KeyError:
-                raise KeyError("This DataRecord does not record time")
+            except KeyError as exc:
+                raise KeyError("This DataRecord does not record time") from exc
             if not isinstance(time, (list, np.ndarray)):
                 raise TypeError(
                     "You have passed a time that is not "
@@ -834,66 +831,66 @@ class DataRecord(object):
         """
         try:
             self._dataset[data_variable]
-        except KeyError:
+        except KeyError as exc:
             raise KeyError(
-                "the variable '{}' is not in the " "DataRecord".format(data_variable)
-            )
+                f"the variable {data_variable!r} is not in the DataRecord"
+            ) from exc
         if time is None:
             if item_id is None:
                 return self._dataset[data_variable].values
             else:
                 try:
                     self._dataset["item_id"]
-                except KeyError:
-                    raise KeyError("This DataRecord does not hold items")
+                except KeyError as exc:
+                    raise KeyError("This DataRecord does not hold items") from exc
                 try:
                     len(item_id)
-                except TypeError:
-                    raise TypeError("item_id must be a list or a 1-D array")
+                except TypeError as exc:
+                    raise TypeError("item_id must be a list or a 1-D array") from exc
                 try:
                     self._dataset["item_id"].values[item_id]
-                except IndexError:
+                except IndexError as exc:
                     raise IndexError(
                         "The item_id you passed does not exist " "in this DataRecord"
-                    )
+                    ) from exc
 
                 return self._dataset.isel(item_id=item_id)[data_variable].values
 
         else:  # time is not None
             try:
                 self._dataset["time"]
-            except KeyError:
-                raise KeyError("This DataRecord does not record time")
+            except KeyError as exc:
+                raise KeyError("This DataRecord does not record time") from exc
             try:
                 len(time)
-            except TypeError:
-                raise TypeError("time must be a list or a 1-D array")
+            except TypeError as exc:
+                raise TypeError("time must be a list or a 1-D array") from exc
             try:
                 time_index = int(self.time_coordinates.index(time[0]))
-            except ValueError:
+            except ValueError as exc:
                 raise IndexError(
                     "The time you passed is not currently"
                     " in the DataRecord, you must change the value"
                     " you pass or first create the new time "
                     " coordinate using the add_record method"
-                )
+                ) from exc
             if item_id is None:
                 return self._dataset.isel(time=time_index)[data_variable].values
             else:
                 try:
                     self._dataset["item_id"]
-                except KeyError:
-                    raise KeyError("This DataRecord does not hold items")
+                except KeyError as exc:
+                    raise KeyError("This DataRecord does not hold items") from exc
                 try:
                     len(item_id)
-                except TypeError:
-                    raise TypeError("item_id must be a list or a 1-D array")
+                except TypeError as exc:
+                    raise TypeError("item_id must be a list or a 1-D array") from exc
                 try:
                     self._dataset["item_id"].values[item_id]
-                except IndexError:
+                except IndexError as exc:
                     raise IndexError(
                         "The item_id you passed does not exist " "in this DataRecord"
-                    )
+                    ) from exc
                 return self._dataset.isel(time=time_index, item_id=item_id)[
                     data_variable
                 ].values
@@ -994,31 +991,31 @@ class DataRecord(object):
         else:
             try:
                 len(time)
-            except TypeError:
-                raise TypeError("time must be a list or a 1-d array")
+            except TypeError as exc:
+                raise TypeError("time must be a list or a 1-d array") from exc
             try:
                 # check that time coordinate already exists
                 time_index = np.where(self._dataset.time.values == time)[0][0]
-            except IndexError:
+            except IndexError as exc:
                 raise IndexError(
                     "The time you passed is not currently"
                     " in the DataRecord, you must change the value"
                     " you pass or first create the new time "
                     " coordinate using the add_record method"
-                )
+                ) from exc
 
             if item_id is None:
                 self._dataset[data_variable].values[time_index] = new_value
             else:
                 try:
                     len(item_id)
-                except TypeError:
-                    raise TypeError("item_id must be a list or a 1-d array")
+                except TypeError as exc:
+                    raise TypeError("item_id must be a list or a 1-d array") from exc
                 try:
                     self._dataset["item_id"]
                     self._dataset[data_variable].values[item_id, time_index] = new_value
-                except KeyError:
-                    raise KeyError("This DataRecord does not hold items")
+                except KeyError as exc:
+                    raise KeyError("This DataRecord does not hold items") from exc
 
     def calc_aggregate_value(
         self,
@@ -1028,7 +1025,7 @@ class DataRecord(object):
         filter_array=None,
         fill_value=np.nan,
         args=(),
-        **kwargs
+        **kwargs,
     ):
         """Apply a function to a variable aggregated at grid elements.
 

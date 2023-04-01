@@ -175,7 +175,6 @@ class OverlandFlowBates(Component):
         self._dt = dt
 
     def calc_time_step(self):
-
         # Adaptive time stepper from Bates et al., 2010 and de Almeida et al.,
         # 2012
         self._dt = (

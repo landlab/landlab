@@ -18,7 +18,7 @@ installation are available:
 distributed through PyPI or conda-forge and a
 [source code installation](https://landlab.readthedocs.io/en/master/development/install/index.html#developer-install).
 
-The dependencies of the Landlab package are described [here](https://landlab.readthedocs.io/en/master/development/practices/dependencies.html).  
+The dependencies of the Landlab package are described [here](https://landlab.readthedocs.io/en/master/development/practices/dependencies.html).
 
 ### Documentation
 The documentation specific to this component is housed within the Landlab

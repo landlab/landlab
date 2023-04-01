@@ -62,7 +62,7 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None, bottom=No
            3, 0, 0, 1,
            2, 2, 2, 1], dtype=uint8)
 
-    LLCATS: BC
+    :meta landlab: boundary-condition
     """
     status_at_edge = (
         ("bottom", bottom),

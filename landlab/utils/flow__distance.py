@@ -148,7 +148,6 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     # iterate through the flow__upstream_node_order, this will already have
     # identified the locations of the outlet nodes and have
     for node in flow__upstream_node_order:
-
         # get flow recievers
         reciever = flow__receiver_node[node]
 
@@ -169,7 +168,6 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
 
         # if not an outlet
         if not_outlet:
-
             # deal with the two cases of route to one and route to multiple.
             if to_one:
                 # get the stream length of the downstream node

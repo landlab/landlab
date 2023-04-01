@@ -6,6 +6,8 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import pathlib
+
 import numpy as np
 
 from ..graph import DualVoronoiGraph
@@ -202,29 +204,37 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         clobber : bool (defaults to false)
             Set to true to allow overwriting
 
+        Returns
+        -------
+        str
+            The name of the saved file (with the ".grid" extension).
+
         Examples
         --------
         >>> from landlab import VoronoiDelaunayGrid
         >>> import numpy as np
-        >>> import os
-        >>> x = np.random.rand(20)
-        >>> y = np.random.rand(20)
-        >>> vmg = VoronoiDelaunayGrid(x,y)
-        >>> vmg.save('./mytestsave.grid')
-        >>> os.remove('mytestsave.grid') #to remove traces of this test
 
-        LLCATS: GINF
+        >>> grid = VoronoiDelaunayGrid(np.random.rand(20), np.random.rand(20))
+        >>> grid.save("mytestsave.grid")  # doctest: +SKIP
+        'mytestsave.grid'
+
+        :meta landlab: info-grid
         """
-        import os
         import pickle
 
-        if os.path.exists(path) and not clobber:
-            raise ValueError("file exists")
+        path = pathlib.Path(path)
 
-        (base, ext) = os.path.splitext(path)
-        if ext != ".grid":
-            ext = ext + ".grid"
-        path = base + ext
+        if path.suffix != ".grid":
+            path = path.with_suffix(path.suffix + ".grid")
+
+        if path.exists() and not clobber:
+            raise ValueError(
+                f"File exists: {str(path)!r}. "
+                "Either remove this file and try again or set the "
+                "'clobber' keyword to True"
+            )
 
         with open(path, "wb") as fp:
             pickle.dump(self, fp)
+
+        return str(path)

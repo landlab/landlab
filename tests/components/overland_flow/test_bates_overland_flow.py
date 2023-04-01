@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for landlab.components.overland_flow.OverlandFlowBates
 
@@ -18,15 +17,17 @@ def test_Bates_name(bates):
 
 
 def test_Bates_input_var_names(bates):
-    assert set(bates.input_var_names) == set(
-        ("surface_water__depth", "topographic__elevation")
-    )
+    assert set(bates.input_var_names) == {
+        "surface_water__depth",
+        "topographic__elevation",
+    }
 
 
 def test_Bates_output_var_names(bates):
-    assert set(bates.output_var_names) == set(
-        ("surface_water__depth", "surface_water__discharge")
-    )
+    assert set(bates.output_var_names) == {
+        "surface_water__depth",
+        "surface_water__discharge",
+    }
 
 
 def test_Bates_var_units(bates):

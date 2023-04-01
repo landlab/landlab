@@ -6,6 +6,8 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
+
 import numpy as np
 import xarray as xr
 
@@ -231,7 +233,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         self._looped_second_ring_cell_neighbor_list_created = False
 
     def __repr__(self):
-        return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
+        return "RasterModelGrid({}, xy_spacing={}, xy_of_lower_left={})".format(
             repr(self.shape),
             repr((self.dx, self.dy)),
             repr((self.x_of_node.min(), self.y_of_node.min())),
@@ -240,7 +242,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict["type"] != "RasterModelGrid":
-            assert TypeError(("Saved model instance not of " "RasterModelGrid type."))
+            assert TypeError("Saved model instance not of " "RasterModelGrid type.")
 
         xy_spacing = state_dict["xy_spacing"]
         shape = state_dict["shape"]
@@ -275,17 +277,18 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         state_dict = {}
 
         # save basic information about the shape and size of the grid
-        state_dict["type"] = "RasterModelGrid"
-        state_dict["xy_spacing"] = (self.dx, self.dy)
-        state_dict["shape"] = self.shape
-        state_dict["xy_of_lower_left"] = self.xy_of_lower_left
-        state_dict["xy_of_reference"] = self.xy_of_reference
-        state_dict["xy_axis_name"] = self.axis_name
-        state_dict["xy_axis_units"] = self.axis_units
-
-        # save status information at nodes (status at link set based on status
-        # at node
-        state_dict["status_at_node"] = np.asarray(self._node_status)
+        state_dict = {
+            "type": "RasterModelGrid",
+            "xy_spacing": (self.dx, self.dy),
+            "shape": self.shape,
+            "xy_of_lower_left": self.xy_of_lower_left,
+            "xy_of_reference": self.xy_of_reference,
+            "xy_axis_name": self.axis_name,
+            "xy_axis_units": self.axis_units,
+            # save status information at nodes (status at link set based on status
+            # at node
+            "status_at_node": np.asarray(self._node_status),
+        }
 
         groups = {}
         for at in ("node", "link", "patch", "corner", "face", "cell", "grid"):
@@ -322,7 +325,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.number_of_nodes
         12
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         shape = params.pop("shape", None)
         return cls(shape, **params)
@@ -345,9 +348,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             attrs={"grid_type": "uniform_rectilinear"},
         )
         return dataset.update(
-            super(RasterModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=time
-            )
+            super().as_dataset(include=include, exclude=exclude, time=time)
         )
 
     @property
@@ -382,7 +383,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.cell_grid_shape
         (1, 2)
 
-        LLCATS: GINF CINF
+        :meta landlab: info-grid, info-cell
         """
         return (self.number_of_cell_rows, self.number_of_cell_columns)
 
@@ -481,7 +482,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.extent
         (6.0, 12.0)
 
-        LLCATS: GINF MEAS
+        :meta landlab: info-grid, quantity
         """
         # Method added 5/1/13 by DEJH, modified DEJH 4/3/14 to reflect fact
         # boundary nodes don't have defined
@@ -504,7 +505,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.number_of_interior_nodes
         6
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         return sgrid.interior_node_count(self.shape)
 
@@ -521,7 +522,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.number_of_cell_columns
         3
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self.shape[1] - 2
 
@@ -538,7 +539,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.number_of_cell_rows
         2
 
-        LLCATS: GINF CINF
+        :meta landlab: info-grid, info-cell
         """
         return self.shape[0] - 2
 
@@ -560,7 +561,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.cells_at_corners_of_grid
         array([0, 2, 3, 5])
 
-        LLCATS: GINF CINF SUBSET
+        :meta landlab: info-grid, info-cell, subset
         """
         return sgrid.corners(self.cell_grid_shape)
 
@@ -597,7 +598,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.is_point_on_grid((-.1, .1, 3.9, 4.1), (1, 1, 1, 1))
         array([False,  True,  True, False], dtype=bool)
 
-        LLCATS: GINF MEAS SUBSET
+        :meta landlab: info-grid, quantity, subset
         """
         xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
 
@@ -663,7 +664,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.nodes_around_point(.5, 1.5)
         array([4, 8, 9, 5])
 
-        LLCATS: NINF SUBSET
+        :meta landlab: info-node, subset
         """
         xcoord, ycoord = np.broadcast_arrays(xcoord, ycoord)
 
@@ -724,7 +725,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg.find_nearest_node((-.4999, 1.))
         5
 
-        LLCATS: NINF SUBSET
+        :meta landlab: info-node, subset
         """
         return rfuncs.find_nearest_node(self, coords, mode=mode)
 
@@ -800,7 +801,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
               dtype=uint8)
 
-        LLCATS: BC SUBSET
+        :meta landlab: boundary-condition, subset
         """
         if bottom_is_closed:
             self._node_status[self.nodes_at_bottom_edge] = self.BC_NODE_IS_CLOSED
@@ -905,7 +906,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         This scheme is necessary for internal consistency with looped
         boundaries.
 
-        LLCATS: BC SUBSET
+        :meta landlab: boundary-condition, subset
         """
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(
@@ -992,10 +993,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         else:
             self.fixed_value_node_properties["internal_flag"] = True
             self.fixed_value_node_properties["fixed_value_of"] = value_of
-        try:
+        with contextlib.suppress(NameError):
             self.fixed_value_node_properties["values"] = values_to_use
-        except NameError:
-            pass  # the flag will catch this case
 
     def set_looped_boundaries(self, top_bottom_are_looped, sides_are_looped):
         """Create wrap-around boundaries.
@@ -1038,7 +1037,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg.looped_node_properties['linked_node_IDs']
         array([10, 11, 12, 13, 14,  8,  6, 13, 11,  5,  6,  7,  8,  9])
 
-        LLCATS: BC SUBSET
+        :meta landlab: boundary-condition, subset
         """
         # Added DEJH Feb 2014
         # TODO: Assign BC_statuses also to *links*
@@ -1169,7 +1168,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                [  5.,   6.,   7.,   8.,   9.],
                [  0.,   1.,   2.,   3.,   4.]])
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return sgrid.reshape_array(self.shape, u, flip_vertically=flip_vertically)
 
@@ -1201,7 +1200,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         array([[ 3.,  4.,  5.],
                [ 0.,  1.,  2.]])
 
-        LLCATS: GINF CINF
+        :meta landlab: info-grid, info-cell
         """
         return sgrid.reshape_array(
             (self.shape[0] - 2, self.shape[1] - 2), u, flip_vertically=flip_vertically
@@ -1245,7 +1244,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         array([ 3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
                 2.])
 
-        LLCATS: NINF
+        :meta landlab: info-node
         """
         # Get the data
         data = self.at_node[data_name]
@@ -1305,7 +1304,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
 
-        LLCATS: NINF CONN BC
+        :meta landlab: info-node, connectivity, boundary-condition
         """
         ans = _node_has_boundary_neighbor(self, ids, method=method)
 
@@ -1356,7 +1355,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> mg.grid_coords_to_node_id([2, 0], [3, 4])
         array([13,  4])
 
-        LLCATS: NINF SUBSET MEAS
+        :meta landlab: info-node, subset, quantity
         """
         return np.ravel_multi_index((row, col), self.shape, **kwds)
 
@@ -1367,7 +1366,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         normal for a square patch. Use
         `_calc_unit_normals_to_patch_subtriangles` instead.
 
-        LLCATS: PINF GRAD
+        :meta landlab: info-patch, gradient
         """
         raise NotImplementedError(
             "This method is not defined on a raster, as there is no unique "
@@ -1429,7 +1428,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
         array([ 180.,  180.])
 
-        LLCATS: NINF SURF GRAD
+        :meta landlab: info-node, surface, gradient
         """
         if ids is None:
             ids = self.node_at_cell
@@ -1507,7 +1506,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         True
         >>> os.remove(fname)
 
-        LLCATS: GINF
+        :meta landlab: info-grid
         """
         from ..io import write_esri_ascii
         from ..io.netcdf import write_netcdf
@@ -1553,7 +1552,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         array([[2, 5, 4, 3, 0, 3, 4, 5],
                [3, 0, 2, 1, 4, 1, 2, 0]])
 
-        LLCATS: DEPR CINF CONN BC
+        :meta landlab: deprecated, info-cell, connectivity, boundary-condition
         """
         if self._looped_cell_neighbor_list is not None:
             return self._looped_cell_neighbor_list
@@ -1730,7 +1729,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         [ 8,  9, 10, 11, 12, 13, 14, 15]
         [ 0,  1,  2,  3,  4,  5,  6,  7]
 
-        LLCATS: CINF CONN BC
+        :meta landlab: info-cell, connectivity, boundary-condition
         """
         if self._looped_second_ring_cell_neighbor_list_created:
             return self.second_ring_looped_cell_neighbor_list
@@ -1901,7 +1900,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -1961,14 +1960,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                 if sum(next_to_boundary) > 1:
                     potential_locs = min_locs[np.where(np.asarray(next_to_boundary))[0]]
                     raise ValueError(
-                        (
-                            "Grid has two potential outlet nodes."
-                            "They have the following node IDs: \n"
-                            + str(potential_locs)
-                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
-                            "to explicitly select one of these "
-                            "IDs as the outlet node."
-                        )
+                        "Grid has two potential outlet nodes."
+                        "They have the following node IDs: \n"
+                        + str(potential_locs)
+                        + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                        "to explicitly select one of these "
+                        "IDs as the outlet node."
                     )
                 else:
                     outlet_loc = min_locs[np.where(next_to_boundary)[0][0]]
@@ -2076,7 +2073,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                [-9999.,    67.,     0., -9999., -9999., -9999.],
                [-9999., -9999., -9999., -9999., -9999., -9999.]])
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -2090,12 +2087,13 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
             if len(possible_outlets) > 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has %r"
-                    % len(possible_outlets)
+                    "Model grid must only have one node with node status of "
+                    f"BC_NODE_IS_FIXED_VALUE. This grid has {len(possible_outlets)}."
                 )
             if len(possible_outlets) < 1:
                 raise ValueError(
-                    "Model grid must only have one node with node status of BC_NODE_IS_FIXED_VALUE. This grid has none"
+                    "Model grid must only have one node with node status of "
+                    "BC_NODE_IS_FIXED_VALUE. This grid has none"
                 )
 
             outlet_id = possible_outlets
@@ -2127,7 +2125,6 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         # continue running until no new nodes are added.
         while numAdded > 0:
-
             # find all potential new nodes by filtering the nodes connected to
             # the most recent set of new nodes based on their status.
             connected_orthogonal_nodes = self.adjacent_nodes_at_node[newNodes]
@@ -2230,7 +2227,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -2297,7 +2294,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)

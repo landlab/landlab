@@ -94,7 +94,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "Pa",
             "mapping": "node",
-            "doc": "Shear exerted on the bed of the channel, assuming all discharge travels along a single, self-formed channel",
+            "doc": (
+                "Shear exerted on the bed of the channel, assuming all "
+                "discharge travels along a single, self-formed channel"
+            ),
         },
         "channel__depth": {
             "dtype": float,
@@ -110,7 +113,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Volumetric water flux of the a single channel carrying all runoff through the node",
+            "doc": (
+                "Volumetric water flux of the a single channel carrying all "
+                "runoff through the node"
+            ),
         },
         "channel__width": {
             "dtype": float,
@@ -126,7 +132,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "The fluvial_sediment_flux_into_node divided by the fluvial_sediment_transport_capacity",
+            "doc": (
+                "The fluvial_sediment_flux_into_node divided by the "
+                "fluvial_sediment_transport_capacity"
+            ),
         },
         "channel_sediment__volumetric_flux": {
             "dtype": float,
@@ -142,7 +151,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Volumetric transport capacity of a channel carrying all runoff through the node, assuming the Meyer-Peter Muller transport equation",
+            "doc": (
+                "Volumetric transport capacity of a channel carrying all runoff "
+                "through the node, assuming the Meyer-Peter Muller transport equation"
+            ),
         },
         "drainage_area": {
             "dtype": float,
@@ -354,16 +366,16 @@ class SedDepEroder(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that SedDepEroder is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that SedDepEroder is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
         self._flooded_depths = flooded_depths
         self._pseudoimplicit_repeats = pseudoimplicit_repeats
 
@@ -416,7 +428,7 @@ class SedDepEroder(Component):
                 # manually set.
                 # print("Found a shear stress threshold to use: ", self._thresh)
             else:
-                warnings.warn("Found no incision threshold to use.")
+                warnings.warn("Found no incision threshold to use.", stacklevel=2)
                 self._thresh = 0.0
                 self._set_threshold = False
             self._a = a_sp
@@ -427,7 +439,7 @@ class SedDepEroder(Component):
             self._k_w = k_w
             self._mannings_n = mannings_n
             if mannings_n < 0.0 or mannings_n > 0.2:
-                warnings.warn("Manning's n outside it's typical range")
+                warnings.warn("Manning's n outside it's typical range", stacklevel=2)
 
             self._diffusivity_power_on_A = 0.9 * self._c * (1.0 - self._b)
             # ^i.e., q/D**(1/6)
@@ -662,7 +674,7 @@ class SedDepEroder(Component):
                 + "recognised!"
             )
 
-        for i in range(self._pseudoimplicit_repeats):
+        for _ in range(self._pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
             sed_vol_added = prefactor_for_volume * sed_flux_fn
             rel_sed_flux = rel_sed_flux_in + sed_vol_added / trans_cap_vol_out

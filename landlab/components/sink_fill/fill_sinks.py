@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """Created on Mon Oct 19.
 
 @author: dejh
 """
-
+import contextlib
 
 import numpy as np
 
@@ -137,16 +136,16 @@ class SinkFiller(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that SinkFiller is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that SinkFiller is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
         if routing != "D8":
             assert routing == "D4"
@@ -193,10 +192,8 @@ class SinkFiller(Component):
         existing_fields = {}
         spurious_fields = set()
         set_of_outputs = set(self._lf.output_var_names) | set(self._fr.output_var_names)
-        try:
+        with contextlib.suppress(KeyError):
             set_of_outputs.remove(self._topo_field_name)
-        except KeyError:
-            pass
         for field in set_of_outputs:
             try:
                 existing_fields[field] = self._grid.at_node[field].copy()
@@ -211,7 +208,7 @@ class SinkFiller(Component):
         if self._apply_slope:
             # new way of doing this - use the upstream structure! Should be
             # both more general and more efficient
-            for (outlet_node, lake_code) in zip(
+            for outlet_node, lake_code in zip(
                 self._lf.lake_outlets, self._lf.lake_codes
             ):
                 lake_nodes = np.where(self._lf.lake_map == lake_code)[0]

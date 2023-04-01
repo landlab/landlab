@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TaylorNonLinearDiffuser Component.
 
 @author: R Glade
@@ -14,14 +13,15 @@ from landlab import Component, LinkStatus
 
 
 class TaylorNonLinearDiffuser(Component):
+
     """Hillslope evolution using a Taylor Series expansion of the Andrews-
     Bucknam formulation of nonlinear hillslope flux derived following following
-    Ganti et al., 2012. The flux is given as:
+    Ganti et al., 2012. The flux is given as::
 
-        qs = KS ( 1 + (S/Sc)**2 + (S / Sc)**4 + .. + (S / Sc)**2(n - 1) )
+        qs = KS * (1 + (S / Sc)**2 + (S / Sc)**4 + ... + (S / Sc)**2(n - 1))
 
-    where K is is the diffusivity, S is the slope, Sc is the critical slope, and
-    n is the number of terms.
+    where *K* is is the diffusivity, *S* is the slope, *Sc* is the critical slope, and
+    *n* is the number of terms.
 
     The default behavior uses two terms to produce a flux law as described by
     Equation 6 of Ganti et al., (2012).
@@ -32,44 +32,51 @@ class TaylorNonLinearDiffuser(Component):
     >>> import decimal
     >>> from landlab import RasterModelGrid
     >>> from landlab.plot.imshow import imshow_grid
+
     >>> mg = RasterModelGrid((3, 3))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> initial_slope=1.0
-    >>> leftmost_elev=1000.
+    >>> initial_slope = 1.0
+    >>> leftmost_elev = 1000.0
     >>> z[:] = leftmost_elev
     >>> z[:] += (
-    ...    (initial_slope * np.amax(mg.x_of_node)) -
-    ...    (initial_slope * mg.x_of_node))
+    ...    (initial_slope * np.amax(mg.x_of_node)) - (initial_slope * mg.x_of_node)
+    ... )
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1)
-    >>> cubicflux.run_one_step(1.)
+    >>> cubicflux.run_one_step(1.0)
     >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'],
-    ...     np.array([ 1002.,  1001.,  1000.,  1002.,  1001.,  1000.,  1002.,  1001.,
-    ...     1000.]))
+    ...     mg.at_node["topographic__elevation"],
+    ...     np.array(
+    ...         [1002.0, 1001.0, 1000.0, 1002.0, 1001.0, 1000.0, 1002.0, 1001.0, 1000.0]
+    ...     )
+    ... )
     True
 
-    The TaylorNonLinearDiffuser makes and moves soil at a rate proportional
+    The :class:`~.TaylorNonLinearDiffuser` makes and moves
+    soil at a rate proportional
     to slope, this means that there is a characteristic time scale for soil
     transport and an associated stability criteria for the timestep. The
-    maximum characteristic time scale, Demax, is given as a function of the
-    hillslope diffustivity, D, the maximum slope, Smax, and the critical slope
-    Sc.
+    maximum characteristic time scale, *Demax*, is given as a function of the
+    hillslope diffustivity, *D*, the maximum slope, *Smax*, and the critical slope
+    *Sc*::
 
-        Demax = D ( 1 + ( Smax / Sc )**2 ( Smax / Sc )**4 + .. + ( Smax / Sc )**( 2 * ( n - 1 )) )
+        Demax = D * (
+            1 + (Smax / Sc) ** 2 + (Smax / Sc) ** 4 + ... + (Smax / Sc) ** (2 * (n - 1))
+        )
 
-    The maximum stable time step is given by
+    The maximum stable time step is given by::
 
         dtmax = courant_factor * dx * dx / Demax
 
     Where the courant factor is a user defined scale (default is 0.2)
 
-    The TaylorNonLinearDiffuser has a boolean flag that permits a user to be
+    The :class:`~.TaylorNonLinearDiffuser` has a boolean
+    flag that permits a user to be
     warned if timesteps are too large for the slopes in the model grid
-    (if_unstable = 'warn') and a boolean flag that turns on dynamic
-    timesteppping (dynamic_dt = False).
+    (``if_unstable="warn"``) and a boolean flag that turns on dynamic
+    timesteppping (``dynamic_dt=False``).
 
-    >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1, if_unstable='warn')
+    >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1, if_unstable="warn")
     >>> cubicflux.run_one_step(2.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
@@ -78,7 +85,7 @@ class TaylorNonLinearDiffuser(Component):
     timestepping. The Courant condition recommends a timestep of  0.2 or
     smaller.
 
-    Alternatively you can specify if_unstable='raise', and a Runtime Error will
+    Alternatively you can specify ``if_unstable="raise"``, and a `RuntimeError` will
     be raised if this condition is not met.
 
     Next, lets do an example with dynamic timestepping.
@@ -89,17 +96,14 @@ class TaylorNonLinearDiffuser(Component):
     We'll use a steep slope.
 
     >>> z += mg.node_x.copy()**2
-    >>> cubicflux = TaylorNonLinearDiffuser(
-    ...     mg,
-    ...     if_unstable='warn',
-    ...     dynamic_dt=False)
+    >>> cubicflux = TaylorNonLinearDiffuser(mg, if_unstable="warn", dynamic_dt=False)
 
     Lets try to move the soil with a large timestep. Without dynamic time
     steps, this gives a warning that we've exceeded the dynamic timestep size
     and should use a smaller timestep. We could either use the smaller timestep,
     or specify that we want to use a dynamic timestep.
 
-    >>> cubicflux.run_one_step(10.)
+    >>> cubicflux.run_one_step(10.0)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -113,10 +117,7 @@ class TaylorNonLinearDiffuser(Component):
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> z += mg.node_x.copy()**2
-    >>> cubicflux = TaylorNonLinearDiffuser(
-    ...     mg,
-    ...     if_unstable='warn',
-    ...     dynamic_dt=True)
+    >>> cubicflux = TaylorNonLinearDiffuser(mg, if_unstable="warn", dynamic_dt=True)
     >>> cubicflux.run_one_step(10.)
     >>> np.any(np.isnan(z))
     False
@@ -136,7 +137,6 @@ class TaylorNonLinearDiffuser(Component):
     closure for nonlinear hillslope sediment transport models Journal of
     Geophysical Research: Earth Surface  117(F2).
     https://dx.doi.org/10.1029/2011jf002181
-
     """
 
     _name = "TaylorNonLinearDiffuser"
@@ -145,8 +145,10 @@ class TaylorNonLinearDiffuser(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -200,22 +202,19 @@ class TaylorNonLinearDiffuser(Component):
         grid: ModelGrid
             Landlab ModelGrid object
         linear_diffusivity: float, optional
-            Hillslope diffusivity, m**2/yr
-            Default = 1.0
+            Hillslope diffusivity (m**2 / yr).
         slope_crit: float, optional
-            Critical slope
-            Default = 1.0
-        nterms: int, optional. default = 2
-            number of terms in the Taylor expansion.
-            Two terms (Default) gives the behavior
+            Critical slope.
+        nterms: int, optional
+            Number of terms in the Taylor expansion.
+            Two terms (the default) gives the behavior
             described in Ganti et al. (2012).
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping.
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
+        dynamic_dt : bool, optional
+            Turn dynamic time-stepping on or off.
+        if_unstable : {'pass', 'warn', 'raise'}, optional
+            Specify how potential instability due to slopes that are too high
+            is handled.
+        courant_factor : float, optional
             Factor to identify stable time-step duration when using dynamic
             timestepping.
         """
@@ -236,23 +235,21 @@ class TaylorNonLinearDiffuser(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
 
         # slope gradient
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("topographic__slope", at="link")
+        if "topographic__slope" not in self._grid.at_link:
+            self._grid.add_zeros("topographic__slope", at="link")
+        self._slope = self._grid.at_link["topographic__slope"]
 
         # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("soil__flux", at="link")
+        if "soil__flux" not in self._grid.at_link:
+            self._grid.add_zeros("soil__flux", at="link")
+        self._flux = self._grid.at_link["soil__flux"]
 
     def soilflux(self, dt):
-        """Calculate soil flux for a time period 'dt'.
+        """Calculate soil flux for a time period, dt.
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
         # establish time left as all of dt
@@ -260,7 +257,6 @@ class TaylorNonLinearDiffuser(Component):
 
         # begin while loop for time left
         while time_left > 0.0:
-
             # Calculate gradients
             self._slope[:] = self._grid.calc_grad_at_link(self._elev)
             self._slope[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
@@ -339,7 +335,7 @@ class TaylorNonLinearDiffuser(Component):
 
         Parameters
         ----------
-        dt: float (time)
+        dt: float
             The imposed timestep.
         """
         self.soilflux(dt)

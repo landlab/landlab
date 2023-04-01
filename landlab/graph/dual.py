@@ -4,7 +4,7 @@ This class should not be used directly. Instead, it should be used as a
 base class when defining other types of graphs.
 """
 import inspect
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 
@@ -19,7 +19,10 @@ class DualGraphMeta(type):
         type.__init__(cls, name, bases, dct)
 
         converter = ConventionConverter("cfc")
-        for name, prop in inspect.getmembers(cls, inspect.isdatadescriptor):
+        # for name, prop in inspect.getmembers(cls, inspect.isdatadescriptor):
+        for name, prop in inspect.getmembers(
+            cls, lambda o: inspect.isdatadescriptor(o) or inspect.ismethoddescriptor(o)
+        ):
             new_name = converter.conform(name, "nlp")
             if hasattr(cls, new_name):
                 continue
@@ -27,11 +30,11 @@ class DualGraphMeta(type):
             fdoc = inspect.getdoc(prop)
             if fdoc:
                 fdoc = inspect.cleandoc(
-                    """{0}
+                    """{}
 
                     See Also
                     --------
-                    Graph.{1}
+                    Graph.{}
                     """.format(
                         converter.conform(fdoc.splitlines()[0], "nlp"), name
                     )
@@ -57,18 +60,15 @@ class DualGraph(metaclass=DualGraphMeta):
     def nodes_at_face(self):
         return self.ds["nodes_at_face"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     def cell_at_node(self):
         return reverse_one_to_one(self.node_at_cell, minlength=self.number_of_nodes)
 
-    @property
-    @lru_cache()
+    @cached_property
     def link_at_face(self):
         return self._create_link_at_face()
 
     def _create_link_at_face(self):
-
         link_at_nodes = {}
         for link, pair in enumerate(self.nodes_at_link):
             # pair.sort()
@@ -83,8 +83,7 @@ class DualGraph(metaclass=DualGraphMeta):
 
         return self._link_at_face
 
-    @property
-    @lru_cache()
+    @cached_property
     def face_at_link(self):
         return reverse_one_to_one(self.link_at_face, minlength=self.number_of_links)
 

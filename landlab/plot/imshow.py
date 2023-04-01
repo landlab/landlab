@@ -24,7 +24,7 @@ try:
 except ImportError:
     import warnings
 
-    warnings.warn("matplotlib not found", ImportWarning)
+    warnings.warn("matplotlib not found", ImportWarning, stacklevel=2)
 
 
 class ModelGridPlotterMixIn:
@@ -304,7 +304,7 @@ def _imshow_grid_values(
             + grid.xy_of_lower_left[0]
         )
 
-        kwds = dict(cmap=cmap)
+        kwds = {"cmap": cmap}
         (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
         if (limits is None) and ((vmin is None) and (vmax is None)):
             if symmetric_cbar:

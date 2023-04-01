@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a LithoLayers component with different properties."""
 
 import numpy as np
@@ -57,15 +56,17 @@ class LithoLayers(Lithology):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{barnhart2018lithology,
-                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
-                    journal = "Journal of Open Source Software",
-                    volume = "",
-                    pages = "",
-                    year = "2018",
-                    doi = "10.21105/joss.00979",
-                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
-                    }"""
+    _cite_as = """
+    @article{barnhart2018lithology,
+        title = "Lithology: A Landlab submodule for spatially variable rock properties",
+        journal = "Journal of Open Source Software",
+        volume = "",
+        pages = "",
+        year = "2018",
+        doi = "10.21105/joss.00979",
+        author = {Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini
+                  and Gregory E. Tucker},
+    }"""
 
     _info = {}
 
@@ -167,26 +168,29 @@ class LithoLayers(Lithology):
 
         function_args = function.__code__.co_varnames
         if len(function_args) != 2:
-            msg = "LithoLayers: function must take exactly two arguments, x and y."
-            raise ValueError(msg)
+            raise ValueError(
+                "LithoLayers: function must take exactly two arguments, x and y."
+            )
 
         if np.asarray(z0s).size != np.asarray(ids).size:
-            msg = "LithoLayers: Size of layer depths and layer IDs must be the same"
-            raise ValueError(msg)
+            raise ValueError(
+                "LithoLayers: Size of layer depths and layer IDs must be the same"
+            )
 
         if np.any(np.diff(z0s) < 0):
-            msg = "LithoLayers: Bad layer depth order passed."
-            raise ValueError(msg)
+            raise ValueError("LithoLayers: Bad layer depth order passed.")
 
         z_surf = function(grid.x_of_node - x0, grid.y_of_node - y0)
 
         if hasattr(z_surf, "shape"):
             if z_surf.shape != grid.x_of_node.shape:
-                msg = "LithoLayers: function must return an array of shape (n_nodes,)"
-                raise ValueError(msg)
+                raise ValueError(
+                    "LithoLayers: function must return an array of shape (n_nodes,)"
+                )
         else:
-            msg = "LithoLayers: function must return an array of shape (n_nodes,)"
-            raise ValueError(msg)
+            raise ValueError(
+                "LithoLayers: function must return an array of shape (n_nodes,)"
+            )
 
         layer_thicknesses = []
         layer_ids = []
@@ -197,7 +201,6 @@ class LithoLayers(Lithology):
 
         # create layers (here listed from the top to the bottom.)
         for i in range(num_layers):
-
             layer_depth = z_surf + z0s[i]
             layer_depth[layer_depth < 0] = 0
 

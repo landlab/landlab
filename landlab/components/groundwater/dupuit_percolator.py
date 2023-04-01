@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """GroundwaterDupuitPercolator Component.
 
 @author: G Tucker, D Litwin, K Barnhart
@@ -155,8 +154,9 @@ class GroundwaterDupuitPercolator(Component):
     .. math::
         q_s = \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(-\nabla \cdot q + f \big)
 
-    where :math:`\mathcal{G}_r` is a smoothed step function, :math:`\mathcal{R}` is the ramp function,
-    :math:`d` is the regolith thickness, and :math:`f` is the recharge rate.
+    where :math:`\mathcal{G}_r` is a smoothed step function, :math:`\mathcal{R}`
+    is the ramp function, :math:`d` is the regolith thickness, and :math:`f` is
+    the recharge rate.
 
     The evolution of aquifer thickness is then given by:
 
@@ -415,11 +415,11 @@ class GroundwaterDupuitPercolator(Component):
         try:  # New style callback function.
             new_val(self._grid, self.recharge, 0.0, **self._callback_kwds)
             self._callback_fun = new_val
-        except TypeError as error:  # Nonfunctional callback function.
+        except TypeError as exc:  # Nonfunctional callback function.
             raise ValueError(
-                r"%s. Please supply a callback function with the form function(grid, recharge_rate, substep_dt, \*\*kwargs)"
-                % error
-            )
+                f"{str(exc)}: Please supply a callback function with the form "
+                "function(grid, recharge_rate, substep_dt, **kwargs)"
+            ) from exc
 
     @property
     def courant_coefficient(self):
@@ -485,7 +485,8 @@ class GroundwaterDupuitPercolator(Component):
                 and len(new_val(self._grid)) == self._grid.number_of_links
             ):
                 raise TypeError(
-                    """If a function is provided it must take a ModelGrid and return an array of length number_of_links."""
+                    "If a function is provided it must take a ModelGrid and "
+                    "return an array of length number_of_links."
                 )
             else:
                 self._func = new_val
@@ -715,7 +716,6 @@ class GroundwaterDupuitPercolator(Component):
         self._num_substeps = 0
 
         while remaining_time > 0.0:
-
             # Calculate hydraulic gradient
             self._hydr_grad[self._grid.active_links] = (
                 self._grid.calc_grad_at_link(self._wtable) * cosa
@@ -757,7 +757,8 @@ class GroundwaterDupuitPercolator(Component):
                 )
             )
             substep_dt = min([dt_courant, dt_vn, remaining_time])
-            # print(np.argmin(np.array([self._dt_courant, self._dt_vn, remaining_time]))) # 0 = courant limited, 1 = vn limited, 2 = not limited
+            # 0 = courant limited, 1 = vn limited, 2 = not limited
+            # print(np.argmin(np.array([self._dt_courant, self._dt_vn, remaining_time])))
 
             # update thickness from analytical
             self._thickness[self._cores] = _update_thickness(

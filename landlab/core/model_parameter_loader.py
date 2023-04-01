@@ -38,7 +38,7 @@ def load_file_contents(file_like):
         contents = file_like.read()
     except AttributeError:  # was a str
         if os.path.isfile(file_like):
-            with open(file_like, "r") as fp:
+            with open(file_like) as fp:
                 contents = fp.read()
         else:
             contents = file_like

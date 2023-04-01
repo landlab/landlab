@@ -1,13 +1,13 @@
+from contextlib import suppress
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.io.netcdf import write_raster_netcdf
 
-try:
+with suppress(ImportError):
     import netCDF4 as nc
-except ImportError:
-    pass
 
 
 def test_append_with_time(tmpdir):

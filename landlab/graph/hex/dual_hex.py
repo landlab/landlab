@@ -77,8 +77,8 @@ class DualHexGraph(DualGraph, TriGraph):
 
         try:
             spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float") from exc
 
         self._shape = tuple(shape)
         self._spacing = spacing

@@ -19,7 +19,6 @@ from .cfuncs import (
 
 
 class FastscapeEroder(Component):
-
     r"""Fastscape stream power erosion.
 
     This class uses the Braun-Willett Fastscape approach to calculate the
@@ -227,25 +226,23 @@ class FastscapeEroder(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that FastscapeEroder is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that FastscapeEroder is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
-        if not erode_flooded_nodes:
-            if "flood_status_code" not in self._grid.at_node:
-                msg = (
-                    "In order to not erode flooded nodes another component "
-                    "must create the field *flood_status_code*. You want to "
-                    "run a lake mapper/depression finder."
-                )
-                raise ValueError(msg)
+        if not erode_flooded_nodes and "flood_status_code" not in self._grid.at_node:
+            raise ValueError(
+                "In order to not erode flooded nodes another component "
+                "must create the field *flood_status_code*. You want to "
+                "run a lake mapper/depression finder."
+            )
 
         self._erode_flooded_nodes = erode_flooded_nodes
 
