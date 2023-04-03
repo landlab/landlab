@@ -9,24 +9,24 @@ class Conical(object):
     def __init__(self):
         pass
 
-    def calculate_crown_volume(self, plants):
-        volume=np.pi/12*plants['shoot_sys_width']**2*plants['shoot_height']
+    def calc_crown_volume(self, plants):
+        volume=np.pi/12*plants['shoot_sys_width']**2*plants['shoot_sys_height']
         return volume
 
 class Decumbent(object):
     def __init__(self):
         pass
 
-    def calculate_crown_volume(self, plants):
-        volume=np.pi/3*plants['shoot_sys_width']**2*plants['shoot_height']
+    def calc_crown_volume(self, plants):
+        volume=np.pi/3*plants['shoot_sys_width']**2*plants['shoot_sys_height']
         return volume
 
 class Erect(object):
     def __init__(self):
         pass
 
-    def calculate_crown_volume(self, plants):
-        volume=np.pi/4*plants['shoot_sys_width']**2*plants['shoot_height']
+    def calc_crown_volume(self, plants):
+        volume=np.pi/4*plants['shoot_sys_width']**2*plants['shoot_sys_height']
         return volume
 
 class Irregular(object):
@@ -37,8 +37,8 @@ class Oval(object):
     def __init__(self):
         pass
     
-    def calculate_crown_volume(self, plants):
-        volume=np.pi/6*plants['shoot_sys_width']**2*plants['shoot_height']
+    def calc_crown_volume(self, plants):
+        volume=np.pi/6*plants['shoot_sys_width']**2*plants['shoot_sys_height']
         return volume
 
 class Prostrate(object):
@@ -49,7 +49,7 @@ class Rounded(object):
     def __init__(self):
         pass
 
-    def calculate_crown_volume(self, plants):
+    def calc_crown_volume(self, plants):
         volume=np.pi/6*plants['shoot_sys_width']**3
         return volume
 

@@ -76,11 +76,11 @@ class Species(object):
             raise ValueError(msg)
 
     def calculate_derived_params(self, species_params):
-        species_params['max_crown_area']=np.pi/4*species_params['max_shoot_sys_width']**2
-        species_params['min_crown_area']=np.pi/4*species_params['min_shoot_sys_width']**2
-        species_params['max_root_area']=np.pi/4*species_params['max_root_sys_width']**2
-        species_params['min_root_area']=np.pi/4*species_params['min_root_sys_width']**2
-        species_params['max_vital_volume']=species_params['max_crown_area']*species_params['max_height']
+        species_params['morph_params']['max_crown_area']=np.pi/4*species_params['morph_params']['max_shoot_sys_width']**2
+        species_params['morph_params']['min_crown_area']=np.pi/4*species_params['morph_params']['min_shoot_sys_width']**2
+        species_params['morph_params']['max_root_area']=np.pi/4*species_params['morph_params']['max_root_sys_width']**2
+        species_params['morph_params']['min_root_area']=np.pi/4*species_params['morph_params']['min_root_sys_width']**2
+        species_params['morph_params']['max_vital_volume']=species_params['morph_params']['max_crown_area']*species_params['morph_params']['max_height']
         
         sum_vars=[
             ['max_total_biomass','plant_part_max', self.all_parts],
@@ -89,11 +89,11 @@ class Species(object):
             ['min_growth_biomass','plant_part_min', self.growth_parts]
         ]
         for sum_var in sum_vars:
-            species_params[sum_var[0]]=0
+            species_params['grow_params'][sum_var[0]]=0
             for part in sum_var[2]:
-                species_params[sum_var[0]] += species_params['grow_params'][sum_var[1]][part]
+                species_params['grow_params'][sum_var[0]] += species_params['grow_params'][sum_var[1]][part]
        
-        species_params['biomass_packing']=species_params['max_growth_biomass']/species_params['max_vital_volume']
+        species_params['morph_params']['biomass_packing']=species_params['grow_params']['max_growth_biomass']/species_params['morph_params']['max_vital_volume']
         return species_params
 
     def select_photosythesis_type(self, p_type):
@@ -116,14 +116,14 @@ class Species(object):
     
     def select_form_class(self, form_val):
         form={
-            'bunch':Bunch(),
-            'colonizing':Colonizing(self.species_dispersal_params),
-            'multiple_stems':Multiplestems(),
-            'rhizomatous':Rhizomatous(self.species_dispersal_params),
-            'single_crown':Singlecrown(),
-            'single_stem':Singlestem(),
-            'stoloniferous':Stoloniferous(),
-            'thicket_forming':Thicketforming()
+            'bunch':Bunch(self.species_dispersal_params, self.species_grow_params),
+            'colonizing':Colonizing(self.species_dispersal_params, self.species_grow_params),
+            'multiple_stems':Multiplestems(self.species_dispersal_params, self.species_grow_params),
+            'rhizomatous':Rhizomatous(self.species_dispersal_params, self.species_grow_params),
+            'single_crown':Singlecrown(self.species_dispersal_params, self.species_grow_params),
+            'single_stem':Singlestem(self.species_dispersal_params, self.species_grow_params),
+            'stoloniferous':Stoloniferous(self.species_dispersal_params, self.species_grow_params),
+            'thicket_forming':Thicketforming(self.species_dispersal_params, self.species_grow_params)
         }
         return form[form_val]
 
@@ -149,17 +149,30 @@ class Species(object):
         self.form.branch()
         
     def calc_lateral_width(self, plants):
-        volume=self.shape.calc_volume(plants)
+        volume=self.shape.calc_crown_volume(plants)
         plants=self.habit.calc_lateral_width(volume, plants)
         return plants
     
+    def sum_plant_parts(self, _new_biomass, parts='total'):
+        if parts=='total':
+            parts_dict=self.all_parts
+        elif parts=='growth':
+            parts_dict=self.growth_parts
+        _new_tot=np.zeros_like(_new_biomass['root_biomass'])
+        for part in parts_dict:
+            _new_tot+=_new_biomass[part]
+        return _new_tot
+    
     def disperse(self, plants):
         #decide how to parameterize reproductive schedule, make repro event
-        #right now we are just taking 20% of available storage and moving to 
-        available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
-        plants['repro_biomass']=plants['repro_biomass']+0.2*(available_stored_biomass)
-        plants['storage_biomass']=plants['storage_biomass']-0.2*(available_stored_biomass)
-        plants=self.form.disperse(plants)
+        #right now we are just taking 20% of available storage and moving to
+        if self.sum_plant_parts(plants, parts='growth') < self.species_dispersal_params['min_size_dispersal']: 
+            pass
+        else:
+            available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
+            plants['repro_biomass']=plants['repro_biomass']+0.2*(available_stored_biomass)
+            plants['storage_biomass']=plants['storage_biomass']-0.2*(available_stored_biomass)
+            plants=self.form.disperse(plants)
         return plants
 
     def enter_dormancy(self, plants):

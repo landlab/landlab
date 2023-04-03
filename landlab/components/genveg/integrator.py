@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import fsolve
 from .growth import PlantGrowth
+import matplotlib as plt
 import warnings
 from landlab.data_record import DataRecord
 rng = np.random.default_rng()
@@ -98,7 +99,7 @@ class GenVeg(Component, PlantGrowth):
         self.current_day=current_day
         self.start_date=current_day
         self.time_ind=0
-        self.neighbors=self._grid.looped_neighbors_at_cell()
+        #self.neighbors=self._grid.looped_neighbors_at_cell()
         self.nodes=self._grid.node_at_cell
         _current_jday=self._calc_current_jday()
         rel_time=self._calc_rel_time()
@@ -107,69 +108,93 @@ class GenVeg(Component, PlantGrowth):
     ##Instantiate a plantgrowth object and summarize number of plants and biomass per cell
         #Create empty array to store PlantGrowth objects
         plantspecies=[]
-        _ = self._grid.add_zeros('vegetation__total_biomass',at='cell')
-        _ = self._grid.add_zeros('vegetation__n_plants',at='cell')
-        _ = self._grid.add_field('vegetation__percent_cover', rng.uniform(low=0, high=1,size=self._grid.number_of_cells), at='cell', units='', clobber=True )
-        tot_biomass_all=self._grid.at_cell['vegetation__total_biomass']
-        tot_plant_all=self._grid.at_cell['vegetation__n_plants']
-        available_cover=self._grid.at_cell['vegetation__percent_cover']
+        _ = self._grid.add_zeros('vegetation__total_biomass',at='cell', clobber=True)
+        _ = self._grid.add_zeros('vegetation__n_plants',at='cell', clobber=True)
+        species_cover=self._grid.at_cell['vegetation__percent_cover']
+        self.species_cover_allocation=[]
+
+        for cell_index in range(self._grid.number_of_cells):
+            species_list=self._grid.at_cell['vegetation__plant_species'][cell_index]
+            number_of_species=len(species_list)
+            num_null=np.count_nonzero(species_list=='null')
+            cover_species=rng.uniform(low=0.0, high=1.0, size=number_of_species-num_null)
+            cover_sum=sum(cover_species)
+
+            self.species_cover_allocation.append(dict(zip(species_list, ((cover_species/cover_sum)*self._grid.at_cell['vegetation__percent_cover'][cell_index]))))
 
         #for each species in the parameters file
         for species in vegparams:
             if species=='null':
                 continue
-            species_cover=rng.uniform(low=np.zeros_like(available_cover), high=available_cover, size=available_cover.size)
             species_dict=vegparams[species]
-            species_obj=PlantGrowth(self._grid,self.dt, _current_jday, rel_time, species_dict, species_cover=species_cover)
-            array_out=species_obj.species_plants()
+            species_obj=PlantGrowth(self._grid,self.dt, _current_jday, rel_time, species_dict, species_cover=self.species_cover_allocation)
             plantspecies.append(species_obj)
-            #Summarize biomass and number of plants across grid
-            tot_bio_species=array_out['root_biomass']+array_out['leaf_biomass']+array_out['stem_biomass']
-            abg_area=np.pi/4*array_out['shoot_sys_width']**2
-            cell_biomass=np.bincount(array_out['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
-            cell_plant_count=np.bincount(array_out['cell_index'], minlength=self._grid.number_of_cells)
-            plant_area=np.bincount(array_out['cell_index'], weights=abg_area, minlength=self._grid.number_of_cells)
-            available_cover -= plant_area/self._grid.area_of_cell
-            tot_biomass_all=tot_biomass_all+cell_biomass
-            tot_plant_all=tot_plant_all+cell_plant_count
         
-        self._grid.at_cell['vegetation__total_biomass']=tot_biomass_all
-        self._grid.at_cell['vegetation__n_plants']=tot_plant_all
-        self._grid.at_cell['vegetation__percent_cover']
-
-        
-        cell_area=self._grid['area_of_cell']
-        abg_area_occ=np.zeros((self._grid['number_of_cells'],len(plantspecies)))
-        blg_area_occ=np.zeros((self._grid['number_of_cells'],len(plantspecies)))
-        for idx, species_obj in enumerate(plantspecies):
-            plant_array=species_obj.species_plants()
-            abg_area = np.pi/4*plant_array['shoot_sys_width']**2
-            blg_area = np.pi/4*plant_array['root_sys_width']**2
-            abg_area_occ+=np.bincount(plant_array['cell_index'],weights=abg_area, minlength=self._grid.number_of_cells)
-            blg_area_occ+=np.bincount(plant_array['cell_index'],weights=blg_area, minlength=self._grid.number_of_cells)
-
-        avail_abg_area=cell_area-abg_area_occ
-        avail_blg_area=cell_area-blg_area_occ
-
-            
-            #add location information for each plant
-
         self.plant_species=plantspecies
 
+        #Summarize biomass and number of plants across grid
+        all_plants=self.combine_plant_arrays()   
+        tot_bio_species=all_plants['root_biomass']+all_plants['leaf_biomass']+all_plants['stem_biomass']
+        abg_area=np.pi/4*all_plants['shoot_sys_width']**2
+        cell_biomass=np.bincount(all_plants['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
+        cell_plant_count=np.bincount(all_plants['cell_index'], minlength=self._grid.number_of_cells)
+        frac_cover=np.bincount(all_plants['cell_index'], weights=abg_area, minlength=self._grid.number_of_cells)/self._grid.area_of_cell
+        
+        self._grid.at_cell['vegetation__total_biomass']=cell_biomass
+        self._grid.at_cell['vegetation__n_plants']=cell_plant_count
+        self._grid.at_cell['vegetation__percent_cover']=frac_cover
+ 
+        #add location information for each plant
+        for cell_index in range(self._grid.number_of_cells):
+            cell_corners=self._grid.corners_at_cell[cell_index]
+            x_vertices=self._grid.x_of_corner[cell_corners]
+            y_vertices=self._grid.y_of_corner[cell_corners]
+            min_x=np.min(x_vertices)
+            max_x=np.max(x_vertices)
+            corner_vertices=np.array(list(zip(x_vertices, y_vertices)))
+            cell_poly=plt.pyplot.Polygon(corner_vertices)
+            cell_plants=all_plants[all_plants['cell_index']==cell_index]
+    
+            #Check if point falls in cell 
+            for plant in cell_plants:
+                radius=plant['shoot_sys_width']/2
+                x = rng.uniform(low=min_x+radius, high=max_x-radius, size=1)
+                y_lims=self.get_cell_boundary_points(cell_poly, x)
+                y = rng.uniform(low=y_lims[0]+radius, high=y_lims[1]-radius, size=1)
+                point = (x, y)
+                if cell_poly.contains(point):
+                    valid_center = self.check_if_loc_occupied((x,y), cell_plants, 'above')
+                    if valid_center == False:
+                        break
+                    else:
+                        counter+=1
+                        cell_plants[plant]['x_loc']=x
+                        cell_plants[plant]['y_loc']=y
+            for species in self.plant_species:
+                update_plants=cell_plants[cell_plants['species']==species]
+                species.update_plants(['x_loc', 'y_loc'], update_plants['pid'], np.vstack((update_plants['x_loc'], update_plants['y_loc'])))
+
+        
+    def get_int_output(self):
+        print(self.species_cover_allocation)
+    
     def run_one_step(self):
         _current_jday=self._calc_current_jday()
-        tot_biomass_all=np.zeros_like(self._grid.at_cell['vegetation__total_biomass'])
-        tot_plant_all=np.zeros_like(self._grid.at_cell['vegetation__n_plants'])
+        cell_biomass=np.zeros_like(self._grid.at_cell['vegetation__total_biomass'])
+        cell_plant_count=np.zeros_like(self._grid.at_cell['vegetation__n_plants'])
+
+        all_plants=[]
         for species_obj in self.plant_species:
             species_obj._grow(_current_jday)
-            array_out=species_obj.species_plants()
-            tot_bio_species=array_out['root_biomass']+array_out['leaf_biomass']+array_out['stem_biomass']
-            cell_biomass=np.bincount(array_out['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
-            cell_plant_count=np.bincount(array_out['cell_index'], minlength=self._grid.number_of_cells)
-            tot_biomass_all=tot_biomass_all+cell_biomass
-            tot_plant_all=tot_plant_all+cell_plant_count
-        self._grid.at_cell['vegetation__total_biomass']=tot_biomass_all
-        self._grid.at_cell['vegetation__n_plants']=tot_plant_all
+
+        all_plants=self.combine_plant_arrays()
+        all_plants=self.check_for_dispersal_success(all_plants)
+
+        tot_bio_species=all_plants['root_biomass']+all_plants['leaf_biomass']+all_plants['stem_biomass']
+        cell_biomass=np.bincount(all_plants['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
+        cell_plant_count=np.bincount(all_plants['cell_index'], minlength=self._grid.number_of_cells)
+        self._grid.at_cell['vegetation__total_biomass']=cell_biomass
+        self._grid.at_cell['vegetation__n_plants']=cell_plant_count
         self.current_day +=1
 
     def _calc_current_jday(self):
@@ -179,7 +204,86 @@ class GenVeg(Component, PlantGrowth):
     
     def _calc_rel_time(self):
         return (self.current_day-self.start_date).astype(float)
+    
+    def get_cell_boundary_points(self, polygon, x_value):
+        # Create a Path object from the polygon
+        path=polygon.get_path()
 
+        # Initialize a list to store the intersection points
+        intersection_points = []
+
+        # Loop through all the vertices of the polygon
+        for i in range(len(polygon)):
+            x1, y1 = polygon[i]
+            x2, y2 = polygon[(i+1) % len(polygon)]
+            if x1 <= x_value and x2 >= x_value or x1 >= x_value and x2 <= x_value:
+            # Calculate the intersection point between the polygon edge and the vertical line at x_value
+                y_intersection = (x_value - x1) * (y2 - y1) / (x2 - x1) + y1
+                intersection_points.append(y_intersection)
+
+        if len(intersection_points) == 0:
+            return None
+        else:
+            return min(intersection_points), max(intersection_points)
+    
+    def check_if_loc_occupied(self, plant_loc, all_plants, check_type):
+        area={
+            'above': 'shoot_sys_width',
+            'below': 'root_sys_width'
+        }
+        distance = np.sqrt((plant_loc[0]-all_plants['x_loc'])**2 + (plant_loc[1]-all_plants['y_loc'])**2)
+        conflict=np.where(distance > all_plants[area[check_type]]/2)
+        valid_center=np.all(conflict)
+        return valid_center
+
+    def check_for_dispersal_success(self, all_plants): # I think this doesn't belong here. We need neighbor info but shortest path is for clonal only
+        new_pups=all_plants[not np.isnan(all_plants['pup_x_loc'])]
+        if new_pups.size==0:
+            pass
+        else:
+            loc_ok=self.check_if_loc_occupied(np.array([new_pups['pup_x_loc'], new_pups['pup_y_loc']]), all_plants, 'below')
+            new_pups=new_pups[loc_ok==True]
+            new_pups['x_loc']=new_pups['pup_x_loc']
+            new_pups['y_loc']=new_pups['pup_y_loc']
+            for species_obj in self.plant_species:
+                species=species_obj.species_name
+                species_new_pups=new_pups[new_pups['species']==species]
+                if species_new_pups.size==0:
+                    break
+                else:
+                    species_parents=species_new_pups            
+                    species_new_pups=species_obj.habit.duration.set_new_biomass(species_new_pups)
+                    species_new_pups['plant_age']=np.zeros_like(species_new_pups['root'])
+                    species_new_pups['cell_index']=self._grid.cell_at_node[self._grid.find_nearest_node((species_new_pups['x_loc'], species_new_pups['y_loc']), mode='clip')]
+                    species_parents['reproductive']-=(species_new_pups['root']+species_new_pups['leaf']+species_new_pups['stem']+species_parents['pup_cost'])
+                    species_obj.update_plants(['reproductive'], species_parents['pid'], species_parents['reproductive'])
+                    species_obj.add_new_plants(species_new_pups)
+
+        return self.combine_plant_arrays()
+
+    def combine_plant_arrays(self):
+        all_plants=[]
+        for species_obj in self.plant_species:
+            array_out=species_obj.species_plants()
+            all_plants.append(array_out)
+        all_plants_array=np.asarray(all_plants)
+        all_plants_array=np.ravel(all_plants_array)
+        return all_plants_array
+
+
+        #need list of all plants within neighborhood plus their location and radius
+        #for pup in new_pups:
+        #    parent_cell=new_pups['cell_index']
+        #    query_cells=self._grid.looped_neighbors_at_cell[pup['cell_index']]
+        #    query_cells.append(parent_cell)
+        #    plants_to_check=all_plants[np.isin(new_pups['cell_index'], query_cells)]
+        #    plant_centers=zip(plants_to_check['pup_x_loc'], plants_to_check['pup_y_loc'])
+        #    plant_radii=plants_to_check['root_sys_width']/2
+        #    parent_loc=zip(pup['x_loc'], pup['y_loc'])
+        #    pup_loc=zip(pup['pup_x_loc'], pup['pup_y_loc']) 
+        #    shortest_distance=self._calc_shortest_path(parent_loc, pup_loc, plant_centers, plant_radii)
+            
+    
     def view_record_grid(self, ):
         view=self.record_grid.dataset.to_dataframe()
         return view
@@ -208,3 +312,51 @@ class GenVeg(Component, PlantGrowth):
                 if species_obj.species_name==species:
                     out_df=species_obj.record_plants.dataset.to_dataframe()
         return out_df
+    
+    def _calc_shortest_path(self, parent_loc, pup_loc, obstacle_centers, obstacle_radii):
+        min_distance = np.inf
+        min_path = None
+
+        for idx, obs_center in enumerate(obstacle_centers):
+            obs_radius=obstacle_radii(idx)
+
+            runner_direction=parent_loc-pup_loc
+            obs_direction=parent_loc-obs_center
+
+            angle=np.arccos(np.dot(runner_direction,obs_direction)/(np.linalg.norm(obs_direction)))
+            distance_to_obstacle = np.linalg.norm(obs_direction) * np.sin(angle) - obs_radius
+
+            # Calculate the vector from the obstacle center to the closest point on the path
+            path_direction = np.array([-obs_direction[1], obs_direction[0]])
+            if np.dot(path_direction, runner_direction) < 0:
+                path_direction = -path_direction
+
+            # Calculate the closest point on the path to the start point
+            path_point = parent_loc + path_direction * distance_to_obstacle / np.linalg.norm(path_direction)
+
+            # Calculate the distance from the start point to the closest point on the path
+            distance_to_path = np.linalg.norm(path_point - parent_loc)
+
+            # Calculate the distance from the closest point on the path to the end point
+            distance_from_path_to_end = np.linalg.norm(pup_loc - path_point)
+
+            # Calculate the total distance
+            total_distance = distance_to_path + distance_from_path_to_end
+
+            # Update the minimum distance and path if necessary
+            if total_distance < min_distance:
+                min_distance = total_distance
+                min_path = path_point
+    
+        # If there are no obstacles, the shortest path is a straight line
+        if min_path is None:
+            return np.linalg.norm(pup_loc - parent_loc)
+    
+        # Calculate the shortest path from the start point to the closest point on the path
+        shortest_path_start = self.shortest_path(parent_loc, min_path, obstacle_centers, obstacle_radii)
+    
+        # Calculate the shortest path from the closest point on the path to the end point
+        shortest_path_end = self.shortest_path(min_path, pup_loc, obstacle_centers, obstacle_radii)
+    
+        # Return the total shortest path
+        return shortest_path_start + shortest_path_end

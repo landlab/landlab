@@ -235,6 +235,11 @@ class PlantGrowth(Species):
         for idx, var_name in enumerate(var_names):
             self.plants[var_name][np.isin(self.plants['pid'], pids)]=var_vals[idx]
 
+    def add_new_plants(self, new_plants_list):
+        last_pid=self.plants['pid'][-1]
+        new_plants_list['pid']=np.arange(last_pid+1,last_pid+new_plants_list.size)
+        self.plants.append(new_plants_list)
+
     def _grow(self, _current_jday):
         #set up shorthand aliases
         growdict=self.species_grow_params
@@ -308,9 +313,9 @@ class PlantGrowth(Species):
             ('root_sys_depth', float),
             ('plant_age',float),
             ('n_stems',int),
-            ('pup_x_loc', float),#I think these don't belong here
+            ('pup_x_loc', float),
             ('pup_y_loc', float),
-            ('pup_runner_length',float),
+            ('pup_cost', float),
             ('item_id',int)
         ]
         pidval=0
@@ -323,22 +328,22 @@ class PlantGrowth(Species):
             for plant in cell_plants:
                 if plant == self.species_plant_factors['species']:
                     plant_cover=cell_cover[plant]
-                    cover_area=plant_cover*self._grid.area_of_cell
-                    if cover_area<self.species_morph_params['min_shoot_area']:
+                    cover_area=plant_cover*self._grid.area_of_cell[cell_index]
+                    if cover_area<self.species_morph_params['min_crown_area']:
                         continue
-                    num_plants=np.floor(2*cover_area/(self.species_morph_params['min_shoot_area']+self.species_morph_params['max_shoot_area']))
-                    area_frac_per_plant=rng.uniform(low=0, high=1, size=num_plants)
+                    num_plants=np.floor(2*cover_area/(self.species_morph_params['min_crown_area']+self.species_morph_params['max_crown_area']))
+                    area_frac_per_plant=rng.uniform(low=0.0, high=1.0, size=num_plants.astype(int))
                     area_per_plant=cover_area*(area_frac_per_plant/sum(area_frac_per_plant))
                     for new_plant_area in area_per_plant:
                         shoot_width=(4*new_plant_area/np.pi)**0.5
-                        plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,shoot_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,0))
+                        plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,shoot_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,np.nan,0))
                         pidval += 1
         plant_array=np.array(plantlist, dtype=dtypes)
         plant_array=self.set_initial_biomass(plant_array,in_growing_season)
         plant_array['shoot_sys_height']=(plant_array['leaf']+plant_array['stem'])/(self.species_morph_params['biomass_packing']*np.pi/4*plant_array['shoot_sys_width']**2)
-        plant_array['root_sys_width']=self.calc_lateral_width(plant_array)*2
+        plant_array=self.calc_lateral_width(plant_array)
         #This may need to change to be realistic
-        plant_array['n_stems']=rng.integers(low=1, high=self.species_morph_params['max_stems'], size=plant_array.size, endpoint=True)
+        plant_array['n_stems']=rng.integers(low=1, high=self.species_morph_params['max_n_stems'], size=plant_array.size, endpoint=True)
         return plant_array
         
     def allocate_biomass_dynamically(self,delta_tot):
@@ -510,16 +515,6 @@ class PlantGrowth(Species):
         for part in self.all_parts:
             _new_biomass[part][total_biomass<min_size]=0.0
         return _new_biomass
-
-    def sum_plant_parts(self, _new_biomass, parts='total'):
-        if parts=='total':
-            parts_dict=self.all_parts
-        elif parts=='growth':
-            parts_dict=self.growth_parts
-        _new_tot=np.zeros_like(_new_biomass['root_biomass'])
-        for part in parts_dict:
-            _new_tot+=_new_biomass[part]
-        return _new_tot
 
     #Save plant array output Modify this in future to take user input and add additional parameters that can be saved out
     def save_plant_output(self, rel_time, save_params):

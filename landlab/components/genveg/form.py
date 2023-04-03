@@ -2,7 +2,7 @@ from .dispersal import *
 
 #Growth form classes and selection method
 class Bunch(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
     
     def branch(self):
@@ -12,7 +12,7 @@ class Bunch(Seed):
         return plants
 
 class Colonizing(Random):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -22,7 +22,7 @@ class Colonizing(Random):
         return plants
 
 class Multiplestems(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -32,15 +32,15 @@ class Multiplestems(Seed):
         return plants
 
 class Rhizomatous(Clonal):
-    def __init__(self, disperse_params):
-        super().__init__(disperse_params)
+    def __init__(self, disperse_params, grow_params):
+        super().__init__(disperse_params, grow_params)
 
     def branch(self):
         print('Tiller via rhizomes')
 
 
 class Singlecrown(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -50,7 +50,7 @@ class Singlecrown(Seed):
         return plants
 
 class Singlestem(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -60,14 +60,14 @@ class Singlestem(Seed):
         return plants
 
 class Stoloniferous(Clonal):
-    def __init__(sel, disperse_params):
-        super().__init__(disperse_params)
+    def __init__(sel, disperse_params, grow_params):
+        super().__init__(disperse_params, grow_params)
 
     def branch(self):
         print('Branches via stolons')
 
 class Thicketforming(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):

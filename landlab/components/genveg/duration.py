@@ -13,6 +13,19 @@ class Duration(object):
         }
         self.green_parts=green_parts
 
+    def set_initial_biomass_all_parts(self, plants, morph_params, in_growing_season):
+        plants['storage_biomass']=rng.uniform(low=self.growdict['plant_part_min']['storage'],high=self.growdict['plant_part_max']['storage'],size=plants.size)
+        if in_growing_season:
+            plants['plant_age']=rng.uniform(low=0, high=self.max_age, size=plants.size)
+            if plants['plant_age'>=self.maturation_age]:
+                plants['repro_biomass']=rng.uniform(low=self.growdict['plant_part_min']['reproductive'], high=self.growdict['plant_part_max']['reproductive'], size=plants.size)
+        else:
+            plants['repro_biomass']=np.full_like(plants['root_biomass'],self.growdict['plant_part_min']['reproductive'])
+        crown_area=np.pi/4*plants['shoot_sys_width']**2
+        log_total_biomass_ideal=(np.log10(crown_area)/np.log10(morph_params['max_crown_area']))*np.log10(self.growdict['max_growth_biomass'])
+        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(10**log_total_biomass_ideal, self.allocation_coeffs) 
+        return plants
+    
     def set_new_biomass(self, plants):
         print('I create new plants')
         total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'],high=2*self.growdict['growth_min_biomass'],size=plants.size)
@@ -86,7 +99,7 @@ class Annual(Duration):
         plants=self.set_new_biomass(plants)
         return plants
 
-    def set_initial_biomass(self, plants, in_growing_season):
+    def set_initial_biomass(self, plants, morph_params, in_growing_season):
         if in_growing_season:
             plants=self.set_new_biomass(plants)
         return plants
@@ -105,19 +118,6 @@ class Perennial(Duration):
     def enter_dormancy(self, plants):
         print('I kill green parts at end of growing season')
         return plants
-    
-    def set_initial_biomass_all_parts(self, plants, morph_params, in_growing_season):
-        plants['storage_biomass']=rng.uniform(low=self.growdict['plant_part_min']['storage'],high=self.growdict['plant_part_max']['storage'],size=plants.size)
-        if in_growing_season:
-            plants['plant_age']=rng.uniform(low=0, high=self.max_age, size=plants.size)
-            if plants['plant_age'>=self.maturation_age]:
-                plants['repro_biomass']=rng.uniform(low=self.growdict['plant_part_min']['reproductive'], high=self.growdict['plant_part_max']['reproductive'], size=plants.size)
-        else:
-            plants['repro_biomass']=np.full_like(plants['root_biomass'],self.growdict['plant_part_min']['reproductive'])
-        crown_area=np.pi/4*plants['shoot_sys_width']**2
-        log_total_biomass_ideal=(np.log10(crown_area)/np.log10(morph_params['max_crown_area']))*np.log10(self.growdict['max_growth_biomass'])
-        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(10**log_total_biomass_ideal, self.allocation_coeffs) 
-        return plants
 
 class Evergreen(Perennial):
     def __init__(self, species_grow_params):
@@ -126,8 +126,8 @@ class Evergreen(Perennial):
     def emerge(self, plants):
         return plants
 
-    def set_initial_biomass(self, plants, in_growing_season):
-        plants=self.set_initial_biomass_all_parts(plants, in_growing_season)
+    def set_initial_biomass(self, plants, morph_params, in_growing_season):
+        plants=self.set_initial_biomass_all_parts(plants, morph_params, in_growing_season)
         return plants
 
 class Deciduous(Perennial):
@@ -158,8 +158,8 @@ class Deciduous(Perennial):
             plants[part]=plants[part]-(adjusted_total_new_green*plants[part]/total_mass_persistent_parts)
         return plants
 
-    def set_initial_biomass(self, plants, in_growing_season):
-        plants=self.set_initial_biomass_all_parts(plants, in_growing_season)
+    def set_initial_biomass(self, plants, morph_params, in_growing_season):
+        plants=self.set_initial_biomass_all_parts(plants, morph_params, in_growing_season)
         if not in_growing_season:
             for part in self.green_parts:
                 plants[part]=np.zeros_like(plants[part])
