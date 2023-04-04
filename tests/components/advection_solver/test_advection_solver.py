@@ -30,7 +30,6 @@ def test_upwind_link_at_link_raster():
 
 
 def test_upwind_link_at_link_hex():
-
     # Hex horizontal
     grid = HexModelGrid((3, 3))
     uwl = find_upwind_link_at_link(grid, 1.0)
