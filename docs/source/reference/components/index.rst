@@ -136,7 +136,7 @@ Generic numerical components
 .. toctree::
   :maxdepth: 2
 
-  advection_solver_tvd
+  advection
 
 Terrain Analysis
 ----------------
