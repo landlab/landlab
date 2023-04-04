@@ -117,7 +117,7 @@ class GenVeg(Component, PlantGrowth):
             species_list=self._grid.at_cell['vegetation__plant_species'][cell_index]
             number_of_species=len(species_list)
             num_null=np.count_nonzero(species_list=='null')
-            cover_species=rng.uniform(low=0.0, high=1.0, size=number_of_species-num_null)
+            cover_species=rng.uniform(low=0.5, high=1.0, size=number_of_species-num_null)
             cover_sum=sum(cover_species)
 
             self.species_cover_allocation.append(dict(zip(species_list, ((cover_species/cover_sum)*self._grid.at_cell['vegetation__percent_cover'][cell_index]))))
@@ -152,18 +152,19 @@ class GenVeg(Component, PlantGrowth):
             min_x=np.min(x_vertices)
             max_x=np.max(x_vertices)
             corner_vertices=np.array(list(zip(x_vertices, y_vertices)))
-            cell_poly=plt.pyplot.Polygon(corner_vertices)
             cell_plants=all_plants[all_plants['cell_index']==cell_index]
+            cell_poly=plt.pyplot.Polygon(corner_vertices)
+
     
             #Check if point falls in cell 
             for plant in cell_plants:
                 radius=plant['shoot_sys_width']/2
                 x = rng.uniform(low=min_x+radius, high=max_x-radius, size=1)
-                y_lims=self.get_cell_boundary_points(cell_poly, x)
+                y_lims=self.get_cell_boundary_points(corner_vertices, x)
                 y = rng.uniform(low=y_lims[0]+radius, high=y_lims[1]-radius, size=1)
-                point = (x, y)
-                if cell_poly.contains(point):
-                    valid_center = self.check_if_loc_occupied((x,y), cell_plants, 'above')
+                point = (*x, *y)
+                if cell_poly.contains_point(point):
+                    valid_center = self.check_if_loc_occupied(point, cell_plants, 'above')
                     if valid_center == False:
                         break
                     else:
@@ -205,17 +206,17 @@ class GenVeg(Component, PlantGrowth):
     def _calc_rel_time(self):
         return (self.current_day-self.start_date).astype(float)
     
-    def get_cell_boundary_points(self, polygon, x_value):
+    def get_cell_boundary_points(self, vertices, x_value):
         # Create a Path object from the polygon
-        path=polygon.get_path()
+        path=plt.path.Path(vertices)
 
         # Initialize a list to store the intersection points
         intersection_points = []
 
         # Loop through all the vertices of the polygon
-        for i in range(len(polygon)):
-            x1, y1 = polygon[i]
-            x2, y2 = polygon[(i+1) % len(polygon)]
+        for i in range(len(vertices)):
+            x1, y1 = vertices[i]
+            x2, y2 = vertices[(i+1) % len(vertices)]
             if x1 <= x_value and x2 >= x_value or x1 >= x_value and x2 <= x_value:
             # Calculate the intersection point between the polygon edge and the vertical line at x_value
                 y_intersection = (x_value - x1) * (y2 - y1) / (x2 - x1) + y1
@@ -237,7 +238,7 @@ class GenVeg(Component, PlantGrowth):
         return valid_center
 
     def check_for_dispersal_success(self, all_plants): # I think this doesn't belong here. We need neighbor info but shortest path is for clonal only
-        new_pups=all_plants[not np.isnan(all_plants['pup_x_loc'])]
+        new_pups=all_plants[~np.isnan(all_plants['pup_x_loc'])]
         if new_pups.size==0:
             pass
         else:
@@ -249,7 +250,7 @@ class GenVeg(Component, PlantGrowth):
                 species=species_obj.species_name
                 species_new_pups=new_pups[new_pups['species']==species]
                 if species_new_pups.size==0:
-                    break
+                    continue
                 else:
                     species_parents=species_new_pups            
                     species_new_pups=species_obj.habit.duration.set_new_biomass(species_new_pups)
@@ -265,9 +266,12 @@ class GenVeg(Component, PlantGrowth):
         all_plants=[]
         for species_obj in self.plant_species:
             array_out=species_obj.species_plants()
-            all_plants.append(array_out)
-        all_plants_array=np.asarray(all_plants)
-        all_plants_array=np.ravel(all_plants_array)
+            all_plants.append(np.ravel(array_out))
+
+        all_plants_array=all_plants[0]
+        for i in range(1, len(all_plants)):
+            all_plants_array=np.concatenate((all_plants_array,all_plants[i]))
+        #all_plants_array=np.ravel(all_plants_array)
         return all_plants_array
 
 

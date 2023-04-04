@@ -14,9 +14,12 @@ class Clonal(Repro):
         
     
     def disperse(self, plants):
+        plants['pup_x_loc'] = np.full_like(plants['root'], np.nan)
+        plants['pup_y_loc'] = np.full_like(plants['root'], np.nan)
+        plants['pup_cost'] = np.full_like(plants['root'], np.nan)
         runner_length=(plants['repro']-self.min_size)/self.unit_cost
         pup_dist = rng.uniform(low=plants['root_sys_width']/2, high=self.max_dist_dispersal, size=plants.size)
-        pup_azimuth = rng.uniform(low=0, high=360, size=plants.size)
+        pup_azimuth = np.deg2rad(rng.uniform(low=0, high=360, size=plants.size))
         plants['pup_x_loc']=np.empty_like(plants['repro'])
         plants['pup_y_loc']=np.empty_like(plants['repro'])
 

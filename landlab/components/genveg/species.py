@@ -166,13 +166,11 @@ class Species(object):
     def disperse(self, plants):
         #decide how to parameterize reproductive schedule, make repro event
         #right now we are just taking 20% of available storage and moving to
-        if self.sum_plant_parts(plants, parts='growth') < self.species_dispersal_params['min_size_dispersal']: 
-            pass
-        else:
-            available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
-            plants['repro_biomass']=plants['repro_biomass']+0.2*(available_stored_biomass)
-            plants['storage_biomass']=plants['storage_biomass']-0.2*(available_stored_biomass)
-            plants=self.form.disperse(plants)
+        filter=np.where(self.sum_plant_parts(plants, parts='growth') < self.species_dispersal_params['min_size_dispersal']) 
+        available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
+        plants['repro_biomass'][filter]=plants['repro_biomass'][filter]+0.2*(available_stored_biomass[filter])
+        plants['storage_biomass'][filter]=plants['storage_biomass'][filter]-0.2*(available_stored_biomass[filter])
+        plants=self.form.disperse(plants)
         return plants
 
     def enter_dormancy(self, plants):
