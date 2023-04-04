@@ -6,6 +6,7 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+from functools import cached_property
 
 import numpy
 import xarray as xr
@@ -13,7 +14,6 @@ import xarray as xr
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
 from .base import ModelGrid
-from .linkorientation import LinkOrientation
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
@@ -251,7 +251,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
         return (row, col)
 
-    @property
+    @cached_property
     def orientation_of_link(self):
         """Return array of link orientation codes (one value per link).
 
@@ -271,30 +271,11 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.orientation_of_link
         array([32,  2,  8,  2, 32,  8,  8, 32,  2,  8,  2, 32])
         """
-        try:
-            orientation_of_link = self._orientation_of_link
-        except AttributeError:
-            orientation_of_link = self._setup_orientation_of_link()
-        return orientation_of_link
-
-    def _setup_orientation_of_link(self):
-        """Set up array with link orientation codes.
-
-        Orientation codes are contained in the :class:`~.LinkOrientation` class.
-        """
-        dx = (
-            self.x_of_node[self.node_at_link_head]
-            - self.x_of_node[self.node_at_link_tail]
-        )
-        dy = (
-            self.y_of_node[self.node_at_link_head]
-            - self.y_of_node[self.node_at_link_tail]
-        )
-        code = numpy.round(6 * numpy.arctan2(dy, dx) / numpy.pi).astype(int)
-        code[code < 0] = 5
+        code = numpy.round(self.angle_of_link * 6.0 / numpy.pi).astype(numpy.uint8)
+        code[code == 11] = 5
         code[:] = 2**code
-        self._orientation_of_link = code
-        return self._orientation_of_link
+
+        return code
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """Sets up necessary information for making plots of the hexagonal grid
