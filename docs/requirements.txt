@@ -46,7 +46,7 @@ executing==1.2.0
     # via stack-data
 fastjsonschema==2.16.2
     # via nbformat
-furo==2022.12.7
+furo==2023.3.27
     # via -r docs/requirements.in
 idna==3.4
     # via requests
