@@ -1650,4 +1650,3 @@ def map_vectors_to_links(grid, ux, uy, out=None):
     theta = theta_u - grid.angle_of_link
     out[:] = u * np.cos(theta)
     return out
-
