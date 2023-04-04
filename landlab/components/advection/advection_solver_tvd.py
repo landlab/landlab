@@ -170,7 +170,7 @@ class AdvectionSolverTVD(Component):
     def __init__(
         self,
         grid,
-        field_to_advect,
+        field_to_advect=None,
         advection_direction_is_steady=False,
     ):
         """Initialize AdvectionSolverTVD."""
@@ -180,7 +180,10 @@ class AdvectionSolverTVD(Component):
         super().__init__(grid)
         self.initialize_output_fields()
 
-        self._scalar = return_array_at_node(self.grid, field_to_advect)
+        if field_to_advect is None:
+            self._scalar = self.grid.add_zeros("advected__quantity", at="node")
+        else:
+            self._scalar = return_array_at_node(self.grid, field_to_advect)
         self._vel = self.grid.at_link["advection__velocity"]
         self._flux_at_link = self.grid.at_link["advection__flux"]
 
