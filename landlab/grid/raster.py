@@ -389,50 +389,51 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
     @property
     def parallel_links_at_link(self):
-        """
+        """Return similarly oriented links connected to each link.
+
         Return IDs of links of the same orientation that are connected to
         each given link's tail or head node.
 
-        The data structure is a # of links x 2 array containing the IDs of the
-        "tail-wise" (connected to tail node) and "head-wise" (connected to head node)
-        links, or -1 if the link is inactive (e.g., on the perimeter) or it has no
-        attached parallel neighbor in the given direction.
+        The data structure is a *numpy* array of shape ``(n_links, 2)`` containing the
+        IDs of the "tail-wise" (connected to tail node) and "head-wise" (connected to
+        head node) links, or -1 if the link is inactive (e.g., on the perimeter) or
+        it has no attached parallel neighbor in the given direction.
 
-        For instance, consider a 3x4 raster, in which link IDs are as shown:
+        For instance, consider a 3x4 raster, in which link IDs are as shown::
 
-        .-14-.-15-.-16-.
-        |    |    |    |
-        10  11   12   13
-        |    |    |    |
-        .--7-.--8-.--9-.
-        |    |    |    |
-        3    4    5    6
-        |    |    |    |
-        .--0-.--1-.--2-.
+            .-14-.-15-.-16-.
+            |    |    |    |
+            10  11   12   13
+            |    |    |    |
+            .--7-.--8-.--9-.
+            |    |    |    |
+            3    4    5    6
+            |    |    |    |
+            .--0-.--1-.--2-.
 
         Here's a mapping of the tail-wise (shown at left or bottom of links) and
-        head-wise (shown at right or top of links) links:
+        head-wise (shown at right or top of links) links::
 
-        .----.----.----.
-        |    |    |    |
-        |    |    |    |
-        |    4    5    |
-        .---8.7--9.8---.
-        |   11   12    |
-        |    |    |    |
-        |    |    |    |
-        .----.----.----.
+            .----.----.----.
+            |    |    |    |
+            |    |    |    |
+            |    4    5    |
+            .---8.7--9.8---.
+            |   11   12    |
+            |    |    |    |
+            |    |    |    |
+            .----.----.----.
 
         So the corresponding data structure would be mostly filled with -1, but
-        for the 7 active links, it would look like:
+        for the 7 active links, it would look like::
 
-        4: [[-1, 11],
-        5:  [-1, 12],
-        7:  [-1,  8],
-        8:  [ 7,  9],
-        9:  [ 8, -1],
-        11: [ 4, -1],
-        12: [ 5, -1]]
+            4: [[-1, 11],
+            5:  [-1, 12],
+            7:  [-1,  8],
+            8:  [ 7,  9],
+            9:  [ 8, -1],
+            11: [ 4, -1],
+            12: [ 5, -1]]
 
         Examples
         --------

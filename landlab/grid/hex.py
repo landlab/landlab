@@ -291,14 +291,15 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
     @property
     def parallel_links_at_link(self):
-        """
+        """Return similarly oriented links connected to each link.
+
         Return IDs of links of the same orientation that are connected to
         each given link's tail or head node.
 
-        The data structure is a # of links x 2 array containing the IDs of the
-        "tail-wise" (connected to tail node) and "head-wise" (connected to head node)
-        links, or -1 if the link is inactive (e.g., on the perimeter) or it has no
-        attached parallel neighbor in the given direction.
+        The data structure is a *numpy* array of shape ``(n_links, 2)`` containing the
+        IDs of the "tail-wise" (connected to tail node) and "head-wise" (connected
+        to head node) links, or -1 if the link is inactive (e.g., on the perimeter)
+        or it has no attached parallel neighbor in the given direction.
 
         For instance, consider a 3x3 hex, in which link IDs are as shown::
 
@@ -326,19 +327,19 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                o-------o-------o
 
         The corresponding data structure would be mostly filled with -1, but
-        for the 11 active links, it would look like:
+        for the 11 active links, it would look like::
 
-        3: [[-1, 13],
-        4:  [-1, 12],
-        5:  [-1, 15],
-        6:  [-1, 14],
-        8:  [-1,  9],
-        9:  [ 8, 10],
-        10: [ 9, -1],
-        12: [ 4, -1],
-        13: [ 3, -1],
-        14: [ 6, -1],
-        15: [ 5, -1]]
+            3: [[-1, 13],
+            4:  [-1, 12],
+            5:  [-1, 15],
+            6:  [-1, 14],
+            8:  [-1,  9],
+            9:  [ 8, 10],
+            10: [ 9, -1],
+            12: [ 4, -1],
+            13: [ 3, -1],
+            14: [ 6, -1],
+            15: [ 5, -1]]
 
         Examples
         --------
