@@ -7,25 +7,13 @@ semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
 
-from enum import IntFlag
-
 import numpy
 import xarray as xr
 
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
 from .base import ModelGrid
-
-
-class LinkOrientation(IntFlag):
-    """Define the link orientations."""
-
-    E = 1
-    ENE = 2
-    NNE = 4
-    N = 8
-    NNW = 16
-    ESE = 32
+from .linkorientation import LinkOrientation
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
@@ -76,7 +64,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
-        It is a special type of VoronoiDelaunay grid in which the initial set
+        It is a special type of :class:`~.VoronoiModelGrid` in which the initial set
         of points is arranged in a triangular/hexagonal lattice.
 
         Parameters
@@ -85,13 +73,13 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             Number of rows and columns of nodes.
         spacing : float, optional
             Node spacing.
-        xy_of_lower_left : tuple, optional
+        xy_of_lower_left : tuple of float, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
             no node may be present at this coordinate. Default is (0., 0.).
-        xy_of_reference : tuple, optional
+        xy_of_reference : tuple of float, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
-        orientation : string, optional
+        orientation : str, optional
             One of the 3 cardinal directions in the grid, either 'horizontal'
             (default) or 'vertical'
         node_layout : {"hex", "rect"}
@@ -267,7 +255,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def orientation_of_link(self):
         """Return array of link orientation codes (one value per link).
 
-        Orientation codes are defined by LinkOrientation class above;
+        Orientation codes are defined by :class:`~.LinkOrientation`;
         1 = E, 2 = ENE, 4 = NNE, 8 = N, 16 = NNW, 32 = ESE (using powers
         of 2 allows for future applications that might want additive
         combinations).
@@ -292,7 +280,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def _setup_orientation_of_link(self):
         """Set up array with link orientation codes.
 
-        Orientation codes are contained in the LinkOrientation class.
+        Orientation codes are contained in the :class:`~.LinkOrientation` class.
         """
         dx = (
             self.x_of_node[self.node_at_link_head]
@@ -314,16 +302,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        data : str OR node array (1d numpy array with number_of_nodes entries)
+        data : str or (n_link,) ndarray
             Data field to be colored
         data_label : str, optional
             Label for colorbar
-        color_map : matplotlib colormap object, None
+        color_map : matplotlib colormap object, optional
             Color map to apply (defaults to "jet")
-
-        Returns
-        -------
-        (none)
 
         Notes
         -----
@@ -396,7 +380,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        data : str or node array (1d numpy array with number_of_nodes entries)
+        data : str or (n_nodes,) ndarray
             Data field to be colored.
         data_label : str, optional
             Label for colorbar.
@@ -405,9 +389,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         See also
         --------
-        plot.imshow_grid
+        :func:`~.plot.imshow_grid`
             Another Landlab function capable of producing hexplots, with a
             fuller-featured set of options.
+
 
         :meta landlab: info-grid
         """
@@ -443,15 +428,16 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def set_watershed_boundary_condition_outlet_id(
         self, outlet_id, node_data, nodata_value=-9999.0
     ):
-        """Set the boundary conditions for a watershed on a HexModelGrid.
+        """Set the boundary conditions for a watershed.
 
-        All nodes with nodata_value are set to BC_NODE_IS_CLOSED.
-        All nodes with data values are set to BC_NODE_IS_CORE, with the
-        exception that the outlet node is set to a BC_NODE_IS_FIXED_VALUE.
+        All nodes with ``nodata_value`` are set to :attr:`~.NodeStatus.CLOSED`.
+        All nodes with data values are set to :attr:`~.NodeStatus.CORE`, with the
+        exception that the outlet node is set to a :attr:`~.NodeStatus.FIXED_VALUE`.
 
-        Note that the outer ring of the HexModelGrid is set to BC_NODE_IS_CLOSED, even
-        if there are nodes that have values.  The only exception to this would
-        be if the outlet node is on the boundary, which is acceptable.
+        Note that the outer ring of the HexModelGrid is set to
+        :attr:`~.NodeStatus.CLOSED`, even if there are nodes that have values.
+        The only exception to this would be if the outlet node is on the boundary,
+        which is acceptable.
 
         Assumes that the id of the outlet is already known.
 
@@ -460,9 +446,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        outlet_id : integer
+        outlet_id : int
             id of the outlet node
-        node_data : field name or ndarray
+        node_data : str or (n_nodes,) ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional
@@ -510,23 +496,25 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def set_watershed_boundary_condition(
         self, node_data, nodata_value=-9999.0, return_outlet_id=False
     ):
-        """Finds the node adjacent to a boundary node with the smallest value.
+        """Find the node adjacent to a boundary node with the smallest value.
+
         This node is set as the outlet.  The outlet node must have a data
         value.  Can return the outlet id as a one element numpy array if
-        return_outlet_id is set to True.
+        ``return_outlet_id`` is set to `True`.
 
-        All nodes with nodata_value are set to `NodeStatus.CLOSED`
+        All nodes with ``nodata_value`` are set to :attr:`~.NodeStatus.CLOSED`
         (grid.status_at_node == 4). All nodes with data values are set to
-        `NodeStatus.CORE` (grid.status_at_node == 0), with the exception that the
-        outlet node is set to a `NodeStatus.FIXED_VALUE` (grid.status_at_node == 1).
+        :attr:`~.NodeStatus.CORE` (grid.status_at_node == 0), with the exception
+        that the outlet node is set to a :attr:`~.NodeStatus.FIXED_VALUE`
+        (grid.status_at_node == 1).
 
         Note that the outer ring (perimeter) of the grid is set to
-        `NodeStatus.CLOSED`, even if there are nodes that have values. The only
+        :attr:`~.NodeStatus.CLOSED`, even if there are nodes that have values. The only
         exception to this would be if the outlet node is on the perimeter, which
         is acceptable.
 
-        This routine assumes that all of the nodata_values are on the outside of
-        the data values. In other words, there are no islands of nodata_values
+        This routine assumes that all of the ``nodata_value`` are on the outside of
+        the data values. In other words, there are no islands of ``nodata_value``
         surrounded by nodes with data.
 
         This also assumes that the grid has a single watershed (that is a single
@@ -534,17 +522,17 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        node_data : field name or ndarray
+        node_data : str or (n_nodes,) ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
-        return_outlet_id : boolean, optional
+        return_outlet_id : bool, optional
             Indicates whether or not to return the id of the found outlet
 
         Examples
         --------
-        The example will use a HexModelGrid with node data values
+        The example will use a :class:`~.HexModelGrid` with node data values
         as illustrated::
 
                 1. ,  2. ,  3. ,  4. ,

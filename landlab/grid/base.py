@@ -723,13 +723,15 @@ class ModelGrid(
     @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
-        """Link flux directions at each node: 1=incoming flux, -1=outgoing
-        flux, 0=no flux. Note that inactive links receive zero, but active and
-        fixed links are both reported normally.
+        """Return link flux directions at each node.
+
+        A value of 1 indicates incoming flux, -1 outgoing flux, and 0 no flux.
+        Note that inactive links receive zero, but active and fixed links are
+        both reported normally.
 
         Returns
         -------
-        (NODES, LINKS) ndarray of int
+        (n_nodes, n_links) ndarray of int
             Link directions relative to the nodes of a grid. The shape of the
             matrix will be number of nodes rows by max number of links per
             node. A zero indicates no link at this position.
