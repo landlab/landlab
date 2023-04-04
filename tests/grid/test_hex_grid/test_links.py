@@ -3,6 +3,7 @@ from numpy.testing import assert_array_equal
 from pytest import approx
 
 from landlab import HexModelGrid
+from landlab.grid.linkorientation import LinkOrientation
 
 
 def test_patches_at_link():
@@ -37,9 +38,29 @@ def test_link_orientation():
     grid = HexModelGrid((3, 3))
     assert_array_equal(
         grid.orientation_of_link,
-        [1, 1, 16, 4, 16, 4, 16, 4, 1, 1, 1, 4, 16, 4, 16, 4, 16, 1, 1],
+        [
+            LinkOrientation.E,
+            LinkOrientation.E,
+            LinkOrientation.NNW,
+            LinkOrientation.NNE,
+            LinkOrientation.NNW,
+            LinkOrientation.NNE,
+            LinkOrientation.NNW,
+            LinkOrientation.NNE,
+            LinkOrientation.E,
+            LinkOrientation.E,
+            LinkOrientation.E,
+            LinkOrientation.NNE,
+            LinkOrientation.NNW,
+            LinkOrientation.NNE,
+            LinkOrientation.NNW,
+            LinkOrientation.NNE,
+            LinkOrientation.NNW,
+            LinkOrientation.E,
+            LinkOrientation.E,
+        ],
     )
     assert_array_equal(
         grid.orientation_of_link[2],  # re-do for coverage
-        16,
+        LinkOrientation.NNW,
     )
