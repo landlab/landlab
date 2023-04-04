@@ -956,8 +956,8 @@ class GraphFields:
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        GraphFields.ones : Equivalent method that initializes the data to 1.
-        GraphFields.zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.ones` : Equivalent method that initializes the data to 1.
+        :meth:`~.zeros` : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1009,8 +1009,8 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        GraphFields.empty : Equivalent method that does not initialize the new array.
-        GraphFields.zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.zeros` : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1049,8 +1049,8 @@ class GraphFields:
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
-        GraphFields.empty : Equivalent method that does not initialize the new array.
-        GraphFields.ones : Equivalent method that initializes the data to 1.
+        :meth:`~.empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.ones` : Equivalent method that initializes the data to 1.
 
         Examples
         --------
@@ -1172,8 +1172,8 @@ class GraphFields:
 
         if not clobber and name in ds:
             raise FieldError(
-                f"Unable to add the field, {name!r}, to the group, {at!r}, because a field "
-                "with that name already exists in that group. "
+                f"Unable to add the field, {name!r}, to the group, {at!r}, because a "
+                "field with that name already exists in that group. "
                 "Use `clobber=True` to replace the existing field. "
                 f"For example, grid.add_field({name!r}, at={at!r}, clobber=True)"
             )
@@ -1243,8 +1243,8 @@ class GraphFields:
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        GraphFields.empty : Equivalent method that does not initialize the new array.
-        GraphFields.zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.zeros` : Equivalent method that initializes the data to 0.
 
 
         :meta landlab: field-add
@@ -1299,8 +1299,8 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        GraphFields.add_empty : Equivalent method that does not initialize the new array.
-        GraphFields.add_zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.add_empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.add_zeros` : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1356,8 +1356,10 @@ class GraphFields:
         See also
         --------
         numpy.zeros : See for a description of optional keywords.
-        GraphFields.add_empty : Equivalent method that does not initialize the new array.
-        GraphFields.add_ones : Equivalent method that initializes the data to 1.
+        :meth:`~.GraphFields.add_empty` : Equivalent method that does not initialize
+            the new array.
+        :meth:`~.GraphFields.add_ones` : Equivalent method that initializes the data
+            to 1.
 
 
         :meta landlab: field-add
