@@ -34,7 +34,7 @@ class DualGraphMeta(type):
 
                     See Also
                     --------
-                    Graph.{}
+                    :attr:`~{}`
                     """.format(
                         converter.conform(fdoc.splitlines()[0], "nlp"), name
                     )
