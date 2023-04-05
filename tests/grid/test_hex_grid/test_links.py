@@ -118,6 +118,26 @@ def test_link_orientation_default_hex():
     )
 
 
+@pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
+@pytest.mark.parametrize("node_layout", ("hex", "rect"))
+def test_parallel_links_at_link_same_orientation(orientation, node_layout):
+    """Check that parallel links have the same orientation."""
+    grid = HexModelGrid((5, 5), orientation=orientation, node_layout=node_layout)
+
+    orientation_of_parallels = grid.orientation_of_link[grid.parallel_links_at_link]
+    orientation_of_parallels[grid.parallel_links_at_link == -1] = 0
+    out = np.full_like(orientation_of_parallels, True)
+
+    np.equal(
+        orientation_of_parallels.T,
+        grid.orientation_of_link,
+        where=orientation_of_parallels.T > 0,
+        out=out.T
+    )
+
+    assert np.all(out)
+
+
 def test_parallel_links_at_link():
     grid = HexModelGrid((4, 3))
     target = np.array(
