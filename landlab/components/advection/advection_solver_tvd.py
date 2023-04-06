@@ -123,6 +123,14 @@ class AdvectionSolverTVD(Component):
     ----------
     grid : RasterModelGrid or HexModelGrid
         A Landlab grid object.
+    field_to_advect : field name or (n_nodes,) array (default None)
+        A node field of scalar values that will be advected. If not given,
+        the component creates a generic field, initialized to zeros,
+        called advected__quantity.
+    advection_direction_is_steady : bool (default False)
+        Indicates whether the directions of advection are expected to remain
+        steady throughout a run. If True, some computation time is saved
+        by calculating upwind links only once.
 
     Examples
     --------
@@ -139,9 +147,6 @@ class AdvectionSolverTVD(Component):
     ...     advec.update(0.2)
     >>> np.argmax(s[7:14])
     4
-
-    References
-    ----------
     """
 
     _name = "AdvectionSolverTVD"
@@ -149,6 +154,14 @@ class AdvectionSolverTVD(Component):
     _unit_agnostic = True
 
     _info = {
+        "advected__quantity": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Scalar quantity advected",
+        },
         "advection__flux": {
             "dtype": float,
             "intent": "out",
@@ -192,6 +205,14 @@ class AdvectionSolverTVD(Component):
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
 
     def calc_rate_of_change_at_nodes(self, dt):
+        """Calculate and return the time rate of change in the advected
+        quantity at nodes.
+
+        Parameters
+        ----------
+        dt : float
+            Time-step duration. Needed to calculate the Courant number.
+        """
         if not self._advection_direction_is_steady:
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
         s_link_low = self.grid.map_node_to_link_linear_upwind(self._scalar, self._vel)
@@ -209,8 +230,10 @@ class AdvectionSolverTVD(Component):
         return -self.grid.calc_flux_div_at_node(self._flux_at_link)
 
     def update(self, dt):
+        """Update the solution by one time step dt (same as run_one_step())."""
         roc = self.calc_rate_of_change_at_nodes(dt)
         self._scalar[self.grid.core_nodes] += roc[self.grid.core_nodes] * dt
 
     def run_one_step(self, dt):
+        """Update the solution by one time step dt (same as update())."""
         self.update(dt)
