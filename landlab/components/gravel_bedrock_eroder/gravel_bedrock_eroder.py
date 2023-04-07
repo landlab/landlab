@@ -1,9 +1,16 @@
+#!/usr/bin/env python3
+"""
+Model bedrock incision and gravel transport and abrasion in a network of rivers.
+"""
+
 import numpy as np
 
 from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 _DT_MAX = 1.0e-2
+_ONE_SIXTH = 1.0 / 6.0
+_SEVEN_SIXTHS = 7.0 / 6.0
 
 
 class GravelBedrockEroder(Component):
@@ -63,8 +70,10 @@ class GravelBedrockEroder(Component):
         Bulk porosity of bed sediment
     depth_decay_scale : float (default 1.0)
         Scale for depth decay in bedrock exposure function
-
-    TODO: ADD EXAMPLE(S) WITH ROCK INVOLVED
+    plucking_coefficient : float or (n_core_nodes,) array of float (default 1.0e-4 1/m)
+        Rate coefficient for bedrock erosion by plucking
+    coarse_fraction_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
+        Fraction of plucked material that becomes part of gravel sediment load
 
     Examples
     --------
@@ -88,8 +97,6 @@ class GravelBedrockEroder(Component):
     >>> int(elev[4] * 100)
     2266
     """
-
-    _ONE_SIXTH = 1.0 / 6.0
 
     _name = "GravelBedrockEroder"
 
@@ -280,14 +287,11 @@ class GravelBedrockEroder(Component):
         self._rock_abrasion_rate = grid.at_node["bedrock__abrasion_rate"]
         self._pluck_rate = grid.at_node["bedrock__plucking_rate"]
 
-        # Constants
-        self._SEVEN_SIXTHS = 7.0 / 6.0
-
         self._setup_length_of_flow_link()
 
     def _setup_length_of_flow_link(self):
-        """Set up a float or array containing length of the flow link from each node,
-        which is needed for the abrasion rate calculations.
+        """Set up a float or array containing length of the flow link from
+        each node, which is needed for the abrasion rate calculations.
         """
         if isinstance(self.grid, HexModelGrid):
             self._flow_link_length_over_cell_area = (
@@ -297,9 +301,11 @@ class GravelBedrockEroder(Component):
         elif isinstance(self.grid, DiagonalsMixIn):
             self._flow_length_is_variable = True
             self._grid_has_diagonals = True
+            self._update_flow_link_length_over_cell_area()
         else:
             self._flow_length_is_variable = True
             self._grid_has_diagonals = False
+            self._update_flow_link_length_over_cell_area()
 
     def _update_flow_link_length_over_cell_area(self):
         """Update the ratio of the length of link along which water flows out of
@@ -457,7 +463,7 @@ class GravelBedrockEroder(Component):
                 self._trans_coef
                 * self._intermittency_factor
                 * self._discharge
-                * self._slope ** self._SEVEN_SIXTHS
+                * self._slope ** _SEVEN_SIXTHS
                 * (1.0 - self._rock_exposure_fraction)
         )
 
@@ -557,7 +563,7 @@ class GravelBedrockEroder(Component):
                                           self._plucking_coef
                                           * self._intermittency_factor
                                           * self._discharge[cores]
-                                          * self._slope[cores] ** self._SEVEN_SIXTHS
+                                          * self._slope[cores] ** _SEVEN_SIXTHS
                                           * self._rock_exposure_fraction[cores]
                                   ) * self._flow_link_length_over_cell_area
 
