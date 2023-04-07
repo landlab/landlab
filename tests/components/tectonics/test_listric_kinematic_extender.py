@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Fri Mar  5 08:42:24 2021
 
@@ -160,7 +159,6 @@ def test_with_flexure():
 
 
 def test_error_handling():
-
     radial_grid = RadialModelGrid(
         n_rings=1, nodes_in_first_ring=8
     )  # , xy_of_center=(0., 0.))

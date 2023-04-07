@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """ZoneController of SpeciesEvolver."""
 import numpy as np
 from scipy.ndimage.measurements import label
@@ -9,7 +8,7 @@ from .zone import Zone, _update_zones
 from .zone_taxon import ZoneTaxon
 
 
-class ZoneController(object):
+class ZoneController:
     """Controls zones and populates them with taxa.
 
     This object manages 'zones' that are used to evaluate the spatial aspect of
@@ -272,7 +271,7 @@ class ZoneController(object):
         minimum_area=0,
         neighborhood_structure="D8",
         initial_time=0,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the controller.
 

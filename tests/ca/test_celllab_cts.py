@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 test_celllab_cts.py: Unit-test function for CellLabCTS.
 
@@ -11,8 +10,6 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_raises
 
 from landlab import HexModelGrid, RasterModelGrid
-
-# For dev
 from landlab.ca.celllab_cts import Transition
 from landlab.ca.hex_cts import HexCTS
 from landlab.ca.oriented_hex_cts import OrientedHexCTS

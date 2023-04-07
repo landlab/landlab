@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 from collections import OrderedDict
@@ -558,10 +557,11 @@ class ChannelProfiler(_BaseProfiler):
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(
-                name=channel_definition_field
+            raise ValueError(
+                f"Required field {channel_definition_field!r} not present. "
+                "This field is required by the ChannelProfiler to define "
+                "the start and stop of channel networks."
             )
-            raise ValueError(msg)
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
 
@@ -575,8 +575,9 @@ class ChannelProfiler(_BaseProfiler):
             if (number_of_watersheds is not None) and (
                 len(outlet_nodes) is not number_of_watersheds
             ):
-                msg = "Length of outlet_nodes must equal the" "number_of_watersheds!"
-                raise ValueError(msg)
+                raise ValueError(
+                    "Length of outlet_nodes must equal the" "number_of_watersheds!"
+                )
         else:
             large_outlet_ids = grid.boundary_nodes[
                 np.argsort(self._channel_definition_field[grid.boundary_nodes])
@@ -660,7 +661,6 @@ class ChannelProfiler(_BaseProfiler):
             channel_segment.append(recieving_node)
 
         while channel_upstream:
-
             # add the new node to the channel segment
             channel_segment.append(j)
 
@@ -690,7 +690,6 @@ class ChannelProfiler(_BaseProfiler):
             # there are two or more donors with sufficient discharge, then
             # break, returning those nodes as starting points.
             else:
-
                 # get all upstream drainage areas
                 upstream_das = self._channel_definition_field[supplying_nodes]
 

@@ -23,7 +23,6 @@ def flow_directions_mfd(
     baselevel_nodes=None,
     partition_method="slope",
 ):
-
     """Find multiple-flow-direction flow directions on a grid.
 
     Finds and returns flow directions and proportions for a given elevation

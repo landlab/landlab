@@ -9,7 +9,7 @@ for cls in COMPONENTS:
     try:
         as_bmi = wrap_as_bmi(cls)
     except TypeError:
-        warnings.warn("unable to wrap class {name}".format(name=cls.__name__))
+        warnings.warn(f"unable to wrap class {cls.__name__}", stacklevel=2)
     else:
         setattr(sys.modules[__name__], as_bmi.__name__, as_bmi)
         __all__.append(as_bmi.__name__)

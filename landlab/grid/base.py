@@ -6,8 +6,9 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
 import fnmatch
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -454,17 +455,13 @@ class ModelGrid(
         if isinstance(exclude, str):
             exclude = [exclude]
 
-        layer_groups = set(["_".join(["layer", at]) for at in self.groups])
+        layer_groups = {"_".join(["layer", at]) for at in self.groups}
         layer_groups.add("layer")
 
         canonical_names = set()
         for at in self.groups | layer_groups:
-            try:
-                canonical_names.update(
-                    ["at_{0}:{1}".format(at, name) for name in self[at]]
-                )
-            except KeyError:
-                pass
+            with contextlib.suppress(KeyError):
+                canonical_names.update([f"at_{at}:{name}" for name in self[at]])
 
         names = set()
         for pattern in include:
@@ -576,7 +573,8 @@ class ModelGrid(
         >>> sorted(ds.dims.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
-        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
+         'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
@@ -725,27 +723,45 @@ class ModelGrid(
     @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
-        """Link flux directions at each node: 1=incoming flux, -1=outgoing
-        flux, 0=no flux. Note that inactive links receive zero, but active and
-        fixed links are both reported normally.
+        """Return link directions into each node.
+
+        A value of 1 indicates a link points toward a given node, while a value
+        of -1 indicates a link points away from a node. Note that inactive links
+        have a value of 0, but active and fixed links are both reported normally.
 
         Returns
         -------
-        (NODES, LINKS) ndarray of int
+        (n_nodes, max_links_per_node) ndarray of int
             Link directions relative to the nodes of a grid. The shape of the
-            matrix will be number of nodes rows by max number of links per
+            matrix will be number of nodes by the maximum number of links per
             node. A zero indicates no link at this position.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 3))
+        >>> grid = RasterModelGrid((3, 4))
+
+        ::
+
+            .--->.--->.--->.
+            ^    ^    ^    ^
+            |    |    |    |
+            .--->5--->.--->.
+            ^    ^    ^    ^
+            |    |    |    |
+            .--->.--->.--->.
+
+        >>> grid.active_link_dirs_at_node[5]
+        array([-1, -1,  1,  1], dtype=int8)
+
+        If we set the nodes along the left edge to be closed, the links attached
+        to those nodes become inactive and so their directions are reported as 0.
+
         >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_CLOSED
-        >>> grid.active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
+        >>> grid.active_link_dirs_at_node
+        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0], [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0,  0,  1,  0],
+               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
                dtype=int8)
 
         :meta landlab: info-node, info-link, connectivity
@@ -1374,8 +1390,8 @@ class ModelGrid(
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
-        except KeyError:
-            raise TypeError("{name}: element name not understood".format(name=name))
+        except KeyError as exc:
+            raise TypeError(f"{name}: element name not understood") from exc
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -1415,8 +1431,8 @@ class ModelGrid(
         AXES = ("node_y", "node_x")
         try:
             return getattr(self, AXES[axis])
-        except IndexError:
-            raise ValueError("'axis' entry is out of bounds")
+        except IndexError as exc:
+            raise ValueError("'axis' entry is out of bounds") from exc
 
     @property
     def axis_units(self):
@@ -2140,8 +2156,7 @@ class ModelGrid(
 
         return shaded.clip(0.0)
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.
@@ -2189,22 +2204,16 @@ class ModelGrid(
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
         try:
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_inlink_matrix"]
-        except KeyError:
-            pass
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_outlink_matrix"]
-        except KeyError:
-            pass
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.

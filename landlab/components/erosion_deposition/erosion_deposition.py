@@ -93,8 +93,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -183,7 +185,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         discharge_field="surface_water__discharge",
         solver="basic",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
-        **kwds
+        **kwds,
     ):
         """Initialize the ErosionDeposition model.
 
@@ -297,30 +299,32 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         Now we test to see if topography is right:
 
-        >>> np.around(mg.at_node['topographic__elevation'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
+        >>> np.around(mg.at_node["topographic__elevation"], decimals=3)
         array([-0.477,  1.036,  2.073,  3.011,  4.061,  1.082, -0.08 , -0.065,
            -0.054,  5.01 ,  2.04 , -0.065, -0.065, -0.053,  6.026,  3.059,
            -0.054, -0.053, -0.035,  7.053,  4.059,  5.041,  6.07 ,  7.004,
             8.01 ])
         """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that ErosionDeposition is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         if "phi" in kwds:
-            msg = "As of Landlab v2 ErosionDeposition no longer takes the keyword argument phi. The sediment flux is considered to represent bulk deposit volume rather than mineral volume, and therefore porosity does not impact the dynamics. The following pull request explains the math behind this: https://github.com/landlab/landlab/pull/1186."
-            raise ValueError(msg)
+            raise ValueError(
+                "As of Landlab v2 ErosionDeposition no longer takes the keyword "
+                "argument phi. The sediment flux is considered to represent bulk "
+                "deposit volume rather than mineral volume, and therefore porosity "
+                "does not impact the dynamics. The following pull request explains "
+                "the math behind this: https://github.com/landlab/landlab/pull/1186."
+            )
         elif len(kwds) > 0:
             kwdstr = " ".join(list(kwds.keys()))
-            raise ValueError(
-                "Extra kwds passed to ErosionDeposition:{kwds}".format(kwds=kwdstr)
-            )
+            raise ValueError(f"Extra kwds passed to ErosionDeposition:{kwdstr}")
         super().__init__(
             grid,
             m_sp=m_sp,
@@ -442,7 +446,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
-
             # Update all the flow-link slopes.
             #
             # For the first iteration, we assume this has already been done

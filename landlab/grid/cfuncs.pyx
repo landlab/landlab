@@ -1,7 +1,7 @@
 import numpy as np
-cimport numpy as np
-cimport cython
 
+cimport cython
+cimport numpy as np
 
 DTYPE = int
 ctypedef np.int_t DTYPE_INT_t
@@ -104,4 +104,3 @@ def _anticlockwise_argsort_points(np.ndarray[DTYPE_INT_t, ndim=2] pts,
     theta[:] = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
     theta[:] = theta % twopi
     out[:] = np.argsort(theta)
-

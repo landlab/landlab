@@ -11,6 +11,13 @@ from landlab.components import (
     SpaceLargeScaleEroder,
 )
 
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    with_richdem = False
+else:
+    with_richdem = True
+
 
 def test_inputFields_flowRouter():
     """
@@ -67,7 +74,7 @@ def test_inputFields_bedrock():
     fa.run_one_step()
     _ = SpaceLargeScaleEroder(mg)
 
-    assert "bedrock__elevation" in mg.at_node.keys()
+    assert "bedrock__elevation" in mg.at_node
 
 
 # %%
@@ -456,9 +463,6 @@ def test_matches_detachment_solution_n_gr_1():
     )
 
 
-# %%
-
-
 @pytest.mark.slow
 def test_matches_transport_solution():
     # %%
@@ -724,7 +728,7 @@ def test_can_run_with_hex():
         z[mg.core_nodes] += U * dt
 
 
-# %%
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_detachment_solution_PF():
     # %%
     """
@@ -809,8 +813,8 @@ def test_matches_detachment_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_transport_solution_PF():
-
     """
     Test that model matches the transport-limited analytical solution
     for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m)
@@ -925,6 +929,7 @@ def test_matches_transport_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_bedrock_alluvial_solution_PF():
     """
     Test that model matches the bedrock-alluvial analytical solution
@@ -1036,6 +1041,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     # %%
 
 
+@pytest.mark.slow
 def test_MassBalance():
     # %%
     # set up a 15x15 grid with one open outlet node and low initial elevations.
@@ -1064,7 +1070,9 @@ def test_MassBalance():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    # fa = PriorityFloodFlowRouter(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
+    # fa = PriorityFloodFlowRouter(
+    #   mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True
+    # )
     # fa.run_one_step()
 
     # Create a D8 flow handler
@@ -1131,6 +1139,9 @@ def test_MassBalance():
         testing.assert_array_less(
             abs(diff_MB),
             1e-8 * mg.number_of_nodes,
-            err_msg="Mass balance error SpaceLargeScaleEroder! Try to resolve by becreasing timestep",
+            err_msg=(
+                "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
+                "becreasing timestep"
+            ),
             verbose=True,
         )

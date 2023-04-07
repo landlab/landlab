@@ -31,10 +31,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
+        pytest-marker: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: conda-incubator/setup-miniconda@v2
         with:
@@ -45,29 +46,36 @@ jobs:
 
       - name: Show conda installation info
         run: |
+          conda install mamba
+          pip install nox
           conda info
           conda list
 
       - name: Install and test richdem engine
         run: |
-          conda install mamba
           mamba install richdem -c conda-forge
           python -c 'import _richdem'
-
-      - name: Build and install package
-        run: |
-          pip install -e .
-
-      - name: Install testing requirements
-        run: pip install -e .[testing]
 
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
-          python -c 'import landlab; print(landlab.__version__)'
-          pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv -n auto
+          nox -s test -- -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-        uses: AndreMiras/coveralls-python-action@v20201129
+        if: matrix.os == 'ubuntu-latest'
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
+          debug: true
+
+  coveralls_finish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coveralls Finished
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel-finished: true
+          debug: true

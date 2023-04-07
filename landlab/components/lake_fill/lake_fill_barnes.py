@@ -9,9 +9,6 @@ Fill sinks in a landscape to the brim, following the Barnes et al.
 
 import heapq
 import itertools
-
-# ^ this simply in case Katy updates to add more fields, that we would also
-# need to update...
 from collections import deque
 
 import numpy as np
@@ -151,8 +148,10 @@ class LakeMapperBarnes(Component):
 
     _name = "LakeMapperBarnes"
 
-    _cite_as = """@article{BARNES2014117,
-        title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
+    _cite_as = """
+    @article{BARNES2014117,
+        title = {Priority-flood: An optimal depression-filling and
+                 watershed-labeling algorithm for digital elevation models},
         journal = "Computers & Geosciences",
         volume = "62",
         pages = "117 - 127",
@@ -181,7 +180,11 @@ class LakeMapperBarnes(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+            "doc": (
+                "Node array containing the elements delta[1:] of the data "
+                "structure 'delta' used for construction of the "
+                "downstream-to-upstream node array"
+            ),
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -305,16 +308,16 @@ class LakeMapperBarnes(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that LakeMapperBarnes is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that LakeMapperBarnes is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
         self._pit = []
         self._closed = self._grid.zeros("node", dtype=bool)
@@ -337,9 +340,7 @@ class LakeMapperBarnes(Component):
 
         # get the neighbour call set up:
         if method not in {"Steepest", "D8"}:
-            raise ValueError(
-                "{method}: method must be 'Steepest' or 'D8'".format(method=method)
-            )
+            raise ValueError(f"{method}: method must be 'Steepest' or 'D8'")
         if method == "D8":
             if isinstance(grid, RasterModelGrid):
                 self._allneighbors = np.concatenate(
@@ -577,16 +578,16 @@ class LakeMapperBarnes(Component):
             nopit = True
         else:
             nopit = False
-        if not (nopit or noopen):
+        if (
+            not (nopit or noopen) and topopen == toppit
+        ):  # intentionally tight comparison
             # not clear how this occurs, but present in Barnes ->
             # DEJH suspects this should be an elevation comparison given the
             # text description. Regardless, this is only to ensure
             # repeatability, so it's not vital even if these cases don't
             # trigger
-            if topopen == toppit:  # intentionally tight comparison
-                # print('yessssss')
-                c = openq.pop_task()
-                self._PitTop = LARGE_ELEV
+            c = openq.pop_task()
+            self._PitTop = LARGE_ELEV
         if not nopit:
             c = heapq.heappop(pitq)
             if np.isclose(self._PitTop, LARGE_ELEV):
@@ -684,7 +685,7 @@ class LakeMapperBarnes(Component):
         >>> out == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
         """
-        lakemappings = dict()
+        lakemappings = {}
         outlet_ID = self._grid.BAD_INDEX
         while True:
             try:
@@ -855,17 +856,16 @@ class LakeMapperBarnes(Component):
         {}
 
         >>> fr.run_one_step()  # drains fine still, as above
-        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        >>> np.allclose(mg.at_node["drainage_area"], drainage_area)
         True
 
         Test a failing example:
 
         >>> mg = RasterModelGrid((3, 7))
-        >>> for edge in ('top', 'right', 'bottom'):
+        >>> for edge in ("top", "right", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
-        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
-        ...                                 1.0000000000000004, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
@@ -876,18 +876,20 @@ class LakeMapperBarnes(Component):
         >>> for edgenode in edges:
         ...     open.add_task(edgenode, priority=z[edgenode])
         >>> lmb._closed[edges] = True
-        >>> try:
-        ...     lmb._fill_to_slant_with_optional_tracking(
-        ...         z, mg.adjacent_nodes_at_node, lmb._pit, open,
-        ...         lmb._closed, False, True)
-        ... except ValueError:
-        ...     print('ValueError was raised: Pit is overfilled due to ' +
-        ...           'creation of two outlets as the minimum gradient ' +
-        ...           'gets applied. Suppress this Error with the ' +
-        ...           'ignore_overfill flag at component instantiation.')
-        ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        >>> lmb._fill_to_slant_with_optional_tracking(
+        ...     z, mg.adjacent_nodes_at_node, lmb._pit, open, lmb._closed, False, True
+        ... )
+        Traceback (most recent call last):
+        ...
+        ValueError: Pit is overfilled due to creation of two outlets as the
+        minimum gradient gets applied. Suppress this Error with the
+        ignore_overfill flag at component instantiation.
+
+        ValueError was raised because Pit is overfilled due to creation of
+        two outlets as the minimum gradient gets applied. Suppress this Error
+        with the ignore_overfill flag at component instantiation.
         """
-        lakemappings = dict()
+        lakemappings = {}
         outlet_ID = self._grid.BAD_INDEX
         while True:
             try:
@@ -1124,7 +1126,7 @@ class LakeMapperBarnes(Component):
 
         # now the actual loop. Work forward lake by lake to avoid unnecessary
         # processing (nodes outside lakes are already correct, by definition).
-        for (outlet, lakenodes) in lake_dict.items():
+        for outlet, lakenodes in lake_dict.items():
             # open the lake:
             closedq[lakenodes] = 0
             # make a deque for liminal nodes:
@@ -1181,10 +1183,9 @@ class LakeMapperBarnes(Component):
                     for neighbor_set, link_set in zip(
                         self._neighbor_arrays, self._link_arrays
                     ):
-                        for (n, l) in zip(neighbor_set[c, :], link_set[c, :]):
-                            if closedq[n] == 2:  # fully closed
-                                continue
-                            elif n == -1:
+                        for n, l in zip(neighbor_set[c, :], link_set[c, :]):
+                            # fully closed
+                            if (closedq[n] == 2) or (n == -1):
                                 continue
                             elif self._grid.status_at_node[n] != NodeStatus.CORE:
                                 closedq[n] = 2
@@ -1343,24 +1344,25 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16 if D8
         >>> z_init = z.copy()
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, method='D8', fill_flat=True,
-        ...                        track_lakes=True)
+        >>> lmb = LakeMapperBarnes(mg, method='D8', fill_flat=True, track_lakes=True)
         >>> lmb.run_one_step()  # note the D8 routing now
         >>> lmb.lake_dict == {22: deque([15, 9, 14])}
         True
         >>> lmb.number_of_lakes
         1
-        >>> try:
-        ...     lmb.lake_depths  # z was both surface and 'fill_surface'
-        ... except ValueError:
-        ...     print('ValueError was raised: ' +
-        ...           'surface and fill_surface must be different fields ' +
-        ...           'or arrays to enable the property fill_depth!')
-        ValueError was raised: surface and fill_surface must be different fields or arrays to enable the property fill_depth!
+        >>> lmb.lake_depths  # z was both surface and "fill_surface"
+        Traceback (most recent call last):
+        ...
+        ValueError: surface and fill_surface must be different fields or arrays
+        to enable the property lake_depths!
+
+        ValueError was raised because surface and fill_surface must be
+        different fields or arrays to enable the property fill_depth!
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='Steepest',
-        ...                        fill_flat=False, track_lakes=True)
+        >>> lmb = LakeMapperBarnes(
+        ...     mg, method="Steepest", fill_flat=False, track_lakes=True
+        ... )
         >>> lmb.run_one_step()  # compare to the method='D8' lakes, above...
         >>> lmb.lake_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
@@ -1368,17 +1370,18 @@ class LakeMapperBarnes(Component):
         2
         >>> np.allclose(lmb.lake_areas, np.array([ 16.,  4.]))
         True
-        >>> try:
-        ...     lmb.run_one_step()  # z already filled, so...
-        ... except ValueError:
-        ...     print('ValueError was raised: ' +
-        ...           'Pit is overfilled due to creation of two outlets as ' +
-        ...           'the minimum gradient gets applied. Suppress this ' +
-        ...           'Error with the ignore_overfill flag at component ' +
-        ...           'instantiation.')
-        ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        >>> lmb.run_one_step()
+        Traceback (most recent call last):
+        ...
+        ValueError: Pit is overfilled due to creation of two outlets as
+        the minimum gradient gets applied. Suppress this Error with the
+        ignore_overfill flag at component instantiation.
 
-        Suppress this behaviour with ignore_overfill:
+        ValueError was raised because Pit is overfilled due to creation
+        of two outlets as the minimum gradient gets applied. Suppress this
+        Error with the ignore_overfill flag at component instantiation.
+
+        Suppress this behavior with ignore_overfill:
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest',
@@ -1650,18 +1653,16 @@ class LakeMapperBarnes(Component):
         ensures the information about the lake and the water surface
         topography are all updated cleanly and correctly.
         """
-        if "flow__receiver_node" in self._grid.at_node:
-            if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
-                "node"
-            ):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that LakeMapperBarnes is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
+            "flow__receiver_node"
+        ].size != self._grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that LakeMapperBarnes is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
         # do the prep:
         # create the StasblePriorityQueue locaslly to permit garbage collection
         _open = StablePriorityQueue()
@@ -1926,7 +1927,7 @@ class LakeMapperBarnes(Component):
             self._lake_map = np.full(
                 self._grid.number_of_nodes, self._grid.BAD_INDEX, dtype=int
             )
-            for (outlet, lakenodes) in self.lake_dict.items():
+            for outlet, lakenodes in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
         else:
             pass  # old map is fine
@@ -1982,8 +1983,9 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
+
         >>> mg = RasterModelGrid((5, 6))
-        >>> for edge in ('left', 'top', 'bottom'):
+        >>> for edge in ("left", "top", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
@@ -1995,17 +1997,25 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
-        ...                        redirect_flow_steepest_descent=False,
-        ...                        track_lakes=True)
+        >>> lmb = LakeMapperBarnes(
+        ...     mg,
+        ...     method="Steepest",
+        ...     fill_flat=False,
+        ...     redirect_flow_steepest_descent=False,
+        ...     track_lakes=True,
+        ... )
         >>> lmb.run_one_step()
-        >>> try:  # won't work as surface & fill_surface are both z
-        ...     lmb.lake_depths
-        ... except ValueError:
-        ...     print('ValueError was raised: ' +
-        ...           'surface and fill_surface must be different fields ' +
-        ...           'or arrays to enable the property lake_depths!')
-        ValueError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_depths!
+
+        This won't work as surface & fill_surface are both z
+
+        >>> lmb.lake_depths
+        Traceback (most recent call last):
+        ...
+        ValueError: surface and fill_surface must be different fields or arrays
+        to enable the property lake_depths!
+
+        `ValueError` was raised because surface and fill_surface must be
+        different fields or arrays to enable the property lake_depths!
 
         >>> z[:] = z_init
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
@@ -2077,7 +2087,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
-        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
+        for i, lakenodes in enumerate(self.lake_dict.values()):
             lakeareas[i] = self._grid.cell_area_at_node[lakenodes].sum()
         return lakeareas
 
@@ -2110,23 +2120,29 @@ class LakeMapperBarnes(Component):
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
-        ...                        redirect_flow_steepest_descent=False,
-        ...                        track_lakes=True)
+        >>> lmb = LakeMapperBarnes(
+        ...     mg,
+        ...     method="Steepest",
+        ...     fill_flat=False,
+        ...     redirect_flow_steepest_descent=False,
+        ...     track_lakes=True,
+        ... )
         >>> lmb.run_one_step()
-        >>> try:  # won't work as surface & fill_surface are both z
-        ...     lmb.lake_volumes
-        ... except ValueError:
-        ...     print('ValueError was raised: ' +
-        ...           'surface and fill_surface must be different fields ' +
-        ...           'or arrays to enable the property lake_volumes!')
-        ValueError was raised: surface and fill_surface must be different fields or arrays to enable the property lake_volumes!
+        >>> lmb.lake_volumes  # won't work as surface & fill_surface are both z
+        Traceback (most recent call last):
+        ...
+        ValueError: surface and fill_surface must be different fields or arrays
+        to enable the property lake_depths!
 
         >>> z[:] = z_init
-        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
-        ...                        surface=z_init,
-        ...                        redirect_flow_steepest_descent=False,
-        ...                        track_lakes=True)
+        >>> lmb = LakeMapperBarnes(
+        ...     mg,
+        ...     method="Steepest",
+        ...     fill_flat=False,
+        ...     surface=z_init,
+        ...     redirect_flow_steepest_descent=False,
+        ...     track_lakes=True,
+        ... )
         >>> lmb.run_one_step()
         >>> lmb.lake_outlets
         [16, 8]
@@ -2135,7 +2151,7 @@ class LakeMapperBarnes(Component):
         """
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
         col_vols = self._grid.cell_area_at_node * self.lake_depths
-        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
+        for i, lakenodes in enumerate(self.lake_dict.values()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 
@@ -2150,38 +2166,48 @@ class LakeMapperBarnes(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((3, 7))
-        >>> for edge in ('top', 'right', 'bottom'):
+        >>> for edge in ("top", "right", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
-        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
-        ...                                 1.0000000000000004, 1.5]
+        >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
         >>> fa = FlowAccumulator(mg)
-        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=True,
-        ...                        redirect_flow_steepest_descent=False,
-        ...                        ignore_overfill=False, track_lakes=True)
+        >>> lmb = LakeMapperBarnes(
+        ...     mg,
+        ...     method="Steepest",
+        ...     fill_flat=True,
+        ...     redirect_flow_steepest_descent=False,
+        ...     ignore_overfill=False,
+        ...     track_lakes=True,
+        ... )
         >>> lmb.run_one_step()
-        >>> try:
-        ...     lmb.was_there_overfill
-        ... except ValueError:
-        ...     print('ValueError was raised: ' +
-        ...           'was_there_overfill is only defined if filling to an ' +
-        ...           'inclined surface!')
-        ValueError was raised: was_there_overfill is only defined if filling to an inclined surface!
+        >>> lmb.was_there_overfill
+        Traceback (most recent call last):
+        ...
+        ValueError: was_there_overfill is only defined if filling to an inclined surface!
+
+        `ValueError` was raised because was_there_overfill is only defined if
+        filling to an inclined surface!
 
         >>> z_init = z.copy()
-        >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,
-        ...                        redirect_flow_steepest_descent=False,
-        ...                        ignore_overfill=False, track_lakes=True)
-        >>> try:
-        ...     lmb.run_one_step()
-        ... except ValueError:
-        ...     print('ValueError was raised: ' +
-        ...           'Pit is overfilled due to creation of two outlets ' +
-        ...           'as the minimum gradient gets applied. Suppress this ' +
-        ...           'Error with the ignore_overfill flag at component ' +
-        ...           'instantiation.')
-        ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
+        >>> lmb = LakeMapperBarnes(
+        ...     mg,
+        ...     method="Steepest",
+        ...     fill_flat=False,
+        ...     redirect_flow_steepest_descent=False,
+        ...     ignore_overfill=False,
+        ...     track_lakes=True,
+        ... )
+        >>> lmb.run_one_step()
+        Traceback (most recent call last):
+        ...
+        ValueError: Pit is overfilled due to creation of two outlets as the
+        minimum gradient gets applied. Suppress this Error with the ignore_overfill
+        flag at component instantiation.
+
+        `ValueError` was raised because Pit is overfilled due to creation of
+        two outlets as the minimum gradient gets applied. Suppress this Error
+        with the ignore_overfill flag at component instantiation.
 
         >>> z_init = z.copy()
         >>> lmb = LakeMapperBarnes(mg, method='Steepest', fill_flat=False,

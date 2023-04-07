@@ -33,7 +33,7 @@ components that provide the field as output.
             {% endfor %}
 
     .. tab:: Provided By
-    
+
         .. list-table::
             :widths: 50 50
             :header-rows: 0
@@ -42,4 +42,3 @@ components that provide the field as output.
             * - *{{name}}*
               - {% if info['provided_by'] %}{% for cls in info['provided_by'] %}:py:class:`~{{cls}}` {% endfor %}{% endif %}
             {% endfor %}
-    

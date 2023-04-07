@@ -5,15 +5,19 @@ Created on Thu Jun 30 12:40:39 2016
 """
 
 import numpy as np
-cimport numpy as np
+
 cimport cython
+cimport numpy as np
+
+from _heapq import heappop, heappush
+
 from landlab.grid.nodestatus import NodeStatus
-from _heapq import heappush, heappop
-from libc.stdlib cimport rand
+
 from libc.math cimport log
+from libc.stdlib cimport rand
 
+import sys  # for debug
 
-import sys # for debug
 
 cdef double _NEVER = 1.0e50
 

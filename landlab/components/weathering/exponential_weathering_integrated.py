@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
@@ -14,21 +13,19 @@ from landlab import Component
 
 class ExponentialWeathererIntegrated(Component):
 
-    r"""
+    """
     This component implements exponential weathering of bedrock on
     hillslopes. Uses exponential soil production function in the style
     of Ahnert (1976).
 
-    Consider that :math:`w_0` is the maximum soil production rate and
-    that :math:`d^*` is the characteristic soil production depth. The
-    soil production rate :math:`w` is given as a function of the soil
-    depth :math:`d`,
+    Consider that ``w_0`` is the maximum soil production rate and
+    that ``d_start`` is the characteristic soil production depth. The
+    soil production rate ``w`` is given as a function of the soil
+    depth ``d``::
 
-    .. math::
+        w = w_0 exp(-d / d_star)
 
-        w = w_0 \exp{-\frac{d}{d^*}} \;.
-
-    The `ExponentialWeathererIntegrated` uses the analytical solution
+    The :class:`~.ExponentialWeathererIntegrated` uses the analytical solution
     for the amount of soil produced by an exponential weathering
     function over a timestep dt, and returns both the thickness of
     bedrock weathered and the thickness of soil produced. The solution
@@ -37,7 +34,7 @@ class ExponentialWeathererIntegrated(Component):
     timesteps, and better compatiblity with the `run_one_step()`
     interface.
 
-    Compared to 'ExponentialWeatherer', upon which it is based...
+    Compared to :class:`~.ExponentialWeatherer`, upon which it is based...
 
     - This maintains the field I/O behavior of the original, but adds
       new return fields for the weathered thickness and soil produced
@@ -47,7 +44,7 @@ class ExponentialWeathererIntegrated(Component):
       of 1.0 assumes no change in density.
     - Returns both weathered depth of bedrock and produced depth of
       soil over the timestep.
-    - The primary `soil__depth` field that is input is NOT updated by
+    - The primary ``soil__depth`` field that is input is NOT updated by
       the component.
 
     This is left as an exercise for the model driver, as different
@@ -55,9 +52,8 @@ class ExponentialWeathererIntegrated(Component):
     different sequences among other processes.
 
     - SHOULD maintain drop-in compatiblity with the plain
-      :py:class:`ExponentialWeatherer <landlab.components.ExponentialWeatherer>`,
-      just import and instantiate this one instead and existing code
-      should work with no side effects other than the creation of the
+      :class:`~.ExponentialWeatherer`, just import and instantiate this one instead
+      and existing code should work with no side effects other than the creation of the
       two additional (zeros) output fields.
 
     Examples
@@ -73,7 +69,9 @@ class ExponentialWeathererIntegrated(Component):
     >>> expw.run_one_step(dt)
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> np.allclose(mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 6.9088)
+    >>> np.allclose(
+    ...     mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 6.9088
+    ... )
     True
 
     References
@@ -93,7 +91,6 @@ class ExponentialWeathererIntegrated(Component):
 
     Armstrong, A. (1976). A three dimensional simulation of slope forms.
     Zeitschrift für Geomorphologie  25, 20 - 28.
-
     """
 
     _name = "ExponentialWeathererIntegrated"
@@ -102,8 +99,10 @@ class ExponentialWeathererIntegrated(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -181,28 +180,19 @@ class ExponentialWeathererIntegrated(Component):
         self._depth = grid.at_node["soil__depth"]
 
         # weathering rate
-        if "soil_production__rate" in grid.at_node:
-            self._soil_prod_rate = grid.at_node["soil_production__rate"]
-        else:
-            self._soil_prod_rate = grid.add_zeros("soil_production__rate", at="node")
+        if "soil_production__rate" not in grid.at_node:
+            grid.add_zeros("soil_production__rate", at="node")
+        self._soil_prod_rate = grid.at_node["soil_production__rate"]
 
         # soil produced total over dt
-        if "soil_production__dt_produced_depth" in grid.at_node:
-            self._soil_prod_total = grid.at_node["soil_production__dt_produced_depth"]
-        else:
-            self._soil_prod_total = grid.add_zeros(
-                "soil_production__dt_produced_depth", at="node"
-            )
+        if "soil_production__dt_produced_depth" not in grid.at_node:
+            grid.add_zeros("soil_production__dt_produced_depth", at="node")
+        self._soil_prod_total = grid.at_node["soil_production__dt_produced_depth"]
 
         # bedrock weathering total over dt
-        if "soil_production__dt_weathered_depth" in grid.at_node:
-            self._rock_weathered_total = grid.at_node[
-                "soil_production__dt_weathered_depth"
-            ]
-        else:
-            self._rock_weathered_total = grid.add_zeros(
-                "soil_production__dt_weathered_depth", at="node"
-            )
+        if "soil_production__dt_weathered_depth" not in grid.at_node:
+            grid.add_zeros("soil_production__dt_weathered_depth", at="node")
+        self._rock_weathered_total = grid.at_node["soil_production__dt_weathered_depth"]
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""

@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid"])
+_VALID_METHODS = {"Grid"}
 
 
 def assert_method_is_valid(method):
@@ -153,7 +153,10 @@ class Vegetation(Component):
             "optional": False,
             "units": "g m^-2 d^-1",
             "mapping": "cell",
-            "doc": "weight of dead organic mass per unit area - measured in terms of dry matter",
+            "doc": (
+                "weight of dead organic mass per unit area - measured in terms "
+                "of dry matter"
+            ),
         },
         "vegetation__dead_leaf_area_index": {
             "dtype": float,
@@ -169,7 +172,10 @@ class Vegetation(Component):
             "optional": False,
             "units": "g m^-2 d^-1",
             "mapping": "cell",
-            "doc": "weight of green organic mass per unit area - measured in terms of dry matter",
+            "doc": (
+                "weight of green organic mass per unit area - measured in terms "
+                "of dry matter"
+            ),
         },
         "vegetation__live_leaf_area_index": {
             "dtype": float,
@@ -185,7 +191,10 @@ class Vegetation(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+            "doc": (
+                "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, "
+                "shrub_seedling=4, tree_seedling=5"
+            ),
         },
         "vegetation__water_stress": {
             "dtype": float,
@@ -522,7 +531,6 @@ class Vegetation(Component):
             PETthreshold = self._ETthresholddown
 
         for cell in range(0, self._grid.number_of_cells):
-
             WUE = self._WUE[cell]
             LAImax = self._LAI_max[cell]
             cb = self._cb[cell]

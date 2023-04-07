@@ -273,7 +273,10 @@ class LandslideProbability(Component):
             "optional": False,
             "units": "None",
             "mapping": "node",
-            "doc": "Indicator of soil wetness; relative depth perched water table within the soil layer",
+            "doc": (
+                "Indicator of soil wetness; relative depth perched water table "
+                "within the soil layer"
+            ),
         },
         "soil__minimum_total_cohesion": {
             "dtype": float,
@@ -297,7 +300,10 @@ class LandslideProbability(Component):
             "optional": False,
             "units": "None",
             "mapping": "node",
-            "doc": "number of times relative wetness is >=1 out of number of iterations user selected",
+            "doc": (
+                "number of times relative wetness is >=1 out of number of "
+                "iterations user selected"
+            ),
         },
         "soil__saturated_hydraulic_conductivity": {
             "dtype": float,
@@ -305,7 +311,11 @@ class LandslideProbability(Component):
             "optional": False,
             "units": "m/day",
             "mapping": "node",
-            "doc": "mode rate of water transmitted through soil - provided if transmissivity is NOT provided to calculate tranmissivity  with soil depth",
+            "doc": (
+                "mode rate of water transmitted through soil - provided if "
+                "transmissivity is NOT provided to calculate tranmissivity "
+                "with soil depth"
+            ),
         },
         "soil__thickness": {
             "dtype": float,
@@ -321,7 +331,10 @@ class LandslideProbability(Component):
             "optional": False,
             "units": "m2/day",
             "mapping": "node",
-            "doc": "mode rate of water transmitted through a unit width of saturated soil - either provided or calculated with Ksat and soil depth",
+            "doc": (
+                "mode rate of water transmitted through a unit width of saturated "
+                "soil - either provided or calculated with Ksat and soil depth"
+            ),
         },
         "topographic__slope": {
             "dtype": float,
@@ -351,7 +364,7 @@ class LandslideProbability(Component):
         groundwater__recharge_max_value=120.0,
         groundwater__recharge_mean=None,
         groundwater__recharge_standard_deviation=None,
-        groundwater__recharge_HSD_inputs=[],
+        groundwater__recharge_HSD_inputs=(),
         seed=0,
     ):
         """

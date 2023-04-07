@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """trickle_down_profiler.py component to create channel profiles."""
 from collections import OrderedDict
@@ -389,7 +388,6 @@ class TrickleDownProfiler(_BaseProfiler):
         """Get distances along the network data structure."""
         distance_upstream = calculate_flow__distance(self._grid)
         for outlet_id in self._data_struct:
-
             for segment_tuple in self._data_struct[outlet_id]:
                 ids = self._data_struct[outlet_id][segment_tuple]["ids"]
                 d = distance_upstream[ids]

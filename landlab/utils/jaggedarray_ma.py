@@ -42,7 +42,7 @@ array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 import numpy as np
 
 
-class MaskedJaggedArray(object):
+class MaskedJaggedArray:
 
     """A container for an array of variable-length arrays.
 
@@ -113,7 +113,7 @@ class MaskedJaggedArray(object):
         """
         values_per_row = [len(row) for row in rows]
         mat = np.ma.masked_all((len(rows), max(values_per_row)), dtype=dtype or int)
-        for (row_number, row) in enumerate(rows):
+        for row_number, row in enumerate(rows):
             mat[row_number, : len(row)] = row
 
         return mat

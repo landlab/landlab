@@ -59,7 +59,7 @@ array([[4, 3, 0, 1],
        [8, 7, 4, 5]])
 """
 import json
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -100,7 +100,7 @@ def find_perimeter_nodes(graph):
     return as_id_array(hull.vertices)
 
 
-class thawed(object):
+class thawed:
     def __init__(self, graph):
         self._graph = graph
         self._initially_frozen = graph.frozen
@@ -211,7 +211,7 @@ class NetworkGraph:
         self._frozen = False
 
     def _add_variable(self, name, var, dims=None, attrs=None):
-        kwds = dict(data=var, dims=dims, attrs=attrs)
+        kwds = {"data": var, "dims": dims, "attrs": attrs}
         self.ds.update({name: xr.DataArray(**kwds)})
         if self._frozen:
             self.freeze()
@@ -281,9 +281,7 @@ class NetworkGraph:
         elif isinstance(source, (dict, xr.Dataset)):
             return cls.from_dict(source)
         else:
-            raise ValueError(
-                "source must be dict-like or NetCDF ({type})".format(type=type(source))
-            )
+            raise ValueError(f"source must be dict-like or NetCDF ({type(source)})")
 
     def __str__(self):
         return str(self.ds)
@@ -295,8 +293,7 @@ class NetworkGraph:
     def ndim(self):
         return 2
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def xy_of_node(self):
         """Get x and y-coordinates of node.
@@ -347,13 +344,11 @@ class NetworkGraph:
         """
         return self.ds["y_of_node"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     def node_x(self):
         return self.x_of_node
 
-    @property
-    @lru_cache()
+    @cached_property
     def node_y(self):
         return self.y_of_node
 
@@ -373,8 +368,7 @@ class NetworkGraph:
         """
         return self.ds["node"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def perimeter_nodes(self):
         """Get nodes on the convex hull of a Graph.
@@ -497,8 +491,7 @@ class NetworkGraph:
         except KeyError:
             return 0
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def links_at_node(self):
         """Get links touching a node.
@@ -533,11 +526,20 @@ class NetworkGraph:
     def _create_links_and_dirs_at_node(self):
         return get_links_at_node(self, sort=True)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def link_dirs_at_node(self):
-        """Get directions of links touching a node.
+        """Return link directions into each node.
+
+        A value of 1 indicates a link points toward a given node, while a value
+        of -1 indicates a link points away from a node.
+
+        Returns
+        -------
+        (n_nodes, max_links_per_node) ndarray of int
+            Link directions relative to the nodes of a grid. The shape of the
+            matrix will be number of nodes by the maximum number of links per
+            node. A zero indicates no link at this position.
 
         Examples
         --------
@@ -549,7 +551,7 @@ class NetworkGraph:
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.link_dirs_at_node
         array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
                [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
                [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]],
@@ -564,8 +566,7 @@ class NetworkGraph:
             ) = self._create_links_and_dirs_at_node()
             return self._link_dirs_at_node
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def angle_of_link(self):
         """Get the angle of each link.
@@ -588,8 +589,7 @@ class NetworkGraph:
         """
         return get_angle_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def length_of_link(self):
         """Get the length of links.
@@ -607,8 +607,7 @@ class NetworkGraph:
         """
         return get_length_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def midpoint_of_link(self):
         """Get the middle of links.
@@ -628,14 +627,12 @@ class NetworkGraph:
         """
         return get_midpoint_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def xy_of_link(self):
         return get_midpoint_of_link(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def adjacent_nodes_at_node(self):
         """Get adjacent nodes.
@@ -695,8 +692,7 @@ class NetworkGraph:
 
         return out
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def adjacent_links_at_link(self):
         from .object.ext.at_link import find_adjacent_links_at_link
@@ -709,8 +705,7 @@ class NetworkGraph:
 
         return adjacent_links_at_link
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def unit_vector_at_link(self):
         """Make arrays to store the unit vectors associated with each link.
@@ -740,8 +735,7 @@ class NetworkGraph:
         u = np.diff(self.xy_of_node[self.nodes_at_link], axis=1).reshape((-1, 2))
         return u / np.linalg.norm(u, axis=1).reshape((-1, 1))
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def unit_vector_at_node(self):
         """Get a unit vector for each node.
@@ -814,8 +808,7 @@ class Graph(NetworkGraph):
 
         return sorted_nodes, sorted_links, sorted_patches
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def xy_of_patch(self):
         """Get the centroid of each patch.
@@ -839,8 +832,7 @@ class Graph(NetworkGraph):
         """
         return get_centroid_of_patch(self)
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def area_of_patch(self):
         """Get the area of each patch.
@@ -911,8 +903,7 @@ class Graph(NetworkGraph):
         """
         return self.ds["links_at_patch"].values
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def nodes_at_patch(self):
         """Get the nodes that define a patch.
@@ -941,8 +932,7 @@ class Graph(NetworkGraph):
         )
         return nodes_at_patch
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def patches_at_node(self):
         """Get the patches that touch each node.
@@ -969,8 +959,7 @@ class Graph(NetworkGraph):
         )
         return patches_at_node
 
-    @property
-    @lru_cache()
+    @cached_property
     @read_only_array
     def patches_at_link(self):
         """Get the patches on either side of each link.

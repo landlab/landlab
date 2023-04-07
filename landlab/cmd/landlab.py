@@ -1,3 +1,4 @@
+import contextlib
 import inspect
 import os
 import sys
@@ -150,7 +151,7 @@ def grids(ctx):
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
 
-    index = dict(grids={})
+    index = {"grids": {}}
     for cls in GRIDS:
         index["grids"][cls.__name__] = _categorize_class(cls)
         index["grids"][cls.__name__]["field-io"] += [
@@ -162,10 +163,13 @@ def grids(ctx):
             f"{cls.__module__}.{cls.__name__}.at_cell",
         ]
 
+    print("")
     print("# Generated using `landlab index grids`")
-    for grid, cats in index["grids"].items():
+    print("[grids]")
+    for grid, cats in sorted(index["grids"].items()):
+        print("")
         print(f"[grids.{grid}]")
-        for cat, funcs in cats.items():
+        for cat, funcs in sorted(cats.items()):
             print(f"{cat} = [")
             print(
                 textwrap.indent(
@@ -173,11 +177,10 @@ def grids(ctx):
                 )
             )
             print("]")
-        print("")
 
     if verbose and not silent:
         summary = defaultdict(int)
-        for grid, cats in index["grids"].items():
+        for cats in index["grids"].values():
             for cat, funcs in cats.items():
                 summary[cat] += len(funcs)
 
@@ -198,7 +201,7 @@ def components(ctx):
 
     from sphinx.util.docstrings import prepare_docstring
 
-    index = dict(components={})
+    index = {"components": {}}
     for cls in get_all_components():
         if verbose and not silent:
             out(f"indexing: {cls.__name__}")
@@ -209,23 +212,25 @@ def components(ctx):
             "summary": prepare_docstring(cls.__doc__)[0],
         }
 
+    print("")
     print("# Generated using `landlab index components`")
-    for component, info in index["components"].items():
+    print("[components]")
+    for component, info in sorted(index["components"].items()):
         print("")
         print(f"[components.{component}]")
         print(f"name = {info['name']!r}")
         print(f"unit_agnostic = {'true' if info['unit_agnostic'] else 'false'}")
         print(f"summary = {info['summary']!r}")
 
-        for name, values in info["info"].items():
+        for name, values in sorted(info["info"].items()):
             print("")
             print(f"[components.{component}.info.{name}]")
-            print(f"dtype = '{np.dtype(values['dtype'])!s}'")
+            print(f"doc = {values['doc']!r}")
+            print(f"dtype = {str(np.dtype(values['dtype']))!r}")
             print(f"intent = {values['intent']!r}")
+            print(f"mapping = {values['mapping']!r}")
             print(f"optional = {'true' if values['optional'] else 'false'}")
             print(f"units = {values['units']!r}")
-            print(f"mapping = {values['mapping']!r}")
-            print(f"doc = {values['doc']!r}")
 
     if not silent:
         out("[summary]")
@@ -250,9 +255,10 @@ def fields(ctx):
             if desc["intent"].endswith("out"):
                 fields[name]["provided_by"].append(f"{cls.__module__}.{cls.__name__}")
 
+    print("")
     print("# Generated using `landlab index fields`")
     print("[fields]")
-    for field, info in fields.items():
+    for field, info in sorted(fields.items()):
         print("")
         print(f"[fields.{field}]")
         print(f"desc = {info['desc'][0]!r}")
@@ -260,14 +266,14 @@ def fields(ctx):
             # used_by = [repr(f) for f in info["used_by"]]
             # print(f"used_by = [{', '.join(used_by)}]")
             print("used_by = [")
-            for component in info["used_by"]:
+            for component in sorted(info["used_by"]):
                 print(f"  {component!r},")
             print("]")
         else:
             print("used_by = []")
         if info["provided_by"]:
             print("provided_by = [")
-            for component in info["provided_by"]:
+            for component in sorted(info["provided_by"]):
                 print(f"  {component!r},")
             print("]")
 
@@ -358,10 +364,8 @@ def _used_by(classes):
     """Get variables used by components."""
     used = []
     for cls in classes:
-        try:
+        with contextlib.suppress(TypeError):
             used += cls.input_var_names
-        except TypeError:
-            pass
 
     return used
 
@@ -370,10 +374,8 @@ def _provided_by(classes):
     """Get variables provided by components."""
     provided = []
     for cls in classes:
-        try:
+        with contextlib.suppress(TypeError):
             provided += cls.output_var_names
-        except TypeError:
-            pass
 
     return provided
 

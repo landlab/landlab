@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Created on Tue Apr 11 10:13:38 2017.
 
 @author: margauxmouchene
@@ -12,7 +11,6 @@ from landlab import Component
 
 
 class TransportLengthHillslopeDiffuser(Component):
-
     r"""Transport length hillslope diffusion.
 
     Hillslope diffusion component in the style of Carretier et al. (2016,
@@ -161,7 +159,10 @@ class TransportLengthHillslopeDiffuser(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "Outgoing sediment rate on node = sediment eroded on node + sediment transported across node from upstream",
+            "doc": (
+                "Outgoing sediment rate on node = sediment eroded on "
+                "node + sediment transported across node from upstream"
+            ),
         },
         "sediment__transfer_rate": {
             "dtype": float,
@@ -169,7 +170,10 @@ class TransportLengthHillslopeDiffuser(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "Rate of transferred sediment across a node (incoming sediment - deposited sediment on node)",
+            "doc": (
+                "Rate of transferred sediment across a node (incoming "
+                "sediment - deposited sediment on node)"
+            ),
         },
         "topographic__elevation": {
             "dtype": float,
@@ -190,7 +194,6 @@ class TransportLengthHillslopeDiffuser(Component):
     }
 
     def __init__(self, grid, erodibility=0.001, slope_crit=1.0):
-
         """Initialize Diffuser.
 
         Parameters
@@ -205,14 +208,13 @@ class TransportLengthHillslopeDiffuser(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that TransportLengthHillslopeDiffuser is compatible "
                 "with route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         # Store grid and parameters
 
