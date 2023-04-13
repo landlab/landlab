@@ -14,6 +14,7 @@ import xarray as xr
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
 from .base import ModelGrid
+from .linkorientation import LinkOrientation
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
@@ -277,7 +278,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         return code
 
-    @property
+    @cached_property
     def parallel_links_at_link(self):
         """Return similarly oriented links connected to each link.
 
@@ -349,33 +350,46 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                [ 6, -1],
                [ 5, -1]])
         """
-        try:
-            pll = self._parallel_links_at_link
-        except AttributeError:
-            pll = self._setup_parallel_links_at_link()
+        if self.orientation == "horizontal":
+            orientations = (LinkOrientation.E, LinkOrientation.NNE, LinkOrientation.NNW)
+        else:
+            orientations = (LinkOrientation.ENE, LinkOrientation.N, LinkOrientation.ESE)
+
+        links_at_node = self._oriented_links_at_node()
+
+        pll = numpy.full((self.number_of_links, 2), -1, dtype=int)
+
+        for col, orientation in enumerate(orientations):
+            links = self.orientation_of_link == orientation
+
+            if orientation == LinkOrientation.ESE:
+                pll[links, 0] = links_at_node[self.node_at_link_tail[links]][:, col]
+                pll[links, 1] = links_at_node[self.node_at_link_head[links]][:, col + 3]
+            else:
+                pll[links, 0] = links_at_node[self.node_at_link_tail[links]][:, col + 3]
+                pll[links, 1] = links_at_node[self.node_at_link_head[links]][:, col]
+
         return pll
 
-    def _setup_parallel_links_at_link(self):
-        """
-        For a regular grid, set up a data structure mapping each link to its parallel
-        and connected neighbors.
-
-        (For example and doctest, see `parallel_links_at_link`)
-        """
-        pll = -numpy.ones((self.number_of_links, 2), dtype=int)
-        cores = self.core_nodes
+    def _oriented_links_at_node(self):
         if self.orientation == "horizontal":
-            ht_index = 0
+            orientations = (LinkOrientation.E, LinkOrientation.NNE, LinkOrientation.NNW)
         else:
-            ht_index = 1
-        pll[self.links_at_node[cores, 0], 0] = self.links_at_node[cores, 3]
-        pll[self.links_at_node[cores, 1], 0] = self.links_at_node[cores, 4]
-        pll[self.links_at_node[cores, 2], ht_index] = self.links_at_node[cores, 5]
-        pll[self.links_at_node[cores, 3], 1] = self.links_at_node[cores, 0]
-        pll[self.links_at_node[cores, 4], 1] = self.links_at_node[cores, 1]
-        pll[self.links_at_node[cores, 5], 1 - ht_index] = self.links_at_node[cores, 2]
-        self._parallel_links_at_link = pll
-        return self._parallel_links_at_link
+            orientations = (LinkOrientation.ENE, LinkOrientation.N, LinkOrientation.ESE)
+
+        links_at_node = numpy.full((self.number_of_nodes, 6), -1, dtype=int)
+
+        for col, orientation in enumerate(orientations):
+            links = numpy.where(self.orientation_of_link == orientation)[0]
+
+            if orientation == LinkOrientation.ESE:
+                links_at_node[self.node_at_link_tail[links], col + 3] = links
+                links_at_node[self.node_at_link_head[links], col] = links
+            else:
+                links_at_node[self.node_at_link_tail[links], col] = links
+                links_at_node[self.node_at_link_head[links], col + 3] = links
+
+        return links_at_node
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """Sets up necessary information for making plots of the hexagonal grid
