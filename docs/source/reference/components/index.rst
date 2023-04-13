@@ -35,6 +35,7 @@ Fluvial geomorphology
    network_sediment_transporter
    gravel_river_transporter
    area_slope_transporter
+   gravel_bedrock_eroder
 
 Flow routing
 ------------
