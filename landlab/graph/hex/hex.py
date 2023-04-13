@@ -56,6 +56,7 @@ from functools import cached_property
 import numpy as np
 
 from ...core.utils import as_id_array
+from ...grid.linkorientation import LinkOrientation
 from ...utils.decorators import cache_result_in_object, make_return_array_immutable
 from ..graph import Graph
 from ..voronoi.voronoi import DelaunayGraph
@@ -746,6 +747,145 @@ class HexGraphExtras:
     @make_return_array_immutable
     def length_of_link(self):
         return np.full(self.number_of_links, self.spacing, dtype=float)
+
+    @cached_property
+    def orientation_of_link(self):
+        """Return array of link orientation codes (one value per link).
+
+        Orientation codes are defined by :class:`~.LinkOrientation`;
+        1 = E, 2 = ENE, 4 = NNE, 8 = N, 16 = NNW, 32 = ESE (using powers
+        of 2 allows for future applications that might want additive
+        combinations).
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> import numpy as np
+        >>> grid = HexModelGrid((3, 2))
+        >>> grid.orientation_of_link
+        array([ 1, 16,  4, 16,  4,  1,  1,  4, 16,  4, 16,  1])
+        >>> grid = HexModelGrid((2, 3), orientation="vertical")
+        >>> grid.orientation_of_link
+        array([32,  2,  8,  2, 32,  8,  8, 32,  2,  8,  2, 32])
+        """
+        code = np.round(self.angle_of_link * 6.0 / np.pi).astype(np.uint8)
+        code[code == 11] = 5
+        code[:] = 2**code
+
+        return code
+
+    @cached_property
+    def parallel_links_at_link(self):
+        """Return similarly oriented links connected to each link.
+
+        Return IDs of links of the same orientation that are connected to
+        each given link's tail or head node.
+
+        The data structure is a *numpy* array of shape ``(n_links, 2)`` containing the
+        IDs of the "tail-wise" (connected to tail node) and "head-wise" (connected
+        to head node) links, or -1 if the link is inactive (e.g., on the perimeter)
+        or it has no attached parallel neighbor in the given direction.
+
+        For instance, consider a 3x3 hex, in which link IDs are as shown::
+
+               o---17--o---18--o
+              / .     / .     / .
+             11 12   13  14  15  16
+            /     . /     . /     .
+           o---8---o---9---o---10--o
+            .     / .     / .     /
+             2   3   4   5   6   7
+              . /     . /     . /
+               o---0---o---1---o
+
+        Here's a mapping of the tail-wise and head-wise links, where
+        there are valid parallel links::
+
+               o-------o-------o
+              / .     / .     / .
+             /   .   /   .   /   .
+            /     4 3     6 5     .
+           o-----9-o-8--10-o-9-----o
+            .    13 12   15 14    /
+             .   /   .   /   .   /
+              . /     . /     . /
+               o-------o-------o
+
+        The corresponding data structure would be mostly filled with -1, but
+        for the 11 active links, it would look like::
+
+            3: [[-1, 13],
+            4:  [-1, 12],
+            5:  [-1, 15],
+            6:  [-1, 14],
+            8:  [-1,  9],
+            9:  [ 8, 10],
+            10: [ 9, -1],
+            12: [ 4, -1],
+            13: [ 3, -1],
+            14: [ 6, -1],
+            15: [ 5, -1]]
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> grid = HexModelGrid((3, 3))
+        >>> pll = grid.parallel_links_at_link
+        >>> pll[3:16]
+        array([[-1, 13],
+               [-1, 12],
+               [-1, 15],
+               [-1, 14],
+               [-1, -1],
+               [-1,  9],
+               [ 8, 10],
+               [ 9, -1],
+               [-1, -1],
+               [ 4, -1],
+               [ 3, -1],
+               [ 6, -1],
+               [ 5, -1]])
+        """
+        if self.orientation == "horizontal":
+            orientations = (LinkOrientation.E, LinkOrientation.NNE, LinkOrientation.NNW)
+        else:
+            orientations = (LinkOrientation.ENE, LinkOrientation.N, LinkOrientation.ESE)
+
+        links_at_node = self._oriented_links_at_node()
+
+        pll = np.full((self.number_of_links, 2), -1, dtype=int)
+
+        for col, orientation in enumerate(orientations):
+            links = self.orientation_of_link == orientation
+
+            if orientation == LinkOrientation.ESE:
+                pll[links, 0] = links_at_node[self.node_at_link_tail[links]][:, col]
+                pll[links, 1] = links_at_node[self.node_at_link_head[links]][:, col + 3]
+            else:
+                pll[links, 0] = links_at_node[self.node_at_link_tail[links]][:, col + 3]
+                pll[links, 1] = links_at_node[self.node_at_link_head[links]][:, col]
+
+        return pll
+
+    def _oriented_links_at_node(self):
+        if self.orientation == "horizontal":
+            orientations = (LinkOrientation.E, LinkOrientation.NNE, LinkOrientation.NNW)
+        else:
+            orientations = (LinkOrientation.ENE, LinkOrientation.N, LinkOrientation.ESE)
+
+        links_at_node = np.full((self.number_of_nodes, 6), -1, dtype=int)
+
+        for col, orientation in enumerate(orientations):
+            links = np.where(self.orientation_of_link == orientation)[0]
+
+            if orientation == LinkOrientation.ESE:
+                links_at_node[self.node_at_link_tail[links], col + 3] = links
+                links_at_node[self.node_at_link_head[links], col] = links
+            else:
+                links_at_node[self.node_at_link_tail[links], col] = links
+                links_at_node[self.node_at_link_head[links], col + 3] = links
+
+        return links_at_node
 
 
 class TriGraph(HexGraphExtras, DelaunayGraph):
