@@ -128,7 +128,7 @@ def test_steady_unlimited_sediment():
     dt = 4.0e4
     uplift_rate = 0.0001
     nsteps = 500
-    for i in range(nsteps):
+    for _ in range(nsteps):
         elev[grid.core_nodes] += uplift_rate * dt
         sed[grid.core_nodes] += uplift_rate * dt
         gbe.run_one_step(dt)
