@@ -3,91 +3,123 @@
 
 import numpy as np
 
-from landlab import Component
+from landlab import Component, LinkStatus
 from landlab.components.advection.flux_limiters import flux_lim_vanleer
 from landlab.utils.return_array import return_array_at_node
 
 
 def find_upwind_link_at_link(grid, u):
-    """
-    For all links, return ID of upwind link, defined based on the sign of u, or
-    -1 if upwind direction has a boundary node, or if link is inactive.
+    """Return the upwind link at every link.
+
+    For all links, return ID of upwind link, defined based on the sign of `u`.
+    If `u` is zero, the upwind link is found as though `u` were positive.
 
     For instance (see examples below), consider a 3x4 raster grid with link
-    numbering:
+    numbering::
 
-    .-14-.-15-.-16-.
-    |    |    |    |
-    10  11   12   13
-    |    |    |    |
-    .--7-.--8-.--9-.
-    |    |    |    |
-    3    4    5    6
-    |    |    |    |
-    .--0-.--1-.--2-.
+        .-14-.-15-.-16-.
+        |    |    |    |
+        10  11   12   13
+        |    |    |    |
+        .--7-.--8-.--9-.
+        |    |    |    |
+        3    4    5    6
+        |    |    |    |
+        .--0-.--1-.--2-.
 
-    There are at most 7 active links (4, 5, 7, 8, 9, 11, 12). If u is positive
-    everywhere, then the upwind links are:
+    There are at most 7 active links (4, 5, 7, 8, 9, 11, 12).
+    If `u` is positive everywhere, then the upwind links are::
 
-    .----.----.----.
-    |    |    |    |
-    |    4    5    |
-    |    |    |    |
-    .----.--7-.--8-.
-    |    |    |    |
-    |    |    |    |
-    |    |    |    |
-    .----.----.----.
+        .----.-14-.-15-.
+        |    |    |    |
+        3    4    5    6
+        |    |    |    |
+        .----.--7-.--8-.
+        |    |    |    |
+        |    |    |    |
+        |    |    |    |
+        .----.--0-.--1-.
 
-    If u is negative everywhere, then the upwind links are:
+    If `u` is negative everywhere, then the upwind links are::
 
-    .----.----.----.
-    |    |    |    |
-    |    |    |    |
-    |    |    |    |
-    .--8-.--9-.----.
-    |    |    |    |
-    |   11   12    |
-    |    |    |    |
-    .----.----.----.
+        .-15-.-16-.----.
+        |    |    |    |
+        |    |    |    |
+        |    |    |    |
+        .--8-.--9-.----.
+        |    |    |    |
+        10  11   12   13
+        |    |    |    |
+        .--1-.--2-.----.
 
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab grid.
+    u : float or (n_links,) ndarray
+        Array of *at-link* values used to determine which node is
+        upwind.
+
+    Returns
+    -------
+    (n_links,) ndarray of int
+        The upwind links.
 
     Examples
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 4))
+
     >>> uwl = find_upwind_link_at_link(grid, 1.0)
-    >>> uwl[grid.active_links]
-    array([-1, -1, -1,  7,  8,  4,  5])
+    >>> uwl[grid.vertical_links].reshape((2, 4))
+    array([[-1, -1, -1, -1],
+           [ 3,  4,  5,  6]])
+    >>> uwl[grid.horizontal_links].reshape((3, 3))
+    array([[-1,  0,  1],
+           [-1,  7,  8],
+           [-1, 14, 15]])
+
     >>> uwl = find_upwind_link_at_link(grid, -1.0)
-    >>> uwl[grid.active_links]
-    array([11, 12,  8,  9, -1, -1, -1])
+    >>> uwl[grid.vertical_links].reshape((2, 4))
+    array([[10, 11, 12, 13],
+           [-1, -1, -1, -1]])
+    >>> uwl[grid.horizontal_links].reshape((3, 3))
+    array([[ 1,  2, -1],
+           [ 8,  9, -1],
+           [15, 16, -1]])
+
     >>> u = np.zeros(grid.number_of_links)
     >>> u[4:6] = -1
     >>> u[7] = -1
     >>> u[8:10] = 1
     >>> u[11:13] = 1
+    >>> u[grid.vertical_links].reshape((2, 4))
+    array([[ 0., -1., -1.,  0.],
+           [ 0.,  1.,  1.,  0.]])
+    >>> u[grid.horizontal_links].reshape((3, 3))
+    array([[ 0.,  0.,  0.],
+           [-1.,  1.,  1.],
+           [ 0.,  0.,  0.]])
     >>> uwl = find_upwind_link_at_link(grid, u)
-    >>> uwl[grid.active_links]
-    array([11, 12,  8,  7,  8,  4,  5])
+    >>> uwl[grid.vertical_links].reshape((2, 4))
+    array([[-1, 11, 12, -1],
+           [ 3,  4, 5,   6]])
+    >>> uwl[grid.horizontal_links].reshape((3, 3))
+    array([[-1,  0,  1],
+           [ 8,  7,  8],
+           [-1, 14, 15]])
     """
     pll = grid.parallel_links_at_link
-    uwl = np.zeros(grid.number_of_links, dtype=int)
-    if isinstance(u, np.ndarray):
-        uwl[:] = pll[:, 0]
-        uneg = np.where(u < 0)[0]
-        uwl[uneg] = pll[uneg, 1]
-    elif u > 0:
-        uwl[:] = pll[:, 0]
-    else:
-        uwl[:] = pll[:, 1]
+
+    cols = np.choose(np.broadcast_to(u, len(pll))>=0, [1, 0])
+    uwl = pll[np.arange(len(pll)), cols]
+
     return uwl
 
 
 def upwind_to_local_grad_ratio(grid, v, uwll, out=None):
-    """
-    Calculate and return ratio of upwind to local gradient in v.
+    """Calculate and return ratio of upwind to local gradient in v.
 
     Gradients are defined on links. Upwind is pre-determined via
     parameter uwll (upwind link at link), which can be obtained
@@ -203,6 +235,7 @@ class AdvectionSolverTVD(Component):
         self._advection_direction_is_steady = advection_direction_is_steady
         if advection_direction_is_steady:  # if so, only need to do this once
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
+            self._upwind_link_at_link[self.grid.status_at_link == LinkStatus.INACTIVE] = -1
 
     def calc_rate_of_change_at_nodes(self, dt):
         """Calculate and return the time rate of change in the advected
@@ -215,6 +248,7 @@ class AdvectionSolverTVD(Component):
         """
         if not self._advection_direction_is_steady:
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
+            self._upwind_link_at_link[self.grid.status_at_link == LinkStatus.INACTIVE] = -1
         s_link_low = self.grid.map_node_to_link_linear_upwind(self._scalar, self._vel)
         s_link_high = self.grid.map_node_to_link_lax_wendroff(
             self._scalar, dt * self._vel / self.grid.length_of_link
