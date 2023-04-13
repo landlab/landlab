@@ -118,87 +118,131 @@ def test_link_orientation_default_hex():
     )
 
 
-def test_parallel_links_at_link():
+@pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
+@pytest.mark.parametrize("node_layout", ("hex", "rect"))
+def test_parallel_links_at_link_same_orientation(orientation, node_layout):
+    """Check that parallel links have the same orientation."""
+    grid = HexModelGrid((5, 5), orientation=orientation, node_layout=node_layout)
+
+    orientation_of_parallels = grid.orientation_of_link[grid.parallel_links_at_link]
+    orientation_of_parallels[grid.parallel_links_at_link == -1] = 0
+    out = np.full_like(orientation_of_parallels, True)
+
+    np.equal(
+        orientation_of_parallels.T,
+        grid.orientation_of_link,
+        where=orientation_of_parallels.T > 0,
+        out=out.T,
+    )
+
+    assert np.all(out)
+
+
+def test_parallel_links_at_link_horizontal_orientation():
     grid = HexModelGrid((4, 3))
-    target = np.array(
+
+    assert_array_equal(
+        grid.parallel_links_at_link[grid.orientation_of_link == LinkOrientation.E],
         [
-            [-1, -1],
-            [-1, -1],
-            [-1, -1],
-            [-1, 14],
-            [-1, 13],
-            [-1, 16],
-            [-1, 15],
-            [-1, -1],
+            [-1, 1],
+            [0, -1],
             [-1, 9],
             [8, 10],
             [9, -1],
-            [-1, -1],
-            [-1, 25],
-            [4, 24],
-            [3, 27],
-            [6, 26],
-            [5, 29],
-            [-1, 28],
-            [-1, -1],
             [-1, 20],
             [19, 21],
             [20, 22],
             [21, -1],
-            [-1, -1],
-            [13, -1],
-            [12, -1],
-            [15, -1],
-            [14, -1],
-            [17, -1],
-            [16, -1],
-            [-1, -1],
-            [-1, -1],
-            [-1, -1],
-            [-1, -1],
-        ]
+            [-1, 32],
+            [31, 33],
+            [32, -1],
+        ],
     )
-    assert_array_equal(grid.parallel_links_at_link, target)
+    assert_array_equal(
+        grid.parallel_links_at_link[grid.orientation_of_link == LinkOrientation.NNE],
+        [
+            [-1, 14],
+            [-1, 16],
+            [-1, 18],
+            [-1, 25],
+            [3, 27],
+            [5, 29],
+            [7, -1],
+            [-1, -1],
+            [12, -1],
+            [14, -1],
+            [16, -1],
+        ],
+    )
+    assert_array_equal(
+        grid.parallel_links_at_link[grid.orientation_of_link == LinkOrientation.NNW],
+        [
+            [-1, 11],
+            [-1, 13],
+            [-1, 15],
+            [2, -1],
+            [4, 24],
+            [6, 26],
+            [-1, 28],
+            [13, -1],
+            [15, -1],
+            [17, -1],
+            [-1, -1],
+        ],
+    )
 
 
 def test_parallel_links_at_link_vertical_orientation():
     grid = HexModelGrid((3, 4), orientation="vertical")
-    target = np.array(
+
+    assert_array_equal(
+        grid.parallel_links_at_link[grid.orientation_of_link == LinkOrientation.ENE],
         [
             [-1, -1],
-            [-1, -1],
-            [-1, 12],
-            [-1, -1],
             [-1, 10],
-            [9, -1],
-            [-1, 16],
-            [-1, -1],
             [-1, 14],
-            [13, 5],
             [4, -1],
-            [-1, -1],
-            [2, 22],
-            [-1, 9],
             [8, 20],
-            [19, -1],
-            [6, 26],
-            [-1, -1],
             [-1, 24],
-            [23, 15],
             [14, -1],
-            [-1, -1],
-            [12, 31],
-            [-1, 19],
             [18, 30],
-            [29, -1],
-            [16, -1],
-            [-1, -1],
-            [-1, -1],
-            [-1, 25],
+            [-1, 32],
             [24, -1],
-            [22, -1],
-            [-1, -1],
-            [-1, -1],
-        ]
+            [28, -1],
+        ],
     )
-    assert_array_equal(grid.parallel_links_at_link, target)
+
+    assert_array_equal(
+        grid.parallel_links_at_link[grid.orientation_of_link == LinkOrientation.N],
+        [
+            [-1, 12],
+            [-1, 16],
+            [-1, 17],
+            [-1, 21],
+            [2, 22],
+            [6, 26],
+            [7, 27],
+            [11, -1],
+            [12, 31],
+            [16, -1],
+            [17, -1],
+            [22, -1],
+        ],
+    )
+
+    assert_array_equal(
+        grid.parallel_links_at_link[grid.orientation_of_link == LinkOrientation.ESE],
+        [
+            [3, -1],
+            [-1, 0],
+            [9, -1],
+            [13, 5],
+            [-1, 9],
+            [19, -1],
+            [23, 15],
+            [-1, 19],
+            [29, -1],
+            [-1, 25],
+            [-1, -1],
+        ],
+    )
