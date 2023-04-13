@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Model bedrock incision and gravel transport and abrasion in a network of rivers.
+
+@author: gtucker
 """
 
 import numpy as np
