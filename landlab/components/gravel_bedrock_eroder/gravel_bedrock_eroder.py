@@ -317,15 +317,13 @@ class GravelBedrockEroder(Component):
         """Update the ratio of the length of link along which water flows out of
         each node to the area of the node's cell."""
         if self._grid_has_diagonals:
-            self._flow_link_length_over_cell_area = (
-                self.grid.length_of_d8[self._receiver_link[self.grid.core_nodes]]
-                / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
-            )
+            flow_link_len = self.grid.length_of_d8
         else:
-            self._flow_link_length_over_cell_area = (
-                self.grid.length_of_link[self._receiver_link[self.grid.core_nodes]]
-                / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
-            )
+            flow_link_len = self.grid.length_of_link
+        self._flow_link_length_over_cell_area = (
+            flow_link_len[self._receiver_link[self.grid.core_nodes]]
+            / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
+        )
 
     def calc_implied_depth(self, grain_diameter=0.01):
         """Utility function that calculates and returns water depth implied by
@@ -706,7 +704,6 @@ class GravelBedrockEroder(Component):
         while time_remaining > 0.0:
             self.update_rates()
             max_dt = self._estimate_max_time_step_size()
-            # print('mdt', max_dt)
             this_dt = min(max_dt, time_remaining)
             this_dt = max(this_dt, _DT_MAX)
             self._update_rock_sed_and_elev(this_dt)
