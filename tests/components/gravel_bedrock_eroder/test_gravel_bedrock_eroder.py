@@ -166,7 +166,7 @@ def test_steady_general():
     dt = 7500.0
     uplift_rate = 0.0001
     nsteps = 3000
-    for i in range(nsteps):
+    for _ in range(nsteps):
         elev[grid.core_nodes] += uplift_rate * dt
         rock[grid.core_nodes] += uplift_rate * dt
         gbe.run_one_step(dt)
