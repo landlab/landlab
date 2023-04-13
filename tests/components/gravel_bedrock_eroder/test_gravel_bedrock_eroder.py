@@ -143,3 +143,42 @@ def test_steady_unlimited_sediment():
         [0.130579, 0.170346, 0.170346],
         decimal=5,
     )
+
+
+def test_steady_general():
+    grid = HexModelGrid((3, 2), spacing=1000.0)
+    grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
+    grid.status_at_node[0] = grid.BC_NODE_IS_FIXED_VALUE
+
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    elev[:] = (0.2 * grid.y_of_node) / np.cos(np.radians(30.0))
+    sed = grid.add_zeros("soil__depth", at="node")
+    sed[:] = 1.0
+    rock = grid.add_zeros("bedrock__elevation", at="node")
+    rock[:] = elev - sed
+
+    fa = FlowAccumulator(grid)
+    fa.run_one_step()
+    gbe = GravelBedrockEroder(
+        grid, abrasion_coefficient=0.0005, coarse_fraction_from_plucking=0.5
+    )
+
+    dt = 7500.0
+    uplift_rate = 0.0001
+    nsteps = 3000
+    for i in range(nsteps):
+        elev[grid.core_nodes] += uplift_rate * dt
+        rock[grid.core_nodes] += uplift_rate * dt
+        gbe.run_one_step(dt)
+
+    assert_almost_equal(
+        grid.at_node["bedrock__exposure_fraction"][grid.core_nodes], 0.5062, decimal=4
+    )
+    assert_almost_equal(
+        grid.at_node["topographic__steepest_slope"][grid.core_nodes], 0.2387, decimal=4
+    )
+    assert_almost_equal(
+        grid.at_node["bedload_sediment__volume_outflux"][grid.core_nodes],
+        32.972,
+        decimal=3,
+    )
