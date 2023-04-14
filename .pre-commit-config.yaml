@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/psf/black
-  rev: 23.1.0
+  rev: 23.3.0
   hooks:
   - id: black
     name: black
@@ -32,7 +32,7 @@ repos:
     - flake8-simplify
 
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.6.3
+  rev: 1.7.0
   hooks:
     - id: nbqa-pyupgrade
       args: ["--py39-plus"]
@@ -78,7 +78,7 @@ repos:
     - id: trailing-whitespace
 
 - repo: https://github.com/regebro/pyroma
-  rev: "4.1"
+  rev: "4.2"
   hooks:
   - id: pyroma
     args: ["-d", "--min=10", "."]
