@@ -112,7 +112,7 @@ def find_upwind_link_at_link(grid, u):
     """
     pll = grid.parallel_links_at_link
 
-    cols = np.choose(np.broadcast_to(u, len(pll))>=0, [1, 0])
+    cols = np.choose(np.broadcast_to(u, len(pll)) >= 0, [1, 0])
     uwl = pll[np.arange(len(pll)), cols]
 
     return uwl
@@ -134,14 +134,12 @@ def upwind_to_local_grad_ratio(grid, v, uwll, out=None):
     else:
         out[:] = 1.0
 
-    h = grid.node_at_link_head
-    t = grid.node_at_link_tail
-    local_diff = v[h] - v[t]
-    upwind_exists_and_nonzero_local = np.logical_and(uwll != -1, local_diff != 0.0)
-    out[upwind_exists_and_nonzero_local] = (
-        local_diff[uwll[upwind_exists_and_nonzero_local]]
-        / local_diff[upwind_exists_and_nonzero_local]
+    local_diff = v[grid.node_at_link_head] - v[grid.node_at_link_tail]
+
+    np.divide(
+        local_diff[uwll], local_diff, where=(uwll != -1) & (local_diff != 0.0), out=out
     )
+
     return out
 
 
@@ -235,7 +233,9 @@ class AdvectionSolverTVD(Component):
         self._advection_direction_is_steady = advection_direction_is_steady
         if advection_direction_is_steady:  # if so, only need to do this once
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
-            self._upwind_link_at_link[self.grid.status_at_link == LinkStatus.INACTIVE] = -1
+            self._upwind_link_at_link[
+                self.grid.status_at_link == LinkStatus.INACTIVE
+            ] = -1
 
     def calc_rate_of_change_at_nodes(self, dt):
         """Calculate and return the time rate of change in the advected
@@ -248,7 +248,9 @@ class AdvectionSolverTVD(Component):
         """
         if not self._advection_direction_is_steady:
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
-            self._upwind_link_at_link[self.grid.status_at_link == LinkStatus.INACTIVE] = -1
+            self._upwind_link_at_link[
+                self.grid.status_at_link == LinkStatus.INACTIVE
+            ] = -1
         s_link_low = self.grid.map_node_to_link_linear_upwind(self._scalar, self._vel)
         s_link_high = self.grid.map_node_to_link_lax_wendroff(
             self._scalar, dt * self._vel / self.grid.length_of_link
