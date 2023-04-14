@@ -689,12 +689,12 @@ class GravelBedrockEroder(Component):
             self.calc_abrasion_rate()
             self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
+        self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
 
     def _update_rock_sed_and_elev(self, dt):
         """Update rock elevation, sediment thickness, and elevation
         using current rates of change extrapolated forward by time dt.
         """
-        self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
         self._sed += self._dHdt * dt
         self._bedrock__elevation -= self._rock_lowering_rate * dt
         self._elev[:] = self._bedrock__elevation + self._sed
