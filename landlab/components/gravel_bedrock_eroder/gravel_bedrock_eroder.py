@@ -655,8 +655,11 @@ class GravelBedrockEroder(Component):
             )
 
     def update_rates(self):
-        """Update rate of sediment thickness change, and rates of bedrock lowering by abrasion
-        and by plucking.
+        """Update rate of sediment thickness change, and rate of bedrock lowering by abrasion
+        and plucking.
+
+        Combined rate of rock lowering relative to underlying material is stored in the field
+        `bedrock__lowering_rate`.
 
         Examples
         --------
@@ -700,8 +703,21 @@ class GravelBedrockEroder(Component):
         self._elev[:] = self._bedrock__elevation + self._sed
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
-        """Estimate the maximum possible time-step size that avoids
-        flattening or exhausting sediment."""
+        """
+        Estimate the maximum possible time-step size that avoids
+        flattening any streamwise slope or exhausting sediment.
+
+        The `upper_limit_dt` parameter handles the special case of
+        a nonexistent upper limit, which only occurs when there are
+        no nodes at which either sediment or slope gradient is
+        declining. Value is arbitrary as long as it is >= the user-provided
+        global time-step size (in `run_one_step()`).
+
+        Parameters
+        ----------
+        dt : float (default 1.0e6)
+            Maximum time step size
+        """
         sed_is_declining = np.logical_and(self._dHdt < 0.0, self._sed > 0.0)
         if np.any(sed_is_declining):
             min_time_to_exhaust_sed = np.amin(
@@ -718,7 +734,7 @@ class GravelBedrockEroder(Component):
                 height_above_rcvr[slope_is_declining] / rate_diff[slope_is_declining]
             )
         else:
-            min_time_to_flatten_slope = 1.0e6
+            min_time_to_flatten_slope = upper_limit_dt
         return 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
 
     def run_one_step(self, global_dt):
