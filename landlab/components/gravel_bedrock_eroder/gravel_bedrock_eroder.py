@@ -440,8 +440,8 @@ class GravelBedrockEroder(Component):
         """
         self._rock_exposure_fraction[:] = np.exp(-self._sed / self._depth_decay_scale)
 
-    def calc_transport_capacity(self):
-        """Calculate and return bed-load transport capacity.
+    def calc_transport_rate(self):
+        """Calculate and return bed-load transport rate.
 
         Calculation uses Wickert-Schildgen approach, and provides
         volume per time rate. Transport rate is modulated by available
@@ -461,7 +461,7 @@ class GravelBedrockEroder(Component):
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
         >>> eroder = GravelBedrockEroder(grid)
-        >>> eroder.calc_transport_capacity()
+        >>> eroder.calc_transport_rate()
         >>> round(eroder._sediment_outflux[4], 4)
         0.019
         """
@@ -496,7 +496,7 @@ class GravelBedrockEroder(Component):
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
         >>> eroder = GravelBedrockEroder(grid, abrasion_coefficient=0.0002)
-        >>> eroder.calc_transport_capacity()
+        >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
         >>> int(eroder._abrasion[4] * 1e8)
         19
@@ -529,7 +529,7 @@ class GravelBedrockEroder(Component):
         >>> eroder.calc_rock_exposure_fraction()
         >>> round(eroder._rock_exposure_fraction[6], 4)
         0.3679
-        >>> eroder.calc_transport_capacity()
+        >>> eroder.calc_transport_rate()
         >>> np.round(eroder._sediment_outflux[5:7], 3)
         array([ 0.024,  0.012])
         >>> eroder.calc_abrasion_rate()
@@ -598,7 +598,7 @@ class GravelBedrockEroder(Component):
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
         >>> eroder = GravelBedrockEroder(grid)
-        >>> eroder.calc_transport_capacity()
+        >>> eroder.calc_transport_rate()
         >>> eroder.calc_sediment_influx()
         >>> eroder.calc_sediment_rate_of_change()
         >>> np.round(eroder._sediment_outflux[4:7], 3)
@@ -657,7 +657,7 @@ class GravelBedrockEroder(Component):
         """
         self._update_slopes()
         self.calc_rock_exposure_fraction()
-        self.calc_transport_capacity()
+        self.calc_transport_rate()
         self.calc_sediment_influx()
 
         if self._flow_length_is_variable:
