@@ -54,7 +54,7 @@ def find_upwind_link_at_link(grid, u):
 
     Parameters
     ----------
-    grid : ModelGrid
+    grid : RasterModelGrid or HexModelGrid
         A landlab grid.
     u : float or (n_links,) ndarray
         Array of *at-link* values used to determine which node is
@@ -128,6 +128,25 @@ def upwind_to_local_grad_ratio(grid, v, uwll, out=None):
     In Total Variation Diminishing (TVD) numerical schemes, this
     ratio is input to a flux limiter to calculate the weighting factor
     for higher-order vs. lower-order terms.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid or HexModelGrid
+        A landlab grid.
+    v : (n_links,) ndarray
+        Array of *at-link* values of which to calculate the gradient.
+    uwll : (n_links,) ndarray
+        Array of upwind links for every link (as returned, for example, by
+        :func:`~.find_upwind_link_at_link`).
+    out : (n_links,) ndarray, optional
+        If provided, place output into this array. Otherwise, create a new array.
+
+    Returns
+    -------
+    (n_links,) ndarray of int
+        The ratio of the gradients. For links that have a gradient of zero, the ratio
+        is set to one. For links that do not have an upwind link, the ratio is also
+        set to one.
     """
     if out is None:
         out = np.ones(grid.number_of_links)
@@ -144,8 +163,7 @@ def upwind_to_local_grad_ratio(grid, v, uwll, out=None):
 
 
 class AdvectionSolverTVD(Component):
-    r"""Component that implements numerical solution for advection using a
-    Total Variation Diminishing method.
+    """Numerical solution for advection using a Total Variation Diminishing method.
 
     The component is restricted to regular grids (e.g., Raster or Hex).
 
@@ -238,8 +256,7 @@ class AdvectionSolverTVD(Component):
             ] = -1
 
     def calc_rate_of_change_at_nodes(self, dt):
-        """Calculate and return the time rate of change in the advected
-        quantity at nodes.
+        """Calculate time rate of change in the advected quantity at nodes.
 
         Parameters
         ----------
@@ -266,10 +283,26 @@ class AdvectionSolverTVD(Component):
         return -self.grid.calc_flux_div_at_node(self._flux_at_link)
 
     def update(self, dt):
-        """Update the solution by one time step dt (same as run_one_step())."""
+        """Update the solution by one time step dt.
+
+        Same as :meth:`~.run_one_step`.
+
+        Parameters
+        ----------
+        dt : float
+            Time-step duration. Needed to calculate the Courant number.
+        """
         roc = self.calc_rate_of_change_at_nodes(dt)
         self._scalar[self.grid.core_nodes] += roc[self.grid.core_nodes] * dt
 
     def run_one_step(self, dt):
-        """Update the solution by one time step dt (same as update())."""
+        """Update the solution by one time step dt.
+
+        Same as :meth:`~.update`.
+
+        Parameters
+        ----------
+        dt : float
+            Time-step duration. Needed to calculate the Courant number.
+        """
         self.update(dt)
