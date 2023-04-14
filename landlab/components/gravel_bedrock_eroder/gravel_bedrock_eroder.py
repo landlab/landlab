@@ -117,7 +117,7 @@ class GravelBedrockEroder(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "m**2/y",
+            "units": "m**3/y",
             "mapping": "node",
             "doc": "Volumetric incoming streamwise bedload sediment transport rate",
         },
@@ -125,7 +125,7 @@ class GravelBedrockEroder(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "m**2/y",
+            "units": "m**3/y",
             "mapping": "node",
             "doc": "Volumetric outgoing streamwise bedload sediment transport rate",
         },
@@ -419,6 +419,10 @@ class GravelBedrockEroder(Component):
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.
 
+        The result is stored in the `bedrock__exposure_fraction` field.
+
+        Examples
+        --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> grid = RasterModelGrid((3, 4), xy_spacing=100.0)
@@ -447,7 +451,8 @@ class GravelBedrockEroder(Component):
         volume per time rate. Transport rate is modulated by available
         sediment, using the exponential function (1 - exp(-H / Hs)),
         so that transport rate approaches zero as sediment thickness
-        approaches zero.
+        approaches zero. Rate is a volume per time. The result is
+        stored in the `bedload_sediment__volume_outflux` field.
 
         Examples
         --------
@@ -474,10 +479,11 @@ class GravelBedrockEroder(Component):
         )
 
     def calc_abrasion_rate(self):
-        """Update the rate of bedload loss to abrasion, per unit area.
+        """Update the volume rate of bedload loss to abrasion, per unit area.
 
         Here we use the average of incoming and outgoing sediment flux to
-        calculate the loss rate to abrasion.
+        calculate the loss rate to abrasion. The result is stored in the
+        `bedload_sediment__rate_of_loss_to_abrasion` field.
 
         The factor dx (node spacing) appears in the denominator to represent
         flow segment length (i.e., length of the link along which water is
@@ -513,7 +519,9 @@ class GravelBedrockEroder(Component):
         """Update the rate of bedrock abrasion.
 
         Note: assumes _abrasion (of sediment) and _rock_exposure_fraction
-        have already been updated.
+        have already been updated. Like _abrasion, the rate is a length
+        per time (equivalent to rate of lowering of the bedrock surface by
+        abrasion). Result is stored in the field `bedrock__abrasion_rate`.
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
@@ -544,6 +552,13 @@ class GravelBedrockEroder(Component):
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
 
+        The rate is a volume per area per time [L/T], equivalent to the
+        rate of lowering of the bedrock surface relative to the underlying
+        material as a result of plucking. Result is stored in the field
+        `bedrock__plucking_rate`.
+
+        Examples
+        --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
@@ -563,7 +578,6 @@ class GravelBedrockEroder(Component):
         >>> int(round(eroder._pluck_rate[4] * 1e9))
         464
         """
-
         cores = self._grid.core_nodes
         self._pluck_rate[cores] = (
             self._plucking_coef
@@ -574,7 +588,10 @@ class GravelBedrockEroder(Component):
         ) * self._flow_link_length_over_cell_area
 
     def calc_sediment_influx(self):
-        """Update the volume influx at each node."""
+        """Update the volume influx at each node.
+
+        Result is stored in the field `bedload_sediment__volume_influx`.
+        """
         self._sediment_influx[:] = 0.0
         for c in self.grid.core_nodes:  # send sediment downstream
             r = self._receiver_node[c]
@@ -582,6 +599,8 @@ class GravelBedrockEroder(Component):
 
     def calc_sediment_rate_of_change(self):
         """Update the rate of thickness change of coarse sediment at each core node.
+
+        Result is stored in the field `sediment__rate_of_change`.
 
         Examples
         --------
@@ -617,7 +636,10 @@ class GravelBedrockEroder(Component):
         )
 
     def _update_slopes(self):
-        """Update self._slope"""
+        """Update self._slope.
+
+        Result is stored in field `topographic__steepest_slope`.
+        """
         dz = np.maximum(self._elev - self._elev[self._receiver_node], 0.0)
         if self._flow_length_is_variable:
             if self._grid_has_diagonals:
@@ -633,9 +655,9 @@ class GravelBedrockEroder(Component):
             )
 
     def update_rates(self):
-        """Update rates of change.
+        """Update rate of sediment thickness change, and rates of bedrock lowering by abrasion
+        and by plucking.
 
-        TODO: move to run one step
         Examples
         --------
         >>> import numpy as np
