@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import HexModelGrid, RasterModelGrid
@@ -6,18 +7,54 @@ from landlab.components.advection import (
     find_upwind_link_at_link,
     upwind_to_local_grad_ratio,
 )
+from landlab.grid.linkorientation import LinkOrientation
 
 
-def test_upwind_link_at_link_raster():
+@pytest.mark.parametrize("u", [0.0, 1.0, 10.0, [1.0] * 17])
+def test_upwind_link_at_link_raster_positive(u):
     grid = RasterModelGrid((3, 4))
-    uwl = find_upwind_link_at_link(grid, 1.0)
+    uwl = find_upwind_link_at_link(grid, u)
+
     assert_array_equal(
-        uwl, [-1, -1, -1, -1, -1, -1, -1, -1, 7, 8, -1, 4, 5, -1, -1, -1, -1]
+        uwl[grid.vertical_links].reshape((2, 4)),
+        [
+            [-1, -1, -1, -1],
+            [3, 4, 5, 6],
+        ],
     )
-    uwl = find_upwind_link_at_link(grid, -1.0)
     assert_array_equal(
-        uwl, [-1, -1, -1, -1, 11, 12, -1, 8, 9, -1, -1, -1, -1, -1, -1, -1, -1]
+        uwl[grid.horizontal_links].reshape((3, 3)),
+        [
+            [-1, 0, 1],
+            [-1, 7, 8],
+            [-1, 14, 15],
+        ],
     )
+
+
+@pytest.mark.parametrize("u", [-1.0, -10.0, [-1.0] * 17])
+def test_upwind_link_at_link_raster_negative(u):
+    grid = RasterModelGrid((3, 4))
+    uwl = find_upwind_link_at_link(grid, u)
+    assert_array_equal(
+        uwl[grid.vertical_links].reshape((2, 4)),
+        [
+            [10, 11, 12, 13],
+            [-1, -1, -1, -1],
+        ],
+    )
+    assert_array_equal(
+        uwl[grid.horizontal_links].reshape((3, 3)),
+        [
+            [1, 2, -1],
+            [8, 9, -1],
+            [15, 16, -1],
+        ],
+    )
+
+
+def test_upwind_link_at_link_raster_mixed():
+    grid = RasterModelGrid((3, 4))
     u = np.zeros(grid.number_of_links)
     u[4:6] = -1
     u[7] = -1
@@ -25,41 +62,91 @@ def test_upwind_link_at_link_raster():
     u[11:13] = 1
     uwl = find_upwind_link_at_link(grid, u)
     assert_array_equal(
-        uwl, [-1, -1, -1, -1, 11, 12, -1, 8, 7, 8, -1, 4, 5, -1, -1, -1, -1]
+        uwl[grid.vertical_links].reshape((2, 4)),
+        [
+            [-1, 11, 12, -1],
+            [3, 4, 5, 6],
+        ],
     )
-
-
-def test_upwind_link_at_link_hex():
-    # Hex horizontal
-    grid = HexModelGrid((3, 3))
-    uwl = find_upwind_link_at_link(grid, 1.0)
     assert_array_equal(
-        uwl, [-1, -1, -1, -1, -1, -1, -1, -1, -1, 8, 9, -1, 4, 3, 6, 5, -1, -1, -1]
+        uwl[grid.horizontal_links].reshape((3, 3)),
+        [
+            [-1, 0, 1],
+            [8, 7, 8],
+            [-1, 14, 15],
+        ],
     )
+
+
+def test_upwind_link_at_link_hex_horizontal():
+    # Hex horizontal
+    grid = HexModelGrid((3, 3), orientation="horizontal")
+    uwl = find_upwind_link_at_link(grid, 1.0)
+
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.E], [-1, 0, -1, 8, 9, -1, 17]
+    )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.NNE],
+        [-1, -1, -1, -1, 3, 5],
+    )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.NNW], [-1, -1, -1, 4, 6, -1]
+    )
+
     uwl = find_upwind_link_at_link(grid, -1.0)
     assert_array_equal(
-        uwl, [-1, -1, -1, 13, 12, 15, 14, -1, 9, 10, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+        uwl[grid.orientation_of_link == LinkOrientation.E],
+        [1, -1, 9, 10, -1, 18, -1],
     )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.NNE],
+        [13, 15, -1, -1, -1, -1],
+    )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.NNW],
+        [-1, 12, 14, -1, -1, -1],
+    )
+
     u = np.zeros(grid.number_of_links)
     u[3:7] = -1
     u[8] = -1
     u[9:11] = 1
     u[12:16] = 1
-    uwl = find_upwind_link_at_link(grid, u)
-    assert_array_equal(
-        uwl, [-1, -1, -1, 13, 12, 15, 14, -1, 9, 8, 9, -1, 4, 3, 6, 5, -1, -1, -1]
-    )
 
+    expected = np.choose(
+        u >= 0, [find_upwind_link_at_link(grid, -1), find_upwind_link_at_link(grid, 1)]
+    )
+    assert_array_equal(find_upwind_link_at_link(grid, u), expected)
+
+
+def test_upwind_link_at_link_hex_vertical():
     # Hex vertical
     grid = HexModelGrid((3, 3), orientation="vertical")
     uwl = find_upwind_link_at_link(grid, 1.0)
+
     assert_array_equal(
-        uwl, [-1, -1, -1, -1, 7, -1, -1, -1, 3, 2, -1, 14, -1, -1, -1, 10, 9, -1, -1]
+        uwl[grid.orientation_of_link == LinkOrientation.ENE], [-1, -1, 3, -1, 10, -1]
     )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.N], [-1, -1, -1, 2, 5, 6, 9]
+    )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.ESE], [-1, 7, -1, 14, -1, -1]
+    )
+
     uwl = find_upwind_link_at_link(grid, -1.0)
+
     assert_array_equal(
-        uwl, [-1, -1, 9, 8, -1, -1, -1, 4, -1, 16, 15, -1, -1, -1, 11, -1, -1, -1, -1]
+        uwl[grid.orientation_of_link == LinkOrientation.ENE], [-1, 8, -1, 15, -1, -1]
     )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.N], [9, 12, 13, 16, -1, -1, -1]
+    )
+    assert_array_equal(
+        uwl[grid.orientation_of_link == LinkOrientation.ESE], [-1, -1, 4, -1, 11, -1]
+    )
+
     u = np.zeros(grid.number_of_links)
     u[2:4] = -1
     u[4] = 1
@@ -69,10 +156,11 @@ def test_upwind_link_at_link_hex():
     u[11] = 1
     u[14] = -1
     u[15] = 1
-    uwl = find_upwind_link_at_link(grid, u)
-    assert_array_equal(
-        uwl, [-1, -1, 9, 8, 7, -1, -1, 4, 3, 2, 15, 14, -1, -1, 11, 10, 9, -1, -1]
+
+    expected = np.choose(
+        u >= 0, [find_upwind_link_at_link(grid, -1), find_upwind_link_at_link(grid, 1)]
     )
+    assert_array_equal(find_upwind_link_at_link(grid, u), expected)
 
 
 def test_upwind_to_local_grad_ratio():
@@ -106,36 +194,15 @@ def test_upwind_to_local_grad_ratio():
     23 (n/a)
     """
     grid = RasterModelGrid((4, 4))
-    v = grid.add_zeros("value", at="node")
-    v[:] = np.arange(grid.number_of_nodes) ** 2
+    v = np.arange(grid.number_of_nodes) ** 2
+
     upwind_link_at_link = find_upwind_link_at_link(grid, 1.0)
     r = upwind_to_local_grad_ratio(grid, v, upwind_link_at_link)
+
+    diff_at_link = grid.calc_grad_at_link(v)
+    expected = diff_at_link[upwind_link_at_link] / diff_at_link
+
+    assert_array_almost_equal(r[upwind_link_at_link == -1], 1.0)
     assert_array_almost_equal(
-        r,
-        [
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-            0.81818182,
-            0.84615385,
-            1.0,
-            0.42857143,
-            0.5,
-            1.0,
-            1.0,
-            0.89473684,
-            0.9047619,
-            1.0,
-            0.63636364,
-            0.66666667,
-            1.0,
-            1.0,
-            1.0,
-            1.0,
-        ],
+        r[upwind_link_at_link != -1], expected[upwind_link_at_link != -1]
     )
