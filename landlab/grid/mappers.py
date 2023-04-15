@@ -58,6 +58,21 @@ their *head* node, while links 15 and 11 have node ``X`` as their *tail* node.
 import numpy as np
 
 
+def cartesian_to_polar(x, y):
+    """Return 2d polar coordinates (r, theta) equivalent to given cartesian
+    coordinates (x, y).
+
+    Examples
+    --------
+    >>> r, theta = cartesian_to_polar(1.0, 1.0)
+    >>> int(r * 1000)
+    1414
+    >>> int(theta * 1000)
+    785
+    """
+    return np.sqrt(x**2 + y**2), np.arctan2(y, x)  # r, theta
+
+
 def map_link_head_node_to_link(grid, var_name, out=None):
     """Map values from a link head nodes to links.
 
@@ -1615,4 +1630,23 @@ def map_node_to_link_lax_wendroff(grid, v, c, out=None):
         (1 + c) * v[grid.node_at_link_tail] + (1 - c) * v[grid.node_at_link_head]
     )
 
+    return out
+
+
+def map_vectors_to_links(grid, ux, uy, out=None):
+    """Map magnitude and sign of vectors with components (ux, uy) onto grid links.
+
+    Examples
+    --------
+    >>> from landlab import HexModelGrid
+    >>> import numpy
+    >>> hmg = HexModelGrid((3, 2))
+    >>> (numpy.round(10 * map_vectors_to_links(hmg, 1.0, 0.0))).astype(int)
+    array([10, -5,  5, -5,  5, 10, 10,  5, -5,  5, -5, 10])
+    """
+    if out is None:
+        out = np.zeros(grid.number_of_links)
+    u, theta_u = cartesian_to_polar(ux, uy)
+    theta = theta_u - grid.angle_of_link
+    out[:] = u * np.cos(theta)
     return out
