@@ -81,10 +81,10 @@ def test_cli(session: nox.Session) -> None:
 @nox.session
 def lint(session: nox.Session) -> None:
     """Look for lint."""
-    session.install("pre-commit")
-    session.run("pre-commit", "run", "--all-files")
+    skip_hooks = [] if "--no-skip" in session.posargs else ["check-manifest", "pyroma"]
 
-    # towncrier(session)
+    session.install("pre-commit")
+    session.run("pre-commit", "run", "--all-files", env={"SKIP": ",".join(skip_hooks)})
 
 
 @nox.session
