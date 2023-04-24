@@ -11,7 +11,7 @@ from landlab.data_record import DataRecord
 import numpy as np
 import pandas as pd
 import numpy.lib.recfunctions as nprf
-from sympy import symbols, diff, lambdify, log
+
 rng = np.random.default_rng()
 import warnings
 
@@ -175,7 +175,7 @@ class PlantGrowth(Species):
 
         super().__init__(species_params)
         self.species_name=self.species_plant_factors['species']
-        self.populate_biomass_allocation_array()
+
 
         self._grid=grid
         (_,_latitude)=self._grid.xy_of_reference
@@ -232,13 +232,21 @@ class PlantGrowth(Species):
         return self.species_grow_params
     
     def update_plants(self, var_names, pids, var_vals):
+        updated_plants=self.plants
         for idx, var_name in enumerate(var_names):
-            self.plants[var_name][np.isin(self.plants['pid'], pids)]=var_vals[idx]
+            updated_plants[var_name][np.isin(self.plants['pid'], pids)]=var_vals[idx]
+        self.plants=updated_plants
+        return updated_plants
 
     def add_new_plants(self, new_plants_list):
+        old_plants=self.plants
         last_pid=self.plants['pid'][-1]
         new_plants_list['pid']=np.arange(last_pid+1,last_pid+new_plants_list.size)
-        self.plants.append(new_plants_list)
+        print(old_plants.size)
+        old_plants.append(new_plants_list)
+        print(old_plants.size)
+        self.plants=old_plants
+        return self.plants
 
     def _grow(self, _current_jday):
         #set up shorthand aliases
@@ -286,6 +294,8 @@ class PlantGrowth(Species):
             if process[1]:
                 _new_biomass=processes[process[0]](_new_biomass)
 
+        _new_biomass=self.update_morphology(_new_biomass)
+        #print('Completed run_one_step for '+self.species_name+' on day '+str(_current_jday))
         self.plants=_new_biomass
 
     def _init_plants_from_grid(self,in_growing_season, species_cover):
@@ -328,22 +338,20 @@ class PlantGrowth(Species):
             for plant in cell_plants:
                 if plant == self.species_plant_factors['species']:
                     plant_cover=cell_cover[plant]
-                    cover_area=plant_cover*self._grid.area_of_cell[cell_index]
-                    if cover_area<self.species_morph_params['min_crown_area']:
-                        continue
-                    num_plants=np.floor(2*cover_area/(self.species_morph_params['min_crown_area']+self.species_morph_params['max_crown_area']))
-                    area_frac_per_plant=rng.uniform(low=0.0, high=1.0, size=num_plants.astype(int))
-                    area_per_plant=cover_area*(area_frac_per_plant/sum(area_frac_per_plant))
-                    for new_plant_area in area_per_plant:
-                        shoot_width=(4*new_plant_area/np.pi)**0.5
-                        plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,shoot_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,np.nan,0))
+                    cover_area=plant_cover*self._grid.area_of_cell[cell_index]*0.907
+                    plant_shoot_widths=[]
+                    while cover_area > (1.2*self.species_morph_params['min_crown_area']):
+                        plant_width=rng.uniform(low=self.species_morph_params['min_shoot_sys_width'], high=self.species_morph_params['max_shoot_sys_width'], size=1)
+                        cover_area -= np.pi*plant_width**2/4
+                        if cover_area>0:
+                            plant_shoot_widths.append(plant_width)
+                        else:
+                            breakpoint
+                    for new_plant_width in plant_shoot_widths:
+                        plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,new_plant_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,np.nan,0))
                         pidval += 1
         plant_array=np.array(plantlist, dtype=dtypes)
         plant_array=self.set_initial_biomass(plant_array,in_growing_season)
-        plant_array['shoot_sys_height']=(plant_array['leaf']+plant_array['stem'])/(self.species_morph_params['biomass_packing']*np.pi/4*plant_array['shoot_sys_width']**2)
-        plant_array=self.calc_lateral_width(plant_array)
-        #This may need to change to be realistic
-        plant_array['n_stems']=rng.integers(low=1, high=self.species_morph_params['max_n_stems'], size=plant_array.size, endpoint=True)
         return plant_array
         
     def allocate_biomass_dynamically(self,delta_tot):
@@ -439,35 +447,7 @@ class PlantGrowth(Species):
         _new_biomass=self.redistribute_storage_biomass(_new_biomass)
         return _new_biomass
 
-    def populate_biomass_allocation_array(self):
-        root2leaf=self.species_grow_params['root_to_leaf']
-        root2stem=self.species_grow_params['root_to_stem']
-        prior_root_biomass=np.arange(
-            start=self.species_grow_params['plant_part_min']['root'],
-            stop=self.species_grow_params['plant_part_max']['root']+0.1,
-            step=0.1
-        )
-        length_of_array =len(prior_root_biomass)
-        place_zeros=np.zeros(length_of_array)
-        biomass_allocation_map=np.column_stack((prior_root_biomass,place_zeros,place_zeros,place_zeros,place_zeros,place_zeros))
-        biomass_allocation_map=list(map(tuple,biomass_allocation_map))
-        self.biomass_allocation_array=np.array(biomass_allocation_map,
-            dtype=[('prior_root_biomass',float),('total_biomass',float),('delta_leaf_unit_root',float),('delta_stem_unit_root',float),('leaf_mass_frac',float),('stem_mass_frac',float)])
 
-        #set up sympy equations
-        rootsym=symbols('rootsym')              
-        dleaf=diff(10**(root2leaf['a']+root2leaf['b1']*log(rootsym,10)+root2leaf['b2']*(log(rootsym,10))**2),rootsym)
-        dstem=diff(10**(root2stem['a']+root2stem['b1']*log(rootsym,10)+root2stem['b2']*(log(rootsym,10))**2),rootsym)
-        #Generate numpy expressions and solve for rate change in leaf and stem biomass per unit mass of root
-        fleaf=lambdify(rootsym,dleaf,'numpy')
-        fstem=lambdify(rootsym,dstem,'numpy')
-        self.biomass_allocation_array['delta_leaf_unit_root']=fleaf(self.biomass_allocation_array['prior_root_biomass'])
-        self.biomass_allocation_array['delta_stem_unit_root']=fstem(self.biomass_allocation_array['prior_root_biomass'])
-        _leaf_biomasss=10**(root2leaf['a']+root2leaf['b1']*np.log10(prior_root_biomass)+root2leaf['b2']*(np.log10(prior_root_biomass))**2)
-        _stem_biomass=10**(root2stem['a']+root2stem['b1']*np.log10(prior_root_biomass)+root2stem['b2']*(np.log10(prior_root_biomass))**2)
-        self.biomass_allocation_array['total_biomass']=self.biomass_allocation_array['prior_root_biomass']+_leaf_biomasss+_stem_biomass
-        self.biomass_allocation_array['leaf_mass_frac']=_leaf_biomasss/self.biomass_allocation_array['total_biomass']
-        self.biomass_allocation_array['stem_mass_frac']=_stem_biomass/self.biomass_allocation_array['total_biomass']
     
     def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
         _total_biomass=self.sum_plant_parts(_new_biomass, parts='growth')
@@ -510,10 +490,10 @@ class PlantGrowth(Species):
         return flags_to_test
 
     def kill_small_plants(self, _new_biomass):
-        min_size=self.species_grow_params['total_min_biomass']
-        total_biomass=self.sum_plant_parts(_new_biomass,parts='total')
-        for part in self.all_parts:
-            _new_biomass[part][total_biomass<min_size]=0.0
+        min_size=self.species_grow_params['min_growth_biomass']
+        total_biomass=self.sum_plant_parts(_new_biomass,parts='growth')
+        dead_plants=np.where(total_biomass<min_size)
+        _new_biomass=np.delete(_new_biomass,dead_plants,axis=None)
         return _new_biomass
 
     #Save plant array output Modify this in future to take user input and add additional parameters that can be saved out
@@ -533,12 +513,14 @@ class PlantGrowth(Species):
         )
         self.record_plants.ffill_grid_element_and_id()
 
-        self.record_plants.dataset['vegetation__species'].values[:,self.time_ind]=self.plants['species']
-        self.record_plants.dataset['vegetation__root_biomass'].values[:,self.time_ind]=self.plants['root_biomass']
-        self.record_plants.dataset['vegetation__leaf_biomass'].values[:,self.time_ind]=self.plants['leaf_biomass']
-        self.record_plants.dataset['vegetation__stem_biomass'].values[:,self.time_ind]=self.plants['stem_biomass']
-        self.record_plants.dataset['vegetation__storage_biomass'].values[:,self.time_ind]=self.plants['storage_biomass']
-        self.record_plants.dataset['vegetation__repro_biomass'].values[:,self.time_ind]=self.plants['repro_biomass']
+        item_ids=self.plants['item_id']
+
+        self.record_plants.dataset['vegetation__species'].values[item_ids,self.time_ind]=self.plants['species']
+        self.record_plants.dataset['vegetation__root_biomass'].values[item_ids,self.time_ind]=self.plants['root_biomass']
+        self.record_plants.dataset['vegetation__leaf_biomass'].values[item_ids,self.time_ind]=self.plants['leaf_biomass']
+        self.record_plants.dataset['vegetation__stem_biomass'].values[item_ids,self.time_ind]=self.plants['stem_biomass']
+        self.record_plants.dataset['vegetation__storage_biomass'].values[item_ids,self.time_ind]=self.plants['storage_biomass']
+        self.record_plants.dataset['vegetation__repro_biomass'].values[item_ids,self.time_ind]=self.plants['repro_biomass']
         #    item_id= np.reshape(self.plants['item_id'],(self.plants['item_id'].size,1)),
         #    new_record={
         #        'vegetation__species':(['item_id','time'],self.plants['species']),

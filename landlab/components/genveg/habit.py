@@ -14,10 +14,6 @@ class Habit(object):
             'evergreen':Evergreen(species_grow_params)
         }
         return duration[duration_val]
-
-    def calc_lateral_width(self, volume, plants):
-        plants['root_sys_width']=0.08+0.24*volume
-        return plants
     
     def emerge(self, plants):
         plants=self.duration.emerge(plants)
@@ -47,23 +43,19 @@ class Graminoid(Habit):
         retention_val='deciduous'
         super().__init__(species_grow_params, green_parts, duration_val, retention_val)
 
+    def set_initial_height(self, max_height, min_height, arr_size):
+        height=min_height+rng.rayleigh(scale=0.5, size=arr_size )*max_height
+        return height
+
 class Shrub(Habit):
     def __init__(self, species_grow_params, duration_val, retention_val):
         green_parts=('leaf')
         super().__init__(species_grow_params, green_parts, duration_val, retention_val)
-    
-    def calc_lateral_width(self, volume, plants):
-        plants['lateral_width']=0.35+0.31*volume
-        return plants
         
 class Tree(Habit):
     def __init__(self, species_grow_params, duration_val, retention_val):
         green_parts=('leaf')
         super().__init__(species_grow_params, green_parts, duration_val, retention_val)
-
-    def calc_lateral_width(self, volume, plants):
-        plants['lateral_width']=0.35+0.31*volume
-        return plants
 
 class Vine(Habit):
     def __init__(self, species_grow_params, duration_val, retention_val):

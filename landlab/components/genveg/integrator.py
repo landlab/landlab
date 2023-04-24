@@ -110,6 +110,7 @@ class GenVeg(Component, PlantGrowth):
         plantspecies=[]
         _ = self._grid.add_zeros('vegetation__total_biomass',at='cell', clobber=True)
         _ = self._grid.add_zeros('vegetation__n_plants',at='cell', clobber=True)
+        _ = self._grid.add_zeros('vegetation__plant_height',at='cell', clobber=True)
         species_cover=self._grid.at_cell['vegetation__percent_cover']
         self.species_cover_allocation=[]
 
@@ -139,10 +140,12 @@ class GenVeg(Component, PlantGrowth):
         cell_biomass=np.bincount(all_plants['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
         cell_plant_count=np.bincount(all_plants['cell_index'], minlength=self._grid.number_of_cells)
         frac_cover=np.bincount(all_plants['cell_index'], weights=abg_area, minlength=self._grid.number_of_cells)/self._grid.area_of_cell
+        plant_height=np.bincount(all_plants['cell_index'],weights=all_plants['shoot_sys_height'], minlength=self._grid.number_of_cells)/cell_plant_count
         
         self._grid.at_cell['vegetation__total_biomass']=cell_biomass
         self._grid.at_cell['vegetation__n_plants']=cell_plant_count
         self._grid.at_cell['vegetation__percent_cover']=frac_cover
+        self._grid.at_cell['vegetation__plant_height']=plant_height
  
         #add location information for each plant
         for cell_index in range(self._grid.number_of_cells):
@@ -156,24 +159,38 @@ class GenVeg(Component, PlantGrowth):
             cell_poly=plt.pyplot.Polygon(corner_vertices)
 
     
-            #Check if point falls in cell 
-            for plant in cell_plants:
+            #Check if point falls in cell
+            for idx, plant in enumerate(cell_plants):
+                occupied_center=True
                 radius=plant['shoot_sys_width']/2
-                x = rng.uniform(low=min_x+radius, high=max_x-radius, size=1)
-                y_lims=self.get_cell_boundary_points(corner_vertices, x)
-                y = rng.uniform(low=y_lims[0]+radius, high=y_lims[1]-radius, size=1)
-                point = (*x, *y)
-                if cell_poly.contains_point(point):
-                    valid_center = self.check_if_loc_occupied(point, cell_plants, 'above')
-                    if valid_center == False:
-                        break
-                    else:
-                        counter+=1
-                        cell_plants[plant]['x_loc']=x
-                        cell_plants[plant]['y_loc']=y
-            for species in self.plant_species:
+                while occupied_center==True:
+                    x = rng.uniform(low=min_x+radius, high=max_x-radius, size=1)
+                    y_lims=self.get_cell_boundary_points(corner_vertices, x)
+                    y = rng.uniform(low=y_lims[0]+radius, high=y_lims[1]-radius, size=1)
+                    point = (*x, *y)
+                    if cell_poly.contains_point(point):
+                        [occupied_center] = self.check_if_loc_occupied([point], cell_plants, 'above')
+                        if occupied_center == False: #check this because it is likely returning a list
+                            cell_plants[idx]['x_loc']=x
+                            cell_plants[idx]['y_loc']=y
+                            break
+                        
+            for species_obj in self.plant_species:
+                species=species_obj.species_plant_factors['species']
                 update_plants=cell_plants[cell_plants['species']==species]
-                species.update_plants(['x_loc', 'y_loc'], update_plants['pid'], np.vstack((update_plants['x_loc'], update_plants['y_loc'])))
+                update_plants=species_obj.update_morphology(update_plants)
+                species_obj.update_plants(
+                    ['x_loc', 'y_loc','shoot_sys_width', 'shoot_sys_height'], 
+                    update_plants['pid'], 
+                    np.vstack((
+                        update_plants['x_loc'], 
+                        update_plants['y_loc'], 
+                        update_plants['shoot_sys_width'], 
+                        update_plants['shoot_sys_height']
+                    ))
+                )
+
+
 
         
     def get_int_output(self):
@@ -192,10 +209,15 @@ class GenVeg(Component, PlantGrowth):
         all_plants=self.check_for_dispersal_success(all_plants)
 
         tot_bio_species=all_plants['root_biomass']+all_plants['leaf_biomass']+all_plants['stem_biomass']
+        crown_area=np.pi/4*all_plants['shoot_sys_width']**2
         cell_biomass=np.bincount(all_plants['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
         cell_plant_count=np.bincount(all_plants['cell_index'], minlength=self._grid.number_of_cells)
+        cell_percent_cover=np.bincount(all_plants['cell_index'], weights=crown_area, minlength=self._grid.number_of_cells)
+        plant_height=np.bincount(all_plants['cell_index'],weights=all_plants['shoot_sys_height'], minlength=self._grid.number_of_cells)/cell_plant_count
         self._grid.at_cell['vegetation__total_biomass']=cell_biomass
         self._grid.at_cell['vegetation__n_plants']=cell_plant_count
+        self._grid.at_cell['vegetation__percent_cover']=cell_percent_cover
+        self._grid.at_cell['vegetation__plant_height']=plant_height
         self.current_day +=1
 
     def _calc_current_jday(self):
@@ -232,18 +254,20 @@ class GenVeg(Component, PlantGrowth):
             'above': 'shoot_sys_width',
             'below': 'root_sys_width'
         }
-        distance = np.sqrt((plant_loc[0]-all_plants['x_loc'])**2 + (plant_loc[1]-all_plants['y_loc'])**2)
-        conflict=np.where(distance > all_plants[area[check_type]]/2)
-        valid_center=np.all(conflict)
-        return valid_center
+        is_center_occupied=[]
+        for loc in plant_loc:
+            distance = np.sqrt((loc[0]-all_plants['x_loc'])**2 + (loc[1]-all_plants['y_loc'])**2)
+            conflict=np.where(distance > all_plants[area[check_type]]/2)
+            is_center_occupied.append(np.all(conflict))
+        return is_center_occupied
 
     def check_for_dispersal_success(self, all_plants): # I think this doesn't belong here. We need neighbor info but shortest path is for clonal only
         new_pups=all_plants[~np.isnan(all_plants['pup_x_loc'])]
         if new_pups.size==0:
             pass
         else:
-            loc_ok=self.check_if_loc_occupied(np.array([new_pups['pup_x_loc'], new_pups['pup_y_loc']]), all_plants, 'below')
-            new_pups=new_pups[loc_ok==True]
+            loc_occupied=self.check_if_loc_occupied(np.array([new_pups['pup_x_loc'], new_pups['pup_y_loc']]), all_plants, 'below')
+            new_pups=new_pups[loc_occupied==False]
             new_pups['x_loc']=new_pups['pup_x_loc']
             new_pups['y_loc']=new_pups['pup_y_loc']
             for species_obj in self.plant_species:
@@ -259,6 +283,7 @@ class GenVeg(Component, PlantGrowth):
                     species_parents['reproductive']-=(species_new_pups['root']+species_new_pups['leaf']+species_new_pups['stem']+species_parents['pup_cost'])
                     species_obj.update_plants(['reproductive'], species_parents['pid'], species_parents['reproductive'])
                     species_obj.add_new_plants(species_new_pups)
+                    print('Successful dispersal occurred')
 
         return self.combine_plant_arrays()
 

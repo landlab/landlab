@@ -1,4 +1,6 @@
 from .dispersal import *
+import numpy as np
+rng = np.random.default_rng()
 
 #Growth form classes and selection method
 class Bunch(Seed):
@@ -34,6 +36,10 @@ class Multiplestems(Seed):
 class Rhizomatous(Clonal):
     def __init__(self, disperse_params, grow_params):
         super().__init__(disperse_params, grow_params)
+
+    def set_initial_branches(self, max_branches, arr_size):
+        n_branches=np.ceil(rng.rayleigh(scale=0.26, size=arr_size)*max_branches)
+        return n_branches
 
     def branch(self):
         print('Tiller via rhizomes')
