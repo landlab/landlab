@@ -89,6 +89,8 @@ class Species(object):
         species_params['morph_params']['area_per_stem']=species_params['morph_params']['max_crown_area']/species_params['morph_params']['max_n_stems']
         species_params['morph_params']['min_abg_aspect_ratio']=species_params['morph_params']['max_height']/species_params['morph_params']['min_shoot_sys_width']
         species_params['morph_params']['max_abg_aspect_ratio']=species_params['morph_params']['max_height']/species_params['morph_params']['max_shoot_sys_width']
+        print(species_params['morph_params']['min_abg_aspect_ratio'])
+        print(species_params['morph_params']['max_abg_aspect_ratio'])
 
         
         sum_vars=[
@@ -105,6 +107,9 @@ class Species(object):
                 species_params['grow_params'][sum_var[0]] += species_params['grow_params'][sum_var[1]][part]
        
         species_params['morph_params']['biomass_packing']=species_params['grow_params']['max_growth_biomass']/species_params['morph_params']['max_vital_volume']
+
+        print((species_params['grow_params']['min_abg_biomass']/species_params['morph_params']['min_height'])*species_params['morph_params']['max_height'])
+        print(species_params['grow_params']['max_abg_biomass'])
 
         return species_params
 
@@ -207,7 +212,7 @@ class Species(object):
     def disperse(self, plants):
         #decide how to parameterize reproductive schedule, make repro event
         #right now we are just taking 20% of available storage and moving to
-        filter=np.where(self.sum_plant_parts(plants, parts='growth') >= self.species_dispersal_params['min_size_dispersal']) 
+        filter=np.where(self.sum_plant_parts(plants, parts='growth') >= (self.species_dispersal_params['min_size_dispersal']*self.species_grow_params['max_growth_biomass'])) 
         available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
         plants['repro_biomass'][filter]=plants['repro_biomass'][filter]+0.2*(available_stored_biomass[filter])
         plants['storage_biomass'][filter]=plants['storage_biomass'][filter]-0.2*(available_stored_biomass[filter])

@@ -36,10 +36,13 @@ class PlantShape(object):
         return volume
     
     def calc_abg_dims_from_biomass(self, abg_biomass):
+        #interpolation function not working as expected
         log_aspect_ratio=shoot_sys_width=vital_volume=plant_height=np.zeros_like(abg_biomass)
         filter=np.where(abg_biomass>0)
         log_aspect_ratio[filter]=self.aspect_ratio_interp_func(np.log10(abg_biomass[filter]/1000))
         aspect_ratio=10**log_aspect_ratio
+        print(abg_biomass)
+        print(aspect_ratio)
         vital_volume[filter]=self.calc_vital_volume_from_biomass(abg_biomass[filter])
         shoot_sys_width=((4*vital_volume)/(np.pi*aspect_ratio))**(1/3)
         plant_height=shoot_sys_width*aspect_ratio

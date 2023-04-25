@@ -241,10 +241,10 @@ class PlantGrowth(Species):
     def add_new_plants(self, new_plants_list):
         old_plants=self.plants
         last_pid=self.plants['pid'][-1]
-        new_plants_list['pid']=np.arange(last_pid+1,last_pid+new_plants_list.size)
-        print(old_plants.size)
-        old_plants.append(new_plants_list)
-        print(old_plants.size)
+        pids=np.arange(last_pid+1,last_pid+new_plants_list.size+1)
+        new_plants_list['pid']=pids
+        new_plants_list['item_id']=pids
+        np.concatenate((old_plants, new_plants_list), axis=0)
         self.plants=old_plants
         return self.plants
 
@@ -348,7 +348,7 @@ class PlantGrowth(Species):
                         else:
                             breakpoint
                     for new_plant_width in plant_shoot_widths:
-                        plantlist.append((plant,pidval,cell_index,0.0,0.0,0.0,0.0,0.0,0.0,0.0,new_plant_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,np.nan,0))
+                        plantlist.append((plant,pidval,cell_index,np.nan,np.nan,0.0,0.0,0.0,0.0,0.0,new_plant_width,0.0,0.0,0.0,0.0,0,np.nan,np.nan,np.nan,0))
                         pidval += 1
         plant_array=np.array(plantlist, dtype=dtypes)
         plant_array=self.set_initial_biomass(plant_array,in_growing_season)
@@ -424,6 +424,24 @@ class PlantGrowth(Species):
         for part in self.growth_parts:
             _new_biomass[part][filter]=_new_biomass[part][filter]+adjustment[filter]*(_new_biomass[part][filter]/_growth_parts_biomass[filter])
 
+        
+        filter=np.where(_new_biomass['reproductive']>0.0)
+        repro_min_biomass=self.species_grow_params['plant_part_min']['reproductive']
+        repro_max_biomass=self.species_grow_params['plant_part_max']['reproductive']
+        conditions=[
+            (_new_biomass['reproductive']<repro_min_biomass),
+            (_new_biomass['reproductive']>=repro_min_biomass)&(_new_biomass['reproductive']<=repro_max_biomass),
+            (_new_biomass['reproductive']>repro_max_biomass)
+        ]
+        adjustments=[
+            np.minimum((repro_min_biomass-_new_biomass['reproductive']),(_new_biomass['storage_biomass']-self.species_grow_params['plant_part_min']['storage'])),
+            np.zeros_like(_new_biomass['root_biomass']),
+            (repro_min_biomass-_new_biomass['reproductive'])
+        ]
+        adjustment=np.select(conditions,adjustments)
+        _new_biomass['storage_biomass'][filter]=_new_biomass['storage_biomass'][filter]-adjustment[filter]
+        _new_biomass['reproductive'][filter]=_new_biomass['reproductive'][filter]+adjustment[filter]
+        _new_biomass['reproductive'][_new_biomass['reproductive']<repro_min_biomass]=0.0
         return _new_biomass
 
     def allocate_biomass_proportionately(self, delta_tot):
@@ -437,9 +455,9 @@ class PlantGrowth(Species):
         # to the plant and it returns the structured array _new_biomass.
         _last_biomass=self.plants
         _new_biomass=_last_biomass
-        _total_biomass=self.sum_plant_parts(_last_biomass,parts='growth')
+        _total_biomass=self.sum_plant_parts(_last_biomass,parts='total')
         filter=np.where(_total_biomass!=0)
-        for part in self.growth_parts:
+        for part in self.all_parts:
             _new_biomass[part][filter]=(
                 (_last_biomass[part][filter]/_total_biomass[filter])*
                 delta_tot[filter]+_last_biomass[part][filter]

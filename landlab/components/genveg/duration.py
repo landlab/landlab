@@ -16,7 +16,7 @@ class Duration(object):
     def set_new_biomass(self, plants):
         print('I create new plants')
         total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'],high=2*self.growdict['growth_min_biomass'],size=plants.size)
-        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal, self.allocation_coeffs)
+        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal)
         plants['storage_biomass']=np.zeros_like(plants['root_biomass'])
         plants['repro_biomass']=np.zeros_like(plants['root_biomass'])
         plants['plant_age']=np.zeros_like(plants['root_biomass'])

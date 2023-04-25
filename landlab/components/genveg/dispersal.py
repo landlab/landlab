@@ -14,14 +14,16 @@ class Clonal(Repro):
         
     
     def disperse(self, plants):
-        plants['pup_x_loc'] = np.full_like(plants['root'], np.nan)
-        plants['pup_y_loc'] = np.full_like(plants['root'], np.nan)
-        plants['pup_cost'] = np.full_like(plants['root'], np.nan)
-        runner_length=(plants['reproductive']-self.min_size)/self.unit_cost
+        #plants['pup_x_loc'] = np.full_like(plants['root'], np.nan)
+        #plants['pup_y_loc'] = np.full_like(plants['root'], np.nan)
+        #plants['pup_cost'] = np.full_like(plants['root'], np.nan)
+        runner_length=np.zeros_like(plants['root'])
+        available_carb=plants['reproductive']-2*self.min_size
+        runner_length[available_carb>0]=available_carb[available_carb>0]/self.unit_cost
         pup_dist = rng.uniform(low=plants['root_sys_width']/2, high=self.max_dist_dispersal, size=plants.size)
         pup_azimuth = np.deg2rad(rng.uniform(low=0, high=360, size=plants.size))
 
-        filter=np.where(pup_dist >= runner_length)
+        filter=np.where(pup_dist < runner_length)
             
         plants['pup_x_loc'][filter] = pup_dist[filter]*np.cos(pup_azimuth[filter])+plants['x_loc'][filter]
         plants['pup_y_loc'][filter] = pup_dist[filter]*np.sin(pup_azimuth)[filter]+plants['y_loc'][filter]
