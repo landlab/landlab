@@ -251,7 +251,7 @@ packaging==23.0
     #   qtpy
     #   rioxarray
     #   xarray
-pandas==1.5.3
+pandas==2.0.1
     # via
     #   holoviews
     #   mesa
@@ -438,6 +438,8 @@ typing-extensions==4.5.0
     # via
     #   bokeh
     #   panel
+tzdata==2023.3
+    # via pandas
 uri-template==1.2.0
     # via jsonschema
 urllib3==1.26.14
