@@ -89,8 +89,6 @@ class Species(object):
         species_params['morph_params']['area_per_stem']=species_params['morph_params']['max_crown_area']/species_params['morph_params']['max_n_stems']
         species_params['morph_params']['min_abg_aspect_ratio']=species_params['morph_params']['max_height']/species_params['morph_params']['min_shoot_sys_width']
         species_params['morph_params']['max_abg_aspect_ratio']=species_params['morph_params']['max_height']/species_params['morph_params']['max_shoot_sys_width']
-        print(species_params['morph_params']['min_abg_aspect_ratio'])
-        print(species_params['morph_params']['max_abg_aspect_ratio'])
 
         
         sum_vars=[
@@ -107,9 +105,6 @@ class Species(object):
                 species_params['grow_params'][sum_var[0]] += species_params['grow_params'][sum_var[1]][part]
        
         species_params['morph_params']['biomass_packing']=species_params['grow_params']['max_growth_biomass']/species_params['morph_params']['max_vital_volume']
-
-        print((species_params['grow_params']['min_abg_biomass']/species_params['morph_params']['min_height'])*species_params['morph_params']['max_height'])
-        print(species_params['grow_params']['max_abg_biomass'])
 
         return species_params
 
@@ -274,7 +269,7 @@ class Species(object):
         dims=self.shape.calc_abg_dims_from_biomass(abg_biomass)
         plants['shoot_sys_width']=dims[0]
         plants['shoot_sys_height']=dims[1]
-        plants['root_sys_width'] = self.shape.calc_root_sys_width(plants['shoot_sys_width'], plants['shoot_sys_height'])
+        plants['root_sys_width'] = self.shape.calc_root_sys_width(plants['shoot_sys_width'])
         return plants
 
 

@@ -279,8 +279,10 @@ class GenVeg(Component, PlantGrowth):
             pass
         else:
             loc_unoccupied=self.check_if_loc_unocc(pup_locs, all_plants, 'below')
+            #print('There were '+str(new_pups.size)+' potential new plants')
             pup_successful=np.where(loc_unoccupied)
             new_pups=new_pups[pup_successful]
+            #print('Only '+str(new_pups.size)+' were successful')
             new_pups['x_loc']=new_pups['pup_x_loc']
             new_pups['y_loc']=new_pups['pup_y_loc']
             for species_obj in self.plant_species:
