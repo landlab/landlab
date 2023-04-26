@@ -37,7 +37,7 @@ mypy-extensions==1.0.0
     # via black
 netcdf4==1.6.3
     # via -r requirements.in
-numpy==1.24.2
+numpy==1.24.3
     # via
     #   -r requirements.in
     #   bmipy
