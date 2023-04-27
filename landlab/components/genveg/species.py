@@ -7,6 +7,7 @@ from .form import *
 from .shape import *
 from .photosynthesis import *
 import numpy as np
+from sympy import symbols, diff, lambdify, log
 
 #Define species class that inherits composite class methods
 class Species(object):
@@ -18,16 +19,23 @@ class Species(object):
         self.growth_parts=self.all_parts.copy()
         self.growth_parts.remove('storage')
         self.growth_parts.remove('reproductive')
+        self.abg_parts=self.growth_parts.copy()
+        self.abg_parts.remove('root')
 
         self.validate_plant_factors(species_params['plant_factors'])
         self.validate_duration_params(species_params['duration_params'])        
+        
+        species_params=self.calculate_derived_params(species_params)
         
         self.species_plant_factors=species_params['plant_factors']
         self.species_duration_params=species_params['duration_params']
         self.species_grow_params=species_params['grow_params']
         self.species_dispersal_params=species_params['dispersal_params']  
-        self.species_mort_params=species_params['mortality_params'] 
+        self.species_mort_params=species_params['mortality_params']
+        self.species_morph_params=species_params['morph_params'] 
 
+        self.populate_biomass_allocation_array()
+        
         self.habit=self.select_habit_class(
             self.species_plant_factors['growth_habit'], 
             self.species_plant_factors['duration'],
@@ -72,6 +80,33 @@ class Species(object):
             msg='Start of senescence must be within the growing season'
             raise ValueError(msg)
 
+    def calculate_derived_params(self, species_params):
+        species_params['morph_params']['max_crown_area']=np.pi/4*species_params['morph_params']['max_shoot_sys_width']**2
+        species_params['morph_params']['min_crown_area']=np.pi/4*species_params['morph_params']['min_shoot_sys_width']**2
+        species_params['morph_params']['max_root_area']=np.pi/4*species_params['morph_params']['max_root_sys_width']**2
+        species_params['morph_params']['min_root_area']=np.pi/4*species_params['morph_params']['min_root_sys_width']**2
+        species_params['morph_params']['max_vital_volume']=species_params['morph_params']['max_crown_area']*species_params['morph_params']['max_height']
+        species_params['morph_params']['area_per_stem']=species_params['morph_params']['max_crown_area']/species_params['morph_params']['max_n_stems']
+        species_params['morph_params']['min_abg_aspect_ratio']=species_params['morph_params']['max_height']/species_params['morph_params']['min_shoot_sys_width']
+        species_params['morph_params']['max_abg_aspect_ratio']=species_params['morph_params']['max_height']/species_params['morph_params']['max_shoot_sys_width']
+
+        
+        sum_vars=[
+            ['max_total_biomass','plant_part_max', self.all_parts],
+            ['max_growth_biomass','plant_part_max', self.growth_parts],
+            ['max_abg_biomass', 'plant_part_max', self.abg_parts],
+            ['min_total_biomass', 'plant_part_min', self.all_parts],
+            ['min_growth_biomass','plant_part_min', self.growth_parts],
+            ['min_abg_biomass','plant_part_min', self.abg_parts]
+        ]
+        for sum_var in sum_vars:
+            species_params['grow_params'][sum_var[0]]=0
+            for part in sum_var[2]:
+                species_params['grow_params'][sum_var[0]] += species_params['grow_params'][sum_var[1]][part]
+       
+        species_params['morph_params']['biomass_packing']=species_params['grow_params']['max_growth_biomass']/species_params['morph_params']['max_vital_volume']
+
+        return species_params
 
     def select_photosythesis_type(self, p_type):
         photosynthesis_options={
@@ -93,44 +128,89 @@ class Species(object):
     
     def select_form_class(self, form_val):
         form={
-            'bunch':Bunch(),
-            'colonizing':Colonizing(),
-            'multiple_stems':Multiplestems(),
-            'rhizomatous':Rhizomatous(),
-            'single_crown':Singlecrown(),
-            'single_stem':Singlestem(),
-            'stoloniferous':Stoloniferous(),
-            'thicket_forming':Thicketforming()
+            'bunch':Bunch(self.species_dispersal_params, self.species_grow_params),
+            'colonizing':Colonizing(self.species_dispersal_params, self.species_grow_params),
+            'multiple_stems':Multiplestems(self.species_dispersal_params, self.species_grow_params),
+            'rhizomatous':Rhizomatous(self.species_dispersal_params, self.species_grow_params),
+            'single_crown':Singlecrown(self.species_dispersal_params, self.species_grow_params),
+            'single_stem':Singlestem(self.species_dispersal_params, self.species_grow_params),
+            'stoloniferous':Stoloniferous(self.species_dispersal_params, self.species_grow_params),
+            'thicket_forming':Thicketforming(self.species_dispersal_params, self.species_grow_params)
         }
         return form[form_val]
 
     def select_shape_class(self,shape_val):
         shape={
-            'climbing':Climbing(),
-            'conical':Conical(),
-            'decumbent':Decumbent(),
-            'erect':Erect(),
-            'irregular':Irregular(),
-            'oval':Oval(),
-            'prostrate':Prostrate(),
-            'rounded':Rounded(),
-            'semi_erect':Semierect(),
-            'vase':Vase()
+            'climbing':Climbing(self.species_morph_params, self.species_grow_params),
+            'conical':Conical(self.species_morph_params,self.species_grow_params),
+            'decumbent':Decumbent(self.species_morph_params,self.species_grow_params),
+            'erect':Erect(self.species_morph_params,self.species_grow_params),
+            'irregular':Irregular(self.species_morph_params,self.species_grow_params),
+            'oval':Oval(self.species_morph_params,self.species_grow_params),
+            'prostrate':Prostrate(self.species_morph_params,self.species_grow_params),
+            'rounded':Rounded(self.species_morph_params,self.species_grow_params),
+            'semi_erect':Semierect(self.species_morph_params,self.species_grow_params),
+            'vase':Vase(self.species_morph_params,self.species_grow_params)
         }
         return shape[shape_val]
 
+    def populate_biomass_allocation_array(self):
+        root2leaf=self.species_grow_params['root_to_leaf']
+        root2stem=self.species_grow_params['root_to_stem']
+        prior_root_biomass=np.arange(
+            start=self.species_grow_params['plant_part_min']['root'],
+            stop=self.species_grow_params['plant_part_max']['root']+0.1,
+            step=0.1
+        )
+        length_of_array =len(prior_root_biomass)
+        place_zeros=np.zeros(length_of_array)
+        biomass_allocation_map=np.column_stack((prior_root_biomass,place_zeros,place_zeros,place_zeros,place_zeros,place_zeros,place_zeros))
+        biomass_allocation_map=list(map(tuple,biomass_allocation_map))
+        self.biomass_allocation_array=np.array(biomass_allocation_map,
+            dtype=[('prior_root_biomass',float),('total_biomass',float),('delta_leaf_unit_root',float),('delta_stem_unit_root',float),('leaf_mass_frac',float),('stem_mass_frac',float),('abg_biomass', float)])
+
+        #set up sympy equations
+        rootsym=symbols('rootsym')              
+        dleaf=diff(10**(root2leaf['a']+root2leaf['b1']*log(rootsym,10)+root2leaf['b2']*(log(rootsym,10))**2),rootsym)
+        dstem=diff(10**(root2stem['a']+root2stem['b1']*log(rootsym,10)+root2stem['b2']*(log(rootsym,10))**2),rootsym)
+        #Generate numpy expressions and solve for rate change in leaf and stem biomass per unit mass of root
+        fleaf=lambdify(rootsym,dleaf,'numpy')
+        fstem=lambdify(rootsym,dstem,'numpy')
+        self.biomass_allocation_array['delta_leaf_unit_root']=fleaf(self.biomass_allocation_array['prior_root_biomass'])
+        self.biomass_allocation_array['delta_stem_unit_root']=fstem(self.biomass_allocation_array['prior_root_biomass'])
+        _leaf_biomasss=10**(root2leaf['a']+root2leaf['b1']*np.log10(prior_root_biomass)+root2leaf['b2']*(np.log10(prior_root_biomass))**2)
+        _stem_biomass=10**(root2stem['a']+root2stem['b1']*np.log10(prior_root_biomass)+root2stem['b2']*(np.log10(prior_root_biomass))**2)
+        self.biomass_allocation_array['total_biomass']=self.biomass_allocation_array['prior_root_biomass']+_leaf_biomasss+_stem_biomass
+        self.biomass_allocation_array['leaf_mass_frac']=_leaf_biomasss/self.biomass_allocation_array['total_biomass']
+        self.biomass_allocation_array['stem_mass_frac']=_stem_biomass/self.biomass_allocation_array['total_biomass']
+        self.biomass_allocation_array['abg_biomass']=_leaf_biomasss+_stem_biomass
+    
     def test_output(self):
         return self.habit.duration.emerge_plants
 
     def branch(self):
         self.form.branch()
         
+    
+    def sum_plant_parts(self, _new_biomass, parts='total'):
+        if parts=='total':
+            parts_dict=self.all_parts
+        elif parts=='growth':
+            parts_dict=self.growth_parts
+        elif parts=='aboveground':
+            parts_dict=self.abg_parts
+        _new_tot=np.zeros_like(_new_biomass['root_biomass'])
+        for part in parts_dict:
+            _new_tot+=_new_biomass[part]
+        return _new_tot
+    
     def disperse(self, plants):
         #decide how to parameterize reproductive schedule, make repro event
-        #right now we are just taking 20% of available storage and moving to 
+        #right now we are just taking 20% of available storage and moving to
+        filter=np.where(self.sum_plant_parts(plants, parts='growth') >= (self.species_dispersal_params['min_size_dispersal']*self.species_grow_params['max_growth_biomass'])) 
         available_stored_biomass=plants['storage_biomass']-self.species_grow_params['plant_part_min']['storage']
-        plants['repro_biomass']=plants['repro_biomass']+0.2*(available_stored_biomass)
-        plants['storage_biomass']=plants['storage_biomass']-0.2*(available_stored_biomass)
+        plants['repro_biomass'][filter]=plants['repro_biomass'][filter]+0.2*(available_stored_biomass[filter])
+        plants['storage_biomass'][filter]=plants['storage_biomass'][filter]-0.2*(available_stored_biomass[filter])
         plants=self.form.disperse(plants)
         return plants
 
@@ -165,7 +245,31 @@ class Species(object):
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
-        plants=self.habit.duration.set_initial_biomass(plants,in_growing_season)
+        growdict=self.species_grow_params
+        morphdict=self.species_morph_params
+        plants['storage_biomass']=rng.uniform(low=growdict['plant_part_min']['storage'],high=growdict['plant_part_max']['storage'],size=plants.size)
+        plants['repro_biomass']=rng.uniform(low=growdict['plant_part_min']['reproductive'], high=growdict['plant_part_max']['reproductive'], size=plants.size)
+        crown_area=self.shape.calc_crown_area_from_shoot_width(plants['shoot_sys_width'])
+        plants['shoot_sys_height']=self.habit.set_initial_height(morphdict['min_height'], morphdict['max_height'], crown_area.size)
+        log_vital_volume=np.log10(crown_area*plants['shoot_sys_height'])
+        log_abg_biomass_ideal=(log_vital_volume/np.log10(morphdict['max_vital_volume']))*np.log10(growdict['max_abg_biomass']/1000)
+        total_biomass=np.interp(
+            ((10**log_abg_biomass_ideal)*1000), 
+            self.biomass_allocation_array['abg_biomass'],
+            self.biomass_allocation_array['total_biomass']
+        )
+        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self.habit.duration._solve_biomass_allocation(total_biomass)
+        plants['root_sys_width'] = self.shape.calc_root_sys_width(plants['shoot_sys_width'], plants['shoot_sys_height'])
+        plants['n_stems']=self.form.set_initial_branches(morphdict['max_n_stems'], crown_area.size)
+        plants = self.habit.duration.set_initial_biomass(plants, in_growing_season)
+        return plants
+    
+    def update_morphology(self, plants):
+        abg_biomass=self.sum_plant_parts(plants, parts='aboveground')
+        dims=self.shape.calc_abg_dims_from_biomass(abg_biomass)
+        plants['shoot_sys_width']=dims[0]
+        plants['shoot_sys_height']=dims[1]
+        plants['root_sys_width'] = self.shape.calc_root_sys_width(plants['shoot_sys_width'])
         return plants
 
-        
+

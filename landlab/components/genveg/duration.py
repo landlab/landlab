@@ -12,17 +12,17 @@ class Duration(object):
             'root_to_stem':species_grow_params['root_to_stem']
         }
         self.green_parts=green_parts
-
+    
     def set_new_biomass(self, plants):
         print('I create new plants')
         total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'],high=2*self.growdict['growth_min_biomass'],size=plants.size)
-        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal, self.allocation_coeffs)
+        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal)
         plants['storage_biomass']=np.zeros_like(plants['root_biomass'])
         plants['repro_biomass']=np.zeros_like(plants['root_biomass'])
         plants['plant_age']=np.zeros_like(plants['root_biomass'])
         return plants
     
-    def _solve_biomass_allocation(self, total_biomass, solver_coeffs):
+    def _solve_biomass_allocation(self, total_biomass):
         #Initialize arrays to calculate root, leaf and stem biomass from total
         root=[]
         leaf=[]
@@ -31,7 +31,7 @@ class Duration(object):
         #Loop through grid array
         for total_biomass_in_cell in total_biomass:
             solver_guess = np.full(3,np.log10(total_biomass_in_cell/3))            
-            part_biomass_log10=fsolve(self._solverFuncs,solver_guess,(solver_coeffs,total_biomass_in_cell))            
+            part_biomass_log10=fsolve(self._solverFuncs,solver_guess,(self.allocation_coeffs,total_biomass_in_cell))            
             part_biomass=10**part_biomass_log10
             
             root.append(part_biomass[0])
@@ -89,6 +89,8 @@ class Annual(Duration):
     def set_initial_biomass(self, plants, in_growing_season):
         if in_growing_season:
             plants=self.set_new_biomass(plants)
+        else:
+            plants=self.enter_dormancy(plants)
         return plants
     
 class Perennial(Duration):
@@ -106,16 +108,7 @@ class Perennial(Duration):
         print('I kill green parts at end of growing season')
         return plants
     
-    def set_initial_biomass_all_parts(self, plants, in_growing_season):
-        plants['storage_biomass']=rng.uniform(low=self.growdict['plant_part_min']['storage'],high=self.growdict['plant_part_max']['storage'],size=plants.size)
-        if in_growing_season:
-            plants['plant_age']=rng.uniform(low=0, high=self.max_age, size=plants.size)
-            if plants['plant_age'>=self.maturation_age]:
-                plants['repro_biomass']=rng.uniform(low=self.growdict['plant_part_min']['reproductive'], high=self.growdict['plant_part_max']['reproductive'], size=plants.size)
-        else:
-            plants['repro_biomass']=np.full_like(plants['root_biomass'],self.growdict['plant_part_min']['reproductive'])
-        total_biomass_ideal=rng.uniform(low=self.growdict['growth_min_biomass'], high=self.growdict['growth_max_biomass'],size=plants.size)
-        plants['root_biomass'],plants['leaf_biomass'],plants['stem_biomass']=self._solve_biomass_allocation(total_biomass_ideal, self.allocation_coeffs) 
+    def set_initial_biomass(self, plants, in_growing_season):
         return plants
 
 class Evergreen(Perennial):
@@ -123,10 +116,6 @@ class Evergreen(Perennial):
         self.keep_green_parts=True
 
     def emerge(self, plants):
-        return plants
-
-    def set_initial_biomass(self, plants, in_growing_season):
-        plants=self.set_initial_biomass_all_parts(plants, in_growing_season)
         return plants
 
 class Deciduous(Perennial):
@@ -158,7 +147,6 @@ class Deciduous(Perennial):
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
-        plants=self.set_initial_biomass_all_parts(plants, in_growing_season)
         if not in_growing_season:
             for part in self.green_parts:
                 plants[part]=np.zeros_like(plants[part])
