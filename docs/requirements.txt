@@ -165,7 +165,7 @@ sphinx-basic-ng==1.0.0b1
     # via furo
 sphinx-copybutton==0.5.1
     # via -r docs/requirements.in
-sphinx-inline-tabs==2022.1.2b11
+sphinx-inline-tabs==2023.4.21
     # via -r docs/requirements.in
 sphinx-jinja==2.0.2
     # via -r docs/requirements.in
