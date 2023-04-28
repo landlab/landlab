@@ -93,6 +93,11 @@ class Perennial(Duration):
         plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
         plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
         return plants
+    def sum_of_parts(self, plants, parts_list):
+        part_sum = np.zeros_like(plants['root_biomass'])
+        for part in parts_list:
+            part_sum += plants[part]
+        return part_sum
 
     def enter_dormancy(self, plants):
         print('I kill green parts at end of growing season')
@@ -133,15 +138,29 @@ class Deciduous(Perennial):
         plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass'] * 0.02)
         plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
         plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
+        plants['storage_biomass'] = plants['storage_biomass']
         return plants
 
     def enter_dormancy(self, plants):
         print('I kill green parts at end of growing season')
+        
+        new_dormancy_biomass = np.zeros_like(plants['root_biomass'])
+        total_mass_to_persistence = np.zeros_like(plants['root_biomass'])
+        for part in self.green_parts:
+            total_mass_to_persistence += plants[part]
+            plants[part] = np.zeros_like(plants[part])
+
         for part in self.persistent_parts:
-            plants[part] = sum(self.senesce) #this is just the sum of the leftover biomass after the growing season ends, but until i dig into how much energy is put into storage, there is just one total sum for each
+            filter = np.where(self.senesce(plants[part]) >= self.set_new_biomass(plants[part]))
+            plants[part][filter] = plants[part][filter] + total_mass_to_persistence
+        for part in self.persistent_parts:
+            filter = np.where(self.senesce(plants[part]) >= self.set_new_biomass(plants[part]))
+            new_dormancy_biomass += new_dormancy_biomass[part][filter]
+            plants[part][filter] = new_dormancy_biomass 
         for part in self.green_parts:
             plants[part] = np.zeros_like(plants[part])
         return plants  
+
     
     def emerge(self, plants):
         print('I emerge from dormancy')
