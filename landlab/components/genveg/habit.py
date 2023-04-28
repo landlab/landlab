@@ -14,7 +14,7 @@ class Habit(object):
             'evergreen':Evergreen(species_grow_params)
         }
         return duration[duration_val]
-
+    
     def emerge(self, plants):
         plants=self.duration.emerge(plants)
         return plants
@@ -42,6 +42,10 @@ class Graminoid(Habit):
         green_parts=('leaf', 'stem')
         retention_val='deciduous'
         super().__init__(species_grow_params, green_parts, duration_val, retention_val)
+
+    def set_initial_height(self, max_height, min_height, arr_size):
+        height=min_height+rng.rayleigh(scale=0.5, size=arr_size )*max_height
+        return height
 
 class Shrub(Habit):
     def __init__(self, species_grow_params, duration_val, retention_val):

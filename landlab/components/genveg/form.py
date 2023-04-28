@@ -1,8 +1,10 @@
 from .dispersal import *
+import numpy as np
+rng = np.random.default_rng()
 
 #Growth form classes and selection method
 class Bunch(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
     
     def branch(self):
@@ -12,7 +14,7 @@ class Bunch(Seed):
         return plants
 
 class Colonizing(Random):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -22,7 +24,7 @@ class Colonizing(Random):
         return plants
 
 class Multiplestems(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -32,16 +34,19 @@ class Multiplestems(Seed):
         return plants
 
 class Rhizomatous(Clonal):
-    def __init__(self):
-        pass
+    def __init__(self, disperse_params, grow_params):
+        super().__init__(disperse_params, grow_params)
+
+    def set_initial_branches(self, max_branches, arr_size):
+        n_branches=np.ceil(rng.rayleigh(scale=0.26, size=arr_size)*max_branches)
+        return n_branches
+
     def branch(self):
         print('Tiller via rhizomes')
 
-    def disperse(self, plants):
-        return plants
 
 class Singlecrown(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -51,7 +56,7 @@ class Singlecrown(Seed):
         return plants
 
 class Singlestem(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
@@ -61,17 +66,14 @@ class Singlestem(Seed):
         return plants
 
 class Stoloniferous(Clonal):
-    def __init__(self):
-        pass
+    def __init__(sel, disperse_params, grow_params):
+        super().__init__(disperse_params, grow_params)
 
     def branch(self):
         print('Branches via stolons')
 
-    def disperse(self, plants):
-        return plants
-
 class Thicketforming(Seed):
-    def __init__(self):
+    def __init__(self, disperse_params, grow_params):
         pass
 
     def branch(self):
