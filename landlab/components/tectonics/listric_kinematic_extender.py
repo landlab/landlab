@@ -139,7 +139,7 @@ class ListricKinematicExtender(Component):
         self._fields_to_shift.append("topographic__elevation")
 
         self._track_thickness = track_crustal_thickness
-        if self._track_thickness:
+        if self._track_thickness or method == "advect":
             try:
                 self._thickness = grid.at_node["upper_crust_thickness"]
             except KeyError as exc:
@@ -185,7 +185,9 @@ class ListricKinematicExtender(Component):
             self._update_hangingwall_nodes()
             self.run_one_step = self._run_one_step_using_shift
         elif method == 'advect':
-            pass
+            self.advector = AdvectionSolverTVD(grid, field_to_advect="upper_crust__thickness",
+                                               advection_direction_is_steady=True)
+            self.run_one_step = self._run_one_step_using_advection
         else:
             raise(ValueError, "method parameter must be 'advect' or 'shift'")
 
@@ -268,3 +270,6 @@ class ListricKinematicExtender(Component):
             self._horiz_displacement -= self._ds
             self._hangwall_edge += self._ds
             self._update_hangingwall_nodes()
+
+    def _run_one_step_using_advection(self):
+        pass
