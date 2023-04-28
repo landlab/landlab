@@ -135,6 +135,7 @@ class Deciduous(Perennial):
 
     def senesce(self, plants):
         #copied from annual for testing. This needs to be updated
+        print(plants['root_biomass'])
         plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass'] * 0.02)
         plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
         plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
