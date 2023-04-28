@@ -84,6 +84,7 @@ class ListricKinematicExtender(Component):
         detachment_depth=1.0e4,
         track_crustal_thickness=False,
         fields_to_shift=None,
+        method='shift',
     ):
         """Deform vertically and horizontally to represent tectonic extension.
 
@@ -107,6 +108,8 @@ class ListricKinematicExtender(Component):
             and (if track_crustal_thickness==True) 'upper_crust_thickness',
             that should be shifted horizontally whenever cumulative extension
             exceeds one cell width. Default empty.
+        method: str
+            'shift' or 'advect'
         """
         fields_to_shift = [] if fields_to_shift is None else fields_to_shift
 
@@ -175,10 +178,16 @@ class ListricKinematicExtender(Component):
 
         self._elev = grid.at_node["topographic__elevation"]
 
-        # set up data structures for horizontal shift of elevation values
-        self._horiz_displacement = 0.0  # horiz displ since last grid shift
-        self._hangwall_edge = self._fault_loc
-        self._update_hangingwall_nodes()
+        if method == 'shift':
+            # set up data structures for horizontal shift of elevation values
+            self._horiz_displacement = 0.0  # horiz displ since last grid shift
+            self._hangwall_edge = self._fault_loc
+            self._update_hangingwall_nodes()
+            self.run_one_step = self._run_one_step_using_shift
+        elif method == 'advect':
+            pass
+        else:
+            raise(ValueError, "method parameter must be 'advect' or 'shift'")
 
     def _update_hangingwall_nodes(self):
         """Update data structures for shifting hangingwall nodes."""
@@ -224,7 +233,7 @@ class ListricKinematicExtender(Component):
             )
         )
 
-    def run_one_step(self, dt):
+    def _run_one_step_using_shift(self, dt):
         """Apply extensional motion to grid for one time step."""
         self.update_subsidence_rate()
         self._elev[self._hangwall] -= self._subs_rate[self._hangwall] * dt
