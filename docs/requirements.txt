@@ -195,7 +195,7 @@ tinycss2==1.2.1
     # via nbconvert
 tomli==2.0.1
     # via -r docs/requirements.in
-tornado==6.3
+tornado==6.3.1
     # via
     #   -r docs/requirements.in
     #   jupyter-client
