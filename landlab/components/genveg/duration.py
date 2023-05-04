@@ -140,18 +140,10 @@ class Deciduous(Perennial):
         plants['storage_biomass'] = plants['storage_biomass']
         return plants
 
-    def enter_dormancy(self, plants): #take out sum of green parts and sum or persistent parts. change function to accept the sums of these values through the species file
+    def enter_dormancy(self, plants, mass_of_green, mass_of_persistent):
         print('I kill green parts at end of growing season')
-        #set green parts to zero and separate the green parts into whatever fraction of persistent parts there are in the plant 
-        new_dormancy_biomass = np.zeros_like(plants['root_biomass'])
-        total_mass_to_persistence = np.zeros_like(plants['root_biomass'])
-        for part in self.green_parts:
-            total_mass_to_persistence = self.sum_of_parts(plants[part]) #this is currently reading in the sum_of_parts from above, so it needs to be changed. just don't want to create a loop of reading species and duration 
         for part in self.persistent_parts:
-            plants[part] = plants[part] + (total_mass_to_persistence/len(self.green_parts)) #this is a clunky way to distibute this evenly for now. coult stil throw an error.
-        for part in self.persistent_parts:
-            new_dormancy_biomass += new_dormancy_biomass[part]
-            plants[part] = new_dormancy_biomass 
+            plants[part] = plants[part] + (mass_of_green*(plants[part]/mass_of_persistent))
         for part in self.green_parts:
             plants[part] = np.zeros_like(plants[part])
         return plants  
