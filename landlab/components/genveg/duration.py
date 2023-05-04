@@ -104,11 +104,6 @@ class Perennial(Duration):
         plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
         plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
         return plants
-    def sum_of_parts(self, plants, parts_list):
-        part_sum = np.zeros_like(plants['root_biomass'])
-        for part in parts_list:
-            part_sum += plants[part]
-        return part_sum
 
     def enter_dormancy(self, plants):
         print('I kill green parts at end of growing season')
