@@ -146,6 +146,7 @@ class Deciduous(Perennial):
     
     def emerge(self, plants):
         print('I emerge from dormancy')
+        #next steps are to clean this up using same approach as dormancy
         total_mass_persistent_parts=sum(plants[part] for part in self.persistent_parts)
         min_mass_persistent_parts=sum(self.growdict['plant_part_min'][part] for part in self.persistent_parts)
         available_mass=total_mass_persistent_parts-min_mass_persistent_parts
