@@ -192,13 +192,19 @@ class Species(object):
         self.form.branch()
         
     
-    def sum_plant_parts(self, _new_biomass, parts='total'):
+    def sum_plant_parts(self, _new_biomass, parts='total'): #edit to have part for persistant, green parts (2 new lines of code)
         if parts=='total':
             parts_dict=self.all_parts
         elif parts=='growth':
             parts_dict=self.growth_parts
         elif parts=='aboveground':
             parts_dict=self.abg_parts
+        elif parts == 'persistent':
+            parts_dict= self.habit.duration.persistent_parts
+        elif parts == 'green':
+            parts_dict = self.habit.duration.green_parts
+
+        #elif parts == 'green parts': self.habit.green_parts
         _new_tot=np.zeros_like(_new_biomass['root_biomass'])
         for part in parts_dict:
             _new_tot+=_new_biomass[part]
@@ -214,8 +220,10 @@ class Species(object):
         plants=self.form.disperse(plants)
         return plants
 
-    def enter_dormancy(self, plants):
-        plants=self.habit.enter_dormancy(plants)
+    def enter_dormancy(self, plants): #calculate sum of green parts and sum of persistant parts 
+        mass_green_parts=self.sum_plant_parts(plants, parts='green')
+        mass_persistent_parts=self.sum_plant_parts(plants, parts='persistent')
+        plants=self.habit.enter_dormancy(plants, mass_green_parts, mass_persistent_parts)
         return plants
 
     def emerge(self, plants):

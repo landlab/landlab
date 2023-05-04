@@ -27,8 +27,8 @@ class Habit(object):
         plants=self.duration.set_initial_biomass(plants, in_growing_season)
         return plants
     
-    def enter_dormancy(self, plants):
-        plants=self.duration.enter_dormancy(plants)
+    def enter_dormancy(self, plants, mass_green_parts, mass_persistent_parts):
+        plants=self.duration.enter_dormancy(plants, mass_green_parts, mass_persistent_parts)
         return plants
     
 class Forbherb(Habit):

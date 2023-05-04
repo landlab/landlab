@@ -3,6 +3,7 @@ from scipy.optimize import fsolve
 rng = np.random.default_rng()
 #from landlab.components.genveg import PlantGrowth 
 
+
 #Duration classes and selection method
 class Duration(object):
     def __init__(self, species_grow_params, green_parts):
@@ -124,9 +125,28 @@ class Deciduous(Perennial):
         super().__init__(species_grow_params, green_parts)
         all_veg_sources=('root','leaf','stem','storage')
         self.persistent_parts=[part for part in all_veg_sources if part not in self.green_parts]
+
+    def senesce(self, plants):
+        #copied from annual for testing. This needs to be updated
+        print(plants['root_biomass'])
+        plants['root_biomass'] = plants['root_biomass'] - (plants['root_biomass'] * 0.02)
+        plants['leaf_biomass'] = plants['leaf_biomass'] - (plants['leaf_biomass'] * 0.02)
+        plants['stem_biomass'] = plants['stem_biomass'] - (plants['stem_biomass'] * 0.02)
+        plants['storage_biomass'] = plants['storage_biomass']
+        return plants
+
+    def enter_dormancy(self, plants, mass_of_green, mass_of_persistent):
+        print('I kill green parts at end of growing season')
+        for part in self.persistent_parts:
+            plants[part] = plants[part] + (mass_of_green*(plants[part]/mass_of_persistent))
+        for part in self.green_parts:
+            plants[part] = np.zeros_like(plants[part])
+        return plants  
+
     
     def emerge(self, plants):
         print('I emerge from dormancy')
+        #next steps are to clean this up using same approach as dormancy
         total_mass_persistent_parts=sum(plants[part] for part in self.persistent_parts)
         min_mass_persistent_parts=sum(self.growdict['plant_part_min'][part] for part in self.persistent_parts)
         available_mass=total_mass_persistent_parts-min_mass_persistent_parts
