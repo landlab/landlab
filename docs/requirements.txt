@@ -54,8 +54,13 @@ imagesize==1.4.1
     # via sphinx
 incremental==22.10.0
     # via towncrier
+<<<<<<< HEAD
 ipython==8.12.0
     # via -r requirements.in
+=======
+ipython==8.13.2
+    # via -r docs/requirements.in
+>>>>>>> 1933604c1 (Bump ipython from 8.12.0 to 8.13.2)
 jedi==0.18.2
     # via ipython
 jinja2==3.1.2
