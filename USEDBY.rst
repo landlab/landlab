@@ -13,7 +13,7 @@ Eschenfelder, J., Lipp, A. G., & Roberts, G. G. (2023). **Quantifying excess hea
 
 Fiolleau, S., Uhlemann, S., Falco, N., & Dafflon, B. (2023). **Assessing probability of failure of urban landslides through rapid characterization of soil properties and vegetation distribution.** *Geomorphology,* 423, 108560, `https://doi.org/10.1016/j.geomorph.2022.108560 <https://doi.org/10.1016/j.geomorph.2022.108560>`__.
 
-Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 < https://doi.org/10.1029/2021WR031179>`__.
+Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 <https://doi.org/10.1029/2021WR031179>`__.
 
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, `https://doi.org/10.1016/j.jhydrol.2023.129144 <https://doi.org/10.1016/j.jhydrol.2023.129144>`__.
 <
