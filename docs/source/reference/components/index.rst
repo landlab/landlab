@@ -131,6 +131,14 @@ Subaqueous / Submarine Processes
   carbonate
   marine_sediment_transport
 
+Generic numerical components
+----------------------------
+
+.. toctree::
+  :maxdepth: 2
+
+  advection
+
 Terrain Analysis
 ----------------
 
