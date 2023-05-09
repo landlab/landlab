@@ -99,7 +99,7 @@ class Erect(PlantShape):
         return (np.log10(abg_biomass/1000))**3
     
     def calc_root_sys_width(self, shoot_sys_width, root_sys_width=np.nan):
-        return 1.5*shoot_sys_width
+        return shoot_sys_width
 
 
 class Irregular(PlantShape):

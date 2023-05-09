@@ -256,7 +256,7 @@ class Species(object):
         growdict=self.species_grow_params
         morphdict=self.species_morph_params
         plants['storage_biomass']=rng.uniform(low=growdict['plant_part_min']['storage'],high=growdict['plant_part_max']['storage'],size=plants.size)
-        plants['repro_biomass']=rng.uniform(low=growdict['plant_part_min']['reproductive'], high=growdict['plant_part_max']['reproductive'], size=plants.size)
+        plants['repro_biomass']=growdict['plant_part_min']['reproductive']+rng.rayleigh(scale=0.2, size=plants.size )*growdict['plant_part_max']['reproductive']
         crown_area=self.shape.calc_crown_area_from_shoot_width(plants['shoot_sys_width'])
         plants['shoot_sys_height']=self.habit.set_initial_height(morphdict['min_height'], morphdict['max_height'], crown_area.size)
         log_vital_volume=np.log10(crown_area*plants['shoot_sys_height'])

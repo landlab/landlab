@@ -111,17 +111,18 @@ class GenVeg(Component, PlantGrowth):
         _ = self._grid.add_zeros('vegetation__total_biomass',at='cell', clobber=True)
         _ = self._grid.add_zeros('vegetation__n_plants',at='cell', clobber=True)
         _ = self._grid.add_zeros('vegetation__plant_height',at='cell', clobber=True)
-        species_cover=self._grid.at_cell['vegetation__percent_cover']
         self.species_cover_allocation=[]
 
         for cell_index in range(self._grid.number_of_cells):
             species_list=self._grid.at_cell['vegetation__plant_species'][cell_index]
+            cell_cover=self._grid.at_cell['vegetation__percent_cover'][cell_index]
             number_of_species=len(species_list)
-            num_null=np.count_nonzero(species_list=='null')
-            cover_species=rng.uniform(low=0.5, high=1.0, size=number_of_species-num_null)
+            cover_species=rng.uniform(low=0.5, high=1.0, size=number_of_species)
+            cover_species[species_list=='null']=0.0
             cover_sum=sum(cover_species)
+            species_cover_allocation=cover_species/cover_sum
 
-            self.species_cover_allocation.append(dict(zip(species_list, ((cover_species/cover_sum)*self._grid.at_cell['vegetation__percent_cover'][cell_index]))))
+            self.species_cover_allocation.append(dict(zip(species_list, (species_cover_allocation*cell_cover))))
 
         #for each species in the parameters file
         for species in vegparams:
@@ -173,8 +174,8 @@ class GenVeg(Component, PlantGrowth):
                     y = rng.uniform(low=y_lims[0]+radius, high=y_lims[1]-radius, size=1)
                     point = (*x, *y)
                     if cell_poly.contains_point(point):
-                        [unoccupied_center] = self.check_if_loc_unocc([point], cell_plants, 'above')
-                        if (unoccupied_center == True) or (idx==0): #check this because it is likely returning a list
+                        [unoccupied_center] = self.check_if_loc_unocc([point], [radius], cell_plants, 'above')
+                        if (unoccupied_center == True) or (idx==0):
                             cell_plants[idx]['x_loc']=x
                             cell_plants[idx]['y_loc']=y
                             break
@@ -213,10 +214,10 @@ class GenVeg(Component, PlantGrowth):
         all_plants=self.check_for_dispersal_success(all_plants)
 
         tot_bio_species=all_plants['root_biomass']+all_plants['leaf_biomass']+all_plants['stem_biomass']
-        crown_area=np.pi/4*all_plants['shoot_sys_width']**2
+        abg_area=np.pi/4*all_plants['shoot_sys_width']**2
         cell_biomass=np.bincount(all_plants['cell_index'], weights=tot_bio_species, minlength=self._grid.number_of_cells)
         cell_plant_count=np.bincount(all_plants['cell_index'], minlength=self._grid.number_of_cells)
-        cell_percent_cover=np.bincount(all_plants['cell_index'], weights=crown_area, minlength=self._grid.number_of_cells)
+        cell_percent_cover=np.bincount(all_plants['cell_index'], weights=abg_area, minlength=self._grid.number_of_cells)/self._grid.area_of_cell
         plant_height=np.zeros_like(cell_percent_cover)
         n_of_plants=cell_plant_count.astype(np.float64)
         cells_with_plants=np.where(n_of_plants>0.0)
@@ -257,7 +258,7 @@ class GenVeg(Component, PlantGrowth):
         else:
             return min(intersection_points), max(intersection_points)
     
-    def check_if_loc_unocc(self, plant_loc, all_plants, check_type):
+    def check_if_loc_unocc(self, plant_loc, plant_width, all_plants, check_type):
         plants_with_locations=all_plants[~np.isnan(all_plants['x_loc'])]
         #check this method 
         area={
@@ -265,22 +266,23 @@ class GenVeg(Component, PlantGrowth):
             'below': 'root_sys_width'
         }
         is_center_unocc=[]
-        for loc in plant_loc:
-            distance = np.sqrt((loc[0]-plants_with_locations['x_loc'])**2 + (loc[1]-plants_with_locations['y_loc'])**2)
-            conflict=(distance > plants_with_locations[area[check_type]]/2)
-            is_center_unocc.append(np.all(conflict))
+        for idx, loc in enumerate(plant_loc):
+            distance = np.sqrt((loc[0]-plants_with_locations['x_loc'])**2 + (loc[1]-plants_with_locations['y_loc'])**2)-plant_width[idx]/2
+            no_conflict=(distance > plants_with_locations[area[check_type]]/2)
+            is_center_unocc.append(np.all(no_conflict))
         return is_center_unocc
 
     def check_for_dispersal_success(self, all_plants):
         
         new_pups=all_plants[~np.isnan(all_plants['pup_x_loc'])]
         pup_locs=tuple(zip(new_pups['pup_x_loc'], new_pups['pup_y_loc']))
+        pup_widths=np.zeros_like(new_pups['pup_x_loc'])
         if new_pups.size==0:
             pass
         else:
-            loc_unoccupied=self.check_if_loc_unocc(pup_locs, all_plants, 'below')
+            loc_unoccupied=self.check_if_loc_unocc(pup_locs, pup_widths, all_plants, 'below')
             #print('There were '+str(new_pups.size)+' potential new plants')
-            pup_successful=np.where(loc_unoccupied)
+            pup_successful=np.nonzero(loc_unoccupied==True)
             new_pups=new_pups[pup_successful]
             #print('Only '+str(new_pups.size)+' were successful')
             new_pups['x_loc']=new_pups['pup_x_loc']

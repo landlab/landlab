@@ -342,7 +342,7 @@ class PlantGrowth(Species):
                     plant_shoot_widths=[]
                     while cover_area > (1.2*self.species_morph_params['min_crown_area']):
                         plant_width=rng.uniform(low=self.species_morph_params['min_shoot_sys_width'], high=self.species_morph_params['max_shoot_sys_width'], size=1)
-                        cover_area -= np.pi*plant_width**2/4
+                        cover_area -= np.pi/4*plant_width**2
                         if cover_area>0:
                             plant_shoot_widths.append(plant_width)
                         else:
