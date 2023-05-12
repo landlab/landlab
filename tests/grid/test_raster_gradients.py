@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
 
@@ -114,6 +114,20 @@ def test_calc_grad_at_diagonal():
         [[1.0, 0.0, 1.0, 1.0, 0.0, 1.0], [0.0, -1.0, -1.0, -1.0, -1.0, 0.0]]
     ).flatten()
     assert_array_equal(grid.calc_grad_at_diagonal(z), expected)
+
+
+def test_raster_calc_slope_at_node():
+    grid = RasterModelGrid((4, 4))
+    z = grid.x_of_node**2 + grid.y_of_node**2
+    slopes, cmp = grid.calc_slope_at_node(z, method="Horn", return_components=True)
+    assert_array_almost_equal(
+        slopes[grid.core_nodes],
+        [1.20591837, 1.3454815, 1.3454815, 1.39288142],
+        decimal=1,
+    )
+    assert_array_almost_equal(
+        cmp[0].reshape((4, 4))[:, 0], cmp[1].reshape((4, 4))[0, :]
+    )
 
 
 @pytest.mark.parametrize(
