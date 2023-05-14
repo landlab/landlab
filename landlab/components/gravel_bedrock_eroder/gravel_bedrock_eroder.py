@@ -16,20 +16,22 @@ _SEVEN_SIXTHS = 7.0 / 6.0
 
 
 class GravelBedrockEroder(Component):
-    """Model drainage network evolution for a network of rivers that have
+    """Drainage network evolution of rivers with gravel alluvium overlying bedrock.
+
+    Model drainage network evolution for a network of rivers that have
     a layer of gravel alluvium overlying bedrock.
 
-    GravelBedrockEroder is designed to operate together with a flow-routing
-    component such as FlowAccumulator, so that each grid node has
+    :class:`~.GravelBedrockEroder` is designed to operate together with a flow-routing
+    component such as :class:`~.FlowAccumulator`, so that each grid node has
     a defined flow direction toward one of its neighbor nodes. Each core node
     is assumed to contain one outgoing fluvial channel, and (depending on
     the drainage structure) zero, one, or more incoming channels. These channels are
     treated as effectively sub-grid-scale features that are embedded in valleys
     that have a width of one grid cell.
 
-    As with the GravelRiverTransporter component, the rate of gravel transport out of
-    a given node is calculated as the product of bankfull discharge, channel
-    gradient (to the 7/6 power), a dimensionless transport coefficient, and
+    As with the :class:`~.GravelRiverTransporter` component, the rate of gravel
+    transport out of a given node is calculated as the product of bankfull discharge,
+    channel gradient (to the 7/6 power), a dimensionless transport coefficient, and
     an intermittency factor that represents the fraction of time that bankfull
     flow occurs. The derivation of the transport law is given by Wickert &
     Schildgen (2019), and it derives from the assumption that channels are
@@ -40,16 +42,16 @@ class GravelBedrockEroder(Component):
     gravel-sized material to abrasion (i.e., conversion to finer sediment, which
     is not explicitly tracked) as a function of the volumetric transport rate,
     an abrasion coefficient with units of inverse length, and the local transport
-    distance (for example, if a grid node is carrying a gravel load Qs to a
-    neighboring node dx meters downstream, the rate of gravel loss in volume per
-    time per area at the node will be beta Qs dx, where beta is the abrasion
+    distance (for example, if a grid node is carrying a gravel load ``Qs`` to a
+    neighboring node ``dx`` meters downstream, the rate of gravel loss in volume per
+    time per area at the node will be ``beta * Qs * dx``, where ``beta`` is the abrasion
     coefficient).
 
     Sediment mass conservation is calculated across each entire
-    grid cell. For example, if a cell has surface area A, a total volume influx
-    Qin, and downstream transport rate Qs, the resulting rate of change of
-    alluvium thickness will be (Qin - Qs / (A (1 - phi)), plus gravel produced by
-    plucking erosion of bedrock (phi is porosity).
+    grid cell. For example, if a cell has surface area ``A``, a total volume influx
+    ``Qin``, and downstream transport rate ``Qs``, the resulting rate of change of
+    alluvium thickness will be ``(Qin - Qs / (A * (1 - phi))``, plus gravel produced by
+    plucking erosion of bedrock (``phi`` is porosity).
 
     Bedrock is eroded by a combination of abrasion and plucking. Abrasion per unit
     channel length is calculated as the product of volumetric sediment discharge
@@ -331,13 +333,13 @@ class GravelBedrockEroder(Component):
         """Utility function that calculates and returns water depth implied by
         slope and grain diameter, using Wickert & Schildgen (2019) equation 8.
 
-        The equation is
+        The equation is::
 
-            h = ((rho_s - rho / rho)) (1 + epsilon) tau_c* (D / S)
+            h = ((rho_s - rho / rho)) * (1 + epsilon) * tau_c * (D / S)
 
         where the factors on the right are sediment and water density, excess
         shear-stress factor, critical Shields stress, grain diameter, and slope
-        gradient. Here the prefactor on D/S assumes sediment density of 2650 kg/m3,
+        gradient. Here the prefactor on ``D/S`` assumes sediment density of 2650 kg/m3,
         water density of 1000 kg/m3, shear-stress factor of 0.2, and critical
         Shields stress of 0.0495, giving a value of 0.09801.
 
@@ -370,19 +372,19 @@ class GravelBedrockEroder(Component):
         discharge, slope, and grain diameter, using Wickert & Schildgen (2019)
         equation 16.
 
-        The equation is
+        The equation is::
 
-            b = kb Q S**(7/6) / D**(3/2)
+            b = kb * Q * S**(7/6) / D**(3/2)
 
         where the dimensional prefactor, which includes sediment and water
         density, gravitational acceleration, critical Shields stress, and the
-        transport factor epsilon, is
+        transport factor epsilon, is::
 
             kb = 0.17 g**(-1/2) (((rho_s - rho) / rho) (1 + eps) tau_c*)**(-5/3)
 
-        Using g = 9.8 m/s2, rho_s = 2650 (quartz), rho = 1000 kg/m3, eps = 0.2,
-        and tau_c* = 0.0495, kb ~ 2.61 s/m**(1/2). Converting to years,
-        kb = 8.26e-8.
+        Using ``g = 9.8 m/s2``, ``rho_s = 2650`` (quartz), ``rho = 1000 kg/m3``, ``eps = 0.2``,
+        and ``tau_c* = 0.0495``, ``kb ~ 2.61 s/m**(1/2)``. Converting to years,
+        ``kb = 8.26e-8``.
 
         Examples
         --------
@@ -419,7 +421,7 @@ class GravelBedrockEroder(Component):
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.
 
-        The result is stored in the `bedrock__exposure_fraction` field.
+        The result is stored in the ``bedrock__exposure_fraction`` field.
 
         Examples
         --------
@@ -449,10 +451,10 @@ class GravelBedrockEroder(Component):
 
         Calculation uses Wickert-Schildgen approach, and provides
         volume per time rate. Transport rate is modulated by available
-        sediment, using the exponential function (1 - exp(-H / Hs)),
+        sediment, using the exponential function ``(1 - exp(-H / Hs))``,
         so that transport rate approaches zero as sediment thickness
         approaches zero. Rate is a volume per time. The result is
-        stored in the `bedload_sediment__volume_outflux` field.
+        stored in the ``bedload_sediment__volume_outflux`` field.
 
         Examples
         --------
@@ -483,7 +485,7 @@ class GravelBedrockEroder(Component):
 
         Here we use the average of incoming and outgoing sediment flux to
         calculate the loss rate to abrasion. The result is stored in the
-        `bedload_sediment__rate_of_loss_to_abrasion` field.
+        ``bedload_sediment__rate_of_loss_to_abrasion`` field.
 
         The factor dx (node spacing) appears in the denominator to represent
         flow segment length (i.e., length of the link along which water is
@@ -521,7 +523,7 @@ class GravelBedrockEroder(Component):
         Note: assumes _abrasion (of sediment) and _rock_exposure_fraction
         have already been updated. Like _abrasion, the rate is a length
         per time (equivalent to rate of lowering of the bedrock surface by
-        abrasion). Result is stored in the field `bedrock__abrasion_rate`.
+        abrasion). Result is stored in the field ``bedrock__abrasion_rate``.
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
@@ -555,7 +557,7 @@ class GravelBedrockEroder(Component):
         The rate is a volume per area per time [L/T], equivalent to the
         rate of lowering of the bedrock surface relative to the underlying
         material as a result of plucking. Result is stored in the field
-        `bedrock__plucking_rate`.
+        ``bedrock__plucking_rate``.
 
         Examples
         --------
@@ -590,7 +592,7 @@ class GravelBedrockEroder(Component):
     def calc_sediment_influx(self):
         """Update the volume influx at each node.
 
-        Result is stored in the field `bedload_sediment__volume_influx`.
+        Result is stored in the field ``bedload_sediment__volume_influx``.
         """
         self._sediment_influx[:] = 0.0
         for c in self.grid.core_nodes:  # send sediment downstream
@@ -600,7 +602,7 @@ class GravelBedrockEroder(Component):
     def calc_sediment_rate_of_change(self):
         """Update the rate of thickness change of coarse sediment at each core node.
 
-        Result is stored in the field `sediment__rate_of_change`.
+        Result is stored in the field ``sediment__rate_of_change``.
 
         Examples
         --------
@@ -638,7 +640,7 @@ class GravelBedrockEroder(Component):
     def _update_slopes(self):
         """Update self._slope.
 
-        Result is stored in field `topographic__steepest_slope`.
+        Result is stored in field ``topographic__steepest_slope``.
         """
         dz = np.maximum(self._elev - self._elev[self._receiver_node], 0.0)
         if self._flow_length_is_variable:
@@ -659,7 +661,7 @@ class GravelBedrockEroder(Component):
         and plucking.
 
         Combined rate of rock lowering relative to underlying material is stored in the field
-        `bedrock__lowering_rate`.
+        ``bedrock__lowering_rate``.
 
         Examples
         --------
@@ -707,11 +709,11 @@ class GravelBedrockEroder(Component):
         Estimate the maximum possible time-step size that avoids
         flattening any streamwise slope or exhausting sediment.
 
-        The `upper_limit_dt` parameter handles the special case of
+        The ``upper_limit_dt`` parameter handles the special case of
         a nonexistent upper limit, which only occurs when there are
         no nodes at which either sediment or slope gradient is
         declining. Value is arbitrary as long as it is >= the user-provided
-        global time-step size (in `run_one_step()`).
+        global time-step size (in :meth:`~.run_one_step`).
 
         Parameters
         ----------
