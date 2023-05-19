@@ -72,7 +72,7 @@ from .stream_power import (
     StreamPowerSmoothThresholdEroder,
 )
 from .taylor_nonlinear_hillslope_flux import TaylorNonLinearDiffuser
-from .tectonics import ListricKinematicExtender
+from .tectonics import ListricKinematicExtender, ListricKinematicStepwiseExtender
 from .threshold_eroder import ThresholdEroder
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
