@@ -41,6 +41,30 @@ class ListricKinematicExtender(Component):
     _unit_agnostic = True
 
     _info = {
+        "fault_plane__elevation": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Elevation of fault plane",
+        },
+        "hangingwall__thickness": {
+            "dtype": "float",
+            "intent": "inout",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Thickness of material in hangingwall block",
+        },
+        "hangingwall__velocity": {
+            "dtype": "float",
+            "intent": "out",
+            "optional": True,
+            "units": "m/y",
+            "mapping": "link",
+            "doc": "Horizontal velocity of material in hangingwall block",
+        },
         "topographic__elevation": {
             "dtype": "float",
             "intent": "inout",
@@ -48,30 +72,6 @@ class ListricKinematicExtender(Component):
             "units": "m",
             "mapping": "node",
             "doc": "Land surface topographic elevation",
-        },
-        "subsidence_rate": {
-            "dtype": "float",
-            "intent": "out",
-            "optional": False,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Rate of tectonic subsidence in hangingwall area",
-        },
-        "upper_crust_thickness": {
-            "dtype": "float",
-            "intent": "inout",
-            "optional": True,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Thickness of upper crust (arbitrary datum)",
-        },
-        "cumulative_subsidence_depth": {
-            "dtype": "float",
-            "intent": "out",
-            "optional": True,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Cumulative depth of tectonic subsidence",
         },
     }
 
@@ -83,7 +83,7 @@ class ListricKinematicExtender(Component):
         fault_location=None,
         detachment_depth=1.0e4,
         track_crustal_thickness=False,
-        fields_to_shift=None,
+        fields_to_advect=None,
     ):
         """Deform vertically and horizontally to represent tectonic extension.
 
@@ -102,11 +102,10 @@ class ListricKinematicExtender(Component):
             Depth to horizontal detachment (m), default 10 km.
         track_crustal_thickness: bool, optional
             Option to keep track of changes in crustal thickness (default False)
-        fields_to_shift: list of str, optional
-            List of names of fields, in addition to 'topographic__elevation'
+        fields_to_advect: list of str, optional
+            List of names of fields, in addition to 'hangingwall__thickness'
             and (if track_crustal_thickness==True) 'upper_crust_thickness',
-            that should be shifted horizontally whenever cumulative extension
-            exceeds one cell width. Default empty.
+            that should be advected horizontally.
         """
         fields_to_shift = [] if fields_to_shift is None else fields_to_shift
 
@@ -125,15 +124,14 @@ class ListricKinematicExtender(Component):
         self.initialize_output_fields()
 
         self._extension_rate = extension_rate
-        self._fault_grad = np.tan(np.deg2rad(fault_dip))
         self._detachment_depth = detachment_depth
         self._decay_length = detachment_depth / self._fault_grad
 
         self._elev = grid.at_node["topographic__elevation"]
-        self._subs_rate = grid.at_node["subsidence_rate"]
+        self._fault_plane_elev = grid.at_node["fault_plane__elevation"]
 
-        self._fields_to_shift = fields_to_shift.copy()
-        self._fields_to_shift.append("topographic__elevation")
+        self._fields_to_advect = fields_to_advect.copy()
+        self._fields_to_advect.append("hangingwall__thickness")
 
         self._track_thickness = track_crustal_thickness
         if self._track_thickness:
@@ -144,84 +142,35 @@ class ListricKinematicExtender(Component):
                     "When handle_thickness is True you must provide an"
                     "'upper_crust_thickness' node field."
                 ) from exc
-            self._cum_subs = grid.add_zeros(
-                "cumulative_subsidence_depth", at="node", clobber=True
-            )
-            self._fields_to_shift.append("upper_crust_thickness")
+            self._fields_to_advect.append("upper_crust_thickness")
 
+    def setup_fault_plane_elevation(self, grid, fault_loc, fault_dip, detachment_depth):
+        """Set up the field fault_plane__elevation"""
         if isinstance(grid, HexModelGrid):
-            if fault_location is None:
-                self._fault_loc = 0.0
-            else:
-                self._fault_loc = fault_location
-            self._ds = grid.spacing
+            if fault_loc is None:
+                fault_loc = 0.0
+            ds = grid.spacing
             if grid.orientation[0] == "h":
                 phi = np.deg2rad(-30.0)
             else:
                 raise NotImplementedError(
                     "vertical orientation hex grids not currently handled"
                 )
-            self._fault_normal_coord = grid.x_of_node + grid.y_of_node * np.tan(phi)
+            fault_normal_coord = grid.x_of_node + grid.y_of_node * np.tan(phi)
         else:
-            self._fault_normal_coord = grid.x_of_node
-            self._ds = grid.dy
-            if fault_location is None:
-                self._fault_loc = 0.5 * (
+            fault_normal_coord = grid.x_of_node
+            ds = grid.dy
+            if fault_loc is None:
+                fault_loc = 0.5 * (
                     np.amax(self._fault_normal_coord)
                     - np.amin(self._fault_normal_coord)
                 )
-            else:
-                self._fault_loc = fault_location
 
-        self._elev = grid.at_node["topographic__elevation"]
-
-        # set up data structures for horizontal shift of elevation values
-        self._horiz_displacement = 0.0  # horiz displ since last grid shift
-        self._hangwall_edge = self._fault_loc
-        self._update_hangingwall_nodes()
-
-    def _update_hangingwall_nodes(self):
-        """Update data structures for shifting hangingwall nodes."""
-        self._hangwall = np.where(self._fault_normal_coord > self._hangwall_edge)[0]
-        self._hw_downwind = np.where(
-            self._fault_normal_coord > self._hangwall_edge + self._ds
-        )[0]
-        self._hw_upwind = self._hw_downwind - 1
-        self._fault_nodes = np.logical_and(
-            self._fault_normal_coord > self._hangwall_edge,
-            self._fault_normal_coord <= self._hangwall_edge + self._ds,
-        )
-
-    def update_subsidence_rate(self):
-        """Update subsidence rate array."""
-        dist_to_fault = np.abs(self._fault_normal_coord - self._fault_loc)
-        self._subs_rate[self._hangwall] = (
-            self._extension_rate
-            * self._fault_grad
-            * np.exp(-dist_to_fault[self._hangwall] / self._decay_length)
-        )
-
-    def fault_plane_elev(self, dist_from_fault_trace):
-        """Return elevation of fault plane at given distance from fault trace.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import ListricKinematicExtender
-        >>> grid = RasterModelGrid((3, 7), xy_spacing=5000.0)
-        >>> topo = grid.add_zeros('topographic__elevation', at='node')
-        >>> lke = ListricKinematicExtender(grid, fault_location=10000.0)
-        >>> np.round(lke.fault_plane_elev(np.array([0.0, 5000.0, 10000.0])))
-        array([   -0., -5794., -8231.])
-        """
-        return -(
-            self._detachment_depth
-            * (
-                1.0
-                - np.exp(
-                    -dist_from_fault_trace * self._fault_grad / self._detachment_depth
-                )
-            )
+        fault_grad = np.tan(np.deg2rad(fault_dip))
+        dist_to_fault = fault_normal_coord - fault_loc
+        self._fault_plane_elev[:] = -(
+            detachment_depth
+            * (1.0 - np.exp(-dist_to_fault * fault_grad / detachment_depth))
         )
 
     def run_one_step(self, dt):
