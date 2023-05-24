@@ -31,6 +31,19 @@ def dist_to_line(Px, Py, x0, y0, alpha):
         y intercept of line
     alpha : float, degrees
         angle of line, counter-clockwise from positive x-axis
+
+    Examples
+    --------
+    >>> np.round(dist_to_line(1, 1, 0, 0, 90), 6)
+    1.0
+    >>> np.round(dist_to_line(0, 1, 1, 0, 90), 6)
+    -1.0
+    >>> np.round(dist_to_line(1, 1, 0, 0, 0), 6)
+    -1.0
+    >>> np.round(dist_to_line(2.0**0.5, 0, 0, 0, 45), 6)
+    1.0
+    >>> np.round(dist_to_line(0, 2.0**0.5, 0, 0, 45), 6)
+    -1.0
     """
     alpha_r = np.radians(alpha)
     return np.sin(alpha_r) * (Px - x0) - np.cos(alpha_r) * (Py - y0)
