@@ -15,6 +15,27 @@ import numpy as np
 from landlab import Component, HexModelGrid, RasterModelGrid
 
 
+def dist_to_line(Px, Py, x0, y0, alpha):
+    """Calculate and return the distance of point(x) (Px, Py) to the
+    line described by x = x0 + t cos alpha, y = y0 + t sin alpha.
+
+    Parameters
+    ----------
+    Px : float
+        x-coordinate of point(s)
+    Py : float
+        y-coordinate of point(s)
+    x0 : float
+        x intercept of line
+    y0 : float
+        y intercept of line
+    alpha : float, degrees
+        angle of line, counter-clockwise from positive x-axis
+    """
+    alpha_r = np.radians(alpha)
+    return np.sin(alpha_r) * (Px - x0) - np.cos(alpha_r) * (Py - y0)
+
+
 class ListricKinematicExtender(Component):
     """Apply tectonic extension and subsidence kinematically to a raster or
     hex grid.
@@ -80,7 +101,9 @@ class ListricKinematicExtender(Component):
         grid,
         extension_rate=0.001,
         fault_dip=60.0,
-        fault_location=None,
+        fault_x0=0.0,
+        fault_y0=0.0,
+        fault_strike=45.0,
         detachment_depth=1.0e4,
         track_crustal_thickness=False,
         fields_to_advect=None,
@@ -94,10 +117,12 @@ class ListricKinematicExtender(Component):
         extension_rate: float, optional
             Rate of horizontal motion of hangingwall relative to footwall
             (m / y), default 1 mm/y.
-        fault_dip: float, optional
-            Dip of the fault, degrees (default 45).
-        fault_location: float, optional
-            Distance of fault trace from x=0 (m) (default = grid width / 2).
+        fault_x0: float, optional
+            x intercept of zero-surface fault trace, m (default 0).
+        fault_y0: float, optional
+            y intercept of zero-surface fault trace, m (default 0).
+        fault_strike: float, optional
+            Strike of zero-surface fault trace, degrees (default 45).
         detachment_depth: float, optional
             Depth to horizontal detachment (m), default 10 km.
         track_crustal_thickness: bool, optional
@@ -107,7 +132,7 @@ class ListricKinematicExtender(Component):
             and (if track_crustal_thickness==True) 'upper_crust_thickness',
             that should be advected horizontally.
         """
-        fields_to_shift = [] if fields_to_shift is None else fields_to_shift
+        fields_to_advect = [] if fields_to_advect is None else fields_to_advect
 
         is_raster = isinstance(grid, RasterModelGrid)
         is_hex = isinstance(grid, HexModelGrid)
@@ -144,33 +169,51 @@ class ListricKinematicExtender(Component):
                 ) from exc
             self._fields_to_advect.append("upper_crust_thickness")
 
-    def setup_fault_plane_elevation(self, grid, fault_loc, fault_dip, detachment_depth):
-        """Set up the field fault_plane__elevation"""
+    def _distance_to_fault(self, grid, fault_x0, fault_y0, fault_strike):
+        """Calculate and return horizontal distance from each grid node to
+        the zero-surface fault trace.
+
+        This function is used to calculate the elevation of the surface of the
+        fault plane, which depends on distance to the 'zero-surface fault trace',
+        i.e., the horizontal line where the fault plane would intersect zero
+        elevation.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import ListricKinematicExtender
+        """
         if isinstance(grid, HexModelGrid):
             if fault_loc is None:
                 fault_loc = 0.0
-            ds = grid.spacing
             if grid.orientation[0] == "h":
                 phi = np.deg2rad(-30.0)
             else:
                 raise NotImplementedError(
                     "vertical orientation hex grids not currently handled"
                 )
-            fault_normal_coord = grid.x_of_node + grid.y_of_node * np.tan(phi)
+            dist_to_fault = grid.x_of_node + grid.y_of_node * np.tan(phi) - fault_loc
         else:
-            fault_normal_coord = grid.x_of_node
-            ds = grid.dy
             if fault_loc is None:
-                fault_loc = 0.5 * (
-                    np.amax(self._fault_normal_coord)
-                    - np.amin(self._fault_normal_coord)
-                )
+                fault_loc = 0.25 * np.amax(grid.x_of_node)
+            dist_to_fault = grid.x_of_node - fault_loc
+        return dist_to_fault
 
+    def _setup_fault_plane_elevation(
+        self, grid, fault_loc, fault_dip, detachment_depth
+    ):
+        """Set up the field fault_plane__elevation"""
         fault_grad = np.tan(np.deg2rad(fault_dip))
-        dist_to_fault = fault_normal_coord - fault_loc
         self._fault_plane_elev[:] = -(
             detachment_depth
-            * (1.0 - np.exp(-dist_to_fault * fault_grad / detachment_depth))
+            * (
+                1.0
+                - np.exp(
+                    -self._distance_to_fault(grid, fault_loc)
+                    * fault_grad
+                    / detachment_depth
+                )
+            )
         )
 
     def run_one_step(self, dt):
