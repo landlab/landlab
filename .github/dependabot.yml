@@ -8,10 +8,12 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    target-branch: "dependencies"
     labels: ["skip news", "dependencies"]
 
   - package-ecosystem: "pip"
     directory: "."
     schedule:
       interval: "daily"
+    target-branch: "dependencies"
     labels: ["skip news", "dependencies"]
