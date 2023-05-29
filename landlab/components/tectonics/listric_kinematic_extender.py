@@ -78,15 +78,15 @@ class ListricKinematicExtender(Component):
         "fault_plane__elevation": {
             "dtype": "float",
             "intent": "out",
-            "optional": True,
+            "optional": False,
             "units": "m",
             "mapping": "node",
             "doc": "Elevation of fault plane",
         },
         "hangingwall__thickness": {
             "dtype": "float",
-            "intent": "inout",
-            "optional": True,
+            "intent": "out",
+            "optional": False,
             "units": "m",
             "mapping": "node",
             "doc": "Thickness of material in hangingwall block",
@@ -94,7 +94,7 @@ class ListricKinematicExtender(Component):
         "hangingwall__velocity": {
             "dtype": "float",
             "intent": "out",
-            "optional": True,
+            "optional": False,
             "units": "m/y",
             "mapping": "link",
             "doc": "Horizontal velocity of material in hangingwall block",
@@ -147,30 +147,21 @@ class ListricKinematicExtender(Component):
         """
         fields_to_advect = [] if fields_to_advect is None else fields_to_advect
 
-        is_raster = isinstance(grid, RasterModelGrid)
-        is_hex = isinstance(grid, HexModelGrid)
-        if not (is_raster or is_hex):
-            raise TypeError("Grid must be RasterModelGrid or HexModelGrid")
-        elif isinstance(grid, HexModelGrid) and (
-            grid.node_layout == "hex" or grid.number_of_node_columns % 2 == 0
-        ):
-            raise TypeError(
-                "Hex grid must have rectangular layout & odd number of columns"
-            )
-
         super().__init__(grid)
         self.initialize_output_fields()
 
         self._extension_rate = extension_rate
-        self._detachment_depth = detachment_depth
-        self._decay_length = detachment_depth / self._fault_grad
 
         self._elev = grid.at_node["topographic__elevation"]
         self._fault_plane_elev = grid.at_node["fault_plane__elevation"]
+        self._hw_thick = grid.at_node["hangingwall__thickness"]
 
         self._fields_to_advect = fields_to_advect.copy()
         self._fields_to_advect.append("hangingwall__thickness")
 
+        self._setup_fault_plane_elevation_and_hangingwall_thickness(
+            grid, fault_x0, fault_y0, fault_strike, fault_dip, detachment_depth
+        )
         self._track_thickness = track_crustal_thickness
         if self._track_thickness:
             try:
@@ -182,52 +173,52 @@ class ListricKinematicExtender(Component):
                 ) from exc
             self._fields_to_advect.append("upper_crust_thickness")
 
-    def _distance_to_fault(self, grid, fault_x0, fault_y0, fault_strike):
-        """Calculate and return horizontal distance from each grid node to
-        the zero-surface fault trace.
+    def _setup_fault_plane_elevation_and_hangingwall_thickness(
+        self, grid, fault_x0, fault_y0, fault_strike, fault_dip, detachment_depth
+    ):
+        """Initialize fields fault_plane__elevation and hangingwall__thickness.
 
-        This function is used to calculate the elevation of the surface of the
-        fault plane, which depends on distance to the 'zero-surface fault trace',
-        i.e., the horizontal line where the fault plane would intersect zero
-        elevation.
+        Calculate and store the fault plane elevation at grid nodes using an
+        exponential function of (signed) distance to fault, with topographic
+        elevation as the minimum. Calculate the thickness of the hangingwall
+        block at grid nodes by subtracting fault plane elevation from
+        topographic elevation.
+
+        Parameters
+        ----------
+        fault_x0 : float
+            x-intercept of zero-surface fault trace, m
+        fault_y0 : float
+            y-intercept of zero-surface fault trace, m
+        fault_strike : float
+            strike angle of fault trace, degrees ccw from +x
+        fault_dip : float
+            dip angle of fault at the zero elevation point, degrees
+        detachment_depth : float
+            depth to the point where the detachment is horizontal, m
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import ListricKinematicExtender
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
+        >>> _ = grid.add_zeros("topographic__elevation", at="node")
+        >>> extender = ListricKinematicExtender(grid, fault_strike=90.0)
+        >>> round(grid.at_node["fault_plane__elevation"][4])
+        -1590
+        >>> round(grid.at_node["hangingwall__thickness"][4])
+        1590
         """
-        if isinstance(grid, HexModelGrid):
-            if fault_loc is None:
-                fault_loc = 0.0
-            if grid.orientation[0] == "h":
-                phi = np.deg2rad(-30.0)
-            else:
-                raise NotImplementedError(
-                    "vertical orientation hex grids not currently handled"
-                )
-            dist_to_fault = grid.x_of_node + grid.y_of_node * np.tan(phi) - fault_loc
-        else:
-            if fault_loc is None:
-                fault_loc = 0.25 * np.amax(grid.x_of_node)
-            dist_to_fault = grid.x_of_node - fault_loc
-        return dist_to_fault
-
-    def _setup_fault_plane_elevation(
-        self, grid, fault_loc, fault_dip, detachment_depth
-    ):
-        """Set up the field fault_plane__elevation"""
         fault_grad = np.tan(np.deg2rad(fault_dip))
-        self._fault_plane_elev[:] = -(
-            detachment_depth
-            * (
-                1.0
-                - np.exp(
-                    -self._distance_to_fault(grid, fault_loc)
-                    * fault_grad
-                    / detachment_depth
-                )
-            )
+        dist_to_fault = dist_to_line(
+            grid.x_of_node, grid.y_of_node, fault_x0, fault_y0, fault_strike
         )
+        self._fault_plane_elev[:] = np.minimum(
+            -detachment_depth
+            * (1.0 - np.exp(-dist_to_fault * fault_grad / detachment_depth)),
+            self._elev,
+        )
+        self._hw_thick[:] = self._elev - self._fault_plane_elev
 
     def run_one_step(self, dt):
         """Apply extensional motion to grid for one time step."""
