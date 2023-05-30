@@ -95,7 +95,7 @@ six==1.16.0
     # via
     #   patsy
     #   python-dateutil
-statsmodels==0.13.5
+statsmodels==0.14.0
     # via -r requirements.in
 tzdata==2023.3
     # via pandas
