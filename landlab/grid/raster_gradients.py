@@ -1851,7 +1851,7 @@ def calc_slope_at_node(
         except TypeError:
             z[:-1] = elevs
         # proof code for bad indexing:
-        diags = grid.diagonal_neighbors_at_node.copy()  # LL order
+        diags = grid.diagonal_adjacent_nodes_at_node.copy()  # LL order
         orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):
