@@ -4,6 +4,35 @@
 # Generated using `landlab index components`
 [components]
 
+[components.AdvectionSolverTVD]
+name = 'landlab.components.advection.advection_solver_tvd.AdvectionSolverTVD'
+unit_agnostic = true
+summary = 'Numerical solution for advection using a Total Variation Diminishing method.'
+
+[components.AdvectionSolverTVD.info.advected__quantity]
+doc = 'Scalar quantity advected'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = true
+units = '-'
+
+[components.AdvectionSolverTVD.info.advection__flux]
+doc = 'Link-parallel advection flux'
+dtype = 'float64'
+intent = 'out'
+mapping = 'link'
+optional = false
+units = 'm2/y'
+
+[components.AdvectionSolverTVD.info.advection__velocity]
+doc = 'Link-parallel advection velocity magnitude'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = false
+units = 'm/y'
+
 [components.AreaSlopeTransporter]
 name = 'landlab.components.area_slope_transporter.area_slope_transporter.AreaSlopeTransporter'
 unit_agnostic = true
@@ -1278,6 +1307,139 @@ summary = 'Create a 2D grid with randomly generated fractures.'
 doc = 'presence (1) or absence (0) of fracture'
 dtype = 'int8'
 intent = 'out'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GravelBedrockEroder]
+name = 'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder'
+unit_agnostic = true
+summary = 'Drainage network evolution of rivers with gravel alluvium overlying bedrock.'
+
+[components.GravelBedrockEroder.info.bedload_sediment__rate_of_loss_to_abrasion]
+doc = 'Rate of bedload sediment volume loss to abrasion per unit area'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/y'
+
+[components.GravelBedrockEroder.info.bedload_sediment__volume_influx]
+doc = 'Volumetric incoming streamwise bedload sediment transport rate'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm**3/y'
+
+[components.GravelBedrockEroder.info.bedload_sediment__volume_outflux]
+doc = 'Volumetric outgoing streamwise bedload sediment transport rate'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm**3/y'
+
+[components.GravelBedrockEroder.info.bedrock__abrasion_rate]
+doc = 'rate of bedrock lowering by abrasion'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/y'
+
+[components.GravelBedrockEroder.info.bedrock__elevation]
+doc = 'elevation of the bedrock surface'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.GravelBedrockEroder.info.bedrock__exposure_fraction]
+doc = 'fractional exposure of bedrock'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GravelBedrockEroder.info.bedrock__lowering_rate]
+doc = 'Rate of lowering of bedrock surface'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/y'
+
+[components.GravelBedrockEroder.info.bedrock__plucking_rate]
+doc = 'rate of bedrock lowering by plucking'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/y'
+
+[components.GravelBedrockEroder.info.flow__link_to_receiver_node]
+doc = 'ID of link downstream of each node, which carries the discharge'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GravelBedrockEroder.info.flow__receiver_node]
+doc = 'Node array of receivers (node that receives flow from current node)'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GravelBedrockEroder.info.flow__upstream_node_order]
+doc = 'Node array containing downstream-to-upstream ordered list of node IDs'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.GravelBedrockEroder.info.sediment__rate_of_change]
+doc = 'Time rate of change of sediment thickness'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm/y'
+
+[components.GravelBedrockEroder.info.soil__depth]
+doc = 'Depth of soil or weathered bedrock'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.GravelBedrockEroder.info.surface_water__discharge]
+doc = 'Volumetric discharge of surface water'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm**3/y'
+
+[components.GravelBedrockEroder.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.GravelBedrockEroder.info.topographic__steepest_slope]
+doc = 'The steepest *downhill* slope'
+dtype = 'float64'
+intent = 'in'
 mapping = 'node'
 optional = false
 units = '-'
@@ -3598,6 +3760,27 @@ provided_by = [
   'landlab.components.bedrock_landslider.bedrock_landslider.BedrockLandslider',
 ]
 
+[fields.advected__quantity]
+desc = 'Scalar quantity advected'
+used_by = []
+provided_by = [
+  'landlab.components.advection.advection_solver_tvd.AdvectionSolverTVD',
+]
+
+[fields.advection__flux]
+desc = 'Link-parallel advection flux'
+used_by = []
+provided_by = [
+  'landlab.components.advection.advection_solver_tvd.AdvectionSolverTVD',
+]
+
+[fields.advection__velocity]
+desc = 'Link-parallel advection velocity magnitude'
+used_by = [
+  'landlab.components.advection.advection_solver_tvd.AdvectionSolverTVD',
+]
+provided_by = []
+
 [fields.aquifer__thickness]
 desc = 'thickness of saturated zone'
 used_by = []
@@ -3644,6 +3827,7 @@ provided_by = [
 desc = 'Rate of bedload sediment volume loss to abrasion per unit area'
 used_by = []
 provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
 ]
 
@@ -3651,6 +3835,7 @@ provided_by = [
 desc = 'Volumetric incoming streamwise bedload sediment transport rate'
 used_by = []
 provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
 ]
 
@@ -3658,7 +3843,15 @@ provided_by = [
 desc = 'Volumetric outgoing streamwise bedload sediment transport rate'
 used_by = []
 provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
+]
+
+[fields.bedrock__abrasion_rate]
+desc = 'rate of bedrock lowering by abrasion'
+used_by = []
+provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
 ]
 
 [fields.bedrock__elevation]
@@ -3670,7 +3863,29 @@ used_by = [
 provided_by = [
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.threshold_eroder.threshold_eroder.ThresholdEroder',
+]
+
+[fields.bedrock__exposure_fraction]
+desc = 'fractional exposure of bedrock'
+used_by = []
+provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
+]
+
+[fields.bedrock__lowering_rate]
+desc = 'Rate of lowering of bedrock surface'
+used_by = []
+provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
+]
+
+[fields.bedrock__plucking_rate]
+desc = 'rate of bedrock lowering by plucking'
+used_by = []
+provided_by = [
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
 ]
 
 [fields.carbonate_production_rate]
@@ -3932,6 +4147,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
@@ -3971,6 +4187,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
   'landlab.components.hand_calculator.hand_calculator.HeightAboveDrainageCalculator',
@@ -4027,6 +4244,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
   'landlab.components.hand_calculator.hand_calculator.HeightAboveDrainageCalculator',
@@ -4386,6 +4604,7 @@ desc = 'Time rate of change of sediment thickness'
 used_by = []
 provided_by = [
   'landlab.components.area_slope_transporter.area_slope_transporter.AreaSlopeTransporter',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
 ]
 
@@ -4452,6 +4671,7 @@ used_by = [
   'landlab.components.bedrock_landslider.bedrock_landslider.BedrockLandslider',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.space.space.Space',
   'landlab.components.space.space_large_scale_eroder.SpaceLargeScaleEroder',
   'landlab.components.threshold_eroder.threshold_eroder.ThresholdEroder',
@@ -4687,6 +4907,7 @@ desc = 'Volumetric discharge of surface water'
 used_by = [
   'landlab.components.detachment_ltd_erosion.generate_detachment_ltd_erosion.DetachmentLtdErosion',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
   'landlab.components.space.space.Space',
@@ -4776,6 +4997,7 @@ used_by = [
   'landlab.components.flow_director.flow_director_dinf.FlowDirectorDINF',
   'landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD',
   'landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.groundwater.dupuit_percolator.GroundwaterDupuitPercolator',
   'landlab.components.hack_calculator.hack_calculator.HackCalculator',
@@ -4823,6 +5045,7 @@ provided_by = [
   'landlab.components.discharge_diffuser.diffuse_by_discharge.DischargeDiffuser',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
   'landlab.components.gflex.flexure.gFlex',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.lake_fill.lake_fill_barnes.LakeMapperBarnes',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
@@ -4882,6 +5105,7 @@ used_by = [
   'landlab.components.chi_index.channel_chi.ChiFinder',
   'landlab.components.drainage_density.drainage_density.DrainageDensity',
   'landlab.components.erosion_deposition.erosion_deposition.ErosionDeposition',
+  'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
   'landlab.components.gravel_river_transporter.gravel_river_transporter.GravelRiverTransporter',
   'landlab.components.lateral_erosion.lateral_erosion.LateralEroder',
   'landlab.components.space.space.Space',
@@ -5409,6 +5633,9 @@ uncategorized = [
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.load',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_link_vector_components_to_node',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_link_vector_to_nodes',
+  'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_vectors_to_links',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.material_layers',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.merge',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.midpoint_of_face',
@@ -5823,6 +6050,9 @@ uncategorized = [
   'landlab.grid.hex.HexModelGrid.load',
   'landlab.grid.hex.HexModelGrid.map_link_vector_components_to_node',
   'landlab.grid.hex.HexModelGrid.map_link_vector_to_nodes',
+  'landlab.grid.hex.HexModelGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.hex.HexModelGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.hex.HexModelGrid.map_vectors_to_links',
   'landlab.grid.hex.HexModelGrid.material_layers',
   'landlab.grid.hex.HexModelGrid.merge',
   'landlab.grid.hex.HexModelGrid.midpoint_of_face',
@@ -5850,6 +6080,10 @@ uncategorized = [
   'landlab.grid.hex.HexModelGrid.number_of_links',
   'landlab.grid.hex.HexModelGrid.open_boundary_corners',
   'landlab.grid.hex.HexModelGrid.orientation',
+  'landlab.grid.hex.HexModelGrid.orientation_of_face',
+  'landlab.grid.hex.HexModelGrid.orientation_of_link',
+  'landlab.grid.hex.HexModelGrid.parallel_faces_at_face',
+  'landlab.grid.hex.HexModelGrid.parallel_links_at_link',
   'landlab.grid.hex.HexModelGrid.patch_area_at_corner',
   'landlab.grid.hex.HexModelGrid.patch_at_corner',
   'landlab.grid.hex.HexModelGrid.perimeter_corners',
@@ -6161,6 +6395,9 @@ uncategorized = [
   'landlab.grid.base.ModelGrid.link_with_node_status',
   'landlab.grid.base.ModelGrid.map_link_vector_components_to_node',
   'landlab.grid.base.ModelGrid.map_link_vector_to_nodes',
+  'landlab.grid.base.ModelGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.base.ModelGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.base.ModelGrid.map_vectors_to_links',
   'landlab.grid.base.ModelGrid.material_layers',
   'landlab.grid.base.ModelGrid.reset_status_at_node',
   'landlab.grid.base.ModelGrid.xy_of_reference',
@@ -6527,6 +6764,9 @@ uncategorized = [
   'landlab.grid.radial.RadialModelGrid.load',
   'landlab.grid.radial.RadialModelGrid.map_link_vector_components_to_node',
   'landlab.grid.radial.RadialModelGrid.map_link_vector_to_nodes',
+  'landlab.grid.radial.RadialModelGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.radial.RadialModelGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.radial.RadialModelGrid.map_vectors_to_links',
   'landlab.grid.radial.RadialModelGrid.material_layers',
   'landlab.grid.radial.RadialModelGrid.merge',
   'landlab.grid.radial.RadialModelGrid.midpoint_of_face',
@@ -7079,6 +7319,9 @@ uncategorized = [
   'landlab.grid.raster.RasterModelGrid.map_link_vector_components_to_node',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_components_to_node_raster',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_to_nodes',
+  'landlab.grid.raster.RasterModelGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.raster.RasterModelGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.raster.RasterModelGrid.map_vectors_to_links',
   'landlab.grid.raster.RasterModelGrid.material_layers',
   'landlab.grid.raster.RasterModelGrid.merge',
   'landlab.grid.raster.RasterModelGrid.midpoint_of_face',
@@ -7116,7 +7359,11 @@ uncategorized = [
   'landlab.grid.raster.RasterModelGrid.number_of_patch_columns',
   'landlab.grid.raster.RasterModelGrid.number_of_patch_rows',
   'landlab.grid.raster.RasterModelGrid.open_boundary_corners',
+  'landlab.grid.raster.RasterModelGrid.orientation_of_face',
+  'landlab.grid.raster.RasterModelGrid.orientation_of_link',
   'landlab.grid.raster.RasterModelGrid.origin',
+  'landlab.grid.raster.RasterModelGrid.parallel_faces_at_face',
+  'landlab.grid.raster.RasterModelGrid.parallel_links_at_link',
   'landlab.grid.raster.RasterModelGrid.patch_area_at_corner',
   'landlab.grid.raster.RasterModelGrid.patch_at_corner',
   'landlab.grid.raster.RasterModelGrid.patch_grid_shape',
@@ -7507,6 +7754,9 @@ uncategorized = [
   'landlab.grid.voronoi.VoronoiDelaunayGrid.load',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_components_to_node',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes',
+  'landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_link_lax_wendroff',
+  'landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_link_linear_upwind',
+  'landlab.grid.voronoi.VoronoiDelaunayGrid.map_vectors_to_links',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.material_layers',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.merge',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.midpoint_of_face',

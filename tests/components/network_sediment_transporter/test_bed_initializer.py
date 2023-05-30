@@ -145,11 +145,7 @@ def test_calc_d50_depth():
 def test_D50_not_specified(example_nmg2):
     """test ValueError exception raised if D50 input is None"""
     with pytest.raises(ValueError):
-        initialize_parcels = BedParcelInitializerUserD50(
-            example_nmg2,
-            user_d50=None,
-        )
-        initialize_parcels()
+        BedParcelInitializerUserD50(example_nmg2, user_d50=None)
 
 
 # %% Test for expected correct values
