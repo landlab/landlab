@@ -93,7 +93,7 @@ fqdn==1.5.1
     # via jsonschema
 fsspec==2023.1.0
     # via dask
-holoviews==1.15.4
+holoviews==1.16.0
     # via -r notebooks/requirements.in
 idna==3.4
     # via
