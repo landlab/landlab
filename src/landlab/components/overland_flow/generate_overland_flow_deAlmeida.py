@@ -510,6 +510,9 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
+        if dt is None:
+            dt = self.calc_time_step()
+
         h_at_node = self._grid.at_node["surface_water__depth"]
         z_at_node = self._grid.at_node["topographic__elevation"]
         q_at_link = self._grid.at_link["surface_water__discharge"]
