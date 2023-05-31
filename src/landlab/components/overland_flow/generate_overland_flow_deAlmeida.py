@@ -312,6 +312,7 @@ class OverlandFlow(Component):
                 units=self._info["surface_water__depth"]["units"],
             )
         grid.at_link["surface_water__depth"].fill(self._h_init)
+        grid.at_node["surface_water__depth"] += self._h_init
 
         # For water surface slopes at links
         if "water_surface__gradient" not in grid.at_link:
