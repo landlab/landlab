@@ -519,13 +519,14 @@ class OverlandFlow(Component):
         q_at_neighbors = np.empty_like(q_at_link)
         core_nodes = self._grid.core_nodes
         active_links = self._grid.active_links
-        horiz = self._horizontal_ids
-        vert = self._vertical_ids
 
         # First, we check and see if the neighbor arrays have been
         # initialized
         if not self._neighbor_flag:
             self.set_up_neighbor_arrays()
+
+        horiz = self._horizontal_ids
+        vert = self._vertical_ids
 
         time_remaining = dt
         while time_remaining > 0.0:
