@@ -279,8 +279,6 @@ class OverlandFlow(Component):
         """
         super().__init__(grid)
 
-        # First we copy our grid
-
         self._h_init = h_init
         self._alpha = alpha
 
@@ -373,10 +371,14 @@ class OverlandFlow(Component):
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
         al., 2012
         """
+        max_water_depth = np.amax(self._grid.at_node["surface_water__depth"])
+        if max_water_depth <= 0.0:
+            raise RuntimeError("no water")
+
         self._dt = (
             self._alpha
             * self._grid.dx
-            / np.sqrt(self._g * np.amax(self._grid.at_node["surface_water__depth"]))
+            / np.sqrt(self._g * max_water_depth)
         )
 
         return self._dt
@@ -524,8 +526,6 @@ class OverlandFlow(Component):
         core_nodes = self._grid.core_nodes
         active_links = self._grid.active_links
 
-        # First, we check and see if the neighbor arrays have been
-        # initialized
         if not self._neighbor_flag:
             self.set_up_neighbor_arrays()
 
@@ -570,10 +570,6 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             q_at_link = np.append(q_at_link, [0])
 
-            # horiz = self._horizontal_ids
-            # vert = self._vertical_ids
-            # Now we calculate discharge in the horizontal direction
-
             q_at_neighbors[horiz] = (
                 q_at_link[self._west_neighbors] + q_at_link[self._east_neighbors]
             )
@@ -586,11 +582,12 @@ class OverlandFlow(Component):
             # array.
             q_at_link = np.delete(q_at_link, len(q_at_link) - 1)
 
-            q_at_link[:] = (
+            numerator = (
                 self._theta * q_at_link
                 + (1.0 - self._theta) / 2.0 * q_at_neighbors
                 - self._g * h_at_link * dt_local * water_surface_slope
-            ) / (
+            )
+            denominator = (
                 1.0
                 + self._g
                 * dt_local
@@ -598,6 +595,8 @@ class OverlandFlow(Component):
                 * abs(q_at_link)
                 / h_at_link**_SEVEN_OVER_THREE
             )
+
+            np.divide(numerator, denominator, where=h_at_link>0.0, out=q_at_link)
 
             # Updating the discharge array to have the boundary links set to
             # their neighbor
@@ -678,6 +677,9 @@ class OverlandFlow(Component):
 
             # Updating our water depths...
             h_at_node[core_nodes] = h_at_node[core_nodes] + dhdt[core_nodes] * dt_local
+
+            if np.any(h_at_node <= 0.0):
+                np.clip(h_at_node, 0.0, None, out=h_at_node)
 
             # To prevent divide by zero errors, a minimum threshold water depth
             # must be maintained. To reduce mass imbalances, this is set to
