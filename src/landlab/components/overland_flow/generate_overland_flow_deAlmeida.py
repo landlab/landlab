@@ -397,20 +397,10 @@ class OverlandFlow(Component):
             np.where(active_links_at_open_bdy > -1)
         ]
 
-        # And then find all horizontal link IDs (Active and Inactive)
-        self._horizontal_ids = links.horizontal_link_ids(self._grid.shape)
-
-        # And make the array 1-D
-        self._horizontal_ids = self._horizontal_ids.flatten()
-
         # Find all horizontal active link ids
         horizontal_active_link_ids = links.horizontal_active_link_ids(
             self._grid.shape, active_ids
         )
-
-        # Now we repeat this process for the vertical links.
-        # First find the vertical link ids and reshape it into a 1-D array
-        self._vertical_ids = links.vertical_link_ids(self._grid.shape).flatten()
 
         # Find the *active* verical link ids
         vertical_active_link_ids = links.vertical_active_link_ids(
@@ -513,8 +503,8 @@ class OverlandFlow(Component):
         if not self._neighbor_flag:
             self.set_up_neighbor_arrays()
 
-        horiz = self._horizontal_ids
-        vert = self._vertical_ids
+        horizontal_links = self._grid.horizontal_links
+        vertical_links = self._grid.vertical_links
 
         time_remaining = dt
         while time_remaining > 0.0:
@@ -554,10 +544,10 @@ class OverlandFlow(Component):
             # units of L^2/T) to the end of the discharge array.
             q_at_link = np.append(q_at_link, [0])
 
-            q_at_neighbors[horiz] = (
+            q_at_neighbors[horizontal_links] = (
                 q_at_link[self._west_neighbors] + q_at_link[self._east_neighbors]
             )
-            q_at_neighbors[vert] = (
+            q_at_neighbors[vertical_links] = (
                 q_at_link[self._north_neighbors] + q_at_link[self._south_neighbors]
             )
 
@@ -571,13 +561,10 @@ class OverlandFlow(Component):
                 + (1.0 - self._theta) / 2.0 * q_at_neighbors
                 - self._g * h_at_link * dt_local * water_surface_slope
             )
-            denominator = (
-                1.0
-                + self._g
-                * dt_local
-                * self._mannings_n**2.0
-                * abs(q_at_link)
-                / h_at_link**_SEVEN_OVER_THREE
+            denominator = 1.0 + np.divide(
+                self._g * dt_local * self._mannings_n**2.0 * abs(q_at_link),
+                h_at_link**_SEVEN_OVER_THREE,
+                where=h_at_link > 0.0,
             )
 
             np.divide(numerator, denominator, where=h_at_link > 0.0, out=q_at_link)
