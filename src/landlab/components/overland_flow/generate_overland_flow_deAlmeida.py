@@ -375,11 +375,7 @@ class OverlandFlow(Component):
         if max_water_depth <= 0.0:
             raise RuntimeError("no water")
 
-        self._dt = (
-            self._alpha
-            * self._grid.dx
-            / np.sqrt(self._g * max_water_depth)
-        )
+        self._dt = self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
 
         return self._dt
 
@@ -596,7 +592,7 @@ class OverlandFlow(Component):
                 / h_at_link**_SEVEN_OVER_THREE
             )
 
-            np.divide(numerator, denominator, where=h_at_link>0.0, out=q_at_link)
+            np.divide(numerator, denominator, where=h_at_link > 0.0, out=q_at_link)
 
             # Updating the discharge array to have the boundary links set to
             # their neighbor
