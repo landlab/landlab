@@ -54,7 +54,7 @@ imagesize==1.4.1
     # via sphinx
 incremental==22.10.0
     # via towncrier
-ipython==8.13.2
+ipython==8.14.0
     # via -r docs/requirements.in
 jedi==0.18.2
     # via ipython
