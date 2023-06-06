@@ -26,7 +26,7 @@ def return_array_at_node(grid, value):
 def return_array_at_link(grid, value):
     """Function to return an array stored at node or of shape `(n_nodes,)`.
 
-    This function exists to take advantange of the use_field_name_array_or_value
+    This function exists to take advantage of the use_field_name_array_or_value
     decorator which permits providing the surface as a field name or array.
 
     Parameters
