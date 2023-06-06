@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Solve advection numerically using Total Variation Diminishing method."""
 
-import warnings
-
 import numpy as np
 
 from landlab import Component, LinkStatus
@@ -238,7 +236,6 @@ class AdvectionSolverTVD(Component):
         grid,
         fields_to_advect=None,
         advection_direction_is_steady=False,
-        field_to_advect=None,  # deprecated, remove after ~2023
     ):
         """Initialize AdvectionSolverTVD."""
 
@@ -246,13 +243,6 @@ class AdvectionSolverTVD(Component):
         # create output fields, etc.
         super().__init__(grid)
         self.initialize_output_fields()
-
-        if field_to_advect is not None:
-            warnings.warn(
-                "field_to_advect parameter is deprecated, use fields_to_advect (plural)",
-                stacklevel=2,
-            )
-            fields_to_advect = field_to_advect
 
         self._scalars = []  # list of fields to advect
         if fields_to_advect is None:
