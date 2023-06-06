@@ -249,7 +249,8 @@ class AdvectionSolverTVD(Component):
 
         if field_to_advect is not None:
             warnings.warn(
-                "field_to_advect parameter is deprecated, use fields_to_advect (plural)"
+                "field_to_advect parameter is deprecated, use fields_to_advect (plural)",
+                stacklevel=2,
             )
             fields_to_advect = field_to_advect
 
