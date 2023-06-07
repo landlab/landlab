@@ -269,3 +269,7 @@ def test_with_two_advected_fields():
 
     assert_almost_equal(C1[10], 10.0, decimal=1)
     assert_almost_equal(C2[10], 1.0, decimal=2)
+
+    # verify that flux fields have been created
+    assert(len(grid.at_link["flux_of_first_advected__quantity"]) == grid.number_of_links)
+    assert(len(grid.at_link["flux_of_second_advected__quantity"]) == grid.number_of_links)
