@@ -5,8 +5,9 @@ import numpy as np
 
 from landlab import Component, LinkStatus
 from landlab.components.advection.flux_limiters import flux_lim_vanleer
-from landlab.utils.return_array import return_array_at_node, return_array_at_link
 from landlab.field.errors import FieldError
+from landlab.utils.return_array import return_array_at_link, return_array_at_node
+
 
 def find_upwind_link_at_link(grid, u):
     """Return the upwind link at every link.
