@@ -250,11 +250,13 @@ class AdvectionSolverTVD(Component):
         if fields_to_advect is None:
             try:
                 self._scalars.append(self.grid.at_node["advected__quantity"])
-                self._fluxes.append(self.grid.at_link["advection__flux"])
             except KeyError:
                 self._scalars.append(
                     self.grid.add_zeros("advected__quantity", at="node")
                 )
+            try:
+                self._fluxes.append(self.grid.at_link["advection__flux"])
+            except KeyError:
                 self._fluxes.append(self.grid.add_zeros("advection__flux", at="link"))
         elif isinstance(fields_to_advect, list):
             flux_counter = 0
