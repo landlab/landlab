@@ -1,8 +1,13 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import (
+    assert_almost_equal,
+    assert_array_almost_equal,
+    assert_array_equal,
+)
 
 from landlab import HexModelGrid, RasterModelGrid
+from landlab.components import AdvectionSolverTVD
 from landlab.components.advection import (
     find_upwind_link_at_link,
     upwind_to_local_grad_ratio,
@@ -208,3 +213,116 @@ def test_upwind_to_local_grad_ratio(cls, u):
     assert_array_almost_equal(
         r[upwind_link_at_link != -1], expected[upwind_link_at_link != -1]
     )
+
+
+def test_step_function_with_no_quantity_named():
+    grid = RasterModelGrid((3, 7))
+    u = grid.add_zeros("advection__velocity", at="link")
+    u[grid.horizontal_links] = 1.0
+
+    advector = AdvectionSolverTVD(grid, advection_direction_is_steady=True)
+    C = grid.at_node["advected__quantity"]
+    C[grid.x_of_node < 2.5] = 1.0
+
+    for _ in range(15):
+        advector.run_one_step(0.2)
+
+    assert_almost_equal(C[10], 1.0, decimal=2)
+
+    # verify that "advection__flux" field has been created
+    assert len(grid.at_link["advection__flux"]) == grid.number_of_links
+
+    # test that we can handle existing field names
+    advector = AdvectionSolverTVD(grid, advection_direction_is_steady=True)
+    assert advector.grid.at_node["advected__quantity"][0] == 1.0
+
+
+def test_step_function_with_single_named_quantity():
+    grid = RasterModelGrid((3, 7))
+    C = grid.add_zeros("one_advected__quantity", at="node")
+    C[grid.x_of_node < 2.5] = 1.0
+    u = grid.add_zeros("advection__velocity", at="link")
+    u[grid.horizontal_links] = 1.0
+
+    advector = AdvectionSolverTVD(
+        grid,
+        fields_to_advect="one_advected__quantity",
+        advection_direction_is_steady=True,
+    )
+
+    for _ in range(15):
+        advector.run_one_step(0.2)
+
+    assert_almost_equal(C[10], 1.0, decimal=2)
+
+    # verify that field "flux_of_one_advected__quantity" has been created
+    assert len(grid.at_link["flux_of_one_advected__quantity"]) == grid.number_of_links
+
+
+def test_with_two_advected_fields():
+    grid = RasterModelGrid((3, 7))
+    C1 = grid.add_zeros("first_advected__quantity", at="node")
+    C1[grid.x_of_node < 2.5] = 10.0
+    C2 = grid.add_zeros("second_advected__quantity", at="node")
+    C2[grid.x_of_node < 2.5] = 1.0
+    u = grid.add_zeros("advection__velocity", at="link")
+    u[grid.horizontal_links] = 1.0
+
+    advector = AdvectionSolverTVD(
+        grid,
+        fields_to_advect=["first_advected__quantity", "second_advected__quantity"],
+        advection_direction_is_steady=True,
+    )
+
+    for _ in range(15):
+        advector.run_one_step(0.2)
+
+    assert_almost_equal(C1[10], 10.0, decimal=1)
+    assert_almost_equal(C2[10], 1.0, decimal=2)
+
+    # verify that flux fields have been created
+    assert len(grid.at_link["flux_of_first_advected__quantity"]) == grid.number_of_links
+    assert (
+        len(grid.at_link["flux_of_second_advected__quantity"]) == grid.number_of_links
+    )
+
+    # verify the component can handle already-existing fields
+    advector = AdvectionSolverTVD(
+        grid,
+        fields_to_advect=["first_advected__quantity", "second_advected__quantity"],
+        advection_direction_is_steady=True,
+    )
+    assert (
+        len(advector.grid.at_link["flux_of_first_advected__quantity"])
+        == grid.number_of_links
+    )
+    assert (
+        len(advector.grid.at_link["flux_of_second_advected__quantity"])
+        == grid.number_of_links
+    )
+
+
+def test_with_arrays_instead_of_fields():
+    grid = RasterModelGrid((3, 7))
+    C1 = np.zeros(grid.number_of_nodes)
+    C1[grid.x_of_node < 2.5] = 10.0
+    C2 = np.zeros(grid.number_of_nodes)
+    C2[grid.x_of_node < 2.5] = 1.0
+    u = grid.add_zeros("advection__velocity", at="link")
+    u[grid.horizontal_links] = 1.0
+
+    advector = AdvectionSolverTVD(
+        grid,
+        fields_to_advect=[C1, C2],
+        advection_direction_is_steady=True,
+    )
+
+    for _ in range(15):
+        advector.run_one_step(0.2)
+
+    assert_almost_equal(C1[10], 10.0, decimal=1)
+    assert_almost_equal(C2[10], 1.0, decimal=2)
+
+    # verify that flux fields have been created
+    assert len(grid.at_link["advection__flux_0"]) == grid.number_of_links
+    assert len(grid.at_link["advection__flux_1"]) == grid.number_of_links

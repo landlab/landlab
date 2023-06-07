@@ -5,7 +5,8 @@ import numpy as np
 
 from landlab import Component, LinkStatus
 from landlab.components.advection.flux_limiters import flux_lim_vanleer
-from landlab.utils.return_array import return_array_at_node
+from landlab.field.errors import FieldError
+from landlab.utils.return_array import return_array_at_link, return_array_at_node
 
 
 def find_upwind_link_at_link(grid, u):
@@ -166,15 +167,18 @@ class AdvectionSolverTVD(Component):
     """Numerical solution for advection using a Total Variation Diminishing method.
 
     The component is restricted to regular grids (e.g., Raster or Hex).
+    If multiple fields are advected, the advection__flux field will apply to
+    the last one listed.
 
     Parameters
     ----------
     grid : RasterModelGrid or HexModelGrid
         A Landlab grid object.
-    field_to_advect : field name or (n_nodes,) array (default None)
-        A node field of scalar values that will be advected. If not given,
-        the component creates a generic field, initialized to zeros,
-        called advected__quantity.
+    fields_to_advect : field name or list or (n_nodes,) array (default None)
+        A node field of scalar values that will be advected, or list of fields.
+        If not given, the component creates a generic field, initialized to zeros,
+        called advected__quantity. If list >1 element given, advection will be
+        applied to each field in it.
     advection_direction_is_steady : bool (default False)
         Indicates whether the directions of advection are expected to remain
         steady throughout a run. If True, some computation time is saved
@@ -190,7 +194,7 @@ class AdvectionSolverTVD(Component):
     >>> s[9:12] = np.array([1.0, 2.0, 1.0])
     >>> u = grid.add_zeros("advection__velocity", at="link")
     >>> u[grid.horizontal_links] = 1.0
-    >>> advec = AdvectionSolverTVD(grid, field_to_advect="advected__quantity")
+    >>> advec = AdvectionSolverTVD(grid, fields_to_advect="advected__quantity")
     >>> for _ in range(5):
     ...     advec.update(0.2)
     >>> np.argmax(s[7:14])
@@ -213,7 +217,7 @@ class AdvectionSolverTVD(Component):
         "advection__flux": {
             "dtype": float,
             "intent": "out",
-            "optional": False,
+            "optional": True,
             "units": "m2/y",
             "mapping": "link",
             "doc": "Link-parallel advection flux",
@@ -231,7 +235,7 @@ class AdvectionSolverTVD(Component):
     def __init__(
         self,
         grid,
-        field_to_advect=None,
+        fields_to_advect=None,
         advection_direction_is_steady=False,
     ):
         """Initialize AdvectionSolverTVD."""
@@ -241,12 +245,46 @@ class AdvectionSolverTVD(Component):
         super().__init__(grid)
         self.initialize_output_fields()
 
-        if field_to_advect is None:
-            self._scalar = self.grid.add_zeros("advected__quantity", at="node")
+        self._scalars = []  # list of fields to advect
+        self._fluxes = []  # list of flux fields
+        if fields_to_advect is None:
+            try:
+                self._scalars.append(self.grid.at_node["advected__quantity"])
+            except KeyError:
+                self._scalars.append(
+                    self.grid.add_zeros("advected__quantity", at="node")
+                )
+            try:
+                self._fluxes.append(self.grid.at_link["advection__flux"])
+            except KeyError:
+                self._fluxes.append(self.grid.add_zeros("advection__flux", at="link"))
+        elif isinstance(fields_to_advect, list):
+            flux_counter = 0
+            for field in fields_to_advect:
+                self._scalars.append(return_array_at_node(self.grid, field))
+                if isinstance(field, str):
+                    flux_name = "flux_of_" + field
+                else:
+                    flux_name = "advection__flux_" + str(flux_counter)
+                    flux_counter += 1
+                try:
+                    flux = return_array_at_link(self.grid, flux_name)
+                except FieldError:
+                    flux = grid.add_zeros(flux_name, at="link")
+                self._fluxes.append(flux)
         else:
-            self._scalar = return_array_at_node(self.grid, field_to_advect)
+            self._scalars.append(return_array_at_node(self.grid, fields_to_advect))
+            if isinstance(fields_to_advect, str):
+                flux_name = "flux_of_" + fields_to_advect
+            else:
+                flux_name = "advection__flux"
+            try:
+                flux = return_array_at_link(self.grid, flux_name)
+            except FieldError:
+                flux = grid.add_zeros(flux_name, at="link")
+            self._fluxes.append(flux)
+
         self._vel = self.grid.at_link["advection__velocity"]
-        self._flux_at_link = self.grid.at_link["advection__flux"]
 
         self._advection_direction_is_steady = advection_direction_is_steady
         if advection_direction_is_steady:  # if so, only need to do this once
@@ -255,32 +293,37 @@ class AdvectionSolverTVD(Component):
                 self.grid.status_at_link == LinkStatus.INACTIVE
             ] = -1
 
-    def calc_rate_of_change_at_nodes(self, dt):
+    def calc_rate_of_change_at_nodes(self, scalar, flux, dt, update_upwind_links=False):
         """Calculate time rate of change in the advected quantity at nodes.
 
         Parameters
         ----------
+        scalar : (n_nodes, ) array
+            Scalar at-node field of values to be advected.
         dt : float
             Time-step duration. Needed to calculate the Courant number.
+        update_upwind_links : bool (optional; default False)
+            If True, upwind links will be updated (set to True if the
+            direction of advection is changing through time; if there are
+            multiple advected quantities, it only needs to be True for the
+            first one updated, and the update will be used for the others)
         """
-        if not self._advection_direction_is_steady:
+        if update_upwind_links:
             self._upwind_link_at_link = find_upwind_link_at_link(self.grid, self._vel)
             self._upwind_link_at_link[
                 self.grid.status_at_link == LinkStatus.INACTIVE
             ] = -1
-        s_link_low = self.grid.map_node_to_link_linear_upwind(self._scalar, self._vel)
+        s_link_low = self.grid.map_node_to_link_linear_upwind(scalar, self._vel)
         s_link_high = self.grid.map_node_to_link_lax_wendroff(
-            self._scalar, dt * self._vel / self.grid.length_of_link
+            scalar, dt * self._vel / self.grid.length_of_link
         )
-        r = upwind_to_local_grad_ratio(
-            self.grid, self._scalar, self._upwind_link_at_link
-        )
+        r = upwind_to_local_grad_ratio(self.grid, scalar, self._upwind_link_at_link)
         psi = flux_lim_vanleer(r)
         s_at_link = psi * s_link_high + (1.0 - psi) * s_link_low
-        self._flux_at_link[self.grid.active_links] = (
+        flux[self.grid.active_links] = (
             self._vel[self.grid.active_links] * s_at_link[self.grid.active_links]
         )
-        return -self.grid.calc_flux_div_at_node(self._flux_at_link)
+        return -self.grid.calc_flux_div_at_node(flux)
 
     def update(self, dt):
         """Update the solution by one time step dt.
@@ -292,8 +335,15 @@ class AdvectionSolverTVD(Component):
         dt : float
             Time-step duration. Needed to calculate the Courant number.
         """
-        roc = self.calc_rate_of_change_at_nodes(dt)
-        self._scalar[self.grid.core_nodes] += roc[self.grid.core_nodes] * dt
+        update_upwinds = not self._advection_direction_is_steady
+        for i in range(len(self._scalars)):  # update each of the advected scalars
+            scalar = self._scalars[i]
+            flux = self._fluxes[i]
+            roc = self.calc_rate_of_change_at_nodes(
+                scalar, flux, dt, update_upwind_links=update_upwinds
+            )
+            scalar[self.grid.core_nodes] += roc[self.grid.core_nodes] * dt
+            update_upwinds = False  # should always be False after 1st scalar done
 
     def run_one_step(self, dt):
         """Update the solution by one time step dt.
