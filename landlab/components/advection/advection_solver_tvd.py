@@ -265,7 +265,7 @@ class AdvectionSolverTVD(Component):
                     flux_name = "advection__flux_" + str(flux_counter)
                     flux_counter += 1
                 try:
-                    flux = return_array_at_node(self.grid, flux_name)
+                    flux = return_array_at_link(self.grid, flux_name)
                 except FieldError:
                     flux = grid.add_zeros(flux_name, at="link")
                 self._fluxes.append(flux)
