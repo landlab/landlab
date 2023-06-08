@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Apply tectonic extension and subsidence kinematically.
+Apply tectonic extension kinematically.
 
 Landlab component that simulates development of an asymmetric rift on a listric
 fault plane.
 
-See notebook tutorial for complete examples.
+See notebook tutorial for theory and examples.
 
 @author: gtucker
 """
@@ -51,13 +51,19 @@ def dist_to_line(Px, Py, x0, y0, alpha):
 
 
 class ListricKinematicExtender(Component):
-    """Apply tectonic extension and subsidence kinematically to a raster or
+    """Apply tectonic extension kinematically to a raster or
     hex grid.
 
-    Extension is east-west, with a north-south fault in the case of a raster
-    grid, and a N30E fault in the case of a hex grid (obique extension).
-
-    The component requires a Raster or Hex grid.
+    The caller specifies the strike, dip, and location of the zero-surface
+    fault trace (i.e., where the fault plane would intersect zero elevation),
+    and either the (x, y) components of uniform extension velocity field,
+    or a link-based velocity field. The run_one_step() method calculates
+    advection of an output field called "hangingwall__thickness". The initial
+    hanginwall thickness is defined as the difference between the starting
+    topography field (a required input field) and a listric fault plane
+    that is represented mathematically as an "upside-down" saturating
+    exponential function that asymptotes to a caller-specified detachment
+    depth, representing a decollement.
 
     Examples
     --------
