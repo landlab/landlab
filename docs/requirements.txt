@@ -160,6 +160,7 @@ sphinx==6.2.1
     #   sphinx-inline-tabs
     #   sphinx-jinja
     #   sphinx-rtd-theme
+    #   sphinxcontrib-jquery
     #   sphinxcontrib-towncrier
 sphinx-basic-ng==1.0.0b1
     # via furo
@@ -168,16 +169,16 @@ sphinx-copybutton==0.5.2
 sphinx-inline-tabs==2023.4.21
     # via -r requirements.in
 sphinx-jinja==2.0.2
-    # via -r requirements.in
-sphinx-rtd-theme==1.2.0
-    # via -r requirements.in
+    # via -r docs/requirements.in
+sphinx-rtd-theme==1.2.2
+    # via -r docs/requirements.in
 sphinxcontrib-applehelp==1.0.4
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
     # via sphinx
 sphinxcontrib-htmlhelp==2.0.1
     # via sphinx
-sphinxcontrib-jquery==2.0.0
+sphinxcontrib-jquery==4.1
     # via sphinx-rtd-theme
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
