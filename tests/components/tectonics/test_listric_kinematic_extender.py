@@ -5,7 +5,13 @@ Created on Fri Mar  5 08:42:24 2021
 @author: gtucker
 """
 
-from numpy.testing import assert_almost_equal, assert_equal, assert_raises
+import numpy as np
+from numpy.testing import (
+    assert_almost_equal,
+    assert_array_almost_equal,
+    assert_equal,
+    assert_raises,
+)
 
 from landlab import RadialModelGrid, RasterModelGrid
 from landlab.components import ListricKinematicExtender
@@ -32,11 +38,29 @@ def test_hangingwall_motion():
     assert_almost_equal(
         grid.at_node["hangingwall__thickness"][240], H_init_500, decimal=4
     )
-    assert_almost_equal(
-        elev[240], -760.7638, decimal=4
-    )
+    assert_almost_equal(elev[240], -760.7638, decimal=4)
 
 
 def test_error_handling():
     radial_grid = RadialModelGrid(n_rings=1, nodes_in_first_ring=8)
     assert_raises(TypeError, ListricKinematicExtender, radial_grid)
+
+
+def test_preexisting_fields():
+    grid = RasterModelGrid((3, 3))
+    grid.add_zeros("topographic__elevation", at="node")
+    grid.add_zeros("advection__velocity", at="link")
+    ListricKinematicExtender(
+        grid,
+        extension_rate_x=0.0,
+        extension_rate_y=1.0,
+        fields_to_advect=["hangingwall__thickness"],
+    )
+    assert_array_almost_equal(
+        grid.at_link["advection__velocity"][grid.horizontal_links],
+        np.zeros(len(grid.horizontal_links)),
+    )
+    assert_array_almost_equal(
+        grid.at_link["advection__velocity"][grid.vertical_links],
+        np.ones(len(grid.vertical_links)),
+    )
