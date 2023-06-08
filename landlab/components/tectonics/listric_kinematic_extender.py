@@ -12,7 +12,7 @@ See notebook tutorial for complete examples.
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid, HexModelGrid
+from landlab import Component, HexModelGrid, RasterModelGrid
 from landlab.components import AdvectionSolverTVD
 
 
@@ -63,11 +63,13 @@ class ListricKinematicExtender(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import ListricKinematicExtender
-    >>> grid = RasterModelGrid((3, 7), xy_spacing=2500.0)
+    >>> grid = RasterModelGrid((3, 130), xy_spacing=10.0)
     >>> topo = grid.add_zeros('topographic__elevation', at='node')
-    >>> lke = ListricKinematicExtender(grid)
-
-    ...TO BE CONTINUED
+    >>> lke = ListricKinematicExtender(grid, fault_x0=100.0, fault_strike=90.0)
+    >>> for _ in range(250):
+    ...     lke.run_one_step(dt=2000.0)
+    >>> round(grid.at_node["hangingwall__thickness"][240])
+    830
     """
 
     _name = "ListricKinematicExtender"
@@ -101,14 +103,6 @@ class ListricKinematicExtender(Component):
             "mapping": "node",
             "doc": "Thickness of material in hangingwall block",
         },
-        "hangingwall__velocity": {
-            "dtype": "float",
-            "intent": "out",
-            "optional": False,
-            "units": "m/y",
-            "mapping": "link",
-            "doc": "Horizontal velocity of material in hangingwall block",
-        },
         "topographic__elevation": {
             "dtype": "float",
             "intent": "inout",
@@ -129,7 +123,6 @@ class ListricKinematicExtender(Component):
         fault_y0=0.0,
         fault_strike=45.0,
         detachment_depth=1.0e4,
-        track_crustal_thickness=False,
         fields_to_advect=None,
         advection_direction_is_steady=False,
     ):
@@ -153,12 +146,8 @@ class ListricKinematicExtender(Component):
             Strike of zero-surface fault trace, degrees (default 45).
         detachment_depth: float, optional
             Depth to horizontal detachment (m), default 10 km.
-        track_crustal_thickness: bool, optional
-            Option to keep track of changes in crustal thickness (default False)
         fields_to_advect: list of str, optional
             List of names of fields, in addition to 'hangingwall__thickness'
-            and (if track_crustal_thickness==True) 'upper_crust_thickness',
-            that should be advected horizontally.
         advection_direction_is_steady : bool (default False)
             Indicates whether the directions of advection are expected to remain
             steady throughout a run. If True, some computation time is saved
@@ -176,25 +165,16 @@ class ListricKinematicExtender(Component):
         self._fault_plane_elev = grid.at_node["fault_plane__elevation"]
         self._hw_thick = grid.at_node["hangingwall__thickness"]
 
-        self._fields_to_advect = fields_to_advect.copy()
-        self._fields_to_advect.append("hangingwall__thickness")
-
         self._setup_fault_plane_elevation_and_hangingwall_thickness(
             grid, fault_x0, fault_y0, fault_strike, fault_dip, detachment_depth
         )
         self._setup_advection_component(
-            grid, extension_rate_x, extension_rate_y, advection_direction_is_steady
+            grid,
+            fields_to_advect,
+            extension_rate_x,
+            extension_rate_y,
+            advection_direction_is_steady,
         )
-        self._track_thickness = track_crustal_thickness
-        if self._track_thickness:
-            try:
-                self._thickness = grid.at_node["upper_crust_thickness"]
-            except KeyError as exc:
-                raise KeyError(
-                    "When handle_thickness is True you must provide an"
-                    "'upper_crust_thickness' node field."
-                ) from exc
-            self._fields_to_advect.append("upper_crust_thickness")
 
     def _setup_fault_plane_elevation_and_hangingwall_thickness(
         self, grid, fault_x0, fault_y0, fault_strike, fault_dip, detachment_depth
@@ -244,16 +224,38 @@ class ListricKinematicExtender(Component):
         self._hw_thick[:] = self._elev - self._fault_plane_elev
 
     def _setup_advection_component(
-        self, grid, extension_rate_x, extension_rate_y, advection_direction_is_steady
+        self,
+        grid,
+        fields_to_advect,
+        extension_rate_x,
+        extension_rate_y,
+        advection_direction_is_steady,
     ):
         """Instantiate and initialize AdvectionSolverTVD.
 
         If the link field advection__velocity already exists and contains
         non-zero values, these values are used for the advection field.
-        Otherwise, the field is created if needed, and initialized by mapping
+        Otherwise, the field is created (if needed) and initialized by mapping
         the vector components extension_rate_x and extension_rate_y onto the
         grid links.
+
+        fields_to_advect : list
+            List of names of fields to advect. Can be an empty list.
+            "hangingwall__thickness" will be added to the list if it
+            is not already there.
+        extension_rate_x: float
+            Rate of x-directed horizontal motion of hangingwall relative to footwall
+            (m / y).
+        extension_rate_y: float
+            Rate of y-directed horizontal motion of hangingwall relative to footwall
+            (m / y).
+        advection_direction_is_steady : bool
+            Indicates whether the directions of advection are expected to remain
+            steady throughout a run. If True, some computation time is saved
+            by calculating upwind links only once.
         """
+        if "hangingwall__thickness" not in fields_to_advect:
+            fields_to_advect.append("hangingwall__thickness")
         if "advection__velocity" not in grid.at_link.keys():
             grid.add_zeros("advection__velocity", at="link")
         self._advec_velocity = grid.at_link["advection__velocity"]
@@ -263,12 +265,18 @@ class ListricKinematicExtender(Component):
             )
         self.advector = AdvectionSolverTVD(
             grid,
-            field_to_advect="hangingwall__thickness",
+            fields_to_advect=fields_to_advect,
             advection_direction_is_steady=advection_direction_is_steady,
         )
 
     def run_one_step(self, dt):
-        """Apply extensional motion to grid for one time step."""
+        """Apply extensional motion to grid for one time step.
+
+        Parameters
+        ----------
+        dt : float
+            Time-step duration, y
+        """
         self.advector.run_one_step(dt)
         self._elev[self.grid.core_nodes] = (
             self._fault_plane_elev[self.grid.core_nodes]
