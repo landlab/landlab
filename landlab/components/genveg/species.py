@@ -21,6 +21,17 @@ class Species(object):
         self.growth_parts.remove("reproductive")
         self.abg_parts = self.growth_parts.copy()
         self.abg_parts.remove("root")
+        self.dead_parts = [
+            "dead_root",
+            "dead_leaf",
+            "dead_stem",
+            "dead_reproductive",
+            "dead_storage",
+        ]
+        self.dead_abg_parts = self.dead_parts.copy()
+        self.dead_abg_parts.remove("dead_root")
+        self.dead_abg_parts.remove("dead_storage")
+        self.dead_abg_parts.remove("dead_reproductive")
 
         self.validate_plant_factors(species_params["plant_factors"])
         self.validate_duration_params(species_params["duration_params"])
@@ -310,31 +321,8 @@ class Species(object):
         )
         self.biomass_allocation_array["abg_biomass"] = _leaf_biomasss + _stem_biomass
 
-    def test_output(self):
-        return self.habit.duration.emerge_plants
-
     def branch(self):
         self.form.branch()
-
-    def sum_plant_parts(
-        self, _new_biomass, parts="total"
-    ):  # edit to have part for persistant, green parts (2 new lines of code)
-        if parts == "total":
-            parts_dict = self.all_parts
-        elif parts == "growth":
-            parts_dict = self.growth_parts
-        elif parts == "aboveground":
-            parts_dict = self.abg_parts
-        elif parts == "persistent":
-            parts_dict = self.habit.duration.persistent_parts
-        elif parts == "green":
-            parts_dict = self.habit.duration.green_parts
-
-        # elif parts == 'green parts': self.habit.green_parts
-        _new_tot = np.zeros_like(_new_biomass["root_biomass"])
-        for part in parts_dict:
-            _new_tot += _new_biomass[part]
-        return _new_tot
 
     def disperse(self, plants):
         # decide how to parameterize reproductive schedule, make repro event
@@ -362,15 +350,85 @@ class Species(object):
     def enter_dormancy(
         self, plants
     ):  # calculate sum of green parts and sum of persistant parts
-        mass_green_parts = self.sum_plant_parts(plants, parts="green")
-        mass_persistent_parts = self.sum_plant_parts(plants, parts="persistent")
-        plants = self.habit.enter_dormancy(
-            plants, mass_green_parts, mass_persistent_parts
+        end_dead_age = plants["dead_age"]
+        end_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        plants = self.habit.enter_dormancy(plants)
+        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        plants["dead_age"] = self.calculate_dead_age(
+            end_dead_age, end_dead_bio, new_dead_bio
         )
         return plants
 
     def emerge(self, plants):
         plants = self.habit.duration.emerge(plants)
+        return plants
+
+    def litter_decomp(self, _new_biomass):
+        decay_rate = self.species_morph_params["biomass_decay_rate"]
+        sum_dead_mass = self.sum_plant_parts(_new_biomass, parts="dead")
+        cohort_init_mass = sum_dead_mass / np.exp(
+            -decay_rate * _new_biomass["dead_age"]
+        )
+        filter = np.where(sum_dead_mass > 0.0)
+        for part in self.dead_parts:
+            part_init_mass = np.zeros_like(_new_biomass["dead_age"])
+            part_init_mass[filter] = (
+                cohort_init_mass[filter]
+                * _new_biomass[part][filter]
+                / sum_dead_mass[filter]
+            )
+            _new_biomass[part] = part_init_mass * np.exp(
+                -decay_rate * (_new_biomass["dead_age"] + self.dt.astype(float))
+            )
+        _new_biomass["dead_age"] += self.dt.astype(float) * np.ones_like(
+            _new_biomass["dead_age"]
+        )
+        return _new_biomass
+
+    def mortality(self, plants, _in_growing_season):
+        # set flags for three types of mortality periods
+        mortdict = self.species_mort_params
+        mort_period_bool = {
+            "during growing season": _in_growing_season == True,
+            "during dormant season": _in_growing_season == False,
+            "year-round": True,
+        }
+        factors = mortdict["mort_variable_name"]
+        old_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        old_dead_age = plants["dead_age"]
+
+        for fact in factors:
+            # Determine if mortality factor is applied
+            run_mort = mort_period_bool[mortdict["period"][fact]]
+            if not run_mort:
+                continue
+            else:
+                try:
+                    # Assign mortality predictor from grid to plant
+                    pred = self._grid["cell"][factors[fact]][plants["cell_index"]]
+                    coeffs = mortdict["coeffs"][fact]
+                    # Calculate the probability of survival and cap from 0-1
+                    prob_survival = 1 / (1 + coeffs[0] * np.exp(-coeffs[1] * pred))
+                    prob_survival[np.isnan(prob_survival)] = 1.0
+                    prob_survival[prob_survival < 0] = 0
+                    prob_survival_daily = prob_survival ** (
+                        1 / (mortdict["duration"][fact] / self.dt.astype(int))
+                    )
+                    daily_survival = prob_survival_daily > rng.random(pred.shape)
+                    for part in self.all_parts:
+                        plants["dead_" + str(part)] = plants["dead_" + str(part)] + (
+                            plants[part] * (np.invert(daily_survival).astype(int))
+                        )
+                        plants[part] = plants[part] * daily_survival.astype(int)
+
+                except KeyError:
+                    msg = f"No data available for mortality factor {factors[fact]}"
+                    raise ValueError(msg)
+
+        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        plants["dead_age"] = self.calculate_dead_age(
+            old_dead_age, old_dead_bio, new_dead_bio
+        )
         return plants
 
     def photosynthesize(self, _par, _last_biomass, _glu_req, _daylength):
@@ -383,7 +441,6 @@ class Species(object):
         growdict = self.species_grow_params
         # repiration coefficient temp dependence from Teh 2006
         maint_respire = np.zeros_like(_glu_req)
-        # can i create a dictionary with alias?
         for part in self.all_parts:
             maint_respire += (
                 growdict["respiration_coefficient"][part] * _last_biomass[part]
@@ -398,7 +455,13 @@ class Species(object):
         return delta_biomass_respire
 
     def senesce(self, plants):
-        plants = self.habit.senesce(plants)
+        mass_green_parts = self.sum_plant_parts(plants, parts="green")
+        mass_persistent_parts = self.sum_plant_parts(plants, parts="persistent")
+        plants = self.habit.senesce(
+            plants,
+            mass_green_parts=mass_green_parts,
+            mass_persistent_parts=mass_persistent_parts,
+        )
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
@@ -445,10 +508,39 @@ class Species(object):
 
     def update_morphology(self, plants):
         abg_biomass = self.sum_plant_parts(plants, parts="aboveground")
-        dims = self.shape.calc_abg_dims_from_biomass(abg_biomass)
+        # dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
+        # total_abg_biomass = abg_biomass + dead_abg_biomass
+        total_abg_biomass = abg_biomass
+        dims = self.shape.calc_abg_dims_from_biomass(total_abg_biomass)
         plants["shoot_sys_width"] = dims[0]
         plants["shoot_sys_height"] = dims[1]
         plants["root_sys_width"] = self.shape.calc_root_sys_width(
             plants["shoot_sys_width"]
         )
         return plants
+
+    def sum_plant_parts(self, _new_biomass, parts="total"):
+        parts_choices = {
+            "total": self.all_parts,
+            "growth": self.growth_parts,
+            "aboveground": self.abg_parts,
+            "persistent": self.habit.duration.persistent_parts,
+            "green": self.habit.duration.green_parts,
+            "dead": self.dead_parts,
+            "dead_aboveground": self.dead_abg_parts,
+        }
+
+        parts_dict = parts_choices[parts]
+        _new_tot = np.zeros_like(_new_biomass["root_biomass"])
+        for part in parts_dict:
+            _new_tot += _new_biomass[part]
+        return _new_tot
+
+    def calculate_dead_age(self, age_t1, mass_t1, mass_t2):
+        age_t2 = np.zeros_like(age_t1)
+        filter = np.where(mass_t2 > 0)
+        age_t2[filter] = (
+            (age_t1[filter] * mass_t1[filter])
+            + ((mass_t2[filter] - mass_t1[filter]) * np.zeros_like(age_t1[filter]))
+        ) / (mass_t2[filter])
+        return age_t2

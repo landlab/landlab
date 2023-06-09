@@ -316,7 +316,14 @@ class GenVeg(Component, PlantGrowth):
 
     def check_if_loc_unocc(self, plant_loc, plant_width, all_plants, check_type):
         plants_with_locations = all_plants[~np.isnan(all_plants["x_loc"])]
-        # check this method
+
+        # This code looks for the cells around the plant cell_index
+        #    parent_cell=new_pups['cell_index']
+        #    query_cells=self._grid.looped_neighbors_at_cell[pup['cell_index']]
+        #    query_cells.append(parent_cell)
+        #    plants_to_check=all_plants[np.isin(new_pups['cell_index'], query_cells)]
+        # check to see if we can vectorize this method
+        # We can also downselect so we are only checking plants in the surrounding cells
         area = {"above": "shoot_sys_width", "below": "root_sys_width"}
         is_center_unocc = []
         for idx, loc in enumerate(plant_loc):
@@ -332,66 +339,64 @@ class GenVeg(Component, PlantGrowth):
         return is_center_unocc
 
     def check_for_dispersal_success(self, all_plants):
+        # Somehow introducing dead fraction has stopped dispersal from being successful.
         new_pups = all_plants[~np.isnan(all_plants["pup_x_loc"])]
         pup_locs = tuple(zip(new_pups["pup_x_loc"], new_pups["pup_y_loc"]))
         pup_widths = np.zeros_like(new_pups["pup_x_loc"])
-        if new_pups.size == 0:
-            pass
-        else:
+
+        if new_pups.size != 0:
             loc_unoccupied = self.check_if_loc_unocc(
                 pup_locs, pup_widths, all_plants, "below"
             )
-            # print('There were '+str(new_pups.size)+' potential new plants')
+            print("There were " + str(new_pups.size) + " potential new plants")
             pup_successful = np.nonzero(loc_unoccupied == True)
             new_pups = new_pups[pup_successful]
-            # print('Only '+str(new_pups.size)+' were successful')
+            print("Only " + str(new_pups.size) + " were successful")
             new_pups["x_loc"] = new_pups["pup_x_loc"]
             new_pups["y_loc"] = new_pups["pup_y_loc"]
-            for species_obj in self.plant_species:
-                species = species_obj.species_name
-                species_new_pups = new_pups[new_pups["species"] == species]
-                species_plants = all_plants[all_plants["species"] == species]
-                if species_new_pups.size == 0:
-                    continue
-                else:
-                    species_parents = species_new_pups
-                    species_new_pups = species_obj.habit.duration.set_new_biomass(
-                        species_new_pups
-                    )
-                    species_new_pups = species_obj.update_morphology(species_new_pups)
-                    species_new_pups["plant_age"] = np.zeros_like(
-                        species_new_pups["root"]
-                    )
-                    species_new_pups["cell_index"] = self._grid.cell_at_node[
-                        self._grid.find_nearest_node(
-                            (species_new_pups["x_loc"], species_new_pups["y_loc"]),
-                            mode="clip",
-                        )
-                    ]
-                    species_parents["reproductive"] -= (
-                        species_new_pups["root"]
-                        + species_new_pups["leaf"]
-                        + species_new_pups["stem"]
-                        + species_parents["pup_cost"]
-                    )
-                    species_obj.update_plants(
-                        ["reproductive"],
-                        species_parents["pid"],
-                        species_parents["reproductive"],
-                    )
-                    species_obj.add_new_plants(species_new_pups)
-                    print("Successful dispersal occurred")
-                species_obj.update_plants(
-                    ["pup_x_loc", "pup_y_loc", "pup_cost"],
-                    species_plants["pid"],
-                    np.vstack(
-                        (
-                            np.full_like(species_plants["root"], np.nan),
-                            np.full_like(species_plants["root"], np.nan),
-                            np.full_like(species_plants["root"], np.nan),
-                        )
-                    ),
+
+        for species_obj in self.plant_species:
+            species = species_obj.species_name
+            species_new_pups = new_pups[new_pups["species"] == species]
+            species_plants = all_plants[all_plants["species"] == species]
+            if species_new_pups.size != 0:
+                species_parents = species_new_pups
+                species_new_pups = species_obj.habit.duration.set_new_biomass(
+                    species_new_pups
                 )
+                species_new_pups = species_obj.update_morphology(species_new_pups)
+                species_new_pups["plant_age"] = np.zeros_like(species_new_pups["root"])
+                species_new_pups["cell_index"] = self._grid.cell_at_node[
+                    self._grid.find_nearest_node(
+                        (species_new_pups["x_loc"], species_new_pups["y_loc"]),
+                        mode="clip",
+                    )
+                ]
+                species_parents["reproductive"] -= (
+                    species_new_pups["root"]
+                    + species_new_pups["leaf"]
+                    + species_new_pups["stem"]
+                    + species_parents["pup_cost"]
+                )
+                species_obj.update_plants(
+                    ["reproductive"],
+                    species_parents["pid"],
+                    species_parents["reproductive"],
+                )
+                species_obj.add_new_plants(species_new_pups)
+                print("Successful dispersal occurred")
+
+            species_obj.update_plants(
+                ["pup_x_loc", "pup_y_loc", "pup_cost"],
+                species_plants["pid"],
+                np.vstack(
+                    (
+                        np.full_like(species_plants["root"], np.nan),
+                        np.full_like(species_plants["root"], np.nan),
+                        np.full_like(species_plants["root"], np.nan),
+                    )
+                ),
+            )
 
         return self.combine_plant_arrays()
 

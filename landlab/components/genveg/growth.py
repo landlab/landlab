@@ -283,18 +283,44 @@ class PlantGrowth(Species):
         return self.plants
 
     def _grow(self, _current_jday):
-        # set up shorthand aliases
+        ###This is the primary method in PlantGrowth and is run within each
+        # GenVeg run_one_step at each timestep. This method applies new environmental
+        # conditions daily from the grid, determines what processes run, and implements
+        # them in order to update the plant array.
+
+        # set up shorthand aliases and reset
         growdict = self.species_grow_params
         _last_biomass = self.plants
         _new_biomass = _last_biomass
-        _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
-        filter = np.where(_total_biomass > 0)
+
+        # Decide what processes happen today
+        event_flags = self.set_event_flags(_current_jday)
+        processes = {
+            "_in_growing_season": self.photosynthesize,
+            "_in_senescence_period": self.senesce,
+            "_in_reproductive_period": self.disperse,
+            "_is_emergence_day": self.emerge,
+            "_is_dormant_day": self.enter_dormancy,
+        }
+
+        # Run mortality and decompose litter each day
+        _new_biomass = self.mortality(_new_biomass, event_flags["_in_growing_season"])
+        _new_biomass = self.litter_decomp(_new_biomass)
+        _new_biomass = self.remove_plants(_new_biomass)
+
+        # Limit growth processes only to live plants
+        filter = np.where(_new_biomass["root"] > 0.0)
+        _last_live_biomass = _last_biomass[filter]
+        _live_biomass = _new_biomass[filter]
+        _total_biomass = self.sum_plant_parts(_last_live_biomass, parts="total")
 
         # calculate variables needed to run plant processes
-        _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]]
+        _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
+            filter
+        ]
         _temperature = self._grid["cell"]["air__temperature_C"][
             _last_biomass["cell_index"]
-        ]
+        ][filter]
         _declination = np.radians(23.45) * (
             np.cos(2 * np.pi / 365 * (172 - _current_jday))
         )
@@ -307,42 +333,38 @@ class PlantGrowth(Species):
             )
         )
 
-        # Decide what processes happen today
-        event_flags = self.set_event_flags(_current_jday)
-        processes = {
-            "_in_growing_season": self.photosynthesize,
-            "_in_senescence_period": self.senesce,
-            "_in_reproductive_period": self.disperse,
-            "_is_emergence_day": self.emerge,
-            "_is_dormant_day": self.enter_dormancy,
-        }
-
-        _new_biomass = self._mortality(_new_biomass, event_flags["_in_growing_season"])
         # Run respiration and photosynthesis to determine carb gained
         _glu_req = np.zeros_like(_total_biomass)
         for part in self.all_parts:
-            _glu_req[filter] += (
-                _last_biomass[part][filter] / _total_biomass[filter]
-            ) * growdict["glucose_requirement"][part]
-            delta_biomass_respire = self.respire(_temperature, _last_biomass, _glu_req)
+            _glu_req += (_last_live_biomass[part] / _total_biomass) * growdict[
+                "glucose_requirement"
+            ][part]
+            delta_biomass_respire = self.respire(
+                _temperature, _last_live_biomass, _glu_req
+            )
 
         if event_flags["_in_growing_season"]:
             delta_photo = processes["_in_growing_season"](
-                _par, _last_biomass, _glu_req, _daylength
+                _par, _last_live_biomass, _glu_req, _daylength
             )
             delta_tot = delta_biomass_respire + delta_photo
             # we will need to add a turnover rate estiamte. Not sure where to include it though.
             # delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
-            _new_biomass = self.allocate_biomass_dynamically(delta_tot)
+            _new_live_biomass = self.allocate_biomass_dynamically(
+                _live_biomass, delta_tot
+            )
         else:
-            _new_biomass = self.allocate_biomass_proportionately(delta_biomass_respire)
+            _new_live_biomass = self.allocate_biomass_proportionately(
+                _live_biomass, _total_biomass, delta_biomass_respire
+            )
         event_flags.pop("_in_growing_season")
 
         # Run all other processes that need to occur
         for process in event_flags.items():
             if process[1]:
-                _new_biomass = processes[process[0]](_new_biomass)
+                _new_live_biomass = processes[process[0]](_new_live_biomass)
 
+        _new_biomass[filter] = _new_live_biomass
         _new_biomass = self.update_morphology(_new_biomass)
         # print('Completed run_one_step for '+self.species_name+' on day '+str(_current_jday))
         self.plants = _new_biomass
@@ -366,6 +388,12 @@ class PlantGrowth(Species):
             (("stem", "stem_biomass"), float),
             (("storage", "storage_biomass"), float),
             (("reproductive", "repro_biomass"), float),
+            ("dead_root", float),
+            ("dead_stem", float),
+            ("dead_leaf", float),
+            ("dead_storage", float),
+            ("dead_reproductive", float),
+            ("dead_age", float),
             ("shoot_sys_width", float),
             ("root_sys_width", float),
             ("shoot_sys_height", float),
@@ -417,6 +445,12 @@ class PlantGrowth(Species):
                                 0.0,
                                 0.0,
                                 0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
                                 new_plant_width,
                                 0.0,
                                 0.0,
@@ -434,7 +468,7 @@ class PlantGrowth(Species):
         plant_array = self.set_initial_biomass(plant_array, in_growing_season)
         return plant_array
 
-    def allocate_biomass_dynamically(self, delta_tot):
+    def allocate_biomass_dynamically(self, _live_biomass, delta_tot):
         ###This method allocates new biomass according to the size-dependent
         # biomass allocation array calculated upon initiation of the PlantGrowth class.
         # The array is only valid for actively growing plants so this method is only
@@ -445,15 +479,16 @@ class PlantGrowth(Species):
         # Required parameters are the new net biomass generated for the day
         ###
 
+        _new_biomass = _live_biomass
+
         # Interpolate values from biomass allocation array
-        _new_biomass = self.plants
         delta_leaf_unit_root = np.interp(
-            _new_biomass["root_biomass"],
+            _live_biomass["root_biomass"],
             self.biomass_allocation_array["prior_root_biomass"],
             self.biomass_allocation_array["delta_leaf_unit_root"],
         )
         delta_stem_unit_root = np.interp(
-            _new_biomass["root_biomass"],
+            _live_biomass["root_biomass"],
             self.biomass_allocation_array["prior_root_biomass"],
             self.biomass_allocation_array["delta_stem_unit_root"],
         )
@@ -464,9 +499,9 @@ class PlantGrowth(Species):
         delta_stem = delta_stem_unit_root * delta_root
 
         # update biomass in plant array
-        _new_biomass["root_biomass"] = self.plants["root_biomass"] + delta_root
-        _new_biomass["leaf_biomass"] = self.plants["leaf_biomass"] + delta_leaf
-        _new_biomass["stem_biomass"] = self.plants["stem_biomass"] + delta_stem
+        _new_biomass["root_biomass"] = _live_biomass["root_biomass"] + delta_root
+        _new_biomass["leaf_biomass"] = _live_biomass["leaf_biomass"] + delta_leaf
+        _new_biomass["stem_biomass"] = _live_biomass["stem_biomass"] + delta_stem
 
         # Adjust biomass allocation among storage and growth parts
         _new_biomass = self.redistribute_storage_biomass(_new_biomass)
@@ -547,7 +582,9 @@ class PlantGrowth(Species):
         ] = 0.0
         return _new_biomass
 
-    def allocate_biomass_proportionately(self, delta_tot):
+    def allocate_biomass_proportionately(
+        self, _last_biomass, _total_biomass, delta_tot
+    ):
         ###This method allocates new net biomass amongst growth parts
         # proportionately based on the relative size of the part. This
         # method is used outside of the growing season since some plant parts
@@ -556,7 +593,6 @@ class PlantGrowth(Species):
         # biomass to dormant growth parts as needed.
         # Required parameter is a numpy array of net biomass change to be applied
         # to the plant and it returns the structured array _new_biomass.
-        _last_biomass = self.plants
         _new_biomass = _last_biomass
         _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
         filter = np.where(_total_biomass != 0)
@@ -568,6 +604,10 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
+        ###This method adjusts biomass allocation towards the ideal allocation
+        # proportions based on the plant size. If parts of the plant are
+        # removed via herbivory or damage, this allows the plant to utilize
+        # other stored resources to regrow the damaged parts.
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         current_leaf_mass_frac = np.divide(
             _new_biomass["leaf_biomass"],
@@ -612,6 +652,8 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def set_event_flags(self, _current_jday):
+        ###This method sets event flags so required processes are run based
+        # on the day of year.
         durationdict = self.species_duration_params
         flags_to_test = {
             "_in_growing_season": bool(
@@ -636,14 +678,37 @@ class PlantGrowth(Species):
         return flags_to_test
 
     def kill_small_plants(self, _new_biomass):
+        ###This method moved live biomass to dead biomass is the plant
+        # is too small to grow.
         min_size = self.species_grow_params["min_growth_biomass"]
         total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         dead_plants = np.where(total_biomass < min_size)
-        _new_biomass = np.delete(_new_biomass, dead_plants, axis=None)
+        for part in self.all_parts:
+            _new_biomass["dead_" + str(part)][dead_plants] += _new_biomass[part][
+                dead_plants
+            ]
+            _new_biomass[part][dead_plants] = np.zeros_like(
+                _new_biomass[part][dead_plants]
+            )
         return _new_biomass
 
-    # Save plant array output Modify this in future to take user input and add additional parameters that can be saved out
+    def remove_plants(self, _new_biomass):
+        ###Plants that have too little dead biomass remaining to track
+        # are removed from the plant array and no longer tracked.
+        min_size_dead = 0.1
+        min_size_live = self.species_grow_params["min_growth_biomass"]
+        total_live_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
+        total_dead_biomass = self.sum_plant_parts(_new_biomass, parts="dead")
+        remove_plants = np.where(
+            (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
+        )
+        print('There were ')
+        _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
+        return _new_biomass
+
     def save_plant_output(self, rel_time, save_params):
+        ###This method saves plant properties at the required time step
+        # future work versions will save additional variables based on user input.
         prev_time = self.record_plants.latest_time
         # new_ids=np.where(np.isin(self.plants['pid'],self.record_plants.dataset['item_id'].values[:,prev_time], invert=True))
         # for i in new_ids:
@@ -686,40 +751,3 @@ class PlantGrowth(Species):
         #    }
         # )
         self.time_ind += 1
-
-    # Initial recode of simple mortality function
-    def _mortality(self, new_biomass, _in_growing_season):
-        # set flags for three types of mortality periods
-        mortdict = self.species_mort_params
-        mort_period_bool = {
-            "during growing season": _in_growing_season == True,
-            "during dormant season": _in_growing_season == False,
-            "year-round": True,
-        }
-        factors = mortdict["mort_variable_name"]
-        for fact in factors:
-            # Determine if mortality factor is applied
-            run_mort = mort_period_bool[mortdict["period"][fact]]
-            if not run_mort:
-                continue
-            else:
-                try:
-                    # Assign mortality predictor from grid to plant
-                    pred = self._grid["cell"][factors[fact]][new_biomass["cell_index"]]
-                    coeffs = mortdict["coeffs"][fact]
-                    # Calculate the probability of survival and cap from 0-1
-                    prob_survival = 1 / (1 + coeffs[0] * np.exp(-coeffs[1] * pred))
-                    prob_survival[np.isnan(prob_survival)] = 1.0
-                    prob_survival[prob_survival < 0] = 0
-                    prob_survival_daily = prob_survival ** (
-                        1 / (mortdict["duration"][fact] / self.dt.astype(int))
-                    )
-                    daily_surival = prob_survival_daily > rng.random(pred.shape)
-                    for part in self.all_parts:
-                        new_biomass[part] = new_biomass[part] * daily_surival.astype(
-                            int
-                        )
-                except KeyError:
-                    msg = f"No data available for mortality factor {factors[fact]}"
-                    raise ValueError(msg)
-        return new_biomass
