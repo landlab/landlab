@@ -63,6 +63,8 @@ def test_notebooks(session: nox.Session) -> None:
         "--file",
         "notebooks/requirements.in",
         "--file",
+        "requirements-testing.in",
+        "--file",
         "requirements.in",
     )
     session.install("-e", ".", "--no-deps")
