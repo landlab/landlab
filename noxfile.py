@@ -14,7 +14,7 @@ def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
 
-    session.conda_install("c-compiler")
+    session.conda_install("c-compiler", "cxx-compiler")
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
     session.conda_install("--file", "requirements.in")
     session.conda_install("--file", "requirements-testing.in")
@@ -55,7 +55,7 @@ def test_notebooks(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
-    session.conda_install("c-compiler")
+    session.conda_install("c-compiler", "cxx-compiler")
     session.conda_install("richdem")
     session.conda_install(
         "pytest",
