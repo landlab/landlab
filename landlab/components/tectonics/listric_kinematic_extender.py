@@ -171,7 +171,7 @@ class ListricKinematicExtender(Component):
         self._fault_plane_elev = grid.at_node["fault_plane__elevation"]
         self._hw_thick = grid.at_node["hangingwall__thickness"]
 
-        self._setup_fault_plane_elevation_and_hangingwall_thickness(
+        self.update_fault_plane_elevation_and_hangingwall_thickness(
             grid, fault_x0, fault_y0, fault_strike, fault_dip, detachment_depth
         )
         self._setup_advection_component(
@@ -182,7 +182,7 @@ class ListricKinematicExtender(Component):
             advection_direction_is_steady,
         )
 
-    def _setup_fault_plane_elevation_and_hangingwall_thickness(
+    def update_fault_plane_elevation_and_hangingwall_thickness(
         self, grid, fault_x0, fault_y0, fault_strike, fault_dip, detachment_depth
     ):
         """Initialize fields fault_plane__elevation and hangingwall__thickness.
