@@ -51,7 +51,6 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
     cdef double vol_SSY_riv
     vol_SSY_riv =0.0
 
-
     for node_id in stack_flip_ud_sel:
         qs_out = (qs_in[node_id] + Es[node_id]*cell_area[node_id] + (1.0-F_f)*Er[node_id]* cell_area[node_id]) / \
                         (1.0+(v*cell_area[node_id]/q[node_id]))

@@ -1070,12 +1070,6 @@ def test_MassBalance():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    # fa = PriorityFloodFlowRouter(
-    #   mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True
-    # )
-    # fa.run_one_step()
-
-    # Create a D8 flow handler
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
     )
@@ -1111,6 +1105,7 @@ def test_MassBalance():
     H = mg.at_node["soil__depth"]
     cores = mg.core_nodes
     area = mg.cell_area_at_node
+
     # ... and run it to steady state (10000x1-year timesteps).
     for _ in range(10000):
         fa.run_one_step()
