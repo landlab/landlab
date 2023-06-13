@@ -357,7 +357,7 @@ def erode_fn(DTYPE_FLOAT_t x,
     """
     cdef double f
 
-    f = x - 1.0 + (alpha * (x ** n)) - beta
+    f = x - 1.0 + (alpha * pow(x, n)) - beta
 
     return f
 
