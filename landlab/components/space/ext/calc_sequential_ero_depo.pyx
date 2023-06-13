@@ -93,7 +93,6 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
         qs_out_adj =  qs_in[node_id] - ((H_loc - H_Before)*(1-phi)*cell_area[node_id]/dt) +(1.0-F_f)*ero_bed* cell_area[node_id]# should always be bigger than 0
 
         qs[node_id] = qs_out_adj
-        qs_in[node_id] = 0
         qs_in[flow_receivers[node_id]] += qs[node_id]
 
         H[node_id] = H_loc
