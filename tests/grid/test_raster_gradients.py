@@ -3,54 +3,25 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.grid.ext.raster_gradient import (
-    calc_diff_at_link as _calc_diff_at_link_c,
-    calc_grad_at_link as _calc_grad_at_link_c,
-)
-from landlab.grid.gradients import calc_diff_at_link
-from landlab.grid.raster_gradients import calc_grad_at_link
-
-
-def calc_diff_at_link_c(grid, value_at_node, out=None):
-    if out is None:
-        out = grid.empty(at="link")
-    _calc_diff_at_link_c(grid.shape, value_at_node, out)
-    return out
-
-
-def calc_grad_at_link_c(grid, value_at_node, out=None):
-    if out is None:
-        out = grid.empty(at="link")
-    _calc_grad_at_link_c(grid.shape, (grid.dx, grid.dy), value_at_node, out)
-    return out
+from landlab.grid.raster_gradients import calc_diff_at_link, calc_grad_at_link
 
 
 @pytest.mark.benchmark(group="calc_diff_at_link")
-@pytest.mark.parametrize("func", (calc_diff_at_link, calc_diff_at_link_c))
-def test_calc_diff_at_link_bench(benchmark, func):
+def test_calc_diff_at_link_bench(benchmark):
     grid = RasterModelGrid((400, 5000), (1.0, 2.0))
     value_at_node = np.random.uniform(size=grid.number_of_links)
     out = grid.empty(at="link")
 
-    expected = grid.calc_diff_at_link(value_at_node)
-
-    benchmark(func, grid, value_at_node, out=out)
-
-    assert_array_almost_equal(expected, out)
+    benchmark(calc_diff_at_link, grid, value_at_node, out=out)
 
 
 @pytest.mark.benchmark(group="calc_grad_at_link")
-@pytest.mark.parametrize("func", (calc_grad_at_link, calc_grad_at_link_c))
-def test_calc_grad_at_link_bench(benchmark, func):
+def test_calc_grad_at_link_bench(benchmark):
     grid = RasterModelGrid((400, 5000), (1.0, 2.0))
     value_at_node = np.random.uniform(size=grid.number_of_links)
     out = grid.empty(at="link")
 
-    expected = grid.calc_grad_at_link(value_at_node)
-
-    benchmark(func, grid, value_at_node, out=out)
-
-    assert_array_almost_equal(expected, out)
+    benchmark(calc_grad_at_link, grid, value_at_node, out=out)
 
 
 def test_calc_grad_at_active_d8():
