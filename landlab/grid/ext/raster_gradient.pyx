@@ -14,7 +14,7 @@ ctypedef fused float_or_int:
 @cython.wraparound(False)
 def calc_diff_at_link(
     shape,
-    const cython.numeric[:] value_at_node,
+    const float_or_int[:] value_at_node,
     cython.floating[:] out,
 ):
     cdef int n_rows = shape[0]
