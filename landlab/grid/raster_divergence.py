@@ -1,13 +1,8 @@
 #! /usr/bin/env python
 """Calculate flux divergence on a raster grid."""
-from collections import deque
-
-import numpy as np
+from landlab.utils.decorators import use_field_name_or_array
 
 from .ext.raster_divergence import calc_flux_div_at_node as _calc_flux_div_at_node_c
-from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
-from landlab.grid import gradients
-from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array("link")

@@ -15,11 +15,12 @@ from collections import deque
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
-from landlab.grid import gradients
 from landlab.utils.decorators import use_field_name_or_array
 
-from .ext.raster_gradient import calc_grad_at_link as _calc_grad_at_link_c
-from .ext.raster_gradient import calc_diff_at_link as _calc_diff_at_link_c
+from .ext.raster_gradient import (
+    calc_diff_at_link as _calc_diff_at_link_c,
+    calc_grad_at_link as _calc_grad_at_link_c,
+)
 
 
 @use_field_name_or_array("node")
@@ -281,7 +282,9 @@ def calc_grad_at_link(grid, value_at_node, out=None):
     """
     if out is None:
         out = grid.empty(at="link")
-    _calc_grad_at_link_c(grid.shape, (grid.dx, grid.dy), np.asarray(value_at_node).reshape(-1), out)
+    _calc_grad_at_link_c(
+        grid.shape, (grid.dx, grid.dy), np.asarray(value_at_node).reshape(-1), out
+    )
 
     return out
 
