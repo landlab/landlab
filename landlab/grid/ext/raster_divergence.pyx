@@ -15,7 +15,7 @@ ctypedef fused float_or_int:
 def calc_flux_div_at_node(
     shape,
     xy_spacing,
-    float_or_int[:] value_at_link,
+    const float_or_int[:] value_at_link,
     cython.floating[:] out,
 ):
     cdef int n_rows = shape[0]
