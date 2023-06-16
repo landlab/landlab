@@ -53,7 +53,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
 
     >>> grid.set_status_at_node_on_edges(right=grid.BC_NODE_IS_CLOSED)
     >>> grid.set_status_at_node_on_edges(top=grid.BC_NODE_IS_CLOSED)
-    >>> unit_flux_at_links = np.zeros(grid.number_of_links)
+    >>> unit_flux_at_links = grid.zeros(at="link")
     >>> unit_flux_at_links[grid.active_links] = -grads[grid.active_links]
     >>> calc_flux_div_at_node(grid, unit_flux_at_links).reshape(grid.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ],
