@@ -2,17 +2,18 @@
 
 import os
 import pathlib
-from landlab import RasterModelGrid
 
 
-def _write_vtk_header(file_like, dataset_type="UNSTRUCTURED_GRID"):
+def _write_vtk_header(file_like):
+    """Write the file header."""
     file_like.write("# vtk DataFile Version 2.0\n")
     file_like.write("Landlab output\n")
     file_like.write("ASCII\n")
-    file_like.write("DATASET " + dataset_type + "\n\n")
+    file_like.write("DATASET UNSTRUCTURED_GRID\n\n")
 
 
 def _write_vtk_points(grid, file_like, z_at_node):
+    """Write the POINTS section of the file(-like)"""
     x = grid.x_of_node
     y = grid.y_of_node
     z = z_at_node
@@ -23,6 +24,7 @@ def _write_vtk_points(grid, file_like, z_at_node):
 
 
 def _write_vtk_patches(grid, file_like):
+    """Write the CELLS section (in a Landlab grid these are patches)"""
     num_patches = grid.number_of_patches
     nodes_per_patch = len(grid.nodes_at_patch[0])
     file_like.write("CELLS " + str(num_patches) + " " + str((nodes_per_patch + 1) * num_patches) + "\n")
@@ -35,6 +37,7 @@ def _write_vtk_patches(grid, file_like):
 
 
 def _write_vtk_cell_types(grid, file_like):
+    """Write the CELL_TYPES section (triangles or quads)"""
     file_like.write("CELL_TYPES " + str(grid.number_of_patches) + "\n")
     if len(grid.nodes_at_patch[0]) == 3:  # triangles
         cell_type = "5\n"  # vtk code for a triangle
@@ -46,6 +49,7 @@ def _write_vtk_cell_types(grid, file_like):
 
 
 def _write_scalar_data(grid, file_like, field):
+    """Write the SCALARS section for a given field"""
     file_like.write("SCALARS " + field + " float 1\n")
     file_like.write("LOOKUP_TABLE default\n")
     for i in range(grid.number_of_nodes):
@@ -54,6 +58,8 @@ def _write_scalar_data(grid, file_like, field):
 
 
 def _write_vtk_point_data(grid, file_like, fields):
+    """Write the POINT_DATA section, which in turn writes a SCALARS
+    section for each field in `fields`"""
     file_like.write("POINT_DATA " + str(grid.number_of_nodes) + "\n")
     for fieldname in fields:
         _write_scalar_data(grid, file_like, fieldname)
@@ -64,6 +70,20 @@ def write_legacy_vtk(
     path, grid, z_at_node="topographic__elevation", fields=None, clobber=False
 ):
     """
+    Write grid and field to a legacy VTK format file or file-like object.
+
+    Parameters
+    ----------
+    path : file-like
+        Path to file or a file-like object
+    grid : Landlab grid object
+        The grid for which to output data
+    z_at_node : str or (n_nodes, ) ndarray
+        Field name or array of values to use for z coordinate
+    fields : list of str (optional)
+        List of node fields to output; default is all node fields
+    clobber : bool (optional)
+        Ok to overwrite existing file (default False)
 
     Examples
     --------
@@ -150,13 +170,9 @@ def write_legacy_vtk(
 
 
 def _write_legacy_vtk_to_filelike(file_like, grid, z_at_node, fields):
-    #if isinstance(grid, RasterModelGrid):
-    #    dataset_type = "STRUCTURED_GRID"
-    #else:
-    dataset_type = "UNSTRUCTURED_GRID"
-    _write_vtk_header(file_like, dataset_type=dataset_type)
+    """Write output to specified file_like"""
+    _write_vtk_header(file_like)
     _write_vtk_points(grid, file_like, z_at_node)
-    #if dataset_type == "UNSTRUCTURED_GRID":
     _write_vtk_patches(grid, file_like)
     _write_vtk_cell_types(grid, file_like)
     _write_vtk_point_data(grid, file_like, fields)
