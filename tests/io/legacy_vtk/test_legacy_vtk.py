@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 
 import io
+
 import numpy as np
+
 from landlab import RasterModelGrid
 from landlab.io import write_legacy_vtk
-
 
 EXPECTED_VTK_FOR_RASTER = """# vtk DataFile Version 2.0
 Landlab output
@@ -60,8 +61,8 @@ LOOKUP_TABLE default
 
 """
 
-def test_raster_grid():
 
+def test_raster_grid():
     # Create a tiny grid with 1 core node and 6 boundary nodes
     grid = RasterModelGrid((3, 3))
 
@@ -74,4 +75,4 @@ def test_raster_grid():
     # Write output in legacy VTK format
     vtk_file = write_legacy_vtk(io.StringIO(), grid)
 
-    assert(vtk_file.getvalue() == EXPECTED_VTK_FOR_RASTER)
+    assert vtk_file.getvalue() == EXPECTED_VTK_FOR_RASTER
