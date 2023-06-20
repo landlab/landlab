@@ -3,7 +3,10 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components.overland_flow._neighbors_at_link import fill_parallel_links_at_link, neighbors_at_link, sum_parallel_links
+from landlab.components.overland_flow._neighbors_at_link import (
+    fill_parallel_links_at_link,
+    sum_parallel_links,
+)
 
 
 def test_sum_parallel_links_bench(benchmark):
@@ -38,7 +41,7 @@ def test_sum_parallel_links():
             [-999, 20, 22, -999],
             [-999, 38, 40, -999],
             [-999, 56, 58, -999],
-        ]
+        ],
     )
     assert_array_equal(
         actual[grid.vertical_links].reshape((-1, shape[1])),
@@ -46,7 +49,7 @@ def test_sum_parallel_links():
             [-999, -999, -999, -999, -999],
             [26, 28, 30, 32, 34],
             [-999, -999, -999, -999, -999],
-        ]
+        ],
     )
 
 
@@ -62,17 +65,29 @@ def test_fill_parallel_links(benchmark):
     assert_array_equal(
         parallel_links_at_link[grid.horizontal_links],
         [
-            [-1, 1], [0, 2], [1, -1],
-            [-1, 8], [7, 9], [8, -1],
-            [-1, 15], [14, 16], [15, -1],
-        ]
+            [-1, 1],
+            [0, 2],
+            [1, -1],
+            [-1, 8],
+            [7, 9],
+            [8, -1],
+            [-1, 15],
+            [14, 16],
+            [15, -1],
+        ],
     )
     assert_array_equal(
         parallel_links_at_link[grid.vertical_links],
         [
-            [-1, 10], [-1, 11], [-1, 12], [-1, 13],
-            [3, -1], [4, -1], [5, -1], [6, -1],
-        ]
+            [-1, 10],
+            [-1, 11],
+            [-1, 12],
+            [-1, 13],
+            [3, -1],
+            [4, -1],
+            [5, -1],
+            [6, -1],
+        ],
     )
 
 
@@ -88,8 +103,6 @@ def test_fill_parallel_links_speed_c(benchmark):
 
 
 def _parallel_links_at_link(grid, out):
-    plinks_at_link = np.full((grid.number_of_links, 2), -1, dtype=int)
-
     out[grid.vertical_links, 0] = grid.links_at_node[
         grid.node_at_link_tail[grid.vertical_links], 3
     ]
