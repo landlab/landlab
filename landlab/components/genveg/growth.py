@@ -238,6 +238,24 @@ class PlantGrowth(Species):
                         self.plants["repro_biomass"], (self.plants["pid"].size, 1)
                     ),
                 ),
+                "vegetation__dead_root_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(self.plants["dead_root"], (self.plants["pid"].size, 1)),
+                ),
+                "vegetation__dead_leaf_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(self.plants["dead_leaf"], (self.plants["pid"].size, 1)),
+                ),
+                "vegetation__dead_stem_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(self.plants["dead_stem"], (self.plants["pid"].size, 1)),
+                ),
+                "vegetation__dead_repro_biomass": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["dead_reproductive"], (self.plants["pid"].size, 1)
+                    ),
+                ),
                 "vegetation__plant_age": (
                     ["item_id", "time"],
                     np.reshape(self.plants["plant_age"], (self.plants["pid"].size, 1)),
@@ -250,6 +268,10 @@ class PlantGrowth(Species):
                 "vegetation__stem_biomass": "g",
                 "vegetation__storage_biomass": "g",
                 "vegetation__repro_biomass": "g",
+                "vegetation__dead_root_biomass": "g",
+                "vegetation__dead_leaf_biomass": "g",
+                "vegetation__dead_stem_biomass": "g",
+                "vegetation__dead_repro_biomass": "g",
                 "vegetation__plant_age": "days",
             },
         )
@@ -309,10 +331,11 @@ class PlantGrowth(Species):
         _new_biomass = self.remove_plants(_new_biomass)
 
         # Limit growth processes only to live plants
-        filter = np.where(_new_biomass["root"] > 0.0)
+        _total_biomass = self.sum_plant_parts(_new_biomass, parts="total")
+        filter = np.nonzero(_total_biomass > 0.0)
         _last_live_biomass = _last_biomass[filter]
         _live_biomass = _new_biomass[filter]
-        _total_biomass = self.sum_plant_parts(_last_live_biomass, parts="total")
+        _last_total_biomass = _total_biomass[filter]
 
         # calculate variables needed to run plant processes
         _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
@@ -334,9 +357,9 @@ class PlantGrowth(Species):
         )
 
         # Run respiration and photosynthesis to determine carb gained
-        _glu_req = np.zeros_like(_total_biomass)
+        _glu_req = np.zeros_like(_last_total_biomass)
         for part in self.all_parts:
-            _glu_req += (_last_live_biomass[part] / _total_biomass) * growdict[
+            _glu_req += (_last_live_biomass[part] / _last_total_biomass) * growdict[
                 "glucose_requirement"
             ][part]
             delta_biomass_respire = self.respire(
@@ -355,7 +378,7 @@ class PlantGrowth(Species):
             )
         else:
             _new_live_biomass = self.allocate_biomass_proportionately(
-                _live_biomass, _total_biomass, delta_biomass_respire
+                _live_biomass, _last_total_biomass, delta_biomass_respire
             )
         event_flags.pop("_in_growing_season")
 
@@ -364,6 +387,9 @@ class PlantGrowth(Species):
             if process[1]:
                 _new_live_biomass = processes[process[0]](_new_live_biomass)
 
+        _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
+            _new_live_biomass["plant_age"]
+        )
         _new_biomass[filter] = _new_live_biomass
         _new_biomass = self.update_morphology(_new_biomass)
         # print('Completed run_one_step for '+self.species_name+' on day '+str(_current_jday))
@@ -682,7 +708,9 @@ class PlantGrowth(Species):
         # is too small to grow.
         min_size = self.species_grow_params["min_growth_biomass"]
         total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
-        dead_plants = np.where(total_biomass < min_size)
+        dead_plants = np.nonzero(total_biomass < min_size)
+        if dead_plants[0].size > 0:
+            print(str(dead_plants[0].size) + " were too small to survive")
         for part in self.all_parts:
             _new_biomass["dead_" + str(part)][dead_plants] += _new_biomass[part][
                 dead_plants
@@ -699,11 +727,12 @@ class PlantGrowth(Species):
         min_size_live = self.species_grow_params["min_growth_biomass"]
         total_live_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         total_dead_biomass = self.sum_plant_parts(_new_biomass, parts="dead")
-        remove_plants = np.where(
+        remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
-        print('There were ')
+        print("There were " + str(_new_biomass.size) + " plants")
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
+        print("After removal, there were " + str(_new_biomass.size) + (" plants"))
         return _new_biomass
 
     def save_plant_output(self, rel_time, save_params):
@@ -742,6 +771,18 @@ class PlantGrowth(Species):
         self.record_plants.dataset["vegetation__repro_biomass"].values[
             item_ids, self.time_ind
         ] = self.plants["repro_biomass"]
+        self.record_plants.dataset["vegetation__dead_root_biomass"].values[
+            item_ids, self.time_ind
+        ] = self.plants["dead_root"]
+        self.record_plants.dataset["vegetation__dead_leaf_biomass"].values[
+            item_ids, self.time_ind
+        ] = self.plants["dead_leaf"]
+        self.record_plants.dataset["vegetation__dead_stem_biomass"].values[
+            item_ids, self.time_ind
+        ] = self.plants["dead_stem"]
+        self.record_plants.dataset["vegetation__dead_repro_biomass"].values[
+            item_ids, self.time_ind
+        ] = self.plants["dead_reproductive"]
         #    item_id= np.reshape(self.plants['item_id'],(self.plants['item_id'].size,1)),
         #    new_record={
         #        'vegetation__species':(['item_id','time'],self.plants['species']),

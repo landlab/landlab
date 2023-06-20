@@ -369,7 +369,7 @@ class Species(object):
         cohort_init_mass = sum_dead_mass / np.exp(
             -decay_rate * _new_biomass["dead_age"]
         )
-        filter = np.where(sum_dead_mass > 0.0)
+        filter = np.nonzero(sum_dead_mass > 0.0)
         for part in self.dead_parts:
             part_init_mass = np.zeros_like(_new_biomass["dead_age"])
             part_init_mass[filter] = (
