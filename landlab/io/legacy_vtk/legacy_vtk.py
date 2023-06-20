@@ -1,13 +1,15 @@
 #! /usr/bin/env python
 
+import os
 import pathlib
+from landlab import RasterModelGrid
 
 
-def _write_vtk_header(file_like):
+def _write_vtk_header(file_like, dataset_type="UNSTRUCTURED_GRID"):
     file_like.write("# vtk DataFile Version 2.0\n")
     file_like.write("Landlab output\n")
     file_like.write("ASCII\n")
-    file_like.write("DATASET UNSTRUCTURED_GRID\n\n")
+    file_like.write("DATASET " + dataset_type + "\n\n")
 
 
 def _write_vtk_points(grid, file_like, z_at_node):
@@ -22,17 +24,22 @@ def _write_vtk_points(grid, file_like, z_at_node):
 
 def _write_vtk_patches(grid, file_like):
     num_patches = grid.number_of_patches
-    file_like.write("CELLS " + str(num_patches) + " " + str(4 * num_patches) + "\n")
+    nodes_per_patch = len(grid.nodes_at_patch[0])
+    file_like.write("CELLS " + str(num_patches) + " " + str((nodes_per_patch + 1) * num_patches) + "\n")
     for i in range(grid.number_of_patches):
-        file_like.write("3")
-        for j in range(3):
+        file_like.write(str(nodes_per_patch))
+        for j in range(nodes_per_patch):
             file_like.write(" " + str(grid.nodes_at_patch[i, j]))
         file_like.write("\n")
     file_like.write("\n")
 
 
-def _write_vtk_cell_types(grid, file_like, cell_type="5\n"):
+def _write_vtk_cell_types(grid, file_like):
     file_like.write("CELL_TYPES " + str(grid.number_of_patches) + "\n")
+    if len(grid.nodes_at_patch[0]) == 3:  # triangles
+        cell_type = "5\n"  # vtk code for a triangle
+    else:
+        cell_type = "9\n"  # vtk code for a quad
     for i in range(grid.number_of_patches):
         file_like.write(cell_type)
     file_like.write("\n")
@@ -54,7 +61,7 @@ def _write_vtk_point_data(grid, file_like, fields):
 
 
 def write_legacy_vtk(
-    path, grid, z_at_node="topographic__elevation", fields=None
+    path, grid, z_at_node="topographic__elevation", fields=None, clobber=False
 ):
     """
 
@@ -71,8 +78,8 @@ def write_legacy_vtk(
     >>> water = grid.add_zeros("surface_water__depth", at="node")
     >>> water[:] = 0.1 * (7.0 - topo)
 
-    >>> obj_file = write_legacy_vtk(io.StringIO(), grid)
-    >>> lines = obj_file.getvalue().splitlines()
+    >>> vtk_file = write_legacy_vtk(io.StringIO(), grid)
+    >>> lines = vtk_file.getvalue().splitlines()
     >>> print(lines[0])
     # vtk DataFile Version 2.0
     >>> for i in range(5, 13):
@@ -143,8 +150,13 @@ def write_legacy_vtk(
 
 
 def _write_legacy_vtk_to_filelike(file_like, grid, z_at_node, fields):
-    _write_vtk_header(file_like)
+    #if isinstance(grid, RasterModelGrid):
+    #    dataset_type = "STRUCTURED_GRID"
+    #else:
+    dataset_type = "UNSTRUCTURED_GRID"
+    _write_vtk_header(file_like, dataset_type=dataset_type)
     _write_vtk_points(grid, file_like, z_at_node)
+    #if dataset_type == "UNSTRUCTURED_GRID":
     _write_vtk_patches(grid, file_like)
     _write_vtk_cell_types(grid, file_like)
     _write_vtk_point_data(grid, file_like, fields)
