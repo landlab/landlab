@@ -4,16 +4,18 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.grid.ext.raster_mappers import map_max_of_link_nodes_to_link
-from landlab.grid.mappers import map_max_of_link_nodes_to_link as map_max_of_link_nodes_to_link_slow
+from landlab.grid.mappers import (
+    map_max_of_link_nodes_to_link as map_max_of_link_nodes_to_link_slow,
+)
 from landlab.grid.raster_mappers import (
-    map_sum_of_inlinks_to_node,
-    map_mean_of_inlinks_to_node,
     map_max_of_inlinks_to_node,
-    map_min_of_inlinks_to_node,
-    map_sum_of_outlinks_to_node,
-    map_mean_of_outlinks_to_node,
     map_max_of_outlinks_to_node,
+    map_mean_of_inlinks_to_node,
+    map_mean_of_outlinks_to_node,
+    map_min_of_inlinks_to_node,
     map_min_of_outlinks_to_node,
+    map_sum_of_inlinks_to_node,
+    map_sum_of_outlinks_to_node,
 )
 
 
@@ -31,7 +33,7 @@ def map_max_of_link_nodes_to_link_fast(grid, value_at_node, out=None):
     "func",
     (map_max_of_link_nodes_to_link_fast, map_max_of_link_nodes_to_link_slow),
     ids=("CYTHON", "PYTHON"),
-) 
+)
 def test_map_max_of_link_nodes_to_link_bench(benchmark, func):
     grid = RasterModelGrid((300, 4000))
 
@@ -54,22 +56,23 @@ def test_map_max_of_link_nodes_to_link_cmp():
     map_max_of_link_nodes_to_link_slow(grid, value_at_node, out=expected)
     map_max_of_link_nodes_to_link_fast(grid, value_at_node, out=actual)
 
-    assert_array_equal(actual, expected) 
+    assert_array_equal(actual, expected)
 
 
 @pytest.mark.benchmark(group="raster_mappers")
 @pytest.mark.parametrize(
     "func",
-    [map_sum_of_inlinks_to_node,
-    map_mean_of_inlinks_to_node,
-    map_max_of_inlinks_to_node,
-    map_min_of_inlinks_to_node,
-    map_sum_of_outlinks_to_node,
-    map_mean_of_outlinks_to_node,
-    map_max_of_outlinks_to_node,
-    map_min_of_outlinks_to_node,
-     ]
-) 
+    [
+        map_sum_of_inlinks_to_node,
+        map_mean_of_inlinks_to_node,
+        map_max_of_inlinks_to_node,
+        map_min_of_inlinks_to_node,
+        map_sum_of_outlinks_to_node,
+        map_mean_of_outlinks_to_node,
+        map_max_of_outlinks_to_node,
+        map_min_of_outlinks_to_node,
+    ],
+)
 def test_map_sum_of_inlinks_to_node_bench(benchmark, func):
     grid = RasterModelGrid((300, 4000))
 

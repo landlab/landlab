@@ -23,6 +23,8 @@ Mapping functions unique to raster grids
 
 import numpy as np
 
+from .ext.raster_mappers import _map_max_of_link_nodes_to_link
+
 
 def _node_out_link_ids(shape):
     """Links leaving each node.
@@ -146,12 +148,12 @@ def _number_of_links_per_node(shape):
     return n_links_at_node.reshape(shape)
 
 
-def map_max_of_link_nodes_to_link(grid, var_name, out=None):
+def map_max_of_link_nodes_to_link(grid, value_at_node, out=None):
     """Map the maximum of a link's nodes to the link.
 
     map_max_of_link_nodes_to_link iterates across the grid and
     identifies the node values at both the "head" and "tail" of a given link.
-    This function evaluates the value of 'var_name' at both the "to" and
+    This function evaluates the value of ``var_name`` at both the "to" and
     "from" node. The maximum value of the two node values is then mapped to
     the link.
 
@@ -159,7 +161,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     ----------
     grid : ModelGrid
         A landlab ModelGrid.
-    var_name : array or field name
+    value_at_node : array or field name
         Values defined at nodes.
     out : ndarray, optional
         Buffer to place mapped values into or `None` to create a new array.
@@ -202,8 +204,8 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(var_name) is str:
-        var_name = grid.at_node[var_name]
+    if isinstance(value_at_node, str):
+        value_at_node = grid.at_node[value_at_node]
 
     _map_max_of_link_nodes_to_link(out, value_at_node, grid.shape)
 
