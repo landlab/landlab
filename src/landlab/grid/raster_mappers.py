@@ -146,6 +146,70 @@ def _number_of_links_per_node(shape):
     return n_links_at_node.reshape(shape)
 
 
+def map_max_of_link_nodes_to_link(grid, var_name, out=None):
+    """Map the maximum of a link's nodes to the link.
+
+    map_max_of_link_nodes_to_link iterates across the grid and
+    identifies the node values at both the "head" and "tail" of a given link.
+    This function evaluates the value of 'var_name' at both the "to" and
+    "from" node. The maximum value of the two node values is then mapped to
+    the link.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab ModelGrid.
+    var_name : array or field name
+        Values defined at nodes.
+    out : ndarray, optional
+        Buffer to place mapped values into or `None` to create a new array.
+
+    Returns
+    -------
+    ndarray
+        Mapped values at links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.grid.raster_mappers import map_max_of_link_nodes_to_link
+    >>> from landlab import RasterModelGrid
+
+    >>> grid = RasterModelGrid((3, 4))
+    >>> _ = grid.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
+    >>> map_max_of_link_nodes_to_link(grid, 'z')
+    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
+
+    >>> values_at_links = grid.empty(at='link')
+    >>> rtn = map_max_of_link_nodes_to_link(grid, "z", out=values_at_links)
+    >>> values_at_links
+    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
+             9.,  10.,  11.,   9.,  10.,  11.])
+    >>> rtn is values_at_links
+    True
+
+    :meta landlab: info-node, info-link, map
+    """
+    if out is None:
+        out = grid.empty(at="link")
+
+    if type(var_name) is str:
+        var_name = grid.at_node[var_name]
+
+    _map_max_of_link_nodes_to_link(out, value_at_node, grid.shape)
+
+    return out
+
+
 def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     """Map the sum of links entering a node to the node.
 
