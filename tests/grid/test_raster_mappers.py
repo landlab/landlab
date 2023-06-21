@@ -73,7 +73,7 @@ def test_map_max_of_link_nodes_to_link_cmp():
         map_min_of_outlinks_to_node,
     ],
 )
-def test_map_sum_of_inlinks_to_node_bench(benchmark, func):
+def test_mapper_bench(benchmark, func):
     grid = RasterModelGrid((300, 4000))
 
     value_at_link = np.arange(grid.number_of_links, dtype=int)

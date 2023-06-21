@@ -23,7 +23,9 @@ Mapping functions unique to raster grids
 
 import numpy as np
 
-from .ext.raster_mappers import _map_max_of_link_nodes_to_link
+from .ext.raster_mappers import (
+    map_max_of_link_nodes_to_link as _map_max_of_link_nodes_to_link,
+)
 
 
 def _node_out_link_ids(shape):
