@@ -4,23 +4,14 @@ from scipy import interpolate
 # Growth form classes and selection method
 
 # how do these composition classes need to relate to each other? we need to use properties from one composition class to in methods of another.
+# Need to distinguish live plant size from dead. How should we handle this? Make a dead flag? Make a dead array? We have plants with live and dead parts.
 
 
 class PlantShape(object):
     def __init__(self, morph_params, grow_params):
         self.morph_params = morph_params
         self.grow_params = grow_params
-        # log10_aspect_ratio=np.array([
-        #    np.log10(self.morph_params['min_abg_aspect_ratio']),
-        #    np.log10(self.morph_params['max_abg_aspect_ratio'])])
-        # log10_abg_biomass=np.array([
-        #    np.log10((self.grow_params['min_abg_biomass']/1000)*(self.morph_params['max_height']/self.morph_params['min_height'])),
-        #    np.log10(self.grow_params['max_abg_biomass']/1000)
-        # ])
-        # print(self.grow_params['min_abg_biomass'])
-        # print(self.morph_params['max_height'])
-        # print(self.morph_params['min_height'])
-        # print(self.grow_params['max_abg_biomass'])
+        # Calculate log10 linear equation to calculate relationship between aboveground biomass and aspect ratio
         x0 = np.log10(
             (self.grow_params["min_abg_biomass"] / 1000)
             * (self.morph_params["max_height"] / self.morph_params["min_height"])
@@ -31,8 +22,6 @@ class PlantShape(object):
         m = (y1 - y0) / (x1 - x0)
         b = y0 - m * x0
         self.aspect_ratio_abg_biomass_coeffs = {"m": m, "b": b}
-        # print(self.aspect_ratio_abg_biomass_coeffs)
-        # self.aspect_ratio_interp_func=interpolate.interp1d(log10_abg_biomass,log10_aspect_ratio,fill_value='extrapolate')
 
     def calc_root_sys_width(self, shoot_sys_width, shoot_sys_height=1):
         volume = self.calc_crown_volume(shoot_sys_width, shoot_sys_height)

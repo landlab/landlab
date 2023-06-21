@@ -25,18 +25,16 @@ class Habit(object):
         plants = self.duration.emerge(plants)
         return plants
 
-    def senesce(self, plants):
-        plants = self.duration.senesce(plants)
+    def senesce(self, plants, mass_green_parts, mass_persistent_parts):
+        plants = self.duration.senesce(plants, mass_green_parts, mass_persistent_parts)
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
         plants = self.duration.set_initial_biomass(plants, in_growing_season)
         return plants
 
-    def enter_dormancy(self, plants, mass_green_parts, mass_persistent_parts):
-        plants = self.duration.enter_dormancy(
-            plants, mass_green_parts, mass_persistent_parts
-        )
+    def enter_dormancy(self, plants):
+        plants = self.duration.enter_dormancy(plants)
         return plants
 
 
