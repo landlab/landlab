@@ -134,6 +134,9 @@ def test_deAlm_analytical_imposed_dt_long():
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
+        assert np.all(grid.at_node["surface_water__depth"] >= 0.0)
+        assert not np.any(np.isnan(grid.at_node["surface_water__depth"]))
+
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
     h_analytical = -(7.0 / 3.0) * (0.01**2) * (0.4**2) * (x - (0.4 * 500))
 
