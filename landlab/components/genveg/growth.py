@@ -3,20 +3,11 @@ Growth component of GenVeg - this is the main driver of vegetation growth and
 is driven by a photosynthesis model. Vegetation growth depends on the availability
 of carbohydrate produced by photosynthetically active plant parts. 
 """
-from operator import invert
-from tabnanny import check
-from matplotlib.pyplot import grid
-
-# from landlab.components import Radiation
+from landlab.components.genveg.species import Species
 from landlab.data_record import DataRecord
 import numpy as np
-import pandas as pd
-import numpy.lib.recfunctions as nprf
 
 rng = np.random.default_rng()
-import warnings
-
-from landlab.components.genveg.species import Species
 
 
 class PlantGrowth(Species):
@@ -549,7 +540,7 @@ class PlantGrowth(Species):
         growth_min_biomass = self.species_grow_params["growth_min_biomass"]
         growth_max_biomass = self.species_grow_params["growth_max_biomass"]
         _growth_parts_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
-        filter = np.where(_growth_parts_biomass > 0)
+        filter = np.nonzero(_growth_parts_biomass > 0)
         conditions = [
             (_growth_parts_biomass < growth_min_biomass),
             (_growth_parts_biomass >= growth_min_biomass)
@@ -576,7 +567,7 @@ class PlantGrowth(Species):
                 filter
             ] * (_new_biomass[part][filter] / _growth_parts_biomass[filter])
 
-        filter = np.where(_new_biomass["reproductive"] > 0.0)
+        filter = np.nonzero(_new_biomass["reproductive"] > 0.0)
         repro_min_biomass = self.species_grow_params["plant_part_min"]["reproductive"]
         repro_max_biomass = self.species_grow_params["plant_part_max"]["reproductive"]
         conditions = [
@@ -594,7 +585,7 @@ class PlantGrowth(Species):
                 ),
             ),
             np.zeros_like(_new_biomass["root_biomass"]),
-            (repro_min_biomass - _new_biomass["reproductive"]),
+            (repro_max_biomass - _new_biomass["reproductive"]),
         ]
         adjustment = np.select(conditions, adjustments)
         _new_biomass["storage_biomass"][filter] = (
@@ -605,7 +596,11 @@ class PlantGrowth(Species):
         )
         _new_biomass["reproductive"][
             _new_biomass["reproductive"] < repro_min_biomass
-        ] = 0.0
+        ] = np.zeros_like(
+            _new_biomass["reproductive"][
+                _new_biomass["reproductive"] < repro_min_biomass
+            ]
+        )
         return _new_biomass
 
     def allocate_biomass_proportionately(
@@ -690,8 +685,8 @@ class PlantGrowth(Species):
                 _current_jday == durationdict["growing_season_start"]
             ),
             "_in_reproductive_period": bool(
-                (_current_jday > durationdict["reproduction_start"])
-                & (_current_jday < durationdict["senescence_start"])
+                (_current_jday >= durationdict["reproduction_start"])
+                & (_current_jday < durationdict["reproduction_end"])
             ),
             "_in_senescence_period": bool(
                 (_current_jday >= durationdict["senescence_start"])
@@ -718,6 +713,7 @@ class PlantGrowth(Species):
             _new_biomass[part][dead_plants] = np.zeros_like(
                 _new_biomass[part][dead_plants]
             )
+
         return _new_biomass
 
     def remove_plants(self, _new_biomass):
@@ -730,9 +726,9 @@ class PlantGrowth(Species):
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
-        print("There were " + str(_new_biomass.size) + " plants")
+        # print("There were " + str(_new_biomass.size) + " plants")
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
-        print("After removal, there were " + str(_new_biomass.size) + (" plants"))
+        # print("After removal, there were " + str(_new_biomass.size) + (" plants"))
         return _new_biomass
 
     def save_plant_output(self, rel_time, save_params):

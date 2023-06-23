@@ -327,7 +327,7 @@ class Species(object):
     def disperse(self, plants):
         # decide how to parameterize reproductive schedule, make repro event
         # right now we are just taking 20% of available storage and moving to
-        filter = np.where(
+        filter = np.nonzero(
             self.sum_plant_parts(plants, parts="growth")
             >= (
                 self.species_dispersal_params["min_size_dispersal"]
