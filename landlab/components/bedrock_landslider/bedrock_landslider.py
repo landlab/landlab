@@ -343,6 +343,21 @@ class BedrockLandslider(Component):
 
     # Getters for properties
     @property
+    def fraction_fines_LS(self):
+        """
+        Fraction of permanently suspendable fines in bedrock.
+        Value must be between 0 and 1 [-].
+        """
+        return self._fraction_fines_LS
+    
+    @property
+    def phi(self):
+        """
+        Sediment porosity, value must be between 0 and 1 [-].
+        """
+        return self._phi
+    
+    @property
     def landslides_size(self):
         """
         List with the size of simulated landslides.
