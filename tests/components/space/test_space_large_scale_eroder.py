@@ -206,6 +206,36 @@ def test_soil_field_already_on_grid():
         err_msg="Parameter value issue",
         verbose=True,
     )
+    testing.assert_array_equal(
+        0.0,
+        sp.F_f,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    testing.assert_array_equal(
+        0.3,
+        sp.phi,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    testing.assert_array_equal(
+        1.0,
+        sp.v_s,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    testing.assert_array_equal(
+        0.5,
+        sp.m_sp,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
+    testing.assert_array_equal(
+        1.0,
+        sp.n_sp,
+        err_msg="Parameter value issue",
+        verbose=True,
+    )
     # sediment erosion is zero before running the component
     testing.assert_array_equal(
         np.zeros(mg.number_of_nodes),
