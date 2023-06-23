@@ -268,7 +268,7 @@ class GenVeg(Component, PlantGrowth):
         )
         plant_height = np.zeros_like(cell_percent_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
-        cells_with_plants = np.where(n_of_plants > 0.0)
+        cells_with_plants = np.nonzero(n_of_plants > 0.0)
         sum_plant_height = np.bincount(
             all_plants["cell_index"],
             weights=all_plants["shoot_sys_height"],
@@ -295,8 +295,6 @@ class GenVeg(Component, PlantGrowth):
 
     def get_cell_boundary_points(self, vertices, x_value):
         # Create a Path object from the polygon
-        path = plt.path.Path(vertices)
-
         # Initialize a list to store the intersection points
         intersection_points = []
 
@@ -339,12 +337,11 @@ class GenVeg(Component, PlantGrowth):
         return is_center_unocc
 
     def check_for_dispersal_success(self, all_plants):
-        # Somehow introducing dead fraction has stopped dispersal from being successful.
         new_pups = all_plants[~np.isnan(all_plants["pup_x_loc"])]
-        pup_locs = tuple(zip(new_pups["pup_x_loc"], new_pups["pup_y_loc"]))
-        pup_widths = np.zeros_like(new_pups["pup_x_loc"])
 
         if new_pups.size != 0:
+            pup_locs = tuple(zip(new_pups["pup_x_loc"], new_pups["pup_y_loc"]))
+            pup_widths = np.zeros_like(new_pups["pup_x_loc"])
             loc_unoccupied = self.check_if_loc_unocc(
                 pup_locs, pup_widths, all_plants, "below"
             )
@@ -359,7 +356,7 @@ class GenVeg(Component, PlantGrowth):
             species_new_pups = new_pups[new_pups["species"] == species]
             species_plants = all_plants[all_plants["species"] == species]
             if species_new_pups.size != 0:
-                species_parents = species_new_pups
+                species_parents = species_new_pups.copy()
                 species_new_pups = species_obj.habit.duration.set_new_biomass(
                     species_new_pups
                 )
@@ -371,7 +368,7 @@ class GenVeg(Component, PlantGrowth):
                         mode="clip",
                     )
                 ]
-                species_parents["reproductive"] -= (
+                species_parents["reproductive"] = species_parents["reproductive"] - (
                     species_new_pups["root"]
                     + species_new_pups["leaf"]
                     + species_new_pups["stem"]
