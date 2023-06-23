@@ -421,6 +421,31 @@ class SpaceLargeScaleEroder(Component):
         self._K_sed = return_array_at_node(self._grid, new_val)
 
     @property
+    def F_f(self):
+        """Fraction of permanently suspendable fines in bedrock [-]."""
+        return self._F_f
+
+    @property
+    def phi(self):
+        """Sediment porosity [-]."""
+        return self._phi
+    
+    @property
+    def v_s(self):
+        """Effective settling velocity for chosen grain size metric [L/T]."""
+        return self._v_s
+    
+    @property
+    def m_sp(self):
+        """Drainage area exponent (units vary)."""
+        return self._m_sp
+    
+    @property
+    def n_sp(self):
+        """Slope exponent (units vary)."""
+        return self._n_sp
+
+    @property
     def Es(self):
         """Sediment erosion term."""
         return self._Es
