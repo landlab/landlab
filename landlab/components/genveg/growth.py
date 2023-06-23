@@ -304,7 +304,7 @@ class PlantGrowth(Species):
         # set up shorthand aliases and reset
         growdict = self.species_grow_params
         _last_biomass = self.plants
-        _new_biomass = _last_biomass
+        _new_biomass = _last_biomass.copy()
 
         # Decide what processes happen today
         event_flags = self.set_event_flags(_current_jday)
