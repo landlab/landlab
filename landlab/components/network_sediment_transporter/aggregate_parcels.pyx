@@ -1,4 +1,5 @@
 import numpy as np
+from cython.parallel cimport prange
 
 cimport cython
 cimport numpy as cnp
@@ -25,7 +26,7 @@ def aggregate_parcels_at_link_count(
 ):
     cdef int parcel, link
 
-    for link in range(number_of_links):
+    for link in prange(number_of_links, nogil=True, schedule="static"):
         out[link] = 0
 
     for parcel in range(number_of_parcels):
@@ -45,7 +46,7 @@ def aggregate_parcels_at_link_sum(
 ):
     cdef int parcel, link
 
-    for link in range(number_of_links):
+    for link in prange(number_of_links, nogil=True, schedule="static"):
         out[link] = 0
 
     for parcel in range(number_of_parcels):
@@ -68,8 +69,9 @@ def aggregate_parcels_at_link_mean(
     cdef double * total_weight_at_link = <double *>malloc(number_of_links * sizeof(double))
 
     try:
-        for link in range(number_of_links):
+        for link in prange(number_of_links, nogil=True, schedule="static"):
             out[link] = 0.0
+            total_weight_at_link[link] = 0.0
 
         for parcel in range(number_of_parcels):
             link = link_of_parcel[parcel]
