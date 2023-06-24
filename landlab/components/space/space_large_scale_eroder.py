@@ -429,17 +429,17 @@ class SpaceLargeScaleEroder(Component):
     def phi(self):
         """Sediment porosity [-]."""
         return self._phi
-    
+
     @property
     def v_s(self):
         """Effective settling velocity for chosen grain size metric [L/T]."""
         return self._v_s
-    
+
     @property
     def m_sp(self):
         """Drainage area exponent (units vary)."""
         return self._m_sp
-    
+
     @property
     def n_sp(self):
         """Slope exponent (units vary)."""
