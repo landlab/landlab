@@ -10,6 +10,11 @@ ctypedef fused float_or_int:
     cython.floating
 
 
+ctypedef fused float_or_int_weights:
+    cython.integral
+    cython.floating
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def aggregate_parcels_at_link_count(
@@ -57,7 +62,7 @@ def aggregate_parcels_at_link_mean(
     const cython.integral [:] link_of_parcel,
     const long number_of_parcels,
     const float_or_int [:] value_of_parcel,
-    const cython.floating [:] weight_of_parcel,
+    const float_or_int_weights [:] weight_of_parcel,
 ):
     cdef int parcel, link
     cdef double * total_weight_at_link = <double *>malloc(number_of_links * sizeof(double))
