@@ -456,7 +456,7 @@ websocket-client==1.5.1
     # via jupyter-server
 widgetsnbextension==4.0.5
     # via ipywidgets
-xarray==2023.4.2
+xarray==2023.6.0
     # via
     #   bmi-topography
     #   rioxarray
