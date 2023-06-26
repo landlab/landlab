@@ -1,1 +1,1 @@
-Added getters for several BedrockLandslider input parameters.
+Added getters for several :class:`~.BedrockLandslider` input parameters.
