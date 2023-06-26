@@ -349,14 +349,14 @@ class BedrockLandslider(Component):
         Value must be between 0 and 1 [-].
         """
         return self._fraction_fines_LS
-    
+
     @property
     def phi(self):
         """
         Sediment porosity, value must be between 0 and 1 [-].
         """
         return self._phi
-    
+
     @property
     def landslides_size(self):
         """

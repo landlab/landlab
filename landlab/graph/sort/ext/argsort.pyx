@@ -28,7 +28,7 @@ cdef extern from "stdlib.h":
                   int (*)(const_void *, const_void *)) nogil
 
 
-cdef int _compare(const_void *a, const_void *b):
+cdef int _compare(const_void *a, const_void *b) noexcept:
     cdef double v = ((<Sorter*>a)).value - ((<Sorter*>b)).value
     if v < 0:
         return -1
@@ -38,7 +38,7 @@ cdef int _compare(const_void *a, const_void *b):
         return 0
 
 
-cdef int _compare_int(const_void *a, const_void *b):
+cdef int _compare_int(const_void *a, const_void *b) noexcept:
     cdef int v = ((<IntSorter*>a)).value - ((<IntSorter*>b)).value
     if v < 0:
         return -1
