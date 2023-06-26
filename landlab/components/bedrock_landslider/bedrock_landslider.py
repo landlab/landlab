@@ -238,7 +238,7 @@ class BedrockLandslider(Component):
         landslides_return_time=1e5,
         rho_r=2700,
         grav=9.81,
-        fraction_fines=0,
+        fraction_fines_LS=0,
         phi=0,
         max_pixelsize_landslide=1e9,
         seed=2021,
@@ -264,7 +264,7 @@ class BedrockLandslider(Component):
             Return time for stochastic landslide events to occur
         rho_r : float, optional
             Bulk density rock [m L^-3].
-        fraction_fines : float
+        fraction_fines_LS : float
             Fraction of permanently suspendable fines in bedrock
             Value must be between 0 and 1 [-].
         phi : float, optional
@@ -313,7 +313,7 @@ class BedrockLandslider(Component):
         self._cohesion_eff = cohesion_eff
         self._rho_r = rho_r
         self._grav = grav
-        self._fraction_fines = fraction_fines
+        self._fraction_fines_LS = fraction_fines_LS
         self._phi = phi
         self._landslides_return_time = landslides_return_time
         self._max_pixelsize_landslide = max_pixelsize_landslide
@@ -332,9 +332,9 @@ class BedrockLandslider(Component):
         if phi >= 1.0 or phi < 0.0:
             raise ValueError(f"Porosity must be between 0 and 1 ({phi})")
 
-        if fraction_fines > 1.0 or fraction_fines < 0.0:
+        if fraction_fines_LS > 1.0 or fraction_fines_LS < 0.0:
             raise ValueError(
-                f"Fraction of fines must be between 0 and 1 ({fraction_fines})"
+                f"Fraction of fines must be between 0 and 1 ({fraction_fines_LS})"
             )
 
         # Set seed
@@ -348,7 +348,7 @@ class BedrockLandslider(Component):
         Fraction of permanently suspendable fines in bedrock.
         Value must be between 0 and 1 [-].
         """
-        return self._fraction_fines
+        return self._fraction_fines_LS
 
     @property
     def phi(self):
@@ -612,9 +612,9 @@ class BedrockLandslider(Component):
                 store_cumul_volume += store_volume
                 if upstream_count > 0:
                     landslide_sed_in[crit_node] += (store_volume / dt) * (
-                        1.0 - self._fraction_fines
+                        1.0 - self._fraction_fines_LS
                     )
-                    suspended_sed += (store_volume / dt) * self._fraction_fines
+                    suspended_sed += (store_volume / dt) * self._fraction_fines_LS
 
                     self._landslides_size.append(upstream_count)
                     self._landslides_volume.append(store_volume)
