@@ -213,7 +213,7 @@ def test_soil_field_already_on_grid():
         verbose=True,
     )
     testing.assert_array_equal(
-        0.3,
+        0.0,
         sp.phi,
         err_msg="Parameter value issue",
         verbose=True,
