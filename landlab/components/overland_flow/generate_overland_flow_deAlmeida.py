@@ -5,6 +5,16 @@ shallow-water flow over topography using the de Almeida et al., 2012
 algorithm for storage-cell inundation modeling.
 
 .. codeauthor:: Jordan Adams
+.. modified by:: Angel Monsalve
+
+Changes in this version compared to the previous version of
+generate_overland_flow_deAlmeida.py include:
+
+a) The simulation time step now utilizes the minimum value between the adaptive
+    time stepper from Bates et al., 2010 and de Almeida et al., 2012, and a
+    user-defined value. This adjustment is designed to provide a smaller time
+    step in case the code is coupled with a bed evolution component or any
+    other component that is sensitive to the time step.
 
 Examples
 --------
@@ -253,6 +263,8 @@ class OverlandFlow(Component):
         theta=0.8,
         rainfall_intensity=0.0,
         steep_slopes=False,
+        dt_max=1,
+        use_user_defined_time_step=False,
     ):
         """Create an overland flow component.
 
@@ -277,6 +289,8 @@ class OverlandFlow(Component):
         steep_slopes : bool, optional
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
+        dt_max : float, optional
+            Maximum time step allowed in all calculations (s)
         """
         super().__init__(grid)
 
@@ -294,6 +308,8 @@ class OverlandFlow(Component):
         self._theta = theta
         self.rainfall_intensity = rainfall_intensity
         self._steep_slopes = steep_slopes
+        self._dt_max = dt_max
+        self._use_user_defined_time_step = use_user_defined_time_step
 
         # Now setting up fields at the links...
         # For water discharge
@@ -397,6 +413,8 @@ class OverlandFlow(Component):
             * self._grid.dx
             / np.sqrt(self._g * np.amax(self._grid.at_node["surface_water__depth"]))
         )
+        if self._use_user_defined_time_step is True:
+            self._dt = np.min((self._dt, self._dt_max))
 
         return self._dt
 
