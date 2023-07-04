@@ -1067,6 +1067,7 @@ class RiverBedDynamics(Component):
             "bed_surface__geometric_standard_deviation_size"
         ] = self.map_mean_of_nodes_to_link(grain_size_geometric_standard_deviation)
 
+        self._grid["node"]["bed_surface__sand_fraction"] = sand_fraction
         self._grid["link"][
             "bed_surface__sand_fraction"
         ] = self.map_mean_of_nodes_to_link(sand_fraction)
@@ -1260,7 +1261,8 @@ class RiverBedDynamics(Component):
             ) + grain_size_D_equivalent_frequency_cumulative[
                 i, j
             ]
-
+        
+        #self._grid["node"]["bed_surface__sand_fraction"] = sand_fraction
         return sand_fraction
 
     def map_mean_of_nodes_to_link(self, grain_size_variable):
