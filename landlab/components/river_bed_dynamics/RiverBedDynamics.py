@@ -497,7 +497,7 @@ class RiverBedDynamics(Component):
     def __init__(
         self,
         grid,
-        gsd=np.array([[32, 100], [16, 25], [8, 0]]),  # Initializes the gsd array.
+        gsd=0,  # np.array([[32, 100], [16, 25], [8, 0]]),  # Initializes the gsd array.
         rho=1000,  # Sets the fluid density (kg/m**3).
         rho_s=2650,  # Sets the sediment density (kg/m**3).
         bedload_equation="MPM",  # Selects the bedload equation.
@@ -850,9 +850,9 @@ class RiverBedDynamics(Component):
             ] = grid.add_zeros(
                 "sediment_transport__bedload_grain_size_distribution",
                 at="link",
-                units=self._info[
-                    "sediment_transport__bedload_grain_size_distribution"
-                ]["units"],
+                units=self._info["sediment_transport__bedload_grain_size_distribution"][
+                    "units"
+                ],
             )
         except FieldError:
             print(
@@ -871,9 +871,27 @@ class RiverBedDynamics(Component):
             )
         except FieldError:
             print(
-                "'sediment_transport__bedload_grain_size_distribution_imposed' at links - Initialized"
+                "'sediment_transport__bedload_grain_size_distribution_imposed' at links"
+                " - Initialized"
             )
 
+        try:
+            self._grid["node"]["sediment_transport__net_bedload"] = grid.add_zeros(
+                "sediment_transport__net_bedload",
+                at="node",
+                units=self._info["sediment_transport__net_bedload"]["units"],
+            )
+        except FieldError:
+            print("'sediment_transport__net_bedload' at nodes - Initialized")
+
+        try:
+            self._grid["link"]["surface_water__shear_stress"] = grid.add_zeros(
+                "surface_water__shear_stress",
+                at="link",
+                units=self._info["surface_water__shear_stress"]["units"],
+            )
+        except FieldError:
+            print("'surface_water__shear_stress' at links - Initialized")
         # Define faces normal vector
         self._normal = -(self._grid.link_dirs_at_node)
 
@@ -1078,7 +1096,8 @@ class RiverBedDynamics(Component):
             "bed_surface__geometric_mean_size"
         ] = self.map_mean_of_nodes_to_link(grain_size_geometric_mean)
 
-        self._grid["node"]["bed_surface__geometric_standard_deviation_size"
+        self._grid["node"][
+            "bed_surface__geometric_standard_deviation_size"
         ] = grain_size_geometric_standard_deviation
 
         self._grid["link"][
@@ -1086,7 +1105,7 @@ class RiverBedDynamics(Component):
         ] = self.map_mean_of_nodes_to_link(grain_size_geometric_standard_deviation)
 
         self._grid["node"]["bed_surface__sand_fraction"] = sand_fraction
-        
+
         self._grid["link"][
             "bed_surface__sand_fraction"
         ] = self.map_mean_of_nodes_to_link(sand_fraction)
@@ -1280,8 +1299,8 @@ class RiverBedDynamics(Component):
             ) + grain_size_D_equivalent_frequency_cumulative[
                 i, j
             ]
-        
-        #self._grid["node"]["bed_surface__sand_fraction"] = sand_fraction
+
+        # self._grid["node"]["bed_surface__sand_fraction"] = sand_fraction
         return sand_fraction
 
     def map_mean_of_nodes_to_link(self, grain_size_variable):
@@ -1668,10 +1687,8 @@ class RiverBedDynamics(Component):
         u_nodes_vertical = self._grid.map_mean_of_vertical_links_to_node(self._u)
         u_nodes_vertical = np.flip(
             np.flip(
-                (
-                    np.reshape(
-                        u_nodes_vertical, (self._grid._shape[0], self._grid._shape[1])
-                    )
+                np.reshape(
+                    u_nodes_vertical, (self._grid._shape[0], self._grid._shape[1])
                 )
             ),
             axis=1,
@@ -2142,7 +2159,8 @@ class RiverBedDynamics(Component):
                     > self._new_surface_layer_thickness
                 ):
                     print(
-                        "Warning - New surface layer thickness is too thin compared to the active layer thickness"
+                        "Warning - New surface layer thickness is too thin compared to "
+                        "the active layer thickness"
                     )
                 self._compute_stratigraphy = True
                 self._update_subsurface = True
@@ -2246,7 +2264,8 @@ class RiverBedDynamics(Component):
         qjj1dev[vlB, :] = (qbT[vlB + dv] * pl[vlB + dv, :] - qbT[vlB] * pl[vlB, :]) / dx
         qjj1dev[vlT, :] = (qbT[vlT] * pl[vlT, :] - qbT[vlT - dv] * pl[vlT - dv, :]) / dx
 
-        # Now we correct for flow at locations where it is flowing towards the negative direction
+        # Now we correct for flow at locations where it is flowing towards the
+        # negative direction
         (hl_neg_id,) = np.where(qbT[hl][:, 0] < 0)
         (hlL_neg_id,) = np.where(qbT[hlL][:, 0] < 0)
         (hlR_neg_id,) = np.where(qbT[hlR][:, 0] < 0)
@@ -2382,7 +2401,8 @@ class RiverBedDynamics(Component):
             ]
 
             # Now, an eroded node cannot return to the original GSD if starts depositing again.
-            # It will only use the original GSD if erodes deeper than the maximum that has been eroded
+            # It will only use the original GSD if erodes deeper than the maximum that has
+            # been eroded
             self._grid["link"]["topographic__elevation_original"][
                 id_eroded_links
             ] = copy.deepcopy(
@@ -2453,22 +2473,23 @@ class RiverBedDynamics(Component):
             # with open(filename, 'ab') as f:
             #    np.savetxt(f, data,'%.3f')
             # Try up to 3 times
-            for attempt in range(3):
+            for _attempt in range(3):
                 try:
                     with open(filename, "ab") as f:
                         np.savetxt(f, data, "%.3f")
                     break  # Successfully written, exit the loop
                 except PermissionError:
                     print(
-                        f"PermissionError when trying to write to {filename}. Retry in 1 second."
+                        f"PermissionError when trying to write to {filename}."
+                        " Will retry in 1 second."
                     )
                     time.sleep(1)  # Wait for 1 second before retrying
 
-        # Here we update stratigraphy in case of deposition - only for new layers
+        # Here we update stratigraphy in case of deposition
+        # only for new layers
         os.chdir(self._cwd)
         os.chdir(self._stratigraphy_temp_files_path)
         if self._update_subsurface is True:
-            # print('Updating stratigraphy at time ',self.t, 's. New layer(s) created at links ',self._id_deep_links)
             for i in self._id_deep_links:
                 link_data = np.loadtxt("link_" + str(i) + ".txt")
                 mean_subsurface_gsd = np.mean(
@@ -2684,7 +2705,8 @@ class RiverBedDynamics(Component):
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'Parker1990')
+        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
+        ... bedload_equation = 'Parker1990')
         >>> RBD.run_one_step()
 
         If we want to plot the velocity vector on top of the surface water
@@ -2707,7 +2729,8 @@ class RiverBedDynamics(Component):
 
         # A figure can be visualized using:
         # >>> imshow_grid(grid, 'surface_water__depth',cmap='Blues',vmin=0,vmax=0.5)
-        # >>> plt.quiver(grid.x_of_node,grid.y_of_node,velocityVector_x,velocityVector_y,scale = 10)
+        # >>> plt.quiver(grid.x_of_node,grid.y_of_node,velocityVector_x,
+        # ... velocityVector_y,scale = 10)
         # >>> plt.show(block=False)
 
         """
@@ -2799,7 +2822,8 @@ class RiverBedDynamics(Component):
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'Parker1990')
+        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
+        ... bedload_equation = 'Parker1990')
         >>> RBD.run_one_step()
 
         >>> RBD.calculate_DX(0.9)
@@ -2990,9 +3014,11 @@ class RiverBedDynamics(Component):
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'Parker1990')
+        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
+        ... bedload_equation = 'Parker1990')
         >>> RBD.run_one_step()
-        >>> RBD.formats_gsd_outputs(grid['link']['sediment_transport__bedload_grain_size_distribution'])
+        >>> RBD.formats_gsd_outputs(grid['link']
+        ... ['sediment_transport__bedload_grain_size_distribution'])
                    8         16     32
         Link_0   0.0   0.000000    0.0
         Link_1   0.0  51.520878  100.0
