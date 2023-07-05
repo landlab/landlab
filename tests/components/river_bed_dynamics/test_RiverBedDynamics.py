@@ -30,16 +30,16 @@ def test_input_var_names(r_b_d):
 def test_output_var_names(r_b_d):
     assert r_b_d.output_var_names == (
     "bed_surface__geometric_mean_size",
+    "bed_surface__geometric_standard_deviation_size",
     "bed_surface__grain_size_distribution",
     "bed_surface__median_size",
     "bed_surface__sand_fraction",
-    "bed_surface__standard_deviation_size",
     "sediment_transport__bedload_grain_size_distribution",
     "sediment_transport__bedload_rate",
     "sediment_transport__net_bedload",
     "surface_water__shear_stress",
     )
-    
+
 
 def test_optional_var_names(r_b_d):
     assert r_b_d.optional_var_names == (
@@ -56,12 +56,12 @@ def test_var_units(r_b_d):
 
     assert r_b_d.var_units("bed_surface__elevation_fixed") == "-"
     assert r_b_d.var_units("bed_surface__geometric_mean_size") == "mm"
+    assert r_b_d.var_units("bed_surface__geometric_standard_deviation_size") == "mm"
     assert r_b_d.var_units("bed_surface__grain_size_distribution") == "-"
     assert r_b_d.var_units("bed_surface__grain_size_distribution_fixed") == "-"
     assert r_b_d.var_units("bed_surface__grain_size_distribution_location") == "-"
     assert r_b_d.var_units("bed_surface__median_size") == "mm"
     assert r_b_d.var_units("bed_surface__sand_fraction") == "-"       
-    assert r_b_d.var_units("bed_surface__standard_deviation_size") == "mm"
     assert r_b_d.var_units("sediment_transport__bedload_grain_size_distribution") == "-"
     assert r_b_d.var_units("sediment_transport__bedload_grain_size_distribution_imposed") == "-"        
     assert r_b_d.var_units("sediment_transport__bedload_rate") == "m^2/s"

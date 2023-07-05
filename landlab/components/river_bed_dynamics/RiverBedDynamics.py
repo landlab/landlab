@@ -846,6 +846,21 @@ class RiverBedDynamics(Component):
 
         try:
             self._grid["link"][
+                "sediment_transport__bedload_grain_size_distribution"
+            ] = grid.add_zeros(
+                "sediment_transport__bedload_grain_size_distribution",
+                at="link",
+                units=self._info[
+                    "sediment_transport__bedload_grain_size_distribution"
+                ]["units"],
+            )
+        except FieldError:
+            print(
+                "'sediment_transport__bedload_grain_size_distribution' at links - Initialized"
+            )
+
+        try:
+            self._grid["link"][
                 "sediment_transport__bedload_grain_size_distribution_imposed"
             ] = grid.add_zeros(
                 "sediment_transport__bedload_grain_size_distribution_imposed",
