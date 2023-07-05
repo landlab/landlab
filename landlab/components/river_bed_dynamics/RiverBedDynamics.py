@@ -152,10 +152,10 @@ that have been changed.
 
 >>> RBD.output_var_names
 ('bed_surface__geometric_mean_size',
+ 'bed_surface__geometric_standard_deviation_size',
  'bed_surface__grain_size_distribution',
  'bed_surface__median_size',
  'bed_surface__sand_fraction',
- 'bed_surface__standard_deviation_size',
  'sediment_transport__bedload_grain_size_distribution',
  'sediment_transport__bedload_rate',
  'sediment_transport__net_bedload',
@@ -360,6 +360,14 @@ class RiverBedDynamics(Component):
             "mapping": "link",
             "doc": "Bed surface geometric mean grain size",
         },
+        "bed_surface__geometric_standard_deviation_size": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "node",
+            "doc": "Bed surface geometric standard deviation grain size",
+        },
         "bed_surface__grain_size_distribution": {
             "dtype": float,
             "intent": "out",
@@ -400,14 +408,6 @@ class RiverBedDynamics(Component):
             "units": "-",
             "mapping": "node",
             "doc": "Bed surface sand content",
-        },
-        "bed_surface__standard_deviation_size": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "mm",
-            "mapping": "node",
-            "doc": "Bed surface standard deviation grain size",
         },
         "sediment_transport__bedload_grain_size_distribution": {
             "dtype": float,
@@ -1062,6 +1062,9 @@ class RiverBedDynamics(Component):
         self._grid["link"][
             "bed_surface__geometric_mean_size"
         ] = self.map_mean_of_nodes_to_link(grain_size_geometric_mean)
+
+        self._grid["node"]["bed_surface__geometric_standard_deviation_size"
+        ] = grain_size_geometric_standard_deviation
 
         self._grid["link"][
             "bed_surface__geometric_standard_deviation_size"
