@@ -36,6 +36,7 @@ Fluvial geomorphology
    gravel_river_transporter
    area_slope_transporter
    gravel_bedrock_eroder
+   river_bed_dynamics
 
 Flow routing
 ------------
@@ -241,6 +242,7 @@ Alphabetical Listing of Modules
    plant_competition_ca
    potentiality_flowrouting
    radiation
+   river_bed_dynamics
    sink_fill
    soil_moisture
    space
