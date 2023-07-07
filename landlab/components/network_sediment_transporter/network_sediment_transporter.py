@@ -166,7 +166,7 @@ class NetworkSedimentTransporter(Component):
 
     Run the model
 
-    >>> for t in range(0, (timesteps * dt), dt):
+    >>> for _ in range(timesteps):
     ...     nst.run_one_step(dt)
 
     We can the link location of the parcel at each timestep
@@ -464,7 +464,7 @@ class NetworkSedimentTransporter(Component):
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
             len(self._parcels.dataset.element_id.values[:, -1]),
-            self._parcels.dataset.D.values.reshape(-1),
+            self._parcels.dataset.density.values.reshape(-1),
             self._parcels.dataset.volume.values[:, -1],
         )
         aggregate_parcels_at_link_mean(
@@ -472,7 +472,7 @@ class NetworkSedimentTransporter(Component):
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
             len(self._parcels.dataset.element_id.values[:, -1]),
-            self._parcels.dataset.density.values.reshape(-1),
+            self._parcels.dataset.D.values.reshape(-1),
             self._parcels.dataset.volume.values[:, -1],
         )
 
@@ -597,7 +597,7 @@ class NetworkSedimentTransporter(Component):
         ) * (self._this_timesteps_parcels)
 
         parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
-        parcel_volumes[~self._active_parcel_records.values[:, -1]] = 0.0
+        parcel_volumes[~self._active_parcel_records.values[:, -1].astype(bool)] = 0.0
 
         self._vol_act = self.grid.zeros(at="link")
         aggregate_parcels_at_link_sum(
@@ -718,7 +718,7 @@ class NetworkSedimentTransporter(Component):
         ) * self._active_parcel_records
 
         parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
-        parcel_volumes[~findactivesand[:, -1]] = 0.0
+        parcel_volumes[~findactivesand[:, -1].astype(bool)] = 0.0
 
         vol_act_sand = self.grid.zeros(at="link")
         aggregate_parcels_at_link_sum(
