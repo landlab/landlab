@@ -93,7 +93,7 @@ repos:
     args: ["--ignore=.nox,build", "--no-build-isolation"]
     additional_dependencies:
     - numpy
-    - cython
+    - cython~=3.0.0b3
 
 # - repo: https://github.com/PyCQA/pydocstyle
 #   rev: 6.1.1
