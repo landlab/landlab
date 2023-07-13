@@ -11,15 +11,15 @@ from libc.stdlib cimport abs
 def subside_loads(
     cython.floating [:, :] w,
     const cython.floating [:, :] r,
-    const long n_rows,
-    const long n_cols,
     const cython.floating [:] loads,
     const cython.integral [:] row_of_load,
     const cython.integral [:] col_of_load,
-    const long n_loads,
     const double alpha,
     const double gamma_mantle,
 ):
+    cdef long n_rows = w.shape[0]
+    cdef long n_cols = w.shape[1]
+    cdef long n_loads = loads.shape[0]
     cdef long load_row, load_col
     cdef long row, col
     cdef long d_row
