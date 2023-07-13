@@ -17,13 +17,15 @@ https://www.cs.cmu.edu/~quake/triangle.switch.html
 import numpy as np
 import geopandas as gpd
 import shapely
+import triangle
 
 from typing import Tuple
 
 class TriangleMesh:
     """Constructs a mesh from a conforming Delaunay triangulation."""
+    default_opts = 'pqDez'
 
-    def __init__(self, points: np.ndarray, segments: list = None):
+    def __init__(self, points: np.ndarray, segments: list = None, opts: str = default_opts):
         """Initialize the class with a list of triangulation points."""
         self._vertices = np.array(points)
         self._boundary = shapely.LinearRing(self._vertices)
@@ -33,8 +35,12 @@ class TriangleMesh:
         else:
             self._segments = segments
 
+        self.opts = opts
+
+        self.delaunay, self.voronoi = self.triangulate()
+
     @classmethod
-    def from_dims(cls, shape: Tuple[int, int], spacing: Tuple[float, float]):
+    def from_dims(cls, shape: Tuple[int, int], spacing: Tuple[float, float], opts: str = default_opts):
         """Construct a set of points from shape (nx, ny) and spacing (dx, dy)."""
         nx, ny = shape
         dx, dy = spacing
@@ -48,16 +54,16 @@ class TriangleMesh:
 
         points = np.array([[all_xvals[i], all_yvals[i]] for i in np.arange(n_points)])
 
-        return cls(points)
+        return cls(points, opts = opts)
 
     @classmethod
-    def from_shapefile(cls, path_to_file: str):
+    def from_shapefile(cls, path_to_file: str, opts: str = default_opts):
         """Construct a set of points from the boundary of a shapefile."""
         shape = gpd.read_file(path_to_file).geometry
         polygon = shapely.build_area(shape.geometry[0])
         vertices = shapely.get_coordinates(polygon.exterior)
 
-        return cls(vertices)
+        return cls(vertices, opts = opts)
 
     def segment(self, curve):
         """Given a LinearRing, return a list of line segments."""
@@ -75,3 +81,44 @@ class TriangleMesh:
 
         return segments
 
+    def triangulate(self):
+        """Call Triangle for this instance's sets of vertices and segments."""
+        geometry = {
+            'vertices': self._vertices,
+            'segments': self._segments
+        }
+
+        # We need Triangle to return information about edges
+        if 'e' not in self.opts:
+            self.opts += 'e'
+        
+        # Python indexes from zero
+        if 'z' not in self.opts:
+            self.opts += 'z'
+
+        # Omitting the quality flag will lead to bad meshes
+        if 'q' not in self.opts:
+            raise Warning("Cannot guarantee mesh quality: consider adding 'q' to opts.")
+
+        # Most use cases probably involve Planar Straight Line Graphs
+        if 'p' not in self.opts:
+            raise Warning("If your region is a Planar Straight Line Graph, add 'p' to opts.")
+
+        # And, users probably want a conforming Delaunay triangulation
+        if 'D' not in self.opts:
+            raise Warning("If you want a conforming Delaunay triangulation, add 'D' to opts.")
+
+        delaunay = triangle.triangulate(geometry, opts = self.opts)
+        
+        # We discard ray_origin and ray_direction because by convention the
+        # Delaunay vertices form the outermost boundary of the computational grid.
+        # Note: this means that number_of_links > number_of_faces.
+        points, edges, ray_origin, ray_direction = triangle.voronoi(delaunay['vertices'])
+
+        voronoi = {
+            'vertices': points,
+            'edges': edges
+        }
+
+        return delaunay, voronoi
+        

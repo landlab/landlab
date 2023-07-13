@@ -104,3 +104,22 @@ def test_init_from_shapefile(mesh_from_shapefile):
             for i in range(4)
         ]
     )
+
+for mesh in [mesh_from_points, mesh_from_dims, mesh_from_shapefile]:
+
+    def test_triangulate(mesh):
+
+        for required in [
+            'vertices', 
+            'vertex_markers', 
+            'edges',
+            'edge_markers',
+            'triangles'
+        ]:
+            assert required in mesh.delaunay.keys()
+
+        for required in [
+            'vertices',
+            'edges'
+        ]:
+            assert required in mesh.voronoi.keys()
