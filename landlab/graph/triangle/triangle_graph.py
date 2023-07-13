@@ -1,6 +1,7 @@
 import numpy as np
 import xarray as xr
 from typing import Tuple
+from ..sort.sort import reverse_one_to_one
 
 
 class TriangleGraph:
@@ -156,7 +157,6 @@ class TriangleGraph:
     def _get_faces_at_cell(self) -> np.ndarray:
         """Construct an array of size (n_cells, max_faces_per_cell) from the Delaunay graph."""
         nodes_at_cell, cells_at_node = self._number_cells()
-        nodes_at_face = self._get_nodes_at_face()
 
         faces = [[] for cell in np.arange(len(nodes_at_cell))]
         max_faces_per_cell = 0

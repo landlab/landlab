@@ -122,12 +122,7 @@ class TriangleMesh:
                 "If you want a conforming Delaunay triangulation, add 'D' to opts."
             )
 
-        # With poorly-conditioned geometries or strict requirements, Triangle may fail
-        for i in range(2):
-            try:
-                delaunay = triangle.triangulate(geometry, opts=self.opts)
-            except:
-                pass
+        delaunay = triangle.triangulate(geometry, opts=self.opts)
 
         # We discard ray_origin and ray_direction because by convention the
         # Delaunay vertices form the outermost boundary of the computational grid.
