@@ -6,14 +6,22 @@ from cython.parallel cimport prange
 from libc.stdlib cimport abs
 
 
+ctypedef fused index_type:
+    cython.integral
+    long long
+    unsigned int
+    unsigned long
+    unsigned long long
+
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def subside_loads(
     cython.floating [:, :] w,
     const cython.floating [:, :] r,
     const cython.floating [:] loads,
-    const cython.integral [:] row_of_load,
-    const cython.integral [:] col_of_load,
+    const index_type [:] row_of_load,
+    const index_type [:] col_of_load,
     const double alpha,
     const double gamma_mantle,
 ):
