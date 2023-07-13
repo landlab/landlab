@@ -1,5 +1,7 @@
 import numpy as np
 import xarray as xr
+from typing import Tuple
+from ..sort.sort import reverse_one_to_one
 
 class TriangleGraph:
     """Constructs the Voronoi-Delaunay dual graph.
@@ -61,6 +63,8 @@ class TriangleGraph:
             }
         )
 
+        corners_at_cell = self._get_corners_at_cell()
+
         self._mesh.update(
             {
                 "nodes_at_link": xr.DataArray(
@@ -72,50 +76,64 @@ class TriangleGraph:
                 "corners_at_face": xr.DataArray(
                     self._voronoi['edges'], dims = ("face", "Two")
                 ),
-                # "corners_at_cell": xr.DataArray(
-                #     corners_at_cell, dims = ("cell", "max_corners_per_cell")
-                # ), 
-                # "n_corners_at_cell": xr.DataArray(
-                #     [len(cell) for cell in corners_at_cell], dims = ("cell",)
-                # ),
+                "corners_at_cell": xr.DataArray(
+                    corners_at_cell, dims = ("cell", "max_corners_per_cell")
+                ), 
+                "n_corners_at_cell": xr.DataArray(
+                    [len(corners) for corners in corners_at_cell], dims = ("cell",)
+                ),
                 "nodes_at_face": xr.DataArray(
                     self._get_nodes_at_face(), dims = ("face", "Two")
                 ),
-                # "cell_at_node": xr.DataArray(
-                #     np.arange(self.number_of_nodes), dims = ("node",)
-                # ),
+                "cell_at_node": xr.DataArray(
+                    self._number_cells()[1], dims = ("node",)
+                ),
                 "links_at_patch": xr.DataArray(
                     self._delaunay['triangles'], dims = ("patch", "Three")
                 ),
-                # "node_at_cell": xr.DataArray(
-                #     np.arange(self.number_of_nodes), dims = ("cell",)
-                # ),
-                # "faces_at_cell": xr.DataArray(
-                #     self._get_faces_at_cell(), dims = ("cell", "max_faces_per_cell")
-                # )
+                "node_at_cell": xr.DataArray(
+                    self._number_cells()[0], dims = ("cell",)
+                ),
+                "faces_at_cell": xr.DataArray(
+                    self._get_faces_at_cell(), dims = ("cell", "max_faces_per_cell")
+                )
             }
         )
 
+    def _number_cells(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Map between grid cells and nodes."""
+        nodes_at_cell = np.array(
+            [
+                idx for idx in range(len(self._delaunay['vertex_markers']))
+                if self._delaunay['vertex_markers'][idx] == 0
+            ]
+        )
+
+        cells_at_node = reverse_one_to_one(nodes_at_cell)
+
+        return nodes_at_cell, cells_at_node
+
     def _get_corners_at_cell(self) -> np.ndarray:
         """Construct an array of size (n_cells, max_corners_at_cell) from the Voronoi graph."""
-        cells = [
-            idx for idx in range(len(self._delaunay['vertex_markers']))
-            if self._delaunay['vertex_markers'][idx] == 0
-        ]
+        nodes_at_cell, cells_at_node = self._number_cells()
         max_corners_per_cell = 0
 
-        corners = {cell: [] for cell in cells}
+        corners = [[] for _ in range(len(cells_at_node))]
+        for cell in cells_at_node:
+            if cell != -1:
+                triangles = np.where(np.isin(self._delaunay['triangles'], cell))[0]
+                corners[cell] = triangles
 
-        for cell in cells:
-            triangles = np.where(np.isin(self._delaunay['triangles'], cell))[0]
-            corners[cell] = triangles
+                if len(triangles) > max_corners_per_cell:
+                    max_corners_per_cell = len(triangles)
 
-            if len(triangles) > max_corners_per_cell:
-                max_corners_per_cell = len(triangles)
+        corners_at_cell = np.full((len(nodes_at_cell), max_corners_per_cell), -1)
+        for cell in range(len(nodes_at_cell)):
+            corners_at_cell[cell, :len(corners[cell])] = corners[cell]
 
         # TODO Do we want to keep cell j as the dual of node j, or reindex cells from [0, N] ?
         
-        return None
+        return corners_at_cell
 
     def _get_nodes_at_face(self) -> np.ndarray:
         """Construct an array of size (n_faces, 2) from the Voronoi graph."""
@@ -131,9 +149,23 @@ class TriangleGraph:
 
     def _get_faces_at_cell(self) -> np.ndarray:
         """Construct an array of size (n_cells, max_faces_per_cell) from the Delaunay graph."""
-        
-        # TODO see comment in _get_corners_at_cell
-        pass        
+        nodes_at_cell, cells_at_node = self._number_cells()
+        nodes_at_face = self._get_nodes_at_face()
+
+        faces = [[] for cell in np.arange(len(nodes_at_cell))]
+        max_faces_per_cell = 0
+
+        for cell in np.arange(len(nodes_at_cell)):
+            faces[cell] = np.where(np.isin(self._delaunay['edges'], nodes_at_cell[cell]))[0]
+
+            if len(faces[cell]) > max_faces_per_cell:
+                max_faces_per_cell = len(faces[cell])
+
+        faces_at_cell = np.full((len(faces), max_faces_per_cell), -1)
+        for cell in range(len(faces)):
+            faces_at_cell[cell, :len(faces[cell])] = faces[cell]
+
+        return np.array(faces_at_cell)
             
     @property
     def number_of_nodes(self):

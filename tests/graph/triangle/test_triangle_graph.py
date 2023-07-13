@@ -17,5 +17,3 @@ def triangle_graph():
 
 def test_triangle_graph_init(triangle_graph):
     graph = triangle_graph
-
-    
