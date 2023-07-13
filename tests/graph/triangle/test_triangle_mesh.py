@@ -37,7 +37,7 @@ def mesh_from_dims():
 
 @pytest.fixture
 def mesh_from_shapefile():
-    path = "tests/graph/triangle/test_triangle_mesh/test_shapefile.geojson"
+    path = "tests/graph/triangle/test_triangle_mesh/example_shapefile.geojson"
     mesh = TriangleMesh.from_shapefile(path, opts="pqa10000Dez")
     return mesh
 
