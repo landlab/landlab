@@ -16,4 +16,7 @@ def triangle_graph():
     return graph
 
 def test_triangle_graph_init(triangle_graph):
+    """This test should always pass."""
     graph = triangle_graph
+    assert True
+

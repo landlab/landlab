@@ -234,3 +234,15 @@ class TriangleGraph:
     @property
     def cell_at_node(self):
         return self._mesh["cell_at_node"].values
+
+    @property
+    def links_at_patch(self):
+        return self._mesh["links_at_patch"].values
+
+    @property
+    def node_at_cell(self):
+        return self._mesh["node_at_cell"].values
+
+    @property
+    def faces_at_cell(self):
+        return self._mesh["faces_at_cell"].values
