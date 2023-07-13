@@ -36,7 +36,7 @@ def mesh_from_dims():
 @pytest.fixture
 def mesh_from_shapefile():
     path = 'tests/graph/triangle/test_triangle_mesh/test_shapefile.geojson'
-    mesh = TriangleMesh.from_shapefile(path)
+    mesh = TriangleMesh.from_shapefile(path, opts = 'pqa10000Dez')
     return mesh
 
 def test_init_from_points(mesh_from_points):
@@ -123,3 +123,8 @@ for mesh in [mesh_from_points, mesh_from_dims, mesh_from_shapefile]:
             'edges'
         ]:
             assert required in mesh.voronoi.keys()
+
+
+# def test_segmentation_fault(mesh_from_shapefile):
+#     mesh = mesh_from_shapefile(opts = 'pq33a0.1Dez')
+    
