@@ -9,3 +9,5 @@ rich-click
 scipy
 statsmodels
 xarray >= 0.16
+geopandas
+shapely
