@@ -52,7 +52,7 @@ def test_input_fields_soil():
 def test_field_instantiation():
     """
     ConcentrationTrackerForDiffusion should instantiate the following fields
-    when they do not already exist ('sed_property_mass__flux', 
+    when they do not already exist ('sed_property__mass_flux', 
     'bedrock_property__concentration', 'sed_property__concentration',
     'sed_property__decay_rate', 'sed_property__production_rate')
     """
@@ -70,7 +70,7 @@ def test_field_instantiation():
                    'sed_property__production_rate'
                    ]
     
-    assert "sed_property_mass__flux" in mg.at_link
+    assert "sed_property__mass_flux" in mg.at_link
     for node_field in node_fields:
         assert node_field in mg.at_node
         
@@ -87,7 +87,7 @@ def test_fields_for_default_input():
     
     _ = ConcentrationTrackerForDiffusion(mg)
     
-    link_field = mg.at_link["sed_property_mass__flux"]
+    link_field = mg.at_link["sed_property__mass_flux"]
     node_fields = [mg.at_node["sed_property__concentration"],
                    mg.at_node["bedrock_property__concentration"],
                    mg.at_node["sed_property__production_rate"],
@@ -118,7 +118,7 @@ def test_fields_for_default_input_with_preexisting_fields():
     _ = mg.add_zeros("topographic__elevation", at="node")
     _ = mg.add_zeros('soil_production__rate', at='node')
     
-    _ = mg.add_ones('sed_property_mass__flux', at='link')
+    _ = mg.add_ones('sed_property__mass_flux', at='link')
     _ = mg.add_ones('sed_property__concentration', at='node')
     _ = mg.add_ones('bedrock_property__concentration', at='node')
     _ = mg.add_ones('sed_property__production_rate', at='node')
@@ -126,7 +126,7 @@ def test_fields_for_default_input_with_preexisting_fields():
     
     _ = ConcentrationTrackerForDiffusion(mg)
     
-    link_field = mg.at_link["sed_property_mass__flux"]
+    link_field = mg.at_link["sed_property__mass_flux"]
     node_fields = [mg.at_node["sed_property__concentration"],
                    mg.at_node["bedrock_property__concentration"],
                    mg.at_node["sed_property__production_rate"],
@@ -163,7 +163,7 @@ def test_fields_for_user_value_input():
                                          local_production_rate=1,
                                          local_decay_rate=1,)
     
-    link_field = mg.at_link["sed_property_mass__flux"]
+    link_field = mg.at_link["sed_property__mass_flux"]
     node_fields = [mg.at_node["sed_property__concentration"],
                    mg.at_node["bedrock_property__concentration"],
                    mg.at_node["sed_property__production_rate"],
@@ -205,7 +205,7 @@ def test_fields_for_user_array_input():
                                          local_production_rate=p,
                                          local_decay_rate=d,)
     
-    link_field = mg.at_link["sed_property_mass__flux"]
+    link_field = mg.at_link["sed_property__mass_flux"]
     node_fields = [mg.at_node["sed_property__concentration"],
                    mg.at_node["bedrock_property__concentration"],
                    mg.at_node["sed_property__production_rate"],
@@ -247,7 +247,7 @@ def test_fields_for_user_field_input():
                                          local_production_rate=p,
                                          local_decay_rate=d,)
     
-    link_field = mg.at_link["sed_property_mass__flux"]
+    link_field = mg.at_link["sed_property__mass_flux"]
     node_fields = [mg.at_node["sed_property__concentration"],
                    mg.at_node["bedrock_property__concentration"],
                    mg.at_node["sed_property__production_rate"],
