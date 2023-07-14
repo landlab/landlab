@@ -29,7 +29,7 @@ class TriangleMesh:
     def __init__(self, poly: shapely.Polygon, opts: str = default_opts):
         """Initialize this instance with a Shapely polygon object."""
         self._poly = poly
-        self._vertices = shapely.get_coordinates(self._poly.exterior)
+        self._vertices = shapely.get_coordinates(self._poly)
         self._segments = self._segment(self._poly)
         self._holes = self._identify_holes(self._poly)
         self._opts = opts
@@ -48,6 +48,7 @@ class TriangleMesh:
                 "Shapefile must represent exactly 1 object. \n" +
                 "Check that there is only one input geometry and try again."
             )
+
         if len(shape[0].geoms) != 1:
             raise TypeError(
                 "Each shape within the input shapefile must contain exactly 1 geometry."
@@ -70,13 +71,45 @@ class TriangleMesh:
 
     def _segment(self, poly: shapely.Polygon) -> np.ndarray:
         """Given a Polygon, construct an array of line segments for exterior and interior rings."""
-        segments = np.empty(0)
+        boundaries = [poly.exterior]
+        interiors = [i for i in poly.interiors]
+        segments = []
 
-        return segments
+        boundaries.extend(interiors)
+
+        for curve in boundaries:
+            lines = list(map(shapely.LineString, zip(curve.coords[:-1], curve.coords[1:])))
+
+            for line in lines:
+                x1, y1 = line.coords[0]
+                x2, y2 = line.coords[1]
+
+                start_vertex = np.argwhere(
+                    (self._vertices[:, 0] == x1) & (self._vertices[:, 1] == y1)
+                )[0]
+                end_vertex = np.argwhere(
+                    (self._vertices[:, 0] == x2) & (self._vertices[:, 1] == y2)
+                )[0]
+
+                segments.append([int(start_vertex[0]), int(end_vertex[0])])
+
+        return np.array(segments)
 
     def _identify_holes(self, shape: shapely.Polygon):
         """Identify interior boundaries within a source Polygon."""
-        pass
+        interiors = [i for i in shape.interiors]
+        holes = []
+
+        if len(interiors) > 0:
+            for ring in interiors:
+                area = shapely.build_area(ring)
+                point = area.centroid.xy
+                holes.append([point[0][0], point[1][0]])
+        else:
+            holes = None
+
+        return np.array(holes)
+            
 
     def _write_poly_file(
         self, 
