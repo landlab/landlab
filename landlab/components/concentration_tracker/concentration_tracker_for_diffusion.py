@@ -29,8 +29,8 @@ class ConcentrationTrackerForDiffusion(Component):
     
     NOTE: This component requires a soil flux field calculated by a hillslope
     diffusion component and must be run after every diffusion step. Currently,
-    this component can only couple with the DepthDependentDiffuser or the
-    DepthDependentTaylorDiffuser (without the dynamic timestep option).
+    this component WILL ONLY WORK IF COUPLED with the DepthDependentDiffuser or 
+    the DepthDependentTaylorDiffuser (without the dynamic timestep option).
 
     Examples
     --------
