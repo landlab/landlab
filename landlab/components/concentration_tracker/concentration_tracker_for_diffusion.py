@@ -196,15 +196,15 @@ class ConcentrationTrackerForDiffusion(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "kg/m^3",
+            "units": "-/m^3",
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of sediment",
         },
-        "sed_property_mass__flux": {
+        "sed_property__flux": {
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "kg",
+            "units": "-^2/y",
             "mapping": "link",
             "doc": "Mass of property fluxing along links",
         },
@@ -212,7 +212,7 @@ class ConcentrationTrackerForDiffusion(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "kg/m^3",
+            "units": "-/m^3",
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of bedrock",
         },
@@ -220,7 +220,7 @@ class ConcentrationTrackerForDiffusion(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "kg/m^3/yr",
+            "units": "-/m^3/yr",
             "mapping": "node",
             "doc": "Production rate of property per unit volume of sediment per time",
         },
@@ -228,7 +228,7 @@ class ConcentrationTrackerForDiffusion(Component):
             "dtype": float,
             "intent": "out",
             "optional": False,
-            "units": "kg/m^3/yr",
+            "units": "-/m^3/yr",
             "mapping": "node",
             "doc": "Decay rate of property per unit volume of sediment per time",
         },
@@ -295,7 +295,7 @@ class ConcentrationTrackerForDiffusion(Component):
         self._C_links = np.zeros(self._grid.number_of_links)
         
         # Sediment property mass field (at links, to calculate dQCdx)
-        self._QC_links = self._grid.at_link["sed_property_mass__flux"]
+        self._QC_links = self._grid.at_link["sed_property__flux"]
         
         # Check that concentration values are within physical limits
         if isinstance(concentration_initial, np.ndarray):
