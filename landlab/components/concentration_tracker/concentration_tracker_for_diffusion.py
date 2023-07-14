@@ -216,7 +216,7 @@ class ConcentrationTrackerForDiffusion(Component):
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of bedrock",
         },
-        "sediment_property__production_rate": {
+        "sediment_property_production__rate": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -224,7 +224,7 @@ class ConcentrationTrackerForDiffusion(Component):
             "mapping": "node",
             "doc": "Production rate of property per unit volume of sediment per time",
         },
-        "sediment_property__decay_rate": {
+        "sediment_property_decay__rate": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -283,13 +283,13 @@ class ConcentrationTrackerForDiffusion(Component):
             self._grid.at_node["bedrock_property__concentration"] += self.C_br
         self.C_br = self._grid.at_node["bedrock_property__concentration"]
         
-        if not self._grid.at_node["sediment_property__production_rate"].any():
-            self._grid.at_node["sediment_property__production_rate"] += self.P
-        self.P = self._grid.at_node["sediment_property__production_rate"]
+        if not self._grid.at_node["sediment_property_production__rate"].any():
+            self._grid.at_node["sediment_property_production__rate"] += self.P
+        self.P = self._grid.at_node["sediment_property_production__rate"]
         
-        if not self._grid.at_node["sediment_property__decay_rate"].any():
-            self._grid.at_node["sediment_property__decay_rate"] += self.D
-        self.D = self._grid.at_node["sediment_property__decay_rate"]
+        if not self._grid.at_node["sediment_property_decay__rate"].any():
+            self._grid.at_node["sediment_property_decay__rate"] += self.D
+        self.D = self._grid.at_node["sediment_property_decay__rate"]
 
         # Sediment property concentration field (at links, to calculate dQCdx)
         self._C_links = np.zeros(self._grid.number_of_links)
