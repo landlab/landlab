@@ -247,13 +247,13 @@ class ConcentrationTrackerForDiffusion(Component):
         grid: ModelGrid
             Landlab ModelGrid object
         concentration_initial: positive float, array, or field name (optional)
-            Initial concentration in soil/sediment, kg/m^3
+            Initial concentration in soil/sediment, -/m^3
         concentration_in_bedrock: positive float, array, or field name (optional)
-            Concentration in bedrock, kg/m^3
+            Concentration in bedrock, -/m^3
         local_production_rate: float, array, or field name (optional)
-            Rate of local production, kg/m^3/yr
+            Rate of local production, -/m^3/yr
         local_decay_rate: float, array, or field name (optional)
-            Rate of local decay, kg/m^3/yr
+            Rate of local decay, -/m^3/yr
         """
         
         super().__init__(grid)
