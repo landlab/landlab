@@ -1,7 +1,7 @@
 bmipy
 matplotlib
 netcdf4
-numpy
+numpy < 1.25
 pandas
 pyshp != 2.3.0
 pyyaml
