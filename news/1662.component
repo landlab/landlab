@@ -1,2 +1,2 @@
-Added new component :class:`~.ConcentrationTrackerForDiffusion` 
+Added new component :class:`~.ConcentrationTrackerForDiffusion`
 for tracking hillslope sediment properties.
