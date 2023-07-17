@@ -465,7 +465,7 @@ class RiverBedDynamics(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "link",
-            "doc": "Average velocity of the surface water",
+            "doc": "Speed of water flow above the surface",
         },
         "surface_water__velocity_previous_time": {
             "dtype": float,
@@ -473,7 +473,7 @@ class RiverBedDynamics(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "link",
-            "doc": "Average velocity of the surface water in the previous time step",
+            "doc": "Speed of water flow above the surface in the previous time step",
         },
         "surface_water__shear_stress": {
             "dtype": float,
@@ -497,7 +497,7 @@ class RiverBedDynamics(Component):
     def __init__(
         self,
         grid,
-        gsd=0,  # np.array([[32, 100], [16, 25], [8, 0]]),  # Initializes the gsd array.
+        gsd=[[32, 100], [16, 25], [8, 0]],  # Initializes the gsd array.
         rho=1000,  # Sets the fluid density (kg/m**3).
         rho_s=2650,  # Sets the sediment density (kg/m**3).
         bedload_equation="MPM",  # Selects the bedload equation.
@@ -606,7 +606,7 @@ class RiverBedDynamics(Component):
         self._shear_stress_star_rsgo = 0.0386  # Reference dimensionless shear
         # stress for the median size
         self._beta = 0.0951  # Coefficient for the hiding function
-        self._gsd = gsd
+        self._gsd = np.array(gsd)
         self._bedload_equation = bedload_equation
         self._variable_critical_shear_stress = variable_critical_shear_stress
         self._use_hydraulics_radius_in_shear_stress = (
