@@ -99,5 +99,5 @@ statsmodels==0.14.0
     # via -r requirements.in
 tzdata==2023.3
     # via pandas
-xarray==2023.4.2
+xarray==2023.7.0
     # via -r requirements.in
