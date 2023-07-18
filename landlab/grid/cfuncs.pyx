@@ -87,8 +87,8 @@ def _argsort_points_by_x_then_y(np.ndarray[DTYPE_INT_t, ndim=1] pts,
     cdef np.ndarray[DTYPE_INT_t, ndim=1] a
     cdef np.ndarray[DTYPE_INT_t, ndim=1] b
 
-    a = pts[:, 0].argsort(kind='mergesort')
-    b = pts[a, 1].argsort(kind='mergesort')
+    a = pts[:, 0].argsort(kind='stable')
+    b = pts[a, 1].argsort(kind='stable')
     out[:] = a[b]
 
 
@@ -103,4 +103,4 @@ def _anticlockwise_argsort_points(np.ndarray[DTYPE_INT_t, ndim=2] pts,
 
     theta[:] = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
     theta[:] = theta % twopi
-    out[:] = np.argsort(theta)
+    out[:] = np.argsort(theta, kind="stable")
