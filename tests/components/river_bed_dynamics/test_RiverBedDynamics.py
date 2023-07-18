@@ -122,7 +122,7 @@ def test_r_b_d_approximate_solution():
     # Creates fields and instantiate the OverlandFlow component
     grid.add_zeros("surface_water__depth", at="node")
     of = OverlandFlow(
-        grid, dt_max=max_dt, h_init=0.001, mannings_n=n, use_user_defined_time_step=True
+        grid, h_init=0.001, mannings_n=n,
     )
 
     # Creates fields and instantiate the RiverbedDynamics component
@@ -193,7 +193,7 @@ def test_r_b_d_approximate_solution():
         # Velocity at previous time
         grid["link"]["surface_water__velocity_previous_time"] = of._q / of._h_links
 
-        of.overland_flow()  # Runs overland flow for one time step
+        of.overland_flow(dt=max_dt)  # Runs overland flow for one time step
 
         # Velocity at current time
         grid["link"]["surface_water__velocity"] = of._q / of._h_links
