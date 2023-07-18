@@ -22,6 +22,8 @@ cdef extern from "stdlib.h":
     ctypedef void const_void "const void"
     void qsort(void *base, int nmemb, int size,
             int(*compar)(const_void *, const_void *)) nogil
+    int	mergesort(void *, size_t, size_t,
+                  int (*)(const_void *, const_void *)) nogil
 
 
 cdef int _compare(const_void *a, const_void *b) noexcept:
@@ -39,7 +41,8 @@ cdef void _argsort(double * data, int n_elements, Sorter * order):
         order[i].index = i
         order[i].value = data[i]
 
-    qsort(<void*> order, n_elements, sizeof(Sorter), _compare)
+    # qsort(<void*> order, n_elements, sizeof(Sorter), _compare)
+    mergesort(<void*> order, n_elements, sizeof(Sorter), _compare)
 
 
 cdef argsort(double * data, int n_elements, int * out):
