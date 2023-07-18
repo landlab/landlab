@@ -122,7 +122,9 @@ def test_r_b_d_approximate_solution():
     # Creates fields and instantiate the OverlandFlow component
     grid.add_zeros("surface_water__depth", at="node")
     of = OverlandFlow(
-        grid, h_init=0.001, mannings_n=n,
+        grid,
+        h_init=0.001,
+        mannings_n=n,
     )
 
     # Creates fields and instantiate the RiverbedDynamics component
