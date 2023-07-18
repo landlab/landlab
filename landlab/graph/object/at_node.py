@@ -140,7 +140,7 @@ def sort_links_at_node_by_angle(
 
     outward_angle[np.where(link_dirs_at_node == 0)] = 4 * np.pi
 
-    sorted_links = as_id_array(np.argsort(outward_angle))
+    sorted_links = as_id_array(np.argsort(outward_angle, kind="stable"))
 
     reorder_links_at_node(links_at_node, sorted_links)
     reorder_link_dirs_at_node(link_dirs_at_node, sorted_links)

@@ -1765,9 +1765,9 @@ class ModelGrid(
         unordered_IDs = np.where(values_at_links < 0.0, self.links_at_node, bad_index)
         bad_IDs = unordered_IDs == bad_index
         nnodes = self.number_of_nodes
-        flat_sorter = np.argsort(bad_IDs, axis=1) + self.links_at_node.shape[
-            1
-        ] * np.arange(nnodes).reshape((nnodes, 1))
+        flat_sorter = np.argsort(
+            bad_IDs, axis=1, kind="stable"
+        ) + self.links_at_node.shape[1] * np.arange(nnodes).reshape((nnodes, 1))
         big_ordered_array = unordered_IDs.ravel()[flat_sorter].reshape(
             self.links_at_node.shape
         )
@@ -1836,9 +1836,9 @@ class ModelGrid(
         unordered_IDs = np.where(values_at_links > 0.0, self.links_at_node, bad_index)
         bad_IDs = unordered_IDs == bad_index
         nnodes = self.number_of_nodes
-        flat_sorter = np.argsort(bad_IDs, axis=1) + self.links_at_node.shape[
-            1
-        ] * np.arange(nnodes).reshape((nnodes, 1))
+        flat_sorter = np.argsort(
+            bad_IDs, axis=1, kind="stable"
+        ) + self.links_at_node.shape[1] * np.arange(nnodes).reshape((nnodes, 1))
         big_ordered_array = unordered_IDs.ravel()[flat_sorter].reshape(
             self.links_at_node.shape
         )

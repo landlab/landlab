@@ -30,7 +30,7 @@ def pair_isin(src, pairs, out=None, sorter=None, sorted=False):
         Array that indicates if the pair is contained in the source set.
     """
     if not sorted and sorter is None:
-        sorter = np.argsort(src[:, 0])
+        sorter = np.argsort(src[:, 0], kind="stable")
     if sorter is not None:
         src = src[sorter]
 
@@ -84,7 +84,7 @@ def map_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
         out = np.empty(len(pairs), dtype=int)
 
     if not sorted and sorter is None:
-        sorter = np.argsort(keys[:, 0])
+        sorter = np.argsort(keys[:, 0], kind="stable")
     if sorter is not None:
         keys = keys[sorter]
         values = values[sorter]
@@ -146,7 +146,7 @@ def map_rolling_pairs_to_values(
         out[:] = -1
 
     if not sorted and sorter is None:
-        sorter = np.argsort(keys[:, 0])
+        sorter = np.argsort(keys[:, 0], kind="stable")
     if sorter is not None:
         keys = keys[sorter]
         values = values[sorter]

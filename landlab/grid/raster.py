@@ -1110,7 +1110,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         self.looped_node_properties = {}
         all_the_IDs = np.concatenate((these_boundary_IDs, existing_IDs))
-        ID_ordering = np.argsort(all_the_IDs)
+        ID_ordering = np.argsort(all_the_IDs, kind="stable")
         self.looped_node_properties["boundary_node_IDs"] = as_id_array(
             all_the_IDs[ID_ordering]
         )

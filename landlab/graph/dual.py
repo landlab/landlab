@@ -98,9 +98,10 @@ class DualGraph(metaclass=DualGraphMeta):
             self.nodes_at_face[:] = self.nodes_at_face[sorted_faces]
 
             remap_graph_element(
-                as_id_array(self.node_at_cell), as_id_array(np.argsort(sorted_nodes))
+                as_id_array(self.node_at_cell),
+                as_id_array(np.argsort(sorted_nodes, kind="stable")),
             )
             remap_graph_element(
                 as_id_array(self.nodes_at_face).reshape((-1,)),
-                as_id_array(np.argsort(sorted_nodes)),
+                as_id_array(np.argsort(sorted_nodes, kind="stable")),
             )
