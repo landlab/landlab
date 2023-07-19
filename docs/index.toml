@@ -22,7 +22,7 @@ doc = 'Link-parallel advection flux'
 dtype = 'float64'
 intent = 'out'
 mapping = 'link'
-optional = false
+optional = true
 units = 'm2/y'
 
 [components.AdvectionSolverTVD.info.advection__velocity]
@@ -2723,6 +2723,155 @@ mapping = 'node'
 optional = false
 units = 'm'
 
+[components.RiverBedDynamics]
+name = 'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics'
+unit_agnostic = false
+summary = 'Landlab component that predicts the evolution of a river bed'
+
+[components.RiverBedDynamics.info.bed_surface__elevation_fixed]
+doc = 'Sets a node as a fixed elevation'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = true
+units = '-'
+
+[components.RiverBedDynamics.info.bed_surface__geometric_mean_size]
+doc = 'Bed surface geometric mean grain size'
+dtype = 'float64'
+intent = 'out'
+mapping = 'link'
+optional = false
+units = 'mm'
+
+[components.RiverBedDynamics.info.bed_surface__geometric_standard_deviation_size]
+doc = 'Bed surface geometric standard deviation grain size'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'mm'
+
+[components.RiverBedDynamics.info.bed_surface__grain_size_distribution]
+doc = 'Bed surface grain size fraction'
+dtype = 'float64'
+intent = 'out'
+mapping = 'link'
+optional = false
+units = '-'
+
+[components.RiverBedDynamics.info.bed_surface__grain_size_distribution_fixed]
+doc = 'Determine locations that do not change its GSD in time'
+dtype = 'int64'
+intent = 'in'
+mapping = 'node'
+optional = true
+units = '-'
+
+[components.RiverBedDynamics.info.bed_surface__grain_size_distribution_location]
+doc = 'Accounts for the initial grain size distribution that can                 vary in space. Each value corresponds to a given GSD location.'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.RiverBedDynamics.info.bed_surface__median_size]
+doc = 'Bed surface median grain size'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'mm'
+
+[components.RiverBedDynamics.info.bed_surface__sand_fraction]
+doc = 'Bed surface sand content'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-'
+
+[components.RiverBedDynamics.info.sediment_transport__bedload_grain_size_distribution]
+doc = 'Bed load grain size distribution'
+dtype = 'float64'
+intent = 'out'
+mapping = 'link'
+optional = false
+units = '-'
+
+[components.RiverBedDynamics.info.sediment_transport__bedload_grain_size_distribution_imposed]
+doc = 'Sets the sediment transport GSD where                   sediment supply is imposed'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = true
+units = '-'
+
+[components.RiverBedDynamics.info.sediment_transport__bedload_rate]
+doc = 'Volumetric bed load transport rate per unit width'
+dtype = 'float64'
+intent = 'out'
+mapping = 'link'
+optional = false
+units = 'm^2/s'
+
+[components.RiverBedDynamics.info.sediment_transport__net_bedload]
+doc = 'Net sediment transport rate at a node'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = 'm^3/s'
+
+[components.RiverBedDynamics.info.sediment_transport__sediment_supply_imposed]
+doc = 'Sets the sediment transport rate per unit width where                   sediment supply is imposed'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = true
+units = 'm^2/s'
+
+[components.RiverBedDynamics.info.surface_water__depth]
+doc = 'Depth of water on the surface'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = false
+units = 'm'
+
+[components.RiverBedDynamics.info.surface_water__shear_stress]
+doc = 'Shear stress applied by the surface water on the bed                 surface'
+dtype = 'float64'
+intent = 'out'
+mapping = 'link'
+optional = false
+units = 'Pa'
+
+[components.RiverBedDynamics.info.surface_water__velocity]
+doc = 'Speed of water flow above the surface'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = false
+units = 'm/s'
+
+[components.RiverBedDynamics.info.surface_water__velocity_previous_time]
+doc = 'Speed of water flow above the surface in the previous time step'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = false
+units = 'm/s'
+
+[components.RiverBedDynamics.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
 [components.SedDepEroder]
 name = 'landlab.components.stream_power.sed_flux_dep_incision.SedDepEroder'
 unit_agnostic = false
@@ -3823,6 +3972,62 @@ provided_by = [
   'landlab.components.groundwater.dupuit_percolator.GroundwaterDupuitPercolator',
 ]
 
+[fields.bed_surface__elevation_fixed]
+desc = 'Sets a node as a fixed elevation'
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+provided_by = []
+
+[fields.bed_surface__geometric_mean_size]
+desc = 'Bed surface geometric mean grain size'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.bed_surface__geometric_standard_deviation_size]
+desc = 'Bed surface geometric standard deviation grain size'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.bed_surface__grain_size_distribution]
+desc = 'Bed surface grain size fraction'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.bed_surface__grain_size_distribution_fixed]
+desc = 'Determine locations that do not change its GSD in time'
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+provided_by = []
+
+[fields.bed_surface__grain_size_distribution_location]
+desc = 'Accounts for the initial grain size distribution that can                 vary in space. Each value corresponds to a given GSD location.'
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+provided_by = []
+
+[fields.bed_surface__median_size]
+desc = 'Bed surface median grain size'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.bed_surface__sand_fraction]
+desc = 'Bed surface sand content'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
 [fields.bedload_sediment__rate_of_loss_to_abrasion]
 desc = 'Rate of bedload sediment volume loss to abrasion per unit area'
 used_by = []
@@ -4644,6 +4849,41 @@ provided_by = [
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
 ]
 
+[fields.sediment_transport__bedload_grain_size_distribution]
+desc = 'Bed load grain size distribution'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.sediment_transport__bedload_grain_size_distribution_imposed]
+desc = 'Sets the sediment transport GSD where                   sediment supply is imposed'
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+provided_by = []
+
+[fields.sediment_transport__bedload_rate]
+desc = 'Volumetric bed load transport rate per unit width'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.sediment_transport__net_bedload]
+desc = 'Net sediment transport rate at a node'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
+[fields.sediment_transport__sediment_supply_imposed]
+desc = 'Sets the sediment transport rate per unit width where                   sediment supply is imposed'
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+provided_by = []
+
 [fields.slope_coefficient]
 desc = 'Slope coefficient to define channels.'
 used_by = [
@@ -4882,6 +5122,7 @@ used_by = [
   'landlab.components.overland_flow.generate_overland_flow_Bates.OverlandFlowBates',
   'landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow',
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 provided_by = [
@@ -4932,6 +5173,13 @@ provided_by = [
   'landlab.components.flow_accum.lossy_flow_accumulator.LossyFlowAccumulator',
 ]
 
+[fields.surface_water__shear_stress]
+desc = 'Shear stress applied by the surface water on the bed                 surface'
+used_by = []
+provided_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+
 [fields.surface_water__specific_discharge]
 desc = 'rate of seepage to surface'
 used_by = []
@@ -4948,10 +5196,19 @@ provided_by = []
 
 [fields.surface_water__velocity]
 desc = 'Speed of water flow above the surface'
-used_by = []
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
 provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
 ]
+
+[fields.surface_water__velocity_previous_time]
+desc = 'Speed of water flow above the surface in the previous time step'
+used_by = [
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
+]
+provided_by = []
 
 [fields.surface_water_inflow__discharge]
 desc = 'water volume inflow rate to the cell around each node'
@@ -5016,6 +5273,7 @@ used_by = [
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
   'landlab.components.radiation.radiation.Radiation',
+  'landlab.components.river_bed_dynamics.RiverBedDynamics.RiverBedDynamics',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
   'landlab.components.space.space.Space',
