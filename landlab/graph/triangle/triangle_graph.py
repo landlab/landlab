@@ -1,7 +1,6 @@
 import numpy as np
 import xarray as xr
 from typing import Tuple
-from ..sort.sort import reverse_one_to_one
 
 
 class TriangleGraph:
@@ -48,10 +47,10 @@ class TriangleGraph:
                     data=np.arange(self._delaunay["nodes"].shape[0]),
                     coords={
                         "x_of_node": xr.DataArray(
-                            self._delaunay["nodes"]['x'], dims=("node",)
+                            self._delaunay["nodes"]["x"], dims=("node",)
                         ),
                         "y_of_node": xr.DataArray(
-                            self._delaunay["nodes"]['y'], dims=("node",)
+                            self._delaunay["nodes"]["y"], dims=("node",)
                         ),
                     },
                     dims=("node",),
@@ -60,37 +59,41 @@ class TriangleGraph:
                     data=np.arange(self._voronoi["corners"].shape[0]),
                     coords={
                         "x_of_corner": xr.DataArray(
-                            self._voronoi["corners"]['x'], dims=("corner",)
+                            self._voronoi["corners"]["x"], dims=("corner",)
                         ),
                         "y_of_corner": xr.DataArray(
-                            self._voronoi["corners"]['y'], dims=("corner",)
+                            self._voronoi["corners"]["y"], dims=("corner",)
                         ),
                     },
                     dims=("corner",),
                 ),
             }
-        )        
+        )
 
         corners_at_cell = self._get_corners_at_cell()
-            
+
         self._mesh.update(
             {
                 "nodes_at_link": xr.DataArray(
                     np.dstack(
-                        [self._delaunay["links"]['head'].values, 
-                        self._delaunay['links']['tail'].values]
+                        [
+                            self._delaunay["links"]["head"].values,
+                            self._delaunay["links"]["tail"].values,
+                        ]
                     )[0],
-                    dims=("link", "Two")
+                    dims=("link", "Two"),
                 ),
                 "nodes_at_patch": xr.DataArray(
                     self._delaunay["patches"], dims=("patch", "Three")
                 ),
                 "corners_at_face": xr.DataArray(
                     np.dstack(
-                        [self._voronoi["faces"]['head'].values, 
-                        self._voronoi['faces']['tail'].values]
+                        [
+                            self._voronoi["faces"]["head"].values,
+                            self._voronoi["faces"]["tail"].values,
+                        ]
                     )[0],
-                    dims=("face", "Two")
+                    dims=("face", "Two"),
                 ),
                 "corners_at_cell": xr.DataArray(
                     corners_at_cell, dims=("cell", "max_corners_per_cell")
@@ -101,15 +104,11 @@ class TriangleGraph:
                 "nodes_at_face": xr.DataArray(
                     self._get_nodes_at_face(), dims=("face", "Two")
                 ),
-                "cell_at_node": xr.DataArray(
-                    self._number_cells()[1], dims=("node",)
-                ),
+                "cell_at_node": xr.DataArray(self._number_cells()[1], dims=("node",)),
                 "links_at_patch": xr.DataArray(
                     self._delaunay["patches"], dims=("patch", "Three")
                 ),
-                "node_at_cell": xr.DataArray(
-                    self._number_cells()[0], dims=("cell",)
-                ),
+                "node_at_cell": xr.DataArray(self._number_cells()[0], dims=("cell",)),
                 "faces_at_cell": xr.DataArray(
                     self._get_faces_at_cell(), dims=("cell", "max_faces_per_cell")
                 ),
@@ -118,12 +117,12 @@ class TriangleGraph:
 
     def _number_cells(self) -> Tuple[np.ndarray, np.ndarray]:
         """Map between grid cells and nodes."""
-        nodes_at_cell = self._delaunay['nodes']['Node'][self._delaunay['nodes']['BC'] == 0].values
+        nodes_at_cell = self._delaunay["nodes"]["Node"][
+            self._delaunay["nodes"]["BC"] == 0
+        ].values
         cells_at_node = np.empty(self.number_of_nodes)
         cells_at_node = [
-            np.argwhere(nodes_at_cell == i)[0][0] 
-            if i in nodes_at_cell 
-            else -1 
+            np.argwhere(nodes_at_cell == i)[0][0] if i in nodes_at_cell else -1
             for i in np.arange(self.number_of_nodes)
         ]
 
@@ -156,12 +155,12 @@ class TriangleGraph:
         for face in np.arange(self._voronoi["faces"].shape[0]):
             if face < self._delaunay["links"].shape[0]:
                 nodes_at_face[face] = (
-                    self._delaunay["links"].iloc[face]['head'],
-                    self._delaunay['links'].iloc[face]['tail']
+                    self._delaunay["links"].iloc[face]["head"],
+                    self._delaunay["links"].iloc[face]["tail"],
                 )
             else:
                 pass
-        
+
         return nodes_at_face
 
     def _get_faces_at_cell(self) -> np.ndarray:

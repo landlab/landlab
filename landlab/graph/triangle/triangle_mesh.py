@@ -110,10 +110,12 @@ class TriangleMesh:
                 area = shapely.build_area(ring)
                 point = area.centroid.xy
                 holes.append([point[0][0], point[1][0]])
+            holes = np.array(holes)
+
         else:
             holes = None
 
-        return np.array(holes)
+        return holes
 
     def _write_poly_file(
         self, path: str, vertices: np.ndarray, segments: np.ndarray, holes: np.ndarray
@@ -123,23 +125,17 @@ class TriangleMesh:
         segment_header = np.array([segments.shape[0], 0])[np.newaxis]
 
         # If there are no holes, the header should just be [0]
-        try:
+        if hasattr(holes, "shape"):
             holes_header = np.array([holes.shape[0]])[np.newaxis]
-        except:
+        else:
             holes_header = np.array([0])
 
-        vertices = np.insert(
-            vertices, 0, np.arange(vertices.shape[0]), axis=1
-        )
-        segments = np.insert(
-            segments, 0, np.arange(segments.shape[0]), axis=1
-        )
+        vertices = np.insert(vertices, 0, np.arange(vertices.shape[0]), axis=1)
+        segments = np.insert(segments, 0, np.arange(segments.shape[0]), axis=1)
 
-        # If there are no holes, this can happily (and silently) fail
-        try:
+        # If there are no holes, don't write anything to the .poly file
+        if holes_header[0] > 0:
             holes = np.insert(holes, 0, np.arange(holes.shape[0]), axis=1)
-        except:
-            pass
 
         with open(path, "w") as outfile:
             np.savetxt(outfile, vertex_header, fmt="%d")
@@ -149,10 +145,8 @@ class TriangleMesh:
             np.savetxt(outfile, holes_header, fmt="%d")
 
             # If there are no holes, there's nothing to write here
-            try:
+            if holes_header[0] > 0:
                 np.savetxt(outfile, holes, fmt="%f")
-            except:
-                pass
 
     def _read_mesh_files(
         self, node: str, edge: str, ele: str, v_node: str, v_edge: str
@@ -194,7 +188,7 @@ class TriangleMesh:
         # Now we can reshape the array to match the shape we expect from links.
         # Recall that we have discarded any boundary edges from the Voronoi graph.
         faces = faces.drop(["4", "5"], axis=1).rename(
-            columns = {"1": "Link", "2": "head", "3": "tail"}
+            columns={"1": "Link", "2": "head", "3": "tail"}
         )
 
         voronoi = {
