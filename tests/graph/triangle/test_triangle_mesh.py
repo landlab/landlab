@@ -29,7 +29,7 @@ def mesh_from_points():
 
 @pytest.fixture
 def mesh_from_shapefile():
-    path = "~/repos/greenland-ird/data/basin-outlines/CW/eqip-sermia.geojson"
+    path = "tests/graph/triangle/test_triangle_mesh/example_geojson.geojson"
     mesh = TriangleMesh.from_shapefile(path, opts="pqDevz")
     return mesh
 
@@ -42,18 +42,24 @@ def test_init_from_points(mesh_from_points):
     assert mesh._holes == None
     assert mesh._opts == 'pqDevz'
 
+def test_triangulate_from_points(mesh_from_points):
+    """Test triangulation routine."""
+    mesh = mesh_from_points
+    mesh.triangulate()
+
 def test_init_from_geojson(mesh_from_shapefile):
     """Test initialization from a geojson file."""
     mesh = mesh_from_shapefile
 
     # Validated against Shapely directly
-    # assert mesh._vertices.shape == (2402, 2)
-    # assert len(mesh._poly.interiors) == 42
-    # assert mesh._segments.shape == (2359, 2)
-    # assert mesh._holes.shape == (42, 2)
-    # assert mesh._opts == 'pqDevz'
+    assert mesh._vertices.shape == (2402, 2)
+    assert len(mesh._poly.interiors) == 42
+    assert mesh._segments.shape == (2359, 2)
+    assert mesh._holes.shape == (42, 2)
+    assert mesh._opts == 'pqDevz'
 
-def test_triangulate(mesh_from_shapefile):
+def test_triangulate_from_geojson(mesh_from_shapefile):
     """Test triangulation routine."""
     mesh = mesh_from_shapefile
     mesh.triangulate()
+

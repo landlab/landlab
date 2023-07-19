@@ -121,15 +121,25 @@ class TriangleMesh:
         """Write an input .poly file for Triangle."""
         vertex_header = np.array([vertices.shape[0], 2, 0, 0])[np.newaxis]
         segment_header = np.array([segments.shape[0], 0])[np.newaxis]
-        holes_header = np.array([holes.shape[0]])[np.newaxis]
+
+        # If there are no holes, the header should just be [0]
+        try:
+            holes_header = np.array([holes.shape[0]])[np.newaxis]
+        except:
+            holes_header = np.array([0])
 
         vertices = np.insert(
-            self._vertices, 0, np.arange(self._vertices.shape[0]), axis=1
+            vertices, 0, np.arange(vertices.shape[0]), axis=1
         )
         segments = np.insert(
-            self._segments, 0, np.arange(self._segments.shape[0]), axis=1
+            segments, 0, np.arange(segments.shape[0]), axis=1
         )
-        holes = np.insert(self._holes, 0, np.arange(self._holes.shape[0]), axis=1)
+
+        # If there are no holes, this can happily (and silently) fail
+        try:
+            holes = np.insert(holes, 0, np.arange(holes.shape[0]), axis=1)
+        except:
+            pass
 
         with open(path, "w") as outfile:
             np.savetxt(outfile, vertex_header, fmt="%d")
@@ -137,7 +147,12 @@ class TriangleMesh:
             np.savetxt(outfile, segment_header, fmt="%d")
             np.savetxt(outfile, segments, fmt="%d")
             np.savetxt(outfile, holes_header, fmt="%d")
-            np.savetxt(outfile, holes, fmt="%f")
+
+            # If there are no holes, there's nothing to write here
+            try:
+                np.savetxt(outfile, holes, fmt="%f")
+            except:
+                pass
 
     def _read_mesh_files(
         self, node: str, edge: str, ele: str, v_node: str, v_edge: str
@@ -179,7 +194,7 @@ class TriangleMesh:
         # Now we can reshape the array to match the shape we expect from links.
         # Recall that we have discarded any boundary edges from the Voronoi graph.
         faces = faces.drop(["4", "5"], axis=1).rename(
-            {"1": "Link", "2": "head", "3": "tail"}
+            columns = {"1": "Link", "2": "head", "3": "tail"}
         )
 
         voronoi = {
