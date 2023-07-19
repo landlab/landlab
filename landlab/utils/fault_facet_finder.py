@@ -350,7 +350,7 @@ class find_facets:
                 # (consistently, though) sort the distances. Remove any pts that
                 # aren't in a "cluster".  We assume there will be one big "bunched"
                 # plane, then a load of outliers
-                dist_order = np.argsort(dists_along_profile, kind="stable")
+                dist_order = np.argsort(dists_along_profile)
                 dist_diffs = np.diff(dists_along_profile[dist_order])
                 print("dists along profile sorted: ", dists_along_profile[dist_order])
                 print("dist diffs: ", dist_diffs)

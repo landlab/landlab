@@ -583,7 +583,10 @@ class NetworkSedimentTransporter(Component):
 
                 # sort them by arrival time.
                 time_arrival_sort = np.flip(
-                    np.argsort(time_arrival[this_links_parcels], 0, kind="stable")
+                    np.argsort(
+                        time_arrival[this_links_parcels],
+                        0,
+                    )
                 )
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 

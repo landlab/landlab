@@ -580,9 +580,7 @@ class ChannelProfiler(_BaseProfiler):
                 )
         else:
             large_outlet_ids = grid.boundary_nodes[
-                np.argsort(
-                    self._channel_definition_field[grid.boundary_nodes], kind="stable"
-                )
+                np.argsort(self._channel_definition_field[grid.boundary_nodes])
             ]
 
             if number_of_watersheds is None:

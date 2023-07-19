@@ -539,7 +539,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
     assert len(midpt) == 2
     theta = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
     theta = theta % (2.0 * np.pi)
-    sortorder = np.argsort(theta, kind="stable")
+    sortorder = np.argsort(theta)
     return sortorder
 
 
@@ -586,7 +586,7 @@ def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
         pts_y - midpt[:, 1].reshape((nrows, 1)), pts_x - midpt[:, 0].reshape((nrows, 1))
     )
     theta = theta % (2.0 * np.pi)
-    sortorder = np.argsort(theta, kind="stable")
+    sortorder = np.argsort(theta)
     if out is not None:
         out[:] = out[np.ogrid[:nrows].reshape((nrows, 1)), sortorder]
     return sortorder
