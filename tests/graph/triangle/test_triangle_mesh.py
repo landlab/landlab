@@ -52,3 +52,13 @@ def test_init_from_geojson(mesh_from_shapefile):
     assert mesh._segments.shape == (2359, 2)
     assert mesh._holes.shape == (42, 2)
     assert mesh._opts == 'pqDez'
+
+def test_write_poly_file(mesh_from_shapefile):
+    """Test writing .poly file."""
+    mesh = mesh_from_shapefile
+    mesh._write_poly_file(
+        "tests/graph/triangle/test_triangle_mesh/out.poly",
+        mesh._vertices,
+        mesh._segments,
+        mesh._holes
+    )

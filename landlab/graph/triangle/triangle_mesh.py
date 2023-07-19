@@ -15,6 +15,7 @@ https://www.cs.cmu.edu/~quake/triangle.switch.html
 """
 
 import numpy as np
+import pandas as pd
 import geopandas as gpd
 import shapely
 from typing import Tuple
@@ -38,6 +39,7 @@ class TriangleMesh:
         self.delaunay = None
         self.voronoi = None
 
+
     @classmethod
     def from_shapefile(cls, path_to_file: str, opts: str = default_opts):
         """Initialize this instance with a path to a shapefile."""
@@ -58,6 +60,7 @@ class TriangleMesh:
 
         return cls(polygon, opts)
 
+
     @classmethod
     def from_points(
         cls, 
@@ -68,6 +71,7 @@ class TriangleMesh:
         """Initialize this instance with an array of (x, y) coordinates."""
         polygon = shapely.Polygon(points, holes = holes)
         return cls(polygon, opts = opts)
+
 
     def _segment(self, poly: shapely.Polygon) -> np.ndarray:
         """Given a Polygon, construct an array of line segments for exterior and interior rings."""
@@ -95,6 +99,7 @@ class TriangleMesh:
 
         return np.array(segments)
 
+
     def _identify_holes(self, shape: shapely.Polygon):
         """Identify interior boundaries within a source Polygon."""
         interiors = [i for i in shape.interiors]
@@ -113,26 +118,39 @@ class TriangleMesh:
 
     def _write_poly_file(
         self, 
+        path: str,
         vertices: np.ndarray, 
         segments: np.ndarray,
         holes: np.ndarray
     ):
         """Write an input .poly file for Triangle."""
-        pass
+        vertex_header = np.array([vertices.shape[0], 2, 0, 0])[np.newaxis]
+        segment_header = np.array([segments.shape[0], 0])[np.newaxis]
+        holes_header = np.array([holes.shape[0]])[np.newaxis]
 
-    def _write_mesh_to_file(
-        self, 
-        vertices: np.ndarray, 
-        segments: np.ndarray,
-        holes: np.ndarray,
-        triangles: np.ndarray
-    ):
-        """Once a mesh has been created, write the corresponding .node, .ele, and .poly files."""
-        pass
+        with open(path, 'w') as outfile:
+            np.savetxt(outfile, vertex_header, fmt = '%d')
+            np.savetxt(outfile, vertices, fmt = '%f')
+            np.savetxt(outfile, segment_header, fmt = '%d')
+            np.savetxt(outfile, segments, fmt = '%d')
+            np.savetxt(outfile, holes_header, fmt = '%d')
+            np.savetxt(outfile, holes, fmt = '%f')
+
 
     def _read_mesh_files(self, node: str, edge: str, ele: str, v_node: str, v_edge: str):
         """Read output from mesh files."""
-        pass
+        delaunay = {
+            'nodes': pd.read_csv(node, sep = '\s+', names = ['Node', 'x', 'y', 'BC']),
+            'links': pd.read_csv(edge, sep = '\s+', names = ['Link', 'head', 'tail', 'BC']),
+            'patches': pd.read_csv(ele, sep = '\s+', names = ['Patch', 'first', 'second', 'third'])
+        }
+
+        voronoi = {
+            'corners': pd.read_csv(v_node, sep = '\s+', names = ['Node', 'x', 'y', 'BC']),
+            'faces': pd.read_csv(v_edge, sep = '\s+', names = ['Link', 'head', 'tail', 'BC'])
+        }
+        
+        return delaunay, voronoi
 
     def triangulate(self, opts: str = default_opts) -> Tuple[dict, dict]:
         """Perform the Delaunay triangulation."""
@@ -140,14 +158,3 @@ class TriangleMesh:
 
         return delaunay, voronoi
 
-    def refine_mesh(
-        self, 
-        node_file: str,
-        ele_file: str,
-        poly_file: str,
-        area: np.ndarray
-    ) -> Tuple[dict, dict]:
-        """Refine the mesh given a new set of maximum area constraints."""
-        delaunay, voronoi = (None, None)
-
-        return delaunay, voronoi
