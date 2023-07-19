@@ -69,21 +69,27 @@ class TriangleGraph:
                     dims=("corner",),
                 ),
             }
-        )
+        )        
 
         corners_at_cell = self._get_corners_at_cell()
-
+            
         self._mesh.update(
             {
                 "nodes_at_link": xr.DataArray(
-                    [self._delaunay["links"]['head'], self._delaunay['links']['tail']],
+                    np.dstack(
+                        [self._delaunay["links"]['head'].values, 
+                        self._delaunay['links']['tail'].values]
+                    )[0],
                     dims=("link", "Two")
                 ),
                 "nodes_at_patch": xr.DataArray(
                     self._delaunay["patches"], dims=("patch", "Three")
                 ),
                 "corners_at_face": xr.DataArray(
-                    [self._voronoi["faces"]['head'], self._voronoi['faces']['tail']],
+                    np.dstack(
+                        [self._voronoi["faces"]['head'].values, 
+                        self._voronoi['faces']['tail'].values]
+                    )[0],
                     dims=("face", "Two")
                 ),
                 "corners_at_cell": xr.DataArray(
@@ -113,7 +119,13 @@ class TriangleGraph:
     def _number_cells(self) -> Tuple[np.ndarray, np.ndarray]:
         """Map between grid cells and nodes."""
         nodes_at_cell = self._delaunay['nodes']['Node'][self._delaunay['nodes']['BC'] == 0].values
-        cells_at_node = reverse_one_to_one(nodes_at_cell)
+        cells_at_node = np.empty(self.number_of_nodes)
+        cells_at_node = [
+            np.argwhere(nodes_at_cell == i)[0][0] 
+            if i in nodes_at_cell 
+            else -1 
+            for i in np.arange(self.number_of_nodes)
+        ]
 
         return nodes_at_cell, cells_at_node
 
