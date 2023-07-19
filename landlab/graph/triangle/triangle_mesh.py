@@ -18,6 +18,10 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import shapely
+import tempfile
+import shutil
+import subprocess
+import csv
 from typing import Tuple
 
 class TriangleMesh:
@@ -25,15 +29,16 @@ class TriangleMesh:
 
     # By default, we want a quality (q) conforming Delaunay triangulation (D)
     # of a polygon (p) with information about edges (e), that indexes from zero (z).
-    default_opts = 'pqDez'
+    default_opts = 'pqDevz'
 
-    def __init__(self, poly: shapely.Polygon, opts: str = default_opts):
+    def __init__(self, poly: shapely.Polygon, opts: str = default_opts, timeout = 10):
         """Initialize this instance with a Shapely polygon object."""
         self._poly = poly
         self._vertices = shapely.get_coordinates(self._poly)
         self._segments = self._segment(self._poly)
         self._holes = self._identify_holes(self._poly)
-        self._opts = opts
+        self._opts = opts # Command-line options to pass to Triangle
+        self._timeout = timeout # How long to let Triangle run before terminating
 
         # Dictionaries that are constructed by triangulate()
         self.delaunay = None
@@ -58,7 +63,7 @@ class TriangleMesh:
 
         polygon = shape[0].geoms[0]
 
-        return cls(polygon, opts)
+        return cls(polygon, opts = opts)
 
 
     @classmethod
@@ -128,6 +133,10 @@ class TriangleMesh:
         segment_header = np.array([segments.shape[0], 0])[np.newaxis]
         holes_header = np.array([holes.shape[0]])[np.newaxis]
 
+        vertices = np.insert(self._vertices, 0, np.arange(self._vertices.shape[0]), axis = 1)
+        segments = np.insert(self._segments, 0, np.arange(self._segments.shape[0]), axis = 1)
+        holes = np.insert(self._holes, 0, np.arange(self._holes.shape[0]), axis = 1)
+
         with open(path, 'w') as outfile:
             np.savetxt(outfile, vertex_header, fmt = '%d')
             np.savetxt(outfile, vertices, fmt = '%f')
@@ -137,24 +146,136 @@ class TriangleMesh:
             np.savetxt(outfile, holes, fmt = '%f')
 
 
-    def _read_mesh_files(self, node: str, edge: str, ele: str, v_node: str, v_edge: str):
+    def _read_mesh_files(self, node: str, edge: str, ele: str, v_node: str, v_edge: str) -> Tuple[dict, dict]:
         """Read output from mesh files."""
         delaunay = {
-            'nodes': pd.read_csv(node, sep = '\s+', names = ['Node', 'x', 'y', 'BC']),
-            'links': pd.read_csv(edge, sep = '\s+', names = ['Link', 'head', 'tail', 'BC']),
-            'patches': pd.read_csv(ele, sep = '\s+', names = ['Patch', 'first', 'second', 'third'])
+            'nodes': pd.read_csv(
+                node, 
+                sep = '\s+', 
+                skiprows = 1, 
+                comment = '#',
+                names = ['Node', 'x', 'y', 'BC']
+            ),
+            'links': pd.read_csv(
+                edge, 
+                sep = '\s+', 
+                skiprows = 1, 
+                comment = '#',
+                names = ['Link', 'head', 'tail', 'BC']
+            ),
+            'patches': pd.read_csv(
+                ele, 
+                sep = '\s+', 
+                skiprows = 1, 
+                comment = '#',
+                names = ['Patch', 'first', 'second', 'third']
+            )
         }
 
+        # Triangle writes out rays and edges to the same file,
+        # So we need to do some extra work to only keep the Voronoi edges.
+        faces = (
+            pd.read_csv(
+                v_edge, 
+                sep = '\s+',
+                skiprows = 1,
+                names = ['1', '2', '3', '4', '5'],
+                comment = '#'
+            )[lambda x: x['3'] != -1]
+        ) # Read in the data as if everything was defined as a ray,
+        # then drop any row where the third element ('tail') is undefined.
+
+        # Now we can reshape the array to match the shape we expect from links.
+        # Recall that we have discarded any boundary edges from the Voronoi graph.
+        faces = faces.drop(['4', '5'], axis = 1).rename({'1': 'Link', '2': 'head', '3': 'tail'})
+    
         voronoi = {
-            'corners': pd.read_csv(v_node, sep = '\s+', names = ['Node', 'x', 'y', 'BC']),
-            'faces': pd.read_csv(v_edge, sep = '\s+', names = ['Link', 'head', 'tail', 'BC'])
+            'corners': pd.read_csv(
+                v_node, 
+                sep = '\s+', 
+                skiprows = 1, 
+                comment = '#',
+                names = ['Node', 'x', 'y']
+            ),
+            'faces': faces
         }
-        
+
         return delaunay, voronoi
 
-    def triangulate(self, opts: str = default_opts) -> Tuple[dict, dict]:
+    def triangulate(self):
         """Perform the Delaunay triangulation."""
-        delaunay, voronoi = (None, None)
 
-        return delaunay, voronoi
+        # -------------------------
+        # Check a few items in opts
+        # ------------------------- 
+        # We need Triangle to return information about edges
+        if "e" not in self._opts:
+            self._opts += "e"
 
+        # And information about the Voronoi graph
+        if "v" not in self._opts:
+            self._opts += "v"
+
+        # Python indexes from zero
+        if "z" not in self._opts:
+            self._opts += "z"
+
+        # Omitting the quality flag will lead to bad meshes
+        if "q" not in self._opts:
+            raise Warning("Cannot guarantee mesh quality: consider adding 'q' to opts.")
+
+        # Most use cases probably involve Planar Straight Line Graphs
+        if "p" not in self._opts:
+            raise Warning(
+                "If your region is a Planar Straight Line Graph, add 'p' to opts."
+            )
+
+        # And, users probably want a conforming Delaunay triangulation
+        if "D" not in self._opts:
+            raise Warning(
+                "If you want a conforming Delaunay triangulation, add 'D' to opts."
+            )
+
+        # --------------------------------
+        # Check if Triangle is in the PATH
+        # --------------------------------
+        path_to_tri = shutil.which('triangle')
+        if path_to_tri is None:
+            raise OSError("Unable to locate Triangle in PATH. You can install it with: conda install -c conda-forge triangle")
+
+        # ----------------------------
+        # Set up a temporary directory
+        # ----------------------------
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self._write_poly_file(
+                tmpdir + '/tri.poly', 
+                self._vertices,
+                self._segments,
+                self._holes
+            )
+            
+            cmd = 'triangle'
+            input_file = 'tri.poly'
+            options = '-' + self._opts
+
+            result = subprocess.run(
+                [cmd, options, input_file], 
+                timeout = self._timeout, 
+                capture_output = True,
+                cwd = tmpdir
+            )
+
+            if result.returncode == 0:
+                self.delaunay, self.voronoi = self._read_mesh_files(
+                    node = tmpdir + '/tri.1.node',
+                    edge = tmpdir + '/tri.1.edge',
+                    ele = tmpdir + '/tri.1.ele',
+                    v_node = tmpdir + '/tri.1.v.node',
+                    v_edge = tmpdir + '/tri.1.v.edge'
+                )
+            else:
+                raise OSError(
+                    "Triangle failed to generate the mesh, raising the following error: \n" +
+                    result.stderr
+                )
+            
