@@ -461,8 +461,8 @@ def argsort_points_by_x_then_y(points):
             return as_id_array([0])
     else:
         points = [np.asarray(coord) for coord in points]
-        a = points[0].argsort(kind="stable")
-        b = points[1][a].argsort(kind="stable")
+        a = points[0].argsort(kind="mergesort")
+        b = points[1][a].argsort(kind="mergesort")
         return as_id_array(a[b])
 
 

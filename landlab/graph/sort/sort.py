@@ -373,14 +373,14 @@ def sort_graph(nodes, links=None, patches=None):
     if links is not None:
         remap_graph_element(
             links.reshape((-1,)),
-            as_id_array(np.argsort(sorted_nodes, kind="stable")),
+            as_id_array(np.argsort(sorted_nodes, kind="mergesort")),
         )
         midpoint_of_link = np.empty((len(links), 2), dtype=float)
         sorted_links = sort_links(links, nodes, midpoint_of_link=midpoint_of_link)
 
     if patches is not None:
         remap_graph_element(
-            links_at_patch, as_id_array(np.argsort(sorted_links, kind="stable"))
+            links_at_patch, as_id_array(np.argsort(sorted_links, kind="mergesort"))
         )
         sort_patches(links_at_patch, offset_to_patch, midpoint_of_link)
 
