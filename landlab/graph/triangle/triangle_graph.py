@@ -70,8 +70,6 @@ class TriangleGraph:
             }
         )
 
-        corners_at_cell = self._get_corners_at_cell()
-
         self._mesh.update(
             {
                 "nodes_at_link": xr.DataArray(
@@ -82,9 +80,16 @@ class TriangleGraph:
                         ]
                     )[0],
                     dims=("link", "Two"),
-                ),
+                )
+            }
+        )
+
+        corners_at_cell = self._get_corners_at_cell()
+
+        self._mesh.update(
+            {
                 "nodes_at_patch": xr.DataArray(
-                    self._delaunay["patches"], dims=("patch", "Three")
+                    self._get_nodes_and_links_at_patch()[0], dims=("patch", "Three")
                 ),
                 "corners_at_face": xr.DataArray(
                     np.dstack(
@@ -106,7 +111,7 @@ class TriangleGraph:
                 ),
                 "cell_at_node": xr.DataArray(self._number_cells()[1], dims=("node",)),
                 "links_at_patch": xr.DataArray(
-                    self._delaunay["patches"], dims=("patch", "Three")
+                    self._get_nodes_and_links_at_patch()[1], dims=("patch", "Three")
                 ),
                 "node_at_cell": xr.DataArray(self._number_cells()[0], dims=("cell",)),
                 "faces_at_cell": xr.DataArray(
@@ -120,11 +125,10 @@ class TriangleGraph:
         nodes_at_cell = self._delaunay["nodes"]["Node"][
             self._delaunay["nodes"]["BC"] == 0
         ].values
-        cells_at_node = np.empty(self.number_of_nodes)
-        cells_at_node = [
+        cells_at_node = np.array([
             np.argwhere(nodes_at_cell == i)[0][0] if i in nodes_at_cell else -1
             for i in np.arange(self.number_of_nodes)
-        ]
+        ])
 
         return nodes_at_cell, cells_at_node
 
@@ -183,6 +187,34 @@ class TriangleGraph:
             faces_at_cell[cell, : len(faces[cell])] = faces[cell]
 
         return np.array(faces_at_cell)
+
+    def _get_nodes_and_links_at_patch(self) -> np.ndarray:
+        """From the Delaunay graph, identify the nodes and links adjacent to each patch."""
+        links_at_patch = np.full((self._delaunay['patches'].shape[0], 3), -1)
+        nodes_at_patch = np.dstack(
+                            [self._delaunay['patches']['first'],
+                            self._delaunay['patches']['second'],
+                            self._delaunay['patches']['third']]
+                        )[0]
+
+        for patch in np.arange(links_at_patch.shape[0]):
+            adjacent_nodes = nodes_at_patch[patch]
+            possible_links = []
+
+            for node in adjacent_nodes:
+                possible_links += [
+                    i for i in 
+                    np.where(np.isin(self._delaunay['links']['head'], node))[0]
+                ]
+                possible_links += [
+                    i for i in
+                    np.where(np.isin(self._delaunay['links']['tail'], node))[0]
+                ]
+            
+            unique, count = np.unique(possible_links, return_counts=True)
+            links_at_patch[patch, :] = unique[count > 1]
+
+        return nodes_at_patch, links_at_patch
 
     @property
     def number_of_nodes(self):

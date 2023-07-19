@@ -62,4 +62,3 @@ def test_triangulate_from_geojson(mesh_from_shapefile):
     """Test triangulation routine."""
     mesh = mesh_from_shapefile
     mesh.triangulate()
-
