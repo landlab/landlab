@@ -64,3 +64,44 @@ def test_graph_init(graph):
          [1, 54],
          [54, 53]]
     )
+
+    assert_array_equal(
+        graph.corners_at_face[:3],
+        [[0, 47],
+         [0, 49],
+         [0, 51]]
+    )
+
+    # TODO FIX THIS
+    # assert_array_equal(
+    #     graph.corners_at_cell[:3],
+    #     []
+    # )
+
+    assert_array_equal(
+        graph.n_corners_at_cell[:3],
+        [4, 4, 4]
+    )
+
+    assert_array_equal(
+        graph.cell_at_node[:3],
+        [0, -1, -1]
+    )
+
+    assert_array_equal(
+        graph.links_at_patch[:3],
+        [[0, 1, 2],
+         [3, 4, 5],
+         [6, 7, 8]]
+    )
+
+    assert_array_equal(
+        graph.node_at_cell[:3],
+        [0, 45, 46]
+    )
+
+    # TODO FIX THIS
+    # assert_array_equal(
+    #     graph.faces_at_cell[:3],
+    #     []
+    # )
