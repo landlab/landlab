@@ -823,17 +823,35 @@ class FlowAccumulator(Component):
 
         >>> mg = RasterModelGrid((5, 5))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> _ = mg.add_field(
+        >>> np.flipud(mg.add_field(
         ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
         ...     at="node",
-        ... )
+        ... ).reshape(mg.shape))
+        array([[ 4.,  5.,  6.,  7.,  8.],
+               [ 3.,  4.,  5.,  6.,  7.],
+               [ 2.,  3.,  4.,  5.,  6.],
+               [ 1.,  2.,  3.,  4.,  5.],
+               [ 0.,  1.,  2.,  3.,  4.]])
         >>> fa = FlowAccumulator(mg,
         ...      'topographic__elevation',
         ...      flow_director='MFD')
         >>> fa.run_one_step()
-        >>> fa.link_order_upstream()
+        >>> link_order = fa.link_order_upstream()
+        >>> link_order # doctest: +SKIP
         array([ 5, 14, 10,  6, 11,  7, 23, 19, 15, 20, 16, 28, 24, 29, 25])
+        >>> link_order[0]
+        5
+        >>> sorted(link_order[1:4])
+        [6, 10, 14]
+        >>> sorted(link_order[4:9])
+        [7, 11, 15, 19, 23]
+        >>> sorted(link_order[9:13])
+        [16, 20, 24, 28]
+        >>> sorted(link_order[13:])
+        [25, 29]
+        >>> np.all(sorted(link_order) == mg.active_links)
+        True
         """
         downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
             self._upstream_ordered_nodes
