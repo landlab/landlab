@@ -125,10 +125,12 @@ class TriangleGraph:
         nodes_at_cell = self._delaunay["nodes"]["Node"][
             self._delaunay["nodes"]["BC"] == 0
         ].values
-        cells_at_node = np.array([
-            np.argwhere(nodes_at_cell == i)[0][0] if i in nodes_at_cell else -1
-            for i in np.arange(self.number_of_nodes)
-        ])
+        cells_at_node = np.array(
+            [
+                np.argwhere(nodes_at_cell == i)[0][0] if i in nodes_at_cell else -1
+                for i in np.arange(self.number_of_nodes)
+            ]
+        )
 
         return nodes_at_cell, cells_at_node
 
@@ -142,18 +144,20 @@ class TriangleGraph:
             if cell != -1:
                 triangles = np.where(
                     np.isin(
-                        self._delaunay['patches'].loc[:, self._delaunay['patches'].columns != 'Patch'],
-                        node
+                        self._delaunay["patches"].loc[
+                            :, self._delaunay["patches"].columns != "Patch"
+                        ],
+                        node,
                     )
                 )[0]
                 corners[cell] = triangles
 
                 if len(triangles) > max_corners_per_cell:
                     max_corners_per_cell = len(triangles)
-        
+
         corners_at_cell = np.full((len(nodes_at_cell), max_corners_per_cell), -1)
         for cell in range(nodes_at_cell.shape[0]):
-            corners_at_cell[cell, :len(corners[cell])] = corners[cell]
+            corners_at_cell[cell, : len(corners[cell])] = corners[cell]
 
         return corners_at_cell
 
@@ -184,12 +188,16 @@ class TriangleGraph:
 
             for corner in corners:
                 possible_faces += [
-                    i for i in 
-                    np.where(np.isin(self._voronoi['faces']['head'], corner))[0]
+                    i
+                    for i in np.where(np.isin(self._voronoi["faces"]["head"], corner))[
+                        0
+                    ]
                 ]
                 possible_faces += [
-                    i for i in 
-                    np.where(np.isin(self._voronoi['faces']['tail'], corner))[0]
+                    i
+                    for i in np.where(np.isin(self._voronoi["faces"]["tail"], corner))[
+                        0
+                    ]
                 ]
 
             unique, count = np.unique(possible_faces, return_counts=True)
@@ -200,18 +208,20 @@ class TriangleGraph:
 
         faces_at_cell = np.full((corners_at_cell.shape[0], max_faces_at_cell), -1)
         for cell in range(faces_at_cell.shape[0]):
-            faces_at_cell[cell, :len(faces[cell])] = faces[cell]
-        
+            faces_at_cell[cell, : len(faces[cell])] = faces[cell]
+
         return faces_at_cell
 
     def _get_nodes_and_links_at_patch(self) -> np.ndarray:
         """From the Delaunay graph, identify the nodes and links adjacent to each patch."""
-        links_at_patch = np.full((self._delaunay['patches'].shape[0], 3), -1)
+        links_at_patch = np.full((self._delaunay["patches"].shape[0], 3), -1)
         nodes_at_patch = np.dstack(
-                            [self._delaunay['patches']['first'],
-                            self._delaunay['patches']['second'],
-                            self._delaunay['patches']['third']]
-                        )[0]
+            [
+                self._delaunay["patches"]["first"],
+                self._delaunay["patches"]["second"],
+                self._delaunay["patches"]["third"],
+            ]
+        )[0]
 
         for patch in np.arange(links_at_patch.shape[0]):
             adjacent_nodes = nodes_at_patch[patch]
@@ -219,14 +229,14 @@ class TriangleGraph:
 
             for node in adjacent_nodes:
                 possible_links += [
-                    i for i in 
-                    np.where(np.isin(self._delaunay['links']['head'], node))[0]
+                    i
+                    for i in np.where(np.isin(self._delaunay["links"]["head"], node))[0]
                 ]
                 possible_links += [
-                    i for i in
-                    np.where(np.isin(self._delaunay['links']['tail'], node))[0]
+                    i
+                    for i in np.where(np.isin(self._delaunay["links"]["tail"], node))[0]
                 ]
-            
+
             unique, count = np.unique(possible_links, return_counts=True)
             links_at_patch[patch, :] = unique[count > 1]
 
