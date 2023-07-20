@@ -1,5 +1,7 @@
 import numpy as np
+import shapely
 import xarray as xr
+
 from .triangle_mesh import TriangleMesh
 
 
@@ -23,23 +25,17 @@ class TriangleGraph:
         self,
         node_y_and_x: np.ndarray,
         holes: np.ndarray = None,
-        input_file: str = None,
         triangle_opts: str = "",
         timeout: float = 10,
     ):
         """Initialize this instance with dicts of Delaunay and Voronoi geometries."""
 
-        if input_file is not None:
-            mesh_generator = TriangleMesh.from_shapefile(
-                input_file, opts=triangle_opts, timeout=timeout
-            )
-        else:
-            mesh_generator = TriangleMesh.from_points(
-                np.vstack((node_y_and_x[:, 1], node_y_and_x[:, 0])).T,
-                holes=holes,
-                opts=triangle_opts,
-                timeout=timeout,
-            )
+        mesh_generator = TriangleMesh.from_points(
+            np.vstack((node_y_and_x[:, 1], node_y_and_x[:, 0])).T,
+            holes=holes,
+            opts=triangle_opts,
+            timeout=timeout,
+        )
 
         mesh_generator.triangulate()
 
@@ -132,6 +128,18 @@ class TriangleGraph:
                 ),
             }
         )
+
+    @classmethod
+    def from_shapefile(
+        cls, path_to_file: str, triangle_opts: str = "", timeout: float = 10
+    ):
+        """Initialize a TriangleGraph from an input file."""
+        polygon = TriangleMesh.read_input_file(path_to_file)
+        coordinates = shapely.get_coordinates(polygon)
+        node_y_and_x = np.vstack((coordinates[:, 1], coordinates[:, 0])).T
+        holes = TriangleMesh.identify_holes(polygon)
+
+        return cls(node_y_and_x, holes, triangle_opts=triangle_opts, timeout=timeout)
 
     def _number_cells(self) -> tuple[np.ndarray, np.ndarray]:
         """Map between grid cells and nodes."""

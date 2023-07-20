@@ -36,7 +36,7 @@ class TriangleMesh:
         self._poly = poly
         self._vertices = shapely.get_coordinates(self._poly)
         self._segments = self._segment(self._poly)
-        self._holes = self._identify_holes(self._poly)
+        self._holes = self.identify_holes(self._poly)
         self._opts = opts  # Command-line options to pass to Triangle
         self._timeout = timeout  # How long to let Triangle run before terminating
 
@@ -44,9 +44,9 @@ class TriangleMesh:
         self.delaunay = None
         self.voronoi = None
 
-    @classmethod
-    def from_shapefile(cls, path_to_file: str, opts: str = default_opts, timeout=10):
-        """Initialize this instance with a path to a shapefile."""
+    @staticmethod
+    def read_input_file(path_to_file: str) -> shapely.Polygon:
+        """Construct a polygon from an input file."""
         shape = gpd.read_file(path_to_file).geometry
 
         if len(shape) != 1:
@@ -62,7 +62,26 @@ class TriangleMesh:
 
         polygon = shape[0].geoms[0]
 
-        return cls(polygon, opts=opts)
+        return polygon
+
+    @staticmethod
+    def identify_holes(shape: shapely.Polygon):
+        """Identify interior boundaries within a source Polygon."""
+        interiors = list(shape.interiors)
+
+        holes = []
+        for ring in interiors:
+            area = shapely.build_area(ring)
+            point = area.centroid.xy
+            holes.append([point[0][0], point[1][0]])
+
+        return np.array(holes) if len(holes) else None
+
+    @classmethod
+    def from_shapefile(cls, path_to_file: str, opts: str = default_opts, timeout=10):
+        """Initialize this instance with a path to a shapefile."""
+        polygon = cls.read_input_file(path_to_file)
+        return cls(polygon, opts=opts, timeout=timeout)
 
     @classmethod
     def from_points(
@@ -74,7 +93,7 @@ class TriangleMesh:
     ):
         """Initialize this instance with an array of (x, y) coordinates."""
         polygon = shapely.Polygon(points, holes=holes)
-        return cls(polygon, opts=opts)
+        return cls(polygon, opts=opts, timeout=timeout)
 
     def _segment(self, poly: shapely.Polygon) -> np.ndarray:
         """Given a Polygon, construct an array of line segments for exterior and
@@ -105,18 +124,6 @@ class TriangleMesh:
                 segments.append([int(start_vertex[0]), int(end_vertex[0])])
 
         return np.array(segments)
-
-    def _identify_holes(self, shape: shapely.Polygon):
-        """Identify interior boundaries within a source Polygon."""
-        interiors = list(shape.interiors)
-
-        holes = []
-        for ring in interiors:
-            area = shapely.build_area(ring)
-            point = area.centroid.xy
-            holes.append([point[0][0], point[1][0]])
-
-        return np.array(holes) if len(holes) else None
 
     def _write_poly_file(
         self, path: str, vertices: np.ndarray, segments: np.ndarray, holes: np.ndarray
