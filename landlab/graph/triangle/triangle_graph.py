@@ -1,6 +1,5 @@
 import numpy as np
 import xarray as xr
-from typing import Tuple
 
 
 class TriangleGraph:
@@ -22,21 +21,13 @@ class TriangleGraph:
     def __init__(self, delaunay: dict, voronoi: dict):
         """Initialize this instance with dicts of Delaunay and Voronoi geometries."""
 
-        for required in [
-            "nodes",
-            "links",
-            "patches",
-        ]:
-            if required not in delaunay.keys():
-                raise ValueError(
-                    "Missing '" + str(required) + "' in Delaunay dictionary."
-                )
+        for required in ["nodes", "links", "patches"]:
+            if required not in delaunay:
+                raise ValueError(f"Missing {required!r} in Delaunay dictionary.")
 
         for required in ["corners", "faces"]:
-            if required not in voronoi.keys():
-                raise ValueError(
-                    "Missing '" + str(required) + "' in Voronoi dictionary."
-                )
+            if required not in voronoi:
+                raise ValueError(f"Missing {required!r} in Voronoi dictionary.")
 
         self._delaunay = delaunay
         self._voronoi = voronoi
@@ -120,7 +111,7 @@ class TriangleGraph:
             }
         )
 
-    def _number_cells(self) -> Tuple[np.ndarray, np.ndarray]:
+    def _number_cells(self) -> tuple[np.ndarray, np.ndarray]:
         """Map between grid cells and nodes."""
         nodes_at_cell = self._delaunay["nodes"]["Node"][
             self._delaunay["nodes"]["BC"] == 0
@@ -171,8 +162,6 @@ class TriangleGraph:
                     self._delaunay["links"].iloc[face]["head"],
                     self._delaunay["links"].iloc[face]["tail"],
                 )
-            else:
-                pass
 
         return nodes_at_face
 
@@ -187,18 +176,12 @@ class TriangleGraph:
             possible_faces = []
 
             for corner in corners:
-                possible_faces += [
-                    i
-                    for i in np.where(np.isin(self._voronoi["faces"]["head"], corner))[
-                        0
-                    ]
-                ]
-                possible_faces += [
-                    i
-                    for i in np.where(np.isin(self._voronoi["faces"]["tail"], corner))[
-                        0
-                    ]
-                ]
+                possible_faces += list(
+                    np.where(np.isin(self._voronoi["faces"]["head"], corner))[0]
+                )
+                possible_faces += list(
+                    np.where(np.isin(self._voronoi["faces"]["tail"], corner))[0]
+                )
 
             unique, count = np.unique(possible_faces, return_counts=True)
             faces[cell] = unique[count > 1]
@@ -228,14 +211,12 @@ class TriangleGraph:
             possible_links = []
 
             for node in adjacent_nodes:
-                possible_links += [
-                    i
-                    for i in np.where(np.isin(self._delaunay["links"]["head"], node))[0]
-                ]
-                possible_links += [
-                    i
-                    for i in np.where(np.isin(self._delaunay["links"]["tail"], node))[0]
-                ]
+                possible_links += list(
+                    np.where(np.isin(self._delaunay["links"]["head"], node))[0]
+                )
+                possible_links += list(
+                    np.where(np.isin(self._delaunay["links"]["tail"], node))[0]
+                )
 
             unique, count = np.unique(possible_links, return_counts=True)
             links_at_patch[patch, :] = unique[count > 1]

@@ -14,14 +14,14 @@ and a list of command line switches that can be passed as opts are here:
 https://www.cs.cmu.edu/~quake/triangle.switch.html
 """
 
-import numpy as np
-import pandas as pd
-import geopandas as gpd
-import shapely
-import tempfile
 import shutil
 import subprocess
-from typing import Tuple
+import tempfile
+
+import geopandas as gpd
+import numpy as np
+import pandas as pd
+import shapely
 
 
 class TriangleMesh:
@@ -51,8 +51,8 @@ class TriangleMesh:
 
         if len(shape) != 1:
             raise TypeError(
-                "Shapefile must represent exactly 1 object. \n"
-                + "Check that there is only one input geometry and try again."
+                "Shapefile must represent exactly 1 object."
+                " Check that there is only one input geometry and try again."
             )
 
         if len(shape[0].geoms) != 1:
@@ -73,9 +73,11 @@ class TriangleMesh:
         return cls(polygon, opts=opts)
 
     def _segment(self, poly: shapely.Polygon) -> np.ndarray:
-        """Given a Polygon, construct an array of line segments for exterior and interior rings."""
+        """Given a Polygon, construct an array of line segments for exterior and
+        interior rings.
+        """
         boundaries = [poly.exterior]
-        interiors = [i for i in poly.interiors]
+        interiors = list(poly.interiors)
         segments = []
 
         boundaries.extend(interiors)
@@ -102,20 +104,15 @@ class TriangleMesh:
 
     def _identify_holes(self, shape: shapely.Polygon):
         """Identify interior boundaries within a source Polygon."""
-        interiors = [i for i in shape.interiors]
+        interiors = list(shape.interiors)
+
         holes = []
+        for ring in interiors:
+            area = shapely.build_area(ring)
+            point = area.centroid.xy
+            holes.append([point[0][0], point[1][0]])
 
-        if len(interiors) > 0:
-            for ring in interiors:
-                area = shapely.build_area(ring)
-                point = area.centroid.xy
-                holes.append([point[0][0], point[1][0]])
-            holes = np.array(holes)
-
-        else:
-            holes = None
-
-        return holes
+        return np.array(holes) if len(holes) else None
 
     def _write_poly_file(
         self, path: str, vertices: np.ndarray, segments: np.ndarray, holes: np.ndarray
@@ -150,7 +147,7 @@ class TriangleMesh:
 
     def _read_mesh_files(
         self, node: str, edge: str, ele: str, v_node: str, v_edge: str
-    ) -> Tuple[dict, dict]:
+    ) -> tuple[dict, dict]:
         """Read output from mesh files."""
         delaunay = {
             "nodes": pd.read_csv(
@@ -178,11 +175,12 @@ class TriangleMesh:
 
         # Triangle writes out rays and edges to the same file,
         # So we need to do some extra work to only keep the Voronoi edges.
+        # Read in the data as if everything was defined as a ray,
         faces = pd.read_csv(
             v_edge, sep=r"\s+", skiprows=1, names=["1", "2", "3", "4", "5"], comment="#"
         )[
             lambda x: x["3"] != -1
-        ]  # Read in the data as if everything was defined as a ray,
+        ]
         # then drop any row where the third element ('tail') is undefined.
 
         # Now we can reshape the array to match the shape we expect from links.
@@ -240,7 +238,8 @@ class TriangleMesh:
         path_to_tri = shutil.which("triangle")
         if path_to_tri is None:
             raise OSError(
-                "Unable to locate Triangle in PATH. You can install it with: conda install -c conda-forge triangle"
+                "Unable to locate Triangle in PATH. You can install it with:"
+                " conda install -c conda-forge triangle"
             )
 
         # ----------------------------
@@ -272,6 +271,6 @@ class TriangleMesh:
                 )
             else:
                 raise OSError(
-                    "Triangle failed to generate the mesh, raising the following error: \n"
+                    "Triangle failed to generate the mesh, raising the following error:\n"
                     + result.stderr
                 )

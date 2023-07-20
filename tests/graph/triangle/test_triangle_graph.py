@@ -1,9 +1,10 @@
 """Tests for the TriangleGraph object."""
 
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
-from landlab.graph.triangle import TriangleMesh, TriangleGraph
+from numpy.testing import assert_array_equal
+
+from landlab.graph.triangle import TriangleGraph, TriangleMesh
 
 xy_points = np.array(
     [
