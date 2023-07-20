@@ -202,7 +202,7 @@ class _DrainageStack_to_n:
             completed = new_completes
 
         # the stack is the argsort of visit time.
-        self.s = numpy.argsort(visit_time)
+        self.s = numpy.argsort(visit_time, kind="stable")
 
 
 def _make_number_of_donors_array_to_n(r, p):

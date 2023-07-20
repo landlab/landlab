@@ -1,8 +1,8 @@
 bmipy
 geopandas
-matplotlib
+matplotlib <3.7.2
 netcdf4
-numpy < 1.25
+numpy
 pandas
 shapely
 pyshp != 2.3.0
