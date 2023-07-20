@@ -137,18 +137,23 @@ class TriangleGraph:
         nodes_at_cell, cells_at_node = self._number_cells()
         max_corners_per_cell = 0
 
-        corners = [[] for _ in range(len(cells_at_node))]
-        for cell in cells_at_node:
+        corners = [[] for _ in nodes_at_cell]
+        for node, cell in enumerate(cells_at_node):
             if cell != -1:
-                triangles = np.where(np.isin(self._delaunay["patches"], cell))[0]
+                triangles = np.where(
+                    np.isin(
+                        self._delaunay['patches'].loc[:, self._delaunay['patches'].columns != 'Patch'],
+                        node
+                    )
+                )[0]
                 corners[cell] = triangles
 
                 if len(triangles) > max_corners_per_cell:
                     max_corners_per_cell = len(triangles)
-
+        
         corners_at_cell = np.full((len(nodes_at_cell), max_corners_per_cell), -1)
-        for cell in range(len(nodes_at_cell)):
-            corners_at_cell[cell, : len(corners[cell])] = corners[cell]
+        for cell in range(nodes_at_cell.shape[0]):
+            corners_at_cell[cell, :len(corners[cell])] = corners[cell]
 
         return corners_at_cell
 
@@ -169,24 +174,35 @@ class TriangleGraph:
 
     def _get_faces_at_cell(self) -> np.ndarray:
         """Construct an array of size (n_cells, max_faces_per_cell) from the Delaunay graph."""
-        nodes_at_cell, cells_at_node = self._number_cells()
+        corners_at_cell = self._get_corners_at_cell()
 
-        faces = [[] for cell in np.arange(len(nodes_at_cell))]
-        max_faces_per_cell = 0
+        faces = [[] for _ in range(corners_at_cell.shape[0])]
+        max_faces_at_cell = 0
 
-        for cell in np.arange(len(nodes_at_cell)):
-            faces[cell] = np.where(
-                np.isin(self._delaunay["links"], nodes_at_cell[cell])
-            )[0]
+        for cell, corners in enumerate(corners_at_cell):
+            possible_faces = []
 
-            if len(faces[cell]) > max_faces_per_cell:
-                max_faces_per_cell = len(faces[cell])
+            for corner in corners:
+                possible_faces += [
+                    i for i in 
+                    np.where(np.isin(self._voronoi['faces']['head'], corner))[0]
+                ]
+                possible_faces += [
+                    i for i in 
+                    np.where(np.isin(self._voronoi['faces']['tail'], corner))[0]
+                ]
 
-        faces_at_cell = np.full((len(faces), max_faces_per_cell), -1)
-        for cell in range(len(faces)):
-            faces_at_cell[cell, : len(faces[cell])] = faces[cell]
+            unique, count = np.unique(possible_faces, return_counts=True)
+            faces[cell] = unique[count > 1]
 
-        return np.array(faces_at_cell)
+            if len(unique[count > 1]) > max_faces_at_cell:
+                max_faces_at_cell = len(unique[count > 1])
+
+        faces_at_cell = np.full((corners_at_cell.shape[0], max_faces_at_cell), -1)
+        for cell in range(faces_at_cell.shape[0]):
+            faces_at_cell[cell, :len(faces[cell])] = faces[cell]
+        
+        return faces_at_cell
 
     def _get_nodes_and_links_at_patch(self) -> np.ndarray:
         """From the Delaunay graph, identify the nodes and links adjacent to each patch."""

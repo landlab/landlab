@@ -25,6 +25,22 @@ xy_points = np.array([
 def mesh_from_points():
     mesh = TriangleMesh.from_points(xy_points, opts="pqa0.1Devz")
     mesh.triangulate()
+
+    # Write files that we can use to test against
+    mesh._write_poly_file(
+        'tests/graph/triangle/test_triangle_graph/delaunay.poly',
+        mesh.delaunay['nodes'],
+        mesh.delaunay['links'],
+        mesh._holes
+    )
+
+    mesh._write_poly_file(
+        'tests/graph/triangle/test_triangle_graph/voronoi.poly',
+        mesh.voronoi['corners'],
+        mesh.voronoi['faces'],
+        mesh._holes
+    )
+
     return mesh
 
 @pytest.fixture
@@ -72,15 +88,16 @@ def test_graph_init(graph):
          [0, 51]]
     )
 
-    # TODO FIX THIS
-    # assert_array_equal(
-    #     graph.corners_at_cell[:3],
-    #     []
-    # )
+    assert_array_equal(
+        graph.corners_at_cell[:3],
+        [[-1, -1, -1, -1, -1, -1],
+         [28, 29, 30, 38, 40, -1],
+         [ 7, 29, 37, 39, 40, -1]]
+    )
 
     assert_array_equal(
         graph.n_corners_at_cell[:3],
-        [4, 4, 4]
+        [6, 6, 6]
     )
 
     assert_array_equal(
@@ -100,8 +117,9 @@ def test_graph_init(graph):
         [0, 45, 46]
     )
 
-    # TODO FIX THIS
-    # assert_array_equal(
-    #     graph.faces_at_cell[:3],
-    #     []
-    # )
+    assert_array_equal(
+        graph.faces_at_cell[:3],
+        [[-1, -1, -1, -1, -1, -1],
+         [33, 34, 35, 36, 39, -1],
+         [14, 15, 36, 37, 41, -1]]
+    )
