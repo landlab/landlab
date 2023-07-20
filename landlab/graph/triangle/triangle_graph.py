@@ -1,5 +1,6 @@
 import numpy as np
 import xarray as xr
+from .triangle_mesh import TriangleMesh
 
 
 class TriangleGraph:
@@ -18,19 +19,40 @@ class TriangleGraph:
         despite the fact that these elements are dual in the Delaunay and Voronoi graphs.
     """
 
-    def __init__(self, delaunay: dict, voronoi: dict):
+    def __init__(
+        self,
+        node_y_and_x: np.ndarray,
+        holes: np.ndarray = None,
+        input_file: str = None,
+        triangle_opts: str = "",
+        timeout: float = 10,
+    ):
         """Initialize this instance with dicts of Delaunay and Voronoi geometries."""
 
+        if input_file is not None:
+            mesh_generator = TriangleMesh.from_shapefile(
+                input_file, opts=triangle_opts, timeout=timeout
+            )
+        else:
+            mesh_generator = TriangleMesh.from_points(
+                np.vstack((node_y_and_x[:, 1], node_y_and_x[:, 0])).T,
+                holes=holes,
+                opts=triangle_opts,
+                timeout=timeout,
+            )
+
+        mesh_generator.triangulate()
+
+        self._delaunay = mesh_generator.delaunay
+        self._voronoi = mesh_generator.voronoi
+
         for required in ["nodes", "links", "patches"]:
-            if required not in delaunay:
+            if required not in self._delaunay:
                 raise ValueError(f"Missing {required!r} in Delaunay dictionary.")
 
         for required in ["corners", "faces"]:
-            if required not in voronoi:
+            if required not in self._voronoi:
                 raise ValueError(f"Missing {required!r} in Voronoi dictionary.")
-
-        self._delaunay = delaunay
-        self._voronoi = voronoi
 
         self._mesh = xr.Dataset(
             {

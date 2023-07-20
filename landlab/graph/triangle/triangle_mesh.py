@@ -45,7 +45,7 @@ class TriangleMesh:
         self.voronoi = None
 
     @classmethod
-    def from_shapefile(cls, path_to_file: str, opts: str = default_opts):
+    def from_shapefile(cls, path_to_file: str, opts: str = default_opts, timeout=10):
         """Initialize this instance with a path to a shapefile."""
         shape = gpd.read_file(path_to_file).geometry
 
@@ -66,7 +66,11 @@ class TriangleMesh:
 
     @classmethod
     def from_points(
-        cls, points: np.ndarray, holes: np.ndarray = None, opts: str = default_opts
+        cls,
+        points: np.ndarray,
+        holes: np.ndarray = None,
+        opts: str = default_opts,
+        timeout=10,
     ):
         """Initialize this instance with an array of (x, y) coordinates."""
         polygon = shapely.Polygon(points, holes=holes)
@@ -178,9 +182,7 @@ class TriangleMesh:
         # Read in the data as if everything was defined as a ray,
         faces = pd.read_csv(
             v_edge, sep=r"\s+", skiprows=1, names=["1", "2", "3", "4", "5"], comment="#"
-        )[
-            lambda x: x["3"] != -1
-        ]
+        )[lambda x: x["3"] != -1]
         # then drop any row where the third element ('tail') is undefined.
 
         # Now we can reshape the array to match the shape we expect from links.

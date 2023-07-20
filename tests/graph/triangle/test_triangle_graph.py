@@ -49,9 +49,9 @@ def mesh_from_points():
 
 
 @pytest.fixture
-def graph(mesh_from_points):
-    mesh = mesh_from_points
-    graph = TriangleGraph(mesh.delaunay, mesh.voronoi)
+def graph():
+    yx_points = np.vstack((xy_points[:, 1], xy_points[:, 0])).T
+    graph = TriangleGraph(yx_points, triangle_opts="pqa0.1Devz")
     return graph
 
 
