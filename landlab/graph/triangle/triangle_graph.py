@@ -30,9 +30,13 @@ class TriangleGraph:
     ):
         """Initialize this instance with dicts of Delaunay and Voronoi geometries."""
 
-        mesh_generator = TriangleMesh.from_points(
-            np.vstack((node_y_and_x[:, 1], node_y_and_x[:, 0])).T,
-            holes=holes,
+        polygon = shapely.Polygon(
+            np.vstack((node_y_and_x[:, 1], node_y_and_x[:, 0])).T, 
+            holes = holes
+        )
+
+        mesh_generator = TriangleMesh(
+            polygon,
             opts=triangle_opts,
             timeout=timeout,
         )
@@ -137,9 +141,9 @@ class TriangleGraph:
         polygon = TriangleMesh.read_input_file(path_to_file)
         coordinates = shapely.get_coordinates(polygon)
         node_y_and_x = np.vstack((coordinates[:, 1], coordinates[:, 0])).T
-        holes = TriangleMesh.identify_holes(polygon)
+        holes = polygon.interiors
 
-        return cls(node_y_and_x, holes, triangle_opts=triangle_opts, timeout=timeout)
+        return cls(node_y_and_x, holes=holes, triangle_opts=triangle_opts, timeout=timeout)
 
     def _number_cells(self) -> tuple[np.ndarray, np.ndarray]:
         """Map between grid cells and nodes."""
