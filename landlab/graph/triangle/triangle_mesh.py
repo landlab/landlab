@@ -241,6 +241,10 @@ class TriangleMesh:
                 "If you want a conforming Delaunay triangulation, add 'D' to opts."
             )
 
+        # Finally, we should jettison unused vertices
+        if "j" not in self._opts:
+            self._opts += "j"
+
         # --------------------------------
         # Check if Triangle is in the PATH
         # --------------------------------
@@ -281,5 +285,5 @@ class TriangleMesh:
             else:
                 raise OSError(
                     "Triangle failed to generate the mesh, raising the following error:\n"
-                    + result.stderr
-                )
+                    + result.stdout.decode()
+                )  # Triangle sends more informative error messages to stdout
