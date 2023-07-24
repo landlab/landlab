@@ -13,7 +13,9 @@ and a list of command line switches that can be passed as opts are here:
 
 https://www.cs.cmu.edu/~quake/triangle.switch.html
 """
-
+import contextlib
+import os
+import pathlib
 import shutil
 import subprocess
 import tempfile
@@ -329,9 +331,12 @@ class TriangleMesh:
         # ----------------------------
         # Set up a temporary directory
         # ----------------------------
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            as_cwd(tmpdir)
+        ):
             self._write_poly_file(
-                tmpdir + "/tri.poly", self._vertices, self._segments, self._holes
+                "tri.poly", self._vertices, self._segments, self._holes
             )
 
             cmd = "triangle"
@@ -347,14 +352,24 @@ class TriangleMesh:
 
             if result.returncode == 0:
                 self.delaunay, self.voronoi = self._read_mesh_files(
-                    node=tmpdir + "/tri.1.node",
-                    edge=tmpdir + "/tri.1.edge",
-                    ele=tmpdir + "/tri.1.ele",
-                    v_node=tmpdir + "/tri.1.v.node",
-                    v_edge=tmpdir + "/tri.1.v.edge",
+                    node="tri.1.node",
+                    edge="tri.1.edge",
+                    ele="tri.1.ele",
+                    v_node="tri.1.v.node",
+                    v_edge="tri.1.v.edge",
                 )
             else:
+                # Triangle sends more informative error messages to stdout
                 raise OSError(
                     "Triangle failed to generate the mesh, raising the following error:\n"
                     + result.stdout.decode()
-                )  # Triangle sends more informative error messages to stdout
+                )
+
+
+@contextlib.contextmanager
+def as_cwd(path):
+    """Change directory context."""
+    prev_cwd = pathlib.Path.cwd()
+    os.chdir(path)
+    yield prev_cwd
+    os.chdir(prev_cwd)
