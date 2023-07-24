@@ -18,21 +18,47 @@ class TriangleGraph:
     * faces: Voronoi edges
     * cells: Voronoi polygons
 
-    Note: by convention, the boundary of the grid will be composed of nodes and links.
+    Notes
+    -----
+        By convention, the boundary of the grid will be composed of nodes and links.
         As such, number_of_nodes > number_of_cells and number_of_links > number_of_faces,
         despite the fact that these elements are dual in the Delaunay and Voronoi graphs.
+
+    Parameters
+    ----------
+        exterior_y_and_x: tuple of array-like
+            Coordinates of the exterior nodes, listed with y first, then x.
+        holes: array-like
+            Coordinates on the boundaries of any interior holes.
+        triangle_opts: str
+            List of command-line options to pass to Triangle.
+        timeout: float
+            The amount of time in seconds to let Triangle run before terminating.
+
+    Example usage
+    -------------
+    >>> ys = [0, 0, 10, 10]
+    >>> xs = [0, 10, 10, 0]
+    >>> graph = TriangleGraph(np.array([ys, xs]), triangle_opts = 'pqa1Djevz')
+    >>> graph.number_of_nodes
+    89
+    >>> graph.number_of_links
+    232
+    >>> graph.nodes_at_link[:3]
+    [[41, 43], [43, 15], [15, 41]]
     """
 
     def __init__(
         self,
-        node_y_and_x: np.ndarray,
+        exterior_y_and_x: tuple[np.ndarray, np.ndarray],
         holes: np.ndarray = None,
         triangle_opts: str = "",
         timeout: float = 10,
     ):
         """Initialize this instance with dicts of Delaunay and Voronoi geometries."""
-
-        polygon = shapely.Polygon(np.flip(node_y_and_x, axis=1), holes=holes)
+        ys, xs = exterior_y_and_x
+        exterior_points = np.column_stack([xs, ys])
+        polygon = shapely.Polygon(exterior_points, holes=holes)
 
         if polygon.is_valid is False:
             raise ValueError(
@@ -142,13 +168,12 @@ class TriangleGraph:
     ):
         """Initialize a TriangleGraph from an input file."""
         polygon = TriangleMesh.read_input_file(path_to_file)
-        node_y_and_x = np.stack(
-            (polygon.exterior.xy[1], polygon.exterior.xy[0]), axis=1
-        )
+        nodes_y = polygon.exterior.xy[1]
+        nodes_x = polygon.exterior.xy[0]
         holes = polygon.interiors
 
         return cls(
-            node_y_and_x, holes=holes, triangle_opts=triangle_opts, timeout=timeout
+            np.array([nodes_y, nodes_x]), holes=holes, triangle_opts=triangle_opts, timeout=timeout
         )
 
     def _number_cells(self) -> tuple[np.ndarray, np.ndarray]:

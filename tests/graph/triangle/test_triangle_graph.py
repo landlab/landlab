@@ -6,13 +6,12 @@ from numpy.testing import assert_array_equal
 
 from landlab.graph.triangle import TriangleGraph
 
-xy_points = np.array([[0, 0], [10, 0], [10, 10], [0, 10]])
-
+ys = [0, 0, 10, 10]
+xs = [0, 10, 10, 0]
 
 @pytest.fixture
 def graph():
-    yx_points = np.vstack((xy_points[:, 1], xy_points[:, 0])).T
-    graph = TriangleGraph(yx_points, triangle_opts="pqa1Djevz")
+    graph = TriangleGraph(np.array([ys, xs]), triangle_opts="pqa1Djevz")
     return graph
 
 
@@ -120,3 +119,11 @@ def test_generate_graph_from_geojson(graph_geojson):
             [484, 485, 531, 612, 613, 614, -1, -1, -1, -1],
         ],
     )
+
+def test_invalid_polygon_error():
+    """Invalid geometries should throw an error."""
+    ys = [0, 3, 3, 0, 0, 2, 2, 1, 1, 0, 0]
+    xs = [0, 0, 3, 3, 2, 2, 1, 1, 2, 2, 0]
+
+    with pytest.raises(ValueError):
+        graph = TriangleGraph([ys, xs], triangle_opts='pqa0.1Devjz')
