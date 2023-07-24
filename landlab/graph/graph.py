@@ -529,7 +529,17 @@ class NetworkGraph:
     @cached_property
     @read_only_array
     def link_dirs_at_node(self):
-        """Get directions of links touching a node.
+        """Return link directions into each node.
+
+        A value of 1 indicates a link points toward a given node, while a value
+        of -1 indicates a link points away from a node.
+
+        Returns
+        -------
+        (n_nodes, max_links_per_node) ndarray of int
+            Link directions relative to the nodes of a grid. The shape of the
+            matrix will be number of nodes by the maximum number of links per
+            node. A zero indicates no link at this position.
 
         Examples
         --------
@@ -541,7 +551,7 @@ class NetworkGraph:
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.link_dirs_at_node
         array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
                [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
                [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]],

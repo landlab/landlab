@@ -37,6 +37,7 @@ jobs:
       - name: Show conda installation info
         run: |
           conda install mamba
+          mamba install c-compiler cxx-compiler
           pip install nox
           conda info
           conda list

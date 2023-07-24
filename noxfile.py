@@ -12,6 +12,10 @@ ROOT = pathlib.Path(__file__).parent
 @nox.session(venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
+    os.environ["WITH_OPENMP"] = "1"
+
+    # session.conda_install("c-compiler", "cxx-compiler")
+    session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
     session.conda_install("--file", "requirements.in")
     session.conda_install("--file", "requirements-testing.in")
     session.conda_install("richdem")
@@ -48,7 +52,10 @@ def test_notebooks(session: nox.Session) -> None:
         "-vvv",
     ] + session.posargs
 
+    os.environ["WITH_OPENMP"] = "1"
+
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
+    # session.conda_install("c-compiler", "cxx-compiler")
     session.conda_install("richdem")
     session.conda_install(
         "pytest",
@@ -56,7 +63,11 @@ def test_notebooks(session: nox.Session) -> None:
         "--file",
         "notebooks/requirements.in",
         "--file",
+        "requirements-testing.in",
+        "--file",
         "requirements.in",
+        "--file",
+        "requirements-testing.in",
     )
     session.install("-e", ".", "--no-deps")
 
@@ -81,10 +92,10 @@ def test_cli(session: nox.Session) -> None:
 @nox.session
 def lint(session: nox.Session) -> None:
     """Look for lint."""
-    session.install("pre-commit")
-    session.run("pre-commit", "run", "--all-files")
+    skip_hooks = [] if "--no-skip" in session.posargs else ["check-manifest", "pyroma"]
 
-    # towncrier(session)
+    session.install("pre-commit")
+    session.run("pre-commit", "run", "--all-files", env={"SKIP": ",".join(skip_hooks)})
 
 
 @nox.session
