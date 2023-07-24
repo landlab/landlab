@@ -26,14 +26,14 @@ xy_points = np.array(
 
 @pytest.fixture
 def mesh_from_points():
-    mesh = TriangleMesh.from_points(xy_points, opts="pqDevz")
+    mesh = TriangleMesh.from_points(xy_points, opts="pqDevjz")
     return mesh
 
 
 @pytest.fixture
 def mesh_from_shapefile():
     path = "tests/graph/triangle/test_triangle_mesh/example_geojson.geojson"
-    mesh = TriangleMesh.from_shapefile(path, opts="pqDevz")
+    mesh = TriangleMesh.from_shapefile(path, opts="pqDevjz")
     return mesh
 
 
@@ -44,7 +44,7 @@ def test_init_from_points(mesh_from_points):
     assert mesh._vertices.shape == (xy_points.shape[0], 2)
     assert mesh._segments.shape == (xy_points.shape[0] - 1, 2)
     assert mesh._holes is None
-    assert mesh._opts == "pqDevz"
+    assert mesh._opts == "pqDevjz"
 
 
 def test_triangulate_from_points(mesh_from_points):
@@ -62,7 +62,7 @@ def test_init_from_geojson(mesh_from_shapefile):
     assert len(mesh._poly.interiors) == 42
     assert mesh._segments.shape == (2359, 2)
     assert mesh._holes.shape == (42, 2)
-    assert mesh._opts == "pqDevz"
+    assert mesh._opts == "pqDevjz"
 
 
 def test_triangulate_from_geojson(mesh_from_shapefile):

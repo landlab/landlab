@@ -25,11 +25,79 @@ import shapely
 
 
 class TriangleMesh:
-    """Calls Triangle to generate a mesh from a shapefile or array of points."""
+    """Calls Triangle to generate a mesh from a shapefile or array of points.
+
+    Makes a subprocess call to the Triangle command-line interface, which needs
+    to be installed separately. The most reliable way to do so is with
+
+    conda install -c conda-forge triangle
+
+    but users could also install and compile triangle directly.
+
+    Parameters
+    ----------
+        poly: shapely Polygon
+            The Polygon that serves as the domain for the mesh.
+        opts: str
+            Command-line arguments to pass to triangle.
+        timeout: float
+            The amount of time in seconds to let triangle run before terminating.
+
+    Constructors
+    ------------
+        from_shapefile()
+            Generate a Polygon from a file that contains a geometry specification.
+        from_points()
+            Generate a Polygon from an array of (x, y) points with shape (N, 2).
+
+    Example usage
+    -------------
+    >>> poly = shapely.Polygon([[0, 0], [0, 1], [1, 1], [1, 0]])
+    >>> tri = TriangleMesh(poly, opts = 'pqa0.1Devjz', timeout = 10)
+    >>> tri.triangulate()
+    >>> tri.delaunay['nodes']
+        Node     x     y  BC
+    0      0  0.00  0.00   1
+    1      1  0.00  1.00   1
+    2      2  1.00  1.00   1
+    3      3  1.00  0.00   1
+    4      4  0.50  0.50   0
+    5      5  0.00  0.50   1
+    6      6  0.50  0.00   1
+    7      7  1.00  0.50   1
+    8      8  0.50  1.00   1
+    9      9  0.75  0.25   0
+    10    10  0.25  0.75   0
+    11    11  0.75  0.75   0
+    12    12  0.25  0.25   0
+    >>> tri.voronoi['edges']
+        Link  head  tail
+    0      0     0    13
+    1      1     0     7
+    2      2     0     6
+    3      3     1    15
+    4      4     1     4
+    5      5     1     3
+    6      6     2     7
+    7      7     2    11
+    8      8     2     3
+    9      9     3    10
+    10    10     4    14
+    11    11     4     5
+    12    12     5     9
+    13    13     5     6
+    14    14     6     8
+    15    15     7    12
+    17    17     8     9
+    20    20    10    11
+    23    23    12    13
+    26    26    14    15
+    """
 
     # By default, we want a quality (q) conforming Delaunay triangulation (D)
-    # of a polygon (p) with information about edges (e), that indexes from zero (z).
-    default_opts = "pqDevz"
+    # of a polygon (p) with information about edges (e), that indexes from zero (z),
+    # and jettisons any nodes that aren't included in the final triangulation (j).
+    default_opts = "pqDevjz"
 
     def __init__(self, poly: shapely.Polygon, opts: str = default_opts, timeout=10):
         """Initialize this instance with a Shapely polygon object."""
