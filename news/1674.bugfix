@@ -1,3 +1,2 @@
 Fixed an issue with the *wolf_sheep_with_soil_creep.ipynb* notebook that
 caused a "too many values to unpack" error with *mesa* v2.
-
