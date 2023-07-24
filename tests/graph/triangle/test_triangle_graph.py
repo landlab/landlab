@@ -9,6 +9,7 @@ from landlab.graph.triangle import TriangleGraph
 ys = [0, 0, 10, 10]
 xs = [0, 10, 10, 0]
 
+
 @pytest.fixture
 def graph():
     graph = TriangleGraph(np.array([ys, xs]), triangle_opts="pqa1Djevz")
@@ -120,10 +121,11 @@ def test_generate_graph_from_geojson(graph_geojson):
         ],
     )
 
+
 def test_invalid_polygon_error():
     """Invalid geometries should throw an error."""
     ys = [0, 3, 3, 0, 0, 2, 2, 1, 1, 0, 0]
     xs = [0, 0, 3, 3, 2, 2, 1, 1, 2, 2, 0]
 
     with pytest.raises(ValueError):
-        graph = TriangleGraph([ys, xs], triangle_opts='pqa0.1Devjz')
+        TriangleGraph([ys, xs], triangle_opts="pqa0.1Devjz")

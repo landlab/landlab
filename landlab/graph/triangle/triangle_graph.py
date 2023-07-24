@@ -173,7 +173,10 @@ class TriangleGraph:
         holes = polygon.interiors
 
         return cls(
-            np.array([nodes_y, nodes_x]), holes=holes, triangle_opts=triangle_opts, timeout=timeout
+            np.array([nodes_y, nodes_x]),
+            holes=holes,
+            triangle_opts=triangle_opts,
+            timeout=timeout,
         )
 
     def _number_cells(self) -> tuple[np.ndarray, np.ndarray]:
