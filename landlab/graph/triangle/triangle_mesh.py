@@ -113,6 +113,10 @@ class TriangleMesh:
         self.voronoi = None
 
     @staticmethod
+    def path_to_triangle():
+        return shutil.which("triangle")
+
+    @staticmethod
     def read_input_file(path_to_file: str) -> shapely.Polygon:
         """Construct a polygon from an input file."""
         shape = gpd.read_file(path_to_file).geometry
@@ -316,8 +320,7 @@ class TriangleMesh:
         # --------------------------------
         # Check if Triangle is in the PATH
         # --------------------------------
-        path_to_tri = shutil.which("triangle")
-        if path_to_tri is None:
+        if not self.path_to_triangle():
             raise OSError(
                 "Unable to locate Triangle in PATH. You can install it with:"
                 " conda install -c conda-forge triangle"
