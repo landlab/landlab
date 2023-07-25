@@ -110,7 +110,9 @@ class TriangleMesh:
         self._vertices = shapely.get_coordinates(self._poly)
         self._segments = self._segment(self._poly)
         self._holes = self.identify_holes(self._poly)
-        self._opts = self.validate_options(opts)  # Command-line options to pass to Triangle
+        self._opts = self.validate_options(
+            opts
+        )  # Command-line options to pass to Triangle
         self._timeout = timeout  # How long to let Triangle run before terminating
         self._triangle = self.validate_triangle()
 
@@ -159,7 +161,7 @@ class TriangleMesh:
                 " conda install -c conda-forge triangle"
             )
 
-        result = subprocess.run([triangle], capture_output=True, check=True)
+        subprocess.run([triangle], capture_output=True, check=True)
 
         return triangle
 
