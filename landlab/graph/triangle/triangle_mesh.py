@@ -96,10 +96,15 @@ class TriangleMesh:
     26    26    14    15
     """
 
-    # By default, we want a quality (q) conforming Delaunay triangulation (D)
-    # of a polygon (p) with information about edges (e), that indexes from zero (z),
-    # and jettisons any nodes that aren't included in the final triangulation (j).
-    default_opts = "pqDevjz"
+    default_opts = (
+        "p"  # Triangulates a Planar Straight Line Graph (.poly file).
+        "q"  # Quality mesh generation with no angles smaller than 20 degrees.
+        "D"  # Conforming Delaunay.
+        "e"  # Outputs (to an .edge file) a list of edges of the triangulation.
+        "v"  # Outputs the Voronoi diagram associated with the triangulation.
+        "j"  # Jettisons vertices that are not part of the final triangulation.
+        "z"  # Numbers all items starting from zero.
+    )
 
     def __init__(self, poly: shapely.Polygon, opts: str = default_opts, timeout=10):
         """Initialize this instance with a Shapely polygon object."""
@@ -107,7 +112,7 @@ class TriangleMesh:
         self._vertices = shapely.get_coordinates(self._poly)
         self._segments = self._segment(self._poly)
         self._holes = self.identify_holes(self._poly)
-        self._opts = opts  # Command-line options to pass to Triangle
+        self._opts = self.validate_options(opts)  # Command-line options to pass to Triangle
         self._timeout = timeout  # How long to let Triangle run before terminating
 
         # Dictionaries that are constructed by triangulate()
@@ -117,6 +122,30 @@ class TriangleMesh:
     @staticmethod
     def path_to_triangle():
         return shutil.which("triangle")
+
+    @staticmethod
+    def validate_options(options):
+        for opt in ["e", "v", "z", "j"]:
+            options += opt if opt not in options else ""
+
+        # Omitting the quality flag will lead to bad meshes
+        if "q" not in options:
+            raise Warning("Cannot guarantee mesh quality: consider adding 'q' to opts.")
+
+        # Most use cases probably involve Planar Straight Line Graphs
+        if "p" not in options:
+            raise Warning(
+                "If your region is a Planar Straight Line Graph, add 'p' to opts."
+            )
+
+        # And, users probably want a conforming Delaunay triangulation
+        if "D" not in options:
+            raise Warning(
+                "If you want a conforming Delaunay triangulation, add 'D' to opts."
+            )
+
+        return options
+
 
     @staticmethod
     def read_input_file(path_to_file: str) -> shapely.Polygon:
@@ -283,42 +312,6 @@ class TriangleMesh:
 
     def triangulate(self):
         """Perform the Delaunay triangulation."""
-
-        # -------------------------
-        # Check a few items in opts
-        # -------------------------
-        # We need Triangle to return information about edges
-        if "e" not in self._opts:
-            self._opts += "e"
-
-        # And information about the Voronoi graph
-        if "v" not in self._opts:
-            self._opts += "v"
-
-        # Python indexes from zero
-        if "z" not in self._opts:
-            self._opts += "z"
-
-        # Omitting the quality flag will lead to bad meshes
-        if "q" not in self._opts:
-            raise Warning("Cannot guarantee mesh quality: consider adding 'q' to opts.")
-
-        # Most use cases probably involve Planar Straight Line Graphs
-        if "p" not in self._opts:
-            raise Warning(
-                "If your region is a Planar Straight Line Graph, add 'p' to opts."
-            )
-
-        # And, users probably want a conforming Delaunay triangulation
-        if "D" not in self._opts:
-            raise Warning(
-                "If you want a conforming Delaunay triangulation, add 'D' to opts."
-            )
-
-        # Finally, we should jettison unused vertices
-        if "j" not in self._opts:
-            self._opts += "j"
-
         # --------------------------------
         # Check if Triangle is in the PATH
         # --------------------------------
