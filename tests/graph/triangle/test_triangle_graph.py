@@ -6,7 +6,7 @@ from numpy.testing import assert_array_equal
 
 from landlab.graph.triangle import TriangleGraph, TriangleMesh
 
-if not TriangleMesh.path_to_triangle():
+if not TriangleMesh.validate_triangle():
     pytestmark = pytest.mark.skip(reason="triangle is not installed")
 
 

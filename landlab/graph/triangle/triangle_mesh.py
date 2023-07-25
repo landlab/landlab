@@ -27,33 +27,31 @@ import shapely
 
 
 class TriangleMesh:
-    """Calls Triangle to generate a mesh from a shapefile or array of points.
+    """Generate a mesh from a shapefile or array of points.
 
     Makes a subprocess call to the Triangle command-line interface, which needs
-    to be installed separately. The most reliable way to do so is with
+    to be installed separately. The most reliable way to do so is with::
 
-    conda install -c conda-forge triangle
+        conda install -c conda-forge triangle
 
     but users could also install and compile triangle directly.
 
     Parameters
     ----------
-        poly: shapely Polygon
-            The Polygon that serves as the domain for the mesh.
-        opts: str
-            Command-line arguments to pass to triangle.
-        timeout: float
-            The amount of time in seconds to let triangle run before terminating.
+    poly: shapely.Polygon
+        The Polygon that serves as the domain for the mesh.
+    opts: str
+        Command-line arguments to pass to triangle.
+    timeout: float
+        The amount of time in seconds to let triangle run before terminating.
 
-    Constructors
-    ------------
-        from_shapefile()
-            Generate a Polygon from a file that contains a geometry specification.
-        from_points()
-            Generate a Polygon from an array of (x, y) points with shape (N, 2).
+    See Also
+    --------
+    TriangleMesh.from_shapefile : Constructor from a shapefile.
+    TriangleMesh.from_points : Constructor from an array of (x, y) points.
 
-    Example usage
-    -------------
+    Examples
+    --------
     >>> poly = shapely.Polygon([[0, 0], [0, 1], [1, 1], [1, 0]])
     >>> tri = TriangleMesh(poly, opts = 'pqa0.1Devjz', timeout = 10)
     >>> tri.triangulate()
@@ -114,14 +112,19 @@ class TriangleMesh:
         self._holes = self.identify_holes(self._poly)
         self._opts = self.validate_options(opts)  # Command-line options to pass to Triangle
         self._timeout = timeout  # How long to let Triangle run before terminating
+        self._triangle = self.validate_triangle()
 
         # Dictionaries that are constructed by triangulate()
         self.delaunay = None
         self.voronoi = None
 
-    @staticmethod
-    def path_to_triangle():
-        return shutil.which("triangle")
+    @property
+    def triangle(self):
+        return self._triangle
+
+    @property
+    def options(self):
+        return self._opts
 
     @staticmethod
     def validate_options(options):
@@ -146,6 +149,19 @@ class TriangleMesh:
 
         return options
 
+    @staticmethod
+    def validate_triangle(triangle=None):
+        triangle = shutil.which("triangle" if triangle is None else triangle)
+
+        if not triangle:
+            raise FileNotFoundError(
+                "Unable to locate Triangle in PATH. You can install it with:"
+                " conda install -c conda-forge triangle"
+            )
+
+        result = subprocess.run([triangle], capture_output=True, check=True)
+
+        return triangle
 
     @staticmethod
     def read_input_file(path_to_file: str) -> shapely.Polygon:
@@ -312,15 +328,6 @@ class TriangleMesh:
 
     def triangulate(self):
         """Perform the Delaunay triangulation."""
-        # --------------------------------
-        # Check if Triangle is in the PATH
-        # --------------------------------
-        if not self.path_to_triangle():
-            raise OSError(
-                "Unable to locate Triangle in PATH. You can install it with:"
-                " conda install -c conda-forge triangle"
-            )
-
         # ----------------------------
         # Set up a temporary directory
         # ----------------------------
@@ -329,12 +336,8 @@ class TriangleMesh:
                 "tri.poly", self._vertices, self._segments, self._holes
             )
 
-            cmd = "triangle"
-            input_file = "tri.poly"
-            options = "-" + self._opts
-
             result = subprocess.run(
-                [cmd, options, input_file],
+                [self.triangle, f"-{self.options}", "tri.poly"],
                 timeout=self._timeout,
                 capture_output=True,
                 cwd=".",

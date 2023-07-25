@@ -5,7 +5,7 @@ import pytest
 
 from landlab.graph.triangle import TriangleMesh
 
-if not TriangleMesh.path_to_triangle():
+if not TriangleMesh.validate_triangle():
     pytestmark = pytest.mark.skip(reason="triangle is not installed")
 
 
