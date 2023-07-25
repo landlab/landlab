@@ -28,6 +28,16 @@ xy_points = np.array(
 )
 
 
+def test_init_from_points():
+    """Test initialization from list of points."""
+    mesh = TriangleMesh.from_points(xy_points, opts="pqDevjz")
+
+    assert mesh._vertices.shape == (xy_points.shape[0], 2)
+    assert mesh._segments.shape == (xy_points.shape[0] - 1, 2)
+    assert mesh._holes is None
+    assert mesh._opts == "pqDevjz"
+
+
 def test_triangulate_from_points():
     """Test triangulation routine."""
     mesh = TriangleMesh.from_points(xy_points, opts="pqDevjz")

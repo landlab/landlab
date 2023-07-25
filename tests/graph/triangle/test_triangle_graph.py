@@ -4,7 +4,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab.graph.triangle import TriangleGraph
+from landlab.graph.triangle import TriangleGraph, TriangleMesh
+
+if not TriangleMesh.path_to_triangle():
+    pytestmark = pytest.mark.skip(reason="triangle is not installed")
+
 
 ys = [0, 0, 10, 10]
 xs = [0, 10, 10, 0]
