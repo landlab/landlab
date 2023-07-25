@@ -13,8 +13,11 @@ _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
 
 
-class LinearDiffuser(Component):
-    """This component implements linear diffusion of a Landlab field.
+class LinearDiffuser_MiniVersion(Component):
+    """This component implements linear diffusion of a Landlab raster grid.
+
+    
+
 
     Component assumes grid does not deform. If the boundary conditions on the
     grid change after component instantiation, be sure to also call
@@ -103,12 +106,12 @@ class LinearDiffuser(Component):
 
     """
 
-    _name = "LinearDiffuser"
+    _name = "LinearDiffuser_MiniVersion"
 
     _unit_agnostic = True
 
     _info = {
-        "hillslope_sediment__unit_volume_flux": {
+        "salinity_flux": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -116,36 +119,21 @@ class LinearDiffuser(Component):
             "mapping": "link",
             "doc": "Volume flux per unit width along links",
         },
-        "topographic__elevation": {
-            "dtype": float,
-            "intent": "inout",
-            "optional": False,
-            "units": "m",
-            "mapping": "node",
-            "doc": "Land surface topographic elevation",
-        },
-        "topographic__gradient": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-",
-            "mapping": "link",
-            "doc": "Gradient of the ground surface",
-        },
+       
     }
 
     def __init__(self, grid, linear_diffusivity=0.01, method="simple", deposit=True):
         """
         Parameters
         ----------
-        grid : ModelGrid
+        grid : RasterGrid
             A grid.
         linear_diffusivity : float, array, or field name (m**2/time)
             The diffusivity. If an array or field name, these must be the
             diffusivities on either nodes or links - the component will
             distinguish which based on array length. Values on nodes will be
             mapped to links using an upwind scheme in the simple case.
-        method : {'simple', 'resolve_on_patches', 'on_diagonals'}
+        method : {'simple'}
             The method used to represent the fluxes. 'simple' solves a finite
             difference method with a simple staggered grid scheme onto the links.
             'resolve_on_patches' solves the scheme by mapping both slopes and
@@ -174,50 +162,16 @@ class LinearDiffuser(Component):
         super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
-        assert method in ("simple", "resolve_on_patches", "on_diagonals")
-        if method == "resolve_on_patches":
-            assert isinstance(self._grid, RasterModelGrid)
-            self._use_patches = True
-        else:
-            self._use_patches = False
-        if method == "on_diagonals" and isinstance(self._grid, RasterModelGrid):
-            self._use_diags = True
-        else:
-            self._use_diags = False
-        self._current_time = 0.0
-        self._run_before = False
-        self._kd_on_links = False
-
-        if isinstance(linear_diffusivity, str):
-            try:
-                self._kd = self._grid.at_link[linear_diffusivity]
-                self._kd_on_links = True
-            except KeyError:
-                self._kd = self._grid.at_node[linear_diffusivity]
-        else:
-            self._kd = linear_diffusivity
-
-            if isinstance(self._kd, (float, int)):
-                self._kd = float(self._kd)
-            else:
-                if self._kd.size == self._grid.number_of_links:
-                    self._kd_on_links = True
-                else:
-                    assert self._kd.size == self._grid.number_of_nodes
-
-        if self._kd_on_links is True:
-            assert isinstance(self._grid, RasterModelGrid)
-
+        assert method in ("simple")
+ 
         # if we're using patches, it is VITAL that diffusivity is defined on
         # links. The whole point of this functionality is that we honour
         # *directionality* in the diffusivities.
-        if self._use_patches:
-            assert self._kd_on_links
         # set _deposit flag to tell code whether or not diffusion can deposit.
 
         self._deposit = deposit
 
-        self._values_to_diffuse = "topographic__elevation"
+        self._values_to_diffuse = "salinity_flux"
 
         # Set internal time step
         # ..todo:
