@@ -4,16 +4,14 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab.graph.triangle import TriangleGraph, TriangleMesh
+from landlab.graph.triangle import TriangleGraph
 
 ys = [0, 0, 10, 10]
 xs = [0, 10, 10, 0]
 
 
-@pytest.fixture
-def graph():
+def test_graph_init():
     graph = TriangleGraph(np.array([ys, xs]), triangle_opts="pqa1Djevz")
-    return graph
 
     assert graph.number_of_nodes == 89
     assert len(graph.x_of_node) == graph.number_of_nodes
@@ -61,10 +59,11 @@ def graph():
     )
 
 
-def test_generate_graph_from_geojson():
+def test_generate_graph_from_geojson(datadir):
     """Test the graph constructor from a geojson file."""
-    path = "tests/graph/triangle/test_triangle_graph/example_geojson_for_graph.geojson"
-    graph = TriangleGraph.from_shapefile(path, triangle_opts="pqDjevz")
+    graph = TriangleGraph.from_shapefile(
+        datadir / "example_geojson_for_graph.geojson", triangle_opts="pqDjevz"
+    )
 
     assert graph.number_of_nodes == 697
     assert len(graph.x_of_node) == graph.number_of_nodes
