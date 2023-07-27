@@ -3,11 +3,12 @@ import shapely
 import xarray as xr
 from shapely.validation import explain_validity
 
+from ..graph import Graph
 from ..sort.sort import reverse_one_to_many
 from .triangle_mesh import TriangleMesh
 
 
-class TriangleGraph:
+class TriangleGraph(Graph):
     """Constructs the Voronoi-Delaunay dual graph.
 
     We translate Landlab grid elements as follows:
@@ -165,10 +166,29 @@ class TriangleGraph:
             }
         )
 
-        self.perimeter_nodes = np.where(
-            np.array(self._delaunay['nodes'])[:, 3] == 1
-        )[0]
-        
+        self.perimeter_nodes = np.where(np.array(self._delaunay["nodes"])[:, 3] == 1)[0]
+
+        Graph.__init__(
+            self,
+            (self._mesh.y_of_node, self._mesh.x_of_node),
+            links=self._mesh.nodes_at_link,
+            patches=self._mesh.links_at_patch,
+            sort=False,
+        )
+        dual_graph = Graph.__init__(
+            self,
+            (self._mesh.y_of_corner, self._mesh.x_of_corner),
+            links=self._mesh.corners_at_face,
+            patches=self._mesh.faces_at_cell,
+            sort=False,
+        )
+
+        self.merge(
+            dual_graph,
+            node_at_cell=self._mesh.node_at_cell,
+            nodes_at_face=self._mesh.nodes_at_face,
+        )
+
     @classmethod
     def from_shapefile(
         cls, path_to_file: str, triangle_opts: str = "", timeout: float = 10

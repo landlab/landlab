@@ -2,11 +2,14 @@
 manage unstructured, irregular grids for 2D numerical models.
 """
 
-import numpy as np
 import pathlib
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 from ..graph.triangle import TriangleGraph
 from .base import ModelGrid
+
 
 class TriangleMeshGrid(TriangleGraph, ModelGrid):
 
@@ -38,12 +41,12 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         x=None,
         y=None,
         holes=None,
-        triangle_opts="",
+        triangle_opts="pqDevjz",
         timeout=10,
         reorient_links=False,
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
-        xy_axis_units="-"
+        xy_axis_units="-",
     ):
         """Create a TriangleMeshGrid from a set of points.
 
@@ -77,17 +80,13 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         --------
         """
         TriangleGraph.__init__(
-            self, 
-            (y, x), 
-            holes=holes, 
-            triangle_opts=triangle_opts,
-            timeout=timeout
+            self, (y, x), holes=holes, triangle_opts=triangle_opts, timeout=timeout
         )
         ModelGrid.__init__(
             self,
             xy_axis_name=xy_axis_name,
             xy_axis_units=xy_axis_units,
-            xy_of_reference=xy_of_reference
+            xy_of_reference=xy_of_reference,
         )
 
         self._node_status = np.full(
@@ -95,3 +94,82 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
+    @classmethod
+    def from_shapefile(cls, kwds):
+        """Initialize a new TriangleMeshGrid from a shapefile."""
+        pass
+
+    @classmethod
+    def from_dict(cls, kwds):
+        """Initialize a new TriangleMeshGrid from a dict with "x" and "y" keys."""
+        args = (kwds.pop("x"), kwds.pop("y"))
+        return cls(*args, **kwds)
+
+    def plot_nodes_and_links(self, nodes_args: dict, links_args: dict):
+        """Produce a plot of nodes and links."""
+        for link in np.arange(self.number_of_links):
+            head, tail = self.nodes_at_link[link]
+            plt.plot(
+                [self.x_of_node[head], self.x_of_node[tail]],
+                [self.y_of_node[head], self.y_of_node[tail]],
+                **links_args,
+            )
+
+        out = plt.scatter(self.x_of_node, self.y_of_node, **nodes_args)
+
+        return out
+
+    def save(self, path, clobber=False):
+        """Save a grid and fields.
+
+        This method uses pickle to save the grid as a pickle file.
+        At the time of coding, this is the only convenient output format
+        for unstructured grids, but support for netCDF is likely coming.
+
+        All fields will be saved, along with the grid.
+
+        The recommended suffix for the save file is '.grid'. This will
+        be added to your save if you don't include it.
+
+        This method is equivalent to
+        :py:func:`~landlab.io.native_landlab.save_grid`, and
+        :py:func:`~landlab.io.native_landlab.load_grid` can be used to
+        load these files.
+
+        Caution: Pickling can be slow, and can produce very large files.
+        Caution 2: Future updates to Landlab could potentially render old
+        saves unloadable.
+
+        Parameters
+        ----------
+        path : str
+            Path to output file.
+        clobber : bool (defaults to false)
+            Set to true to allow overwriting
+
+        Returns
+        -------
+        str
+            The name of the saved file (with the ".grid" extension).
+
+        Examples
+        --------
+        """
+        import pickle
+
+        path = pathlib.Path(path)
+
+        if path.suffix != ".grid":
+            path = path.with_suffix(path.suffix + ".grid")
+
+        if path.exists() and not clobber:
+            raise ValueError(
+                f"File exists: {str(path)!r}. "
+                "Either remove this file and try again or set the "
+                "'clobber' keyword to True"
+            )
+
+        with open(path, "wb") as fp:
+            pickle.dump(self, fp)
+
+        return str(path)
