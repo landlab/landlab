@@ -165,6 +165,10 @@ class TriangleGraph:
             }
         )
 
+        self.perimeter_nodes = np.where(
+            np.array(self._delaunay['nodes'])[:, 3] == 1
+        )[0]
+        
     @classmethod
     def from_shapefile(
         cls, path_to_file: str, triangle_opts: str = "", timeout: float = 10

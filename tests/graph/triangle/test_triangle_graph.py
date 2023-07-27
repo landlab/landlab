@@ -62,6 +62,14 @@ def test_graph_init():
         ],
     )
 
+    assert_array_equal(
+        graph.perimeter_nodes,
+        [0,  1,  2,  3,  5,  6,  7,  8, 
+         13, 14, 18, 23, 24, 25, 30, 33, 
+         36, 37, 39, 57, 59, 63, 66, 68, 
+         70, 72, 75, 77, 82, 83, 87, 88]
+    )
+
 
 def test_generate_graph_from_geojson(datadir):
     """Test the graph constructor from a geojson file."""
