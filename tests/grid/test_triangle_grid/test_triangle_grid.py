@@ -1,7 +1,7 @@
 """Tests for the TriangleMeshGrid class."""
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
@@ -18,25 +18,25 @@ xs = [0, 10, 10, 0]
 
 
 def test_grid_init():
-    grid = TriangleMeshGrid(xs, ys, triangle_opts='pqa1Devjz')
+    grid = TriangleMeshGrid(xs, ys, triangle_opts="pqa1Devjz")
+
 
 def test_plot_nodes_and_links():
-    grid = TriangleMeshGrid(xs, ys, triangle_opts='pqa1Devjz')
+    grid = TriangleMeshGrid(xs, ys, triangle_opts="pqa1Devjz")
     plot = grid.plot_nodes_and_links(
-        nodes_args={'s': 10},
-        links_args={'linewidth': 1, 'linestyle': ':'}
+        nodes_args={"s": 10}, links_args={"linewidth": 1, "linestyle": ":"}
     )
     plt.close()
 
+
 def test_plot_graph():
-    grid = TriangleMeshGrid(xs, ys, triangle_opts='pqa1Devjz')
+    grid = TriangleMeshGrid(xs, ys, triangle_opts="pqa1Devjz")
 
-    _ = plot_graph(grid, at = 'node')
-    plt.show()
-
-    _ = plot_graph(grid, at = 'link')
+    _ = plot_graph(grid, at="node")
     plt.close()
 
-    _ = plot_graph(grid, at = 'patch')
+    _ = plot_graph(grid, at="link")
     plt.close()
 
+    _ = plot_graph(grid, at="patch")
+    plt.close()
