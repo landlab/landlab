@@ -2,6 +2,8 @@
 
 import numpy as np
 import pytest
+import shapely
+import matplotlib.pyplot as plt
 
 from landlab.graph.triangle import TriangleMesh
 
@@ -64,3 +66,23 @@ def test_triangulate_from_geojson(datadir):
         datadir / "example_geojson.geojson", opts="pqDevjz"
     )
     mesh.triangulate()
+
+
+def test_segment(datadir):
+    "Test segmentation routine."
+    mesh = TriangleMesh.from_shapefile(
+        datadir / "example_geojson.geojson", opts="pqDevjz"
+    )
+    segments = mesh._segment(mesh._poly)
+
+    assert len(mesh._holes) == len(mesh._poly.interiors)
+    assert len(segments) == 2359
+
+    for hole in mesh._holes:
+        point = shapely.Point(hole)
+
+        assert not mesh._poly.contains(point)
+    
+    
+
+    

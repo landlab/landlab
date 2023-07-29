@@ -29,7 +29,7 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
 
     See also
     --------
-    TriangleMeshGrid.from_shapefile
+    TriangleGraph.from_shapefile
         Constructs the grid from a shapefile, geojson, geopackage, etc.
 
     Examples
@@ -38,8 +38,7 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
 
     def __init__(
         self,
-        x=None,
-        y=None,
+        exterior_y_and_x: tuple[np.ndarray, np.ndarray],
         holes=None,
         triangle_opts="pqDevjz",
         timeout=10,
@@ -80,7 +79,7 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         --------
         """
         TriangleGraph.__init__(
-            self, (y, x), holes=holes, triangle_opts=triangle_opts, timeout=timeout
+            self, exterior_y_and_x, holes=holes, triangle_opts=triangle_opts, timeout=timeout
         )
         ModelGrid.__init__(
             self,
@@ -95,29 +94,31 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
     @classmethod
-    def from_shapefile(cls, kwds):
-        """Initialize a new TriangleMeshGrid from a shapefile."""
-        pass
-
-    @classmethod
     def from_dict(cls, kwds):
         """Initialize a new TriangleMeshGrid from a dict with "x" and "y" keys."""
         args = (kwds.pop("x"), kwds.pop("y"))
         return cls(*args, **kwds)
 
-    def plot_nodes_and_links(self, nodes_args: dict, links_args: dict):
+    def plot_nodes_and_links(
+        self, 
+        nodes_args: dict = {}, 
+        links_args: dict = {},
+        subplots_args: dict = {}
+    ):
         """Produce a plot of nodes and links."""
+        fig, ax = plt.subplots(**subplots_args)
+
         for link in np.arange(self.number_of_links):
             head, tail = self.nodes_at_link[link]
-            plt.plot(
+            ax.plot(
                 [self.x_of_node[head], self.x_of_node[tail]],
                 [self.y_of_node[head], self.y_of_node[tail]],
                 **links_args,
             )
 
-        out = plt.scatter(self.x_of_node, self.y_of_node, **nodes_args)
+        ax.scatter(self.x_of_node, self.y_of_node, **nodes_args)
 
-        return out
+        return fig
 
     def save(self, path, clobber=False):
         """Save a grid and fields.

@@ -195,12 +195,12 @@ class TriangleGraph(Graph):
     ):
         """Initialize a TriangleGraph from an input file."""
         polygon = TriangleMesh.read_input_file(path_to_file)
-        nodes_y = polygon.exterior.xy[1]
-        nodes_x = polygon.exterior.xy[0]
+        nodes_y = np.array(polygon.exterior.xy[1])
+        nodes_x = np.array(polygon.exterior.xy[0])
         holes = polygon.interiors
 
         return cls(
-            np.array([nodes_y, nodes_x]),
+            (nodes_y, nodes_x),
             holes=holes,
             triangle_opts=triangle_opts,
             timeout=timeout,

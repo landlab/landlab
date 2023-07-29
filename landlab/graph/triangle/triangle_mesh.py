@@ -193,8 +193,23 @@ class TriangleMesh:
         holes = []
         for ring in interiors:
             area = shapely.build_area(ring)
-            point = area.centroid.xy
-            holes.append([point[0][0], point[1][0]])
+            point = shapely.Point(area.centroid.xy)
+
+            if shape.contains(point):
+                invalid = True
+
+                while invalid:
+                    minx, miny, maxx, maxy = ring.bounds
+                    x = np.random.uniform(minx, maxx)
+                    y = np.random.uniform(miny, maxy)
+                    test_point = shapely.Point(x, y)
+                    
+                    if not shape.contains(test_point):
+                        holes.append([x, y])
+                        invalid = False
+
+            else:
+                holes.append([point.xy[0][0], point.xy[1][0]])
 
         return np.array(holes) if len(holes) else None
 
@@ -220,17 +235,13 @@ class TriangleMesh:
         """Given a Polygon, construct an array of line segments for exterior and
         interior rings.
         """
-        boundaries = [poly.exterior]
-        interiors = list(poly.interiors)
         segments = []
 
-        boundaries.extend(interiors)
-
-        for curve in boundaries:
+        for ring in poly.interiors:
             lines = list(
-                map(shapely.LineString, zip(curve.coords[:-1], curve.coords[1:]))
+                map(shapely.LineString, zip(ring.coords[:-1], ring.coords[1:]))
             )
-
+            
             for line in lines:
                 x1, y1 = line.coords[0]
                 x2, y2 = line.coords[1]
@@ -244,6 +255,26 @@ class TriangleMesh:
 
                 segments.append([int(start_vertex[0]), int(end_vertex[0])])
 
+        boundary = list(
+                map(
+                    shapely.LineString, 
+                    zip(poly.exterior.coords[:-1], poly.exterior.coords[1:])
+                )
+            )
+            
+        for line in boundary:
+            x1, y1 = line.coords[0]
+            x2, y2 = line.coords[1]
+
+            start_vertex = np.argwhere(
+                (self._vertices[:, 0] == x1) & (self._vertices[:, 1] == y1)
+            )[0]
+            end_vertex = np.argwhere(
+                (self._vertices[:, 0] == x2) & (self._vertices[:, 1] == y2)
+            )[0]
+
+            segments.append([int(start_vertex[0]), int(end_vertex[0])])
+        
         return np.array(segments)
 
     def _write_poly_file(
