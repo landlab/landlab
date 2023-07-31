@@ -79,7 +79,11 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         --------
         """
         TriangleGraph.__init__(
-            self, exterior_y_and_x, holes=holes, triangle_opts=triangle_opts, timeout=timeout
+            self,
+            exterior_y_and_x,
+            holes=holes,
+            triangle_opts=triangle_opts,
+            timeout=timeout,
         )
         ModelGrid.__init__(
             self,
@@ -100,12 +104,19 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         return cls(*args, **kwds)
 
     def plot_nodes_and_links(
-        self, 
-        nodes_args: dict = {}, 
-        links_args: dict = {},
-        subplots_args: dict = {}
+        self,
+        nodes_args: dict = None,
+        links_args: dict = None,
+        subplots_args: dict = None,
     ):
         """Produce a plot of nodes and links."""
+        if nodes_args is None:
+            nodes_args = {}
+        if links_args is None:
+            links_args = {}
+        if subplots_args is None:
+            subplots_args = {}
+
         fig, ax = plt.subplots(**subplots_args)
 
         for link in np.arange(self.number_of_links):

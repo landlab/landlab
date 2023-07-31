@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 import shapely
-import matplotlib.pyplot as plt
+from numpy.testing import assert_array_equal
 
 from landlab.graph.triangle import TriangleMesh
 
@@ -49,21 +49,40 @@ def test_triangulate_from_points():
 def test_init_from_geojson(datadir):
     """Test initialization from a geojson file."""
     mesh = TriangleMesh.from_shapefile(
-        datadir / "example_geojson.geojson", opts="pqDevjz"
+        datadir / "polygon_concave.geojson", opts="pqDevjz"
     )
 
-    # Validated against Shapely directly
-    assert mesh._vertices.shape == (2402, 2)
-    assert len(mesh._poly.interiors) == 42
-    assert mesh._segments.shape == (2359, 2)
-    assert mesh._holes.shape == (42, 2)
+    assert_array_equal(
+        mesh._vertices,
+        [
+            [0.0, 0.0],
+            [10.0, 0.0],
+            [10.0, 10.0],
+            [5.0, 15.0],
+            [0.0, 10.0],
+            [0.0, 0.0],
+            [2.0, 2.0],
+            [8.0, 2.0],
+            [8.0, 8.0],
+            [2.0, 8.0],
+            [2.0, 2.0],
+        ],
+    )
+
+    assert_array_equal(mesh._holes, [[5.0, 5.0]])
+
+    assert_array_equal(
+        mesh._segments,
+        [[6, 7], [7, 8], [8, 9], [9, 6], [0, 1], [1, 2], [2, 3], [3, 4], [4, 0]],
+    )
+
     assert mesh._opts == "pqDevjz"
 
 
 def test_triangulate_from_geojson(datadir):
     """Test triangulation routine."""
     mesh = TriangleMesh.from_shapefile(
-        datadir / "example_geojson.geojson", opts="pqDevjz"
+        datadir / "polygon_concave.geojson", opts="pqDevjz"
     )
     mesh.triangulate()
 
@@ -71,18 +90,14 @@ def test_triangulate_from_geojson(datadir):
 def test_segment(datadir):
     "Test segmentation routine."
     mesh = TriangleMesh.from_shapefile(
-        datadir / "example_geojson.geojson", opts="pqDevjz"
+        datadir / "polygon_concave.geojson", opts="pqDevjz"
     )
     segments = mesh._segment(mesh._poly)
 
     assert len(mesh._holes) == len(mesh._poly.interiors)
-    assert len(segments) == 2359
+    assert len(segments) == 9
 
     for hole in mesh._holes:
         point = shapely.Point(hole)
 
         assert not mesh._poly.contains(point)
-    
-    
-
-    

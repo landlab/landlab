@@ -176,12 +176,21 @@ class TriangleMesh:
                 " Check that there is only one input geometry and try again."
             )
 
-        if len(shape[0].geoms) != 1:
-            raise TypeError(
-                "Each shape within the input shapefile must contain exactly 1 geometry."
-            )
+        if isinstance(shape[0], shapely.MultiPolygon):
+            if len(shape[0].geoms) != 1:
+                raise TypeError(
+                    "Each shape within the input shapefile must contain exactly 1 geometry."
+                )
 
-        polygon = shape[0].geoms[0]
+            polygon = shape[0].geoms[0]
+
+        elif isinstance(shape[0], shapely.Polygon):
+            polygon = shape[0]
+
+        else:
+            raise TypeError(
+                "Input geometry is a " + str(type(shape)) + ", but should be a Polygon."
+            )
 
         return polygon
 
@@ -203,7 +212,7 @@ class TriangleMesh:
                     x = np.random.uniform(minx, maxx)
                     y = np.random.uniform(miny, maxy)
                     test_point = shapely.Point(x, y)
-                    
+
                     if not shape.contains(test_point):
                         holes.append([x, y])
                         invalid = False
@@ -241,7 +250,7 @@ class TriangleMesh:
             lines = list(
                 map(shapely.LineString, zip(ring.coords[:-1], ring.coords[1:]))
             )
-            
+
             for line in lines:
                 x1, y1 = line.coords[0]
                 x2, y2 = line.coords[1]
@@ -256,12 +265,12 @@ class TriangleMesh:
                 segments.append([int(start_vertex[0]), int(end_vertex[0])])
 
         boundary = list(
-                map(
-                    shapely.LineString, 
-                    zip(poly.exterior.coords[:-1], poly.exterior.coords[1:])
-                )
+            map(
+                shapely.LineString,
+                zip(poly.exterior.coords[:-1], poly.exterior.coords[1:]),
             )
-            
+        )
+
         for line in boundary:
             x1, y1 = line.coords[0]
             x2, y2 = line.coords[1]
@@ -274,7 +283,7 @@ class TriangleMesh:
             )[0]
 
             segments.append([int(start_vertex[0]), int(end_vertex[0])])
-        
+
         return np.array(segments)
 
     def _write_poly_file(

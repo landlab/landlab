@@ -101,56 +101,48 @@ def test_graph_init():
     )
 
 
+def test_raise_error_if_no_interior_nodes(datadir):
+    """If no cells are generated, raise a ValueError."""
+    with pytest.raises(ValueError):
+        TriangleGraph.from_shapefile(
+            datadir / "polygon_concave.geojson", triangle_opts="pqa100Djevz"
+        )
+
+
 def test_generate_graph_from_geojson(datadir):
     """Test the graph constructor from a geojson file."""
     graph = TriangleGraph.from_shapefile(
-        datadir / "example_geojson_for_graph.geojson", triangle_opts="pqDjevz"
+        datadir / "polygon_concave.geojson", triangle_opts="pqa10Djevz"
     )
 
-    # assert graph.number_of_nodes == 697
-    # assert len(graph.x_of_node) == graph.number_of_nodes
-    # assert len(graph.y_of_node) == graph.number_of_nodes
-    # assert graph.number_of_links == 1396
-    # assert graph.number_of_patches == 709
-    # assert graph.number_of_corners == graph.number_of_patches
-    # assert graph.number_of_faces == 731
-    # assert graph.number_of_cells == 32
+    assert graph.number_of_nodes == 25
+    assert len(graph.x_of_node) == graph.number_of_nodes
+    assert len(graph.y_of_node) == graph.number_of_nodes
+    assert graph.number_of_links == 51
+    assert graph.number_of_patches == 26
+    assert graph.number_of_corners == graph.number_of_patches
+    assert graph.number_of_faces == 27
+    assert graph.number_of_cells == 1
 
-    # assert_array_equal(
-    #     graph.nodes_at_patch[:3], [[476, 474, 475], [609, 478, 601], [476, 473, 474]]
-    # )
+    assert_array_equal(graph.nodes_at_patch[:3], [[8, 18, 20], [13, 1, 6], [4, 8, 22]])
 
-    # assert_array_equal(graph.nodes_at_link[:3], [[476, 474], [474, 475], [475, 476]])
+    assert_array_equal(graph.nodes_at_link[:3], [[8, 18], [18, 20], [20, 8]])
 
-    # assert_array_equal(graph.nodes_at_face[:3], [[476, 474], [474, 475], [475, 476]])
+    assert_array_equal(graph.nodes_at_face[:3], [[8, 18], [18, 20], [20, 8]])
 
-    # assert_array_equal(graph.corners_at_face[:3], [[0, 2], [1, 7], [1, 336]])
+    assert_array_equal(graph.corners_at_face[:3], [[0, 18], [0, 5], [1, 16]])
 
-    # assert_array_equal(
-    #     graph.corners_at_cell[:3],
-    #     [
-    #         [224, 227, 229, 239, 293, 320, 412, -1, -1, -1],
-    #         [267, 269, 281, 283, 392, -1, -1, -1, -1, -1],
-    #         [393, 433, 535, 536, 538, 539, -1, -1, -1, -1],
-    #     ],
-    # )
+    assert_array_equal(graph.corners_at_cell[0], [8, 9, 21, 22, 24, 25])
 
-    # assert_array_equal(graph.n_corners_at_cell[:3], [10, 10, 10])
+    assert_array_equal(graph.n_corners_at_cell[0], [6])
 
-    # assert_array_equal(graph.cell_at_node[:3], [-1, -1, -1])
+    assert_array_equal(graph.cell_at_node[24], [0])
 
-    # assert_array_equal(graph.links_at_patch[:3], [[0, 1, 2], [3, 4, 5], [0, 6, 7]])
+    assert_array_equal(graph.links_at_patch[:3], [[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 
-    # assert_array_equal(graph.node_at_cell[:3], [622, 629, 646])
+    assert_array_equal(graph.node_at_cell[0], [24])
 
-    # assert_array_equal(
-    #     graph.faces_at_cell[:3],
-    #     [
-    #         [274, 276, 278, 279, 282, 294, 296, -1, -1, -1],
-    #         [327, 328, 329, 342, 345, -1, -1, -1, -1, -1],
-    #         [484, 485, 531, 612, 613, 614, -1, -1, -1, -1],
-    #     ],
-    # )
+    assert_array_equal(graph.faces_at_cell[0], [15, 16, 18, 19, 25, 26])
 
 
 def test_invalid_polygon_error():

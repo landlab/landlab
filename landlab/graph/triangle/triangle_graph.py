@@ -235,10 +235,6 @@ class TriangleGraph(Graph):
                 if len(triangles) > max_corners_per_cell:
                     max_corners_per_cell = len(triangles)
 
-                if len(triangles) < 1:
-                    # print(node, cell)
-                    pass
-
         corners_at_cell = np.array(
             [
                 np.pad(
@@ -251,6 +247,14 @@ class TriangleGraph(Graph):
             ],
             dtype=int,
         )
+
+        if max_corners_per_cell == 0:
+            raise ValueError(
+                "Triangle failed to generate cells.\n"
+                "This is most likely to occur when all nodes are on boundaries,\n"
+                "and may be fixed by making a finer mesh,\n"
+                "e.g., by setting a smaller value of 'a' in opts."
+            )
 
         return corners_at_cell
 
