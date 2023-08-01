@@ -206,9 +206,9 @@ class TriangleMesh:
 
             if shape.contains(point):
                 invalid = True
+                minx, miny, maxx, maxy = ring.bounds
 
                 while invalid:
-                    minx, miny, maxx, maxy = ring.bounds
                     x = np.random.uniform(minx, maxx)
                     y = np.random.uniform(miny, maxy)
                     test_point = shapely.Point(x, y)
