@@ -866,13 +866,14 @@ def test_cython_functions():
         verbose=True,
     )
 
+
 # %% test flooded nodes
 def test_flooded_nodes():
     mg = RasterModelGrid((6, 6), xy_spacing=(1, 1))
     z = mg.add_ones("topographic__elevation", at="node")
-    z[mg.boundary_nodes]=0
-    z[14:16] = 0.5    
+    z[mg.boundary_nodes] = 0
+    z[14:16] = 0.5
     z[20:22] = 0.75
     pf = PriorityFloodFlowRouter(mg)
     pf.run_one_step()
-    testing.assert_array_equal(4, np.sum(mg.at_node['flood_status_code']))
+    testing.assert_array_equal(4, np.sum(mg.at_node["flood_status_code"]))
