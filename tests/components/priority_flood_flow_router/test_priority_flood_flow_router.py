@@ -876,4 +876,5 @@ def test_flooded_nodes():
     z[20:22] = 0.75
     pf = PriorityFloodFlowRouter(mg)
     pf.run_one_step()
-    testing.assert_array_equal(4, np.sum(mg.at_node["flood_status_code"]))
+    # FLOODED nodes have code 3
+    testing.assert_array_equal(12, np.sum(mg.at_node["flood_status_code"]))
