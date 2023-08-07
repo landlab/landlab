@@ -153,7 +153,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
     core_nodes = grid.core_nodes
     core_elev = z[core_nodes]
     # Sort all nodes in the descending order of elevation
-    sor_z = core_nodes[np.argsort(core_elev)[::-1]]
+    sor_z = core_nodes[np.argsort(core_elev, kind="stable")[::-1]]
     # Create a list to record all nodes that have been visited
     # To store nodes that have already been counted
     alr_counted = []
