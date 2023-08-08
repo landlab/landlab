@@ -12,5 +12,4 @@ Python 2.7. We do not recommend installing a Python 2.x version.
   :hidden:
 
   anaconda_install
-  correcting_paths
   troubleshooting
