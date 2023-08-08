@@ -17,7 +17,6 @@ Installation Steps and Resources
    :maxdepth: 2
 
    fork
-   test
    updating
 
 **Note:** For dev work, we actively recommend Anaconda over the
