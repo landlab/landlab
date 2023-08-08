@@ -35,7 +35,6 @@ Installation, Contribution, and Development Practices
 .. toctree::
    :maxdepth: 2
 
-   install/index
    contribution/index
    practices/index
    package_organization
