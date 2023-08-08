@@ -17,7 +17,6 @@ Installation Steps and Resources
    :maxdepth: 2
 
    fork
-   install
    test
    updating
    troubleshooting_install
