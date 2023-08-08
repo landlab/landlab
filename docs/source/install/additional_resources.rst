@@ -11,5 +11,4 @@ Python 2.7. We do not recommend installing a Python 2.x version.
   :maxdepth: 2
   :hidden:
 
-  anaconda_install
   troubleshooting
