@@ -19,7 +19,6 @@ Installation Steps and Resources
    fork
    test
    updating
-   troubleshooting_install
 
 **Note:** For dev work, we actively recommend Anaconda over the
 Enthought Python Distribution, especially on Windows machines. This is
