@@ -150,7 +150,6 @@ class PlantGrowth(Species):
                             'root': float
                             'leaf': float
                             'stem': float
-                            'storage': float
                             'reproductive': float
                     glucose_requirements: dict, required,
                         glucose requirement
@@ -217,12 +216,6 @@ class PlantGrowth(Species):
                         self.plants["stem_biomass"], (self.plants["pid"].size, 1)
                     ),
                 ),
-                "vegetation__storage_biomass": (
-                    ["item_id", "time"],
-                    np.reshape(
-                        self.plants["storage_biomass"], (self.plants["pid"].size, 1)
-                    ),
-                ),
                 "vegetation__repro_biomass": (
                     ["item_id", "time"],
                     np.reshape(
@@ -257,7 +250,6 @@ class PlantGrowth(Species):
                 "vegetation__root_biomass": "g",
                 "vegetation__leaf_biomass": "g",
                 "vegetation__stem_biomass": "g",
-                "vegetation__storage_biomass": "g",
                 "vegetation__repro_biomass": "g",
                 "vegetation__dead_root_biomass": "g",
                 "vegetation__dead_leaf_biomass": "g",
@@ -275,7 +267,7 @@ class PlantGrowth(Species):
     def species_plants(self):
         return self.plants
 
-    def species_grow_params_out(self):
+    def species_get_variable(self, var_name):
         return self.species_grow_params
 
     def update_plants(self, var_names, pids, var_vals):
@@ -302,8 +294,20 @@ class PlantGrowth(Species):
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
+        print(_current_jday)
+        print(self.species_name)
         growdict = self.species_grow_params
         _last_biomass = self.plants
+        _last_structural_biomass = np.column_stack(
+            (
+                _last_biomass["pid"],
+                _last_biomass["root"] - _last_biomass["ns_root"],
+                _last_biomass["leaf"] - _last_biomass["ns_leaf"],
+                _last_biomass["stem"] - _last_biomass["ns_stem"],
+                _last_biomass["reproductive"] - _last_biomass["ns_reproductive"],
+            )
+        )
+        _last_dead_biomass = self.sum_plant_parts(_last_biomass, parts="dead")
         _new_biomass = _last_biomass.copy()
 
         # Decide what processes happen today
@@ -346,6 +350,9 @@ class PlantGrowth(Species):
                 / (np.cos(_declination) * np.cos(self._lat_rad))
             )
         )
+        nsc_content = self.get_daily_nsc_concentration(
+            _last_live_biomass, _current_jday
+        )
 
         # Run respiration and photosynthesis to determine carb gained
         _glu_req = np.zeros_like(_last_total_biomass)
@@ -365,24 +372,26 @@ class PlantGrowth(Species):
             # we will need to add a turnover rate estiamte. Not sure where to include it though.
             # delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
             _new_live_biomass = self.allocate_biomass_dynamically(
-                _live_biomass, delta_tot
+                _live_biomass, delta_tot, nsc_content
             )
         else:
             _new_live_biomass = self.allocate_biomass_proportionately(
-                _live_biomass, _last_total_biomass, delta_biomass_respire
+                _live_biomass, _last_total_biomass, delta_biomass_respire, nsc_content
             )
         event_flags.pop("_in_growing_season")
-
         # Run all other processes that need to occur
         for process in event_flags.items():
             if process[1]:
                 _new_live_biomass = processes[process[0]](_new_live_biomass)
+        # _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
+        #    _new_live_biomass["plant_age"]
+        # )
 
-        _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
-            _new_live_biomass["plant_age"]
-        )
         _new_biomass[filter] = _new_live_biomass
         _new_biomass = self.update_morphology(_new_biomass)
+        _new_biomass = self.update_dead_biomass(
+            _new_biomass, _last_structural_biomass, _last_dead_biomass
+        )
         # print('Completed run_one_step for '+self.species_name+' on day '+str(_current_jday))
         self.plants = _new_biomass
 
@@ -403,12 +412,14 @@ class PlantGrowth(Species):
             (("root", "root_biomass"), float),
             (("leaf", "leaf_biomass"), float),
             (("stem", "stem_biomass"), float),
-            (("storage", "storage_biomass"), float),
             (("reproductive", "repro_biomass"), float),
+            (("ns_root", "ns_root_biomass"), float),
+            (("ns_stem", "ns_stem_biomass"), float),
+            (("ns_leaf", "ns_leaf_biomass"), float),
+            (("ns_reproductive", "ns_repro_biomass"), float),
             ("dead_root", float),
             ("dead_stem", float),
             ("dead_leaf", float),
-            ("dead_storage", float),
             ("dead_reproductive", float),
             ("dead_age", float),
             ("shoot_sys_width", float),
@@ -468,6 +479,8 @@ class PlantGrowth(Species):
                                 0.0,
                                 0.0,
                                 0.0,
+                                0.0,
+                                0.0,
                                 new_plant_width,
                                 0.0,
                                 0.0,
@@ -485,7 +498,7 @@ class PlantGrowth(Species):
         plant_array = self.set_initial_biomass(plant_array, in_growing_season)
         return plant_array
 
-    def allocate_biomass_dynamically(self, _live_biomass, delta_tot):
+    def allocate_biomass_dynamically(self, _live_biomass, delta_tot, nsc_content):
         ###This method allocates new biomass according to the size-dependent
         # biomass allocation array calculated upon initiation of the PlantGrowth class.
         # The array is only valid for actively growing plants so this method is only
@@ -511,14 +524,19 @@ class PlantGrowth(Species):
         )
 
         # Calculate allocation
-        delta_root = delta_tot / (1 + delta_leaf_unit_root + delta_stem_unit_root)
-        delta_leaf = delta_leaf_unit_root * delta_root
-        delta_stem = delta_stem_unit_root * delta_root
-
-        # update biomass in plant array
-        _new_biomass["root_biomass"] = _live_biomass["root_biomass"] + delta_root
-        _new_biomass["leaf_biomass"] = _live_biomass["leaf_biomass"] + delta_leaf
-        _new_biomass["stem_biomass"] = _live_biomass["stem_biomass"] + delta_stem
+        root = delta_tot / (1 + delta_leaf_unit_root + delta_stem_unit_root)
+        delta = {
+            "root": root,
+            "leaf": delta_leaf_unit_root * root,
+            "stem": delta_stem_unit_root * root,
+        }
+        print("Dynamic biomass allocation")
+        for part in self.growth_parts:
+            # update biomass in plant array
+            _new_biomass[part] = _live_biomass["root_biomass"] + delta[part]
+            # Right now we are not calculating the delta of nsc just changing the nsc content prescriptively
+            _new_biomass["ns_" + str(part)] = _new_biomass[part] * nsc_content[part]
+            print(_new_biomass[part] * nsc_content[part])
 
         # Adjust biomass allocation among storage and growth parts
         _new_biomass = self.redistribute_storage_biomass(_new_biomass)
@@ -537,63 +555,94 @@ class PlantGrowth(Species):
         # Required parameters are a structured plant array containing the newly updated
         # biomass values for the day.
         ###
-        growth_min_biomass = self.species_grow_params["growth_min_biomass"]
-        growth_max_biomass = self.species_grow_params["growth_max_biomass"]
-        _growth_parts_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
-        filter = np.nonzero(_growth_parts_biomass > 0)
-        conditions = [
-            (_growth_parts_biomass < growth_min_biomass),
-            (_growth_parts_biomass >= growth_min_biomass)
-            & (_growth_parts_biomass <= growth_max_biomass),
-            (_growth_parts_biomass > growth_max_biomass),
-        ]
-        adjustments = [
-            np.minimum(
-                (growth_min_biomass - _growth_parts_biomass),
-                (
-                    _new_biomass["storage_biomass"]
-                    - self.species_grow_params["plant_part_min"]["storage"]
-                ),
-            ),
-            np.zeros_like(_new_biomass["root_biomass"]),
-            (growth_max_biomass - _growth_parts_biomass),
-        ]
-        adjustment = np.select(conditions, adjustments)
-        _new_biomass["storage_biomass"][filter] = (
-            _new_biomass["storage_biomass"][filter] - adjustment[filter]
-        )
-        for part in self.growth_parts:
-            _new_biomass[part][filter] = _new_biomass[part][filter] + adjustment[
-                filter
-            ] * (_new_biomass[part][filter] / _growth_parts_biomass[filter])
-
-        filter = np.nonzero(_new_biomass["reproductive"] > 0.0)
+        # UPDATE THIS TO TAKE INTO ACCOUNT WE HAVE NON STRUCTURAL BIOMASS IN ALL PARTS
+        growth_min_biomass = self.species_grow_params["min_growth_biomass"]
+        growth_max_biomass = self.species_grow_params["max_growth_biomass"]
         repro_min_biomass = self.species_grow_params["plant_part_min"]["reproductive"]
         repro_max_biomass = self.species_grow_params["plant_part_max"]["reproductive"]
-        conditions = [
+        nsc_min_biomass = self.species_grow_params["min_nsc_biomass"]
+        _growth_parts_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
+        _ns_parts_biomass = self.sum_plant_parts(_new_biomass, parts="ns_growth")
+
+        ns_proportion_sum = 0.0
+        for part in self.growth_parts:
+            ns_proportion_sum += _new_biomass["ns_" + str(part)] * _new_biomass[part]
+        weighted_ns_proportion = ns_proportion_sum / _growth_parts_biomass
+        filter = np.nonzero(_growth_parts_biomass > 0)
+
+        # If there is inadequate non structural biomass, self-prune structural biomass
+        prune_conditions = [
+            (_ns_parts_biomass < nsc_min_biomass),
+            (_ns_parts_biomass >= nsc_min_biomass),
+        ]
+        prune_adjustments = [
+            (nsc_min_biomass / weighted_ns_proportion),
+            _growth_parts_biomass,
+        ]
+        _pruned_growth_parts_biomass = np.select(prune_conditions, prune_adjustments)
+
+        for part in self.growth_parts:
+            _new_biomass[part][filter] = (
+                _pruned_growth_parts_biomass[filter]
+                * _new_biomass[part][filter]
+                / _growth_parts_biomass[filter]
+            )
+
+        # If there isn't enough growth biomass, set to zero
+        growth_conditions = [
+            (_pruned_growth_parts_biomass < growth_min_biomass),
+            (_pruned_growth_parts_biomass >= growth_min_biomass)
+            & (_pruned_growth_parts_biomass <= growth_max_biomass),
+            (_pruned_growth_parts_biomass > growth_max_biomass),
+        ]
+        growth_adjustments = [
+            np.zeros_like(_new_biomass["root"]),
+            _pruned_growth_parts_biomass,
+            growth_max_biomass,
+        ]
+        _adj_growth_parts_biomass = np.select(growth_conditions, growth_adjustments)
+
+        for part in self.growth_parts:
+            structural_mass = _new_biomass[part] - _new_biomass["ns_" + str(part)]
+            _new_biomass[part][filter] = (
+                _adj_growth_parts_biomass[filter]
+                * _new_biomass[part][filter]
+                / _pruned_growth_parts_biomass[filter]
+            )
+            _new_biomass["ns_" + str(part)][filter] = (
+                _new_biomass[part][filter] - structural_mass[filter]
+            )
+
+        _new_ns_parts_biomass = self.sum_plant_parts(_new_biomass, parts="ns_growth")
+        filter = np.nonzero(_new_biomass["reproductive"] > 0)
+        repro_conditions = [
             (_new_biomass["reproductive"] < repro_min_biomass),
             (_new_biomass["reproductive"] >= repro_min_biomass)
             & (_new_biomass["reproductive"] <= repro_max_biomass),
             (_new_biomass["reproductive"] > repro_max_biomass),
         ]
-        adjustments = [
+        repro_adjustments = [
             np.minimum(
                 (repro_min_biomass - _new_biomass["reproductive"]),
-                (
-                    _new_biomass["storage_biomass"]
-                    - self.species_grow_params["plant_part_min"]["storage"]
-                ),
+                (_new_ns_parts_biomass - nsc_min_biomass),
             ),
-            np.zeros_like(_new_biomass["root_biomass"]),
+            np.zeros_like(_new_biomass["reproductive"]),
             (repro_max_biomass - _new_biomass["reproductive"]),
         ]
-        adjustment = np.select(conditions, adjustments)
-        _new_biomass["storage_biomass"][filter] = (
-            _new_biomass["storage_biomass"][filter] - adjustment[filter]
+        repro_adjustment = np.select(repro_conditions, repro_adjustments)
+        _old_ns_parts_biomass = _new_ns_parts_biomass.copy()
+        _new_ns_parts_biomass[filter] -= (
+            _new_ns_parts_biomass[filter] - repro_adjustment[filter]
         )
-        _new_biomass["reproductive"][filter] = (
-            _new_biomass["reproductive"][filter] + adjustment[filter]
-        )
+        _new_biomass["reproductive"][filter] += repro_adjustment[filter]
+
+        for part in self.growth_parts:
+            structural_mass = _new_biomass[part] - _new_biomass["ns_" + str(part)]
+            _new_biomass["ns_" + str(part)][filter] -= _new_ns_parts_biomass[filter] * (
+                _new_biomass["ns_" + str(part)][filter] / _old_ns_parts_biomass[filter]
+            )
+            _new_biomass[part] = structural_mass + _new_biomass["ns_" + str(part)]
+
         _new_biomass["reproductive"][
             _new_biomass["reproductive"] < repro_min_biomass
         ] = np.zeros_like(
@@ -601,10 +650,11 @@ class PlantGrowth(Species):
                 _new_biomass["reproductive"] < repro_min_biomass
             ]
         )
+
         return _new_biomass
 
     def allocate_biomass_proportionately(
-        self, _last_biomass, _total_biomass, delta_tot
+        self, _last_biomass, _total_biomass, delta_tot, nsc_content
     ):
         ###This method allocates new net biomass amongst growth parts
         # proportionately based on the relative size of the part. This
@@ -614,13 +664,16 @@ class PlantGrowth(Species):
         # biomass to dormant growth parts as needed.
         # Required parameter is a numpy array of net biomass change to be applied
         # to the plant and it returns the structured array _new_biomass.
+        print("Proportionate allocation")
         _new_biomass = _last_biomass
         _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
-        filter = np.where(_total_biomass != 0)
+        filter = np.nonzero(_total_biomass != 0)
         for part in self.all_parts:
             _new_biomass[part][filter] = (
                 _last_biomass[part][filter] / _total_biomass[filter]
             ) * delta_tot[filter] + _last_biomass[part][filter]
+            _new_biomass["ns_" + str(part)] = _new_biomass[part] * nsc_content[part]
+            print(_new_biomass[part] * nsc_content[part])
         _new_biomass = self.redistribute_storage_biomass(_new_biomass)
         return _new_biomass
 
@@ -707,13 +760,40 @@ class PlantGrowth(Species):
         if dead_plants[0].size > 0:
             print(str(dead_plants[0].size) + " were too small to survive")
         for part in self.all_parts:
-            _new_biomass["dead_" + str(part)][dead_plants] += _new_biomass[part][
-                dead_plants
-            ]
             _new_biomass[part][dead_plants] = np.zeros_like(
                 _new_biomass[part][dead_plants]
             )
+        return _new_biomass
 
+    def update_dead_biomass(
+        self, _new_biomass, old_stuctural_biomass, old_dead_biomass
+    ):
+        _new_structural_biomass = np.column_stack(
+            (
+                _new_biomass["pid"],
+                _new_biomass["root"] - _new_biomass["ns_root"],
+                _new_biomass["leaf"] - _new_biomass["ns_leaf"],
+                _new_biomass["stem"] - _new_biomass["ns_stem"],
+                _new_biomass["reproductive"] - _new_biomass["ns_reproductive"],
+            )
+        )
+        trim_old_structural_biomass = old_stuctural_biomass[
+            np.isin(old_stuctural_biomass[:, 0], _new_structural_biomass[:, 0])
+        ]
+        structural_biomass_change = (
+            _new_structural_biomass - trim_old_structural_biomass
+        )
+        # total_structural_biomass_change = np.sum(structural_biomass_change, axis = 0)
+        # filter = np.nonzero(total_structural_biomass_change < 0.0)
+        for idx, part in enumerate(self.all_parts):
+            part_biomass_change = structural_biomass_change[:, idx + 1]
+            filter = np.nonzero(part_biomass_change < 0.0)
+            _new_biomass["dead_" + str(part)][filter] += part_biomass_change[filter]
+
+        _new_dead_biomass = self.sum_plant_parts(_new_biomass, parts="dead")
+        _new_biomass["dead_age"] = self.calculate_dead_age(
+            _new_biomass["dead_age"], old_dead_biomass, _new_dead_biomass
+        )
         return _new_biomass
 
     def remove_plants(self, _new_biomass):
@@ -761,9 +841,6 @@ class PlantGrowth(Species):
         self.record_plants.dataset["vegetation__stem_biomass"].values[
             item_ids, self.time_ind
         ] = self.plants["stem_biomass"]
-        self.record_plants.dataset["vegetation__storage_biomass"].values[
-            item_ids, self.time_ind
-        ] = self.plants["storage_biomass"]
         self.record_plants.dataset["vegetation__repro_biomass"].values[
             item_ids, self.time_ind
         ] = self.plants["repro_biomass"]
