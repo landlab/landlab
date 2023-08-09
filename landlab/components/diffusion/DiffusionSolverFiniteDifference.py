@@ -13,7 +13,7 @@ _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
 
 
-class LinearDiffuser_MiniVersion(Component):
+class DiffusionSolverFiniteDifference(Component):
     """This component implements linear diffusion of a Landlab raster grid.
 
     
@@ -106,12 +106,12 @@ class LinearDiffuser_MiniVersion(Component):
 
     """
 
-    _name = "LinearDiffuser_MiniVersion"
+    _name = "DiffusionSolverFiniteDifference"
 
     _unit_agnostic = True
 
     _info = {
-        "salinity_flux": {
+        "concentration_flux": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -171,7 +171,7 @@ class LinearDiffuser_MiniVersion(Component):
 
         self._deposit = deposit
 
-        self._values_to_diffuse = "salinity_flux"
+        self._values_to_diffuse = "concentration_flux"
 
         # Set internal time step
         # ..todo:
@@ -192,75 +192,10 @@ class LinearDiffuser_MiniVersion(Component):
 
         self._z = self._grid.at_node[self._values_to_diffuse]
         self._dqsds = self._grid.zeros("node", dtype=float)
-        if not self._use_diags:
-            g = self._grid.zeros(at="link")
-            qs = self._grid.zeros(at="link")
-            try:
-                self._g = self._grid.add_field(
-                    "topographic__gradient", g, at="link", clobber=False
-                )
-                # ^note this will object if this exists already
-            except FieldError:  # keep a ref
-                self._g = self._grid.at_link["topographic__gradient"]
-            try:
-                self._qs = self._grid.add_field(
-                    "hillslope_sediment__unit_volume_flux", qs, at="link", clobber=False
-                )
-            except FieldError:
-                self._qs = self._grid.at_link["hillslope_sediment__unit_volume_flux"]
-            # note all these terms are deliberately loose, as we won't always
-            # be dealing with topo
-        else:
-            g = np.zeros(self._grid.number_of_d8, dtype=float)
-            qs = np.zeros(self._grid.number_of_d8, dtype=float)
-            self._g = g
-            self._qs = qs
-            # now we have to choose what the face width of a diagonal is...
-            # Adopt a regular octagon config if it's a square raster, and
-            # stretch this geometry as needed.
-            # Conceptually, this means we're passing mass across diamond-
-            # shaped holes centered at the corners.
-            # Note that this WON'T affect the inferred cell size - that's
-            # still derived from the rectangle.
-            self._d8width_face_at_link = np.empty(self._grid.number_of_d8)
-            # note there will be null entries here
-            # by our defs, every active link must have a face.
-            # calc the length of a diag "face":
-            rt2 = np.sqrt(2.0)
-            horizontal_face = self._grid.dx / (1.0 + rt2)
-            vertical_face = self._grid.dy / (1.0 + rt2)
-            diag_face = np.sqrt(0.5 * (horizontal_face**2 + vertical_face**2))
-
-            # NOTE: Do these need to be flattened?
-            # self._hoz = self.grid.horizontal_links.flatten()
-            # self._vert = self.grid.vertical_links.flatten()
-            self._hoz = self.grid.horizontal_links
-            self._vert = self.grid.vertical_links
-
-            self._d8width_face_at_link[self._hoz] = vertical_face
-            self._d8width_face_at_link[self._vert] = horizontal_face
-            # ^ this operation pastes in faces where there are none, but
-            # we'll never use them
-            self._d8width_face_at_link[self._grid.number_of_links :] = diag_face
-
-        self._vertlinkcomp = np.sin(self._grid.angle_of_link)
-        self._hozlinkcomp = np.cos(self._grid.angle_of_link)
-
-        if self._use_patches or self._kd_on_links:
-            mg = self._grid
-            try:
-                self._hoz = self.grid.horizontal_links
-                self._vert = self.grid.vertical_links
-            except AttributeError:
-                pass
-            self._x_link_patches = mg.patches_at_link[self._hoz]
-            x_link_patch_pres = mg.patches_present_at_link[self._hoz]
-            self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
-            self._y_link_patches = mg.patches_at_link[self._vert]
-            y_link_patch_pres = mg.patches_present_at_link[self._vert]
-            self._y_link_patch_mask = np.logical_not(y_link_patch_pres)
-            self._hoz_link_neighbors = np.empty((self._hoz.size, 4), dtype=int)
-            self._vert_link_neighbors = np.empty((self._vert.size, 4), dtype=int)
+        g = np.zeros(self._grid.number_of_d8, dtype=float)
+        qs = np.zeros(self._grid.number_of_d8, dtype=float)
+        self._g = g
+        self._qs = qs        
 
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
@@ -328,35 +263,7 @@ class LinearDiffuser_MiniVersion(Component):
         self._fixed_grad_offsets = (
             vals[self._fixed_grad_nodes] - vals[self._fixed_grad_anchors]
         )
-        if self._use_diags:
-            self._g.fill(0.0)
 
-        if self._kd_on_links or self._use_patches:
-            mg = self._grid
-            x_link_patch_pres = mg.patches_present_at_link[self._hoz]
-            self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
-            y_link_patch_pres = mg.patches_present_at_link[self._vert]
-            self._y_link_patch_mask = np.logical_not(y_link_patch_pres)
-            self._hoz_link_neighbors[:, :2] = mg.links_at_node[
-                mg.node_at_link_head[self._hoz], 1:4:2
-            ]
-            self._hoz_link_neighbors[:, 2:] = mg.links_at_node[
-                mg.node_at_link_tail[self._hoz], 1:4:2
-            ]
-            self._vert_link_neighbors[:, :2] = mg.links_at_node[
-                mg.node_at_link_head[self._vert], 0:3:2
-            ]
-            self._vert_link_neighbors[:, 2:] = mg.links_at_node[
-                mg.node_at_link_tail[self._vert], 0:3:2
-            ]
-            self._vert_link_badlinks = np.logical_or(
-                mg.status_at_link[self._vert_link_neighbors] == LinkStatus.INACTIVE,
-                self._vert_link_neighbors == -1,
-            )
-            self._hoz_link_badlinks = np.logical_or(
-                mg.status_at_link[self._hoz_link_neighbors] == LinkStatus.INACTIVE,
-                self._hoz_link_neighbors == -1,
-            )
 
     def run_one_step(self, dt):
         """Run the diffuser for one timestep, dt.
@@ -521,26 +428,7 @@ class LinearDiffuser_MiniVersion(Component):
                     / self._grid.area_of_cell
                 )
 
-            # Calculate the total rate of elevation change
-            dzdt = -self._dqsds
-            if not self._deposit:
-                dzdt[np.where(dzdt > 0)] = 0.0
-            # Update the elevations
-            timestep = self._dt
-            if i == (repeats):
-                timestep *= extra_time
-            else:
-                pass
-            self._grid.at_node[self._values_to_diffuse][core_nodes] += (
-                dzdt[core_nodes] * timestep
-            )
-
-            # check the BCs, update if fixed gradient
-            vals = self._grid.at_node[self._values_to_diffuse]
-            vals[self._fixed_grad_nodes] = (
-                vals[self._fixed_grad_anchors] + self._fixed_grad_offsets
-            )
-
+ 
     @property
     def time_step(self):
         """Returns internal time-step size (as a property)."""
