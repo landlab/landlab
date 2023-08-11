@@ -1,0 +1,2 @@
+Fixed an issue with the agent based modeling tutorial notebooks that
+caused a "too many values to unpack" error with *mesa* v2.

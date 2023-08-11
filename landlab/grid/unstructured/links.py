@@ -189,7 +189,7 @@ def link_count_per_node(node_at_link_ends, number_of_nodes=None):
 
 
 def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
-    sorted_links = np.argsort(node_at_link_ends[sortby])
+    sorted_links = np.argsort(node_at_link_ends[sortby], kind="stable")
 
     if link_ids is not None:
         return np.array(link_ids, dtype=int)[sorted_links]
