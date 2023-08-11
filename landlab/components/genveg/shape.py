@@ -26,6 +26,12 @@ class PlantShape(object):
     def calc_root_sys_width(self, shoot_sys_width, shoot_sys_height=1):
         volume = self.calc_crown_volume(shoot_sys_width, shoot_sys_height)
         root_sys_width = 0.08 + 0.24 * volume
+        root_sys_width[
+            root_sys_width > self.morph_params["max_root_sys_width"]
+        ] = self.morph_params["max_root_sys_width"]
+        root_sys_width[
+            root_sys_width < self.morph_params["min_root_sys_width"]
+        ] = self.morph_params["min_root_sys_width"]
         return root_sys_width
 
     def calc_crown_area_from_shoot_width(self, shoot_sys_width):

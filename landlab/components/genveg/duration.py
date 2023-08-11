@@ -19,10 +19,6 @@ class Duration(object):
             "root_to_stem": species_grow_params["root_to_stem"],
         }
         self.green_parts = green_parts
-        ns_green_parts = []
-        for part in green_parts:
-            ns_green_parts.append("ns_" + str(part))
-        self.ns_green_parts = tuple(ns_green_parts)
         self.persistent_parts = persistent_parts
         self.senesce_rate = senesce_rate
 
@@ -59,7 +55,6 @@ class Duration(object):
             plants["leaf_biomass"],
             plants["stem_biomass"],
         ) = self._solve_biomass_allocation(total_biomass_ideal)
-        plants["storage_biomass"] = np.zeros_like(plants["root_biomass"])
         plants["repro_biomass"] = np.zeros_like(plants["root_biomass"])
         plants["plant_age"] = np.zeros_like(plants["root_biomass"])
         return plants
@@ -119,7 +114,7 @@ class Duration(object):
 
 class Annual(Duration):
     def __init__(self, species_grow_params, senesce_rate):
-        green_parts = ("root", "leaf", "stem", "storage", "reproductive")
+        green_parts = ("root", "leaf", "stem", "reproductive")
         persistent_parts = ()
         super().__init__(
             species_grow_params, green_parts, persistent_parts, senesce_rate
@@ -184,16 +179,9 @@ class Deciduous(Perennial):
             species_grow_params, green_parts, persistent_parts, senesce_rate
         )
 
-    def emerge(self, plants):
+    def emerge(self, plants, available_mass):
         print("I emerge from dormancy")
         # next steps are to clean this up using same approach as dormancy
-        total_mass_persistent_parts = sum(
-            plants[part] for part in self.persistent_parts
-        )
-        min_mass_persistent_parts = sum(
-            self.growdict["plant_part_min"][part] for part in self.persistent_parts
-        )
-        available_mass = total_mass_persistent_parts - min_mass_persistent_parts
 
         total_mass_new_green = np.zeros_like(plants["root_biomass"])
         new_green_biomass = {}
