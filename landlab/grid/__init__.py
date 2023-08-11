@@ -5,6 +5,7 @@ from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
 from .raster import RasterModelGrid
+from .triangle import TriangleMeshGrid
 from .voronoi import VoronoiDelaunayGrid
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "RasterModelGrid",
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
+    "TriangleMeshGrid",
     "NetworkModelGrid",
     "create_grid",
 ]
