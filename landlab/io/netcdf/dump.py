@@ -75,7 +75,7 @@ def to_netcdf(
     True
     >>> 'at_node:topographic__elevation' in fp.variables
     False
-    >>> fp.variables['at_node:uplift_rate'][:].flatten()
+    >>> fp.variables['at_node:uplift_rate'][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 

@@ -38,6 +38,4 @@ Note that this will test whatever version of landlab you have installed,
 which may or may not be the one you are working on in your current working
 directory. These test will not work with numpy 1.14.
 
-Additional options for running tests are provided :ref:`here<testing>`
-
 TODO: Add information about coverage here.
