@@ -369,15 +369,17 @@ class Species(object):
                 * self.species_grow_params["max_growth_biomass"]
             )
         )
-        ns_conc = self.get_daily_nsc_concentration(plants, jday)
-        available_stored_biomass = 0.0
+        ns_conc = self.get_daily_nsc_concentration(jday)
+        available_stored_biomass = np.zeros_like(plants["root"])
         for part in self.growth_parts:
-            available_stored_biomass += plants[part] * (
+            avail_nsc_content = np.ones_like(plants[part]) * (
                 ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
             )
-        plants["repro_biomass"][filter] += 0.2 * (available_stored_biomass[filter])
+            avail_nsc_content[avail_nsc_content < 0] = 0.0
+            available_stored_biomass += plants[part] * avail_nsc_content
+        plants["repro_biomass"][filter] += 0.05 * available_stored_biomass[filter]
         for part in self.growth_parts:
-            plants[part][filter] -= (0.2 * (available_stored_biomass[filter])) * (
+            plants[part][filter] -= (0.05 * (available_stored_biomass[filter])) * (
                 plants[part][filter] / growth_biomass[filter]
             )
         plants = self.form.disperse(plants)
@@ -396,18 +398,19 @@ class Species(object):
         return plants
 
     def emerge(self, plants, jday):
-        ns_conc = self.get_daily_nsc_concentration(plants, jday)
-        print(ns_conc)
-        available_stored_biomass = 0.0
+        ns_conc = self.get_daily_nsc_concentration(jday)
+        available_stored_biomass = np.zeros_like(plants["root"])
         for part in self.habit.duration.persistent_parts:
-            available_stored_biomass += plants[part] * (
+            avail_nsc_content = (
                 ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
-            )
+            ) * np.ones_like(plants[part])
+            avail_nsc_content[avail_nsc_content < 0] = 0.0
+            available_stored_biomass += plants[part] * avail_nsc_content
 
         plants = self.habit.duration.emerge(plants, available_stored_biomass)
         return plants
 
-    def get_daily_nsc_concentration(self, plants, _current_jday):
+    def get_daily_nsc_concentration(self, _current_jday):
         d = _current_jday
         days = self.species_duration_params
         rate = self.species_duration_params["nsc_rate_change"]
@@ -419,56 +422,49 @@ class Species(object):
             (d >= days["senescence_start"]) & (d < days["growing_season_end"]),
             d >= days["growing_season_end"],
         ]
+
         for part in self.all_parts:
-            nsc_content[part] = np.zeros_like(plants[part])
-            filter = np.nonzero(plants[part] > 0.0)
-            nsc_content_opts = [
+            nsc_content_opts_b = [
                 (
                     self.species_grow_params["incremental_nsc"][part][0]
-                    + (
-                        rate["dormant_nsc_rate"][part]
-                        * (d + 365 - days["growing_season_end"])
-                        * np.ones_like(plants[part][filter])
-                    )
-                ),
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
                 (
                     self.species_grow_params["incremental_nsc"][part][1]
-                    + (
-                        rate["dormant_nsc_rate"][part]
-                        * (days["growing_season_start"] - d)
-                        * np.ones_like(plants[part][filter])
-                    )
-                ),
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
                 (
                     self.species_grow_params["incremental_nsc"][part][2]
-                    + (
-                        rate["dormant_nsc_rate"][part]
-                        * (days["reproduction_start"] - d)
-                        * np.ones_like(plants[part][filter])
-                    )
-                ),
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
                 (
                     self.species_grow_params["incremental_nsc"][part][3]
-                    + (
-                        rate["dormant_nsc_rate"][part]
-                        * (days["senescence_start"] - d)
-                        * np.ones_like(plants[part][filter])
-                    )
-                ),
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
                 (
                     self.species_grow_params["incremental_nsc"][part][0]
-                    + (
-                        rate["dormant_nsc_rate"][part]
-                        * (days["growing_season_end"] - d)
-                        * np.ones_like(plants[part][filter])
-                    )
-                ),
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
             ]
-            nsc_content[part][filter] = (
-                np.select(day_conditions, nsc_content_opts)
-                + self.species_grow_params["nsc_content"][part] ** 0.5
+
+            nsc_content_opts_mx = [
+                rate["dormant_nsc_rate"][part] * (d + 365 - days["growing_season_end"]),
+                rate["growth_nsc_rate"][part] * (days["growing_season_start"] - d),
+                rate["repro_nsc_rate"][part] * (days["reproduction_start"] - d),
+                rate["senesce_nsc_rate"][part] * (days["senescence_start"] - d),
+                rate["dormant_nsc_rate"][part] * (days["growing_season_end"] - d),
+            ]
+            nsc_content[part] = (
+                (np.select(day_conditions, nsc_content_opts_b)) ** 0.5
+                + np.select(day_conditions, nsc_content_opts_mx)
             ) ** 2 / 1000
 
+        print(nsc_content)
         return nsc_content
 
     def litter_decomp(self, _new_biomass):
@@ -564,7 +560,7 @@ class Species(object):
         return delta_biomass_respire
 
     def senesce(self, plants, jday):
-        ns_conc = self.get_daily_nsc_concentration(plants, jday)
+        ns_conc = self.get_daily_nsc_concentration(jday)
         ns_green_mass = 0.0
         for part in self.habit.duration.green_parts:
             ns_green_mass += plants[part] * ns_conc[part]

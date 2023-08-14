@@ -340,9 +340,6 @@ class PlantGrowth(Species):
                 / (np.cos(_declination) * np.cos(self._lat_rad))
             )
         )
-        nsc_content = self.get_daily_nsc_concentration(
-            _last_live_biomass, _current_jday
-        )
 
         # Run respiration and photosynthesis to determine carb gained
         _glu_req = np.zeros_like(_last_total_biomass)
@@ -368,6 +365,7 @@ class PlantGrowth(Species):
             _new_live_biomass = self.allocate_biomass_proportionately(
                 _live_biomass, _last_total_biomass, delta_biomass_respire
             )
+        _new_live_biomass = self.kill_small_plants(_new_live_biomass)
         event_flags.pop("_in_growing_season")
         # Run all other processes that need to occur
         for process in event_flags.items():
@@ -375,9 +373,9 @@ class PlantGrowth(Species):
                 _new_live_biomass = processes[process[0]](
                     _new_live_biomass, _current_jday
                 )
-        # _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
-        #    _new_live_biomass["plant_age"]
-        # )
+        _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
+            _new_live_biomass["plant_age"]
+        )
 
         _new_biomass[filter] = _new_live_biomass
         _new_biomass = self.update_morphology(_new_biomass)
@@ -519,13 +517,9 @@ class PlantGrowth(Species):
         for part in self.growth_parts:
             # update biomass in plant array
             _new_biomass[part] = _live_biomass["root_biomass"] + delta[part]
-            # Right now we are not calculating the delta of nsc just changing the nsc content prescriptively
         # Adjust biomass allocation among storage and growth parts
         # _new_biomass = self.redistribute_storage_biomass(_new_biomass)
         _new_biomass = self.adjust_biomass_allocation_towards_ideal(_new_biomass)
-
-        # Kill plants that are too small to survive
-        _new_biomass = self.kill_small_plants(_new_biomass)
         return _new_biomass
 
     def allocate_biomass_proportionately(
@@ -554,6 +548,13 @@ class PlantGrowth(Species):
         # removed via herbivory or damage, this allows the plant to utilize
         # other stored resources to regrow the damaged parts.
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
+        _min_leaf_mass_frac = (
+            self.species_grow_params["plant_part_min"]["leaf"] / _total_biomass
+        )
+        _min_stem_mass_frac = (
+            self.species_grow_params["plant_part_min"]["stem"] / _total_biomass
+        )
+
         current_leaf_mass_frac = np.divide(
             _new_biomass["leaf_biomass"],
             _total_biomass,
@@ -588,18 +589,18 @@ class PlantGrowth(Species):
             1 - np.exp(-self.species_grow_params["p_max"] * self.dt.astype(int))
         )
 
+        _new_leaf_mass_frac[
+            _new_leaf_mass_frac < _min_leaf_mass_frac
+        ] = _min_leaf_mass_frac[_new_leaf_mass_frac < _min_leaf_mass_frac]
+        _new_stem_mass_frac[
+            _new_stem_mass_frac < _min_stem_mass_frac
+        ] = _min_stem_mass_frac[_new_stem_mass_frac < _min_stem_mass_frac]
+
         _new_biomass["root_biomass"] = (
             1 - _new_leaf_mass_frac - _new_stem_mass_frac
         ) * _total_biomass
         _new_biomass["leaf_biomass"] = _new_leaf_mass_frac * _total_biomass
         _new_biomass["stem_biomass"] = _new_stem_mass_frac * _total_biomass
-
-        for part in self.all_parts:
-            min_part_mass = self.species_grow_params["plant_part_min"][part]
-            filter = np.nonzero(_new_biomass[part] < min_part_mass)
-            _new_biomass[part][filter] = 0.0
-            _new_biomass["dead_" + str(part)][filter] += _new_biomass[part][filter]
-
         return _new_biomass
 
     def set_event_flags(self, _current_jday):
@@ -631,12 +632,20 @@ class PlantGrowth(Species):
     def kill_small_plants(self, _new_biomass):
         ###This method moved live biomass to dead biomass is the plant
         # is too small to grow.
+
+        # Edit this and figure out when to kill plants
+        for part in self.all_parts:
+            _new_biomass[part][_new_biomass[part] < self.species_grow_params["plant_part_min"][part]]
         min_size = self.species_grow_params["min_growth_biomass"]
         total_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
         dead_plants = np.nonzero(total_biomass < min_size)
         if dead_plants[0].size > 0:
             print(str(dead_plants[0].size) + " were too small to survive")
+
         for part in self.all_parts:
+            _new_biomass["dead_" + str(part)][dead_plants] += _new_biomass[part][
+                dead_plants
+            ]
             _new_biomass[part][dead_plants] = np.zeros_like(
                 _new_biomass[part][dead_plants]
             )
