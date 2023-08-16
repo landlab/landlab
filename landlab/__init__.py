@@ -27,6 +27,7 @@ from .grid import (
     NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
+    TriangleMeshGrid,
     VoronoiDelaunayGrid,
     create_grid,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "HexModelGrid",
     "RadialModelGrid",
     "RasterModelGrid",
+    "TriangleMeshGrid",
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
