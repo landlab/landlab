@@ -826,11 +826,8 @@ class NetworkSedimentTransporter(Component):
                 * self._grid.at_link["reach_length"]
                 * self._active_layer_thickness
         )
-        downstream_links = []
-        for i in range(self._grid.number_of_links):
-            downstream_node = self._fd.downstream_node_at_link()[i]
-            downstream_link = self._fd.link_to_flow_receiving_node[downstream_node]
-            downstream_links.append(downstream_link)  
+        downstream_nodes = self._fd.downstream_node_at_link()
+        downstream_links = [self._fd.link_to_flow_receiving_node[node] for node in downstream_nodes]
 
         # determine links parcels are starting
         current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
@@ -941,10 +938,9 @@ class NetworkSedimentTransporter(Component):
                 ] -= time_to_exit_current_link[moving_downstream]
 
                 # define sediment volume moving at each link
-                volume_moving_downstream_array = []
-                for i in range(self._grid.number_of_links):
-                    volume_moving_downstream = np.count_nonzero(current_link[moving_downstream]==i)
-                    volume_moving_downstream_array.append(volume_moving_downstream)
+                unique_links, counts = np.unique(current_link[moving_downstream], return_counts=True)
+                volume_moving_downstream_array = np.zeros(self._grid.number_of_links, dtype=int) # create array to store volume
+                volume_moving_downstream_array[unique_links] = counts
 
                 # update capacity of current link
                 spare_capacity = np.subtract(spare_capacity,volume_moving_downstream_array)
