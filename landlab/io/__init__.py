@@ -12,6 +12,7 @@ from .esri_ascii import (
     read_esri_ascii,
     write_esri_ascii,
 )
+from .legacy_vtk import write_legacy_vtk
 from .obj import write_obj
 from .shapefile import read_shapefile
 
@@ -20,6 +21,7 @@ __all__ = [
     "read_asc_header",
     "read_shapefile",
     "write_esri_ascii",
+    "write_legacy_vtk",
     "write_obj",
     "MissingRequiredKeyError",
     "KeyTypeError",

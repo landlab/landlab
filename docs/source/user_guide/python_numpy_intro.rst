@@ -167,5 +167,5 @@ sufficient for the vast majority of users.
 However if, as a developer, you intend to modify any of the sections of code
 that we provide to you, you will probably need to recompile that code on your
 machine before the changes take effect. See the
-:ref:`developer installation instructions <developer_install>`
+:ref:`developer installation instructions <install>`
 for more information on this.

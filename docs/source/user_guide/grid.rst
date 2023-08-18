@@ -102,9 +102,7 @@ Creating a Grid
 
 Creating a grid is easy.  The first step is to import Landlab's
 :py:class:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>` class (this
-assumes you have :ref:`installed Landlab <install>`
-and are working in your favorite
-:ref:`Python environment <python_installation>`):
+assumes you have :ref:`installed Landlab <install>`)
 
 .. code-block:: python
 
