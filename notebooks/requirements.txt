@@ -305,7 +305,7 @@ pyct==0.5.0
     # via
     #   colorcet
     #   panel
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   ipython
     #   jupyter-console
