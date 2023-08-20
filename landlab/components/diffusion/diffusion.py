@@ -73,7 +73,7 @@ class LinearDiffuser(Component):
     >>> dt = 1.0
     >>> nt = 10
     >>> grid2.at_link["surface_water__discharge"] = np.full(
-    ...     10000.0, grid2.number_of_links
+    ...     grid2.number_of_links, 10000.0
     ... )
     >>> dfn1 = LinearDiffuser(grid1, linear_diffusivity=10000.)
     >>> dfn2 = LinearDiffuser(grid2, linear_diffusivity="surface_water__discharge")
