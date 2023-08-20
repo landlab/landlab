@@ -40,55 +40,60 @@ class LinearDiffuser(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
-    >>> mg = RasterModelGrid((9, 9))
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
+
+    >>> grid = RasterModelGrid((9, 9))
+    >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z.reshape((9, 9))[4, 4] = 1.
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
-    >>> for i in range(1):
-    ...     ld.run_one_step(1.)
-    >>> np.isclose(z[mg.core_nodes].sum(), 1.)
+    >>> grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> ld = LinearDiffuser(grid, linear_diffusivity=1.)
+    >>> ld.run_one_step(1.)
+    >>> np.isclose(z[grid.core_nodes].sum(), 1.)
     True
-    >>> mg2 = RasterModelGrid((5, 30))
-    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
+
+    >>> grid = RasterModelGrid((5, 30))
+    >>> z2 = grid.add_zeros("topographic__elevation", at="node")
     >>> z2.reshape((5, 30))[2, 8] = 1.
     >>> z2.reshape((5, 30))[2, 22] = 1.
-    >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> kd = mg2.node_x/mg2.node_x.mean()
-    >>> ld2 = LinearDiffuser(mg2, linear_diffusivity=kd)
-    >>> for i in range(10):
+    >>> grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> kd = grid.node_x / grid.node_x.mean()
+    >>> ld2 = LinearDiffuser(grid, linear_diffusivity=kd)
+    >>> for _ in range(10):
     ...     ld2.run_one_step(0.1)
-    >>> z2[mg2.core_nodes].sum() == 2.
+    >>> z2[grid.core_nodes].sum() == 2.
     True
     >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
     True
 
     An example using links:
 
-    >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> z1 = mg1.add_zeros("topographic__elevation", at="node")
-    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
-    >>> dt = 1.
+    >>> grid1 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> grid2 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> z1 = grid1.add_zeros("topographic__elevation", at="node")
+    >>> z2 = grid2.add_zeros("topographic__elevation", at="node")
+    >>> dt = 1.0
     >>> nt = 10
-    >>> kappa_links = mg2.add_ones("surface_water__discharge", at="link")
-    >>> kappa_links *= 10000.
-    >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge')
+    >>> grid2.at_link["surface_water__discharge"] = np.full(
+    ...     10000.0, grid2.number_of_links
+    ... )
+    >>> dfn1 = LinearDiffuser(grid1, linear_diffusivity=10000.)
+    >>> dfn2 = LinearDiffuser(grid2, linear_diffusivity="surface_water__discharge")
     >>> for i in range(nt):
-    ...     z1[mg1.core_nodes] += 1.
-    ...     z2[mg2.core_nodes] += 1.
+    ...     z1[grid1.core_nodes] += 1.0
+    ...     z2[grid2.core_nodes] += 1.0
     ...     dfn1.run_one_step(dt)
     ...     dfn2.run_one_step(dt)
     >>> np.allclose(z1, z2)
     True
     >>> z2.fill(0.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge',
-    ...                       method='resolve_on_patches')
+    >>> dfn2 = LinearDiffuser(
+    ...     grid2,
+    ...     linear_diffusivity="surface_water__discharge",
+    ...     method="resolve_on_patches",
+    ... )
     >>> for i in range(nt):
-    ...     z2[mg2.core_nodes] += 1.
+    ...     z2[grid2.core_nodes] += 1.0
     ...     dfn2.run_one_step(dt)
-    >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])
+    >>> np.all(z2[grid2.core_nodes] < z1[grid2.core_nodes])
     True
 
     References
