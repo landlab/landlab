@@ -339,7 +339,7 @@ class LinearDiffuser(Component):
                     f"linear_diffusivity {linear_diffusivity!r}, it must be defined "
                     "at either links, or node."
                 )
-        elif np.isdim(linear_diffusivity) == 0:
+        elif np.ndim(linear_diffusivity) == 0:
             k = float(linear_diffusivity)
         else:
             k = np.asarray(linear_diffusivity)
