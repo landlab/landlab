@@ -193,6 +193,9 @@ class LinearDiffuser(Component):
 
         self._kd = self._validate_linear_diffusivity(grid, linear_diffusivity)
 
+        if self._use_patches:
+            self._kd = np.broadcast_to(self._kd, grid.number_of_links)
+
         self._kd_on_links = np.size(self._kd) == grid.number_of_links
 
         if self._kd_on_links and not isinstance(grid, RasterModelGrid):
