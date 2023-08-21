@@ -361,27 +361,27 @@ class Species(object):
     def disperse(self, plants, jday):
         # decide how to parameterize reproductive schedule, make repro event
         # right now we are just taking 20% of available storage and moving to
-        growth_biomass = self.sum_plant_parts(plants, parts="growth")
-        filter = np.nonzero(
-            growth_biomass
-            >= (
-                self.species_dispersal_params["min_size_dispersal"]
-                * self.species_grow_params["max_growth_biomass"]
-            )
-        )
-        ns_conc = self.get_daily_nsc_concentration(jday)
-        available_stored_biomass = np.zeros_like(plants["root"])
-        for part in self.growth_parts:
-            avail_nsc_content = np.ones_like(plants[part]) * (
-                ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
-            )
-            avail_nsc_content[avail_nsc_content < 0] = 0.0
-            available_stored_biomass += plants[part] * avail_nsc_content
-        plants["repro_biomass"][filter] += 0.05 * available_stored_biomass[filter]
-        for part in self.growth_parts:
-            plants[part][filter] -= (0.05 * (available_stored_biomass[filter])) * (
-                plants[part][filter] / growth_biomass[filter]
-            )
+        # growth_biomass = self.sum_plant_parts(plants, parts="growth")
+        # filter = np.nonzero(
+        #    growth_biomass
+        #    >= (
+        #        self.species_dispersal_params["min_size_dispersal"]
+        #        * self.species_grow_params["max_growth_biomass"]
+        #    )
+        # )
+        # ns_conc = self.get_daily_nsc_concentration(jday)
+        # available_stored_biomass = np.zeros_like(plants["root"])
+        # for part in self.growth_parts:
+        #    avail_nsc_content = np.ones_like(plants[part]) * (
+        #        ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
+        #    )
+        #    avail_nsc_content[avail_nsc_content < 0] = 0.0
+        #    available_stored_biomass += plants[part] * avail_nsc_content
+        # plants["repro_biomass"][filter] += 0.05 * available_stored_biomass[filter]
+        # for part in self.growth_parts:
+        #    plants[part][filter] -= (0.05 * (available_stored_biomass[filter])) * (
+        #        plants[part][filter] / growth_biomass[filter]
+        #    )
         plants = self.form.disperse(plants)
         return plants
 
@@ -463,8 +463,6 @@ class Species(object):
                 (np.select(day_conditions, nsc_content_opts_b)) ** 0.5
                 + np.select(day_conditions, nsc_content_opts_mx)
             ) ** 2 / 1000
-
-        print(nsc_content)
         return nsc_content
 
     def litter_decomp(self, _new_biomass):
@@ -487,6 +485,9 @@ class Species(object):
         _new_biomass["dead_age"] += self.dt.astype(float) * np.ones_like(
             _new_biomass["dead_age"]
         )
+        for part in self.dead_parts:
+            filter = np.nonzero(_new_biomass[part] < 0)
+            _new_biomass[part][filter] = np.zeros_like(_new_biomass[part][filter])
         return _new_biomass
 
     def mortality(self, plants, _in_growing_season):
@@ -535,29 +536,41 @@ class Species(object):
         )
         return plants
 
-    def photosynthesize(self, _par, _last_biomass, _glu_req, _daylength):
+    def photosynthesize(self, _par, _last_biomass, _daylength):
+        _glu_req = np.zeros_like(_last_biomass["root"])
+        _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
+        for part in self.all_parts:
+            _glu_req += (
+                _last_biomass[part]
+                / _total_biomass
+                * self.species_grow_params["glucose_requirement"][part]
+            )
         delta_tot = self.photosynthesis.photosynthesize(
             _par, self.species_grow_params, _last_biomass, _glu_req, _daylength
         )
         return delta_tot
 
-    def respire(self, _temperature, _last_biomass, _glu_req):
+    def respire(self, _temperature, _last_biomass):
         growdict = self.species_grow_params
-        # repiration coefficient temp dependence from Teh 2006
-        # Why doesn't respiration delete from the carb resources of the organ system tissues?
-        maint_respire = np.zeros_like(_glu_req)
+        _new_biomass = _last_biomass.copy()
+        # respiration coefficient temp dependence from Teh 2006
+        temp_adj = 2 ** ((_temperature - 25) / 10)
+        total_delta_respire = np.zeros_like(_last_biomass["root"])
         for part in self.all_parts:
-            maint_respire += (
-                growdict["respiration_coefficient"][part] * _last_biomass[part]
-            )
+            delta_respire = np.zeros_like(_last_biomass["root"])
+            filter = np.nonzero(_last_biomass[part] > 0)
+            delta_respire = (
+                temp_adj[filter]
+                * growdict["respiration_coefficient"][part]
+                * _last_biomass[part][filter]
+            ) / growdict["glucose_requirement"][part]
+            total_delta_respire[filter] += delta_respire[filter]
+            _new_biomass[part][filter] -= delta_respire[filter]
 
-        maint_respire_adj = maint_respire * 2 ** ((_temperature - 25) / 10)
+        #print("Respiration")
+        #print(total_delta_respire)
 
-        delta_biomass_respire = np.zeros_like(_glu_req)
-        delta_biomass_respire[_glu_req != 0] = (
-            -maint_respire_adj[_glu_req != 0]
-        ) / _glu_req[_glu_req != 0]
-        return delta_biomass_respire
+        return _new_biomass
 
     def senesce(self, plants, jday):
         ns_conc = self.get_daily_nsc_concentration(jday)
