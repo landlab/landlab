@@ -8,7 +8,7 @@ style
 
 import numpy as np
 
-from landlab import Component, FieldError, LinkStatus, NodeStatus, RasterModelGrid
+from landlab import Component, LinkStatus, NodeStatus, RasterModelGrid
 
 _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
@@ -467,7 +467,6 @@ class LinearDiffuser(Component):
                 sediment_flux[mg.active_links] = -flux_links[mg.active_links]
 
                 self._grid.calc_flux_div_at_node(sediment_flux, out=self._dqsds)
-
 
             # Calculate the total rate of elevation change
             dzdt = -self._dqsds
