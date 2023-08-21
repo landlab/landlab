@@ -198,7 +198,7 @@ class LinearDiffuser(Component):
 
         self._kd = self._validate_linear_diffusivity(grid, linear_diffusivity)
 
-        if self._use_patches:
+        if self._use_patches and np.ndim(self._kd) == 0:
             self._kd = np.broadcast_to(self._kd, grid.number_of_links)
 
         self._kd_on_links = np.size(self._kd) == grid.number_of_links
