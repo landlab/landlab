@@ -83,7 +83,7 @@ python-dateutil==2.8.2
     #   pandas
 pytz==2022.7.1
     # via pandas
-pyyaml==6.0
+pyyaml==6.0.1
     # via -r requirements.in
 rich==13.3.1
     # via rich-click
