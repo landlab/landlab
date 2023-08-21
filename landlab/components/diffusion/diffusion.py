@@ -345,7 +345,7 @@ class LinearDiffuser(Component):
             k = np.asarray(linear_diffusivity)
             if k.size not in (grid.number_of_nodes, grid.number_of_links):
                 raise ValueError(
-                    f"linear_diffusivity must be defined at either nodes, or links."
+                    "linear_diffusivity must be defined at either nodes, or links."
                 )
 
         return k
