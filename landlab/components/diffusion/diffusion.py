@@ -337,12 +337,16 @@ class LinearDiffuser(Component):
             else:
                 raise ValueError(
                     f"linear_diffusivity {linear_diffusivity!r}, it must be defined "
-                    "at either links, or node."
+                    "at either nodes, or links."
                 )
         elif np.ndim(linear_diffusivity) == 0:
             k = float(linear_diffusivity)
         else:
             k = np.asarray(linear_diffusivity)
+            if k.size not in (grid.number_of_nodes, grid.number_of_links):
+                raise ValueError(
+                    f"linear_diffusivity must be defined at either nodes, or links."
+                )
 
         return k
 
