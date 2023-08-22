@@ -27,20 +27,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          channels: conda-forge
+          micromamba-version: latest
+          environment-name: testing
+          create-args: >-
+            python=${{ matrix.python-version }}
+            c-compiler
+            cxx-compiler
+            mamba
+
           channel-priority: true
 
       - name: Show conda installation info
         run: |
-          conda install mamba
-          mamba install c-compiler cxx-compiler
           pip install nox
-          conda info
-          conda list
+          mamba info
+          mamba list
 
       - name: Test jupyter notebooks
         env:
