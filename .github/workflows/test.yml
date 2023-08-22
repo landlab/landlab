@@ -45,6 +45,7 @@ jobs:
             python=${{ matrix.python-version }}
             c-compiler
             cxx-compiler
+            mamba
 
       - name: Show conda installation info
         run: |
