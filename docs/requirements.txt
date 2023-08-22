@@ -124,7 +124,7 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
     # via stack-data
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   furo
     #   ipython
@@ -189,7 +189,7 @@ tinycss2==1.2.1
     # via nbconvert
 tomli==2.0.1
     # via -r requirements.in
-tornado==6.3
+tornado==6.3.3
     # via
     #   -r requirements.in
     #   jupyter-client
