@@ -1,0 +1,2 @@
+Fixed an issue with :class:`~.PriorityFloodFlowRouter` where flooded nodes were not updated properly.
+This is fixed by setting the ``flood_status_code`` to 3 (i.e. ``_FLOODED``)
