@@ -40,18 +40,20 @@ jobs:
       - uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: latest
+          environment-name: testing
+          create-args: >-
+            python=${{ matrix.python-version }}
+            c-compiler
+            cxx-compiler
 
       - name: Show conda installation info
         run: |
-          micromamba install python=${{ matrix.python-version }}
-          micromamba install mamba
           pip install nox
-          micromamba info
-          micromamba list
+          mamba info
+          mamba list
 
       - name: Install and test richdem engine
         run: |
-          micromamba install c-compiler cxx-compiler
           micromamba install richdem -c conda-forge
           python -c 'import _richdem'
 
