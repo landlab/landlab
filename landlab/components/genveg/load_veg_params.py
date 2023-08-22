@@ -95,7 +95,7 @@ class VegParams:
             self.vegparams["Corn"]["mort_params"] = {**self.mort_params}
         else:
             ispathvalid = fpath.is_file()
-            if ispathvalid == False:
+            if not ispathvalid:
                 raise ValueError("File path is not valid")
             self.fpath = fpath
             # add check for file extension
@@ -160,14 +160,12 @@ class VegParams:
                         )
                         nested_dict["grow_params"]["growth_min_biomass"] = (
                             nested_dict["grow_params"]["total_min_biomass"]
-                            - nested_dict["grow_params"]["plant_part_min"]["storage"]
                             - nested_dict["grow_params"]["plant_part_min"][
                                 "reproductive"
                             ]
                         )
                         nested_dict["grow_params"]["growth_max_biomass"] = (
                             nested_dict["grow_params"]["total_max_biomass"]
-                            - nested_dict["grow_params"]["plant_part_max"]["storage"]
                             - nested_dict["grow_params"]["plant_part_max"][
                                 "reproductive"
                             ]
@@ -194,6 +192,35 @@ class VegParams:
                                         "b1": 1.071,
                                         "b2": 0.0179,
                                     },
+                                    "max_nsc_content": {
+                                        "root": 0.13607,
+                                        "leaf": 0.15300,
+                                        "stem": 0.12857,
+                                        "reproductive": 0.13607,
+                                    },
+                                    "nsc_content": {
+                                        "root": 0.06750,
+                                        "leaf": 0.11815,
+                                        "stem": 0.06321,
+                                        "reproductive": 0.06750,
+                                    },
+                                    "min_nsc_content": {
+                                        "root": 0.00643,
+                                        "leaf": 0.04821,
+                                        "stem": 0.01286,
+                                        "reproductive": 0.00643,
+                                    },
+                                    "incremental_nsc": {
+                                        "root": [0.5, -0.75, 0, 0.25],
+                                        "leaf": [-1, 0.25, 0.75, -1],
+                                        "stem": [0.5, -0.75, 0, 0.5],
+                                        "reproductive": [
+                                            0.625,
+                                            -0.5625,
+                                            0.0625,
+                                            0.3125,
+                                        ],
+                                    },
                                 },
                                 "gymnosperm": {
                                     "root_to_leaf": {
@@ -206,6 +233,35 @@ class VegParams:
                                         "b1": 1.236,
                                         "b2": -0.0186,
                                     },
+                                    "max_nsc_content": {
+                                        "root": 0.06107,
+                                        "leaf": 0.36629,
+                                        "stem": 0.07286,
+                                        "reproductive": 0.06107,
+                                    },
+                                    "nsc_content": {
+                                        "root": 0.02893,
+                                        "leaf": 0.14792,
+                                        "stem": 0.02571,
+                                        "reproductive": 0.02893,
+                                    },
+                                    "min_nsc_content": {
+                                        "root": 0.01071,
+                                        "leaf": 0.05714,
+                                        "stem": 0.00750,
+                                        "reproductive": 0.01071,
+                                    },
+                                    "incremental_nsc": {
+                                        "root": [-0.25, 0, 0.25, 0.5],
+                                        "leaf": [-0.5, 1.5, -1.25, -0.75],
+                                        "stem": [0.5, 0.25, 0, -0.5],
+                                        "reproductive": [
+                                            -0.1875,
+                                            0.0625,
+                                            0.3125,
+                                            0.625,
+                                        ],
+                                    },
                                 },
                             },
                             "herb": {
@@ -216,22 +272,77 @@ class VegParams:
                                         "b1": 1.098,
                                         "b2": 0.0216,
                                     },
+                                    "max_nsc_content": {
+                                        "root": 0.36643,
+                                        "leaf": 0.36629,
+                                        "stem": 0.30964,
+                                        "reproductive": 0.36643,
+                                    },
+                                    "nsc_content": {
+                                        "root": 0.21429,
+                                        "leaf": 0.17396,
+                                        "stem": 0.11143,
+                                        "reproductive": 0.21429,
+                                    },
+                                    "min_nsc_content": {
+                                        "root": 0.01071,
+                                        "leaf": 0.01548,
+                                        "stem": 0.00750,
+                                        "reproductive": 0.01071,
+                                    },
+                                    "incremental_nsc": {
+                                        "root": [1.25, -2.5, 0, 2],
+                                        "leaf": [1.25, 0, -1, 0.5],
+                                        "stem": [0, -0.5, 0, 0.5],
+                                        "reproductive": [1.5625, -1.875, 0.0625, 2.5],
+                                    },
                                 },
                                 "dicot": {
                                     "root_to_leaf": {"a": 0.259, "b1": 0.916, "b2": 0},
                                     "root_to_stem": {"a": -0.111, "b1": 1.029, "b2": 0},
+                                    "max_nsc_content": {
+                                        "root": 0.36643,
+                                        "leaf": 0.36629,
+                                        "stem": 0.30964,
+                                        "reproductive": 0.36643,
+                                    },
+                                    "nsc_content": {
+                                        "root": 0.21429,
+                                        "leaf": 0.17396,
+                                        "stem": 0.11143,
+                                        "reproductive": 0.21429,
+                                    },
+                                    "min_nsc_content": {
+                                        "root": 0.01071,
+                                        "leaf": 0.01548,
+                                        "stem": 0.00750,
+                                        "reproductive": 0.01071,
+                                    },
+                                    "incremental_nsc": {
+                                        "root": [1.25, -2.5, 0, 2],
+                                        "leaf": [1.25, 0, -1, 0.5],
+                                        "stem": [0, -0.5, 0, 0.5],
+                                        "reproductive": [1.5625, -1.875, 0.0625, 2.5],
+                                    },
                                 },
                             },
                         }
                         df_fill = options[woody_herb][opt_2]
-                        if nested_dict["grow_params"]["root_to_leaf"]["a"] == -9999:
-                            nested_dict["grow_params"]["root_to_leaf"] = df_fill[
-                                "root_to_leaf"
-                            ]
-                        if nested_dict["grow_params"]["root_to_stem"]["a"] == -9999:
-                            nested_dict["grow_params"]["root_to_stem"] = df_fill[
-                                "root_to_stem"
-                            ]
+
+                        replace_vars = [
+                            "root_to_leaf",
+                            "root_to_stem",
+                            "min_nsc_content",
+                            "nsc_content",
+                            "max_nsc_content",
+                            "incremental_nsc",
+                        ]
+                        for var in replace_vars:
+                            if (
+                                list(nested_dict["grow_params"][var].values())[0]
+                                == -9999
+                            ):
+                                nested_dict["grow_params"][var] = df_fill[var]
 
                         # Calculate sigmoid mortality curves
                         sigmoid_coeffs = {}

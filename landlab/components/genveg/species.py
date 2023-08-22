@@ -17,7 +17,6 @@ class Species(object):
             species_params["grow_params"]["glucose_requirement"].keys()
         )
         self.growth_parts = self.all_parts.copy()
-        self.growth_parts.remove("storage")
         self.growth_parts.remove("reproductive")
         self.abg_parts = self.growth_parts.copy()
         self.abg_parts.remove("root")
@@ -26,11 +25,9 @@ class Species(object):
             "dead_leaf",
             "dead_stem",
             "dead_reproductive",
-            "dead_storage",
         ]
         self.dead_abg_parts = self.dead_parts.copy()
         self.dead_abg_parts.remove("dead_root")
-        self.dead_abg_parts.remove("dead_storage")
         self.dead_abg_parts.remove("dead_reproductive")
 
         self.validate_plant_factors(species_params["plant_factors"])
@@ -47,16 +44,10 @@ class Species(object):
 
         self.populate_biomass_allocation_array()
 
-        self.habit = self.select_habit_class(
-            self.species_plant_factors["growth_habit"],
-            self.species_plant_factors["duration"],
-            self.species_plant_factors["leaf_retention"],
-        )
-        self.form = self.select_form_class(self.species_plant_factors["growth_form"])
-        self.shape = self.select_shape_class(self.species_plant_factors["shape"])
-        self.photosynthesis = self.select_photosythesis_type(
-            self.species_plant_factors["p_type"]
-        )
+        self.habit = self.select_habit_class()
+        self.form = self.select_form_class()
+        self.shape = self.select_shape_class()
+        self.photosynthesis = self.select_photosythesis_type()
 
     def validate_plant_factors(self, plant_factors):
         plant_factor_options = {
@@ -64,8 +55,7 @@ class Species(object):
             "growth_habit": ["forb_herb", "graminoid", "shrub", "tree", "vine"],
             "monocot_dicot": ["monocot", "dicot"],
             "angio_gymno": ["angiosperm", "gymnosperm"],
-            "duration": ["annual", "perennial"],
-            "leaf_retention": ["deciduous", "evergreen"],
+            "duration": ["annual", "perennial deciduous", "perennial evergreen"],
             "growth_form": [
                 "bunch",
                 "colonizing",
@@ -161,6 +151,11 @@ class Species(object):
             ["min_total_biomass", "plant_part_min", self.all_parts],
             ["min_growth_biomass", "plant_part_min", self.growth_parts],
             ["min_abg_biomass", "plant_part_min", self.abg_parts],
+            [
+                "min_nsc_biomass",
+                "min_nsc_content",
+                self.growth_parts,
+            ],  # this is dynamic and varying with plant size
         ]
         for sum_var in sum_vars:
             species_params["grow_params"][sum_var[0]] = 0
@@ -174,23 +169,62 @@ class Species(object):
             / species_params["morph_params"]["max_vital_volume"]
         )
 
+        species_params["duration_params"]["senesce_rate"] = 0.9 / (
+            species_params["duration_params"]["growing_season_end"]
+            - species_params["duration_params"]["senescence_start"]
+        )
+
+        seasonal_nsc_assim_rates = [
+            "dormant_nsc_rate",
+            "growth_nsc_rate",
+            "repro_nsc_rate",
+            "senesce_nsc_rate",
+        ]
+        seasonal_days = [
+            "growing_season_start",
+            "reproduction_start",
+            "senescence_start",
+            "growing_season_end",
+        ]
+        species_params["duration_params"]["nsc_rate_change"] = {}
+        for idx, season in enumerate(seasonal_nsc_assim_rates):
+            current_date = species_params["duration_params"][seasonal_days[idx]]
+            prior_date = species_params["duration_params"][seasonal_days[idx - 1]]
+            species_params["duration_params"]["nsc_rate_change"][season] = {}
+            if prior_date > current_date:
+                season_length = (365 - prior_date) + current_date
+            else:
+                season_length = current_date - prior_date
+            for part in self.all_parts:
+                rate_change_nsc = (
+                    species_params["grow_params"]["incremental_nsc"][part][idx]
+                    - species_params["grow_params"]["incremental_nsc"][part][idx - 1]
+                ) / season_length  # figure out how to loop this
+                species_params["duration_params"]["nsc_rate_change"][season][
+                    part
+                ] = rate_change_nsc
+
         return species_params
 
-    def select_photosythesis_type(self, p_type):
+    def select_photosythesis_type(self):
         photosynthesis_options = {"C3": C3(), "C4": C4(), "cam": Cam()}
-        return photosynthesis_options[p_type]
+        return photosynthesis_options[self.species_plant_factors["p_type"]]
 
-    def select_habit_class(self, habit_val, duration, retention_val):
+    def select_habit_class(self):
         habit = {
-            "forb_herb": Forbherb(self.species_grow_params, duration),
-            "graminoid": Graminoid(self.species_grow_params, duration),
-            "shrub": Shrub(self.species_grow_params, duration, retention_val),
-            "tree": Tree(self.species_grow_params, duration, retention_val),
-            "vine": Vine(self.species_grow_params, duration, retention_val),
+            "forb_herb": Forbherb,
+            "graminoid": Graminoid,
+            "shrub": Shrub,
+            "tree": Tree,
+            "vine": Vine,
         }
-        return habit[habit_val]
+        return habit[self.species_plant_factors["growth_habit"]](
+            self.species_grow_params,
+            self.species_duration_params,
+            self.species_plant_factors["duration"],
+        )
 
-    def select_form_class(self, form_val):
+    def select_form_class(self):
         form = {
             "bunch": Bunch(self.species_dispersal_params, self.species_grow_params),
             "colonizing": Colonizing(
@@ -215,9 +249,9 @@ class Species(object):
                 self.species_dispersal_params, self.species_grow_params
             ),
         }
-        return form[form_val]
+        return form[self.species_plant_factors["growth_form"]]
 
-    def select_shape_class(self, shape_val):
+    def select_shape_class(self):
         shape = {
             "climbing": Climbing(self.species_morph_params, self.species_grow_params),
             "conical": Conical(self.species_morph_params, self.species_grow_params),
@@ -232,7 +266,7 @@ class Species(object):
             ),
             "vase": Vase(self.species_morph_params, self.species_grow_params),
         }
-        return shape[shape_val]
+        return shape[self.species_plant_factors["shape"]]
 
     def populate_biomass_allocation_array(self):
         root2leaf = self.species_grow_params["root_to_leaf"]
@@ -324,31 +358,35 @@ class Species(object):
     def branch(self):
         self.form.branch()
 
-    def disperse(self, plants):
+    def disperse(self, plants, jday):
         # decide how to parameterize reproductive schedule, make repro event
         # right now we are just taking 20% of available storage and moving to
-        filter = np.nonzero(
-            self.sum_plant_parts(plants, parts="growth")
-            >= (
-                self.species_dispersal_params["min_size_dispersal"]
-                * self.species_grow_params["max_growth_biomass"]
-            )
-        )
-        available_stored_biomass = (
-            plants["storage_biomass"]
-            - self.species_grow_params["plant_part_min"]["storage"]
-        )
-        plants["repro_biomass"][filter] = plants["repro_biomass"][filter] + 0.2 * (
-            available_stored_biomass[filter]
-        )
-        plants["storage_biomass"][filter] = plants["storage_biomass"][filter] - 0.2 * (
-            available_stored_biomass[filter]
-        )
+        # growth_biomass = self.sum_plant_parts(plants, parts="growth")
+        # filter = np.nonzero(
+        #    growth_biomass
+        #    >= (
+        #        self.species_dispersal_params["min_size_dispersal"]
+        #        * self.species_grow_params["max_growth_biomass"]
+        #    )
+        # )
+        # ns_conc = self.get_daily_nsc_concentration(jday)
+        # available_stored_biomass = np.zeros_like(plants["root"])
+        # for part in self.growth_parts:
+        #    avail_nsc_content = np.ones_like(plants[part]) * (
+        #        ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
+        #    )
+        #    avail_nsc_content[avail_nsc_content < 0] = 0.0
+        #    available_stored_biomass += plants[part] * avail_nsc_content
+        # plants["repro_biomass"][filter] += 0.05 * available_stored_biomass[filter]
+        # for part in self.growth_parts:
+        #    plants[part][filter] -= (0.05 * (available_stored_biomass[filter])) * (
+        #        plants[part][filter] / growth_biomass[filter]
+        #    )
         plants = self.form.disperse(plants)
         return plants
 
     def enter_dormancy(
-        self, plants
+        self, plants, jday
     ):  # calculate sum of green parts and sum of persistant parts
         end_dead_age = plants["dead_age"]
         end_dead_bio = self.sum_plant_parts(plants, parts="dead")
@@ -359,9 +397,73 @@ class Species(object):
         )
         return plants
 
-    def emerge(self, plants):
-        plants = self.habit.duration.emerge(plants)
+    def emerge(self, plants, jday):
+        ns_conc = self.get_daily_nsc_concentration(jday)
+        available_stored_biomass = np.zeros_like(plants["root"])
+        for part in self.habit.duration.persistent_parts:
+            avail_nsc_content = (
+                ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
+            ) * np.ones_like(plants[part])
+            avail_nsc_content[avail_nsc_content < 0] = 0.0
+            available_stored_biomass += plants[part] * avail_nsc_content
+
+        plants = self.habit.duration.emerge(plants, available_stored_biomass)
         return plants
+
+    def get_daily_nsc_concentration(self, _current_jday):
+        d = _current_jday
+        days = self.species_duration_params
+        rate = self.species_duration_params["nsc_rate_change"]
+        nsc_content = {}
+        day_conditions = [
+            d < days["growing_season_start"],
+            (d >= days["growing_season_start"]) & (d < days["reproduction_start"]),
+            (d >= days["reproduction_start"]) & (d < days["senescence_start"]),
+            (d >= days["senescence_start"]) & (d < days["growing_season_end"]),
+            d >= days["growing_season_end"],
+        ]
+
+        for part in self.all_parts:
+            nsc_content_opts_b = [
+                (
+                    self.species_grow_params["incremental_nsc"][part][0]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
+                (
+                    self.species_grow_params["incremental_nsc"][part][1]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
+                (
+                    self.species_grow_params["incremental_nsc"][part][2]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
+                (
+                    self.species_grow_params["incremental_nsc"][part][3]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
+                (
+                    self.species_grow_params["incremental_nsc"][part][0]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
+            ]
+
+            nsc_content_opts_mx = [
+                rate["dormant_nsc_rate"][part] * (d + 365 - days["growing_season_end"]),
+                rate["growth_nsc_rate"][part] * (days["growing_season_start"] - d),
+                rate["repro_nsc_rate"][part] * (days["reproduction_start"] - d),
+                rate["senesce_nsc_rate"][part] * (days["senescence_start"] - d),
+                rate["dormant_nsc_rate"][part] * (days["growing_season_end"] - d),
+            ]
+            nsc_content[part] = (
+                (np.select(day_conditions, nsc_content_opts_b)) ** 0.5
+                + np.select(day_conditions, nsc_content_opts_mx)
+            ) ** 2 / 1000
+        return nsc_content
 
     def litter_decomp(self, _new_biomass):
         decay_rate = self.species_morph_params["biomass_decay_rate"]
@@ -383,6 +485,9 @@ class Species(object):
         _new_biomass["dead_age"] += self.dt.astype(float) * np.ones_like(
             _new_biomass["dead_age"]
         )
+        for part in self.dead_parts:
+            filter = np.nonzero(_new_biomass[part] < 0)
+            _new_biomass[part][filter] = np.zeros_like(_new_biomass[part][filter])
         return _new_biomass
 
     def mortality(self, plants, _in_growing_season):
@@ -431,47 +536,58 @@ class Species(object):
         )
         return plants
 
-    def photosynthesize(self, _par, _last_biomass, _glu_req, _daylength):
+    def photosynthesize(self, _par, _last_biomass, _daylength):
+        _glu_req = np.zeros_like(_last_biomass["root"])
+        _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
+        for part in self.all_parts:
+            _glu_req += (
+                _last_biomass[part]
+                / _total_biomass
+                * self.species_grow_params["glucose_requirement"][part]
+            )
         delta_tot = self.photosynthesis.photosynthesize(
             _par, self.species_grow_params, _last_biomass, _glu_req, _daylength
         )
         return delta_tot
 
-    def respire(self, _temperature, _last_biomass, _glu_req):
+    def respire(self, _temperature, _last_biomass):
         growdict = self.species_grow_params
-        # repiration coefficient temp dependence from Teh 2006
-        maint_respire = np.zeros_like(_glu_req)
+        _new_biomass = _last_biomass.copy()
+        # respiration coefficient temp dependence from Teh 2006
+        temp_adj = 2 ** ((_temperature - 25) / 10)
+        total_delta_respire = np.zeros_like(_last_biomass["root"])
         for part in self.all_parts:
-            maint_respire += (
-                growdict["respiration_coefficient"][part] * _last_biomass[part]
-            )
+            delta_respire = np.zeros_like(_last_biomass["root"])
+            filter = np.nonzero(_last_biomass[part] > 0)
+            delta_respire = (
+                temp_adj[filter]
+                * growdict["respiration_coefficient"][part]
+                * _last_biomass[part][filter]
+            ) / growdict["glucose_requirement"][part]
+            total_delta_respire[filter] += delta_respire[filter]
+            _new_biomass[part][filter] -= delta_respire[filter]
 
-        maint_respire_adj = maint_respire * 2 ** ((_temperature - 25) / 10)
+        #print("Respiration")
+        #print(total_delta_respire)
 
-        delta_biomass_respire = np.zeros_like(_glu_req)
-        delta_biomass_respire[_glu_req != 0] = (
-            -maint_respire_adj[_glu_req != 0]
-        ) / _glu_req[_glu_req != 0]
-        return delta_biomass_respire
+        return _new_biomass
 
-    def senesce(self, plants):
-        mass_green_parts = self.sum_plant_parts(plants, parts="green")
-        mass_persistent_parts = self.sum_plant_parts(plants, parts="persistent")
+    def senesce(self, plants, jday):
+        ns_conc = self.get_daily_nsc_concentration(jday)
+        ns_green_mass = 0.0
+        for part in self.habit.duration.green_parts:
+            ns_green_mass += plants[part] * ns_conc[part]
+        persistent_mass = self.sum_plant_parts(plants, parts="persistent")
         plants = self.habit.senesce(
             plants,
-            mass_green_parts=mass_green_parts,
-            mass_persistent_parts=mass_persistent_parts,
+            ns_green_mass=ns_green_mass,
+            persistent_mass=persistent_mass,
         )
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
         growdict = self.species_grow_params
         morphdict = self.species_morph_params
-        plants["storage_biomass"] = rng.uniform(
-            low=growdict["plant_part_min"]["storage"],
-            high=growdict["plant_part_max"]["storage"],
-            size=plants.size,
-        )
         plants["repro_biomass"] = (
             growdict["plant_part_min"]["reproductive"]
             + rng.rayleigh(scale=0.2, size=plants.size)
@@ -504,6 +620,10 @@ class Species(object):
             morphdict["max_n_stems"], crown_area.size
         )
         plants = self.habit.duration.set_initial_biomass(plants, in_growing_season)
+        return plants
+
+    def set_new_biomass(self, plants):
+        plants = self.habit.duration.set_new_biomass(plants)
         return plants
 
     def update_morphology(self, plants):
