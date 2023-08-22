@@ -89,7 +89,7 @@ rich==13.3.1
     # via rich-click
 rich-click==1.6.1
     # via -r requirements.in
-scipy==1.10.1
+scipy==1.11.2
     # via
     #   -r requirements.in
     #   statsmodels
