@@ -41,7 +41,7 @@ docutils==0.18.1
     #   sphinx-jinja
     #   sphinx-rtd-theme
 entrypoints==0.4
-    # via -r requirements.in
+    # via -r docs/requirements.in
 executing==1.2.0
     # via stack-data
 fastjsonschema==2.16.2
@@ -69,7 +69,7 @@ jsonschema==4.17.3
     # via nbformat
 jupyter-client==8.2.0
     # via
-    #   -r requirements.in
+    #   -r docs/requirements.in
     #   nbclient
 jupyter-core==5.2.0
     # via
@@ -91,9 +91,9 @@ nbclient==0.7.2
     # via nbconvert
 nbconvert==7.2.9
     # via nbsphinx
-nbformat==5.8.0
+nbformat==5.9.2
     # via
-    #   -r requirements.in
+    #   -r docs/requirements.in
     #   nbclient
     #   nbconvert
     #   nbsphinx
@@ -104,7 +104,7 @@ packaging==23.0
     #   nbconvert
     #   sphinx
 pandoc==2.3
-    # via -r requirements.in
+    # via -r docs/requirements.in
 pandocfilters==1.5.0
     # via nbconvert
 parso==0.8.3
@@ -152,7 +152,7 @@ soupsieve==2.4
     # via beautifulsoup4
 sphinx==6.2.1
     # via
-    #   -r requirements.in
+    #   -r docs/requirements.in
     #   furo
     #   nbsphinx
     #   sphinx-basic-ng
@@ -167,7 +167,7 @@ sphinx-basic-ng==1.0.0b1
 sphinx-copybutton==0.5.2
     # via -r docs/requirements.in
 sphinx-inline-tabs==2023.4.21
-    # via -r requirements.in
+    # via -r docs/requirements.in
 sphinx-jinja==2.0.2
     # via -r docs/requirements.in
 sphinx-rtd-theme==1.2.2
@@ -187,22 +187,22 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 sphinxcontrib-towncrier==0.3.2a0
-    # via -r requirements.in
+    # via -r docs/requirements.in
 stack-data==0.6.2
     # via ipython
 tabulate==0.9.0
-    # via -r requirements.in
+    # via -r docs/requirements.in
 tinycss2==1.2.1
     # via nbconvert
 tomli==2.0.1
     # via -r docs/requirements.in
 tornado==6.3.2
     # via
-    #   -r requirements.in
+    #   -r docs/requirements.in
     #   jupyter-client
 towncrier==22.12.0
     # via
-    #   -r requirements.in
+    #   -r docs/requirements.in
     #   sphinxcontrib-towncrier
 traitlets==5.9.0
     # via
