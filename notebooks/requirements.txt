@@ -43,7 +43,7 @@ bmipy==2.0
     # via bmi-topography
 bokeh==2.4.3
     # via panel
-certifi==2022.12.7
+certifi==2023.7.22
     # via
     #   pyproj
     #   rasterio
@@ -305,7 +305,7 @@ pyct==0.5.0
     # via
     #   colorcet
     #   panel
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   ipython
     #   jupyter-console
@@ -402,7 +402,7 @@ toolz==0.12.0
     # via
     #   dask
     #   partd
-tornado==6.3
+tornado==6.3.3
     # via
     #   bokeh
     #   ipykernel
