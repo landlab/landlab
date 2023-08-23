@@ -1,0 +1,2 @@
+Use shortest link instead of dx in calculating time steps in the two 'TaylorDiffuser' components
+
