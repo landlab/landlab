@@ -114,7 +114,8 @@ class DepthDependentTaylorDiffuser(Component):
 
         dtmax = courant_factor * dx * dx / Demax
 
-    Where the courant factor is a user defined scale (default is 0.2)
+    Where the courant factor is a user defined scale (default is 0.2), and
+    dx is the length of the shortest link in the grid.
 
     The DepthDependentTaylorDiffuser has a boolean flag that permits a user
     to be warned if timesteps are too large for the slopes in the model grid
@@ -355,6 +356,7 @@ class DepthDependentTaylorDiffuser(Component):
         self._dynamic_dt = dynamic_dt
         self._if_unstable = if_unstable
         self._courant_factor = courant_factor
+        self._shortest_link = np.amin(grid.length_of_link)  # for Courant
 
         # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
@@ -411,7 +413,7 @@ class DepthDependentTaylorDiffuser(Component):
             # Calculate De Max
             De_max = self._K * (courant_slope_term)
             # Calculate longest stable timestep
-            self._dt_max = self._courant_factor * (self._grid.dx**2) / De_max
+            self._dt_max = self._courant_factor * (self._shortest_link**2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
