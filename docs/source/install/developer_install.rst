@@ -41,7 +41,7 @@ Python environment,
   .. code-block:: bash
 
      cd landlab
-     mamba install --file=requirements.in
+     mamba install --file=requirements.in -c nodefaults -c conda-forge --override-channels
      pip install -e .
 
 .. tab:: conda
@@ -49,7 +49,7 @@ Python environment,
   .. code-block:: bash
 
      cd landlab
-     conda install --file=requirements.in
+     conda install --file=requirements.in -c nodefaults -c conda-forge --override-channels
      pip install -e .
 
 .. tab:: pip
