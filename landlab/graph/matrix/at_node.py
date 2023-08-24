@@ -35,7 +35,7 @@ def get_links(nodes_at_link, sort=True):
     >>> offset_to_node
     array([ 0,  2,  5,  7, 10, 12])
     """
-    sorted = np.argsort(nodes_at_link.reshape((-1,)))
+    sorted = np.argsort(nodes_at_link.reshape((-1,)), kind="stable")
 
     links_at_node = sorted // 2
     link_dirs_at_node = sorted % 2

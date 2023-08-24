@@ -628,7 +628,7 @@ def write_netcdf(
     True
     >>> 'topographic__elevation' in fp.variables
     False
-    >>> fp.variables['uplift_rate'][:].flatten()
+    >>> fp.variables['uplift_rate'][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
@@ -800,12 +800,12 @@ def write_raster_netcdf(
     True
     >>> 'topographic__elevation' in fp.variables
     False
-    >>> fp.variables['uplift_rate'][:].flatten()
+    >>> fp.variables['uplift_rate'][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
-    >>> fp.variables['x'][:]
+    >>> fp.variables['x'][:].astype("=f8")
     array([ 0.,  1.,  2.])
-    >>> fp.variables['y'][:]
+    >>> fp.variables['y'][:].astype("=f8")
     array([ 0.,  1.,  2.,  3.])
 
     Read now with read_netcdf

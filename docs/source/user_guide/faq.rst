@@ -3,12 +3,6 @@
 Frequently Asked Questions
 ==========================
 
-I can't install/test/run Landlab, what should I do?
----------------------------------------------------
-
-If you are having trouble when installing, testing or running Landlab, please
-visit our :ref:`Troubleshooting page <troubleshooting>`.
-
 
 What is the difference between a cell and a node?
 -------------------------------------------------
