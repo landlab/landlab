@@ -23,9 +23,17 @@ Source Install
 If you would like to modify or contribute code, you can either clone our
 repository
 
-.. code-block:: bash
+.. tab:: ssh
 
-   git clone git://github.com/landlab/landlab.git
+    .. code-block:: bash
+
+       git clone git@github.com:landlab/landlab.git
+
+.. tab:: https
+
+    .. code-block:: bash
+
+       git clone https://github.com/landlab/landlab.git
 
 or download a `zip file <https://github.com/landlab/landlab/archive/refs/heads/master.zip>`_:
 
