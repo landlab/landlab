@@ -890,7 +890,7 @@ def test_boundary_conditions():
     # set boundary conditions - right, top, left, bottom
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     # All of the interior nodes flow to outlet node number 5
-    mg.status_at_node[5] = 1
+    mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
     flow = PriorityFloodFlowRouter(mg, flow_metric="D8", update_flow_depressions=True)
     flow.run_one_step()
     # on a 10 by 10 grid, there are 8 by 8 (64) cells draining to the outlet node (5)
