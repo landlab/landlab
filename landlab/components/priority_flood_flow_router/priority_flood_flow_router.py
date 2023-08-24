@@ -851,6 +851,13 @@ class PriorityFloodFlowRouter(Component):
         self._depression_free_dem[self._closed == 1] = closed_boundary_values
         self.grid.at_node["depression_free_elevation"] = self._depression_free_dem
 
+        self.grid.at_node["flood_status_code"] = np.where(
+            self.grid.at_node["depression_free_elevation"]
+            == self.grid.at_node["topographic__elevation"],
+            0,
+            3,
+        )
+
     def _accumulate_flow_RD(self, props_Pf, hill_flow=False):
         """
         Function to accumualte flow using the richdem package

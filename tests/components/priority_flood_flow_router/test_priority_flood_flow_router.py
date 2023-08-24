@@ -865,3 +865,16 @@ def test_cython_functions():
         err_msg="Error with D8_FlowAcc calculations",
         verbose=True,
     )
+
+
+# %% test flooded nodes
+def test_flooded_nodes():
+    mg = RasterModelGrid((6, 6), xy_spacing=(1, 1))
+    z = mg.add_ones("topographic__elevation", at="node")
+    z[mg.boundary_nodes] = 0
+    z[14:16] = 0.5
+    z[20:22] = 0.75
+    pf = PriorityFloodFlowRouter(mg)
+    pf.run_one_step()
+    # FLOODED nodes have code 3
+    testing.assert_array_equal(12, np.sum(mg.at_node["flood_status_code"]))

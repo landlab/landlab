@@ -1,2 +1,0 @@
-Fixed a bug where the ``SpaceLargeScaleEroder`` was only able to accept a scalar value for the erodibility coefficient.
-Now it is able to accept either a scalar or an array.

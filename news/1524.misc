@@ -1,3 +1,0 @@
-
-Updated the pre-commit hooks (most notably flake8 and its plugins) and removed
-newly-found lint.

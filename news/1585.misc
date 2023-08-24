@@ -1,0 +1,2 @@
+Added pre-commit hooks for delinting the notebooks and removed newly-found
+lint.

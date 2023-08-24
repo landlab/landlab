@@ -15,7 +15,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
@@ -24,4 +24,4 @@ jobs:
       - name: Lint
         run: |
           pip install nox
-          nox -s lint
+          nox -s lint -- --no-skip

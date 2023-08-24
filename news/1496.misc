@@ -1,3 +1,0 @@
-Modified to skip the doctests for ``ExampleData`` and ``write_esri_ascii`` that created
-files in the user's working directory. These doctests are now repeated as unit tests
-that clean up after themselves.

@@ -1,3 +1,4 @@
+from .advection import AdvectionSolverTVD
 from .area_slope_transporter import AreaSlopeTransporter
 from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
@@ -22,6 +23,7 @@ from .flow_director import (
 )
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .gravel_bedrock_eroder import GravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
 from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
@@ -80,6 +82,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
 COMPONENTS = [
+    AdvectionSolverTVD,
     AreaSlopeTransporter,
     BedrockLandslider,
     CarbonateProducer,
@@ -108,6 +111,7 @@ COMPONENTS = [
     FlowDirectorSteepest,
     FractureGridGenerator,
     gFlex,
+    GravelBedrockEroder,
     GravelRiverTransporter,
     GroundwaterDupuitPercolator,
     HackCalculator,

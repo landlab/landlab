@@ -220,7 +220,7 @@ class use_field_name_or_array:
                 else:
                     raise FieldError(vals)
             else:
-                vals = np.asarray(vals).flatten()
+                vals = np.asarray(vals).reshape(-1)
 
             return func(grid, vals, *args, **kwds)
 

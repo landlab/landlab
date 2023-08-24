@@ -16,4 +16,3 @@
 
   environments
   update_uninstall
-  additional_resources
