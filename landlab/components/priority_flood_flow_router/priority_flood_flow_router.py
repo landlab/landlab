@@ -14,6 +14,7 @@ of flow accumulator one and two.
 """
 
 import copy as cp
+import warnings
 from functools import partial
 
 import numpy as np
@@ -589,11 +590,12 @@ class PriorityFloodFlowRouter(Component):
                 grid.at_node["water__unit_flux_in"] = runoff_rate
         else:
             if runoff_rate is not None:
-                print(
-                    "FlowAccumulator found both the field "
-                    + "'water__unit_flux_in' and a provided float or "
-                    + "array for the runoff_rate argument. THE FIELD IS "
-                    + "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!"
+                warnings.warn(
+                    "FlowAccumulator found both the field"
+                    " 'water__unit_flux_in' and a provided float or"
+                    " array for the runoff_rate argument. THE FIELD IS"
+                    " BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!",
+                    stacklevel=2,
                 )
                 runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node["water__unit_flux_in"] = runoff_rate
