@@ -878,3 +878,21 @@ def test_flooded_nodes():
     pf.run_one_step()
     # FLOODED nodes have code 3
     testing.assert_array_equal(12, np.sum(mg.at_node["flood_status_code"]))
+
+
+# %% test boundary conditions
+def test_boundary_conditions():
+    mg = RasterModelGrid((10, 10), 1)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.at_node["topographic__elevation"][mg.core_nodes] = np.random.rand(
+        len(mg.core_nodes)
+    )
+    # set boundary conditions - right, top, left, bottom
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    # All of the interior nodes flow to outlet node number 5
+    mg.status_at_node[5] = 1
+    flow = PriorityFloodFlowRouter(mg, flow_metric="D8", update_flow_depressions=True)
+    flow.run_one_step()
+    # on a 10 by 10 grid, there are 8 by 8 (64) cells draining to the outlet node (5)
+    # if boundary conditions are properly set
+    testing.assert_array_equal(64, mg.at_node["drainage_area"][5])
