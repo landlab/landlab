@@ -27,7 +27,7 @@ Style enforcement
 
 All tools used for development are specified in our `environment-dev.yml` file.
 If you followed the
-:ref:`developer installation instructions <developer_install>` you have
+:ref:`developer installation instructions <install>` you have
 everything you need in the `landlab_dev` conda environment.
 
 Currently we check for all the `flake8

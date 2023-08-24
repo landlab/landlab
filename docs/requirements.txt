@@ -20,7 +20,7 @@ beautifulsoup4==4.11.2
     #   nbconvert
 bleach==6.0.0
     # via nbconvert
-certifi==2022.12.7
+certifi==2023.7.22
     # via requests
 charset-normalizer==3.0.1
     # via requests
@@ -39,9 +39,8 @@ docutils==0.18.1
     #   nbsphinx
     #   sphinx
     #   sphinx-jinja
-    #   sphinx-rtd-theme
 entrypoints==0.4
-    # via -r docs/requirements.in
+    # via -r requirements.in
 executing==1.2.0
     # via stack-data
 fastjsonschema==2.16.2
@@ -69,7 +68,7 @@ jsonschema==4.17.3
     # via nbformat
 jupyter-client==8.3.0
     # via
-    #   -r docs/requirements.in
+    #   -r requirements.in
     #   nbclient
 jupyter-core==5.2.0
     # via
@@ -93,7 +92,7 @@ nbconvert==7.2.9
     # via nbsphinx
 nbformat==5.9.2
     # via
-    #   -r docs/requirements.in
+    #   -r requirements.in
     #   nbclient
     #   nbconvert
     #   nbsphinx
@@ -104,7 +103,7 @@ packaging==23.0
     #   nbconvert
     #   sphinx
 pandoc==2.3
-    # via -r docs/requirements.in
+    # via -r requirements.in
 pandocfilters==1.5.0
     # via nbconvert
 parso==0.8.3
@@ -125,7 +124,7 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
     # via stack-data
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   furo
     #   ipython
@@ -152,25 +151,21 @@ soupsieve==2.4
     # via beautifulsoup4
 sphinx==6.2.1
     # via
-    #   -r docs/requirements.in
+    #   -r requirements.in
     #   furo
     #   nbsphinx
     #   sphinx-basic-ng
     #   sphinx-copybutton
     #   sphinx-inline-tabs
     #   sphinx-jinja
-    #   sphinx-rtd-theme
-    #   sphinxcontrib-jquery
     #   sphinxcontrib-towncrier
 sphinx-basic-ng==1.0.0b1
     # via furo
 sphinx-copybutton==0.5.2
     # via -r docs/requirements.in
 sphinx-inline-tabs==2023.4.21
-    # via -r docs/requirements.in
+    # via -r requirements.in
 sphinx-jinja==2.0.2
-    # via -r docs/requirements.in
-sphinx-rtd-theme==1.2.2
     # via -r docs/requirements.in
 sphinxcontrib-applehelp==1.0.4
     # via sphinx
@@ -178,8 +173,6 @@ sphinxcontrib-devhelp==1.0.2
     # via sphinx
 sphinxcontrib-htmlhelp==2.0.1
     # via sphinx
-sphinxcontrib-jquery==4.1
-    # via sphinx-rtd-theme
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-qthelp==1.0.3
@@ -187,22 +180,22 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 sphinxcontrib-towncrier==0.3.2a0
-    # via -r docs/requirements.in
+    # via -r requirements.in
 stack-data==0.6.2
     # via ipython
 tabulate==0.9.0
-    # via -r docs/requirements.in
+    # via -r requirements.in
 tinycss2==1.2.1
     # via nbconvert
 tomli==2.0.1
     # via -r docs/requirements.in
 tornado==6.3.3
     # via
-    #   -r docs/requirements.in
+    #   -r requirements.in
     #   jupyter-client
 towncrier==23.6.0
     # via
-    #   -r docs/requirements.in
+    #   -r requirements.in
     #   sphinxcontrib-towncrier
 traitlets==5.9.0
     # via
