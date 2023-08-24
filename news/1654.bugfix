@@ -1,1 +1,2 @@
-Add display of colorbar label for non-raster grid imshow.
+Fixed a bug where the ``colorbar_label`` keyword of :func:`~.imshow_grid`
+was being ignored for non-raster grids.
