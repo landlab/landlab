@@ -413,10 +413,13 @@ class PriorityFloodFlowRouter(Component):
                 f"{', '.join(repr(x) for x in PMULTIPLE_FMs)}"
             )
 
-        if (depression_handler == "fill") or (depression_handler == "breach"):
+        if depression_handler in ("fill", "breach"):
             self._depression_handler = depression_handler
         else:
-            raise ValueError("depression_handler should be one of 'fill' or 'breach'")
+            raise ValueError(
+                "depression_handler should be one of 'fill' or 'breach'"
+                f" (got {depression_handler!r})"
+            )
 
         self._epsilon = epsilon
         self._exponent = exponent
@@ -567,7 +570,7 @@ class PriorityFloodFlowRouter(Component):
             axis=1,
         )
 
-        self._closed = np.zeros(self._grid.number_of_nodes)
+        self._closed = np.zeros(self._grid.number_of_nodes, dtype=np.uint8)
         self._closed[self._grid.status_at_node == NodeStatus.CLOSED] = 1
         self._closed = self._richdem.rdarray(
             self._closed.reshape(self._grid.shape), no_data=-9999
@@ -826,7 +829,7 @@ class PriorityFloodFlowRouter(Component):
         closed_boundary_values = self._depression_free_dem[self._closed == 1]
         self._depression_free_dem[self._closed == 1] = np.inf
 
-        if flow_metric == "D4" or flow_metric == "Rho4":
+        if flow_metric in ("D4", "Rho4"):
             topology = "D4"
         else:
             topology = "D8"
