@@ -104,7 +104,7 @@ fsspec==2023.1.0
     # via dask
 h11==0.14.0
     # via uvicorn
-holoviews==1.16.0
+holoviews==1.17.1
     # via -r notebooks/requirements.in
 humanize==4.8.0
     # via solara
