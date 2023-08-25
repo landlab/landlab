@@ -1,0 +1,2 @@
+Updated the installation instructions to include options to fetch dependencies
+from, and only from, *conda-forge*.
