@@ -14,7 +14,6 @@ of flow accumulator one and two.
 """
 
 import copy as cp
-import warnings
 from functools import partial
 
 import numpy as np
@@ -379,7 +378,7 @@ class PriorityFloodFlowRouter(Component):
 
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
-        self._test_water_inputs(grid, runoff_rate)
+        self._validate_water_inputs(grid, runoff_rate)
 
         # Grid type testing
         if not isinstance(self._grid, RasterModelGrid):
@@ -578,27 +577,15 @@ class PriorityFloodFlowRouter(Component):
         )
         self._closed.geotransform = [0, 1, 0, 0, 0, -1]
 
-    def _test_water_inputs(self, grid, runoff_rate):
+    def _validate_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
+
         if "water__unit_flux_in" not in grid.at_node:
-            if runoff_rate is None:
-                # assume that if runoff rate is not supplied, that the value
-                # should be set to one everywhere.
-                grid.add_ones("water__unit_flux_in", at="node", dtype=float)
-            else:
-                runoff_rate = return_array_at_node(grid, runoff_rate)
-                grid.at_node["water__unit_flux_in"] = runoff_rate
-        else:
-            if runoff_rate is not None:
-                warnings.warn(
-                    "FlowAccumulator found both the field"
-                    " 'water__unit_flux_in' and a provided float or"
-                    " array for the runoff_rate argument. THE FIELD IS"
-                    " BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!",
-                    stacklevel=2,
-                )
-                runoff_rate = return_array_at_node(grid, runoff_rate)
-                grid.at_node["water__unit_flux_in"] = runoff_rate
+            grid.add_empty("water__unit_flux_in", at="node")
+            runoff_rate = 1.0 if runoff_rate is None else runoff_rate
+            grid.at_node["water__unit_flux_in"][:] = runoff_rate
+        elif runoff_rate is not None:
+            grid.at_node["water__unit_flux_in"][:] = runoff_rate
 
     def calc_flow_dir_acc(self, hill_flow=False, update_depressions=True):
         """Calculate flow direction and accumulation using the richdem package"""
