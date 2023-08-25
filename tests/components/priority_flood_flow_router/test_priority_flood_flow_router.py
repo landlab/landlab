@@ -5,7 +5,7 @@
 import numpy as np
 import pytest
 from numpy import testing
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import FieldError, HexModelGrid, RasterModelGrid
 from landlab.components import PriorityFloodFlowRouter
@@ -31,29 +31,45 @@ def test_check_fields():
 
     PriorityFloodFlowRouter(mg)
     assert_array_equal(z, mg.at_node["topographic__elevation"])
-    assert_array_equal(np.zeros(100), mg.at_node["drainage_area"])
-    assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
+    assert_array_equal(mg.at_node["drainage_area"], 0.0)
+    assert_array_equal(mg.at_node["water__unit_flux_in"], 1.0)
 
     PriorityFloodFlowRouter(mg, runoff_rate=2.0)
-    assert_array_equal(np.full(100, 2.0), mg.at_node["water__unit_flux_in"])
+    assert_array_equal(mg.at_node["water__unit_flux_in"], 2.0)
 
 
-# %%
 def input_values():
-    # %%
     """
     PriorityFloodFlowRouter should throw an error when wrong input values are provided
     """
 
     # %% Default configuration
-    mg1 = RasterModelGrid((5, 5), xy_spacing=(1, 1))
-    mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
+    grid = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    grid.add_field("topographic__elevation", grid.node_x + grid.node_y, at="node")
 
     with pytest.raises(ValueError):
-        _ = PriorityFloodFlowRouter(mg1, suppress_out=True, flow_metric="Oops")
+        PriorityFloodFlowRouter(grid, suppress_out=True, flow_metric="Oops")
 
     with pytest.raises(ValueError):
-        _ = PriorityFloodFlowRouter(mg1, suppress_out=True, depression_handler="Oops")
+        PriorityFloodFlowRouter(grid, suppress_out=True, depression_handler="Oops")
+
+    assert "water__unit_flux_in" not in grid.at_node
+    PriorityFloodFlowRouter(grid)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 1.0)
+
+    grid.at_node.pop("water__unit_flux_in")
+    assert "water__unit_flux_in" not in grid.at_node
+    PriorityFloodFlowRouter(grid, runoff_rate=999)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 999)
+
+    grid.at_node["water__unit_flux_in"].fill(10.0)
+    assert "water__unit_flux_in" in grid.at_node
+    PriorityFloodFlowRouter(grid)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 10.0)
+
+    assert "water__unit_flux_in" in grid.at_node
+    PriorityFloodFlowRouter(grid, runoff_rate=5.0)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 5.0)
 
 
 # %%
