@@ -113,7 +113,6 @@ addopts = """
   --ignore-glob=*/nst_scaling_profiling.ipynb
   --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
   --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
-  --ignore-glob=*/gravel_river_transporter.ipynb
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
