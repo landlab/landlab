@@ -1,0 +1,2 @@
+Fixed an error that caused the documentation build to fail with an error
+saying that the documentation was not using `furo.css` as the stylesheet.
