@@ -321,7 +321,7 @@ def _imshow_grid_values(
 
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
-        plt.gca().set_aspect(1.0)
+        plt.gca().set_aspect("equal")
         plt.autoscale(tight=True)
 
         if allow_colorbar:
@@ -375,7 +375,7 @@ def _imshow_grid_values(
             line_segments.set_color("black")
             ax.add_collection(line_segments)
 
-        ax.set_aspect(1.0)
+        ax.set_aspect("equal")
         ax.set_rasterized(True)
 
         plt.xlim((np.min(grid.x_of_node), np.max(grid.x_of_node)))
