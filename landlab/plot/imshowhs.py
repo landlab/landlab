@@ -482,7 +482,8 @@ def _imshowhs_grid_values(
     else:
         bbox_prop = None
 
-    cmap = plt.colormaps[cmap]
+    if isinstance(cmap, str):
+        cmap = plt.colormaps[cmap]
 
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
@@ -511,7 +512,7 @@ def _imshowhs_grid_values(
 
         ls = LightSource(azdeg=azdeg, altdeg=altdeg)
         if cmap is None:
-            cmap = plt.cm.terrain
+            cmap = plt.colormaps["terrain"]
 
         dx = x[1] - x[0]
         dy = y[1] - y[0]
@@ -749,7 +750,7 @@ def _imshowhs_grid_values(
                 val2 = values_at_node_drape2.reshape(shape)
 
                 if cmap2 is None:
-                    cmap2 = plt.cm.terrain
+                    cmap2 = plt.colormaps["terrain"]
                 kwds = {"cmap": cmap2}
                 (kwds["vmin"], kwds["vmax"]) = (val2.min(), val2.max())
                 if (limits is None) and ((vmin is None) and (vmax is None)):

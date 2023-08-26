@@ -280,7 +280,8 @@ def _imshow_grid_values(
 ):
     from ..grid.raster import RasterModelGrid
 
-    cmap = plt.colormaps[cmap]
+    if isinstance(cmap, str):
+        cmap = plt.colormaps[cmap]
 
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
