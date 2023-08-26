@@ -132,8 +132,8 @@ def _plot_surface(x, y, sea_level=0.0):
 
 def _plot_layers(x, layers, color=None, lc="k", lw=0.5):
     if color is not None:
-        if isinstance(cmap, str):
-            cmap = plt.colormaps[color]
+        cmap = plt.colormaps[color] if isinstance(color, str) else color
+
         for layer, (lower, upper) in enumerate(pairwise(layers)):
             plt.fill_between(
                 x,
