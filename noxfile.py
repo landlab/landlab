@@ -67,15 +67,6 @@ def test_notebooks(session: nox.Session) -> None:
         "requirements.in",
         channel=["nodefaults", "conda-forge"],
     )
-    # session.conda_install(
-    #     "pydantic",
-    #     "pytest",
-    #     "nbclient",
-    #     "nbformat",
-    #     "Pygments",
-    #     "ipykernel",
-    #     channel=["nodefaults", "conda-forge"],
-    # )
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
 

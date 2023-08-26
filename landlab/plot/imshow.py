@@ -157,9 +157,9 @@ def imshow_grid_at_node(grid, values, **kwds):
     if isinstance(values, str):
         plt.title(values)
 
-    # plt.gcf().canvas.mpl_connect(
-    #     "button_press_event", lambda event: query_grid_on_button_press(event, grid)
-    # )
+    plt.gcf().canvas.mpl_connect(
+        "button_press_event", lambda event: query_grid_on_button_press(event, grid)
+    )
 
 
 def imshow_grid_at_cell(grid, values, **kwds):
@@ -321,7 +321,7 @@ def _imshow_grid_values(
 
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
-        plt.gca().set_aspect("equal")
+        myimage.axes.set_aspect("equal")
         plt.autoscale(tight=True)
 
         if allow_colorbar:
