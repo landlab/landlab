@@ -282,7 +282,7 @@ class TrickleDownProfiler(_BaseProfiler):
         """
         super().__init__(grid)
 
-        self._cmap = plt.get_cmap(cmap)
+        self._cmap = plt.colormaps[cmap]
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
         self._starting_nodes = starting_nodes
