@@ -40,14 +40,14 @@ bleach==6.0.0
     #   nbconvert
     #   panel
 bmi-topography==0.8.2
-    # via -r notebooks/requirements.in
+    # via -r requirements.in
 bmipy==2.0
     # via bmi-topography
 bokeh==2.4.3
     # via panel
 cachetools==5.3.1
     # via solara
-certifi==2022.12.7
+certifi==2023.7.22
     # via
     #   pyproj
     #   rasterio
@@ -85,7 +85,7 @@ comm==0.1.2
 cookiecutter==2.1.1
     # via mesa
 dask[array]==2023.8.1
-    # via -r notebooks/requirements.in
+    # via -r requirements.in
 debugpy==1.6.6
     # via ipykernel
 decorator==5.1.1
@@ -105,7 +105,7 @@ fsspec==2023.1.0
 h11==0.14.0
     # via uvicorn
 holoviews==1.17.1
-    # via -r notebooks/requirements.in
+    # via -r requirements.in
 humanize==4.8.0
     # via solara
 idna==3.4
@@ -170,7 +170,7 @@ jsonschema[format-nongpl]==4.17.3
     #   jupyter-events
     #   nbformat
 jupyter==1.0.0
-    # via -r notebooks/requirements.in
+    # via -r requirements.in
 jupyter-client==8.3.0
     # via
     #   ipykernel
@@ -228,7 +228,7 @@ matplotlib-inline==0.1.6
 mdurl==0.1.2
     # via markdown-it-py
 mesa==2.1.1
-    # via -r notebooks/requirements.in
+    # via -r requirements.in
 mistune==2.0.5
     # via nbconvert
 mypy-extensions==1.0.0
