@@ -1,0 +1,2 @@
+Fixed a flaky test with the :class:`~.LateralEroder` where it would occasionally
+fail to reach the steady state solution.
