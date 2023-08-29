@@ -541,11 +541,10 @@ class Test_SedimentPulserEachParcel:
         SedimentPulserEachParcel."""
 
         grid = example_nmg2
-        np.random.seed(seed=5)  # use the random seed for this test
 
         # define the initial parcels datarecord
         make_pulse_links = SedimentPulserAtLinks(
-            grid, time_to_pulse=always_time_to_pulse
+            grid, time_to_pulse=always_time_to_pulse, rng=5
         )
 
         # pulse 1
@@ -643,16 +642,19 @@ class Test_SedimentPulserEachParcel:
             ]
         )
         AL = parcels.dataset["active_layer"]
-        LLe = np.array(
+        LLe = [
+            [0.51532556, np.nan, np.nan, np.nan],
+            [0.28580138, np.nan, np.nan, np.nan],
+            [np.nan, 0.5, np.nan, np.nan],
+            [np.nan, 0.5, np.nan, np.nan],
+            [np.nan, np.nan, 0.38336888, np.nan],
             [
-                [0.20671916, np.nan, np.nan, np.nan],
-                [0.91861091, np.nan, np.nan, np.nan],
-                [np.nan, 0.5, np.nan, np.nan],
-                [np.nan, 0.5, np.nan, np.nan],
-                [np.nan, np.nan, 0.2968005, np.nan],
-                [np.nan, np.nan, np.nan, 0.2],
-            ]
-        )
+                np.nan,
+                np.nan,
+                np.nan,
+                0.2,
+            ],
+        ]
         LL = parcels.dataset["location_in_link"]
         D = parcels.dataset["D"].values
         D[~np.isnan(D)]
@@ -699,9 +701,8 @@ class Test_SedimentPulserEachParcel:
         datarecord"""
 
         grid = example_nmg2
-        np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=5)
 
         PulseDF = pd.DataFrame(
             {
@@ -735,17 +736,15 @@ class Test_SedimentPulserEachParcel:
         AL = parcels.dataset["active_layer"]
         LLe = np.array([[0.8], [0.7], [0.7], [0.5], [0.5], [0.5], [0.2]])
         LL = parcels.dataset["location_in_link"]
-        De = np.array(
-            [
-                [0.06936526],
-                [0.03911625],
-                [0.30353682],
-                [0.04147067],
-                [0.05423609],
-                [0.16176179],
-                [0.02546817],
-            ]
-        )
+        De = [
+            [0.0275786],
+            [0.01871699],
+            [0.04158561],
+            [0.06830391],
+            [0.11615185],
+            [0.05423998],
+            [0.03318153],
+        ]
         D = parcels.dataset["D"]
         Ve = np.array([[0.2], [0.5], [0.5], [0.5], [0.5], [0.1], [0.5]])
         V = parcels.dataset["volume"]
