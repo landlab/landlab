@@ -100,6 +100,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         rho_sediment=2650.0,
         parcel_volume=0.5,
         abrasion_rate=0.0,
+        rng=None,
     ):
         """
         instantiate SedimentPulserEachParcel
@@ -121,6 +122,12 @@ class SedimentPulserEachParcel(SedimentPulserBase):
         abrasion_rate: float, optional
             volumetric abrasion exponent [1/m]
         """
+        if rng is None:
+            rng = np.random.default_rng()
+        elif isinstance(rng, int):
+            rng = np.random.default_rng(seed=rng)
+        self._rng = rng
+
         SedimentPulserBase.__init__(
             self,
             grid,
@@ -310,7 +317,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
                 n_parcels = p_np[i]
                 D50 = row["D50"]
                 D84_D50 = row["D84_D50"]
-                grain_size_pulse = np.random.lognormal(
+                grain_size_pulse = self._rng.lognormal(
                     np.log(D50), np.log(D84_D50), n_parcels
                 )
                 grain_size = np.concatenate((grain_size, grain_size_pulse))
@@ -318,7 +325,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
             n_parcels = sum(p_np)
             D50 = self._D50
             D84_D50 = self._D84_D50
-            grain_size = np.random.lognormal(np.log(D50), np.log(D84_D50), n_parcels)
+            grain_size = self._rng.lognormal(np.log(D50), np.log(D84_D50), n_parcels)
 
         grain_size = np.expand_dims(grain_size, axis=1)
 

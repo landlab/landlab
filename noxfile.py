@@ -54,9 +54,8 @@ def test_notebooks(session: nox.Session) -> None:
 
     os.environ["WITH_OPENMP"] = "1"
 
-    session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     # session.conda_install("c-compiler", "cxx-compiler")
-    session.conda_install("richdem")
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.conda_install(
         "pytest",
         "pytest-xdist",
@@ -66,9 +65,9 @@ def test_notebooks(session: nox.Session) -> None:
         "requirements-testing.in",
         "--file",
         "requirements.in",
-        "--file",
-        "requirements-testing.in",
+        channel=["nodefaults", "conda-forge"],
     )
+    session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
 
     session.run(*args)
