@@ -130,7 +130,7 @@ def build_docs(session: nox.Session) -> None:
     build_dir = ROOT / "build"
     docs_dir = ROOT / "docs"
 
-    session.install("-r", docs_dir / "requirements.in")
+    session.install("-r", docs_dir / "requirements.txt")
     session.install("-e", ".")
 
     build_dir.mkdir(exist_ok=True)
