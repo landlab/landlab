@@ -48,5 +48,6 @@ jobs:
       - name: Test jupyter notebooks
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          MPLBACKEND: "Agg"
         run: |
           nox --verbose -s test-notebooks -- -m "${{ matrix.markers }}"

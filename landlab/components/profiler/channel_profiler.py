@@ -553,7 +553,7 @@ class ChannelProfiler(_BaseProfiler):
         """
         super().__init__(grid)
 
-        self._cmap = plt.get_cmap(cmap)
+        self._cmap = plt.colormaps[cmap]
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:

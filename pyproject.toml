@@ -38,7 +38,7 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
   "bmipy",
-  "matplotlib <3.7.2",
+  "matplotlib",
   "netcdf4",
   "numpy >=1.20",
   "pyyaml",

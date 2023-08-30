@@ -280,7 +280,8 @@ def _imshow_grid_values(
 ):
     from ..grid.raster import RasterModelGrid
 
-    cmap = plt.get_cmap(cmap)
+    if isinstance(cmap, str):
+        cmap = plt.colormaps[cmap]
 
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
@@ -321,7 +322,7 @@ def _imshow_grid_values(
 
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
-        plt.gca().set_aspect(1.0)
+        myimage.axes.set_aspect("equal")
         plt.autoscale(tight=True)
 
         if allow_colorbar:
@@ -375,7 +376,7 @@ def _imshow_grid_values(
             line_segments.set_color("black")
             ax.add_collection(line_segments)
 
-        ax.set_aspect(1.0)
+        ax.set_aspect("equal")
         ax.set_rasterized(True)
 
         plt.xlim((np.min(grid.x_of_node), np.max(grid.x_of_node)))
@@ -384,6 +385,8 @@ def _imshow_grid_values(
         scalarMap.set_array(values)
         if allow_colorbar:
             cb = plt.colorbar(scalarMap, shrink=shrink, ax=ax)
+            if colorbar_label:
+                cb.set_label(colorbar_label)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
