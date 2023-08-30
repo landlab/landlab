@@ -15,4 +15,3 @@ python:
     - requirements: docs/requirements.in
     - method: pip
       path: .
-  system_packages: false
