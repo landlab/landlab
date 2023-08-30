@@ -93,5 +93,4 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     :maxdepth: 2
     :hidden:
 
-    landlab_one_to_two
     standard_name_changes
