@@ -24,6 +24,8 @@ taking advantage of codes that have already been written.
 
 A list of papers and presentations using Landlab can be found :ref:`here <papers>`.
 
+.. include:: ../citing.rst
+
 
 .. toctree::
     :caption: The Landlab Grid
