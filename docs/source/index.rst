@@ -10,6 +10,20 @@ Landlab: A modular Earth Surface Dynamics modeling library
   :start-after: .. start-intro
   :end-before: .. end-intro
 
+For a list of papers and presentations that use Landlab, please see can be found :ref:`here <papers>`.
+
+For a list of people that are using *Landlab*, please have a look at our
+:ref:`Papers and Presentations <papers>` section.
+
+.. note::
+
+   If you are using *Landlab* but don't see a reference to your work
+   in our list, please let us know either through an issue or as a
+   pull request (with your reference added to our ``USEDBY.rst`` file).
+
+
+.. include:: citing.rst
+
 .. toctree::
  :caption: Getting Started
  :maxdepth: 1
