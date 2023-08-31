@@ -24,7 +24,7 @@ def find_extensions(path="."):
 setup(
     include_dirs=[numpy.get_include()],
     ext_modules=cythonize(
-        find_extensions("landlab") + find_extensions("tests"),
+        find_extensions("src/landlab") + find_extensions("tests"),
         compiler_directives={"embedsignature": True, "language_level": 3},
     ),
 )

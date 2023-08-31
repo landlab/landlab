@@ -97,7 +97,7 @@ version = {attr = "landlab._version.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-testpaths = ["notebooks", "landlab", "tests"]
+testpaths = ["notebooks", "src/landlab", "tests"]
 norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
