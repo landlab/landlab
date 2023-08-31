@@ -87,10 +87,6 @@ landlab = [
   "test_*/*asc",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["landlab*"]
-
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "landlab._version.__version__"}
