@@ -1,3 +1,6 @@
+.. _citing:
+
+
 Citing Landlab
 ==============
 
