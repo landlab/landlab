@@ -3,7 +3,7 @@ Citing Landlab
 
 .. start-citing-landlab
 
-If you use any portion of Landlab, please cite the following papers:
+If you use any portion of *Landlab*, please cite the following papers:
 
 .. tab:: APA
 
