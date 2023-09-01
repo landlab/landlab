@@ -24,14 +24,13 @@ To install *Landlab*, simply run the following in your terminal of choice:
 
   .. code-block:: bash
 
-    conda install mamba -c conda-forge
-    mamba install landlab -c conda-forge
+    mamba install landlab -c nodefaults -c conda-forge --override-channels
 
 .. tab:: conda
 
   .. code-block:: bash
 
-    conda install landlab -c conda-forge
+    conda install landlab -c nodefaults -c conda-forge --override-channels
 
 .. tab:: pip
 

@@ -37,24 +37,25 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: mamba-org/setup-micromamba@v1
         with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          channels: conda-forge
-          channel-priority: true
+          micromamba-version: latest
+          environment-name: testing
+          create-args: >-
+            python=${{ matrix.python-version }}
+            c-compiler
+            cxx-compiler
+            mamba
 
       - name: Show conda installation info
         run: |
-          conda install mamba
           pip install nox
-          conda info
-          conda list
+          mamba info
+          mamba list
 
       - name: Install and test richdem engine
         run: |
-          mamba install c-compiler cxx-compiler
-          mamba install richdem -c conda-forge
+          micromamba install richdem -c conda-forge
           python -c 'import _richdem'
 
       - name: Test
