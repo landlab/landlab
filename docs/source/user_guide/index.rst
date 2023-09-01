@@ -22,10 +22,6 @@ to use a surface process model often build their own unique model from the groun
 up, re-coding the basic building blocks of their surface process model rather than
 taking advantage of codes that have already been written.
 
-A list of papers and presentations using Landlab can be found :ref:`here <papers>`.
-
-.. include:: ../citing.rst
-
 
 .. toctree::
     :caption: The Landlab Grid
