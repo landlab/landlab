@@ -29,7 +29,8 @@ page.
  :hidden:
 
  installation
- Tutorial notebooks <getting_started/index>
+ Tutorials <tutorials/index>
+ Teaching <teaching/index>
  user_guide/index
 
 .. toctree::
