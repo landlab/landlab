@@ -7,8 +7,6 @@ User Guide
 
 The User Guide describes Landlab by topic area.
 
-Users brand-new to Landlab should start with :ref:`10min`.
-
 Further information on any specific method can be obtained in the
 :ref:`api`.
 
