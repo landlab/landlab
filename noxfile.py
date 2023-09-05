@@ -1,3 +1,4 @@
+import glob
 import os
 import pathlib
 import shutil
@@ -123,6 +124,36 @@ def build_index(session: nox.Session) -> None:
     session.log(f"generated index at {index_file!s}")
 
 
+@nox.session(name="build-gallery")
+def build_gallery(session: nox.Session) -> None:
+    notebook_dirs = [
+        ROOT / "docs" / "source" / dir for dir in ("teaching", "tutorials")
+    ]
+
+    dirs_with_notebooks = []
+    for dir in notebook_dirs:
+        dirs_with_notebooks += [p for p in dir.glob("*") if p.is_dir()]
+
+    # for dir in [p for p in (docs_dir / "source" / "teaching").glob("*") if p.is_dir()]:
+    for dir in dirs_with_notebooks:
+        title = dir.stem.replace("_", " ").title()
+        lines = [
+            f"{title}",
+            f"{'-'*len(title)}",
+            "",
+            ".. nbgallery::",
+            "    :glob:",
+            "",
+        ]
+        with session.chdir(dir):
+            if len(glob.glob("*.ipynb")):
+                lines += ["    *"]
+            if len(glob.glob("**/*.ipynb")):
+                lines += ["    **/*"]
+        with open(dir / "index.rst", "w") as fp:
+            print(os.linesep.join(lines), file=fp)
+
+
 # @nox.session(name="build-docs", venv_backend="mamba")
 @nox.session(name="build-docs")
 def build_docs(session: nox.Session) -> None:
@@ -140,6 +171,8 @@ def build_docs(session: nox.Session) -> None:
         "html",
         "-W",
         "--keep-going",
+        "--jobs",
+        "auto",
         docs_dir / "source",
         build_dir / "html",
     )
