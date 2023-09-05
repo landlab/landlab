@@ -1,0 +1,7 @@
+Lithology
+---------
+
+.. nbgallery::
+    :glob:
+
+    *

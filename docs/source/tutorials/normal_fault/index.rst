@@ -1,0 +1,7 @@
+Normal Fault
+------------
+
+.. nbgallery::
+    :glob:
+
+    *

@@ -1,0 +1,7 @@
+Boundary Conds
+--------------
+
+.. nbgallery::
+    :glob:
+
+    *

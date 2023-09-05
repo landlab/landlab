@@ -1,0 +1,7 @@
+Ecohydrology
+------------
+
+.. nbgallery::
+    :glob:
+
+    **/*

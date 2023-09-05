@@ -1,0 +1,7 @@
+Mappers
+-------
+
+.. nbgallery::
+    :glob:
+
+    *

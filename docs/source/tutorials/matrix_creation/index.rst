@@ -1,0 +1,7 @@
+Matrix Creation
+---------------
+
+.. nbgallery::
+    :glob:
+
+    *

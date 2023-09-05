@@ -1,0 +1,7 @@
+Component Tutorial
+------------------
+
+.. nbgallery::
+    :glob:
+
+    *
