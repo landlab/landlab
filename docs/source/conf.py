@@ -34,6 +34,7 @@ docs_dir = pathlib.Path(__file__).parent
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    "nbsphinx",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
@@ -401,3 +402,22 @@ cats["grids"].pop("ModelGrid")
 jinja_contexts = {"llcats": cats}
 
 autodoc_mock_imports = ["richdem"]
+
+nbsphinx_execute = "never"
+nbsphinx_thumbnails = {
+    "tutorials/**/*": "_static/favicon.ico",
+    "tutorials/*": "_static/favicon.ico",
+}
+# This is processed by Jinja2 and inserted before each notebook
+nbsphinx_prolog = r"""
+{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) %}
+
+.. raw:: html
+
+    <div class="admonition note">
+      This page was generated from
+      <a class="reference external"
+        href="https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}">{{ docname|e }}
+      </a>.
+    </div>
+"""
