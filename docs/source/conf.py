@@ -420,4 +420,4 @@ nbsphinx_prolog = r"""
         href="https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}">{{ docname|e }}
       </a>.
     </div>
-"""
+"""  # noqa: B950
