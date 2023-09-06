@@ -1,4 +1,5 @@
 furo
+ipython
 nbsphinx
 pandoc
 sphinx-copybutton
