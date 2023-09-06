@@ -47,15 +47,6 @@ taking advantage of codes that have already been written.
 
 
 .. toctree::
-    :caption: Landlab Tutorial Library
-    :maxdepth: 2
-    :hidden:
-
-    tutorials
-    teaching_tutorials
-
-
-.. toctree::
     :caption: Additional resources
     :maxdepth: 2
     :hidden:
