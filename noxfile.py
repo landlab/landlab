@@ -154,14 +154,14 @@ def build_gallery(session: nox.Session) -> None:
             print(os.linesep.join(lines), file=fp)
 
 
-# @nox.session(name="build-docs", venv_backend="mamba")
-@nox.session(name="build-docs")
+@nox.session(name="build-docs", venv_backend="mamba")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
     build_dir = ROOT / "build"
     docs_dir = ROOT / "docs"
 
-    session.install("-r", docs_dir / "requirements.txt")
+    session.conda_install("pandoc", channel=["nodefaults", "conda-forge"])
+    session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".")
 
     build_dir.mkdir(exist_ok=True)
