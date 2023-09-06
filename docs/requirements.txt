@@ -87,10 +87,16 @@ packaging==23.1
     # via
     #   nbconvert
     #   sphinx
+pandoc==2.3
+    # via -r requirements.in
 pandocfilters==1.5.0
     # via nbconvert
 platformdirs==3.10.0
     # via jupyter-core
+plumbum==1.8.2
+    # via pandoc
+ply==3.11
+    # via pandoc
 pygments==2.16.1
     # via
     #   furo

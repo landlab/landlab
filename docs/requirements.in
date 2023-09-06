@@ -1,5 +1,6 @@
 furo
 nbsphinx
+pandoc
 sphinx-copybutton
 sphinx-inline-tabs
 sphinx-jinja
