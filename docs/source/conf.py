@@ -405,6 +405,8 @@ autodoc_mock_imports = ["richdem"]
 
 nbsphinx_execute = "never"
 nbsphinx_thumbnails = {
+    "teaching/**/*": "_static/favicon.ico",
+    "teaching/*": "_static/favicon.ico",
     "tutorials/**/*": "_static/favicon.ico",
     "tutorials/*": "_static/favicon.ico",
 }
