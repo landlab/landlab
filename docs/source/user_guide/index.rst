@@ -55,8 +55,6 @@ taking advantage of codes that have already been written.
     field_definitions
     grid_summary
     time_steps
-    examples
-    faq
 
 
 .. toctree::
