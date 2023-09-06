@@ -409,6 +409,8 @@ nbsphinx_thumbnails = {
     "teaching/*": "_static/favicon.ico",
     "tutorials/**/*": "_static/favicon.ico",
     "tutorials/*": "_static/favicon.ico",
+    "tutorials/flexure/lots_of_loads": "user_guide/images/flexure.png",
+    "tutorials/component_tutorial/component_tutorial": "user_guide/images/topographic-elevation.png",
 }
 # This is processed by Jinja2 and inserted before each notebook
 nbsphinx_prolog = r"""
