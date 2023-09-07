@@ -55,19 +55,3 @@ taking advantage of codes that have already been written.
     field_definitions
     grid_summary
     time_steps
-
-
-.. toctree::
-    :caption: Overland flow User Guide
-    :maxdepth: 2
-    :hidden:
-
-    overland_flow_user_guide
-
-
-.. toctree::
-    :caption: CellLab-CTS User Guide
-    :maxdepth: 2
-    :hidden:
-
-    cell_lab_user_guide
