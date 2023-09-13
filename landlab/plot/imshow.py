@@ -277,7 +277,7 @@ def _imshow_grid_values(
     color_for_background=None,
     show_elements=False,
     output=None,
-    alpha=1.0
+    alpha=1.0,
 ):
     from ..grid.raster import RasterModelGrid
 
