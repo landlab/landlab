@@ -277,6 +277,7 @@ def _imshow_grid_values(
     color_for_background=None,
     show_elements=False,
     output=None,
+    alpha = 1.0
 ):
     from ..grid.raster import RasterModelGrid
 
@@ -320,7 +321,7 @@ def _imshow_grid_values(
             if vmax is not None:
                 kwds["vmax"] = vmax
 
-        myimage = plt.pcolormesh(x, y, values, **kwds)
+        myimage = plt.pcolormesh(x, y, values, alpha = alpha, **kwds)
         myimage.set_rasterized(True)
         myimage.axes.set_aspect("equal")
         plt.autoscale(tight=True)
