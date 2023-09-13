@@ -320,8 +320,9 @@ def _imshow_grid_values(
                 kwds["vmin"] = vmin
             if vmax is not None:
                 kwds["vmax"] = vmax
+        kwds["alpha"] = alpha
 
-        myimage = plt.pcolormesh(x, y, values, alpha=alpha, **kwds)
+        myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
         myimage.axes.set_aspect("equal")
         plt.autoscale(tight=True)
@@ -348,7 +349,7 @@ def _imshow_grid_values(
 
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
-        colorVal = scalarMap.to_rgba(values)[grid.node_at_cell]
+        colorVal = scalarMap.to_rgba(values, alpha=alpha)[grid.node_at_cell]
 
         patches = []
 
