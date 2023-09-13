@@ -477,6 +477,8 @@ def imshow_grid(grid, values, **kwds):
         Make the colormap symetric about 0.
     cmap : str
         Name of a colormap
+    alpha : array-like or scalar or None, optional
+        Set the transparency.
     limits : tuple of float
         Minimum and maximum of the colorbar.
     vmin, vmax: floats
