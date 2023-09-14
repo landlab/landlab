@@ -61,6 +61,7 @@ from .priority_flood_flow_router import PriorityFloodFlowRouter
 from .profiler import ChannelProfiler, Profiler, TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
+from .snow import SnowDegreeDay
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
 from .space import Space, SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
@@ -144,6 +145,7 @@ COMPONENTS = [
     SimpleSubmarineDiffuser,
     SinkFiller,
     SinkFillerBarnes,
+    SnowDegreeDay,
     SoilMoisture,
     SoilInfiltrationGreenAmpt,
     Space,
