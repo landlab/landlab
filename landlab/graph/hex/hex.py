@@ -763,10 +763,10 @@ class HexGraphExtras:
         >>> import numpy as np
         >>> grid = HexModelGrid((3, 2))
         >>> grid.orientation_of_link
-        array([ 1, 16,  4, 16,  4,  1,  1,  4, 16,  4, 16,  1])
+        array([ 1, 16,  4, 16,  4,  1,  1,  4, 16,  4, 16,  1], dtype=uint8)
         >>> grid = HexModelGrid((2, 3), orientation="vertical")
         >>> grid.orientation_of_link
-        array([32,  2,  8,  2, 32,  8,  8, 32,  2,  8,  2, 32])
+        array([32,  2,  8,  2, 32,  8,  8, 32,  2,  8,  2, 32], dtype=uint8)
         """
         code = np.round(self.angle_of_link * 6.0 / np.pi).astype(np.uint8)
         code[code == 11] = 5
