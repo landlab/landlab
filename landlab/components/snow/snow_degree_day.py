@@ -7,13 +7,9 @@ https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base
 
 @author: Tian Gan Sept, 2023
 
-Check:
-- the way to calculate the max meltrate using h_swe value
-- the input and output format (as grid or para, two time series var from topoflow are not included here)
-- need to store current time ?
-
 """
 import numpy as np
+
 from landlab import Component
 
 
@@ -21,8 +17,10 @@ class SnowDegreeDay(Component):
 
     """Simulate snowmelt process using degree-day method.
 
-      The degree-day method uese c0 (degree-day coefficient), T0 (degree-day threshold temperature)
-      and T_air (air temperature) to determine the meltrate. When T_air is larger than T0, the melt process will start.
+      The degree-day method uese c0 (degree-day coefficient),
+      T0 (degree-day threshold temperature) and T_air (air temperature)
+      to determine the meltrate.
+      When T_air is larger than T0, the melt process will start.
       The melt rate is calculated as SM = (T_air -T0) * c0
 
     Parameters
@@ -90,7 +88,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "precipitation rate (in water equivalent)",
         },
-
         "snowpack__degree-day_coefficient": {
             "dtype": float,
             "intent": "in",
@@ -99,7 +96,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "degree-day coefficient",
         },
-
         "snowpack__degree-day_threshold_temperature": {
             "dtype": float,
             "intent": "in",
@@ -108,7 +104,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "degree-day threshold temperature to start melt",
         },
-
         "snowpack__liquid-equivalent_depth": {
             "dtype": float,
             "intent": "inout",
@@ -117,7 +112,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "snow water equivalent depth",
         },
-
         # output fields
         "snowpack__depth": {
             "dtype": float,
@@ -127,7 +121,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "snow depth",
         },
-
         "snowpack__melt_volume_flux": {
             "dtype": float,
             "intent": "out",
@@ -136,7 +129,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "snow melt volume flux",
         },
-
         "atmosphere_water__time_integral_snowfall_leq-volume_flux": {
             "dtype": float,
             "intent": "out",
@@ -145,7 +137,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "total precipitation as snow (in water equivalent) during model time ",
         },  # variable defined by me
-
         "snowpack__time_integral_melt_volume_flux": {
             "dtype": float,
             "intent": "out",
@@ -154,7 +145,6 @@ class SnowDegreeDay(Component):
             "mapping": "node",
             "doc": "total snow melt (in water equivalent) during model time",
         },  # variable defined by me
-
         # "snowpack__domain_integral_of_liquid-equivalent_depth": {
         #     "dtype": float,
         #     "intent": "out",
@@ -165,15 +155,8 @@ class SnowDegreeDay(Component):
         # }, # TODO this is time series output, how to represent in landlab component?
     }
 
-    def __init__(
-        self,
-        grid,
-        rho_snow=200,
-        rho_H2O=1000,
-        T_rain_snow=1
-    ):
-
-        """ Initialize SnowDegreeDay component """
+    def __init__(self, grid, rho_snow=200, rho_H2O=1000, T_rain_snow=1):
+        """Initialize SnowDegreeDay component"""
 
         super().__init__(grid)
 
@@ -181,7 +164,9 @@ class SnowDegreeDay(Component):
         self._rho_snow = rho_snow
         self._rho_H2O = rho_H2O
         self._T_rain_snow = T_rain_snow
-        self._density_ratio = self._rho_H2O/self._rho_snow  # density_ratio > 1 (h_snow/h_swe)
+        self._density_ratio = (
+            self._rho_H2O / self._rho_snow
+        )  # density_ratio > 1 (h_snow/h_swe)
         self._P_snow = None
         # self._domain_vol_SM = None  # snowpack__domain_time_integral_of_melt_volume_flux
         # self._domain_vol_swe = None  # snowpack__domain_integral_of_liquid-equivalent_depth
@@ -202,23 +187,27 @@ class SnowDegreeDay(Component):
         if "snowpack__liquid-equivalent_depth" in grid.at_node:
             self._h_swe = grid.at_node["snowpack__liquid-equivalent_depth"]
         else:
-            self._h_swe = grid.add_zeros("snowpack__liquid-equivalent_depth", at='node')
+            self._h_swe = grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
 
         # output data fields
         super().initialize_output_fields()
         self._h_snow = grid.at_node["snowpack__depth"]
         self._h_snow[:] = self._h_swe[:] * self.density_ratio
         self._SM = grid.at_node["snowpack__melt_volume_flux"]
-        self._total_P_snow = grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"]  # defined by me
-        self._total_SM = grid.at_node["snowpack__time_integral_melt_volume_flux"]  # defined by me
+        self._total_P_snow = grid.at_node[
+            "atmosphere_water__time_integral_snowfall_leq-volume_flux"
+        ]  # defined by me
+        self._total_SM = grid.at_node[
+            "snowpack__time_integral_melt_volume_flux"
+        ]  # defined by me
 
     @property
     def rho_snow(self):
         return self._rho_snow
 
     @rho_snow.setter
-    def rho_snow(self,rho_snow):
-        assert rho_snow > 0, 'assign rho_snow with positive value'
+    def rho_snow(self, rho_snow):
+        assert rho_snow > 0, "assign rho_snow with positive value"
         self._rho_snow = rho_snow
 
     @property
@@ -227,7 +216,7 @@ class SnowDegreeDay(Component):
 
     @rho_H2O.setter
     def rho_H2O(self, rho_H2O):
-        assert rho_H2O > 0, 'assign rho_H2O with positive value'
+        assert rho_H2O > 0, "assign rho_H2O with positive value"
         self._rho_H2O = rho_H2O
 
     @property
@@ -236,11 +225,13 @@ class SnowDegreeDay(Component):
 
     @property
     def density_ratio(self):
-        return self._rho_H2O/self._rho_snow
+        return self._rho_H2O / self._rho_snow
 
     def _update_snowmelt_rate(self, dt):
         # melt rate based on degree-day coefficient
-        sm_c0 = (self._c0 / np.float64(8.64E7)) * (self._T_air - self._T0)  # convert mm -day -K to  m/s
+        sm_c0 = (self._c0 / np.float64(8.64e7)) * (
+            self._T_air - self._T0
+        )  # convert mm -day -K to  m/s
         sm_c0 = np.maximum(sm_c0, np.float64(0))
 
         # melt rate based on available swe (enforced max meltrate)
