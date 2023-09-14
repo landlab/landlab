@@ -36,12 +36,13 @@ def test_assign_parameters():
     grid = RasterModelGrid((2, 2))
     grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
-    sm = SnowDegreeDay(grid, rho_snow=300, rho_H2O=1001, T_rain_snow=1.1)
+    sm = SnowDegreeDay(grid, rho_snow=300, rho_H2O=1001, T_rain_snow=1.1, grid_area=100)
 
     assert sm.rho_snow == 300, "wrong rho_snow value"
     assert sm.rho_H2O == 1001, "wrong rho_H2O value"
     assert sm.T_rain_snow == 1.1, "wrong T_rain_snow value"
-    assert sm.density_ratio == 1001 / 300, "wrong density_ratio"
+    assert sm.grid_area == 100, "wrong grid_area value"
+    assert sm.density_ratio == 1001 / 300, "wrong density_ratio value"
 
     with pytest.raises(AssertionError):
         sm.rho_H2O = -1
@@ -53,7 +54,7 @@ def test_assign_parameters():
 def test_snow_accumulation():
     """Test when there is only snow accumulation"""
 
-    grid = RasterModelGrid((2, 2))
+    grid = RasterModelGrid((2, 2), xy_spacing=(2, 2))
     grid.add_full("atmosphere_bottom_air__temperature", -2, at="node")
     grid.add_full(
         "atmosphere_water__precipitation_leq-volume_flux",
@@ -62,7 +63,10 @@ def test_snow_accumulation():
     )
     grid.add_full("snowpack__liquid-equivalent_depth", 0.001)
 
-    sm = SnowDegreeDay(grid)
+    sm = SnowDegreeDay(grid, grid_area=100)
+    assert sm.vol_SM == 0, f"wrong vol_swe value is {sm.vol_SM}"
+    assert sm.vol_swe == 0.4, f"wrong vol_swe value is {sm.vol_swe}"
+
     sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.01)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
@@ -70,6 +74,11 @@ def test_snow_accumulation():
         grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 0.001
     )
     assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 0)
+    assert sm.vol_swe == 0.8, f"wrong vol_swe value is {sm.vol_swe}"
+    assert sm.vol_SM == 0, f"wrong vol_SM value is  {sm.vol_SM}"
+
+    sm = SnowDegreeDay(grid)
+    assert sm.grid_area == 4, f"wrong grid_area value is {sm.grid_area}"
 
 
 def test_snow_melt():
@@ -81,7 +90,7 @@ def test_snow_melt():
     grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
     grid.add_full("snowpack__degree-day_coefficient", 3)  # mm -day -K
 
-    sm = SnowDegreeDay(grid)
+    sm = SnowDegreeDay(grid, grid_area=100)
     sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__degree-day_threshold_temperature"], 0)
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0)
@@ -95,6 +104,8 @@ def test_snow_melt():
         grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 0
     )
     assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 0.005)
+    assert sm.vol_swe == 0, f" wrong vol_swe value is {sm.vol_swe}"
+    assert sm.vol_SM == 2, f"wrong vol_SM value is  {sm.vol_SM}"
 
 
 def test_snow_melt_accumulation():
@@ -110,7 +121,7 @@ def test_snow_melt_accumulation():
     grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
     grid.add_full("snowpack__degree-day_coefficient", 3)  # mm -K -Day
 
-    sm = SnowDegreeDay(grid)
+    sm = SnowDegreeDay(grid, grid_area=100)
     sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__degree-day_threshold_temperature"], 0)
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 5.5 / 1000)
@@ -128,6 +139,9 @@ def test_snow_melt_accumulation():
         grid.at_node["snowpack__time_integral_melt_volume_flux"], 1.5 / 1000
     )
 
+    assert sm.vol_swe == 2.2, f"wrong vol_swe value is {sm.vol_swe}"
+    assert sm.vol_SM == 0.6, f"wrong vol_SM value is {sm.vol_SM}"
+
 
 def test_multiple_runs():
     """Test multiple runs with changing inputs at each time step"""
@@ -138,7 +152,7 @@ def test_multiple_runs():
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
     grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
     init_swe = grid.at_node["snowpack__liquid-equivalent_depth"].copy()
-    sm = SnowDegreeDay(grid)
+    sm = SnowDegreeDay(grid, grid_area=100)
 
     sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__degree-day_threshold_temperature"], 0)
@@ -190,6 +204,8 @@ def test_multiple_runs():
     assert_almost_equal(
         grid.at_node["snowpack__time_integral_melt_volume_flux"], 0.0025
     )
+    assert sm.vol_swe == 2.6, f"wrong vol_swe value is {sm.vol_swe}"
+    assert sm.vol_SM == 1, f"wrong vol_SM value is {sm.vol_SM}"
 
     # check mass balance
     in_out = (
