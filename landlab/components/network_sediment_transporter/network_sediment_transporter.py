@@ -12,12 +12,16 @@ import warnings
 
 import numpy as np
 import scipy.constants
-import xarray as xr
 
 from landlab import Component
 from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
+
+from .aggregate_parcels import (
+    aggregate_parcels_at_link_mean,
+    aggregate_parcels_at_link_sum,
+)
 
 _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 _SUPPORTED_ACTIVE_LAYER_METHODS = ["WongParker", "GrainSizeDependent", "Constant10cm"]
@@ -162,7 +166,7 @@ class NetworkSedimentTransporter(Component):
 
     Run the model
 
-    >>> for t in range(0, (timesteps * dt), dt):
+    >>> for _ in range(timesteps):
     ...     nst.run_one_step(dt)
 
     We can the link location of the parcel at each timestep
@@ -452,52 +456,38 @@ class NetworkSedimentTransporter(Component):
 
     def _calculate_mean_D_and_rho(self):
         """Calculate mean grain size and density on each link"""
+        self._d_mean_active = self._grid.zeros(at="link")
+        self._rhos_mean_active = self._grid.zeros(at="link")
 
-        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
-
-        # In the first full timestep, we need to calc grain size & rho_sed.
-        # Assume all parcels are in the active layer for the purposes of
-        # grain size and mean sediment density calculations
-
-        # FUTURE: make it possible to circumvent this if mean grain size
-        # has already been calculated (e.g. during 'zeroing' runs)
-
-        # Calculate mean values for density and grain size (weighted by volume).
-        sel_parcels = current_parcels.where(
-            current_parcels.element_id != self.OUT_OF_NETWORK
+        aggregate_parcels_at_link_mean(
+            self._rhos_mean_active,
+            self.grid.number_of_links,
+            self._parcels.dataset.element_id.values[:, -1].astype(int),
+            len(self._parcels.dataset.element_id.values[:, -1]),
+            self._parcels.dataset.density.values.reshape(-1),
+            self._parcels.dataset.volume.values[:, -1],
         )
-
-        d_weighted = sel_parcels.D * sel_parcels.volume
-        rho_weighted = sel_parcels.density * sel_parcels.volume
-        d_weighted.name = "d_weighted"
-        rho_weighted.name = "rho_weighted"
-
-        grouped_by_element = xr.merge(
-            (sel_parcels.element_id, sel_parcels.volume, d_weighted, rho_weighted)
-        ).groupby("element_id")
-
-        d_avg = grouped_by_element.sum().d_weighted / grouped_by_element.sum().volume
-        rho_avg = (
-            grouped_by_element.sum().rho_weighted / grouped_by_element.sum().volume
+        aggregate_parcels_at_link_mean(
+            self._d_mean_active,
+            self.grid.number_of_links,
+            self._parcels.dataset.element_id.values[:, -1].astype(int),
+            len(self._parcels.dataset.element_id.values[:, -1]),
+            self._parcels.dataset.D.values.reshape(-1),
+            self._parcels.dataset.volume.values[:, -1],
         )
-
-        self._d_mean_active = np.zeros(self._grid.size("link"))
-        self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
-
-        self._rhos_mean_active = np.zeros(self._grid.size("link"))
-        self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
 
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep, then updates node
         elevations.
         """
-        self._vol_tot = self._parcels.calc_aggregate_value(
-            xr.Dataset.sum,
-            "volume",
-            at="link",
-            filter_array=self._this_timesteps_parcels,
-            fill_value=0.0,
+        self._vol_tot = self.grid.zeros(at="link")
+        aggregate_parcels_at_link_sum(
+            self._vol_tot,
+            self.grid.number_of_links,
+            self._parcels.dataset.element_id.values[:, -1].astype(int),
+            len(self._parcels.dataset.volume.values[:, -1]),
+            self._parcels.dataset.volume.values[:, -1],
         )
 
         if self._active_layer_method == "WongParker":
@@ -606,12 +596,16 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
 
-        self._vol_act = self._parcels.calc_aggregate_value(
-            xr.Dataset.sum,
-            "volume",
-            at="link",
-            filter_array=self._active_parcel_records,
-            fill_value=0.0,
+        parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
+        parcel_volumes[~self._active_parcel_records.values[:, -1].astype(bool)] = 0.0
+
+        self._vol_act = self.grid.zeros(at="link")
+        aggregate_parcels_at_link_sum(
+            self._vol_act,
+            self.grid.number_of_links,
+            self._parcels.dataset.element_id.values[:, -1].astype(int),
+            len(self._parcels.dataset.volume.values[:, -1]),
+            parcel_volumes,
         )
 
         self._vol_stor = (self._vol_tot - self._vol_act) / (1 - self._bed_porosity)
@@ -723,12 +717,16 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.D < _SAND_SIZE
         ) * self._active_parcel_records
 
-        vol_act_sand = self._parcels.calc_aggregate_value(
-            xr.Dataset.sum,
-            "volume",
-            at="link",
-            filter_array=findactivesand,
-            fill_value=0.0,
+        parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
+        parcel_volumes[~findactivesand[:, -1].astype(bool)] = 0.0
+
+        vol_act_sand = self.grid.zeros(at="link")
+        aggregate_parcels_at_link_sum(
+            vol_act_sand,
+            self.grid.number_of_links,
+            self._parcels.dataset.element_id.values[:, -1].astype(int),
+            len(self._parcels.dataset.volume.values[:, -1]),
+            parcel_volumes,
         )
 
         frac_sand = np.zeros_like(self._vol_act)
@@ -817,6 +815,7 @@ class NetworkSedimentTransporter(Component):
 
     def _move_parcel_downstream(self, dt):
         """Method to update parcel location for each parcel in the active layer."""
+
         # determine where parcels are starting
         current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
         self.current_link = current_link
