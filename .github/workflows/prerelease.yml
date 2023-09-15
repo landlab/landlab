@@ -90,7 +90,7 @@ jobs:
           python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.12.1
+        uses: pypa/cibuildwheel@v2.15.0
         with:
           only: ${{ matrix.cibw-only }}
 
