@@ -16,7 +16,7 @@ the steps are the same for developing a utility. Unlike a component, a utility
 can just be a function. But like a component, we expect contributed utilities
 to follow the landlab standard practices outlined in our documentation.
 
-Once you have installed Landlab (:ref:`developer install <developer_install>`)
+Once you have installed Landlab (:ref:`developer install <install>`)
 and :ref:`created your own branch <landlab_develop_with_git>`, you can start
 writing a Python script for your component.
 

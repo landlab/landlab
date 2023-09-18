@@ -20,7 +20,7 @@ beautifulsoup4==4.11.2
     #   nbconvert
 bleach==6.0.0
     # via nbconvert
-certifi==2022.12.7
+certifi==2023.7.22
     # via requests
 charset-normalizer==3.0.1
     # via requests
@@ -39,14 +39,13 @@ docutils==0.18.1
     #   nbsphinx
     #   sphinx
     #   sphinx-jinja
-    #   sphinx-rtd-theme
 entrypoints==0.4
     # via -r docs/requirements.in
 executing==1.2.0
     # via stack-data
 fastjsonschema==2.16.2
     # via nbformat
-furo==2023.3.27
+furo==2023.8.19
     # via -r docs/requirements.in
 idna==3.4
     # via requests
@@ -54,7 +53,7 @@ imagesize==1.4.1
     # via sphinx
 incremental==22.10.0
     # via towncrier
-ipython==8.12.0
+ipython==8.14.0
     # via -r docs/requirements.in
 jedi==0.18.2
     # via ipython
@@ -67,7 +66,7 @@ jinja2==3.1.2
     #   towncrier
 jsonschema==4.17.3
     # via nbformat
-jupyter-client==8.2.0
+jupyter-client==8.3.0
     # via
     #   -r docs/requirements.in
     #   nbclient
@@ -91,13 +90,13 @@ nbclient==0.7.2
     # via nbconvert
 nbconvert==7.2.9
     # via nbsphinx
-nbformat==5.8.0
+nbformat==5.9.2
     # via
     #   -r docs/requirements.in
     #   nbclient
     #   nbconvert
     #   nbsphinx
-nbsphinx==0.9.1
+nbsphinx==0.9.3
     # via -r docs/requirements.in
 packaging==23.0
     # via
@@ -125,7 +124,7 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
     # via stack-data
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   furo
     #   ipython
@@ -139,7 +138,7 @@ pytz==2022.7.1
     # via babel
 pyzmq==25.0.0
     # via jupyter-client
-requests==2.28.2
+requests==2.31.0
     # via sphinx
 six==1.16.0
     # via
@@ -150,7 +149,7 @@ snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.4
     # via beautifulsoup4
-sphinx==6.2.1
+sphinx==7.2.4
     # via
     #   -r docs/requirements.in
     #   furo
@@ -159,17 +158,15 @@ sphinx==6.2.1
     #   sphinx-copybutton
     #   sphinx-inline-tabs
     #   sphinx-jinja
-    #   sphinx-rtd-theme
+    #   sphinxcontrib-serializinghtml
     #   sphinxcontrib-towncrier
 sphinx-basic-ng==1.0.0b1
     # via furo
-sphinx-copybutton==0.5.1
+sphinx-copybutton==0.5.2
     # via -r docs/requirements.in
 sphinx-inline-tabs==2023.4.21
     # via -r docs/requirements.in
 sphinx-jinja==2.0.2
-    # via -r docs/requirements.in
-sphinx-rtd-theme==1.2.0
     # via -r docs/requirements.in
 sphinxcontrib-applehelp==1.0.4
     # via sphinx
@@ -177,13 +174,11 @@ sphinxcontrib-devhelp==1.0.2
     # via sphinx
 sphinxcontrib-htmlhelp==2.0.1
     # via sphinx
-sphinxcontrib-jquery==2.0.0
-    # via sphinx-rtd-theme
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-qthelp==1.0.3
     # via sphinx
-sphinxcontrib-serializinghtml==1.1.5
+sphinxcontrib-serializinghtml==1.1.9
     # via sphinx
 sphinxcontrib-towncrier==0.3.2a0
     # via -r docs/requirements.in
@@ -195,11 +190,11 @@ tinycss2==1.2.1
     # via nbconvert
 tomli==2.0.1
     # via -r docs/requirements.in
-tornado==6.3
+tornado==6.3.3
     # via
     #   -r docs/requirements.in
     #   jupyter-client
-towncrier==22.12.0
+towncrier==23.6.0
     # via
     #   -r docs/requirements.in
     #   sphinxcontrib-towncrier
@@ -221,6 +216,3 @@ webencodings==0.5.1
     # via
     #   bleach
     #   tinycss2
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
