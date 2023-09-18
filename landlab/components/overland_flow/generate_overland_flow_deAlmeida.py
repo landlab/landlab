@@ -90,6 +90,7 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component, FieldError
+from landlab.utils import return_array_at_node
 
 from . import _links as links
 
@@ -368,7 +369,7 @@ class OverlandFlow(Component):
 
     @dt.setter
     def dt(self, dt):
-        assert dt > 0
+        assert dt > 0, "timestep dt must be positive"
         self._dt = dt
 
     @property
@@ -380,11 +381,14 @@ class OverlandFlow(Component):
         return self._rainfall_intensity
 
     @rainfall_intensity.setter
-    def rainfall_intensity(self, rainfall_intensity):
-        if rainfall_intensity >= 0:
-            self._rainfall_intensity = rainfall_intensity
+    def rainfall_intensity(self, new_val):
+        message = "Rainfall intensity must be positive"
+        if isinstance(new_val,float):
+            assert new_val >= 0, message
         else:
-            raise ValueError("Rainfall intensity must be positive")
+            assert (new_val >= 0).all(), message
+
+        self._rainfall_intensity = return_array_at_node(self._grid, new_val)
 
     def calc_time_step(self):
         """Calculate time step.
