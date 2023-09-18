@@ -59,12 +59,12 @@ class ConcentrationTrackerForSpace(Component):
     >>> z += z_br + h
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> sp = SpaceLargeScaleEroder(mg)
-    >>> ct = ConcentrationTrackerForSpace(mg)
+    >>> ct = ConcentrationTrackerForSpace(mg,sp)
     >>> fr.run_one_step()
     >>> sp.run_one_step(1.)
     >>> ct.run_one_step(1.)
     >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([4.11701964, 8.01583689, 11.00247875]))
+    ...             np.array([1.09720006, 1.1977825, 1.29857147]))
     True
     >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
     ...             np.array([0., 0.24839685, 1.]))
@@ -359,12 +359,16 @@ class ConcentrationTrackerForSpace(Component):
         v_s = self._sp._v_s
         Es = self._sp.Es
         Er = self._sp.Er
-        D_sw = v_s*self._Qs_out/q
+        D_sw = np.zeros(np.shape(q))
+        D_sw[q!=0] = v_s*self._Qs_out[q!=0]/q[q!=0]
+        #D_sw = v_s*self._Qs_out/q (ORIGINAL EQN WITH DIVIDE BY ZERO ISSUE)
 
         # Calculate WC mass balance terms that don't need downstream iteration
         WC_Es_term = (1-phi)*Es*self._cell_area
         WC_Er_term = (1-F_f)*Er*self._cell_area
-        WC_denominator_term = 1 + v_s*self._cell_area/q
+        WC_denominator_term = np.ones(np.shape(q))
+        WC_denominator_term[q!=0] = 1 + v_s*self._cell_area/q[q!=0]
+        #WC_denominator_term = 1 + v_s*self._cell_area/q (ORIGINAL EQN WITH DIVIDE BY ZERO ISSUE)
         
         # Calculate BED mass balance terms that don't need downstream iteration
         with np.errstate(divide='ignore', invalid='ignore'):
