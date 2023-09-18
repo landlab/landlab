@@ -44,6 +44,7 @@ class ConcentrationTrackerForSpace(Component):
         
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
+    >>> from landlab.components import PriorityFloodFlowRouter
     >>> from landlab.components import SpaceLargeScaleEroder
     >>> from landlab.components import ConcentrationTrackerForSpace
     >>> mg = RasterModelGrid((3, 5),xy_spacing=10.)
@@ -56,8 +57,10 @@ class ConcentrationTrackerForSpace(Component):
     >>> c[8] += 1
     >>> z_br += mg.node_x/100
     >>> z += z_br + h
+    >>> fr = PriorityFloodFlowRouter(mg)
     >>> sp = SpaceLargeScaleEroder(mg)
     >>> ct = ConcentrationTrackerForSpace(mg)
+    >>> fr.run_one_step()
     >>> sp.run_one_step(1.)
     >>> ct.run_one_step(1.)
     >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
