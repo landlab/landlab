@@ -14,23 +14,18 @@ from landlab.utils.return_array import return_array_at_node
 class ConcentrationTrackerForSpace(Component):
 
     """This component tracks the concentration of any user-defined property of
-    sediment using a mass balance approach in which the concentration :math:`C`
+    sediment using a mass balance approach in which concentration :math:`C_s`
     is calculated as:
 
     .. math::
         
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~UPDATE BELOW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        ∂CH/∂t = [-(∂q_x C_x)/∂x - (∂q_y C_y)/∂y] + C_br*H_brw + PH + DH
+                ∂C_sH/∂t = C_sw*D_sw + C_s*E_s + PH + DH
         
-    where :math:`H` is sediment depth, :math:`q_x` and :math:`q_y` are sediment
-    fluxed in the x and y directions, :math:`C_br` is concentration in parent 
-    bedrock, :math:`H_brw` is the height of bedrock weathered into soil, 
-    :math:`P` is the local production rate, :math:`D` is the local decay rate.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~UPDATE ABOVE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    where :math:`H` is sediment depth, :math:`C_sw` is concentration in 
+    sediment suspended in the water column, :math:`D_sw` is volumetric 
+    depositional flux of sediment from the water column per unit bed area, 
+    :math:`E_s` is volumetric erosional flux of sediment from the bed per unit 
+    bed area, and :math:`P` and :math:`D` are local production and decay rates.
     
     NOTE: This component requires the sediment__influx and sediment__outflux 
     fields calculated by either the Space or SpaceLargeScaleEroder component.
@@ -73,32 +68,6 @@ class ConcentrationTrackerForSpace(Component):
     Now, a 2-D landscape with stream channels.
 
     >>> ... EXAMPLE  
-    
-    
-    
-    >>> mg = RasterModelGrid((3, 6))
-    >>> mg.set_status_at_node_on_edges(right=4, top=4, left=4, bottom=4)
-    >>> mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
-    >>> h = mg.add_zeros("soil__depth", at="node")
-    >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> c[9] += 1
-    >>> h += 1
-    >>> z_br += mg.node_x
-    >>> z += z_br + h
-    >>> sp = SpaceLargeScaleEroder(mg)
-    >>> ct = ConcentrationTrackerForSpace(mg)
-    >>> sp.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([4.11701964, 8.01583689, 11.00247875]))
-    True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0., 0.24839685, 1.]))
-    True
-   
-    Now, a 2-D landscape with stream channels.
 
     >>> mg = RasterModelGrid((7, 7),xy_spacing=2.)
     >>> c = mg.add_zeros('sediment_property__concentration', at='node')
