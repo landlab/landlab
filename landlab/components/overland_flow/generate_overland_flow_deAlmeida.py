@@ -383,7 +383,7 @@ class OverlandFlow(Component):
     @rainfall_intensity.setter
     def rainfall_intensity(self, new_val):
         message = "Rainfall intensity must be positive"
-        if isinstance(new_val,float):
+        if isinstance(new_val, float):
             assert new_val >= 0, message
         else:
             assert (new_val >= 0).all(), message
