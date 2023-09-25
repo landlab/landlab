@@ -592,11 +592,11 @@ class StructuredQuadGraphExtras(StructuredQuadGraphTopology, Graph):
         >>> pll[4:13, :]
         array([[-1, 11],
                [-1, 12],
-               [-1, -1],
+               [-1, 13],
                [-1,  8],
                [ 7,  9],
                [ 8, -1],
-               [-1, -1],
+               [ 3, -1],
                [ 4, -1],
                [ 5, -1]])
         """
