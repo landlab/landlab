@@ -1,17 +1,8 @@
-entrypoints
 furo
-ipython
-jupyter_client
-nbformat
-nbsphinx>=0.2.12
-pandoc
 sphinx-copybutton
 sphinx-inline-tabs
 sphinx-jinja
 sphinx>=4
-sphinx_rtd_theme
 sphinxcontrib.towncrier
-tabulate
 tomli
-tornado
 towncrier

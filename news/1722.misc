@@ -1,0 +1,2 @@
+Fixed a flaky test with the :class:`~.lateral_erosion.lateral_erosion.LateralEroder` where it would occasionally
+fail to reach the steady state solution.
