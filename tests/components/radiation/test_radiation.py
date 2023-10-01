@@ -20,8 +20,10 @@ def test_input_var_names(rad):
 def test_output_var_names(rad):
     assert sorted(rad.output_var_names) == [
         "radiation__incoming_shortwave_flux",
+        "radiation__net_flux",
+        "radiation__net_longwave_flux",
         "radiation__net_shortwave_flux",
-        "radiation__ratio_to_flat_surface",
+        "radiation__ratio_to_flat_surface"
     ]
 
 
@@ -33,6 +35,8 @@ def test_var_units(rad):
     assert rad.var_units("topographic__elevation") == "m"
     assert rad.var_units("radiation__incoming_shortwave_flux") == "W/m^2"
     assert rad.var_units("radiation__net_shortwave_flux") == "W/m^2"
+    assert rad.var_units("radiation__net_longwave_flux") == "W/m^2"
+    assert rad.var_units("radiation__net_flux") == "W/m^2"
     assert rad.var_units("radiation__ratio_to_flat_surface") == "None"
 
 
