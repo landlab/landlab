@@ -7,7 +7,9 @@
 affine==2.4.0
     # via rasterio
 anyio==3.6.2
-    # via jupyter-server
+    # via
+    #   jupyter-server
+    #   starlette
 argon2-cffi==21.3.0
     # via
     #   jupyter-server
@@ -38,12 +40,14 @@ bleach==6.0.0
     #   nbconvert
     #   panel
 bmi-topography==0.8.2
-    # via -r notebooks/requirements.in
+    # via -r requirements.in
 bmipy==2.0
     # via bmi-topography
 bokeh==2.4.3
     # via panel
-certifi==2022.12.7
+cachetools==5.3.1
+    # via solara
+certifi==2023.7.22
     # via
     #   pyproj
     #   rasterio
@@ -65,6 +69,9 @@ click==8.1.3
     #   dask
     #   mesa
     #   rasterio
+    #   rich-click
+    #   solara
+    #   uvicorn
 click-plugins==1.1.1
     # via rasterio
 cligj==0.7.2
@@ -77,8 +84,8 @@ comm==0.1.2
     # via ipykernel
 cookiecutter==2.1.1
     # via mesa
-dask[array]==2023.4.1
-    # via -r notebooks/requirements.in
+dask[array]==2023.8.1
+    # via -r requirements.in
 debugpy==1.6.6
     # via ipykernel
 decorator==5.1.1
@@ -89,12 +96,18 @@ executing==1.2.0
     # via stack-data
 fastjsonschema==2.16.2
     # via nbformat
+filelock==3.12.2
+    # via solara
 fqdn==1.5.1
     # via jsonschema
 fsspec==2023.1.0
     # via dask
-holoviews==1.15.4
-    # via -r notebooks/requirements.in
+h11==0.14.0
+    # via uvicorn
+holoviews==1.17.1
+    # via -r requirements.in
+humanize==4.8.0
+    # via solara
 idna==3.4
     # via
     #   anyio
@@ -110,7 +123,8 @@ ipykernel==6.21.2
     #   nbclassic
     #   notebook
     #   qtconsole
-ipython==8.12.0
+    #   solara
+ipython==8.14.0
     # via
     #   ipykernel
     #   ipywidgets
@@ -120,8 +134,18 @@ ipython-genutils==0.2.0
     #   nbclassic
     #   notebook
     #   qtconsole
+ipyvue==1.9.2
+    # via
+    #   ipyvuetify
+    #   solara
+ipyvuetify==1.8.10
+    # via solara
 ipywidgets==8.0.4
-    # via jupyter
+    # via
+    #   ipyvue
+    #   jupyter
+    #   reacton
+    #   solara
 isoduration==20.11.0
     # via jsonschema
 jedi==0.18.2
@@ -136,6 +160,7 @@ jinja2==3.1.2
     #   nbclassic
     #   nbconvert
     #   notebook
+    #   solara
 jinja2-time==0.2.0
     # via cookiecutter
 jsonpointer==2.3
@@ -145,8 +170,8 @@ jsonschema[format-nongpl]==4.17.3
     #   jupyter-events
     #   nbformat
 jupyter==1.0.0
-    # via -r notebooks/requirements.in
-jupyter-client==8.2.0
+    # via -r requirements.in
+jupyter-client==8.3.0
     # via
     #   ipykernel
     #   jupyter-console
@@ -155,6 +180,7 @@ jupyter-client==8.2.0
     #   nbclient
     #   notebook
     #   qtconsole
+    #   solara
 jupyter-console==6.5.1
     # via jupyter
 jupyter-core==5.2.0
@@ -184,17 +210,25 @@ jupyterlab-widgets==3.0.5
 locket==1.0.0
     # via partd
 markdown==3.4.1
-    # via panel
+    # via
+    #   panel
+    #   pymdown-extensions
+    #   solara
+markdown-it-py==3.0.0
+    # via rich
 markupsafe==2.1.2
     # via
     #   jinja2
     #   nbconvert
+    #   solara
 matplotlib-inline==0.1.6
     # via
     #   ipykernel
     #   ipython
-mesa==1.2.1
-    # via -r notebooks/requirements.in
+mdurl==0.1.2
+    # via markdown-it-py
+mesa==2.1.1
+    # via -r requirements.in
 mistune==2.0.5
     # via nbconvert
 mypy-extensions==1.0.0
@@ -209,13 +243,14 @@ nbconvert==7.2.9
     #   jupyter-server
     #   nbclassic
     #   notebook
-nbformat==5.8.0
+nbformat==5.9.2
     # via
     #   jupyter-server
     #   nbclassic
     #   nbclient
     #   nbconvert
     #   notebook
+    #   solara
 nest-asyncio==1.5.6
     # via
     #   ipykernel
@@ -227,7 +262,7 @@ notebook==6.5.2
     # via jupyter
 notebook-shim==0.2.2
     # via nbclassic
-numpy==1.24.3
+numpy==1.25.2
     # via
     #   bmi-topography
     #   bmipy
@@ -251,7 +286,7 @@ packaging==23.0
     #   qtpy
     #   rioxarray
     #   xarray
-pandas==2.0.1
+pandas==2.0.3
     # via
     #   holoviews
     #   mesa
@@ -305,12 +340,15 @@ pyct==0.5.0
     # via
     #   colorcet
     #   panel
-pygments==2.14.0
+pygments==2.15.0
     # via
     #   ipython
     #   jupyter-console
     #   nbconvert
     #   qtconsole
+    #   rich
+pymdown-extensions==10.1
+    # via solara
 pyparsing==3.0.9
     # via snuggs
 pyproj==3.4.1
@@ -332,13 +370,14 @@ pyviz-comms==2.2.1
     # via
     #   holoviews
     #   panel
-pyyaml==6.0
+pyyaml==6.0.1
     # via
     #   bmi-topography
     #   bokeh
     #   cookiecutter
     #   dask
     #   jupyter-events
+    #   pymdown-extensions
 pyzmq==25.0.0
     # via
     #   ipykernel
@@ -354,11 +393,14 @@ qtpy==2.3.0
     # via qtconsole
 rasterio==1.3.6
     # via rioxarray
-requests==2.28.2
+reacton==1.7.1
+    # via solara
+requests==2.31.0
     # via
     #   bmi-topography
     #   cookiecutter
     #   panel
+    #   solara
 rfc3339-validator==0.1.4
     # via
     #   jsonschema
@@ -367,6 +409,10 @@ rfc3986-validator==0.1.1
     # via
     #   jsonschema
     #   jupyter-events
+rich==13.5.2
+    # via rich-click
+rich-click==1.6.1
+    # via solara
 rioxarray==0.13.3
     # via bmi-topography
 send2trash==1.8.0
@@ -384,10 +430,14 @@ sniffio==1.3.0
     # via anyio
 snuggs==1.4.7
     # via rasterio
+solara==1.19.0
+    # via mesa
 soupsieve==2.4
     # via beautifulsoup4
 stack-data==0.6.2
     # via ipython
+starlette==0.31.0
+    # via solara
 terminado==0.17.1
     # via
     #   jupyter-server
@@ -402,7 +452,7 @@ toolz==0.12.0
     # via
     #   dask
     #   partd
-tornado==6.3
+tornado==6.3.3
     # via
     #   bokeh
     #   ipykernel
@@ -438,12 +488,17 @@ typing-extensions==4.5.0
     # via
     #   bokeh
     #   panel
+    #   reacton
 tzdata==2023.3
     # via pandas
 uri-template==1.2.0
     # via jsonschema
 urllib3==1.26.14
     # via requests
+uvicorn==0.23.2
+    # via solara
+watchdog==3.0.0
+    # via solara
 wcwidth==0.2.6
     # via prompt-toolkit
 webcolors==1.12
@@ -454,9 +509,11 @@ webencodings==0.5.1
     #   tinycss2
 websocket-client==1.5.1
     # via jupyter-server
+websockets==11.0.3
+    # via solara
 widgetsnbextension==4.0.5
     # via ipywidgets
-xarray==2023.4.2
+xarray==2023.8.0
     # via
     #   bmi-topography
     #   rioxarray
