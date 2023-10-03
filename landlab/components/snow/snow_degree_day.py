@@ -28,8 +28,6 @@ class SnowDegreeDay(Component):
     ----------
     grid : ModelGrid
         A Landlab model grid object
-    rho_snow : float (default 200 kg/m3)
-        snow density
     rho_H2O : float (default 1000 kg/m3)
         water density
     T_rain_snow : float (default 1 deg_C)
@@ -77,7 +75,7 @@ class SnowDegreeDay(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "atmosphere bottom air temperature",
-        },
+        },  # T_air
         "atmosphere_water__precipitation_leq-volume_flux": {
             "dtype": float,
             "intent": "in",
@@ -85,7 +83,7 @@ class SnowDegreeDay(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "precipitation rate (in water equivalent)",
-        },
+        },  # P
         "snowpack__degree-day_coefficient": {
             "dtype": float,
             "intent": "in",
@@ -93,7 +91,7 @@ class SnowDegreeDay(Component):
             "units": "mm day-1 K-1",
             "mapping": "node",
             "doc": "degree-day coefficient",
-        },
+        },  # c0
         "snowpack__degree-day_threshold_temperature": {
             "dtype": float,
             "intent": "in",
@@ -101,7 +99,7 @@ class SnowDegreeDay(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "degree-day threshold temperature to start melt",
-        },
+        },  # T0
         "snowpack__liquid-equivalent_depth": {
             "dtype": float,
             "intent": "inout",
@@ -109,7 +107,15 @@ class SnowDegreeDay(Component):
             "units": "m",
             "mapping": "node",
             "doc": "snow water equivalent depth",
-        },
+        },  # h_swe
+        "snowpack__z_mean_of_mass-per-volume_density": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "kg m-3",
+            "mapping": "node",
+            "doc": "snow density",
+        },  # rho_snow
         # output fields
         "snowpack__depth": {
             "dtype": float,
@@ -145,18 +151,14 @@ class SnowDegreeDay(Component):
         },  # variable defined by me
     }
 
-    def __init__(self, grid, rho_snow=200, rho_H2O=1000, T_rain_snow=1, grid_area=0):
+    def __init__(self, grid, rho_H2O=1000, T_rain_snow=1, grid_area=0):
         """Initialize SnowDegreeDay component"""
 
         super().__init__(grid)
 
         # parameters
-        self._rho_snow = rho_snow
         self._rho_H2O = rho_H2O
         self._T_rain_snow = T_rain_snow
-        self._density_ratio = (
-            self._rho_H2O / self._rho_snow
-        )  # density_ratio > 1 (h_snow/h_swe)
         self._grid_area = grid_area if grid_area > 0 else self._grid.dy * self._grid.dx
 
         # calculated vars
@@ -183,6 +185,13 @@ class SnowDegreeDay(Component):
         else:
             self._h_swe = grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
 
+        if "snowpack__z_mean_of_mass-per-volume_density" in grid.at_node:
+            self._rho_snow = grid.at_node["snowpack__z_mean_of_mass-per-volume_density"]
+        else:
+            self._rho_snow = grid.add_full(
+                "snowpack__z_mean_of_mass-per-volume_density", 300
+            )
+
         # output data fields
         super().initialize_output_fields()
         self._h_snow = grid.at_node["snowpack__depth"]
@@ -196,15 +205,6 @@ class SnowDegreeDay(Component):
         ]  # defined by me
 
     @property
-    def rho_snow(self):
-        return self._rho_snow
-
-    @rho_snow.setter
-    def rho_snow(self, rho_snow):
-        assert rho_snow > 0, "assign rho_snow with positive value"
-        self._rho_snow = rho_snow
-
-    @property
     def rho_H2O(self):
         return self._rho_H2O
 
@@ -216,6 +216,10 @@ class SnowDegreeDay(Component):
     @property
     def T_rain_snow(self):
         return self._T_rain_snow
+
+    @T_rain_snow.setter
+    def T_rain_snow(self, T_rain_snow):
+        self._T_rain_snow = T_rain_snow
 
     @property
     def grid_area(self):
