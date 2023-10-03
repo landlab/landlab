@@ -75,7 +75,7 @@ in your terminal of choice:
   $ pip install landlab
 
 
-For a full description of how to install *Landlab*, including using *mamba*/*conda*,
+For a full description of how to install *Landlab*, including using *conda*,
 please see the documentation for our `installation instructions`_.
 
 
