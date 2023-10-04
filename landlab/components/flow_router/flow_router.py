@@ -21,7 +21,6 @@ import numpy as np
 from landlab import Component, NetworkModelGrid, RasterModelGrid
 from landlab.components.depression_finder.floodstatus import FloodStatus
 
-
 class FlowRouter(Component):
     """
     The FlowRouter carries out 2 operations:
@@ -126,7 +125,7 @@ class FlowRouter(Component):
     from Digital Elevation Data. Computer Vision, Graphics and Image
     Processing, 28, 328-344. https://dx.doi.org/10.1016/S0734-189X(84)80011-0
     """
-
+    
     from .ext.single_flow.accumulation import accumulation as _accumulation_funcs
     from .ext.single_flow.priority_routing import (
         breach as _breach_funcs,
@@ -408,7 +407,9 @@ class FlowRouter(Component):
             s = "topographic__elevation"
         if s not in g.at_node:
             g.add_field(s, np.zeros(nodes_n, dtype=float))
-        z = g.at_node[s] = g.at_node[s].astype(float)
+        z = g.at_node[s][:] = g.at_node[s].astype(float) 
+        # NB: the [:] is crucial to let the variables referencing the surface outside
+        # the component stil referencing the surface
 
         # 1.2. Water influx external to grid
         s = "water__unit_flux_in"
@@ -419,7 +420,7 @@ class FlowRouter(Component):
         if v is None or type(v) not in ([float, np.array, str]):
             v = 1.0
         if s in g.at_node and v is not None:
-            g.at_node["water__unit_flux_in"] = np.full(
+            g.at_node["water__unit_flux_in"][:] = np.full(
                 nodes_n, v if v is not None else 1.0
             )
 
@@ -458,6 +459,7 @@ class FlowRouter(Component):
 
         # 2.2 Cell area at boundary nodes = 0, NetworkModelGrid cell area = 1
         # used in run_flow_accumulations()
+        # NB: We assume "cell_area_at_node" wasn't previously defined
         g.at_node["cell_area_at_node"] = (
             np.full(nodes_n, 1.0)
             if isinstance(g, NetworkModelGrid)
@@ -684,7 +686,7 @@ class FlowRouter(Component):
         # 1. Get the input grid data (steps #4 and #11)
         ##############################################
         g = self._grid
-        z = g.at_node[self._surface] = g.at_node[self._surface].astype(float)
+        z = g.at_node[self._surface][:] = g.at_node[self._surface].astype(float)
         diagonals = self._diagonals
         idx = self._link_idx_sorted_by_heads
 
@@ -868,7 +870,7 @@ class FlowRouter(Component):
         upstream_ordered_nodes[:] = np.full(
             nodes_n, g.BAD_INDEX, dtype=int
         )  # noqa: E501
-        return
+
         # Call to the algorithm.
         self._accumulation_funcs._calc_upstream_order_for_nodes(
             base_level_and_closed_nodes,
@@ -897,8 +899,8 @@ class FlowRouter(Component):
         else:
             discharges = drainage_areas.copy() * water_external_influxes[0]
 
-        g.at_node["drainage_area"] = drainage_areas
-        g.at_node["surface_water__discharge"] = discharges
+        g.at_node["drainage_area"][:] = drainage_areas
+        g.at_node["surface_water__discharge"][:] = discharges
         # At boundary, drainage and discharge are not forced to 0 but can be 0
         # (because there cell area = 0)
 
