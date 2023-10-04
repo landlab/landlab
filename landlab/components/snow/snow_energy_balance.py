@@ -364,7 +364,7 @@ class SnowEnergyBalance(Component):
         E_in = self._Q_sum * dt
         E_rem = np.maximum(E_in - self._Ecc, np.float64(0))
         Qm = E_rem / dt  # energy flux for melting W m-2
-        sm_en = Qm / self._rho_H2O * self.Lf
+        sm_en = Qm / (self._rho_H2O * self.Lf)
 
         # melt rate based on available swe (enforced max meltrate)
         sm_max = self._h_swe / dt
