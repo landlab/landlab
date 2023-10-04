@@ -1,7 +1,0 @@
-Landscape Evolution
--------------------
-
-.. nbgallery::
-    :glob:
-
-    **/*

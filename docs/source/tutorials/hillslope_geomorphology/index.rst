@@ -1,7 +1,0 @@
-Hillslope Geomorphology
------------------------
-
-.. nbgallery::
-    :glob:
-
-    **/*

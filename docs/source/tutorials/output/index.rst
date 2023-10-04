@@ -1,7 +1,0 @@
-Output
-------
-
-.. nbgallery::
-    :glob:
-
-    *

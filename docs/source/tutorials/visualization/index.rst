@@ -1,7 +1,0 @@
-Visualization
--------------
-
-.. nbgallery::
-    :glob:
-
-    *

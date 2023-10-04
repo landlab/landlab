@@ -1,7 +1,0 @@
-Species Evolution
------------------
-
-.. nbgallery::
-    :glob:
-
-    *

@@ -1,7 +1,0 @@
-Geomorphology Exercises
------------------------
-
-.. nbgallery::
-    :glob:
-
-    **/*

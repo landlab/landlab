@@ -1,7 +1,0 @@
-Python Intro
-------------
-
-.. nbgallery::
-    :glob:
-
-    *

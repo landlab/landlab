@@ -1,7 +1,0 @@
-Data Record
------------
-
-.. nbgallery::
-    :glob:
-
-    *

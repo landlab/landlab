@@ -1,7 +1,0 @@
-Fault Scarp
------------
-
-.. nbgallery::
-    :glob:
-
-    *

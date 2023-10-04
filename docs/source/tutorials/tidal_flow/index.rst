@@ -1,7 +1,0 @@
-Tidal Flow
-----------
-
-.. nbgallery::
-    :glob:
-
-    *

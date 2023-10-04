@@ -1,7 +1,0 @@
-Flexure
--------
-
-.. nbgallery::
-    :glob:
-
-    *

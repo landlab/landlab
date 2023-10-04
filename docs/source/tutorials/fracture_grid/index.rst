@@ -1,7 +1,0 @@
-Fracture Grid
--------------
-
-.. nbgallery::
-    :glob:
-
-    *

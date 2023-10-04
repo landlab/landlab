@@ -1,7 +1,0 @@
-Terrain Analysis
-----------------
-
-.. nbgallery::
-    :glob:
-
-    **/*

@@ -1,7 +1,0 @@
-Tectonics
----------
-
-.. nbgallery::
-    :glob:
-
-    *

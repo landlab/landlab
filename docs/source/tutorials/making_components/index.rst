@@ -1,7 +1,0 @@
-Making Components
------------------
-
-.. nbgallery::
-    :glob:
-
-    *

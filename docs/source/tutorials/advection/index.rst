@@ -1,7 +1,0 @@
-Advection
----------
-
-.. nbgallery::
-    :glob:
-
-    *

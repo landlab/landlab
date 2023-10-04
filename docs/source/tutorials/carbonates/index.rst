@@ -1,7 +1,0 @@
-Carbonates
-----------
-
-.. nbgallery::
-    :glob:
-
-    *

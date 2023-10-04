@@ -1,8 +1,0 @@
-Overland Flow
--------------
-
-.. nbgallery::
-    :glob:
-
-    *
-    **/*

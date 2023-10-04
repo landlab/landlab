@@ -1,7 +1,0 @@
-Groundwater
------------
-
-.. nbgallery::
-    :glob:
-
-    *
