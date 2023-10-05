@@ -100,7 +100,7 @@ def test_snow_accumulation():
     sm.run_one_step(1000)  # dt = 1000 sec
     assert_almost_equal(grid.at_node["snowpack__depth"], 10)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
-    # TODO: may need to change Ecc as 4e6 using new code for update_code_content
+    # TODO: may need to change Ecc using new code for update_code_content
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
     assert_almost_equal(
         grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 1
@@ -128,15 +128,16 @@ def test_snow_melt():
 
     sm.run_one_step(1000)  # dt = 1000 sec
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.66510978043912183)
-    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"],
-                        4.6706586826347305e-07)
+    assert_almost_equal(
+        grid.at_node["snowpack__melt_volume_flux"], 4.6706586826347305e-07
+    )
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
     assert_almost_equal(
         grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 0
-
     )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"],
-                        4.6706586826347305e-04)
+    assert_almost_equal(
+        grid.at_node["snowpack__time_integral_melt_volume_flux"], 4.6706586826347305e-04
+    )
 
     assert sm.vol_SM == 0.18682634730538922, f"wrong vol_SM value is {sm.vol_SM}"
     assert sm.vol_swe == 79.813173652694616, f"wrong vol_swe value is {sm.vol_swe}"
@@ -150,7 +151,7 @@ def test_snow_melt_accumulation():
     grid.add_full("atmosphere_bottom_air__temperature", 0.5, at="node")
     grid.add_full("land_surface__temperature", -1, at="node")
     grid.add_full(
-        "land_surface_net-total-energy__energy_flux", 2e3+334, at="node"
+        "land_surface_net-total-energy__energy_flux", 2e3 + 334, at="node"
     )  # 334000 energy to melt 0.001 m/s
     grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
     grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
