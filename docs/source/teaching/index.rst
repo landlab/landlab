@@ -48,6 +48,7 @@ are getting an error, please taking a screenshot and upload it.
 The development of these Notebooks has been made possible by the Landlab
 project funded by the National Science Foundation (OAC 1450338 to N. Gasparini,
 OAC 1450409 to G. Tucker, OAC 1450412 to E. Istanbulluoglu).
+
 Getting Started
 ---------------
 
@@ -63,4 +64,4 @@ Teaching With Landlab
     :hidden:
     :glob:
 
-    **/index
+    /generated/teaching/**/_index

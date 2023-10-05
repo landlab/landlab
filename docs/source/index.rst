@@ -22,10 +22,10 @@ Citing Landlab
 If you use any portion of Landlab, please cite our :ref:`Citing Landlab <citing>`
 page.
 
-Example Gallery
----------------
+Tutorials
+---------
 
-:ref:`Gallery of notebooks <gallery>`.
+:ref:`Gallery of tutorial notebooks <tutorials/index>`.
 
 .. toctree::
  :caption: Getting Started
@@ -33,7 +33,7 @@ Example Gallery
  :hidden:
 
  installation
- Tutorials <tutorials/start>
+ Tutorials <tutorials/index>
  user_guide/index
  Teaching with Landlab <teaching/index>
 
