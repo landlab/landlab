@@ -1,6 +1,6 @@
 # Recommended order for Landlab tutorials
 
-Note, a paper has been written describing Landlab. It is Open Access, and a link to the PDF is [here](https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.pdf) 
+Note, a paper has been written describing Landlab. It is Open Access, and a link to the PDF is [here](https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.pdf)
 
 **We highly recommend reading it before starting on the steps below.**
 
@@ -22,7 +22,7 @@ The Landlab Reference Manual contains documentation for most functions in the La
 
 ### 1.3 Introduction to the Landlab Grid and Fields
 
-First, lets look at the [User Guide page on Landlab grids](https://landlab.readthedocs.io/en/latest/user_guide/grid.html). 
+First, lets look at the [User Guide page on Landlab grids](https://landlab.readthedocs.io/en/latest/user_guide/grid.html).
 
 - [Notebook: Introduction to the model grid object](grid_object_demo/grid_object_demo.ipynb) Grid topology; how landlab represents data; connectivity of grid elements.
 - [Notebook: Introduction to Landlab data fields](fields/working_with_fields.ipynb) How Landlab stores spatial data on the grid; a little on naming conventions.
@@ -65,4 +65,3 @@ In addition to having lots of important information about adjacency of nodes, li
 
 /generated/tutorials/**/_index
 ```
-
