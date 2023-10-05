@@ -4,6 +4,10 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  jobs:
+    pre_build:
+      - pip install nox
+      - nox -s build-gallery-index
 
 sphinx:
   builder: html
