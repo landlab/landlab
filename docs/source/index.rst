@@ -22,6 +22,10 @@ Citing Landlab
 If you use any portion of Landlab, please cite our :ref:`Citing Landlab <citing>`
 page.
 
+Example Gallery
+---------------
+
+:ref:`Gallery of notebooks <gallery>`.
 
 .. toctree::
  :caption: Getting Started
@@ -29,9 +33,9 @@ page.
  :hidden:
 
  installation
- Tutorials <tutorials/index>
- Teaching <teaching/index>
+ Tutorials <tutorials/start>
  user_guide/index
+ Teaching with Landlab <teaching/index>
 
 .. toctree::
  :caption: Contributing
@@ -40,7 +44,14 @@ page.
 
  install/index
  development/index
- API Reference <reference/index>
+
+.. toctree::
+   :caption: Reference
+   :maxdepth: 1
+   :hidden:
+
+   API Reference <reference/index>
+   Lists <lists/index>
 
 .. toctree::
   :caption: Useful Links

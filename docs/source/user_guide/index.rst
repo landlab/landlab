@@ -51,7 +51,4 @@ taking advantage of codes that have already been written.
     :maxdepth: 2
     :hidden:
 
-    component_list
-    field_definitions
-    grid_summary
     time_steps
