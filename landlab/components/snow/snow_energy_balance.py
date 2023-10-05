@@ -1,9 +1,8 @@
 """Landlab component that simulates snowpack dynamics.
 
 This component simulates snowmelt process using the snow energy balance method.
-
-The code is implemented based on the TopoFlow snow component
-and meteorology component (by Scott D. Packham) with some adjustments.
+The code is implemented based on the TopoFlow snow component and meteorology
+component (by Scott D. Packham) with some adjustments.
 https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_energy_balance.py
 https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base.py
 
@@ -23,10 +22,10 @@ class SnowEnergyBalance(Component):
     (e.g., solar radiation, long wave radiation, sensible heat, latent heat).
     It uses the net total energy flux (Q_sum) and the snowpack cold content (Ecc)
     to determine the snow melt rate (SM):
-    - If the net total energy (Q_sum * dt) is larger than Ecc,
-      the melt process starts using the remaining energy (Q_sum*dt - Ecc).
-    - If the net total energy is positive but less than Ecc,
-      the snowpack is warming and the Ecc decrease.
+    - If the net total energy (Q_sum * dt) is larger than Ecc, the melt process starts
+    using the remaining energy (Q_sum*dt - Ecc).
+    - If the net total energy is positive but less than Ecc, the snowpack is warming
+    and the Ecc decrease.
     - If the total energy is negative, the snow is cooling and the Ecc increase.
 
     Q_sum = Qn_SW + Qn_LW + Qh + Qe + Qa + Qc
@@ -48,7 +47,6 @@ class SnowEnergyBalance(Component):
     ----------
     grid : ModelGrid
         A Landlab model grid object
-
     rho_H2O : float (default 1000 kg/m3)
         water density
     rho_air : float (default 1.2614 kg/m3)
@@ -64,7 +62,7 @@ class SnowEnergyBalance(Component):
         space area represented by a single grid cell.
         if value = 0, grid_area=grid.dy * grid.dx
 
-    Examples # TODO add example
+    Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.snow import SnowEnergyBalance
@@ -75,28 +73,25 @@ class SnowEnergyBalance(Component):
     array([ 1.,  1.,  1.,  1.])
     >>> grid.add_full("land_surface__temperature", -1, at="node")
     array([-1., -1., -1., -1.])
-    >>> grid.add_full("land_surface_net-total-energy__energy_flux",
-    >>> 2e3+334000*1000, at="node")
-    array([  3.34002000e+08,   3.34002000e+08,   3.34002000e+08, 3.34002000e+08])
+    >>> grid.add_full("land_surface_net-total-energy__energy_flux", 2e3+334, at="node")
+    array([ 2334.,  2334.,  2334.,  2334.])
     >>> grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
     array([ 1.,  1.,  1.,  1.])
     >>> grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at='node')
     array([ 200.,  200.,  200.,  200.])
     >>> grid.add_full("snowpack__z_mean_of_mass-specific_isobaric_heat_capacity",
-    >>> 2000, at='node')
+    ...     2000, at='node')
     array([ 2000.,  2000.,  2000.,  2000.])
     >>> sm = SnowEnergyBalance(grid, grid_area=100)
-    >>> grid.at_node["snowpack__melt_volume_flux"]
-    array([ 0.,  0.,  0.,  0.])
     >>> grid.at_node["snowpack__depth"]
     array([ 5.,  5.,  5.,  5.])
     >>> grid.at_node["snowpack__energy-per-area_cold_content"]
     array([ 2000000.,  2000000.,  2000000.,  2000000.])
     >>> sm.run_one_step(1000)
     >>> grid.at_node["snowpack__melt_volume_flux"]
-    array([ 0.001,  0.001,  0.001,  0.001])
-    >>> grid.at_node["snowpack__depth"]
-    array([ 0.,  0.,  0.,  0.])
+    array([  1.00000000e-06,   1.00000000e-06,   1.00000000e-06,   1.00000000e-06])
+    >>> grid.at_node["snowpack__liquid-equivalent_depth"]
+    array([ 0.999,  0.999,  0.999,  0.999])
     >>> grid.at_node["snowpack__energy-per-area_cold_content"]
     array([ 0.,  0.,  0.,  0.])
     """
