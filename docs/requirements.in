@@ -1,5 +1,6 @@
 furo
 ipython
+myst-parser
 nbsphinx
 pandoc
 sphinx-copybutton
