@@ -3,6 +3,7 @@ import os
 import pathlib
 import shutil
 import tempfile
+from collections import defaultdict
 
 import nox
 
@@ -124,34 +125,50 @@ def build_index(session: nox.Session) -> None:
     session.log(f"generated index at {index_file!s}")
 
 
-@nox.session(name="build-gallery")
-def build_gallery(session: nox.Session) -> None:
-    notebook_dirs = [
-        ROOT / "docs" / "source" / dir for dir in ("teaching", "tutorials")
-    ]
+@nox.session(name="build-gallery-index")
+def build_notebook_index(session: nox.Session) -> None:
+    docs_dir = ROOT / "docs" / "source"
 
-    dirs_with_notebooks = []
-    for dir in notebook_dirs:
-        dirs_with_notebooks += [p for p in dir.glob("*") if p.is_dir()]
+    for gallery in ["tutorials", "teaching"]:
+        index = collect_notebooks(docs_dir / gallery)
 
-    # for dir in [p for p in (docs_dir / "source" / "teaching").glob("*") if p.is_dir()]:
-    for dir in dirs_with_notebooks:
-        title = dir.stem.replace("_", " ").title()
-        lines = [
-            f"{title}",
-            f"{'-'*len(title)}",
-            "",
-            ".. nbgallery::",
-            "    :glob:",
-            "",
-        ]
-        with session.chdir(dir):
-            if len(glob.glob("*.ipynb")):
-                lines += ["    *"]
-            if len(glob.glob("**/*.ipynb")):
-                lines += ["    **/*"]
-        with open(dir / "index.rst", "w") as fp:
-            print(os.linesep.join(lines), file=fp)
+        for subdir, entries in sorted(index.items()):
+            title = pathlib.Path(subdir).stem.replace("_", " ").title()
+
+            path_to_notebooks = pathlib.Path(gallery) / subdir
+
+            lines = [
+                f"{title}",
+                f"{'-'*len(title)}",
+                "",
+                ".. nbgallery::",
+                "    :glob:",
+                "",
+            ] + [f"    /{path_to_notebooks / v!s}" for v in entries]
+
+            generated_dir = docs_dir / "generated" / path_to_notebooks
+            generated_file = generated_dir / "_index.rst"
+
+            generated_dir.mkdir(parents=True, exist_ok=True)
+            with open(generated_file, "w") as fp:
+                print(os.linesep.join(lines), file=fp)
+            session.log(generated_file)
+
+
+def collect_notebooks(path_to_notebooks):
+    paths = pathlib.Path(path_to_notebooks)
+
+    index = defaultdict(list)
+
+    for p in (p for p in paths.iterdir() if p.is_dir()):
+        subdir = p.relative_to(path_to_notebooks)
+
+        if glob.glob(str(p / "*.ipynb")) + glob.glob(str(p / "*.md")):
+            index[subdir] += ["*"]
+        if glob.glob(str(p / "**/*.ipynb")) + glob.glob(str(p / "**/*.md")):
+            index[subdir] += ["**"]
+
+    return index
 
 
 @nox.session(name="build-docs", venv_backend="mamba")
@@ -160,7 +177,11 @@ def build_docs(session: nox.Session) -> None:
     build_dir = ROOT / "build"
     docs_dir = ROOT / "docs"
 
+    build_notebook_index(session)
+
     session.conda_install("pandoc", channel=["nodefaults", "conda-forge"])
+    # session.conda_install(f"--file={docs_dir / 'requirements.in'!s}")
+    session.conda_install("--file", "requirements.in")
     session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".")
 
