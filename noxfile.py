@@ -11,7 +11,7 @@ PROJECT = "landlab"
 ROOT = pathlib.Path(__file__).parent
 
 
-@nox.session(venv_backend="mamba")
+@nox.session(python="3.11", venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
@@ -40,7 +40,7 @@ def test(session: nox.Session) -> None:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session(name="test-notebooks", venv_backend="mamba")
+@nox.session(name="test-notebooks", python="3.11", venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     args = [
@@ -171,7 +171,7 @@ def collect_notebooks(path_to_notebooks):
     return index
 
 
-@nox.session(name="build-docs", venv_backend="mamba")
+@nox.session(name="build-docs", python="3.11", venv_backend="mamba")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
     build_dir = ROOT / "build"
@@ -179,9 +179,14 @@ def build_docs(session: nox.Session) -> None:
 
     build_notebook_index(session)
 
-    session.conda_install("pandoc", channel=["nodefaults", "conda-forge"])
+    session.conda_install(
+        "pandoc",
+        "--file",
+        "requirements.in",
+        channel=["nodefaults", "conda-forge"],
+    )
     # session.conda_install(f"--file={docs_dir / 'requirements.in'!s}")
-    session.conda_install("--file", "requirements.in")
+    # session.conda_install("--file", "requirements.in")
     session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".")
 
