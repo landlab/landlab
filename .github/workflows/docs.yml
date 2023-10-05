@@ -31,4 +31,4 @@ jobs:
                 nox
 
           - name: Build documentation
-            run: nox -s build-docs
+            run: nox -s build-docs --force-pythons=3.11
