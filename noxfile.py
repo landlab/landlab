@@ -1,4 +1,5 @@
 import glob
+import json
 import os
 import pathlib
 import shutil
@@ -171,9 +172,70 @@ def collect_notebooks(path_to_notebooks):
     return index
 
 
+@nox.session(name="summarize-linkcheck")
+def summarize_linkcheck_output(session: nox.Session) -> None:
+    path_to_file = ROOT / "build" / "linkcheck" / "output.json"
+
+    broken = _summarize_broken_links(path_to_file)
+
+    if broken:
+        print(broken)
+    else:
+        session.log("🍰 Nothing to summarize, there were no broken links")
+
+
+def _summarize_broken_links(path_to_file) -> str:
+    with open(path_to_file) as fp:
+        entries = [json.loads(line) for line in fp.readlines()]
+
+    broken = defaultdict(list)
+    for entry in entries:
+        if entry["status"] == "broken":
+            broken[entry["filename"]] += [entry["uri"]]
+
+    tables = []
+    for filename in sorted(broken):
+        tables.append(
+            os.linesep.join(
+                [
+                    f'["{filename}"]',
+                    "broken = [",
+                ]
+                + [f"  {uri!r}," for uri in sorted(broken[filename])]
+                + ["]"]
+            )
+        )
+    return (2 * os.linesep).join(tables)
+
+
+@nox.session(name="check-links", python="3.11", venv_backend="mamba")
+def check_links(session: nox.Session) -> None:
+    """Check for broken links in the docs."""
+    builder = "linkcheck"
+
+    build_dir = _build_docs(session, builders=[builder], success_codes=(0, 1))
+
+    log_file = build_dir / builder / "output.json"
+
+    broken = summarize_linkcheck_output(log_file)
+
+    session.log(f"{log_file!s}")
+    if broken:
+        print(broken)
+        session.error("Broken links were found")
+
+
 @nox.session(name="build-docs", python="3.11", venv_backend="mamba")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
+    builder = "html"
+
+    build_dir = _build_docs(session, builders=[builder])
+
+    session.log(f"generated docs at {build_dir / {builder} !s}")
+
+
+def _build_docs(session, builders=("html",), success_codes=(0,)):
     build_dir = ROOT / "build"
     docs_dir = ROOT / "docs"
 
@@ -191,18 +253,22 @@ def build_docs(session: nox.Session) -> None:
     session.install("-e", ".")
 
     build_dir.mkdir(exist_ok=True)
-    session.run(
-        "sphinx-build",
-        "-b",
-        "html",
-        "-W",
-        "--keep-going",
-        "--jobs",
-        "auto",
-        docs_dir / "source",
-        build_dir / "html",
-    )
-    session.log(f"generated docs at {build_dir / 'html'!s}")
+    for builder in builders:
+        session.run(
+            "sphinx-build",
+            "-b",
+            builder,
+            "-W",
+            "--keep-going",
+            "--jobs",
+            "auto",
+            docs_dir / "source",
+            build_dir / builder,
+            success_codes=success_codes,
+        )
+        session.log(f"generated docs at {build_dir / builder !s}")
+
+    return build_dir
 
 
 @nox.session
