@@ -6,7 +6,6 @@ Note, a paper has been written describing Landlab. It is Open Access, and a link
 
 **We highly recommend reading it before starting on the steps below.**
 
-Before starting the syllabus, consider reading our very basic [introduction to Python](python_intro/python_intro.ipynb) if you think of yourself as a Python novice.
 ##  1. Format and Outline
 You will alternate between reading documentation on the [User Guide](https://landlab.readthedocs.io/en/latest/user_guide/index.html), finding information in the [Reference Manual](https://landlab.readthedocs.io/en/latest/reference/index.html), and working through the tutorials.
 
