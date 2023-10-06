@@ -33,8 +33,8 @@ Tutorials
  :hidden:
 
  installation
- Tutorials <tutorials/index>
  user_guide/index
+ Tutorials <tutorials/index>
  Teaching with Landlab <teaching/index>
 
 .. toctree::
@@ -58,13 +58,13 @@ Tutorials
   :maxdepth: 1
   :hidden:
 
-  changes
-  contact_us
-  citing
-  funding
-  Contributors <authors>
-  License <license>
-  Used by <usedby>
+  about/changes
+  about/contact_us
+  about/citing
+  about/funding
+  Contributors <about/authors>
+  License <about/license>
+  Used by <about/usedby>
 
 ..
   .. toctree::

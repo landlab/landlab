@@ -6,4 +6,4 @@
    in our list, please let us know either through an issue or as a
    pull request (with your reference added to our ``USEDBY.rst`` file).
 
-.. include:: ../../USEDBY.rst
+.. include:: ../../../USEDBY.rst
