@@ -181,7 +181,7 @@ def summarize_linkcheck_output(session: nox.Session) -> None:
     if broken:
         print(broken)
     else:
-        session.log("🍰 Nothing to summarize, there were no broken links")
+        session.log("Nothing to summarize, there were no broken links")
 
 
 def _summarize_broken_links(path_to_file) -> str:
