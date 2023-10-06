@@ -232,7 +232,7 @@ def build_docs(session: nox.Session) -> None:
 
     build_dir = _build_docs(session, builders=[builder])
 
-    session.log(f"generated docs at {build_dir / {builder} !s}")
+    session.log(f"generated docs at {build_dir / builder !s}")
 
 
 def _build_docs(session, builders=("html",), success_codes=(0,)):
