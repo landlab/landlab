@@ -161,7 +161,7 @@ class Evergreen(Perennial):
         self.keep_green_parts = True
         super().__init__(species_grow_params)
 
-    def emerge(self, plants):
+    def emerge(self, plants, available_mass):
         return plants
 
     def senesce(self, plants, mass_of_green=None, mass_of_persistent=None):

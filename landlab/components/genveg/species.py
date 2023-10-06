@@ -175,26 +175,26 @@ class Species(object):
         )
 
         seasonal_nsc_assim_rates = [
-            "dormant_nsc_rate",
-            "growth_nsc_rate",
-            "repro_nsc_rate",
-            "senesce_nsc_rate",
+            "winter_nsc_rate",
+            "spring_nsc_rate",
+            "summer_nsc_rate",
+            "fall_nsc_rate",
         ]
         seasonal_days = [
-            "growing_season_start",
-            "reproduction_start",
-            "senescence_start",
-            "growing_season_end",
+            ["growing_season_end", "growing_season_start"],
+            ["growing_season_start", "peak_biomass"],
+            ["peak_biomass", "senescence_start"],
+            ["senescence_start", "growing_season_end"],
         ]
         species_params["duration_params"]["nsc_rate_change"] = {}
         for idx, season in enumerate(seasonal_nsc_assim_rates):
-            current_date = species_params["duration_params"][seasonal_days[idx]]
-            prior_date = species_params["duration_params"][seasonal_days[idx - 1]]
+            end_date = species_params["duration_params"][seasonal_days[idx][1]]
+            start_date = species_params["duration_params"][seasonal_days[idx][0]]
             species_params["duration_params"]["nsc_rate_change"][season] = {}
-            if prior_date > current_date:
-                season_length = (365 - prior_date) + current_date
+            if start_date > end_date:
+                season_length = (365 - start_date) + end_date
             else:
-                season_length = current_date - prior_date
+                season_length = end_date - start_date
             for part in self.all_parts:
                 rate_change_nsc = (
                     species_params["grow_params"]["incremental_nsc"][part][idx]
@@ -453,11 +453,11 @@ class Species(object):
             ]
 
             nsc_content_opts_mx = [
-                rate["dormant_nsc_rate"][part] * (d + 365 - days["growing_season_end"]),
-                rate["growth_nsc_rate"][part] * (days["growing_season_start"] - d),
-                rate["repro_nsc_rate"][part] * (days["reproduction_start"] - d),
-                rate["senesce_nsc_rate"][part] * (days["senescence_start"] - d),
-                rate["dormant_nsc_rate"][part] * (days["growing_season_end"] - d),
+                rate["winter_nsc_rate"][part] * (d + 365 - days["growing_season_end"]),
+                rate["spring_nsc_rate"][part] * (days["growing_season_start"] - d),
+                rate["summer_nsc_rate"][part] * (days["reproduction_start"] - d),
+                rate["fall_nsc_rate"][part] * (days["senescence_start"] - d),
+                rate["winter_nsc_rate"][part] * (days["growing_season_end"] - d),
             ]
             nsc_content[part] = (
                 (np.select(day_conditions, nsc_content_opts_b)) ** 0.5
@@ -567,8 +567,8 @@ class Species(object):
             total_delta_respire[filter] += delta_respire[filter]
             _new_biomass[part][filter] -= delta_respire[filter]
 
-        #print("Respiration")
-        #print(total_delta_respire)
+        # print("Respiration")
+        # print(total_delta_respire)
 
         return _new_biomass
 
