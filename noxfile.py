@@ -198,7 +198,7 @@ def _summarize_broken_links(path_to_file) -> str:
         tables.append(
             os.linesep.join(
                 [
-                    f'["{filename}"]',
+                    f"[{filename!r}]",
                     "broken = [",
                 ]
                 + [f"  {uri!r}," for uri in sorted(broken[filename])]
