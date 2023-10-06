@@ -2,6 +2,7 @@
 # [project.optional-dependencies] testing
 coveralls
 hypothesis
+flaky
 pytest
 pytest-benchmark
 pytest-cov
