@@ -20,7 +20,7 @@ The tutorials are presented as Jupyter notebooks, which contain a mixture of tex
 
 The Landlab Reference Manual contains documentation for most functions in the Landlab package. It is the comprehensive counterpart to the anecdotal tutorials.
 
-- [Notebook: Where to get info](where_to_get_info.ipynb) Then spend some time clicking around in the rest of the [User Guide](https://landlab.readthedocs.io/en/latest/user_guide/index.html) and [Reference Manual](https://landlab.readthedocs.io/en/latest/reference/index.html) to get a sense for what is there. Tip: to find a particular command, click on Index and use your browser's search function to search for a command by name or keyword. For example, look at the [documentation for the LinearDiffuser](https://landlab.readthedocs.io/en/latest/reference/components/diffusion.html) which you just used in the prior tutorial.
+- Spend some time clicking around in the [User Guide](https://landlab.readthedocs.io/en/latest/user_guide/index.html) and [Reference Manual](https://landlab.readthedocs.io/en/latest/reference/index.html) to get a sense for what is there. Tip: to find a particular command, click on Index and use your browser's search function to search for a command by name or keyword. For example, look at the [documentation for the LinearDiffuser](https://landlab.readthedocs.io/en/latest/reference/components/diffusion.html) which you just used in the prior tutorial.
 
 ### 1.3 Introduction to the Landlab Grid and Fields
 
