@@ -54,12 +54,12 @@ class ExampleData:
         --------
         >>> data = ExampleData("io/shapefile")
         >>> sorted(data)
-        ['methow', 'soque']
+        ['methow', 'redb', 'soque']
 
         >>> import os
         >>> data.fetch()  # doctest: +SKIP
         >>> sorted(os.listdir())  # doctest: +SKIP
-        ['methow', 'soque']
+        ['methow', 'redb', 'soque']
         """
         dstdir, srcdir = pathlib.Path("."), self.base
 
@@ -355,41 +355,36 @@ def strip_grid_from_method_docstring(funcs):
 
     Examples
     --------
-    >>> from landlab.grid.mappers import dummy_func_to_demonstrate_docstring_modification as dummy_func
-    >>> funcs = {'dummy_func_to_demonstrate_docstring_modification':
-    ...          dummy_func}
-    >>> help(dummy_func)
-    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    >>> def dummy_func(grid, some_arg):
+    ...     '''A dummy function.
+    ...
+    ...     Parameters
+    ...     ----------
+    ...     grid : ModelGrid
+    ...         A landlab grid.
+    ...     some_arg:
+    ...         An argument.
+    ...     '''
+    ...     pass
+    >>> funcs = {"dummy_func_to_demonstrate_docstring_modification": dummy_func}
+    >>> print(dummy_func.__doc__)
+    A dummy function.
     <BLANKLINE>
-    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
-        A dummy function to demonstrate automated docstring changes.
-    <BLANKLINE>
-        Parameters
-        ----------
-        grid : ModelGrid
-            A Landlab modelgrid.
-        some_arg : whatever
-            A dummy argument.
-    <BLANKLINE>
-        Examples
-        --------
-        ...
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab grid.
+    some_arg:
+        An argument.
     <BLANKLINE>
     >>> strip_grid_from_method_docstring(funcs)
-    >>> help(dummy_func)
-    Help on function dummy_func_to_demonstrate_docstring_modification in module landlab.grid.mappers:
+    >>> print(dummy_func.__doc__)
+    A dummy function.
     <BLANKLINE>
-    dummy_func_to_demonstrate_docstring_modification(grid, some_arg)
-        A dummy function to demonstrate automated docstring changes.
-    <BLANKLINE>
-        Parameters
-        ----------
-        some_arg : whatever
-            A dummy argument.
-    <BLANKLINE>
-        Examples
-        --------
-        ...
+    Parameters
+    ----------
+    some_arg:
+        An argument.
     <BLANKLINE>
     """
     import re

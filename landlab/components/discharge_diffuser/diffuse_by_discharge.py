@@ -64,7 +64,10 @@ class DischargeDiffuser(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
+            "doc": (
+                "Value of the hypothetical field 'K', used to force water "
+                "flux to flow downhill"
+            ),
         },
         "sediment__discharge_in": {
             "dtype": float,

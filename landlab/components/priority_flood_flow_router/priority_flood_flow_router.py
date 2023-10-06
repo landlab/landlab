@@ -1,13 +1,14 @@
-#!/usr/env/python
+"""Fill or breach a DEM, accumulate flow and calculate drainage area using
+the priority flood algorithm.
 
-"""
-priority_flood_flow_router.py: Component to fill or breach a DEM, accumulate flow and calculate drainage area using the priority flood algorithm.
+PriorityFloodFlowRouter is a wrapper of the RichDEM package:
+https://richdem.readthedocs.io/en/latest/flow_metrics.html
 
-PriorityFloodFlowRouter is a wrapper of the RichDEM package: https://richdem.readthedocs.io/en/latest/flow_metrics.html
-
-The component merges a filling/breaching algorithm, a flow director as well as a flow accumulator.
-Moreover, the component supports the definition of two flow accumulator fields associated to the same grid.
-This prevents the user from updating the filling/breaching algorithms in between calculation of flow accumulator one and two.
+The component merges a filling/breaching algorithm, a flow director as well
+as a flow accumulator.  Moreover, the component supports the definition of
+two flow accumulator fields associated to the same grid.  This prevents the
+user from updating the filling/breaching algorithms in between calculation
+of flow accumulator one and two.
 
 @author: benjaminCampforts
 """
@@ -24,27 +25,6 @@ from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc, _D8_flowDir
-
-# try:
-#     import richdem as rd
-try:
-    import _richdem
-except ModuleNotFoundError:
-
-    class richdem:
-        def __getattribute__(self, name):
-            raise RuntimeError(
-                "PriorityFloodFlowRouter requires richdem but richdem is not installed"
-            )
-
-    rd = richdem()
-    WITH_RICHDEM = False
-else:
-    import richdem as rd
-
-    WITH_RICHDEM = True
-    del _richdem
-
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -80,9 +60,9 @@ class PriorityFloodFlowRouter(Component):
     - *'water__unit_flux_in'*: External volume water per area per time input to each node.
     - *'flow__upstream_node_order'*: Node array containing downstream-to-upstream ordered
       list of node IDs.
-    - *'flow__receiver_node'*: Node array of receivers (nodes that receive flow), or ITS OWN ID if
-      there is no receiver. This array is 2D for *RouteToMany* methods and has the shape
-      *(n-nodes x max number of receivers)*.
+    - *'flow__receiver_node'*: Node array of receivers (nodes that receive flow),
+      or ITS OWN ID if there is no receiver. This array is 2D for *RouteToMany*
+      methods and has the shape *(n-nodes x max number of receivers)*.
     - *'flow__receiver_proportions'*: Node array of flow proportions. This
       array is 2D, for *RouteToMany* methods and has the shape
       *(n-nodes x max number of receivers)*.
@@ -91,8 +71,8 @@ class PriorityFloodFlowRouter(Component):
       *(n-nodes x max number of receivers)*.
     - *'flow__link_to_receiver_node'*: Node array of links carrying flow.
     - *'flow__receiver_proportion's*: Node array of proportion of flow sent to each receiver.
-    - *'depression_free_elevation'*: Depression free land surface topographic elevation, at closed
-      borders, value equals -1.
+    - *'depression_free_elevation'*: Depression free land surface topographic
+      elevation, at closed borders, value equals -1.
 
     The following fields are required when an additional hillslope flowrouting
     scheme is required, can be completed with flow acc and discharge if required:
@@ -112,11 +92,13 @@ class PriorityFloodFlowRouter(Component):
     grid : ModelGrid
         A Landlab grid.
     surface : str or array_like, optional
-        The surface to direct flow across. An at-node field name or an array of length *n_node*.
+        The surface to direct flow across. An at-node field name or an array
+        of length *n_node*.
     flow_metric : str, optional
-        String has to be one of 'D8' (O’Callaghan and Mark, 1984), 'Rho8' (Fairfield and Leymarie, 1991),
-        'Quinn' (1991), 'Freeman' (1991), 'Holmgren' (1994), 'Dinf' (Tarboton, 1997).
-        For details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
+        String has to be one of 'D8' (O’Callaghan and Mark, 1984), 'Rho8'
+        (Fairfield and Leymarie, 1991), 'Quinn' (1991), 'Freeman' (1991),
+        'Holmgren' (1994), 'Dinf' (Tarboton, 1997). For details and comparison,
+        see https://richdem.readthedocs.io/en/latest/flow_metrics.html
     runoff_rate : str, array_like, or float, optional
         If provided, sets the runoff rate (m / time) and will be assigned to the grid field
         'water__unit_flux_in'. If a spatially and and temporally variable runoff
@@ -130,9 +112,9 @@ class PriorityFloodFlowRouter(Component):
     update_flow_depressions : bool, optional
         Build-in depression handler. Can be through filling or breaching (see below).
     update_hill_depressions : bool, optional
-        Only needed if DEM needs to be filled separately for second (hill flow) flow accumulator.
-        Default behavior is not to execute a separate filling procedure in between the first and
-        the second flow accumulator.
+        Only needed if DEM needs to be filled separately for second (hill flow)
+        flow accumulator.  Default behavior is not to execute a separate filling
+        procedure in between the first and the second flow accumulator.
     depression_handler : str, optional
         Must be one of 'fill or 'breach'.
         Depression-Filling or breaching algorithm to process depressions
@@ -174,7 +156,8 @@ class PriorityFloodFlowRouter(Component):
         'Rho8' (Fairfield and Leymarie, 1991), 'Rho4' (Fairfield and Leymarie, 1991),
         'Quinn' (1991) {default},'Freeman' (1991), 'Holmgren' (1994),
         'Dinf' (Tarboton, 1997).
-        For details and comparison, see https://richdem.readthedocs.io/en/latest/flow_metrics.html
+        For details and comparison, see
+        https://richdem.readthedocs.io/en/latest/flow_metrics.html
     hill_exponent : float, optional
         Some methods require an exponent (see flow_metric)
     suppress_out : bool, optional
@@ -185,7 +168,9 @@ class PriorityFloodFlowRouter(Component):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    Barnes, R., 2017. Parallel non-divergent flow accumulation for trillion cell digital elevation models on desktops or clusters. Environmental Modelling & Software 92, 202–212. doi: 10.1016/j.envsoft.2017.02.022
+    Barnes, R., 2017. Parallel non-divergent flow accumulation for trillion
+    cell digital elevation models on desktops or clusters. Environmental
+    Modelling & Software 92, 202–212. doi: 10.1016/j.envsoft.2017.02.022
 
     **Additional References**
 
@@ -260,7 +245,10 @@ class PriorityFloodFlowRouter(Component):
             "optional": True,
             "units": "m/s",
             "mapping": "node",
-            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+            "doc": (
+                "External volume water per area per time input to each node "
+                "(e.g., rainfall rate)"
+            ),
         },
         "topographic__steepest_slope": {
             "dtype": float,
@@ -276,7 +264,10 @@ class PriorityFloodFlowRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Length to adjacent nodes, squared (calcualted in advance to save time during calculation",
+            "doc": (
+                "Length to adjacent nodes, squared (calcualted in advance to "
+                "save time during calculation"
+            ),
         },
         "flow__receiver_proportions": {
             "dtype": float,
@@ -292,7 +283,10 @@ class PriorityFloodFlowRouter(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Filled land surface topographic elevation, at closed borders, value equals -1!",
+            "doc": (
+                "Filled land surface topographic elevation, at closed borders, "
+                "value equals -1!"
+            ),
         },
         # The following fields are required when an additional
         # hillslope flowrouting scheme is required, can be completed
@@ -347,8 +341,6 @@ class PriorityFloodFlowRouter(Component):
         },
     }
 
-    WITH_RICHDEM = WITH_RICHDEM
-
     def __init__(
         self,
         grid,
@@ -375,6 +367,8 @@ class PriorityFloodFlowRouter(Component):
         keyword arguments, tests the argument of runoff, and
         initializes new fields.
         """
+        self._richdem = self.load_richdem()
+
         super().__init__(grid)
         # Keep a local reference to the grid
 
@@ -384,7 +378,7 @@ class PriorityFloodFlowRouter(Component):
 
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
-        self._test_water_inputs(grid, runoff_rate)
+        self._validate_water_inputs(grid, runoff_rate)
 
         # Grid type testing
         if not isinstance(self._grid, RasterModelGrid):
@@ -406,24 +400,28 @@ class PriorityFloodFlowRouter(Component):
             self._flow_metric = flow_metric
         else:
             raise ValueError(
-                f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
+                "flow metric should be one of these single flow directors: "
+                f"{', '.join(repr(x) for x in PSINGLE_FMs)} or multiple flow directors: "
+                f"{', '.join(repr(x) for x in PMULTIPLE_FMs)}"
             )
         if (hill_flow_metric in PSINGLE_FMs) or (hill_flow_metric in PMULTIPLE_FMs):
             self._hill_flow_metric = hill_flow_metric
         else:
             raise ValueError(
-                f"flow metric should be one of these single flow directors : {', '.join(PSINGLE_FMs)} or multiple flow directors: {', '.join(PMULTIPLE_FMs)}"
+                "flow metric should be one of these single flow directors:"
+                f"{', '.join(repr(x) for x in PSINGLE_FMs)} or multiple flow directors: "
+                f"{', '.join(repr(x) for x in PMULTIPLE_FMs)}"
             )
 
-        if depression_handler == "fill":
-            self._depression_handler = partial(
-                rd.FillDepressions, epsilon=epsilon, in_place=True
-            )
-        elif depression_handler == "breach":
-            self._depression_handler = partial(rd.BreachDepressions, in_place=True)
+        if depression_handler in ("fill", "breach"):
+            self._depression_handler = depression_handler
         else:
-            raise ValueError("depression_handler should be one of 'fill' or 'breach'")
+            raise ValueError(
+                "depression_handler should be one of 'fill' or 'breach'"
+                f" (got {depression_handler!r})"
+            )
 
+        self._epsilon = epsilon
         self._exponent = exponent
         self._separate_hill_flow = separate_hill_flow
         self._update_hill_flow_instantaneous = update_hill_flow_instantaneous
@@ -463,7 +461,6 @@ class PriorityFloodFlowRouter(Component):
             self._info["hill_drainage_area"]["optional"] = True
             self._info["hill_surface_water__discharge"]["optional"] = True
         else:
-
             self._info["hill_drainage_area"]["optional"] = False
             self._info["hill_surface_water__discharge"]["optional"] = False
 
@@ -474,7 +471,8 @@ class PriorityFloodFlowRouter(Component):
             self._drainage_area = self.grid.at_node["drainage_area"]
             self._discharges = self.grid.at_node["surface_water__discharge"]
         self._sort = self.grid.at_node["flow__upstream_node_order"]
-        # if multiple flow algorithm is made, the dimensions of the slope and receiver fields change (8 colums for all neightbors)
+        # if multiple flow algorithm is made, the dimensions of the slope
+        # and receiver fields change (8 colums for all neightbors)
         if flow_metric in PMULTIPLE_FMs:
             self.grid.at_node["topographic__steepest_slope"] = np.zeros(
                 (self.grid.number_of_nodes, 8)
@@ -516,6 +514,20 @@ class PriorityFloodFlowRouter(Component):
         # Create properties specific to RichDEM
         self._create_richdem_properties()
 
+    @staticmethod
+    def load_richdem():
+        try:
+            import _richdem  # noqa: F401
+            import richdem
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
+                "PriorityFloodFlowRouter requires richdem but richdem is not installed. "
+                "You can install richdem either from source "
+                "(https://github.com/r-barnes/richdem), or through conda "
+                "(conda install richdem -c conda-forge) or pip (pip install richdem)."
+            ) from exc
+        return richdem
+
     @property
     def surface_values(self):
         """Values of the surface over which flow is directed."""
@@ -542,7 +554,7 @@ class PriorityFloodFlowRouter(Component):
 
     def _create_richdem_properties(self):
         self._depression_free_dem = cp.deepcopy(
-            rd.rdarray(
+            self._richdem.rdarray(
                 self._surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
@@ -558,31 +570,22 @@ class PriorityFloodFlowRouter(Component):
             axis=1,
         )
 
-        self._closed = np.zeros(self._grid.number_of_nodes)
+        self._closed = np.zeros(self._grid.number_of_nodes, dtype=np.uint8)
         self._closed[self._grid.status_at_node == NodeStatus.CLOSED] = 1
-        self._closed = rd.rdarray(self._closed.reshape(self._grid.shape), no_data=-9999)
+        self._closed = self._richdem.rdarray(
+            self._closed.reshape(self._grid.shape), no_data=-9999
+        )
         self._closed.geotransform = [0, 1, 0, 0, 0, -1]
 
-    def _test_water_inputs(self, grid, runoff_rate):
+    def _validate_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
+
         if "water__unit_flux_in" not in grid.at_node:
-            if runoff_rate is None:
-                # assume that if runoff rate is not supplied, that the value
-                # should be set to one everywhere.
-                grid.add_ones("water__unit_flux_in", at="node", dtype=float)
-            else:
-                runoff_rate = return_array_at_node(grid, runoff_rate)
-                grid.at_node["water__unit_flux_in"] = runoff_rate
-        else:
-            if runoff_rate is not None:
-                print(
-                    "FlowAccumulator found both the field "
-                    + "'water__unit_flux_in' and a provided float or "
-                    + "array for the runoff_rate argument. THE FIELD IS "
-                    + "BEING OVERWRITTEN WITH THE SUPPLIED RUNOFF_RATE!"
-                )
-                runoff_rate = return_array_at_node(grid, runoff_rate)
-                grid.at_node["water__unit_flux_in"] = runoff_rate
+            grid.add_empty("water__unit_flux_in", at="node")
+            runoff_rate = 1.0 if runoff_rate is None else runoff_rate
+            grid.at_node["water__unit_flux_in"][:] = runoff_rate
+        elif runoff_rate is not None:
+            grid.at_node["water__unit_flux_in"][:] = runoff_rate
 
     def calc_flow_dir_acc(self, hill_flow=False, update_depressions=True):
         """Calculate flow direction and accumulation using the richdem package"""
@@ -593,24 +596,20 @@ class PriorityFloodFlowRouter(Component):
 
         # 1: Remove depressions
         if update_depressions:
-            self.remove_depressions()
-
-        # 2: Flow directions and accumulation
-        # D8 flow accumulation in richDEM seems not to differentiate between cardinal and diagonal cells,
-        #   so we provide an alternative D8 implementation strategy
+            self.remove_depressions(flow_metric=flow_metric)
         if flow_metric == "D8":
             self._FlowAcc_D8(hill_flow=hill_flow)
         else:
-
+            closed_boundary_values = self._depression_free_dem[self._closed == 1]
+            self._depression_free_dem[self._closed == 1] = np.inf
             # Calculate flow direction (proportion) and accumulation using RichDEM
             with self._suppress_output():
-                dem_corrected_boundaries = cp.deepcopy(self._depression_free_dem)
-                dem_corrected_boundaries[self._closed == 1] = -9999
-                props_Pf = rd.FlowProportions(
-                    dem=dem_corrected_boundaries,
+                props_Pf = self._richdem.FlowProportions(
+                    dem=self._depression_free_dem,
                     method=flow_metric,
                     exponent=self._exponent,
                 )
+            self._depression_free_dem[self._closed == 1] = closed_boundary_values
 
             # Calculate flow accumulation using RichDEM
             if (hill_flow and self._accumulate_flow_hill) or (
@@ -683,7 +682,6 @@ class PriorityFloodFlowRouter(Component):
                     self._hill_slope[rcvrs == -1] = 0
 
             else:
-
                 if flow_metric in PSINGLE_FMs:
                     ij_at_max = range(len(rcvrs)), np.argmax(rcvrs, axis=1)
                     self._prps[:] = props_Pf[ij_at_max]
@@ -809,20 +807,48 @@ class PriorityFloodFlowRouter(Component):
             self._slope[:] = steepest_slope
             self._recvr_link[:] = recvr_link
 
-    def remove_depressions(self):
+    def remove_depressions(self, flow_metric="D8"):
         self._depression_free_dem = cp.deepcopy(
-            rd.rdarray(
+            self._richdem.rdarray(
                 self._surface_values.reshape(self.grid.shape),
                 no_data=-9999,
             )
         )
         self._depression_free_dem.geotransform = [0, 1, 0, 0, 0, -1]
+        closed_boundary_values = self._depression_free_dem[self._closed == 1]
+        self._depression_free_dem[self._closed == 1] = np.inf
+
+        if flow_metric in ("D4", "Rho4"):
+            topology = "D4"
+        else:
+            topology = "D8"
         with self._suppress_output():
-            self._depression_handler(self._depression_free_dem)
+            if self._depression_handler == "fill":
+                self._richdem.FillDepressions(
+                    self._depression_free_dem,
+                    epsilon=self._epsilon,
+                    in_place=True,
+                    topology=topology,
+                )
+
+            elif self._depression_handler == "breach":
+                self._richdem.BreachDepressions(
+                    self._depression_free_dem, in_place=True, topology=topology
+                )
+
         self._sort[:] = np.argsort(
             np.array(self._depression_free_dem.reshape(self.grid.number_of_nodes))
         )
+
+        self._depression_free_dem[self._closed == 1] = closed_boundary_values
         self.grid.at_node["depression_free_elevation"] = self._depression_free_dem
+
+        self.grid.at_node["flood_status_code"] = np.where(
+            self.grid.at_node["depression_free_elevation"]
+            == self.grid.at_node["topographic__elevation"],
+            0,
+            3,
+        )
 
     def _accumulate_flow_RD(self, props_Pf, hill_flow=False):
         """
@@ -851,12 +877,13 @@ class PriorityFloodFlowRouter(Component):
             a = self._hill_drainage_area
             q = self._hill_discharges
 
-        # Create weight for flow accum: both open (status ==1) and closed nodes (status ==4) will have zero weight
+        # Create weight for flow accum: both open (status ==1) and closed
+        # nodes (status ==4) will have zero weight
         wg = np.full(self.grid.number_of_nodes, self.grid.dx**2)
 
         # Only core nodes (status == 0) need to receive a weight
         wg[self._grid.status_at_node != NodeStatus.CORE] = 0
-        wg = rd.rdarray(
+        wg = self._richdem.rdarray(
             wg.reshape(self.grid.shape),
             no_data=-9999,
         )
@@ -864,7 +891,7 @@ class PriorityFloodFlowRouter(Component):
 
         with self._suppress_output():
             a[:] = np.array(
-                rd.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
+                self._richdem.FlowAccumFromProps(props=props_Pf, weights=wg).reshape(
                     self.grid.number_of_nodes
                 )
             )
@@ -873,10 +900,10 @@ class PriorityFloodFlowRouter(Component):
             wg = self.grid.at_node["water__unit_flux_in"] * self.grid.dx * self.grid.dx
             # Only core nodes (status == 0) need to receive a weight
             wg[self._grid.status_at_node != NodeStatus.CORE] = 0
-            wg = rd.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
+            wg = self._richdem.rdarray(wg.reshape(self.grid.shape), no_data=-9999)
             wg.geotransform = [0, 1, 0, 0, 0, -1]
             with self._suppress_output():
-                q_pf = rd.FlowAccumFromProps(props=props_Pf, weights=wg)
+                q_pf = self._richdem.FlowAccumFromProps(props=props_Pf, weights=wg)
             q[:] = np.array(q_pf.reshape(self.grid.number_of_nodes))
         else:
             q[:] = self._drainage_area
@@ -884,7 +911,9 @@ class PriorityFloodFlowRouter(Component):
     def update_hill_fdfa(self, update_depressions=False):
         if not self._separate_hill_flow:
             raise ValueError(
-                "If hillslope properties are updated, the separate_hill_flow property of the PriorityFloodFlowRouter class should be True upon initialisation"
+                "If hillslope properties are updated, the separate_hill_flow "
+                "property of the PriorityFloodFlowRouter class should be "
+                "True upon initialisation"
             )
         self.calc_flow_dir_acc(hill_flow=True, update_depressions=update_depressions)
 

@@ -1,1 +1,0 @@
-Changed ``FramedVoronoiGrid`` to accept a single seed for the *seed* keyword.

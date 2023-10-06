@@ -271,7 +271,7 @@ class ZoneController:
         minimum_area=0,
         neighborhood_structure="D8",
         initial_time=0,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the controller.
 

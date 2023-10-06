@@ -41,7 +41,6 @@ class _DrainageStack:
     """
 
     def __init__(self, delta, D):
-
         """Initializes the _Drainage_Stack class.
 
         Initializes the index counter j to zero, creates the stack array
@@ -53,7 +52,6 @@ class _DrainageStack:
         self.D = D
 
     def add_to_stack(self, node):
-
         """Adds *node* to the stack and increments the current index (j).
 
         Examples
@@ -73,7 +71,6 @@ class _DrainageStack:
 
 
 def _make_number_of_donors_array(r):
-
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
@@ -108,7 +105,6 @@ def _make_number_of_donors_array(r):
 
 
 def _make_delta_array(nd):
-
     r"""
     Delta array.
 
@@ -147,7 +143,6 @@ def _make_delta_array(nd):
 
 
 def _make_array_of_donors(r, delta):
-
     """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
@@ -178,7 +173,6 @@ def _make_array_of_donors(r, delta):
 
 
 def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
-
     """Create an array of node IDs that is arranged in order from.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -215,7 +209,6 @@ def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
 def find_drainage_area_and_discharge(
     s, r, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
-
     """Calculate the drainage area and water discharge at each node.
 
     Parameters
@@ -298,7 +291,6 @@ def find_drainage_area_and_discharge_lossy(
     runoff=1.0,
     boundary_nodes=None,
 ):
-
     """Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
@@ -438,7 +430,6 @@ def find_drainage_area_and_discharge_lossy(
 def flow_accumulation(
     receiver_nodes, node_cell_area=1.0, runoff_rate=1.0, boundary_nodes=None
 ):
-
     """Calculate drainage area and (steady) discharge.
 
     Calculates and returns the drainage area and (steady) discharge at each

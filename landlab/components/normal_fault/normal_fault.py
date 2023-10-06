@@ -374,7 +374,6 @@ class NormalFault(Component):
         # they will be uplifted but not eroded.
 
         if self._include_boundaries:
-
             #  here our goal is to set faulted boundaries to average of open
             # node faulted neighbors
 

@@ -180,7 +180,6 @@ def calculate_distance_to_divide(
 
     # iterate through the flow__upstream_node_order backwards.
     for node in reversed(flow__upstream_node_order):
-
         # if drainage are is equal to node cell area, set distance to zeros
         # this should handle the drainage divide cells as boundary cells have
         # their area set to zero.
@@ -193,7 +192,6 @@ def calculate_distance_to_divide(
         if to_one:
             # if not processing an outlet node.
             if reciever != node:
-
                 if longest_path:
                     cond = (
                         distance_to_divide[reciever]
@@ -220,7 +218,6 @@ def calculate_distance_to_divide(
 
                 # if not processing an outlet node.
                 if r != node:
-
                     if longest_path:
                         cond = distance_to_divide[r] < distance_to_divide[node] + fll
                     else:

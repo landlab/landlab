@@ -52,7 +52,7 @@ def test_misc():
     #                                 '(see documentation for required format)'))
     #
     with pytest.raises(TypeError):
-        """Test bad items keys"""
+        # Test bad items keys
         DataRecord(
             grid,
             time=[0.0],
@@ -66,7 +66,7 @@ def test_misc():
     # Should return TypeError(('You must provide an ''items'' dictionary '
     #                                  '(see documentation for required format)'))
     with pytest.raises(TypeError):
-        """Test bad attrs"""
+        # Test bad attrs
         DataRecord(
             grid,
             time=[0.0],
@@ -416,6 +416,7 @@ def test_dr_2dim_bad_set_data(dr_2dim):
 
 
 # TypeError('item_id must be a list or a 1-d array')
+
 
 # NO DIM
 def test_dr_nodim_bad_get_data(dr_nodim):

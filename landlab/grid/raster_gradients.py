@@ -15,8 +15,12 @@ from collections import deque
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
-from landlab.grid import gradients
 from landlab.utils.decorators import use_field_name_or_array
+
+from .ext.raster_gradient import (
+    calc_diff_at_link as _calc_diff_at_link_c,
+    calc_grad_at_link as _calc_grad_at_link_c,
+)
 
 
 @use_field_name_or_array("node")
@@ -182,14 +186,65 @@ def calc_grad_at_diagonal(grid, node_values, out=None):
 
 
 @use_field_name_or_array("node")
-def calc_grad_at_link(grid, node_values, out=None):
+def calc_diff_at_link(grid, value_at_node, out=None):
+    """Calculate differences in node_values at links.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    value_at_node : array_like or field name
+        Values at nodes.
+    out : ndarray, optional
+        Buffer to hold result. If `None`, create a new array.
+
+    Returns
+    -------
+    ndarray
+        Differences of the nodes values for each link.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 3))
+    >>> node_values = [0., 0., 0.,
+    ...                1., 3., 1.,
+    ...                2., 2., 2.]
+    >>> grid.calc_diff_at_link(node_values)
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+
+    >>> out = np.empty(grid.number_of_links, dtype=float)
+    >>> rtn = grid.calc_diff_at_link(node_values, out=out)
+    >>> rtn is out
+    True
+    >>> out
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
+    >>> grid.calc_diff_at_link(node_values)
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+    >>> _ = grid.add_field("elevation", node_values, at="node")
+    >>> grid.calc_diff_at_link('elevation')
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+
+    :meta landlab: info-link, gradient
+    """
+    if out is None:
+        out = grid.empty(at="link")
+    _calc_diff_at_link_c(grid.shape, np.asarray(value_at_node).reshape(-1), out)
+
+    return out
+
+
+@use_field_name_or_array("node")
+def calc_grad_at_link(grid, value_at_node, out=None):
     """Calculate gradients in node_values at links.
 
     Parameters
     ----------
     grid : RasterModelGrid
         A grid.
-    node_values : array_like or field name
+    value_at_node : array_like or field name
         Values at nodes.
     out : ndarray, optional
         Buffer to hold result. If `None`, create a new array.
@@ -225,9 +280,13 @@ def calc_grad_at_link(grid, node_values, out=None):
 
     :meta landlab: info-link, gradient
     """
-    grads = gradients.calc_diff_at_link(grid, node_values, out=out)
-    grads /= grid.length_of_link[: grid.number_of_links]
-    return grads
+    if out is None:
+        out = grid.empty(at="link")
+    _calc_grad_at_link_c(
+        grid.shape, (grid.dx, grid.dy), np.asarray(value_at_node).reshape(-1), out
+    )
+
+    return out
 
 
 @use_field_name_or_array("node")
@@ -1851,7 +1910,7 @@ def calc_slope_at_node(
         except TypeError:
             z[:-1] = elevs
         # proof code for bad indexing:
-        diags = grid.diagonal_neighbors_at_node.copy()  # LL order
+        diags = grid.diagonal_adjacent_nodes_at_node.copy()  # LL order
         orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):

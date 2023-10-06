@@ -150,15 +150,14 @@ class Profiler(_BaseProfiler):
         """
         super().__init__(grid)
 
-        self._cmap = plt.get_cmap(cmap)
+        self._cmap = plt.colormaps[cmap]
 
         if not isinstance(endpoints, list) or len(endpoints) < 2:
-            msg = (
+            raise ValueError(
                 "`endpoints` must be a list of at least 2 node IDs or a "
                 "list of at least two tuples where each tuple contains the "
                 "x, y coordinates of endpoints."
             )
-            raise ValueError(msg)
 
         # Check if `endpoints` are within grid bounds while setting
         # `_end_nodes`.

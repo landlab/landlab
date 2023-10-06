@@ -176,7 +176,7 @@ def _read_netcdf_structured_data(root):
     fields = {}
     grid_mapping_exists = False
     grid_mapping_dict = None
-    for (name, var) in root.variables.items():
+    for name, var in root.variables.items():
         # identify if a grid mapping variable exist and do not pass it as a field
         if name not in _COORDINATE_NAMES and hasattr(var, "grid_mapping"):
             grid_mapping = var.grid_mapping
@@ -187,7 +187,7 @@ def _read_netcdf_structured_data(root):
     dont_use = list(_COORDINATE_NAMES)
     if grid_mapping_exists:
         dont_use.append(grid_mapping)
-    for (name, var) in root.variables.items():
+    for name, var in root.variables.items():
         if name not in dont_use:
             fields[name] = var.values.reshape((-1,))
 
@@ -218,7 +218,7 @@ def _get_raster_spacing(coords):
     """
     spacing = np.empty(len(coords), dtype=np.float64)
 
-    for (axis, coord) in enumerate(coords):
+    for axis, coord in enumerate(coords):
         coord_spacing = np.diff(coord, axis=axis)
         if not np.all(coord_spacing == coord_spacing.flat[0]):
             raise NotRasterGridError()
@@ -373,8 +373,7 @@ def read_netcdf(
 
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(dataset)
-        for (field_name, values) in fields.items():
-
+        for field_name, values in fields.items():
             # add halo if necessary
             if halo > 0:
                 values = add_halo(

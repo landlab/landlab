@@ -1,7 +1,7 @@
 import numpy as np
-cimport numpy as np
-cimport cython
 
+cimport cython
+cimport numpy as np
 
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t
@@ -47,11 +47,11 @@ def adjust_flow_receivers(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
         src_id = src_nodes[i]
         dst_id = dst_nodes[i]
 
-        if z[src_id] > z[dst_id] and link_slope[i] > steepest_slope[src_id]:
+        if (z[src_id] > z[dst_id]) and (link_slope[i] > steepest_slope[src_id]):
             receiver[src_id] = dst_id
             steepest_slope[src_id] = link_slope[i]
             receiver_link[src_id] = active_links[i]
-        elif z[dst_id] > z[src_id] and -link_slope[i] > steepest_slope[dst_id]:
+        elif (z[dst_id] > z[src_id]) and (-link_slope[i] > steepest_slope[dst_id]):
             receiver[dst_id] = src_id
             steepest_slope[dst_id] = - link_slope[i]
             receiver_link[dst_id] = active_links[i]

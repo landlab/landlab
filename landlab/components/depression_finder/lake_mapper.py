@@ -159,7 +159,10 @@ class DepressionFinderAndRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "If a depression, the id of the outlet node for that depression, otherwise grid.BAD_INDEX",
+            "doc": (
+                "If a depression, the id of the outlet node for that depression, "
+                "otherwise grid.BAD_INDEX"
+            ),
         },
         "flood_status_code": {
             "dtype": int,
@@ -239,16 +242,15 @@ class DepressionFinderAndRouter(Component):
         if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
             "flow__receiver_node"
         ].size != self._grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The depression finder is "
                 "not compatible with the grid anymore. Use "
-                "DepressionFinderAndRouter with reroute_flow="
-                "True only with route-to-one methods. If using this "
+                "DepressionFinderAndRouter with reroute_flow=True "
+                "only with route-to-one methods. If using this "
                 "component with such a flow directing method is desired "
                 "please open a GitHub Issue/"
             )
-            raise NotImplementedError(msg)
 
         # Make sure the grid includes elevation data.
         self._elev = self._grid.at_node["topographic__elevation"]
@@ -532,7 +534,6 @@ class DepressionFinderAndRouter(Component):
 
         # Iterate over all "regular" neighbors
         for i in range(len(links)):
-
             lnk = links[i]
             nbr = nbrs[i]
 
@@ -549,12 +550,10 @@ class DepressionFinderAndRouter(Component):
                 )
                 and self._grid.status_at_node[nbr] != self._grid.BC_NODE_IS_CLOSED
             ):
-
                 # Next test: is it the steepest downhill grad so far?
                 # If so, we've found a candidate.
                 grad = (node_elev - self._elev[nbr]) / self._grid.length_of_link[lnk]
                 if grad > max_downhill_grad:
-
                     # Update the receiver and max grad: this is now the one
                     # to beat.
                     max_downhill_grad = grad
@@ -562,9 +561,7 @@ class DepressionFinderAndRouter(Component):
 
         # If we're on a D8 raster, iterate over all diagonal neighbors
         if self._D8:
-
             for nbr in diag_nbrs:
-
                 # Again, to pass this first hurdle, the neighbor must:
                 #   * not be part of the current lake
                 #   * have a surface (if flooded, WATER surface)
@@ -578,12 +575,10 @@ class DepressionFinderAndRouter(Component):
                     )
                     and self._grid.status_at_node[nbr] != self._grid.BC_NODE_IS_CLOSED
                 ):
-
                     # Next test: is it the steepest downhill grad so far?
                     # If so, we've found a candidate.
                     grad = (node_elev - self._elev[nbr]) / self._diag_link_length
                     if grad > max_downhill_grad:
-
                         # Update the receiver and max grad: this is now the one
                         # to beat.
                         max_downhill_grad = grad
@@ -625,13 +620,10 @@ class DepressionFinderAndRouter(Component):
         #
         # We proceed only if there is at least one flooded node
         if np.any(np.logical_not(not_flooded)):
-
             # Examine each neighbor
             for i in range(len(nbrs)):
-
                 # If the neighbor is flooded...
                 if not not_flooded[i]:
-
                     # Check to see whether its own outlet is lower than
                     # the_node. If so, then it does not "count" as being
                     # flooded, because its water level is lower than our
@@ -872,8 +864,10 @@ class DepressionFinderAndRouter(Component):
             self._grid.status_at_node[self._grid.boundary_nodes]
             != self._grid.BC_NODE_IS_CLOSED
         ):
-            msg = "DepressionFinderAndRouter requires that there is at least one open boundary node."
-            raise ValueError(msg)
+            raise ValueError(
+                "DepressionFinderAndRouter requires that there is at least one "
+                "open boundary node."
+            )
 
         self._lake_map.fill(self._grid.BAD_INDEX)
         self._depression_outlet_map.fill(self._grid.BAD_INDEX)
@@ -914,7 +908,6 @@ class DepressionFinderAndRouter(Component):
         self._identify_depressions_and_outlets(self._reroute_flow)
 
         if self._reroute_flow and ("flow__receiver_node" in self._grid.at_node):
-
             self._receivers = self._grid.at_node["flow__receiver_node"]
             self._sinks = self._grid.at_node["flow__sink_flag"]
             self._grads = self._grid.at_node["topographic__steepest_slope"]
@@ -990,7 +983,13 @@ class DepressionFinderAndRouter(Component):
         >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> rcvr = rg.add_zeros("flow__receiver_node", at="node", dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
-        >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
+        >>> lake_nodes = np.array(
+        ...     [
+        ...         10, 12, 13, 19, 20, 21, 25,
+        ...         26, 27, 28, 29, 30, 33, 34,
+        ...         35, 36, 37, 38, 44, 45, 46
+        ...     ]
+        ... )
         >>> rcvr[9] = 1
         >>> rcvr[11] = 3
         >>> rcvr[14] = 6
@@ -1097,11 +1096,9 @@ class DepressionFinderAndRouter(Component):
 
         # Process each lake.
         for outlet_node, lake_code in zip(self.lake_outlets, self.lake_codes):
-
             # Get the nodes in the lake
             nodes_in_lake = np.where(self._lake_map == lake_code)[0]
             if len(nodes_in_lake) > 0:
-
                 # find the correct outlet for the lake, if necessary
                 if self._lake_map[self._receivers[outlet_node]] == lake_code:
                     nbrs = self._grid.active_adjacent_nodes_at_node[outlet_node]

@@ -3,7 +3,6 @@ from itertools import tee
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import cm
 from matplotlib.patches import Patch
 from scipy.interpolate import interp1d
 
@@ -133,7 +132,8 @@ def _plot_surface(x, y, sea_level=0.0):
 
 def _plot_layers(x, layers, color=None, lc="k", lw=0.5):
     if color is not None:
-        cmap = cm.get_cmap(color)
+        cmap = plt.colormaps[color] if isinstance(color, str) else color
+
         for layer, (lower, upper) in enumerate(pairwise(layers)):
             plt.fill_between(
                 x,
@@ -257,6 +257,11 @@ def _interp_zero_crossings(x, y, shorelines):
     x_of_shoreline = []
     for shoreline in shorelines:
         coast = slice(shoreline, shoreline + 2)
-        x_of_shoreline.append(interp1d(y[coast], x[coast])(0.0))
+
+        # for scipy<1.10 interp1d requires x and y to have at least two elements,
+        # which is not the case if theshoreline is the last element.
+        x_of_shoreline.append(
+            interp1d(np.broadcast_to(y[coast], 2), np.broadcast_to(x[coast], 2))(0.0)
+        )
 
     return np.asarray(x_of_shoreline)

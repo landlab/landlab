@@ -67,7 +67,6 @@ class _DrainageStack_to_n:
     """
 
     def __init__(self, delta, D, num_receivers):
-
         """Creates the stack array s and stores references to delta and D.
 
         Initialization of the _DrainageStack_to_n() class including
@@ -181,7 +180,6 @@ class _DrainageStack_to_n:
             new_completes = set()
 
             for node_i in completed:
-
                 # select the nodes to visit
                 visit = self.D[self.delta[node_i] : self.delta[node_i + 1]]
                 # record the visit time.
@@ -204,11 +202,10 @@ class _DrainageStack_to_n:
             completed = new_completes
 
         # the stack is the argsort of visit time.
-        self.s = numpy.argsort(visit_time)
+        self.s = numpy.argsort(visit_time, kind="stable")
 
 
 def _make_number_of_donors_array_to_n(r, p):
-
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
@@ -306,7 +303,6 @@ def _make_delta_array_to_n(nd):
 
 
 def _make_array_of_donors_to_n(r, p, delta):
-
     """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
@@ -363,7 +359,6 @@ def _make_array_of_donors_to_n(r, p, delta):
 def make_ordered_node_array_to_n(
     receiver_nodes, receiver_proportion, nd=None, delta=None, D=None
 ):
-
     """Create an array of node IDs.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -432,7 +427,6 @@ def make_ordered_node_array_to_n(
 def find_drainage_area_and_discharge_to_n(
     s, r, p, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
-
     """Calculate the drainage area and water discharge at each node.
 
     Parameters
@@ -543,7 +537,6 @@ def find_drainage_area_and_discharge_to_n_lossy(
     runoff=1.0,
     boundary_nodes=None,
 ):
-
     """Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
@@ -698,7 +691,6 @@ def flow_accumulation_to_n(
     runoff_rate=1.0,
     boundary_nodes=None,
 ):
-
     """Calculate drainage area and (steady) discharge.
 
     Calculates and returns the drainage area and (steady) discharge at each

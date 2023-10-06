@@ -573,7 +573,8 @@ class ModelGrid(
         >>> sorted(ds.dims.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
-        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
+         'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
@@ -722,27 +723,45 @@ class ModelGrid(
     @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
-        """Link flux directions at each node: 1=incoming flux, -1=outgoing
-        flux, 0=no flux. Note that inactive links receive zero, but active and
-        fixed links are both reported normally.
+        """Return link directions into each node.
+
+        A value of 1 indicates a link points toward a given node, while a value
+        of -1 indicates a link points away from a node. Note that inactive links
+        have a value of 0, but active and fixed links are both reported normally.
 
         Returns
         -------
-        (NODES, LINKS) ndarray of int
+        (n_nodes, max_links_per_node) ndarray of int
             Link directions relative to the nodes of a grid. The shape of the
-            matrix will be number of nodes rows by max number of links per
+            matrix will be number of nodes by the maximum number of links per
             node. A zero indicates no link at this position.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 3))
+        >>> grid = RasterModelGrid((3, 4))
+
+        ::
+
+            .--->.--->.--->.
+            ^    ^    ^    ^
+            |    |    |    |
+            .--->5--->.--->.
+            ^    ^    ^    ^
+            |    |    |    |
+            .--->.--->.--->.
+
+        >>> grid.active_link_dirs_at_node[5]
+        array([-1, -1,  1,  1], dtype=int8)
+
+        If we set the nodes along the left edge to be closed, the links attached
+        to those nodes become inactive and so their directions are reported as 0.
+
         >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_CLOSED
-        >>> grid.active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
+        >>> grid.active_link_dirs_at_node
+        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0], [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0,  0,  1,  0],
+               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
                dtype=int8)
 
         :meta landlab: info-node, info-link, connectivity
@@ -1371,8 +1390,8 @@ class ModelGrid(
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
-        except KeyError:
-            raise TypeError(f"{name}: element name not understood")
+        except KeyError as exc:
+            raise TypeError(f"{name}: element name not understood") from exc
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -1412,8 +1431,8 @@ class ModelGrid(
         AXES = ("node_y", "node_x")
         try:
             return getattr(self, AXES[axis])
-        except IndexError:
-            raise ValueError("'axis' entry is out of bounds")
+        except IndexError as exc:
+            raise ValueError("'axis' entry is out of bounds") from exc
 
     @property
     def axis_units(self):

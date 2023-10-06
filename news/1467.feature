@@ -1,1 +1,0 @@
-Enhance possibilities for .pyx compilation through setup.py update. Now include the tests and compile using Python 3. Compilation instructions (C++, multithreading openmp, macros) can be added at top of the .pyx and .pxd files. See use case with files linked to the future FlowRouter component (including tests).

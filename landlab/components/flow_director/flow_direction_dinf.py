@@ -144,10 +144,10 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     """
     try:
         grid.d8s_at_node
-    except AttributeError:
+    except AttributeError as exc:
         raise NotImplementedError(
             "Dinfinity is currently implemented for Raster grids only"
-        )
+        ) from exc
     # get elevs
     elevs = np.copy(return_array_at_node(grid, elevs))
 
@@ -338,7 +338,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # sort slopes
     # we've set slopes going to closed or non-existant triangles to -999.0, so
     # we shouldn't ever choose these.
-    steepest_sort = np.argsort(s)
+    steepest_sort = np.argsort(s, kind="stable")
 
     # determine the steepest triangle
     steepest_triangle = tri_numbers[steepest_sort[:, -1]]
@@ -428,9 +428,9 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned.
-    slope_sort = np.argsort(np.argsort(slopes_to_receivers, axis=1), axis=1) == (
-        num_receivers - 1
-    )
+    slope_sort = np.argsort(
+        np.argsort(slopes_to_receivers, axis=1, kind="stable"), axis=1, kind="stable"
+    ) == (num_receivers - 1)
     steepest_slope = slopes_to_receivers[slope_sort]
     steepest_slope[drains_to_self] = 0.0
 

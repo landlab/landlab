@@ -23,7 +23,6 @@ def flow_directions_mfd(
     baselevel_nodes=None,
     partition_method="slope",
 ):
-
     """Find multiple-flow-direction flow directions on a grid.
 
     Finds and returns flow directions and proportions for a given elevation
@@ -307,9 +306,9 @@ def flow_directions_mfd(
 
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned.
-    slope_sort = np.argsort(np.argsort(flow_slopes, axis=1), axis=1) == (
-        max_number_of_neighbors - 1
-    )
+    slope_sort = np.argsort(
+        np.argsort(flow_slopes, axis=1, kind="stable"), axis=1, kind="stable"
+    ) == (max_number_of_neighbors - 1)
     steepest_slope = flow_slopes[slope_sort]
 
     # identify the steepest link and steepest receiever.

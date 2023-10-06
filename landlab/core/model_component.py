@@ -87,13 +87,9 @@ class Component:
 
                 if field.dtype != dtype:
                     raise FieldError(
-                        "{component} required input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                            component=self._name,
-                            name=name,
-                            at=at,
-                            dtype=dtype,
-                            actual=field.dtype,
-                        )
+                        f"{self._name} required input variable: {name!r} at {at!r} "
+                        f"has incorrect dtype. dtype must be {dtype!r} and is "
+                        f"{field.dtype!r}"
                     )
 
             # if optional input exists, check dtype
@@ -406,7 +402,6 @@ class Component:
             optional = self._info[name]["optional"]
             out_true = "out" in self._info[name]["intent"]
             if (out_true) and (not optional) and (name not in self._grid[at]):
-
                 type_in = self.var_type(name)
                 num_elements = self._grid.size(at)
 
@@ -436,7 +431,6 @@ class Component:
             optional = self._info[name]["optional"]
             out_true = "out" in self._info[name]["intent"]
             if (out_true) and (optional) and (name not in self._grid[at]):
-
                 type_in = self.var_type(name)
                 init_vals = self.grid.zeros(at, dtype=type_in)
                 units_in = self.var_units(name)

@@ -7,7 +7,6 @@ from landlab.components import FlowAccumulator, StreamPowerSmoothThresholdEroder
 
 
 def test_bad_nsp():
-
     mg = RasterModelGrid((4, 4))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
     with pytest.raises(ValueError):

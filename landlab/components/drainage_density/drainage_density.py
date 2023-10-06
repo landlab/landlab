@@ -175,7 +175,10 @@ class DrainageDensity(Component):
             "optional": True,
             "units": "-",
             "mapping": "node",
-            "doc": "Channelization threshold for use with area and slope coefficients and exponents.",
+            "doc": (
+                "Channelization threshold for use with area and slope "
+                "coefficients and exponents."
+            ),
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -266,14 +269,13 @@ class DrainageDensity(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that DrainageDensity is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         if channel__mask is not None:
             if area_coefficient is not None:

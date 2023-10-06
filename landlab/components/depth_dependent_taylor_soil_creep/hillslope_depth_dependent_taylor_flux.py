@@ -12,7 +12,6 @@ from landlab.core.messages import deprecation_message
 
 
 class DepthDependentTaylorDiffuser(Component):
-
     r"""
     This component implements a depth-dependent Taylor series diffusion rule,
     combining concepts of Ganti et al. (2012) and Johnstone and Hilley (2014).
@@ -24,7 +23,9 @@ class DepthDependentTaylorDiffuser(Component):
 
     .. math::
 
-        q_s = - K H_* \nabla \eta ( 1 + (S/S_c)^2 + (S/S_c)^4 + .. + (S/S_c)^2(n-1) ) (1 - exp( - H / H_*)
+        q_s = - K H_* \nabla \eta (
+                1 + (S/S_c)^2 + (S/S_c)^4 + .. + (S/S_c)^2(n-1)
+            ) (1 - exp( - H / H_*)
 
     where :math:`K` is a transport velocity coefficient, :math:`\eta` is land
     surface elevation, :math:`S` is the slope gradient (defined as
@@ -93,8 +94,8 @@ class DepthDependentTaylorDiffuser(Component):
     to slope, this means that there is a characteristic time scale for soil
     transport and an associated stability criteria for the timestep. The
     maximum characteristic time scale, :math:`De_{max}`, is given as a function of the
-    hillslope diffustivity, :math:`D`, the maximum slope, :math:`S_{max}`, and the critical slope
-    :math:`S_c`.
+    hillslope diffustivity, :math:`D`, the maximum slope, :math:`S_{max}`,
+    and the critical slope :math:`S_c`.
 
     .. math::
 
@@ -228,8 +229,10 @@ class DepthDependentTaylorDiffuser(Component):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -377,7 +380,6 @@ class DepthDependentTaylorDiffuser(Component):
 
         # begin while loop for time left
         while time_left > 0.0:
-
             # calculate soil__depth
             self._grid.at_node["soil__depth"][:] = (
                 self._grid.at_node["topographic__elevation"]

@@ -390,7 +390,7 @@ class JaggedArray:
         if out is None:
             out = np.empty(self.number_of_rows, dtype=self._values.dtype)
 
-        for (row_number, row) in enumerate(self):
+        for row_number, row in enumerate(self):
             out[row_number] = func(row)
 
         return out

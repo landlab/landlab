@@ -242,7 +242,7 @@ def _header_is_valid(header):
         if len(set(keys) & header_keys) != 1:
             raise MissingRequiredKeyError("|".join(keys))
 
-    for (key, requires) in _HEADER_VALUE_TESTS.items():
+    for key, requires in _HEADER_VALUE_TESTS.items():
         to_type, is_valid = requires
 
         if key not in header:
@@ -250,8 +250,8 @@ def _header_is_valid(header):
 
         try:
             header[key] = to_type(header[key])
-        except ValueError:
-            raise KeyTypeError(key, to_type)
+        except ValueError as exc:
+            raise KeyTypeError(key, to_type) from exc
 
         if not is_valid(header[key]):
             raise KeyValueError(key, "Bad value")
@@ -311,8 +311,8 @@ def read_asc_header(asc_file):
     >>> hdr["xllcenter"], hdr["yllcenter"]
     (0.5, -0.5)
 
-    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the header does not contain all of the
-    necessary keys.
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the
+    header does not contain all of the necessary keys.
 
     >>> contents = '''
     ... ncols 200
@@ -324,8 +324,8 @@ def read_asc_header(asc_file):
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
-    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of the wrong type. For instance,
-    *nrows* and *ncols* must be ``int``.
+    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of
+    the wrong type. For instance, *nrows* and *ncols* must be ``int``.
 
     >>> contents = '''
     ... nrows 100.5
@@ -339,7 +339,7 @@ def read_asc_header(asc_file):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
     header = {}
-    for (key, value) in _header_lines(asc_file):
+    for key, value in _header_lines(asc_file):
         header[key] = value
 
     _header_is_valid(header)
@@ -456,7 +456,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
            [ -1.,   3.,   4.,   5.,  -1.],
            [ -1.,   0.,   1.,   2.,  -1.],
            [ -1.,  -1.,  -1.,  -1.,  -1.]])
-    """
+    """  # noqa: B950
     from ..grid import RasterModelGrid
 
     if halo < 0:

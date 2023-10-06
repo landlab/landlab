@@ -34,6 +34,8 @@ Fluvial geomorphology
    space
    network_sediment_transporter
    gravel_river_transporter
+   area_slope_transporter
+   gravel_bedrock_eroder
 
 Flow routing
 ------------
@@ -129,6 +131,14 @@ Subaqueous / Submarine Processes
 
   carbonate
   marine_sediment_transport
+
+Generic numerical components
+----------------------------
+
+.. toctree::
+  :maxdepth: 2
+
+  advection
 
 Terrain Analysis
 ----------------
