@@ -1,3 +1,5 @@
+(tutorials)=
+
 # Recommended order for Landlab tutorials
 
 Note, a paper has been written describing Landlab. It is Open Access, and a link to the PDF is [here](https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.pdf)
