@@ -71,7 +71,6 @@ Tutorials
    :maxdepth: 1
    :hidden:
 
-   About <about/index>
    GitHub <https://github.com/landlab/landlab>
    PyPI <https://pypi.org/project/landlab>
    Conda-Forge <https://github.com/conda-forge/landlab-feedstock>
