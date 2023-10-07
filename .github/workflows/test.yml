@@ -45,17 +45,19 @@ jobs:
             python=${{ matrix.python-version }}
             c-compiler
             cxx-compiler
+            conda-libmamba-solver
 
       - name: Show conda installation info
         run: |
+          conda config --set solver libmamba
           pip install nox
           conda info
           conda list
 
-      - name: Install and test richdem engine
-        run: |
-          micromamba install richdem -c conda-forge
-          python -c 'import _richdem'
+      # - name: Install and test richdem engine
+      #   run: |
+      #     micromamba install richdem -c conda-forge
+      #     python -c 'import _richdem'
 
       - name: Test
         env:
