@@ -56,7 +56,7 @@ jobs:
 
       - name: Install libmamba solver
         run: |
-          mamba install -n base conda
+          micromamba install -n base conda
           conda update -n base conda
           conda install -n base conda-libmamba-solver
           conda config --set solver libmamba
