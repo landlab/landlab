@@ -32,7 +32,7 @@ Tutorials
    :maxdepth: 1
    :hidden:
 
-   installation
+   install/basic_install
    user_guide/index
    Tutorials <tutorials/index>
    Teaching with Landlab <teaching/index>
