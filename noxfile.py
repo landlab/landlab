@@ -127,7 +127,6 @@ def build_index(session: nox.Session) -> None:
     session.log(f"generated index at {index_file!s}")
 
 
-<<<<<<< HEAD
 @nox.session(name="build-gallery-index")
 def build_notebook_index(session: nox.Session) -> None:
     docs_dir = ROOT / "docs" / "source"
