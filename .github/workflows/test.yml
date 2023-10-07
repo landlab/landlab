@@ -37,19 +37,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          micromamba-version: latest
-          environment-name: testing
-          create-args: >-
-            python=${{ matrix.python-version }}
-            c-compiler
-            cxx-compiler
-            conda-libmamba-solver
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+
+      # - uses: mamba-org/setup-micromamba@v1
+      #   with:
+      #     micromamba-version: latest
+      #     environment-name: testing
+      #     create-args: >-
+      #       python=${{ matrix.python-version }}
+      #       c-compiler
+      #       cxx-compiler
+      #       conda-libmamba-solver
+
+      - name: Install libmamba solver
+        run: |
+          conda update conda
+          conda-libmamba-solver
+          conda config --set solver libmamba
 
       - name: Show conda installation info
         run: |
-          conda config --set solver libmamba
+          conda install c-compiler cxx-compiler
           pip install nox
           conda info
           conda list
