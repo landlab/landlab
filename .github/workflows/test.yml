@@ -52,7 +52,7 @@ jobs:
             python=${{ matrix.python-version }}
             c-compiler
             cxx-compiler
-            conda
+            nox
 
       - name: Install libmamba solver
         run: |
@@ -62,8 +62,6 @@ jobs:
 
       - name: Show conda installation info
         run: |
-          conda install c-compiler cxx-compiler
-          pip install nox
           conda info
           conda list
 
