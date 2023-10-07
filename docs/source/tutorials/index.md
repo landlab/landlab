@@ -41,10 +41,10 @@ Extra credit: Go back to the [Hobley et al. 2017 publication](https://www.earth
 ### 1.6 Boundary conditions
 
 - Setting boundary conditions on Landlab grids (several tutorials): How Landlab conceptualises boundary conditions; various ways to interact and work with them.
-  - [Notebook: Raster perimeter](boundary_conds/set_BCs_on_raster_perimeter.ipynb)
-  - [Notebook: Based on X-Y values](boundary_conds/set_BCs_from_xy.ipynb)
-  - [Notebook: Watersheds](boundary_conds/set_watershed_BCs_raster.ipynb)
-  - [Notebook: Voronoi](boundary_conds/set_BCs_on_voronoi.ipynb)
+  - [Notebook: Raster perimeter](boundary_conditions/set_BCs_on_raster_perimeter.ipynb)
+  - [Notebook: Based on X-Y values](boundary_conditions/set_BCs_from_xy.ipynb)
+  - [Notebook: Watersheds](boundary_conditions/set_watershed_BCs_raster.ipynb)
+  - [Notebook: Voronoi](boundary_conditions/set_BCs_on_voronoi.ipynb)
 
 ### 1.7 Introduction to Components
 
