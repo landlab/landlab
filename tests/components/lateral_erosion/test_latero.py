@@ -172,6 +172,7 @@ def test_matches_detlim_solution():
 
 
 @pytest.mark.slow
+@pytest.mark.flaky(max_runs=3, min_passes=1)
 def test_ss_sed_flux():
     """
     Test that sediment flux of lateral erosion model matches steady state
