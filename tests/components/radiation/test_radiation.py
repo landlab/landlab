@@ -23,7 +23,7 @@ def test_output_var_names(rad):
         "radiation__net_flux",
         "radiation__net_longwave_flux",
         "radiation__net_shortwave_flux",
-        "radiation__ratio_to_flat_surface"
+        "radiation__ratio_to_flat_surface",
     ]
 
 
