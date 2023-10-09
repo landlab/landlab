@@ -11,68 +11,6 @@ import numpy as np
 from .refinable_icosahedron import RefinableIcosahedron
 
 
-def icosphere_to_vtk(
-    points,
-    cells,
-    filename="icosahedron.vtk",
-    scalar_field=None,
-    scalar_field_name="cell_data",
-):
-    """
-    Save 3D geometry in a vtk-format text file.
-
-    Parameters
-    ----------
-    filename : str, optional
-        Name for output file (defaults to "icosahedron.vtk")
-    """
-    with open(filename, "w") as f:
-        f.write("# vtk DataFile Version 2.0\n")
-        f.write("Landlab Icosphere Grid\n")
-        f.write("ASCII\n")
-        f.write("DATASET UNSTRUCTURED_GRID\n")
-
-        # Points: the x, y, z coordinates of each point (node or corner)
-        f.write("POINTS " + str(len(points)) + " float\n")
-        for p in points:
-            f.write(str(p[0]) + " " + str(p[1]) + " " + str(p[2]) + "\n")
-        f.write("\n")
-
-        # Cells: here meaning generic 3d polygons on the sphere;
-        # either "patches" or "cells" in Landlab terminology
-        ncells = len(cells)
-        num_points_in_cell = np.count_nonzero(cells + 1, axis=1)
-        f.write(
-            "CELLS " + str(ncells) + " " + str(np.sum(num_points_in_cell + 1)) + "\n"
-        )
-        for i in range(ncells):
-            f.write(str(num_points_in_cell[i]))
-            for point_id in cells[i]:
-                if point_id > -1:
-                    f.write(" " + str(point_id))
-            f.write("\n")
-        f.write("\n")
-
-        # Cell types: triangle (5) or polygon (7)
-        if np.amax(num_points_in_cell) == 3:
-            cell_type_line = str(5) + "\n"
-        else:
-            cell_type_line = str(7) + "\n"
-        f.write("CELL_TYPES " + str(ncells) + "\n")
-        for _ in range(ncells):
-            f.write(cell_type_line)
-
-        # Cell/node data
-        if scalar_field is not None:
-            f.write("CELL_DATA " + str(len(scalar_field)) + "\n")
-            f.write("SCALARS " + scalar_field_name + " float 1\n")
-            f.write("LOOKUP_TABLE default\n")
-            for value in scalar_field:
-                f.write(str(value) + "\n")
-
-        f.close()
-
-
 def arc_length(p1, p2, r):
     """
     Calculate and return great-circle arc length in radians between two points p1 & p2.
@@ -365,6 +303,7 @@ class DualIcosphereGraph:
         - area_of_cell
         - length_of_face
         - link_at_face, face_at_link
+        - faces_at_cell
 
         Examples
         --------
@@ -396,6 +335,8 @@ class DualIcosphereGraph:
         2
         >>> ico.face_at_link[3]
         3
+        >>> ico.faces_at_cell[0]
+        array([ 0,  2,  4,  6,  8, -1])
         """
         ico = RefinableIcosahedron(radius)
         if mesh_densification_level > 0:
@@ -511,14 +452,14 @@ class DualIcosphereGraph:
             # print(" it is link number", link_at_node_index[tail], "for this node")
             self.nodes_at_link[i, 0] = tail
             self.links_at_node[tail, link_at_node_index[tail]] = i
-            self.link_dirs_at_node[tail, link_at_node_index[tail]] = 1
+            self.link_dirs_at_node[tail, link_at_node_index[tail]] = -1
             link_at_node_index[tail] += 1
             head = link[1]
             # print("Head of link", i, "is", head)
             # print(" it is link number", link_at_node_index[head], "for this node")
             self.nodes_at_link[i, 1] = head
             self.links_at_node[head, link_at_node_index[head]] = i
-            self.link_dirs_at_node[head, link_at_node_index[head]] = -1
+            self.link_dirs_at_node[head, link_at_node_index[head]] = 1
             link_at_node_index[head] += 1
             self.length_of_link[i] = self.radius * arc_length(
                 self.coords_of_node[tail], self.coords_of_node[head], self.radius
@@ -559,6 +500,11 @@ class DualIcosphereGraph:
     @property
     def corners_at_cell(self):
         return self.corners_at_node
+
+    @property
+    def faces_at_cell(self):
+        """Face-cell and node-link numbering are the same!"""
+        return self.links_at_node
 
     def set_coords_of_corner(self):
         """
