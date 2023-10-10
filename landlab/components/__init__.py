@@ -15,6 +15,7 @@ from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
 from .flexure import Flexure, Flexure1D
 from .flow_accum import FlowAccumulator, LossyFlowAccumulator
+from .flow_router import FastscapelibFlowRouter
 from .flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
@@ -100,6 +101,7 @@ COMPONENTS = [
     ExponentialWeatherer,
     ExponentialWeathererIntegrated,
     FastscapeEroder,
+    FastscapelibFlowRouter,
     FireGenerator,
     Flexure,
     Flexure1D,
