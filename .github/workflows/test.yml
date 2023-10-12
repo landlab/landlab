@@ -62,7 +62,7 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
-          nox -s test -- -m "${{ matrix.pytest-marker }}"
+          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
