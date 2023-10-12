@@ -1,8 +1,8 @@
 """Landlab component that simulates snowpack dynamics.
 
 This component simulates snowmelt process using the snow energy balance method.
-The code is implemented based on the TopoFlow snow component and meteorology
-component (by Scott D. Packham) with some adjustments.
+The code is implemented based on the TopoFlow snow component (by Scott D. Packham)
+with some adjustments.
 https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_energy_balance.py
 https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base.py
 
