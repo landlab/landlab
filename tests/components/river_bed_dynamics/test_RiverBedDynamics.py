@@ -1,7 +1,7 @@
 """
 Unit tests for landlab.components.river_bed_dynamics.RiverBedDynamics
 
-last updated: 06/09/2023
+last updated: 10/12/2023
 """
 import numpy as np
 
@@ -19,35 +19,18 @@ def test_name(r_b_d):
 
 def test_input_var_names(r_b_d):
     assert r_b_d.input_var_names == (
-        "bed_surface__grain_size_distribution_location",
         "surface_water__depth",
         "surface_water__velocity",
-        "surface_water__velocity_previous_time",
         "topographic__elevation",
     )
 
 
 def test_output_var_names(r_b_d):
-    assert r_b_d.output_var_names == (
-        "bed_surface__geometric_mean_size",
-        "bed_surface__geometric_standard_deviation_size",
-        "bed_surface__grain_size_distribution",
-        "bed_surface__median_size",
-        "bed_surface__sand_fraction",
-        "sediment_transport__bedload_grain_size_distribution",
-        "sediment_transport__bedload_rate",
-        "sediment_transport__net_bedload",
-        "surface_water__shear_stress",
-    )
+    assert r_b_d.output_var_names == ("topographic__elevation",)
 
 
 def test_optional_var_names(r_b_d):
-    assert r_b_d.optional_var_names == (
-        "bed_surface__elevation_fixed",
-        "bed_surface__grain_size_distribution_fixed",
-        "sediment_transport__bedload_grain_size_distribution_imposed",
-        "sediment_transport__sediment_supply_imposed",
-    )
+    assert r_b_d.optional_var_names == ()
 
 
 def test_var_units(r_b_d):
@@ -55,26 +38,8 @@ def test_var_units(r_b_d):
         r_b_d.optional_var_names
     ) == set(dict(r_b_d.units).keys())
 
-    assert r_b_d.var_units("bed_surface__elevation_fixed") == "-"
-    assert r_b_d.var_units("bed_surface__geometric_mean_size") == "mm"
-    assert r_b_d.var_units("bed_surface__geometric_standard_deviation_size") == "mm"
-    assert r_b_d.var_units("bed_surface__grain_size_distribution") == "-"
-    assert r_b_d.var_units("bed_surface__grain_size_distribution_fixed") == "-"
-    assert r_b_d.var_units("bed_surface__grain_size_distribution_location") == "-"
-    assert r_b_d.var_units("bed_surface__median_size") == "mm"
-    assert r_b_d.var_units("bed_surface__sand_fraction") == "-"
-    assert r_b_d.var_units("sediment_transport__bedload_grain_size_distribution") == "-"
-    assert (
-        r_b_d.var_units("sediment_transport__bedload_grain_size_distribution_imposed")
-        == "-"
-    )
-    assert r_b_d.var_units("sediment_transport__bedload_rate") == "m^2/s"
-    assert r_b_d.var_units("sediment_transport__net_bedload") == "m^3/s"
-    assert r_b_d.var_units("sediment_transport__sediment_supply_imposed") == "m^2/s"
     assert r_b_d.var_units("surface_water__depth") == "m"
     assert r_b_d.var_units("surface_water__velocity") == "m/s"
-    assert r_b_d.var_units("surface_water__velocity_previous_time") == "m/s"
-    assert r_b_d.var_units("surface_water__shear_stress") == "Pa"
     assert r_b_d.var_units("topographic__elevation") == "m"
 
 
@@ -97,6 +62,7 @@ def test_r_b_d_approximate_solution():
     middle_values = np.arange(24.00, -1.00, -0.75).reshape(-1, 1)
     dem = np.hstack((values, middle_values, middle_values, values))
     topographic__elevation = np.flip(dem, 0).flatten()  # In landlab format
+    z = topographic__elevation
 
     # Set Numerical simulation conditions and time control settings
     max_dt = 5
@@ -113,7 +79,7 @@ def test_r_b_d_approximate_solution():
     node_inlet = np.array((129, 130))
 
     # Node ID for fixed Nodes
-    fixed_nodes_Id = np.array((1, 2, 5, 6))
+    fixed_nodes_id = np.array((1, 2, 5, 6))
 
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.at_node["topographic__elevation"] = topographic__elevation
@@ -125,51 +91,43 @@ def test_r_b_d_approximate_solution():
         grid,
         h_init=0.001,
         mannings_n=n,
+        rainfall_intensity=0.0,
     )
+    of._rainfall_intensity = np.zeros_like(z, dtype=float)
+    of._rainfall_intensity[
+        node_inlet
+    ] = 0.02  # Boundary conditions of discharge and flow depth
 
     # Creates fields and instantiate the RiverbedDynamics component
-    z = topographic__elevation
-    grid["node"]["bed_surface__grain_size_distribution_location"] = np.zeros_like(z)
     grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity_previous_time", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
     grid["link"]["surface_water__depth"] = map_mean_of_link_nodes_to_link(
         grid, "surface_water__depth"
     )
-    grid["link"]["surface_water__velocity"] = map_mean_of_link_nodes_to_link(
-        grid, "surface_water__velocity"
-    )
-    grid["link"][
-        "surface_water__velocity_previous_time"
-    ] = map_mean_of_link_nodes_to_link(grid, "surface_water__velocity_previous_time")
-    rbd = RiverBedDynamics(
+
+    fixed_nodes = np.zeros_like(z)
+    fixed_nodes[fixed_nodes_id] = 1
+    # sediment_transport__sediment_supply_imposed
+    qb = np.full(grid.number_of_links, 0.0)
+    qb[link_inlet] = upstream_sediment_supply
+
+    RBD = RiverBedDynamics(
         grid,
         gsd=gsd,
         variable_critical_shear_stress=True,
         outlet_boundary_condition="fixedValue",
+        bed_surface__elevation_fixed_node=fixed_nodes,
+        sediment_transport__sediment_supply_imposed_link=qb,
     )
 
     # Set boundaries as closed boundaries, the outlet is set to an open boundary.
     grid.set_watershed_boundary_condition_outlet_id([1, 2], z, 45.0)
 
-    # Creates the fixed nodes information
-    fixed_nodes = np.zeros_like(
-        z
-    )  # fixed_nodes defines as 1 if a node is fixed or 0 if it can vary in elevation
-    fixed_nodes[fixed_nodes_Id] = 1
-    grid["node"][
-        "bed_surface__elevation_fixed"
-    ] = fixed_nodes  # Assigns fixed locations to landlab grid
-
-    # Create bed and flow initial condition
-    # Create bed and flow initial condition
-    grid["link"]["surface_water__discharge"][
-        link_inlet
-    ] = 50  # Flow discharge in m3/s/m
-    grid["node"]["surface_water__depth"][node_inlet] = 0.45  # Flow depth in nodes in m
-    grid["link"]["surface_water__depth"][link_inlet] = 0.45  # Flow depth in links in m
-    grid["link"]["sediment_transport__sediment_supply_imposed"][
-        link_inlet
-    ] = upstream_sediment_supply
+    """ Initial Conditions """
+    t0 = 0
+    while t0 < 3600:
+        of.overland_flow(dt=max_dt)  # Runs overland flow for one time step
+        t0 += of.dt
 
     # Node ID for calculated node elevation
     calculated_nodes_Id = np.arange(128, 136)
@@ -181,26 +139,26 @@ def test_r_b_d_approximate_solution():
 
     t = 0.0
     while t < simulation_max_time:
-        # Boundary conditions of dishcarge and flow depth
-        grid["link"]["surface_water__discharge"][
-            link_inlet
-        ] = -1  # Flow discharge in m3/s/m
-        grid["node"]["surface_water__depth"][
-            node_inlet
-        ] = 0.45  # Flow depth in nodes in m
-        grid["link"]["surface_water__depth"][
-            link_inlet
-        ] = 0.45  # Flow depth in links in m
+        # defines the velocity at previous time
+        RBD._surface_water__velocity_previous_time_link = (
+            of._grid["link"]["surface_water__discharge"]
+            / of._grid["link"]["surface_water__depth"]
+        )
 
-        # Velocity at previous time
-        grid["link"]["surface_water__velocity_previous_time"] = of._q / of._h_links
+        # Runs overland flow for one time step
+        of.overland_flow(dt=max_dt)
 
-        of.overland_flow(dt=max_dt)  # Runs overland flow for one time step
+        # defines the velocity at current time
+        grid["link"]["surface_water__velocity"] = (
+            grid["link"]["surface_water__discharge"]
+            / grid["link"]["surface_water__depth"]
+        )
 
-        # Velocity at current time
-        grid["link"]["surface_water__velocity"] = of._q / of._h_links
+        # Defines the time step used in RiverBedDynamics
+        RBD._grid._dt = of.dt
 
-        rbd.run_one_step()  # Runs riverBedDynamics for one time step
+        # Runs RiverBedDynamics for one time step
+        RBD.run_one_step()  # Runs riverBedDynamics for one time step
 
         # Gradient preserving at upstream ghost cells
         dsNodesId = np.array(
@@ -220,12 +178,44 @@ def test_r_b_d_approximate_solution():
         t = t + of.dt
 
     z = np.reshape(z, dem.shape)[:, 1]
-    x = np.arange(0, 1700, 50, dtype=np.int64)
-    z_solution_approx = (
-        2.066e-12 * x**4
-        - 5.579e-09 * x**3
-        + 4.714e-06 * x**2
-        + 1.370e-02 * x
-        - 6.830e-01
+    # x = np.arange(0, 1700, 50, dtype=np.int64)
+    z_solution_approx = np.array(
+        [
+            -0.75000,
+            0.00000,
+            0.74019,
+            1.49101,
+            2.24352,
+            2.99569,
+            3.74731,
+            4.49841,
+            5.24912,
+            5.99954,
+            6.74978,
+            7.49990,
+            8.24997,
+            9.00000,
+            9.75002,
+            10.50000,
+            11.25010,
+            12.00010,
+            12.75030,
+            13.50060,
+            14.25140,
+            15.00330,
+            15.75730,
+            16.51570,
+            17.28220,
+            18.06310,
+            18.86790,
+            19.70970,
+            20.60410,
+            21.56840,
+            22.61440,
+            23.78860,
+            24.96270,
+            26.13690,
+        ]
     )
+
     np.testing.assert_almost_equal(z, z_solution_approx, decimal=1)
