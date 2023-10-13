@@ -8,6 +8,7 @@ Greg Tucker, University of Colorado Boulder, September 2023
 """
 
 import numpy as np
+
 from .refinable_icosahedron import RefinableIcosahedron
 
 
@@ -369,7 +370,7 @@ class DualIcosphereGraph:
 
         self.number_of_faces = self.number_of_links
         self.corners_at_face = np.zeros((self.number_of_faces, 2), dtype=int)
-        self.length_of_face = np.zeros((self.number_of_faces))
+        self.length_of_face = np.zeros(self.number_of_faces)
         for face in range(self.number_of_faces):
             ln1 = min(self.nodes_at_link[face])
             ln2 = max(self.nodes_at_link[face])

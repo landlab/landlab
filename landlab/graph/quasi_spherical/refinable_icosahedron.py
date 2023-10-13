@@ -1,9 +1,9 @@
 #!/usr/bin/python
 """
 RefinableIcosahedron: class that creates the vertices and triangular
-faces of an icosahedron (20-sided polygonal solid) that can be 
+faces of an icosahedron (20-sided polygonal solid) that can be
 iteratively refined by replacing each triangle with four smaller
-triangles. Designed to provide the starting point for a Landlab 
+triangles. Designed to provide the starting point for a Landlab
 icosphere grid.
 
 Greg Tucker, University of Colorado Boulder, 2023

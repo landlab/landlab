@@ -1,4 +1,5 @@
 import numpy as np
+
 from ..graph import DualIcosphereGraph
 from .base import ModelGrid
 
@@ -103,7 +104,11 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
             ncells = len(cells)
             num_points_in_cell = np.count_nonzero(cells + 1, axis=1)
             f.write(
-                "CELLS " + str(ncells) + " " + str(np.sum(num_points_in_cell + 1)) + "\n"
+                "CELLS "
+                + str(ncells)
+                + " "
+                + str(np.sum(num_points_in_cell + 1))
+                + "\n"
             )
             for i in range(ncells):
                 f.write(str(num_points_in_cell[i]))
@@ -131,4 +136,3 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
                     f.write(str(value) + "\n")
 
             f.close()
-

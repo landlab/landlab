@@ -1,2 +1,2 @@
-from .refinable_icosahedron import RefinableIcosahedron
 from .dual_icosphere import DualIcosphereGraph
+from .refinable_icosahedron import RefinableIcosahedron
