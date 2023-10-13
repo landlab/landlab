@@ -169,7 +169,7 @@ class RefinableIcosahedron:
                 )
             f.write("\n")
             f.write("CELL_TYPES " + str(nfaces) + "\n")
-            for i in range(nfaces):
+            for _ in range(nfaces):
                 f.write("5\n")
             f.close()
 

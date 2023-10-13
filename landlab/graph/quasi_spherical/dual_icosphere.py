@@ -188,8 +188,9 @@ def radial_length_of_sphertri_sides(p0, p1, p2, r=1.0):
 
 def spher_angle_from_sides(s, a, b):
     """
-    Calculate and return the angle between two 2 sides of a spherical triangle with semiperimeter (half sum
-    of radial side lengths) s, and radial lengths of the adjacent sides a and b.
+    Calculate and return the angle between two 2 sides of a spherical
+    triangle with semiperimeter (half sum of radial side lengths) s, and
+    radial lengths of the adjacent sides a and b.
 
     Uses the half-sine rule of spherical trigonometry.
 
@@ -292,7 +293,7 @@ class DualIcosphereGraph:
         -----
         Data structures set up include:
         - coords_of_node : ndarray of float (n_nodes, 3)
-        - x_of_node, y_of_node, z_of_node : ndarray of float (n_nodes, ) (views of coords_of_node)
+        - x_of_node, y_of_node, z_of_node : ((n_nodes, ) views of coords_of_node)
         - coords_of_corner : ndarray of float (n_corners, 3)
         - x_of_corner, y_of_corner, z_of_corner : ndarray of float (n_corners, )
         - length_of_link : ndarray of float (n_links, )
@@ -548,11 +549,13 @@ class DualIcosphereGraph:
         """
         Notes
         -----
-        Landlab *patches* are the same as what the original algorithm/code calls "faces": the triangles that
-        have *nodes* as vertices and *links* as edges.
+        Landlab *patches* are the same as what the original algorithm/code
+        calls "faces": the triangles that have *nodes* as vertices and
+        *links* as edges.
 
-        We assume that the corners are the unit normals of the triangular patches (which the original algorithm
-        calls faces), rescaled for the given radius.
+        We assume that the corners are the unit normals of the triangular
+        patches (which the original algorithm calls faces), rescaled for
+        the given radius.
 
         Examples
         --------
@@ -693,8 +696,3 @@ class DualIcosphereGraph:
             area_of_tri = area_of_sphertri(p0, p1, p2, self.radius)
             ntri = 5 + int(np.amin(self.corners_at_node[cell]) > -1)
             self.area_of_cell[cell] = ntri * area_of_tri
-
-
-import doctest
-
-doctest.testmod()
