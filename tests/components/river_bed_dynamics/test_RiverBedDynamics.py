@@ -4,6 +4,8 @@ Unit tests for landlab.components.river_bed_dynamics.RiverBedDynamics
 last updated: 10/12/2023
 """
 import numpy as np
+import pytest
+from numpy.testing import assert_almost_equal
 
 from landlab import RasterModelGrid
 from landlab.components import OverlandFlow, RiverBedDynamics
@@ -54,6 +56,278 @@ def test_grid_x_extent(r_b_d):
 
 def test_grid_y_extent(r_b_d):
     assert r_b_d.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
+
+
+def test_median_size():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [4, 10], [2, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+
+    RBD = RiverBedDynamics(grid, gsd=gsd)
+    assert_almost_equal(RBD._bed_surface__median_size_node[20], 16)
+
+
+def test_geometric_mean_size_node():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [4, 10], [2, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+
+    RBD = RiverBedDynamics(grid, gsd=gsd)
+    np.testing.assert_almost_equal(
+        RBD._bed_surface__geometric_standard_deviation_size_node[20], 2.567, decimal=3
+    )
+
+
+def test_sand_fraction_node():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [2, 10], [1, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+
+    RBD = RiverBedDynamics(grid, gsd=gsd)
+    np.testing.assert_almost_equal(
+        RBD._bed_surface__sand_fraction_node[20], 0.1, decimal=3
+    )
+
+
+def test_velocity_previous_time():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    grid["link"]["surface_water__velocity"][20] = 10
+    RBD = RiverBedDynamics(grid, gsd=gsd)
+
+    np.testing.assert_almost_equal(
+        RBD._surface_water__velocity_previous_time_link[20], 10, decimal=3
+    )
+
+
+def test_error_gsd_location_node():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    testArray = np.array([0, 1, 2, 3])
+
+    # Check for ValueError when instantiating RiverBedDynamics
+    with pytest.raises(
+        ValueError,
+        match="bed_surface__grain_size_distribution_location_node"
+        ".*does not have the same dimensions of the grid's nodes",
+    ):
+        RiverBedDynamics(
+            grid, gsd=gsd, bed_surface__grain_size_distribution_location_node=testArray
+        )
+
+
+def test_error_supply_imposed():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    testArray = np.array([0, 1, 2, 3])
+
+    # Check for ValueError when instantiating RiverBedDynamics
+    with pytest.raises(
+        ValueError,
+        match="sediment_transport__sediment_supply_imposed_link"
+        ".*does not have the same dimensions of the grid's link",
+    ):
+        RiverBedDynamics(
+            grid, gsd=gsd, sediment_transport__sediment_supply_imposed_link=testArray
+        )
+
+
+def test_error_gsd_fixed_node():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    testArray = np.array([0, 1, 2, 3])
+
+    # Check for ValueError when instantiating RiverBedDynamics
+    with pytest.raises(
+        ValueError,
+        match="bed_surface__grain_size_distribution_fixed_node"
+        ".*does not have the same dimensions of the grid's nodes",
+    ):
+        RiverBedDynamics(
+            grid, gsd=gsd, bed_surface__grain_size_distribution_fixed_node=testArray
+        )
+
+
+def test_error_elevation_fixed_node():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    testArray = np.array([0, 1, 2, 3])
+
+    # Check for ValueError when instantiating RiverBedDynamics
+    with pytest.raises(
+        ValueError,
+        match="bed_surface__elevation_fixed_node"
+        ".*does not have the same dimensions of the grid's nodes",
+    ):
+        RiverBedDynamics(grid, gsd=gsd, bed_surface__elevation_fixed_node=testArray)
+
+
+def test_error_bedload_gsd_imposed():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    testArray = np.array([0, 1, 2, 3])
+
+    # Check for ValueError when instantiating RiverBedDynamics
+    with pytest.raises(
+        ValueError,
+        match="sediment_transport__bedload_grain_size_distribution_imposed_link"
+        ".*does not have the same dimensions of the grid's link",
+    ):
+        RiverBedDynamics(
+            grid,
+            gsd=gsd,
+            sediment_transport__bedload_grain_size_distribution_imposed_link=testArray,
+        )
+
+
+def test_error_previous_Velocity():
+    # Set the topographic elevation array
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.add_zeros("topographic__elevation", at="node")
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+    testArray = np.array([0, 1, 2, 3])
+
+    # Check for ValueError when instantiating RiverBedDynamics
+    with pytest.raises(
+        ValueError,
+        match="surface_water__velocity_previous_time_link"
+        ".*does not have the same dimensions of the grid's link",
+    ):
+        RiverBedDynamics(
+            grid, gsd=gsd, surface_water__velocity_previous_time_link=testArray
+        )
+
+
+def test_outlet_links_horizontal_right_edge():
+    # Set the topographic elevation array
+    values = np.full((34, 1), 45.00)
+    middle_values = np.arange(24.00, -1.00, -0.75).reshape(-1, 1)
+    dem = np.hstack((values, middle_values, middle_values, values)).T
+    topographic__elevation = dem.flatten()  # In landlab format
+    grid = RasterModelGrid((4, 34), xy_spacing=50)
+    grid.at_node["topographic__elevation"] = topographic__elevation
+    grid.at_node["topographic__elevation"][101] = -0.8
+
+    gsd = np.array([[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [2, 10], [1, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+
+    grid.set_watershed_boundary_condition(topographic__elevation)
+
+    RBD = RiverBedDynamics(grid, gsd=gsd)
+    RBD.run_one_step()
+
+    outlet_links_horizontal_sol = np.array([[165], [166]])
+    np.testing.assert_almost_equal(
+        RBD._outlet_links_horizontal, outlet_links_horizontal_sol, decimal=1
+    )
+
+
+def test_outlet_links_horizontal_bottom_edge():
+    # Set the topographic elevation array
+    values = np.full((34, 1), 45.00)
+    middle_values = np.arange(24.00, -1.00, -0.75).reshape(-1, 1)
+    dem = np.hstack((values, middle_values, middle_values, values))
+    topographic__elevation = np.flip(dem, 0).flatten()  # In landlab format
+    grid = RasterModelGrid((34, 4), xy_spacing=50)
+    grid.at_node["topographic__elevation"] = topographic__elevation
+    grid.at_node["topographic__elevation"][1] = -0.8
+    gsd = np.array([[51, 100], [50, 50], [49, 0]])
+
+    # Creates fields and instantiate the OverlandFlow component
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("surface_water__depth", at="link")
+    grid.add_zeros("surface_water__velocity", at="node")
+    grid.add_zeros("surface_water__velocity", at="link")
+
+    grid.set_watershed_boundary_condition(topographic__elevation)
+
+    RBD = RiverBedDynamics(grid, gsd=gsd)
+    RBD.run_one_step()
+
+    outlet_links_horizontal_sol = np.array([[7, 0], [8, 1]])
+    np.testing.assert_almost_equal(
+        RBD._outlet_links_horizontal, outlet_links_horizontal_sol, decimal=1
+    )
 
 
 def test_r_b_d_approximate_solution():
@@ -123,7 +397,7 @@ def test_r_b_d_approximate_solution():
     # Set boundaries as closed boundaries, the outlet is set to an open boundary.
     grid.set_watershed_boundary_condition_outlet_id([1, 2], z, 45.0)
 
-    """ Initial Conditions """
+    # Initial Conditions
     t0 = 0
     while t0 < 3600:
         of.overland_flow(dt=max_dt)  # Runs overland flow for one time step

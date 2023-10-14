@@ -512,23 +512,25 @@ class RiverBedDynamics(Component):
 
         # Initialize the field such that exist before the initial bed properties
         # function is called
-        if bed_surface__grain_size_distribution_location_node.size > 0:
-            if (
-                bed_surface__grain_size_distribution_location_node.shape[0]
-                == self._grid.number_of_nodes
-            ):
-                self._bed_surface__grain_size_distribution_location_node = (
-                    bed_surface__grain_size_distribution_location_node
-                )
-            else:
-                raise ValueError(
-                    "bed_surface__grain_size_distribution_location_node does not\
-                    have the same dimensions of the grid's nodes"
-                )
-        else:
+
+        if bed_surface__grain_size_distribution_location_node is None:
             self._bed_surface__grain_size_distribution_location_node = np.zeros(
                 self._grid.number_of_nodes
             )
+        else:
+            if bed_surface__grain_size_distribution_location_node.size > 0:
+                if (
+                    bed_surface__grain_size_distribution_location_node.shape[0]
+                    == self._grid.number_of_nodes
+                ):
+                    self._bed_surface__grain_size_distribution_location_node = (
+                        bed_surface__grain_size_distribution_location_node
+                    )
+                else:
+                    raise ValueError(
+                        "bed_surface__grain_size_distribution_location_node \
+                        does not have the same dimensions of the grid's nodes"
+                    )
 
         # Initialize the bed surface grain size properties. At the beginning,
         # and only for the first timestep, the Grain Size Distribution (GSD)
@@ -707,94 +709,105 @@ class RiverBedDynamics(Component):
         # with zeros. Velocity at previous time simply copies the input velocity.
         # An error will be raised if the defined flied size is not correct
 
-        if sediment_transport__bedload_grain_size_distribution_imposed_link.size > 0:
-            if (
-                sediment_transport__bedload_grain_size_distribution_imposed_link.shape[
-                    0
-                ]
-                == self._grid.number_of_links
-            ):
-                self._sediment_transport__bedload_grain_size_distribution_imposed_link = (
-                    sediment_transport__bedload_grain_size_distribution_imposed_link
-                )
-            else:
-                raise ValueError(
-                    "sediment_transport__bedload_grain_size_distribution_imposed_link\
-                    does not have the same dimensions of the grid's nodes"
-                )
-        else:
-            self._sediment_transport__bedload_grain_size_distribution_imposed_link = (
-                np.zeros(self._grid.number_of_links)
-            )
-
-        if bed_surface__grain_size_distribution_fixed_node.size > 0:
-            if (
-                bed_surface__grain_size_distribution_fixed_node.shape[0]
-                == self._grid.number_of_nodes
-            ):
-                self._bed_surface__grain_size_distribution_fixed_node = (
-                    bed_surface__grain_size_distribution_fixed_node
-                )
-            else:
-                raise ValueError(
-                    "bed_surface__grain_size_distribution_fixed_node does not \
-                    have the same dimensions of the grid's nodes"
-                )
-        else:
-            self._bed_surface__grain_size_distribution_fixed_node = np.zeros(
-                self._grid.number_of_nodes
-            )
-
-        if bed_surface__elevation_fixed_node.size > 0:
-            if bed_surface__elevation_fixed_node.shape[0] == self._grid.number_of_nodes:
-                self._bed_surface__elevation_fixed_node = (
-                    bed_surface__elevation_fixed_node
-                )
-            else:
-                raise ValueError(
-                    "bed_surface__elevation_fixed_node does not have the same \
-                    dimensions of the grid's nodes"
-                )
-        else:
-            self._bed_surface__elevation_fixed_node = np.zeros(
-                self._grid.number_of_nodes
-            )
-
-        if sediment_transport__sediment_supply_imposed_link.size > 0:
-            if (
-                sediment_transport__sediment_supply_imposed_link.shape[0]
-                == self._grid.number_of_links
-            ):
-                self._sediment_transport__sediment_supply_imposed_link = (
-                    sediment_transport__sediment_supply_imposed_link
-                )
-            else:
-                raise ValueError(
-                    "sediment_transport__sediment_supply_imposed_link does not \
-                    have the same dimensions of the grid's links"
-                )
-        else:
+        if sediment_transport__sediment_supply_imposed_link is None:
             self._sediment_transport__sediment_supply_imposed_link = np.zeros(
                 self._grid.number_of_links
             )
-
-        if surface_water__velocity_previous_time_link.size > 0:
-            if (
-                surface_water__velocity_previous_time_link.shape[0]
-                == self._grid.number_of_links
-            ):
-                self._surface_water__velocity_previous_time_link = (
-                    surface_water__velocity_previous_time_link
-                )
-            else:
-                raise ValueError(
-                    "surface_water__velocity_previous_time_link does not have \
-                    the same dimensions of the grid's links"
-                )
         else:
-            self._surface_water__velocity_previous_time_link = self._grid["link"][
-                "surface_water__velocity"
-            ].copy()
+            if sediment_transport__sediment_supply_imposed_link.size > 0:
+                if (
+                    sediment_transport__sediment_supply_imposed_link.shape[0]
+                    == self._grid.number_of_links
+                ):
+                    self._sediment_transport__sediment_supply_imposed_link = (
+                        sediment_transport__sediment_supply_imposed_link
+                    )
+                else:
+                    raise ValueError(
+                        "sediment_transport__sediment_supply_imposed_link \
+                        does not have the same dimensions of the grid's link"
+                    )
+
+        if bed_surface__grain_size_distribution_fixed_node is None:
+            self._bed_surface__grain_size_distribution_fixed_node = np.zeros(
+                self._grid.number_of_nodes
+            )
+        else:
+            if bed_surface__grain_size_distribution_fixed_node.size > 0:
+                if (
+                    bed_surface__grain_size_distribution_fixed_node.shape[0]
+                    == self._grid.number_of_nodes
+                ):
+                    self._bed_surface__grain_size_distribution_fixed_node = (
+                        bed_surface__grain_size_distribution_fixed_node
+                    )
+                else:
+                    raise ValueError(
+                        "bed_surface__grain_size_distribution_fixed_node \
+                        does not have the same dimensions of the grid's nodes"
+                    )
+
+        if bed_surface__elevation_fixed_node is None:
+            self._bed_surface__elevation_fixed_node = np.zeros(
+                self._grid.number_of_nodes
+            )
+        else:
+            if bed_surface__elevation_fixed_node.size > 0:
+                if (
+                    bed_surface__elevation_fixed_node.shape[0]
+                    == self._grid.number_of_nodes
+                ):
+                    self._bed_surface__elevation_fixed_node = (
+                        bed_surface__elevation_fixed_node
+                    )
+                else:
+                    raise ValueError(
+                        "bed_surface__elevation_fixed_node \
+                        does not have the same dimensions of the grid's nodes"
+                    )
+
+        if sediment_transport__bedload_grain_size_distribution_imposed_link is None:
+            self._sediment_transport__bedload_grain_size_distribution_imposed_link = (
+                np.zeros(self._grid.number_of_links)
+            )
+        else:
+            if (
+                sediment_transport__bedload_grain_size_distribution_imposed_link.size
+                > 0
+            ):
+                if (
+                    sediment_transport__bedload_grain_size_distribution_imposed_link.shape[
+                        0
+                    ]
+                    == self._grid.number_of_links
+                ):
+                    self._sediment_transport__bedload_grain_size_distribution_imposed_link = (
+                        sediment_transport__bedload_grain_size_distribution_imposed_link
+                    )
+                else:
+                    raise ValueError(
+                        "sediment_transport__bedload_grain_size_distribution_imposed_link \
+                        does not have the same dimensions of the grid's link"
+                    )
+
+        if surface_water__velocity_previous_time_link is None:
+            self._surface_water__velocity_previous_time_link = copy.deepcopy(
+                self._grid["link"]["surface_water__velocity"]
+            )
+        else:
+            if surface_water__velocity_previous_time_link.size > 0:
+                if (
+                    surface_water__velocity_previous_time_link.shape[0]
+                    == self._grid.number_of_links
+                ):
+                    self._surface_water__velocity_previous_time_link = (
+                        surface_water__velocity_previous_time_link
+                    )
+                else:
+                    raise ValueError(
+                        "surface_water__velocity_previous_time_link \
+                        does not have the same dimensions of the grid's links"
+                    )
 
         # Initializating fields at time zero
         # Volumetric bed load transport rate per unit width
