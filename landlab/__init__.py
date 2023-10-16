@@ -28,6 +28,7 @@ from .grid import (
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
+    IcosphereGlobalGrid,
     create_grid,
 )
 from .grid.linkstatus import LinkStatus
@@ -56,6 +57,7 @@ __all__ = [
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
+    "IcosphereGlobalGrid",
     "LinkStatus",
     "NodeStatus",
     "create_grid",
