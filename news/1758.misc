@@ -1,0 +1,3 @@
+
+Fixed an issue with *Landlab*'s environment file that caused an error when
+trying to run the tutorial notebooks through *Binder*.
