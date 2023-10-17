@@ -22,7 +22,7 @@ doc = 'Link-parallel advection flux'
 dtype = 'float64'
 intent = 'out'
 mapping = 'link'
-optional = false
+optional = true
 units = 'm2/y'
 
 [components.AdvectionSolverTVD.info.advection__velocity]
@@ -2171,18 +2171,26 @@ units = 'm/s'
 [components.ListricKinematicExtender]
 name = 'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender'
 unit_agnostic = true
-summary = 'Apply tectonic extension and subsidence kinematically to a raster or'
+summary = 'Apply tectonic extension kinematically to a raster or'
 
-[components.ListricKinematicExtender.info.cumulative_subsidence_depth]
-doc = 'Cumulative depth of tectonic subsidence'
+[components.ListricKinematicExtender.info.advection__velocity]
+doc = 'Link-parallel advection velocity magnitude'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = true
+units = 'm/y'
+
+[components.ListricKinematicExtender.info.fault_plane__elevation]
+doc = 'Elevation of fault plane'
 dtype = 'float64'
 intent = 'out'
 mapping = 'node'
-optional = true
+optional = false
 units = 'm'
 
-[components.ListricKinematicExtender.info.subsidence_rate]
-doc = 'Rate of tectonic subsidence in hangingwall area'
+[components.ListricKinematicExtender.info.hangingwall__thickness]
+doc = 'Thickness of material in hangingwall block'
 dtype = 'float64'
 intent = 'out'
 mapping = 'node'
@@ -2195,14 +2203,6 @@ dtype = 'float64'
 intent = 'inout'
 mapping = 'node'
 optional = false
-units = 'm'
-
-[components.ListricKinematicExtender.info.upper_crust_thickness]
-doc = 'Thickness of upper crust (arbitrary datum)'
-dtype = 'float64'
-intent = 'inout'
-mapping = 'node'
-optional = true
 units = 'm'
 
 [components.LithoLayers]
@@ -3750,6 +3750,43 @@ mapping = 'node'
 optional = false
 units = 'm'
 
+[components.river_flow_dynamics]
+name = 'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics'
+unit_agnostic = false
+summary = 'Simulate surface fluid flow based on Casulli and Cheng (1992).'
+
+[components.river_flow_dynamics.info.surface_water__depth]
+doc = 'Depth of water on the surface'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.river_flow_dynamics.info.surface_water__elevation]
+doc = 'Water surface elevation at time N'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.river_flow_dynamics.info.surface_water__velocity]
+doc = 'Speed of water flow above the surface'
+dtype = 'float64'
+intent = 'inout'
+mapping = 'link'
+optional = false
+units = 'm/s'
+
+[components.river_flow_dynamics.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
 # Generated using `landlab index fields`
 [fields]
 
@@ -3778,6 +3815,7 @@ provided_by = [
 desc = 'Link-parallel advection velocity magnitude'
 used_by = [
   'landlab.components.advection.advection_solver_tvd.AdvectionSolverTVD',
+  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 provided_by = []
 
@@ -4001,13 +4039,6 @@ used_by = [
 ]
 provided_by = []
 
-[fields.cumulative_subsidence_depth]
-desc = 'Cumulative depth of tectonic subsidence'
-used_by = []
-provided_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
-]
-
 [fields.depression__depth]
 desc = 'Depth of depression below its spillway point'
 used_by = []
@@ -4105,6 +4136,13 @@ desc = 'Horizontal flow velocity along links during ebb tide'
 used_by = []
 provided_by = [
   'landlab.components.tidal_flow.tidal_flow_calculator.TidalFlowCalculator',
+]
+
+[fields.fault_plane__elevation]
+desc = 'Elevation of fault plane'
+used_by = []
+provided_by = [
+  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 
 [fields.flood_status_code]
@@ -4299,6 +4337,13 @@ desc = 'velocity of groundwater in link direction'
 used_by = []
 provided_by = [
   'landlab.components.groundwater.dupuit_percolator.GroundwaterDupuitPercolator',
+]
+
+[fields.hangingwall__thickness]
+desc = 'Thickness of material in hangingwall block'
+used_by = []
+provided_by = [
+  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 
 [fields.height_above_drainage__elevation]
@@ -4821,13 +4866,6 @@ provided_by = [
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
 ]
 
-[fields.subsidence_rate]
-desc = 'Rate of tectonic subsidence in hangingwall area'
-used_by = []
-provided_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
-]
-
 [fields.surface__evapotranspiration]
 desc = 'actual sum of evaporation and plant transpiration'
 used_by = [
@@ -4882,6 +4920,7 @@ used_by = [
   'landlab.components.overland_flow.generate_overland_flow_Bates.OverlandFlowBates',
   'landlab.components.overland_flow.generate_overland_flow_deAlmeida.OverlandFlow',
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 provided_by = [
@@ -4892,6 +4931,7 @@ provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
   'landlab.components.overland_flow.linear_diffusion_overland_flow_router.LinearDiffusionOverlandFlowRouter',
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
   'landlab.components.soil_moisture.infiltrate_soil_green_ampt.SoilInfiltrationGreenAmpt',
 ]
 
@@ -4932,6 +4972,15 @@ provided_by = [
   'landlab.components.flow_accum.lossy_flow_accumulator.LossyFlowAccumulator',
 ]
 
+[fields.surface_water__elevation]
+desc = 'Water surface elevation at time N'
+used_by = [
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+]
+provided_by = [
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+]
+
 [fields.surface_water__specific_discharge]
 desc = 'rate of seepage to surface'
 used_by = []
@@ -4948,9 +4997,12 @@ provided_by = []
 
 [fields.surface_water__velocity]
 desc = 'Speed of water flow above the surface'
-used_by = []
+used_by = [
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
+]
 provided_by = [
   'landlab.components.overland_flow.kinematic_wave_rengers.KinematicWaveRengers',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
 ]
 
 [fields.surface_water_inflow__discharge]
@@ -5016,6 +5068,7 @@ used_by = [
   'landlab.components.potentiality_flowrouting.route_flow_by_boundary.PotentialityFlowRouter',
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
   'landlab.components.radiation.radiation.Radiation',
+  'landlab.components.river_flow_dynamics.river_flow_dynamics.river_flow_dynamics',
   'landlab.components.sink_fill.fill_sinks.SinkFiller',
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
   'landlab.components.space.space.Space',
@@ -5120,15 +5173,6 @@ provided_by = [
   'landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD',
   'landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest',
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
-]
-
-[fields.upper_crust_thickness]
-desc = 'Thickness of upper crust (arbitrary datum)'
-used_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
-]
-provided_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 
 [fields.user_d50]
