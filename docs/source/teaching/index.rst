@@ -25,7 +25,7 @@ on-the-fly in the classroom.
 
 ..
     The easiest way to see what is in the notebooks is through the
-    `Binder welcome page for the teaching notebooks <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>`_. This also allows you to run the notebooks online.
+    `Binder welcome page for the teaching notebooks <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/teaching/welcome_teaching.ipynb>`_. This also allows you to run the notebooks online.
     The tutorials can also be run online on
     :ref:`EarthscapeHub <tutorials_EarthscapeHub>`.
 
