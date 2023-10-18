@@ -262,7 +262,7 @@ notebook==6.5.2
     # via jupyter
 notebook-shim==0.2.2
     # via nbclassic
-numpy==1.25.2
+numpy==1.26.1
     # via
     #   bmi-topography
     #   bmipy
