@@ -31,7 +31,7 @@ markdown-it-py==2.2.0
     # via rich
 markupsafe==2.1.2
     # via jinja2
-matplotlib==3.7.2
+matplotlib==3.8.0
     # via -r requirements.in
 mdurl==0.1.2
     # via markdown-it-py
