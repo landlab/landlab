@@ -24,7 +24,7 @@ docutils==0.18.1
     # via
     #   sphinx
     #   sphinx-jinja
-furo==2023.8.19
+furo==2023.9.10
     # via -r docs/requirements.in
 idna==3.4
     # via requests
