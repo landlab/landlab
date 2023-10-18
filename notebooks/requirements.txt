@@ -311,7 +311,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==9.4.0
+pillow==10.0.1
     # via bokeh
 platformdirs==3.0.0
     # via
@@ -493,7 +493,7 @@ tzdata==2023.3
     # via pandas
 uri-template==1.2.0
     # via jsonschema
-urllib3==1.26.14
+urllib3==1.26.18
     # via requests
 uvicorn==0.23.2
     # via solara
