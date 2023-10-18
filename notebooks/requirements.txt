@@ -197,7 +197,7 @@ jupyter-core==5.2.0
     #   qtconsole
 jupyter-events==0.6.3
     # via jupyter-server
-jupyter-server==2.3.0
+jupyter-server==2.7.2
     # via
     #   nbclassic
     #   notebook-shim
@@ -274,6 +274,8 @@ numpy==1.25.2
     #   rasterio
     #   snuggs
     #   xarray
+overrides==7.4.0
+    # via jupyter-server
 packaging==23.0
     # via
     #   black
@@ -415,7 +417,7 @@ rich-click==1.6.1
     # via solara
 rioxarray==0.13.3
     # via bmi-topography
-send2trash==1.8.0
+send2trash==1.8.2
     # via
     #   jupyter-server
     #   nbclassic
