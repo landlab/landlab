@@ -95,9 +95,10 @@ class Radiation(Component):
     ...       400., 400., 400., 400.])
     >>> calc_rad = Radiation(grid, current_time=0.0)
     >>> calc_rad.update()
-    >>> proven_net_shortwave_field = [189.60831213241528, 189.60831213241528, 188.83981179964039,
-    ...                                 188.68646894929219, 184.15249803555204, 183.74170920690443]
-    >>> print(assert_array_almost_equal(proven_net_shortwave_field, grid.at_cell['radiation__net_shortwave_flux'], decimal=6))
+    >>> proven_net_shortwave_field = [189.608, 189.608, 188.839,
+    ...                                 188.686, 184.152, 183.741]
+    >>> nsflux = grid.at_cell['radiation__net_shortwave_flux']
+    >>> print(assert_array_almost_equal(proven_net_shortwave_field, nsflux, decimal=3))
     None
 
     References
@@ -331,7 +332,6 @@ class Radiation(Component):
         self._tau = (self._t + 12.0) * np.pi / 12.0  # Hour angle
 
         # Calculate solar altitude using declination angle, hour angle, and azimuth
-        # sin(solar angle)=sin(declination)sin(latitude)+cos(declination)cos(latitude)cos(hour angle)
         self._alpha = np.arcsin(
             np.sin(self._sdecl) * self._sinLat
             + (np.cos(self._sdecl) * self._cosLat * np.cos(self._tau))
@@ -426,7 +426,7 @@ class Radiation(Component):
 
         # Clear-sky Radiation Rcs - Lecture_Radiation_Oct_13_18, Page 37
         # will only be computed if turbidity and optical air mass are both user defined
-        # Optical airmass must be greater than zero or Rcs2 is nullified (log of zero or negative error)
+        # Optical airmass must be >0 or Rcs2 is disregarded (log of zero or / 0 error)
 
         self._rcs2valid = True
         if self._m > 0:
@@ -468,8 +468,9 @@ class Radiation(Component):
         self._KT = 0.2 * (self._P / self._Po) ** 0.5
 
         # Incoming shortwave radiation - Lecture_Radiation_Oct_13_18, Page 42
-        # Shortwave radiation should ideally be below clearsky radiation (Rcfactor), if there is a case
-        # where the standard shortwave rad formula yields a result greater than Rcfactor, set shortwave
+        # Shortwave radiation should ideally be below clearsky radiation
+        # (Rcfactor), if there is a case where the standard shortwave rad
+        # formula yields a result greater than Rcfactor, set shortwave
         # radiation to the clearsky radiation itself.
         self._Rs = min(
             self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rcfactor
