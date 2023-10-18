@@ -413,7 +413,7 @@ rfc3986-validator==0.1.1
     #   jupyter-events
 rich==13.5.2
     # via rich-click
-rich-click==1.6.1
+rich-click==1.7.0
     # via solara
 rioxarray==0.13.3
     # via bmi-topography
@@ -491,6 +491,7 @@ typing-extensions==4.5.0
     #   bokeh
     #   panel
     #   reacton
+    #   rich-click
 tzdata==2023.3
     # via pandas
 uri-template==1.2.0
