@@ -1,7 +1,7 @@
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import RiverBedDynamics
+from landlab.components import river_bed_dynamics
 
 
 @pytest.fixture
@@ -12,4 +12,4 @@ def r_b_d():
     grid.add_zeros("surface_water__velocity", at="link")
     grid.add_zeros("surface_water__velocity_previous_time", at="link")
     grid.add_zeros("topographic__elevation", at="node")
-    return RiverBedDynamics(grid)
+    return river_bed_dynamics(grid)
