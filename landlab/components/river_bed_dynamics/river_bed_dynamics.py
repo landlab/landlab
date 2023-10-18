@@ -14,7 +14,7 @@ Examples
 >>> import numpy as np
 >>> import copy
 >>> from landlab import RasterModelGrid
->>> from landlab.components import RiverBedDynamics
+>>> from landlab.components import river_bed_dynamics
 >>> from landlab import imshow_grid
 >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
@@ -22,11 +22,11 @@ Create a grid on which to calculate sediment transport
 
 >>> grid = RasterModelGrid((5, 5))
 
-The grid will need some data to run the RiverBedDynamics component.
+The grid will need some data to run the river_bed_dynamics component.
 To check the names of the fields that provide input use the *input_var_names*
 class property.
 
->>> RiverBedDynamics.input_var_names
+>>> river_bed_dynamics.input_var_names
 ('surface_water__depth', 'surface_water__velocity', 'topographic__elevation')
 
 Create fields of data for each of these input variables. When running a
@@ -129,22 +129,22 @@ overridden with a custom value.
 
 >>> timeStep = 1 # time step in seconds
 
-Instantiate the `RiverBedDynamics` component to work on the grid, and run it.
+Instantiate the `river_bed_dynamics` component to work on the grid, and run it.
 
->>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'Parker1990',
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'Parker1990',
 ... bed_surface__grain_size_distribution_location_node = gsd_loc)
->>> RBD.run_one_step()
+>>> rbd.run_one_step()
 
-After running RiverBedDynamics, we can check if the different GSD locations
+After running river_bed_dynamics, we can check if the different GSD locations
 were correctly included
 
->>> RBD._bed_surface__grain_size_distribution_location_node # doctest: +NORMALIZE_WHITESPACE
+>>> rbd._bed_surface__grain_size_distribution_location_node # doctest: +NORMALIZE_WHITESPACE
 array([ 0.,  1.,  1.,  1.,  0.,  0.,  1.,  1.,  1.,  0.,  0.,  1.,  1.,
         1.,  0.,  0.,  1.,  1.,  1.,  0.,  0.,  1.,  1.,  1.,  0.])
 
 Let's check at the calculated net bedload
 
->>> RBD._sediment_transport__net_bedload_node # doctest: +NORMALIZE_WHITESPACE
+>>> rbd._sediment_transport__net_bedload_node # doctest: +NORMALIZE_WHITESPACE
 array([  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
          0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
          1.59750963e-03,  -4.79298187e-03,   1.59750963e-03,
@@ -157,7 +157,7 @@ array([  0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
 
 Let's check at the calculated shear_stress
 
->>> RBD._surface_water__shear_stress_link # doctest: +NORMALIZE_WHITESPACE
+>>> rbd._surface_water__shear_stress_link # doctest: +NORMALIZE_WHITESPACE
 array([  0.      ,  60.016698,  60.016698,   0.      ,   0.      ,
          0.      ,   0.      ,   0.      ,   0.      ,   0.      ,
         40.011132,  40.011132,   0.      ,  10.002783,  10.002783,
@@ -170,7 +170,7 @@ array([  0.      ,  60.016698,  60.016698,   0.      ,   0.      ,
 Considering the link upstream the watershed exit, link Id 15, we can obtain the
 bed load transport rate
 
->>> RBD._sediment_transport__bedload_rate_link[15]
+>>> rbd._sediment_transport__bedload_rate_link[15]
 -0.0015976606223666004
 
 Therefore, the bed load transport rate according to Parker 1991 surface-based
@@ -179,7 +179,7 @@ Y direction
 
 The GSD at this place is:
 
->>> RBD._sediment_transport__bedload_grain_size_distribution_link[15]
+>>> rbd._sediment_transport__bedload_grain_size_distribution_link[15]
 array([ 0.47501858,  0.52498142])
 
 Which in cummulative percentage is equivalent to
@@ -191,7 +191,7 @@ D mm    % Finer
 Grain sizes are always given in mm.
 We can also check the bed load grain size distribution in all links
 
->>> RBD._sediment_transport__bedload_grain_size_distribution_link
+>>> rbd._sediment_transport__bedload_grain_size_distribution_link
 array([[ 0.        ,  0.        ],
        [ 0.48479122,  0.51520878],
        [ 0.48479122,  0.51520878],
@@ -259,7 +259,7 @@ from scipy.interpolate import interp1d
 from landlab import Component
 
 
-class RiverBedDynamics(Component):
+class river_bed_dynamics(Component):
 
     """Predicts the evolution of a river bed.
 
@@ -316,7 +316,7 @@ class RiverBedDynamics(Component):
     DOI: 10.1080/00221689609498763
     """
 
-    _name = "RiverBedDynamics"
+    _name = "river_bed_dynamics"
 
     _unit_agnostic = False
 
@@ -2387,9 +2387,9 @@ class RiverBedDynamics(Component):
                     print(
                         "Apparently the current time simulation is not being updated\n"
                     )
-                    print("Suggestion: add RBD._current_t = t to the main loop\n")
+                    print("Suggestion: add rbd._current_t = t to the main loop\n")
                     print(
-                        "Modify RBD accordingly to the instantiation of RiverBedDynamics"
+                        "Modify rbd accordingly to the instantiation of river_bed_dynamics"
                     )
                     user_input = input(
                         "Press ENTER to continue or any other key to stop: "
@@ -2571,7 +2571,7 @@ class RiverBedDynamics(Component):
         >>> import numpy as np
         >>> import copy
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RiverBedDynamics
+        >>> from landlab.components import river_bed_dynamics
         >>> from landlab import imshow_grid
         >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
         >>> from matplotlib import pyplot as plt
@@ -2615,15 +2615,15 @@ class RiverBedDynamics(Component):
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
+        >>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep,
         ... bedload_equation = 'Parker1990',
         ... bed_surface__grain_size_distribution_location_node = gsd_loc)
-        >>> RBD.run_one_step()
+        >>> rbd.run_one_step()
 
         If we want to plot the velocity vector on top of the surface water
         depth we can do:
 
-        >>> (velocityVector, velocityMagnitude) = RBD.vector_mapper(RBD._u)
+        >>> (velocityVector, velocityMagnitude) = rbd.vector_mapper(rbd._u)
         >>> velocityVector_x = velocityVector[:,0]
         >>> velocityVector_x
         array([ 0.125,  0.25 ,  0.25 ,  0.25 ,  0.125,  0.125,  0.25 ,  0.25 ,
@@ -2687,7 +2687,7 @@ class RiverBedDynamics(Component):
         >>> import numpy as np
         >>> import copy
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RiverBedDynamics
+        >>> from landlab.components import river_bed_dynamics
         >>> from landlab import imshow_grid
         >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
@@ -2730,12 +2730,12 @@ class RiverBedDynamics(Component):
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
+        >>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep,
         ... bedload_equation = 'Parker1990',
         ... bed_surface__grain_size_distribution_location_node = gsd_loc)
-        >>> RBD.run_one_step()
+        >>> rbd.run_one_step()
 
-        >>> RBD.calculate_DX(0.9)
+        >>> rbd.calculate_DX(0.9)
         (array([ 28.72809865,  27.85762504,  27.85762504,  28.72809865,
          29.17511936,  27.85761803,  27.84919993,  27.85761803,
          29.17511936,  28.64080227,  27.85762504,  27.85762504,
@@ -2875,7 +2875,7 @@ class RiverBedDynamics(Component):
         >>> import numpy as np
         >>> import copy
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components import RiverBedDynamics
+        >>> from landlab.components import river_bed_dynamics
         >>> from landlab import imshow_grid
         >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
         >>> from matplotlib import pyplot as plt
@@ -2919,11 +2919,11 @@ class RiverBedDynamics(Component):
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> RBD = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
+        >>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep,
         ... bedload_equation = 'Parker1990',
         ... bed_surface__grain_size_distribution_location_node = gsd_loc)
-        >>> RBD.run_one_step()
-        >>> RBD.format_gsd(RBD._sediment_transport__bedload_grain_size_distribution_link)
+        >>> rbd.run_one_step()
+        >>> rbd.format_gsd(rbd._sediment_transport__bedload_grain_size_distribution_link)
                    8         16     32
         Link_0   0.0   0.000000    0.0
         Link_1   0.0  51.520878  100.0
@@ -2991,11 +2991,11 @@ class RiverBedDynamics(Component):
     @staticmethod
     def display_available_fields(self):
         """Several fields can be available for calculations or other purposes
-        and are stored as private fields within RiverBedDynamics. This function
+        and are stored as private fields within river_bed_dynamics. This function
         displays the fields and its units."""
 
         # Define header
-        header = "Assuming that RiverBedDynamics was instantiated as RBD, \n"
+        header = "Assuming that river_bed_dynamics was instantiated as rbd, \n"
         header += "the following fields are available:\n"
         header += "\n"
         header += "{:<70} | {}\n".format("Field", "Units")
@@ -3004,40 +3004,40 @@ class RiverBedDynamics(Component):
 
         # Define available fields and their units
         fields = [
-            ("RBD._bed_subsurface__grain_size_distribution_link", "[mm,%]"),
-            ("RBD._bed_subsurface__grain_size_distribution_node", "[mm,%]"),
-            ("RBD._bed_surface__active_layer_thickness_link", "[m]"),
-            ("RBD._bed_surface__active_layer_thickness_node", "[m]"),
-            ("RBD._bed_surface__active_layer_thickness_previous_time_link", "[m]"),
-            ("RBD._bed_surface__active_layer_thickness_previous_time_node", "[m]"),
-            ("RBD._bed_surface__elevation_fixed_node", "[m]"),
-            ("RBD._bed_surface__geometric_mean_size_link", "[mm]"),
-            ("RBD._bed_surface__geometric_mean_size_node", "[mm]"),
-            ("RBD._bed_surface__geometric_standard_deviation_size_link", "[mm]"),
-            ("RBD._bed_surface__geometric_standard_deviation_size_node", "[mm]"),
-            ("RBD._bed_surface__grain_size_distribution_fixed_node", "[mm,%]"),
-            ("RBD._bed_surface__grain_size_distribution_link", "[mm,%]"),
-            ("RBD._bed_surface__grain_size_distribution_node", "[mm,%]"),
-            ("RBD._bed_surface__grain_size_distribution_original_link", "[mm,%]"),
-            ("RBD._bed_surface__grain_size_distribution_original_node", "[mm,%]"),
-            ("RBD._bed_surface__median_size_link", "[mm]"),
-            ("RBD._bed_surface__median_size_node", "[mm]"),
-            ("RBD._bed_surface__sand_fraction_link", "[-]"),
-            ("RBD._bed_surface__sand_fraction_node", "[-]"),
-            ("RBD._bed_surface__surface_thickness_new_layer_link", "[m]"),
+            ("rbd._bed_subsurface__grain_size_distribution_link", "[mm,%]"),
+            ("rbd._bed_subsurface__grain_size_distribution_node", "[mm,%]"),
+            ("rbd._bed_surface__active_layer_thickness_link", "[m]"),
+            ("rbd._bed_surface__active_layer_thickness_node", "[m]"),
+            ("rbd._bed_surface__active_layer_thickness_previous_time_link", "[m]"),
+            ("rbd._bed_surface__active_layer_thickness_previous_time_node", "[m]"),
+            ("rbd._bed_surface__elevation_fixed_node", "[m]"),
+            ("rbd._bed_surface__geometric_mean_size_link", "[mm]"),
+            ("rbd._bed_surface__geometric_mean_size_node", "[mm]"),
+            ("rbd._bed_surface__geometric_standard_deviation_size_link", "[mm]"),
+            ("rbd._bed_surface__geometric_standard_deviation_size_node", "[mm]"),
+            ("rbd._bed_surface__grain_size_distribution_fixed_node", "[mm,%]"),
+            ("rbd._bed_surface__grain_size_distribution_link", "[mm,%]"),
+            ("rbd._bed_surface__grain_size_distribution_node", "[mm,%]"),
+            ("rbd._bed_surface__grain_size_distribution_original_link", "[mm,%]"),
+            ("rbd._bed_surface__grain_size_distribution_original_node", "[mm,%]"),
+            ("rbd._bed_surface__median_size_link", "[mm]"),
+            ("rbd._bed_surface__median_size_node", "[mm]"),
+            ("rbd._bed_surface__sand_fraction_link", "[-]"),
+            ("rbd._bed_surface__sand_fraction_node", "[-]"),
+            ("rbd._bed_surface__surface_thickness_new_layer_link", "[m]"),
             (
-                "RBD._sediment_transport__bedload_grain_size_distribution_imposed_link",
+                "rbd._sediment_transport__bedload_grain_size_distribution_imposed_link",
                 "[mm,%]",
             ),
-            ("RBD._sediment_transport__bedload_grain_size_distribution_link", "[mm,%]"),
-            ("RBD._sediment_transport__bedload_rate_link", "[m^2/s]"),
-            ("RBD._sediment_transport__net_bedload_node", "[m^2/s]"),
-            ("RBD._sediment_transport__sediment_supply_imposed_link", "[m^2/s]"),
-            ("RBD._surface_water__shear_stress_link", "[Pa]"),
-            ("RBD._surface_water__velocity_previous_time_link", "[m/s]"),
-            ("RBD._topographic__elevation_original_link", "[m]"),
-            ("RBD._topographic__elevation_original_node", "[m]"),
-            ("RBD._topographic__elevation_subsurface_link", "[m]"),
+            ("rbd._sediment_transport__bedload_grain_size_distribution_link", "[mm,%]"),
+            ("rbd._sediment_transport__bedload_rate_link", "[m^2/s]"),
+            ("rbd._sediment_transport__net_bedload_node", "[m^2/s]"),
+            ("rbd._sediment_transport__sediment_supply_imposed_link", "[m^2/s]"),
+            ("rbd._surface_water__shear_stress_link", "[Pa]"),
+            ("rbd._surface_water__velocity_previous_time_link", "[m/s]"),
+            ("rbd._topographic__elevation_original_link", "[m]"),
+            ("rbd._topographic__elevation_original_node", "[m]"),
+            ("rbd._topographic__elevation_subsurface_link", "[m]"),
         ]
 
         # Print each field

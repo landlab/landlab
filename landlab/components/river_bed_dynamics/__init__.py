@@ -1,5 +1,5 @@
-from .RiverBedDynamics import RiverBedDynamics
+from .river_bed_dynamics import river_bed_dynamics
 
 __all__ = [
-    "RiverBedDynamics",
+    "river_bed_dynamics",
 ]
