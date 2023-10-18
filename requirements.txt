@@ -87,7 +87,7 @@ pyyaml==6.0.1
     # via -r requirements.in
 rich==13.3.1
     # via rich-click
-rich-click==1.6.1
+rich-click==1.7.0
     # via -r requirements.in
 scipy==1.11.2
     # via
@@ -99,6 +99,8 @@ six==1.16.0
     #   python-dateutil
 statsmodels==0.14.0
     # via -r requirements.in
+typing-extensions==4.8.0
+    # via rich-click
 tzdata==2023.3
     # via pandas
 xarray==2023.8.0
