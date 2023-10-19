@@ -1,7 +1,6 @@
-# from .meteorology import Meteorology
+from .meteorology import Meteorology
 from .snow_degree_day import SnowDegreeDay
 from .snow_energy_balance import SnowEnergyBalance
-from .meteorology import Meteorology
 
 __all__ = [
     "SnowDegreeDay",

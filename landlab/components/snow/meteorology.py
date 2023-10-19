@@ -12,9 +12,9 @@ https://github.com/peckhams/topoflow36/blob/master/topoflow/components/met_base.
 """
 
 import numpy as np
+import solar_funcs as solar
 
 from landlab import Component
-import solar_funcs as solar
 
 
 class Meteorology(Component):
@@ -200,8 +200,6 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "air flow speed reference height",
         },  # uz
-
-
         # output fields (12 var)
         "land_surface_net-total-energy__energy_flux": {
             "dtype": float,
@@ -259,7 +257,6 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "net energy flux advected by moving water",
         },  # Qa  # TODO named by me
-
         "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance": {
             "dtype": float,
             "intent": "out",
@@ -276,7 +273,7 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "bulk sensible heat aerodynamic conductance",
         },  # Dh
-        'atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance': {
+        "atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -284,7 +281,6 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "bulk latent heat aerodynamic conductance",
         },  # De
-
         "land_surface_air_water-vapor__saturated_partial_pressure": {
             "dtype": float,
             "intent": "out",
@@ -325,7 +321,7 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "air vapor pressure",
         },  # T_dew
-        "atmosphere_bottom_air_flow__bulk_richardson_number":{
+        "atmosphere_bottom_air_flow__bulk_richardson_number": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -370,7 +366,7 @@ class Meteorology(Component):
         self._rho_H2O = rho_H2O  # kg m-3
         self._rho_air = rho_air  # kg m-3
         self._Cp_air = Cp_air  # J kg-1 K-1
-        self._satterlund = satterlund # bool
+        self._satterlund = satterlund  # bool
 
         # slope & aspect
         self.set_slope_angle()
@@ -553,7 +549,7 @@ class Meteorology(Component):
 
         self._latent_heat_constant = np.float64(0.662)
 
-    def set_aspect_angle(self): # TODO
+    def set_aspect_angle(self):  # TODO
         # ------------------------------------------------------
         # Read aspect grid.  Alpha must be CW from north.
         # NB!  RT aspect grids have NaNs on edges.
@@ -575,7 +571,7 @@ class Meteorology(Component):
         # self.alpha = alpha
         pass
 
-    def set_slope_angle(self): # TODO
+    def set_slope_angle(self):  # TODO
         # -------------------------------------------------
         # Read slope grid & convert to slope angle, beta
         # NB!  RT slope grids have NaNs on edges.
@@ -601,22 +597,21 @@ class Meteorology(Component):
         pass
 
     def update_bulk_richardson_number(self):
-        """ calculate Ri see dingman p130"""
-        # TODO: check top T_surf - T_air or reverse
-        # TODO: check if self._C_to_K is correct value
+        """calculate Ri see dingman p130"""
+        # TODO: check equation
         top = self._g * self._z * (self._T_surf - self._T_air)
         bot = (self._uz) ** 2.0 * (self._T_air + self._C_to_K)
-        self._Ri[:] = (top / bot)
+        self._Ri[:] = top / bot
 
     def update_bulk_aero_conductance(self):
         """calculate Dn, Dh, De"""
 
         # calculate Dn
         arg = self._kappa / np.log((self._z - self._h_snow) / self._z0_air)
-        Dn = self._uz * arg ** 2.0
+        Dn = self._uz * arg**2.0
 
         # check if pixels are neutral
-        w = (self._T_air != self._T_surf)  # (boolean array)
+        w = self._T_air != self._T_surf  # (boolean array)
         nw = w.sum()
 
         # all pixels are neutral, set Dh = De = Dn
@@ -628,8 +623,8 @@ class Meteorology(Component):
 
         # one or more pixels are not neutral, make correction using Ri
         Dh = Dn.copy()
-        ws = (self._Ri > 0)   # If (Ri > 0) or (T_surf > T_air), then STABLE.
-        wu = np.invert(ws)    # where unstable
+        ws = self._Ri > 0  # If (Ri > 0) or (T_surf > T_air), then STABLE.
+        wu = np.invert(ws)  # where unstable
 
         # TODO double check the math equation
         Dh[ws] = Dh[ws] / (np.float64(1) + (np.float64(10) * self._Ri[ws]))
@@ -637,11 +632,11 @@ class Meteorology(Component):
 
         self._Dn[:] = Dn
         self._Dh[:] = Dh
-        self._De[:] = Dh   # assumed equal
+        self._De[:] = Dh  # assumed equal
 
     def update_sensible_heat_flux(self):
         """calculate sensible heat flux"""
-        delta_T = (self._T_air - self._T_surf)
+        delta_T = self._T_air - self._T_surf
         self._Qh[:] = (self._rho_air * self._Cp_air) * self._Dh * delta_T
 
     def update_saturation_vapor_pressure(self, MBAR=False, SURFACE=False):
@@ -652,18 +647,18 @@ class Meteorology(Component):
         else:
             T = self._T_air
 
-        if not(self._satterlund):
+        if not (self._satterlund):
             # use Brutsaert method (Dingman p254)
             term1 = (np.float64(17.3) * T) / (T + np.float64(237.3))
             e_sat = np.float64(0.611) * np.exp(term1)  # [kPa]
         else:
             # use Satterlund method
             term1 = np.float64(2353) / (T + np.float64(273.15))
-            e_sat = np.float64(10) ** (np.float64(11.4) - term1)   # [Pa]
-            e_sat = (e_sat / np.float64(1000))  # [kPa]
+            e_sat = np.float64(10) ** (np.float64(11.4) - term1)  # [Pa]
+            e_sat = e_sat / np.float64(1000)  # [kPa]
 
         if MBAR:
-            e_sat = (e_sat * np.float64(10))   # [mbar]
+            e_sat = e_sat * np.float64(10)  # [mbar]
 
         if SURFACE:
             self._e_sat_surf[:] = e_sat
@@ -682,44 +677,46 @@ class Meteorology(Component):
         calculate dew point
         https://en.wikipedia.org/wiki/Dew_point
         """
-        a = 6.1121   # [mbar]
+        a = 6.1121  # [mbar]
         b = 18.678
-        c = 257.14   # [deg C]
+        c = 257.14  # [deg C]
 
         log_term = np.log(self._e_air / a)
         self._T_dew[:] = c * log_term / (b - log_term)  # [deg C]
 
     def update_latent_heat_flux(self):
-        """calculate latent heat flux (Dingman p233) """
+        """calculate latent heat flux (Dingman p233)"""
         # TODO double check equation
         const = self._latent_heat_constant
-        factor = (self._rho_air * self._Lv * self._De)
-        delta_e = (self._e_air - self._e_surf)
+        factor = self._rho_air * self._Lv * self._De
+        delta_e = self._e_air - self._e_surf
         self._Qe[:] = factor * delta_e * (const / self._p0)
 
-    def update_conduction_heat_flux(self):  # TODO add output variable
+    def update_conduction_heat_flux(self):
         pass
 
-    def update_advection_heat_flux(self):  # TODO add output variable
+    def update_advection_heat_flux(self):
         pass
 
     def update_julian_day(self):  # TODO
         pass
 
     def update_precipitable_water_content(self):
-        arg = np.float64( 0.0614 * self._T_dew)
+        arg = np.float64(0.0614 * self._T_dew)
         self._W_p[:] = np.float64(1.12) * np.exp(arg)  # [cm]
 
     def update_net_shortwave_radiation(self):
         """calculate shortwave radiation"""
-        Qn_SW = solar.Clear_Sky_Radiation(self._lat_deg,
-                                          self._julian_day,
-                                          self._W_p,
-                                          self._TSN_offset,  # line 1922 Julian day
-                                          self._alpha,
-                                          self._beta,
-                                          self._albedo,
-                                          self._dust_atten)
+        Qn_SW = solar.Clear_Sky_Radiation(
+            self._lat_deg,
+            self._julian_day,
+            self._W_p,
+            self._TSN_offset,  # line 1922 Julian day
+            self._alpha,
+            self._beta,
+            self._albedo,
+            self._dust_atten,
+        )
         self._Qn_SW[:] = Qn_SW
 
     def update_em_air(self):
@@ -732,12 +729,12 @@ class Meteorology(Component):
             F = self._canopy_factor
             C = self._cloud_factor
             term1 = (1.0 - F) * 1.72 * (e_air_kPa / T_air_K) ** self._one_seventh
-            term2 = (1.0 + (0.22 * C ** 2.0))
+            term2 = 1.0 + (0.22 * C**2.0)
             self._em_air[:] = (term1 * term2) + F
         else:
             # satterlund method
             e_air_mbar = self._e_air
-            eterm  = np.exp(-1 * (e_air_mbar)**(T_air_K / 2016) )
+            eterm = np.exp(-1 * (e_air_mbar) ** (T_air_K / 2016))
             self._em_air[:] = 1.08 * (1.0 - eterm)
 
     def update_net_longwave_radiation(self):
@@ -749,22 +746,23 @@ class Meteorology(Component):
         LW_out = self._em_surf * self._sigma * (T_surf_K) ** 4.0
 
         # account for radiation from the air that is reflected from the surface
-        LW_out += ((1.0 - self._em_surf) * LW_in)
+        LW_out += (1.0 - self._em_surf) * LW_in
 
-        self._Qn_LW[:] = (LW_in - LW_out)
+        self._Qn_LW[:] = LW_in - LW_out
 
     def update_net_energy_flux(self):
         """calculate net energy flux"""
 
-        self._Q_sum[:] = (self._Qn_SW + self._Qn_LW + self._Qh +
-                          self._Qe + self._Qa + self._Qc)
+        self._Q_sum[:] = (
+            self._Qn_SW + self._Qn_LW + self._Qh + self._Qe + self._Qa + self._Qc
+        )
 
     def run_one_step(self, dt):
         # update input fields in case there is new input
         self._T_air = self._grid.at_node["atmosphere_bottom_air__temperature"]
         self._T_surf = self._grid.at_node["land_surface__temperature"]
         self._h_snow = self._grid.at_node["snowpack__depth"]
-        self._albedo= self._grid.at_node["land_surface__albedo"]
+        self._albedo = self._grid.at_node["land_surface__albedo"]
         self._em_surf = self._grid.at_node["land_surface__emissivity"]
         self._dust_atten = self._grid.at_node[
             "atmosphere_aerosol_dust__reduction_of_transmittance"
