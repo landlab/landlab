@@ -12,7 +12,9 @@ https://github.com/peckhams/topoflow36/blob/master/topoflow/components/met_base.
 """
 
 import numpy as np
-import solar_funcs as solar
+import datetime
+from dateutil.relativedelta import relativedelta
+from . import solar_funcs
 
 from landlab import Component
 
@@ -41,7 +43,9 @@ class Meteorology(Component):
     grid : ModelGrid
         A Landlab model grid object
     start_datetime : string
-        start time in format of "yyyy/mm/dd hh:mm:ss"
+        start time in format of "yyyy-mm-dd hh:mm:ss"
+    GMT_offset: int (default 0)
+        GMT offset
     rho_H2O : float (default 1000 kg/m3)
         water density
     rho_air : float (default 1.2614 kg/m3)
@@ -61,9 +65,8 @@ class Meteorology(Component):
     _unit_agnostic = False
 
     _info = {
-        # TODO: inputs/outputs not sure Ri, De, Dh, Dn, em_air, W_p, e_air,
-        #  T_dew, e_sat_air, e_surf, e_sat_surf,
-        # input fields
+
+        # input fields (6 req var, 10 opt var)
         "atmosphere_bottom_air__temperature": {
             "dtype": float,
             "intent": "in",
@@ -103,7 +106,7 @@ class Meteorology(Component):
             "units": "radians",
             "mapping": "node",
             "doc": "land surface aspect",
-        },  # aspect
+        },  # alpha (aspect) [0, 2pi]
         "land_surface__slope_angle": {
             "dtype": float,
             "intent": "in",
@@ -111,11 +114,11 @@ class Meteorology(Component):
             "units": "radians",
             "mapping": "node",
             "doc": "land surface slope",
-        },  # slope
+        },  # beta (slope) [0, pi/2]
         "snowpack__depth": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "m",
             "mapping": "node",
             "doc": "snow depth",
@@ -248,15 +251,15 @@ class Meteorology(Component):
             "units": "W m-2",
             "mapping": "node",
             "doc": "net energy flux via conduction from snow to soil",
-        },  # Qc  # TODO named by me
+        },  # Qc  # name added by me
         "snowpack_land_surface_net-advection-heat__energy_flux": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W m-2",
             "mapping": "node",
-            "doc": "net energy flux advected by moving water",
-        },  # Qa  # TODO named by me
+            "doc": "net energy flux advected from moving water",
+        },  # Qa  # name added by me
         "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance": {
             "dtype": float,
             "intent": "out",
@@ -319,7 +322,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "deg_C",
             "mapping": "node",
-            "doc": "air vapor pressure",
+            "doc": "dew point temperature",
         },  # T_dew
         "atmosphere_bottom_air_flow__bulk_richardson_number": {
             "dtype": float,
@@ -350,6 +353,8 @@ class Meteorology(Component):
     def __init__(
         self,
         grid,
+        start_datetime,
+        GMT_offset=0,
         rho_H2O=1000,
         rho_air=1.2614,
         Cp_air=1005.7,
@@ -359,28 +364,46 @@ class Meteorology(Component):
 
         super().__init__(grid)
 
-        # constants
-        self.set_constants()
+        # physical constants
+        self._g = np.float64(9.81)  # [m s-2, gravity]
+        self._kappa = np.float64(0.408)  # [1]  (von Karman)
+        self._Lv = np.float64(2500000)  # [J kg-1] Latent heat of vaporiz.
+        self._Lf = np.float64(334000)  # [J kg-1 = W s kg-1], Latent heat of fusion
+        self._sigma = np.float64(5.67e-8)  # [W m-2 K-4]  (Stefan-Boltzman constant)
+        self._C_to_K = np.float64(273.15)  # (add to convert deg C to K)
+
+        self._one_seventh = np.float64(1) / 7
+        self._hours_per_day = np.float64(24)
+        self._latent_heat_constant = np.float64(0.662)
 
         # parameters
+        self._GMT_offset = GMT_offset
         self._rho_H2O = rho_H2O  # kg m-3
         self._rho_air = rho_air  # kg m-3
         self._Cp_air = Cp_air  # J kg-1 K-1
         self._satterlund = satterlund  # bool
 
-        # slope & aspect
-        self.set_slope_angle()
-        self.set_aspect_angle()
+        # datetime & Julian day
+        try:
+            self._datetime_obj = datetime.datetime.strptime(
+                start_datetime, '%Y-%m-%d %H:%M:%S'
+            )
+        except Exception as e:
+            raise e
+
+        self._julian_day = solar_funcs.Julian_Day(self._datetime_obj.month,
+                                                  self._datetime_obj.day,
+                                                  self._datetime_obj.hour,
+                                                  self._datetime_obj.year)
 
         # input fields
         self._T_air = grid.at_node["atmosphere_bottom_air__temperature"]
         self._T_surf = grid.at_node["land_surface__temperature"]
         self._lat_deg = grid.at_node["land_surface__latitude"]
         self._lon_deg = grid.at_node["land_surface__longitude"]
-        self._aspect = grid.at_node["land_surface__aspect_angle"]
-        self._slope = grid.at_node["land_surface__slope_angle"]
+        self._alpha = grid.at_node["land_surface__aspect_angle"]
+        self._beta = grid.at_node["land_surface__slope_angle"]
 
-        # TODO: check those default values
         if "snowpack__depth" in grid.at_node:
             self._h_snow = grid.at_node["snowpack__depth"]
         else:
@@ -450,7 +473,7 @@ class Meteorology(Component):
             self._z = grid.at_node["atmosphere_bottom_air_flow__speed_reference_height"]
         else:
             self._z = grid.add_full(
-                "atmosphere_bottom_air_flow__speed_reference_height", 2
+                "atmosphere_bottom_air_flow__speed_reference_height", 10
             )
 
         if "atmosphere_bottom_air_flow__reference-height_speed" in grid.at_node:
@@ -459,7 +482,7 @@ class Meteorology(Component):
             ]
         else:
             self._uz = grid.add_full(
-                "atmosphere_bottom_air_flow__reference-height_speed", 2
+                "atmosphere_bottom_air_flow__reference-height_speed", 3
             )
 
         # output fields
@@ -470,13 +493,13 @@ class Meteorology(Component):
         self._Qe = grid.at_node[
             "atmosphere_bottom_air_land_net-latent-heat__energy_flux"
         ]
+        self._Qh = grid.at_node[
+            "atmosphere_bottom_air_land_net-sensible-heat__energy_flux"
+        ]
         self._Qc = grid.at_node[
             "snowpack_land_surface_net-conduction-heat__energy_flux"
         ]
         self._Qa = grid.at_node["snowpack_land_surface_net-advection-heat__energy_flux"]
-        self._Qh = grid.at_node[
-            "atmosphere_bottom_air_land_net-sensible-heat__energy_flux"
-        ]
         self._Dn = grid.at_node[
             "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance"
         ]
@@ -530,77 +553,12 @@ class Meteorology(Component):
         assert Cp_air > 0, "assign Cp_air with positive value"
         self._Cp_air = Cp_air
 
-    def set_constants(self):
-        # Define physical constants
-        self._g = np.float64(9.81)  # [m s-2, gravity]
-        self._kappa = np.float64(0.408)  # [1]  (von Karman)
-        self._rho_H2O = np.float64(1000)  # [kg m-3]
-        self._rho_air = np.float64(1.2614)  # [kg m-3]
-        self._Cp_air = np.float64(1005.7)  # [J kg-1 K-1]
-        self._Lv = np.float64(2500000)  # [J kg-1] Latent heat of vaporiz.
-        self._Lf = np.float64(334000)  # [J kg-1 = W s kg-1], Latent heat of fusion
-        self._sigma = np.float64(5.67e-8)  # [W m-2 K-4]  (Stefan-Boltzman constant)
-        self._C_to_K = np.float64(273.15)  # (add to convert deg C to K)
-
-        self._twopi = np.float64(2) * np.pi
-        self._one_seventh = np.float64(1) / 7
-        self._hours_per_day = np.float64(24)
-        self._secs_per_day = np.float64(3600) * self._hours_per_day
-
-        self._latent_heat_constant = np.float64(0.662)
-
-    def set_aspect_angle(self):  # TODO
-        # ------------------------------------------------------
-        # Read aspect grid.  Alpha must be CW from north.
-        # NB!  RT aspect grids have NaNs on edges.
-        # ---------------------------------------------------------
-        # RT files ending in "_mf-angle.rtg" and "fd-aspect.rtg"
-        # contain aspect values.  The former are in [0, 2 Pi]
-        # while the latter are in [-Pi, Pi] and both measure
-        # CCW from due east.
-        # ---------------------------------------------------------
-        # #aspects = rtg_files.read_grid(self.aspect_grid_file, self.rti, RTG_type="FLOAT")
-        # alpha = (np.pi / 2) - aspects
-        # alpha = (self.twopi + alpha) % self.twopi
-        # # -----------------------------------------------
-        # w_nan = np.where(np.logical_not(np.isfinite(alpha)))
-        # n_nan = np.size(w_nan[0])
-        # if n_nan != 0:
-        #     alpha[w_nan] = np.float64(0)
-        #
-        # self.alpha = alpha
-        pass
-
-    def set_slope_angle(self):  # TODO
-        # -------------------------------------------------
-        # Read slope grid & convert to slope angle, beta
-        # NB!  RT slope grids have NaNs on edges.
-        # -------------------------------------------------
-        # slopes = rtg_files.read_grid(self.slope_grid_file, self.rti, RTG_type="FLOAT")
-        # beta = np.arctan(slopes)
-        # beta = (self.twopi + beta) % self.twopi
-        # # ---------------------------------------------
-        # w_nan = np.where(np.logical_not(np.isfinite(beta)))
-        # n_nan = np.size(w_nan[0])
-        # if n_nan != 0:
-        #     beta[w_nan] = np.float64(0)
-        # # ------------------------------------------------------------------
-        # w_bad = np.where(np.logical_or((beta < 0), (beta > np.pi / 2)))
-        # n_bad = np.size(w_bad[0])
-        # if n_bad != 0:
-        #     print("ERROR: In met_base.py, some slope angles are out")
-        #     print("       of range.  Returning without setting beta.")
-        #     print()
-        #     return
-        #
-        # self.beta = beta
-        pass
-
     def update_bulk_richardson_number(self):
-        """calculate Ri see dingman p130"""
-        # TODO: check equation
+        """calculate Ri """
+
+        # TODO: check equation (Dingman (ver3) p130)
         top = self._g * self._z * (self._T_surf - self._T_air)
-        bot = (self._uz) ** 2.0 * (self._T_air + self._C_to_K)
+        bot = self._uz ** 2.0 * (self._T_air + self._C_to_K)
         self._Ri[:] = top / bot
 
     def update_bulk_aero_conductance(self):
@@ -614,19 +572,19 @@ class Meteorology(Component):
         w = self._T_air != self._T_surf  # (boolean array)
         nw = w.sum()
 
-        # all pixels are neutral, set Dh = De = Dn
+        # if all pixels are neutral, set Dh = De = Dn
         if nw == 0:
             self._Dn[:] = Dn
             self._Dh[:] = Dn
             self._De[:] = Dn
             return
 
-        # one or more pixels are not neutral, make correction using Ri
+        # if one or more pixels are not neutral, make correction using Ri
         Dh = Dn.copy()
         ws = self._Ri > 0  # If (Ri > 0) or (T_surf > T_air), then STABLE.
         wu = np.invert(ws)  # where unstable
 
-        # TODO double check the math equation
+        # TODO check math
         Dh[ws] = Dh[ws] / (np.float64(1) + (np.float64(10) * self._Ri[ws]))
         Dh[wu] = Dh[wu] * (np.float64(1) - (np.float64(10) * self._Ri[wu]))
 
@@ -635,19 +593,20 @@ class Meteorology(Component):
         self._De[:] = Dh  # assumed equal
 
     def update_sensible_heat_flux(self):
-        """calculate sensible heat flux"""
+        """calculate Qh"""
+
         delta_T = self._T_air - self._T_surf
         self._Qh[:] = (self._rho_air * self._Cp_air) * self._Dh * delta_T
 
     def update_saturation_vapor_pressure(self, MBAR=False, SURFACE=False):
-        """calculate surface or air saturation vapor pressure"""
+        """calculate e_sat_surface, e_sat_air"""
 
         if SURFACE:
             T = self._T_surf
         else:
             T = self._T_air
 
-        if not (self._satterlund):
+        if not self._satterlund:
             # use Brutsaert method (Dingman p254)
             term1 = (np.float64(17.3) * T) / (T + np.float64(237.3))
             e_sat = np.float64(0.611) * np.exp(term1)  # [kPa]
@@ -666,17 +625,17 @@ class Meteorology(Component):
             self._e_sat_air[:] = e_sat
 
     def update_vapor_pressure(self, SURFACE=False):
-        """calculate surface or air vapor pressure"""
+        """calculate e_surf, e_air"""
+
         if SURFACE:
             self._e_surf[:] = self._e_sat_surf * self._RH
         else:
             self._e_air[:] = self._e_sat_air * self._RH
 
     def update_dew_point(self):
-        """
-        calculate dew point
-        https://en.wikipedia.org/wiki/Dew_point
-        """
+        """ calculate T_dew """
+
+        # https: // en.wikipedia.org / wiki / Dew_point
         a = 6.1121  # [mbar]
         b = 18.678
         c = 257.14  # [deg C]
@@ -685,33 +644,63 @@ class Meteorology(Component):
         self._T_dew[:] = c * log_term / (b - log_term)  # [deg C]
 
     def update_latent_heat_flux(self):
-        """calculate latent heat flux (Dingman p233)"""
-        # TODO double check equation
+        """calculate Qe """
+
+        # TODO math
+        # (Dingman p233 ver3)
         const = self._latent_heat_constant
         factor = self._rho_air * self._Lv * self._De
         delta_e = self._e_air - self._e_surf
         self._Qe[:] = factor * delta_e * (const / self._p0)
 
     def update_conduction_heat_flux(self):
+        """calculate Qc"""
+
+        # Qc is set as 0
         pass
 
     def update_advection_heat_flux(self):
+        """calculate Qa"""
+
+        # Qa is set as 0
         pass
 
-    def update_julian_day(self):  # TODO
-        pass
+    def update_julian_day(self, dt):
+        """calculate julian_day, dt in seconds """
+
+        # Update the datetime_obj
+        delta = relativedelta(seconds=dt)
+        self._datetime_obj += delta
+
+        # update Julian day
+        self._julian_day = solar_funcs.Julian_Day(self._datetime_obj.month,
+                                                  self._datetime_obj.day,
+                                                  self._datetime_obj.hour,
+                                                  self._datetime_obj.year)
+        # get TSN_offset
+        dec_part = self._julian_day - np.int16(self._julian_day)
+        clock_hour = dec_part * self._hours_per_day
+        solar_noon = solar_funcs.True_Solar_Noon(self._julian_day,
+                                                 self._lon_deg,
+                                                 self._GMT_offset,
+                                                 DST_offset=None,
+                                                 year=self._datetime_obj.year)
+        self._TSN_offset = (clock_hour - solar_noon)
 
     def update_precipitable_water_content(self):
+        """calculate W_p"""
+
         arg = np.float64(0.0614 * self._T_dew)
         self._W_p[:] = np.float64(1.12) * np.exp(arg)  # [cm]
 
     def update_net_shortwave_radiation(self):
-        """calculate shortwave radiation"""
-        Qn_SW = solar.Clear_Sky_Radiation(
+        """calculate Qn_SW"""
+
+        Qn_SW = solar_funcs.Clear_Sky_Radiation(
             self._lat_deg,
             self._julian_day,
             self._W_p,
-            self._TSN_offset,  # line 1922 Julian day
+            self._TSN_offset,
             self._alpha,
             self._beta,
             self._albedo,
@@ -720,10 +709,11 @@ class Meteorology(Component):
         self._Qn_SW[:] = Qn_SW
 
     def update_em_air(self):
-        """calculate emissivity of air"""
+        """calculate em_air"""
+
         T_air_K = self._T_air + self._C_to_K
 
-        if not (self._satterlund):
+        if not self._satterlund:
             # Brutsaert method
             e_air_kPa = self._e_air / np.float64(10)  # [kPa]
             F = self._canopy_factor
@@ -738,20 +728,20 @@ class Meteorology(Component):
             self._em_air[:] = 1.08 * (1.0 - eterm)
 
     def update_net_longwave_radiation(self):
-        """calculate long wave radiation"""
+        """calculate Qn_LW"""
 
         T_air_K = self._T_air + self._C_to_K
         T_surf_K = self._T_surf + self._C_to_K
         LW_in = self._em_air * self._sigma * (T_air_K) ** 4.0
         LW_out = self._em_surf * self._sigma * (T_surf_K) ** 4.0
 
-        # account for radiation from the air that is reflected from the surface
+        # radiation from the air that is reflected from the surface
         LW_out += (1.0 - self._em_surf) * LW_in
 
         self._Qn_LW[:] = LW_in - LW_out
 
     def update_net_energy_flux(self):
-        """calculate net energy flux"""
+        """calculate Q_sum"""
 
         self._Q_sum[:] = (
             self._Qn_SW + self._Qn_LW + self._Qh + self._Qe + self._Qa + self._Qc
@@ -800,7 +790,7 @@ class Meteorology(Component):
         self.update_latent_heat_flux()  # Qe
         self.update_conduction_heat_flux()  # Qc
         self.update_advection_heat_flux()  # Qa
-        self.update_julian_day()
+        self.update_julian_day(dt)  # julian_day
         self.update_net_shortwave_radiation()  # Qn_SW
         self.update_em_air()  # em_air
         self.update_net_longwave_radiation()  # Qn_LW
