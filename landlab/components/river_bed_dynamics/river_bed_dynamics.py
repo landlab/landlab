@@ -245,6 +245,13 @@ array([ 1.07      ,  1.06      ,  1.00737382,  1.06      ,  1.07      ,
         1.09      ,  1.07999977,  1.06754276,  1.07999977,  1.09      ,
         1.09      ,  1.08999954,  1.08000023,  1.08999954,  1.09      ,
         1.09      ,  1.09      ,  1.09      ,  1.09      ,  1.09      ])
+
+The previous example, covers a relatively complete case. For demonstration purposes
+let's see some other options that show how to use or change default setting.
+If the grain size distribution is not specified, what value will river bed dynamics use?
+
+>>> rbd = river_bed_dynamics(grid)
+
 """
 import copy
 import os
