@@ -4,7 +4,6 @@ Unit tests for landlab.components.river_bed_dynamics.river_bed_dynamics
 last updated: 10/12/2023
 """
 import numpy as np
-import pytest
 from numpy.testing import assert_almost_equal
 
 from landlab import RasterModelGrid
@@ -129,7 +128,7 @@ def test_velocity_previous_time():
     )
 
 
-def test_error_gsd_location_node():
+def test_error_gsd_location_node(capsys):
     # Set the topographic elevation array
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.add_zeros("topographic__elevation", at="node")
@@ -142,18 +141,22 @@ def test_error_gsd_location_node():
     grid.add_zeros("surface_water__velocity", at="link")
     testArray = np.array([0, 1, 2, 3])
 
-    # Check for ValueError when instantiating river_bed_dynamics
-    with pytest.raises(
-        ValueError,
-        match="bed_surface__grain_size_distribution_location_node"
-        ".*does not have the same dimensions of the grid's nodes",
-    ):
-        river_bed_dynamics(
-            grid, gsd=gsd, bed_surface__grain_size_distribution_location_node=testArray
-        )
+    # Call the function which should print the message
+    river_bed_dynamics(
+        grid, gsd=gsd, bed_surface__grain_size_distribution_location_node=testArray
+    )
+
+    # Capture the printed output
+    captured = capsys.readouterr()
+
+    # Check if the printed message matches the expected message
+    assert (
+        captured.out == "bed_surface__grain_size_distribution_location_node\n"
+        "does not have the same dimensions of the grid's nodes\n"
+    )
 
 
-def test_error_supply_imposed():
+def test_error_supply_imposed(capsys):
     # Set the topographic elevation array
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.add_zeros("topographic__elevation", at="node")
@@ -166,18 +169,22 @@ def test_error_supply_imposed():
     grid.add_zeros("surface_water__velocity", at="link")
     testArray = np.array([0, 1, 2, 3])
 
-    # Check for ValueError when instantiating river_bed_dynamics
-    with pytest.raises(
-        ValueError,
-        match="sediment_transport__sediment_supply_imposed_link"
-        ".*does not have the same dimensions of the grid's link",
-    ):
-        river_bed_dynamics(
-            grid, gsd=gsd, sediment_transport__sediment_supply_imposed_link=testArray
-        )
+    # Call the function which should print the message
+    river_bed_dynamics(
+        grid, gsd=gsd, sediment_transport__sediment_supply_imposed_link=testArray
+    )
+
+    # Capture the printed output
+    captured = capsys.readouterr()
+
+    # Check if the printed message matches the expected message
+    assert (
+        captured.out == "sediment_transport__sediment_supply_imposed_link\n"
+        "does not have the same dimensions of the grid's links\n"
+    )
 
 
-def test_error_gsd_fixed_node():
+def test_error_gsd_fixed_node(capsys):
     # Set the topographic elevation array
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.add_zeros("topographic__elevation", at="node")
@@ -190,18 +197,22 @@ def test_error_gsd_fixed_node():
     grid.add_zeros("surface_water__velocity", at="link")
     testArray = np.array([0, 1, 2, 3])
 
-    # Check for ValueError when instantiating river_bed_dynamics
-    with pytest.raises(
-        ValueError,
-        match="bed_surface__grain_size_distribution_fixed_node"
-        ".*does not have the same dimensions of the grid's nodes",
-    ):
-        river_bed_dynamics(
-            grid, gsd=gsd, bed_surface__grain_size_distribution_fixed_node=testArray
-        )
+    # Call the function which should print the message
+    river_bed_dynamics(
+        grid, gsd=gsd, bed_surface__grain_size_distribution_fixed_node=testArray
+    )
+
+    # Capture the printed output
+    captured = capsys.readouterr()
+
+    # Check if the printed message matches the expected message
+    assert (
+        captured.out == "bed_surface__grain_size_distribution_fixed_node\n"
+        "does not have the same dimensions of the grid's nodes\n"
+    )
 
 
-def test_error_elevation_fixed_node():
+def test_error_elevation_fixed_node(capsys):
     # Set the topographic elevation array
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.add_zeros("topographic__elevation", at="node")
@@ -214,16 +225,20 @@ def test_error_elevation_fixed_node():
     grid.add_zeros("surface_water__velocity", at="link")
     testArray = np.array([0, 1, 2, 3])
 
-    # Check for ValueError when instantiating river_bed_dynamics
-    with pytest.raises(
-        ValueError,
-        match="bed_surface__elevation_fixed_node"
-        ".*does not have the same dimensions of the grid's nodes",
-    ):
-        river_bed_dynamics(grid, gsd=gsd, bed_surface__elevation_fixed_node=testArray)
+    # Call the function which should print the message
+    river_bed_dynamics(grid, gsd=gsd, bed_surface__elevation_fixed_node=testArray)
+
+    # Capture the printed output
+    captured = capsys.readouterr()
+
+    # Check if the printed message matches the expected message
+    assert (
+        captured.out == "bed_surface__elevation_fixed_node\n"
+        "does not have the same dimensions of the grid's nodes\n"
+    )
 
 
-def test_error_bedload_gsd_imposed():
+def test_error_bedload_gsd_imposed(capsys):
     # Set the topographic elevation array
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.add_zeros("topographic__elevation", at="node")
@@ -236,20 +251,25 @@ def test_error_bedload_gsd_imposed():
     grid.add_zeros("surface_water__velocity", at="link")
     testArray = np.array([0, 1, 2, 3])
 
-    # Check for ValueError when instantiating river_bed_dynamics
-    with pytest.raises(
-        ValueError,
-        match="sediment_transport__bedload_grain_size_distribution_imposed_link"
-        ".*does not have the same dimensions of the grid's link",
-    ):
-        river_bed_dynamics(
-            grid,
-            gsd=gsd,
-            sediment_transport__bedload_grain_size_distribution_imposed_link=testArray,
-        )
+    # Call the function which should print the message
+    river_bed_dynamics(
+        grid,
+        gsd=gsd,
+        sediment_transport__bedload_grain_size_distribution_imposed_link=testArray,
+    )
+
+    # Capture the printed output
+    captured = capsys.readouterr()
+
+    # Check if the printed message matches the expected message
+    assert (
+        captured.out
+        == "sediment_transport__bedload_grain_size_distribution_imposed_link\n"
+        "does not have the same dimensions of the grid's links\n"
+    )
 
 
-def test_error_previous_Velocity():
+def test_error_previous_Velocity(capsys):
     # Set the topographic elevation array
     grid = RasterModelGrid((34, 4), xy_spacing=50)
     grid.add_zeros("topographic__elevation", at="node")
@@ -262,15 +282,19 @@ def test_error_previous_Velocity():
     grid.add_zeros("surface_water__velocity", at="link")
     testArray = np.array([0, 1, 2, 3])
 
-    # Check for ValueError when instantiating river_bed_dynamics
-    with pytest.raises(
-        ValueError,
-        match="surface_water__velocity_previous_time_link"
-        ".*does not have the same dimensions of the grid's link",
-    ):
-        river_bed_dynamics(
-            grid, gsd=gsd, surface_water__velocity_previous_time_link=testArray
-        )
+    # Call the function which should print the message
+    river_bed_dynamics(
+        grid, gsd=gsd, surface_water__velocity_previous_time_link=testArray
+    )
+
+    # Capture the printed output
+    captured = capsys.readouterr()
+
+    # Check if the printed message matches the expected message
+    assert (
+        captured.out == "surface_water__velocity_previous_time_link\n"
+        "does not have the same dimensions of the grid's links\n"
+    )
 
 
 def test_outlet_links_horizontal_right_edge():

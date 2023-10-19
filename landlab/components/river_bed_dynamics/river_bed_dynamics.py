@@ -132,7 +132,7 @@ overridden with a custom value.
 Instantiate the `river_bed_dynamics` component to work on the grid, and run it.
 
 >>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'Parker1990',
-... bed_surface__grain_size_distribution_location_node = gsd_loc)
+... bed_surface__grain_size_distribution_location_node = gsd_loc, output_vector = True)
 >>> rbd.run_one_step()
 
 After running river_bed_dynamics, we can check if the different GSD locations
@@ -246,11 +246,195 @@ array([ 1.07      ,  1.06      ,  1.00737382,  1.06      ,  1.07      ,
         1.09      ,  1.08999954,  1.08000023,  1.08999954,  1.09      ,
         1.09      ,  1.09      ,  1.09      ,  1.09      ,  1.09      ])
 
+
+Let's take a look at bed load transport rate when we use the different bedload equations
+For the defaul MPM model we get:
+
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'MPM',
+... bed_surface__grain_size_distribution_location_node = gsd_loc)
+>>> rbd.run_one_step()
+>>> rbd._sediment_transport__bedload_rate_link[15]
+-0.00054211568200731252
+
+For Fernandez Luque and Van Beek:
+
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep, bedload_equation = 'FLvB',
+... bed_surface__grain_size_distribution_location_node = gsd_loc)
+>>> rbd.run_one_step()
+>>> rbd._sediment_transport__bedload_rate_link[15]
+-0.00013680651170407121
+
+For Wilcock and Crowe 2003:
+
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep,
+... bedload_equation = 'WilcockAndCrowe',
+... bed_surface__grain_size_distribution_location_node = gsd_loc)
+>>> rbd.run_one_step()
+>>> rbd._sediment_transport__bedload_rate_link[15]
+-8.3608381528075561e-06
+
 The previous example, covers a relatively complete case. For demonstration purposes
 let's see some other options that show how to use or change default setting.
 If the grain size distribution is not specified, what value will river bed dynamics use?
 
 >>> rbd = river_bed_dynamics(grid)
+
+>>> rbd._gsd
+array([[ 32, 100],
+       [ 16,  25],
+       [  8,   0]])
+
+So, it is just a dummy gsd.
+The sand content can be calculated from a grain size distribution
+
+>>> gsd = np.array([[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [2, 10], [1, 0]])
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, bedload_equation = 'MPM')
+>>> rbd._bed_surface__sand_fraction_node[20]
+0.10000000000000001
+
+But it is different if we use Parker 1990, because it removes sand content
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, bedload_equation='Parker1990')
+>>> rbd._bed_surface__sand_fraction_node[20]
+0.0
+
+# What happens if we give it a set of wrong optional fields. The following
+# fields will have only two elements, which is different than the number of
+# nodes and links
+>>> qb_imposed = np.array([1,2])
+>>> rbd = river_bed_dynamics(grid,
+... sediment_transport__sediment_supply_imposed_link=qb_imposed)
+sediment_transport__sediment_supply_imposed_link
+does not have the same dimensions of the grid's links
+
+>>> gsd_loc  = np.array([1,2])
+>>> rbd = river_bed_dynamics(grid,
+... bed_surface__grain_size_distribution_location_node=gsd_loc)
+bed_surface__grain_size_distribution_location_node
+does not have the same dimensions of the grid's nodes
+
+>>> gsd_fix  = np.array([1,2])
+>>> rbd = river_bed_dynamics(grid,
+... bed_surface__grain_size_distribution_fixed_node=gsd_fix)
+bed_surface__grain_size_distribution_fixed_node
+does not have the same dimensions of the grid's nodes
+
+>>> elev_fix  = np.array([1,2])
+>>> rbd = river_bed_dynamics(grid,
+... bed_surface__elevation_fixed_node=elev_fix)
+bed_surface__elevation_fixed_node
+does not have the same dimensions of the grid's nodes
+
+>>> vel_n_1  = np.array([1,2])
+>>> rbd = river_bed_dynamics(grid,
+... surface_water__velocity_previous_time_link = vel_n_1)
+surface_water__velocity_previous_time_link
+does not have the same dimensions of the grid's links
+
+>>> qb_gsd_imposed  = np.array([1,2])
+>>> rbd = river_bed_dynamics(grid,
+... sediment_transport__bedload_grain_size_distribution_imposed_link = qb_gsd_imposed)
+sediment_transport__bedload_grain_size_distribution_imposed_link
+does not have the same dimensions of the grid's links
+
+If the size of the array is correct the message will not be displayed
+>>> qb_gsd_imposed  = np.full(grid.number_of_links,1)
+>>> rbd = river_bed_dynamics(grid,
+... sediment_transport__bedload_grain_size_distribution_imposed_link = qb_gsd_imposed)
+
+Using the hydraulics radius is also possible
+use_hydraulics_radius_in_shear_stress
+>>> rbd = river_bed_dynamics(grid)
+
+Using the hydraulics radius is also possible.Let's compare the shear stress with and
+without that option
+>>> rbd = river_bed_dynamics(grid)
+>>> rbd.run_one_step()
+>>> rbd._shear_stress[15]
+-15.53238014524076
+
+>>> rbd = river_bed_dynamics(grid, use_hydraulics_radius_in_shear_stress=True)
+>>> rbd.run_one_step()
+>>> rbd._shear_stress[15]
+-12.892095847604624
+
+
+>>> grid.at_node['topographic__elevation'] = np.array([
+... 1.07, 1.08, 1.09, 1.09, 1.09,
+... 1.06, 1.07, 1.08, 1.09, 1.09,
+... 1.00, 1.03, 1.07, 1.08, 1.09,
+... 1.06, 1.07, 1.08, 1.09, 1.09,
+... 1.07, 1.08, 1.09, 1.09, 1.09,])
+>>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+>>> rbd = river_bed_dynamics(grid, gsd = gsd)
+>>> rbd.run_one_step()
+
+>>> grid.at_node['topographic__elevation'] = np.array([
+... 1.09, 1.09, 1.09, 1.09, 1.09,
+... 1.09, 1.09, 1.08, 1.09, 1.09,
+... 1.09, 1.08, 1.07, 1.08, 1.09,
+... 1.08, 1.07, 1.03, 1.07, 1.08,
+... 1.07, 1.06, 1.00, 1.06, 1.07,])
+>>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+>>> rbd = river_bed_dynamics(grid, gsd = gsd)
+>>> rbd.run_one_step()
+
+>>> grid.at_node['topographic__elevation'] = np.array([
+... 1.09, 1.09, 1.09, 1.08, 1.07,
+... 1.09, 1.09, 1.08, 1.07, 1.06,
+... 1.09, 1.08, 1.07, 1.03, 1.00,
+... 1.09, 1.09, 1.08, 1.07, 1.06,
+... 1.09, 1.09, 1.09, 1.08, 1.07,])
+>>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+>>> rbd = river_bed_dynamics(grid, gsd = gsd)
+>>> rbd.run_one_step()
+
+
+If we want to activate subsurface tracking capabilities the instantiation will look like this:
+>>> rbd = river_bed_dynamics(grid, gsd = gsd, dt = timeStep,
+... track_stratigraphy = True, bedload_equation = 'Parker1990')
+>>> rbd.run_one_step()
+
+
+For a complete list of all the fields created during the execution of river bed dynamics
+use:
+>>> rbd.display_available_fields()
+Assuming that river_bed_dynamics was instantiated as rbd,
+the following fields are available:
+<BLANKLINE>
+Field                                                                  | Units
+<BLANKLINE>
+rbd._bed_subsurface__grain_size_distribution_link                      | [mm,%]
+rbd._bed_subsurface__grain_size_distribution_node                      | [mm,%]
+rbd._bed_surface__active_layer_thickness_link                          | [m]
+rbd._bed_surface__active_layer_thickness_node                          | [m]
+rbd._bed_surface__active_layer_thickness_previous_time_link            | [m]
+rbd._bed_surface__active_layer_thickness_previous_time_node            | [m]
+rbd._bed_surface__elevation_fixed_node                                 | [m]
+rbd._bed_surface__geometric_mean_size_link                             | [mm]
+rbd._bed_surface__geometric_mean_size_node                             | [mm]
+rbd._bed_surface__geometric_standard_deviation_size_link               | [mm]
+rbd._bed_surface__geometric_standard_deviation_size_node               | [mm]
+rbd._bed_surface__grain_size_distribution_fixed_node                   | [mm,%]
+rbd._bed_surface__grain_size_distribution_link                         | [mm,%]
+rbd._bed_surface__grain_size_distribution_node                         | [mm,%]
+rbd._bed_surface__grain_size_distribution_original_link                | [mm,%]
+rbd._bed_surface__grain_size_distribution_original_node                | [mm,%]
+rbd._bed_surface__median_size_link                                     | [mm]
+rbd._bed_surface__median_size_node                                     | [mm]
+rbd._bed_surface__sand_fraction_link                                   | [-]
+rbd._bed_surface__sand_fraction_node                                   | [-]
+rbd._bed_surface__surface_thickness_new_layer_link                     | [m]
+rbd._sediment_transport__bedload_grain_size_distribution_imposed_link  | [mm,%]
+rbd._sediment_transport__bedload_grain_size_distribution_link          | [mm,%]
+rbd._sediment_transport__bedload_rate_link                             | [m^2/s]
+rbd._sediment_transport__net_bedload_node                              | [m^2/s]
+rbd._sediment_transport__sediment_supply_imposed_link                  | [m^2/s]
+rbd._surface_water__shear_stress_link                                  | [Pa]
+rbd._surface_water__velocity_previous_time_link                        | [m/s]
+rbd._topographic__elevation_original_link                              | [m]
+rbd._topographic__elevation_original_node                              | [m]
+rbd._topographic__elevation_subsurface_link                            | [m]
+
 
 """
 import copy
@@ -534,9 +718,13 @@ class river_bed_dynamics(Component):
                         bed_surface__grain_size_distribution_location_node
                     )
                 else:
-                    raise ValueError(
-                        "bed_surface__grain_size_distribution_location_node \
-                        does not have the same dimensions of the grid's nodes"
+                    print(
+                        "bed_surface__grain_size_distribution_location_node\n"
+                        + "does not have the same dimensions of the grid's nodes"
+                    )
+
+                    self._bed_surface__grain_size_distribution_location_node = np.zeros(
+                        self._grid.number_of_nodes
                     )
 
         # Initialize the bed surface grain size properties. At the beginning,
@@ -730,9 +918,12 @@ class river_bed_dynamics(Component):
                         sediment_transport__sediment_supply_imposed_link
                     )
                 else:
-                    raise ValueError(
-                        "sediment_transport__sediment_supply_imposed_link \
-                        does not have the same dimensions of the grid's link"
+                    print(
+                        "sediment_transport__sediment_supply_imposed_link\n"
+                        + "does not have the same dimensions of the grid's links"
+                    )
+                    self._sediment_transport__sediment_supply_imposed_link = np.zeros(
+                        self._grid.number_of_links
                     )
 
         if bed_surface__grain_size_distribution_fixed_node is None:
@@ -749,9 +940,9 @@ class river_bed_dynamics(Component):
                         bed_surface__grain_size_distribution_fixed_node
                     )
                 else:
-                    raise ValueError(
-                        "bed_surface__grain_size_distribution_fixed_node \
-                        does not have the same dimensions of the grid's nodes"
+                    print(
+                        "bed_surface__grain_size_distribution_fixed_node\n"
+                        + "does not have the same dimensions of the grid's nodes"
                     )
 
         if bed_surface__elevation_fixed_node is None:
@@ -768,9 +959,9 @@ class river_bed_dynamics(Component):
                         bed_surface__elevation_fixed_node
                     )
                 else:
-                    raise ValueError(
-                        "bed_surface__elevation_fixed_node \
-                        does not have the same dimensions of the grid's nodes"
+                    print(
+                        "bed_surface__elevation_fixed_node\n"
+                        + "does not have the same dimensions of the grid's nodes"
                     )
 
         if sediment_transport__bedload_grain_size_distribution_imposed_link is None:
@@ -792,9 +983,9 @@ class river_bed_dynamics(Component):
                         sediment_transport__bedload_grain_size_distribution_imposed_link
                     )
                 else:
-                    raise ValueError(
-                        "sediment_transport__bedload_grain_size_distribution_imposed_link \
-                        does not have the same dimensions of the grid's link"
+                    print(
+                        "sediment_transport__bedload_grain_size_distribution_imposed_link\n"
+                        + "does not have the same dimensions of the grid's links"
                     )
 
         if surface_water__velocity_previous_time_link is None:
@@ -811,9 +1002,9 @@ class river_bed_dynamics(Component):
                         surface_water__velocity_previous_time_link
                     )
                 else:
-                    raise ValueError(
-                        "surface_water__velocity_previous_time_link \
-                        does not have the same dimensions of the grid's links"
+                    print(
+                        "surface_water__velocity_previous_time_link\n"
+                        + "does not have the same dimensions of the grid's links"
                     )
 
         # Initializating fields at time zero
@@ -1149,7 +1340,7 @@ class river_bed_dynamics(Component):
                 self._shear_stress_magnitude,
             ) = self.vector_mapper(self._shear_stress)
             self._u_vector, self._u_magnitude = self.vector_mapper(self._u)
-            self._qb_vector, self._qb_magnitude = self.bedload_mapper()
+            self.bedload_mapper()
 
         """Second Part ---
 
@@ -2560,6 +2751,7 @@ class river_bed_dynamics(Component):
 
         qb_x = 0.5 * (qb_x_r + qb_x_l)
         qb_y = 0.5 * (qb_y_u + qb_y_l)
+        print
 
         self._bedloadRate_vector = np.transpose(np.vstack((qb_x, qb_y)))
         self._bedloadRate_magnitude = np.sqrt(qb_x**2 + qb_y**2)
@@ -2996,7 +3188,7 @@ class river_bed_dynamics(Component):
         return df
 
     @staticmethod
-    def display_available_fields(self):
+    def display_available_fields():
         """Several fields can be available for calculations or other purposes
         and are stored as private fields within river_bed_dynamics. This function
         displays the fields and its units."""
@@ -3006,7 +3198,7 @@ class river_bed_dynamics(Component):
         header += "the following fields are available:\n"
         header += "\n"
         header += "{:<70} | {}\n".format("Field", "Units")
-        header += "{:<70} | {}\n".format("", "")
+        # header += "{:<70} | {}\n".format("", "")
         print(header)
 
         # Define available fields and their units
