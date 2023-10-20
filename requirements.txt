@@ -31,7 +31,7 @@ markdown-it-py==2.2.0
     # via rich
 markupsafe==2.1.2
     # via jinja2
-matplotlib==3.7.2
+matplotlib==3.8.0
     # via -r requirements.in
 mdurl==0.1.2
     # via markdown-it-py
@@ -39,7 +39,7 @@ mypy-extensions==1.0.0
     # via black
 netcdf4==1.6.4
     # via -r requirements.in
-numpy==1.25.2
+numpy==1.26.1
     # via
     #   -r requirements.in
     #   bmipy
@@ -58,7 +58,7 @@ packaging==23.0
     #   matplotlib
     #   statsmodels
     #   xarray
-pandas==2.0.3
+pandas==2.1.1
     # via
     #   -r requirements.in
     #   statsmodels
@@ -87,9 +87,9 @@ pyyaml==6.0.1
     # via -r requirements.in
 rich==13.3.1
     # via rich-click
-rich-click==1.6.1
+rich-click==1.7.0
     # via -r requirements.in
-scipy==1.11.2
+scipy==1.11.3
     # via
     #   -r requirements.in
     #   statsmodels
@@ -99,7 +99,9 @@ six==1.16.0
     #   python-dateutil
 statsmodels==0.14.0
     # via -r requirements.in
+typing-extensions==4.8.0
+    # via rich-click
 tzdata==2023.3
     # via pandas
-xarray==2023.8.0
+xarray==2023.10.1
     # via -r requirements.in
