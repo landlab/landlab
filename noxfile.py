@@ -1,9 +1,11 @@
+import json
 import os
 import pathlib
 import shutil
 import tempfile
 
 import nox
+from packaging.requirements import Requirement
 
 PROJECT = "landlab"
 ROOT = pathlib.Path(__file__).parent
@@ -15,11 +17,6 @@ PATH = {
     "requirements": ROOT / "requirements",
     "root": ROOT,
 }
-
-
-def _cat(path_to_file):
-    with open(path_to_file) as fp:
-        return fp.read()
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="mamba")
@@ -42,13 +39,7 @@ def test(session: nox.Session) -> None:
     session.conda_install("richdem")
     session.install("-e", ".", "--no-deps")
 
-    session.run("pip", "list")
-
-    for path in (
-        str(PATH["requirements"] / f) for f in ["required.txt", "testing.txt"]
-    ):
-        session.log(f"cat {path}")
-        print(_cat(path))
+    check_package_versions(session, files=["required.txt", "testing.txt"])
 
     args = [
         "-n",
@@ -107,14 +98,9 @@ def test_notebooks(session: nox.Session) -> None:
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
 
-    session.run("pip", "list")
-
-    for path in (
-        str(PATH["requirements"] / f)
-        for f in ["required.txt", "testing.txt", "notebooks.txt"]
-    ):
-        session.log(f"cat {path}")
-        print(_cat(path))
+    check_package_versions(
+        session, files=["required.txt", "testing.txt", "notebooks.txt"]
+    )
 
     session.run(*args)
 
@@ -182,11 +168,11 @@ def build_docs(session: nox.Session) -> None:
     )
     session.install("-e", ".", "--no-deps")
 
-    session.run("pip", "list")
+    check_package_versions(session, files=["required.txt", "docs.txt"])
 
-    for path in (str(PATH["requirements"] / f) for f in ["required.txt", "docs.txt"]):
-        session.log(f"cat {path}")
-        print(_cat(path))
+    for path in (PATH["requirements"] / f for f in ["required.txt", "docs.txt"]):
+        session.log(f"cat {path!s}")
+        print(path.read_text())
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(
@@ -199,6 +185,41 @@ def build_docs(session: nox.Session) -> None:
         PATH["build"] / "html",
     )
     session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+
+
+@nox.session(name="check-versions")
+def check_package_versions(session, files=("required.txt",)):
+    output_lines = session.run("pip", "list", "--format=json", silent=True).splitlines()
+
+    installed_version = {
+        p["name"].lower(): p["version"] for p in json.loads(output_lines[0])
+    }
+
+    for file_ in files:
+        required_version = {}
+        with (PATH["requirements"] / file_).open() as fp:
+            for line in fp.readlines():
+                requirement = Requirement(line)
+                required_version[requirement.name.lower()] = requirement.specifier
+
+        mismatch = set()
+        for name, version in required_version.items():
+            if name not in installed_version or not version.contains(
+                installed_version[name]
+            ):
+                mismatch.add(name)
+
+        session.log(f"Checking installed package versions for {file_}")
+        for name in sorted(mismatch):
+            print(f"[{name}]")
+            print(f"requested = {str(required_version[name])!r}")
+            if name in installed_version:
+                print(f"installed = {installed_version[name]!r}")
+            else:
+                print(f"installed = false")
+
+        if mismatch:
+            session.warn(f"There were package version mismatches for {file_}")
 
 
 @nox.session
