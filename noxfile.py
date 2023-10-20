@@ -210,16 +210,18 @@ def check_package_versions(session, files=("required.txt",)):
                 mismatch.add(name)
 
         session.log(f"Checking installed package versions for {file_}")
-        for name in sorted(mismatch):
+        for name in sorted(required_version):
             print(f"[{name}]")
             print(f"requested = {str(required_version[name])!r}")
             if name in installed_version:
                 print(f"installed = {installed_version[name]!r}")
             else:
-                print(f"installed = false")
+                print("installed = false")
 
         if mismatch:
-            session.warn(f"There were package version mismatches for {file_}")
+            session.warn(
+                f"There were package version mismatches for packages required in {file_}"
+            )
 
 
 @nox.session
