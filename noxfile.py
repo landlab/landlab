@@ -24,10 +24,7 @@ def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
 
-    # session.conda_install("c-compiler", "cxx-compiler")
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    # session.conda_install("--file", "requirements.in")
-    # session.conda_install("--file", "requirements-testing.in")
 
     session.install(
         "-r",
@@ -159,7 +156,6 @@ def build_index(session: nox.Session) -> None:
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
 
-    # session.install("-r", docs_dir / "requirements.in")
     session.install(
         "-r",
         PATH["requirements"] / "docs.txt",
@@ -169,10 +165,6 @@ def build_docs(session: nox.Session) -> None:
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
-
-    for path in (PATH["requirements"] / f for f in ["required.txt", "docs.txt"]):
-        session.log(f"cat {path!s}")
-        print(path.read_text())
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(
