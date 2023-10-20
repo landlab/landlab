@@ -17,6 +17,11 @@ PATH = {
 }
 
 
+def _cat(path_to_file):
+    with open(path_to_file) as fp:
+        return fp.read()
+
+
 @nox.session(python=PYTHON_VERSION, venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
@@ -36,6 +41,14 @@ def test(session: nox.Session) -> None:
 
     session.conda_install("richdem")
     session.install("-e", ".", "--no-deps")
+
+    session.run("pip", "list")
+
+    for path in (
+        str(PATH["requirements"] / f) for f in ["required.txt", "testing.txt"]
+    ):
+        session.log(f"cat {path}")
+        print(_cat(path))
 
     args = [
         "-n",
@@ -93,6 +106,15 @@ def test_notebooks(session: nox.Session) -> None:
     # )
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
+
+    session.run("pip", "list")
+
+    for path in (
+        str(PATH["requirements"] / f)
+        for f in ["required.txt", "testing.txt", "notebooks.txt"]
+    ):
+        session.log(f"cat {path}")
+        print(_cat(path))
 
     session.run(*args)
 
@@ -159,6 +181,12 @@ def build_docs(session: nox.Session) -> None:
         PATH["requirements"] / "required.txt",
     )
     session.install("-e", ".", "--no-deps")
+
+    session.run("pip", "list")
+
+    for path in (str(PATH["requirements"] / f) for f in ["required.txt", "docs.txt"]):
+        session.log(f"cat {path}")
+        print(_cat(path))
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(
