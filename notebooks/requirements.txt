@@ -546,7 +546,7 @@ websockets==11.0.3
     # via solara
 widgetsnbextension==4.0.5
     # via ipywidgets
-xarray==2023.9.0
+xarray==2023.10.1
     # via
     #   bmi-topography
     #   rioxarray
