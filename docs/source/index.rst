@@ -10,61 +10,67 @@ Landlab: A modular Earth Surface Dynamics modeling library
   :start-after: .. start-intro
   :end-before: .. end-intro
 
+Projects that use Landlab
+-------------------------
+
+For a list of people that are using *Landlab*, please have a look at our
+:ref:`Papers and Presentations <papers>` section.
+
+Citing Landlab
+--------------
+
+If you use any portion of Landlab, please cite our :ref:`Citing Landlab <citing>`
+page.
+
+Tutorials
+---------
+
+:ref:`Gallery of tutorial notebooks <tutorials>`.
+
 .. toctree::
- :caption: Getting Started
- :maxdepth: 1
- :hidden:
+   :caption: Getting Started
+   :maxdepth: 1
+   :hidden:
 
- installation
- Tutorial notebooks <getting_started/index>
- user_guide/index
-
-.. toctree::
- :caption: Contributing
- :maxdepth: 1
- :hidden:
-
- install/index
- development/index
- API Reference <reference/index>
+   install/basic_install
+   user_guide/index
+   Tutorials <tutorials/index>
+   Teaching with Landlab <teaching/index>
 
 .. toctree::
-  :caption: Useful Links
-  :maxdepth: 1
-  :hidden:
+   :caption: Contributing
+   :maxdepth: 1
+   :hidden:
 
-  changes
-  contact_us
-  citing
-  funding
-  Contributors <authors>
-  License <license>
-  Used by <usedby>
+   install/index
+   development/index
 
-..
-  .. toctree::
-     :caption: Documentation Outline
-     :maxdepth: 2
+.. toctree::
+   :caption: Reference
+   :maxdepth: 1
+   :hidden:
 
-     install/index
-     getting_started/index
-     user_guide/index
-     reference/index
-     development/index
+   API Reference <reference/index>
+   Lists <lists/index>
 
-..
-  The most current source code is always available from our `git
-  repository <https://github.com/landlab/landlab>`_.
+.. toctree::
+   :caption: About
+   :maxdepth: 1
+   :hidden:
 
-..
-  If you are interested in the state of current development, we compile
-  :ref:`ongoing development <ongoing_development>`. If you are interested in
-  contributing but don't know how to get started (THANK YOU!),
-  we compile :ref:`desired contributions <desired_contributions>` and have a
-  :ref:`page all about development <development>`.
+   about/changes
+   about/contact_us
+   about/citing
+   about/funding
+   Contributors <about/authors>
+   License <about/license>
+   Used by <about/usedby>
 
-..
-  Many Jupyter notebooks exist describing use of Landlab. Find an overview
-  :ref:`here <tutorials>`. A subset of these notebooks are designed specifically
-  for the classroom. Information about them and how to set them up for classroom
-  use is described :ref:`on this page <teaching_tutorials>`.
+.. toctree::
+   :caption: Project Links
+   :maxdepth: 1
+   :hidden:
+
+   GitHub <https://github.com/landlab/landlab>
+   PyPI <https://pypi.org/project/landlab>
+   Conda-Forge <https://github.com/conda-forge/landlab-feedstock>

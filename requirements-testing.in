@@ -3,6 +3,7 @@
 coveralls
 flaky
 hypothesis
+flaky
 pytest
 pytest-benchmark
 pytest-cov
