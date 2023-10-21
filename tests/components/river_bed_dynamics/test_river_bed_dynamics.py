@@ -171,7 +171,7 @@ def test_error_supply_imposed(capsys):
 
     # Call the function which should print the message
     river_bed_dynamics(
-        grid, gsd=gsd, sediment_transport__sediment_supply_imposed_link=testArray
+        grid, gsd=gsd, sediment_transport__bedload_rate_imposed_link=testArray
     )
 
     # Capture the printed output
@@ -179,7 +179,7 @@ def test_error_supply_imposed(capsys):
 
     # Check if the printed message matches the expected message
     assert (
-        captured.out == "sediment_transport__sediment_supply_imposed_link\n"
+        captured.out == "sediment_transport__bedload_rate_imposed_link\n"
         "does not have the same dimensions of the grid's links\n"
     )
 
@@ -255,7 +255,7 @@ def test_error_bedload_gsd_imposed(capsys):
     river_bed_dynamics(
         grid,
         gsd=gsd,
-        sediment_transport__bedload_grain_size_distribution_imposed_link=testArray,
+        sediment_transport__bedload_gsd_imposed_link=testArray,
     )
 
     # Capture the printed output
@@ -263,9 +263,9 @@ def test_error_bedload_gsd_imposed(capsys):
 
     # Check if the printed message matches the expected message
     assert (
-        captured.out
-        == "sediment_transport__bedload_grain_size_distribution_imposed_link\n"
-        "does not have the same dimensions of the grid's links\n"
+        captured.out == "sediment_transport__bedload_gsd_imposed_link\n"
+        "does not have the same dimensions of the grid's links and\n"
+        "and grain size locations\n"
     )
 
 
@@ -415,7 +415,7 @@ def test_r_b_d_approximate_solution():
         variable_critical_shear_stress=True,
         outlet_boundary_condition="fixedValue",
         bed_surface__elevation_fixed_node=fixed_nodes,
-        sediment_transport__sediment_supply_imposed_link=qb,
+        sediment_transport__bedload_rate_imposed_link=qb,
     )
 
     # Set boundaries as closed boundaries, the outlet is set to an open boundary.
