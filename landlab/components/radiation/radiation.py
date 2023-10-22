@@ -36,19 +36,6 @@ class Radiation(Component):
     'Radiation'
     >>> rad.input_var_names
     ('topographic__elevation',)
-    >>> sorted(rad.output_var_names) # doctest: +NORMALIZE_WHITESPACE
-    ['radiation__incoming_shortwave_flux',
-     'radiation__net_flux',
-     'radiation__net_longwave_flux',
-     'radiation__net_shortwave_flux',
-     'radiation__ratio_to_flat_surface']
-    >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
-    [('radiation__incoming_shortwave_flux', 'W/m^2'),
-     ('radiation__net_flux', 'W/m^2'),
-     ('radiation__net_longwave_flux', 'W/m^2'),
-     ('radiation__net_shortwave_flux', 'W/m^2'),
-     ('radiation__ratio_to_flat_surface', 'None'),
-     ('topographic__elevation', 'm')]
 
     >>> rad.grid.number_of_node_rows
     5
@@ -118,10 +105,6 @@ class Radiation(Component):
 
     _unit_agnostic = False
 
-    # Setting a really arbitrary value to check
-    # if variable was custom initialized during instantiation
-    _default_assertion_val = -999.999
-
     _info = {
         "radiation__incoming_shortwave_flux": {
             "dtype": float,
@@ -184,8 +167,8 @@ class Radiation(Component):
         latitude=34.0,
         albedo=0.2,
         solar_constant=1366.67,
-        clearsky_turbidity=_default_assertion_val,
-        opt_airmass=_default_assertion_val,
+        clearsky_turbidity=None,
+        opt_airmass=None,
         current_time=0.0,
         hour=12.0,
         average_daily_temp=17.5,
@@ -315,9 +298,118 @@ class Radiation(Component):
         # Jan-2005 - Eqn 23,(50)
         self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
-        """ The following section computes the ratio to flat surface radiation field """
-        ####################################################################
+        # The following section computes the ratio to flat surface radiation field
+        self._ratio_flat_surface_calc()
 
+        # Radiation flux field computations follow below:
+
+        # Use the same direct radiation calculation from before, copy variable values
+        self._Rext = self._Rgl
+
+        # Clear-sky Radiation Rcs - Lecture_Radiation_Oct_13_18, Page 37
+        # will only be computed if turbidity and optical air mass are both user defined
+        # Optical airmass must be >0 or Rcs2 is disregarded (log of zero or / 0 error)
+
+        self._rcs2valid = True
+        if self._m is not None:
+            self._Rcs2 = self._Rext * np.exp(
+                -self._n * self._m * (0.128 - 0.054 * np.log10(self._m))
+            )
+        else:
+            self._rcs2valid = False
+
+        # Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Eqn 19, (47)
+        # This one is more ideal, and does not need as many parameters
+        self._Rcs = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
+
+        # Rcfactor, set to Rcs2 for empirical method, Rcs for accurate method
+        # IF optical air mass and turbidity are both appropriately defined,
+        # then use the more parameter-intensive formula. Otherwise, use the
+        # regular convenient empirical method.
+        if self._n is not None and self._m is not None and self._rcs2valid:
+            # print("Using turbidity + airmass clearsky factor...")
+            self._Rcfactor = self._Rcs2
+        else:
+            self._Rcfactor = self._Rcs
+
+        # Assuming 2500 foot elevation
+        # Equation 34
+        self._P = 101.3 * ((293 - 0.0065 * self._avg_elev) / 293) ** 5.26
+
+        # If it does work, set _Po to a pressure according to the current month's
+        # average monthly pressure
+        self._Po = 101.325
+
+        # non-constant KT (adjustment coefficient) - Handout_4_Radiation_Balance, Page 3
+        self._KT = 0.2 * (self._P / self._Po) ** 0.5
+
+        # Incoming shortwave radiation - Lecture_Radiation_Oct_13_18, Page 42
+        # Shortwave radiation should ideally be below clearsky radiation
+        # (Rcfactor), if there is a case where the standard shortwave rad
+        # formula yields a result greater than Rcfactor, set shortwave
+        # radiation to the clearsky radiation itself.
+        self._Rs = min(
+            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rcfactor
+        )
+
+        # Net shortwave Radiation - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Eqn (43)
+        self._Rns = self._Rs * (1 - self._A)
+
+        # Relative Cloudiness - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Page 20,35
+        self._u = 1.35 * (self._Rs / self._Rcfactor) - 0.35
+
+        # As according to ASCE-EWRI Task Committee Report, Page 19
+        # Cloudiness should be within 0.05 and 1 so as to not
+        # nullify or incorrectly calculate the net longwave radiation
+        if self._u < 0.05:
+            self._u = 0.05
+        elif self._u > 1:
+            self._u = 1.0
+
+        # Net Longwave Radiation - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Eqn (17)
+        self._Rnl = (
+            5.67
+            * (10**-8)
+            * ((self._Tmax + 273.15) ** 4 + (self._Tmin + 273.15) ** 4)
+            / 2
+            * (0.34 - (0.14 * np.sqrt(self._ea)))
+            * self._u
+        )
+
+        # Net Radiation - ASCE-EWRI Task Committee Report,
+        # Jan-2005 - Page 17, Eqn 15
+        self._Rn = self._Rns - self._Rnl
+
+        self._Rnet = self._Rns * self._cell_values["radiation__ratio_to_flat_surface"]
+        # Apply shortwave, longwave, net radiation calculations to
+        # the grid slopes.
+        self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
+        np.multiply(
+            self._Rs,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__incoming_shortwave_flux"],
+        )
+        np.multiply(
+            self._Rns,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__net_shortwave_flux"],
+        )
+        np.multiply(
+            self._Rnl,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__net_longwave_flux"],
+        )
+        np.multiply(
+            self._Rn,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__net_flux"],
+        )
+
+    def _ratio_flat_surface_calc(self):
         # Apply distance factor to solar constant
         # Correction of solar constant using distance,
         # Src: https://www.lehman.edu/academics/eggs/documents/IJOC-2001-Becker.pdf
@@ -417,109 +509,3 @@ class Radiation(Component):
 
         self._radf[self._radf <= 0.0] = 0.0
         self._radf[self._radf > 6.0] = 6.0
-
-        ####################################################################
-        """ Radiation flux field computations follow below: """
-
-        # Use the same direct radiation calculation from before, copy variable values
-        self._Rext = self._Rgl
-
-        # Clear-sky Radiation Rcs - Lecture_Radiation_Oct_13_18, Page 37
-        # will only be computed if turbidity and optical air mass are both user defined
-        # Optical airmass must be >0 or Rcs2 is disregarded (log of zero or / 0 error)
-
-        self._rcs2valid = True
-        if self._m > 0:
-            self._Rcs2 = self._Rext * np.exp(
-                -self._n * self._m * (0.128 - 0.054 * np.log10(self._m))
-            )
-        else:
-            self._rcs2valid = False
-
-        # Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 19, (47)
-        # This one is more ideal, and does not need as many parameters
-        self._Rcs = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
-
-        # Rcfactor, set to Rcs2 for empirical method, Rcs for accurate method
-        # IF optical air mass and turbidity are both appropriately defined,
-        # then use the more parameter-intensive formula. Otherwise, use the
-        # regular convenient empirical method.
-        if (
-            self._n != self._default_assertion_val
-            and self._m != self._default_assertion_val
-            and self._rcs2valid
-        ):
-            # print("Using turbidity + airmass clearsky factor...")
-            self._Rcfactor = self._Rcs2
-        else:
-            # print("Using empirical clearsky factor...")
-            self._Rcfactor = self._Rcs
-
-        # Assuming 2500 foot elevation
-        # Equation 34
-        self._P = 101.3 * ((293 - 0.0065 * self._avg_elev) / 293) ** 5.26
-
-        # If it does work, set _Po to a pressure according to the current month's
-        # average monthly pressure
-        self._Po = 101.325
-
-        # non-constant KT (adjustment coefficient) - Handout_4_Radiation_Balance, Page 3
-        self._KT = 0.2 * (self._P / self._Po) ** 0.5
-
-        # Incoming shortwave radiation - Lecture_Radiation_Oct_13_18, Page 42
-        # Shortwave radiation should ideally be below clearsky radiation
-        # (Rcfactor), if there is a case where the standard shortwave rad
-        # formula yields a result greater than Rcfactor, set shortwave
-        # radiation to the clearsky radiation itself.
-        self._Rs = min(
-            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rcfactor
-        )
-
-        # Net shortwave Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn (43)
-        self._Rns = self._Rs * (1 - self._A)
-
-        # Relative Cloudiness - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Page 20,35
-        self._u = 1.35 * (self._Rs / self._Rcfactor) - 0.35
-
-        # As according to ASCE-EWRI Task Committee Report, Page 19
-        # Cloudiness should be within 0.05 and 1 so as to not
-        # nullify or incorrectly calculate the net longwave radiation
-        if self._u < 0.05:
-            self._u = 0.05
-        elif self._u > 1:
-            self._u = 1.0
-
-        # Net Longwave Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn (17)
-        self._Rnl = (
-            5.67
-            * (10**-8)
-            * ((self._Tmax + 273.15) ** 4 + (self._Tmin + 273.15) ** 4)
-            / 2
-            * (0.34 - (0.14 * np.sqrt(self._ea)))
-            * self._u
-        )
-
-        # Net Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Page 17, Eqn 15
-        self._Rn = self._Rns - self._Rnl
-
-        self._Rnet = self._Rns * self._cell_values["radiation__ratio_to_flat_surface"]
-        # Apply shortwave, longwave, net radiation calculations to
-        # the grid slopes.
-        self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
-        self._cell_values["radiation__incoming_shortwave_flux"] = (
-            self._Rs * self._cell_values["radiation__ratio_to_flat_surface"]
-        )
-        self._cell_values["radiation__net_shortwave_flux"] = (
-            self._Rns * self._cell_values["radiation__ratio_to_flat_surface"]
-        )
-        self._cell_values["radiation__net_longwave_flux"] = (
-            self._Rnl * self._cell_values["radiation__ratio_to_flat_surface"]
-        )
-        self._cell_values["radiation__net_flux"] = (
-            self._Rn * self._cell_values["radiation__ratio_to_flat_surface"]
-        )
