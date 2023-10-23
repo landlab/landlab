@@ -66,7 +66,7 @@ class Meteorology(Component):
 
     _info = {
 
-        # input fields (6 req var, 10 opt var)
+        # input fields (4 req var, 13 opt var)
         "atmosphere_bottom_air__temperature": {
             "dtype": float,
             "intent": "in",
@@ -99,10 +99,11 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "snow heat capacity",
         },  # lon_deg
+
         "land_surface__aspect_angle": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "radians",
             "mapping": "node",
             "doc": "land surface aspect",
@@ -110,7 +111,7 @@ class Meteorology(Component):
         "land_surface__slope_angle": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
+            "optional": True,
             "units": "radians",
             "mapping": "node",
             "doc": "land surface slope",
@@ -203,7 +204,8 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "air flow speed reference height",
         },  # uz
-        # output fields (12 var)
+
+        # output fields (18 var)
         "land_surface_net-total-energy__energy_flux": {
             "dtype": float,
             "intent": "out",
@@ -308,7 +310,7 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "air saturation vapor pressure",
         },  # e_sat_air
-        "atmosphere_bottom_air_water - vapor__partial_pressure": {
+        "atmosphere_bottom_air_water-vapor__partial_pressure": {
             "dtype": float,
             "intent": "out",
             "optional": False,
@@ -401,8 +403,16 @@ class Meteorology(Component):
         self._T_surf = grid.at_node["land_surface__temperature"]
         self._lat_deg = grid.at_node["land_surface__latitude"]
         self._lon_deg = grid.at_node["land_surface__longitude"]
-        self._alpha = grid.at_node["land_surface__aspect_angle"]
-        self._beta = grid.at_node["land_surface__slope_angle"]
+
+        if "land_surface__aspect_angle" in grid.at_node:
+            self._alpha = grid.at_node["land_surface__aspect_angle"]
+        else:
+            self._alpha = grid.add_zeros("land_surface__aspect_angle", at="node")
+
+        if "land_surface__slope_angle" in grid.at_node:
+            self._beta = grid.at_node["land_surface__slope_angle"]
+        else:
+            self._beta = grid.add_zeros("land_surface__slope_angle", at="node")
 
         if "snowpack__depth" in grid.at_node:
             self._h_snow = grid.at_node["snowpack__depth"]
@@ -524,7 +534,13 @@ class Meteorology(Component):
         ]
         self._Ri = grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"]
         self._em_air = grid.at_node["atmosphere_bottom_air__emissivity"]
-        self._W_p = grid.at_node["precipitable depth"]
+        self._W_p = grid.at_node[
+            "atmosphere_air-column_water-vapor__liquid-equivalent_depth"
+        ]
+
+    @property
+    def GMT_offset(self):
+        return self._GMT_offset
 
     @property
     def rho_H2O(self):
