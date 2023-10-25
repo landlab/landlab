@@ -52,14 +52,7 @@ jobs:
             python=${{ matrix.python-version }}
             c-compiler
             cxx-compiler
-            nox
-
-      - name: Install libmamba solver
-        run: |
-          micromamba install conda
-          conda update conda
-          # conda install -n base conda-libmamba-solver
-          # conda config --set solver libmamba
+            conda
 
       - name: Show conda installation info
         run: |
@@ -75,6 +68,7 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
+          pip install nox
           nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls

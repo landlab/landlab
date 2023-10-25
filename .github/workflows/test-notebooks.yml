@@ -35,12 +35,10 @@ jobs:
             python=${{ matrix.python-version }}
             c-compiler
             cxx-compiler
+            conda
 
       - name: Show conda installation info
         run: |
-          pip install nox
-          micromamba install conda
-          conda update conda
           conda info
           conda list
 
@@ -49,4 +47,5 @@ jobs:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           MPLBACKEND: "Agg"
         run: |
+          pip install nox
           nox --verbose -s test-notebooks --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.markers }}"
