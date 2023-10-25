@@ -1,6 +1,6 @@
-bmipy==2.0
+bmipy==2.0.1
 matplotlib==3.8.0
-netcdf4==1.6.4
+netcdf4==1.6.5
 numpy==1.26.1
 pandas==2.1.1
 pyshp==2.3.1
