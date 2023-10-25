@@ -58,8 +58,8 @@ jobs:
         run: |
           micromamba install -n base conda
           conda update -n base conda
-          conda install -n base conda-libmamba-solver
-          conda config --set solver libmamba
+          # conda install -n base conda-libmamba-solver
+          # conda config --set solver libmamba
 
       - name: Show conda installation info
         run: |
