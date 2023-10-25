@@ -465,6 +465,7 @@ So, there is an important difference between the two ways of calculating it.
 
 For a complete list of all the fields created during the execution of river bed dynamics
 use:
+
 >>> fields = RiverBedDynamics.get_available_fields()
 """
 import copy
@@ -950,8 +951,8 @@ class RiverBedDynamics(Component):
         distribution properties. It reads the input data and populates the
         necessary variables.
 
-        This configuration is only performed during the first time step. Subse-
-        quent time steps will utilize the bed information, which has already
+        This configuration is only performed during the first time step. Subsequent
+        time steps will utilize the bed information, which has already
         been calculated or updated and formatted appropriately.
         """
 
@@ -1177,14 +1178,16 @@ class RiverBedDynamics(Component):
         Erode grid topography. Starts at self._evolve_bed
 
         For one time step, this erodes the grid topography according to
-        Exner equation.
+        Exner equation::
 
-        (1-λp) ∂Z/∂t = - (∂qbx/∂x + ∂qby/∂y)
-        Simplifying, we get:
-        ∂Z/∂t = - (1 / (1-λp)) * (∂Qb/∂A)
-        Z_t+1 = -(Δt * ΔQb)/(1-λp) + Z_t
+            (1-λp) ∂Z/∂t = - (∂qbx/∂x + ∂qby/∂y)
 
-        The grid field 'topographic__elevation' is altered each time step.
+        Simplifying, we get::
+
+            ∂Z/∂t = - (1 / (1-λp)) * (∂Qb/∂A)
+            Z_t+1 = -(Δt * ΔQb)/(1-λp) + Z_t
+
+        The grid field ``"topographic__elevation"`` is altered each time step.
         """
 
         if self._first_iteration:
@@ -1264,48 +1267,63 @@ class RiverBedDynamics(Component):
         For testing purposes, the a case where this function is called is included
         below. It is based on the main example.
 
+        Examples
+        --------
+
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import RiverBedDynamics
         >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+
         >>> grid = RasterModelGrid((5, 5))
-        >>> grid.at_node['surface_water__depth'] = np.full(grid.number_of_nodes,0.102)
-        >>> grid.at_node['surface_water__velocity'] = np.full(grid.number_of_nodes,0.25)
-        >>> grid['link']['surface_water__depth'] = (
-        ... map_mean_of_link_nodes_to_link(grid,'surface_water__depth')
+
+        >>> grid.at_node["surface_water__depth"] = np.full(grid.number_of_nodes, 0.102)
+        >>> grid.at_node["surface_water__velocity"] = np.full(
+        ...     grid.number_of_nodes, 0.25
         ... )
-        >>> grid['link']['surface_water__velocity'] = (
-        ... map_mean_of_link_nodes_to_link(grid,'surface_water__velocity')
+        >>> grid.at_link["surface_water__depth"] = (
+        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__depth")
         ... )
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.07, 1.06, 1.00, 1.06, 1.07],
-        ... [1.08, 1.07, 1.03, 1.07, 1.08],
-        ... [1.09, 1.08, 1.07, 1.08, 1.09],
-        ... [1.09, 1.09, 1.08, 1.09, 1.09],
-        ... [1.09, 1.09, 1.09, 1.09, 1.09],
+        >>> grid.at_link["surface_water__velocity"] = (
+        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__velocity")
+        ... )
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.07, 1.06, 1.00, 1.06, 1.07],
+        ...     [1.08, 1.07, 1.03, 1.07, 1.08],
+        ...     [1.09, 1.08, 1.07, 1.08, 1.09],
+        ...     [1.09, 1.09, 1.08, 1.09, 1.09],
+        ...     [1.09, 1.09, 1.09, 1.09, 1.09],
         ... ]
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
         >>> gsd_loc = [
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
         ... ]
         >>> gsd = [[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [2, 10], [1, 0]]
-        >>> qb_imposed_gsd = np.zeros((grid.number_of_links,np.array(gsd).shape[0]-1))
-        >>> qb_imposed_gsd[29,:] = np.array([0.15, 0.15, 0.2, 0.2, 0.15, 0.15])
-        >>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation = 'Parker1990',
-        ... bed_surface__gsd_location_node = gsd_loc, output_vector = True,
-        ... track_stratigraphy=True,
-        ... sed_transport__bedload_gsd_imposed_link = qb_imposed_gsd)
+        >>> qb_imposed_gsd = np.zeros(
+        ...     (grid.number_of_links, np.array(gsd).shape[0] - 1)
+        ... )
+        >>> qb_imposed_gsd[29, :] = np.array([0.15, 0.15, 0.2, 0.2, 0.15, 0.15])
+        >>> rbd = RiverBedDynamics(
+        ...     grid,
+        ...     gsd=gsd,
+        ...     bedload_equation="Parker1990",
+        ...     bed_surface__gsd_location_node=gsd_loc,
+        ...     output_vector=True,
+        ...     track_stratigraphy=True,
+        ...     sed_transport__bedload_gsd_imposed_link=qb_imposed_gsd,
+        ... )
         >>> rbd.run_one_step()
 
         Let's check which link is has an imposed bedload gsd
 
         >>> rbd._fixed_surface_gsd_link_id[0]
         29
-
         """
         # Gives the ID of the links
         if np.max(self._sed_transport__bedload_gsd_imposed_link > 0.0):
@@ -1416,30 +1434,38 @@ class RiverBedDynamics(Component):
         will test it. We will explore the horizontal link id of the outlet
         in different cases
 
+        Examples
+        --------
+
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import RiverBedDynamics
         >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+
         >>> grid = RasterModelGrid((5, 5))
-        >>> grid.at_node['surface_water__depth'] = np.full(grid.number_of_nodes,0.102)
-        >>> grid.at_node['surface_water__velocity'] = np.full(grid.number_of_nodes,0.25)
-        >>> grid['link']['surface_water__depth'] = (
-        ... map_mean_of_link_nodes_to_link(grid,'surface_water__depth')
+        >>> grid.at_node["surface_water__depth"] = np.full(grid.number_of_nodes, 0.102)
+        >>> grid.at_node["surface_water__velocity"] = np.full(
+        ...     grid.number_of_nodes, 0.25
         ... )
-        >>> grid['link']['surface_water__velocity'] = (
-        ... map_mean_of_link_nodes_to_link(grid,'surface_water__velocity')
+        >>> grid.at_link["surface_water__depth"] = (
+        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__depth")
+        ... )
+        >>> grid.at_link["surface_water__velocity"] = (
+        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__velocity")
         ... )
 
         In this topography the outlet is at the left edge
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.07, 1.08, 1.09, 1.09, 1.09],
-        ... [1.06, 1.07, 1.08, 1.09, 1.09],
-        ... [1.00, 1.03, 1.07, 1.08, 1.09],
-        ... [1.06, 1.07, 1.08, 1.09, 1.09],
-        ... [1.07, 1.08, 1.09, 1.09, 1.09],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.07, 1.08, 1.09, 1.09, 1.09],
+        ...     [1.06, 1.07, 1.08, 1.09, 1.09],
+        ...     [1.00, 1.03, 1.07, 1.08, 1.09],
+        ...     [1.06, 1.07, 1.08, 1.09, 1.09],
+        ...     [1.07, 1.08, 1.09, 1.09, 1.09],
         ... ]
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
         >>> rbd = RiverBedDynamics(grid)
         >>> rbd.run_one_step()
         >>> rbd._outlet_links_horizontal
@@ -1448,14 +1474,16 @@ class RiverBedDynamics(Component):
 
         In this topography the outlet is at the top edge
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.09, 1.09, 1.09, 1.09, 1.09],
-        ... [1.09, 1.09, 1.08, 1.09, 1.09],
-        ... [1.09, 1.08, 1.07, 1.08, 1.09],
-        ... [1.08, 1.07, 1.03, 1.07, 1.08],
-        ... [1.07, 1.06, 1.00, 1.06, 1.07],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.09, 1.09, 1.09, 1.09, 1.09],
+        ...     [1.09, 1.09, 1.08, 1.09, 1.09],
+        ...     [1.09, 1.08, 1.07, 1.08, 1.09],
+        ...     [1.08, 1.07, 1.03, 1.07, 1.08],
+        ...     [1.07, 1.06, 1.00, 1.06, 1.07],
         ... ]
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
         >>> rbd = RiverBedDynamics(grid)
         >>> rbd.run_one_step()
         >>> rbd._outlet_links_horizontal
@@ -1464,20 +1492,21 @@ class RiverBedDynamics(Component):
 
         In this topography the outlet is at the right edge
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.09, 1.09, 1.09, 1.08, 1.07],
-        ... [1.09, 1.09, 1.08, 1.07, 1.06],
-        ... [1.09, 1.08, 1.07, 1.03, 1.00],
-        ... [1.09, 1.09, 1.08, 1.07, 1.06],
-        ... [1.09, 1.09, 1.09, 1.08, 1.07],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.09, 1.09, 1.09, 1.08, 1.07],
+        ...     [1.09, 1.09, 1.08, 1.07, 1.06],
+        ...     [1.09, 1.08, 1.07, 1.03, 1.00],
+        ...     [1.09, 1.09, 1.08, 1.07, 1.06],
+        ...     [1.09, 1.09, 1.09, 1.08, 1.07],
         ... ]
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
         >>> rbd = RiverBedDynamics(grid)
         >>> rbd.run_one_step()
         >>> rbd._outlet_links_horizontal
         array([[20],
                [21]])
-
         """
 
         # Gives the ID of the outlet node
@@ -1599,7 +1628,7 @@ class RiverBedDynamics(Component):
     def map_gsd_from_link_to_node(self, location="bed_surface"):
         """Map the bed surface grain size distribution from links to nodes.
 
-        Given that the all our calculations are conducted in links we implemented
+        Given that all our calculations are conducted in links we implemented
         this function to display results in a raster or in nodes.
         default type is bedload, alternative type='bedload'
         """
@@ -1707,13 +1736,20 @@ class RiverBedDynamics(Component):
         self.calculate_act_layer_thick()
 
     def shear_stress(self):
-        """Unsteady shear stress calculated at links according to
-        τ = rho * g * h * sf
+        """Unsteady shear stress calculated at links
 
-        where sf is the unsteady friction slope and is calculated as
-        sf = S0 - dh/ds - U/g du/ds - 1/g du/dt
+        Shear stress is calculated as::
 
-        Alternatively, tau can be calculated as τ = rho * g * rh * sf
+            τ = rho * g * h * sf
+
+        where sf is the unsteady friction slope and is calculated as::
+
+            sf = S0 - dh/ds - U/g du/ds - 1/g du/dt
+
+        Alternatively, τ can be calculated as::
+
+            τ = rho * g * rh * sf
+
         but need to be manually selected (for consistency in the code)
 
         The term ds indicates a certain direction, X and Y in this case.
@@ -2512,26 +2548,33 @@ class RiverBedDynamics(Component):
         Example where stratigraphy with deposition and erosion is tested below.
         This is a very slow test
 
-        >>> import numpy as np
-        >>> from landlab.components import RiverBedDynamics
-        >>> from landlab import RasterModelGrid
+        Examples
+        --------
+
         >>> from shutil import rmtree
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import RiverBedDynamics
 
-        >>> grid = RasterModelGrid((8, 3),xy_spacing=100)
+        >>> grid = RasterModelGrid((8, 3), xy_spacing=100)
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.12, 1.00, 1.12, 1.12, 1.01, 1.12, 1.12, 1.01],
-        ... [1.12, 1.12, 1.01, 1.12, 1.12, 1.01, 1.12, 1.12],
-        ... [1.01, 1.12, 1.12, 1.01, 1.12, 1.12, 1.12, 1.12],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.12, 1.00, 1.12, 1.12, 1.01, 1.12, 1.12, 1.01],
+        ...     [1.12, 1.12, 1.01, 1.12, 1.12, 1.01, 1.12, 1.12],
+        ...     [1.01, 1.12, 1.12, 1.01, 1.12, 1.12, 1.12, 1.12],
         ... ]
 
-        >>> grid['node']["surface_water__depth"] = np.full(grid.number_of_nodes,0.40)
-        >>> grid['link']["surface_water__depth"] = np.full(grid.number_of_links,0.40)
-        >>> grid['link']["surface_water__velocity"] = np.full(grid.number_of_links,0.40)
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+        >>> grid.at_node["surface_water__depth"] = np.full(grid.number_of_nodes, 0.40)
+        >>> grid.at_link["surface_water__depth"] = np.full(grid.number_of_links, 0.40)
+        >>> grid.at_link["surface_water__velocity"] = np.full(
+        ...     grid.number_of_links, 0.40
+        ... )
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
         >>> gsd = [[8, 100], [4, 90], [2, 0]]
 
-        >>> fixed_nodes_id = np.array((1,4))
+        >>> fixed_nodes_id = np.array((1, 4))
         >>> fixed_nodes = np.zeros(grid.number_of_nodes)
         >>> fixed_nodes[fixed_nodes_id] = 1
 
@@ -2543,35 +2586,38 @@ class RiverBedDynamics(Component):
         >>> qb = np.full(grid.number_of_links, 0.0)
         >>> qb[in_l] = in_qb
 
-        >>> rbd = RiverBedDynamics(grid,
-        ... gsd = gsd,
-        ... bedload_equation = 'Parker1990',
-        ... outlet_boundary_condition='fixedValue',
-        ... bed_surface__elevation_fixed_node=fixed_nodes,
-        ... sed_transport__bedload_rate_imposed_link=qb,
-        ... bed_surface__gsd_fixed_node=fixed_bed_gsd_nodes,
-        ... track_stratigraphy = True,
-        ... new_surface_layer_thickness=0.02,
-        ... number_cycles_to_process_stratigraphy=2)
+        >>> rbd = RiverBedDynamics(
+        ...     grid,
+        ...     gsd=gsd,
+        ...     bedload_equation="Parker1990",
+        ...     outlet_boundary_condition="fixedValue",
+        ...     bed_surface__elevation_fixed_node=fixed_nodes,
+        ...     sed_transport__bedload_rate_imposed_link=qb,
+        ...     bed_surface__gsd_fixed_node=fixed_bed_gsd_nodes,
+        ...     track_stratigraphy=True,
+        ...     new_surface_layer_thickness=0.02,
+        ...     number_cycles_to_process_stratigraphy=2,
+        ... )
 
         >>> for t in range(1300):
         ...     rbd._current_t = t
         ...     rbd.run_one_step()
-        >>> z = grid['node']['topographic__elevation'][16]
-        >>> np.round(z,decimals = 3)
+        >>> z = grid.at_node["topographic__elevation"][16]
+        >>> np.round(z,decimals=3)
         1.05
 
         >>> rbd._sed_transport__bedload_rate_imposed_link[in_l] = 0.001
-        >>> for t in range(1300,2605+1300):
+        >>> for t in range(1300, 2605 + 1300):
         ...     rbd._current_t = t
         ...     rbd.run_one_step()
-        >>> z = grid['node']['topographic__elevation'][16]
-        >>> np.round(z,decimals = 3)
+        >>> z = grid.at_node["topographic__elevation"][16]
+        >>> np.round(z,decimals=3)
         1.01
 
         We will delete any temp folder created during docstring tests
-        >>> rmtree('stratigraphyRawData')
-        >>> rmtree('stratigraphyTempFiles')
+
+        >>> rmtree("stratigraphyRawData")
+        >>> rmtree("stratigraphyTempFiles")
         """
 
         # Here we create a number of variables that will be used in the
@@ -2778,7 +2824,7 @@ class RiverBedDynamics(Component):
 
         This method takes the user specified fraction, from 0 to 1, and outputs
         the corresponding grain size in nodes or links. By default the link
-        option is used. Use mapped_in = 'node' to calculate at nodes
+        option is used. Use ``mapped_in="node"`` to calculate at nodes
 
         Examples
         --------
@@ -2791,40 +2837,51 @@ class RiverBedDynamics(Component):
 
         >>> grid = RasterModelGrid((5, 5))
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.07, 1.06, 1.00, 1.06, 1.07],
-        ... [1.08, 1.07, 1.03, 1.07, 1.08],
-        ... [1.09, 1.08, 1.07, 1.08, 1.09],
-        ... [1.09, 1.09, 1.08, 1.09, 1.09],
-        ... [1.09, 1.09, 1.09, 1.09, 1.09],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.07, 1.06, 1.00, 1.06, 1.07],
+        ...     [1.08, 1.07, 1.03, 1.07, 1.08],
+        ...     [1.09, 1.08, 1.07, 1.08, 1.09],
+        ...     [1.09, 1.09, 1.08, 1.09, 1.09],
+        ...     [1.09, 1.09, 1.09, 1.09, 1.09],
         ... ]
 
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
-        >>> grid.at_node['surface_water__depth'] = np.full(grid.number_of_nodes,0.102)
-        >>> grid.at_node['surface_water__velocity'] = np.full(grid.number_of_nodes,0.25)
-        >>> grid['link']['surface_water__depth'] = np.full(grid.number_of_links,0.102)
-        >>> grid['link']['surface_water__velocity'] = np.full(grid.number_of_links,0.25)
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
+        >>> grid.at_node["surface_water__depth"] = np.full(grid.number_of_nodes, 0.102)
+        >>> grid.at_node["surface_water__velocity"] = np.full(
+        ...     grid.number_of_nodes, 0.25
+        ... )
+        >>> grid.at_link["surface_water__depth"] = np.full(grid.number_of_links, 0.102)
+        >>> grid.at_link["surface_water__velocity"] = np.full(
+        ...     grid.number_of_links, 0.25
+        ... )
 
         >>> gsd_loc = [
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
         ... ]
 
         >>> gsd = [[32, 100, 100], [16, 25, 50], [8, 0, 0]]
 
-        >>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation = 'Parker1990',
-        ... bed_surface__gsd_location_node = gsd_loc)
+        >>> rbd = RiverBedDynamics(
+        ...     grid,
+        ...     gsd=gsd,
+        ...     bedload_equation="Parker1990",
+        ...     bed_surface__gsd_location_node=gsd_loc,
+        ... )
         >>> rbd.run_one_step()
 
         For simplicity, only a few nodes and links will be selected for displaying.
-        >>> nodes = np.arange(2,25,5)
-        >>> links = grid.active_links[np.in1d(grid.active_links,grid.vertical_links)]
 
-        >>> (surface_D90,D90_bedload) = rbd.calculate_DX(0.9)
-        >>> np.round(surface_D90[links],3)
+        >>> nodes = np.arange(2, 25, 5)
+        >>> links = grid.active_links[np.in1d(grid.active_links, grid.vertical_links)]
+
+        >>> (surface_D90, D90_bedload) = rbd.calculate_DX(0.9)
+        >>> np.round(surface_D90[links], 3)
         array([[ 27.849],
                [ 27.858],
                [ 27.866],
@@ -2833,7 +2890,7 @@ class RiverBedDynamics(Component):
                [ 27.858],
                [ 27.858]])
 
-        >>> np.round(D90_bedload[links],3)
+        >>> np.round(D90_bedload[links], 3)
         array([[  0.   ],
                [ 25.032],
                [ 27.655],
@@ -2842,21 +2899,20 @@ class RiverBedDynamics(Component):
                [ 25.032],
                [ 25.032]])
 
-        >>> (surface_D90,D90_bedload) = rbd.calculate_DX(0.9,mapped_in="node")
-        >>> np.round(surface_D90[nodes],3)
+        >>> (surface_D90, D90_bedload) = rbd.calculate_DX(0.9, mapped_in="node")
+        >>> np.round(surface_D90[nodes], 3)
         array([[ 28.084],
                [ 27.858],
                [ 27.86 ],
                [ 27.858],
                [ 28.086]])
 
-        >>> np.round(D90_bedload[nodes],3)
+        >>> np.round(D90_bedload[nodes], 3)
         array([[ 27.737],
                [ 27.655],
                [ 25.945],
                [ 25.032],
                [  0.   ]])
-
         """
         nodes_list = np.arange(self._grid.number_of_nodes)
         grain_size_D = self._grain_size_D_original  # Grain sizes
@@ -2926,36 +2982,46 @@ class RiverBedDynamics(Component):
 
         >>> grid = RasterModelGrid((5, 5))
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.07, 1.06, 1.00, 1.06, 1.07],
-        ... [1.08, 1.07, 1.03, 1.07, 1.08],
-        ... [1.09, 1.08, 1.07, 1.08, 1.09],
-        ... [1.09, 1.09, 1.08, 1.09, 1.09],
-        ... [1.09, 1.09, 1.09, 1.09, 1.09],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.07, 1.06, 1.00, 1.06, 1.07],
+        ...     [1.08, 1.07, 1.03, 1.07, 1.08],
+        ...     [1.09, 1.08, 1.07, 1.08, 1.09],
+        ...     [1.09, 1.09, 1.08, 1.09, 1.09],
+        ...     [1.09, 1.09, 1.09, 1.09, 1.09],
         ... ]
 
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
 
-        >>> grid.at_node['surface_water__depth'] = np.full(grid.number_of_nodes,0.102)
-        >>> grid.at_node['surface_water__velocity'] = np.full(grid.number_of_nodes, 0.25)
-        >>> grid['link']['surface_water__depth'] = np.full(grid.number_of_links,0.102)
-        >>> grid['link']['surface_water__velocity'] = np.full(grid.number_of_links,0.25)
+        >>> grid.at_node["surface_water__depth"] = np.full(grid.number_of_nodes, 0.102)
+        >>> grid.at_node["surface_water__velocity"] = np.full(
+        ...     grid.number_of_nodes, 0.25
+        ... )
+        >>> grid.at_link["surface_water__depth"] = np.full(grid.number_of_links, 0.102)
+        >>> grid.at_link["surface_water__velocity"] = np.full(
+        ...     grid.number_of_links, 0.25
+        ... )
 
         >>> gsd_loc = [
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
-        ... [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1., 1., 1., 0],
         ... ]
 
         >>> gsd = [[32, 100, 100], [16, 25, 50], [8, 0, 0]]
 
         >>> timeStep = 1 # time step in seconds
 
-        >>> rbd = RiverBedDynamics(grid, gsd = gsd, dt = timeStep,
-        ... bedload_equation = 'Parker1990',
-        ... bed_surface__gsd_location_node = gsd_loc)
+        >>> rbd = RiverBedDynamics(
+        ...     grid,
+        ...     gsd=gsd,
+        ...     dt=timeStep,
+        ...     bedload_equation="Parker1990",
+        ...     bed_surface__gsd_location_node=gsd_loc,
+        ... )
         >>> rbd.run_one_step()
         >>> rbd.format_gsd(rbd._sed_transport__bedload_gsd_link)
                    8      16     32
@@ -3002,7 +3068,7 @@ class RiverBedDynamics(Component):
 
         It also works for nodes.
 
-        >>> rbd.map_gsd_from_link_to_node(location='bedload')
+        >>> rbd.map_gsd_from_link_to_node(location="bedload")
         >>> rbd.format_gsd(rbd._sed_transport__bedload_gsd_node)
                    8      16     32
         Node_0   0.0   0.000    0.0
@@ -3030,7 +3096,6 @@ class RiverBedDynamics(Component):
         Node_22  0.0   0.000    0.0
         Node_23  0.0   0.000    0.0
         Node_24  0.0   0.000    0.0
-
         """
 
         if bedload_gsd.shape[0] == self._grid.number_of_links:
@@ -3055,47 +3120,83 @@ class RiverBedDynamics(Component):
     @staticmethod
     def get_available_fields():
         """Return a list of available fields and their units.
-        To use it simply do:
 
+        Examples
+        --------
+
+        >>> from pprint import pprint
         >>> from landlab.components import RiverBedDynamics
-        >>> fields = RiverBedDynamics.get_available_fields()
 
+        >>> pprint(RiverBedDynamics.get_available_fields())
+        [('rbd._bed_subsurface__gsd_link', '[mm,%]'),
+         ('rbd._bed_subsurface__gsd_node', '[mm,%]'),
+         ('rbd._bed_surface__act_layer_thick_link', '[m]'),
+         ('rbd._bed_surface__act_layer_thick_node', '[m]'),
+         ('rbd._bed_surface__act_layer_thick_prev_time_link', '[m]'),
+         ('rbd._bed_surface__act_layer_thick_prev_time_node', '[m]'),
+         ('rbd._bed_surface__elevation_fixed_node', '[m]'),
+         ('rbd._bed_surface__geo_std_size_link', '[mm]'),
+         ('rbd._bed_surface__geo_std_size_node', '[mm]'),
+         ('rbd._bed_surface__geom_mean_size_link', '[mm]'),
+         ('rbd._bed_surface__geom_mean_size_node', '[mm]'),
+         ('rbd._bed_surface__gsd_fixed_node', '[mm,%]'),
+         ('rbd._bed_surface__gsd_link', '[mm,%]'),
+         ('rbd._bed_surface__gsd_node', '[mm,%]'),
+         ('rbd._bed_surface__gsd_original_link', '[mm,%]'),
+         ('rbd._bed_surface__gsd_original_node', '[mm,%]'),
+         ('rbd._bed_surface__median_size_link', '[mm]'),
+         ('rbd._bed_surface__median_size_node', '[mm]'),
+         ('rbd._bed_surface__sand_fraction_link', '[-]'),
+         ('rbd._bed_surface__sand_fraction_node', '[-]'),
+         ('rbd._bed_surface__surface_thickness_new_layer_link', '[m]'),
+         ('rbd._sed_transport__bedload_gsd_imposed_link', '[mm,%]'),
+         ('rbd._sed_transport__bedload_gsd_link', '[mm,%]'),
+         ('rbd._sed_transport__bedload_rate_imposed_link', '[m^2/s]'),
+         ('rbd._sed_transport__bedload_rate_link', '[m^2/s]'),
+         ('rbd._sed_transport__net_bedload_node', '[m^2/s]'),
+         ('rbd._surface_water__shear_stress_link', '[Pa]'),
+         ('rbd._surface_water__velocity_prev_time_link', '[m/s]'),
+         ('rbd._topographic__elevation_original_link', '[m]'),
+         ('rbd._topographic__elevation_original_node', '[m]'),
+         ('rbd._topographic__elevation_subsurface_link', '[m]')]
         """
 
         # Define available fields and their units
-        fields = [
-            ("rbd._bed_subsurface__gsd_link", "[mm,%]"),
-            ("rbd._bed_subsurface__gsd_node", "[mm,%]"),
-            ("rbd._bed_surface__act_layer_thick_link", "[m]"),
-            ("rbd._bed_surface__act_layer_thick_node", "[m]"),
-            ("rbd._bed_surface__act_layer_thick_prev_time_link", "[m]"),
-            ("rbd._bed_surface__act_layer_thick_prev_time_node", "[m]"),
-            ("rbd._bed_surface__elevation_fixed_node", "[m]"),
-            ("rbd._bed_surface__geom_mean_size_link", "[mm]"),
-            ("rbd._bed_surface__geom_mean_size_node", "[mm]"),
-            ("rbd._bed_surface__geo_std_size_link", "[mm]"),
-            ("rbd._bed_surface__geo_std_size_node", "[mm]"),
-            ("rbd._bed_surface__gsd_fixed_node", "[mm,%]"),
-            ("rbd._bed_surface__gsd_link", "[mm,%]"),
-            ("rbd._bed_surface__gsd_node", "[mm,%]"),
-            ("rbd._bed_surface__gsd_original_link", "[mm,%]"),
-            ("rbd._bed_surface__gsd_original_node", "[mm,%]"),
-            ("rbd._bed_surface__median_size_link", "[mm]"),
-            ("rbd._bed_surface__median_size_node", "[mm]"),
-            ("rbd._bed_surface__sand_fraction_link", "[-]"),
-            ("rbd._bed_surface__sand_fraction_node", "[-]"),
-            ("rbd._bed_surface__surface_thickness_new_layer_link", "[m]"),
-            ("rbd._sed_transport__bedload_gsd_imposed_link", "[mm,%]"),
-            ("rbd._sed_transport__bedload_gsd_link", "[mm,%]"),
-            ("rbd._sed_transport__bedload_rate_link", "[m^2/s]"),
-            ("rbd._sed_transport__net_bedload_node", "[m^2/s]"),
-            ("rbd._sed_transport__bedload_rate_imposed_link", "[m^2/s]"),
-            ("rbd._surface_water__shear_stress_link", "[Pa]"),
-            ("rbd._surface_water__velocity_prev_time_link", "[m/s]"),
-            ("rbd._topographic__elevation_original_link", "[m]"),
-            ("rbd._topographic__elevation_original_node", "[m]"),
-            ("rbd._topographic__elevation_subsurface_link", "[m]"),
-        ]
+        fields = sorted(
+            [
+                ("rbd._bed_subsurface__gsd_link", "[mm,%]"),
+                ("rbd._bed_subsurface__gsd_node", "[mm,%]"),
+                ("rbd._bed_surface__act_layer_thick_link", "[m]"),
+                ("rbd._bed_surface__act_layer_thick_node", "[m]"),
+                ("rbd._bed_surface__act_layer_thick_prev_time_link", "[m]"),
+                ("rbd._bed_surface__act_layer_thick_prev_time_node", "[m]"),
+                ("rbd._bed_surface__elevation_fixed_node", "[m]"),
+                ("rbd._bed_surface__geom_mean_size_link", "[mm]"),
+                ("rbd._bed_surface__geom_mean_size_node", "[mm]"),
+                ("rbd._bed_surface__geo_std_size_link", "[mm]"),
+                ("rbd._bed_surface__geo_std_size_node", "[mm]"),
+                ("rbd._bed_surface__gsd_fixed_node", "[mm,%]"),
+                ("rbd._bed_surface__gsd_link", "[mm,%]"),
+                ("rbd._bed_surface__gsd_node", "[mm,%]"),
+                ("rbd._bed_surface__gsd_original_link", "[mm,%]"),
+                ("rbd._bed_surface__gsd_original_node", "[mm,%]"),
+                ("rbd._bed_surface__median_size_link", "[mm]"),
+                ("rbd._bed_surface__median_size_node", "[mm]"),
+                ("rbd._bed_surface__sand_fraction_link", "[-]"),
+                ("rbd._bed_surface__sand_fraction_node", "[-]"),
+                ("rbd._bed_surface__surface_thickness_new_layer_link", "[m]"),
+                ("rbd._sed_transport__bedload_gsd_imposed_link", "[mm,%]"),
+                ("rbd._sed_transport__bedload_gsd_link", "[mm,%]"),
+                ("rbd._sed_transport__bedload_rate_link", "[m^2/s]"),
+                ("rbd._sed_transport__net_bedload_node", "[m^2/s]"),
+                ("rbd._sed_transport__bedload_rate_imposed_link", "[m^2/s]"),
+                ("rbd._surface_water__shear_stress_link", "[Pa]"),
+                ("rbd._surface_water__velocity_prev_time_link", "[m/s]"),
+                ("rbd._topographic__elevation_original_link", "[m]"),
+                ("rbd._topographic__elevation_original_node", "[m]"),
+                ("rbd._topographic__elevation_subsurface_link", "[m]"),
+            ]
+        )
 
         return fields
 
@@ -3109,6 +3210,7 @@ class RiverBedDynamics(Component):
 
         Examples
         --------
+
         Let us copy part of the example from the beginning
 
         >>> import numpy as np
@@ -3118,25 +3220,33 @@ class RiverBedDynamics(Component):
 
         >>> grid = RasterModelGrid((5, 5))
 
-        >>> grid.at_node['topographic__elevation'] = [
-        ... [1.07, 1.06, 1.00, 1.06, 1.07],
-        ... [1.08, 1.07, 1.03, 1.07, 1.08],
-        ... [1.09, 1.08, 1.07, 1.08, 1.09],
-        ... [1.09, 1.09, 1.08, 1.09, 1.09],
-        ... [1.09, 1.09, 1.09, 1.09, 1.09],
+        >>> grid.at_node["topographic__elevation"] = [
+        ...     [1.07, 1.06, 1.00, 1.06, 1.07],
+        ...     [1.08, 1.07, 1.03, 1.07, 1.08],
+        ...     [1.09, 1.08, 1.07, 1.08, 1.09],
+        ...     [1.09, 1.09, 1.08, 1.09, 1.09],
+        ...     [1.09, 1.09, 1.09, 1.09, 1.09],
         ... ]
 
-        >>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
-        >>> grid.at_node['surface_water__depth'] = np.full(grid.number_of_nodes,0.102)
-        >>> grid.at_node['surface_water__velocity'] = np.full(grid.number_of_nodes,0.25)
-        >>> grid['link']['surface_water__depth'] = np.full(grid.number_of_links,0.102)
-        >>> grid['link']['surface_water__velocity'] = np.full(grid.number_of_links,0.25)
+        >>> grid.set_watershed_boundary_condition(
+        ...     grid.at_node["topographic__elevation"]
+        ... )
+        >>> grid.at_node["surface_water__depth"] = np.full(grid.number_of_nodes, 0.102)
+        >>> grid.at_node["surface_water__velocity"] = np.full(
+        ...     grid.number_of_nodes, 0.25
+        ... )
+        >>> grid.at_link["surface_water__depth"] = np.full(grid.number_of_links, 0.102)
+        >>> grid.at_link["surface_water__velocity"] = np.full(
+        ...     grid.number_of_links, 0.25
+        ... )
 
         >>> rbd = RiverBedDynamics(grid)
         >>> rbd.run_one_step()
 
-        >>> (velocityVector, velocityMagnitude) = RiverBedDynamics.vector_mapper(grid, rbd._u)
-        >>> velocityVector_x = velocityVector[:,0]
+        >>> (velocityVector, velocityMagnitude) = RiverBedDynamics.vector_mapper(
+        ...     grid, rbd._u
+        ... )
+        >>> velocityVector_x = velocityVector[:, 0]
         >>> velocityVector_x.reshape(grid.shape)
         array([[ 0.125,  0.25 ,  0.25 ,  0.25 ,  0.125],
                [ 0.125,  0.25 ,  0.25 ,  0.25 ,  0.125],
@@ -3144,14 +3254,13 @@ class RiverBedDynamics(Component):
                [ 0.125,  0.25 ,  0.25 ,  0.25 ,  0.125],
                [ 0.125,  0.25 ,  0.25 ,  0.25 ,  0.125]])
 
-        >>> velocityVector_y = velocityVector[:,1]
+        >>> velocityVector_y = velocityVector[:, 1]
         >>> velocityVector_y.reshape(grid.shape)
         array([[ 0.125,  0.125,  0.125,  0.125,  0.125],
                [ 0.25 ,  0.25 ,  0.25 ,  0.25 ,  0.25 ],
                [ 0.25 ,  0.25 ,  0.25 ,  0.25 ,  0.25 ],
                [ 0.25 ,  0.25 ,  0.25 ,  0.25 ,  0.25 ],
                [ 0.125,  0.125,  0.125,  0.125,  0.125]])
-
         """
         vector_x_r = vector[grid.links_at_node[:, 0]]
         (link_id,) = np.where(grid.links_at_node[:, 0] < 0)
