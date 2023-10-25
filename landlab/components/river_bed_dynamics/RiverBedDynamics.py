@@ -14,9 +14,8 @@ Examples
 Let's import all the required libraries
 
 >>> import numpy as np
->>> from landlab import RasterModelGrid
+>>> from landlab import RasterModelGrid, imshow_grid
 >>> from landlab.components import RiverBedDynamics
->>> from landlab import imshow_grid
 >>> from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
 Create a grid on which to calculate sediment transport
@@ -40,47 +39,51 @@ is done automatically within the component.
 
 We start by creating the topography data
 
->>> grid.at_node['topographic__elevation'] = [
-... [1.07, 1.06, 1.00, 1.06, 1.07],
-... [1.08, 1.07, 1.03, 1.07, 1.08],
-... [1.09, 1.08, 1.07, 1.08, 1.09],
-... [1.09, 1.09, 1.08, 1.09, 1.09],
-... [1.09, 1.09, 1.09, 1.09, 1.09],
+>>> grid.at_node["topographic__elevation"] = [
+...     [1.07, 1.06, 1.00, 1.06, 1.07],
+...     [1.08, 1.07, 1.03, 1.07, 1.08],
+...     [1.09, 1.08, 1.07, 1.08, 1.09],
+...     [1.09, 1.09, 1.08, 1.09, 1.09],
+...     [1.09, 1.09, 1.09, 1.09, 1.09],
 ... ]
 
 We set the boundary conditions
 
->>> grid.set_watershed_boundary_condition(grid.at_node['topographic__elevation'])
+>>> grid.set_watershed_boundary_condition(grid.at_node["topographic__elevation"])
 
 And check the node status
 
->>> grid.status_at_node
-array([4, 4, 1, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
-       4, 4], dtype=uint8)
+>>> grid.status_at_node.reshape(grid.shape)
+array([[4, 4, 1, 4, 4],
+       [4, 0, 0, 0, 4],
+       [4, 0, 0, 0, 4],
+       [4, 0, 0, 0, 4],
+       [4, 4, 4, 4, 4]], dtype=uint8)
 
 Which tell us that there is one outlet located on the 3rd node
 
-the topography data can be display using
->>> imshow_grid(grid,'topographic__elevation')
+The topography data can be display using
+
+>>> imshow_grid(grid, "topographic__elevation")
 
 Now we add some water into the watershed. In this case is specified in nodes
 
->>> grid.at_node['surface_water__depth'] = [
-... [0.102, 0.102, 0.102, 0.102, 0.102],
-... [0.102, 0.102, 0.102, 0.102, 0.102],
-... [0.102, 0.102, 0.102, 0.102, 0.102],
-... [0.102, 0.102, 0.102, 0.102, 0.102],
-... [0.102, 0.102, 0.102, 0.102, 0.102],
+>>> grid.at_node["surface_water__depth"] = [
+...     [0.102, 0.102, 0.102, 0.102, 0.102],
+...     [0.102, 0.102, 0.102, 0.102, 0.102],
+...     [0.102, 0.102, 0.102, 0.102, 0.102],
+...     [0.102, 0.102, 0.102, 0.102, 0.102],
+...     [0.102, 0.102, 0.102, 0.102, 0.102],
 ... ]
 
 Now, we give the water a velocity.
 
->>> grid.at_node['surface_water__velocity'] = [
-... [0.25, 0.25, 0.25, 0.25, 0.25],
-... [0.25, 0.25, 0.25, 0.25, 0.25],
-... [0.25, 0.25, 0.25, 0.25, 0.25],
-... [0.25, 0.25, 0.25, 0.25, 0.25],
-... [0.25, 0.25, 0.25, 0.25, 0.25],
+>>> grid.at_node["surface_water__velocity"] = [
+...     [0.25, 0.25, 0.25, 0.25, 0.25],
+...     [0.25, 0.25, 0.25, 0.25, 0.25],
+...     [0.25, 0.25, 0.25, 0.25, 0.25],
+...     [0.25, 0.25, 0.25, 0.25, 0.25],
+...     [0.25, 0.25, 0.25, 0.25, 0.25],
 ... ]
 
 Note that in this example, we are attempting to specify a vector at a node
@@ -99,11 +102,11 @@ units of m3/s.
 
 Now we map nodes into links when it is required
 
->>> grid['link']['surface_water__depth'] = (
-... map_mean_of_link_nodes_to_link(grid,'surface_water__depth')
+>>> grid.at_link["surface_water__depth"] = (
+...     map_mean_of_link_nodes_to_link(grid, "surface_water__depth")
 ... )
->>> grid['link']['surface_water__velocity'] = (
-... map_mean_of_link_nodes_to_link(grid,'surface_water__velocity')
+>>> grid.at_link["surface_water__velocity"] = (
+...     map_mean_of_link_nodes_to_link(grid, "surface_water__velocity")
 ... )
 
 We will assume, for the sake of demonstration, that we have two sectors with
@@ -112,11 +115,11 @@ of these two different GSD within the watershed (labeled as 0 and 1). This will
 be included during the instantiation
 
 >>> gsd_loc = [
-... [0, 1., 1., 1., 0],
-... [0, 1., 1., 1., 0],
-... [0, 1., 1., 1., 0],
-... [0, 1., 1., 1., 0],
-... [0, 1., 1., 1., 0],
+...     [0, 1., 1., 1., 0],
+...     [0, 1., 1., 1., 0],
+...     [0, 1., 1., 1., 0],
+...     [0, 1., 1., 1., 0],
+...     [0, 1., 1., 1., 0],
 ... ]
 
 We assign a GSD to each location. The structure of this array is:
@@ -128,16 +131,21 @@ Third column is location 1 in 'bed_grainSizeDistribution__location', and so on
 
 Instantiate the `RiverBedDynamics` component to work on the grid, and run it.
 
->>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation = 'Parker1990',
-... bed_surface__gsd_location_node = gsd_loc, output_vector = True,
-... track_stratigraphy=True)
+>>> rbd = RiverBedDynamics(
+...     grid,
+...     gsd=gsd,
+...     bedload_equation="Parker1990",
+...     bed_surface__gsd_location_node=gsd_loc,
+...     output_vector=True,
+...     track_stratigraphy=True,
+... )
 >>> rbd.run_one_step()
 
 After running RiverBedDynamics, we can check if the different GSD locations
 were correctly included
 
 >>> gsd_loc_rbd = rbd._bed_surface__gsd_location_node.reshape(grid.shape)
->>> gsd_loc_rbd # doctest: +NORMALIZE_WHITESPACE
+>>> gsd_loc_rbd
 array([[ 0.,  1.,  1.,  1.,  0.],
        [ 0.,  1.,  1.,  1.,  0.],
        [ 0.,  1.,  1.,  1.,  0.],
@@ -148,7 +156,7 @@ Let's check at the calculated net bedload. Hereinafter, most of the results will
 between 3 to 6 decimals. This is just to avoid roundoff errors problems
 
 >>> qb = rbd._sed_transport__net_bedload_node.reshape(grid.shape)
->>> np.around(qb,decimals=6) # doctest: +NORMALIZE_WHITESPACE
+>>> np.around(qb, decimals=6)
 array([[ 0.      ,  0.      ,  0.      ,  0.      ,  0.      ],
        [ 0.      ,  0.001598, -0.004793,  0.001598,  0.      ],
        [ 0.      ,  0.      ,  0.001597,  0.      ,  0.      ],
@@ -158,7 +166,7 @@ array([[ 0.      ,  0.      ,  0.      ,  0.      ,  0.      ],
 Let's check at the calculated shear_stress
 
 >>> shearStress = rbd._surface_water__shear_stress_link
->>> np.round(shearStress,decimals =3)# doctest: +NORMALIZE_WHITESPACE
+>>> np.round(shearStress, decimals=3)
 array([  0.   ,  60.017,  60.017,   0.   ,   0.   ,   0.   ,   0.   ,
          0.   ,   0.   ,   0.   ,  40.011,  40.011,   0.   ,  10.003,
         10.003,  40.011,  10.003,  10.003,   0.   ,  10.003,  10.003,
@@ -181,10 +189,11 @@ Y direction
 The GSD at this place is:
 
 >>> qb_gsd_l15 = rbd._sed_transport__bedload_gsd_link[15]
->>> np.round(qb_gsd_l15, decimals = 3)
+>>> np.round(qb_gsd_l15, decimals=3)
 array([ 0.475,  0.525])
 
 Which in cummulative percentage is equivalent to
+
 ==== =======
 D mm % Finer
 ==== =======
@@ -198,7 +207,7 @@ Grain sizes are always given in mm.
 We can also check the bed load grain size distribution in all links
 
 >>> qb_gsd_l = rbd._sed_transport__bedload_gsd_link
->>> np.round(qb_gsd_l,decimals=3)
+>>> np.round(qb_gsd_l, decimals=3)
 array([[ 0.   ,  0.   ],
        [ 0.485,  0.515],
        [ 0.485,  0.515],
@@ -246,8 +255,8 @@ at that location.
 After the flow acted on the bed and sediment transport occured we can check
 the new topographic elevation field
 
->>> z = grid.at_node['topographic__elevation'].reshape(grid.shape)
->>> np.round(z,decimals = 3)  # doctest: +NORMALIZE_WHITESPACE
+>>> z = grid.at_node["topographic__elevation"].reshape(grid.shape)
+>>> np.round(z, decimals=3)
 array([[ 1.07 ,  1.06 ,  1.007,  1.06 ,  1.07 ],
        [ 1.08 ,  1.068,  1.037,  1.068,  1.08 ],
        [ 1.09 ,  1.08 ,  1.068,  1.08 ,  1.09 ],
@@ -257,8 +266,12 @@ array([[ 1.07 ,  1.06 ,  1.007,  1.06 ,  1.07 ],
 Let's take a look at bed load transport rate when we use the different bedload equations
 For the defaul MPM model we get:
 
->>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation = 'MPM',
-... bed_surface__gsd_location_node = gsd_loc)
+>>> rbd = RiverBedDynamics(
+...     grid,
+...     gsd=gsd,
+...     bedload_equation="MPM",
+...     bed_surface__gsd_location_node=gsd_loc,
+... )
 >>> rbd.run_one_step()
 >>> qb_l15 = rbd._sed_transport__bedload_rate_link[15]
 >>> print("{:.4e}".format(qb_l15))
@@ -266,8 +279,12 @@ For the defaul MPM model we get:
 
 For Fernandez Luque and Van Beek:
 
->>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation = 'FLvB',
-... bed_surface__gsd_location_node = gsd_loc)
+>>> rbd = RiverBedDynamics(
+...     grid,
+...     gsd=gsd,
+...     bedload_equation="FLvB",
+...     bed_surface__gsd_location_node=gsd_loc,
+... )
 >>> rbd.run_one_step()
 >>> qb_l15 = rbd._sed_transport__bedload_rate_link[15]
 >>> print("{:.4e}".format(qb_l15))
@@ -275,9 +292,12 @@ For Fernandez Luque and Van Beek:
 
 For Wilcock and Crowe 2003:
 
->>> rbd = RiverBedDynamics(grid, gsd = gsd,
-... bedload_equation = 'WilcockAndCrowe',
-... bed_surface__gsd_location_node = gsd_loc)
+>>> rbd = RiverBedDynamics(
+...     grid,
+...     gsd=gsd,
+...     bedload_equation="WilcockAndCrowe",
+...     bed_surface__gsd_location_node=gsd_loc,
+... )
 >>> rbd.run_one_step()
 >>> qb_l15 = rbd._sed_transport__bedload_rate_link[15]
 >>> print("{:.4e}".format(qb_l15))
@@ -296,38 +316,40 @@ array([[ 32, 100],
 The sand content can be calculated from a grain size distribution
 
 >>> gsd = [
-... [128,   100],
-... [64,    90],
-... [32,    80],
-... [16,    50],
-... [8,     20],
-... [2,     10],
-... [1,     0]
+...     [128, 100],
+...     [64, 90],
+...     [32, 80],
+...     [16, 50],
+...     [8, 20],
+...     [2, 10],
+...     [1, 0]
 ... ]
->>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation = 'MPM')
+>>> rbd = RiverBedDynamics(grid, gsd=gsd, bedload_equation="MPM")
 >>> sandContent = rbd._bed_surface__sand_fraction_node[20]
 >>> print(float("{:.4f}".format(round(sandContent, 4))))
 0.1
 
 But it is different if we use Parker 1990, because it removes sand content
->>> rbd = RiverBedDynamics(grid, gsd = gsd, bedload_equation='Parker1990')
+
+>>> rbd = RiverBedDynamics(grid, gsd=gsd, bedload_equation="Parker1990")
 >>> rbd._bed_surface__sand_fraction_node[20]
 0.0
 
-# What happens if we give it a set of wrong optional fields. The following
-# fields will have only two elements, which is different than the number of
-# nodes and links
+What happens if we give it a set of wrong optional fields. The following
+fields will have only two elements, which is different than the number of
+nodes and links
+
 >>> qb_imposed = np.array([1,2])
->>> rbd = RiverBedDynamics(grid,
-... sed_transport__bedload_rate_imposed_link=qb_imposed)
+>>> rbd = RiverBedDynamics(
+...     grid, sed_transport__bedload_rate_imposed_link=qb_imposed
+... )
 >>> rbd._sed_transport__bedload_rate_imposed_link
 array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
->>> gsd_loc  = np.array([1,2])
->>> rbd = RiverBedDynamics(grid,
-... bed_surface__gsd_location_node=gsd_loc)
+>>> gsd_loc = np.array([1, 2])
+>>> rbd = RiverBedDynamics(grid, bed_surface__gsd_location_node=gsd_loc)
 >>> rbd._bed_surface__gsd_location_node.reshape(grid.shape)
 array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.],
@@ -335,9 +357,8 @@ array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.]])
 
->>> gsd_fix  = np.array([1,2])
->>> rbd = RiverBedDynamics(grid,
-... bed_surface__gsd_fixed_node=gsd_fix)
+>>> gsd_fix = np.array([1, 2])
+>>> rbd = RiverBedDynamics(grid, bed_surface__gsd_fixed_node=gsd_fix)
 >>> rbd._bed_surface__gsd_fixed_node.reshape(grid.shape)
 array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.],
@@ -345,9 +366,8 @@ array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.]])
 
->>> elev_fix  = np.array([1,2])
->>> rbd = RiverBedDynamics(grid,
-... bed_surface__elevation_fixed_node=elev_fix)
+>>> elev_fix = np.array([1, 2])
+>>> rbd = RiverBedDynamics(grid, bed_surface__elevation_fixed_node=elev_fix)
 >>> rbd._bed_surface__elevation_fixed_node.reshape(grid.shape)
 array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.],
@@ -355,9 +375,8 @@ array([[ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.],
        [ 0.,  0.,  0.,  0.,  0.]])
 
->>> vel_n_1  = np.array([1,2])
->>> rbd = RiverBedDynamics(grid,
-... surface_water__velocity_prev_time_link = vel_n_1)
+>>> vel_n_1 = np.array([1, 2])
+>>> rbd = RiverBedDynamics(grid, surface_water__velocity_prev_time_link=vel_n_1)
 >>> rbd._surface_water__velocity_prev_time_link
 array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
         0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
@@ -368,9 +387,10 @@ array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
 For sed_transport__bedload_gsd_imposed_link, for simplicity, we only show
 links 0, 5, and 10
 
->>> qb_gsd_imposed  = np.array([1,2])
->>> rbd = RiverBedDynamics(grid,
-... sed_transport__bedload_gsd_imposed_link = qb_gsd_imposed)
+>>> qb_gsd_imposed = np.array([1, 2])
+>>> rbd = RiverBedDynamics(
+...     grid, sed_transport__bedload_gsd_imposed_link=qb_gsd_imposed
+... )
 >>> rbd._sed_transport__bedload_gsd_imposed_link[[0,5,10],:]
 array([[ 0.,  0.],
        [ 0.,  0.],
@@ -380,15 +400,13 @@ In summary, in all these cases the wrong given value is override by default valu
 But, if the size of the array is correct the specified condition is used.
 For simplicity, we only show links 0, 5, and 10
 
->>> qb_imposed = np.full(grid.number_of_links,1)
->>> rbd = RiverBedDynamics(grid,
-... sed_transport__bedload_rate_imposed_link=qb_imposed)
->>> rbd._sed_transport__bedload_rate_imposed_link[[0,5,10]]
+>>> qb_imposed = np.full(grid.number_of_links, 1)
+>>> rbd = RiverBedDynamics(grid, sed_transport__bedload_rate_imposed_link=qb_imposed)
+>>> rbd._sed_transport__bedload_rate_imposed_link[[0, 5, 10]]
 array([1, 1, 1])
 
->>> gsd_loc  = np.full(grid.number_of_nodes,1)
->>> rbd = RiverBedDynamics(grid,
-... bed_surface__gsd_location_node=gsd_loc)
+>>> gsd_loc = np.full(grid.number_of_nodes, 1)
+>>> rbd = RiverBedDynamics(grid, bed_surface__gsd_location_node=gsd_loc)
 >>> rbd._bed_surface__gsd_location_node.reshape(grid.shape)
 array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
@@ -396,9 +414,8 @@ array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1]])
 
->>> gsd_fix  =  np.full(grid.number_of_nodes,1)
->>> rbd = RiverBedDynamics(grid,
-... bed_surface__gsd_fixed_node=gsd_fix)
+>>> gsd_fix = np.full(grid.number_of_nodes, 1)
+>>> rbd = RiverBedDynamics(grid, bed_surface__gsd_fixed_node=gsd_fix)
 >>> rbd._bed_surface__gsd_fixed_node.reshape(grid.shape)
 array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
@@ -406,9 +423,8 @@ array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1]])
 
->>> elev_fix  =  np.full(grid.number_of_nodes,1)
->>> rbd = RiverBedDynamics(grid,
-... bed_surface__elevation_fixed_node=elev_fix)
+>>> elev_fix = np.full(grid.number_of_nodes,1)
+>>> rbd = RiverBedDynamics(grid, bed_surface__elevation_fixed_node=elev_fix)
 >>> rbd._bed_surface__elevation_fixed_node.reshape(grid.shape)
 array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
@@ -417,25 +433,26 @@ array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1]])
 
 >>> vel_n_1  = np.full(grid.number_of_links,1)
->>> rbd = RiverBedDynamics(grid,
-... surface_water__velocity_prev_time_link = vel_n_1)
->>> rbd._surface_water__velocity_prev_time_link[[0,5,10]]
+>>> rbd = RiverBedDynamics(grid, surface_water__velocity_prev_time_link=vel_n_1)
+>>> rbd._surface_water__velocity_prev_time_link[[0, 5, 10]]
 array([1, 1, 1])
 
->>> qb_gsd_imposed  = np.ones((grid.number_of_links,2)) # 2 comes from gsd.shape[0]-1
->>> rbd = RiverBedDynamics(grid,
-... sed_transport__bedload_gsd_imposed_link = qb_gsd_imposed)
->>> rbd._sed_transport__bedload_gsd_imposed_link[[0,5,10]]
+>>> qb_gsd_imposed = np.ones((grid.number_of_links, 2)) # 2 comes from gsd.shape[0]-1
+>>> rbd = RiverBedDynamics(
+...     grid, sed_transport__bedload_gsd_imposed_link=qb_gsd_imposed
+... )
+>>> rbd._sed_transport__bedload_gsd_imposed_link[[0, 5, 10]]
 array([[ 1.,  1.],
        [ 1.,  1.],
        [ 1.,  1.]])
 
 Using the hydraulics radius is also possible. Let's compare the shear stress with and
 without that option
+
 >>> rbd = RiverBedDynamics(grid)
 >>> rbd.run_one_step()
 >>> shearStress = rbd._shear_stress[15]
->>> np.round(shearStress, decimals = 3)
+>>> np.round(shearStress, decimals=3)
 -15.532
 
 >>> rbd = RiverBedDynamics(grid, use_hydraulics_radius_in_shear_stress=True)
@@ -449,8 +466,6 @@ So, there is an important difference between the two ways of calculating it.
 For a complete list of all the fields created during the execution of river bed dynamics
 use:
 >>> fields = RiverBedDynamics.get_available_fields()
-
-
 """
 import copy
 import os
