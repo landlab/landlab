@@ -38,21 +38,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     auto-update-conda: true
-      #     python-version: ${{ matrix.python-version }}
-      #     channels: conda-forge
-
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          micromamba-version: latest
-          environment-name: testing
-          create-args: >-
-            python=${{ matrix.python-version }}
-            c-compiler
-            cxx-compiler
-            conda
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - name: Install compilers
+        run: |
+            conda install c-compiler cxx-compiler
 
       - name: Show conda installation info
         run: |
