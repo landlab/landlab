@@ -2,7 +2,6 @@ import json
 import os
 import pathlib
 import shutil
-import tempfile
 
 import nox
 from packaging.requirements import Requirement
@@ -366,16 +365,13 @@ def _get_wheels(session):
 
     wheels = []
     for platform in platforms:
-        with tempfile.TemporaryFile("w+") as fp:
-            session.run(
-                "cibuildwheel",
-                "--print-build-identifiers",
-                "--platform",
-                platform,
-                stdout=fp,
-            )
-            fp.seek(0)
-            wheels += fp.read().splitlines()
+        wheels += session.run(
+            "cibuildwheel",
+            "--print-build-identifiers",
+            "--platform",
+            platform,
+            silent=True,
+        ).splitlines()
     return wheels
 
 
