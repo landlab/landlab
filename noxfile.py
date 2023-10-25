@@ -33,7 +33,7 @@ def test(session: nox.Session) -> None:
         PATH["requirements"] / "testing.txt",
     )
 
-    session.conda_install("richdem")
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
