@@ -35,9 +35,6 @@ jobs:
             python=${{ matrix.python-version }}
             c-compiler
             cxx-compiler
-            mamba
-
-          # channel-priority: true
 
       - name: Show conda installation info
         run: |
