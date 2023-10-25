@@ -39,8 +39,8 @@ jobs:
       - name: Show conda installation info
         run: |
           pip install nox
-          micromamba install -n base conda
-          conda update -n base conda
+          micromamba install conda
+          conda update conda
           conda info
           conda list
 
