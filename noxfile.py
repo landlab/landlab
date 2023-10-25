@@ -19,7 +19,7 @@ PATH = {
 }
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(python=PYTHON_VERSION, venv_backend="mamba")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
@@ -55,7 +55,7 @@ def test(session: nox.Session) -> None:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
+@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="mamba")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     args = [
@@ -223,7 +223,7 @@ def locks(session: nox.Session) -> None:
         session.log(f"updated {ROOT / folder / 'requirements.txt'!s}")
 
     # session.install("conda-lock[pip_support]")
-    # session.run("conda-lock", "lock", "--conda", "--kind=lock")
+    # session.run("conda-lock", "lock", "--mamba", "--kind=lock")
 
 
 @nox.session(name="sync-requirements", python=PYTHON_VERSION, venv_backend="conda")

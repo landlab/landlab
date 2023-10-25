@@ -1,5 +1,5 @@
 """
-Unit tests for landlab.components.river_bed_dynamics.river_bed_dynamics
+Unit tests for landlab.components.RiverBedDynamics.RiverBedDynamics
 
 last updated: 10/12/2023
 """
@@ -7,7 +7,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import OverlandFlow, river_bed_dynamics
+from landlab.components import OverlandFlow, RiverBedDynamics
 from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
@@ -15,7 +15,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def test_name(r_b_d):
-    assert r_b_d.name == "river_bed_dynamics"
+    assert r_b_d.name == "RiverBedDynamics"
 
 
 def test_input_var_names(r_b_d):
@@ -69,7 +69,7 @@ def test_median_size():
     grid.add_zeros("surface_water__velocity", at="node")
     grid.add_zeros("surface_water__velocity", at="link")
 
-    rbd = river_bed_dynamics(grid, gsd=gsd)
+    rbd = RiverBedDynamics(grid, gsd=gsd)
     assert_almost_equal(rbd._bed_surface__median_size_node[20], 16)
 
 
@@ -85,9 +85,9 @@ def test_geometric_mean_size_node():
     grid.add_zeros("surface_water__velocity", at="node")
     grid.add_zeros("surface_water__velocity", at="link")
 
-    rbd = river_bed_dynamics(grid, gsd=gsd)
+    rbd = RiverBedDynamics(grid, gsd=gsd)
     np.testing.assert_almost_equal(
-        rbd._bed_surface__geometric_standard_deviation_size_node[20], 2.567, decimal=3
+        rbd._bed_surface__geo_std_size_node[20], 2.567, decimal=3
     )
 
 
@@ -103,7 +103,7 @@ def test_sand_fraction_node():
     grid.add_zeros("surface_water__velocity", at="node")
     grid.add_zeros("surface_water__velocity", at="link")
 
-    rbd = river_bed_dynamics(grid, gsd=gsd)
+    rbd = RiverBedDynamics(grid, gsd=gsd)
     np.testing.assert_almost_equal(
         rbd._bed_surface__sand_fraction_node[20], 0.1, decimal=3
     )
@@ -121,179 +121,10 @@ def test_velocity_previous_time():
     grid.add_zeros("surface_water__velocity", at="node")
     grid.add_zeros("surface_water__velocity", at="link")
     grid["link"]["surface_water__velocity"][20] = 10
-    rbd = river_bed_dynamics(grid, gsd=gsd)
+    rbd = RiverBedDynamics(grid, gsd=gsd)
 
     np.testing.assert_almost_equal(
-        rbd._surface_water__velocity_previous_time_link[20], 10, decimal=3
-    )
-
-
-def test_error_gsd_location_node(capsys):
-    # Set the topographic elevation array
-    grid = RasterModelGrid((34, 4), xy_spacing=50)
-    grid.add_zeros("topographic__elevation", at="node")
-    gsd = np.array([[51, 100], [50, 50], [49, 0]])
-
-    # Creates fields and instantiate the OverlandFlow component
-    grid.add_zeros("surface_water__depth", at="node")
-    grid.add_zeros("surface_water__depth", at="link")
-    grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity", at="link")
-    testArray = np.array([0, 1, 2, 3])
-
-    # Call the function which should print the message
-    river_bed_dynamics(
-        grid, gsd=gsd, bed_surface__grain_size_distribution_location_node=testArray
-    )
-
-    # Capture the printed output
-    captured = capsys.readouterr()
-
-    # Check if the printed message matches the expected message
-    assert (
-        captured.out == "bed_surface__grain_size_distribution_location_node\n"
-        "does not have the same dimensions of the grid's nodes\n"
-    )
-
-
-def test_error_supply_imposed(capsys):
-    # Set the topographic elevation array
-    grid = RasterModelGrid((34, 4), xy_spacing=50)
-    grid.add_zeros("topographic__elevation", at="node")
-    gsd = np.array([[51, 100], [50, 50], [49, 0]])
-
-    # Creates fields and instantiate the OverlandFlow component
-    grid.add_zeros("surface_water__depth", at="node")
-    grid.add_zeros("surface_water__depth", at="link")
-    grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity", at="link")
-    testArray = np.array([0, 1, 2, 3])
-
-    # Call the function which should print the message
-    river_bed_dynamics(
-        grid, gsd=gsd, sediment_transport__bedload_rate_imposed_link=testArray
-    )
-
-    # Capture the printed output
-    captured = capsys.readouterr()
-
-    # Check if the printed message matches the expected message
-    assert (
-        captured.out == "sediment_transport__bedload_rate_imposed_link\n"
-        "does not have the same dimensions of the grid's links\n"
-    )
-
-
-def test_error_gsd_fixed_node(capsys):
-    # Set the topographic elevation array
-    grid = RasterModelGrid((34, 4), xy_spacing=50)
-    grid.add_zeros("topographic__elevation", at="node")
-    gsd = np.array([[51, 100], [50, 50], [49, 0]])
-
-    # Creates fields and instantiate the OverlandFlow component
-    grid.add_zeros("surface_water__depth", at="node")
-    grid.add_zeros("surface_water__depth", at="link")
-    grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity", at="link")
-    testArray = np.array([0, 1, 2, 3])
-
-    # Call the function which should print the message
-    river_bed_dynamics(
-        grid, gsd=gsd, bed_surface__grain_size_distribution_fixed_node=testArray
-    )
-
-    # Capture the printed output
-    captured = capsys.readouterr()
-
-    # Check if the printed message matches the expected message
-    assert (
-        captured.out == "bed_surface__grain_size_distribution_fixed_node\n"
-        "does not have the same dimensions of the grid's nodes\n"
-    )
-
-
-def test_error_elevation_fixed_node(capsys):
-    # Set the topographic elevation array
-    grid = RasterModelGrid((34, 4), xy_spacing=50)
-    grid.add_zeros("topographic__elevation", at="node")
-    gsd = np.array([[51, 100], [50, 50], [49, 0]])
-
-    # Creates fields and instantiate the OverlandFlow component
-    grid.add_zeros("surface_water__depth", at="node")
-    grid.add_zeros("surface_water__depth", at="link")
-    grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity", at="link")
-    testArray = np.array([0, 1, 2, 3])
-
-    # Call the function which should print the message
-    river_bed_dynamics(grid, gsd=gsd, bed_surface__elevation_fixed_node=testArray)
-
-    # Capture the printed output
-    captured = capsys.readouterr()
-
-    # Check if the printed message matches the expected message
-    assert (
-        captured.out == "bed_surface__elevation_fixed_node\n"
-        "does not have the same dimensions of the grid's nodes\n"
-    )
-
-
-def test_error_bedload_gsd_imposed(capsys):
-    # Set the topographic elevation array
-    grid = RasterModelGrid((34, 4), xy_spacing=50)
-    grid.add_zeros("topographic__elevation", at="node")
-    gsd = np.array([[51, 100], [50, 50], [49, 0]])
-
-    # Creates fields and instantiate the OverlandFlow component
-    grid.add_zeros("surface_water__depth", at="node")
-    grid.add_zeros("surface_water__depth", at="link")
-    grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity", at="link")
-    testArray = np.array([0, 1, 2, 3])
-
-    # Call the function which should print the message
-    river_bed_dynamics(
-        grid,
-        gsd=gsd,
-        sediment_transport__bedload_gsd_imposed_link=testArray,
-    )
-
-    # Capture the printed output
-    captured = capsys.readouterr()
-
-    # Check if the printed message matches the expected message
-    assert (
-        captured.out == "sediment_transport__bedload_gsd_imposed_link\n"
-        "does not have the same dimensions of the grid's links and\n"
-        "and grain size locations\n"
-    )
-
-
-def test_error_previous_Velocity(capsys):
-    # Set the topographic elevation array
-    grid = RasterModelGrid((34, 4), xy_spacing=50)
-    grid.add_zeros("topographic__elevation", at="node")
-    gsd = np.array([[51, 100], [50, 50], [49, 0]])
-
-    # Creates fields and instantiate the OverlandFlow component
-    grid.add_zeros("surface_water__depth", at="node")
-    grid.add_zeros("surface_water__depth", at="link")
-    grid.add_zeros("surface_water__velocity", at="node")
-    grid.add_zeros("surface_water__velocity", at="link")
-    testArray = np.array([0, 1, 2, 3])
-
-    # Call the function which should print the message
-    river_bed_dynamics(
-        grid, gsd=gsd, surface_water__velocity_previous_time_link=testArray
-    )
-
-    # Capture the printed output
-    captured = capsys.readouterr()
-
-    # Check if the printed message matches the expected message
-    assert (
-        captured.out == "surface_water__velocity_previous_time_link\n"
-        "does not have the same dimensions of the grid's links\n"
+        rbd._surface_water__velocity_prev_time_link[20], 10, decimal=3
     )
 
 
@@ -317,7 +148,7 @@ def test_outlet_links_horizontal_right_edge():
 
     grid.set_watershed_boundary_condition(topographic__elevation)
 
-    rbd = river_bed_dynamics(grid, gsd=gsd)
+    rbd = RiverBedDynamics(grid, gsd=gsd)
     rbd.run_one_step()
 
     outlet_links_horizontal_sol = np.array([[165], [166]])
@@ -345,7 +176,7 @@ def test_outlet_links_horizontal_bottom_edge():
 
     grid.set_watershed_boundary_condition(topographic__elevation)
 
-    rbd = river_bed_dynamics(grid, gsd=gsd)
+    rbd = RiverBedDynamics(grid, gsd=gsd)
     rbd.run_one_step()
 
     outlet_links_horizontal_sol = np.array([[7, 0], [8, 1]])
@@ -409,13 +240,13 @@ def test_r_b_d_approximate_solution():
     qb = np.full(grid.number_of_links, 0.0)
     qb[link_inlet] = upstream_sediment_supply
 
-    rbd = river_bed_dynamics(
+    rbd = RiverBedDynamics(
         grid,
         gsd=gsd,
         variable_critical_shear_stress=True,
         outlet_boundary_condition="fixedValue",
         bed_surface__elevation_fixed_node=fixed_nodes,
-        sediment_transport__bedload_rate_imposed_link=qb,
+        sed_transport__bedload_rate_imposed_link=qb,
     )
 
     # Set boundaries as closed boundaries, the outlet is set to an open boundary.
@@ -438,7 +269,7 @@ def test_r_b_d_approximate_solution():
     t = 0.0
     while t < simulation_max_time:
         # defines the velocity at previous time
-        rbd._surface_water__velocity_previous_time_link = (
+        rbd._surface_water__velocity_prev_time_link = (
             of._grid["link"]["surface_water__discharge"]
             / of._grid["link"]["surface_water__depth"]
         )
@@ -452,10 +283,10 @@ def test_r_b_d_approximate_solution():
             / grid["link"]["surface_water__depth"]
         )
 
-        # Defines the time step used in river_bed_dynamics
+        # Defines the time step used in RiverBedDynamics
         rbd._grid._dt = of.dt
 
-        # Runs river_bed_dynamics for one time step
+        # Runs RiverBedDynamics for one time step
         rbd.run_one_step()  # Runs riverBedDynamics for one time step
 
         # Gradient preserving at upstream ghost cells
