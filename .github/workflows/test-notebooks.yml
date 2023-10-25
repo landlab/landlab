@@ -37,13 +37,15 @@ jobs:
             cxx-compiler
             mamba
 
-          channel-priority: true
+          # channel-priority: true
 
       - name: Show conda installation info
         run: |
           pip install nox
-          mamba info
-          mamba list
+          micromamba install -n base conda
+          conda update -n base conda
+          conda info
+          conda list
 
       - name: Test jupyter notebooks
         env:
