@@ -23,12 +23,12 @@ from .field import FieldError
 from .grid import (
     FramedVoronoiGrid,
     HexModelGrid,
+    IcosphereGlobalGrid,
     ModelGrid,
     NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    IcosphereGlobalGrid,
     create_grid,
 )
 from .grid.linkstatus import LinkStatus
