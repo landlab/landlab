@@ -40,55 +40,60 @@ class LinearDiffuser(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
-    >>> mg = RasterModelGrid((9, 9))
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
+
+    >>> grid = RasterModelGrid((9, 9))
+    >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z.reshape((9, 9))[4, 4] = 1.
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
-    >>> for i in range(1):
-    ...     ld.run_one_step(1.)
-    >>> np.isclose(z[mg.core_nodes].sum(), 1.)
+    >>> grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> ld = LinearDiffuser(grid, linear_diffusivity=1.)
+    >>> ld.run_one_step(1.)
+    >>> np.isclose(z[grid.core_nodes].sum(), 1.)
     True
-    >>> mg2 = RasterModelGrid((5, 30))
-    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
+
+    >>> grid = RasterModelGrid((5, 30))
+    >>> z2 = grid.add_zeros("topographic__elevation", at="node")
     >>> z2.reshape((5, 30))[2, 8] = 1.
     >>> z2.reshape((5, 30))[2, 22] = 1.
-    >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> kd = mg2.node_x/mg2.node_x.mean()
-    >>> ld2 = LinearDiffuser(mg2, linear_diffusivity=kd)
-    >>> for i in range(10):
+    >>> grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    >>> kd = grid.node_x / grid.node_x.mean()
+    >>> ld2 = LinearDiffuser(grid, linear_diffusivity=kd)
+    >>> for _ in range(10):
     ...     ld2.run_one_step(0.1)
-    >>> z2[mg2.core_nodes].sum() == 2.
+    >>> z2[grid.core_nodes].sum() == 2.
     True
     >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
     True
 
     An example using links:
 
-    >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> z1 = mg1.add_zeros("topographic__elevation", at="node")
-    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
-    >>> dt = 1.
+    >>> grid1 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> grid2 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> z1 = grid1.add_zeros("topographic__elevation", at="node")
+    >>> z2 = grid2.add_zeros("topographic__elevation", at="node")
+    >>> dt = 1.0
     >>> nt = 10
-    >>> kappa_links = mg2.add_ones("surface_water__discharge", at="link")
-    >>> kappa_links *= 10000.
-    >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge')
+    >>> grid2.at_link["surface_water__discharge"] = np.full(
+    ...     grid2.number_of_links, 10000.0
+    ... )
+    >>> dfn1 = LinearDiffuser(grid1, linear_diffusivity=10000.)
+    >>> dfn2 = LinearDiffuser(grid2, linear_diffusivity="surface_water__discharge")
     >>> for i in range(nt):
-    ...     z1[mg1.core_nodes] += 1.
-    ...     z2[mg2.core_nodes] += 1.
+    ...     z1[grid1.core_nodes] += 1.0
+    ...     z2[grid2.core_nodes] += 1.0
     ...     dfn1.run_one_step(dt)
     ...     dfn2.run_one_step(dt)
     >>> np.allclose(z1, z2)
     True
     >>> z2.fill(0.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge',
-    ...                       method='resolve_on_patches')
+    >>> dfn2 = LinearDiffuser(
+    ...     grid2,
+    ...     linear_diffusivity="surface_water__discharge",
+    ...     method="resolve_on_patches",
+    ... )
     >>> for i in range(nt):
-    ...     z2[mg2.core_nodes] += 1.
+    ...     z2[grid2.core_nodes] += 1.0
     ...     dfn2.run_one_step(dt)
-    >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])
+    >>> np.all(z2[grid2.core_nodes] < z1[grid2.core_nodes])
     True
 
     References
@@ -175,45 +180,44 @@ class LinearDiffuser(Component):
         super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
-        assert method in ("simple", "resolve_on_patches", "on_diagonals")
-        if method == "resolve_on_patches":
-            assert isinstance(self._grid, RasterModelGrid)
-            self._use_patches = True
-        else:
-            self._use_patches = False
+        method = self._validate_method(method)
+
+        if method == "resolve_on_patches" and not isinstance(grid, RasterModelGrid):
+            raise TypeError(
+                "the resolve_on_patches method is only available for RasterModelGrid."
+            )
+
+        self._use_patches = method == "resolve_on_patches"
+
         if method == "on_diagonals" and isinstance(self._grid, RasterModelGrid):
             self._use_diags = True
         else:
             self._use_diags = False
         self._current_time = 0.0
         self._run_before = False
-        self._kd_on_links = False
 
-        if isinstance(linear_diffusivity, str):
-            try:
-                self._kd = self._grid.at_link[linear_diffusivity]
-                self._kd_on_links = True
-            except KeyError:
-                self._kd = self._grid.at_node[linear_diffusivity]
-        else:
-            self._kd = linear_diffusivity
+        self._kd = self._validate_linear_diffusivity(grid, linear_diffusivity)
 
-            if isinstance(self._kd, (float, int)):
-                self._kd = float(self._kd)
-            else:
-                if self._kd.size == self._grid.number_of_links:
-                    self._kd_on_links = True
-                else:
-                    assert self._kd.size == self._grid.number_of_nodes
+        if self._use_patches and np.ndim(self._kd) == 0:
+            self._kd = np.broadcast_to(self._kd, grid.number_of_links)
 
-        if self._kd_on_links is True:
-            assert isinstance(self._grid, RasterModelGrid)
+        self._kd_on_links = np.size(self._kd) == grid.number_of_links
+
+        if self._kd_on_links and not isinstance(grid, RasterModelGrid):
+            raise TypeError(
+                "linear_diffusivity defined at links is only available for"
+                " RasterModelGrid."
+            )
 
         # if we're using patches, it is VITAL that diffusivity is defined on
         # links. The whole point of this functionality is that we honour
         # *directionality* in the diffusivities.
-        if self._use_patches:
-            assert self._kd_on_links
+        if self._use_patches and not self._kd_on_links:
+            raise ValueError(
+                "if using the resolve_on_patches method, linear_diffusivity"
+                " must be defined at links."
+            )
+
         # set _deposit flag to tell code whether or not diffusion can deposit.
 
         self._deposit = deposit
@@ -311,6 +315,40 @@ class LinearDiffuser(Component):
 
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
+
+    @staticmethod
+    def _validate_method(method):
+        valid_methods = {"simple", "resolve_on_patches"}
+
+        if method not in valid_methods:
+            raise ValueError(
+                f"method {method} not understood"
+                f" (must be one of {', '.join(sorted(valid_methods))})."
+            )
+        return method
+
+    @staticmethod
+    def _validate_linear_diffusivity(grid, linear_diffusivity):
+        if isinstance(linear_diffusivity, str):
+            if linear_diffusivity in grid.at_link:
+                k = grid.at_link[linear_diffusivity]
+            elif linear_diffusivity in grid.at_node:
+                k = grid.at_node[linear_diffusivity]
+            else:
+                raise ValueError(
+                    f"linear_diffusivity {linear_diffusivity!r}, it must be defined "
+                    "at either nodes, or links."
+                )
+        elif np.ndim(linear_diffusivity) == 0:
+            k = float(linear_diffusivity)
+        else:
+            k = np.asarray(linear_diffusivity)
+            if k.size not in (grid.number_of_nodes, grid.number_of_links):
+                raise ValueError(
+                    "linear_diffusivity must be defined at either nodes, or links."
+                )
+
+        return k
 
     @property
     def fixed_grad_nodes(self):
