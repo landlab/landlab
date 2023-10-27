@@ -42,52 +42,59 @@ class LinearDiffuser(Component):
     >>> import numpy as np
     >>> mg = RasterModelGrid((9, 9))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> z.reshape((9, 9))[4, 4] = 1.
+    >>> z.reshape((9, 9))[4, 4] = 1.0
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    >>> ld = LinearDiffuser(mg, linear_diffusivity=1.0)
     >>> for i in range(1):
-    ...     ld.run_one_step(1.)
-    >>> np.isclose(z[mg.core_nodes].sum(), 1.)
+    ...     ld.run_one_step(1.0)
+    ...
+    >>> np.isclose(z[mg.core_nodes].sum(), 1.0)
     True
     >>> mg2 = RasterModelGrid((5, 30))
     >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
-    >>> z2.reshape((5, 30))[2, 8] = 1.
-    >>> z2.reshape((5, 30))[2, 22] = 1.
+    >>> z2.reshape((5, 30))[2, 8] = 1.0
+    >>> z2.reshape((5, 30))[2, 22] = 1.0
     >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> kd = mg2.node_x/mg2.node_x.mean()
+    >>> kd = mg2.node_x / mg2.node_x.mean()
     >>> ld2 = LinearDiffuser(mg2, linear_diffusivity=kd)
     >>> for i in range(10):
     ...     ld2.run_one_step(0.1)
-    >>> z2[mg2.core_nodes].sum() == 2.
+    ...
+    >>> z2[mg2.core_nodes].sum() == 2.0
     True
     >>> z2.reshape((5, 30))[2, 8] > z2.reshape((5, 30))[2, 22]
     True
 
     An example using links:
 
-    >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.0)
+    >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.0)
     >>> z1 = mg1.add_zeros("topographic__elevation", at="node")
     >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
-    >>> dt = 1.
+    >>> dt = 1.0
     >>> nt = 10
     >>> kappa_links = mg2.add_ones("surface_water__discharge", at="link")
-    >>> kappa_links *= 10000.
-    >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge')
+    >>> kappa_links *= 10000.0
+    >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.0)
+    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity="surface_water__discharge")
     >>> for i in range(nt):
-    ...     z1[mg1.core_nodes] += 1.
-    ...     z2[mg2.core_nodes] += 1.
+    ...     z1[mg1.core_nodes] += 1.0
+    ...     z2[mg2.core_nodes] += 1.0
     ...     dfn1.run_one_step(dt)
     ...     dfn2.run_one_step(dt)
+    ...
     >>> np.allclose(z1, z2)
     True
-    >>> z2.fill(0.)
-    >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge',
-    ...                       method='resolve_on_patches')
+    >>> z2.fill(0.0)
+    >>> dfn2 = LinearDiffuser(
+    ...     mg2,
+    ...     linear_diffusivity="surface_water__discharge",
+    ...     method="resolve_on_patches",
+    ... )
     >>> for i in range(nt):
-    ...     z2[mg2.core_nodes] += 1.
+    ...     z2[mg2.core_nodes] += 1.0
     ...     dfn2.run_one_step(dt)
+    ...
     >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])
     True
 
@@ -341,16 +348,17 @@ class LinearDiffuser(Component):
         >>> import numpy as np
         >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.add_zeros("topographic__elevation", at="node")
-        >>> z[mg.core_nodes] = 1.
-        >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
+        >>> z[mg.core_nodes] = 1.0
+        >>> ld = LinearDiffuser(mg, linear_diffusivity=1.0)
         >>> ld.fixed_grad_nodes.size == 0
         True
         >>> ld.fixed_grad_anchors.size == 0
         True
         >>> ld.fixed_grad_offsets.size == 0
         True
-        >>> mg.at_link['topographic__slope'] = mg.calc_grad_at_link(
-        ...     'topographic__elevation')
+        >>> mg.at_link["topographic__slope"] = mg.calc_grad_at_link(
+        ...     "topographic__elevation"
+        ... )
         >>> mg.status_at_node[mg.perimeter_nodes] = mg.BC_NODE_IS_FIXED_GRADIENT
         >>> ld.updated_boundary_conditions()
         >>> ld.fixed_grad_nodes
@@ -359,8 +367,9 @@ class LinearDiffuser(Component):
         array([ 6,  7,  8,  6,  8, 11, 13, 11, 12, 13])
         >>> ld.fixed_grad_offsets
         array([-1., -1., -1., -1., -1., -1., -1., -1., -1., -1.])
-        >>> np.allclose(z[ld.fixed_grad_nodes],
-        ...             z[ld.fixed_grad_anchors] + ld.fixed_grad_offsets)
+        >>> np.allclose(
+        ...     z[ld.fixed_grad_nodes], z[ld.fixed_grad_anchors] + ld.fixed_grad_offsets
+        ... )
         True
         """
         fixed_grad_nodes = np.where(

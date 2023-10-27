@@ -14,12 +14,8 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     Examples
     --------
     >>> from landlab.graph import DualStructuredQuadGraph
-    >>> node_y = [-1, -2, -3,
-    ...            0,  0,  0,
-    ...            1,  2,  3]
-    >>> node_x = [ 0,  1,  2,
-    ...            0,  2,  3,
-    ...            0,  1,  2]
+    >>> node_y = [-1, -2, -3, 0, 0, 0, 1, 2, 3]
+    >>> node_x = [0, 1, 2, 0, 2, 3, 0, 1, 2]
     >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3), sort=True)
     >>> graph.number_of_corners == 4
     True
@@ -119,10 +115,10 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
     --------
     >>> from landlab.graph import DualRectilinearGraph
     >>> graph = DualRectilinearGraph(([0, 1, 3], [0, 5, 15, 30]))
-    >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.x_of_corner  # doctest: +NORMALIZE_WHITESPACE
     array([ 2.5, 10. , 22.5,
             2.5, 10. , 22.5])
-    >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.y_of_corner  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5, 0.5, 0.5,
             2. , 2. , 2. ])
     >>> graph.number_of_cells == 2
@@ -164,11 +160,11 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
     --------
     >>> from landlab.graph import DualUniformRectilinearGraph
     >>> graph = DualUniformRectilinearGraph((4, 3))
-    >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.x_of_corner  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5, 1.5,
             0.5, 1.5,
             0.5, 1.5])
-    >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.y_of_corner  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.5, 0.5,
             1.5, 1.5,
             2.5, 2.5])

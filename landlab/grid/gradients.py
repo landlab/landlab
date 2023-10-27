@@ -95,7 +95,7 @@ def calc_diff_at_link(grid, node_values, out=None):
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid((3, 3))
     >>> z = np.zeros(9)
-    >>> z[4] = 1.
+    >>> z[4] = 1.0
     >>> rmg.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
 
@@ -130,7 +130,7 @@ def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
     --------
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid((3, 3))
-    >>> z = mg.node_x * 3. / 4.
+    >>> z = mg.node_x * 3.0 / 4.0
     >>> mg.calc_unit_normal_at_patch(z)
     array([[-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8],
@@ -207,7 +207,7 @@ def calc_slope_at_patch(
     >>> S = mg.calc_slope_at_patch(elevs=z)
     >>> S.size == mg.number_of_patches
     True
-    >>> np.allclose(S, np.pi / 4.)
+    >>> np.allclose(S, np.pi / 4.0)
     True
 
     :meta landlab: info-patch, gradient
@@ -268,9 +268,9 @@ def calc_grad_at_patch(
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_y
     >>> (x_grad, y_grad) = mg.calc_grad_at_patch(elevs=z)
-    >>> np.allclose(y_grad, np.pi / 4.)
+    >>> np.allclose(y_grad, np.pi / 4.0)
     True
-    >>> np.allclose(x_grad, 0.)
+    >>> np.allclose(x_grad, 0.0)
     True
 
     :meta landlab: info-patch, gradient
@@ -350,18 +350,17 @@ def calc_slope_at_node(
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_at_node(elevs=z)
-    >>> np.allclose(slopes, 45. / 180. * np.pi)
+    >>> np.allclose(slopes, 45.0 / 180.0 * np.pi)
     True
 
     >>> mg = RasterModelGrid((4, 5))
-    >>> z = - mg.node_y
-    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
-    ...                                        return_components=True)
-    >>> np.allclose(slope_mag, np.pi / 4.)
+    >>> z = -mg.node_y
+    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z, return_components=True)
+    >>> np.allclose(slope_mag, np.pi / 4.0)
     True
-    >>> np.allclose(cmp[0], 0.)
+    >>> np.allclose(cmp[0], 0.0)
     True
-    >>> np.allclose(cmp[1], - np.pi / 4.)
+    >>> np.allclose(cmp[1], -np.pi / 4.0)
     True
 
     >>> mg = RadialModelGrid(n_rings=3)
@@ -479,7 +478,7 @@ def calc_aspect_at_node(
     --------
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 4))
-    >>> z = mg.node_x ** 2 + mg.node_y ** 2
+    >>> z = mg.node_x**2 + mg.node_y**2
     >>> mg.calc_aspect_at_node(elevs=z)
     array([ 225.        ,  240.16585039,  255.2796318 ,  258.69006753,
             209.83414961,  225.        ,  243.54632481,  248.77808974,
@@ -492,8 +491,8 @@ def calc_aspect_at_node(
             14.7203682 ,  26.45367519,  45.        ,  51.94498651,
             11.30993247,  21.22191026,  38.05501349,  45.        ])
 
-    >>> mg = RasterModelGrid((4, 4), xy_spacing=(3., 2.))
-    >>> z = mg.node_x ** 2 + mg.node_y ** 2
+    >>> mg = RasterModelGrid((4, 4), xy_spacing=(3.0, 2.0))
+    >>> z = mg.node_x**2 + mg.node_y**2
     >>> mg.calc_aspect_at_node(elevs=z)
     array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
             220.75264634,  234.41577266,  251.13402374,  255.29210302,

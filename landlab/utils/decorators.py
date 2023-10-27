@@ -124,6 +124,7 @@ def add_signature_to_doc(func):
     >>> def foo(arg1, kwd=None):
     ...     '''Do something.'''
     ...     pass
+    ...
     >>> print(add_signature_to_doc(foo))
     foo(arg1, kwd=None)
     <BLANKLINE>
@@ -163,6 +164,7 @@ class use_field_name_or_array:
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
     >>> my_func(grid, np.arange(grid.number_of_cells))
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
@@ -172,9 +174,10 @@ class use_field_name_or_array:
     the values are defined on ("node", "cell", etc.).
 
     >>> from landlab.utils.decorators import use_field_name_or_array
-    >>> @use_field_name_or_array('cell')
+    >>> @use_field_name_or_array("cell")
     ... def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
 
     The array of values now can be list or anything that can be converted to
     a numpy array.
@@ -191,7 +194,7 @@ class use_field_name_or_array:
     The array of values can be a field name.
 
     >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
-    >>> my_func(grid, 'elevation')
+    >>> my_func(grid, "elevation")
     array([  0.,   2.,   4.,   6.,   8.,  10.])
     """
 
@@ -252,6 +255,7 @@ class use_field_name_array_or_value:
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
     >>> my_func(grid, np.arange(grid.number_of_cells))
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
@@ -261,9 +265,10 @@ class use_field_name_array_or_value:
     of the grid element that the values are defined on ("node", "cell", etc.).
 
     >>> from landlab.utils.decorators import use_field_name_array_or_value
-    >>> @use_field_name_array_or_value('cell')
+    >>> @use_field_name_array_or_value("cell")
     ... def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
 
     The array of values now can be list or anything that can be converted to
     a numpy array.
@@ -280,7 +285,7 @@ class use_field_name_array_or_value:
     The array of values can be a field name.
 
     >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
-    >>> my_func(grid, 'elevation')
+    >>> my_func(grid, "elevation")
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
     The array of values can be a value (float, int, etc.).

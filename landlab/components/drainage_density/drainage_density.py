@@ -63,11 +63,11 @@ class DrainageDensity(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> mg = RasterModelGrid((10, 10))
-    >>> _ = mg.add_zeros('node', 'topographic__elevation')
+    >>> _ = mg.add_zeros("node", "topographic__elevation")
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
-    >>> mg.at_node['topographic__elevation'] += noise
-    >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["topographic__elevation"] += noise
+    >>> mg.at_node["topographic__elevation"]  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.49460165,  0.2280831 ,  0.25547392,  0.39632991,  0.3773151 ,
         0.99657423,  0.4081972 ,  0.77189399,  0.76053669,  0.31000935,
         0.3465412 ,  0.35176482,  0.14546686,  0.97266468,  0.90917844,
@@ -88,13 +88,14 @@ class DrainageDensity(Component):
         0.82165703,  0.73749168,  0.84034417,  0.4015291 ,  0.74862   ,
         0.55962945,  0.61323757,  0.29810165,  0.60237917,  0.42567684,
         0.53854438,  0.48672986,  0.49989164,  0.91745948,  0.26287702])
-    >>> fr = FlowAccumulator(mg, flow_director='D8')
-    >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
+    >>> fsc = FastscapeEroder(mg, K_sp=0.01, m_sp=0.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
-    ...     fsc.run_one_step(dt = 10.0)
-    ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-    >>> channels = np.array(mg.at_node['drainage_area'] > 5, dtype=np.uint8)
+    ...     fsc.run_one_step(dt=10.0)
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes] += 0.01
+    ...
+    >>> channels = np.array(mg.at_node["drainage_area"] > 5, dtype=np.uint8)
     >>> dd = DrainageDensity(mg, channel__mask=channels)
     >>> mean_drainage_density = dd.calculate_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
@@ -105,23 +106,26 @@ class DrainageDensity(Component):
     provided.
 
     >>> mg = RasterModelGrid((10, 10))
-    >>> _ = mg.add_zeros('node', 'topographic__elevation')
+    >>> _ = mg.add_zeros("node", "topographic__elevation")
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
-    >>> mg.at_node['topographic__elevation'] += noise
-    >>> fr = FlowAccumulator(mg, flow_director='D8')
-    >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
+    >>> mg.at_node["topographic__elevation"] += noise
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
+    >>> fsc = FastscapeEroder(mg, K_sp=0.01, m_sp=0.5, n_sp=1)
     >>> for x in range(100):
     ...     fr.run_one_step()
-    ...     fsc.run_one_step(dt = 10.0)
-    ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-    >>> channels = np.array(mg.at_node['drainage_area'] > 5, dtype=np.uint8)
-    >>> dd = DrainageDensity(mg,
-    ...                      area_coefficient=1.0,
-    ...                      slope_coefficient=1.0,
-    ...                      area_exponent=1.0,
-    ...                      slope_exponent=0.0,
-    ...                      channelization_threshold=5)
+    ...     fsc.run_one_step(dt=10.0)
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes] += 0.01
+    ...
+    >>> channels = np.array(mg.at_node["drainage_area"] > 5, dtype=np.uint8)
+    >>> dd = DrainageDensity(
+    ...     mg,
+    ...     area_coefficient=1.0,
+    ...     slope_coefficient=1.0,
+    ...     area_exponent=1.0,
+    ...     slope_exponent=0.0,
+    ...     channelization_threshold=5,
+    ... )
     >>> mean_drainage_density = dd.calculate_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
     True

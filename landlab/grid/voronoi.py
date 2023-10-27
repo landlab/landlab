@@ -37,7 +37,7 @@ def simple_poly_area(x, y):
     --------
     >>> import numpy as np
     >>> from landlab.grid.voronoi import simple_poly_area
-    >>> x = np.array([3., 1., 1., 3.])
+    >>> x = np.array([3.0, 1.0, 1.0, 3.0])
     >>> y = np.array([1.5, 1.5, 0.5, 0.5])
     >>> simple_poly_area(x, y)
     2.0
@@ -46,10 +46,8 @@ def simple_poly_area(x, y):
     Note that when used in this mode, all polygons must have the same
     number of vertices, and polygon vertices are listed column-by-column.
 
-    >>> x = np.array([[ 3.,  1.,  1.,  3.],
-    ...               [-2., -2., -1., -1.]]).T
-    >>> y = np.array([[1.5, 1.5, 0.5, 0.5],
-    ...               [ 0.,  1.,  2.,  0.]]).T
+    >>> x = np.array([[3.0, 1.0, 1.0, 3.0], [-2.0, -2.0, -1.0, -1.0]]).T
+    >>> y = np.array([[1.5, 1.5, 0.5, 0.5], [0.0, 1.0, 2.0, 0.0]]).T
     >>> simple_poly_area(x, y)
     array([ 2. ,  1.5])
     """
@@ -83,19 +81,28 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
     25
 
     >>> import numpy as np
-    >>> x = [0, 0.1, 0.2, 0.3,
-    ...      1, 1.1, 1.2, 1.3,
-    ...      2, 2.1, 2.2, 2.3,]
-    >>> y = [0, 1, 2, 3,
-    ...      0, 1, 2, 3,
-    ...      0, 1, 2, 3]
+    >>> x = [
+    ...     0,
+    ...     0.1,
+    ...     0.2,
+    ...     0.3,
+    ...     1,
+    ...     1.1,
+    ...     1.2,
+    ...     1.3,
+    ...     2,
+    ...     2.1,
+    ...     2.2,
+    ...     2.3,
+    ... ]
+    >>> y = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
     >>> vmg = VoronoiDelaunayGrid(x, y)
-    >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
+    >>> vmg.node_x  # doctest: +NORMALIZE_WHITESPACE
     array([ 0. ,  1. ,  2. ,
             0.1,  1.1,  2.1,
             0.2,  1.2,  2.2,
             0.3,  1.3,  2.3])
-    >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
+    >>> vmg.node_y  # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  0.,
             1.,  1.,  1.,
             2.,  2.,  2.,
