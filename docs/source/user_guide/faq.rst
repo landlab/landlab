@@ -112,7 +112,7 @@ are some options:
 (3) assign the downstream value
 
 Look at this
-`Tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/file=mappers/mappers.ipynb>`_
+`Tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/file=mappers/mappers.ipynb>`_
 for all the Landlab mappers
 
 How do I test whether my grid is regular or irregular?
@@ -137,7 +137,7 @@ The way to do this is:
 How do I modify boundary conditions for part of the grid where I know the coordinates?
 --------------------------------------------------------------------------------------
 
-See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/boundary_conds/set_BCs_from_xy.ipynb>`_.
+See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/boundary_conds/set_BCs_from_xy.ipynb>`_.
 
 I am having trouble installing Landlab on Ubuntu without Anaconda. What is the fix?
 -----------------------------------------------------------------------------------
