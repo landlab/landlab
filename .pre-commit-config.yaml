@@ -22,6 +22,12 @@ repos:
     types_or: [python, pyi, jupyter]
     additional_dependencies: [".[jupyter]"]
 
+- repo: https://github.com/keewis/blackdoc
+  rev: v0.3.8
+  hooks:
+  - id: blackdoc
+    description: "Black for doctests"
+
 - repo: https://github.com/pycqa/flake8
   rev: 6.0.0
   hooks:
