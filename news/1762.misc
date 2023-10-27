@@ -1,0 +1,4 @@
+
+Updated the *readthedocs* configuration file to exclude the
+`now invalid <https://blog.readthedocs.com/drop-support-system-packages>`_
+``system_packages`` option.

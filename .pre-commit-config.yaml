@@ -35,7 +35,7 @@ repos:
   rev: 1.7.0
   hooks:
     - id: nbqa-pyupgrade
-      args: ["--py39-plus"]
+      args: ["--py310-plus"]
     - id: nbqa-isort
     - id: nbqa-flake8
       args: ["--extend-ignore=E402"]
@@ -55,13 +55,17 @@ repos:
   rev: v3.3.1
   hooks:
   - id: pyupgrade
-    args: [--py39-plus]
+    args: [--py310-plus]
 
 - repo: https://github.com/PyCQA/isort
   rev: 5.12.0
   hooks:
   - id: isort
-    files: \.py$
+    name: isort (python)
+    types: [python]
+  - id: isort
+    name: isort (cython)
+    types: [cython]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
