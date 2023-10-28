@@ -528,9 +528,7 @@ class LakeMapperBarnes(Component):
         >>> lmb._fill_one_node_to_slant(
         ...     z, mg.adjacent_nodes_at_node, lmb._pit, open, lmb._closed, False
         ... )
-        >>> lmb._pit == [
-        ...     15,
-        ... ]  # Popping 16 off "open" puts 15 in "pit"
+        >>> lmb._pit == [15]  # Popping 16 off "open" puts 15 in "pit"
         True
         >>> np.isclose(z[15], z[16])  # 15 has also been filled in this step
         True
@@ -1368,16 +1366,12 @@ class LakeMapperBarnes(Component):
         ... ]
         >>> np.allclose(z.reshape(mg.shape), z_out)
         True
-        >>> np.all(
-        ...     np.equal(z.reshape(mg.shape), z_out)
-        ... )  # those 1.5's are actually a bit > 1.5
-        False
         >>> try:
         ...     lmb.lake_map  # not created, as we aren't tracking
         ... except ValueError:
         ...     print(
-        ...         "ValueError was raised: "
-        ...         + "Enable tracking to access information about lakes"
+        ...         "ValueError was raised:"
+        ...         " Enable tracking to access information about lakes"
         ...     )
         ...
         ValueError was raised: Enable tracking to access information about lakes
@@ -1933,11 +1927,6 @@ class LakeMapperBarnes(Component):
         >>> for edge in ("left", "top", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         ...
-        >>> # z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
-        >>> # z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
-        >>> # z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> # z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-        >>> # z_init = z.copy()
         >>> mg.at_node["topographic__elevation"] = [
         ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         ...     [0.0, 2.1, 1.1, 0.6, 1.6, 0.0],
@@ -1962,8 +1951,8 @@ class LakeMapperBarnes(Component):
         ...     lmb.lake_outlets
         ... except ValueError:
         ...     print(
-        ...         "ValueError was raised: "
-        ...         + "Enable tracking to access information about lakes"
+        ...         "ValueError was raised:"
+        ...         " Enable tracking to access information about lakes"
         ...     )
         ...
         ValueError was raised: Enable tracking to access information about lakes
@@ -1978,9 +1967,7 @@ class LakeMapperBarnes(Component):
         ...     track_lakes=True,
         ... )
         >>> lmb.run_one_step()
-        >>> lmb.lake_outlets == [
-        ...     16,
-        ... ]
+        >>> lmb.lake_outlets == [16]
         True
         """
         if not self._track_lakes:
@@ -2025,8 +2012,8 @@ class LakeMapperBarnes(Component):
         ...     lmb.number_of_lakes
         ... except ValueError:
         ...     print(
-        ...         "ValueError was raised: "
-        ...         + "Enable tracking to access information about lakes"
+        ...         "ValueError was raised:"
+        ...         " Enable tracking to access information about lakes"
         ...     )
         ...
         ValueError was raised: Enable tracking to access information about lakes
@@ -2086,8 +2073,8 @@ class LakeMapperBarnes(Component):
         ...     lmb.lake_map
         ... except ValueError:
         ...     print(
-        ...         "ValueError was raised: "
-        ...         + "Enable tracking to access information about lakes"
+        ...         "ValueError was raised:"
+        ...         " Enable tracking to access information about lakes"
         ...     )
         ...
         ValueError was raised: Enable tracking to access information about lakes

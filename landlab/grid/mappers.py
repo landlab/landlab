@@ -727,27 +727,25 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link["grad"] = np.array(
-    ...     [
-    ...         -1.1,
-    ...         -1.2,
-    ...         -1.3,
-    ...         1.4,
-    ...         1.5,
-    ...         1.6,
-    ...         -1.7,
-    ...         -1.8,
-    ...         -1.9,
-    ...         2.0,
-    ...         2.1,
-    ...         2.2,
-    ...         -2.3,
-    ...         2.4,
-    ...         2.5,
-    ...         2.6,
-    ...         -2.7,
-    ...     ]
-    ... )
+    >>> rmg.at_link["grad"] = [
+    ...     -1.1,
+    ...     -1.2,
+    ...     -1.3,
+    ...     1.4,
+    ...     1.5,
+    ...     1.6,
+    ...     -1.7,
+    ...     -1.8,
+    ...     -1.9,
+    ...     2.0,
+    ...     2.1,
+    ...     2.2,
+    ...     -2.3,
+    ...     2.4,
+    ...     2.5,
+    ...     2.6,
+    ...     -2.7,
+    ... ]
     >>> map_upwind_node_link_max_to_node(rmg, "grad").reshape((3, 4))
     array([[ 1.4,  1.5,  1.6,  1.3],
            [ 2.1,  2.2,  2. ,  2.4],
@@ -808,27 +806,25 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link["grad"] = np.array(
-    ...     [
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...     ]
-    ... )
+    >>> rmg.at_link["grad"] = [
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ... ]
     >>> map_downwind_node_link_max_to_node(rmg, "grad")
     array([ 1.,  2.,  1.,  0.,
             1.,  2.,  1.,  0.,
@@ -890,27 +886,25 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link["grad"] = np.array(
-    ...     [
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -3.0,
-    ...         -4.0,
-    ...         -5.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -3.0,
-    ...         -4.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...     ]
-    ... )
+    >>> rmg.at_link["grad"] = [
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -3.0,
+    ...     -4.0,
+    ...     -5.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -3.0,
+    ...     -4.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ... ]
     >>> map_upwind_node_link_mean_to_node(rmg, "grad")
     array([ 0. ,  1. ,  2. ,  1. ,
             2. ,  2. ,  3. ,  3. ,
@@ -977,27 +971,25 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link["grad"] = np.array(
-    ...     [
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -3.0,
-    ...         -4.0,
-    ...         -5.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -3.0,
-    ...         -4.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...     ]
-    ... )
+    >>> rmg.at_link["grad"] = [
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -3.0,
+    ...     -4.0,
+    ...     -5.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -3.0,
+    ...     -4.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ... ]
     >>> map_downwind_node_link_mean_to_node(rmg, "grad")
     array([ 1.5,  2.5,  2.5,  5. ,
             1. ,  2. ,  2. ,  4. ,
@@ -1068,27 +1060,25 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link["grad"] = np.array(
-    ...     [
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...     ]
-    ... )
+    >>> rmg.at_link["grad"] = [
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ... ]
     >>> rmg.at_link["vals"] = np.arange(rmg.number_of_links, dtype=float)
     >>> map_value_at_upwind_node_link_max_to_node(rmg, "grad", "vals")
     array([  0.,   0.,   1.,   2.,
@@ -1165,27 +1155,25 @@ def map_value_at_downwind_node_link_max_to_node(
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_link["grad"] = np.array(
-    ...     [
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         -1.0,
-    ...         -2.0,
-    ...         -1.0,
-    ...     ]
-    ... )
+    >>> rmg.at_link["grad"] = [
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     0.0,
+    ...     -1.0,
+    ...     -2.0,
+    ...     -1.0,
+    ... ]
     >>> rmg.at_link["vals"] = np.arange(rmg.number_of_links, dtype=float)
     >>> map_value_at_downwind_node_link_max_to_node(rmg, "grad", "vals")
     array([  0.,   1.,   2.,   0.,
@@ -1253,20 +1241,24 @@ def map_mean_of_patch_nodes_to_patch(
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_node["vals"] = np.array(
-    ...     [5.0, 4.0, 3.0, 2.0, 5.0, 4.0, 3.0, 2.0, 3.0, 2.0, 1.0, 0.0]
-    ... )
+    >>> rmg.at_node["vals"] = [
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 2.0, 1.0, 0.0],
+    ... ]
     >>> map_mean_of_patch_nodes_to_patch(rmg, "vals")
     array([ 4.5, 3.5, 2.5,
             3.5, 2.5, 1.5])
 
-    >>> rmg.at_node["vals"] = np.array(
-    ...     [5.0, 4.0, 3.0, 2.0, 5.0, 4.0, 3.0, 2.0, 3.0, 2.0, 1.0, 0.0]
-    ... )
+    >>> rmg.at_node["vals"] = [
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 2.0, 1.0, 0.0],
+    ... ]
     >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_mean_of_patch_nodes_to_patch(rmg, "vals", out=ans)
-    >>> ans  # doctest: +NORMALIZE_WHITESPACE
+    >>> ans
     array([ 4.5, 4. , 0. ,
             3.5, 3. , 0. ])
 
@@ -1325,20 +1317,24 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_node["vals"] = np.array(
-    ...     [5.0, 4.0, 3.0, 2.0, 3.0, 4.0, 3.0, 2.0, 3.0, 2.0, 1.0, 0.0]
-    ... )
+    >>> rmg.at_node["vals"] = [
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 2.0, 1.0, 0.0],
+    ... ]
     >>> map_max_of_patch_nodes_to_patch(rmg, "vals")
     array([ 5., 4., 3.,
             4., 4., 3.])
 
-    >>> rmg.at_node["vals"] = np.array(
-    ...     [5.0, 4.0, 3.0, 2.0, 3.0, 4.0, 3.0, 2.0, 3.0, 2.0, 1.0, 0.0]
-    ... )
+    >>> rmg.at_node["vals"] = [
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 2.0, 1.0, 0.0],
+    ... ]
     >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_max_of_patch_nodes_to_patch(rmg, "vals", out=ans)
-    >>> ans  # doctest: +NORMALIZE_WHITESPACE
+    >>> ans
     array([ 5., 4., 0.,
             4., 4., 0.])
 
@@ -1397,20 +1393,24 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> rmg.at_node["vals"] = np.array(
-    ...     [5.0, 4.0, 3.0, 2.0, 5.0, 4.0, 3.0, 2.0, 3.0, 2.0, 1.0, 0.0]
-    ... )
+    >>> rmg.at_node["vals"] = [
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 2.0, 1.0, 0.0],
+    ... ]
     >>> map_min_of_patch_nodes_to_patch(rmg, "vals")
     array([ 4., 3., 2.,
             2., 1., 0.])
 
-    >>> rmg.at_node["vals"] = np.array(
-    ...     [5.0, 4.0, 3.0, 2.0, 5.0, 4.0, 3.0, 2.0, 3.0, 2.0, 1.0, 0.0]
-    ... )
+    >>> rmg.at_node["vals"] = [
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [5.0, 4.0, 3.0, 2.0],
+    ...     [3.0, 2.0, 1.0, 0.0],
+    ... ]
     >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_min_of_patch_nodes_to_patch(rmg, "vals", out=ans)
-    >>> ans  # doctest: +NORMALIZE_WHITESPACE
+    >>> ans
     array([ 4., 4., 0.,
             2., 2., 0.])
 
@@ -1498,7 +1498,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     >>> np.allclose(ycomp[(6, 9, 10),] / np.sqrt(3.0), [0.0, 0.0, -1.0])
     True
 
-    These are the patches with *LinksStatus.INACTIVE* on all three sides:
+    These are the patches with ``LinksStatus.INACTIVE`` on all three sides:
 
     >>> absent_patches = np.array([0, 1, 2, 4, 8, 11, 12, 15, 16, 17, 18])
     >>> np.allclose(xcomp[absent_patches], 0.0)
@@ -1639,13 +1639,22 @@ def map_node_to_link_linear_upwind(grid, v, u, out=None):
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid
     >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+
     >>> grid = RasterModelGrid((3, 5))
-    >>> v = grid.add_zeros("node_value", at="node")
-    >>> v[5:10] = np.arange(5)
+    >>> grid.at_node["node_value"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 1.0, 2.0, 3.0, 4.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> v = grid.at_node["node_value"]
+
     >>> u = grid.add_zeros("advection_speed", at="link")
     >>> u[grid.horizontal_links] = 1.0
+
+    Set values for the middle row of horizontal links.
+
     >>> val_at_link = map_node_to_link_linear_upwind(grid, v, u)
     >>> val_at_link[9:13]
     array([ 0.,  1.,  2.,  3.])
@@ -1700,13 +1709,22 @@ def map_node_to_link_lax_wendroff(grid, v, c, out=None):
 
     Examples
     --------
-    >>> from landlab import RasterModelGrid
     >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+
     >>> grid = RasterModelGrid((3, 5))
-    >>> v = grid.add_zeros("node_value", at="node")
-    >>> v[5:10] = np.arange(5)
+    >>> grid.at_node["node_value"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 1.0, 2.0, 3.0, 4.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> v = grid.at_node["node_value"]
+
     >>> c = grid.add_zeros("courant_number", at="link")
     >>> c[grid.horizontal_links] = 0.2
+
+    Set values for the middle row of horizontal links.
+
     >>> val_at_link = map_node_to_link_lax_wendroff(grid, v, c)
     >>> val_at_link[9:13]
     array([ 0.4,  1.4,  2.4,  3.4])

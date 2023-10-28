@@ -1834,9 +1834,10 @@ def calc_slope_at_node(
             1.20591837,  1.3454815 ,  1.38904403,  1.32082849,  1.3454815 ,
             1.39288142,  1.41562833,  1.37713803,  1.38904403,  1.41562833,
             1.43030663])
-    >>> np.allclose(
-    ...     cmp[0].reshape((4, 4))[:, 0], cmp[1].reshape((4, 4))[0, :]
-    ... )  # test radial symmetry
+
+    Check radial symmetry.
+
+    >>> np.allclose(cmp[0].reshape((4, 4))[:, 0], cmp[1].reshape((4, 4))[0, :])
     True
 
     :meta landlab: info-node, gradient, surface

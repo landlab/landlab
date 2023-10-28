@@ -321,12 +321,8 @@ If you wish to pause occasionally to plot and/or write data to file, a natural a
         current_real_time = time.time()
         if current_real_time >= next_report:
             print(
-                "Current simulation time "
-                + str(current_time)
-                + "  \
-            	   ("
-                + str(int(100 * current_time / run_duration))
-                + "%)"
+                f"Current simulation time {current_time}"
+                f" ({int(100.0 * current_time / run_duration)}%)"
             )
             next_report = current_real_time + report_interval
 
