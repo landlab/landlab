@@ -1,0 +1,3 @@
+Modified the *TaylorDiffuser* components, :class:`~.DepthDependentTaylorDiffuser` and
+:class:`~.TaylorNonLinearDiffuser` to use the shortest link instead of ``dx`` in calculatting
+time steps.
