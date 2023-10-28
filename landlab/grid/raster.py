@@ -593,11 +593,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> grid.is_point_on_grid(1, 1)
         True
         >>> grid.is_point_on_grid(
-        ...     (
-        ...         1,
-        ...         1,
-        ...         1,
-        ...     ),
+        ...     (1, 1, 1),
         ...     (1, 3.1, 6.1),
         ... )
         array([ True,  True, False], dtype=bool)
@@ -950,9 +946,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         )
 
         if value:
-            if type(value) == float or type(value) == int:
+            if isinstance(value, (float, int)):
                 values_to_use = float(value)
-            elif type(value) == np.ndarray:
+            elif isinstance(value, np.ndarray):
                 if (
                     value.size
                     == self.fixed_value_node_properties["boundary_node_IDs"].size
@@ -1157,7 +1153,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg = RasterModelGrid((4, 5))
         >>> u = rmg.zeros(centering="node")
         >>> u = u + range(0, len(u))
-        >>> u  # doctest: +NORMALIZE_WHITESPACE
+        >>> u
         array([ 0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
                11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
         >>> ur = rmg.node_vector_to_raster(u)
@@ -1722,15 +1718,16 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> mg.second_ring_looped_neighbors_at_cell[8, :]
         array([10, 18, 26, 25, 24, 31, 30, 22, 14,  6, 62, 63, 56, 57, 58,  2])
 
-        ...take a look at the cell grid to understand why:
-        [56, 57, 58, 59, 60, 61, 62, 63]
-        [48, 49, 50, 51, 52, 53, 54, 55]
-        [40, 41, 42, 43, 44, 45, 46, 47]
-        [32, 33, 34, 35, 36, 37, 38, 39]
-        [24, 25, 26, 27, 28, 29, 30, 31]
-        [16, 17, 18, 19, 20, 21, 22, 23]
-        [ 8,  9, 10, 11, 12, 13, 14, 15]
-        [ 0,  1,  2,  3,  4,  5,  6,  7]
+        ...take a look at the cell grid to understand why::
+
+            [56, 57, 58, 59, 60, 61, 62, 63]
+            [48, 49, 50, 51, 52, 53, 54, 55]
+            [40, 41, 42, 43, 44, 45, 46, 47]
+            [32, 33, 34, 35, 36, 37, 38, 39]
+            [24, 25, 26, 27, 28, 29, 30, 31]
+            [16, 17, 18, 19, 20, 21, 22, 23]
+            [ 8,  9, 10, 11, 12, 13, 14, 15]
+            [ 0,  1,  2,  3,  4,  5,  6,  7]
 
         :meta landlab: info-cell, connectivity, boundary-condition
         """
@@ -1849,8 +1846,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
 
         Examples
         --------
+
         The first example will use a 4,4 grid with node data values
-        as illustrated:
+        as illustrated::
 
             -9999. -9999. -9999. -9999.
             -9999.    67.     0. -9999.
@@ -1870,24 +1868,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg = RasterModelGrid((4, 4))
         >>> node_data = np.array(
         ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, 67.0, 67.0, -9999.0],
+        ...         [-9999.0, 67.0, 0.0, -9999.0],
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> out_id = rmg.set_watershed_boundary_condition(node_data, -9999.0, True)
         >>> out_id
         array([10])
@@ -1896,24 +1882,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg2 = RasterModelGrid((4, 4))
         >>> node_data2 = np.array(
         ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -2.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, 67.0, 67.0, -2.0],
+        ...         [-9999.0, 67.0, 0.0, -9999.0],
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> rmg2.set_watershed_boundary_condition(node_data2, -9999.0)
         >>> rmg2.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
@@ -1921,26 +1895,12 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         The node data can also be provided as a model grid field.
 
         >>> rmg = RasterModelGrid((4, 4))
-        >>> node_data = np.array(
-        ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...     ]
-        ... )
+        >>> node_data = [
+        ...     [-9999.0, -9999.0, -9999.0, -9999.0],
+        ...     [-9999.0, 67.0, 67.0, -9999.0],
+        ...     [-9999.0, 67.0, 0.0, -9999.0],
+        ...     [-9999.0, -9999.0, -9999.0, -9999.0],
+        ... ]
         >>> _ = rmg.add_field("topographic__elevation", node_data, at="node")
         >>> out_id = rmg.set_watershed_boundary_condition(
         ...     "topographic__elevation", -9999.0, True
@@ -2093,61 +2053,21 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> mg1 = RasterModelGrid((4, 6))
         >>> z1 = np.array(
         ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -9999.0,
-        ...         50.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, 67.0, 67.0, -9999.0, 50.0, -9999.0],
+        ...         [-9999.0, 67.0, 0.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> mg2 = RasterModelGrid((4, 6))
         >>> z2 = np.array(
         ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -9999.0,
-        ...         50.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, 67.0, 67.0, -9999.0, 50.0, -9999.0],
+        ...         [-9999.0, 67.0, 0.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> mg1.set_watershed_boundary_condition(z1, remove_disconnected=True)
         >>> mg2.set_watershed_boundary_condition(z2)
         >>> mg2.status_at_node.reshape(mg2.shape)
@@ -2304,7 +2224,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         Examples
         --------
         The example will use a 4,4 grid with node data values
-        as illustrated:
+        as illustrated::
 
             -9999. -9999. -9999. -9999.
             -9999.    67.     0. -9999.
@@ -2318,29 +2238,20 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> node_data = np.array(
         ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, 67.0, 67.0, -9999.0],
+        ...         [-9999.0, 67.0, 0.0, -9999.0],
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> rmg.set_watershed_boundary_condition_outlet_coords(
         ...     (2, 2), node_data, -9999.0
         ... )
-        >>> rmg.status_at_node
-        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[4, 4, 4, 4],
+               [4, 0, 0, 4],
+               [4, 0, 1, 4],
+               [4, 4, 4, 4]], dtype=uint8)
 
         :meta landlab: boundary-condition
         """
@@ -2398,33 +2309,27 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 4))
-        >>> rmg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[1, 1, 1, 1],
+               [1, 0, 0, 1],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
         >>> node_data = np.array(
         ...     [
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         67.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         67.0,
-        ...         0.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
-        ...         -9999.0,
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
+        ...         [-9999.0, 67.0, 67.0, -9999.0],
+        ...         [-9999.0, 67.0, 0.0, -9999.0],
+        ...         [-9999.0, -9999.0, -9999.0, -9999.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> outlet = rmg.set_watershed_boundary_condition_outlet_id(
         ...     10, node_data, -9999.0
         ... )
-        >>> rmg.status_at_node
-        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[4, 4, 4, 4],
+               [4, 0, 0, 4],
+               [4, 0, 1, 4],
+               [4, 4, 4, 4]], dtype=uint8)
 
         :meta landlab: boundary-condition
         """

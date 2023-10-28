@@ -571,11 +571,7 @@ class LakeMapperBarnes(Component):
         >>> lmb._closed = mg.zeros("node", dtype=bool)
         >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> open = StablePriorityQueue()
-        >>> edges = np.array(
-        ...     [
-        ...         7,
-        ...     ]
-        ... )
+        >>> edges = np.array([7])
         >>> for edgenode in edges:
         ...     open.add_task(edgenode, priority=z[edgenode])
         ...

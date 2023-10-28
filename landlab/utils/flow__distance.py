@@ -34,31 +34,13 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> elev = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         21.0,
-    ...         10.0,
-    ...         0.0,
-    ...         0.0,
-    ...         31.0,
-    ...         20.0,
-    ...         0.0,
-    ...         0.0,
-    ...         32.0,
-    ...         30.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...     ]
-    ... )
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=True,
     ...     left_is_closed=True,
@@ -82,31 +64,13 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> elev = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         21.0,
-    ...         10.0,
-    ...         0.0,
-    ...         0.0,
-    ...         31.0,
-    ...         20.0,
-    ...         0.0,
-    ...         0.0,
-    ...         32.0,
-    ...         30.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...     ]
-    ... )
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=True,
     ...     left_is_closed=True,

@@ -207,7 +207,11 @@ def calc_diff_at_link(grid, value_at_node, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 3))
-    >>> node_values = [0.0, 0.0, 0.0, 1.0, 3.0, 1.0, 2.0, 2.0, 2.0]
+    >>> node_values = [
+    ...     [0.0, 0.0, 0.0],
+    ...     [1.0, 3.0, 1.0],
+    ...     [2.0, 2.0, 2.0],
+    ... ]
     >>> grid.calc_diff_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 

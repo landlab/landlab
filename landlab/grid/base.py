@@ -2336,27 +2336,22 @@ class ModelGrid(
         >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid((3, 4))
-        >>> mg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> mg.status_at_node.reshape(mg.shape)
+        array([[1, 1, 1, 1],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
         >>> h = np.array(
         ...     [
-        ...         -9999,
-        ...         -9999,
-        ...         -9999,
-        ...         -9999,
-        ...         -9999,
-        ...         -9999,
-        ...         12345.0,
-        ...         0.0,
-        ...         -9999,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
+        ...         [-9999, -9999, -9999, -9999],
+        ...         [-9999, -9999, 12345.0, 0.0],
+        ...         [-9999, 0.0, 0.0, 0.0],
         ...     ]
-        ... )
+        ... ).flatten()
         >>> mg.set_nodata_nodes_to_closed(h, -9999)
-        >>> mg.status_at_node
-        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=uint8)
+        >>> mg.status_at_node.reshape(mg.shape)
+        array([[4, 4, 4, 4],
+               [4, 4, 0, 1],
+               [4, 1, 1, 1]], dtype=uint8)
 
         :meta landlab: boundary-condition, info-node
         """
@@ -2417,66 +2412,37 @@ class ModelGrid(
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 9))
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 1, 1, 1,
-               1, 0, 0, 0, 0, 0, 0, 0, 1,
-               1, 0, 0, 0, 0, 0, 0, 0, 1,
-               1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[1, 1, 1, 1, 1, 1, 1, 1, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 1, 1, 1, 1, 1, 1, 1, 1]], dtype=uint8)
 
-        >>> z = rmg.zeros(at="node")
         >>> z = np.array(
         ...     [
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
-        ...         -99.0,
+        ...         [-99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0],
+        ...         [-99.0, -99.0, -99.0, 0.0, 0.0, 0.0, 0.0, 0.0, -99.0],
+        ...         [-99.0, -99.0, -99.0, 0.0, 0.0, 0.0, 0.0, 0.0, -99.0],
+        ...         [-99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0],
         ...     ]
-        ... )
+        ... ).flatten()
 
         >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -99)
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2, 2, 2, 2, 2, 2,
-               2, 2, 2, 0, 0, 0, 0, 0, 2,
-               2, 2, 2, 0, 0, 0, 0, 0, 2,
-               2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[2, 2, 2, 2, 2, 2, 2, 2, 2],
+               [2, 2, 2, 0, 0, 0, 0, 0, 2],
+               [2, 2, 2, 0, 0, 0, 0, 0, 2],
+               [2, 2, 2, 2, 2, 2, 2, 2, 2]], dtype=uint8)
 
-        >>> rmg.status_at_link  # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 4,
-               4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 0, 0, 0, 0, 0, 4,
-               4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 2, 2, 2, 2, 2, 4,
-               4, 4, 4, 4, 4, 4, 4, 4], dtype=uint8)
+        >>> rmg.status_at_link[rmg.horizontal_links].reshape((4, 8))
+        array([[4, 4, 4, 4, 4, 4, 4, 4],
+               [4, 4, 2, 0, 0, 0, 0, 2],
+               [4, 4, 2, 0, 0, 0, 0, 2],
+               [4, 4, 4, 4, 4, 4, 4, 4]], dtype=uint8)
+        >>> rmg.status_at_link[rmg.vertical_links].reshape((3, 9))
+        array([[4, 4, 4, 2, 2, 2, 2, 2, 4],
+               [4, 4, 4, 0, 0, 0, 0, 0, 4],
+               [4, 4, 4, 2, 2, 2, 2, 2, 4]], dtype=uint8)
 
         :meta landlab: boundary-condition, info-node
         """

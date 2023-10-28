@@ -73,36 +73,37 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from numpy.random import rand
     >>> from landlab.grid import VoronoiDelaunayGrid
+
     >>> x, y = rand(25), rand(25)
     >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
     >>> vmg.number_of_nodes
     25
 
-    >>> import numpy as np
-    >>> x = [
-    ...     0,
-    ...     0.1,
-    ...     0.2,
-    ...     0.3,
-    ...     1,
-    ...     1.1,
-    ...     1.2,
-    ...     1.3,
-    ...     2,
-    ...     2.1,
-    ...     2.2,
-    ...     2.3,
-    ... ]
-    >>> y = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+    >>> x = np.array(
+    ...     [
+    ...         [0, 0.1, 0.2, 0.3],
+    ...         [1, 1.1, 1.2, 1.3],
+    ...         [2, 2.1, 2.2, 2.3],
+    ...     ]
+    ... ).flatten()
+    >>> y = np.array(
+    ...     [
+    ...         [0.0, 1.0, 2.0, 3.0],
+    ...         [0.0, 1.0, 2.0, 3.0],
+    ...         [0.0, 1.0, 2.0, 3.0],
+    ...     ]
+    ... ).flatten()
+
     >>> vmg = VoronoiDelaunayGrid(x, y)
-    >>> vmg.node_x  # doctest: +NORMALIZE_WHITESPACE
+    >>> vmg.node_x
     array([ 0. ,  1. ,  2. ,
             0.1,  1.1,  2.1,
             0.2,  1.2,  2.2,
             0.3,  1.3,  2.3])
-    >>> vmg.node_y  # doctest: +NORMALIZE_WHITESPACE
+    >>> vmg.node_y
     array([ 0.,  0.,  0.,
             1.,  1.,  1.,
             2.,  2.,  2.,

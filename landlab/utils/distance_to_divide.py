@@ -40,31 +40,13 @@ def calculate_distance_to_divide(
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.distance_to_divide import calculate_distance_to_divide
     >>> mg = RasterModelGrid((5, 4))
-    >>> elev = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         10.0,
-    ...         10.0,
-    ...         0.0,
-    ...         0.0,
-    ...         20.0,
-    ...         20.0,
-    ...         0.0,
-    ...         0.0,
-    ...         30.0,
-    ...         30.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...     ]
-    ... )
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 10.0, 10.0, 0.0],
+    ...     [0.0, 20.0, 20.0, 0.0],
+    ...     [0.0, 30.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=False,
     ...     left_is_closed=True,
@@ -92,31 +74,13 @@ def calculate_distance_to_divide(
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.distance_to_divide import calculate_distance_to_divide
     >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> elev = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         10.0,
-    ...         10.0,
-    ...         0.0,
-    ...         0.0,
-    ...         20.0,
-    ...         20.0,
-    ...         0.0,
-    ...         0.0,
-    ...         30.0,
-    ...         30.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...     ]
-    ... )
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 10.0, 10.0, 0.0],
+    ...     [0.0, 20.0, 20.0, 0.0],
+    ...     [0.0, 30.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=False,
     ...     left_is_closed=True,

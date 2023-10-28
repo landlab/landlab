@@ -446,7 +446,7 @@ class CellLabCTSModel:
         # This is the new part that allows Transition from_ and to_ types
         # to be specified either as ints, or as tuples.
         transition_list_as_ID = transition_list[:]
-        if type(transition_list[0].from_state) == tuple:
+        if isinstance(transition_list[0].from_state, tuple):
             # (then they all are..., because of the assertions in __init__)
             for i in range(len(transition_list)):
                 transition_list_as_ID[i].from_state = self.link_state_dict[
