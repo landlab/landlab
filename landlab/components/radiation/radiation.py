@@ -56,30 +56,13 @@ class Radiation(Component):
     >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
     True
 
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...     ]
-    ... )
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [1.0, 1.0, 1.0, 1.0],
+    ...     [2.0, 2.0, 2.0, 2.0],
+    ...     [3.0, 4.0, 4.0, 3.0],
+    ...     [4.0, 4.0, 4.0, 4.0],
+    ... ]
     >>> rad.current_time = 0.5
     >>> rad.update()
     >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)

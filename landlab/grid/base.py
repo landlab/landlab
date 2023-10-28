@@ -1614,6 +1614,7 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
+
         >>> rmg.at_link["grad"] = np.array(
         ...     [
         ...         -1.0,

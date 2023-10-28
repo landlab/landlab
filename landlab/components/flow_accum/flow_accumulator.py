@@ -51,12 +51,12 @@ class FlowAccumulator(Component):
 
     FlowAccumulator stores as ModelGrid fields:
 
-        -  Node array of drainage areas: *'drainage_area'*
-        -  Node array of discharges: *'surface_water__discharge'*
-        -  Node array containing downstream-to-upstream ordered list of node
-            IDs: *'flow__upstream_node_order'*
-        -  Node array of all but the first element of the delta data structure:
-            *flow__data_structure_delta*. The first element is always zero.
+    -  Node array of drainage areas: *'drainage_area'*
+    -  Node array of discharges: *'surface_water__discharge'*
+    -  Node array containing downstream-to-upstream ordered list of node
+        IDs: *'flow__upstream_node_order'*
+    -  Node array of all but the first element of the delta data structure:
+        *flow__data_structure_delta*. The first element is always zero.
 
     The FlowDirector component will add additional ModelGrid fields.
     DirectToOne methods(Steepest/D4 and D8) and DirectToMany(DINF and MFD) use
@@ -65,22 +65,22 @@ class FlowAccumulator(Component):
 
     The FlowDirectors store the following as ModelGrid fields:
 
-        -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-            there is no receiver: *'flow__receiver_node'*. This array is 2D for
-            RouteToMany methods and has the shape
-            (n-nodes x max number of receivers).
-        -  Node array of flow proportions: *'flow__receiver_proportions'*. This
-            array is 2D, for RouteToMany methods and has the shape
-            (n-nodes x max number of receivers).
-        -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
-            This array is 2D for RouteToMany methods and has the shape
-            (n-nodes x max number of receivers).
-        -  Node array of downhill slopes from each receiver:
-            *'topographic__steepest_slope'* This array is 2D for RouteToMany
-            methods and has the shape (n-nodes x max number of receivers).
-        -  Boolean node array of all local lows: *'flow__sink_flag'*
-        -  Link array identifing if flow goes with (1) or against (-1) the link
-           direction: *'flow__link_direction'*
+    -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
+       there is no receiver: *'flow__receiver_node'*. This array is 2D for
+       RouteToMany methods and has the shape
+       (n-nodes x max number of receivers).
+    -  Node array of flow proportions: *'flow__receiver_proportions'*. This
+       array is 2D, for RouteToMany methods and has the shape
+       (n-nodes x max number of receivers).
+    -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
+       This array is 2D for RouteToMany methods and has the shape
+       (n-nodes x max number of receivers).
+    -  Node array of downhill slopes from each receiver:
+       *'topographic__steepest_slope'* This array is 2D for RouteToMany
+       methods and has the shape (n-nodes x max number of receivers).
+    -  Boolean node array of all local lows: *'flow__sink_flag'*
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -182,48 +182,31 @@ class FlowAccumulator(Component):
     Now let's make a more complicated elevation grid for the next examples.
 
     >>> mg = RasterModelGrid((5, 4))
-    >>> topographic__elevation = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         21.0,
-    ...         10.0,
-    ...         0.0,
-    ...         0.0,
-    ...         31.0,
-    ...         20.0,
-    ...         0.0,
-    ...         0.0,
-    ...         32.0,
-    ...         30.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...     ]
-    ... )
+    >>> topographic__elevation = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> _ = mg.add_field("topographic__elevation", topographic__elevation, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa = FlowAccumulator(
     ...     mg, "topographic__elevation", flow_director=FlowDirectorSteepest
     ... )
     >>> fa.run_one_step()
-    >>> mg.at_node["flow__receiver_node"]  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0,  1,  2,  3,
-            4,  1,  2,  7,
-            8, 10,  6, 11,
-           12, 14, 10, 15,
-           16, 17, 18, 19])
-    >>> mg.at_node["drainage_area"]  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  1.,  5.,  0.,
-            0.,  1.,  5.,  0.,
-            0.,  1.,  4.,  0.,
-            0.,  1.,  2.,  0.,
-            0.,  0.,  0.,  0.])
+    >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
+    array([[ 0,  1,  2,  3],
+           [ 4,  1,  2,  7],
+           [ 8, 10,  6, 11],
+           [12, 14, 10, 15],
+           [16, 17, 18, 19]])
+    >>> mg.at_node["drainage_area"].reshape(mg.shape)
+    array([[ 0.,  1.,  5.,  0.],
+           [ 0.,  1.,  5.,  0.],
+           [ 0.,  1.,  4.,  0.],
+           [ 0.,  1.,  2.,  0.],
+           [ 0.,  0.,  0.,  0.]])
 
     Now let's change the cell area (100.) and the runoff rates:
 
@@ -239,41 +222,41 @@ class FlowAccumulator(Component):
     >>> runoff_rate = np.arange(mg.number_of_nodes, dtype=float)
     >>> rnff = mg.add_field("water__unit_flux_in", runoff_rate, at="node", clobber=True)
     >>> fa.run_one_step()
-    >>> mg.at_node["surface_water__discharge"]  # doctest: +NORMALIZE_WHITESPACE
-    array([    0.,   500.,  5200.,     0.,
-               0.,   500.,  5200.,     0.,
-               0.,   900.,  4600.,     0.,
-               0.,  1300.,  2700.,     0.,
-               0.,     0.,     0.,     0.])
+    >>> mg.at_node["surface_water__discharge"].reshape(mg.shape)
+    array([[    0.,   500.,  5200.,     0.],
+           [    0.,   500.,  5200.,     0.],
+           [    0.,   900.,  4600.,     0.],
+           [    0.,  1300.,  2700.,     0.],
+           [    0.,     0.,     0.,     0.]])
 
     The flow accumulator will happily work with a negative runoff rate, which
     could be used to allow, e.g., transmission losses:
 
     >>> runoff_rate.fill(1.0)
     >>> fa.run_one_step()
-    >>> mg.at_node["surface_water__discharge"]
-    array([   0.,  100.,  500.,    0.,
-              0.,  100.,  500.,    0.,
-              0.,  100.,  400.,    0.,
-              0.,  100.,  200.,    0.,
-              0.,    0.,    0.,    0.])
+    >>> mg.at_node["surface_water__discharge"].reshape(mg.shape)
+    array([[   0.,  100.,  500.,    0.],
+           [   0.,  100.,  500.,    0.],
+           [   0.,  100.,  400.,    0.],
+           [   0.,  100.,  200.,    0.],
+           [   0.,    0.,    0.,    0.]])
     >>> runoff_rate[:8] = -0.5
     >>> fa.run_one_step()
-    >>> mg.at_node["surface_water__discharge"]
-    array([   0.,    0.,  350.,    0.,
-              0.,    0.,  350.,    0.,
-              0.,  100.,  400.,    0.,
-              0.,  100.,  200.,    0.,
-              0.,    0.,    0.,    0.])
+    >>> mg.at_node["surface_water__discharge"].reshape(mg.shape)
+    array([[   0.,    0.,  350.,    0.],
+           [   0.,    0.,  350.,    0.],
+           [   0.,  100.,  400.,    0.],
+           [   0.,  100.,  200.,    0.],
+           [   0.,    0.,    0.,    0.]])
 
     The drainage area array is unaffected, as you would expect:
 
-    >>> mg.at_node["drainage_area"]
-    array([   0.,  100.,  500.,    0.,
-              0.,  100.,  500.,    0.,
-              0.,  100.,  400.,    0.,
-              0.,  100.,  200.,    0.,
-              0.,    0.,    0.,    0.])
+    >>> mg.at_node["drainage_area"].reshape(mg.shape)
+    array([[   0.,  100.,  500.,    0.],
+           [   0.,  100.,  500.,    0.],
+           [   0.,  100.,  400.,    0.],
+           [   0.,  100.,  200.,    0.],
+           [   0.,    0.,    0.,    0.]])
 
     The FlowAccumulator component will work for both raster grids and irregular
     grids. For the example we will use a Hexagonal Model Grid, a special type
@@ -310,7 +293,7 @@ class FlowAccumulator(Component):
     ...     mg, "topographic__elevation", flow_director="MFD", diagonals=True
     ... )
     >>> fa.run_one_step()
-    >>> mg.at_node["flow__receiver_node"]  # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["flow__receiver_node"]
     array([[ 0, -1, -1, -1, -1, -1, -1, -1],
            [ 1, -1, -1, -1, -1, -1, -1, -1],
            [ 2, -1, -1, -1, -1, -1, -1, -1],
@@ -336,12 +319,12 @@ class FlowAccumulator(Component):
            [22, -1, -1, -1, -1, -1, -1, -1],
            [23, -1, -1, -1, -1, -1, -1, -1],
            [24, -1, -1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node["drainage_area"].round(4)  # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.4117,  2.065 ,  1.3254,  0.4038,  0.    ,
-            2.065 ,  3.4081,  2.5754,  1.3787,  0.    ,
-            1.3254,  2.5754,  2.1716,  1.2929,  0.    ,
-            0.4038,  1.3787,  1.2929,  1.    ,  0.    ,
-            0.    ,  0.    ,  0.    ,  0.    ,  0.    ])
+    >>> mg.at_node["drainage_area"].round(4).reshape(mg.shape)
+    array([[ 1.4117,  2.065 ,  1.3254,  0.4038,  0.    ],
+           [ 2.065 ,  3.4081,  2.5754,  1.3787,  0.    ],
+           [ 1.3254,  2.5754,  2.1716,  1.2929,  0.    ],
+           [ 0.4038,  1.3787,  1.2929,  1.    ,  0.    ],
+           [ 0.    ,  0.    ,  0.    ,  0.    ,  0.    ]])
 
     It may seem odd that there are no round numbers in the drainage area field.
     This is because flow is directed to all downhill boundary nodes and
@@ -482,7 +465,7 @@ class FlowAccumulator(Component):
     including whether there is a lake at the node, which lake is at each node,
     the outlet node of each lake, and the area of each lake.
 
-    >>> df_4.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> df_4.lake_at_node.reshape(mg.shape)
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -490,7 +473,7 @@ class FlowAccumulator(Component):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> df_4.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> df_4.lake_map.reshape(mg.shape)
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -545,9 +528,7 @@ class FlowAccumulator(Component):
     The depression finder is stored as part of the flow accumulator, so its
     properties can be accessed through the depression finder.
 
-    >>> fa.depression_finder.lake_at_node.reshape(
-    ...     mg.shape
-    ... )  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa.depression_finder.lake_at_node.reshape(mg.shape)
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -555,9 +536,7 @@ class FlowAccumulator(Component):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> fa.depression_finder.lake_map.reshape(
-    ...     mg.shape
-    ... )  # doctest: +NORMALIZE_WHITESPACE
+    >>> fa.depression_finder.lake_map.reshape(mg.shape)
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],

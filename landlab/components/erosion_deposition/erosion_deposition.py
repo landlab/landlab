@@ -257,12 +257,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         Check initial topography
 
-        >>> mg.at_node["topographic__elevation"]
-        array([ 0.02290479,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-            1.08157495,  2.09812694,  3.00637448,  4.07999597,  5.00969486,
-            2.04008677,  3.06621577,  4.09655859,  5.04809001,  6.02641123,
-            3.05874171,  4.00585786,  5.0595697 ,  6.04425233,  7.05334077,
-            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])
+        >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
+        array([[ 0.02290479,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707],
+               [ 1.08157495,  2.09812694,  3.00637448,  4.07999597,  5.00969486],
+               [ 2.04008677,  3.06621577,  4.09655859,  5.04809001,  6.02641123],
+               [ 3.05874171,  4.00585786,  5.0595697 ,  6.04425233,  7.05334077],
+               [ 4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357]])
 
         Instantiate Fastscape eroder, flow router, and depression finder
 
@@ -297,11 +297,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         Now we test to see if topography is right:
 
-        >>> np.around(mg.at_node["topographic__elevation"], decimals=3)
-        array([-0.477,  1.036,  2.073,  3.011,  4.061,  1.082, -0.08 , -0.065,
-           -0.054,  5.01 ,  2.04 , -0.065, -0.065, -0.053,  6.026,  3.059,
-           -0.054, -0.053, -0.035,  7.053,  4.059,  5.041,  6.07 ,  7.004,
-            8.01 ])
+        >>> np.around(mg.at_node["topographic__elevation"], decimals=3).reshape(
+        ...     mg.shape
+        ... )
+        array([[-0.477,  1.036,  2.073,  3.011,  4.061],
+               [ 1.082, -0.08 , -0.065, -0.054,  5.01 ],
+               [ 2.04 , -0.065, -0.065, -0.053,  6.026],
+               [ 3.059, -0.054, -0.053, -0.035,  7.053],
+               [ 4.059,  5.041,  6.07 ,  7.004,  8.01 ]])
         """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             raise NotImplementedError(

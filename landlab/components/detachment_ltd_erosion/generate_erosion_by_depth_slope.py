@@ -72,67 +72,23 @@ class DepthSlopeProductErosion(Component):
 
     >>> grid.at_node["topographic__elevation"] = np.ones(grid.number_of_nodes)
     >>> grid.at_node["topographic__elevation"] *= 10.0
-    >>> grid.at_node["topographic__elevation"] = np.array(
-    ...     [
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...         10.0,
-    ...     ]
-    ... )
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [10.0, 10.0, 10.0, 10.0, 10.0],
+    ...     [10.0, 10.0, 10.0, 10.0, 10.0],
+    ...     [10.0, 10.0, 10.0, 10.0, 10.0],
+    ...     [10.0, 10.0, 10.0, 10.0, 10.0],
+    ...     [10.0, 10.0, 10.0, 10.0, 10.0],
+    ... ]
 
     Now we'll add an arbitrary water depth field on top of that topography.
 
-    >>> grid.at_node["surface_water__depth"] = np.array(
-    ...     [
-    ...         5.0,
-    ...         5.0,
-    ...         5.0,
-    ...         5.0,
-    ...         5.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         3.0,
-    ...         3.0,
-    ...         3.0,
-    ...         3.0,
-    ...         3.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...     ]
-    ... )
+    >>> grid.at_node["surface_water__depth"] = [
+    ...     [5.0, 5.0, 5.0, 5.0, 5.0],
+    ...     [4.0, 4.0, 4.0, 4.0, 4.0],
+    ...     [3.0, 3.0, 3.0, 3.0, 3.0],
+    ...     [2.0, 2.0, 2.0, 2.0, 2.0],
+    ...     [1.0, 1.0, 1.0, 1.0, 1.0],
+    ... ]
 
     Using the set topography, now we will calculate slopes on all nodes.
 
@@ -167,19 +123,21 @@ class DepthSlopeProductErosion(Component):
     Now we test to see how the topography changed as a function of the erosion
     rate. First, we'll look at the erosion rate:
 
-    >>> dspe.dz  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.    , -2.4525, -2.4525, -2.4525,  0.    ,  0.    , -1.962 ,
-           -1.962 , -1.962 ,  0.    ,  0.    , -1.4715, -1.4715, -1.4715,
-            0.    ,  0.    , -0.981 , -0.981 , -0.981 ,  0.    ,  0.    ,
-            0.    ,  0.    ,  0.    ,  0.    ])
+    >>> dspe.dz.reshape(grid.shape)
+    array([[ 0.    , -2.4525, -2.4525, -2.4525,  0.    ],
+           [ 0.    , -1.962 , -1.962 , -1.962 ,  0.    ],
+           [ 0.    , -1.4715, -1.4715, -1.4715,  0.    ],
+           [ 0.    , -0.981 , -0.981 , -0.981 ,  0.    ],
+           [ 0.    ,  0.    ,  0.    ,  0.    ,  0.    ]])
 
     Now, our updated topography...
 
-    >>> grid.at_node["topographic__elevation"]  # doctest: +NORMALIZE_WHITESPACE
-    array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
-             8.038 ,   8.038 ,   8.038 ,  10.    ,  10.    ,   8.5285,
-             8.5285,   8.5285,  10.    ,  10.    ,   9.019 ,   9.019 ,
-             9.019 ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ,  10.    ])
+    >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
+    array([[ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ],
+           [ 10.    ,   8.038 ,   8.038 ,   8.038 ,  10.    ],
+           [ 10.    ,   8.5285,   8.5285,   8.5285,  10.    ],
+           [ 10.    ,   9.019 ,   9.019 ,   9.019 ,  10.    ],
+           [ 10.    ,  10.    ,  10.    ,  10.    ,  10.    ]])
     """
 
     _name = "DepthSlopeProductErosion"

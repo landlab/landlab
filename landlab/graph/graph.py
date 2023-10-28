@@ -17,7 +17,7 @@ array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
 >>> graph.ndim
 2
 
->>> links = (
+>>> links = [
 ...     (0, 1),
 ...     (1, 2),
 ...     (0, 3),
@@ -30,9 +30,9 @@ array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
 ...     (5, 8),
 ...     (6, 7),
 ...     (7, 8),
-... )
+... ]
 >>> graph = Graph((node_y, node_x), links=links, sort=True)
->>> graph.nodes_at_link  # doctest: +NORMALIZE_WHITESPACE
+>>> graph.nodes_at_link
 array([[0, 1], [1, 2],
        [0, 3], [1, 4], [2, 5],
        [3, 4], [4, 5],
@@ -43,12 +43,12 @@ array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
 >>> graph.node_at_link_tail
 array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
 
->>> graph.links_at_node  # doctest: +NORMALIZE_WHITESPACE
+>>> graph.links_at_node
 array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
        [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
        [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
 
->>> graph.link_dirs_at_node  # doctest: +NORMALIZE_WHITESPACE
+>>> graph.link_dirs_at_node
 array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
        [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
        [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]],

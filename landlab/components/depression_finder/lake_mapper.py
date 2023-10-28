@@ -97,7 +97,7 @@ class DepressionFinderAndRouter(Component):
            [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
            [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
-    >>> df.lake_at_node.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> df.lake_at_node.reshape(mg.shape)
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
            [False, False,  True,  True,  True, False, False],
@@ -105,7 +105,7 @@ class DepressionFinderAndRouter(Component):
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False]], dtype=bool)
-    >>> df.lake_map.reshape(mg.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> df.lake_map.reshape(mg.shape)
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -494,28 +494,44 @@ class DepressionFinderAndRouter(Component):
         >>> z[lake_nodes] *= 0.1
         >>> fr = FlowAccumulator(rg, flow_director="D4")
         >>> fr.run_one_step()
-        >>> rg.at_node["flow__receiver_node"]
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 10, 10, 11, 13, 14, 14, 16,
-               16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 24, 32, 32,
-               34, 35, 35, 38, 38, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> rg.at_node["flow__receiver_node"].reshape(rg.shape)
+        array([[ 0,  1,  2,  3,  4,  5,  6],
+               [ 7,  7, 16, 10, 10, 11, 13],
+               [14, 14, 16, 16, 17, 18, 20],
+               [21, 21, 16, 17, 24, 33, 27],
+               [28, 28, 29, 24, 32, 32, 34],
+               [35, 35, 38, 38, 38, 33, 41],
+               [42, 43, 44, 45, 46, 47, 48]])
         >>> df = DepressionFinderAndRouter(rg, routing="D4")
         >>> df.map_depressions()
-        >>> rg.at_node["flow__receiver_node"]
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 17, 10, 11, 13, 14, 14, 15,
-               16, 17, 18, 20, 21, 21, 16, 17, 24, 33, 27, 28, 28, 29, 38, 31, 32,
-               34, 35, 35, 36, 37, 38, 33, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> rg.at_node["flow__receiver_node"].reshape(rg.shape)
+        array([[ 0,  1,  2,  3,  4,  5,  6],
+               [ 7,  7, 16, 17, 10, 11, 13],
+               [14, 14, 15, 16, 17, 18, 20],
+               [21, 21, 16, 17, 24, 33, 27],
+               [28, 28, 29, 38, 31, 32, 34],
+               [35, 35, 36, 37, 38, 33, 41],
+               [42, 43, 44, 45, 46, 47, 48]])
         >>> fr = FlowAccumulator(rg, flow_director="D8")
         >>> fr.run_one_step()
-        >>> rg.at_node["flow__receiver_node"]
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 16, 10, 18, 13, 14, 14, 16,
-               16, 17, 18, 20, 21, 21, 16, 16, 24, 33, 27, 28, 28, 24, 24, 24, 32,
-               34, 35, 35, 38, 38, 38, 32, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> rg.at_node["flow__receiver_node"].reshape(rg.shape)
+        array([[ 0,  1,  2,  3,  4,  5,  6],
+               [ 7,  7, 16, 16, 10, 18, 13],
+               [14, 14, 16, 16, 17, 18, 20],
+               [21, 21, 16, 16, 24, 33, 27],
+               [28, 28, 24, 24, 24, 32, 34],
+               [35, 35, 38, 38, 38, 32, 41],
+               [42, 43, 44, 45, 46, 47, 48]])
         >>> df = DepressionFinderAndRouter(rg, routing="D8")
         >>> df.map_depressions()
-        >>> rg.at_node["flow__receiver_node"]
-        array([ 0,  1,  2,  3,  4,  5,  6,  7,  7, 16, 16, 10, 18, 13, 14, 14,  8,
-               16, 17, 18, 20, 21, 21, 16, 16, 24, 33, 27, 28, 28, 24, 24, 24, 32,
-               34, 35, 35, 38, 32, 38, 32, 41, 42, 43, 44, 45, 46, 47, 48])
+        >>> rg.at_node["flow__receiver_node"].reshape(rg.shape)
+        array([[ 0,  1,  2,  3,  4,  5,  6],
+               [ 7,  7, 16, 16, 10, 18, 13],
+               [14, 14,  8, 16, 17, 18, 20],
+               [21, 21, 16, 16, 24, 33, 27],
+               [28, 28, 24, 24, 24, 32, 34],
+               [35, 35, 38, 32, 38, 32, 41],
+               [42, 43, 44, 45, 46, 47, 48]])
         """
 
         (links, nbrs, diag_nbrs) = self._links_and_nbrs_at_node(outlet_node)
@@ -839,39 +855,17 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab.components import DepressionFinderAndRouter
 
         >>> rg = RasterModelGrid((5, 5))
-        >>> z = rg.add_zeros("topographic__elevation", at="node")
-        >>> z[:] = np.array(
-        ...     [
-        ...         100.0,
-        ...         100.0,
-        ...         95.0,
-        ...         100.0,
-        ...         100.0,
-        ...         100.0,
-        ...         101.0,
-        ...         92.0,
-        ...         1.0,
-        ...         100.0,
-        ...         100.0,
-        ...         101.0,
-        ...         2.0,
-        ...         101.0,
-        ...         100.0,
-        ...         100.0,
-        ...         3.0,
-        ...         101.0,
-        ...         101.0,
-        ...         100.0,
-        ...         90.0,
-        ...         95.0,
-        ...         100.0,
-        ...         100.0,
-        ...         100.0,
-        ...     ]
-        ... )
+        >>> rg.at_node["topographic__elevation"] = [
+        ...     [100.0, 100.0, 95.0, 100.0, 100.0],
+        ...     [100.0, 101.0, 92.0, 1.0, 100.0],
+        ...     [100.0, 101.0, 2.0, 101.0, 100.0],
+        ...     [100.0, 3.0, 101.0, 101.0, 100.0],
+        ...     [90.0, 95.0, 100.0, 100.0, 100.0],
+        ... ]
+
         >>> df = DepressionFinderAndRouter(rg, reroute_flow=False)
         >>> df.map_depressions()
-        >>> df.display_depression_map()  # doctest: +NORMALIZE_WHITESPACE
+        >>> df.display_depression_map()
         . . . . .
         . . . ~ .
         . . ~ . .
@@ -1006,31 +1000,18 @@ class DepressionFinderAndRouter(Component):
         >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> rcvr = rg.add_zeros("flow__receiver_node", at="node", dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
-        >>> lake_nodes = np.array(
+        >>> lake_nodes = np.flatnonzero(
         ...     [
-        ...         10,
-        ...         12,
-        ...         13,
-        ...         19,
-        ...         20,
-        ...         21,
-        ...         25,
-        ...         26,
-        ...         27,
-        ...         28,
-        ...         29,
-        ...         30,
-        ...         33,
-        ...         34,
-        ...         35,
-        ...         36,
-        ...         37,
-        ...         38,
-        ...         44,
-        ...         45,
-        ...         46,
+        ...         [0, 0, 0, 0, 0, 0, 0, 0],
+        ...         [0, 0, 1, 0, 1, 1, 0, 0],
+        ...         [0, 0, 0, 1, 1, 1, 0, 0],
+        ...         [0, 1, 1, 1, 1, 1, 1, 0],
+        ...         [0, 1, 1, 1, 1, 1, 1, 0],
+        ...         [0, 0, 0, 0, 1, 1, 1, 0],
+        ...         [0, 0, 0, 0, 0, 0, 0, 0],
         ...     ]
         ... )
+
         >>> rcvr[9] = 1
         >>> rcvr[11] = 3
         >>> rcvr[14] = 6

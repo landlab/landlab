@@ -66,41 +66,19 @@ class FastscapeEroder(Component):
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
 
     >>> grid = RasterModelGrid((5, 5), xy_spacing=10.0)
-    >>> z = np.array(
-    ...     [
-    ...         7.0,
-    ...         7.0,
-    ...         7.0,
-    ...         7.0,
-    ...         7.0,
-    ...         7.0,
-    ...         5.0,
-    ...         3.2,
-    ...         6.0,
-    ...         7.0,
-    ...         7.0,
-    ...         2.0,
-    ...         3.0,
-    ...         5.0,
-    ...         7.0,
-    ...         7.0,
-    ...         1.0,
-    ...         1.9,
-    ...         4.0,
-    ...         7.0,
-    ...         7.0,
-    ...         0.0,
-    ...         7.0,
-    ...         7.0,
-    ...         7.0,
-    ...     ]
-    ... )
+    >>> z = [
+    ...     [7.0, 7.0, 7.0, 7.0, 7.0],
+    ...     [7.0, 5.0, 3.2, 6.0, 7.0],
+    ...     [7.0, 2.0, 3.0, 5.0, 7.0],
+    ...     [7.0, 1.0, 1.9, 4.0, 7.0],
+    ...     [7.0, 0.0, 7.0, 7.0, 7.0],
+    ... ]
     >>> z = grid.add_field("topographic__elevation", z, at="node")
     >>> fr = FlowAccumulator(grid, flow_director="D8")
     >>> sp = FastscapeEroder(grid, K_sp=1.0)
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=1.0)
-    >>> z  # doctest: +NORMALIZE_WHITESPACE
+    >>> z
     array([ 7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
             7.        ,  2.92996598,  2.02996598,  4.01498299,  7.        ,
             7.        ,  0.85993197,  1.87743897,  3.28268321,  7.        ,

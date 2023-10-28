@@ -69,30 +69,13 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> mg.at_node["flow__sink_flag"].astype(int)
     array([1, 1, 1, 1, 0, 1, 1, 1, 1])
     >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> topographic__elevation = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         21.0,
-    ...         10.0,
-    ...         0.0,
-    ...         0.0,
-    ...         31.0,
-    ...         20.0,
-    ...         0.0,
-    ...         0.0,
-    ...         32.0,
-    ...         30.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...     ]
-    ... )
+    >>> topographic__elevation = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> _ = mg_2.add_field(
     ...     "topographic__elevation",
     ...     topographic__elevation,
@@ -101,12 +84,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorSteepest(mg_2)
     >>> fd_2.run_one_step()
-    >>> mg_2.at_node["flow__receiver_node"]  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0,  1,  2,  3,
-            4,  1,  2,  7,
-            8, 10,  6, 11,
-           12, 14, 10, 15,
-           16, 17, 18, 19])
+    >>> mg_2.at_node["flow__receiver_node"].reshape(mg_2.shape)
+    array([[ 0,  1,  2,  3],
+           [ 4,  1,  2,  7],
+           [ 8, 10,  6, 11],
+           [12, 14, 10, 15],
+           [16, 17, 18, 19]])
 
     And the at-link field ``'flow__link_direction'`` indicates if the flow along
     the link is with or against the direction indicated by ``'link_dirs_at_node'``

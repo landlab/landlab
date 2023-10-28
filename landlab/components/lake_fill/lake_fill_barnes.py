@@ -52,10 +52,15 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
     >>> for edge in ("left", "top", "bottom"):
     ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
     ...
-    >>> z = mg.zeros("node", dtype=float)
-    >>> z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
-    >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-    >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+    >>> z = np.array(
+    ...     [
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 2.1, 1.1, 0.6, 1.6, 0.0],
+    ...         [0.0, 2.0, 1.0, 0.5, 1.5, 0.0],
+    ...         [0.0, 2.2, 1.2, 0.7, 1.7, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     ]
+    ... ).flatten()
     >>> zw = z.copy()
     >>> openq = StablePriorityQueue()
     >>> pitq = []
@@ -79,43 +84,20 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
 
     >>> lake = np.array(
     ...     [
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         True,
-    ...         True,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         True,
-    ...         True,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         True,
-    ...         True,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...         False,
-    ...     ]
-    ... )
+    ...         [0, 0, 0, 0, 0, 0],
+    ...         [0, 0, 1, 1, 0, 0],
+    ...         [0, 0, 1, 1, 0, 0],
+    ...         [0, 0, 1, 1, 0, 0],
+    ...         [0, 0, 0, 0, 0, 0],
+    ...     ],
+    ...     dtype=bool,
+    ... ).flatten()
+
     >>> np.allclose(zw[lake], z[16])
     True
     >>> np.all(np.greater(zw[lake], z[lake]))
     True
-    >>> np.allclose(zw[np.logical_not(lake)], z[np.logical_not(lake)])
+    >>> np.allclose(zw[~lake], z[~lake])
     True
     """
     try:
@@ -872,41 +854,14 @@ class LakeMapperBarnes(Component):
         >>> fr.run_one_step()
         >>> np.all(mg.at_node["flow__sink_flag"][mg.core_nodes] == 0)
         True
-        >>> drainage_area = np.array(
-        ...     [
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         1.0,
-        ...         2.0,
-        ...         3.0,
-        ...         1.0,
-        ...         1.0,
-        ...         0.0,
-        ...         1.0,
-        ...         4.0,
-        ...         9.0,
-        ...         11.0,
-        ...         11.0,
-        ...         0.0,
-        ...         1.0,
-        ...         2.0,
-        ...         1.0,
-        ...         1.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...     ]
-        ... )
-        >>> np.allclose(mg.at_node["drainage_area"], drainage_area)
+        >>> drainage_area = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 1.0, 2.0, 3.0, 1.0, 1.0],
+        ...     [0.0, 1.0, 4.0, 9.0, 11.0, 11.0],
+        ...     [0.0, 1.0, 2.0, 1.0, 1.0, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.allclose(mg.at_node["drainage_area"].reshape(mg.shape), drainage_area)
         True
 
         With track_lakes == False, fill still works just fine, but the dict
@@ -936,7 +891,7 @@ class LakeMapperBarnes(Component):
         {}
 
         >>> fr.run_one_step()  # drains fine still, as above
-        >>> np.allclose(mg.at_node["drainage_area"], drainage_area)
+        >>> np.allclose(mg.at_node["drainage_area"].reshape(mg.shape), drainage_area)
         True
 
         Test a failing example:
@@ -953,11 +908,7 @@ class LakeMapperBarnes(Component):
         >>> lmb._closed = mg.zeros("node", dtype=bool)
         >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> open = StablePriorityQueue()
-        >>> edges = np.array(
-        ...     [
-        ...         7,
-        ...     ]
-        ... )
+        >>> edges = np.array([7])
         >>> for edgenode in edges:
         ...     open.add_task(edgenode, priority=z[edgenode])
         ...
@@ -1034,11 +985,11 @@ class LakeMapperBarnes(Component):
                             self._overfill_flag = True
                         else:
                             raise ValueError(
-                                "Pit is overfilled due to creation of two "
-                                + "outlets as the minimum gradient gets "
-                                + "applied. Suppress this Error with the "
-                                + "ignore_overfill flag at component "
-                                + "instantiation."
+                                "Pit is overfilled due to creation of two"
+                                " outlets as the minimum gradient gets"
+                                " applied. Suppress this Error with the"
+                                " ignore_overfill flag at component"
+                                " instantiation."
                             )
                     fill_surface[n] = nextval
                     heapq.heappush(pitq, n)
@@ -1055,6 +1006,7 @@ class LakeMapperBarnes(Component):
 
         Examples
         --------
+
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6), xy_spacing=2.0)
@@ -1102,6 +1054,7 @@ class LakeMapperBarnes(Component):
 
         Examples
         --------
+
         >>> import numpy as np
         >>> from collections import deque
         >>> from landlab import NodeStatus, RasterModelGrid
@@ -1173,43 +1126,14 @@ class LakeMapperBarnes(Component):
         Now the flow directions all ignore the pits:
 
         >>> np.all(
-        ...     np.equal(
-        ...         mg.at_node["flow__receiver_node"],
-        ...         np.array(
-        ...             [
-        ...                 0,
-        ...                 1,
-        ...                 2,
-        ...                 3,
-        ...                 4,
-        ...                 5,
-        ...                 6,
-        ...                 8,
-        ...                 9,
-        ...                 15,
-        ...                 9,
-        ...                 11,
-        ...                 12,
-        ...                 14,
-        ...                 15,
-        ...                 16,
-        ...                 17,
-        ...                 17,
-        ...                 18,
-        ...                 20,
-        ...                 14,
-        ...                 15,
-        ...                 16,
-        ...                 23,
-        ...                 24,
-        ...                 25,
-        ...                 26,
-        ...                 27,
-        ...                 28,
-        ...                 29,
-        ...             ]
-        ...         ),
-        ...     )
+        ...     mg.at_node["flow__receiver_node"].reshape(mg.shape)
+        ...     == [
+        ...         [0, 1, 2, 3, 4, 5],
+        ...         [6, 8, 9, 15, 9, 11],
+        ...         [12, 14, 15, 16, 17, 17],
+        ...         [18, 20, 14, 15, 16, 23],
+        ...         [24, 25, 26, 27, 28, 29],
+        ...     ]
         ... )
         True
 
@@ -1416,11 +1340,15 @@ class LakeMapperBarnes(Component):
         >>> for edge in ("left", "top", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         ...
-        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-        >>> z_init = z.copy()
+        >>> mg.at_node["topographic__elevation"] = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 2.1, 1.1, 0.6, 1.6, 0.0],
+        ...     [0.0, 2.0, 1.0, 0.5, 1.5, 0.0],
+        ...     [0.0, 2.2, 1.2, 0.7, 1.7, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> z = mg.at_node["topographic__elevation"]
+        >>> z_init = mg.at_node["topographic__elevation"].copy()
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(
         ...     mg,
@@ -1435,43 +1363,18 @@ class LakeMapperBarnes(Component):
         take fill_surface...
 
         >>> lmb.run_one_step()
-        >>> z_out = np.array(
-        ...     [
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         2.1,
-        ...         1.5,
-        ...         1.5,
-        ...         1.6,
-        ...         0.0,
-        ...         0.0,
-        ...         2.0,
-        ...         1.5,
-        ...         1.5,
-        ...         1.5,
-        ...         0.0,
-        ...         0.0,
-        ...         2.2,
-        ...         1.5,
-        ...         1.5,
-        ...         1.7,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...     ]
-        ... )
-        >>> np.allclose(z, z_out)
+        >>> z_out = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 2.1, 1.5, 1.5, 1.6, 0.0],
+        ...     [0.0, 2.0, 1.5, 1.5, 1.5, 0.0],
+        ...     [0.0, 2.2, 1.5, 1.5, 1.7, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.allclose(z.reshape(mg.shape), z_out)
         True
-        >>> np.all(np.equal(z, z_out))  # those 1.5's are actually a bit > 1.5
+        >>> np.all(
+        ...     np.equal(z.reshape(mg.shape), z_out)
+        ... )  # those 1.5's are actually a bit > 1.5
         False
         >>> try:
         ...     lmb.lake_map  # not created, as we aren't tracking
@@ -1491,41 +1394,14 @@ class LakeMapperBarnes(Component):
         >>> fa.run_one_step()
         >>> np.all(mg.at_node["flow__sink_flag"][mg.core_nodes] == 0)
         True
-        >>> drainage_area = np.array(
-        ...     [
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         4.0,
-        ...         8.0,
-        ...         12.0,
-        ...         4.0,
-        ...         4.0,
-        ...         0.0,
-        ...         4.0,
-        ...         16.0,
-        ...         36.0,
-        ...         40.0,
-        ...         40.0,
-        ...         0.0,
-        ...         4.0,
-        ...         8.0,
-        ...         4.0,
-        ...         4.0,
-        ...         4.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...     ]
-        ... )
-        >>> np.allclose(mg.at_node["drainage_area"], drainage_area)
+        >>> drainage_area = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 4.0, 8.0, 12.0, 4.0, 4.0],
+        ...     [0.0, 4.0, 16.0, 36.0, 40.0, 40.0],
+        ...     [0.0, 4.0, 8.0, 4.0, 4.0, 4.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.allclose(mg.at_node["drainage_area"].reshape(mg.shape), drainage_area)
         True
 
         Test two pits:
@@ -1768,59 +1644,15 @@ class LakeMapperBarnes(Component):
 
         >>> np.all(
         ...     np.equal(
-        ...         np.round(z_water, 2),
-        ...         np.array(
-        ...             [
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 1.5,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 0.5,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 1.1,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...             ]
-        ...         ),
+        ...         np.round(z_water, 2).reshape(mg.shape),
+        ...         [
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 1.5, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 0.5, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 1.1, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...         ],
         ...     )
         ... )
         True
@@ -1843,175 +1675,43 @@ class LakeMapperBarnes(Component):
         >>> np.isclose(mg.at_node["topographic__steepest_slope"][18], 1.5)
         True
         >>> np.allclose(
-        ...     mg.at_node["drainage_area"],
-        ...     np.array(
-        ...         [
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             2.0,
-        ...             2.0,
-        ...             1.0,
-        ...             4.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             1.0,
-        ...             1.0,
-        ...             1.0,
-        ...             13.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             2.0,
-        ...             2.0,
-        ...             1.0,
-        ...             4.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             6.0,
-        ...             6.0,
-        ...             5.0,
-        ...             4.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...         ]
-        ...     ),
+        ...     mg.at_node["drainage_area"].reshape(mg.shape),
+        ...     [
+        ...         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...         [2.0, 2.0, 1.0, 4.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [1.0, 1.0, 1.0, 13.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [2.0, 2.0, 1.0, 4.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [6.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     ],
         ... )
         True
         >>> lmb.run_one_step()  # now node 18 drains correctly, outward ->
         >>> np.isclose(mg.at_node["topographic__steepest_slope"][18], 1.0)
         True
         >>> np.allclose(
-        ...     mg.at_node["drainage_area"],
-        ...     np.array(
-        ...         [
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             13.0,
-        ...             13.0,
-        ...             12.0,
-        ...             4.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             2.0,
-        ...             2.0,
-        ...             1.0,
-        ...             7.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             2.0,
-        ...             2.0,
-        ...             1.0,
-        ...             1.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             7.0,
-        ...             7.0,
-        ...             6.0,
-        ...             4.0,
-        ...             3.0,
-        ...             2.0,
-        ...             1.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...             0.0,
-        ...         ]
-        ...     ),
+        ...     mg.at_node["drainage_area"].reshape(mg.shape),
+        ...     [
+        ...         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...         [13.0, 13.0, 12.0, 4.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [2.0, 2.0, 1.0, 7.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [2.0, 2.0, 1.0, 1.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [7.0, 7.0, 6.0, 4.0, 3.0, 2.0, 1.0, 0.0],
+        ...         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     ],
         ... )
         True
         >>> np.all(
         ...     np.equal(
-        ...         np.round(z_water, 2),
-        ...         np.array(
-        ...             [
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 2.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 2.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 1.1,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...             ]
-        ...         ),
+        ...         np.round(z_water, 2).reshape(mg.shape),
+        ...         [
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 2.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 2.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 1.1, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...         ],
         ...     )
         ... )
         True
@@ -2019,59 +1719,15 @@ class LakeMapperBarnes(Component):
         >>> sp.run_one_step(0.05)  # note m=0 to illustrate effect of slopes
         >>> np.all(
         ...     np.equal(
-        ...         np.round(z_water, 2),
-        ...         np.array(
-        ...             [
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 2.0,
-        ...                 3.9,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 2.0,
-        ...                 3.9,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 2.93,
-        ...                 3.93,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.09,
-        ...                 2.91,
-        ...                 3.95,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...             ]
-        ...         ),
+        ...         np.round(z_water, 2).reshape(mg.shape),
+        ...         [
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 0.95, 1.95, 2.0, 3.9, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.95, 2.0, 3.9, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...         ],
         ...     )
         ... )
         True
@@ -2082,59 +1738,15 @@ class LakeMapperBarnes(Component):
         >>> z_bed[:] = np.minimum(z_water, z_bed)
         >>> np.all(
         ...     np.equal(
-        ...         np.round(z_bed, 2),
-        ...         np.array(
-        ...             [
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 1.5,
-        ...                 3.9,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 0.5,
-        ...                 3.9,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 2.93,
-        ...                 3.93,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.09,
-        ...                 2.91,
-        ...                 3.95,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...             ]
-        ...         ),
+        ...         np.round(z_bed, 2).reshape(mg.shape),
+        ...         [
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 0.95, 1.95, 1.5, 3.9, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.95, 0.5, 3.9, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...         ],
         ...     )
         ... )
         True
@@ -2153,59 +1765,15 @@ class LakeMapperBarnes(Component):
 
         >>> np.all(
         ...     np.equal(
-        ...         np.round(z_water, 2),
-        ...         np.array(
-        ...             [
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 1.95,
-        ...                 3.9,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 1.95,
-        ...                 3.9,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.95,
-        ...                 2.93,
-        ...                 3.93,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 0.95,
-        ...                 1.09,
-        ...                 2.91,
-        ...                 3.95,
-        ...                 4.95,
-        ...                 5.95,
-        ...                 7.0,
-        ...                 0.0,
-        ...                 1.0,
-        ...                 2.0,
-        ...                 3.0,
-        ...                 4.0,
-        ...                 5.0,
-        ...                 6.0,
-        ...                 7.0,
-        ...             ]
-        ...         ),
+        ...         np.round(z_water, 2).reshape(mg.shape),
+        ...         [
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...             [0.0, 0.95, 1.95, 1.95, 3.9, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.95, 1.95, 3.9, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.95, 2.93, 3.93, 4.95, 5.95, 7.0],
+        ...             [0.0, 0.95, 1.09, 2.91, 3.95, 4.95, 5.95, 7.0],
+        ...             [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        ...         ],
         ...     )
         ... )
         True
@@ -2305,11 +1873,19 @@ class LakeMapperBarnes(Component):
         >>> for edge in ("left", "top", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         ...
-        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-        >>> z_init = z.copy()
+        >>> # z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
+        >>> # z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
+        >>> # z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> # z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> mg.at_node["topographic__elevation"] = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 2.1, 1.1, 0.6, 1.6, 0.0],
+        ...     [0.0, 2.0, 1.0, 0.5, 1.5, 0.0],
+        ...     [0.0, 2.2, 1.2, 0.7, 1.7, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> z = mg.at_node["topographic__elevation"]
+        >>> z_init = mg.at_node["topographic__elevation"].copy()
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(
         ...     mg,
@@ -2361,11 +1937,20 @@ class LakeMapperBarnes(Component):
         >>> for edge in ("left", "top", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         ...
-        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
-        >>> z_init = z.copy()
+        >>> # z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
+        >>> # z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
+        >>> # z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
+        >>> # z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> # z_init = z.copy()
+        >>> mg.at_node["topographic__elevation"] = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 2.1, 1.1, 0.6, 1.6, 0.0],
+        ...     [0.0, 2.0, 1.0, 0.5, 1.5, 0.0],
+        ...     [0.0, 2.2, 1.2, 0.7, 1.7, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> z = mg.at_node["topographic__elevation"]
+        >>> z_init = mg.at_node["topographic__elevation"].copy()
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(
         ...     mg,
@@ -2520,86 +2105,35 @@ class LakeMapperBarnes(Component):
         ...     track_lakes=True,
         ... )
         >>> lmb.run_one_step()
-        >>> lake_map = np.array(
-        ...     [
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         8,
-        ...         -1,
-        ...         16,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         16,
-        ...         16,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         16,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...     ]
-        ... )
-        >>> np.all(np.equal(lmb.lake_map, lake_map))
+        >>> lake_map = [
+        ...     [-1, -1, -1, -1, -1, -1],
+        ...     [-1, 8, -1, 16, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, -1, -1, 16, -1],
+        ...     [-1, -1, -1, -1, -1, -1],
+        ... ]
+        >>> np.all(lmb.lake_map.reshape(mg.shape) == lake_map)
         True
 
         Note that the outlet node is NOT part of the lake.
 
         Updating the elevations works fine:
 
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2.0, 1.0, 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        >>> z.reshape(mg.shape)[1:4, 1:-1] = [
+        ...     [2.1, 1.1, 0.6, 1.6],
+        ...     [2.0, 1.0, 0.5, 1.5],
+        ...     [2.2, 1.2, 0.7, 1.7],
+        ... ]
+
         >>> lmb.run_one_step()
-        >>> new_lake_map = np.array(
-        ...     [
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         16,
-        ...         16,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         16,
-        ...         16,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         16,
-        ...         16,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...         -1,
-        ...     ]
-        ... )
-        >>> np.all(np.equal(lmb.lake_map, new_lake_map))
+        >>> new_lake_map = [
+        ...     [-1, -1, -1, -1, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, -1, -1, -1, -1],
+        ... ]
+        >>> np.all(lmb.lake_map.reshape(mg.shape) == new_lake_map)
         True
         """
         if self._runcount > self._lastcountforlakemap:
@@ -2648,40 +2182,15 @@ class LakeMapperBarnes(Component):
         >>> lmb.run_one_step()
         >>> lake_at_node = np.array(
         ...     [
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         True,
-        ...         False,
-        ...         True,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         True,
-        ...         True,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         True,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
-        ...         False,
+        ...         [0, 0, 0, 0, 0, 0],
+        ...         [0, 1, 0, 1, 0, 0],
+        ...         [0, 0, 1, 1, 0, 0],
+        ...         [0, 0, 0, 0, 1, 0],
+        ...         [0, 0, 0, 0, 0, 0],
         ...     ],
         ...     dtype=bool,
         ... )
-        >>> np.all(np.equal(lmb.lake_at_node, lake_at_node))
+        >>> np.all(lmb.lake_at_node.reshape(mg.shape) == lake_at_node)
         True
         """
         return self.lake_map != self._grid.BAD_INDEX
@@ -2742,43 +2251,18 @@ class LakeMapperBarnes(Component):
         ...     track_lakes=True,
         ... )
         >>> lmb.run_one_step()
-        >>> lake_depths = np.array(
-        ...     [
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         1.0,
-        ...         0.0,
-        ...         0.5,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.4,
-        ...         0.7,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.1,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...         0.0,
-        ...     ]
-        ... )
-        >>> np.all(np.equal(lmb.lake_depths, lake_depths))  # slope applied, so...
+        >>> lake_depths = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 1.0, 0.0, 0.5, 0.0, 0.0],
+        ...     [0.0, 0.0, 0.4, 0.7, 0.0, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.1, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.all(
+        ...     np.equal(lmb.lake_depths.reshape(mg.shape), lake_depths)
+        ... )  # slope applied, so...
         False
-        >>> np.allclose(lmb.lake_depths, lake_depths)
+        >>> np.allclose(lmb.lake_depths.reshape(mg.shape), lake_depths)
         True
         """
         if self._inplace:

@@ -25,54 +25,18 @@ component use the *input_var_names* class property.
 
 Create fields of data for each of these input variables.
 
->>> grid.at_node["topographic__elevation"] = np.array(
-...     [
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         1.0,
-...         1.0,
-...         1.0,
-...         1.0,
-...         1.0,
-...         2.0,
-...         2.0,
-...         2.0,
-...         2.0,
-...         2.0,
-...         3.0,
-...         3.0,
-...         3.0,
-...         3.0,
-...         3.0,
-...     ]
-... )
->>> grid.at_node["surface_water__depth"] = np.array(
-...     [
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.0,
-...         0.1,
-...         0.1,
-...         0.1,
-...         0.1,
-...         0.1,
-...     ]
-... )
+>>> grid.at_node["topographic__elevation"] = [
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [1.0, 1.0, 1.0, 1.0, 1.0],
+...     [2.0, 2.0, 2.0, 2.0, 2.0],
+...     [3.0, 3.0, 3.0, 3.0, 3.0],
+... ]
+>>> grid.at_node["surface_water__depth"] = [
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [0.1, 0.1, 0.1, 0.1, 0.1],
+... ]
 
 Instantiate the `OverlandFlow` component to work on this grid, and run it.
 
@@ -90,7 +54,7 @@ The `surface_water__depth` field is defined at nodes.
 
 >>> of.var_loc("surface_water__depth")
 'node'
->>> grid.at_node["surface_water__depth"]  # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_node["surface_water__depth"]
 array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
@@ -105,7 +69,7 @@ direction, only toward the bottom of the grid.
 
 >>> of.var_loc("surface_water__discharge")
 'link'
->>> q = grid.at_link["surface_water__discharge"]  # doctest: +NORMALIZE_WHITESPACE
+>>> q = grid.at_link["surface_water__discharge"]
 >>> np.all(q[grid.horizontal_links] == 0.0)
 True
 >>> np.all(q[grid.vertical_links] <= 0.0)
@@ -115,7 +79,7 @@ The *water_surface__gradient* is also defined at links.
 
 >>> of.var_loc("water_surface__gradient")
 'link'
->>> grid.at_link["water_surface__gradient"]  # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_link["water_surface__gradient"]
 array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  1. ,  1. ,  1. ,  0. ,
         0. ,  0. ,  0. ,  0. ,
