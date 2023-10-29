@@ -53,13 +53,14 @@ Thus, a file to provide the unit tests for your component would be called
 
 .. code-block:: python
 
-   # test_my_component_name.py
-   # numpy.testing and pytest are two modules commonly used
-   # for testing whether your code behaves as expected.
-   # import what you need from landlab
+    # test_my_component_name.py
+    # numpy.testing and pytest are two modules commonly used
+    # for testing whether your code behaves as expected.
+    # import what you need from landlab
 
-   def test_something_about_my_component():
-       """Make a one-line docstring that describes your unit test."""
-       # do things to set up for your test like make a model grid.
 
-       # make your test and assert that you get the right answer
+    def test_something_about_my_component():
+        """Make a one-line docstring that describes your unit test."""
+        # do things to set up for your test like make a model grid.
+
+        # make your test and assert that you get the right answer

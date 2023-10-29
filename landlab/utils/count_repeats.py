@@ -43,8 +43,7 @@ def count_repeated_values(values):
     their first occurance. The second element contains values and indices to
     values occuring two or more times.
 
-    >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30],
-    ...     dtype=int))
+    >>> counts = count_repeated_values(np.array([20, 30, 40, 30, 30], dtype=int))
     >>> len(counts)
     3
     >>> counts[0]
