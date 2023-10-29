@@ -399,8 +399,8 @@ class ModelGrid(
     def fields(self, include="*", exclude=None):
         """List of fields held by the grid.
 
-        The returned field names are returned as their canonical names. This is,
-        as a string of the for "at_<location>:<name>". This allows for fields with
+        The returned field names are returned as their canonical names. That is,
+        as a string of the for ``"at_<location>:<name>"``. This allows for fields with
         the same name to be defined at different grid locations. You could have,
         for example, a variable "elevation" defined at both *nodes* and
         *links*.
@@ -1615,27 +1615,25 @@ class ModelGrid(
 
         >>> rmg = RasterModelGrid((3, 4))
 
-        >>> rmg.at_link["grad"] = np.array(
-        ...     [
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -3.0,
-        ...         -4.0,
-        ...         -5.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -3.0,
-        ...         -4.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...     ]
-        ... )
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
         >>> rmg.link_at_node_is_upwind("grad")
         array([[False, False, False, False],
                [False, False,  True, False],
@@ -1699,27 +1697,25 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.at_link["grad"] = np.array(
-        ...     [
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -3.0,
-        ...         -4.0,
-        ...         -5.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -3.0,
-        ...         -4.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...     ]
-        ... )
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
         >>> rmg.link_at_node_is_downwind("grad")
         array([[ True,  True, False, False],
                [ True,  True, False, False],
@@ -1779,27 +1775,25 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.at_link["grad"] = np.array(
-        ...     [
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -3.0,
-        ...         -4.0,
-        ...         -5.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -3.0,
-        ...         -4.0,
-        ...         -1.0,
-        ...         -2.0,
-        ...         -1.0,
-        ...     ]
-        ... )
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
         >>> rmg.upwind_links_at_node("grad", bad_index=-1)
         array([[-1, -1],
                [ 0, -1],
@@ -2486,6 +2480,10 @@ class ModelGrid(
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
 
+        .. danger::
+
+            THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
+
         Given a variable defined on links, breaks it into x and y components
         and assigns values to nodes by averaging each node's attached links.
 
@@ -2507,7 +2505,6 @@ class ModelGrid(
 
         Notes
         -----
-        THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
 
         The concept here is that q contains a vector variable that is defined
         at each link. The magnitude is given by the value of q, and the
