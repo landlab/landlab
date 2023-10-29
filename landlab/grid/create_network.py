@@ -307,7 +307,7 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
     The end nodes are always retained.
 
     >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
-    >>> _reduce_nodes(distance, spacing=100.)
+    >>> _reduce_nodes(distance, spacing=100.0)
     [0, 4]
 
     """
@@ -379,7 +379,7 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
     The end nodes are always retained.
 
     >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
-    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.)
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.0)
     [0, 4]
     """
     xy_of_node = np.asarray(xy_of_node)

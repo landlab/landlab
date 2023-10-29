@@ -37,28 +37,27 @@ class _FlowDirector(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_director.flow_director import(
-    ... _FlowDirector)
-    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> from landlab.components.flow_director.flow_director import _FlowDirector
+    >>> mg = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
     ...     at="node",
     ... )
-    >>> fd = _FlowDirector(mg, 'topographic__elevation')
+    >>> fd = _FlowDirector(mg, "topographic__elevation")
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
-    >>> 'topographic__elevation' in mg.at_node.keys()
+    >>> "topographic__elevation" in mg.at_node.keys()
     True
-    >>> 'flow__sink_flag'in mg.at_node.keys()
+    >>> "flow__sink_flag" in mg.at_node.keys()
     True
 
     _FlowDirector also works if you pass it an array instead of a field name.
 
     >>> import numpy as np
-    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
-    >>> z = np.array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    >>> mg = RasterModelGrid((3, 3), xy_spacing=(1, 1))
+    >>> z = np.array([0.0, 1.0, 2.0, 1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
     >>> fd = _FlowDirector(mg, z)
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])

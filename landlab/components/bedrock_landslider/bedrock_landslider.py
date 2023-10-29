@@ -49,8 +49,8 @@ class BedrockLandslider(Component):
 
     >>> mg = RasterModelGrid((5, 5), xy_spacing=1.0)
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> s = mg.add_zeros("soil__depth", at='node')
-    >>> b = mg.add_zeros("bedrock__elevation", at='node')
+    >>> s = mg.add_zeros("soil__depth", at="node")
+    >>> b = mg.add_zeros("bedrock__elevation", at="node")
 
     Make plateau at 10 m
 

@@ -33,7 +33,14 @@ class BedParcelInitializerBase(Component):
         abrasion_rate=0.0,
         median_number_of_starting_parcels=100,
         extra_parcel_attributes=None,
+        rng=None,
     ):
+        if rng is None:
+            rng = np.random.default_rng()
+        elif isinstance(rng, int):
+            rng = np.random.default_rng(seed=rng)
+        self._rng = rng
+
         if not isinstance(grid, NetworkModelGrid):
             raise TypeError("grid must be a NetworkModelGrid")
 
@@ -80,6 +87,7 @@ class BedParcelInitializerBase(Component):
             self._rho_sediment,
             self._abrasion_rate,
             self._extra_parcel_attributes,
+            rng=self._rng,
         )
 
         if np.max(d50) > 0.5:
@@ -162,7 +170,7 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerDischarge
+    ...     BedParcelInitializerDischarge,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -285,7 +293,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerDepth
+    ...     BedParcelInitializerDepth,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -298,9 +306,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
 
 
     >>> depth = np.full(grid.number_of_links, 1.0)  # m
-    >>> initialize_parcels = BedParcelInitializerDepth(
-    ...     grid, flow_depth_at_link=depth
-    ... )
+    >>> initialize_parcels = BedParcelInitializerDepth(grid, flow_depth_at_link=depth)
     >>> parcels = initialize_parcels()
     """
 
@@ -394,7 +400,7 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerArea
+    ...     BedParcelInitializerArea,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -525,7 +531,7 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerUserD50
+    ...     BedParcelInitializerUserD50,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -603,7 +609,11 @@ def _parcel_characteristics(
     rho_sediment,
     abrasion_rate,
     extra_parcel_attributes,
+    rng=None,
 ):
+    if rng is None:
+        rng = np.random.default_rng()
+
     n_parcels_at_link = np.ceil(total_parcel_volume_at_link / max_parcel_volume).astype(
         dtype=int
     )
@@ -620,7 +630,7 @@ def _parcel_characteristics(
     offset = 0
     for link, n_parcels in enumerate(n_parcels_at_link):
         element_id[offset : offset + n_parcels] = link
-        grain_size[offset : offset + n_parcels] = np.random.lognormal(
+        grain_size[offset : offset + n_parcels] = rng.lognormal(
             np.log(d50[link]), np.log(D84_D50), n_parcels
         )
         volume[offset] = total_parcel_volume_at_link[link] - (
@@ -637,9 +647,11 @@ def _parcel_characteristics(
     grain_size = np.expand_dims(grain_size, axis=1)
 
     time_arrival_in_link = np.expand_dims(
-        np.random.rand(np.sum(n_parcels_at_link)), axis=1
+        rng.uniform(size=np.sum(n_parcels_at_link)), axis=1
     )
-    location_in_link = np.expand_dims(np.random.rand(np.sum(n_parcels_at_link)), axis=1)
+    location_in_link = np.expand_dims(
+        rng.uniform(size=np.sum(n_parcels_at_link)), axis=1
+    )
 
     active_layer = np.ones(np.shape(element_id))
     variables = {
@@ -762,7 +774,7 @@ def calc_d50_depth(
     >>> print(np.round(expected_value, decimals=3))
     0.1
     >>> assert_almost_equal(
-    ...    calc_d50_depth(.01, 1, 1, 1000, 3000, 0.05), expected_value
+    ...     calc_d50_depth(0.01, 1, 1, 1000, 3000, 0.05), expected_value
     ... )
     """
 
@@ -789,7 +801,7 @@ def calc_d50_dArea_scaling(drainage_area, a, n):
     >>> drainage_area_exponent = -0.1
 
     >>> expected_value = drainage_area_coefficient * (
-    ...     drainage_area ** drainage_area_exponent
+    ...     drainage_area**drainage_area_exponent
     ... )
     >>> print(np.round(expected_value, decimals=3))
     0.794
