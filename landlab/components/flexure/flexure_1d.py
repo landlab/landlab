@@ -110,7 +110,7 @@ class Flexure1D(Component):
     ('lithosphere__increment_of_overlying_pressure',)
     >>> flex.output_var_names
     ('lithosphere_surface__increment_of_elevation',)
-    >>> sorted(flex.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(flex.units)
     [('lithosphere__increment_of_overlying_pressure', 'Pa'),
      ('lithosphere_surface__increment_of_elevation', 'm')]
 

@@ -350,7 +350,7 @@ class GrainHill(CTSModel):
         Examples
         --------
         >>> gh = GrainHill((5, 7), show_plots=False)
-        >>> gh.grid.at_node["node_state"]  # doctest: +NORMALIZE_WHITESPACE
+        >>> gh.grid.at_node["node_state"]
         array([8, 7, 7, 8, 7, 7, 7, 0, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         """

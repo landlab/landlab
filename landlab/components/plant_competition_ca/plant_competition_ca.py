@@ -41,7 +41,7 @@ class VegCA(Component):
     'Cellular Automata Plant Competition'
     >>> sorted(VegCA.output_var_names)
     ['plant__age', 'plant__live_index']
-    >>> sorted(VegCA.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(VegCA.units)
     [('plant__age', 'Years'),
      ('plant__live_index', 'None'),
      ('vegetation__cumulative_water_stress', 'None'),

@@ -134,16 +134,16 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2, 1))
     >>> grid.dx, grid.dy
     (2.0, 1.0)
-    >>> grid.node_y  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0., 0., 0., 0., 0.,
-            1., 1., 1., 1., 1.,
-            2., 2., 2., 2., 2.,
-            3., 3., 3., 3., 3.])
-    >>> grid.node_x  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0., 2., 4., 6., 8.,
-            0., 2., 4., 6., 8.,
-            0., 2., 4., 6., 8.,
-            0., 2., 4., 6., 8.])
+    >>> grid.node_y.reshape(grid.shape)
+    array([[ 0.,  0.,  0.,  0.,  0.],
+           [ 1.,  1.,  1.,  1.,  1.],
+           [ 2.,  2.,  2.,  2.,  2.],
+           [ 3.,  3.,  3.,  3.,  3.]])
+    >>> grid.node_x.reshape(grid.shape)
+    array([[ 0.,  2.,  4.,  6.,  8.],
+           [ 0.,  2.,  4.,  6.,  8.],
+           [ 0.,  2.,  4.,  6.,  8.],
+           [ 0.,  2.,  4.,  6.,  8.]])
     """
 
     def __init__(
@@ -431,11 +431,11 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4), xy_spacing=(2.0, 2.0))
 
-        >>> mg.unit_vector_at_link[:, 0]  # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.unit_vector_at_link[:, 0]
         array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
                 1.,  1.,  1.,  0.,  0.,  0.,  0.,
                 1.,  1.,  1.])
-        >>> mg.unit_vector_at_link[:, 1]  # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.unit_vector_at_link[:, 1]
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  1.,
                 0.,  0.,  0.,  1.,  1.,  1.,  1.,
                 0.,  0.,  0.])
@@ -793,15 +793,19 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg = RasterModelGrid((4, 5))  # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[1, 1, 1, 1, 1],
+               [1, 0, 0, 0, 1],
+               [1, 0, 0, 0, 1],
+               [1, 1, 1, 1, 1]], dtype=uint8)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, False, False)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 4, 1, 0, 0, 0, 4, 4, 4, 4, 4, 4],
-              dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[1, 1, 1, 1, 1],
+               [1, 0, 0, 0, 4],
+               [1, 0, 0, 0, 4],
+               [4, 4, 4, 4, 4]], dtype=uint8)
 
         :meta landlab: boundary-condition, subset
         """
@@ -883,19 +887,19 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> import numpy as np
         >>> rmg.at_node["topographic__elevation"] = np.random.rand(20)
         >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4,
-               4, 0, 0, 0, 4,
-               4, 0, 0, 0, 4,
-               4, 4, 4, 4, 4], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[4, 4, 4, 4, 4],
+               [4, 0, 0, 0, 4],
+               [4, 0, 0, 0, 4],
+               [4, 4, 4, 4, 4]], dtype=uint8)
         >>> rmg.set_fixed_value_boundaries_at_grid_edges(True, True, False, False)
         >>> rmg.number_of_active_links
         12
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4,
-               4, 0, 0, 0, 1,
-               4, 0, 0, 0, 1,
-               1, 1, 1, 1, 1], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[4, 4, 4, 4, 4],
+               [4, 0, 0, 0, 1],
+               [4, 0, 0, 0, 1],
+               [1, 1, 1, 1, 1]], dtype=uint8)
 
         Note that the four corners are treated as follows:
 
@@ -1026,9 +1030,11 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> rmg = RasterModelGrid((4, 5))  # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
-        >>> rmg.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[1, 1, 1, 1, 1],
+               [1, 0, 0, 0, 1],
+               [1, 0, 0, 0, 1],
+               [1, 1, 1, 1, 1]], dtype=uint8)
         >>> rmg.add_zeros("topographic__elevation", at="node")
         array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
                 0.,  0.,  0.,  0.,  0.,  0.,  0.])
@@ -1233,17 +1239,23 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> data = rmg.add_zeros("test_data", at="node")
         >>> data[:] = np.arange(12)
         >>> rmg.roll_nodes_ud("test_data", 1)
-        >>> data  # doctest: +NORMALIZE_WHITESPACE
-        array([ 9.,  10.,  11.,   0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,
-                8.])
+        >>> data.reshape(rmg.shape)
+        array([[  9.,  10.,  11.],
+               [  0.,   1.,   2.],
+               [  3.,   4.,   5.],
+               [  6.,   7.,   8.]])
         >>> rmg.roll_nodes_ud("test_data", 2)
-        >>> data  # doctest: +NORMALIZE_WHITESPACE
-        array([ 3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,  11.,   0.,   1.,
-                2.])
+        >>> data.reshape(rmg.shape)
+        array([[  3.,   4.,   5.],
+               [  6.,   7.,   8.],
+               [  9.,  10.,  11.],
+               [  0.,   1.,   2.]])
         >>> rmg.roll_nodes_ud("test_data", 1, interior_only=True)
-        >>> data  # doctest: +NORMALIZE_WHITESPACE
-        array([ 3.,   1.,   5.,   6.,   4.,   8.,   9.,   7.,  11.,   0.,  10.,
-                2.])
+        >>> data.reshape(rmg.shape)
+        array([[  3.,   1.,   5.],
+               [  6.,   4.,   8.],
+               [  9.,   7.,  11.],
+               [  0.,  10.,   2.]])
 
         :meta landlab: info-node
         """

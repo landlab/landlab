@@ -133,9 +133,8 @@ class SpeciesEvolver(Component):
     because we populated each zone with one taxon, and only the one zone
     exists.
 
-    >>> se.taxa_data_frame  # doctest: +NORMALIZE_WHITESPACE
-          pid       type  t_first  t_final
-    tid
+    >>> se.taxa_data_frame
+    pid  type    t_first  t_final      tid
     0    <NA>  ZoneTaxon        0     <NA>
 
     The identifier of the taxon, ``tid`` is 0. The identifier of the taxon's
@@ -190,9 +189,8 @@ class SpeciesEvolver(Component):
 
     The split of the initial zone triggered speciation of taxon 1 by taxon 0.
 
-    >>> se.taxa_data_frame  # doctest: +NORMALIZE_WHITESPACE
-          pid       type  t_first  t_final
-    tid
+    >>> se.taxa_data_frame
+    pid  type    t_first  t_final      tid
     0    <NA>  ZoneTaxon        0     <NA>
     1       0  ZoneTaxon     1000     <NA>
 
@@ -435,9 +433,8 @@ class SpeciesEvolver(Component):
         The one taxon is now tracked by SpeciesEvolver as indicated by the taxa
         DataFrame.
 
-        >>> se.taxa_data_frame  # doctest: +NORMALIZE_WHITESPACE
-              pid       type  t_first  t_final
-        tid
+        >>> se.taxa_data_frame
+        pid  type    t_first  t_final      tid
         0    <NA>  ZoneTaxon        0     <NA>
         """
         if not isinstance(taxa, list):
@@ -579,9 +576,8 @@ class SpeciesEvolver(Component):
 
         Display taxa metadata.
 
-        >>> se.taxa_data_frame  # doctest: +NORMALIZE_WHITESPACE
-              pid       type  t_first  t_final
-        tid
+        >>> se.taxa_data_frame
+        pid  type  t_first    t_final      tid
         0    <NA>  ZoneTaxon        0     <NA>
         1    <NA>  ZoneTaxon        0     <NA>
         2       0  ZoneTaxon     1000     <NA>
@@ -592,7 +588,7 @@ class SpeciesEvolver(Component):
         Objects of all extant taxon are returned when no parameters are
         inputted.
 
-        >>> se.get_extant_taxon_objects()  # doctest: +NORMALIZE_WHITESPACE
+        >>> se.get_extant_taxon_objects()
         [<ZoneTaxon, tid=0>,
          <ZoneTaxon, tid=1>,
          <ZoneTaxon, tid=2>,
@@ -614,7 +610,7 @@ class SpeciesEvolver(Component):
 
         Taxa can be limited to those that were extant ``time``.
 
-        >>> se.get_extant_taxon_objects(time=1000)  # doctest: +NORMALIZE_WHITESPACE
+        >>> se.get_extant_taxon_objects(time=1000)
         [<ZoneTaxon, tid=0>,
          <ZoneTaxon, tid=1>,
          <ZoneTaxon, tid=2>,

@@ -67,9 +67,7 @@ class ChiFinder(Component):
     ...
     >>> fr2.run_one_step()
     >>> cf2.calculate_chi()
-    >>> mg2.at_node["channel__chi_index"].reshape(
-    ...     mg2.shape
-    ... )  # doctest: +NORMALIZE_WHITESPACE
+    >>> mg2.at_node["channel__chi_index"].reshape(mg2.shape)
     array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ],
            [ 0.77219416,  1.54438833,  2.63643578,  2.61419437,  0.        ],
            [ 1.09204746,  2.18409492,  1.52214691,  2.61419437,  0.        ],
@@ -85,7 +83,7 @@ class ChiFinder(Component):
     ...     clobber=True,
     ... )
     >>> cf3.calculate_chi()
-    >>> cf3.chi_indices.reshape(mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> cf3.chi_indices.reshape(mg2.shape)
     array([[   0. ,   0.        ,   0.        ,   0. ,   0. ],
            [   0. , 173.20508076,   0.        ,   0. ,   0. ],
            [   0. ,   0.        , 270.71067812,   0. ,   0. ],

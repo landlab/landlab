@@ -115,12 +115,12 @@ def shape_for_storage(array, field_size=None):
     is raised.
 
     >>> data = np.array(1.0)
-    >>> shape_for_storage(data, field_size=4)  # DOCTEST: +IGNORE_EXCEPTION_DETAIL
+    >>> shape_for_storage(data, field_size=4)
     Traceback (most recent call last):
     ...
     ValueError: unable to reshape array to field size
     >>> data = np.arange(6.0)
-    >>> shape_for_storage(data, field_size=4)  # DOCTEST: +IGNORE_EXCEPTION_DETAIL
+    >>> shape_for_storage(data, field_size=4)
     Traceback (most recent call last):
     ...
     ValueError: unable to reshape array to field size
@@ -769,15 +769,15 @@ class GraphFields:
         Raise FieldError if *field* does not exist in *group*.
 
         >>> fields.field_values("planet_surface__temperature", at="node")
-        ... # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         FieldError: planet_surface__temperature
 
         If *group* does not exists, raise :class:`~landlab.field.errors.GroupError`.
 
         >>> fields.field_values("topographic__elevation", at="cell")
-        ... # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         GroupError: cell
 
         :meta landlab: field-io
@@ -860,23 +860,23 @@ class GraphFields:
         Raise FieldError if *field* does not exist in *group*.
 
         >>> fields.return_array_or_field_values("surface__temperature", at="node")
-        ... # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         FieldError: surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
         >>> fields.return_array_or_field_values("topographic__elevation", at="cell")
-        ... # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         GroupError: cell
 
         And if the array of values provided is incorrect, raise a :class:`ValueError`.
 
         >>> vals = np.array([3.0, 2.0, 1.0])
         >>> fields.return_array_or_field_values(vals, at="node")
-        ... # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         ValueError: Array has incorrect size.
 
         :meta landlab: field-io
@@ -1139,10 +1139,9 @@ class GraphFields:
         array([1, 1, 1, 1])
         >>> field.at_node["topographic__elevation"] is values
         False
-        >>> field.add_field(
-        ...     "topographic__elevation", values, at="node", clobber=False
-        ... )  # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field("topographic__elevation", values, at="node", clobber=False)
         Traceback (most recent call last):
+        ...
         FieldError: topographic__elevation
 
         :meta landlab: field-add

@@ -459,7 +459,7 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     --------
     >>> from landlab.utils.structured_grid import face_at_link
     >>> faces = face_at_link((3, 4), inactive_link_index=-1)
-    >>> faces  # doctest: +NORMALIZE_WHITESPACE
+    >>> faces
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
     """
@@ -1569,7 +1569,7 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     array([[-1, -1, -1, -1]])
 
     >>> neighbors = neighbor_cell_array((5, 4), out_of_bounds=-1)
-    >>> neighbors  # doctest: +NORMALIZE_WHITESPACE
+    >>> neighbors
     array([[ 1,  2, -1, -1], [-1,  3,  0, -1],
            [ 3,  4, -1,  0], [-1,  5,  2,  1],
            [ 5, -1, -1,  2], [-1, -1,  4,  3]])
@@ -1667,12 +1667,12 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     array([[-1, -1, -1, -1]])
 
     >>> diags = diagonal_cell_array((4, 4), out_of_bounds=-1)
-    >>> diags  # doctest: +NORMALIZE_WHITESPACE
+    >>> diags
     array([[ 3, -1, -1, -1], [-1,  2, -1, -1],
            [-1, -1, -1,  1], [-1, -1,  0, -1]])
 
     >>> diags = diagonal_cell_array((4, 5), out_of_bounds=-1)
-    >>> diags  # doctest: +NORMALIZE_WHITESPACE
+    >>> diags
     array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
            [-1, -1, -1,  1], [-1, -1,  0,  2], [-1, -1,  1, -1]])
     """

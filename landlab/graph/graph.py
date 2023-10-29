@@ -434,7 +434,7 @@ class NetworkGraph:
         ...     (7, 8),
         ... )
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.nodes_at_link  # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.nodes_at_link
         array([[0, 1], [1, 2],
                [0, 3], [1, 4], [2, 5],
                [3, 4], [4, 5],
@@ -561,7 +561,7 @@ class NetworkGraph:
         ...     (7, 8),
         ... )
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.links_at_node  # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.links_at_node
         array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
                [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
                [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
@@ -678,7 +678,7 @@ class NetworkGraph:
         >>> from landlab.graph import UniformRectilinearGraph
 
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
-        >>> graph.midpoint_of_link  # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.midpoint_of_link
         array([[ 1. ,  0. ], [ 3. ,  0. ],
                [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
                [ 1. ,  1. ], [ 3. ,  1. ]])
@@ -1066,7 +1066,7 @@ class Graph(NetworkGraph):
         >>> links = ((0, 1), (1, 2), (0, 3), (1, 4), (2, 5), (3, 4), (4, 5))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
-        >>> graph.patches_at_node  # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.patches_at_node
         array([[ 0, -1], [ 1,  0], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
 
@@ -1090,7 +1090,7 @@ class Graph(NetworkGraph):
         >>> links = ((0, 1), (1, 2), (0, 3), (1, 4), (2, 5), (3, 4), (4, 5))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.patches_at_link  # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.patches_at_link
         array([[ 0, -1], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])

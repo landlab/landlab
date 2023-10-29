@@ -320,7 +320,7 @@ def read_asc_header(asc_file):
     ... xllcenter 0.5
     ... yllcenter -0.5
     ... '''
-    >>> read_asc_header(StringIO(contents))  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> read_asc_header(StringIO(contents))
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
@@ -334,7 +334,7 @@ def read_asc_header(asc_file):
     ... xllcenter 0.5
     ... yllcenter -0.5
     ... '''
-    >>> read_asc_header(StringIO(contents))  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> read_asc_header(StringIO(contents))
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """

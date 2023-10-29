@@ -35,14 +35,14 @@ class Vegetation(Component):
     that provide the input to this component, use the *input_var_names*
     class property.
 
-    >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(Vegetation.input_var_names)
     ['surface__evapotranspiration',
      'surface__potential_evapotranspiration_30day_mean',
      'surface__potential_evapotranspiration_rate',
      'vegetation__plant_functional_type',
      'vegetation__water_stress']
 
-    >>> sorted(Vegetation.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(Vegetation.units)
     [('surface__evapotranspiration', 'mm'),
      ('surface__potential_evapotranspiration_30day_mean', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
@@ -81,7 +81,7 @@ class Vegetation(Component):
     >>> Veg.grid is grid
     True
     >>> import numpy as np
-    >>> sorted(Vegetation.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(Vegetation.output_var_names)
     ['vegetation__cover_fraction',
      'vegetation__dead_biomass',
      'vegetation__dead_leaf_area_index',

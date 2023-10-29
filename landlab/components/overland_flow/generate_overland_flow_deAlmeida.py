@@ -896,11 +896,11 @@ def find_active_neighbors_for_fixed_links(grid):
     >>> grid = RasterModelGrid((4, 5))
     >>> grid.status_at_node[:5] = NodeStatus.FIXED_GRADIENT
     >>> grid.status_at_node[::5] = NodeStatus.FIXED_GRADIENT
-    >>> grid.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-    array([2, 2, 2, 2, 2,
-           2, 0, 0, 0, 1,
-           2, 0, 0, 0, 1,
-           2, 1, 1, 1, 1], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[2, 2, 2, 2, 2],
+           [2, 0, 0, 0, 1],
+           [2, 0, 0, 0, 1],
+           [2, 1, 1, 1, 1]], dtype=uint8)
 
     >>> grid.fixed_links
     array([ 5,  6,  7,  9, 18])

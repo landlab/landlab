@@ -347,7 +347,7 @@ def sort_graph(nodes, links=None, patches=None):
     ...     [[3, 0], [0, 4], [4, 5], [5, 3], [0, 1], [1, 2], [2, 0], [2, 4]]
     ... )
     >>> _ = sort_graph((y, x), links)
-    >>> links  # doctest: +NORMALIZE_WHITESPACE
+    >>> links
     array([[0, 1], [1, 2], [3, 0], [1, 4], [5, 1], [2, 5], [4, 3], [5, 4]])
 
     Sort the points, links, and patches of a graph.

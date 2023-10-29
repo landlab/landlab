@@ -122,24 +122,21 @@ class HackCalculator(Component):
     4978
     >>> hc.hack_coefficient_dataframe.loc[largest_outlet, "A_max"]
     2830000.0
-    >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
-                         A_max     C     h
-    basin_outlet_id
-    4978             2830000.0  0.31  0.62
+    >>> hc.hack_coefficient_dataframe.round(2)
+    A_max     C          h     basin_outlet_id
+    4978      2830000.0  0.31  0.62
 
     >>> hc = HackCalculator(
     ...     mg, number_of_watersheds=3, main_channel_only=False, save_full_df=True
     ... )
     >>> hc.calculate_hack_parameters()
-    >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
-                         A_max     C     h
-    basin_outlet_id
-    39               2170000.0  0.13  0.69
-    4929             2350000.0  0.13  0.68
-    4978             2830000.0  0.23  0.64
-    >>> hc.full_hack_dataframe.head().round(2)  # doctest: +NORMALIZE_WHITESPACE
-            basin_outlet_id          A   L_obs    L_est
-    node_id
+    >>> hc.hack_coefficient_dataframe.round(2)
+    A_max     C          h     basin_outlet_id
+    39        2170000.0  0.13  0.69
+    4929      2350000.0  0.13  0.68
+    4978      2830000.0  0.23  0.64
+    >>> hc.full_hack_dataframe.head().round(2)
+    basin_outlet_id    A     L_obs      L_est   node_id
     39                 39.0  2170000.0  3200.0  2903.43
     139                39.0  2170000.0  3100.0  2903.43
     238                39.0    10000.0     0.0    71.61

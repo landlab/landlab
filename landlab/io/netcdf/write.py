@@ -148,10 +148,10 @@ def _get_cell_bounds(shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     --------
     >>> from landlab.io.netcdf.write import _get_cell_bounds
     >>> bounds = _get_cell_bounds((3, 4))
-    >>> bounds["y_bnds"]  # doctest: +NORMALIZE_WHITESPACE
+    >>> bounds["y_bnds"]
     array([[[ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.]],
            [[ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.]]])
-    >>> bounds["x_bnds"]  # doctest: +NORMALIZE_WHITESPACE
+    >>> bounds["x_bnds"]
     array([[[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]],
            [[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]]])
     """

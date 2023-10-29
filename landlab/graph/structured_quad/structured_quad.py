@@ -667,16 +667,16 @@ class RectilinearGraph(StructuredQuadGraphExtras):
     >>> graph = RectilinearGraph(([0, 1, 2, 3], [1, 4, 8]))
     >>> graph.number_of_nodes
     12
-    >>> graph.y_of_node  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0., 0., 0.,
-            1., 1., 1.,
-            2., 2., 2.,
-            3., 3., 3.])
-    >>> graph.x_of_node  # doctest: +NORMALIZE_WHITESPACE
-    array([ 1., 4., 8.,
-            1., 4., 8.,
-            1., 4., 8.,
-            1., 4., 8.])
+    >>> graph.y_of_node.reshape(graph.shape)
+    array([[ 0.,  0.,  0.],
+           [ 1.,  1.,  1.],
+           [ 2.,  2.,  2.],
+           [ 3.,  3.,  3.]])
+    >>> graph.x_of_node.reshape(graph.shape)
+    array([[ 1.,  4.,  8.],
+           [ 1.,  4.,  8.],
+           [ 1.,  4.,  8.],
+           [ 1.,  4.,  8.]])
     """
 
     def __init__(self, nodes, sort=False):
@@ -704,36 +704,36 @@ class UniformRectilinearGraph(StructuredQuadGraphExtras):
     >>> graph = UniformRectilinearGraph((4, 3), spacing=(1, 2), origin=(-1, 0))
     >>> graph.number_of_nodes
     12
-    >>> graph.y_of_node  # doctest: +NORMALIZE_WHITESPACE
-    array([-1., -1., -1.,
-            0.,  0.,  0.,
-            1.,  1.,  1.,
-            2.,  2.,  2.])
-    >>> graph.x_of_node  # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  2.,  4.,
-            0.,  2.,  4.,
-            0.,  2.,  4.,
-            0.,  2.,  4.])
-    >>> graph.links_at_node  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.y_of_node.reshape(graph.shape)
+    array([[-1., -1., -1.],
+           [ 0.,  0.,  0.],
+           [ 1.,  1.,  1.],
+           [ 2.,  2.,  2.]])
+    >>> graph.x_of_node.reshape(graph.shape)
+    array([[ 0.,  2.,  4.],
+           [ 0.,  2.,  4.],
+           [ 0.,  2.,  4.],
+           [ 0.,  2.,  4.]])
+    >>> graph.links_at_node
     array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
            [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],
            [10, 12, -1,  7], [11, 13, 10,  8], [-1, 14, 11,  9],
            [15, -1, -1, 12], [16, -1, 15, 13], [-1, -1, 16, 14]])
-    >>> graph.link_dirs_at_node  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.link_dirs_at_node
     array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
            [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]], dtype=int8)
-    >>> graph.nodes_at_link  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.nodes_at_link
     array([[ 0,  1], [ 1,  2], [ 0,  3], [ 1,  4], [ 2,  5],
            [ 3,  4], [ 4,  5], [ 3,  6], [ 4,  7], [ 5,  8],
            [ 6,  7], [ 7,  8], [ 6,  9], [ 7, 10], [ 8, 11],
            [ 9, 10], [10, 11]])
-    >>> graph.links_at_patch  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.links_at_patch
     array([[ 3,  5,  2,  0], [ 4,  6,  3,  1],
            [ 8, 10,  7,  5], [ 9, 11,  8,  6],
            [13, 15, 12, 10], [14, 16, 13, 11]])
-    >>> graph.nodes_at_patch  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.nodes_at_patch
     array([[ 4,  3,  0,  1], [ 5,  4,  1,  2],
            [ 7,  6,  3,  4], [ 8,  7,  4,  5],
            [10,  9,  6,  7], [11, 10,  7,  8]])

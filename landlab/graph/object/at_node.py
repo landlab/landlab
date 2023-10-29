@@ -88,12 +88,12 @@ def sort_links_at_node_by_angle(
     The first item of the returned tuple is links at each node sorted
     counterclockwise by angle.
 
-    >>> out[0]  # doctest: +NORMALIZE_WHITESPACE
+    >>> out[0]
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
 
     The second item is the direction of the link (entering or leaving).
 
-    >>> out[1]  # doctest: +NORMALIZE_WHITESPACE
+    >>> out[1]
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
 
     Because the input arrays are lists, not numpy arrays, the sort is not
@@ -111,9 +111,9 @@ def sort_links_at_node_by_angle(
     >>> _ = sort_links_at_node_by_angle(
     ...     links_at_node, link_dirs_at_node, angle_of_link, inplace=True
     ... )
-    >>> links_at_node  # doctest: +NORMALIZE_WHITESPACE
+    >>> links_at_node
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
-    >>> link_dirs_at_node  # doctest: +NORMALIZE_WHITESPACE
+    >>> link_dirs_at_node
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
     from .ext.at_node import reorder_link_dirs_at_node, reorder_links_at_node

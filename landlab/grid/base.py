@@ -1093,18 +1093,18 @@ class ModelGrid(
         --------
         >>> from landlab import NodeStatus, RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> grid.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1,
-               1, 0, 0, 1,
-               1, 1, 1, 1], dtype=uint8)
+        >>> grid.status_at_node.reshape(grid.shape)
+        array([[1, 1, 1, 1],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
         >>> grid.fixed_links.size
         0
 
         >>> grid.status_at_node[:4] = NodeStatus.FIXED_GRADIENT
-        >>> grid.status_at_node  # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2,
-               1, 0, 0, 1,
-               1, 1, 1, 1], dtype=uint8)
+        >>> grid.status_at_node.reshape(grid.shape)
+        array([[2, 2, 2, 2],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
         >>> grid.fixed_links
         array([4, 5])
 
@@ -1427,16 +1427,16 @@ class ModelGrid(
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_axis_coordinates(0)  # doctest: +NORMALIZE_WHITESPACE
-        array([ 0., 0., 0., 0., 0.,
-                1., 1., 1., 1., 1.,
-                2., 2., 2., 2., 2.,
-                3., 3., 3., 3., 3.])
-        >>> grid.node_axis_coordinates(1)  # doctest: +NORMALIZE_WHITESPACE
-        array([ 0., 1., 2., 3., 4.,
-                0., 1., 2., 3., 4.,
-                0., 1., 2., 3., 4.,
-                0., 1., 2., 3., 4.])
+        >>> grid.node_axis_coordinates(0).reshape(grid.shape)
+        array([[ 0.,  0.,  0.,  0.,  0.],
+               [ 1.,  1.,  1.,  1.,  1.],
+               [ 2.,  2.,  2.,  2.,  2.],
+               [ 3.,  3.,  3.,  3.,  3.]])
+        >>> grid.node_axis_coordinates(1).reshape(grid.shape)
+        array([[ 0.,  1.,  2.,  3.,  4.],
+               [ 0.,  1.,  2.,  3.,  4.],
+               [ 0.,  1.,  2.,  3.,  4.],
+               [ 0.,  1.,  2.,  3.,  4.]])
 
         :meta landlab: info-grid, info-node, quantity
         """
@@ -1538,7 +1538,7 @@ class ModelGrid(
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.status_at_node[mg.nodes_at_left_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
-        >>> mg.status_at_link  # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.status_at_link
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 2, 4, 0, 0, 0, 4, 4, 0, 0,
                2, 4, 0, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
 

@@ -16,7 +16,7 @@ Create a grid on which we will run the flexure calculations.
 
 Check the fields that are used as input to the flexure component.
 
->>> Flexure.input_var_names  # doctest: +NORMALIZE_WHITESPACE
+>>> Flexure.input_var_names
 ('lithosphere__overlying_pressure_increment',)
 
 Check the units for the fields.
@@ -49,13 +49,12 @@ grid. Reset the interior nodes for the loading.
 
 >>> flex.output_var_names
 ('lithosphere_surface__elevation_increment',)
->>> flex.grid.at_node["lithosphere_surface__elevation_increment"]
-... # doctest: +NORMALIZE_WHITESPACE
-array([ 0., 0., 0., 0.,
-        0., 1., 1., 0.,
-        0., 1., 1., 0.,
-        0., 1., 1., 0.,
-        0., 0., 0., 0.])
+>>> flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape(grid.shape)
+array([[ 0.,  0.,  0.,  0.],
+       [ 0.,  1.,  1.,  0.],
+       [ 0.,  1.,  1.,  0.],
+       [ 0.,  1.,  1.,  0.],
+       [ 0.,  0.,  0.,  0.]])
 """
 
 import numpy as np
@@ -89,7 +88,7 @@ class Flexure(Component):
     ('lithosphere__overlying_pressure_increment',)
     >>> flex.output_var_names
     ('lithosphere_surface__elevation_increment',)
-    >>> sorted(flex.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(flex.units)
     [('lithosphere__overlying_pressure_increment', 'Pa'),
      ('lithosphere_surface__elevation_increment', 'm')]
 

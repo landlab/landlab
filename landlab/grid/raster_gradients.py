@@ -330,7 +330,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> grid.calc_grad_across_cell_faces(x)  # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_across_cell_faces(x)
     masked_array(data =
      [[ 1.  3.  0.  0.]
      [ 0.  2. -1. -1.]],
@@ -339,7 +339,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
 
     >>> grid = RasterModelGrid((3, 4), xy_spacing=(1, 2))
-    >>> grid.calc_grad_across_cell_faces(x)  # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_across_cell_faces(x)
     masked_array(data =
      [[ 1.   1.5  0.   0. ]
      [ 0.   1.  -1.  -0.5]],
@@ -478,7 +478,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> grid.calc_grad_along_node_links(x)  # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_along_node_links(x)
     masked_array(data =
      [[-- -- -- --]
      [-- 1.0 -- --]
@@ -502,7 +502,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
 
     >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 2))
-    >>> grid.calc_grad_along_node_links(x)  # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_along_node_links(x)
     masked_array(data =
      [[-- -- -- --]
      [-- 0.5 -- --]
@@ -585,7 +585,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
     8
     >>> eight_tris[0].shape == (mg.number_of_cells, 3)
     True
-    >>> eight_tris  # doctest: +NORMALIZE_WHITESPACE
+    >>> eight_tris
     (array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.70710678,  0.        ,  0.70710678]]),
@@ -668,7 +668,7 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     8
     >>> eight_tris[0].shape == (mg.number_of_nodes, 3)
     True
-    >>> eight_tris[0]  # doctest: +NORMALIZE_WHITESPACE
+    >>> eight_tris[0]
     array([[-0.70710678,  0.        ,  0.70710678],
            [-0.9486833 ,  0.        ,  0.31622777],
            [        nan,         nan,         nan],
@@ -1181,7 +1181,7 @@ def calc_aspect_at_cell_subtriangles(
     8
     >>> len(A[0]) == mg.number_of_cells
     True
-    >>> A0  # doctest: +NORMALIZE_WHITESPACE
+    >>> A0
     (array([ 180.]), array([ 270.]), array([ 90.]), array([ 180.]),
      array([ 0.]), array([ 90.]), array([ 270.]), array([ 0.]))
 
@@ -1291,7 +1291,7 @@ def _calc_subtriangle_aspect_at_node(
     8
     >>> len(A[0]) == mg.number_of_nodes
     True
-    >>> A0  # doctest: +NORMALIZE_WHITESPACE
+    >>> A0
     (array([  90.,  315.,   nan,   90.,  180.,   nan,   nan,   nan,   nan]),
      array([   0.,   90.,   nan,  135.,  270.,   nan,   nan,   nan,   nan]),
      array([  nan,   90.,    0.,   nan,   90.,  225.,   nan,   nan,   nan]),

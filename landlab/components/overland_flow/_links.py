@@ -13,7 +13,7 @@ def neighbors_at_link(shape, links):
     >>> import numpy as np
     >>> from landlab.components.overland_flow._links import neighbors_at_link
 
-    >>> neighbors_at_link((3, 2), np.arange(7))  # doctest: +NORMALIZE_WHITESPACE
+    >>> neighbors_at_link((3, 2), np.arange(7))
     array([[-1,  3, -1, -1],
            [ 2,  4, -1, -1], [-1,  5,  1, -1],
            [-1,  6, -1,  0],
@@ -127,11 +127,10 @@ def vertical_south_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_links = vertical_link_ids(rmg.shape)
-    >>> vertical_south_link_neighbor(rmg.shape, vertical_links)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1, -1,
-            4,  5,  6,  7,  8,
-            13, 14, 15, 16, 17])
+    >>> vertical_south_link_neighbor(rmg.shape, vertical_links).reshape((3, 5))
+    array([[-1, -1, -1, -1, -1],
+           [ 4,  5,  6,  7,  8],
+           [13, 14, 15, 16, 17]])
     """
     vertical_links = StructuredQuadGraphTopology(shape).vertical_links
     vertical_links[shape[1] :] = vertical_links[: -shape[1]]
@@ -192,11 +191,10 @@ def vertical_west_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_links = vertical_link_ids(rmg.shape)
-    >>> vertical_west_link_neighbor(rmg.shape, vertical_links)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([-1,  4,  5,  6,  7,
-           -1, 13, 14, 15, 16,
-           -1, 22, 23, 24, 25])
+    >>> vertical_west_link_neighbor(rmg.shape, vertical_links).reshape((3, 5))
+    array([[-1,  4,  5,  6,  7],
+           [-1, 13, 14, 15, 16],
+           [-1, 22, 23, 24, 25]])
     """
     vertical_links = StructuredQuadGraphTopology(shape).vertical_links.reshape(
         (shape[0] - 1, shape[1])
@@ -259,11 +257,10 @@ def vertical_north_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_ids = vertical_link_ids(rmg.shape)
-    >>> vertical_north_link_neighbor(rmg.shape, vertical_ids)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([13, 14, 15, 16, 17,
-           22, 23, 24, 25, 26,
-           -1, -1, -1, -1, -1])
+    >>> vertical_north_link_neighbor(rmg.shape, vertical_ids).reshape((3, 5))
+    array([[13, 14, 15, 16, 17],
+           [22, 23, 24, 25, 26],
+           [-1, -1, -1, -1, -1]])
     """
     vertical_links = StructuredQuadGraphTopology(shape).vertical_links
     vertical_links[: -shape[1]] = vertical_links[shape[1] :]
@@ -324,11 +321,10 @@ def vertical_east_link_neighbor(shape, vertical_ids, bad_index_value=-1):
     ... )
     >>> rmg = RasterModelGrid((4, 5))
     >>> vertical_links = vertical_link_ids(rmg.shape)
-    >>> vertical_east_link_neighbor(rmg.shape, vertical_links)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([ 5,  6,  7,  8, -1,
-           14, 15, 16, 17, -1,
-           23, 24, 25, 26, -1])
+    >>> vertical_east_link_neighbor(rmg.shape, vertical_links).reshape((3, 5))
+    array([[ 5,  6,  7,  8, -1],
+           [14, 15, 16, 17, -1],
+           [23, 24, 25, 26, -1]])
     """
     vertical_links = StructuredQuadGraphTopology(shape).vertical_links.reshape(
         (shape[0] - 1, shape[1])
@@ -363,10 +359,10 @@ def active_link_ids(shape, node_status):
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     >>> status = rmg.status_at_node
-    >>> status  # doctest: +NORMALIZE_WHITESPACE
-    array([4, 4, 4, 4,
-           4, 0, 0, 4,
-           4, 4, 4, 4], dtype=uint8)
+    >>> status.reshape(rmg.shape)
+    array([[4, 4, 4, 4],
+           [4, 0, 0, 4],
+           [4, 4, 4, 4]], dtype=uint8)
 
     >>> active_link_ids((3, 4), status)
     array([8])
@@ -400,7 +396,7 @@ def is_active_link(shape, node_status):
     ...     [NodeStatus.CLOSED, NodeStatus.CORE, NodeStatus.CLOSED],
     ...     [NodeStatus.CLOSED, NodeStatus.CLOSED, NodeStatus.CLOSED],
     ... ]
-    >>> is_active_link((4, 3), status)  # doctest: +NORMALIZE_WHITESPACE
+    >>> is_active_link((4, 3), status)
     array([False, False,
            False, False, False,
            False, False,
@@ -484,27 +480,25 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
 
     >>> rmg = RasterModelGrid((4, 5))
     >>> active_ids = active_link_ids((4, 5), rmg.status_at_node)
-    >>> active_ids  # doctest: +NORMALIZE_WHITESPACE
+    >>> active_ids
     array([ 5,  6,  7,
             9, 10, 11, 12,
            14, 15, 16,
            18, 19, 20, 21,
            23, 24, 25])
 
-    >>> vertical_active_link_ids((4, 5), active_ids)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([-1,  5,  6,  7, -1,
-           -1, 14, 15, 16, -1,
-           -1, 23, 24, 25, -1])
+    >>> vertical_active_link_ids((4, 5), active_ids).reshape((3, 5))
+    array([[-1,  5,  6,  7, -1],
+           [-1, 14, 15, 16, -1],
+           [-1, 23, 24, 25, -1]])
 
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> status = rmg.status_at_node
     >>> active_ids = active_link_ids((4, 5), status)
-    >>> vertical_active_link_ids((4, 5), active_ids)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1, -1,
-           -1, 14, 15, 16, -1,
-           -1, -1, -1, -1, -1])
+    >>> vertical_active_link_ids((4, 5), active_ids).reshape((3, 5))
+    array([[-1, -1, -1, -1, -1],
+           [-1, 14, 15, 16, -1],
+           [-1, -1, -1, -1, -1]])
     """
     number_of_vertical_links = (shape[0] - 1) * shape[1]
     out = np.full(number_of_vertical_links, bad_index_value, dtype=int)
@@ -605,7 +599,7 @@ def is_vertical_link(shape, links):
     >>> import numpy as np
     >>> shape = (3, 4)
     >>> links = np.arange(_number_of_links(shape))
-    >>> is_vertical_link(shape, links)  # doctest: +NORMALIZE_WHITESPACE
+    >>> is_vertical_link(shape, links)
     array([False, False, False,  True,  True,  True,  True,
            False, False, False,  True,  True,  True,  True,
            False, False, False], dtype=bool)
@@ -707,19 +701,18 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     >>> status = rmg.status_at_node
-    >>> status  # doctest: +NORMALIZE_WHITESPACE
-    array([4, 4, 4, 4, 4,
-           4, 0, 0, 0, 4,
-           4, 0, 0, 0, 4,
-           4, 4, 4, 4, 4], dtype=uint8)
+    >>> status.reshape(rmg.shape)
+    array([[4, 4, 4, 4, 4],
+           [4, 0, 0, 0, 4],
+           [4, 0, 0, 0, 4],
+           [4, 4, 4, 4, 4]], dtype=uint8)
     >>> active_ids = active_link_ids((4, 5), status)
 
-    >>> horizontal_active_link_ids((4, 5), active_ids)
-    ... # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1,
-           -1, 10, 11, -1,
-           -1, 19, 20, -1,
-           -1, -1, -1, -1])
+    >>> horizontal_active_link_ids((4, 5), active_ids).reshape((4, 4))
+    array([[-1, -1, -1, -1],
+           [-1, 10, 11, -1],
+           [-1, 19, 20, -1],
+           [-1, -1, -1, -1]])
     """
     number_of_horizontal_links = shape[0] * (shape[1] - 1)
     out = np.full(number_of_horizontal_links, bad_index_value, dtype=int)
@@ -783,7 +776,7 @@ def is_horizontal_link(shape, links):
     >>> import numpy as np
     >>> shape = (3, 4)
     >>> links = np.arange(_number_of_links(shape))
-    >>> is_horizontal_link(shape, links)  # doctest: +NORMALIZE_WHITESPACE
+    >>> is_horizontal_link(shape, links)
     array([ True,  True,  True, False, False, False, False,
             True,  True,  True, False, False, False, False,
             True,  True,  True], dtype=bool)

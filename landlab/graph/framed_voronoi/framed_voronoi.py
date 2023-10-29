@@ -287,11 +287,11 @@ class FramedVoronoiGraph(DelaunayGraph):
     >>> graph.number_of_nodes
     9
 
-    >>> graph.x_of_node[2:4]  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.x_of_node[2:4]
     array([ 2.,  0.])
-    >>> graph.y_of_node[2:4]  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.y_of_node[2:4]
     array([ 0.   ,  0.749])
-    >>> graph.y_of_node[5]  # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.y_of_node[5]
     1.2509999999999999
 
     >>> graph.number_of_links

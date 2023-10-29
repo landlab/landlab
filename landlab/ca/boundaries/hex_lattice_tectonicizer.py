@@ -1066,13 +1066,13 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu = LatticeUplifter(propid=ca.propid, prop_data=pd)
         >>> lu.node_state[:] = np.arange(len(lu.node_state))
         >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)
-        >>> lu.node_state  # doctest: +NORMALIZE_WHITESPACE
+        >>> lu.node_state
         array([ 0, 25,  2, 25, 25,
                 5,  1,  7,  3,  4,
                10,  6, 12,  8,  9,
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
-        >>> lu.propid  # doctest: +NORMALIZE_WHITESPACE
+        >>> lu.propid
         array([ 0, 21,  2, 23, 24,
                 5,  1,  7,  3,  4,
                10,  6, 12,  8,  9,

@@ -122,7 +122,7 @@ class LandslideProbability(Component):
     that provide the input to this component, use the *input_var_names*
     class property.
 
-    >>> sorted(LandslideProbability.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(LandslideProbability.input_var_names)
     ['soil__density',
      'soil__internal_friction_angle',
      'soil__maximum_total_cohesion',
@@ -146,9 +146,7 @@ class LandslideProbability(Component):
     If you are not sure about one of the input or output variables, you can
     get help for specific variables.
 
-    >>> LandslideProbability.var_help(
-    ...     "soil__transmissivity"
-    ... )  # doctest: +NORMALIZE_WHITESPACE
+    >>> LandslideProbability.var_help("soil__transmissivity")
     name: soil__transmissivity
     description:
       mode rate of water transmitted through a unit width of saturated
@@ -201,7 +199,7 @@ class LandslideProbability(Component):
 
     Check the output variable names.
 
-    >>> sorted(ls_prob.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(ls_prob.output_var_names)
     ['landslide__probability_of_failure',
      'soil__mean_relative_wetness',
      'soil__probability_of_saturation']

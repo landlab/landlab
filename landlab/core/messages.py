@@ -84,7 +84,6 @@ WARNING
 Unstable time step!
 
 >>> assert_or_print(dt < 1, "Unstable time step!", onerror="raise")
-... # doctest: +IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
 ...
 AssertionError
@@ -176,7 +175,7 @@ def split_paragraphs(msg, linesep=os.linesep):
     ...
     ... Dictumst vestibulum rhoncus est pellentesque.
     ... '''
-    >>> split_paragraphs(text, linesep="\\n")  # doctest: +NORMALIZE_WHITESPACE
+    >>> split_paragraphs(text, linesep="\\n")
     ['Pharetra pharetra massa massa ultricies mi quis hendrerit.',
      'Dictumst vestibulum rhoncus est pellentesque.']
 
@@ -394,7 +393,6 @@ def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):
 
     >>> assert_or_print(True, "Lorem ipsum", onerror="raise")
     >>> assert_or_print(False, "Lorem ipsum", onerror="raise")
-    ... # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     AssertionError

@@ -35,13 +35,13 @@ class SoilMoisture(Component):
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> SoilMoisture.name
     'Soil Moisture'
-    >>> sorted(SoilMoisture.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(SoilMoisture.output_var_names)
     ['soil_moisture__root_zone_leakage',
      'soil_moisture__saturation_fraction',
      'surface__evapotranspiration',
      'surface__runoff',
      'vegetation__water_stress']
-    >>> sorted(SoilMoisture.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(SoilMoisture.units)
     [('rainfall__daily_depth', 'mm'),
      ('soil_moisture__initial_saturation_fraction', 'None'),
      ('soil_moisture__root_zone_leakage', 'mm'),

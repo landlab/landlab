@@ -96,7 +96,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     It also stores the proportions of flow going to each receiver, the link on
     which the flow moves in at node arrays, and the slope of each link.
 
-    >>> mg.at_node["flow__receiver_proportions"]  # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["flow__receiver_proportions"]
     array([[ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
@@ -130,7 +130,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [18, 39],
            [19, 38],
            [20, 40]])
-    >>> mg.at_node["topographic__steepest_slope"]  # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["topographic__steepest_slope"]
     array([[ -1.00000000e+00,  -1.41421356e+00],
            [  1.00000000e+00,  -7.12763635e+02],
            [  3.00000000e+00,   1.41421356e+00],
@@ -176,7 +176,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [13, -1],
            [14, -1],
            [15, -1]])
-    >>> proportions  # doctest: +NORMALIZE_WHITESPACE
+    >>> proportions
     array([[ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],

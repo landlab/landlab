@@ -35,11 +35,11 @@ class Radiation(Component):
     'Radiation'
     >>> rad.input_var_names
     ('topographic__elevation',)
-    >>> sorted(rad.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(rad.output_var_names)
     ['radiation__incoming_shortwave_flux',
      'radiation__net_shortwave_flux',
      'radiation__ratio_to_flat_surface']
-    >>> sorted(rad.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(rad.units)
     [('radiation__incoming_shortwave_flux', 'W/m^2'),
      ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),

@@ -96,7 +96,7 @@ class FastscapeEroder(Component):
     >>> sp = FastscapeEroder(grid, K_sp=0.1, m_sp=0.0, n_sp=2.0, threshold_sp=2.0)
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=10.0)
-    >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
+    >>> z.reshape(grid.shape)[1, :]
     array([  0.        ,   1.        ,   4.        ,   8.52493781,
             13.29039716,  18.44367965,  36.        ])
 
@@ -123,7 +123,7 @@ class FastscapeEroder(Component):
     ... )
     >>> fr.run_one_step()
     >>> sp.run_one_step(1.0)
-    >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
+    >>> z.reshape(grid.shape)[1, :]
     array([  0.        ,   0.0647484 ,   0.58634455,   2.67253503,
              8.49212152,  20.92606987,  36.        ])
 
