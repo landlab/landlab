@@ -1,3 +1,0 @@
-
-Added *blackdoc*, which formats doctests and rst ``code-block`` for *black*,
-to our list linters.
