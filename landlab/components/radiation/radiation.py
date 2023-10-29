@@ -298,6 +298,7 @@ class Radiation(Component):
         # Jan-2005 - Eqn 23,(50)
         self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
+        
         # The following section computes the ratio to flat surface radiation field
         self._ratio_flat_surface_calc()
 
@@ -309,7 +310,6 @@ class Radiation(Component):
         # Clear-sky Radiation Rcs - Lecture_Radiation_Oct_13_18, Page 37
         # will only be computed if turbidity and optical air mass are both user defined
         # Optical airmass must be >0 or Rcs2 is disregarded (log of zero or / 0 error)
-
         self._rcs2valid = True
         if self._m is not None:
             self._Rcs2 = self._Rext * np.exp(
@@ -323,6 +323,7 @@ class Radiation(Component):
         # This one is more ideal, and does not need as many parameters
         self._Rcs = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
 
+
         # Rcfactor, set to Rcs2 for empirical method, Rcs for accurate method
         # IF optical air mass and turbidity are both appropriately defined,
         # then use the more parameter-intensive formula. Otherwise, use the
@@ -335,7 +336,7 @@ class Radiation(Component):
 
         # Assuming 2500 foot elevation
         # Equation 34
-        self._P = 101.3 * ((293 - 0.0065 * self._avg_elev) / 293) ** 5.26
+        self._P = 101.3 * ((293 - 0.0065 * self._hAboveSea) / 293) ** 5.26
 
         # If it does work, set _Po to a pressure according to the current month's
         # average monthly pressure
@@ -349,8 +350,10 @@ class Radiation(Component):
         # (Rcfactor), if there is a case where the standard shortwave rad
         # formula yields a result greater than Rcfactor, set shortwave
         # radiation to the clearsky radiation itself.
-        self._Rs = min(
-            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rcfactor
+
+        self._Rs = np.minimum(
+            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin),
+            self._Rcfactor
         )
 
         # Net shortwave Radiation - ASCE-EWRI Task Committee Report,
@@ -364,10 +367,7 @@ class Radiation(Component):
         # As according to ASCE-EWRI Task Committee Report, Page 19
         # Cloudiness should be within 0.05 and 1 so as to not
         # nullify or incorrectly calculate the net longwave radiation
-        if self._u < 0.05:
-            self._u = 0.05
-        elif self._u > 1:
-            self._u = 1.0
+        self._u = np.clip(self._u, 0.05, 1.0)
 
         # Net Longwave Radiation - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn (17)
@@ -441,22 +441,28 @@ class Radiation(Component):
             self._cosSA = 0.0001
 
         # self._hAboveSea = 300
-        self._hAboveSea = self._max_elev
-        self._temp = self._Tavg  # in C
+        self._hAboveSea = self._nodal_values["topographic__elevation"]
 
-        # To calculate ws - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 29,(61)
-        self._x = 1.0 - (((np.tan(self._phi)) ** 2.0) * (np.tan(self._sdecl) ** 2.0))
-        if self._x <= 0:
-            self._x = 0.00001
+        # Handle invalid values
+        if (np.any(self._hAboveSea < 0)):
+            raise Exception("No negative elevations allowed in an above sea elevation field...")
+        
+        # Trimming the length of nodal elevation values to 
+        # match the cell value field length is the most
+        # efficient way to create a spacial distribution of
+        # node-cell elevation data mappings so that we can
+        # interact with the nodal_values and cell_values fields.
+        # Trying to aggregate this data takes monumentally more 
+        # time and effort.
+        trimLen = len(self._hAboveSea) - len(self._Rs)
+        self._hAboveSea = self._hAboveSea[:-trimLen]
+
+        self._temp = self._Tavg  # in C
 
         # Sunset Hour Angle - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 28,(60)
-        self._ws = (np.pi / 2.0) - np.arctan(
-            (-1 * np.tan(self._phi) * np.tan(self._sdecl)) / (self._x**0.5)
-        )
+        self._ws = np.arccos(-np.tan(self._sdecl) * np.tan(self._phi))
 
-        # DIRECT SOLAR RADIATION (I)
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 21, (48)
         self._Rgl = (
@@ -478,7 +484,6 @@ class Radiation(Component):
         # Rounding
         if self._F > 0.99999 or self._F < -0.99999:
             self._F = 0.99999
-
         #
         if self._t < 12.0:
             self._phisun = np.pi - np.arccos(self._F)
@@ -490,12 +495,6 @@ class Radiation(Component):
         ) * np.cos(self._alpha) * np.cos(
             self._phisun - 0
         )  # flat surface reference
-
-        # flat surface total incoming shortwave radiation
-        self._Rsflat = self._Rgl * self._flat
-
-        # flat surface Net incoming shortwave radiation
-        self._Rnetflat = (1 - self._A) * (1 - 0.65 * (self._N**2)) * self._Rsflat
 
         self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
             self._slope
