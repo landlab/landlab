@@ -298,7 +298,6 @@ class Radiation(Component):
         # Jan-2005 - Eqn 23,(50)
         self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
-        
         # The following section computes the ratio to flat surface radiation field
         self._ratio_flat_surface_calc()
 
@@ -322,7 +321,6 @@ class Radiation(Component):
         # Jan-2005 - Eqn 19, (47)
         # This one is more ideal, and does not need as many parameters
         self._Rcs = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
-
 
         # Rcfactor, set to Rcs2 for empirical method, Rcs for accurate method
         # IF optical air mass and turbidity are both appropriately defined,
@@ -352,8 +350,7 @@ class Radiation(Component):
         # radiation to the clearsky radiation itself.
 
         self._Rs = np.minimum(
-            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin),
-            self._Rcfactor
+            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rcfactor
         )
 
         # Net shortwave Radiation - ASCE-EWRI Task Committee Report,
@@ -444,15 +441,17 @@ class Radiation(Component):
         self._hAboveSea = self._nodal_values["topographic__elevation"]
 
         # Handle invalid values
-        if (np.any(self._hAboveSea < 0)):
-            raise Exception("No negative elevations allowed in an above sea elevation field...")
-        
-        # Trimming the length of nodal elevation values to 
+        if np.any(self._hAboveSea < 0):
+            raise Exception(
+                "No negative elevations allowed in an above sea elevation field..."
+            )
+
+        # Trimming the length of nodal elevation values to
         # match the cell value field length is the most
         # efficient way to create a spacial distribution of
         # node-cell elevation data mappings so that we can
         # interact with the nodal_values and cell_values fields.
-        # Trying to aggregate this data takes monumentally more 
+        # Trying to aggregate this data takes monumentally more
         # time and effort.
         trimLen = len(self._hAboveSea) - len(self._Rs)
         self._hAboveSea = self._hAboveSea[:-trimLen]
