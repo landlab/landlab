@@ -1,0 +1,3 @@
+
+Updated *Landlab* for *matplotlib* 3.7.2. Removed calls to newly deprecated
+``get_cmap`` and fixed some notebook errors.

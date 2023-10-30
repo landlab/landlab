@@ -51,6 +51,7 @@ Changes to Boundary Condition Flags
   .. code-block:: python
 
       from landlab import CLOSED_NODE, RasterModelGrid
+
       grid = RasterModelGrid((10, 5))
       grid.status_at_node[0] = CLOSED_NODE
 
@@ -59,6 +60,7 @@ Changes to Boundary Condition Flags
   .. code-block:: python
 
       from landlab import RasterModelGrid
+
       grid = RasterModelGrid((10, 5))
       grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
 

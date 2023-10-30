@@ -45,6 +45,7 @@ class AreaSlopeTransporter(Component):
     ...     fa.run_one_step()
     ...     elev[grid.core_nodes] += 1.0
     ...     transporter.run_one_step(10000.0)
+    ...
     >>> int(round(elev[4] * 100))
     1068
     """
