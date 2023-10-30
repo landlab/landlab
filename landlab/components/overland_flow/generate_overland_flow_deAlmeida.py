@@ -274,7 +274,7 @@ class OverlandFlow(Component):
             Acceleration due to gravity (m/s^2).
         theta : float, optional
             Weighting factor from de Almeida et al., 2012.
-        rainfall_intensity : float, optional
+        rainfall_intensity : float or array of float, optional
             Rainfall intensity. Default is zero.
         steep_slopes : bool, optional
             Modify the algorithm to handle steeper slopes at the expense of
@@ -370,7 +370,9 @@ class OverlandFlow(Component):
 
     @dt.setter
     def dt(self, dt):
-        assert dt > 0
+        if dt <= 0:
+            raise ValueError("timestep dt must be positive")
+
         self._dt = dt
 
     @property
@@ -382,11 +384,11 @@ class OverlandFlow(Component):
         return self._rainfall_intensity
 
     @rainfall_intensity.setter
-    def rainfall_intensity(self, rainfall_intensity):
-        if rainfall_intensity >= 0:
-            self._rainfall_intensity = rainfall_intensity
-        else:
+    def rainfall_intensity(self, new_val):
+        if np.any(new_val < 0.0):
             raise ValueError("Rainfall intensity must be positive")
+
+        self._rainfall_intensity = new_val
 
     def calc_time_step(self):
         """Calculate time step.
