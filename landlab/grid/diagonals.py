@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+import contextlib
+
 import numpy as np
 
 from ..utils.decorators import cache_result_in_object, make_return_array_immutable
@@ -24,7 +26,7 @@ def create_nodes_at_diagonal(shape, out=None):
     Examples
     --------
     >>> from landlab.grid.diagonals import create_nodes_at_diagonal
-    >>> create_nodes_at_diagonal((3, 4)) # doctest: +NORMALIZE_WHITESPACE
+    >>> create_nodes_at_diagonal((3, 4))
     array([[ 0, 5], [ 1, 4], [ 1,  6], [ 2, 5], [ 2,  7], [ 3,  6],
            [ 4, 9], [ 5, 8], [ 5, 10], [ 6, 9], [ 6, 11], [ 7, 10]])
     """
@@ -99,7 +101,7 @@ def create_diagonals_at_node(shape, out=None):
     return out
 
 
-class DiagonalsMixIn(object):
+class DiagonalsMixIn:
 
     """Add diagonals to a structured quad grid."""
 
@@ -140,7 +142,7 @@ class DiagonalsMixIn(object):
                [ 8, -1, -1,  5], [10,  9,  4,  7], [-1, 11,  6, -1],
                [-1, -1, -1,  9], [-1, -1,  8, 11], [-1, -1, 10, -1]])
 
-        LLCATS: NINF LINF CONN
+        :meta landlab: info-node, info-link, connectivity
         """
         return create_diagonals_at_node(self.shape)
 
@@ -207,7 +209,7 @@ class DiagonalsMixIn(object):
                [10, -1, -1,  4], [11,  9,  3,  5], [-1, 10,  4, -1],
                [-1, -1, -1,  7], [-1, -1,  6,  8], [-1, -1,  7, -1]])
 
-        LLCATS: NINF CONN
+        :meta landlab: info-node, connectivity
         """
         node_is_at_tail = np.choose(
             self.diagonal_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
@@ -249,7 +251,7 @@ class DiagonalsMixIn(object):
 
         >>> grid.diagonals_at_node[3]
         array([ 4, -1, -1,  1])
-        >>> grid.nodes_at_diagonal[(4, 1), ]
+        >>> grid.nodes_at_diagonal[(4, 1),]
         array([[3, 7],
                [1, 3]])
         >>> grid.diagonal_dirs_at_node[3]
@@ -317,7 +319,7 @@ class DiagonalsMixIn(object):
         >>> np.all(diagonals_at_node == grid.diagonals_at_node)
         True
 
-        LLCATS: NINF LINF CONN
+        :meta landlab: info-node, info-link, connectivity
         """
         diagonals_at_node = self.diagonals_at_node.copy()
         diagonals_at_node[diagonals_at_node >= 0] += self.number_of_links
@@ -367,13 +369,13 @@ class DiagonalsMixIn(object):
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
-        >>> grid.length_of_d8 # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.length_of_d8
         array([ 4.,  4.,  3.,  3.,  3.,
                 4.,  4.,  3.,  3.,  3.,
                 4.,  4.,  5.,  5.,  5.,
                 5.,  5.,  5.,  5.,  5.])
 
-        LLCATS: LINF MEAS
+        :meta landlab: info-link, quantity
         """
         return np.hstack((super().length_of_link, self.length_of_diagonal))
 
@@ -390,10 +392,8 @@ class DiagonalsMixIn(object):
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
 
     @property
     @cache_result_in_object()

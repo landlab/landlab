@@ -9,7 +9,6 @@ from landlab.components import FlowAccumulator, GravelRiverTransporter
 
 
 def test_analytical_solution_one_cell_basic_solver():
-
     # parameters
     dx = 1000.0  # node spacing, m
     uplift_rate = 0.0001  # rate of relative uplift, m/y
@@ -55,7 +54,6 @@ def test_analytical_solution_one_cell_basic_solver():
 
 
 def test_analytical_solution_one_cell_matrix_solver():
-
     # parameters
     dx = 1000.0  # node spacing, m
     uplift_rate = 0.0001  # rate of relative uplift, m/y
@@ -98,7 +96,6 @@ def test_analytical_solution_one_cell_matrix_solver():
 
 
 def test_analytical_solution_four_cells_basic_solver():
-
     # parameters
     dx = 1000.0  # node spacing, m
     initial_slope = 0.0001  # starting topographic slope, m/m
@@ -127,7 +124,7 @@ def test_analytical_solution_four_cells_basic_solver():
         grid, abrasion_coefficient=abrasion_coef, solver="explicit"
     )
 
-    for i in range(nsteps):
+    for _ in range(nsteps):
         fa.run_one_step()
         elev[grid.core_nodes] += uplift_rate * dt
         transporter.run_one_step(dt)
@@ -144,7 +141,6 @@ def test_analytical_solution_four_cells_basic_solver():
 
 
 def test_analytical_solution_four_cells_matrix_solver():
-
     # parameters
     dx = 1000.0  # node spacing, m
     initial_slope = 0.0001  # starting topographic slope, m/m
@@ -173,7 +169,7 @@ def test_analytical_solution_four_cells_matrix_solver():
         grid, abrasion_coefficient=abrasion_coef, solver="matrix"
     )
 
-    for i in range(nsteps):
+    for _ in range(nsteps):
         fa.run_one_step()
         elev[grid.core_nodes] += uplift_rate * dt
         transporter.run_one_step(dt)
@@ -196,7 +192,6 @@ def test_exception_handling():
 
 
 def test_link_length_handling():
-
     # Hex grid with fixed and uniform flow-link length
     grid = HexModelGrid((5, 3), spacing=2.0)
     grid.add_zeros("topographic__elevation", at="node")

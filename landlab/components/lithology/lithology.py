@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a Lithology object with different properties."""
 
 import numpy as np
@@ -42,10 +41,7 @@ class Lithology(Component):
 
     .. code-block:: python
 
-        attrs = {'K_sp': {1: 0.001,
-                          2: 0.0001},
-                 'D': {1: 0.01,
-                       2: 0.001}}
+        attrs = {"K_sp": {1: 0.001, 2: 0.0001}, "D": {1: 0.01, 2: 0.001}}
 
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
@@ -69,15 +65,17 @@ class Lithology(Component):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{barnhart2018lithology,
-                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
-                    journal = "Journal of Open Source Software",
-                    volume = "",
-                    pages = "",
-                    year = "2018",
-                    doi = "10.21105/joss.00979",
-                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
-                    }"""
+    _cite_as = """
+    @article{barnhart2018lithology,
+        title = "Lithology: A Landlab submodule for spatially variable rock properties",
+        journal = "Journal of Open Source Software",
+        volume = "",
+        pages = "",
+        year = "2018",
+        doi = "10.21105/joss.00979",
+        author = {Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini
+                  and Gregory E. Tucker},
+    }"""
 
     _info = {}
 
@@ -134,20 +132,19 @@ class Lithology(Component):
 
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         After creating a Lithology, the model grid will have an at-node grid
         field set to the surface values of 'K_sp'.
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
                 0.001])
 
         The surface values are also properties of the Lithology.
 
-        >>> lith['K_sp']
+        >>> lith["K_sp"]
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
                 0.001])
 
@@ -176,7 +173,7 @@ class Lithology(Component):
         the model grid.
 
         >>> layer_pattern = (0.5 * mg.x_of_node) + 1.0
-        >>> thicknesses = [1*layer_pattern, 2*layer_pattern, 4*layer_pattern]
+        >>> thicknesses = [1 * layer_pattern, 2 * layer_pattern, 4 * layer_pattern]
         >>> ids = [1, 2, 1]
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.thickness
@@ -192,12 +189,11 @@ class Lithology(Component):
             self._last_elevation = self._grid["node"]["topographic__elevation"][
                 :
             ].copy()
-        except KeyError:
-            msg = (
+        except KeyError as exc:
+            raise ValueError(
                 "Lithology requires that topographic__elevation already "
                 "exists as an at-node field."
-            )
-            raise ValueError(msg)
+            ) from exc
 
         # save inital information about thicknesses, layers, attributes, and ids.
         self._init_thicknesses = np.asarray(thicknesses)
@@ -211,58 +207,52 @@ class Lithology(Component):
         if self._init_thicknesses.ndim == 2:
             # assert that the 2nd dimension is the same as the number of nodes.
             if self._init_thicknesses.shape[1] != self._grid.number_of_nodes:
-                msg = (
+                raise ValueError(
                     "Thicknesses provided to Lithology are ",
                     "inconsistent with the ModelGrid.",
                 )
-                raise ValueError(msg)
 
             # if IDs is a 2d array assert that it is the same size as thicknesses
             if np.asarray(ids).ndim == 2:
                 if self._init_thicknesses.shape != np.asarray(ids).shape:
-                    msg = (
+                    raise ValueError(
                         "Thicknesses and IDs provided to Lithology are ",
                         "inconsistent with each other.",
                     )
-                    raise ValueError(msg)
                 # if tests pass set value of IDs.
                 self._layer_ids = np.asarray(ids)
 
             # if IDS is a 1d array
             elif np.asarray(ids).ndim == 1:
                 if np.asarray(ids).size != self._number_of_init_layers:
-                    msg = (
+                    raise ValueError(
                         "Number of IDs provided to Lithology is ",
                         "inconsistent with number of layers provided in "
                         "thicknesses.",
                     )
-                    raise ValueError(msg)
                 # if tests pass, broadcast ids to correct shape.
                 self._layer_ids = np.broadcast_to(
                     np.atleast_2d(np.asarray(ids)).T, self._init_thicknesses.shape
                 )
 
             else:
-                msg = (
-                    "IDs must be of shape `(n_layers, )` or `(n_layers, "
-                    "n_nodes)`. Passed array has more than 2 dimensions."
+                raise ValueError(
+                    "IDs must be of shape `(n_layers, )` or `(n_layers, n_nodes)`. "
+                    "Passed array has more than 2 dimensions."
                 )
-                raise ValueError(msg)
 
         elif self._init_thicknesses.ndim == 1:
             if self._init_thicknesses.shape != np.asarray(ids).shape:
-                msg = (
+                raise ValueError(
                     "Thicknesses and IDs provided to Lithology are ",
                     "inconsistent with each other.",
                 )
-                raise ValueError(msg)
             self._layer_ids = np.asarray(ids)
         else:
-            msg = (
-                "Thicknesses must be of shape `(n_layers, )` or `(n_layers, "
-                "n_nodes)`. Passed array has more than 2 dimensions."
+            raise ValueError(
+                "Thicknesses must be of shape `(n_layers, )` or "
+                "`(n_layers, n_nodes)`. Passed array has more than 2 dimensions."
             )
-            raise ValueError(msg)
 
         # assert that attrs are pointing to fields (or create them)
         for at in self._properties:
@@ -286,7 +276,7 @@ class Lithology(Component):
                 grid.number_of_nodes, self._number_of_init_layers
             )
         else:
-            raise ValueError(("Lithology passed an invalid option for " "layer type."))
+            raise ValueError("Lithology passed an invalid option for " "layer type.")
 
         # From bottom to top, add layers to the Lithology with attributes.
         for i in range(self._number_of_init_layers - 1, -1, -1):
@@ -365,8 +355,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.tracked_properties
         ['K_sp']
@@ -386,8 +375,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001}}
@@ -406,8 +394,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
@@ -429,8 +416,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -455,8 +441,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.z_bottom
         array([[ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.],
@@ -482,8 +467,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.z_top
         array([[ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
@@ -504,12 +488,10 @@ class Lithology(Component):
         for at in self._properties:
             for i in self._ids:
                 if i not in self._attrs[at]:
-                    msg = (
-                        "A rock type with ID value " + str(i) + "was "
-                        "specified in Lithology. No value "
-                        "for this ID was provided in property " + at + "."
+                    raise ValueError(
+                        f"A rock type with ID value {i} was specified in Lithology. "
+                        f"No value for this ID was provided in property {at}."
                     )
-                    raise ValueError(msg)
 
     def _update_surface_values(self):
         """Update Lithology surface values."""
@@ -542,9 +524,7 @@ class Lithology(Component):
         We can instantiate Lithology with rock type properties we know we will
         use in the future.
 
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001,
-        ...                   3: 0.01}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001, 3: 0.01}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         Add a layer of thickness 3 and rock type 3.
@@ -553,16 +533,16 @@ class Lithology(Component):
 
         The value of `K_sp` at node is now updated to the value of rock type 3
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01])
 
         A negative value will erode. We can also pass a `(n_nodes,) long array
         to erode unevenly. If all parts of the layer erode, then no `rock_id`
         needs to be passed.
 
-        >>> erosion_amount = [-2., -2., -2., -4., -4., -4., -6., -6., -6.]
+        >>> erosion_amount = [-2.0, -2.0, -2.0, -4.0, -4.0, -4.0, -6.0, -6.0, -6.0]
         >>> lith.add_layer(erosion_amount)
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.01  ,  0.01  ,  0.01  ,  0.0001,  0.0001,  0.0001,  0.001 ,
                 0.001 ,  0.001 ])
 
@@ -573,11 +553,10 @@ class Lithology(Component):
 
         # verify that Lithology will still have thickness after change
         if np.any((self._layers.thickness + thickness) <= 0):
-            msg = (
+            raise ValueError(
                 "add_layer will result in Lithology having a thickness of "
                 "zero at at least one node."
             )
-            raise ValueError(msg)
 
         # verify that rock type added exists.
         try:
@@ -588,16 +567,14 @@ class Lithology(Component):
             new_ids = [rock_id]
 
         if not all_ids_present:
-
             missing_ids = set(new_ids).difference(self._ids)
 
             if np.any(thickness > 0):
-                msg = (
+                raise ValueError(
                     "Lithology add_layer was given a rock type id that does "
                     "not yet exist and will need to deposit. Use a valid "
-                    "rock type or add_rock_type. " + str(missing_ids)
+                    f"rock type or add_rock_type. {missing_ids}"
                 )
-                raise ValueError(msg)
 
         # add_rock_type
         if rock_id is not None:
@@ -629,41 +606,34 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
-        >>> lith.add_property({'D': {1: 0.03,
-        ...                        2: 0.004}})
+        >>> lith.add_property({"D": {1: 0.03, 2: 0.004}})
         >>> lith.tracked_properties
         ['D', 'K_sp']
-        >>> mg.at_node['D']
+        >>> mg.at_node["D"]
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
         """
         for at in attrs:
             if at in self._properties:
-                msg = (
+                raise ValueError(
                     "add_property is trying to add an existing "
-                    "attribute, this is not permitted. " + str(at)
+                    f"attribute, this is not permitted. {at}"
                 )
-                raise ValueError(msg)
 
             new_rids = attrs[at].keys()
             for rid in new_rids:
                 if rid not in self._ids:
-                    msg = (
-                        "add_property has an attribute(" + str(at) + ")"
-                        " for rock type " + str(rid) + " that no other rock "
-                        " type has. This is not permitted."
+                    raise ValueError(
+                        f"add_property has an attribute({at}) for rock type {rid!s} "
+                        "that no other rock type has. This is not permitted."
                     )
-                    raise ValueError(msg)
 
             for rid in self._ids:
                 if rid not in new_rids:
-                    msg = (
-                        "add_property needs a value for id " + str(rid) + ""
-                        " and attribute " + str(at) + "."
+                    raise ValueError(
+                        "add_property needs a value for id {rid!s} and attribute {at}."
                     )
-                    raise ValueError(msg)
 
         for at in attrs:
             if at not in self._grid.at_node:
@@ -690,11 +660,9 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
-        >>> lith.add_rock_type({'K_sp': {4: 0.03,
-        ...                            6: 0.004}})
+        >>> lith.add_rock_type({"K_sp": {4: 0.03, 6: 0.004}})
         >>> lith.ids
         [1, 2, 4, 6]
         >>> lith.properties
@@ -703,16 +671,14 @@ class Lithology(Component):
         # Check that the new rock type has all existing attributes
         for at in self._properties:
             if at not in attrs:
-                msg = "The new rock type is missing attribute " + str(at) + "."
-                raise ValueError(msg)
+                raise ValueError(f"The new rock type is missing attribute {at!s}.")
         # And no new attributes
         for at in attrs:
             if at not in self._properties:
-                msg = (
-                    "The new rock type has an attribute (e" + str(at) + ") "
+                raise ValueError(
+                    "The new rock type has an attribute (e{at!s}) "
                     "that no other rock type has. This is not permitted."
                 )
-                raise ValueError(msg)
 
         new_ids = []
         for at in attrs:
@@ -720,12 +686,10 @@ class Lithology(Component):
             rids = att_dict.keys()
             for rid in rids:
                 if rid in self._layer_ids:
-                    msg = (
-                        "Rock type ID " + str(rid) + " for attribute "
-                        "" + str(at) + " has already been added. This is "
-                        "not allowed"
+                    raise ValueError(
+                        "Rock type ID {rid!s} for attribute {at!s} "
+                        "has already been added. This is not allowed"
                     )
-                    raise ValueError(msg)
                 else:
                     new_ids.append(rid)
                     self._attrs[at][rid] = att_dict[rid]
@@ -754,33 +718,29 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
                 0.001])
 
-        >>> lith.update_rock_properties('K_sp', 1, 0.03)
+        >>> lith.update_rock_properties("K_sp", 1, 0.03)
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
         """
         if at not in self._properties:
-            msg = (
-                "Lithology cannot update the value of " + str(at) + "as "
+            raise ValueError(
+                f"Lithology cannot update the value of {at!s} as "
                 "this attribute does not exist."
             )
-            raise ValueError(msg)
 
         if not self._ids.issuperset([rock_id]):
-            msg = (
-                "Lithology cannot update the value of rock type "
-                "" + str(rock_id) + "for attribute " + str(at) + " as "
-                "this rock type is not yet defined."
+            raise ValueError(
+                f"Lithology cannot update the value of rock type {rock_id!s} "
+                f"for attribute {at!s} as this rock type is not yet defined."
             )
-            raise ValueError(msg)
 
         # set the value in the attribute dictionary
         self._attrs[at][rock_id] = value
@@ -873,8 +833,7 @@ class Lithology(Component):
         >>> z = mg.add_ones("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -904,7 +863,7 @@ class Lithology(Component):
 
         We can see the value of the rock type at the surface.
 
-        >>> mg.at_node['rock_type__id']
+        >>> mg.at_node["rock_type__id"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         If you deposit, a valid rock_id must be provided. If the rock type
@@ -934,10 +893,8 @@ class Lithology(Component):
         >>> z = mg.add_ones("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
-        >>> lith = Lithology(mg, thicknesses, ids, attrs,
-        ...                  layer_type='EventLayers')
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
+        >>> lith = Lithology(mg, thicknesses, ids, attrs, layer_type="EventLayers")
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
@@ -965,7 +922,7 @@ class Lithology(Component):
         We can see the value of the rock type at the surface. As expected,
         it is just the same as if we used MaterialLayers.
 
-        >>> mg.at_node['rock_type__id']
+        >>> mg.at_node["rock_type__id"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         If you deposit, a valid rock_id must be provided. Unlike

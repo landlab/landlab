@@ -6,7 +6,6 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
-
 import numpy
 import xarray as xr
 
@@ -38,7 +37,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     >>> grid = HexModelGrid((3, 3), node_layout="rect", orientation="vertical")
     >>> grid.status_at_node
     array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
-    >>> grid = HexModelGrid((4, 4), node_layout='rect', orientation="vertical")
+    >>> grid = HexModelGrid((4, 4), node_layout="rect", orientation="vertical")
     >>> grid.status_at_node
     array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
     >>> grid.boundary_nodes
@@ -63,7 +62,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
-        It is a special type of VoronoiDelaunay grid in which the initial set
+        It is a special type of :class:`~.VoronoiModelGrid` in which the initial set
         of points is arranged in a triangular/hexagonal lattice.
 
         Parameters
@@ -72,13 +71,13 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             Number of rows and columns of nodes.
         spacing : float, optional
             Node spacing.
-        xy_of_lower_left : tuple, optional
+        xy_of_lower_left : tuple of float, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
             no node may be present at this coordinate. Default is (0., 0.).
-        xy_of_reference : tuple, optional
+        xy_of_reference : tuple of float, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
-        orientation : string, optional
+        orientation : str, optional
             One of the 3 cardinal directions in the grid, either 'horizontal'
             (default) or 'vertical'
         node_layout : {"hex", "rect"}
@@ -155,9 +154,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             },
         )
         return dataset.update(
-            super(HexModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=None
-            )
+            super().as_dataset(include=include, exclude=exclude, time=None)
         )
 
     @property
@@ -198,7 +195,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.number_of_node_columns
         5
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self.shape[1]
 
@@ -221,7 +218,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> grid.number_of_node_rows
         5
 
-        LLCATS: GINF NINF
+        :meta landlab: info-grid, info-node
         """
         return self._shape[0]
 
@@ -231,20 +228,20 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid((3, 4), node_layout='rect', orientation="vertical")
+        >>> grid = HexModelGrid((3, 4), node_layout="rect", orientation="vertical")
         >>> grid.node_row_and_column(5)
         (1, 2)
-        >>> grid = HexModelGrid((3, 5), node_layout='rect', orientation="vertical")
+        >>> grid = HexModelGrid((3, 5), node_layout="rect", orientation="vertical")
         >>> grid.node_row_and_column(13)
         (2, 1)
         """
         assert self.orientation[0] == "v", "grid orientation must be vertical"
         try:
             (nr, nc) = self._shape
-        except AttributeError:
+        except AttributeError as exc:
             raise AttributeError(
                 "Only rectangular Hex grids have defined rows and columns."
-            )
+            ) from exc
 
         row = node_id // nc
         n_mod_nc = node_id % nc
@@ -258,16 +255,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        data : str OR node array (1d numpy array with number_of_nodes entries)
+        data : str or (n_link,) ndarray
             Data field to be colored
         data_label : str, optional
             Label for colorbar
-        color_map : matplotlib colormap object, None
+        color_map : matplotlib colormap object, optional
             Color map to apply (defaults to "jet")
-
-        Returns
-        -------
-        (none)
 
         Notes
         -----
@@ -340,7 +333,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        data : str or node array (1d numpy array with number_of_nodes entries)
+        data : str or (n_nodes,) ndarray
             Data field to be colored.
         data_label : str, optional
             Label for colorbar.
@@ -349,11 +342,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         See also
         --------
-        plot.imshow_grid
+        :func:`~.plot.imshow_grid`
             Another Landlab function capable of producing hexplots, with a
             fuller-featured set of options.
 
-        LLCATS: GINF
+
+        :meta landlab: info-grid
         """
         import copy
 
@@ -387,15 +381,16 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def set_watershed_boundary_condition_outlet_id(
         self, outlet_id, node_data, nodata_value=-9999.0
     ):
-        """Set the boundary conditions for a watershed on a HexModelGrid.
+        """Set the boundary conditions for a watershed.
 
-        All nodes with nodata_value are set to BC_NODE_IS_CLOSED.
-        All nodes with data values are set to BC_NODE_IS_CORE, with the
-        exception that the outlet node is set to a BC_NODE_IS_FIXED_VALUE.
+        All nodes with ``nodata_value`` are set to :attr:`~.NodeStatus.CLOSED`.
+        All nodes with data values are set to :attr:`~.NodeStatus.CORE`, with the
+        exception that the outlet node is set to a :attr:`~.NodeStatus.FIXED_VALUE`.
 
-        Note that the outer ring of the HexModelGrid is set to BC_NODE_IS_CLOSED, even
-        if there are nodes that have values.  The only exception to this would
-        be if the outlet node is on the boundary, which is acceptable.
+        Note that the outer ring of the HexModelGrid is set to
+        :attr:`~.NodeStatus.CLOSED`, even if there are nodes that have values.
+        The only exception to this would be if the outlet node is on the boundary,
+        which is acceptable.
 
         Assumes that the id of the outlet is already known.
 
@@ -404,9 +399,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        outlet_id : integer
+        outlet_id : int
             id of the outlet node
-        node_data : field name or ndarray
+        node_data : str or (n_nodes,) ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional
@@ -432,12 +427,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1,
            1], dtype=uint8)
 
-        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(9, z, -9999.)
+        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(9, z, -9999.0)
         >>> hmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -454,23 +449,25 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def set_watershed_boundary_condition(
         self, node_data, nodata_value=-9999.0, return_outlet_id=False
     ):
-        """Finds the node adjacent to a boundary node with the smallest value.
+        """Find the node adjacent to a boundary node with the smallest value.
+
         This node is set as the outlet.  The outlet node must have a data
         value.  Can return the outlet id as a one element numpy array if
-        return_outlet_id is set to True.
+        ``return_outlet_id`` is set to `True`.
 
-        All nodes with nodata_value are set to `NodeStatus.CLOSED`
+        All nodes with ``nodata_value`` are set to :attr:`~.NodeStatus.CLOSED`
         (grid.status_at_node == 4). All nodes with data values are set to
-        `NodeStatus.CORE` (grid.status_at_node == 0), with the exception that the
-        outlet node is set to a `NodeStatus.FIXED_VALUE` (grid.status_at_node == 1).
+        :attr:`~.NodeStatus.CORE` (grid.status_at_node == 0), with the exception
+        that the outlet node is set to a :attr:`~.NodeStatus.FIXED_VALUE`
+        (grid.status_at_node == 1).
 
         Note that the outer ring (perimeter) of the grid is set to
-        `NodeStatus.CLOSED`, even if there are nodes that have values. The only
+        :attr:`~.NodeStatus.CLOSED`, even if there are nodes that have values. The only
         exception to this would be if the outlet node is on the perimeter, which
         is acceptable.
 
-        This routine assumes that all of the nodata_values are on the outside of
-        the data values. In other words, there are no islands of nodata_values
+        This routine assumes that all of the ``nodata_value`` are on the outside of
+        the data values. In other words, there are no islands of ``nodata_value``
         surrounded by nodes with data.
 
         This also assumes that the grid has a single watershed (that is a single
@@ -478,17 +475,17 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        node_data : field name or ndarray
+        node_data : str or (n_nodes,) ndarray
             At-node field name or at-node data values to use for identifying
             watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
-        return_outlet_id : boolean, optional
+        return_outlet_id : bool, optional
             Indicates whether or not to return the id of the found outlet
 
         Examples
         --------
-        The example will use a HexModelGrid with node data values
+        The example will use a :class:`~.HexModelGrid` with node data values
         as illustrated::
 
                 1. ,  2. ,  3. ,  4. ,
@@ -501,14 +498,14 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> hmg = HexModelGrid((5, 4))
         >>> z = hmg.add_zeros("topographic__elevation", at="node")
         >>> z += hmg.x_of_node + 1.0
-        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999., True)
+        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999.0, True)
         >>> out_id
         array([9])
         >>> hmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
 
-        LLCATS: BC
+        :meta landlab: boundary-condition
         """
         # get node_data if a field name
         node_data = self.return_array_or_field_values("node", node_data)
@@ -554,14 +551,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                         numpy.where(numpy.asarray(next_to_boundary))[0]
                     ]
                     raise ValueError(
-                        (
-                            "Grid has two potential outlet nodes."
-                            "They have the following node IDs: \n"
-                            + str(potential_locs)
-                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
-                            "to explicitly select one of these "
-                            "IDs as the outlet node."
-                        )
+                        "Grid has two potential outlet nodes."
+                        "They have the following node IDs: \n"
+                        + str(potential_locs)
+                        + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                        "to explicitly select one of these "
+                        "IDs as the outlet node."
                     )
                 else:
                     outlet_loc = min_locs[numpy.where(next_to_boundary)[0][0]]

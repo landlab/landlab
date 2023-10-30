@@ -17,12 +17,12 @@ Landlab components exist as classes, and can be imported from
 To develop your own Landlab component, see
 :ref:`this page <dev_contributing>`
 and
-`this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_.
+`this tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_.
 
 Component Library Tutorial
 ----------------------------
 For a tutorial introduction to using the component library, see
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/component_tutorial/component_tutorial.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/component_tutorial/component_tutorial.ipynb>`_.
 
 Available Landlab components
 ----------------------------
@@ -47,7 +47,7 @@ A component class is imported from the library as
 
 .. code-block:: python
 
-    from landlab.components import [ComponentClass]
+    from landlab.components import NameOfComponentToImport
 
 e.g., to get the linear diffusion component, we would do:
 
@@ -66,7 +66,7 @@ this:
 
 .. code-block:: python
 
-    dfn = LinearDiffuser(grid, 'linear_diffusivity'=0.01)
+    dfn = LinearDiffuser(grid, linear_diffusivity=0.01)
 
 These keywords can also be set by passing a Python dictionary, or using a text
 input file (see below).
@@ -78,7 +78,7 @@ have a method called `run_one_step`, which can be called like this:
 
 .. code-block:: python
 
-    dt = 100.  # the timestep
+    dt = 100.0  # the timestep
     dfn.run_one_step(dt)
 
 If the component describes a time-varying process, the first argument of
@@ -101,10 +101,10 @@ website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
 following would work::
 
-    help(LinearDiffuser)
-    help(dfn)
-    LinearDiffuser?
-    dfn?
+.. code-block:: pycon
+
+    >>> help(LinearDiffuser)
+    >>> help(dfn)  # LinearDiffuser? or dfn? also works
 
 Quit interactive help in iPython by pressing "q".
 
@@ -128,7 +128,7 @@ parameters, I can simply do:
 
 .. code-block:: python
 
-    fsc = FastscapeEroder(grid, K_sp=1.e-6)
+    fsc = FastscapeEroder(grid, K_sp=1.0e-6)
 
 Because Landlab components make use of Python's native `**kwargs` argument
 syntax, we can also pass multiple keywords at once to a component using a
@@ -136,8 +136,8 @@ Python dictionary:
 
 .. code-block:: python
 
-    sp_thresholds = grid.add_ones('node', 'sp_thresholds')
-    myargs = {'K_sp': 1.e-5, 'rainfall_intensity': 0.5, 'threshold_sp': sp_thresholds}
+    sp_thresholds = grid.add_ones("node", "sp_thresholds")
+    myargs = {"K_sp": 1.0e-5, "rainfall_intensity": 0.5, "threshold_sp": sp_thresholds}
     fsc = FastscapeEroder(grid, **myargs)
 
 Note the "magic" `**` decorator that is placed on the dictionary when it is
@@ -171,7 +171,8 @@ strings):
 .. code-block:: python
 
     from landlab import load_params
-    my_input_dict = load_params('./mytextinputfile.txt')
+
+    my_input_dict = load_params("./mytextinputfile.txt")
     dfn = FastscapeEroder(grid, **my_input_dict)
 
 Component standard properties
@@ -233,12 +234,12 @@ Nonetheless, you may recognize the basic style of the names:
 
 e.g., *topographic__elevation*, *water_surface__gradient*, *water__volume_flux*
 
-We compile two tables to assist users with the Landlab standard names.
+We compile three tables to assist users with the :ref:`Landlab standard names<standard_name_definitions>`.
 
-- First is :ref:`a list of all names with their definitions
-  <standard_name_definitions>`.
-- Second is :ref:`a table listing which components create and use each field
-  <standard_name_mapping>`.
+- First is a list of all names with their definitions.
+- Second is a table listing which components use each field.
+- Third is a table listing which components provide each field.
+
 
 See :ref:`here <standard_name_changes>` for a list of changes to the standard
 name list associated with the release of Landlab version 1.x (relative to 0.x).
@@ -253,7 +254,7 @@ for the same thing. In these cases, you need to make equivalent two fields in th
 have different names so that two components can talk to each other. This is actually easy;
 you can just do:
 
->>> mg.add_field('node', 'second_name', mg.at_node['first_name'])
+>>> mg.add_field("node", "second_name", mg.at_node["first_name"])
 
 Note that we are making slow progress towards truly standardizing the component library, but
 these kind of idiosyncrasies might yet persist for a while!

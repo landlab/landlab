@@ -1,0 +1,1 @@
+Changed the continuous integraion to use *micromamba* rather than *miniconda*.

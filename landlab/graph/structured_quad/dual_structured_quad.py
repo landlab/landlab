@@ -14,12 +14,8 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     Examples
     --------
     >>> from landlab.graph import DualStructuredQuadGraph
-    >>> node_y = [-1, -2, -3,
-    ...            0,  0,  0,
-    ...            1,  2,  3]
-    >>> node_x = [ 0,  1,  2,
-    ...            0,  2,  3,
-    ...            0,  1,  2]
+    >>> node_y = [-1, -2, -3, 0, 0, 0, 1, 2, 3]
+    >>> node_x = [0, 1, 2, 0, 2, 3, 0, 1, 2]
     >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3), sort=True)
     >>> graph.number_of_corners == 4
     True
@@ -119,12 +115,12 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
     --------
     >>> from landlab.graph import DualRectilinearGraph
     >>> graph = DualRectilinearGraph(([0, 1, 3], [0, 5, 15, 30]))
-    >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.5, 10. , 22.5,
-            2.5, 10. , 22.5])
-    >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5, 0.5, 0.5,
-            2. , 2. , 2. ])
+    >>> graph.x_of_corner.reshape((2, 3))
+    array([[  2.5,  10. ,  22.5],
+           [  2.5,  10. ,  22.5]])
+    >>> graph.y_of_corner.reshape((2, 3))
+    array([[ 0.5,  0.5,  0.5],
+           [ 2. ,  2. ,  2. ]])
     >>> graph.number_of_cells == 2
     True
     >>> graph.faces_at_cell
@@ -133,7 +129,6 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
     """
 
     def __init__(self, node_y_and_x):
-
         RectilinearGraph.__init__(self, node_y_and_x)
 
         dual_graph = RectilinearGraph(DualRectilinearGraph.get_corners(node_y_and_x))
@@ -165,14 +160,14 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
     --------
     >>> from landlab.graph import DualUniformRectilinearGraph
     >>> graph = DualUniformRectilinearGraph((4, 3))
-    >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5, 1.5,
-            0.5, 1.5,
-            0.5, 1.5])
-    >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5, 0.5,
-            1.5, 1.5,
-            2.5, 2.5])
+    >>> graph.x_of_corner.reshape((3, 2))
+    array([[ 0.5,  1.5],
+           [ 0.5,  1.5],
+           [ 0.5,  1.5]])
+    >>> graph.y_of_corner.reshape((3, 2))
+    array([[ 0.5,  0.5],
+           [ 1.5,  1.5],
+           [ 2.5,  2.5]])
     >>> graph.number_of_cells == 2
     True
     >>> graph.faces_at_cell

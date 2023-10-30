@@ -68,7 +68,7 @@ GRID_TYPE_STRUCTURED = BmiGridType(3, "Structured")
 GRID_TYPE_UNSTRUCTURED = BmiGridType(4, "Unstructured")
 
 
-class BmiBase(object):
+class BmiBase:
     """Definition of the Basic Modeling Interface."""
 
     def initialize(self, file_name):
@@ -129,7 +129,7 @@ class BmiBase(object):
         pass
 
 
-class BmiExtendedBase(object):
+class BmiExtendedBase:
     """An extension interface for a BMI."""
 
     def update_until(self, time):
@@ -144,7 +144,7 @@ class BmiExtendedBase(object):
         pass
 
 
-class BmiUnstructured(object):
+class BmiUnstructured:
     """BMI for a model that uses an unstructured grid."""
 
     def get_x(self, name):
@@ -164,7 +164,7 @@ class BmiUnstructured(object):
         pass
 
 
-class BmiStructured(object):
+class BmiStructured:
     """BMI for a model that uses a structured grid."""
 
     def get_grid_shape(self, name):
@@ -183,7 +183,7 @@ class BmiStructured(object):
         pass
 
 
-class BmiRectilinear(object):
+class BmiRectilinear:
     """BMI for a model that uses a rectilinear grid."""
 
     def get_grid_shape(self, name):
@@ -202,7 +202,7 @@ class BmiRectilinear(object):
         pass
 
 
-class BmiUniformRectilinear(object):
+class BmiUniformRectilinear:
     """BMI for a model that exposes a uniform rectilinear grid."""
 
     def get_grid_shape(self, name):
@@ -227,5 +227,5 @@ class BmiUniformRectilinear(object):
         pass
 
 
-class BmiNoGrid(object):
+class BmiNoGrid:
     """BMI for a model that does not have a grid."""

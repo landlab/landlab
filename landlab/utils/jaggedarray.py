@@ -7,16 +7,19 @@ Create a JaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
 
 >>> from landlab.utils.jaggedarray import JaggedArray
->>> links_at_node = JaggedArray([
-...     [0, 6],
-...     [1, 7, 0],
-...     [8, 1],
-...     [2, 9, 6],
-...     [3, 10, 2, 7],
-...     [11, 3, 8],
-...     [4, 7],
-...     [5, 10, 4],
-...     [5, 11]])
+>>> links_at_node = JaggedArray(
+...     [
+...         [0, 6],
+...         [1, 7, 0],
+...         [8, 1],
+...         [2, 9, 6],
+...         [3, 10, 2, 7],
+...         [11, 3, 8],
+...         [4, 7],
+...         [5, 10, 4],
+...         [5, 11],
+...     ]
+... )
 
 Make up some data that provides values at each of the links.
 
@@ -113,7 +116,7 @@ def unravel(data, offset, out=None, pad=None):
     return out
 
 
-class JaggedArray(object):
+class JaggedArray:
 
     """A container for an array of variable-length arrays.
 
@@ -218,7 +221,7 @@ class JaggedArray(object):
 
         From the offsets you can get values for rows of the jagged array.
 
-        >>> x.array[x.offset[0]:x.offset[1]]
+        >>> x.array[x.offset[0] : x.offset[1]]
         array([0, 1, 2])
 
         Once the array is created, you can't change the offsets.
@@ -364,7 +367,9 @@ class JaggedArray(object):
         --------
         >>> from landlab.utils.jaggedarray import JaggedArray
         >>> x = JaggedArray([[0, 1, 2], [3, 4]])
-        >>> for row in x: row
+        >>> for row in x:
+        ...     row
+        ...
         array([0, 1, 2])
         array([3, 4])
         """
@@ -390,7 +395,7 @@ class JaggedArray(object):
         if out is None:
             out = np.empty(self.number_of_rows, dtype=self._values.dtype)
 
-        for (row_number, row) in enumerate(self):
+        for row_number, row in enumerate(self):
             out[row_number] = func(row)
 
         return out

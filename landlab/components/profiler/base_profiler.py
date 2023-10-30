@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """Base class for profile constructors."""
 
@@ -17,10 +16,7 @@ def _recursive_max(jagged):
     Examples
     --------
     from landlab.components.profiler.base_profiler import _recursive_max
-    >>> struct = [[1, 2, 3, 4],
-    ...           [[2, 3, 4, 5],
-    ...            [3, 4, 5, 6]],
-    ...           [4, 5, 6, 7]]
+    >>> struct = [[1, 2, 3, 4], [[2, 3, 4, 5], [3, 4, 5, 6]], [4, 5, 6, 7]]
     >>> _recursive_max(struct)
     7
     >>> _recursive_max([100])
@@ -34,10 +30,7 @@ def _recursive_min(jagged):
     Examples
     --------
     from landlab.components.profiler.base_profiler import _recursive_min
-    >>> struct = [[1, 2, 3, 4],
-    ...           [[2, 3, 4, 5],
-    ...            [3, 4, 5, 6]],
-    ...           [4, 5, 6, 7]]
+    >>> struct = [[1, 2, 3, 4], [[2, 3, 4, 5], [3, 4, 5, 6]], [4, 5, 6, 7]]
     >>> _recursive_min(struct)
     1
     >>> _recursive_min([100])
@@ -98,11 +91,11 @@ class _BaseProfiler(ABC, Component):
         >>> from landlab.components import (
         ...     FastscapeEroder,
         ...     FlowAccumulator,
-        ...     ChannelProfiler
-        ...     )
+        ...     ChannelProfiler,
+        ... )
         >>> mg = RasterModelGrid((10, 10), xy_spacing=10)
         >>> np.random.seed(42)
-        >>> z = mg.add_zeros('topographic__elevation', at='node')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
         >>> fa = FlowAccumulator(mg)
         >>> sp = FastscapeEroder(mg, K_sp=0.0001)
@@ -111,6 +104,7 @@ class _BaseProfiler(ABC, Component):
         ...     fa.run_one_step()
         ...     sp.run_one_step(dt=dt)
         ...     z[mg.core_nodes] += 0.001 * dt
+        ...
         >>> profiler = ChannelProfiler(mg)
         >>> profiler.run_one_step()
         >>> profiler.distance_along_profile
@@ -129,11 +123,11 @@ class _BaseProfiler(ABC, Component):
         >>> from landlab.components import (
         ...     FastscapeEroder,
         ...     FlowAccumulator,
-        ...     ChannelProfiler
-        ...     )
+        ...     ChannelProfiler,
+        ... )
         >>> mg = RasterModelGrid((10, 10), xy_spacing=10)
         >>> np.random.seed(42)
-        >>> z = mg.add_zeros('topographic__elevation', at='node')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
         >>> fa = FlowAccumulator(mg)
         >>> sp = FastscapeEroder(mg, K_sp=0.0001)
@@ -142,6 +136,7 @@ class _BaseProfiler(ABC, Component):
         ...     fa.run_one_step()
         ...     sp.run_one_step(dt=dt)
         ...     z[mg.core_nodes] += 0.001 * dt
+        ...
         >>> profiler = ChannelProfiler(mg)
         >>> profiler.run_one_step()
         >>> profiler.nodes
@@ -160,11 +155,11 @@ class _BaseProfiler(ABC, Component):
         >>> from landlab.components import (
         ...     FastscapeEroder,
         ...     FlowAccumulator,
-        ...     ChannelProfiler
-        ...     )
+        ...     ChannelProfiler,
+        ... )
         >>> mg = RasterModelGrid((10, 10), xy_spacing=10)
         >>> np.random.seed(42)
-        >>> z = mg.add_zeros('topographic__elevation', at='node')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
         >>> fa = FlowAccumulator(mg)
         >>> sp = FastscapeEroder(mg, K_sp=0.0001)
@@ -173,6 +168,7 @@ class _BaseProfiler(ABC, Component):
         ...     fa.run_one_step()
         ...     sp.run_one_step(dt=dt)
         ...     z[mg.core_nodes] += 0.001 * dt
+        ...
         >>> profiler = ChannelProfiler(mg)
         >>> profiler.run_one_step()
         >>> np.round(profiler.colors, decimals=2)
@@ -260,7 +256,7 @@ class _BaseProfiler(ABC, Component):
 
         # create segments the way that line collection likes them.
         segments = []
-        for idx, nodes in enumerate(self._nodes):
+        for nodes in self._nodes:
             if endpoints_only:
                 select_nodes = [nodes[0], nodes[-1]]
                 segments.append(

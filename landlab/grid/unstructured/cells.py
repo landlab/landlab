@@ -3,7 +3,7 @@ import numpy as np
 from ...utils.jaggedarray import JaggedArray
 
 
-class CellGrid(object):
+class CellGrid:
     """
     Parameters
     ----------

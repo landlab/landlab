@@ -57,7 +57,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     array([ 0. ,  0. ,  0. ,  5. ,  5. ,  3.6,  3.6,  0. ,  5. , -1.4, -3.6,
             0. , -5. , -5. , -3.6, -3.6,  0. ,  0. ,  0. ])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = grid.empty(at="link")
@@ -95,11 +95,11 @@ def calc_diff_at_link(grid, node_values, out=None):
     >>> from landlab import RasterModelGrid
     >>> rmg = RasterModelGrid((3, 3))
     >>> z = np.zeros(9)
-    >>> z[4] = 1.
+    >>> z[4] = 1.0
     >>> rmg.calc_diff_at_link(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = grid.empty(at="link")
@@ -130,7 +130,7 @@ def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
     --------
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid((3, 3))
-    >>> z = mg.node_x * 3. / 4.
+    >>> z = mg.node_x * 3.0 / 4.0
     >>> mg.calc_unit_normal_at_patch(z)
     array([[-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8],
@@ -143,7 +143,7 @@ def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
            [-0.6,  0. ,  0.8],
            [-0.6,  0. ,  0.8]])
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     try:
         z = grid.at_node[elevs]
@@ -207,10 +207,10 @@ def calc_slope_at_patch(
     >>> S = mg.calc_slope_at_patch(elevs=z)
     >>> S.size == mg.number_of_patches
     True
-    >>> np.allclose(S, np.pi / 4.)
+    >>> np.allclose(S, np.pi / 4.0)
     True
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if unit_normal is not None:
         assert unit_normal.shape[1] == 3
@@ -268,12 +268,12 @@ def calc_grad_at_patch(
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_y
     >>> (x_grad, y_grad) = mg.calc_grad_at_patch(elevs=z)
-    >>> np.allclose(y_grad, np.pi / 4.)
+    >>> np.allclose(y_grad, np.pi / 4.0)
     True
-    >>> np.allclose(x_grad, 0.)
+    >>> np.allclose(x_grad, 0.0)
     True
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if unit_normal is not None:
         assert unit_normal.shape[1] == 3
@@ -300,25 +300,27 @@ def calc_slope_at_node(
     method="patch_mean",
     ignore_closed_nodes=True,
     return_components=False,
-    **kwds
+    **kwds,
 ):
     """Array of slopes at nodes, averaged over neighboring patches.
 
     Produces a value for node slope (i.e., mean gradient magnitude)
     at each node in a manner analogous to a GIS-style slope map.
-    It averages the gradient on each of the
-    patches surrounding the node, creating a value for node slope that
-    better incorporates nonlocal elevation information. Directional
-    information can still be returned through use of the return_components
-    keyword.
+    It averages the gradient on each of the patches surrounding the
+    node, creating a value for node slope that better incorporates
+    nonlocal elevation information. Directional information can
+    still be returned through use of the return_components keyword.
 
-    Note that under these definitions, it is not always true that::
+    Note that under these definitions, it is not always true that:
+
+    .. code-block:: python
 
         mag, cmp = mg.calc_slope_at_node(z)
-        mag ** 2 == cmp[0] ** 2 + cmp[1] ** 2  # not always true
+        mag**2 == cmp[0] ** 2 + cmp[1] ** 2  # not always true
 
-    If ignore_closed_nodes is False, all proximal elevation values will be used
-    in the calculation. If True, only unclosed nodes are used.
+    If ``ignore_closed_nodes`` is ``False``, all proximal elevation
+    values will be used in the calculation. If ``True``, only unclosed
+    nodes are used.
 
     Parameters
     ----------
@@ -327,14 +329,15 @@ def calc_slope_at_node(
     elevs : str or ndarray, optional
         Field name or array of node values.
     method : {'patch_mean', 'Horn'}
-        By equivalence to the raster version, `'patch_mean'` returns a scalar
-        mean on the patches; `'Horn'` returns a vector mean on the patches.
+        By equivalence to the raster version, ``'patch_mean'`` returns a scalar
+        mean on the patches; ``'Horn'`` returns a vector mean on the patches.
     ignore_closed_nodes : bool
-        If True, do not incorporate values at closed nodes into the calc.
+        If ``True``, do not incorporate values at closed nodes into the
+        calculation.
     return_components : bool
-        If True, return a tuple, (array_of_magnitude,
+        If ``True``, return a tuple, (array_of_magnitude,
         (array_of_slope_x_radians, array_of_slope_y_radians)).
-        If false, return an array of floats of the slope magnitude.
+        If ``False``, return an array of floats of the slope magnitude.
 
     Returns
     -------
@@ -345,23 +348,23 @@ def calc_slope_at_node(
 
     Examples
     --------
+
     >>> import numpy as np
     >>> from landlab import RadialModelGrid, RasterModelGrid
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_at_node(elevs=z)
-    >>> np.allclose(slopes, 45. / 180. * np.pi)
+    >>> np.allclose(slopes, 45.0 / 180.0 * np.pi)
     True
 
     >>> mg = RasterModelGrid((4, 5))
-    >>> z = - mg.node_y
-    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
-    ...                                        return_components=True)
-    >>> np.allclose(slope_mag, np.pi / 4.)
+    >>> z = -mg.node_y
+    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z, return_components=True)
+    >>> np.allclose(slope_mag, np.pi / 4.0)
     True
-    >>> np.allclose(cmp[0], 0.)
+    >>> np.allclose(cmp[0], 0.0)
     True
-    >>> np.allclose(cmp[1], - np.pi / 4.)
+    >>> np.allclose(cmp[1], -np.pi / 4.0)
     True
 
     >>> mg = RadialModelGrid(n_rings=3)
@@ -379,7 +382,7 @@ def calc_slope_at_node(
     array([ 0.77542,  0.78453,  0.78453,  0.77542,  0.77542,  0.78453,
             0.78453,  0.77542,  0.77542,  0.78453,  0.78453,  0.77542])
 
-    LLCATS: NINF GRAD SURF
+    :meta landlab: info-node, gradient, surface
     """
     if method not in ("patch_mean", "Horn"):
         raise ValueError("method name not understood")
@@ -479,7 +482,7 @@ def calc_aspect_at_node(
     --------
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 4))
-    >>> z = mg.node_x ** 2 + mg.node_y ** 2
+    >>> z = mg.node_x**2 + mg.node_y**2
     >>> mg.calc_aspect_at_node(elevs=z)
     array([ 225.        ,  240.16585039,  255.2796318 ,  258.69006753,
             209.83414961,  225.        ,  243.54632481,  248.77808974,
@@ -492,8 +495,8 @@ def calc_aspect_at_node(
             14.7203682 ,  26.45367519,  45.        ,  51.94498651,
             11.30993247,  21.22191026,  38.05501349,  45.        ])
 
-    >>> mg = RasterModelGrid((4, 4), xy_spacing=(3., 2.))
-    >>> z = mg.node_x ** 2 + mg.node_y ** 2
+    >>> mg = RasterModelGrid((4, 4), xy_spacing=(3.0, 2.0))
+    >>> z = mg.node_x**2 + mg.node_y**2
     >>> mg.calc_aspect_at_node(elevs=z)
     array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
             220.75264634,  234.41577266,  251.13402374,  255.29210302,
@@ -503,7 +506,7 @@ def calc_aspect_at_node(
     Note that a small amount of asymmetry arises at the grid edges due
     to the "missing" nodes beyond the edge of the grid.
 
-    LLCATS: NINF SURF
+    :meta landlab: info-node, surface
     """
     if slope_component_tuple:
         if not isinstance(slope_component_tuple, (tuple, list)):

@@ -1,8 +1,8 @@
 .. _development:
 
-====================
-Guide for Developers
-====================
+===============
+Developer Guide
+===============
 
 If you're intending to make changes to the Landlab code base, or want to
 develop your own components, this set of pages will provide information you
@@ -13,29 +13,23 @@ Key Development Recommendations
 
 The most important things to remember are to:
 
-  * Start by creating a fork of Landlab's repository;
-  * Make changes to the source code on a development branch, not the default
-    `master` branch; and
-  * Keep your fork's `master` and development branches up to date with changes
-    in the main Landlab repository.
-  * Consider creating a small Pull Request to update the page on
-    :ref:`ongoing development <ongoing_development>` so that others know what
-    you are working on.
+* Start by creating a fork of Landlab's repository;
+* Make changes to the source code on a development branch, not the default
+  `master` branch; and
+* Keep your fork's `master` and development branches up to date with changes
+  in the main Landlab repository.
 
 Supported Python Versions
 -------------------------
-Python 3.8, 3.9, and 3.10
+Python 3.10, 3.11, and 3.12
 
 If you need to introduce a new dependency, that dependency must be compatible
-with Python 3.8+ and be available on Linux, Mac, and Windows.
-
-Installation, Contribution, and Development Practices
------------------------------------------------------
+with Python 3.10+ and be available on Linux, Mac, and Windows.
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
-   install/index
    contribution/index
    practices/index
    package_organization
@@ -47,7 +41,6 @@ There are a few pages that are particularly important for the maintenance of
 the package. These are:
 
 * :ref:`directory organization <organization>`
-* :ref:`testing protocol <testing>`
 * :ref:`dependency organization <dependencies>`, and
 * :ref:`release workflow <dev_releases>`
 

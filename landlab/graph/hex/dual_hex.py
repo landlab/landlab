@@ -20,16 +20,15 @@ class DualHexGraph(DualGraph, TriGraph):
     >>> import numpy as np
     >>> from landlab.graph import DualHexGraph
 
-    >>> graph = DualHexGraph((3, 2), node_layout='hex')
+    >>> graph = DualHexGraph((3, 2), node_layout="hex")
     >>> graph.number_of_nodes
     7
     >>> graph.number_of_corners
     6
 
-    >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
-    ...     # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(graph.y_of_node * 2.0 / np.sqrt(3))
     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.x_of_node
     array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
     """
 
@@ -77,8 +76,8 @@ class DualHexGraph(DualGraph, TriGraph):
 
         try:
             spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float") from exc
 
         self._shape = tuple(shape)
         self._spacing = spacing

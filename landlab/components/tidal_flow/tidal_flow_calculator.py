@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 """
@@ -93,11 +92,13 @@ class TidalFlowCalculator(Component):
     >>> from landlab.components import TidalFlowCalculator
     >>> grid = RasterModelGrid((3, 5), xy_spacing=2.0)  # 1 row core nodes
     >>> grid.set_closed_boundaries_at_grid_edges(False, True, True, True)
-    >>> z = grid.add_zeros('topographic__elevation', at='node')
+    >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z[:] = -50.0  # mean water depth is 50 m below MSL
-    >>> tfc = TidalFlowCalculator(grid, tidal_range=2.0, tidal_period=4.0e4, roughness=0.01)
+    >>> tfc = TidalFlowCalculator(
+    ...     grid, tidal_range=2.0, tidal_period=4.0e4, roughness=0.01
+    ... )
     >>> tfc.run_one_step()
-    >>> int(round(grid.at_link['ebb_tide_flow__velocity'][10] * 1.0e6))
+    >>> int(round(grid.at_link["ebb_tide_flow__velocity"][10] * 1.0e6))
     4
 
     References
@@ -237,7 +238,7 @@ class TidalFlowCalculator(Component):
         Examples
         --------
         >>> grid = RasterModelGrid((3, 5))
-        >>> z = grid.add_zeros('topographic__elevation', at='node')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> z[5:10] = [10.0, 0.25, 0.0, -0.25, -10.0]
         >>> period = 4.0e4  # tidal period in s, for convenient calculation
         >>> tfc = TidalFlowCalculator(grid, tidal_period=period)
@@ -269,7 +270,7 @@ class TidalFlowCalculator(Component):
         Examples
         --------
         >>> grid = RasterModelGrid((3, 5))
-        >>> z = grid.add_zeros('topographic__elevation', at='node')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> z[6:9] = [1.0, 2.0, -2.0]
         >>> tfc = TidalFlowCalculator(grid, tidal_range=3.1, min_water_depth=0.02)
         >>> tfc._calc_effective_water_depth()

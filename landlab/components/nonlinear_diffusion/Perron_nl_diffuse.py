@@ -35,20 +35,22 @@ class PerronNLDiffuse(Component):
     >>> import numpy as np
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.)
-    >>> dt = 100.
+    >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.0)
+    >>> dt = 100.0
     >>> nt = 20
     >>> uplift_rate = 0.001
     >>> for i in range(nt):
-    ...     z[mg.core_nodes] += uplift_rate*dt
+    ...     z[mg.core_nodes] += uplift_rate * dt
     ...     nl.run_one_step(dt)
-    >>> z_target = np.array(
-    ...     [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-    ...       0.        ,  0.00778637,  0.0075553 ,  0.00778637,  0.        ,
-    ...       0.        ,  0.0075553 ,  0.0078053 ,  0.0075553 ,  0.        ,
-    ...       0.        ,  0.00778637,  0.0075553 ,  0.00778637,  0.        ,
-    ...       0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
-    >>> np.allclose(z, z_target)
+    ...
+    >>> z_target = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.00778637, 0.0075553, 0.00778637, 0.0],
+    ...     [0.0, 0.0075553, 0.0078053, 0.0075553, 0.0],
+    ...     [0.0, 0.00778637, 0.0075553, 0.00778637, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> np.allclose(z.reshape(mg.shape), z_target)
     True
 
     References
@@ -313,13 +315,15 @@ class PerronNLDiffuse(Component):
             or self._left_flag == 3
             or self._right_flag == 3
         )
-        if self._fixed_grad_BCs_present:
-            if self._values_to_diffuse != grid.fixed_gradient_of:
-                raise ValueError(
-                    "Boundary conditions set in the grid don't "
-                    "apply to the data the diffuser is trying to "
-                    "work with"
-                )
+        if (
+            self._fixed_grad_BCs_present
+            and self._values_to_diffuse != grid.fixed_gradient_of
+        ):
+            raise ValueError(
+                "Boundary conditions set in the grid don't "
+                "apply to the data the diffuser is trying to "
+                "work with"
+            )
 
         if np.any(grid.status_at_node == 2):
             self._fixed_grad_offset_map = np.empty(nrows * ncols, dtype=float)
@@ -426,16 +430,15 @@ class PerronNLDiffuse(Component):
 
         try:
             elev = grid["node"][self._values_to_diffuse]
-        except KeyError:
-            raise NameError("elevations not found in grid!")
+        except KeyError as exc:
+            raise NameError("elevations not found in grid!") from exc
         try:
             _delta_t = self._delta_t
-        except AttributeError:
+        except AttributeError as exc:
             raise NameError(
-                """Timestep not set! Call _gear_timestep(tstep)
-                            after initializing the component, but before
-                            running it."""
-            )
+                "Timestep not set! Call _gear_timestep(tstep) "
+                "after initializing the component, but before running it."
+            ) from exc
         _one_over_delta_x = self._one_over_delta_x
         _one_over_delta_x_sqd = self._one_over_delta_x_sqd
         _one_over_delta_y = self._one_over_delta_y
@@ -766,9 +769,9 @@ class PerronNLDiffuse(Component):
             bottom_op_mat_data_add = np.empty(0)
         elif self._bottom_flag == 4 or self._bottom_flag == 2:
             # ^i.e., fixed zero gradient (4) or more general case...
-            bottom_op_mat_row_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_col_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_data_add = np.empty((bottom_interior_IDs.size * 3 + 6))
+            bottom_op_mat_row_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_col_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_data_add = np.empty(bottom_interior_IDs.size * 3 + 6)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -848,9 +851,9 @@ class PerronNLDiffuse(Component):
                     )
         elif self._bottom_flag == 3:
             # This will handle both top and bottom BCs...
-            bottom_op_mat_row_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_col_add = np.empty((bottom_interior_IDs.size * 3 + 6))
-            bottom_op_mat_data_add = np.empty((bottom_interior_IDs.size * 3 + 6))
+            bottom_op_mat_row_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_col_add = np.empty(bottom_interior_IDs.size * 3 + 6)
+            bottom_op_mat_data_add = np.empty(bottom_interior_IDs.size * 3 + 6)
             bottom_op_mat_row_add[: (bottom_interior_IDs.size * 3)] = np.repeat(
                 bottom_interior_IDs, 3
             )
@@ -867,9 +870,9 @@ class PerronNLDiffuse(Component):
                 * (nine_node_map[_bottom_list, :][:, bottom_antimask]).flatten()
             )
             # ^...but the values refer to the TOP of the grid
-            top_op_mat_row_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_col_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_data_add = np.empty((top_interior_IDs.size * 3 + 6))
+            top_op_mat_row_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_col_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_data_add = np.empty(top_interior_IDs.size * 3 + 6)
             top_op_mat_row_add[: (top_interior_IDs.size * 3)] = np.repeat(
                 top_interior_IDs, 3
             )
@@ -979,9 +982,9 @@ class PerronNLDiffuse(Component):
             top_op_mat_col_add = np.empty(0)
             top_op_mat_data_add = np.empty(0)
         elif self._top_flag == 4 or self._top_flag == 2:
-            top_op_mat_row_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_col_add = np.empty((top_interior_IDs.size * 3 + 6))
-            top_op_mat_data_add = np.empty((top_interior_IDs.size * 3 + 6))
+            top_op_mat_row_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_col_add = np.empty(top_interior_IDs.size * 3 + 6)
+            top_op_mat_data_add = np.empty(top_interior_IDs.size * 3 + 6)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -1086,9 +1089,9 @@ class PerronNLDiffuse(Component):
             left_op_mat_col_add = np.empty(0)
             left_op_mat_data_add = np.empty(0)
         elif self._left_flag == 4 or self._left_flag == 2:
-            left_op_mat_row_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_col_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_data_add = np.empty((left_interior_IDs.size * 3 + 4))
+            left_op_mat_row_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_col_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_data_add = np.empty(left_interior_IDs.size * 3 + 4)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -1148,9 +1151,9 @@ class PerronNLDiffuse(Component):
                         ]
                     )
         elif self._left_flag == 3:
-            left_op_mat_row_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_col_add = np.empty((left_interior_IDs.size * 3 + 4))
-            left_op_mat_data_add = np.empty((left_interior_IDs.size * 3 + 4))
+            left_op_mat_row_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_col_add = np.empty(left_interior_IDs.size * 3 + 4)
+            left_op_mat_data_add = np.empty(left_interior_IDs.size * 3 + 4)
             left_op_mat_row_add[: (left_interior_IDs.size * 3)] = np.repeat(
                 left_interior_IDs, 3
             )
@@ -1164,9 +1167,9 @@ class PerronNLDiffuse(Component):
             left_op_mat_data_add[: (left_interior_IDs.size * 3)] = (
                 _delta_t * (nine_node_map[_left_list, :][:, left_antimask]).flatten()
             )
-            right_op_mat_row_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_col_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_data_add = np.empty((right_interior_IDs.size * 3 + 4))
+            right_op_mat_row_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_col_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_data_add = np.empty(right_interior_IDs.size * 3 + 4)
             right_op_mat_row_add[: (right_interior_IDs.size * 3)] = np.repeat(
                 right_interior_IDs, 3
             )
@@ -1252,9 +1255,9 @@ class PerronNLDiffuse(Component):
             right_op_mat_col_add = np.empty(0)
             right_op_mat_data_add = np.empty(0)
         elif self._right_flag == 4 or self._right_flag == 2:
-            right_op_mat_row_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_col_add = np.empty((right_interior_IDs.size * 3 + 4))
-            right_op_mat_data_add = np.empty((right_interior_IDs.size * 3 + 4))
+            right_op_mat_row_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_col_add = np.empty(right_interior_IDs.size * 3 + 4)
+            right_op_mat_data_add = np.empty(right_interior_IDs.size * 3 + 4)
             # Equivalent to fixed gradient, but the gradient is zero, so
             # material only goes in the linked cell(i.e., each cell in the
             # op_mat edges points back to itself).
@@ -1441,7 +1444,7 @@ class PerronNLDiffuse(Component):
             self._bc_set_code = self._grid.bc_set_code
         else:
             self._gear_timestep(dt, self._grid)
-            for i in range(self._internal_repeats):
+            for _ in range(self._internal_repeats):
                 # Initialize the variables for the step:
                 self._set_variables(self._grid)
                 # Solve interior of grid:

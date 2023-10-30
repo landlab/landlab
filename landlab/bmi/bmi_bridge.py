@@ -44,7 +44,7 @@ BMI_GRID = {
 }
 
 
-class TimeStepper(object):
+class TimeStepper:
 
     """Step through time.
 
@@ -69,10 +69,12 @@ class TimeStepper(object):
     1.0
     >>> time_stepper.time
     0.0
-    >>> for _ in range(10): time_stepper.advance()
+    >>> for _ in range(10):
+    ...     time_stepper.advance()
+    ...
     >>> time_stepper.time
     10.0
-    >>> time_stepper = TimeStepper(1., 13., 2.)
+    >>> time_stepper = TimeStepper(1.0, 13.0, 2.0)
     >>> [time for time in time_stepper]
     [1.0, 3.0, 5.0, 7.0, 9.0, 11.0]
     """
@@ -198,7 +200,7 @@ def wrap_as_bmi(cls):
     >>> flexure.get_var_units("lithosphere__overlying_pressure_increment")
     'Pa'
 
-    >>> config = \"\"\"
+    >>> config = '''
     ... flexure:
     ...     eet: 10.e+3
     ...     method: flexure
@@ -215,18 +217,18 @@ def wrap_as_bmi(cls):
     ...          lithosphere__overlying_pressure_increment:
     ...            constant:
     ...              - value: 0.0
-    ... \"\"\"
+    ... '''
     >>> flexure.initialize(config)
     >>> sorted(flexure.get_output_var_names())
     ['boundary_condition_flag', 'lithosphere_surface__elevation_increment']
-    >>> flexure.get_var_grid('lithosphere_surface__elevation_increment')
+    >>> flexure.get_var_grid("lithosphere_surface__elevation_increment")
     0
     >>> flexure.get_grid_shape(0, np.empty(flexure.get_grid_rank(0), dtype=int))
     array([20, 40])
     >>> dz = np.empty(flexure.get_grid_size(0))
-    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
+    >>> _ = flexure.get_value("lithosphere_surface__elevation_increment", dz)
 
-    >>> np.all(dz == 0.)
+    >>> np.all(dz == 0.0)
     True
     >>> flexure.get_current_time()
     0.0
@@ -234,13 +236,13 @@ def wrap_as_bmi(cls):
     >>> sorted(flexure.get_input_var_names())
     ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
     >>> load = np.zeros((20, 40), dtype=float)
-    >>> load[0, 0] = 1.
-    >>> flexure.set_value('lithosphere__overlying_pressure_increment', load)
+    >>> load[0, 0] = 1.0
+    >>> flexure.set_value("lithosphere__overlying_pressure_increment", load)
     >>> flexure.update()
     >>> flexure.get_current_time()
     2.0
-    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
-    >>> np.all(dz == 0.)
+    >>> _ = flexure.get_value("lithosphere_surface__elevation_increment", dz)
+    >>> np.all(dz == 0.0)
     False
     """
     if not issubclass(cls, Component):
@@ -346,11 +348,9 @@ def wrap_as_bmi(cls):
             grid = create_grid(config_file, section="grid")
 
             if not grid:
-                raise ValueError("no grid in config file ({0})".format(config_file))
+                raise ValueError(f"no grid in config file ({config_file})")
             elif isinstance(grid, list):
-                raise ValueError(
-                    "multiple grids in config file ({0})".format(config_file)
-                )
+                raise ValueError(f"multiple grids in config file ({config_file})")
 
             params = load_params(config_file)
             params.pop("grid")
@@ -443,7 +443,7 @@ def wrap_as_bmi(cls):
                     at = self._info[name]["mapping"]
                     self._base.grid[at][name][:] = values.flat
             else:
-                raise KeyError("{name} is not an input item".format(name=name))
+                raise KeyError(f"{name} is not an input item")
 
         def get_grid_origin(self, grid, origin):
             """Get the origin for a structured grid."""
@@ -530,9 +530,8 @@ def wrap_as_bmi(cls):
         def get_grid_nodes_per_face(self, grid, nodes_per_face):
             if grid == 0:
                 return np.full(self._base.grid.number_of_nodes, 3, dtype=int)
-            elif grid == 1:
-                if isinstance(self._base.grid, HexModelGrid):
-                    return np.full(self._base.grid.number_of_faces, 6, dtype=int)
+            elif grid == 1 and isinstance(self._base.grid, HexModelGrid):
+                return np.full(self._base.grid.number_of_faces, 6, dtype=int)
 
         def get_grid_size(self, grid):
             if grid == 0:
@@ -572,5 +571,5 @@ def wrap_as_bmi(cls):
             at = self._info[name]["mapping"]
             self._base.grid[at][name][inds] = src
 
-    BmiWrapper.__name__ = cls.__name__
+    BmiWrapper.__name__ = f"{cls.__name__}BMI"
     return BmiWrapper

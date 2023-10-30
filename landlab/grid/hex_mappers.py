@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Grid element mappers that are specific to hex grids.
 
 Mapping functions unique to hex grids
@@ -55,7 +54,7 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
     >>> from landlab.grid.mappers import map_link_vector_components_to_node
 
     >>> grid = HexModelGrid((3, 3))
-    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0 ** 0.5)
+    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0**0.5)
     >>> link_data[np.isclose(grid.angle_of_link, 0.0)] = 0.0
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
@@ -69,7 +68,7 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
     >>> vx
     array([ 0. ,  0. ,  0. ,  0. ,  8.5,  9.5,  0. ,  0. ,  0. ,  0. ])
 
-    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0 ** 0.5)
+    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0**0.5)
     >>> link_data[np.isclose(grid.angle_of_link, 2.0 / 3.0 * np.pi)] = 0.0
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
@@ -78,14 +77,14 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
     >>> vy
     array([ 0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
 
-    >>> grid = HexModelGrid((3, 3), orientation='vertical')
+    >>> grid = HexModelGrid((3, 3), orientation="vertical")
     >>> link_data = np.arange(grid.number_of_links)
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vy
     array([ 0. , 0. ,  0. ,  5.5,  0. ,  0. , 12.5,  0. ,  0. ,  0. ])
 
-    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0 ** 0.5)
+    >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0**0.5)
     >>> link_data[np.isclose(grid.angle_of_link, np.pi / 2.0)] = 0.0
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)

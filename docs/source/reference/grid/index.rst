@@ -9,8 +9,8 @@ Grid types
 
 Landlab presently supports five types of grids. The base class is ``ModelGrid``
 with subclasses ``RasterModelGrid`` and ``VoronoiDelaunayGrid``.
-``VoronoiDelaunayGrid`` has two further specialized subclasses: ``HexModelGrid``
-and ``RadialModelGrid``. A final class is ``NetworkModelGrid``.
+``VoronoiDelaunayGrid`` has three further specialized subclasses: ``FramedVoronoiGrid``,
+``HexModelGrid`` and ``RadialModelGrid``. A final class is ``NetworkModelGrid``.
 
 The following is an introduction to their properties and methods:
 
@@ -19,17 +19,11 @@ The following is an introduction to their properties and methods:
 
    raster
    voronoi
+   framed_voronoi
    hex
    radial
    network
 
-Systematic Information about Grid Elements
-------------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   auto/index
 
 Additional Methods and Properties
 ---------------------------------
@@ -59,12 +53,13 @@ API for each grid type
 .. toctree::
    :maxdepth: 1
 
-   base_api
-   raster_api
-   voronoi_api
-   hex_api
-   radial_api
-   network_api
+   base
+   raster
+   voronoi
+   framed_voronoi
+   hex
+   radial
+   network
 
 Additional Grid Base Classes
 ----------------------------

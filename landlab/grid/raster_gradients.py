@@ -15,8 +15,12 @@ from collections import deque
 import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
-from landlab.grid import gradients
 from landlab.utils.decorators import use_field_name_or_array
+
+from .ext.raster_gradient import (
+    calc_diff_at_link as _calc_diff_at_link_c,
+    calc_grad_at_link as _calc_grad_at_link_c,
+)
 
 
 @use_field_name_or_array("node")
@@ -47,15 +51,15 @@ def calc_diff_at_d8(grid, node_values, out=None):
     >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
     >>> z = [
     ...     [60.0, 60.0, 60.0, 60.0],
-    ...     [60.0, 60.0,  0.0,  0.0],
-    ...     [60.0,  0.0,  0.0,  0.0],
+    ...     [60.0, 60.0, 0.0, 0.0],
+    ...     [60.0, 0.0, 0.0, 0.0],
     ... ]
     >>> grid.calc_diff_at_d8(z)
     array([  0.,   0.,   0.,   0.,   0., -60., -60.,   0., -60.,   0.,   0.,
            -60.,   0.,   0., -60.,   0.,   0.,   0.,   0., -60.,   0., -60.,
            -60., -60.,   0., -60.,   0.,   0.,   0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = np.empty(grid.number_of_d8)
@@ -101,7 +105,7 @@ def calc_diff_at_diagonal(grid, node_values, out=None):
     >>> grid.calc_diff_at_diagonal(z)
     array([ 0.,  0., -5.,  0., -5., -5., -5.,  0., -5.,  0.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     if out is None:
         out = np.empty(grid.number_of_diagonals)
@@ -132,15 +136,15 @@ def calc_grad_at_d8(grid, node_values, out=None):
     >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
     >>> z = [
     ...     [60.0, 60.0, 60.0, 60.0],
-    ...     [60.0, 60.0,  0.0,  0.0],
-    ...     [60.0,  0.0,  0.0,  0.0],
+    ...     [60.0, 60.0, 0.0, 0.0],
+    ...     [60.0, 0.0, 0.0, 0.0],
     ... ]
     >>> grid.calc_grad_at_d8(z)
     array([  0.,   0.,   0.,   0.,   0., -20., -20.,   0., -15.,   0.,   0.,
            -20.,   0.,   0., -15.,   0.,   0.,   0.,   0., -12.,   0., -12.,
            -12., -12.,   0., -12.,   0.,   0.,   0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     grads = calc_diff_at_d8(grid, node_values, out=out)
     grads /= grid.length_of_d8[: grid.number_of_d8]
@@ -173,7 +177,7 @@ def calc_grad_at_diagonal(grid, node_values, out=None):
     >>> grid.calc_grad_at_diagonal(z)
     array([ 0.,  0., -1.,  0., -1., -1., -1.,  0., -1.,  0.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
     grads = calc_diff_at_diagonal(grid, node_values, out=out)
     grads /= grid.length_of_diagonal[: grid.number_of_diagonals]
@@ -182,14 +186,67 @@ def calc_grad_at_diagonal(grid, node_values, out=None):
 
 
 @use_field_name_or_array("node")
-def calc_grad_at_link(grid, node_values, out=None):
+def calc_diff_at_link(grid, value_at_node, out=None):
+    """Calculate differences in node_values at links.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    value_at_node : array_like or field name
+        Values at nodes.
+    out : ndarray, optional
+        Buffer to hold result. If `None`, create a new array.
+
+    Returns
+    -------
+    ndarray
+        Differences of the nodes values for each link.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 3))
+    >>> node_values = [
+    ...     [0.0, 0.0, 0.0],
+    ...     [1.0, 3.0, 1.0],
+    ...     [2.0, 2.0, 2.0],
+    ... ]
+    >>> grid.calc_diff_at_link(node_values)
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+
+    >>> out = np.empty(grid.number_of_links, dtype=float)
+    >>> rtn = grid.calc_diff_at_link(node_values, out=out)
+    >>> rtn is out
+    True
+    >>> out
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
+    >>> grid.calc_diff_at_link(node_values)
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+    >>> _ = grid.add_field("elevation", node_values, at="node")
+    >>> grid.calc_diff_at_link("elevation")
+    array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
+
+    :meta landlab: info-link, gradient
+    """
+    if out is None:
+        out = grid.empty(at="link")
+    _calc_diff_at_link_c(grid.shape, np.asarray(value_at_node).reshape(-1), out)
+
+    return out
+
+
+@use_field_name_or_array("node")
+def calc_grad_at_link(grid, value_at_node, out=None):
     """Calculate gradients in node_values at links.
 
     Parameters
     ----------
     grid : RasterModelGrid
         A grid.
-    node_values : array_like or field name
+    value_at_node : array_like or field name
         Values at nodes.
     out : ndarray, optional
         Buffer to hold result. If `None`, create a new array.
@@ -203,9 +260,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 3))
-    >>> node_values = [0., 0., 0.,
-    ...                1., 3., 1.,
-    ...                2., 2., 2.]
+    >>> node_values = [0.0, 0.0, 0.0, 1.0, 3.0, 1.0, 2.0, 2.0, 2.0]
     >>> grid.calc_grad_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
@@ -220,14 +275,18 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> grid.calc_grad_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     >>> _ = grid.add_field("elevation", node_values, at="node")
-    >>> grid.calc_grad_at_link('elevation')
+    >>> grid.calc_grad_at_link("elevation")
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
 
-    LLCATS: LINF GRAD
+    :meta landlab: info-link, gradient
     """
-    grads = gradients.calc_diff_at_link(grid, node_values, out=out)
-    grads /= grid.length_of_link[: grid.number_of_links]
-    return grads
+    if out is None:
+        out = grid.empty(at="link")
+    _calc_grad_at_link_c(
+        grid.shape, (grid.dx, grid.dy), np.asarray(value_at_node).reshape(-1), out
+    )
+
+    return out
 
 
 @use_field_name_or_array("node")
@@ -267,13 +326,11 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 4))
-    >>> x = np.array([0., 0., 0., 0.,
-    ...               0., 0., 1., 1.,
-    ...               3., 3., 3., 3.])
+    >>> x = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 3.0, 3.0, 3.0, 3.0])
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> grid.calc_grad_across_cell_faces(x) # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_across_cell_faces(x)
     masked_array(data =
      [[ 1.  3.  0.  0.]
      [ 0.  2. -1. -1.]],
@@ -282,7 +339,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
 
     >>> grid = RasterModelGrid((3, 4), xy_spacing=(1, 2))
-    >>> grid.calc_grad_across_cell_faces(x) # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_across_cell_faces(x)
     masked_array(data =
      [[ 1.   1.5  0.   0. ]
      [ 0.   1.  -1.  -0.5]],
@@ -290,7 +347,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
      False,
            fill_value = 1e+20)
 
-    LLCATS: FINF GRAD
+    :meta landlab: info-face, gradient
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = grid.BAD_INDEX
@@ -349,14 +406,12 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 4))
-    >>> x = np.array([1., 0., 0., 1.,
-    ...               0., 0., 1., 1.,
-    ...               3., 3., 3., 3.])
+    >>> x = np.array([1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, 3.0, 3.0, 3.0, 3.0])
 
     A decrease in quantity to a diagonal node is a negative gradient.
 
     >>> from math import sqrt
-    >>> grid.calc_grad_across_cell_corners(x) * sqrt(2.)
+    >>> grid.calc_grad_across_cell_corners(x) * sqrt(2.0)
     array([[ 3.,  3.,  1.,  0.],
            [ 2.,  2., -1.,  0.]])
 
@@ -365,7 +420,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     array([[ 0.6,  0.6,  0.2,  0. ],
            [ 0.4,  0.4, -0.2,  0. ]])
 
-    LLCATS: CNINF GRAD
+    :meta landlab: info-corner, gradient
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
@@ -419,13 +474,11 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 3))
-    >>> x = np.array([0., 0., 0.,
-    ...               0., 1., 2.,
-    ...               2., 2., 2.])
+    >>> x = np.array([0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0])
 
     A decrease in quantity across a face is a negative gradient.
 
-    >>> grid.calc_grad_along_node_links(x) # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_along_node_links(x)
     masked_array(data =
      [[-- -- -- --]
      [-- 1.0 -- --]
@@ -449,7 +502,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
            fill_value = 1e+20)
 
     >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 2))
-    >>> grid.calc_grad_along_node_links(x) # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.calc_grad_along_node_links(x)
     masked_array(data =
      [[-- -- -- --]
      [-- 0.5 -- --]
@@ -472,7 +525,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True  True]],
            fill_value = 1e+20)
 
-    LLCATS: NINF LINF GRAD
+    :meta landlab: info-node, info-link, gradient
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
     padded_node_values[-1] = grid.BAD_INDEX
@@ -524,7 +577,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = mg.node_x ** 2
+    >>> z = mg.node_x**2
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
     >>> type(eight_tris) is tuple
     True
@@ -532,7 +585,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
     8
     >>> eight_tris[0].shape == (mg.number_of_cells, 3)
     True
-    >>> eight_tris # doctest: +NORMALIZE_WHITESPACE
+    >>> eight_tris
     (array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.70710678,  0.        ,  0.70710678]]),
@@ -542,7 +595,7 @@ def calc_unit_normals_at_cell_subtriangles(grid, elevs="topographic__elevation")
      array([[-0.9486833 ,  0.        ,  0.31622777]]),
      array([[-0.9486833 ,  0.        ,  0.31622777]]))
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
 
     # identify the grid neigbors at each location
@@ -605,11 +658,9 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_gradients import(
-    ...     _calc_subtriangle_unit_normals_at_node
-    ... )
+    >>> from landlab.grid.raster_gradients import _calc_subtriangle_unit_normals_at_node
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = mg.node_x ** 2
+    >>> z = mg.node_x**2
     >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
     >>> type(eight_tris) is tuple
     True
@@ -617,7 +668,7 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     8
     >>> eight_tris[0].shape == (mg.number_of_nodes, 3)
     True
-    >>> eight_tris[0] # doctest: +NORMALIZE_WHITESPACE
+    >>> eight_tris[0]
     array([[-0.70710678,  0.        ,  0.70710678],
            [-0.9486833 ,  0.        ,  0.31622777],
            [        nan,         nan,         nan],
@@ -628,7 +679,7 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
            [        nan,         nan,         nan],
            [        nan,         nan,         nan]])
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
     try:
         z = grid.at_node[elevs]
@@ -856,9 +907,9 @@ def calc_slope_at_cell_subtriangles(
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = np.array([np.sqrt(3.), 0., 4./3.,
-    ...               0., 0., 0.,
-    ...               1., 0., 1./np.sqrt(3.)])
+    >>> z = np.array(
+    ...     [np.sqrt(3.0), 0.0, 4.0 / 3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0 / np.sqrt(3.0)]
+    ... )
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
     >>> S = mg.calc_slope_at_cell_subtriangles(z, eight_tris)
     >>> S0 = mg.calc_slope_at_cell_subtriangles(z)
@@ -878,16 +929,16 @@ def calc_slope_at_cell_subtriangles(
     True
     >>> np.allclose(S[6], S[7])
     True
-    >>> np.allclose(np.rad2deg(S[0])[0], 30.)
+    >>> np.allclose(np.rad2deg(S[0])[0], 30.0)
     True
-    >>> np.allclose(np.rad2deg(S[2])[0], 45.)
+    >>> np.allclose(np.rad2deg(S[2])[0], 45.0)
     True
-    >>> np.allclose(np.rad2deg(S[4])[0], 60.)
+    >>> np.allclose(np.rad2deg(S[4])[0], 60.0)
     True
-    >>> np.allclose(np.cos(S[6])[0], 3./5.)
+    >>> np.allclose(np.cos(S[6])[0], 3.0 / 5.0)
     True
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
 
     # calculate all subtriangle slopes
@@ -961,13 +1012,14 @@ def _calc_subtriangle_slopes_at_node(
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_gradients import(
-    ...                         _calc_subtriangle_unit_normals_at_node,
-    ...                         _calc_subtriangle_slopes_at_node)
+    >>> from landlab.grid.raster_gradients import (
+    ...     _calc_subtriangle_unit_normals_at_node,
+    ...     _calc_subtriangle_slopes_at_node,
+    ... )
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = np.array([np.sqrt(3.), 0., 4./3.,
-    ...               0., 0., 0.,
-    ...               1., 0., 1./np.sqrt(3.)])
+    >>> z = np.array(
+    ...     [np.sqrt(3.0), 0.0, 4.0 / 3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0 / np.sqrt(3.0)]
+    ... )
     >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
     >>> S = _calc_subtriangle_slopes_at_node(mg, z, eight_tris)
     >>> S0 = _calc_subtriangle_slopes_at_node(mg, z)
@@ -987,16 +1039,16 @@ def _calc_subtriangle_slopes_at_node(
     True
     >>> np.allclose(S[6][mg.core_nodes], S[7][mg.core_nodes])
     True
-    >>> np.allclose(np.rad2deg(S[0][mg.core_nodes]), 30.)
+    >>> np.allclose(np.rad2deg(S[0][mg.core_nodes]), 30.0)
     True
-    >>> np.allclose(np.rad2deg(S[2][mg.core_nodes]), 45.)
+    >>> np.allclose(np.rad2deg(S[2][mg.core_nodes]), 45.0)
     True
-    >>> np.allclose(np.rad2deg(S[4])[mg.core_nodes], 60.)
+    >>> np.allclose(np.rad2deg(S[4])[mg.core_nodes], 60.0)
     True
-    >>> np.allclose(np.cos(S[6])[mg.core_nodes], 3./5.)
+    >>> np.allclose(np.cos(S[6])[mg.core_nodes], 3.0 / 5.0)
     True
 
-    LLCATS: CINF GRAD
+    :meta landlab: info-cell, gradient
     """
 
     # verify that subtriangle_unit_normals is of the correct form.
@@ -1117,7 +1169,7 @@ def calc_aspect_at_cell_subtriangles(
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = np.array([1., 0., 1., 0., 0., 0., 1., 0., 1.])
+    >>> z = np.array([1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0])
     >>> eight_tris = mg.calc_unit_normals_at_cell_subtriangles(z)
     >>> A = mg.calc_aspect_at_cell_subtriangles(z, eight_tris)
     >>> A0 = mg.calc_aspect_at_cell_subtriangles(z)
@@ -1129,12 +1181,11 @@ def calc_aspect_at_cell_subtriangles(
     8
     >>> len(A[0]) == mg.number_of_cells
     True
-    >>> A0  # doctest: +NORMALIZE_WHITESPACE
+    >>> A0
     (array([ 180.]), array([ 270.]), array([ 90.]), array([ 180.]),
      array([ 0.]), array([ 90.]), array([ 270.]), array([ 0.]))
 
-
-    LLCATS: CINF SURF
+    :meta landlab: info-cell, surface
     """
 
     # calculate all subtriangle slopes
@@ -1225,9 +1276,10 @@ def _calc_subtriangle_aspect_at_node(
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_gradients import (
     ...     _calc_subtriangle_unit_normals_at_node,
-    ...     _calc_subtriangle_aspect_at_node)
+    ...     _calc_subtriangle_aspect_at_node,
+    ... )
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = np.array([1., 0., 1., 0., 0., 0., 1., 0., 1.])
+    >>> z = np.array([1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0])
     >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
     >>> A = _calc_subtriangle_aspect_at_node(mg, z, eight_tris)
     >>> A0 = _calc_subtriangle_aspect_at_node(mg, z)
@@ -1239,7 +1291,7 @@ def _calc_subtriangle_aspect_at_node(
     8
     >>> len(A[0]) == mg.number_of_nodes
     True
-    >>> A0  # doctest: +NORMALIZE_WHITESPACE
+    >>> A0
     (array([  90.,  315.,   nan,   90.,  180.,   nan,   nan,   nan,   nan]),
      array([   0.,   90.,   nan,  135.,  270.,   nan,   nan,   nan,   nan]),
      array([  nan,   90.,    0.,   nan,   90.,  225.,   nan,   nan,   nan]),
@@ -1249,7 +1301,7 @@ def _calc_subtriangle_aspect_at_node(
      array([  nan,   nan,   nan,   45.,  270.,   nan,  180.,   90.,   nan]),
      array([  nan,   nan,   nan,  270.,    0.,   nan,   90.,  225.,   nan]))
 
-    LLCATS: CINF SURF
+    :meta landlab: info-cell, surface
     """
 
     # verify that subtriangle_unit_normals is of the correct form.
@@ -1398,7 +1450,7 @@ def calc_unit_normals_at_patch_subtriangles(grid, elevs="topographic__elevation"
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 5))
-    >>> z = mg.node_x ** 2
+    >>> z = mg.node_x**2
     >>> four_tris = mg.calc_unit_normals_at_patch_subtriangles(z)
     >>> type(four_tris) is tuple
     True
@@ -1410,7 +1462,7 @@ def calc_unit_normals_at_patch_subtriangles(grid, elevs="topographic__elevation"
     True
     >>> np.allclose(four_tris[0], four_tris[2])
     True
-    >>> np.allclose(np.square(four_tris[0]).sum(axis=1), 1.)
+    >>> np.allclose(np.square(four_tris[0]).sum(axis=1), 1.0)
     True
     >>> four_tris[0]
     array([[-0.70710678,  0.        ,  0.70710678],
@@ -1426,7 +1478,7 @@ def calc_unit_normals_at_patch_subtriangles(grid, elevs="topographic__elevation"
            [-0.98058068,  0.        ,  0.19611614],
            [-0.98994949,  0.        ,  0.14142136]])
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     try:
         z = grid.at_node[elevs]
@@ -1527,7 +1579,7 @@ def calc_slope_at_patch(
     >>> S = mg.calc_slope_at_patch(elevs=z)
     >>> S.size == mg.number_of_patches
     True
-    >>> np.allclose(S, np.pi/4.)
+    >>> np.allclose(S, np.pi / 4.0)
     True
     >>> z = mg.node_y**2
     >>> mg.calc_slope_at_patch(elevs=z).reshape((3, 4))
@@ -1539,15 +1591,16 @@ def calc_slope_at_patch(
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
     >>> mg.status_at_node[9] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> z[11] = 100.  # this should get ignored now
-    >>> z[9] = 2.  # this should be felt by patch 7 only
+    >>> z[11] = 100.0  # this should get ignored now
+    >>> z[9] = 2.0  # this should be felt by patch 7 only
     >>> mg.calc_slope_at_patch(elevs=z, ignore_closed_nodes=True).reshape(
-    ...     (3, 4)) * 4./np.pi
+    ...     (3, 4)
+    ... ) * 4.0 / np.pi
     array([[ 0.,  0.,  0.,  0.],
            [ 0.,  1.,  1.,  1.],
            [ 0.,  0.,  0.,  0.]])
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 4
@@ -1643,26 +1696,25 @@ def calc_grad_at_patch(
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_y
     >>> (x_grad, y_grad) = mg.calc_grad_at_patch(elevs=z)
-    >>> np.allclose(y_grad, np.pi/4.)
+    >>> np.allclose(y_grad, np.pi / 4.0)
     True
-    >>> np.allclose(x_grad, 0.)
+    >>> np.allclose(x_grad, 0.0)
     True
 
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
     >>> mg.status_at_node[[9, 2]] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> z[11] = 100.  # this should get ignored now
-    >>> z[9] = 2.  # this should be felt by patch 7 only
-    >>> z[2] = 1.  # should be felt by patches 1 and 2
-    >>> xgrad, ygrad = mg.calc_grad_at_patch(
-    ...     elevs=z, ignore_closed_nodes=True)
-    >>> (xgrad.reshape((3, 4)) * 4./np.pi)[1, 1:]
+    >>> z[11] = 100.0  # this should get ignored now
+    >>> z[9] = 2.0  # this should be felt by patch 7 only
+    >>> z[2] = 1.0  # should be felt by patches 1 and 2
+    >>> xgrad, ygrad = mg.calc_grad_at_patch(elevs=z, ignore_closed_nodes=True)
+    >>> (xgrad.reshape((3, 4)) * 4.0 / np.pi)[1, 1:]
     array([ 1.,  1., -1.])
     >>> np.allclose(ygrad[1:3], xgrad[1:3])
     True
 
-    LLCATS: PINF GRAD
+    :meta landlab: info-patch, gradient
     """
     if subtriangle_unit_normals is not None:
         assert len(subtriangle_unit_normals) == 4
@@ -1763,31 +1815,32 @@ def calc_slope_at_node(
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_at_node(elevs=z)
-    >>> np.allclose(slopes, np.pi / 4.)
+    >>> np.allclose(slopes, np.pi / 4.0)
     True
-    >>> mg = RasterModelGrid((4, 5), xy_spacing=2.)
-    >>> z = - mg.node_y
-    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
-    ...                                        return_components=True)
-    >>> np.allclose(slope_mag, np.pi / 4.)
+    >>> mg = RasterModelGrid((4, 5), xy_spacing=2.0)
+    >>> z = -mg.node_y
+    >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z, return_components=True)
+    >>> np.allclose(slope_mag, np.pi / 4.0)
     True
-    >>> np.allclose(cmp[0], 0.)
+    >>> np.allclose(cmp[0], 0.0)
     True
-    >>> np.allclose(cmp[1], - np.pi / 4.)
+    >>> np.allclose(cmp[1], -np.pi / 4.0)
     True
     >>> mg = RasterModelGrid((4, 4))
-    >>> z = mg.node_x ** 2 + mg.node_y ** 2
+    >>> z = mg.node_x**2 + mg.node_y**2
     >>> slopes, cmp = mg.calc_slope_at_node(z, return_components=True)
     >>> slopes
     array([ 0.95531662,  1.10991779,  1.32082849,  1.37713803,  1.10991779,
             1.20591837,  1.3454815 ,  1.38904403,  1.32082849,  1.3454815 ,
             1.39288142,  1.41562833,  1.37713803,  1.38904403,  1.41562833,
             1.43030663])
-    >>> np.allclose(cmp[0].reshape((4, 4))[:, 0],
-    ...             cmp[1].reshape((4, 4))[0, :])  # test radial symmetry
+
+    Check radial symmetry.
+
+    >>> np.allclose(cmp[0].reshape((4, 4))[:, 0], cmp[1].reshape((4, 4))[0, :])
     True
 
-    LLCATS: NINF GRAD SURF
+    :meta landlab: info-node, gradient, surface
     """
     if method not in ("patch_mean", "Horn"):
         raise ValueError("method name not understood")
@@ -1852,7 +1905,7 @@ def calc_slope_at_node(
         except TypeError:
             z[:-1] = elevs
         # proof code for bad indexing:
-        diags = grid.diagonal_neighbors_at_node.copy()  # LL order
+        diags = grid.diagonal_adjacent_nodes_at_node.copy()  # LL order
         orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):

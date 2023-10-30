@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 from collections import OrderedDict
@@ -153,11 +152,12 @@ class ChannelProfiler(_BaseProfiler):
 
     .. code-block:: python
 
-        {3: {
-            (3, 48) : {
-                "ids": [3, 13, 23, 24, 25, 26, 36, 46, 47, 48],
-                "distances": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                "color": (1, 0, 1, 1),
+        {
+            3: {
+                (3, 48): {
+                    "ids": [3, 13, 23, 24, 25, 26, 36, 46, 47, 48],
+                    "distances": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    "color": (1, 0, 1, 1),
                 }
             }
         }
@@ -177,21 +177,22 @@ class ChannelProfiler(_BaseProfiler):
 
         .. code-block:: python
 
-            {3: {
-                (3, 23) : {
-                    "ids": [3, 13, 23],
-                    "distances": [0, 1, 2]
-                    "color": (1, 0, 1, 1),
+            {
+                3: {
+                    (3, 23): {
+                        "ids": [3, 13, 23],
+                        "distances": [0, 1, 2],
+                        "color": (1, 0, 1, 1),
                     },
-                (23, 48) : {
-                    "ids": [23, 24, 25, 26, 36, 46, 47, 48],
-                    "distances": [2, 3, 4, 5, 6, 7, 8, 9],
-                    "color": (1, 0, 1, 1),
+                    (23, 48): {
+                        "ids": [23, 24, 25, 26, 36, 46, 47, 48],
+                        "distances": [2, 3, 4, 5, 6, 7, 8, 9],
+                        "color": (1, 0, 1, 1),
                     },
-                (23, 51) : {
-                    "ids": [23, 33, 32, 42, 41, 51],
-                    "distances": [2, 3, 4, 5, 6, 7]
-                    "color": (1, 0, 1, 1),
+                    (23, 51): {
+                        "ids": [23, 33, 32, 42, 41, 51],
+                        "distances": [2, 3, 4, 5, 6, 7],
+                        "color": (1, 0, 1, 1),
                     },
                 }
             }
@@ -231,40 +232,41 @@ class ChannelProfiler(_BaseProfiler):
 
     .. code-block:: python
 
-        {8: {
-            (8, 26) : {
-                "ids": [8, 18, 17, 16, 26],
-                "distances": [0, 1, 2, 3, 4]
-                "color": [ 0.13,  0.57,  0.55,  1.  ],
+        {
+            8: {
+                (8, 26): {
+                    "ids": [8, 18, 17, 16, 26],
+                    "distances": [0, 1, 2, 3, 4],
+                    "color": [0.13, 0.57, 0.55, 1.0],
                 },
-            (26, 23) : {
-                "ids": [26, 25, 24, 23],
-                "distances": [4, 5, 6, 7],
-                "color": [ 0.13,  0.57,  0.55,  1.  ],
+                (26, 23): {
+                    "ids": [26, 25, 24, 23],
+                    "distances": [4, 5, 6, 7],
+                    "color": [0.13, 0.57, 0.55, 1.0],
                 },
-            (26, 66) : {
-                "ids": [26, 36, 46, 56, 66],
-                "distances": [4, 5, 6, 7, 8]
-                "color": [ 0.13,  0.57,  0.55,  1.  ],
+                (26, 66): {
+                    "ids": [26, 36, 46, 56, 66],
+                    "distances": [4, 5, 6, 7, 8],
+                    "color": [0.13, 0.57, 0.55, 1.0],
                 },
             },
-         40: {
-            (40, 41) : {
-                "ids": [40, 41],
-                "distances": [0, 1]
-                "color": [ 0.27,  0.  ,  0.33,  1.  ],
+            40: {
+                (40, 41): {
+                    "ids": [40, 41],
+                    "distances": [0, 1],
+                    "color": [0.27, 0.0, 0.33, 1.0],
                 },
-            (41, 54) : {
-                "ids": [41, 42, 43, 44, 54],
-                "distances": [2, 3, 4, 5, 6],
-                "color": [ 0.27,  0.  ,  0.33,  1.  ],
+                (41, 54): {
+                    "ids": [41, 42, 43, 44, 54],
+                    "distances": [2, 3, 4, 5, 6],
+                    "color": [0.27, 0.0, 0.33, 1.0],
                 },
-            (41, 62) : {
-                "ids": [41, 51, 61, 62],
-                "distances": [1, 2, 3, 4]
-                "color": [ 0.27,  0.  ,  0.33,  1.  ],
+                (41, 62): {
+                    "ids": [41, 51, 61, 62],
+                    "distances": [1, 2, 3, 4],
+                    "color": [0.27, 0.0, 0.33, 1.0],
                 },
-            }
+            },
         }
 
     Examples
@@ -283,18 +285,23 @@ class ChannelProfiler(_BaseProfiler):
     sets all nodes with a value of zero to closed, such that these nodes are
     igored.
 
-    >>> z = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0,
-    ...                0,  0,  0,  0,  0,  0,  4,  3,  2,  0,
-    ...                0,  0,  0,  8,  7,  6,  5,  0,  0,  0,
-    ...                0,  0,  0,  0,  0,  0,  6,  0,  0,  0,
-    ...                1,  3,  4,  5,  6,  0,  7,  0,  0,  0,
-    ...                0,  4,  0,  0,  7,  0,  8,  0,  0,  0,
-    ...                0,  5,  6,  0,  0,  0,  9,  0,  0,  0,
-    ...                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,], dtype=float)
+    >>> z = np.array(
+    ...     [
+    ...         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    ...         [0, 0, 0, 0, 0, 0, 4, 3, 2, 0],
+    ...         [0, 0, 0, 8, 7, 6, 5, 0, 0, 0],
+    ...         [0, 0, 0, 0, 0, 0, 6, 0, 0, 0],
+    ...         [1, 3, 4, 5, 6, 0, 7, 0, 0, 0],
+    ...         [0, 4, 0, 0, 7, 0, 8, 0, 0, 0],
+    ...         [0, 5, 6, 0, 0, 0, 9, 0, 0, 0],
+    ...         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ...     ],
+    ...     dtype=float,
+    ... )
     >>> mg = RasterModelGrid((8, 10))
     >>> z = mg.add_field("topographic__elevation", z, at="node")
     >>> mg.set_nodata_nodes_to_closed(z, 0)
-    >>> fa = FlowAccumulator(mg, flow_director='D4')
+    >>> fa = FlowAccumulator(mg, flow_director="D4")
     >>> fa.run_one_step()
     >>> fa.node_drainage_area.reshape(mg.shape)
     array([[  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  11.,   0.],
@@ -310,7 +317,8 @@ class ChannelProfiler(_BaseProfiler):
     ...     mg,
     ...     number_of_watersheds=2,
     ...     minimum_channel_threshold=0,
-    ...     main_channel_only=False)
+    ...     main_channel_only=False,
+    ... )
     >>> profiler.run_one_step()
 
     The keys of the property ``data_structure`` are the IDs  of the two
@@ -390,7 +398,7 @@ class ChannelProfiler(_BaseProfiler):
     >>> from landlab.components import FastscapeEroder
     >>> mg = RasterModelGrid((100, 120), xy_spacing=2)
     >>> np.random.seed(42)
-    >>> z = mg.add_zeros('topographic__elevation', at='node')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
     >>> fa = FlowAccumulator(mg)
     >>> sp = FastscapeEroder(mg, K_sp=0.0001)
@@ -399,6 +407,7 @@ class ChannelProfiler(_BaseProfiler):
     ...     fa.run_one_step()
     ...     sp.run_one_step(dt=dt)
     ...     z[mg.core_nodes] += 0.001 * dt
+    ...
 
     Some options:
 
@@ -423,17 +432,18 @@ class ChannelProfiler(_BaseProfiler):
     ``channel_definition_field`` values of 500.
 
     >>> profiler = ChannelProfiler(
-    ...     mg,
-    ...     number_of_watersheds=4,
-    ...     minimum_channel_threshold=500)
+    ...     mg, number_of_watersheds=4, minimum_channel_threshold=500
+    ... )
 
     Extract a the single biggest channel draining to the model grid boundary
     based on the field ``surface_water__discharge`` traced back to discharge
     values of 500.
 
-    >>> profiler = ChannelProfiler(mg,
-    ...     channel_definition_field='surface_water__discharge',
-    ...     minimum_channel_threshold=500)
+    >>> profiler = ChannelProfiler(
+    ...     mg,
+    ...     channel_definition_field="surface_water__discharge",
+    ...     minimum_channel_threshold=500,
+    ... )
 
     Extract the single largest channel within *all* watersheds with an outlet
     with ``channel_definition_field`` greater than 1e3. Trace the channels
@@ -444,7 +454,8 @@ class ChannelProfiler(_BaseProfiler):
     ...     mg,
     ...     number_of_watersheds=None,
     ...     minimum_outlet_threshold=1e3,
-    ...     minimum_channel_threshold=500)
+    ...     minimum_channel_threshold=500,
+    ... )
 
     Extract two trunk channels beginning at the given nodes, traced up to a
     a minimum ``channel_definition_field`` value of of 500. Note that
@@ -452,18 +463,21 @@ class ChannelProfiler(_BaseProfiler):
 
     >>> profiler = ChannelProfiler(
     ...     mg,
-    ...     outlet_nodes=[6661,  6250],
+    ...     outlet_nodes=[6661, 6250],
     ...     number_of_watersheds=2,
-    ...     minimum_channel_threshold=500)
+    ...     minimum_channel_threshold=500,
+    ... )
 
     Extract every possible channel (not just the largest one), leading from the
     four highest model grid boundary nodes traced back to a
     ``channel_definition_field`` threshold of 20.
 
-    >>> profiler = ChannelProfiler(mg,
+    >>> profiler = ChannelProfiler(
+    ...     mg,
     ...     number_of_watersheds=4,
     ...     main_channel_only=False,
-    ...     minimum_channel_threshold=20)
+    ...     minimum_channel_threshold=20,
+    ... )
 
     References
     ----------
@@ -554,14 +568,15 @@ class ChannelProfiler(_BaseProfiler):
         """
         super().__init__(grid)
 
-        self._cmap = plt.get_cmap(cmap)
+        self._cmap = plt.colormaps[cmap]
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(
-                name=channel_definition_field
+            raise ValueError(
+                f"Required field {channel_definition_field!r} not present. "
+                "This field is required by the ChannelProfiler to define "
+                "the start and stop of channel networks."
             )
-            raise ValueError(msg)
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
 
@@ -575,8 +590,9 @@ class ChannelProfiler(_BaseProfiler):
             if (number_of_watersheds is not None) and (
                 len(outlet_nodes) is not number_of_watersheds
             ):
-                msg = "Length of outlet_nodes must equal the" "number_of_watersheds!"
-                raise ValueError(msg)
+                raise ValueError(
+                    "Length of outlet_nodes must equal the" "number_of_watersheds!"
+                )
         else:
             large_outlet_ids = grid.boundary_nodes[
                 np.argsort(self._channel_definition_field[grid.boundary_nodes])
@@ -660,7 +676,6 @@ class ChannelProfiler(_BaseProfiler):
             channel_segment.append(recieving_node)
 
         while channel_upstream:
-
             # add the new node to the channel segment
             channel_segment.append(j)
 
@@ -690,7 +705,6 @@ class ChannelProfiler(_BaseProfiler):
             # there are two or more donors with sufficient discharge, then
             # break, returning those nodes as starting points.
             else:
-
                 # get all upstream drainage areas
                 upstream_das = self._channel_definition_field[supplying_nodes]
 

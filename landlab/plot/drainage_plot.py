@@ -16,7 +16,6 @@ def drainage_plot(
     quiver_cmap="viridis",
     title="Drainage Plot",
 ):
-
     if isinstance(surface, str):
         colorbar_label = surface
     else:
@@ -25,9 +24,8 @@ def drainage_plot(
 
     if receivers is None:
         receivers = mg.at_node["flow__receiver_node"]
-        if proportions is None:
-            if "flow__receiver_proportions" in mg.at_node:
-                proportions = mg.at_node["flow__receiver_proportions"]
+        if proportions is None and "flow__receiver_proportions" in mg.at_node:
+            proportions = mg.at_node["flow__receiver_proportions"]
     else:
         receivers = np.asarray(receivers)
 
@@ -36,7 +34,7 @@ def drainage_plot(
 
     nreceievers = receivers.shape[-1]
 
-    propColor = plt.get_cmap(quiver_cmap)
+    propColor = plt.colormaps[quiver_cmap]
     for j in range(nreceievers):
         rec = receivers[:, j]
         is_bad = rec == -1
@@ -72,7 +70,7 @@ def drainage_plot(
             zorder=3,
         )
 
-    # Plot differen types of nodes:
+    # Plot different types of nodes:
     (o,) = plt.plot(
         mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
         mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
@@ -131,6 +129,6 @@ def drainage_plot(
     )
     sm = plt.cm.ScalarMappable(cmap=propColor, norm=plt.Normalize(vmin=0, vmax=1))
     sm._A = []
-    cx = plt.colorbar(sm)
+    cx = plt.colorbar(sm, ax=ax)
     cx.set_label("Proportion of Flow")
     plt.title(title)

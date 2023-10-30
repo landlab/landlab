@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 test_user_guide_example.py
 
@@ -73,7 +72,6 @@ def setup_transition_list():
 
 
 def test_user_guide_example():
-
     # INITIALIZE
 
     # User-defined parameters
@@ -134,7 +132,6 @@ def test_user_guide_example():
     # RUN
     current_time = 0.0
     while current_time < run_duration:
-
         # Once in a while, print out simulation real time to let the user
         # know that the sim is running ok
         current_real_time = time.time()

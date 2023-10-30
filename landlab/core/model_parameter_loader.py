@@ -38,7 +38,7 @@ def load_file_contents(file_like):
         contents = file_like.read()
     except AttributeError:  # was a str
         if os.path.isfile(file_like):
-            with open(file_like, "r") as fp:
+            with open(file_like) as fp:
                 contents = fp.read()
         else:
             contents = file_like
@@ -63,15 +63,15 @@ def load_params(file_like):
     Examples
     --------
     >>> from landlab.core import load_params
-    >>> contents = \"\"\"
+    >>> contents = '''
     ... start: 0.
     ... stop: 10.
     ... step: 2.
-    ... \"\"\"
+    ... '''
     >>> params = load_params(contents)
     >>> isinstance(params, dict)
     True
-    >>> params['start'], params['stop'], params['step']
+    >>> params["start"], params["stop"], params["step"]
     (0.0, 10.0, 2.0)
     """
     contents = load_file_contents(file_like)

@@ -63,19 +63,17 @@ def to_netcdf(
     Write the grid to a netcdf3 file but only include the *uplift_rate*
     data in the file.
 
-    >>> to_netcdf(
-    ...     rmg, "test.nc", format="NETCDF3_64BIT", include="at_node:uplift_rate"
-    ... )
+    >>> to_netcdf(rmg, "test.nc", format="NETCDF3_64BIT", include="at_node:uplift_rate")
 
     Read the file back in and check its contents.
 
     >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file('test.nc', 'r')
-    >>> 'at_node:uplift_rate' in fp.variables
+    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> "at_node:uplift_rate" in fp.variables
     True
-    >>> 'at_node:topographic__elevation' in fp.variables
+    >>> "at_node:topographic__elevation" in fp.variables
     False
-    >>> fp.variables['at_node:uplift_rate'][:].flatten()
+    >>> fp.variables["at_node:uplift_rate"][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
@@ -131,13 +129,11 @@ def to_netcdf(
 
 def _add_time_dimension_to_dataset(dataset, time=0.0):
     """Add a time dimension to all variables except those at_layer."""
-    names = set(
-        [
-            name
-            for name in dataset.variables
-            if name.startswith("at_") and not name.startswith("at_layer")
-        ]
-    )
+    names = {
+        name
+        for name in dataset.variables
+        if name.startswith("at_") and not name.startswith("at_layer")
+    }
 
     for name in names:
         dataset[name] = (("time",) + dataset[name].dims, dataset[name].values[None])

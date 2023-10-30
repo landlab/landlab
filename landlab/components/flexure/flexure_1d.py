@@ -10,10 +10,8 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure1D
->>> grid = RasterModelGrid((3, 4), xy_spacing=(1.e4, 1.e4))
->>> lith_press = grid.add_zeros(
-...     "node",
-...     "lithosphere__increment_of_overlying_pressure")
+>>> grid = RasterModelGrid((3, 4), xy_spacing=(1.0e4, 1.0e4))
+>>> lith_press = grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
 
 Because `Flexure1D` is a one-dimensional component, it operates
 *independently* on each row of grid nodes. By default, it will
@@ -32,7 +30,7 @@ If the grid already had this field, the component would use the
 existing field. This can be accessed either through the *grid*
 attribute in the same way as other landlab fields,
 
->>> flex.grid.at_node['lithosphere__increment_of_overlying_pressure']
+>>> flex.grid.at_node["lithosphere__increment_of_overlying_pressure"]
 array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
 or through the `load_at_node` attribute of `Flexure1D`,
@@ -52,7 +50,7 @@ array to add loads to the grid,
 The output deflections can be retrieved either using landlab fields
 as,
 
->>> flex.grid.at_node['lithosphere_surface__increment_of_elevation']
+>>> flex.grid.at_node["lithosphere_surface__increment_of_elevation"]
 array([ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
 
 or through the `dz_at_node` attribute,
@@ -62,6 +60,7 @@ array([[ 0.,  0.,  0.,  0.],
        [ 0.,  0.,  1.,  1.],
        [ 0.,  0.,  0.,  0.]])
 """
+import contextlib
 
 import numpy as np
 
@@ -100,10 +99,10 @@ class Flexure1D(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure1D
-    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.0e4, 1.0e4))
     >>> lith_press = grid.add_zeros(
-    ...     "node",
-    ...     "lithosphere__increment_of_overlying_pressure")
+    ...     "node", "lithosphere__increment_of_overlying_pressure"
+    ... )
     >>> flex = Flexure1D(grid)
     >>> flex.name
     '1D Flexure Equation'
@@ -111,7 +110,7 @@ class Flexure1D(Component):
     ('lithosphere__increment_of_overlying_pressure',)
     >>> flex.output_var_names
     ('lithosphere_surface__increment_of_elevation',)
-    >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(flex.units)
     [('lithosphere__increment_of_overlying_pressure', 'Pa'),
      ('lithosphere_surface__increment_of_elevation', 'm')]
 
@@ -122,23 +121,23 @@ class Flexure1D(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__increment_of_elevation"] == 0.0)
     True
 
-    >>> np.all(grid.at_node['lithosphere__increment_of_overlying_pressure'] == 0.)
+    >>> np.all(grid.at_node["lithosphere__increment_of_overlying_pressure"] == 0.0)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__increment_of_elevation"] == 0.0)
     True
 
-    >>> load = grid.at_node['lithosphere__increment_of_overlying_pressure']
+    >>> load = grid.at_node["lithosphere__increment_of_overlying_pressure"]
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere_surface__increment_of_elevation']
-    >>> np.all(dz == 0.)
+    >>> dz = grid.at_node["lithosphere_surface__increment_of_elevation"]
+    >>> np.all(dz == 0.0)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__increment_of_elevation"] == 0.0)
     False
     """
 
@@ -161,7 +160,10 @@ class Flexure1D(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+            "doc": (
+                "The change in elevation of the top of the lithosphere (the "
+                "land surface) in one timestep"
+            ),
         },
     }
 
@@ -201,7 +203,7 @@ class Flexure1D(Component):
             operate on *all* rows).
         """
         if method not in ("airy", "flexure"):
-            raise ValueError("{method}: method not understood".format(method=method))
+            raise ValueError(f"{method}: method not understood")
 
         super().__init__(grid)
 
@@ -227,10 +229,8 @@ class Flexure1D(Component):
     def eet(self, new_val):
         if new_val <= 0:
             raise ValueError("Effective elastic thickness must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._rigidity, self._alpha
-        except AttributeError:
-            pass
         self._eet = float(new_val)
 
     @property
@@ -242,10 +242,8 @@ class Flexure1D(Component):
     def youngs(self, new_val):
         if new_val <= 0:
             raise ValueError("Young's modulus must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._rigidity, self._alpha
-        except AttributeError:
-            pass
         self._youngs = float(new_val)
 
     @property
@@ -257,10 +255,8 @@ class Flexure1D(Component):
     def rho_water(self, new_val):
         if new_val <= 0:
             raise ValueError("Water density must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._rho_water = float(new_val)
 
     @property
@@ -272,10 +268,8 @@ class Flexure1D(Component):
     def rho_mantle(self, new_val):
         if new_val <= 0:
             raise ValueError("Mantle density must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._rho_mantle = float(new_val)
 
     @property
@@ -287,10 +281,8 @@ class Flexure1D(Component):
     def gravity(self, new_val):
         if new_val <= 0:
             raise ValueError("Acceleration due to gravity must be positive.")
-        try:
+        with contextlib.suppress(AttributeError):
             del self._gamma_mantle, self._alpha
-        except AttributeError:
-            pass
         self._gravity = float(new_val)
 
     @property
@@ -300,8 +292,7 @@ class Flexure1D(Component):
             self._alpha
         except AttributeError:
             self._alpha = np.power(4 * self.rigidity / self.gamma_mantle, 0.25)
-        finally:
-            return self._alpha
+        return self._alpha
 
     @property
     def rigidity(self):
@@ -312,8 +303,7 @@ class Flexure1D(Component):
             self._rigidity = (
                 self._eet**3.0 * self._youngs / (12.0 * (1.0 - self._POISSON**2.0))
             )
-        finally:
-            return self._rigidity
+        return self._rigidity
 
     @property
     def gamma_mantle(self):
@@ -322,8 +312,7 @@ class Flexure1D(Component):
             self._gamma_mantle
         except AttributeError:
             self._gamma_mantle = (self._rho_mantle - self._rho_water) * self._gravity
-        finally:
-            return self._gamma_mantle
+        return self._gamma_mantle
 
     @property
     def method(self):

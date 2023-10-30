@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Tue Feb  2 17:50:09 2021
 
@@ -130,9 +129,8 @@ def network_grid_from_segments(grid, nodes_at_segment, include="*", exclude=None
     channel_network = ChannelSegmentConnector(*nodes_at_segment)
 
     for segment in channel_network.root:
-        if len(segment.upstream) == 1:
-            if len(segment.upstream[0]) > 0:
-                print("segments can be joined")
+        if len(segment.upstream) == 1 and len(segment.upstream[0]) > 0:
+            print("segments can be joined")
 
     xy_of_node = create_xy_of_node(channel_network.root, grid)
     at_node = get_node_fields(
@@ -188,9 +186,7 @@ class SpacingAtLeast(SegmentReducer):
         return np.sqrt(
             np.sum(
                 np.diff(
-                    self.xy_of_node[
-                        segment,
-                    ],
+                    self.xy_of_node[segment,],
                     axis=0,
                     prepend=self.xy_of_node[None, segment[0], :],
                 )
@@ -213,9 +209,7 @@ class AlongChannelSpacingAtLeast(SpacingAtLeast):
     def reduce(self, segment):
         nodes = _reduce_nodes(
             self.calc_distance_along_segment(segment),
-            spacing=self.spacing[
-                segment,
-            ],
+            spacing=self.spacing[segment,],
         )
         return np.take(segment, nodes)
 
@@ -313,7 +307,7 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
     The end nodes are always retained.
 
     >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
-    >>> _reduce_nodes(distance, spacing=100.)
+    >>> _reduce_nodes(distance, spacing=100.0)
     [0, 4]
 
     """
@@ -385,7 +379,7 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
     The end nodes are always retained.
 
     >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
-    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.)
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.0)
     [0, 4]
     """
     xy_of_node = np.asarray(xy_of_node)
@@ -459,8 +453,7 @@ class ChannelSegment:
     def __iter__(self):
         yield self
         for upstream in self._upstream:
-            for segment in upstream:
-                yield segment
+            yield from upstream
 
     def __len__(self):
         return len(self._nodes)
@@ -479,20 +472,20 @@ class ChannelSegment:
         except AttributeError:
             pass
         else:
-            for segment in iter_downstream():
-                yield segment
+            yield from iter_downstream()
 
     def count_segments(self, direction="upstream"):
-        count = 0
+        # count = 0
         if direction == "upstream":
             iter = self.__iter__
         elif direction == "downstream":
             iter = self.iter_downstream
         else:
             raise ValueError(f"direction not understood ({direction})")
-        for _ in iter():
-            count += 1
-        return count - 1
+        # for _ in iter():
+        #     count += 1
+        # return count - 1
+        return sum(1 for _ in iter()) - 1
 
     @property
     def downstream(self):

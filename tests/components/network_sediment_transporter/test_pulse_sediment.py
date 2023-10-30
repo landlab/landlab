@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
@@ -8,7 +7,6 @@ from landlab.grid.network import NetworkModelGrid
 
 
 def test_add_pulse():
-
     y_of_node = (0, 0, 0, 0)
     x_of_node = (0, 100, 200, 300)
     nodes_at_link = ((0, 1), (1, 2), (2, 3))
@@ -104,9 +102,11 @@ def test_add_pulse():
 
     new_D = 0.03 * np.ones(np.shape(newpar_element_id))
 
+    # BUG: should be able to pass ["link"], but datarecord fills it into an
+    # incorrect array shape-- the length of parcels (NOT new parcels)
     newpar_grid_elements = np.array(
         np.empty((np.shape(newpar_element_id)), dtype=object)
-    )  # BUG: should be able to pass ["link"], but datarecord fills it into an incorrect array shape-- the length of parcels (NOT new parcels)
+    )
     newpar_grid_elements.fill("link")
 
     new_parcels = {

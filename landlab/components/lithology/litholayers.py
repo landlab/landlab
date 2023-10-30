@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Create a LithoLayers component with different properties."""
 
 import numpy as np
@@ -30,10 +29,7 @@ class LithoLayers(Lithology):
 
     .. code-block:: python
 
-        attrs = {'K_sp': {1: 0.001,
-                          2: 0.0001},
-                 'D': {1: 0.01,
-                       2: 0.001}}
+        attrs = {"K_sp": {1: 0.001, 2: 0.0001}, "D": {1: 0.01, 2: 0.001}}
 
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
@@ -57,15 +53,17 @@ class LithoLayers(Lithology):
 
     _unit_agnostic = True
 
-    _cite_as = """@article{barnhart2018lithology,
-                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
-                    journal = "Journal of Open Source Software",
-                    volume = "",
-                    pages = "",
-                    year = "2018",
-                    doi = "10.21105/joss.00979",
-                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
-                    }"""
+    _cite_as = """
+    @article{barnhart2018lithology,
+        title = "Lithology: A Landlab submodule for spatially variable rock properties",
+        journal = "Journal of Open Source Software",
+        volume = "",
+        pages = "",
+        year = "2018",
+        doi = "10.21105/joss.00979",
+        author = {Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini
+                  and Gregory E. Tucker},
+    }"""
 
     _info = {}
 
@@ -121,15 +119,14 @@ class LithoLayers(Lithology):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LithoLayers
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("node", "topographic__elevation")
 
         Create a LithoLayers with flatlying layers that altrnate between
         layers of type 1 and type 2 rock.
 
         >>> z0s = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
         >>> ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = LithoLayers(mg, z0s, ids, attrs)
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -145,7 +142,7 @@ class LithoLayers(Lithology):
         Now create a set of layers that dip. Our anchor point will be the
         default value of (x0, y0) = (0, 0)
 
-        >>> lith = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x+y)
+        >>> lith = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x + y)
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -160,33 +157,36 @@ class LithoLayers(Lithology):
         We can get the surface values, and as we'd expect, they alternate as
         the dipping layers are exposed at the surface.
 
-        >>> lith['K_sp']
+        >>> lith["K_sp"]
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
                 0.001 ,  0.0001])
         """
 
         function_args = function.__code__.co_varnames
         if len(function_args) != 2:
-            msg = "LithoLayers: function must take exactly two arguments, x and y."
-            raise ValueError(msg)
+            raise ValueError(
+                "LithoLayers: function must take exactly two arguments, x and y."
+            )
 
         if np.asarray(z0s).size != np.asarray(ids).size:
-            msg = "LithoLayers: Size of layer depths and layer IDs must be the same"
-            raise ValueError(msg)
+            raise ValueError(
+                "LithoLayers: Size of layer depths and layer IDs must be the same"
+            )
 
         if np.any(np.diff(z0s) < 0):
-            msg = "LithoLayers: Bad layer depth order passed."
-            raise ValueError(msg)
+            raise ValueError("LithoLayers: Bad layer depth order passed.")
 
         z_surf = function(grid.x_of_node - x0, grid.y_of_node - y0)
 
         if hasattr(z_surf, "shape"):
             if z_surf.shape != grid.x_of_node.shape:
-                msg = "LithoLayers: function must return an array of shape (n_nodes,)"
-                raise ValueError(msg)
+                raise ValueError(
+                    "LithoLayers: function must return an array of shape (n_nodes,)"
+                )
         else:
-            msg = "LithoLayers: function must return an array of shape (n_nodes,)"
-            raise ValueError(msg)
+            raise ValueError(
+                "LithoLayers: function must return an array of shape (n_nodes,)"
+            )
 
         layer_thicknesses = []
         layer_ids = []
@@ -197,7 +197,6 @@ class LithoLayers(Lithology):
 
         # create layers (here listed from the top to the bottom.)
         for i in range(num_layers):
-
             layer_depth = z_surf + z0s[i]
             layer_depth[layer_depth < 0] = 0
 

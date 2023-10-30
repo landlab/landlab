@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Zone functions and class of SpeciesEvolver."""
 from collections import OrderedDict
 from enum import IntEnum, unique
@@ -243,7 +242,7 @@ def _get_successors(
 
         successors = []
 
-        for i, n in enumerate(ns_i_p):
+        for n in ns_i_p:
             dp = n._get_largest_intersection(
                 ps_i_ns, exclusions=list(replacements.keys())
             )
@@ -286,7 +285,7 @@ def _get_replacement(replacements, new_zone):
             return key
 
 
-class Zone(object):
+class Zone:
     """Zone object of SpeciesEvolver.
 
     The nodes and attributes of the spatial entities that taxa populate. This
@@ -325,7 +324,8 @@ class Zone(object):
         area = self._controller._grid.cell_area_at_node[self._mask].sum()
         return area
 
-    def _get_largest_intersection(self, zones, exclusions=[]):
+    def _get_largest_intersection(self, zones, exclusions=None):
+        exclusions = set() if exclusions is None else set(exclusions)
         node_intersection_count = []
         for z in zones:
             if z in exclusions:

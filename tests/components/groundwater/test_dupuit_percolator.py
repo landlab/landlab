@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Tue Jun  4 16:26:31 2019
 
@@ -224,7 +223,6 @@ def test_wt_above_surface_adaptive_run_step():
 
 
 def test_inactive_interior_node():
-
     """
     Test that component returns correct values for recharge flux and
     storage when an interior node is INACTIVE

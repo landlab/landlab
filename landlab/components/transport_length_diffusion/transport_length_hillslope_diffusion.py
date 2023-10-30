@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Created on Tue Apr 11 10:13:38 2017.
 
 @author: margauxmouchene
@@ -12,7 +11,6 @@ from landlab import Component
 
 
 class TransportLengthHillslopeDiffuser(Component):
-
     r"""Transport length hillslope diffusion.
 
     Hillslope diffusion component in the style of Carretier et al. (2016,
@@ -60,36 +58,41 @@ class TransportLengthHillslopeDiffuser(Component):
 
     >>> mg = RasterModelGrid((5, 5))
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    >>> z = np.array([0., 0., 0., 0., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 0., 0., 0., 0.])
+    >>> z = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...     [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...     [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> _ = mg.add_field("topographic__elevation", z, at="node")
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 
     >>> fdir = FlowDirectorSteepest(mg)
     >>> tl_diff = TransportLengthHillslopeDiffuser(
-    ...     mg,
-    ...     erodibility=0.001,
-    ...     slope_crit=0.6)
+    ...     mg, erodibility=0.001, slope_crit=0.6
+    ... )
 
     Run the components for ten short timepsteps
 
     >>> for t in range(10):
     ...     fdir.run_one_step()
-    ...     tl_diff.run_one_step(1.)
+    ...     tl_diff.run_one_step(1.0)
+    ...
 
     Check final topography
 
     >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'],
-    ...     np.array([ 0.,  0.        ,  0.        ,  0.        ,  0.,
-    ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
-    ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
-    ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
-    ...                0.,  0.        ,  0.        ,  0.        ,  0.]))
+    ...     mg.at_node["topographic__elevation"].reshape(mg.shape),
+    ...     [
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 0.96175283, 0.99982519, 0.96175283, 0.0],
+    ...         [0.0, 0.96175283, 0.99982519, 0.96175283, 0.0],
+    ...         [0.0, 0.96175283, 0.99982519, 0.96175283, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     ],
+    ... )
     True
 
     References
@@ -161,7 +164,10 @@ class TransportLengthHillslopeDiffuser(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "Outgoing sediment rate on node = sediment eroded on node + sediment transported across node from upstream",
+            "doc": (
+                "Outgoing sediment rate on node = sediment eroded on "
+                "node + sediment transported across node from upstream"
+            ),
         },
         "sediment__transfer_rate": {
             "dtype": float,
@@ -169,7 +175,10 @@ class TransportLengthHillslopeDiffuser(Component):
             "optional": False,
             "units": "m/yr",
             "mapping": "node",
-            "doc": "Rate of transferred sediment across a node (incoming sediment - deposited sediment on node)",
+            "doc": (
+                "Rate of transferred sediment across a node (incoming "
+                "sediment - deposited sediment on node)"
+            ),
         },
         "topographic__elevation": {
             "dtype": float,
@@ -190,7 +199,6 @@ class TransportLengthHillslopeDiffuser(Component):
     }
 
     def __init__(self, grid, erodibility=0.001, slope_crit=1.0):
-
         """Initialize Diffuser.
 
         Parameters
@@ -205,14 +213,13 @@ class TransportLengthHillslopeDiffuser(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that TransportLengthHillslopeDiffuser is compatible "
                 "with route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         # Store grid and parameters
 

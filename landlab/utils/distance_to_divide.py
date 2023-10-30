@@ -38,28 +38,29 @@ def calculate_distance_to_divide(
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> from landlab.utils.distance_to_divide import (
-    ...     calculate_distance_to_divide)
+    >>> from landlab.utils.distance_to_divide import calculate_distance_to_divide
     >>> mg = RasterModelGrid((5, 4))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 10., 10., 0.,
-    ...                  0., 20., 20., 0.,
-    ...                  0., 30., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 10.0, 10.0, 0.0],
+    ...     [0.0, 20.0, 20.0, 0.0],
+    ...     [0.0, 30.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=False,
     ...     left_is_closed=True,
     ...     right_is_closed=True,
-    ...     top_is_closed=True)
-    >>> fr = FlowAccumulator(mg, flow_director = 'D8')
+    ...     top_is_closed=True,
+    ... )
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> fr.run_one_step()
     >>> distance_to_divide = calculate_distance_to_divide(
     ...     mg,
     ...     add_to_grid=True,
     ...     clobber=True,
     ... )
-    >>> mg.at_node['distance_to_divide']
+    >>> mg.at_node["distance_to_divide"]
     array([ 0.,  3.,  3.,  0.,
             0.,  2.,  2.,  0.,
             0.,  1.,  1.,  0.,
@@ -71,28 +72,29 @@ def calculate_distance_to_divide(
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> from landlab.utils.distance_to_divide import (
-    ...     calculate_distance_to_divide)
+    >>> from landlab.utils.distance_to_divide import calculate_distance_to_divide
     >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 10., 10., 0.,
-    ...                  0., 20., 20., 0.,
-    ...                  0., 30., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 10.0, 10.0, 0.0],
+    ...     [0.0, 20.0, 20.0, 0.0],
+    ...     [0.0, 30.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=False,
     ...     left_is_closed=True,
     ...     right_is_closed=True,
-    ...     top_is_closed=True)
-    >>> fr = FlowAccumulator(mg, flow_director = 'MFD')
+    ...     top_is_closed=True,
+    ... )
+    >>> fr = FlowAccumulator(mg, flow_director="MFD")
     >>> fr.run_one_step()
     >>> distance_to_divide = calculate_distance_to_divide(
     ...     mg,
     ...     add_to_grid=True,
     ...     clobber=True,
     ... )
-    >>> mg.at_node['distance_to_divide']
+    >>> mg.at_node["distance_to_divide"]
     array([ 0.,  3.,  3.,  0.,
             0.,  2.,  2.,  0.,
             0.,  1.,  1.,  0.,
@@ -105,8 +107,7 @@ def calculate_distance_to_divide(
 
     >>> from landlab import HexModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> from landlab.utils.distance_to_divide import (
-    ...     calculate_distance_to_divide)
+    >>> from landlab.utils.distance_to_divide import calculate_distance_to_divide
     >>> dx = 1
     >>> hmg = HexModelGrid((5, 3), dx)
     >>> _ = hmg.add_field(
@@ -116,14 +117,14 @@ def calculate_distance_to_divide(
     ... )
     >>> hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
     >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
-    >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
+    >>> fr = FlowAccumulator(hmg, flow_director="D4")
     >>> fr.run_one_step()
     >>> distance_to_divide = calculate_distance_to_divide(
     ...     hmg,
     ...     add_to_grid=True,
     ...     clobber=True,
     ... )
-    >>> hmg.at_node['distance_to_divide']
+    >>> hmg.at_node["distance_to_divide"]
     array([ 3.,  0.,  0.,
          0.,  2.,  1.,  0.,
        0.,  1.,  1.,  0.,  0.,
@@ -180,7 +181,6 @@ def calculate_distance_to_divide(
 
     # iterate through the flow__upstream_node_order backwards.
     for node in reversed(flow__upstream_node_order):
-
         # if drainage are is equal to node cell area, set distance to zeros
         # this should handle the drainage divide cells as boundary cells have
         # their area set to zero.
@@ -193,7 +193,6 @@ def calculate_distance_to_divide(
         if to_one:
             # if not processing an outlet node.
             if reciever != node:
-
                 if longest_path:
                     cond = (
                         distance_to_divide[reciever]
@@ -220,7 +219,6 @@ def calculate_distance_to_divide(
 
                 # if not processing an outlet node.
                 if r != node:
-
                     if longest_path:
                         cond = distance_to_divide[r] < distance_to_divide[node] + fll
                     else:

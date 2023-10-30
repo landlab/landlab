@@ -41,7 +41,6 @@ class _DrainageStack:
     """
 
     def __init__(self, delta, D):
-
         """Initializes the _Drainage_Stack class.
 
         Initializes the index counter j to zero, creates the stack array
@@ -53,15 +52,13 @@ class _DrainageStack:
         self.D = D
 
     def add_to_stack(self, node):
-
         """Adds *node* to the stack and increments the current index (j).
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.components.flow_accum.flow_accum_bw import(
-        ... _DrainageStack)
-        >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+        >>> from landlab.components.flow_accum.flow_accum_bw import _DrainageStack
+        >>> delta = np.array([0, 0, 2, 2, 2, 6, 7, 9, 10, 10, 10])
         >>> D = np.array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
         >>> ds = _DrainageStack(delta, D)
         >>> ds.add_to_stack(4)
@@ -73,7 +70,6 @@ class _DrainageStack:
 
 
 def _make_number_of_donors_array(r):
-
     """Number of donors for each node.
 
     Creates and returns an array containing the number of donors for each node.
@@ -94,8 +90,9 @@ def _make_number_of_donors_array(r):
     d_i in Table 1.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import(
-    ... _make_number_of_donors_array)
+    >>> from landlab.components.flow_accum.flow_accum_bw import (
+    ...     _make_number_of_donors_array,
+    ... )
     >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> nd = _make_number_of_donors_array(r)
     >>> nd
@@ -108,7 +105,6 @@ def _make_number_of_donors_array(r):
 
 
 def _make_delta_array(nd):
-
     r"""
     Delta array.
 
@@ -132,8 +128,7 @@ def _make_delta_array(nd):
     table because here we number indices from 0 rather than 1.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import(
-    ...     _make_delta_array)
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_delta_array
     >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     >>> delta = _make_delta_array(nd)
     >>> delta
@@ -147,7 +142,6 @@ def _make_delta_array(nd):
 
 
 def _make_array_of_donors(r, delta):
-
     """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
@@ -160,10 +154,9 @@ def _make_array_of_donors(r, delta):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum.flow_accum_bw import(
-    ... _make_array_of_donors)
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
-    >>> delta = np.array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
+    >>> from landlab.components.flow_accum.flow_accum_bw import _make_array_of_donors
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
+    >>> delta = np.array([0, 0, 2, 2, 2, 6, 7, 9, 10, 10, 10])
     >>> D = _make_array_of_donors(r, delta)
     >>> D
     array([0, 2, 1, 4, 5, 7, 6, 3, 8, 9])
@@ -178,7 +171,6 @@ def _make_array_of_donors(r, delta):
 
 
 def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
-
     """Create an array of node IDs that is arranged in order from.
 
     Creates and returns an array of node IDs that is arranged in order from
@@ -191,7 +183,7 @@ def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum import make_ordered_node_array
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> s = make_ordered_node_array(r)
     >>> s
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
@@ -215,7 +207,6 @@ def make_ordered_node_array(receiver_nodes, nd=None, delta=None, D=None):
 def find_drainage_area_and_discharge(
     s, r, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
-
     """Calculate the drainage area and water discharge at each node.
 
     Parameters
@@ -254,9 +245,8 @@ def find_drainage_area_and_discharge(
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.components.flow_accum import (
-    ...     find_drainage_area_and_discharge)
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> from landlab.components.flow_accum import find_drainage_area_and_discharge
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     >>> a, q = find_drainage_area_and_discharge(s, r)
     >>> a
@@ -298,7 +288,6 @@ def find_drainage_area_and_discharge_lossy(
     runoff=1.0,
     boundary_nodes=None,
 ):
-
     """Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
@@ -355,45 +344,49 @@ def find_drainage_area_and_discharge_lossy(
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_accum import (
-    ...     find_drainage_area_and_discharge)
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> from landlab.components.flow_accum import find_drainage_area_and_discharge
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     >>> l = np.ones(10, dtype=int)  # dummy
     >>> nodes_wo_outlet = np.array([0, 1, 2, 3, 5, 6, 7, 8, 9])
 
     >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
     ...     return 0.5 * Qw
+    ...
     >>> mg = RasterModelGrid((3, 4))  # some grid big enough to make go
-    >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
+    >>> _ = mg.add_zeros("node", "surface_water__discharge_loss", dtype=float)
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, mg)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
     array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
     >>> np.allclose(
-    ...     mg.at_node['surface_water__discharge_loss'][nodes_wo_outlet],
-    ...     0.5*q[nodes_wo_outlet])
+    ...     mg.at_node["surface_water__discharge_loss"][nodes_wo_outlet],
+    ...     0.5 * q[nodes_wo_outlet],
+    ... )
     True
-    >>> np.isclose(mg.at_node['surface_water__discharge_loss'][4], 0.)
+    >>> np.isclose(mg.at_node["surface_water__discharge_loss"][4], 0.0)
     True
 
     >>> lossfield = mg.add_ones("loss_field", at="node", dtype=float)
     >>> lossfield *= 0.5
     >>> def lossfunc2(Qw, nodeID, dummyl, grid):
-    ...     return grid.at_node['loss_field'][nodeID] * Qw
+    ...     return grid.at_node["loss_field"][nodeID] * Qw
+    ...
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc2, mg)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     >>> q
     array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
     >>> np.allclose(
-    ...     mg.at_node['surface_water__discharge_loss'][nodes_wo_outlet],
-    ...     lossfield[nodes_wo_outlet] * q[nodes_wo_outlet])
+    ...     mg.at_node["surface_water__discharge_loss"][nodes_wo_outlet],
+    ...     lossfield[nodes_wo_outlet] * q[nodes_wo_outlet],
+    ... )
     True
 
     >>> def lossfunc3(Qw, nodeID, dummyl, dummygrid):
-    ...     return Qw - 100.  # a huge loss
+    ...     return Qw - 100.0  # a huge loss
+    ...
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc3, mg)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
@@ -438,7 +431,6 @@ def find_drainage_area_and_discharge_lossy(
 def flow_accumulation(
     receiver_nodes, node_cell_area=1.0, runoff_rate=1.0, boundary_nodes=None
 ):
-
     """Calculate drainage area and (steady) discharge.
 
     Calculates and returns the drainage area and (steady) discharge at each
@@ -448,7 +440,7 @@ def flow_accumulation(
     --------
     >>> import numpy as np
     >>> from landlab.components.flow_accum import flow_accumulation
-    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8]) - 1
     >>> a, q, s = flow_accumulation(r)
     >>> a
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])

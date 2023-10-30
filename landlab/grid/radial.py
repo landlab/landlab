@@ -77,7 +77,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         >>> import numpy as np
         >>> from landlab import RadialModelGrid
         >>> omg = RadialModelGrid(
-        ...     n_rings=1, nodes_in_first_ring=8, xy_of_center=(0., 0.)
+        ...     n_rings=1, nodes_in_first_ring=8, xy_of_center=(0.0, 0.0)
         ... )
         >>> omg.number_of_nodes
         9
@@ -141,9 +141,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
             attrs={"grid_type": "radial"},
         )
         return dataset.update(
-            super(RadialModelGrid, self).as_dataset(
-                include=include, exclude=exclude, time=time
-            )
+            super().as_dataset(include=include, exclude=exclude, time=time)
         )
 
     @property

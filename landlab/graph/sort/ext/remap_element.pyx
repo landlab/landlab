@@ -1,8 +1,8 @@
 import numpy as np
-cimport numpy as np
-cimport cython
 
-from libc.stdlib cimport malloc, free
+cimport cython
+cimport numpy as np
+from libc.stdlib cimport free, malloc
 
 
 cdef extern from "math.h":
@@ -10,8 +10,8 @@ cdef extern from "math.h":
 
 
 from .spoke_sort import sort_spokes_at_wheel
-from .argsort cimport argsort_int
 
+from .argsort cimport argsort_int
 
 DTYPE = int
 ctypedef np.int_t DTYPE_t

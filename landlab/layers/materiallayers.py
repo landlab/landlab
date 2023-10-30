@@ -7,7 +7,7 @@ from landlab.layers.eventlayers import (
 )
 
 
-class MaterialLayersMixIn(object):
+class MaterialLayersMixIn:
 
     """MixIn that adds a MaterialLayers attribute to a ModelGrid."""
 
@@ -18,8 +18,7 @@ class MaterialLayersMixIn(object):
             self._material_layers
         except AttributeError:
             self._material_layers = MaterialLayers(self.number_of_cells)
-        finally:
-            return self._material_layers
+        return self._material_layers
 
 
 class MaterialLayers(EventLayers):
@@ -65,7 +64,7 @@ class MaterialLayers(EventLayers):
     which will track each addition as a separate entry in the layers
     datastructure.
 
-    >>> layers.add([1., 2., 3., 5., 0.])
+    >>> layers.add([1.0, 2.0, 3.0, 5.0, 0.0])
     >>> layers.dz
     array([[ 2.5,  3.5,  4.5,  6.5,  1.5]])
 
@@ -115,7 +114,7 @@ class MaterialLayers(EventLayers):
 
         Add a second layer with uneven thickness.
 
-        >>> layers.add([1., 2., .5])
+        >>> layers.add([1.0, 2.0, 0.5])
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ]])
 
@@ -139,10 +138,10 @@ class MaterialLayers(EventLayers):
         if the object were a dictionary.
 
         >>> layers = MaterialLayers(3)
-        >>> layers.add(1., type=3., size='sand')
+        >>> layers.add(1.0, type=3.0, size="sand")
         >>> layers.dz
         array([[ 1.,  1.,  1.]])
-        >>> layers['type']
+        >>> layers["type"]
         array([[ 3.,  3.,  3.]])
 
         As you can see, there is no rule that says you can't use a string as
@@ -151,41 +150,42 @@ class MaterialLayers(EventLayers):
         Adding a layer with the same attributes as the entire surface of the
         MaterialLayers will result in the layers being combined.
 
-        >>> layers.add(1., type=3., size='sand')
-        >>> layers.add([2, -1, 0], type=3., size='sand')
+        >>> layers.add(1.0, type=3.0, size="sand")
+        >>> layers.add([2, -1, 0], type=3.0, size="sand")
         >>> layers.dz
         array([[ 4.,  1.,  2.]])
 
         Adding material with different attributes results in the creation of
         a new layer.
 
-        >>> layers.add(2., type=6., size='sand')
+        >>> layers.add(2.0, type=6.0, size="sand")
         >>> layers.dz
         array([[ 4.,  1.,  2.],
                [ 2.,  2.,  2.]])
-        >>> layers['type']
+        >>> layers["type"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
-        >>> np.all(layers['size'] == [['sand', 'sand', 'sand'],
-        ...                           ['sand', 'sand', 'sand']])
+        >>> np.all(
+        ...     layers["size"] == [["sand", "sand", "sand"], ["sand", "sand", "sand"]]
+        ... )
         True
 
         Attributes for each layer will exist even if part the the layer is
         associated with erosion.
 
-        >>> layers.add([-2, -1, 1], type=8., size='gravel')
+        >>> layers.add([-2, -1, 1], type=8.0, size="gravel")
         >>> layers.dz
         array([[ 4.,  1.,  2.],
                [ 0.,  1.,  2.],
                [ 0.,  0.,  1.]])
-        >>> layers['type']
+        >>> layers["type"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.],
                [ 8.,  8.,  8.]])
 
         To get the values at the surface of the layer stack:
 
-        >>> layers.get_surface_values('type')
+        >>> layers.get_surface_values("type")
         array([ 3.,  6.,  8.])
 
         Removing enough material such that an entire layer's
@@ -193,15 +193,16 @@ class MaterialLayers(EventLayers):
         no longer being tracked. This is another difference
         between MaterialLayers and EventLayers.
 
-        >>> layers.add([ 0., 0., -1. ])
+        >>> layers.add([0.0, 0.0, -1.0])
         >>> layers.dz
         array([[ 4.,  1.,  2.],
                [ 0.,  1.,  2.]])
-        >>> layers['type']
+        >>> layers["type"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
-        >>> np.all(layers['size'] == [['sand', 'sand', 'sand'],
-        ...                           ['sand', 'sand', 'sand']])
+        >>> np.all(
+        ...     layers["size"] == [["sand", "sand", "sand"], ["sand", "sand", "sand"]]
+        ... )
         True
         >>> layers.number_of_layers
         2
@@ -210,20 +211,20 @@ class MaterialLayers(EventLayers):
         will be combined with the surface layer only if all attributes are the
         same across the entire layer. Right now, the surface values vary.
 
-        >>> layers.get_surface_values('type')
+        >>> layers.get_surface_values("type")
         array([ 3.,  6.,  6.])
-        >>> np.all(layers.get_surface_values('size') == ['sand', 'sand', 'sand'])
+        >>> np.all(layers.get_surface_values("size") == ["sand", "sand", "sand"])
         True
 
         Since the surface has different types, adding material will create a
         new layer.
 
-        >>> layers.add(3., type=6., size='sand')
+        >>> layers.add(3.0, type=6.0, size="sand")
         >>> layers.dz
         array([[ 4.,  1.,  2.],
                [ 0.,  1.,  2.],
                [ 3.,  3.,  3.]])
-        >>> layers['type']
+        >>> layers["type"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.],
                [ 6.,  6.,  6.]])
@@ -234,12 +235,12 @@ class MaterialLayers(EventLayers):
         'sand', so layers will be combined. This even works if the thickness of
         the new layer includes both erosion and deposition.
 
-        >>> layers.add([ -3.5, 0., 2. ], type=6., size='sand')
+        >>> layers.add([-3.5, 0.0, 2.0], type=6.0, size="sand")
         >>> layers.dz
         array([[ 3.5,  1. ,  2. ],
                [ 0. ,  1. ,  2. ],
                [ 0. ,  3. ,  5. ]])
-        >>> layers['type']
+        >>> layers["type"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.],
                [ 6.,  6.,  6.]])
@@ -290,11 +291,10 @@ class MaterialLayers(EventLayers):
             for name in kwds:
                 try:
                     is_compatible = self[name][self.surface_index] == kwds[name]
-                except KeyError:
-                    msg = "MaterialLayers: {0} is not being tracked. Error in adding.".format(
-                        name
-                    )
-                    raise ValueError(msg)
+                except KeyError as exc:
+                    raise ValueError(
+                        f"{name!r} is not being tracked. Error in adding."
+                    ) from exc
 
                 if not np.all(is_compatible[where_deposition]):
                     return False

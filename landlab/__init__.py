@@ -9,6 +9,8 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
+import contextlib
+
 from numpy import set_printoptions
 
 from ._registry import registry
@@ -19,6 +21,7 @@ from .core.model_parameter_loader import load_params
 from .core.utils import ExampleData
 from .field import FieldError
 from .grid import (
+    FramedVoronoiGrid,
     HexModelGrid,
     ModelGrid,
     NetworkModelGrid,
@@ -31,12 +34,9 @@ from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
 from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid, imshowhs_grid_at_node
 
-try:
+with contextlib.suppress(TypeError):
     set_printoptions(legacy="1.13")
-except TypeError:
-    pass
-finally:
-    del set_printoptions
+del set_printoptions
 
 cite_as = registry.format_citations
 
@@ -53,6 +53,7 @@ __all__ = [
     "HexModelGrid",
     "RadialModelGrid",
     "RasterModelGrid",
+    "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
     "LinkStatus",

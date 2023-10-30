@@ -1,0 +1,2 @@
+Fixed a bug where the ``colorbar_label`` keyword of :func:`~.imshow.imshow_grid`
+was being ignored for non-raster grids.

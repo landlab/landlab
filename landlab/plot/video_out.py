@@ -30,7 +30,7 @@ import numpy as np
 from landlab.plot import imshow
 
 
-class VideoPlotter(object):
+class VideoPlotter:
 
     """Create animations of landlab output.
 
@@ -130,7 +130,7 @@ class VideoPlotter(object):
 
         kwds can be any of the usual plotting keywords, e.g., cmap.
         """
-        if type(data) == str:
+        if isinstance(data, str):
             if self.centering == "n":
                 data_in = grid.at_node[data]
             elif self.centering == "c":
@@ -215,7 +215,7 @@ class VideoPlotter(object):
                 self.data_list[0],
                 limits=(self.min_limit, self.max_limit),
                 allow_colorbar=False,
-                **self.kwds
+                **self.kwds,
             )
         )
 
