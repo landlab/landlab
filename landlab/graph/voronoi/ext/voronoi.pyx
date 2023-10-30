@@ -130,7 +130,7 @@ def _get_cell_at_region(np.ndarray[DTYPE_t, ndim=2] regions_at_ridge,
     cdef int *ridges_per_cell = <int *>malloc(n_ridges * sizeof(int))
 
     if not ridges_per_cell:
-        raise MemoryError('unable to allocate {bytes} bytes'.format(
+        raise MemoryError("unable to allocate {bytes} bytes".format(
             bytes=n_ridges * sizeof(int)))
 
     try:

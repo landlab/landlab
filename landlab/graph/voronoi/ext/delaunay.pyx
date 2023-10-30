@@ -77,7 +77,7 @@ def _setup_links_at_patch(np.ndarray[DTYPE_t, ndim=2] nodes_at_patch,
 
   if not tri_done or not links_per_patch:
     raise MemoryError(
-      'unable to allocate {bytes} bytes'.format(bytes=n_patches * sizeof(int)))
+      "unable to allocate {bytes} bytes".format(bytes=n_patches * sizeof(int)))
 
   try:
     for tri in range(n_patches):

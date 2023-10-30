@@ -39,7 +39,7 @@ cdef find_common_node(long * link_a, long * link_b):
     elif link_a[1] == link_b[0] or link_a[1] == link_b[1]:
         return link_a[1]
     else:
-        raise ValueError('links are not connected')
+        raise ValueError("links are not connected")
 
 
 cdef all_nodes_at_patch(long * links_at_patch, long max_links,
