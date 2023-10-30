@@ -168,53 +168,6 @@ def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
                          xy_of_link)
 
 
-cdef _argsort_links(long * links, int n_links, long * nodes, long * ordered):
-    cdef int n_nodes = 2 * n_links
-    cdef int * index = <int *>malloc(n_nodes * sizeof(int))
-    cdef int i
-
-    try:
-        argsort_int(nodes, n_nodes, index)
-
-        i = 0
-        for link in range(n_links):
-            ordered[i // 2] = index[i] // 2
-            i += 2
-    finally:
-        free(index)
-
-
-@cython.boundscheck(False)
-def connect_links(np.ndarray[long, ndim=1, mode="c"] links,
-                  np.ndarray[long, ndim=2] nodes_at_link):
-    cdef long n_links = links.shape[0]
-    cdef long * nodes = <long *>malloc(2 * n_links * sizeof(long))
-    cdef long * ordered = <long *>malloc(n_links * sizeof(long))
-    cdef long * buff = <long *>malloc(n_links * sizeof(long))
-    cdef long node
-    cdef long link
-
-    try:
-        node = 0
-        for link in range(n_links):
-            nodes[node] = nodes_at_link[link, 0]
-            nodes[node + 1] = nodes_at_link[link, 1]
-            node += 2
-
-        _argsort_links(&links[0], n_links, nodes, ordered)
-
-        for link in range(n_links):
-            buff[link] = links[ordered[link]]
-
-        for link in range(n_links):
-            links[link] = buff[link]
-
-    finally:
-        free(buff)
-        free(ordered)
-        free(nodes)
-
-
 cdef reverse_order(long * array, long size):
     cdef long i
     cdef long temp
@@ -244,27 +197,6 @@ def reverse_element_order(
                 break
             n += 1
         reverse_order(&links_at_patch[patch, 1], n - 1)
-
-
-cdef _count_sorted_blocks(
-    DTYPE_t *array,
-    long len,
-    long stride,
-    DTYPE_t *count,
-    long n_values,
-):
-    cdef long i
-    cdef long value
-    cdef long max_i = len * stride
-
-    i = 0
-    for value in range(n_values):
-        count[value] = 0
-        while value == array[i]:
-            count[value] += 1
-            i += stride
-            if i >= max_i:
-                break
 
 
 cdef _offset_to_sorted_blocks(
