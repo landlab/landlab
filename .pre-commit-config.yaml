@@ -3,6 +3,10 @@ repos:
   rev: v0.15.0
   hooks:
   - id: cython-lint
+    exclude: |
+        (?x)^(
+            tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx
+        )
   - id: double-quote-cython-strings
 
 - repo: local
