@@ -57,9 +57,9 @@ class OverlandFlowBates(Component):
 
     Examples
     --------
-    >>> DEM_name = 'DEM_name.asc'
-    >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-    >>> of = OverlandFlowBates(rg) # doctest: +SKIP
+    >>> DEM_name = "DEM_name.asc"
+    >>> (rg, z) = read_esri_ascii(DEM_name)  # doctest: +SKIP
+    >>> of = OverlandFlowBates(rg)  # doctest: +SKIP
 
     References
     ----------

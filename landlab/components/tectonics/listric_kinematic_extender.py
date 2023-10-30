@@ -70,10 +70,11 @@ class ListricKinematicExtender(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import ListricKinematicExtender
     >>> grid = RasterModelGrid((3, 130), xy_spacing=10.0)
-    >>> topo = grid.add_zeros('topographic__elevation', at='node')
+    >>> topo = grid.add_zeros("topographic__elevation", at="node")
     >>> lke = ListricKinematicExtender(grid, fault_x0=100.0, fault_strike=90.0)
     >>> for _ in range(250):
     ...     lke.run_one_step(dt=2000.0)
+    ...
     >>> round(grid.at_node["hangingwall__thickness"][240])
     830
     """

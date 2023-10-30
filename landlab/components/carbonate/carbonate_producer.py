@@ -70,8 +70,8 @@ class CarbonateProducer(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import CarbonateProducer
     >>> grid = RasterModelGrid((3, 3))
-    >>> elev = grid.add_zeros('topographic__elevation', at='node')
-    >>> sealevel = grid.add_field('sea_level__elevation', 0.0, at='grid')
+    >>> elev = grid.add_zeros("topographic__elevation", at="node")
+    >>> sealevel = grid.add_field("sea_level__elevation", 0.0, at="grid")
     >>> elev[:] = -1.0
     >>> cp = CarbonateProducer(grid)
     >>> np.round(cp.calc_carbonate_production_rate()[4], 2)
@@ -83,9 +83,9 @@ class CarbonateProducer(Component):
     >>> np.round(cp.calc_carbonate_production_rate()[4], 2)
     0.01
     >>> thickness = cp.produce_carbonate(10.0)
-    >>> np.round(10 * grid.at_node['carbonate_thickness'][4])
+    >>> np.round(10 * grid.at_node["carbonate_thickness"][4])
     1.0
-    >>> thickness is grid.at_node['carbonate_thickness']
+    >>> thickness is grid.at_node["carbonate_thickness"]
     True
     >>> cp.run_one_step(10.0)
     >>> np.round(10 * thickness[4])

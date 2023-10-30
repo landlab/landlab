@@ -116,8 +116,7 @@ addopts = """
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
-  "IGNORE_EXCEPTION_DETAIL",
-  "ALLOW_UNICODE"
+  "IGNORE_EXCEPTION_DETAIL"
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",

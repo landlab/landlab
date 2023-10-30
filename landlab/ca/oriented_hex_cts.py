@@ -49,10 +49,10 @@ class OrientedHexCTS(CellLabCTSModel):
     >>> from landlab.ca.celllab_cts import Transition
 
     >>> mg = HexModelGrid((4, 3), spacing=1.0)
-    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> nsd = {0: "yes", 1: "no"}
     >>> xnlist = []
-    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
-    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "frogging"))
+    >>> nsg = mg.add_zeros("node", "node_state_grid")
     >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     """
 
