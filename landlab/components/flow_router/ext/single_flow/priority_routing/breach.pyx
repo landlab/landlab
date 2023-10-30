@@ -351,7 +351,7 @@ cdef void _direct_flow_c(
         # cnp.int_t [:] tmp_neighbors
         # cnp.int_t [:] neighbors_to_do
         _priority_queue to_do = _priority_queue(_compare_second)
-        # cnp.int_t receiver_id, donor_id, n, i, j, done_n
+        cnp.int_t receiver_id, donor_id, i, j, done_n
         # cnp.int_t [:] neighbors
         pair[cnp.int_t, cnp.float_t] node_pair
 
