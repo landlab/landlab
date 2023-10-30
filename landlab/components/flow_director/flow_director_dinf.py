@@ -53,7 +53,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorDINF
-    >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
+    >>> mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
@@ -63,7 +63,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     The DINF flow director can be uses for raster grids only.
 
-    >>> fd = FlowDirectorDINF(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorDINF(mg, "topographic__elevation")
     >>> fd.surface_values.reshape(mg.shape)
     array([[  0.,   1.,   4.,   9.],
            [  1.,   2.,   5.,  10.],
@@ -75,7 +75,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     downstream nodes, FlowDirectorDINF directs flow two nodes only. It stores
     the receiver information is a (number of nodes x 2) shape field at nodes.
 
-    >>> mg.at_node['flow__receiver_node']
+    >>> mg.at_node["flow__receiver_node"]
     array([[ 0, -1],
            [ 1, -1],
            [ 2, -1],
@@ -96,7 +96,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     It also stores the proportions of flow going to each receiver, the link on
     which the flow moves in at node arrays, and the slope of each link.
 
-    >>> mg.at_node['flow__receiver_proportions'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["flow__receiver_proportions"]
     array([[ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
@@ -113,7 +113,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_node']
+    >>> mg.at_node["flow__link_to_receiver_node"]
     array([[-1, -1],
            [-1, -1],
            [-1, -1],
@@ -130,7 +130,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [18, 39],
            [19, 38],
            [20, 40]])
-    >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["topographic__steepest_slope"]
     array([[ -1.00000000e+00,  -1.41421356e+00],
            [  1.00000000e+00,  -7.12763635e+02],
            [  3.00000000e+00,   1.41421356e+00],
@@ -150,13 +150,13 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     Finally, FlowDirectorDINF identifies sinks, or local lows.
 
-    >>> mg.at_node['flow__sink_flag'].astype(int)
+    >>> mg.at_node["flow__sink_flag"].astype(int)
     array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1])
 
     The flow directors also have the ability to return the flow receiver nodes
     through a function called direct_flow()
 
-    >>> fd = FlowDirectorDINF(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorDINF(mg, "topographic__elevation")
     >>> fd.run_one_step()
     >>> receivers, proportions = fd.direct_flow()
     >>> receivers
@@ -176,7 +176,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [13, -1],
            [14, -1],
            [15, -1]])
-    >>> proportions # doctest: +NORMALIZE_WHITESPACE
+    >>> proportions
     array([[ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],

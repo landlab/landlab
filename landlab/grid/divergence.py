@@ -48,7 +48,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
     >>> _ = rg.add_field("neg_grad_at_link", -lg, at="link")
-    >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
+    >>> calc_flux_div_at_node(rg, "neg_grad_at_link")
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ])
 
@@ -122,7 +122,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> calc_flux_div_at_cell(rg, unit_flux_at_faces)
     array([ 1.14,  0.22])
     >>> _ = rg.add_field("neg_grad_at_link", -lg, at="link")
-    >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
+    >>> calc_flux_div_at_cell(rg, "neg_grad_at_link")
     array([ 1.64,  0.94])
 
     Notes

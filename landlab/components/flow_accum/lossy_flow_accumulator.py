@@ -94,6 +94,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> def mylossfunction(qw):
     ...     return 0.5 * qw
+    ...
 
     >>> fa = LossyFlowAccumulator(
     ...     mg,
@@ -122,7 +123,9 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> dx = (2.0 / (3.0**0.5)) ** 0.5  # area to be 100.0
     >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.0))
     >>> z = hmg.add_field(
-    ...     "topographic__elevation", hmg.node_x**2 + np.round(hmg.node_y)**2, at="node"
+    ...     "topographic__elevation",
+    ...     hmg.node_x**2 + np.round(hmg.node_y) ** 2,
+    ...     at="node",
     ... )
     >>> z[9] = -10.0  # poke a hole
     >>> lossy = hmg.add_zeros("mylossterm", dtype=float, at="node")
@@ -159,7 +162,8 @@ class LossyFlowAccumulator(FlowAccumulator):
     With loss looks like this:
 
     >>> def mylossfunction2(Qw, nodeID, linkID, grid):
-    ...     return (1. - grid.at_node['mylossterm'][nodeID]) * Qw
+    ...     return (1.0 - grid.at_node["mylossterm"][nodeID]) * Qw
+    ...
     >>> fa = LossyFlowAccumulator(
     ...     hmg,
     ...     "topographic__elevation",
@@ -195,17 +199,18 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> mg = RasterModelGrid((4, 6), xy_spacing=(1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     >>> z = mg.add_field("topographic__elevation", 2.0 * mg.node_x, at="node")
-    >>> z[9] = 8.
+    >>> z[9] = 8.0
     >>> z[16] = 6.5  # force the first node sideways
 
     >>> L = mg.add_zeros("spatialloss", at="node")
-    >>> mg.at_node["spatialloss"][9] = 1.
-    >>> mg.at_node["spatialloss"][13] = 1.
+    >>> mg.at_node["spatialloss"][9] = 1.0
+    >>> mg.at_node["spatialloss"][13] = 1.0
     >>> def fancyloss(Qw, nodeID, linkID, grid):
     ...     # now a true transmission loss:
-    ...     Lt = (1.0 - 1.0 / grid.length_of_link[linkID] ** 2)
+    ...     Lt = 1.0 - 1.0 / grid.length_of_link[linkID] ** 2
     ...     Lsp = grid.at_node["spatialloss"][nodeID]
     ...     return Qw * (1.0 - Lt) * (1.0 - Lsp)
+    ...
 
     >>> fa = LossyFlowAccumulator(
     ...     mg,
