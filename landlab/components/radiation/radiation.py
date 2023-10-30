@@ -1,6 +1,7 @@
 import numpy as np
 
 from landlab import Component
+from landlab.grid.mappers import map_node_to_cell
 
 _VALID_METHODS = {"Grid"}
 
@@ -82,8 +83,8 @@ class Radiation(Component):
     ...       400., 400., 400., 400.])
     >>> calc_rad = Radiation(grid, current_time=0.0)
     >>> calc_rad.update()
-    >>> proven_net_shortwave_field = [189.608, 189.608, 188.839,
-    ...                                 188.686, 184.152, 183.741]
+    >>> proven_net_shortwave_field = [188.107, 188.107, 187.843,
+    ...                                 187.691, 183.802, 183.392]
     >>> nsflux = grid.at_cell['radiation__net_shortwave_flux']
     >>> print(assert_array_almost_equal(proven_net_shortwave_field, nsflux, decimal=3))
     None
@@ -98,6 +99,15 @@ class Radiation(Component):
 
     Bras, R. L.: Hydrology: an introduction to hydrologic science, Addison
     Wesley Publishing Company, Boston, Mass., USA, 643 pp., 1990.
+
+    ASCE-EWRI (2005) The ASCE standardized reference evapotranspiration equation.
+    In: Allen RG, Walter IA, Elliot RL et al (eds) Environmental and Water Resources
+    Institute (EWRI) of the American Society of Civil Engineers, ASCE,
+    Standardization of Reference Evapotranspiration Task Committee final report.
+    American Society of Civil Engineers (ASCE), Reston
+
+    Allen, R.G., 1996. Assessing integrity of weather data for  reference
+    evapotranspiration estimation. J. Irrig. Drain.  Eng., ASCE 122 (2), 97–106.
 
     """
 
@@ -166,7 +176,6 @@ class Radiation(Component):
         cloudiness=0.2,
         latitude=34.0,
         albedo=0.2,
-        solar_constant=1366.67,
         clearsky_turbidity=None,
         opt_airmass=None,
         current_time=0.0,
@@ -188,8 +197,6 @@ class Radiation(Component):
             Latitude (radians).
         albedo: float, optional
             Albedo.
-        solar_constant: float, optional
-            Solar Constant (W/m^2).
         clearsky_turbidity: float, optional
             Clear sky turbidity.
         opt_airmass: float, optional
@@ -214,7 +221,6 @@ class Radiation(Component):
         self._N = cloudiness
         self._latitude = latitude
         self._A = albedo
-        self._Io = solar_constant
         self._n = clearsky_turbidity
         self._m = opt_airmass
 
@@ -235,11 +241,6 @@ class Radiation(Component):
 
         self._nodal_values = self._grid["node"]
         self._cell_values = self._grid["cell"]
-
-        # The elevation used in calculations is taken from
-        # topographic elevation field
-        self._max_elev = np.max(self._nodal_values["topographic__elevation"])
-        self._avg_elev = np.average(self._nodal_values["topographic__elevation"])
 
         self._slope, self._aspect = grid.calculate_slope_aspect_at_nodes_burrough(
             vals="topographic__elevation"
@@ -268,27 +269,19 @@ class Radiation(Component):
         This method looks to the properties ``current_time`` and
         ``hour`` and uses their values in updating fields.
         """
-
         self._t = self._hour
         self._radf = self._cell_values["radiation__ratio_to_flat_surface"]
         self._Rs = self._cell_values["radiation__incoming_shortwave_flux"]
         self._Rnet = self._cell_values["radiation__net_shortwave_flux"]
+
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         self._julian = np.floor(
             ((self.current_time) - np.floor(self.current_time)) * 365
         )
-        # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 6, (37)
-
-        self._es = 0.6108 * np.exp((17.27 * self._Tavg) / (237.7 + self._Tavg))
 
         # Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 8, (38)
         self._ea = 0.6108 * np.exp((17.27 * self._Tmin) / (237.7 + self._Tmin))
-
-        # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 5, (36)
-        self._delta = (4098.0 * self._es) / ((237.3 + self._Tavg) ** 2.0)
 
         # Solar Declination Angle - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 24,(51)
@@ -298,16 +291,16 @@ class Radiation(Component):
         # Jan-2005 - Eqn 23,(50)
         self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
-        # The following section computes the ratio to flat surface radiation field
+        # Generate spatially distributed field of flat surface to
+        # sloped surface radiation incidence ratios
         self._ratio_flat_surface_calc()
-
-        # Radiation flux field computations follow below:
 
         # Use the same direct radiation calculation from before, copy variable values
         self._Rext = self._Rgl
 
-        # Clear-sky Radiation Rcs - Lecture_Radiation_Oct_13_18, Page 37
-        # will only be computed if turbidity and optical air mass are both user defined
+        # Clear-sky Radiation, Rcs, ASCE-EWRI (2005) as default method
+        # if (optionally) turbidity and optical air mass are both user defined,
+        # an exponential decay model Bras (2.25) is used.
         # Optical airmass must be >0 or Rcs2 is disregarded (log of zero or / 0 error)
         self._rcs2valid = True
         if self._m is not None:
@@ -317,57 +310,49 @@ class Radiation(Component):
         else:
             self._rcs2valid = False
 
-        # Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 19, (47)
-        # This one is more ideal, and does not need as many parameters
-        self._Rcs = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
+        # Clear-sky Solar Radiation - ASCE-EWRI (2005) Eqn 19, (47)
+        self._Rcs1 = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
 
-        # Rcfactor, set to Rcs2 for empirical method, Rcs for accurate method
-        # IF optical air mass and turbidity are both appropriately defined,
-        # then use the more parameter-intensive formula. Otherwise, use the
-        # regular convenient empirical method.
+        # Rcs1, set to Rcs2 for empirical method, Rcs for accurate method
+        # Using optical air mass and turbidity is optional when watershed
+        # is relatively flat. n and m are not required fields at all
         if self._n is not None and self._m is not None and self._rcs2valid:
-            # print("Using turbidity + airmass clearsky factor...")
-            self._Rcfactor = self._Rcs2
+            self._Rc = self._Rcs2
         else:
-            self._Rcfactor = self._Rcs
+            self._Rc = self._Rcs1
 
-        # Assuming 2500 foot elevation
-        # Equation 34
+        # Local atmospheric pressure ASCE-EWRI (2005) eqn (34)
         self._P = 101.3 * ((293 - 0.0065 * self._hAboveSea) / 293) ** 5.26
 
-        # If it does work, set _Po to a pressure according to the current month's
-        # average monthly pressure
+        # KT adjustment factor for incoming short-wave calculations
+        # this uses the ratio of local to sealevel barometric
+        # pressure following Allen (1996)
         self._Po = 101.325
 
         # non-constant KT (adjustment coefficient) - Handout_4_Radiation_Balance, Page 3
         self._KT = 0.2 * (self._P / self._Po) ** 0.5
 
-        # Incoming shortwave radiation - Lecture_Radiation_Oct_13_18, Page 42
+        # Incoming shortwave radiation cannot exceed clear-sky radiation
         # Shortwave radiation should ideally be below clearsky radiation
-        # (Rcfactor), if there is a case where the standard shortwave rad
-        # formula yields a result greater than Rcfactor, set shortwave
+        # (Rc), if there is a case where the standard shortwave rad
+        # formula yields a result greater than Rc, set shortwave
         # radiation to the clearsky radiation itself.
-
         self._Rs = np.minimum(
-            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rcfactor
+            self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rc
         )
 
         # Net shortwave Radiation - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn (43)
         self._Rns = self._Rs * (1 - self._A)
 
-        # Relative Cloudiness - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Page 20,35
-        self._u = 1.35 * (self._Rs / self._Rcfactor) - 0.35
+        # Relative Cloudiness - ASCE-EWRI (2005), eqn (18)
+        self._u = 1.35 * (self._Rs / self._Rc) - 0.35
 
-        # As according to ASCE-EWRI Task Committee Report, Page 19
         # Cloudiness should be within 0.05 and 1 so as to not
         # nullify or incorrectly calculate the net longwave radiation
         self._u = np.clip(self._u, 0.05, 1.0)
 
-        # Net Longwave Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn (17)
+        # Net Longwave Radiation - ASCE-EWRI (2005) - Eqn (17) in W/M^2
         self._Rnl = (
             5.67
             * (10**-8)
@@ -377,11 +362,21 @@ class Radiation(Component):
             * self._u
         )
 
-        # Net Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Page 17, Eqn 15
-        self._Rn = self._Rns - self._Rnl
+        # Net Radiation - ASCE-EWRI (2005) Eqn 15
+        # Apply the ratio to flat surface to net shortwave
+        # radiation first, then use spatially distributed
+        # shortwave radiation to calculate net radiation
+        np.multiply(
+            self._Rns,
+            self._radf,
+            out=self._cell_values["radiation__net_shortwave_flux"],
+        )
 
-        self._Rnet = self._Rns * self._cell_values["radiation__ratio_to_flat_surface"]
+        # Net radiation flux is net shortwave - net longwave
+        self._Rn = np.subtract(
+            self._cell_values["radiation__net_shortwave_flux"], self._Rnl
+        )
+
         # Apply shortwave, longwave, net radiation calculations to
         # the grid slopes.
         self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
@@ -389,11 +384,6 @@ class Radiation(Component):
             self._Rs,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__incoming_shortwave_flux"],
-        )
-        np.multiply(
-            self._Rns,
-            self._cell_values["radiation__ratio_to_flat_surface"],
-            out=self._cell_values["radiation__net_shortwave_flux"],
         )
         np.multiply(
             self._Rnl,
@@ -407,11 +397,14 @@ class Radiation(Component):
         )
 
     def _ratio_flat_surface_calc(self):
-        # Apply distance factor to solar constant
-        # Correction of solar constant using distance,
-        # Src: https://www.lehman.edu/academics/eggs/documents/IJOC-2001-Becker.pdf
-        self._Io *= self._dr
+        """generate radiation__ratio_to_flat_surface field
 
+        This method looks to the slope, aspect values across
+        the grid provided to the component, then runs calculations
+        with solar altitude, latitude, and elevation to create a
+        spatially distributed field of flat surface to sloped surface
+        ratios / factors.
+        """
         # Convert latitude to radians and store trig calculations
         self._phi = np.radians(self._latitude)  # Latitude in Radians
         self._sinLat = np.sin(self._phi)
@@ -420,14 +413,14 @@ class Radiation(Component):
         # Get the hour angle using time of day
         self._tau = (self._t + 12.0) * np.pi / 12.0  # Hour angle
 
-        # Calculate solar altitude using declination angle, hour angle, and azimuth
+        # Calculate solar altitude using declination angle, hour angle, and latitude
         self._alpha = np.arcsin(
             np.sin(self._sdecl) * self._sinLat
             + (np.cos(self._sdecl) * self._cosLat * np.cos(self._tau))
         )  # Solar Altitude/Angle
 
-        if self._alpha <= 0.25 * np.pi / 180.0:  # If altitude is -ve,
-            self._alpha = 0.25 * np.pi / 180.0  # sun is beyond the horizon
+        if self._alpha <= 0.25:  # If altitude is -ve,
+            self._alpha = 0.25  # sun is beyond the horizon
 
         # For less constant calculation, keeping solar altitude trig in fixed variables
         self._cosSA = np.cos(self._alpha)
@@ -437,7 +430,7 @@ class Radiation(Component):
         if self._cosSA <= 0.0001:
             self._cosSA = 0.0001
 
-        # self._hAboveSea = 300
+        # self._hAboveSea, elevation of surface above sea level
         self._hAboveSea = self._nodal_values["topographic__elevation"]
 
         # Handle invalid values
@@ -446,15 +439,9 @@ class Radiation(Component):
                 "No negative elevations allowed in an above sea elevation field..."
             )
 
-        # Trimming the length of nodal elevation values to
-        # match the cell value field length is the most
-        # efficient way to create a spacial distribution of
-        # node-cell elevation data mappings so that we can
-        # interact with the nodal_values and cell_values fields.
-        # Trying to aggregate this data takes monumentally more
-        # time and effort.
-        trimLen = len(self._hAboveSea) - len(self._Rs)
-        self._hAboveSea = self._hAboveSea[:-trimLen]
+        # Map nodal elevation values to cells to calculate clearsky incidence
+        # across a spatially distributed field
+        self._hAboveSea = map_node_to_cell(self._grid, "topographic__elevation")
 
         self._temp = self._Tavg  # in C
 
