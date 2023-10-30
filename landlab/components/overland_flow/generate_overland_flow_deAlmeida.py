@@ -25,16 +25,18 @@ component use the *input_var_names* class property.
 
 Create fields of data for each of these input variables.
 
->>> grid.at_node['topographic__elevation'] = np.array([
-...     0., 0., 0., 0., 0.,
-...     1., 1., 1., 1., 1.,
-...     2., 2., 2., 2., 2.,
-...     3., 3., 3., 3., 3.])
->>> grid.at_node['surface_water__depth'] = np.array([
-...     0. , 0. , 0. , 0. , 0. ,
-...     0. , 0. , 0. , 0. , 0. ,
-...     0. , 0. , 0. , 0. , 0. ,
-...     0.1, 0.1, 0.1, 0.1, 0.1])
+>>> grid.at_node["topographic__elevation"] = [
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [1.0, 1.0, 1.0, 1.0, 1.0],
+...     [2.0, 2.0, 2.0, 2.0, 2.0],
+...     [3.0, 3.0, 3.0, 3.0, 3.0],
+... ]
+>>> grid.at_node["surface_water__depth"] = [
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [0.0, 0.0, 0.0, 0.0, 0.0],
+...     [0.1, 0.1, 0.1, 0.1, 0.1],
+... ]
 
 Instantiate the `OverlandFlow` component to work on this grid, and run it.
 
@@ -50,9 +52,9 @@ have been changed.
 
 The `surface_water__depth` field is defined at nodes.
 
->>> of.var_loc('surface_water__depth')
+>>> of.var_loc("surface_water__depth")
 'node'
->>> grid.at_node['surface_water__depth'] # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_node["surface_water__depth"]
 array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
          1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
@@ -65,19 +67,19 @@ The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
 direction, only toward the bottom of the grid.
 
->>> of.var_loc('surface_water__discharge')
+>>> of.var_loc("surface_water__discharge")
 'link'
->>> q = grid.at_link['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
->>> np.all(q[grid.horizontal_links] == 0.)
+>>> q = grid.at_link["surface_water__discharge"]
+>>> np.all(q[grid.horizontal_links] == 0.0)
 True
->>> np.all(q[grid.vertical_links] <= 0.)
+>>> np.all(q[grid.vertical_links] <= 0.0)
 True
 
 The *water_surface__gradient* is also defined at links.
 
->>> of.var_loc('water_surface__gradient')
+>>> of.var_loc("water_surface__gradient")
 'link'
->>> grid.at_link['water_surface__gradient'] # doctest: +NORMALIZE_WHITESPACE
+>>> grid.at_link["water_surface__gradient"]
 array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  1. ,  1. ,  1. ,  0. ,
         0. ,  0. ,  0. ,  0. ,
@@ -894,11 +896,11 @@ def find_active_neighbors_for_fixed_links(grid):
     >>> grid = RasterModelGrid((4, 5))
     >>> grid.status_at_node[:5] = NodeStatus.FIXED_GRADIENT
     >>> grid.status_at_node[::5] = NodeStatus.FIXED_GRADIENT
-    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([2, 2, 2, 2, 2,
-           2, 0, 0, 0, 1,
-           2, 0, 0, 0, 1,
-           2, 1, 1, 1, 1], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[2, 2, 2, 2, 2],
+           [2, 0, 0, 0, 1],
+           [2, 0, 0, 0, 1],
+           [2, 1, 1, 1, 1]], dtype=uint8)
 
     >>> grid.fixed_links
     array([ 5,  6,  7,  9, 18])
@@ -910,8 +912,8 @@ def find_active_neighbors_for_fixed_links(grid):
 
     >>> rmg = RasterModelGrid((4, 7))
 
-    >>> rmg.at_node['topographic__elevation'] = rmg.zeros(at='node')
-    >>> rmg.at_link['topographic__slope'] = rmg.zeros(at='link')
+    >>> rmg.at_node["topographic__elevation"] = rmg.zeros(at="node")
+    >>> rmg.at_link["topographic__slope"] = rmg.zeros(at="link")
     >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
     >>> find_active_neighbors_for_fixed_links(rmg)
     array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
