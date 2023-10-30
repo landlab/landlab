@@ -277,6 +277,7 @@ def _imshow_grid_values(
     color_for_background=None,
     show_elements=False,
     output=None,
+    alpha=1.0,
 ):
     from ..grid.raster import RasterModelGrid
 
@@ -319,6 +320,7 @@ def _imshow_grid_values(
                 kwds["vmin"] = vmin
             if vmax is not None:
                 kwds["vmax"] = vmax
+        kwds["alpha"] = alpha
 
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
@@ -347,7 +349,7 @@ def _imshow_grid_values(
 
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
-        colorVal = scalarMap.to_rgba(values)[grid.node_at_cell]
+        colorVal = scalarMap.to_rgba(values, alpha=alpha)[grid.node_at_cell]
 
         patches = []
 
@@ -475,6 +477,8 @@ def imshow_grid(grid, values, **kwds):
         Make the colormap symetric about 0.
     cmap : str
         Name of a colormap
+    alpha : array-like or scalar or None, optional
+        Set the transparency.
     limits : tuple of float
         Minimum and maximum of the colorbar.
     vmin, vmax: floats
