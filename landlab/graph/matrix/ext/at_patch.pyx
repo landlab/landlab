@@ -8,9 +8,11 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
-def fill_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                        np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                        np.ndarray[DTYPE_t, ndim=2] out):
+def fill_links_at_patch(
+    np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
+    np.ndarray[DTYPE_t, ndim=2] out,
+):
     cdef int i
     cdef int link
     cdef int patch
@@ -24,5 +26,5 @@ def fill_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
         link = 0
         for i in range(offset, offset + n_links):
-          out[patch, link] = links_at_patch[i]
-          link += 1
+            out[patch, link] = links_at_patch[i]
+            link += 1

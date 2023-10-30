@@ -20,8 +20,9 @@ cdef struct Sorter:
 
 cdef extern from "stdlib.h":
     ctypedef void const_void "const void"
-    void qsort(void *base, int nmemb, int size,
-            int(*compar)(const_void *, const_void *)) nogil
+    void qsort(
+        void *base, int nmemb, int size, int(*compar)(const_void *, const_void *)
+    ) nogil
 
 
 cdef int _compare(const_void *a, const_void *b) noexcept:
@@ -66,97 +67,106 @@ cdef argsort_inplace(double * data, int n_elements, int * out):
 
 
 @cython.boundscheck(False)
-def _find_links_at_node(DTYPE_t node,
-                        np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-                        np.ndarray[DTYPE_t, ndim=1] links_at_node,
-                        np.ndarray[DTYPE_t, ndim=1] link_dirs_at_node):
-  """Find directions of links touching a node.
+def _find_links_at_node(
+    DTYPE_t node,
+    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
+    np.ndarray[DTYPE_t, ndim=1] links_at_node,
+    np.ndarray[DTYPE_t, ndim=1] link_dirs_at_node,
+):
+    """Find directions of links touching a node.
 
-  Parameters
-  ----------
-  node : int
-      A node ID.
-  nodes_at_link : ndarray of int, shape `(n_links, 2)`
-      Nodes at link tail and head.
-  links_at_node : ndarray of int, shape `(max_links_per_node, )`
-      Buffer to hold link IDs for links around node.
-  link_dirs_at_node : ndarray of int, shape `(max_links_per_node, )`
-      Buffer to hold link directions for links around node.
+    Parameters
+    ----------
+    node : int
+        A node ID.
+    nodes_at_link : ndarray of int, shape `(n_links, 2)`
+        Nodes at link tail and head.
+    links_at_node : ndarray of int, shape `(max_links_per_node, )`
+        Buffer to hold link IDs for links around node.
+    link_dirs_at_node : ndarray of int, shape `(max_links_per_node, )`
+        Buffer to hold link directions for links around node.
 
-  Returns
-  -------
-  int
-    The number of links found.
-  """
-  cdef int link = 0
-  cdef int n_links_found = 0
-  cdef int max_links_at_node = links_at_node.shape[0]
-  cdef int n_links = nodes_at_link.shape[0]
+    Returns
+    -------
+    int
+      The number of links found.
+    """
+    cdef int link = 0
+    cdef int n_links_found = 0
+    cdef int max_links_at_node = links_at_node.shape[0]
+    cdef int n_links = nodes_at_link.shape[0]
 
-  while n_links_found < max_links_at_node and link < n_links:
-    if nodes_at_link[link, 0] == node:
-      links_at_node[n_links_found] = link
-      link_dirs_at_node[n_links_found] = -1
-      n_links_found += 1
-    elif nodes_at_link[link, 1] == node:
-      links_at_node[n_links_found] = link
-      link_dirs_at_node[n_links_found] = 1
-      n_links_found += 1
+    while n_links_found < max_links_at_node and link < n_links:
+        if nodes_at_link[link, 0] == node:
+            links_at_node[n_links_found] = link
+            link_dirs_at_node[n_links_found] = -1
+            n_links_found += 1
+        elif nodes_at_link[link, 1] == node:
+            links_at_node[n_links_found] = link
+            link_dirs_at_node[n_links_found] = 1
+            n_links_found += 1
 
-    link += 1
+        link += 1
 
-  return n_links_found
-
-
-@cython.boundscheck(False)
-def _setup_links_at_node(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-                         np.ndarray[DTYPE_t, ndim=2] links_at_node,
-                         np.ndarray[DTYPE_t, ndim=2] link_dirs_at_node):
-  cdef int node
-  cdef int n_nodes
-
-  n_nodes = links_at_node.shape[0]
-
-  for node in range(n_nodes):
-    _find_links_at_node(node, nodes_at_link, links_at_node[node],
-                        link_dirs_at_node[node])
+    return n_links_found
 
 
 @cython.boundscheck(False)
-def _setup_node_at_cell(shape,
-                        np.ndarray[DTYPE_t, ndim=1] node_at_cell):
-  cdef int cell
-  cdef int cell_rows = shape[0] - 2
-  cdef int cell_cols = shape[1] - 2
-  cdef int node_cols = shape[1]
-  cdef int row_offset
-  cdef int row
-  cdef int col
+def _setup_links_at_node(
+    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
+    np.ndarray[DTYPE_t, ndim=2] links_at_node,
+    np.ndarray[DTYPE_t, ndim=2] link_dirs_at_node,
+):
+    cdef int node
+    cdef int n_nodes
 
+    n_nodes = links_at_node.shape[0]
 
-  cell = 0
-  row_offset = shape[1] + 1
-  for row in range(cell_rows):
-    for col in range(cell_cols):
-      node_at_cell[cell] = row_offset + col
-      cell += 1
-    row_offset += node_cols
+    for node in range(n_nodes):
+        _find_links_at_node(
+            node, nodes_at_link, links_at_node[node], link_dirs_at_node[node]
+        )
 
 
 @cython.boundscheck(False)
-def _remap_nodes_at_link(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-                         np.ndarray[DTYPE_t, ndim=1] new_nodes):
-  cdef int link
-  cdef int n_links = len(nodes_at_link)
+def _setup_node_at_cell(
+    shape, np.ndarray[DTYPE_t, ndim=1] node_at_cell
+):
+    cdef int cell
+    cdef int cell_rows = shape[0] - 2
+    cdef int cell_cols = shape[1] - 2
+    cdef int node_cols = shape[1]
+    cdef int row_offset
+    cdef int row
+    cdef int col
 
-  for link in range(n_links):
-    nodes_at_link[link, 0] = new_nodes[nodes_at_link[link, 0]]
-    nodes_at_link[link, 1] = new_nodes[nodes_at_link[link, 1]]
+    cell = 0
+    row_offset = shape[1] + 1
+    for row in range(cell_rows):
+        for col in range(cell_cols):
+            node_at_cell[cell] = row_offset + col
+            cell += 1
+        row_offset += node_cols
 
 
 @cython.boundscheck(False)
-def _remap_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                          np.ndarray[DTYPE_t, ndim=1] new_links):
+def _remap_nodes_at_link(
+    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
+    np.ndarray[DTYPE_t, ndim=1] new_nodes,
+):
+    cdef int link
+    cdef int n_links = len(nodes_at_link)
+
+    for link in range(n_links):
+        nodes_at_link[link, 0] = new_nodes[nodes_at_link[link, 0]]
+        nodes_at_link[link, 1] = new_nodes[nodes_at_link[link, 1]]
+
+
+@cython.boundscheck(False)
+def _remap_links_at_patch(
+    np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+    np.ndarray[DTYPE_t, ndim=1] new_links,
+):
     cdef int link
     cdef int n_links = links_at_patch.shape[0]
 
@@ -165,10 +175,12 @@ def _remap_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
-def _calc_center_of_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                          np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                          np.ndarray[np.float_t, ndim=2] xy_at_link,
-                          np.ndarray[np.float_t, ndim=2] xy_at_patch):
+def _calc_center_of_patch(
+    np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
+    np.ndarray[np.float_t, ndim=2] xy_at_link,
+    np.ndarray[np.float_t, ndim=2] xy_at_patch,
+):
     cdef int patch
     cdef int link
     cdef int i
@@ -192,9 +204,11 @@ def _calc_center_of_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
-def _resort_patches(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                    np.ndarray[DTYPE_t, ndim=1] sorted_patches):
+def _resort_patches(
+    np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
+    np.ndarray[DTYPE_t, ndim=1] sorted_patches,
+):
     cdef int i
     cdef int patch
     cdef int offset
@@ -223,9 +237,11 @@ def _resort_patches(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
-def _setup_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                          np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                          np.ndarray[DTYPE_t, ndim=2] out):
+def _setup_links_at_patch(
+    np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
+    np.ndarray[DTYPE_t, ndim=2] out,
+):
     cdef int i
     cdef int link
     cdef int patch
@@ -239,13 +255,15 @@ def _setup_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
         link = 0
         for i in range(offset, offset + n_links):
-          out[patch, link] = links_at_patch[i]
-          link += 1
+            out[patch, link] = links_at_patch[i]
+            link += 1
 
 
 @cython.boundscheck(False)
-def _reorder_links_at_node(np.ndarray[DTYPE_t, ndim=2] links_at_node,
-                           np.ndarray[DTYPE_t, ndim=2] sorted_links):
+def _reorder_links_at_node(
+    np.ndarray[DTYPE_t, ndim=2] links_at_node,
+    np.ndarray[DTYPE_t, ndim=2] sorted_links,
+):
     cdef int n_nodes = links_at_node.shape[0]
     cdef int n_links_per_node = links_at_node.shape[1]
     cdef int i
@@ -253,11 +271,11 @@ def _reorder_links_at_node(np.ndarray[DTYPE_t, ndim=2] links_at_node,
     cdef int *buffer = <int *>malloc(n_links_per_node * sizeof(int))
 
     try:
-      for node in range(n_nodes):
-          for i in range(n_links_per_node):
-              buffer[i] = links_at_node[node, sorted_links[node, i]]
-          for i in range(n_links_per_node):
-            links_at_node[node, i] = buffer[i]
+        for node in range(n_nodes):
+            for i in range(n_links_per_node):
+                buffer[i] = links_at_node[node, sorted_links[node, i]]
+            for i in range(n_links_per_node):
+                links_at_node[node, i] = buffer[i]
     finally:
         free(buffer)
 
@@ -277,8 +295,9 @@ cdef calc_centroid(double * points, np.int_t n_points, double * out):
     out[1] = yc
 
 
-cdef calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
-                       double * angles):
+cdef calc_spoke_angles(
+    double * hub, double * spokes, np.int_t n_spokes, double * angles
+):
     cdef int i
     cdef double x0 = hub[0]
     cdef double y0 = hub[1]
@@ -295,9 +314,9 @@ cdef calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
         spoke += 2
 
 
-cdef argsort_by_angle_around_centroid(double * points,
-                                      np.int_t n_points,
-                                      int * out):
+cdef argsort_by_angle_around_centroid(
+    double * points, np.int_t n_points, int * out
+):
     cdef double *hub = <double *>malloc(2 * sizeof(double))
     cdef double *angles = <double *>malloc(n_points * sizeof(double))
 
@@ -310,8 +329,9 @@ cdef argsort_by_angle_around_centroid(double * points,
         free(hub)
 
 
-cdef sort_spokes_around_hub(int * spokes, int n_spokes, double * xy_of_spoke,
-                            double * xy_of_hub):
+cdef sort_spokes_around_hub(
+    int * spokes, int n_spokes, double * xy_of_spoke, double * xy_of_hub
+):
     cdef int point
     cdef int spoke
     cdef double * points = <double *>malloc(2 * n_spokes * sizeof(double))
@@ -342,9 +362,11 @@ cdef sort_spokes_around_hub(int * spokes, int n_spokes, double * xy_of_spoke,
 
 
 @cython.boundscheck(False)
-def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                           np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                           np.ndarray[np.float_t, ndim=2] xy_of_link):
+def reorder_links_at_patch(
+    np.ndarray[DTYPE_t, ndim=1] links_at_patch,
+    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
+    np.ndarray[np.float_t, ndim=2] xy_of_link,
+):
     cdef int n_links = xy_of_link.shape[0]
     cdef int n_patches = len(offset_to_patch) - 1
     cdef int link
@@ -357,22 +379,22 @@ def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
     cdef int *link_buffer = <int *>malloc(n_links * sizeof(int))
 
     try:
-      for patch in range(n_patches):
-          offset = offset_to_patch[patch]
-          n_links = offset_to_patch[patch + 1] - offset
+        for patch in range(n_patches):
+            offset = offset_to_patch[patch]
+            n_links = offset_to_patch[patch + 1] - offset
 
-          for i in range(n_links):
-              link = links_at_patch[offset + i]
-              points[2 * i] = xy_of_link[link][0]
-              points[2 * i + 1] = xy_of_link[link][1]
+            for i in range(n_links):
+                link = links_at_patch[offset + i]
+                points[2 * i] = xy_of_link[link][0]
+                points[2 * i + 1] = xy_of_link[link][1]
 
-          argsort_by_angle_around_centroid(points, n_links, ordered)
+            argsort_by_angle_around_centroid(points, n_links, ordered)
 
-          for i in range(n_links):
-              link_buffer[i] = links_at_patch[offset + ordered[i]]
+            for i in range(n_links):
+                link_buffer[i] = links_at_patch[offset + ordered[i]]
 
-          for i in range(n_links):
-              links_at_patch[offset + i] = link_buffer[i]
+            for i in range(n_links):
+                links_at_patch[offset + i] = link_buffer[i]
 
     finally:
         free(link_buffer)
@@ -382,10 +404,12 @@ def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
-def sort_spokes_at_wheel(np.ndarray[int, ndim=1] spokes_at_wheel,
-                         np.ndarray[int, ndim=1] offset_to_wheel,
-                         np.ndarray[double, ndim=2] xy_of_hub,
-                         np.ndarray[double, ndim=2] xy_of_spoke):
+def sort_spokes_at_wheel(
+    np.ndarray[int, ndim=1] spokes_at_wheel,
+    np.ndarray[int, ndim=1] offset_to_wheel,
+    np.ndarray[double, ndim=2] xy_of_hub,
+    np.ndarray[double, ndim=2] xy_of_spoke,
+):
     """Sort spokes about multiple hubs.
 
     Parameters
@@ -408,16 +432,19 @@ def sort_spokes_at_wheel(np.ndarray[int, ndim=1] spokes_at_wheel,
     for i in range(n_wheels):
         n_spokes = offset_to_wheel[i + 1] - offset_to_wheel[i]
 
-        sort_spokes_around_hub(wheel, n_spokes, &xy_of_spoke[0, 0],
-                               &xy_of_hub[i, 0])
+        sort_spokes_around_hub(
+            wheel, n_spokes, &xy_of_spoke[0, 0], &xy_of_hub[i, 0]
+        )
 
         wheel += n_spokes
 
 
 @cython.boundscheck(False)
-def argsort_spoke_angles(np.ndarray[double, ndim=2, mode="c"] points,
-                         np.ndarray[double, ndim=1, mode="c"] hub,
-                         np.ndarray[int, ndim=1] out):
+def argsort_spoke_angles(
+    np.ndarray[double, ndim=2, mode="c"] points,
+    np.ndarray[double, ndim=1, mode="c"] hub,
+    np.ndarray[int, ndim=1] out,
+):
     """Sort spokes by angle around a hub.
 
     Parameters
@@ -439,6 +466,6 @@ def argsort_spoke_angles(np.ndarray[double, ndim=2, mode="c"] points,
         calc_spoke_angles(&hub[0], &points[0, 0], n_points, angles)
         argsort(angles, n_points, &out[0])
     finally:
-      free(angles)
+        free(angles)
 
     return out

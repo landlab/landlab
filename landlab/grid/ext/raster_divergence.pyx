@@ -1,7 +1,4 @@
-import numpy as np
-
 cimport cython
-cimport numpy as cnp
 from cython.parallel cimport prange
 
 ctypedef fused float_or_int:

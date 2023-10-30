@@ -87,10 +87,19 @@ def test_set_flooded_and_outlet():
             np.array([0.1, 67.1, 42.1, 70.3, 34.5])
         )
 
-    breach_c._set_flooded_and_outlet(donor_id, z, receivers, outlet_nodes,
-        depression_outlet_nodes, flooded_nodes, depression_depths,
-        depression_free_elevations, flooded_status, bad_index,
-        min_elevation_relative_diff)
+    breach_c._set_flooded_and_outlet(
+        donor_id,
+        z,
+        receivers,
+        outlet_nodes,
+        depression_outlet_nodes,
+        flooded_nodes,
+        depression_depths,
+        depression_free_elevations,
+        flooded_status,
+        bad_index,
+        min_elevation_relative_diff,
+    )
 
     assert donor_id == 2
     assert_array_almost_equal(z, np.array([0.1, 67.1, 42.1, 70.3, 34.5]))
@@ -107,10 +116,19 @@ def test_set_flooded_and_outlet():
     donor_id = 3
     receivers = np.array([0, 0, 1, 2, -1])
 
-    breach_c._set_flooded_and_outlet(donor_id, z, receivers, outlet_nodes,
-        depression_outlet_nodes, flooded_nodes, depression_depths,
-        depression_free_elevations, flooded_status, bad_index,
-        min_elevation_relative_diff)
+    breach_c._set_flooded_and_outlet(
+        donor_id,
+        z,
+        receivers,
+        outlet_nodes,
+        depression_outlet_nodes,
+        flooded_nodes,
+        depression_depths,
+        depression_free_elevations,
+        flooded_status,
+        bad_index,
+        min_elevation_relative_diff,
+    )
     assert donor_id == 3
     assert_array_almost_equal(z, np.array([0.1, 67.1, 42.1, 70.3, 34.5]))
     assert_array_equal(receivers, np.array([0, 0, 1, 2, -1]))
@@ -161,9 +179,17 @@ def test_set_donor_properties():
         cnp.float_t [:] steepest_slopes = np.zeros(9, dtype=float)
         cnp.int_t [:] links_to_receivers = -1 * np.ones(9, dtype=int)
 
-    breach_c._set_donor_properties(donor_id, receiver_id, sorted_pseudo_tails,
-        head_start_end_indexes, sorted_dupli_links, sorted_dupli_gradients, z,
-        steepest_slopes, links_to_receivers)
+    breach_c._set_donor_properties(
+        donor_id,
+        receiver_id,
+        sorted_pseudo_tails,
+        head_start_end_indexes,
+        sorted_dupli_links,
+        sorted_dupli_gradients,
+        z,
+        steepest_slopes,
+        links_to_receivers,
+    )
     assert donor_id == 5
     assert receiver_id == 7
     assert_array_equal(sorted_pseudo_tails, np.array([3, 1, 0, 4, 2, 1, 5, 0, 6,
@@ -262,14 +288,28 @@ def test_direct_flow_c():
         cnp.float_t[:] depression_free_elevations = z.copy()
         cnp.float_t[:] z_0 = np.copy(z)
 
-    breach_c._direct_flow_c(nodes_n, base_level_nodes, closed_nodes,
-                    sorted_pseudo_tails, sorted_dupli_gradients,
-                    sorted_dupli_links, head_start_end_indexes,
-                    outlet_nodes, depression_outlet_nodes,
-                    flooded_nodes, depression_depths, depression_free_elevations,
-                    links_to_receivers, receivers, steepest_slopes, z,
-                    flooded_status, bad_index, neighbors_max_number,
-                    min_elevation_relative_diff)
+    breach_c._direct_flow_c(
+        nodes_n,
+        base_level_nodes,
+        closed_nodes,
+        sorted_pseudo_tails,
+        sorted_dupli_gradients,
+        sorted_dupli_links,
+        head_start_end_indexes,
+        outlet_nodes,
+        depression_outlet_nodes,
+        flooded_nodes,
+        depression_depths,
+        depression_free_elevations,
+        links_to_receivers,
+        receivers,
+        steepest_slopes,
+        z,
+        flooded_status,
+        bad_index,
+        neighbors_max_number,
+        min_elevation_relative_diff,
+    )
     assert nodes_n == 25
     assert flooded_status == 3
     assert bad_index == -1
@@ -380,14 +420,28 @@ def test_direct_flow():
         cnp.float_t[:] depression_free_elevations = z.copy()
         cnp.float_t[:] z_0 = np.copy(z)
 
-    breach._direct_flow(nodes_n, base_level_nodes, closed_nodes,
-                    sorted_pseudo_tails, sorted_dupli_gradients,
-                    sorted_dupli_links, head_start_end_indexes,
-                    outlet_nodes, depression_outlet_nodes,
-                    flooded_nodes, depression_depths, depression_free_elevations,
-                    links_to_receivers, receivers, steepest_slopes, z,
-                    flooded_status, bad_index, neighbors_max_number,
-                    min_elevation_relative_diff)
+    breach._direct_flow(
+        nodes_n,
+        base_level_nodes,
+        closed_nodes,
+        sorted_pseudo_tails,
+        sorted_dupli_gradients,
+        sorted_dupli_links,
+        head_start_end_indexes,
+        outlet_nodes,
+        depression_outlet_nodes,
+        flooded_nodes,
+        depression_depths,
+        depression_free_elevations,
+        links_to_receivers,
+        receivers,
+        steepest_slopes,
+        z,
+        flooded_status,
+        bad_index,
+        neighbors_max_number,
+        min_elevation_relative_diff,
+    )
     assert nodes_n == 25
     assert flooded_status == 3
     assert bad_index == -1

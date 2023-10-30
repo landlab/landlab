@@ -28,7 +28,7 @@ def reverse_one_to_one(np.ndarray[DTYPE_t, ndim=1] mapping,
     for index in range(n_elements):
         id_ = mapping[index]
         if id_ >= 0:
-          out[id_] = index
+            out[id_] = index
 
 
 @cython.boundscheck(False)
@@ -71,7 +71,7 @@ def remap_graph_element(np.ndarray[DTYPE_t, ndim=1] elements,
     cdef int i
 
     for i in range(n_elements):
-      elements[i] = old_to_new[elements[i]]
+        elements[i] = old_to_new[elements[i]]
 
 
 @cython.boundscheck(False)
@@ -266,7 +266,7 @@ def get_angle_of_link(
         link_head_y = xy_of_node[nodes_at_link[link][1]][1]
 
         angle_of_link[link] = atan2(
-            link_head_y - link_tail_y, link_head_x - link_head_y
+            link_head_y - link_tail_y, link_head_x - link_tail_x
         )
 
 
@@ -410,7 +410,6 @@ def map_pairs_to_values(
     cdef long pair
     cdef long n_pairs = out.shape[0]
     cdef long n_values = data.shape[0]
-    cdef long val
     cdef SparseMatrixInt mat
 
     mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], &data[0], n_values, -1)
@@ -441,7 +440,6 @@ def map_rolling_pairs_to_values(
 
 cdef _map_rolling_pairs(SparseMatrixInt mat, DTYPE_t *pairs, DTYPE_t *out, long size):
     cdef long n
-    cdef long val
 
     if size > 0:
         for n in range(size - 1):

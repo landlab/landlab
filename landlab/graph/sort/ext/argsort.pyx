@@ -1,6 +1,5 @@
 import numpy as np
 
-cimport cython
 cimport numpy as np
 from libc.stdlib cimport free, malloc
 
@@ -22,10 +21,12 @@ cdef struct IntSorter:
 
 cdef extern from "stdlib.h":
     ctypedef void const_void "const void"
-    int qsort(void *, size_t, size_t,
-               int(*)(const_void *, const_void *)) nogil
-    int	mergesort(void *, size_t, size_t,
-                  int (*)(const_void *, const_void *)) nogil
+    int qsort(
+        void *, size_t, size_t, int(*)(const_void *, const_void *)
+    ) nogil
+    int	mergesort(
+        void *, size_t, size_t, int (*)(const_void *, const_void *)
+    ) nogil
 
 
 cdef int _compare(const_void *a, const_void *b) noexcept:

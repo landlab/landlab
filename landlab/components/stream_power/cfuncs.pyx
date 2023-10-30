@@ -1,6 +1,5 @@
 import numpy as np
 
-cimport cython
 cimport numpy as np
 
 from scipy.optimize import newton
@@ -9,7 +8,7 @@ from scipy.optimize import newton
 # method for using the brentq method in cython.
 from scipy.optimize._zeros import _brentq as brentq
 
-#from libc.math cimport fabs
+# from libc.math cimport fabs
 
 
 DTYPE_FLOAT = np.double
@@ -24,12 +23,14 @@ cdef extern from "math.h":
     double pow(double x, double y) nogil
 
 
-def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-                                          np.ndarray[DTYPE_FLOAT_t, ndim=1] threshsxdt,
-                                          np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                                          DTYPE_FLOAT_t n,
-                                          np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
+def brent_method_erode_variable_threshold(
+    np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
+    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] threshsxdt,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
+    DTYPE_FLOAT_t n,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
+):
     """Erode node elevations using Brent's method for stability.
 
     The alpha value is given as
@@ -66,7 +67,6 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
     cdef double z_downstream
     cdef double thresholddt
     cdef double z_diff_old
-    cdef double z_diff
     cdef double alpha_param
     cdef double beta_param
     cdef double check_function
@@ -125,13 +125,17 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
 
                     # The threshold values passed here are the defaults if one
                     # were to import brentq from scipy.optimize
-                    x = brentq(erode_fn,
-                                       0.0, 1.0,
-                                       1e-12,4.4408920985006262e-16,
-                                       100,
-                                       (alpha_param, beta_param, n),
-                                       False,
-                                       True)
+                    x = brentq(
+                        erode_fn,
+                        0.0,
+                        1.0,
+                        1e-12,
+                        4.4408920985006262e-16,
+                        100,
+                        (alpha_param, beta_param, n),
+                        False,
+                        True,
+                    )
 
                 else:
                     # Analytical solution
@@ -151,19 +155,22 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
                 # the array z.
 
 
-def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-                                       np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-                                       DTYPE_FLOAT_t threshsxdt,
-                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                                       DTYPE_FLOAT_t n,
-                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] z):
+def brent_method_erode_fixed_threshold(
+    np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
+    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
+    DTYPE_FLOAT_t threshsxdt,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
+    DTYPE_FLOAT_t n,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
+):
     """Erode node elevations.
 
-    The alpha value is given as
+    The alpha value is given as::
 
-    alpha = delta_t*K * (A)**m/(delta_x**n)
+        alpha = delta_t*K * (A)**m/(delta_x**n)
 
-    It will be multiplied by the value:
+    It will be multiplied by the value::
+
         (z_node(t) - z_downstream(t+delta_t))**(n-1)
 
     to become the alpha value defined below in the function used in erode_fun
@@ -192,7 +199,6 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
     cdef double z_old
     cdef double z_downstream
     cdef double z_diff_old
-    cdef double z_diff
     cdef double alpha_param
     cdef double beta_param
     cdef double check_function
@@ -251,13 +257,17 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
 
                     # The threshold values passed here are the defaults if one
                     # were to import brentq from scipy.optimize
-                    x = brentq(erode_fn,
-                                       0.0, 1.0,
-                                       1e-12,4.4408920985006262e-16,
-                                       100,
-                                       (alpha_param, beta_param, n),
-                                       False,
-                                       True)
+                    x = brentq(
+                        erode_fn,
+                        0.0,
+                        1.0,
+                        1e-12,
+                        4.4408920985006262e-16,
+                        100,
+                        (alpha_param, beta_param, n),
+                        False,
+                        True,
+                    )
 
                 else:
                     # Analytical solution
@@ -277,10 +287,12 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
                 # the array z.
 
 
-def erode_fn(DTYPE_FLOAT_t x,
-             DTYPE_FLOAT_t alpha,
-             DTYPE_FLOAT_t beta,
-             DTYPE_FLOAT_t n):
+def erode_fn(
+    DTYPE_FLOAT_t x,
+    DTYPE_FLOAT_t alpha,
+    DTYPE_FLOAT_t beta,
+    DTYPE_FLOAT_t n,
+):
     """Evaluates the solution to the water-depth equation.
 
     Called by scipy.brentq() to find solution for $x$ using Brent's method.
@@ -307,7 +319,7 @@ def erode_fn(DTYPE_FLOAT_t x,
     threshold value such that if the threshold is not exceeded, no erosion will
     occur.
 
-    Consider stream power erosion under the equation:
+    Consider stream power erosion under the equation::
 
         E = K * (A)**m * S**n - threshold_sp,
 
@@ -317,20 +329,25 @@ def erode_fn(DTYPE_FLOAT_t x,
     given node at time = t+delta_t, the value of the node at time = t, and the
     value of the downstream node at time t+delta_t is known.
 
-    Define
-    x = (z_node(t+delta_t) - z_downstream(t+delta_t))/(z_node(t) - z_downstream(t+delta_t)).
+    Define::
 
-    A discretized version of the stream power equation above yeilds the equation
+        x = (
+            z_node(t + delta_t) - z_downstream(t + delta_t)
+        ) / (z_node(t) - z_downstream(t + delta_t))
 
-    f = x - 1 + alpha*(x**n) - beta
+    A discretized version of the stream power equation above yeilds the equation::
 
-    where
+        f = x - 1 + alpha*(x**n) - beta
 
-    alpha = delta_t*K * (A)**m/(delta_x**n) * (z_node(t) - z_downstream(t+delta_t))**(n-1)
+    where::
 
-    and
+        alpha = delta_t * K * A ** m / (delta_x ** n) * (
+            z_node(t) - z_downstream(t + delta_t)
+        ) ** (n - 1)
 
-    beta = threshold_sp*delta_t/(z_node(t) - z_downstream(t+delta_t))
+    and::
+
+        beta = threshold_sp * delta_t / (z_node(t) - z_downstream(t + delta_t))
 
     Finding the root of f provides the implicit solution for the stream power
     equation.
@@ -363,12 +380,14 @@ def erode_fn(DTYPE_FLOAT_t x,
     return f
 
 
-def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-                                      np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
-                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] gamma,
-                                      np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
+def smooth_stream_power_eroder_solver(
+    np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
+    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] gamma,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] delta,
+):
     """Erode node elevations using Newtons Method for smoothed Stream Power. "
 
     This method takes three parameters, alpha, gamma, and delta.
@@ -396,14 +415,9 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     z : array_like
         Node elevations.
     """
-    cdef unsigned int n_nodes = src_nodes.shape[0]
     cdef unsigned int src_id
     cdef unsigned int dst_id
     cdef unsigned int i
-
-    cdef double epilon
-
-
 
     for i in range(len(src_nodes)):
         src_id = src_nodes[i]
@@ -412,25 +426,31 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
         if src_id != dst_id and z[src_id] > z[dst_id]:
 
             # calculate epsilon
-            epsilon = (alpha[src_id] * z[dst_id]
-                       + gamma[src_id] + z[src_id])
+            epsilon = (alpha[src_id] * z[dst_id] + gamma[src_id] + z[src_id])
 
             # calculate new z
-            z[src_id] = newton(new_elev, z[src_id],
-                             fprime=new_elev_prime,
-                             args=(alpha[src_id],
-                                   z[dst_id],
-                                   gamma[src_id],
-                                   delta[src_id],
-                                   epsilon))
+            z[src_id] = newton(
+                new_elev,
+                z[src_id],
+                fprime=new_elev_prime,
+                args=(
+                    alpha[src_id],
+                    z[dst_id],
+                    gamma[src_id],
+                    delta[src_id],
+                    epsilon,
+                )
+            )
 
 
-def new_elev(DTYPE_FLOAT_t x,
-             DTYPE_FLOAT_t a,
-             DTYPE_FLOAT_t b,
-             DTYPE_FLOAT_t c,
-             DTYPE_FLOAT_t d,
-             DTYPE_FLOAT_t e):
+def new_elev(
+    DTYPE_FLOAT_t x,
+    DTYPE_FLOAT_t a,
+    DTYPE_FLOAT_t b,
+    DTYPE_FLOAT_t c,
+    DTYPE_FLOAT_t d,
+    DTYPE_FLOAT_t e,
+):
     """Equation for elevation of a node at timestep t+1.
 
     Parameters
@@ -455,12 +475,14 @@ def new_elev(DTYPE_FLOAT_t x,
     return f
 
 
-def new_elev_prime(DTYPE_FLOAT_t x,
-                   DTYPE_FLOAT_t a,
-                   DTYPE_FLOAT_t b,
-                   DTYPE_FLOAT_t c,
-                   DTYPE_FLOAT_t d,
-                   DTYPE_FLOAT_t e):
+def new_elev_prime(
+    DTYPE_FLOAT_t x,
+    DTYPE_FLOAT_t a,
+    DTYPE_FLOAT_t b,
+    DTYPE_FLOAT_t c,
+    DTYPE_FLOAT_t d,
+    DTYPE_FLOAT_t e,
+):
     """Equation for elevation of a node at timestep t+1.
 
     Parameters
