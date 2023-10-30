@@ -110,7 +110,6 @@ def _sequential_ero_depo(
         )
 
         qs[node_id] = qs_out_adj
-        qs_in[node_id] = 0
         qs_in[flow_receivers[node_id]] += qs[node_id]
 
         H[node_id] = H_loc
