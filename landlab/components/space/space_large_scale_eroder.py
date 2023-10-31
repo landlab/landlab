@@ -420,6 +420,31 @@ class SpaceLargeScaleEroder(Component):
         self._K_sed = return_array_at_node(self._grid, new_val)
 
     @property
+    def fraction_fines(self):
+        """Fraction of permanently suspendable fines in bedrock [-]."""
+        return self._F_f
+
+    @property
+    def sediment_porosity(self):
+        """Sediment porosity [-]."""
+        return self._phi
+
+    @property
+    def settling_velocity(self):
+        """Effective settling velocity for chosen grain size metric [L/T]."""
+        return self._v_s
+
+    @property
+    def drainage_area_exp(self):
+        """Drainage area exponent (units vary)."""
+        return self._m_sp
+
+    @property
+    def slope_exp(self):
+        """Slope exponent (units vary)."""
+        return self._n_sp
+
+    @property
     def Es(self):
         """Sediment erosion term."""
         return self._Es
@@ -552,7 +577,7 @@ class SpaceLargeScaleEroder(Component):
             self._thickness_lim,
         )
 
-        V_leaving_riv = np.sum(self.sediment_influx) * dt
+        V_leaving_riv = np.sum(self.sediment_influx[self.grid.boundary_nodes]) * dt
         # Update topography
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]
