@@ -19,57 +19,87 @@ class ConcentrationTrackerForDiffusion(Component):
 
     .. math::
 
-        ∂CH/∂t = [-(∂q_x C_x)/∂x - (∂q_y C_y)/∂y] + C_br*H_brw + PH + DH
+        ∂CH / ∂t = [-(∂q_x C_x) / ∂x - (∂q_y C_y) / ∂y] + C_br * H_brw + PH + DH
 
     where :math:`H` is sediment depth, :math:`q_x` and :math:`q_y` are sediment
     fluxed in the x and y directions, :math:`C_br` is concentration in parent
     bedrock, :math:`H_brw` is the height of bedrock weathered into soil,
     :math:`P` is the local production rate, :math:`D` is the local decay rate.
 
-    NOTE: This component requires a soil flux field calculated by a hillslope
-    diffusion component and must be run after every diffusion step. Currently,
-    this component WILL ONLY WORK IF COUPLED with the DepthDependentDiffuser or
-    the DepthDependentTaylorDiffuser (without the dynamic timestep option).
+    .. note::
+
+        This component requires a soil flux field calculated by a hillslope diffusion
+        component and must be run after every diffusion step. Currently, this component
+        WILL ONLY WORK IF COUPLED with the :class:`~.DepthDependentDiffuser` or the
+        :class:`~.DepthDependentTaylorDiffuser` (without the dynamic timestep option).
 
     Examples
     --------
+
     A 1-D hillslope:
 
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid
+    >>> from landlab import NodeStatus, RasterModelGrid
     >>> from landlab.components import DepthDependentDiffuser
     >>> from landlab.components import ConcentrationTrackerForDiffusion
-    >>> mg = RasterModelGrid((3, 5),xy_spacing=2.)
-    >>> mg.set_status_at_node_on_edges(right=4, top=4, left=4, bottom=4)
-    >>> mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
-    >>> h = mg.add_zeros("soil__depth", at="node")
-    >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros('soil_production__rate', at='node')
-    >>> c[8] += 1
-    >>> h += mg.node_x
-    >>> z_br += mg.node_x
-    >>> z += z_br + h
+
+    >>> mg = RasterModelGrid((3, 5), xy_spacing=2.0)
+
+    >>> mg.set_status_at_node_on_edges(
+    ...     right=NodeStatus.CLOSED,
+    ...     top=NodeStatus.CLOSED,
+    ...     left=NodeStatus.CLOSED,
+    ...     bottom=NodeStatus.CLOSED,
+    ... )
+    >>> mg.status_at_node[5] = NodeStatus.FIXED_VALUE
+    >>> mg.status_at_node.reshape(mg.shape)
+    array([[4, 4, 4, 4, 4],
+           [1, 0, 0, 0, 4],
+           [4, 4, 4, 4, 4]], dtype=uint8)
+
+    >>> mg.at_node["sediment_property__concentration"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 1.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> mg.at_node["soil__depth"] = mg.node_x.copy()
+    >>> mg.at_node["bedrock__elevation"] = mg.node_x.copy()
+    >>> mg.at_node["topographic__elevation"] = (
+    ...     mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
+    ... )
+    >>> _ = mg.add_zeros("soil_production__rate", at="node")
+
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
-    >>> ddd.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([4.11701964, 8.01583689, 11.00247875]))
+    >>> ddd.run_one_step(1.0)
+    >>> ct.run_one_step(1.0)
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"].reshape(mg.shape),
+    ...     [
+    ...         [0.0, 4.0, 8.0, 12.0, 16.0],
+    ...         [0.0, 4.11701964, 8.01583689, 11.00247875, 16.0],
+    ...         [0.0, 4.0, 8.0, 12.0, 16.0],
+    ...     ],
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0., 0.24839685, 1.]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"].reshape(mg.shape),
+    ...     [
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 0.0, 0.24839685, 1.0, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     ],
+    ... )
     True
 
     Now, a 2-D pyramid-shaped hillslope.
 
-    >>> mg = RasterModelGrid((5, 5),xy_spacing=2.)
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
+    >>> c = mg.add_zeros("sediment_property__concentration", at="node")
     >>> h = mg.add_zeros("soil__depth", at="node")
     >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros('soil_production__rate', at='node')
+    >>> _ = mg.add_zeros("soil_production__rate", at="node")
     >>> c[12] += 1
     >>> h += 2
     >>> z_br += 8
@@ -78,32 +108,80 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> z += z_br + h
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
-    >>> ddd.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([6.        ,  7.13533528,  6.        ,
-    ...                       7.13533528,  8.27067057,  7.13533528,
-    ...                       6.        ,  7.13533528,  6.         ]))
+    >>> ddd.run_one_step(1.0)
+    >>> ct.run_one_step(1.0)
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             6.0,
+    ...             7.13533528,
+    ...             6.0,
+    ...             7.13533528,
+    ...             8.27067057,
+    ...             7.13533528,
+    ...             6.0,
+    ...             7.13533528,
+    ...             6.0,
+    ...         ]
+    ...     ),
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.        ,  0.38079708,  0.        ,
-    ...                       0.38079708,  1.        ,  0.38079708,
-    ...                       0.        ,  0.38079708,  0.         ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             0.0,
+    ...             0.38079708,
+    ...             0.0,
+    ...             0.38079708,
+    ...             1.0,
+    ...             0.38079708,
+    ...             0.0,
+    ...             0.38079708,
+    ...             0.0,
+    ...         ]
+    ...     ),
+    ... )
     True
 
     And running one more step.
 
-    >>> ddd.run_one_step(1.)
-    >>> ct.run_one_step(1.)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([5.52060315,  6.62473963,  5.52060315,
-    ...                       6.62473963,  8.00144598,  6.62473963,
-    ...                       5.52060315,  6.62473963,  5.52060315 ]))
+    >>> ddd.run_one_step(1.0)
+    >>> ct.run_one_step(1.0)
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             5.52060315,
+    ...             6.62473963,
+    ...             5.52060315,
+    ...             6.62473963,
+    ...             8.00144598,
+    ...             6.62473963,
+    ...             5.52060315,
+    ...             6.62473963,
+    ...             5.52060315,
+    ...         ]
+    ...     ),
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.09648071,  0.44750673,  0.09648071,
-    ...                       0.44750673,  1.        ,  0.44750673,
-    ...                       0.09648071,  0.44750673,  0.09648071 ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             0.09648071,
+    ...             0.44750673,
+    ...             0.09648071,
+    ...             0.44750673,
+    ...             1.0,
+    ...             0.44750673,
+    ...             0.09648071,
+    ...             0.44750673,
+    ...             0.09648071,
+    ...         ]
+    ...     ),
+    ... )
     True
 
     Finally, the same 2D hillslope now using the DepthDependentTaylorDiffuser.
@@ -115,12 +193,12 @@ class ConcentrationTrackerForDiffusion(Component):
     pick a timestep that is stable.
 
     >>> from landlab.components import DepthDependentTaylorDiffuser
-    >>> mg = RasterModelGrid((5, 5),xy_spacing=2.)
-    >>> c = mg.add_zeros('sediment_property__concentration', at='node')
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
+    >>> c = mg.add_zeros("sediment_property__concentration", at="node")
     >>> h = mg.add_zeros("soil__depth", at="node")
     >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros('soil_production__rate', at='node')
+    >>> _ = mg.add_zeros("soil_production__rate", at="node")
     >>> c[12] += 1
     >>> h += 2
     >>> z_br += 8
@@ -131,15 +209,39 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct = ConcentrationTrackerForDiffusion(mg)
     >>> ddtd.run_one_step(0.4)
     >>> ct.run_one_step(0.4)
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([6.        ,  7.30826823,  6.        ,
-    ...                       7.30826823,  8.61653645,  7.30826823,
-    ...                       6.        ,  7.30826823,  6.         ]))
+    >>> np.allclose(
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             6.0,
+    ...             7.30826823,
+    ...             6.0,
+    ...             7.30826823,
+    ...             8.61653645,
+    ...             7.30826823,
+    ...             6.0,
+    ...             7.30826823,
+    ...             6.0,
+    ...         ]
+    ...     ),
+    ... )
     True
-    >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.        ,  0.26436925,  0.        ,
-    ...                       0.26436925,  1.        ,  0.26436925,
-    ...                       0.        ,  0.26436925,  0.         ]))
+    >>> np.allclose(
+    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
+    ...     np.array(
+    ...         [
+    ...             0.0,
+    ...             0.26436925,
+    ...             0.0,
+    ...             0.26436925,
+    ...             1.0,
+    ...             0.26436925,
+    ...             0.0,
+    ...             0.26436925,
+    ...             0.0,
+    ...         ]
+    ...     ),
+    ... )
     True
 
     References
