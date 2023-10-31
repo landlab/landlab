@@ -165,7 +165,7 @@ def _insert_shorelines(x, y, sea_level=0.0):
     Examples
     --------
     >>> from landlab.plot.layers import _insert_shorelines
-    >>> _insert_shorelines([0, 1, 2],[2, 1, -1])
+    >>> _insert_shorelines([0, 1, 2], [2, 1, -1])
     (array([ 0. ,  1. ,  1.5,  2. ]), array([ 2.,  1.,  0., -1.]))
     """
     x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)

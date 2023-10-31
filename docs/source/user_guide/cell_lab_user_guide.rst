@@ -81,24 +81,24 @@ A CellLab-CTS application normally starts by importing the appropriate type of C
 
 .. code-block:: python
 
-	#!/usr/env/python
+    #!/usr/env/python
 
-	"""
-	isotropic_turbulent_suspension.py
+    """
+    isotropic_turbulent_suspension.py
 
-	Example of a continuous-time, stochastic, pair-based cellular automaton model,
-	which simulates the diffusion of suspended, neutrally buoyant particles in a
-	turbulent fluid.
+    Example of a continuous-time, stochastic, pair-based cellular automaton model,
+    which simulates the diffusion of suspended, neutrally buoyant particles in a
+    turbulent fluid.
 
-	Written by Greg Tucker, February 2015
-	"""
+    Written by Greg Tucker, February 2015
+    """
 
-	import time
-	import matplotlib
-	from numpy import where
-	from landlab import RasterModelGrid
-	from landlab.ca.celllab_cts import Transition, CAPlotter
-	from landlab.ca.raster_cts import RasterCTS
+    import time
+    import matplotlib
+    from numpy import where
+    from landlab import RasterModelGrid
+    from landlab.ca.celllab_cts import Transition, CAPlotter
+    from landlab.ca.raster_cts import RasterCTS
 
 Here, we're using a raster model, so we import Landlab's ``RasterModelGrid`` class. It will be a non-oriented raster model, so we import the ``RasterCTS`` class (rather than  ``OrientedRasterCTS``). We also import the ``CAPlotter`` class for help with graphical display (more on that below), as well as the ``Transition`` class. We need the Transition class to set up our pair transitions, which we explore next.
 
@@ -107,7 +107,7 @@ Setting up transitions
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Sequence matters!
->>>>>>>>>>>>>>>>>
+^^^^^^^^^^^^^^^^^
 
 A particular pair state is described by the two node states, and optionally by the pair's orientation. A key thing to understand here is that any particular pair sequence, such as 0 and 1, is *different from the sequence in reverse*. The pair 0-1 is not the same as the pair 1-0! This is true for all four types of model. So then which is which? To answer this question, we first need to recall that each pair corresponds to the two ends of a *link* in the Landlab grid. A link is simply a directed line segment that connects two neighboring nodes. Every link has a *tail* and a *head* (like the head of an arrow); the direction of the link is from tail to head. The rule for CellLab-CTS pairs is that the first number refers to the tail of the corresponding link, and the second refers to its head. Thus, the pair state 0-1 means that the tail node has state 0 and the head node has state 1.
 
@@ -119,7 +119,7 @@ By default, the links in a raster grid always run from down to up (for vertical 
     Figure 3: Illustration of nodes, links, and cells in a raster and hex grids. Note directions of links, which always "point" toward the upper-right hemisphere. The hex illustration shows a hex grid cell in vertical orientation; in horizontal orientation, links point rightward, up and right, and up and left.
 
 How transitions are represented
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Each transition type is described by the states of the tail and head nodes, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation (Figure 4). In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a vertical pair in which the left node has state 0 and the right state 1.
 
@@ -131,57 +131,57 @@ Each transition type is described by the states of the tail and head nodes, and 
 In an oriented hex, the orientation codes depend on the orientation of the grid itself. A Landlab ``HexModelGrid`` can be oriented such that one of the three principal axes is either horizontal (the default) or vertical. The choice is controlled by the optional keyword argument ``orientation`` (either ``'vertical'`` or ``'horizontal'``) in the ``HexModelGrid`` initialization function. For a vertically aligned hex grid, the CellLab-CTS orientation codes are: 0 for vertical, 1 for right and upward, and 2 for right and downward (Figure 4). For example, the code (1, 0, 2) would represent a down-and-right pair, with a state of 1 in the upper-left node and 0 in the lower-right node. For a horizontally aligned hex grid, the CellLab-CTS orientation codes are: 0 for upward and left, 1 for upward and right, and 2 for right. For example, the code (1, 0, 2) would represent a left-to-right pair, with a state of 1 in the left node and 0 in the right node.
 
 Example of a transition setup function
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It can be helpful to put the transition setup procedure inside a function of its own. Here is the transition setup function for our turbulent suspension example (notice that the function itself has only four lines of code; all the rest is documentation):
 
 .. code-block:: python
 
-	def setup_transition_list():
-		"""
-		Creates and returns a list of Transition() objects to represent state
-		transitions for an unbiased random walk.
+    def setup_transition_list():
+        """
+        Creates and returns a list of Transition() objects to represent state
+        transitions for an unbiased random walk.
 
-		Parameters
-		----------
-		(none)
+        Parameters
+        ----------
+        (none)
 
-		Returns
-		-------
-		xn_list : list of Transition objects
-			List of objects that encode information about the link-state transitions.
+        Returns
+        -------
+        xn_list : list of Transition objects
+                List of objects that encode information about the link-state transitions.
 
-		Notes
-		-----
-		State 0 represents fluid and state 1 represents a particle (such as a
-		sediment grain, tea leaf, or solute molecule).
+        Notes
+        -----
+        State 0 represents fluid and state 1 represents a particle (such as a
+        sediment grain, tea leaf, or solute molecule).
 
-		The states and transitions are as follows:
+        The states and transitions are as follows:
 
-		Pair state      Transition to       Process             Rate (cells/s)
-		==========      =============       =======             ==============
-		0 (0-0)         (none)              -                   -
-		1 (0-1)         2 (1-0)             left/down motion    10.0
-		2 (1-0)         1 (0-1)             right/up motion     10.0
-		3 (1-1)         (none)              -                   -
+        Pair state      Transition to       Process             Rate (cells/s)
+        ==========      =============       =======             ==============
+        0 (0-0)         (none)              -                   -
+        1 (0-1)         2 (1-0)             left/down motion    10.0
+        2 (1-0)         1 (0-1)             right/up motion     10.0
+        3 (1-1)         (none)              -                   -
 
-		"""
+        """
 
-		# Create an empty transition list
-		xn_list = []
+        # Create an empty transition list
+        xn_list = []
 
-		# Append two transitions to the list.
-		# Note that the arguments to the Transition() object constructor are:
-		#  - Tuple representing starting pair state
-		#    (left/bottom cell, right/top cell, orientation)
-		#  - Tuple representing new pair state
-		#    (left/bottom cell, right/top cell, orientation)
-		#  - Transition rate (cells per time step, in this case 1 sec)
-		#  - Name for transition
-		xn_list.append( Transition((0,1,0), (1,0,0), 10., 'left/down motion') )
-		xn_list.append( Transition((1,0,0), (0,1,0), 10., 'right/up motion') )
+        # Append two transitions to the list.
+        # Note that the arguments to the Transition() object constructor are:
+        #  - Tuple representing starting pair state
+        #    (left/bottom cell, right/top cell, orientation)
+        #  - Tuple representing new pair state
+        #    (left/bottom cell, right/top cell, orientation)
+        #  - Transition rate (cells per time step, in this case 1 sec)
+        #  - Name for transition
+        xn_list.append(Transition((0, 1, 0), (1, 0, 0), 10.0, "left/down motion"))
+        xn_list.append(Transition((1, 0, 0), (0, 1, 0), 10.0, "right/up motion"))
 
-		return xn_list
+        return xn_list
 
 
 In this example, state 0 represents the fluid and state 1 represents a particle. Motion is represented by a transition from a 0-1 pair to a 1-0, or vice versa.
@@ -197,21 +197,20 @@ Typical parameters in a CellLab-CTS model, in addition to the transitions and ra
 
 .. code-block:: python
 
-	def main():
+    def main():
+        # INITIALIZE
 
-		# INITIALIZE
+        # User-defined parameters
+        nr = 80  # number of rows in grid
+        nc = 50  # number of columns in grid
+        plot_interval = 0.5  # time interval for plotting, sec
+        run_duration = 20.0  # duration of run, sec
+        report_interval = 10.0  # report interval, in real-time seconds
 
-		# User-defined parameters
-		nr = 80  # number of rows in grid
-		nc = 50  # number of columns in grid
-		plot_interval = 0.5   # time interval for plotting, sec
-		run_duration = 20.0   # duration of run, sec
-		report_interval = 10.0  # report interval, in real-time seconds
-
-		# Remember the clock time, and calculate when we next want to report
-		# progress.
-		current_real_time = time.time()
-		next_report = current_real_time + report_interval
+        # Remember the clock time, and calculate when we next want to report
+        # progress.
+        current_real_time = time.time()
+        next_report = current_real_time + report_interval
 
 Step 2: Creating a grid
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -233,7 +232,7 @@ The possible node states are defined by creating entries in a dictionary, in whi
 
 .. code-block:: python
 
-    ns_dict = { 0 : 'fluid', 1 : 'particle' }
+    ns_dict = {0: "fluid", 1: "particle"}
 
 Step 4: Create the transition list
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -252,7 +251,7 @@ The node state array should be a 1D numpy array of integers, with length equal t
 .. code-block:: python
 
     # Create the node-state array and attach it to the grid
-    node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
+    node_state_grid = mg.add_zeros("node", "node_state_map", dtype=int)
 
 The first argument here is the name of the grid element to which values should be attached, the second is a name to give the array, and the third sets the data type to integer (instead of the default ``float`` type).
 
@@ -262,7 +261,7 @@ Depending on the nature of the model, the next step is to set the initial values
 
     # Initialize the node-state array: here, the initial condition is a pile of
     # resting grains at the bottom of a container.
-    bottom_rows = where(mg.node_y<0.1*nr)[0]
+    bottom_rows = where(mg.node_y < 0.1 * nr)[0]
     node_state_grid[bottom_rows] = 1
 
     # For visual display purposes, set all boundary nodes to fluid
@@ -290,9 +289,9 @@ Here's an example of how to use a CAPlotter:
 .. code-block:: python
 
     # Set up colors for plotting
-    grain = '#5F594D'
-    fluid = '#D0E4F2'
-    clist = [fluid,grain]
+    grain = "#5F594D"
+    fluid = "#D0E4F2"
+    clist = [fluid, grain]
     my_cmap = matplotlib.colors.ListedColormap(clist)
 
     # Create a CAPlotter object for handling screen display
@@ -317,18 +316,18 @@ If you wish to pause occasionally to plot and/or write data to file, a natural a
     # RUN
     current_time = 0.0
     while current_time < run_duration:
-
         # Once in a while, print out simulation real time to let the user
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current simulation time '+str(current_time)+'  \
-            	   ('+str(int(100*current_time/run_duration))+'%)')
+            print(
+                f"Current simulation time {current_time}"
+                f" ({int(100.0 * current_time / run_duration)}%)"
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
-               plot_each_transition=False)
+        ca.run(current_time + plot_interval, ca.node_state, plot_each_transition=False)
         current_time += plot_interval
 
         # Plot the current grid
