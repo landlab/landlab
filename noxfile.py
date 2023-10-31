@@ -2,7 +2,6 @@ import json
 import os
 import pathlib
 import shutil
-import tempfile
 
 import nox
 from packaging.requirements import Requirement
@@ -19,7 +18,7 @@ PATH = {
 }
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="mamba")
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
@@ -33,7 +32,7 @@ def test(session: nox.Session) -> None:
         PATH["requirements"] / "testing.txt",
     )
 
-    session.conda_install("richdem")
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
@@ -55,7 +54,7 @@ def test(session: nox.Session) -> None:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="mamba")
+@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     args = [
@@ -366,16 +365,13 @@ def _get_wheels(session):
 
     wheels = []
     for platform in platforms:
-        with tempfile.TemporaryFile("w+") as fp:
-            session.run(
-                "cibuildwheel",
-                "--print-build-identifiers",
-                "--platform",
-                platform,
-                stdout=fp,
-            )
-            fp.seek(0)
-            wheels += fp.read().splitlines()
+        wheels += session.run(
+            "cibuildwheel",
+            "--print-build-identifiers",
+            "--platform",
+            platform,
+            silent=True,
+        ).splitlines()
     return wheels
 
 
