@@ -41,7 +41,7 @@ class Test_SedimentPulserAtLinks:
         grid = example_nmg2
         time_to_pulse = always_time_to_pulse
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=1947)
 
         time = 11
         links = [0]
@@ -94,7 +94,7 @@ class Test_SedimentPulserAtLinks:
         grid = example_nmg2
         time_to_pulse = always_time_to_pulse
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=2001)
         time = 11
         links = [2, 6]
         n_parcels_at_link = [2, 3]
@@ -158,7 +158,7 @@ class Test_SedimentPulserAtLinks:
         grid = example_nmg2
         time_to_pulse = always_time_to_pulse
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=1776)
 
         time = 11
         links = [0]
@@ -278,7 +278,7 @@ class Test_SedimentPulserAtLinks:
         time_to_pulse = time_to_pulse_list
         # np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=1492)
 
         time = 11
         links = [0]
@@ -299,7 +299,7 @@ class Test_SedimentPulserEachParcel:
         grid = example_nmg2
         # np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=1975)
 
         PulseDF = pd.DataFrame(
             {
@@ -352,7 +352,7 @@ class Test_SedimentPulserEachParcel:
         grid = example_nmg2
         # np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=1066)
 
         PulseDF = pd.DataFrame(
             {
@@ -410,7 +410,7 @@ class Test_SedimentPulserEachParcel:
         grid = example_nmg2
         np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=1945)
 
         PulseDF = pd.DataFrame(
             {
@@ -557,7 +557,7 @@ class Test_SedimentPulserEachParcel:
 
         # datarecord is input to SedimentPulserEachParcel, now both pulser
         # instances will point to the same datarecord when called
-        make_pulse_pulseDF = SedimentPulserEachParcel(parcels=parcels, grid=grid)
+        make_pulse_pulseDF = SedimentPulserEachParcel(parcels=parcels, grid=grid, rng=1863)
 
         # pulse 2
         PulseDF = pd.DataFrame(
@@ -692,7 +692,7 @@ class Test_SedimentPulserEachParcel:
         time = 7
 
         with pytest.raises(ValueError) as exc_info:
-            _ = make_pulse(time, PulseDF)
+            make_pulse(time, PulseDF)
         msg_e = "PulseDF was not specified"
         assert exc_info.match(msg_e)
 
