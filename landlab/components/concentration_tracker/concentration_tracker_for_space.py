@@ -344,11 +344,12 @@ class ConcentrationTrackerForSpace(Component):
         #WC_denominator_term = 1 + v_s*self._cell_area/q (ORIGINAL EQN WITH DIVIDE BY ZERO ISSUE)
         
         # Calculate BED mass balance terms that don't need downstream iteration
-        with np.errstate(divide='ignore', invalid='ignore'):
-            BED_C_local_term = self._concentration * (self._soil__depth_old/self._soil__depth)
+        is_soil = self._soil__depth > 0.0
+        old_depth_over_new = np.divide(self._soil__depth_old, self._soil__depth, where=is_soil)
+        old_depth_over_new[~is_soil] = 0.0
         
-        np.nan_to_num(BED_C_local_term[self._soil__depth==0])
-                
+        BED_C_local_term = self._concentration * old_depth_over_new
+                        
         # Get stack of node ids from top to bottom of channel network
         node_status = self._grid.status_at_node
         stack_flip_ud = np.flipud(self._grid.at_node["flow__upstream_node_order"])
@@ -390,12 +391,13 @@ class ConcentrationTrackerForSpace(Component):
                 )
             
             # Calculate BED concentration
-            with np.errstate(divide='ignore', invalid='ignore'):
+            if is_soil[node_id]:
                 self._concentration[node_id] = (BED_C_local_term[node_id]
                                                 + (dt/self._soil__depth[node_id])
                                                 * self._BED_ero_depo_term[node_id]
                                                 )
-            np.nan_to_num(self._concentration, copy=False)
+                
+            self._concentration[~is_soil] = 0.0
 
         # Update old soil depth to new value
         self._soil__depth_old = self._soil__depth.copy()
