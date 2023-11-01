@@ -19,13 +19,13 @@ class ConcentrationTrackerForSpace(Component):
 
     .. math::
         
-                ∂C_sH/∂t = C_sw*D_sw + C_s*E_s + PH + DH
+                ∂C_sH/∂t = C_sw*D_sw + C_s*E_s
         
     where :math:`H` is sediment depth, :math:`C_sw` is concentration in 
     sediment suspended in the water column, :math:`D_sw` is volumetric 
-    depositional flux of sediment from the water column per unit bed area, 
+    depositional flux of sediment from the water column per unit bed area, and
     :math:`E_s` is volumetric erosional flux of sediment from the bed per unit 
-    bed area, and :math:`P` and :math:`D` are local production and decay rates.
+    bed area.
     
     NOTE: This component requires the sediment__influx and sediment__outflux 
     fields calculated by either the Space or SpaceLargeScaleEroder component.
@@ -228,22 +228,6 @@ class ConcentrationTrackerForSpace(Component):
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of bedrock",
         },
-        "sediment_property_production__rate": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-/m^3/yr",
-            "mapping": "node",
-            "doc": "Production rate of property per unit volume of sediment per time",
-        },
-        "sediment_property_decay__rate": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-/m^3/yr",
-            "mapping": "node",
-            "doc": "Decay rate of property per unit volume of sediment per time",
-        },
     }
 
     def __init__(self, 
@@ -251,8 +235,6 @@ class ConcentrationTrackerForSpace(Component):
                  space_instance,
                  concentration_initial=0, 
                  concentration_in_bedrock=0, 
-                 local_production_rate=0,
-                 local_decay_rate=0
                  ):
         """
         Parameters
@@ -263,10 +245,6 @@ class ConcentrationTrackerForSpace(Component):
             Initial concentration in soil/sediment, -/m^3
         concentration_in_bedrock: positive float, array, or field name (optional)
             Concentration in bedrock, -/m^3
-        local_production_rate: float, array, or field name (optional)
-            Rate of local production, -/m^3/yr
-        local_decay_rate: float, array, or field name (optional)
-            Rate of local decay, -/m^3/yr
         """
         
         super().__init__(grid)
@@ -274,11 +252,9 @@ class ConcentrationTrackerForSpace(Component):
         
         self._sp = space_instance
 
-        # use setters for C_init, C_br, P, and D defined below
+        # use setters for C_init, C_br defined below
         self.C_init = concentration_initial
         self.C_br = concentration_in_bedrock
-        self.P = local_production_rate
-        self.D = local_decay_rate
         
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
@@ -303,15 +279,7 @@ class ConcentrationTrackerForSpace(Component):
         if not self._grid.at_node["bedrock_property__concentration"].any():
             self._grid.at_node["bedrock_property__concentration"] += self.C_br
         self.C_br = self._grid.at_node["bedrock_property__concentration"]
-        
-        if not self._grid.at_node["sediment_property_production__rate"].any():
-            self._grid.at_node["sediment_property_production__rate"] += self.P
-        self.P = self._grid.at_node["sediment_property_production__rate"]
-        
-        if not self._grid.at_node["sediment_property_decay__rate"].any():
-            self._grid.at_node["sediment_property_decay__rate"] += self.D
-        self.D = self._grid.at_node["sediment_property_decay__rate"]
-        
+                
         # Check that concentration values are within physical limits
         if isinstance(concentration_initial, np.ndarray):
             if concentration_initial.any() < 0:
@@ -336,16 +304,6 @@ class ConcentrationTrackerForSpace(Component):
     def C_br(self):
         """Concentration in bedrock (kg/m^3)."""
         return self._C_br
-    
-    @property
-    def P(self):
-        """Rate of local production (kg/m^3/yr)."""
-        return self._P
-    
-    @property
-    def D(self):
-        """Rate of local decay (kg/m^3/yr)."""
-        return self._D
 
     @C_init.setter
     def C_init(self, new_val):
@@ -354,14 +312,6 @@ class ConcentrationTrackerForSpace(Component):
     @C_br.setter
     def C_br(self, new_val):
         self._C_br = return_array_at_node(self._grid, new_val)
-        
-    @P.setter
-    def P(self, new_val):
-        self._P = return_array_at_node(self._grid, new_val)
-        
-    @D.setter
-    def D(self, new_val):
-        self._D = return_array_at_node(self._grid, new_val)
 
 
     def concentration_watercolumn_and_bed(self, dt):
@@ -396,12 +346,8 @@ class ConcentrationTrackerForSpace(Component):
         # Calculate BED mass balance terms that don't need downstream iteration
         with np.errstate(divide='ignore', invalid='ignore'):
             BED_C_local_term = self._concentration * (self._soil__depth_old/self._soil__depth)
-            BED_Production_term = (dt*self._P/2) * (self._soil__depth_old/self._soil__depth + 1)
-            BED_Decay_term = (dt*self._D/2) * (self._soil__depth_old/self._soil__depth + 1)
         
         np.nan_to_num(BED_C_local_term[self._soil__depth==0])
-        np.nan_to_num(BED_Production_term[self._soil__depth==0])
-        np.nan_to_num(BED_Decay_term[self._soil__depth==0])
                 
         # Get stack of node ids from top to bottom of channel network
         node_status = self._grid.status_at_node
@@ -448,8 +394,6 @@ class ConcentrationTrackerForSpace(Component):
                 self._concentration[node_id] = (BED_C_local_term[node_id]
                                                 + (dt/self._soil__depth[node_id])
                                                 * self._BED_ero_depo_term[node_id]
-                                                + BED_Production_term[node_id]
-                                                - BED_Decay_term[node_id]
                                                 )
             np.nan_to_num(self._concentration, copy=False)
 
