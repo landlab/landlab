@@ -20,30 +20,35 @@ def test_input_soil_flux_from_diffuser():
     """
     # Make a raster model grid
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
 
     # Instantiate the component
     with pytest.raises(FieldError):
-        _ = ConcentrationTrackerForDiffusion(mg)
+        ConcentrationTrackerForDiffusion(mg)
 
 
-def test_input_fields_soil():
+@pytest.mark.parametrize(
+    "required_field", ["soil__depth", "soil_production__rate", "topographic__elevation"]
+)
+
+def test_input_fields_soil(required_field):
     """
     ConcentrationTrackerForDiffusion should throw an error when input fields
     are not provided (soil__depth, soil_production__rate, topographic__elevation)
     """
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__flux", at="link")
 
-    fields_to_add = ["soil__depth", "soil_production__rate", "topographic__elevation"]
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
 
-    # Instantiate the component
-    for field in fields_to_add:
-        with pytest.raises(FieldError):
-            _ = ConcentrationTrackerForDiffusion(mg)
-        _ = mg.add_zeros(field, at="node")
+    mg.at_node.pop(required_field)
+    with pytest.raises(FieldError):
+        ConcentrationTrackerForDiffusion(mg)
+
 
 
 # %% Test field instantiation
@@ -57,23 +62,21 @@ def test_field_instantiation():
     'sediment_property_decay__rate', 'sediment_property_production__rate')
     """
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
 
-    _ = ConcentrationTrackerForDiffusion(mg)
+    ConcentrationTrackerForDiffusion(mg)
 
-    node_fields = [
+    missing_fields = {
         "bedrock_property__concentration",
         "sediment_property__concentration",
         "sediment_property_decay__rate",
         "sediment_property_production__rate",
-    ]
-
+    } - set(mg.at_node)
+    assert not missing_fields
     assert "sediment_property__mass_flux" in mg.at_link
-    for node_field in node_fields:
-        assert node_field in mg.at_node
 
 
 # %% Test different user input options
@@ -82,12 +85,12 @@ def test_field_instantiation():
 # Test that default input produces correct fields with no pre-existing fields
 def test_fields_for_default_input():
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
 
-    _ = ConcentrationTrackerForDiffusion(mg)
+    ConcentrationTrackerForDiffusion(mg)
 
     link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
@@ -110,18 +113,18 @@ def test_fields_for_default_input():
 # Test that default input uses correct fields with pre-existing fields
 def test_fields_for_default_input_with_preexisting_fields():
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
 
-    _ = mg.add_ones("sediment_property__mass_flux", at="link")
-    _ = mg.add_ones("sediment_property__concentration", at="node")
-    _ = mg.add_ones("bedrock_property__concentration", at="node")
-    _ = mg.add_ones("sediment_property_production__rate", at="node")
-    _ = mg.add_ones("sediment_property_decay__rate", at="node")
+    mg.add_ones("sediment_property__mass_flux", at="link")
+    mg.add_ones("sediment_property__concentration", at="node")
+    mg.add_ones("bedrock_property__concentration", at="node")
+    mg.add_ones("sediment_property_production__rate", at="node")
+    mg.add_ones("sediment_property_decay__rate", at="node")
 
-    _ = ConcentrationTrackerForDiffusion(mg)
+    ConcentrationTrackerForDiffusion(mg)
 
     link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
@@ -144,12 +147,12 @@ def test_fields_for_default_input_with_preexisting_fields():
 # Test that user input of single values produces the correct fields
 def test_fields_for_user_value_input():
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
 
-    _ = ConcentrationTrackerForDiffusion(
+    ConcentrationTrackerForDiffusion(
         mg,
         concentration_initial=1,
         concentration_in_bedrock=1,
@@ -178,17 +181,17 @@ def test_fields_for_user_value_input():
 # Test that user input of arrays produces the correct fields
 def test_fields_for_user_array_input():
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
 
     c_sed = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     c_br = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     p = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     d = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
-    _ = ConcentrationTrackerForDiffusion(
+    ConcentrationTrackerForDiffusion(
         mg,
         concentration_initial=c_sed,
         concentration_in_bedrock=c_br,
@@ -217,17 +220,17 @@ def test_fields_for_user_array_input():
 # Test that user input of grid fields produces the correct fields
 def test_fields_for_user_field_input():
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
 
     c_sed = mg.add_ones("sediment_property__concentration", at="node")
     c_br = mg.add_ones("bedrock_property__concentration", at="node")
     p = mg.add_ones("sediment_property_production__rate", at="node")
     d = mg.add_ones("sediment_property_decay__rate", at="node")
 
-    _ = ConcentrationTrackerForDiffusion(
+    ConcentrationTrackerForDiffusion(
         mg,
         concentration_initial=c_sed,
         concentration_in_bedrock=c_br,
@@ -260,17 +263,17 @@ def test_properties_concentrations():
     concentration values are negative.
     """
     mg = RasterModelGrid((3, 3))
-    _ = mg.add_zeros("soil__flux", at="link")
-    _ = mg.add_zeros("soil__depth", at="node")
-    _ = mg.add_zeros("topographic__elevation", at="node")
-    _ = mg.add_zeros("soil_production__rate", at="node")
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
 
     # Instantiate the component
     with pytest.raises(ValueError):
-        _ = ConcentrationTrackerForDiffusion(mg, concentration_initial=-1)
+        ConcentrationTrackerForDiffusion(mg, concentration_initial=-1)
     # Instantiate the component
     with pytest.raises(ValueError):
-        _ = ConcentrationTrackerForDiffusion(mg, concentration_in_bedrock=-1)
+        ConcentrationTrackerForDiffusion(mg, concentration_in_bedrock=-1)
 
 
 # %% Test against analytical solutions
