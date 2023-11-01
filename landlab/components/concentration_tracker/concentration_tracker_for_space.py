@@ -345,8 +345,12 @@ class ConcentrationTrackerForSpace(Component):
         
         # Calculate BED mass balance terms that don't need downstream iteration
         is_soil = self._soil__depth > 0.0
+        
         old_depth_over_new = np.divide(self._soil__depth_old, self._soil__depth, where=is_soil)
         old_depth_over_new[~is_soil] = 0.0
+        
+        dt_over_depth = np.divide(dt, self._soil__depth, where=is_soil)
+        dt_over_depth[~is_soil] = 0.0
         
         BED_C_local_term = self._concentration * old_depth_over_new
                         
@@ -391,11 +395,10 @@ class ConcentrationTrackerForSpace(Component):
                 )
             
             # Calculate BED concentration
-            if is_soil[node_id]:
-                self._concentration[node_id] = (BED_C_local_term[node_id]
-                                                + (dt/self._soil__depth[node_id])
-                                                * self._BED_ero_depo_term[node_id]
-                                                )
+            self._concentration[node_id] = (BED_C_local_term[node_id]
+                                            + dt_over_depth[node_id]
+                                            * self._BED_ero_depo_term[node_id]
+                                            )
                 
             self._concentration[~is_soil] = 0.0
 
