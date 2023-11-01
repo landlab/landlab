@@ -369,11 +369,11 @@ class ConcentrationTrackerForDiffusion(Component):
         self.initialize_output_fields()
 
         # Define concentration field (if all zeros, then add C_init)
-        if not self._grid.at_node["sediment_property__concentration"].any():
+        if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
             self._grid.at_node["sediment_property__concentration"] += self.C_init
         self._concentration = self._grid.at_node["sediment_property__concentration"]
 
-        if not self._grid.at_node["bedrock_property__concentration"].any():
+        if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
             self._grid.at_node["bedrock_property__concentration"] += self.C_br
         self.C_br = self._grid.at_node["bedrock_property__concentration"]
 
