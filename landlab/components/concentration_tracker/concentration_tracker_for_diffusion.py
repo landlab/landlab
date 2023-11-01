@@ -413,17 +413,15 @@ class ConcentrationTrackerForDiffusion(Component):
 
     @C_init.setter
     def C_init(self, new_val):
-        self._C_init = return_array_at_node(self._grid, new_val)
-        # Check that concentration values are within physical limits
-        if np.any(self.C_init < 0.0):
+        if np.any(new_val < 0.0):
             raise ValueError("Concentration cannot be negative")
+        self._C_init = return_array_at_node(self._grid, new_val)
 
     @C_br.setter
     def C_br(self, new_val):
-        self._C_br = return_array_at_node(self._grid, new_val)
-        # Check that concentration values are within physical limits
-        if np.any(self.C_br < 0.0):
+        if np.any(new_val < 0.0):
             raise ValueError("Concentration in bedrock cannot be negative")
+        self._C_br = return_array_at_node(self._grid, new_val)
 
     @P.setter
     def P(self, new_val):
