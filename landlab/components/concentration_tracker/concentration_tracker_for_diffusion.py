@@ -453,12 +453,10 @@ class ConcentrationTrackerForDiffusion(Component):
         self._C_links[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Calculate QC at links (sediment flux times concentration)
-        self._grid.at_link["QC"] = (
-            self._grid.at_link["soil__flux"][:] * self._C_links[:]
-        )
+        self._qc_at_link = self._grid.at_link["soil__flux"] * self._C_links
 
         # Calculate flux concentration divergence
-        dQCdx = self._grid.calc_flux_div_at_node(self._grid.at_link["QC"])
+        dQCdx = self._grid.calc_flux_div_at_node(self._qc_at_link)
 
         # Calculate other components of mass balance equation
         is_soil = self._soil__depth > 0.0
