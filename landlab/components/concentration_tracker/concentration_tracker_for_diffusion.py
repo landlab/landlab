@@ -472,31 +472,27 @@ class ConcentrationTrackerForDiffusion(Component):
         dQCdx = self._grid.calc_flux_div_at_node(self._grid.at_link["QC"])
 
         # Calculate other components of mass balance equation
-        with np.errstate(divide="ignore", invalid="ignore"):
-            C_local = C_old * (self._soil__depth_old / self._soil__depth)
-            C_from_weathering = (
-                self._C_br * (self._soil_prod_rate * dt) / self._soil__depth
-            )
-            Production = (dt * self._P / 2) * (
-                self._soil__depth_old / self._soil__depth + 1
-            )
-            Decay = (dt * self._D / 2) * (self._soil__depth_old / self._soil__depth + 1)
+        is_soil = self._soil__depth > 0.0
+        old_depth_over_new = np.divide(self._soil__depth_old, self._soil__depth, where=is_soil)
+        old_depth_over_new[~is_soil] = 0.0
+        
+        C_local = C_old * old_depth_over_new
+        C_from_weathering = np.divide(
+            self._C_br * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
+        )
+        Production = (dt * self._P / 2.0) * (old_depth_over_new + 1.0)
+        Decay = (dt * self._D / 2.0) * (old_depth_over_new + 1.0)
 
-            # Calculate concentration
-            self._concentration[:] = (
-                C_local
-                + C_from_weathering
-                + (dt / self._soil__depth) * (-dQCdx)
-                + Production
-                - Decay
-            )
-
-        # Replace nan values (from dividing by zero soil depth)
-        np.nan_to_num(C_local, copy=False)
-        np.nan_to_num(C_from_weathering, copy=False)
-        np.nan_to_num(Production, copy=False)
-        np.nan_to_num(Decay, copy=False)
-        np.nan_to_num(self._concentration, copy=False)
+        # Calculate concentration
+        self._concentration[:] = (
+            C_local
+            + C_from_weathering
+            + np.divide(dt, self._soil__depth, where=is_soil) * (-dQCdx)
+            + Production
+            - Decay
+        )
+        
+        self._concentration[~is_soil] = 0.0
 
         # Update old soil depth to new value
         self._soil__depth_old = self._soil__depth.copy()
