@@ -391,21 +391,6 @@ class ConcentrationTrackerForDiffusion(Component):
         # Sediment property mass field (at links, to calculate dQCdx)
         self._QC_links = np.zeros(self._grid.number_of_links)
 
-        # Check that concentration values are within physical limits
-        if isinstance(concentration_initial, np.ndarray):
-            if concentration_initial.any() < 0:
-                raise ValueError("Concentration cannot be negative.")
-        else:
-            if concentration_initial < 0:
-                raise ValueError("Concentration cannot be negative.")
-
-        if isinstance(concentration_in_bedrock, np.ndarray):
-            if concentration_in_bedrock.any() < 0:
-                raise ValueError("Concentration in bedrock cannot be negative.")
-        else:
-            if concentration_in_bedrock < 0:
-                raise ValueError("Concentration in bedrock cannot be negative.")
-
     @property
     def C_init(self):
         """Initial concentration in soil/sediment (kg/m^3)."""
@@ -429,10 +414,16 @@ class ConcentrationTrackerForDiffusion(Component):
     @C_init.setter
     def C_init(self, new_val):
         self._C_init = return_array_at_node(self._grid, new_val)
+        # Check that concentration values are within physical limits
+        if np.any(self.C_init < 0.0):
+            raise ValueError("Concentration cannot be negative")
 
     @C_br.setter
     def C_br(self, new_val):
         self._C_br = return_array_at_node(self._grid, new_val)
+        # Check that concentration values are within physical limits
+        if np.any(self.C_br < 0.0):
+            raise ValueError("Concentration in bedrock cannot be negative")
 
     @P.setter
     def P(self, new_val):
