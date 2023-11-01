@@ -301,14 +301,6 @@ class ConcentrationTrackerForDiffusion(Component):
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of sediment",
         },
-        "sediment_property__mass_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-^2/y",
-            "mapping": "link",
-            "doc": "Mass of property fluxing along links",
-        },
         "bedrock_property__concentration": {
             "dtype": float,
             "intent": "out",
@@ -397,7 +389,7 @@ class ConcentrationTrackerForDiffusion(Component):
         self._C_links = np.zeros(self._grid.number_of_links)
 
         # Sediment property mass field (at links, to calculate dQCdx)
-        self._QC_links = self._grid.at_link["sediment_property__mass_flux"]
+        self._QC_links = np.zeros(self._grid.number_of_links)
 
         # Check that concentration values are within physical limits
         if isinstance(concentration_initial, np.ndarray):
