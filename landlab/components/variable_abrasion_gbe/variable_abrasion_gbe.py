@@ -187,3 +187,15 @@ class VariableAbrasionGBE(GravelBedrockEroder):
                 + (self._pluck_rate[cores] * self._pluck_coarse_frac)
                 - self._sed_abr_rates[i, cores]
             )
+
+    def _update_rock_sed_and_elev(self, dt):
+        """Update rock elevation, sediment thickness, and elevation
+        using current rates of change extrapolated forward by time dt.
+        """
+        self._sed[:] = 0.0
+        for i in range(self._num_sed_classes):
+            self._thickness_by_class[i, :] += self._dHdt_by_class[i, :] * dt
+            self._sed[:] += self._thickness_by_class[i, :]
+        self._bedrock__elevation -= self._rock_lowering_rate * dt
+        self._elev[:] = self._bedrock__elevation + self._sed
+

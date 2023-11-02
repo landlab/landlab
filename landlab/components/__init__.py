@@ -78,6 +78,7 @@ from .threshold_eroder import ThresholdEroder
 from .tidal_flow import TidalFlowCalculator
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .uniform_precip import PrecipitationDistribution
+from .variable_abrasion_gbe import VariableAbrasionGBE
 from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer, ExponentialWeathererIntegrated
 
@@ -162,6 +163,7 @@ COMPONENTS = [
     TransportLengthHillslopeDiffuser,
     TrickleDownProfiler,
     ThresholdEroder,
+    VariableAbrasionGBE,
     VegCA,
     Vegetation,
 ]
