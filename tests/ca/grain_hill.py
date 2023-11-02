@@ -350,7 +350,7 @@ class GrainHill(CTSModel):
         Examples
         --------
         >>> gh = GrainHill((5, 7), show_plots=False)
-        >>> gh.grid.at_node['node_state']  # doctest: +NORMALIZE_WHITESPACE
+        >>> gh.grid.at_node["node_state"]
         array([8, 7, 7, 8, 7, 7, 7, 0, 7, 7, 0, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         """
@@ -430,7 +430,7 @@ class GrainHill(CTSModel):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid((4, 5), node_layout='rect', orientation='vertical')
+        >>> hg = HexModelGrid((4, 5), node_layout="rect", orientation="vertical")
         >>> ns = hg.add_zeros("node_state", at="node", dtype=int)
         >>> ns[[0, 3, 1, 6, 4, 9, 2]] = 8
         >>> ns[[8, 13, 11, 16, 14]] = 7

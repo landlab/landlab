@@ -154,49 +154,59 @@ class SinkFillerBarnes(LakeMapperBarnes):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import SinkFillerBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
-        >>> for edge in ('left', 'top', 'bottom'):
+        >>> for edge in ("left", "top", "bottom"):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
-        >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
-        >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
-        >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
+        ...
+        >>> mg.at_node["topographic__elevation"] = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 2.1, 1.1, 0.6, 1.6, 0.0],
+        ...     [0.0, 2.0, 1.0, 0.5, 1.5, 0.0],
+        ...     [0.0, 2.2, 1.2, 0.7, 1.7, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> z = mg.at_node["topographic__elevation"]
         >>> z_init = z.copy()
-        >>> sfb = SinkFillerBarnes(mg, method='Steepest')  #, surface=z
+        >>> sfb = SinkFillerBarnes(mg, method="Steepest")  # , surface=z
 
         TODO: once return_array_at_node is fixed, this example should also
         take surface... GIVE IT surface=z  !!
 
         >>> sfb.run_one_step()
-        >>> z_out = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
-        ...                    0. ,  2.1,  1.5,  1.5,  1.6,  0. ,
-        ...                    0. ,  2. ,  1.5,  1.5,  1.5,  0. ,
-        ...                    0. ,  2.2,  1.5,  1.5,  1.7,  0. ,
-        ...                    0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
-        >>> # np.allclose(z, z_out)  ->  True once fixed
-        >>> np.all(np.equal(z, z_out))  # those 1.5's are actually a bit > 1.5
-        False
-        >>> fill_map = np.array([-1, -1, -1, -1, -1, -1,
-        ...                      -1, -1, 16, 16, -1, -1,
-        ...                      -1, -1, 16, 16, -1, -1,
-        ...                      -1, -1, 16, 16, -1, -1,
-        ...                      -1, -1, -1, -1, -1, -1])
-        >>> np.all(sfb.fill_map == fill_map)
+        >>> z_out = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 2.1, 1.5, 1.5, 1.6, 0.0],
+        ...     [0.0, 2.0, 1.5, 1.5, 1.5, 0.0],
+        ...     [0.0, 2.2, 1.5, 1.5, 1.7, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.allclose(z.reshape(mg.shape), z_out)
         True
-        >>> np.all(sfb.fill_at_node == (sfb.fill_map > -1))  # bool equivalent
+        >>> fill_map = [
+        ...     [-1, -1, -1, -1, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, 16, 16, -1, -1],
+        ...     [-1, -1, -1, -1, -1, -1],
+        ... ]
+        >>> np.all(sfb.fill_map.reshape(mg.shape) == fill_map)
+        True
+        >>> np.all(sfb.fill_at_node == (sfb.fill_map > -1))
         True
         >>> sfb.was_there_overfill  # everything fine with slope adding
         False
 
-        >>> fr = FlowAccumulator(mg, flow_director='D4')  # routing now works
+        >>> fr = FlowAccumulator(mg, flow_director="D4")  # routing now works
         >>> fr.run_one_step()
-        >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
+        >>> np.all(mg.at_node["flow__sink_flag"][mg.core_nodes] == 0)
         True
-        >>> drainage_area = np.array([  0.,   0.,   0.,   0.,   0.,   0.,
-        ...                             0.,   1.,   2.,   3.,   1.,   1.,
-        ...                             0.,   1.,   4.,   9.,  10.,  10.,
-        ...                             0.,   1.,   2.,   1.,   1.,   1.,
-        ...                             0.,   0.,   0.,   0.,   0.,   0.])
-        >>> np.allclose(mg.at_node['drainage_area'], drainage_area)
+        >>> drainage_area = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 1.0, 2.0, 3.0, 1.0, 1.0],
+        ...     [0.0, 1.0, 4.0, 9.0, 10.0, 10.0],
+        ...     [0.0, 1.0, 2.0, 1.0, 1.0, 1.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.allclose(mg.at_node["drainage_area"].reshape(mg.shape), drainage_area)
         True
 
         Test two pits and a flat fill:
@@ -204,34 +214,36 @@ class SinkFillerBarnes(LakeMapperBarnes):
         >>> from collections import deque
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
-        >>> z[7] = 2.  # is a lake on its own
+        >>> z[7] = 2.0  # is a lake on its own
         >>> z[9] = 0.5
         >>> z[15] = 0.3
         >>> z[14] = 0.6  # [9, 14, 15] is a lake
         >>> z[22] = 0.9  # a non-contiguous lake node also draining to 16
         >>> z_init = z.copy()
-        >>> sfb = SinkFillerBarnes(mg, method='Steepest', fill_flat=True)
+        >>> sfb = SinkFillerBarnes(mg, method="Steepest", fill_flat=True)
         >>> sfb.run_one_step()
-        >>> sfb.fill_dict  == {8: deque([7]), 16: deque([15, 9, 14, 22])}
+        >>> sfb.fill_dict == {8: deque([7]), 16: deque([15, 9, 14, 22])}
         True
         >>> sfb.number_of_fills
         2
         >>> sfb.fill_outlets == [16, 8]
         True
-        >>> np.allclose(sfb.fill_areas, np.array([4., 1.]))  # same order
+        >>> np.allclose(sfb.fill_areas, np.array([4.0, 1.0]))  # same order
         True
 
         Unlike the LakeMapperBarnes equivalents, fill_depths and fill_volumes
         are always available through this component:
 
-        >>> fill_depths = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
-        ...                          0. ,  1. ,  0. ,  0.5,  0. ,  0. ,
-        ...                          0. ,  0. ,  0.4,  0.7,  0. ,  0. ,
-        ...                          0. ,  0. ,  0. ,  0. ,  0.1,  0. ,
-        ...                          0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
-        >>> np.allclose(sfb.fill_depths, fill_depths)
+        >>> fill_depths = [
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ...     [0.0, 1.0, 0.0, 0.5, 0.0, 0.0],
+        ...     [0.0, 0.0, 0.4, 0.7, 0.0, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.1, 0.0],
+        ...     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ... ]
+        >>> np.allclose(sfb.fill_depths.reshape(mg.shape), fill_depths)
         True
-        >>> np.allclose(sfb.fill_volumes, np.array([1.7, 1.]))
+        >>> np.allclose(sfb.fill_volumes, np.array([1.7, 1.0]))
         True
 
         Note that with a flat fill, we can't drain the surface. The surface
@@ -241,8 +253,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
         >>> fr.run_one_step()
         >>> where_is_filled = np.where(sfb.fill_map > -1, 1, 0)
         >>> np.all(
-        ...     mg.at_node['flow__sink_flag'][mg.core_nodes] ==
-        ...     where_is_filled[mg.core_nodes])
+        ...     mg.at_node["flow__sink_flag"][mg.core_nodes]
+        ...     == where_is_filled[mg.core_nodes]
+        ... )
         True
 
         (Note that the fill_map does not think that the perimeter nodes are

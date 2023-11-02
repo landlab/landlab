@@ -1,0 +1,5 @@
+bmi-topography==0.8.2
+dask[array]==2023.10.1
+holoviews==1.18.0
+jupyter==1.0.0
+mesa==2.1.2

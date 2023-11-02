@@ -128,7 +128,7 @@ whole array. Try not to do this! Instead of
 
     for i in myarray:
         if i < 0:
-          i = 0
+            i = 0
 
 which will be really slow. Do this:
 
