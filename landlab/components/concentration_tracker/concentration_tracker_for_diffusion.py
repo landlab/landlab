@@ -332,6 +332,7 @@ class ConcentrationTrackerForDiffusion(Component):
         grid,
         concentration_initial=0,
         concentration_in_bedrock=0,
+        concentration_from_weathering=None,
         local_production_rate=0,
         local_decay_rate=0,
     ):
@@ -344,6 +345,13 @@ class ConcentrationTrackerForDiffusion(Component):
             Initial concentration in soil/sediment, -/m^3
         concentration_in_bedrock: positive float, array, or field name (optional)
             Concentration in bedrock, -/m^3
+        concentration_from_weathering: positive float or array (optional)
+            Concentration generated during the weathering process, -/m^3.
+            Defaults to None, which causes all weathered bedrock to retain its 
+            original parent material concentration (concentration_in_bedrock)
+            as it weathers to soil. 
+            Use this parameter to differentiate between the concentration in 
+            weathered material compared to its parent bedrock.
         local_production_rate: float, array, or field name (optional)
             Rate of local production, -/m^3/yr
         local_decay_rate: float, array, or field name (optional)
@@ -356,6 +364,7 @@ class ConcentrationTrackerForDiffusion(Component):
         # use setters for C_init, C_br, P, and D defined below
         self.C_init = concentration_initial
         self.C_br = concentration_in_bedrock
+        self.C_w = concentration_from_weathering
         self.P = local_production_rate
         self.D = local_decay_rate
 
@@ -400,6 +409,11 @@ class ConcentrationTrackerForDiffusion(Component):
     def C_br(self):
         """Concentration in bedrock (kg/m^3)."""
         return self._C_br
+    
+    @property
+    def C_w(self):
+        """Concentration from the weathering process (kg/m^3)."""
+        return self._C_w
 
     @property
     def P(self):
@@ -422,6 +436,14 @@ class ConcentrationTrackerForDiffusion(Component):
         if np.any(new_val < 0.0):
             raise ValueError("Concentration in bedrock cannot be negative")
         self._C_br = return_array_at_node(self._grid, new_val)
+        
+    @C_w.setter
+    def C_w(self, new_val):
+        if new_val == None:
+            self._C_w = self._C_br
+        if np.any(new_val < 0.0):
+            raise ValueError("Concentration cannot be negative")
+        self._C_w = new_val
 
     @P.setter
     def P(self, new_val):
@@ -469,7 +491,7 @@ class ConcentrationTrackerForDiffusion(Component):
         
         C_local = C_old * old_depth_over_new
         C_from_weathering = np.divide(
-            self._C_br * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
+            self._C_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
         )
         Production = (dt * self._P / 2.0) * (old_depth_over_new + 1.0)
         Decay = (dt * self._D / 2.0) * (old_depth_over_new + 1.0)
