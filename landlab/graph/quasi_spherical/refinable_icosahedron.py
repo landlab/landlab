@@ -11,6 +11,9 @@ Adapted from a blog post and code snippet by Andreas Kahler, and
 translated into Python (plus function to output in vtk format)
 """
 
+import os
+import pathlib
+
 
 class RefinableIcosahedron:
     """
@@ -103,8 +106,6 @@ class RefinableIcosahedron:
         self.add_vertex((-t, 0.0, -1.0))
         self.add_vertex((-t, 0.0, 1.0))
 
-        # print("VERTS", self.vertices)
-
     def create_faces(self):
         """
         Create the 20 triangular faces of the icosahedron.
@@ -143,35 +144,121 @@ class RefinableIcosahedron:
         self.faces.append((8, 6, 7))
         self.faces.append((9, 8, 1))
 
-    def write_to_vtk(self, filename="icosahedron.vtk"):
+    def write_to_vtk(self, path="icosahedron.vtk", clobber=False):
         """
         Save the geometry in a vtk-format text file.
 
+        Note: this function is intended to test the RefinableIcosahedron.
+        To write vtk for a Landlab IcosphereGlobalGrid, use
+        grid.to_vtk() to capture the full set of geometric primitives.
+
         Parameters
         ----------
-        filename : str, optional
-            Name for output file (defaults to "icosahedron.vtk")
+        path : str, Path object, or StringIO object (optional)
+            Target for output (defaults to "icosahedron.vtk")
+        clobber : bool, optional
+            Whether to allow overwriting of existing file.
+
+        Returns
+        -------
+        path : same as input above
+            The given output path
+
+        Examples
+        --------
+        >>> import io
+        >>> ico = RefinableIcosahedron()
+        >>> output = ico.write_to_vtk(io.StringIO())
+        >>> lines = output.getvalue().splitlines()
+        >>> print(lines[0])
+        # vtk DataFile Version 2.0
+        >>> for i in range(4, 17):
+        ...     print(lines[i])
+        POINTS 12 float
+        -0.5257311121191336 0.85065080835204 0.0
+        0.5257311121191336 0.85065080835204 0.0
+        -0.5257311121191336 -0.85065080835204 0.0
+        0.5257311121191336 -0.85065080835204 0.0
+        0.0 -0.5257311121191336 0.85065080835204
+        0.0 0.5257311121191336 0.85065080835204
+        0.0 -0.5257311121191336 -0.85065080835204
+        0.0 0.5257311121191336 -0.85065080835204
+        0.85065080835204 0.0 -0.5257311121191336
+        0.85065080835204 0.0 0.5257311121191336
+        -0.85065080835204 0.0 -0.5257311121191336
+        -0.85065080835204 0.0 0.5257311121191336
+        >>> for i in range(18, 40):
+        ...     print(lines[i])
+        CELLS 20 80
+        3 0 11 5
+        3 0 5 1
+        3 0 1 7
+        3 0 7 10
+        3 0 10 11
+        3 1 5 9
+        3 5 11 4
+        3 11 10 2
+        3 10 7 6
+        3 7 1 8
+        3 3 9 4
+        3 3 4 2
+        3 3 2 6
+        3 3 6 8
+        3 3 8 9
+        3 4 9 5
+        3 2 4 11
+        3 6 2 10
+        3 8 6 7
+        3 9 8 1
+        >>> for i in range(40, 44):
+        ...     print(lines[i])
+        CELL_TYPES 20
+        5
+        5
+        5
         """
-        with open(filename, "w") as f:
-            f.write("# vtk DataFile Version 2.0\n")
-            f.write("icosahedron\n")
-            f.write("ASCII\n")
-            f.write("DATASET UNSTRUCTURED_GRID\n")
-            f.write("POINTS " + str(len(self.vertices)) + " float\n")
-            for vtx in self.vertices:
-                f.write(str(vtx[0]) + " " + str(vtx[1]) + " " + str(vtx[2]) + "\n")
-            f.write("\n")
-            nfaces = len(self.faces)
-            f.write("CELLS " + str(nfaces) + " " + str(4 * nfaces) + "\n")
-            for face in self.faces:
-                f.write(
-                    "3 " + str(face[0]) + " " + str(face[1]) + " " + str(face[2]) + "\n"
-                )
-            f.write("\n")
-            f.write("CELL_TYPES " + str(nfaces) + "\n")
-            for _ in range(nfaces):
-                f.write("5\n")
-            f.close()
+        if isinstance(path, (str, pathlib.Path)):
+            if os.path.exists(path) and not clobber:
+                raise ValueError(f"file exists ({path})")
+
+            with open(path, "w") as fp:
+                self._write_vtk_to_filelike(fp)
+        else:
+            self._write_vtk_to_filelike(path)
+
+        return path
+
+    def _write_vtk_to_filelike(self, file_like):
+        """
+        Write legacy vtk format to a given file-like object.
+
+        Parameters
+        ----------
+        file_like : a file-like object (e.g., file pointer, StringIO object)
+            The file-like object to write to.
+
+        Returns
+        -------
+        None
+        """
+        file_like.write("# vtk DataFile Version 2.0\n")
+        file_like.write("icosahedron\n")
+        file_like.write("ASCII\n")
+        file_like.write("DATASET UNSTRUCTURED_GRID\n")
+        file_like.write("POINTS " + str(len(self.vertices)) + " float\n")
+        for vtx in self.vertices:
+            file_like.write(str(vtx[0]) + " " + str(vtx[1]) + " " + str(vtx[2]) + "\n")
+        file_like.write("\n")
+        nfaces = len(self.faces)
+        file_like.write("CELLS " + str(nfaces) + " " + str(4 * nfaces) + "\n")
+        for face in self.faces:
+            file_like.write(
+                "3 " + str(face[0]) + " " + str(face[1]) + " " + str(face[2]) + "\n"
+            )
+        file_like.write("\n")
+        file_like.write("CELL_TYPES " + str(nfaces) + "\n")
+        for _ in range(nfaces):
+            file_like.write("5\n")
 
     def dist(self, p1, p2):
         """
