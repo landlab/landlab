@@ -50,6 +50,7 @@ aliases = [
   'Benjamin',
 ]
 alternate_emails = [
+  'bca@Benjamins-MacBook-Pro.local',
 ]
 github = 'BCampforts'
 
@@ -160,6 +161,16 @@ alternate_emails = [
 github = 'elbeejay'
 
 [[tool.rollcall.author]]
+name = 'Jeffrey Keck'
+email = 'keckje@gmail.com'
+aliases = [
+  'keckje',
+]
+alternate_emails = [
+  '31672064+keckje@users.noreply.github.com',
+]
+
+[[tool.rollcall.author]]
 name = 'Jenny Knuth'
 email = 'inkboco@gmail.com'
 aliases = [
@@ -221,6 +232,16 @@ alternate_emails = [
 github = 'kthyng'
 
 [[tool.rollcall.author]]
+name = 'Laurent Roberge'
+email = 'lroberge@tulane.edu'
+aliases = [
+  'loroberge',
+]
+alternate_emails = [
+  '59940112+loroberge@users.noreply.github.com',
+]
+
+[[tool.rollcall.author]]
 name = 'Margaux Mouchene'
 email = 'margaux.mouchene@laposte.net'
 aliases = [
@@ -241,6 +262,14 @@ aliases = [
 alternate_emails = [
 ]
 github = 'mdpiper'
+
+[[tool.rollcall.author]]
+name = 'Muneer Ahammad'
+email = '65404451+muneerVT@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
 
 [[tool.rollcall.author]]
 name = 'Nathan Lyons'
@@ -319,6 +348,14 @@ alternate_emails = [
 [[tool.rollcall.author]]
 name = 'Shelby Ahrendt'
 email = '36043125+shelbyahrendt@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.rollcall.author]]
+name = 'dependabot[bot]'
+email = '49699333+dependabot[bot]@users.noreply.github.com'
 aliases = [
 ]
 alternate_emails = [

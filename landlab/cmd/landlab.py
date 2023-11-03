@@ -334,6 +334,21 @@ def mailmap(ctx):
 
     if verbose and not silent:
         out(f"reading author list: {roll_file}")
+    print(
+        textwrap.dedent(
+            """
+            # Prevent git from showing duplicate names with commands like "git shortlog"
+            # See the manpage of git-shortlog for details.
+            # The syntax is:
+            # Name that should be used <email that should be used> Bad name <bad email>
+            #
+            # You can skip Bad name if it is the same as the one that should be used, and is unique.
+            #
+            # This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
+            # gives no duplicates.
+            """
+        ).lstrip()
+    )
     authors = AuthorList.from_toml(roll_file)
     for author in authors:
         good_name, good_email = author.name, author.email
