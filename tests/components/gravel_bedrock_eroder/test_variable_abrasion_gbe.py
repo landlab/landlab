@@ -1,5 +1,6 @@
 import numpy as np
-from numpy.testing import assert_array_equal, assert_raises
+import pytest
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, VariableAbrasionGBE
@@ -26,6 +27,10 @@ def test_sediment_thickness():
 
     assert_array_equal(sum_of_classes, sed)
 
+
 def test_value_error():
     grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
-    assert_raises(ValueError, VariableAbrasionGBE, grid, abrasion_coefficients=[0])
+    with pytest.raises(ValueError):
+        VariableAbrasionGBE(
+            grid, number_of_sediment_classes=3, abrasion_coefficients=[0, 0]
+        )

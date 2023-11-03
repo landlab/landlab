@@ -1,4 +1,5 @@
 import numpy as np
+
 from landlab.components import GravelBedrockEroder
 
 
@@ -19,9 +20,13 @@ class VariableAbrasionGBE(GravelBedrockEroder):
     >>> sed[4] = 300.0
     >>> fa = FlowAccumulator(grid)
     >>> fa.run_one_step()
-    >>> vagbe = VariableAbrasionGBE(grid, sediment_porosity=0.0,
-    ...     plucking_coefficient=0.0, abrasion_coefficients=[0.002, 0.0002, 0.00002])
-    >>> vagbe._thickness_by_class[:,4]
+    >>> vagbe = VariableAbrasionGBE(
+    ...     grid,
+    ...     sediment_porosity=0.0,
+    ...     plucking_coefficient=0.0,
+    ...     abrasion_coefficients=[0.002, 0.0002, 0.00002],
+    ... )
+    >>> vagbe._thickness_by_class[:, 4]
     array([ 100.,  100.,  100.])
     >>> vagbe.run_one_step(1.0)
     >>> grid.at_node["bedload_sediment__volume_outflux"][4]
@@ -42,16 +47,21 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         intermittency_factor=0.01,
         transport_coefficient=0.041,
         number_of_sediment_classes=3,
-        init_thickness_per_class=[1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0],
-        abrasion_coefficients=[0.0, 0.0, 0.0],
+        init_thickness_per_class=None,
+        abrasion_coefficients=0.0,
         sediment_porosity=0.35,
         depth_decay_scale=1.0,
         plucking_coefficient=1.0e-4,
         coarse_fraction_from_plucking=1.0,
     ):
-        if len(abrasion_coefficients) != number_of_sediment_classes:
-            print("You need to specify an abrasion coefficient for each sediment class")
-            raise ValueError
+        if init_thickness_per_class is None:
+            init_thickness_per_class = 1.0 / number_of_sediment_classes
+        abrasion_coefficients = np.broadcast_to(
+            abrasion_coefficients, number_of_sediment_classes
+        )
+        init_thickness_per_class = np.broadcast_to(
+            init_thickness_per_class, number_of_sediment_classes
+        )
 
         super().__init__(
             grid,
@@ -124,7 +134,9 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         super().calc_transport_rate()
         self.calc_sediment_fractions()
         for i in range(self._num_sed_classes):
-            self._sed_outfluxes[i, :] = self._sediment_fraction[i, :] * self._sediment_outflux
+            self._sed_outfluxes[i, :] = (
+                self._sediment_fraction[i, :] * self._sediment_outflux
+            )
 
     def calc_sediment_influx(self):
         """Update the volume influx at each node.
@@ -162,7 +174,9 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         >>> sed[3:] = 100.0
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = VariableAbrasionGBE(grid, abrasion_coefficients=[0.002, 0.0002, 0.00002])
+        >>> eroder = VariableAbrasionGBE(
+        ...     grid, abrasion_coefficients=[0.002, 0.0002, 0.00002]
+        ... )
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
         >>> eroder._sed_abr_rates[:, 4]
@@ -178,7 +192,6 @@ class VariableAbrasionGBE(GravelBedrockEroder):
             )
 
     def calc_sediment_rate_of_change(self):
-
         cores = self.grid.core_nodes
         for i in range(self._num_sed_classes):
             self._dHdt_by_class[i, cores] = self._porosity_factor * (
@@ -198,4 +211,3 @@ class VariableAbrasionGBE(GravelBedrockEroder):
             self._sed[:] += self._thickness_by_class[i, :]
         self._bedrock__elevation -= self._rock_lowering_rate * dt
         self._elev[:] = self._bedrock__elevation + self._sed
-
