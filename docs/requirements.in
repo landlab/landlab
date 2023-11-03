@@ -1,0 +1,8 @@
+furo
+sphinx-copybutton
+sphinx-inline-tabs
+sphinx-jinja
+sphinx>=4
+sphinxcontrib.towncrier
+tomli
+towncrier

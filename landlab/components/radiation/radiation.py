@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Grid"])
+_VALID_METHODS = {"Grid"}
 
 
 def _assert_method_is_valid(method):
@@ -35,11 +35,11 @@ class Radiation(Component):
     'Radiation'
     >>> rad.input_var_names
     ('topographic__elevation',)
-    >>> sorted(rad.output_var_names) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(rad.output_var_names)
     ['radiation__incoming_shortwave_flux',
      'radiation__net_shortwave_flux',
      'radiation__ratio_to_flat_surface']
-    >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(rad.units)
     [('radiation__incoming_shortwave_flux', 'W/m^2'),
      ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
@@ -51,20 +51,21 @@ class Radiation(Component):
     4
     >>> rad.grid is grid
     True
-    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
+    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
     True
-    >>> np.all(grid.at_node['topographic__elevation'] == 0.)
+    >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
     True
 
-    >>> grid['node']['topographic__elevation'] = np.array([
-    ...       0., 0., 0., 0.,
-    ...       1., 1., 1., 1.,
-    ...       2., 2., 2., 2.,
-    ...       3., 4., 4., 3.,
-    ...       4., 4., 4., 4.])
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [1.0, 1.0, 1.0, 1.0],
+    ...     [2.0, 2.0, 2.0, 2.0],
+    ...     [3.0, 4.0, 4.0, 3.0],
+    ...     [4.0, 4.0, 4.0, 4.0],
+    ... ]
     >>> rad.current_time = 0.5
     >>> rad.update()
-    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
+    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
     False
 
     References
@@ -107,7 +108,10 @@ class Radiation(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+            "doc": (
+                "ratio of total incident shortwave radiation on sloped "
+                "surface to flat surface"
+            ),
         },
         "topographic__elevation": {
             "dtype": float,
@@ -248,10 +252,9 @@ class Radiation(Component):
                 - np.sin(self._phi) * np.cos(self._tau)
             )
         )  # Sun's Azhimuth
-        if self._phisun >= 0 and -np.sin(self._tau) <= 0:
-            self._phisun = self._phisun + np.pi
-
-        elif self._phisun <= 0 and -np.sin(self._tau) >= 0:
+        if (self._phisun >= 0 and -np.sin(self._tau) <= 0) or (
+            self._phisun <= 0 and -np.sin(self._tau) >= 0
+        ):
             self._phisun = self._phisun + np.pi
 
         self._flat = np.cos(np.arctan(0)) * np.sin(self._alpha) + np.sin(

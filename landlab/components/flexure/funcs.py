@@ -20,14 +20,14 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.0):
     --------
     >>> from landlab.components.flexure import get_flexure_parameter
 
-    >>> eet = 65000.
+    >>> eet = 65000.0
     >>> youngs = 7e10
     >>> alpha = get_flexure_parameter(eet, youngs, 1)
-    >>> print('%.3f' % round(alpha, 3))
+    >>> print("%.3f" % round(alpha, 3))
     119965.926
 
     >>> alpha = get_flexure_parameter(eet, youngs, 2)
-    >>> print('%.2f' % alpha)
+    >>> print("%.2f" % alpha)
     84828.72
     """
     D = E * pow(h, 3) / 12.0 / (1.0 - pow(_POISSON, 2))
@@ -93,40 +93,41 @@ def subside_point_load(load, loc, coords, params=None, out=None):
 
     >>> from landlab.components.flexure import subside_point_load
 
-    >>> params = dict(eet=65000., youngs=7e10)
+    >>> params = dict(eet=65000.0, youngs=7e10)
     >>> load = 1e9
 
     Define a unifrom rectilinear grid.
 
-    >>> x = np.arange(0, 10000, 100.)
-    >>> y = np.arange(0, 5000, 100.)
+    >>> x = np.arange(0, 10000, 100.0)
+    >>> y = np.arange(0, 5000, 100.0)
     >>> (x, y) = np.meshgrid(x, y)
-    >>> x.shape = (x.size, )
-    >>> y.shape = (y.size, )
+    >>> x.shape = (x.size,)
+    >>> y.shape = (y.size,)
 
     Calculate deflections due to a load applied at position (5000., 2500.).
 
-    >>> x = np.arange(0, 10000, 1000.)
-    >>> y = np.arange(0, 5000, 1000.)
+    >>> x = np.arange(0, 10000, 1000.0)
+    >>> y = np.arange(0, 5000, 1000.0)
     >>> (x, y) = np.meshgrid(x, y)
-    >>> x.shape = (x.size, )
-    >>> y.shape = (y.size, )
-    >>> dz = subside_point_load(load, (5000., 2500.), (x, y), params=params)
-    >>> print('%.5g' % round(dz.sum(), 9))
+    >>> x.shape = (x.size,)
+    >>> y.shape = (y.size,)
+    >>> dz = subside_point_load(load, (5000.0, 2500.0), (x, y), params=params)
+    >>> print("%.5g" % round(dz.sum(), 9))
     2.6267e-05
     >>> print(round(dz.min(), 9))
     5.24e-07
     >>> print(round(dz.max(), 9))
     5.26e-07
 
-    >>> dz = subside_point_load((1e9, 1e9), ((5000., 5000.), (2500., 2500.)),
-    ...                         (x, y), params=params)
-    >>> print(round(dz.min(), 9) / 2.)
+    >>> dz = subside_point_load(
+    ...     (1e9, 1e9), ((5000.0, 5000.0), (2500.0, 2500.0)), (x, y), params=params
+    ... )
+    >>> print(round(dz.min(), 9) / 2.0)
     5.235e-07
-    >>> print(round(dz.max(), 9) / 2.)
+    >>> print(round(dz.max(), 9) / 2.0)
     5.265e-07
     """
-    params = params or dict(eet=6500.0, youngs=7.0e10)
+    params = params or {"eet": 6500.0, "youngs": 7.0e10}
     eet, youngs = params["eet"], params["youngs"]
     gamma_mantle = params.get("gamma_mantle", 33000.0)
 

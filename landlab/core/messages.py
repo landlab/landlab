@@ -15,12 +15,14 @@ Oftentimes when writing code we may need to print a lengthy
 message for the user. This may result in code that looks like
 the following.
 
->>> message = ('Lorem ipsum dolor sit amet, consectetur '
-...            'adipiscing elit, sed do eiusmod tempor '
-...            'incididunt ut labore et dolore magna aliqua. '
-...            'Ut enim ad minim veniam, quis nostrud exercitation '
-...            'ullamco laboris nisi ut aliquip ex ea commodo '
-...            'consequat.')
+>>> message = (
+...     "Lorem ipsum dolor sit amet, consectetur "
+...     "adipiscing elit, sed do eiusmod tempor "
+...     "incididunt ut labore et dolore magna aliqua. "
+...     "Ut enim ad minim veniam, quis nostrud exercitation "
+...     "ullamco laboris nisi ut aliquip ex ea commodo "
+...     "consequat."
+... )
 
 Printing this message string would result in one long line that
 would, most likely, extend beyond the user's terminal and be
@@ -43,9 +45,11 @@ messages.
 
 
 >>> from landlab.core.messages import warning_message
->>> message = ('Lorem ipsum dolor sit amet, consectetur\\n'
-...            'adipiscing elit, sed do eiusmod tempor\\n'
-...            'incididunt ut labore et dolore magna aliqua.')
+>>> message = (
+...     "Lorem ipsum dolor sit amet, consectetur\\n"
+...     "adipiscing elit, sed do eiusmod tempor\\n"
+...     "incididunt ut labore et dolore magna aliqua."
+... )
 >>> print(warning_message(message))
 WARNING
 =======
@@ -71,16 +75,15 @@ should be used in these cases.
 >>> from landlab.core.messages import assert_or_print
 
 >>> dt = 1e6
->>> assert_or_print(dt < 1, 'Unstable time step!', onerror='pass')
->>> assert_or_print(dt < 1, 'Unstable time step!', onerror='warn')
-...     #doctest: +SKIP
+>>> assert_or_print(dt < 1, "Unstable time step!", onerror="pass")
+>>> assert_or_print(dt < 1, "Unstable time step!", onerror="warn")
+... # doctest: +SKIP
 WARNING
 =======
 
 Unstable time step!
 
->>> assert_or_print(dt < 1, 'Unstable time step!', onerror='raise')
-...     #doctest: +IGNORE_EXCEPTION_DETAIL
+>>> assert_or_print(dt < 1, "Unstable time step!", onerror="raise")
 Traceback (most recent call last):
 ...
 AssertionError
@@ -172,7 +175,7 @@ def split_paragraphs(msg, linesep=os.linesep):
     ...
     ... Dictumst vestibulum rhoncus est pellentesque.
     ... '''
-    >>> split_paragraphs(text, linesep='\\n') #doctest: +NORMALIZE_WHITESPACE
+    >>> split_paragraphs(text, linesep="\\n")
     ['Pharetra pharetra massa massa ultricies mi quis hendrerit.',
      'Dictumst vestibulum rhoncus est pellentesque.']
 
@@ -180,7 +183,7 @@ def split_paragraphs(msg, linesep=os.linesep):
     ... Pharetra pharetra massa massa ultricies mi quis hendrerit.
     ... Dictumst vestibulum rhoncus est pellentesque.
     ... '''
-    >>> len(split_paragraphs(text, linesep='\\n'))
+    >>> len(split_paragraphs(text, linesep="\\n"))
     1
     """
     pattern = linesep + r"\s*" + linesep
@@ -316,7 +319,7 @@ def warning_message(msg=None, **kwds):
     Examples
     --------
     >>> from landlab.core.messages import warning_message
-    >>> print(warning_message('Dictumst vestibulum rhoncus est pellentesque.'))
+    >>> print(warning_message("Dictumst vestibulum rhoncus est pellentesque."))
     WARNING
     =======
     <BLANKLINE>
@@ -344,7 +347,7 @@ def error_message(msg=None, **kwds):
     Examples
     --------
     >>> from landlab.core.messages import error_message
-    >>> print(error_message('Dictumst vestibulum rhoncus est pellentesque.'))
+    >>> print(error_message("Dictumst vestibulum rhoncus est pellentesque."))
     ERROR
     =====
     <BLANKLINE>
@@ -382,15 +385,14 @@ def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):
     --------
     >>> from landlab.core.messages import assert_or_print
 
-    >>> assert_or_print(True, 'Lorem ipsum', onerror='pass')
-    >>> assert_or_print(False, 'Lorem ipsum', onerror='pass')
+    >>> assert_or_print(True, "Lorem ipsum", onerror="pass")
+    >>> assert_or_print(False, "Lorem ipsum", onerror="pass")
 
-    >>> assert_or_print(True, 'Lorem ipsum', onerror='warn')
-    >>> assert_or_print(False, 'Lorem ipsum', onerror='warn')
+    >>> assert_or_print(True, "Lorem ipsum", onerror="warn")
+    >>> assert_or_print(False, "Lorem ipsum", onerror="warn")
 
-    >>> assert_or_print(True, 'Lorem ipsum', onerror='raise')
-    >>> assert_or_print(False, 'Lorem ipsum', onerror='raise')
-    ...     #doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> assert_or_print(True, "Lorem ipsum", onerror="raise")
+    >>> assert_or_print(False, "Lorem ipsum", onerror="raise")
     Traceback (most recent call last):
     ...
     AssertionError

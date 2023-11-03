@@ -43,7 +43,6 @@ def test_not_implemented():
 
 
 def test_fields_already_added():
-
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
     r = mg.add_field("flow__receiver_node", mg.nodes, at="node")
@@ -85,7 +84,7 @@ def test_check_fields():
         "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
     )
     _FlowDirector(mg0, "topographic__elevation")
-    assert sorted(list(mg0.at_node.keys())) == [
+    assert sorted(mg0.at_node) == [
         "flow__sink_flag",
         "topographic__elevation",
     ]
@@ -96,7 +95,7 @@ def test_check_fields():
         "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
     )
     _FlowDirectorToMany(mg1, "topographic__elevation")
-    assert sorted(list(mg1.at_node.keys())) == [
+    assert sorted(mg1.at_node) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__receiver_proportions",
@@ -111,7 +110,7 @@ def test_check_fields():
         "topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node"
     )
     _FlowDirectorToOne(mg2, "topographic__elevation")
-    assert sorted(list(mg2.at_node.keys())) == [
+    assert sorted(mg2.at_node) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__sink_flag",
@@ -125,7 +124,7 @@ def test_check_fields():
         "topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node"
     )
     FlowDirectorMFD(mg3, "topographic__elevation")
-    assert sorted(list(mg3.at_node.keys())) == [
+    assert sorted(mg3.at_node) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__receiver_proportions",
@@ -140,7 +139,7 @@ def test_check_fields():
         "topographic__elevation", mg4.node_x**2 + mg4.node_y**2, at="node"
     )
     FlowDirectorDINF(mg4, "topographic__elevation")
-    assert sorted(list(mg4.at_node.keys())) == [
+    assert sorted(mg4.at_node) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__receiver_proportions",
@@ -155,7 +154,7 @@ def test_check_fields():
         "topographic__elevation", mg5.node_x**2 + mg5.node_y**2, at="node"
     )
     FlowDirectorSteepest(mg5, "topographic__elevation")
-    assert sorted(list(mg5.at_node.keys())) == [
+    assert sorted(mg5.at_node) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__sink_flag",
@@ -169,7 +168,7 @@ def test_check_fields():
         "topographic__elevation", mg6.node_x**2 + mg6.node_y**2, at="node"
     )
     FlowDirectorD8(mg6, "topographic__elevation")
-    assert sorted(list(mg6.at_node.keys())) == [
+    assert sorted(mg6.at_node) == [
         "flow__link_to_receiver_node",
         "flow__receiver_node",
         "flow__sink_flag",

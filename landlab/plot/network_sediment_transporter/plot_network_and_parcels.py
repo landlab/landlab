@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This code was designed to plot outputs of the NetworkSedimentTransporter
 landlab component.
@@ -45,7 +44,7 @@ def plot_network_and_parcels(
     parcel_size_max=40,
     parcel_alpha=0.5,
     fig=None,
-    **kwargs
+    **kwargs,
 ):
     """Plot a river network and parcels on the river network. Intended to
     display the results of the NetworkSedimentTransporter component.
@@ -169,8 +168,9 @@ def plot_network_and_parcels(
 
     # only network color/linewidth provided OR link attribute.
     if (link_attribute is not None) and (network_color is not None):
-        msg = "Only one of link_attribute and network_color can be provided."
-        raise ValueError(msg)
+        raise ValueError(
+            "Only one of link_attribute and network_color can be provided."
+        )
 
     if link_attribute is None:
         network_color = network_color or "c"
@@ -186,8 +186,9 @@ def plot_network_and_parcels(
 
     # only parcel color OR parcel_color_attribute.
     if (parcel_color_attribute is not None) and (parcel_color is not None):
-        msg = "Only one of parcel_color_attribute and parcel_color can be provided."
-        raise ValueError(msg)
+        raise ValueError(
+            "Only one of parcel_color_attribute and parcel_color can be provided."
+        )
 
     if parcel_color_attribute is None:
         parcel_color = parcel_color or "k"
@@ -199,8 +200,9 @@ def plot_network_and_parcels(
 
     # only parcel size or parcel_size_attribute
     if (parcel_size_attribute is not None) and (parcel_size is not None):
-        msg = "Only one of parcel_size_attribute and parcel_size can be provided."
-        raise ValueError(msg)
+        raise ValueError(
+            "Only one of parcel_size_attribute and parcel_size can be provided."
+        )
 
     if parcel_size_attribute is None:
         parcel_size = parcel_size or 1.0
@@ -340,10 +342,10 @@ def plot_network_and_parcels(
             else:
                 parcel_color = parcels.dataset[parcel_color_attribute].values
         else:
-            msg = "Parcel color attribute {attribute} not present in parcels.".format(
-                attribute=parcel_color_attribute
+            raise ValueError(
+                f"Parcel color attribute {parcel_color_attribute} not present in "
+                "parcels."
             )
-            raise ValueError(msg)
 
         if parcel_filter is not None:
             parcel_color = parcel_color[parcel_filter]
@@ -370,10 +372,10 @@ def plot_network_and_parcels(
                 parcel_size_max - parcel_size_min
             ) * parcel_size_norm(parcel_size_values)
         else:
-            msg = "Parcel size attribute {attribute} not present in parcels.".format(
-                attribute=parcel_size_attribute
+            raise ValueError(
+                f"Parcel size attribute {parcel_size_attribute} not present in "
+                "parcels."
             )
-            raise ValueError(msg)
 
         if parcel_filter is not None:
             parcel_size = parcel_size[parcel_filter]

@@ -1,4 +1,0 @@
-Fixed a bug where ``plot_graph`` would incorrectly include the last
-node/corner with patches/cells that had fewer links/faces than the maximum of
-the graph.
-

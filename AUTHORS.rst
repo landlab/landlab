@@ -53,4 +53,3 @@ Contributors
 * `Josh Wolpert <https://github.com/josh-wolpert>`_
 * `Kristen Thyng <https://github.com/kthyng>`_
 * `Sarah Lundell <https://github.com/slundell123>`_
-

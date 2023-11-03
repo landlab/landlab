@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class NodeGrid(object):
+class NodeGrid:
     """__init__((coord0, coord1)) Create a grid of nodes.
 
     Parameters
@@ -29,7 +29,7 @@ class NodeGrid(object):
 
     Create a 1D grid.
 
-    >>> ngrid = NodeGrid(((0, 1, 3), ))
+    >>> ngrid = NodeGrid(((0, 1, 3),))
     >>> ngrid.ndim == 1
     True
     >>> ngrid.number_of_nodes
@@ -69,7 +69,7 @@ class NodeGrid(object):
 
         Create a 1D grid.
 
-        >>> ngrid = NodeGrid(((0, 1, 3), ))
+        >>> ngrid = NodeGrid(((0, 1, 3),))
         >>> ngrid.ndim == 1
         True
         >>> ngrid.number_of_nodes
@@ -127,8 +127,8 @@ class NodeGrid(object):
         """
         try:
             return self._coords[-2]
-        except IndexError:
-            raise AttributeError("Grid has no y-coordinate")
+        except IndexError as exc:
+            raise AttributeError("Grid has no y-coordinate") from exc
 
     @property
     def z(self):
@@ -143,8 +143,8 @@ class NodeGrid(object):
         """
         try:
             return self._coords[-2]
-        except IndexError:
-            raise AttributeError("Grid has no z-coordinate")
+        except IndexError as exc:
+            raise AttributeError("Grid has no z-coordinate") from exc
 
     @property
     def coord(self):

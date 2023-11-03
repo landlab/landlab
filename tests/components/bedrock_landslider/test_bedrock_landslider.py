@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Mon Nov 08 13:50:43 2021
 
@@ -14,6 +13,11 @@ from numpy import testing
 
 from landlab import FieldError, RasterModelGrid
 from landlab.components import BedrockLandslider, PriorityFloodFlowRouter
+
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    pytestmark = pytest.mark.skip(reason="richdem is not installed")
 
 
 def test_inputFields_flowRouter():

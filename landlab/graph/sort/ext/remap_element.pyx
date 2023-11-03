@@ -1,8 +1,8 @@
 import numpy as np
-cimport numpy as np
-cimport cython
 
-from libc.stdlib cimport malloc, free
+cimport cython
+cimport numpy as np
+from libc.stdlib cimport free, malloc
 
 
 cdef extern from "math.h":
@@ -10,8 +10,8 @@ cdef extern from "math.h":
 
 
 from .spoke_sort import sort_spokes_at_wheel
-from .argsort cimport argsort_int
 
+from .argsort cimport argsort_int
 
 DTYPE = int
 ctypedef np.int_t DTYPE_t
@@ -168,53 +168,6 @@ def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
                          xy_of_link)
 
 
-cdef _argsort_links(long * links, int n_links, long * nodes, long * ordered):
-    cdef int n_nodes = 2 * n_links
-    cdef int * index = <int *>malloc(n_nodes * sizeof(int))
-    cdef int i
-
-    try:
-        argsort_int(nodes, n_nodes, index)
-
-        i = 0
-        for link in range(n_links):
-            ordered[i // 2] = index[i] // 2
-            i += 2
-    finally:
-        free(index)
-
-
-@cython.boundscheck(False)
-def connect_links(np.ndarray[long, ndim=1, mode="c"] links,
-                  np.ndarray[long, ndim=2] nodes_at_link):
-    cdef long n_links = links.shape[0]
-    cdef long * nodes = <long *>malloc(2 * n_links * sizeof(long))
-    cdef long * ordered = <long *>malloc(n_links * sizeof(long))
-    cdef long * buff = <long *>malloc(n_links * sizeof(long))
-    cdef long node
-    cdef long link
-
-    try:
-        node = 0
-        for link in range(n_links):
-            nodes[node] = nodes_at_link[link, 0]
-            nodes[node + 1] = nodes_at_link[link, 1]
-            node += 2
-
-        _argsort_links(&links[0], n_links, nodes, ordered)
-
-        for link in range(n_links):
-            buff[link] = links[ordered[link]]
-
-        for link in range(n_links):
-            links[link] = buff[link]
-
-    finally:
-        free(buff)
-        free(ordered)
-        free(nodes)
-
-
 cdef reverse_order(long * array, long size):
     cdef long i
     cdef long temp
@@ -244,83 +197,6 @@ def reverse_element_order(
                 break
             n += 1
         reverse_order(&links_at_patch[patch, 1], n - 1)
-
-
-@cython.boundscheck(False)
-def get_angle_of_link(
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-    np.ndarray[np.float_t, ndim=2] xy_of_node,
-    np.ndarray[np.float_t, ndim=1] angle_of_link
-):
-    cdef int link
-    cdef double link_tail_x
-    cdef double link_tail_y
-    cdef double link_head_x
-    cdef double link_head_y
-    cdef int n_links = nodes_at_link.shape[0]
-
-    for link in range(n_links):
-        link_tail_x = xy_of_node[nodes_at_link[link][0]][0]
-        link_tail_y = xy_of_node[nodes_at_link[link][0]][1]
-        link_head_x = xy_of_node[nodes_at_link[link][1]][0]
-        link_head_y = xy_of_node[nodes_at_link[link][1]][1]
-
-        angle_of_link[link] = atan2(
-            link_head_y - link_tail_y, link_head_x - link_head_y
-        )
-
-
-@cython.boundscheck(False)
-def reorient_links(
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-    np.ndarray[DTYPE_t, ndim=1] xy_of_node
-):
-    """Reorient links to point up and to the right.
-
-    Parameters
-    ----------
-    nodes_at_link : ndarray of int, shape `(n_nodes, 2)`
-        Identifier for node at link tail and head.
-    xy_of_node : ndarray of float, shape `(n_nodes, 2)`
-        Coordinate of node as `(x, y)`.
-    """
-    cdef int link
-    cdef int temp
-    cdef double angle
-    cdef int n_links = nodes_at_link.shape[0]
-    cdef double minus_45 = - np.pi * .25
-    cdef double plus_135 = np.pi * .75
-
-    angle_of_link = np.empty(n_links, dtype=n_links)
-    get_angle_of_link(nodes_at_link, xy_of_node, angle_of_link)
-
-    for link in range(n_links):
-        angle = angle_of_link[link]
-        if angle < minus_45 or angle > plus_135:
-            temp = nodes_at_link[link, 0]
-            nodes_at_link[link, 0] = nodes_at_link[link, 1]
-            nodes_at_link[link, 1] = temp
-
-
-cdef _count_sorted_blocks(
-    DTYPE_t *array,
-    long len,
-    long stride,
-    DTYPE_t *count,
-    long n_values,
-):
-    cdef long i
-    cdef long value
-    cdef long max_i = len * stride
-
-    i = 0
-    for value in range(n_values):
-        count[value] = 0
-        while value == array[i]:
-            count[value] += 1
-            i += stride
-            if i >= max_i:
-                break
 
 
 cdef _offset_to_sorted_blocks(

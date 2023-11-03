@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Calculate dimensionless discharge of stream sections based on Tang et
 al. (2019)
@@ -56,13 +55,18 @@ class DimensionlessDischarge(Component):
      >>> from landlab import RasterModelGrid
      >>> import random
      >>> watershed_grid = RasterModelGrid((3, 3))
-     >>> surface_water__unit_discharge = watershed_grid.add_ones('node', 'surface_water__unit_discharge')
-     >>> d50 = watershed_grid.add_ones('node', 'channel_bottom_sediment_grain__d50_diameter')
-     >>> watershed_grid.at_node ['topographic__elevation'] = \
-     ... np.array([[1.1, 2, 3, 4, 2, 3, 4, 5, 3]])
-     >>> dd = DimensionlessDischarge(watershed_grid, gravity = 9.8)
+     >>> surface_water__unit_discharge = watershed_grid.add_ones(
+     ...     "surface_water__unit_discharge", at="node"
+     ... )
+     >>> d50 = watershed_grid.add_ones(
+     ...     "channel_bottom_sediment_grain__d50_diameter", at="node"
+     ... )
+     >>> watershed_grid.at_node["topographic__elevation"] = np.array(
+     ...     [[1.1, 2, 3, 4, 2, 3, 4, 5, 3]]
+     ... )
+     >>> dd = DimensionlessDischarge(watershed_grid, gravity=9.8)
      >>> dd.run_one_step()
-     >>> print(watershed_grid.at_node['dimensionless_discharge'])
+     >>> print(watershed_grid.at_node["dimensionless_discharge"])
      [ 0.55372743  0.55372743  0.55372743  0.55372743  0.55372743
              0.55372743  0.55372743  0.55372743  0.55372743]
 
@@ -97,7 +101,10 @@ class DimensionlessDischarge(Component):
             "optional": False,
             "units": "none",
             "mapping": "node",
-            "doc": "True if dimensionless discharge value is above threshold value, false otherwise.",
+            "doc": (
+                "True if dimensionless discharge value is above threshold value, "
+                "false otherwise."
+            ),
         },
         "dimensionless_discharge_threshold": {
             "dtype": float,
@@ -204,7 +211,6 @@ class DimensionlessDischarge(Component):
         return self.grid.calc_slope_at_node(elevs="topographic__elevation")
 
     def run_one_step(self):
-
         # update slopes
         self._stream_slopes = self._elevationToSlope()
 

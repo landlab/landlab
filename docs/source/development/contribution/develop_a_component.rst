@@ -16,11 +16,11 @@ the steps are the same for developing a utility. Unlike a component, a utility
 can just be a function. But like a component, we expect contributed utilities
 to follow the landlab standard practices outlined in our documentation.
 
-Once you have installed Landlab (:ref:`developer install <developer_install>`)
+Once you have installed Landlab (:ref:`developer install <install>`)
 and :ref:`created your own branch <landlab_develop_with_git>`, you can start
 writing a Python script for your component.
 
-See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
+See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
 for instructions on the structure and content of your component code. See also
 `this example pull request <https://github.com/landlab/landlab/pull/678>`_, which
 shows you the common set of files (such as ``__init__.py`` and documentation
@@ -55,15 +55,18 @@ For your new component, you should create a folder in
 
   .. code-block:: python
 
-     from .my_component_name import MyComponent
-     __all__ = ['MyComponent', ]
+      from .my_component_name import MyComponent
+
+      __all__ = [
+          "MyComponent",
+      ]
 
   Where
 
       - `'.my_component_name'` is the name of the python script.
       - `'MyComponent'` is as defined in the _name header of your python script
 
-  See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
+  See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
   on making a component for additional document requirements.
 
   In addition there are a number of recommendations and requirements for
@@ -73,7 +76,7 @@ For your new component, you should create a folder in
   unit tests. The unit tests are run every time changes are pushed to the
   Landlab repository. They should go through every line of your code (e.g.
   test every possible scenario in if/else loops, exceptions, etc.). See
-  `the tutorial on making a component <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
+  `the tutorial on making a component <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
   for instructions about making docstring tests and the next section for more
   information about making the unit tests.
 

@@ -382,7 +382,7 @@ def test_fields():
     fa = LossyFlowAccumulator(mg)
     fa.run_one_step()
 
-    assert sorted(list(mg.at_node.keys())) == [
+    assert sorted(mg.at_node) == [
         "drainage_area",
         "flow__data_structure_delta",
         "flow__link_to_receiver_node",
@@ -400,7 +400,7 @@ def test_fields():
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
     fa2 = LossyFlowAccumulator(mg2, flow_director="MFD")
     fa2.run_one_step()
-    assert sorted(list(mg2.at_node.keys())) == [
+    assert sorted(mg2.at_node.keys()) == [
         "drainage_area",
         "flow__data_structure_delta",
         "flow__link_to_receiver_node",
@@ -431,7 +431,9 @@ def test_accumulated_area_closes(fd):
 
 
 def test_specifying_routing_method_wrong():
-    """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
+    """Test specifying incorrect method for routing compatability with
+    DepressionFinderAndRouter.
+    """
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 

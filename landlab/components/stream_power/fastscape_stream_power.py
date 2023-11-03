@@ -19,7 +19,6 @@ from .cfuncs import (
 
 
 class FastscapeEroder(Component):
-
     r"""Fastscape stream power erosion.
 
     This class uses the Braun-Willett Fastscape approach to calculate the
@@ -66,62 +65,65 @@ class FastscapeEroder(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
 
-    >>> grid = RasterModelGrid((5, 5), xy_spacing=10.)
-    >>> z = np.array([7.,  7.,  7.,  7.,  7.,
-    ...               7.,  5., 3.2,  6.,  7.,
-    ...               7.,  2.,  3.,  5.,  7.,
-    ...               7.,  1., 1.9,  4.,  7.,
-    ...               7.,  0.,  7.,  7.,  7.])
-    >>> z = grid.add_field('topographic__elevation', z, at='node')
-    >>> fr = FlowAccumulator(grid, flow_director='D8')
-    >>> sp = FastscapeEroder(grid, K_sp=1.)
+    >>> grid = RasterModelGrid((5, 5), xy_spacing=10.0)
+    >>> z = [
+    ...     [7.0, 7.0, 7.0, 7.0, 7.0],
+    ...     [7.0, 5.0, 3.2, 6.0, 7.0],
+    ...     [7.0, 2.0, 3.0, 5.0, 7.0],
+    ...     [7.0, 1.0, 1.9, 4.0, 7.0],
+    ...     [7.0, 0.0, 7.0, 7.0, 7.0],
+    ... ]
+    >>> z = grid.add_field("topographic__elevation", z, at="node")
+    >>> fr = FlowAccumulator(grid, flow_director="D8")
+    >>> sp = FastscapeEroder(grid, K_sp=1.0)
     >>> fr.run_one_step()
-    >>> sp.run_one_step(dt=1.)
-    >>> z  # doctest: +NORMALIZE_WHITESPACE
+    >>> sp.run_one_step(dt=1.0)
+    >>> z
     array([ 7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
             7.        ,  2.92996598,  2.02996598,  4.01498299,  7.        ,
             7.        ,  0.85993197,  1.87743897,  3.28268321,  7.        ,
             7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
             7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
 
-    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
-    >>> z = np.array(grid.node_x ** 2.)
-    >>> z = grid.add_field('topographic__elevation', z, at='node')
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.0)
+    >>> z = np.array(grid.node_x**2.0)
+    >>> z = grid.add_field("topographic__elevation", z, at="node")
     >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_FIXED_VALUE
     >>> grid.status_at_node[grid.nodes_at_top_edge] = grid.BC_NODE_IS_CLOSED
     >>> grid.status_at_node[grid.nodes_at_bottom_edge] = grid.BC_NODE_IS_CLOSED
     >>> grid.status_at_node[grid.nodes_at_right_edge] = grid.BC_NODE_IS_CLOSED
-    >>> fr = FlowAccumulator(grid, flow_director='D8')
-    >>> sp = FastscapeEroder(grid, K_sp=0.1, m_sp=0., n_sp=2.,
-    ...                      threshold_sp=2.)
+    >>> fr = FlowAccumulator(grid, flow_director="D8")
+    >>> sp = FastscapeEroder(grid, K_sp=0.1, m_sp=0.0, n_sp=2.0, threshold_sp=2.0)
     >>> fr.run_one_step()
-    >>> sp.run_one_step(dt=10.)
-    >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
+    >>> sp.run_one_step(dt=10.0)
+    >>> z.reshape(grid.shape)[1, :]
     array([  0.        ,   1.        ,   4.        ,   8.52493781,
             13.29039716,  18.44367965,  36.        ])
 
-    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
-    >>> z = np.array(grid.node_x ** 2.)
-    >>> z = grid.add_field('topographic__elevation', z, at='node')
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.0)
+    >>> z = np.array(grid.node_x**2.0)
+    >>> z = grid.add_field("topographic__elevation", z, at="node")
     >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_FIXED_VALUE
     >>> grid.status_at_node[grid.nodes_at_top_edge] = grid.BC_NODE_IS_CLOSED
     >>> grid.status_at_node[grid.nodes_at_bottom_edge] = grid.BC_NODE_IS_CLOSED
     >>> grid.status_at_node[grid.nodes_at_right_edge] = grid.BC_NODE_IS_CLOSED
     >>> cell_area = 1.0
-    >>> fr = FlowAccumulator(grid, flow_director='D8', runoff_rate=2.0)
+    >>> fr = FlowAccumulator(grid, flow_director="D8", runoff_rate=2.0)
     >>> grid.at_node["water__unit_flux_in"]
     array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,
             2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.])
-    >>> K_field = grid.ones(at='node') # K can be a field
-    >>> sp = FastscapeEroder(grid,
+    >>> K_field = grid.ones(at="node")  # K can be a field
+    >>> sp = FastscapeEroder(
+    ...     grid,
     ...     K_sp=K_field,
-    ...     m_sp=1.,
+    ...     m_sp=1.0,
     ...     n_sp=0.6,
     ...     threshold_sp=grid.node_x,
-    ...     discharge_field="surface_water__discharge")
+    ...     discharge_field="surface_water__discharge",
+    ... )
     >>> fr.run_one_step()
-    >>> sp.run_one_step(1.)
-    >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
+    >>> sp.run_one_step(1.0)
+    >>> z.reshape(grid.shape)[1, :]
     array([  0.        ,   0.0647484 ,   0.58634455,   2.67253503,
              8.49212152,  20.92606987,  36.        ])
 
@@ -227,25 +229,23 @@ class FastscapeEroder(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that FastscapeEroder is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that FastscapeEroder is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
-        if not erode_flooded_nodes:
-            if "flood_status_code" not in self._grid.at_node:
-                msg = (
-                    "In order to not erode flooded nodes another component "
-                    "must create the field *flood_status_code*. You want to "
-                    "run a lake mapper/depression finder."
-                )
-                raise ValueError(msg)
+        if not erode_flooded_nodes and "flood_status_code" not in self._grid.at_node:
+            raise ValueError(
+                "In order to not erode flooded nodes another component "
+                "must create the field *flood_status_code*. You want to "
+                "run a lake mapper/depression finder."
+            )
 
         self._erode_flooded_nodes = erode_flooded_nodes
 

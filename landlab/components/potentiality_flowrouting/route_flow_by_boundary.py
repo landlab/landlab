@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
@@ -59,16 +58,14 @@ class PotentialityFlowRouter(Component):
     >>> from landlab import HexModelGrid
     >>> import numpy as np
     >>> mg = HexModelGrid(
-    ...     (4, 6),
-    ...     spacing=2.,
-    ...     node_layout="rect",
-    ...     orientation="vertical")
+    ...     (4, 6), spacing=2.0, node_layout="rect", orientation="vertical"
+    ... )
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> Q_in = mg.add_ones("water__unit_flux_in", at="node")
     >>> z += mg.node_y.copy()
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
-    >>> mg.at_node['surface_water__discharge'][mg.core_nodes]
+    >>> mg.at_node["surface_water__discharge"][mg.core_nodes]
     array([ 11.70706863,  11.5709712 ,  10.41329927,   9.24959728,
              6.65448576,   6.39262702,   5.71410162,   5.04743495])
 
@@ -95,7 +92,10 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
+            "doc": (
+                "Value of the hypothetical field 'K', used to force water "
+                "flux to flow downhill"
+            ),
         },
         "surface_water__depth": {
             "dtype": float,
@@ -127,7 +127,10 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "node",
-            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+            "doc": (
+                "External volume water per area per time input to each node "
+                "(e.g., rainfall rate)"
+            ),
         },
     }
 

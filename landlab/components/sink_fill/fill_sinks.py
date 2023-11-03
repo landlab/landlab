@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 """Created on Mon Oct 19.
 
 @author: dejh
 """
-
+import contextlib
 
 import numpy as np
 
@@ -40,7 +39,7 @@ class SinkFiller(Component):
     >>> z = np.ones(100, dtype=float)
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
-    >>> z[lake] = 0.
+    >>> z[lake] = 0.0
     >>> field = mg.add_field(
     ...     "topographic__elevation",
     ...     z,
@@ -48,15 +47,15 @@ class SinkFiller(Component):
     ...     units="-",
     ...     copy=True,
     ... )
-    >>> fr = FlowAccumulator(mg, flow_director='D8')
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> fr.run_one_step()
-    >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
+    >>> mg.at_node["flow__sink_flag"][mg.core_nodes].sum()
     14
     >>> hf = SinkFiller(mg, apply_slope=False)
     >>> hf.run_one_step()
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake1], 4.)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake1], 4.0)
     True
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake2], 7.)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake2], 7.0)
     True
 
     Now reset and demonstrate the adding of an inclined surface:
@@ -64,16 +63,28 @@ class SinkFiller(Component):
     >>> field[:] = z
     >>> hf = SinkFiller(mg, apply_slope=True)
     >>> hf.run_one_step()
-    >>> hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00030769,
-    ...                   4.00038462, 4.00046154, 4.00053846, 4.00061538,
-    ...                   4.00069231, 4.00076923, 4.00084615])
+    >>> hole1 = np.array(
+    ...     [
+    ...         4.00007692,
+    ...         4.00015385,
+    ...         4.00023077,
+    ...         4.00030769,
+    ...         4.00038462,
+    ...         4.00046154,
+    ...         4.00053846,
+    ...         4.00061538,
+    ...         4.00069231,
+    ...         4.00076923,
+    ...         4.00084615,
+    ...     ]
+    ... )
     >>> hole2 = np.array([7.4, 7.2, 7.6])
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake1], hole1)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake1], hole1)
     True
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake2], hole2)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake2], hole2)
     True
     >>> fr.run_one_step()
-    >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
+    >>> mg.at_node["flow__sink_flag"][mg.core_nodes].sum()
     0
 
     References
@@ -137,16 +148,16 @@ class SinkFiller(Component):
         """
         super().__init__(grid)
 
-        if "flow__receiver_node" in grid.at_node:
-            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-                msg = (
-                    "A route-to-multiple flow director has been "
-                    "run on this grid. The landlab development team has not "
-                    "verified that SinkFiller is compatible with "
-                    "route-to-multiple methods. Please open a GitHub Issue "
-                    "to start this process."
-                )
-                raise NotImplementedError(msg)
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
+            "flow__receiver_node"
+        ].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that SinkFiller is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
 
         if routing != "D8":
             assert routing == "D4"
@@ -193,10 +204,8 @@ class SinkFiller(Component):
         existing_fields = {}
         spurious_fields = set()
         set_of_outputs = set(self._lf.output_var_names) | set(self._fr.output_var_names)
-        try:
+        with contextlib.suppress(KeyError):
             set_of_outputs.remove(self._topo_field_name)
-        except KeyError:
-            pass
         for field in set_of_outputs:
             try:
                 existing_fields[field] = self._grid.at_node[field].copy()
@@ -211,7 +220,7 @@ class SinkFiller(Component):
         if self._apply_slope:
             # new way of doing this - use the upstream structure! Should be
             # both more general and more efficient
-            for (outlet_node, lake_code) in zip(
+            for outlet_node, lake_code in zip(
                 self._lf.lake_outlets, self._lf.lake_codes
             ):
                 lake_nodes = np.where(self._lf.lake_map == lake_code)[0]

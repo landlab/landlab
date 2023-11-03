@@ -6,8 +6,9 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi-automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import contextlib
 import fnmatch
-from functools import lru_cache
+from functools import cached_property
 
 import numpy as np
 import xarray as xr
@@ -233,13 +234,15 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 
     >>> import numpy as np
     >>> from landlab.grid.base import find_true_vector_from_link_vector_pair
-    >>> bx = np.array([0.5, -0.5, -1., -0.5, 1., 0.5])
-    >>> by = np.array([0.866, 0.866, 0., -0.866, 0., -0.866])
-    >>> L = np.array([4.6, 0.6, -4., -4.6, 4., -0.6])
+    >>> bx = np.array([0.5, -0.5, -1.0, -0.5, 1.0, 0.5])
+    >>> by = np.array([0.866, 0.866, 0.0, -0.866, 0.0, -0.866])
+    >>> L = np.array([4.6, 0.6, -4.0, -4.6, 4.0, -0.6])
     >>> for i in range(5):
     ...     ax, ay = find_true_vector_from_link_vector_pair(
-    ...         L[i], L[i+1], bx[i], by[i], bx[i+1], by[i+1])
-    ...     round(ax,1), round(ay,1)
+    ...         L[i], L[i + 1], bx[i], by[i], bx[i + 1], by[i + 1]
+    ...     )
+    ...     round(ax, 1), round(ay, 1)
+    ...
     (4.0, 3.0)
     (4.0, 3.0)
     (4.0, 3.0)
@@ -328,12 +331,14 @@ class ModelGrid(
         --------
         >>> from io import StringIO
         >>> from landlab import RasterModelGrid
-        >>> filelike = StringIO('''
+        >>> filelike = StringIO(
+        ...     '''
         ... shape:
         ...     - 3
         ...     - 4
         ... xy_spacing: 2
-        ... ''')
+        ... '''
+        ... )
         >>> grid = RasterModelGrid.from_file(filelike)
         >>> grid.x_of_node
         array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
@@ -355,7 +360,7 @@ class ModelGrid(
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> params = {"shape": (3,4), "xy_spacing": 2}
+        >>> params = {"shape": (3, 4), "xy_spacing": 2}
         >>> grid = RasterModelGrid.from_dict(params)
         >>> grid.x_of_node
         array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
@@ -394,8 +399,8 @@ class ModelGrid(
     def fields(self, include="*", exclude=None):
         """List of fields held by the grid.
 
-        The returned field names are returned as their canonical names. This is,
-        as a string of the for "at_<location>:<name>". This allows for fields with
+        The returned field names are returned as their canonical names. That is,
+        as a string of the for ``"at_<location>:<name>"``. This allows for fields with
         the same name to be defined at different grid locations. You could have,
         for example, a variable "elevation" defined at both *nodes* and
         *links*.
@@ -454,17 +459,13 @@ class ModelGrid(
         if isinstance(exclude, str):
             exclude = [exclude]
 
-        layer_groups = set(["_".join(["layer", at]) for at in self.groups])
+        layer_groups = {"_".join(["layer", at]) for at in self.groups}
         layer_groups.add("layer")
 
         canonical_names = set()
         for at in self.groups | layer_groups:
-            try:
-                canonical_names.update(
-                    ["at_{0}:{1}".format(at, name) for name in self[at]]
-                )
-            except KeyError:
-                pass
+            with contextlib.suppress(KeyError):
+                canonical_names.update([f"at_{at}:{name}" for name in self[at]])
 
         names = set()
         for pattern in include:
@@ -576,7 +577,8 @@ class ModelGrid(
         >>> sorted(ds.dims.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
-        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
+         'at_node:elevation', 'at_node:temperature']
         """
         names = self.fields(include=include, exclude=exclude)
 
@@ -610,8 +612,7 @@ class ModelGrid(
         -------
 
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5),
-        ...       xy_of_reference = (12345, 678910))
+        >>> rmg = RasterModelGrid((4, 5), xy_of_reference=(12345, 678910))
         >>> rmg.xy_of_reference
         (12345, 678910)
         >>> rmg.xy_of_reference = (98765, 43210)
@@ -684,7 +685,7 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid, HexModelGrid
         >>> grid = RasterModelGrid((4, 5))
 
-        >>> grid.active_adjacent_nodes_at_node[(-1, 6, 2), ]
+        >>> grid.active_adjacent_nodes_at_node[(-1, 6, 2),]
         array([[-1, -1, -1, -1],
                [ 7, 11,  5,  1],
                [-1,  7, -1, -1]])
@@ -693,7 +694,7 @@ class ModelGrid(
         be inactive.
 
         >>> grid.status_at_node[6] = grid.BC_NODE_IS_CLOSED
-        >>> grid.active_adjacent_nodes_at_node[(-1, 6, 2), ]
+        >>> grid.active_adjacent_nodes_at_node[(-1, 6, 2),]
         array([[-1, -1, -1, -1],
                [-1, -1, -1, -1],
                [-1,  7, -1, -1]])
@@ -725,27 +726,45 @@ class ModelGrid(
     @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
-        """Link flux directions at each node: 1=incoming flux, -1=outgoing
-        flux, 0=no flux. Note that inactive links receive zero, but active and
-        fixed links are both reported normally.
+        """Return link directions into each node.
+
+        A value of 1 indicates a link points toward a given node, while a value
+        of -1 indicates a link points away from a node. Note that inactive links
+        have a value of 0, but active and fixed links are both reported normally.
 
         Returns
         -------
-        (NODES, LINKS) ndarray of int
+        (n_nodes, max_links_per_node) ndarray of int
             Link directions relative to the nodes of a grid. The shape of the
-            matrix will be number of nodes rows by max number of links per
+            matrix will be number of nodes by the maximum number of links per
             node. A zero indicates no link at this position.
 
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 3))
+        >>> grid = RasterModelGrid((3, 4))
+
+        ::
+
+            .--->.--->.--->.
+            ^    ^    ^    ^
+            |    |    |    |
+            .--->5--->.--->.
+            ^    ^    ^    ^
+            |    |    |    |
+            .--->.--->.--->.
+
+        >>> grid.active_link_dirs_at_node[5]
+        array([-1, -1,  1,  1], dtype=int8)
+
+        If we set the nodes along the left edge to be closed, the links attached
+        to those nodes become inactive and so their directions are reported as 0.
+
         >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_CLOSED
-        >>> grid.active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
-               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
+        >>> grid.active_link_dirs_at_node
+        array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0], [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0,  0,  1,  0],
+               [ 0,  0,  0,  0], [ 0,  0,  0,  1], [ 0,  0,  0,  1], [ 0,  0,  0,  0]],
                dtype=int8)
 
         :meta landlab: info-node, info-link, connectivity
@@ -806,8 +825,11 @@ class ModelGrid(
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_right_edge,
-        ...              mg.nodes_at_bottom_edge):
+        >>> for edge in (
+        ...     mg.nodes_at_left_edge,
+        ...     mg.nodes_at_right_edge,
+        ...     mg.nodes_at_bottom_edge,
+        ... ):
         ...     mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.open_boundary_nodes
         array([16, 17, 18])
@@ -1007,8 +1029,11 @@ class ModelGrid(
 
         Set left, right, and bottom edges to closed.
 
-        >>> for edge in (grid.nodes_at_left_edge, grid.nodes_at_right_edge,
-        ...              grid.nodes_at_bottom_edge):
+        >>> for edge in (
+        ...     grid.nodes_at_left_edge,
+        ...     grid.nodes_at_right_edge,
+        ...     grid.nodes_at_bottom_edge,
+        ... ):
         ...     grid.status_at_node[edge] = grid.BC_NODE_IS_CLOSED
 
         Now nodes on just the top edge are fixed.
@@ -1068,18 +1093,18 @@ class ModelGrid(
         --------
         >>> from landlab import NodeStatus, RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
-        >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1,
-               1, 0, 0, 1,
-               1, 1, 1, 1], dtype=uint8)
+        >>> grid.status_at_node.reshape(grid.shape)
+        array([[1, 1, 1, 1],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
         >>> grid.fixed_links.size
         0
 
         >>> grid.status_at_node[:4] = NodeStatus.FIXED_GRADIENT
-        >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2,
-               1, 0, 0, 1,
-               1, 1, 1, 1], dtype=uint8)
+        >>> grid.status_at_node.reshape(grid.shape)
+        array([[2, 2, 2, 2],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
         >>> grid.fixed_links
         array([4, 5])
 
@@ -1160,7 +1185,7 @@ class ModelGrid(
         array([  2,  4,  6, 12, 14, 16])
         >>> len(grid.link_with_angle(0.5236))  # no links at 30 deg
         0
-        >>> grid = HexModelGrid((3, 3), orientation='vertical')
+        >>> grid = HexModelGrid((3, 3), orientation="vertical")
         >>> grid.link_with_angle(30.0, in_degrees=True)
         array([  1,  3,  8, 10, 15, 17])
         >>> grid.link_with_angle(1.5708)  # 90 degrees
@@ -1308,8 +1333,11 @@ class ModelGrid(
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.number_of_active_links
         17
-        >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_right_edge,
-        ...              mg.nodes_at_bottom_edge):
+        >>> for edge in (
+        ...     mg.nodes_at_left_edge,
+        ...     mg.nodes_at_right_edge,
+        ...     mg.nodes_at_bottom_edge,
+        ... ):
         ...     mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.number_of_active_links
         10
@@ -1356,26 +1384,26 @@ class ModelGrid(
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.number_of_elements('node')
+        >>> mg.number_of_elements("node")
         20
-        >>> mg.number_of_elements('core_cell')
+        >>> mg.number_of_elements("core_cell")
         6
-        >>> mg.number_of_elements('link')
+        >>> mg.number_of_elements("link")
         31
-        >>> mg.number_of_elements('active_link')
+        >>> mg.number_of_elements("active_link")
         17
         >>> mg.status_at_node[8] = mg.BC_NODE_IS_CLOSED
-        >>> mg.number_of_elements('link')
+        >>> mg.number_of_elements("link")
         31
-        >>> mg.number_of_elements('active_link')
+        >>> mg.number_of_elements("active_link")
         13
 
         :meta landlab: info-grid
         """
         try:
             return getattr(self, _ARRAY_LENGTH_ATTRIBUTES[name])
-        except KeyError:
-            raise TypeError("{name}: element name not understood".format(name=name))
+        except KeyError as exc:
+            raise TypeError(f"{name}: element name not understood") from exc
 
     @make_return_array_immutable
     def node_axis_coordinates(self, axis=0):
@@ -1399,24 +1427,24 @@ class ModelGrid(
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_axis_coordinates(0) # doctest: +NORMALIZE_WHITESPACE
-        array([ 0., 0., 0., 0., 0.,
-                1., 1., 1., 1., 1.,
-                2., 2., 2., 2., 2.,
-                3., 3., 3., 3., 3.])
-        >>> grid.node_axis_coordinates(1) # doctest: +NORMALIZE_WHITESPACE
-        array([ 0., 1., 2., 3., 4.,
-                0., 1., 2., 3., 4.,
-                0., 1., 2., 3., 4.,
-                0., 1., 2., 3., 4.])
+        >>> grid.node_axis_coordinates(0).reshape(grid.shape)
+        array([[ 0.,  0.,  0.,  0.,  0.],
+               [ 1.,  1.,  1.,  1.,  1.],
+               [ 2.,  2.,  2.,  2.,  2.],
+               [ 3.,  3.,  3.,  3.,  3.]])
+        >>> grid.node_axis_coordinates(1).reshape(grid.shape)
+        array([[ 0.,  1.,  2.,  3.,  4.],
+               [ 0.,  1.,  2.,  3.,  4.],
+               [ 0.,  1.,  2.,  3.,  4.],
+               [ 0.,  1.,  2.,  3.,  4.]])
 
         :meta landlab: info-grid, info-node, quantity
         """
         AXES = ("node_y", "node_x")
         try:
             return getattr(self, AXES[axis])
-        except IndexError:
-            raise ValueError("'axis' entry is out of bounds")
+        except IndexError as exc:
+            raise ValueError("'axis' entry is out of bounds") from exc
 
     @property
     def axis_units(self):
@@ -1430,7 +1458,7 @@ class ModelGrid(
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3.0, 2.0))
         >>> mg.axis_units
         ('-', '-')
         >>> mg.axis_units = ("degrees_north", "degrees_east")
@@ -1467,7 +1495,7 @@ class ModelGrid(
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.axis_name
         ('x', 'y')
-        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name = ("lon", "lat")
         >>> grid.axis_name
         ('lon', 'lat')
 
@@ -1510,7 +1538,7 @@ class ModelGrid(
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.status_at_node[mg.nodes_at_left_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
-        >>> mg.status_at_link # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.status_at_link
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 2, 4, 0, 0, 0, 4, 4, 0, 0,
                2, 4, 0, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
 
@@ -1586,12 +1614,27 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
-        ...                                 -2., -3., -4., -5.,
-        ...                                 -1., -2., -1.,
-        ...                                 -1., -2., -3., -4.,
-        ...                                 -1., -2., -1.])
-        >>> rmg.link_at_node_is_upwind('grad')
+
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
+        >>> rmg.link_at_node_is_upwind("grad")
         array([[False, False, False, False],
                [False, False,  True, False],
                [False, False,  True, False],
@@ -1654,12 +1697,26 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
-        ...                                 -2., -3., -4., -5.,
-        ...                                 -1., -2., -1.,
-        ...                                 -1., -2., -3., -4.,
-        ...                                 -1., -2., -1.])
-        >>> rmg.link_at_node_is_downwind('grad')
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
+        >>> rmg.link_at_node_is_downwind("grad")
         array([[ True,  True, False, False],
                [ True,  True, False, False],
                [ True,  True, False, False],
@@ -1718,12 +1775,26 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
-        ...                                 -2., -3., -4., -5.,
-        ...                                 -1., -2., -1.,
-        ...                                 -1., -2., -3., -4.,
-        ...                                 -1., -2., -1.])
-        >>> rmg.upwind_links_at_node('grad', bad_index=-1)
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
+        >>> rmg.upwind_links_at_node("grad", bad_index=-1)
         array([[-1, -1],
                [ 0, -1],
                [ 1, -1],
@@ -1789,12 +1860,26 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
-        ...                                 -2., -3., -4., -5.,
-        ...                                 -1., -2., -1.,
-        ...                                 -1., -2., -3., -4.,
-        ...                                 -1., -2., -1.])
-        >>> rmg.downwind_links_at_node('grad', bad_index=rmg.BAD_INDEX)
+        >>> rmg.at_link["grad"] = [
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -5.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -3.0,
+        ...     -4.0,
+        ...     -1.0,
+        ...     -2.0,
+        ...     -1.0,
+        ... ]
+        >>> rmg.downwind_links_at_node("grad", bad_index=rmg.BAD_INDEX)
         array([[ 0,  3],
                [ 1,  4],
                [ 2,  5],
@@ -2090,9 +2175,9 @@ class ModelGrid(
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
 
-        >>> mg = RasterModelGrid((5, 5), xy_spacing=1.)
-        >>> z = mg.x_of_node * np.tan(60. * np.pi / 180.)
-        >>> mg.calc_hillshade_at_node(elevs=z, alt=30., az=210.)
+        >>> mg = RasterModelGrid((5, 5), xy_spacing=1.0)
+        >>> z = mg.x_of_node * np.tan(60.0 * np.pi / 180.0)
+        >>> mg.calc_hillshade_at_node(elevs=z, alt=30.0, az=210.0)
         array([ 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
                 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
                 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
@@ -2140,8 +2225,7 @@ class ModelGrid(
 
         return shaded.clip(0.0)
 
-    @property
-    @lru_cache()
+    @cached_property
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.
@@ -2189,22 +2273,16 @@ class ModelGrid(
         ]
 
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
         try:
             self.bc_set_code += 1
         except AttributeError:
             self.bc_set_code = 0
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_inlink_matrix"]
-        except KeyError:
-            pass
-        try:
+        with contextlib.suppress(KeyError):
             del self.__dict__["__node_active_outlink_matrix"]
-        except KeyError:
-            pass
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
@@ -2250,13 +2328,22 @@ class ModelGrid(
         >>> import numpy as np
         >>> import landlab as ll
         >>> mg = ll.RasterModelGrid((3, 4))
-        >>> mg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
-        >>> h = np.array([-9999, -9999, -9999, -9999, -9999, -9999, 12345.,
-        ...     0., -9999, 0., 0., 0.])
+        >>> mg.status_at_node.reshape(mg.shape)
+        array([[1, 1, 1, 1],
+               [1, 0, 0, 1],
+               [1, 1, 1, 1]], dtype=uint8)
+        >>> h = np.array(
+        ...     [
+        ...         [-9999, -9999, -9999, -9999],
+        ...         [-9999, -9999, 12345.0, 0.0],
+        ...         [-9999, 0.0, 0.0, 0.0],
+        ...     ]
+        ... ).flatten()
         >>> mg.set_nodata_nodes_to_closed(h, -9999)
-        >>> mg.status_at_node
-        array([4, 4, 4, 4, 4, 4, 0, 1, 4, 1, 1, 1], dtype=uint8)
+        >>> mg.status_at_node.reshape(mg.shape)
+        array([[4, 4, 4, 4],
+               [4, 4, 0, 1],
+               [4, 1, 1, 1]], dtype=uint8)
 
         :meta landlab: boundary-condition, info-node
         """
@@ -2317,31 +2404,37 @@ class ModelGrid(
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 9))
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 1, 1, 1,
-               1, 0, 0, 0, 0, 0, 0, 0, 1,
-               1, 0, 0, 0, 0, 0, 0, 0, 1,
-               1, 1, 1, 1, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[1, 1, 1, 1, 1, 1, 1, 1, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 0, 0, 0, 0, 0, 0, 0, 1],
+               [1, 1, 1, 1, 1, 1, 1, 1, 1]], dtype=uint8)
 
-        >>> z = rmg.zeros(at='node')
-        >>> z = np.array([
-        ...     -99., -99., -99., -99., -99., -99., -99., -99., -99.,
-        ...     -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
-        ...     -99., -99., -99.,   0.,   0.,   0.,   0.,   0., -99.,
-        ...     -99., -99., -99., -99., -99., -99., -99., -99., -99.])
+        >>> z = np.array(
+        ...     [
+        ...         [-99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0],
+        ...         [-99.0, -99.0, -99.0, 0.0, 0.0, 0.0, 0.0, 0.0, -99.0],
+        ...         [-99.0, -99.0, -99.0, 0.0, 0.0, 0.0, 0.0, 0.0, -99.0],
+        ...         [-99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0, -99.0],
+        ...     ]
+        ... ).flatten()
 
         >>> rmg.set_nodata_nodes_to_fixed_gradient(z, -99)
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2, 2, 2, 2, 2, 2,
-               2, 2, 2, 0, 0, 0, 0, 0, 2,
-               2, 2, 2, 0, 0, 0, 0, 0, 2,
-               2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=uint8)
+        >>> rmg.status_at_node.reshape(rmg.shape)
+        array([[2, 2, 2, 2, 2, 2, 2, 2, 2],
+               [2, 2, 2, 0, 0, 0, 0, 0, 2],
+               [2, 2, 2, 0, 0, 0, 0, 0, 2],
+               [2, 2, 2, 2, 2, 2, 2, 2, 2]], dtype=uint8)
 
-        >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 4,
-               4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 0, 0, 0, 0, 0, 4,
-               4, 4, 2, 0, 0, 0, 0, 2, 4, 4, 4, 2, 2, 2, 2, 2, 4,
-               4, 4, 4, 4, 4, 4, 4, 4], dtype=uint8)
+        >>> rmg.status_at_link[rmg.horizontal_links].reshape((4, 8))
+        array([[4, 4, 4, 4, 4, 4, 4, 4],
+               [4, 4, 2, 0, 0, 0, 0, 2],
+               [4, 4, 2, 0, 0, 0, 0, 2],
+               [4, 4, 4, 4, 4, 4, 4, 4]], dtype=uint8)
+        >>> rmg.status_at_link[rmg.vertical_links].reshape((3, 9))
+        array([[4, 4, 4, 2, 2, 2, 2, 2, 4],
+               [4, 4, 4, 0, 0, 0, 0, 0, 4],
+               [4, 4, 4, 2, 2, 2, 2, 2, 4]], dtype=uint8)
 
         :meta landlab: boundary-condition, info-node
         """
@@ -2387,6 +2480,10 @@ class ModelGrid(
     def map_link_vector_to_nodes(self, q):
         r"""Map data defined on links to nodes.
 
+        .. danger::
+
+            THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
+
         Given a variable defined on links, breaks it into x and y components
         and assigns values to nodes by averaging each node's attached links.
 
@@ -2408,7 +2505,6 @@ class ModelGrid(
 
         Notes
         -----
-        THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
 
         The concept here is that q contains a vector variable that is defined
         at each link. The magnitude is given by the value of q, and the
@@ -2509,7 +2605,7 @@ class ModelGrid(
         :math:`(1,1)`.
 
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(2., 2.))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(2.0, 2.0))
         >>> grid.unit_vector_at_node
         array([[ 1.,  1.],
                [ 2.,  1.],
@@ -2523,7 +2619,7 @@ class ModelGrid(
                [ 2.,  1.],
                [ 2.,  1.],
                [ 1.,  1.]])
-        >>> q = grid.ones(at='link')
+        >>> q = grid.ones(at="link")
         >>> grid.map_link_vector_to_nodes(q)
         array([[ 1.,  1.],
                [ 1.,  1.],
@@ -2544,9 +2640,27 @@ class ModelGrid(
         forming a 3-4-5 triangle.
 
         >>> import numpy as np
-        >>> q = np.array([4., 4., 4., 3., 3., 3., 3.,
-        ...               4., 4., 4., 3., 3., 3., 3.,
-        ...               4., 4., 4])
+        >>> q = np.array(
+        ...     [
+        ...         4.0,
+        ...         4.0,
+        ...         4.0,
+        ...         3.0,
+        ...         3.0,
+        ...         3.0,
+        ...         3.0,
+        ...         4.0,
+        ...         4.0,
+        ...         4.0,
+        ...         3.0,
+        ...         3.0,
+        ...         3.0,
+        ...         3.0,
+        ...         4.0,
+        ...         4.0,
+        ...         4,
+        ...     ]
+        ... )
         >>> grid.map_link_vector_to_nodes(q)
         array([[ 4.,  3.],
                [ 4.,  3.],
@@ -2701,14 +2815,13 @@ class ModelGrid(
         Calculate distances from point at (2., 1.) to a subset of nodes on
         the grid.
 
-        >>> grid.calc_distances_of_nodes_to_point((2, 1),
-        ...     node_subset=(2, 6, 7, 8, 12))
+        >>> grid.calc_distances_of_nodes_to_point((2, 1), node_subset=(2, 6, 7, 8, 12))
         array([ 1.,  1.,  0.,  1.,  1.])
 
         Calculate distances from a point to all nodes on the grid.
 
         >>> dist = grid.calc_distances_of_nodes_to_point((2, 1))
-        >>> dist.shape == (grid.number_of_nodes, )
+        >>> dist.shape == (grid.number_of_nodes,)
         True
         >>> dist.take((2, 6, 7, 8, 12))
         array([ 1.,  1.,  0.,  1.,  1.])
@@ -2716,8 +2829,7 @@ class ModelGrid(
         Put the distances into a buffer.
 
         >>> out = np.empty(grid.number_of_nodes, dtype=float)
-        >>> dist = grid.calc_distances_of_nodes_to_point((2, 1),
-        ...     out_distance=out)
+        >>> dist = grid.calc_distances_of_nodes_to_point((2, 1), out_distance=out)
         >>> out is dist
         True
         >>> out.take((2, 6, 7, 8, 12))
@@ -2726,20 +2838,21 @@ class ModelGrid(
         Calculate azimuths along with distances. The azimuths are calculated
         in radians but measured clockwise from north.
 
-        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1),
-        ...     get_az='angles')
-        >>> azim.take((2, 6, 7, 8, 12)) * 180. / np.pi
+        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1), get_az="angles")
+        >>> azim.take((2, 6, 7, 8, 12)) * 180.0 / np.pi
         array([ 180.,  270.,    0.,   90.,    0.])
-        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1),
-        ...     get_az='angles', node_subset=(1, 3, 11, 13))
-        >>> azim * 180. / np.pi
+        >>> (_, azim) = grid.calc_distances_of_nodes_to_point(
+        ...     (2, 1), get_az="angles", node_subset=(1, 3, 11, 13)
+        ... )
+        >>> azim * 180.0 / np.pi
         array([ 225.,  135.,  315.,   45.])
 
         When calculating displacements, the first row contains displacements
         in x and the second displacements in y.
 
-        >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1),
-        ...     get_az='displacements', node_subset=(2, 6, 7, 8, 12))
+        >>> (_, azim) = grid.calc_distances_of_nodes_to_point(
+        ...     (2, 1), get_az="displacements", node_subset=(2, 6, 7, 8, 12)
+        ... )
         >>> azim
         array([[ 0., -1.,  0.,  1.,  0.],
                [-1.,  0.,  0.,  0.,  1.]])
@@ -2879,7 +2992,7 @@ class ModelGrid(
         Angles are measured in radians and increase clockwise starting at
         north.
 
-        >>> angles *= 180. / np.pi
+        >>> angles *= 180.0 / np.pi
         >>> angles[0, :4]
         array([  0.,  90.,  90.,  90.])
         >>> angles[0, ::4]

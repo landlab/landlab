@@ -123,7 +123,7 @@ from . import _info
 from .core.messages import indent_and_wrap
 
 
-class ComponentRegistry(object):
+class ComponentRegistry:
 
     """A registry for instantiated landlab components."""
 
@@ -162,12 +162,13 @@ class ComponentRegistry(object):
         >>> registry.registered
         ()
         >>> class FooBar(object):
-        ...    pass
+        ...     pass
+        ...
         >>> registry.add(FooBar)
         >>> registry.registered
         ('FooBar',)
         """
-        return tuple([ComponentRegistry.get_name(obj) for obj in self._registered])
+        return tuple(ComponentRegistry.get_name(obj) for obj in self._registered)
 
     @staticmethod
     def format_citation(obj):
@@ -190,6 +191,7 @@ class ComponentRegistry(object):
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
         ...     pass
+        ...
         >>> print(registry.format_citation(DoNothingComponent))
         ## DoNothingComponent
             None
@@ -203,6 +205,7 @@ class ComponentRegistry(object):
         ... year={1998},
         ... publisher={Pearson Education}
         ... }'''
+        ...
         >>> print(registry.format_citation(SorterAndSearcher))
         ## SorterAndSearcher
             @book{knuth1998art,
@@ -214,7 +217,7 @@ class ComponentRegistry(object):
             }
         """
         name = ComponentRegistry.get_name(obj)
-        header = ["## {name}".format(name=name)]
+        header = [f"## {name}"]
 
         cite_as = ComponentRegistry.get_citations(obj)
 
@@ -233,14 +236,17 @@ class ComponentRegistry(object):
         >>> from landlab._registry import ComponentRegistry
         >>> class MontyPython(object):
         ...     name = "Eric Idle"
+        ...
         >>> ComponentRegistry.get_name(MontyPython)
         'Eric Idle'
         >>> class MontyPython(object):
         ...     _name = "Graham Chapman"
+        ...
         >>> ComponentRegistry.get_name(MontyPython)
         'Graham Chapman'
         >>> class MontyPython(object):
         ...     pass
+        ...
         >>> ComponentRegistry.get_name(MontyPython)
         'MontyPython'
 
@@ -284,8 +290,9 @@ class ComponentRegistry(object):
         >>> registry = ComponentRegistry()
 
         >>> class HolyGrailFinder(object):
-        ...     _name = 'Monty Python'
-        ...     _cite_as = ['''@book{python2000holy,
+        ...     _name = "Monty Python"
+        ...     _cite_as = [
+        ...         '''@book{python2000holy,
         ...         title={the Holy Grail},
         ...         author={Python, Monty and Chapman, Graham and Cleese, John and Gilliam, Terry and Jones, Terry and Idle, Eric and Palin, Michael},
         ...         year={2000},
@@ -297,7 +304,9 @@ class ComponentRegistry(object):
         ...         volume={1},
         ...         year={1989},
         ...         publisher={Pantheon}
-        ...         }''']
+        ...         }''',
+        ...     ]
+        ...
         >>> class Evolution(object):
         ...     _cite_as = '''
         ...         @book{darwin1859origin,
@@ -306,6 +315,7 @@ class ComponentRegistry(object):
         ...         year={1859},
         ...         publisher={Lulu. com}
         ...         }'''
+        ...
         >>> registry.add(HolyGrailFinder)
         >>> registry.add(Evolution)
         >>> print(registry.format_citations())
@@ -335,7 +345,7 @@ class ComponentRegistry(object):
             year={1859},
             publisher={Lulu. com}
             }
-        """
+        """  # noqa: B950
         header = ["# Citations"]
         body = []
         for cls in self._registered:
@@ -343,7 +353,7 @@ class ComponentRegistry(object):
         return os.linesep.join(header + [(2 * os.linesep).join(body)])
 
     def __repr__(self):
-        return "ComponentRegistry({0})".format(repr(self.registered))
+        return f"ComponentRegistry({repr(self.registered)})"
 
 
 registry = ComponentRegistry(_info)

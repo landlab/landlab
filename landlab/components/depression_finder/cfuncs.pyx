@@ -1,9 +1,9 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
+cimport numpy as np
 
 from landlab.core.messages import warning_message
-
 
 DTYPE_INT = int
 ctypedef np.int_t DTYPE_INT_t

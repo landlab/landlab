@@ -1,0 +1,2 @@
+Fixed  errors introduced with *argsort* from *numpy* v1.25. These were the result of
+vectorized versions of the quicksort algorithm used on some architectures.

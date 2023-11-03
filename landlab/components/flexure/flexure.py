@@ -11,23 +11,23 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
->>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+>>> grid = RasterModelGrid((5, 4), xy_spacing=(1.0e4, 1.0e4))
 >>> lith_press = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
 
 Check the fields that are used as input to the flexure component.
 
->>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
+>>> Flexure.input_var_names
 ('lithosphere__overlying_pressure_increment',)
 
 Check the units for the fields.
 
->>> Flexure.var_units('lithosphere__overlying_pressure_increment')
+>>> Flexure.var_units("lithosphere__overlying_pressure_increment")
 'Pa'
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> Flexure.var_help('lithosphere__overlying_pressure_increment')
+>>> Flexure.var_help("lithosphere__overlying_pressure_increment")
 name: lithosphere__overlying_pressure_increment
 description:
   Applied pressure to the lithosphere over a time step
@@ -41,7 +41,7 @@ intent: in
 In creating the component, a field (initialized with zeros) was added to the
 grid. Reset the interior nodes for the loading.
 
->>> dh = grid.at_node['lithosphere__overlying_pressure_increment']
+>>> dh = grid.at_node["lithosphere__overlying_pressure_increment"]
 >>> dh = dh.reshape(grid.shape)
 >>> dh[1:-1, 1:-1] = flex.gamma_mantle
 
@@ -49,13 +49,12 @@ grid. Reset the interior nodes for the loading.
 
 >>> flex.output_var_names
 ('lithosphere_surface__elevation_increment',)
->>> flex.grid.at_node['lithosphere_surface__elevation_increment']
-...     # doctest: +NORMALIZE_WHITESPACE
-array([ 0., 0., 0., 0.,
-        0., 1., 1., 0.,
-        0., 1., 1., 0.,
-        0., 1., 1., 0.,
-        0., 0., 0., 0.])
+>>> flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape(grid.shape)
+array([[ 0.,  0.,  0.,  0.],
+       [ 0.,  1.,  1.,  0.],
+       [ 0.,  1.,  1.,  0.],
+       [ 0.,  1.,  1.,  0.],
+       [ 0.,  0.,  0.,  0.]])
 """
 
 import numpy as np
@@ -77,7 +76,7 @@ class Flexure(Component):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
-    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.0e4, 1.0e4))
     >>> lith_press = grid.add_zeros(
     ...     "lithosphere__overlying_pressure_increment", at="node"
     ... )
@@ -89,7 +88,7 @@ class Flexure(Component):
     ('lithosphere__overlying_pressure_increment',)
     >>> flex.output_var_names
     ('lithosphere_surface__elevation_increment',)
-    >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(flex.units)
     [('lithosphere__overlying_pressure_increment', 'Pa'),
      ('lithosphere_surface__elevation_increment', 'm')]
 
@@ -100,23 +99,23 @@ class Flexure(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__elevation_increment"] == 0.0)
     True
 
-    >>> np.all(grid.at_node['lithosphere__overlying_pressure_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere__overlying_pressure_increment"] == 0.0)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__elevation_increment"] == 0.0)
     True
 
-    >>> load = grid.at_node['lithosphere__overlying_pressure_increment']
+    >>> load = grid.at_node["lithosphere__overlying_pressure_increment"]
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere_surface__elevation_increment']
-    >>> np.all(dz == 0.)
+    >>> dz = grid.at_node["lithosphere_surface__elevation_increment"]
+    >>> np.all(dz == 0.0)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__elevation_increment"] == 0.0)
     False
 
     References
@@ -139,8 +138,10 @@ class Flexure(Component):
 
     _unit_agnostic = True
 
-    _cite_as = r"""@article{hutton2008sedflux,
-        title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
+    _cite_as = r"""
+    @article{hutton2008sedflux,
+        title={Sedflux 2.0: An advanced process-response model that generates
+               three-dimensional stratigraphy},
         author={Hutton, Eric WH and Syvitski, James PM},
         journal={Computers \& Geosciences},
         volume={34},
@@ -165,7 +166,10 @@ class Flexure(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+            "doc": (
+                "The change in elevation of the top of the lithosphere (the "
+                "land surface) in one timestep"
+            ),
         },
     }
 
@@ -199,7 +203,7 @@ class Flexure(Component):
             Number of processors to use for calculations.
         """
         if method not in ("airy", "flexure"):
-            raise ValueError("{method}: method not understood".format(method=method))
+            raise ValueError(f"{method}: method not understood")
 
         super().__init__(grid)
 

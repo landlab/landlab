@@ -84,7 +84,7 @@ the ``**`` operator.
 
 We have a very short tutorial on Python and NumPy from the point of view of
 Landlab (and the key differences with Matlab)
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/python_intro/python_intro.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/python_intro/python_intro.ipynb>`_.
 
 NumPy, SciPy, and Efficient Coding Style
 ----------------------------------------
@@ -128,7 +128,7 @@ whole array. Try not to do this! Instead of
 
     for i in myarray:
         if i < 0:
-          i = 0
+            i = 0
 
 which will be really slow. Do this:
 
@@ -167,5 +167,5 @@ sufficient for the vast majority of users.
 However if, as a developer, you intend to modify any of the sections of code
 that we provide to you, you will probably need to recompile that code on your
 machine before the changes take effect. See the
-:ref:`developer installation instructions <developer_install>`
+:ref:`developer installation instructions <install>`
 for more information on this.

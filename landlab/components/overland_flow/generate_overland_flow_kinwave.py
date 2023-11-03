@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Landlab component for overland flow using the kinematic-wave approximation.
 
 Created on Fri May 27 14:26:13 2016
@@ -34,7 +33,7 @@ class KinwaveOverlandFlowModel(Component):
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0
-    >>> rg.at_node['surface_water__depth']
+    >>> rg.at_node["surface_water__depth"]
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
             0.,  0.,  0.,  0.,  0.,  0.,  0.])
 

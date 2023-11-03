@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Oct 24 16:28:00 2019
 
@@ -11,7 +10,6 @@ import numpy as np
 
 
 def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
-
     # determine the location of that parcel in its link
     parcel_loc = parcels.dataset.location_in_link[
         parcel_number, parcel_time_index
@@ -21,7 +19,6 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
     # recorded, and np.nan as the distance.
 
     if not np.isnan(parcel_loc):
-
         # get link id
         parcel_link = int(
             parcels.dataset.element_id[parcel_number, parcel_time_index].values
@@ -33,9 +30,11 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         # work-around is the following, but ideally verticies should be flipped in GIS.
         # parcel_loc = 0.9999 - parcel_loc
 
-        # get the X, Y vertices of the squiggly line for that link (loaded by import_shapefile.py)
+        # get the X, Y vertices of the squiggly line for that link (loaded by
+        # import_shapefile.py)
 
-        # I am not sure these next 2 lines are necessary here, but I don't know how to do this differently and/or better.
+        # I am not sure these next 2 lines are necessary here, but I don't know
+        # how to do this differently and/or better.
         if "x_of_polyline" in grid.at_link:
             link_x = grid["link"]["x_of_polyline"][parcel_link]
             link_y = grid["link"]["y_of_polyline"][parcel_link]
@@ -51,8 +50,9 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
                 link_x = [grid.x_of_node[tail_node], grid.x_of_node[head_node]]
                 link_y = [grid.y_of_node[tail_node], grid.y_of_node[head_node]]
             else:
-                msg = "trying to plot on an inactive link. this should not happen."
-                raise ValueError(msg)
+                raise ValueError(
+                    "trying to plot on an inactive link. this should not happen."
+                )
             # eventually need to use x_of_node, y_of_node, and nodes_at_link,
             # but the upstream to downstream ordering also matters.
 
@@ -83,14 +83,16 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         parcel_y = np.interp(parcel_loc, link_rel_dist, link_y)
         # assert np.isnan(parcel_x) == False
 
-        # save data to a single variable. better would be to save this info as an element of parcels.dataset.X and ...Y
+        # save data to a single variable. better would be to save this info as
+        # an element of parcels.dataset.X and ...Y
         XY = [parcel_x, parcel_y]
 
         # parcels.dataset["X"] = parcel_x
         # parcels.dataset["Y"] = parcel_y
 
     else:
-        # if that parcel is no longer in the system do not try to compute X,Y and instead return NaN
+        # if that parcel is no longer in the system do not try to compute X,Y and
+        # instead return NaN
         XY = [np.nan, np.nan]
 
     # return the X,Y values

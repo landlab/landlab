@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
 Created on Fri Mar  3 10:39:32 2017
 
@@ -30,7 +29,7 @@ def test_4x7_grid_vs_analytical_solution():
     # diffusivity, D, is D = SCE x H*, where SCE is soil-creep efficiency.
     # Here we want D = 0.01 m2/yr and H* = 0,.5 m, so cwe set SCE = 0.02.
     weatherer = ExponentialWeatherer(
-        mg, soil_production__maximum_rate=0.0002, soil_production__decay_depth=0.5
+        mg, soil_production_maximum_rate=0.0002, soil_production_decay_depth=0.5
     )
 
     diffuser = DepthDependentTaylorDiffuser(
@@ -48,8 +47,7 @@ def test_4x7_grid_vs_analytical_solution():
     dt = 250.0
 
     # Run for 750 ky
-    for i in range(3000):
-
+    for _ in range(3000):
         z[mg.core_nodes] += baselevel_rate * dt
         z_bedrock[mg.core_nodes] += baselevel_rate * dt
 
@@ -96,7 +94,6 @@ def test_raise_kwargs_error():
 
 
 def test_infinite_taylor_error():
-
     mg = RasterModelGrid((5, 5))
     soilTh = mg.add_zeros("soil__depth", at="node")
     z = mg.add_zeros("topographic__elevation", at="node")

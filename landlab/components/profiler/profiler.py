@@ -1,4 +1,3 @@
-# coding: utf8
 # ! /usr/env/python
 """profiler.py component to create profiles with user-defined endpoints."""
 from collections import OrderedDict
@@ -57,16 +56,17 @@ class Profiler(_BaseProfiler):
 
     .. code-block:: python
 
-        {0: {
-            'ids': [10, 11, 12, 13, 14, 15, 16],
-            'distances': [0, 1, 2, 3, 4, 5, 6]
-            'color': (0.27,  0,  0.33,  1)
+        {
+            0: {
+                "ids": [10, 11, 12, 13, 14, 15, 16],
+                "distances": [0, 1, 2, 3, 4, 5, 6],
+                "color": (0.27, 0, 0.33, 1),
             },
-         1: {
-            'ids': [16, 24, 32, 40, 48, 56, 64],
-            'distances': [6, 7.41, 8.83, 10.24, 11.66, 13.07, 14.49]
-            'color': (0.13,  0.57,  0.55,  1)
-            }
+            1: {
+                "ids": [16, 24, 32, 40, 48, 56, 64],
+                "distances": [6, 7.41, 8.83, 10.24, 11.66, 13.07, 14.49],
+                "color": (0.13, 0.57, 0.55, 1),
+            },
         }
 
 
@@ -78,7 +78,7 @@ class Profiler(_BaseProfiler):
     >>> from landlab.components import Profiler
     >>> import numpy as np
     >>> mg = RasterModelGrid((10, 10), 10)
-    >>> mg.at_node['topographic__elevation'] = mg.node_x * mg.node_y
+    >>> mg.at_node["topographic__elevation"] = mg.node_x * mg.node_y
 
     Create a profile with three endpoints. This profile is laid out the same as
     the diagram above.
@@ -95,17 +95,17 @@ class Profiler(_BaseProfiler):
     The data structure contains data of segment samples. Below is the first
     segment.
 
-    >>> profiler.data_structure[0]['ids']
+    >>> profiler.data_structure[0]["ids"]
     array([10, 11, 12, 13, 14, 15, 16])
-    >>> profiler.data_structure[0]['distances']
+    >>> profiler.data_structure[0]["distances"]
     array([  0.,  10.,  20.,  30.,  40.,  50.,  60.])
-    >>> np.round(profiler.data_structure[0]['color'], decimals=2)
+    >>> np.round(profiler.data_structure[0]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
     Note that the first node of the second segment is the same as the final
     node of the first segment.
 
-    >>> profiler.data_structure[1]['ids']
+    >>> profiler.data_structure[1]["ids"]
     array([16, 26, 35, 45, 54, 64])
 
     Alternative to nodes, profiles can be instantiated with coordinates.
@@ -151,15 +151,14 @@ class Profiler(_BaseProfiler):
         """
         super().__init__(grid)
 
-        self._cmap = plt.get_cmap(cmap)
+        self._cmap = plt.colormaps[cmap]
 
         if not isinstance(endpoints, list) or len(endpoints) < 2:
-            msg = (
+            raise ValueError(
                 "`endpoints` must be a list of at least 2 node IDs or a "
                 "list of at least two tuples where each tuple contains the "
                 "x, y coordinates of endpoints."
             )
-            raise ValueError(msg)
 
         # Check if `endpoints` are within grid bounds while setting
         # `_end_nodes`.

@@ -9,16 +9,19 @@ Create a MaskedJaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
 
 >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
->>> links_at_node = MaskedJaggedArray([
-...     [0, 6],
-...     [1, 7, 0],
-...     [8, 1],
-...     [2, 9, 6],
-...     [3, 10, 2, 7],
-...     [11, 3, 8],
-...     [4, 7],
-...     [5, 10, 4],
-...     [5, 11]])
+>>> links_at_node = MaskedJaggedArray(
+...     [
+...         [0, 6],
+...         [1, 7, 0],
+...         [8, 1],
+...         [2, 9, 6],
+...         [3, 10, 2, 7],
+...         [11, 3, 8],
+...         [4, 7],
+...         [5, 10, 4],
+...         [5, 11],
+...     ]
+... )
 
 Make up some data that provides values at each of the links.
 
@@ -42,7 +45,7 @@ array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 import numpy as np
 
 
-class MaskedJaggedArray(object):
+class MaskedJaggedArray:
 
     """A container for an array of variable-length arrays.
 
@@ -113,7 +116,7 @@ class MaskedJaggedArray(object):
         """
         values_per_row = [len(row) for row in rows]
         mat = np.ma.masked_all((len(rows), max(values_per_row)), dtype=dtype or int)
-        for (row_number, row) in enumerate(rows):
+        for row_number, row in enumerate(rows):
             mat[row_number, : len(row)] = row
 
         return mat
@@ -318,7 +321,9 @@ class MaskedJaggedArray(object):
         --------
         >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
         >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
-        >>> for row in x: row
+        >>> for row in x:
+        ...     row
+        ...
         array([0, 1, 2])
         array([3, 4])
         """

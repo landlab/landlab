@@ -1,9 +1,8 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
-
-from libc.stdlib cimport malloc, free
-
+cimport numpy as np
+from libc.stdlib cimport free, malloc
 
 ctypedef np.int_t DTYPE_t
 ctypedef np.int8_t INT8TYPE_t

@@ -48,9 +48,9 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
     >>> from landlab.components import SimpleSubmarineDiffuser
     >>> grid = RasterModelGrid((3, 7), xy_spacing=100.0)
     >>> grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    >>> topo = grid.add_zeros('topographic__elevation', at='node')
+    >>> topo = grid.add_zeros("topographic__elevation", at="node")
     >>> topo[:] = -10.0
-    >>> topo[9:14] = [0., 10., 10., 5., 5.]
+    >>> topo[9:14] = [0.0, 10.0, 10.0, 5.0, 5.0]
     >>> ssd = SimpleSubmarineDiffuser(grid, tidal_range=0.0)
     >>> ssd.run_one_step(dt=5.0)
     >>> topo[8:13]
@@ -105,7 +105,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
         wave_base=60.0,
         shallow_water_diffusivity=100.0,
         tidal_range=2.0,
-        **kwds
+        **kwds,
     ):
         """
         Parameters
@@ -134,15 +134,14 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
             grid.add_zeros("kd", at="node")
         if "sediment_deposit__thickness" not in grid.at_node:
             grid.add_zeros("sediment_deposit__thickness", at="node")
-        if "water__depth" in grid.at_node:
-            self._depth = grid.at_node["water__depth"]
-        else:
-            self._depth = grid.add_zeros("water__depth", at="node")
+        if "water__depth" not in grid.at_node:
+            grid.add_zeros("water__depth", at="node")
+        self._depth = grid.at_node["water__depth"]
 
         self._time = 0.0
 
         kwds.setdefault("linear_diffusivity", "kd")
-        super(SimpleSubmarineDiffuser, self).__init__(grid, **kwds)
+        super().__init__(grid, **kwds)
 
     @property
     def wave_base(self):
@@ -238,7 +237,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
 
         self.calc_diffusion_coef()
 
-        super(SimpleSubmarineDiffuser, self).run_one_step(dt)
+        super().run_one_step(dt)
 
         depo = self.grid.at_node["sediment_deposit__thickness"]
         depo[:] = self.grid.at_node["topographic__elevation"] - z_before

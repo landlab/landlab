@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """ZoneController of SpeciesEvolver."""
 import numpy as np
 from scipy.ndimage.measurements import label
@@ -9,7 +8,7 @@ from .zone import Zone, _update_zones
 from .zone_taxon import ZoneTaxon
 
 
-class ZoneController(object):
+class ZoneController:
     """Controls zones and populates them with taxa.
 
     This object manages 'zones' that are used to evaluate the spatial aspect of
@@ -182,7 +181,7 @@ class ZoneController(object):
     Create a model grid and an elevation field for this grid.
 
     >>> mg = RasterModelGrid((3, 7))
-    >>> z = mg.add_zeros('topographic__elevation', at='node')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
 
     Set elevation to 1 for some nodes.
 
@@ -192,14 +191,15 @@ class ZoneController(object):
     indicate the nodes where zones can be created.
 
     >>> def zone_func(grid):
-    ...     z = grid.at_node['topographic__elevation']
+    ...     z = grid.at_node["topographic__elevation"]
     ...     return z == 1
+    ...
 
     Instantiate ZoneController. Only one zone exists because the nodes that
     were set to one are adjacent to each other in the grid.
 
     >>> zc = ZoneController(mg, zone_func)
-    >>> zc.record_data_frame[['time', 'zones']]
+    >>> zc.record_data_frame[["time", "zones"]]
        time  zones
     0     0      1
 
@@ -217,7 +217,7 @@ class ZoneController(object):
 
     Two zones now exist because the zone in time 0 fragmented into two zones.
 
-    >>> zc.record_data_frame[['time', 'zones', 'fragmentations']]
+    >>> zc.record_data_frame[["time", "zones", "fragmentations"]]
        time  zones  fragmentations
     0     0      1             NaN
     1  1000      2             2.0
@@ -228,8 +228,9 @@ class ZoneController(object):
 
     >>> z[10] = 1
     >>> zc.run_one_step(1000)
-    >>> zc.record_data_frame[['time', 'zones', 'captures',
-    ...     'area_captured_sum', 'area_captured_max']]
+    >>> zc.record_data_frame[
+    ...     ["time", "zones", "captures", "area_captured_sum", "area_captured_max"]
+    ... ]
        time  zones  captures  area_captured_sum  area_captured_max
     0     0      1       NaN                NaN                NaN
     1  1000      2       0.0                0.0                0.0
@@ -238,14 +239,15 @@ class ZoneController(object):
     The follow example demonstrates non-default ZoneController parameters.
 
     >>> mg = RasterModelGrid((3, 7))
-    >>> z = mg.add_zeros('topographic__elevation', at='node')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
 
     Similar to the prior example, define a zone function that returns a boolean
     array where `True` values indicate the nodes where zones can be created.
 
     >>> def zone_func(grid):
-    ...     z = grid.at_node['topographic__elevation']
+    ...     z = grid.at_node["topographic__elevation"]
     ...     return z == 1
+    ...
 
     Set elevation to 1 for nodes so that two clusters of nodes within the zone
     mask exist.
@@ -260,7 +262,7 @@ class ZoneController(object):
     definition, because the ``minimum_area`` was set to 2. Also, the first
     time in the record was set by the ``initial_time`` parameter.
 
-    >>> zc.record_data_frame[['time', 'zones']]
+    >>> zc.record_data_frame[["time", "zones"]]
        time  zones
     0   100      1
     """
@@ -272,7 +274,7 @@ class ZoneController(object):
         minimum_area=0,
         neighborhood_structure="D8",
         initial_time=0,
-        **kwargs
+        **kwargs,
     ):
         """Initialize the controller.
 

@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 
-from landlab import FieldError, RasterModelGrid
+from landlab import FieldError, HexModelGrid, RasterModelGrid
 from landlab.components import DrainageDensity, FastscapeEroder, FlowAccumulator
 
 
@@ -27,7 +27,7 @@ def test_mask_is_stable():
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
     fsc = FastscapeEroder(mg, K_sp=0.01, m_sp=0.5, n_sp=1)
-    for x in range(2):
+    for _ in range(2):
         fr.run_one_step()
         fsc.run_one_step(dt=10.0)
         mg.at_node["topographic__elevation"][mg.core_nodes] += 0.01
@@ -233,3 +233,21 @@ def test_missing_area_coefficient():
             slope_exponent=1,
             channelization_threshold=1,
         )
+
+
+def test_with_hex_grid():
+    hg = HexModelGrid((10, 10), node_layout="rect")
+    _ = hg.add_zeros("node", "topographic__elevation")
+    np.random.seed(50)
+    noise = np.random.rand(100)
+    hg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(hg)
+    fsc = FastscapeEroder(hg, K_sp=0.01)
+    for _ in range(100):
+        fr.run_one_step()
+        fsc.run_one_step(dt=10.0)
+        hg.at_node["topographic__elevation"] += 0.01
+    channels = np.array(hg.at_node["drainage_area"] > 5, dtype=np.uint8)
+    dd = DrainageDensity(hg, channel__mask=channels)
+    mean_drainage_density = dd.calculate_drainage_density()
+    assert_almost_equal(mean_drainage_density, 0.4210526)

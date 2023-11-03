@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 """A class used to create and manage network models in 2D."""
+import contextlib
+
 import numpy as np
 
 from landlab.utils.decorators import make_return_array_immutable
@@ -127,9 +129,9 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
-        >>> grid = NetworkModelGrid((y_of_node, x_of_node),
-        ...                         nodes_at_link,
-        ...                         xy_of_reference = (12345, 678910))
+        >>> grid = NetworkModelGrid(
+        ...     (y_of_node, x_of_node), nodes_at_link, xy_of_reference=(12345, 678910)
+        ... )
         >>> grid.xy_of_reference
         (12345, 678910)
         >>> grid.xy_of_reference = (98765, 43210)
@@ -158,11 +160,10 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
-        >>> grid = NetworkModelGrid((y_of_node, x_of_node),
-        ...                         nodes_at_link)
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.axis_units
         ('-', '-')
-        >>> grid.axis_units = ('km', 'km')
+        >>> grid.axis_units = ("km", "km")
         >>> grid.axis_units
         ('km', 'km')
 
@@ -196,7 +197,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.axis_name
         ('x', 'y')
-        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name = ("lon", "lat")
         >>> grid.axis_name
         ('lon', 'lat')
 
@@ -223,7 +224,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name = ("lon", "lat")
         >>> grid.axis_name
         ('lon', 'lat')
         """
@@ -256,7 +257,8 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         ...     grid.BC_NODE_IS_CLOSED,
         ...     grid.BC_NODE_IS_CORE,
         ...     grid.BC_NODE_IS_CORE,
-        ...     grid.BC_NODE_IS_CORE]
+        ...     grid.BC_NODE_IS_CORE,
+        ... ]
         >>> grid.status_at_node
         array([4, 0, 0, 0], dtype=uint8)
         >>> grid.status_at_link
@@ -286,10 +288,8 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
             "_link_status_at_node",
         ]
         for attr in attrs:
-            try:
+            with contextlib.suppress(KeyError):
                 del self.__dict__[attr]
-            except KeyError:
-                pass
 
         self.bc_set_code += 1
 

@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab import Component
 
-_VALID_METHODS = set(["Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"])
+_VALID_METHODS = {"Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"}
 
 
 def _assert_method_is_valid(method):
@@ -29,10 +29,9 @@ class PotentialEvapotranspiration(Component):
     >>> from landlab.components.pet import PotentialEvapotranspiration
 
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
-    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
-    ...       0.38488566, 0.38488566,
-    ...       0.33309785, 0.33309785,
-    ...       0.37381705, 0.37381705])
+    >>> grid["cell"]["radiation__ratio_to_flat_surface"] = np.array(
+    ...     [0.38488566, 0.38488566, 0.33309785, 0.33309785, 0.37381705, 0.37381705]
+    ... )
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'PotentialEvapotranspiration'
@@ -44,7 +43,7 @@ class PotentialEvapotranspiration(Component):
      'radiation__net_longwave_flux',
      'radiation__net_shortwave_flux',
      'surface__potential_evapotranspiration_rate']
-    >>> sorted(PET.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(PET.units)
     [('radiation__incoming_shortwave_flux', 'W/m^2'),
      ('radiation__net_flux', 'W/m^2'),
      ('radiation__net_longwave_flux', 'W/m^2'),
@@ -57,12 +56,12 @@ class PotentialEvapotranspiration(Component):
     2
     >>> PET.grid is grid
     True
-    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
-    >>> np.allclose(pet_rate, 0.)
+    >>> pet_rate = grid.at_cell["surface__potential_evapotranspiration_rate"]
+    >>> np.allclose(pet_rate, 0.0)
     True
     >>> PET.current_time = 0.5
     >>> PET.update()
-    >>> np.allclose(pet_rate, 0.)
+    >>> np.allclose(pet_rate, 0.0)
     False
 
     References
@@ -131,7 +130,10 @@ class PotentialEvapotranspiration(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+            "doc": (
+                "ratio of total incident shortwave radiation on sloped "
+                "surface to flat surface"
+            ),
         },
         "surface__potential_evapotranspiration_rate": {
             "dtype": float,
@@ -362,7 +364,6 @@ class PotentialEvapotranspiration(Component):
         self._cell_values["surface__potential_evapotranspiration_rate"][:] = self._PET
 
     def _PriestleyTaylor(self, current_time, Tmax, Tmin, Tavg):
-
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         self._J = np.floor((current_time - np.floor(current_time)) * 365)
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,

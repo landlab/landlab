@@ -21,7 +21,7 @@ import numpy as np
 from landlab import FieldError
 
 
-class cache_result_in_object(object):
+class cache_result_in_object:
     def __init__(self, cache_as=None):
         self._attr = cache_as
 
@@ -37,7 +37,7 @@ class cache_result_in_object(object):
         return _wrapped
 
 
-class store_result_in_grid(object):
+class store_result_in_grid:
     def __init__(self, name=None):
         self._attr = name
 
@@ -49,13 +49,12 @@ class store_result_in_grid(object):
                 getattr(grid, name)
             except AttributeError:
                 setattr(grid, name, func(grid))
-            finally:
-                return getattr(grid, name)
+            return getattr(grid, name)
 
         return _wrapped
 
 
-class store_result_in_dataset(object):
+class store_result_in_dataset:
     def __init__(self, dataset=None, name=None):
         self._dataset = dataset
         self._attr = name
@@ -70,7 +69,7 @@ class store_result_in_dataset(object):
                 ds = grid
 
             if name not in ds:
-                setattr(grid, self._dataset, ds.update(dict(name=func(grid))))
+                setattr(grid, self._dataset, ds.update({"name": func(grid)}))
 
             return getattr(grid, self._dataset)[name].values
 
@@ -125,6 +124,7 @@ def add_signature_to_doc(func):
     >>> def foo(arg1, kwd=None):
     ...     '''Do something.'''
     ...     pass
+    ...
     >>> print(add_signature_to_doc(foo))
     foo(arg1, kwd=None)
     <BLANKLINE>
@@ -139,7 +139,7 @@ def add_signature_to_doc(func):
     )
 
 
-class use_field_name_or_array(object):
+class use_field_name_or_array:
 
     """Decorate a function so that it accepts a field name or array.
 
@@ -164,6 +164,7 @@ class use_field_name_or_array(object):
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
     >>> my_func(grid, np.arange(grid.number_of_cells))
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
@@ -173,9 +174,10 @@ class use_field_name_or_array(object):
     the values are defined on ("node", "cell", etc.).
 
     >>> from landlab.utils.decorators import use_field_name_or_array
-    >>> @use_field_name_or_array('cell')
+    >>> @use_field_name_or_array("cell")
     ... def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
 
     The array of values now can be list or anything that can be converted to
     a numpy array.
@@ -192,7 +194,7 @@ class use_field_name_or_array(object):
     The array of values can be a field name.
 
     >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
-    >>> my_func(grid, 'elevation')
+    >>> my_func(grid, "elevation")
     array([  0.,   2.,   4.,   6.,   8.,  10.])
     """
 
@@ -221,14 +223,14 @@ class use_field_name_or_array(object):
                 else:
                     raise FieldError(vals)
             else:
-                vals = np.asarray(vals).flatten()
+                vals = np.asarray(vals).reshape(-1)
 
             return func(grid, vals, *args, **kwds)
 
         return _wrapped
 
 
-class use_field_name_array_or_value(object):
+class use_field_name_array_or_value:
 
     """Decorate a function so that it accepts a field name, array, or value.
 
@@ -253,6 +255,7 @@ class use_field_name_array_or_value(object):
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
     >>> my_func(grid, np.arange(grid.number_of_cells))
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
@@ -262,9 +265,10 @@ class use_field_name_array_or_value(object):
     of the grid element that the values are defined on ("node", "cell", etc.).
 
     >>> from landlab.utils.decorators import use_field_name_array_or_value
-    >>> @use_field_name_array_or_value('cell')
+    >>> @use_field_name_array_or_value("cell")
     ... def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
+    ...
 
     The array of values now can be list or anything that can be converted to
     a numpy array.
@@ -281,7 +285,7 @@ class use_field_name_array_or_value(object):
     The array of values can be a field name.
 
     >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
-    >>> my_func(grid, 'elevation')
+    >>> my_func(grid, "elevation")
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
     The array of values can be a value (float, int, etc.).
@@ -322,11 +326,9 @@ class use_field_name_array_or_value(object):
 
                 if vals.size != expected_size:
                     raise ValueError(
-                        (
-                            "Array passed to function decorated with "
-                            "use_field_name_array_or_value is not "
-                            "the size of fields at " + self._at
-                        )
+                        "Array passed to function decorated with "
+                        "use_field_name_array_or_value is not "
+                        "the size of fields at " + self._at
                     )
             return func(grid, vals, *args, **kwds)
 
@@ -386,12 +388,12 @@ def deprecated(use, version):
 
         doc_lines = (func.__doc__ or "").split(os.linesep)
 
-        for lineno, line in enumerate(doc_lines):
+        for _lineno, line in enumerate(doc_lines):
             if len(line.rstrip()) == 0:
                 break
 
-        head = doc_lines[:lineno]
-        body = doc_lines[lineno:]
+        head = doc_lines[:_lineno]
+        body = doc_lines[_lineno:]
 
         head = textwrap.dedent(os.linesep.join(head))
         body = textwrap.dedent(os.linesep.join(body))
@@ -408,6 +410,7 @@ def deprecated(use, version):
                         name=func.__name__
                     ),
                     category=DeprecationWarning,
+                    stacklevel=2,
                 )
             return func(*args, **kwargs)
 

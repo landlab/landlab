@@ -171,19 +171,18 @@ class _GeneralizedErosionDeposition(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> from landlab.components.erosion_deposition.generalized_erosion_deposition import _GeneralizedErosionDeposition
+
         >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("node", "topographic__elevation")
         >>> z[:] = rg.x_of_node + rg.y_of_node
-        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+        >>> fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
         >>> fa.run_one_step()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
+        >>> rg.at_node["topographic__steepest_slope"][5:7]
         array([ 1.41421356,  1.41421356])
-        >>> sp = _GeneralizedErosionDeposition(rg, v_s=0.001,
-        ...                                    m_sp=0.5, n_sp=1.0, F_f=0)
+        >>> sp = _GeneralizedErosionDeposition(rg, v_s=0.001, m_sp=0.5, n_sp=1.0, F_f=0)
         >>> z *= 0.1
         >>> sp._update_flow_link_slopes()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
+        >>> rg.at_node["topographic__steepest_slope"][5:7]
         array([ 0.14142136,  0.14142136])
         """
         self._slope[:] = (
