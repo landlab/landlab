@@ -56,4 +56,3 @@ Contributors
 * `Kristen Thyng <https://github.com/kthyng>`_
 * `Muneer Ahammad <https://github.com/muneerVT>`_
 * `Sarah Lundell <https://github.com/slundell123>`_
-

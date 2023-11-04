@@ -411,10 +411,10 @@ def credits(session):
         silent=True,
     )
     with open(config["credits_file"], "w") as fp:
-        print(contents, file=fp)
+        print(contents, file=fp, end="")
 
     contents = session.run(
         "landlab", "--silent", "authors", "build", silent=True, external=True
     )
     with open(config["authors_file"], "w") as fp:
-        print(contents, file=fp)
+        print(contents, file=fp, end="")

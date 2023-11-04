@@ -205,9 +205,9 @@ def create(ctx, update_existing):
     )
 
     authors.update(AuthorList.from_csv(names_and_emails))
-    for author in sorted(authors, key=lambda item: item.name):
-        print(author.to_toml())
-        print("")
+    lines = [author.to_toml() for author in sorted(authors, key=lambda item: item.name)]
+
+    print((2 * os.linesep).join(lines))
 
 
 @authors.command()
@@ -239,7 +239,9 @@ def build(ctx):
     if len(intro) == 0:
         err(f"empty or missing authors file ({authors_file})")
 
-    authors = AuthorList.from_toml(credits_file) if credits_file.is_file() else AuthorList()
+    authors = (
+        AuthorList.from_toml(credits_file) if credits_file.is_file() else AuthorList()
+    )
 
     if len(authors) == 0:
         err(f"missing or empty credits file ({credits_file})")
@@ -249,18 +251,20 @@ def build(ctx):
         canonical_name = authors.find_author(author.strip()).name
         commits[canonical_name] += 1
 
-    print(intro)
+    lines = [intro]
     for author in sorted(authors, key=lambda a: commits[a.name], reverse=True):
         github = _guess_github_user(author)
         if github is None:
             github = "landlab"
         author.github = github
         if ignore.isdisjoint(author.names):
-            print(
+            lines.append(
                 author_format.format(
                     name=author.name, github=author.github, email=author.email
                 )
             )
+
+    print(os.linesep.join(lines))
 
 
 def _read_until(path_to_file, until=None):
