@@ -1,0 +1,3 @@
+
+Added a tool that builds a list of *Landlab* contributors and updates the
+``AUTHORS.rst`` and ``.mailmap`` files.
