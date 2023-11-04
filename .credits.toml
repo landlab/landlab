@@ -1,4 +1,4 @@
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = '(no author)'
 email = '(no author)@093548ea-dc74-4ebb-8037-4be9f23db00a'
 aliases = [
@@ -6,7 +6,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Abby Langston'
 email = 'alangston@ksu.edu'
 aliases = [
@@ -15,7 +15,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Allison Pfeiffer'
 email = 'pfeif@uw.edu'
 aliases = [
@@ -25,7 +25,7 @@ alternate_emails = [
   '35848814+pfeiffea@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Amanda Manaster'
 email = 'amanaste@uw.edu'
 aliases = [
@@ -34,7 +34,7 @@ alternate_emails = [
 ]
 github = 'amanaster2'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Andy Wickert'
 email = 'awickert@093548ea-dc74-4ebb-8037-4be9f23db00a'
 aliases = [
@@ -43,7 +43,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Benjamin Campforts'
 email = 'benjamincampforts@gmail.com'
 aliases = [
@@ -54,7 +54,7 @@ alternate_emails = [
 ]
 github = 'BCampforts'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Charlie Shobe'
 email = 'cmshobe@email.wm.edu'
 aliases = [
@@ -64,7 +64,7 @@ alternate_emails = [
   'cmshobe@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Christopher Sheehan'
 email = '56881748+Sheehace@users.noreply.github.com'
 aliases = [
@@ -72,7 +72,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Dan Hobley'
 email = 'dan.hobley@gmail.com'
 aliases = [
@@ -88,7 +88,7 @@ alternate_emails = [
 ]
 github = 'SiccarPoint'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'David Litwin'
 email = 'davidglitwin@posteo.net'
 aliases = [
@@ -98,7 +98,7 @@ alternate_emails = [
   '45630470+DavidLitwin@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Dylan Ward'
 email = 'dylan.ward@uc.edu'
 aliases = [
@@ -108,7 +108,7 @@ alternate_emails = [
 ]
 github = 'ddoubleprime'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Eric Hutton'
 email = 'mcflugen@gmail.com'
 aliases = [
@@ -121,7 +121,7 @@ alternate_emails = [
   'mcflugen@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Francis Rengers'
 email = 'francis.rengers@colorado.edu'
 aliases = [
@@ -130,7 +130,7 @@ alternate_emails = [
 ]
 github = 'frengers'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Giuseppecipolla95'
 email = '36881480+Giuseppecipolla95@users.noreply.github.com'
 aliases = [
@@ -138,7 +138,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Greg Tucker'
 email = 'gtucker@colorado.edu'
 aliases = [
@@ -150,7 +150,7 @@ alternate_emails = [
   'gtucker@093548ea-dc74-4ebb-8037-4be9f23db00a',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Jay Hariharan'
 email = 'jayaram.hariharan@utexas.edu'
 aliases = [
@@ -160,7 +160,7 @@ alternate_emails = [
 ]
 github = 'elbeejay'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Jeffrey Keck'
 email = 'keckje@gmail.com'
 aliases = [
@@ -170,7 +170,7 @@ alternate_emails = [
   '31672064+keckje@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Jenny Knuth'
 email = 'inkboco@gmail.com'
 aliases = [
@@ -179,7 +179,7 @@ alternate_emails = [
 ]
 github = 'jennyknuth'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Jordan Adams'
 email = 'jadams15@tulane.edu'
 aliases = [
@@ -195,7 +195,7 @@ alternate_emails = [
 ]
 github = 'jadams15'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Josh Wolpert'
 email = '66105693+josh-wolpert@users.noreply.github.com'
 aliases = [
@@ -204,7 +204,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Katy Barnhart'
 email = 'krbarnhart@usgs.gov'
 aliases = [
@@ -222,7 +222,7 @@ alternate_emails = [
 ]
 github = 'kbarnhart'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Kristen Thyng'
 email = 'kthyng@gmail.com'
 aliases = [
@@ -231,7 +231,7 @@ alternate_emails = [
 ]
 github = 'kthyng'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Laurent Roberge'
 email = 'lroberge@tulane.edu'
 aliases = [
@@ -241,7 +241,7 @@ alternate_emails = [
   '59940112+loroberge@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Margaux Mouchene'
 email = 'margaux.mouchene@laposte.net'
 aliases = [
@@ -254,7 +254,7 @@ alternate_emails = [
   'margauxmouchene@dhcp-216-251.tulane.edu',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Mark Piper'
 email = 'mark.piper@colorado.edu'
 aliases = [
@@ -263,7 +263,7 @@ alternate_emails = [
 ]
 github = 'mdpiper'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Muneer Ahammad'
 email = '65404451+muneerVT@users.noreply.github.com'
 aliases = [
@@ -271,7 +271,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Nathan Lyons'
 email = 'nathan.j.lyons@gmail.com'
 aliases = [
@@ -283,7 +283,7 @@ alternate_emails = [
 ]
 github = 'nathanlyons'
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Nicole M Gasparini'
 email = 'nicgaspar@gmail.com'
 aliases = [
@@ -295,7 +295,7 @@ alternate_emails = [
   'nicolegasparini@ngaspari.tulane.edu',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Rachel Glade'
 email = 'rcglade@gmail.com'
 aliases = [
@@ -305,7 +305,7 @@ alternate_emails = [
   'rachel.glade@colorado.edu',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Ronda Strauch'
 email = 'rstrauch@uw.edu'
 aliases = [
@@ -314,7 +314,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Sai Nudurupati'
 email = 'saisiddu@uw.edu'
 aliases = [
@@ -326,7 +326,7 @@ alternate_emails = [
   'saisiddu@e-istanbul-3.ce.washington.edu',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Sarah Lundell'
 email = 's_lundell@att.net'
 aliases = [
@@ -335,7 +335,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Sebastien Lenard'
 email = 'sebastien.lenard@gmail.com'
 aliases = [
@@ -345,7 +345,7 @@ alternate_emails = [
   '91671955+sebastien-lenard@users.noreply.github.com',
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'Shelby Ahrendt'
 email = '36043125+shelbyahrendt@users.noreply.github.com'
 aliases = [
@@ -353,7 +353,7 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'dependabot[bot]'
 email = '49699333+dependabot[bot]@users.noreply.github.com'
 aliases = [
@@ -361,12 +361,10 @@ aliases = [
 alternate_emails = [
 ]
 
-[[tool.rollcall.author]]
+[[tool.landlab.credits.author]]
 name = 'root'
 email = 'root@093548ea-dc74-4ebb-8037-4be9f23db00a'
 aliases = [
 ]
 alternate_emails = [
 ]
-
-

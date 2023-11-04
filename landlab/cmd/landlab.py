@@ -11,8 +11,6 @@ from functools import partial
 import numpy as np
 import rich_click as click
 
-from .authors import AuthorsConfig, AuthorsSubprocessError, AuthorList, GitLog
-
 from landlab import (
     FramedVoronoiGrid,
     HexModelGrid,
@@ -21,6 +19,8 @@ from landlab import (
     RasterModelGrid,
     VoronoiDelaunayGrid,
 )
+
+from .authors import AuthorList, AuthorsConfig, AuthorsSubprocessError, GitLog
 
 GRIDS = [
     ModelGrid,
@@ -151,13 +151,13 @@ def validate(component):
     help="existing authors file",
 )
 @click.option(
-    "--roll-file",
-    default=".roll.toml",
+    "--credits-file",
+    default=".credits.toml",
     type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
     help="The file that contains a list of authors",
 )
 @click.pass_context
-def authors(ctx, ignore, authors_file, roll_file):
+def authors(ctx, ignore, authors_file, credits_file):
     """Commands for working with lists of authors."""
     verbose = ctx.parent.params["verbose"]
     silent = ctx.parent.params["silent"]
@@ -180,27 +180,27 @@ def create(ctx, update_existing):
     """Create a database of contributors."""
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
-    roll_file = pathlib.Path(ctx.parent.params["roll_file"])
+    credits_file = pathlib.Path(ctx.parent.params["credits_file"])
 
     git_log = GitLog("%an, %ae")
     try:
         names_and_emails = git_log()
     except AuthorsSubprocessError as error:
         err(error)
-        raise click.Abort()
+        raise click.Abort() from error
     else:
         if verbose and not silent:
             out(f"{git_log}")
 
     if not silent and update_existing:
-        if not roll_file.is_file():
-            err(f"nothing to update ({roll_file})")
+        if not credits_file.is_file():
+            err(f"nothing to update ({credits_file})")
         else:
-            out(f"updating existing author roll ({roll_file})")
+            out(f"updating existing author credits ({credits_file})")
 
     authors = (
-        AuthorList.from_toml(roll_file)
-        if update_existing and roll_file.is_file()
+        AuthorList.from_toml(credits_file)
+        if update_existing and credits_file.is_file()
         else AuthorList()
     )
 
@@ -219,30 +219,30 @@ def build(ctx):
     ignore = set(ctx.parent.params["ignore"])
     authors_file = pathlib.Path(ctx.parent.params["authors_file"])
     author_format = ctx.parent.params["author_format"]
-    roll_file = pathlib.Path(ctx.parent.params["roll_file"])
+    credits_file = pathlib.Path(ctx.parent.params["credits_file"])
 
     git_log = GitLog("%aN")
     try:
         commit_authors = git_log()
     except AuthorsSubprocessError as error:
         err(error)
-        raise click.Abort()
+        raise click.Abort() from error
     else:
         if verbose and not silent:
             out(f"{git_log}")
 
     intro = (
-        _read_until(authors_file, until=".. rollcall start-author-list")
+        _read_until(authors_file, until=".. credits-roll start-author-list")
         if authors_file.is_file()
         else ""
     )
     if len(intro) == 0:
         err(f"empty or missing authors file ({authors_file})")
 
-    authors = AuthorList.from_toml(roll_file) if roll_file.is_file() else AuthorList()
+    authors = AuthorList.from_toml(credits_file) if credits_file.is_file() else AuthorList()
 
     if len(authors) == 0:
-        err(f"missing or empty roll ({roll_file})")
+        err(f"missing or empty credits file ({credits_file})")
 
     commits = defaultdict(int)
     for author in commit_authors.splitlines():
@@ -298,7 +298,7 @@ def _guess_github_user(author):
     github = None
 
     try:
-        github = getattr(author, "github")
+        github = author.github
     except AttributeError:
         pass
 
@@ -330,26 +330,31 @@ def mailmap(ctx):
     """Create a mailmap file from an author list."""
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
-    roll_file = ctx.parent.params["roll_file"]
+    credits_file = ctx.parent.params["credits_file"]
 
     if verbose and not silent:
-        out(f"reading author list: {roll_file}")
+        out(f"reading author list: {credits_file}")
     print(
         textwrap.dedent(
             """
             # Prevent git from showing duplicate names with commands like "git shortlog"
             # See the manpage of git-shortlog for details.
             # The syntax is:
-            # Name that should be used <email that should be used> Bad name <bad email>
             #
-            # You can skip Bad name if it is the same as the one that should be used, and is unique.
+            #   Name that should be used <email that should be used> Bad name <bad email>
             #
-            # This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
+            # You can skip Bad name if it is the same as the one that should be used,
+            # and is unique.
+            #
+            # This file is up-to-date if the command,
+            #
+            #   git log --format="%aN <%aE>" | sort -u
+            #
             # gives no duplicates.
             """
         ).lstrip()
     )
-    authors = AuthorList.from_toml(roll_file)
+    authors = AuthorList.from_toml(credits_file)
     for author in authors:
         good_name, good_email = author.name, author.email
         for bad_name, bad_email in itertools.product(
@@ -376,7 +381,7 @@ def list(ctx, file):
         commit_authors = git_log()
     except AuthorsSubprocessError as error:
         err(error)
-        raise click.Abort()
+        raise click.Abort() from error
     else:
         if verbose and not silent:
             out(f"{git_log}")

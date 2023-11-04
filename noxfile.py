@@ -390,7 +390,7 @@ def _clean_rglob(pattern):
 
 
 @nox.session
-def rollcall(session):
+def credits(session):
     """Update the various authors files."""
     from landlab.cmd.authors import AuthorsConfig
 
@@ -410,7 +410,7 @@ def rollcall(session):
         external=True,
         silent=True,
     )
-    with open(config["roll_file"], "w") as fp:
+    with open(config["credits_file"], "w") as fp:
         print(contents, file=fp)
 
     contents = session.run(

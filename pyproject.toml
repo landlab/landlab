@@ -157,7 +157,7 @@ type = [
   {name="Other Changes and Additions", directory="misc", showcontent=true},
 ]
 
-[tool.rollcall]
+[tool.landlab.credits]
 ignore = ["(no author)", "root", "dependabot[bot]"]
 authors_file = "AUTHORS.rst"
 author_format = "* `{name} <https://github.com/{github}>`_"

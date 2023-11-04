@@ -21,7 +21,7 @@ Development Leads
 Contributors
 ------------
 
-.. rollcall start-author-list
+.. credits-roll start-author-list
 
 * `Eric Hutton <https://github.com/mcflugen>`_
 * `Katy Barnhart <https://github.com/kbarnhart>`_

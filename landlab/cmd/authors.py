@@ -15,16 +15,15 @@ class AuthorsSubprocessError(Exception):
 
 
 class AuthorsConfig(UserDict):
-    _FILES = [".rollcall.toml", "rollcall.toml", "pyproject.toml"]
+    _FILES = [".credit-roll.toml", "credit-roll.toml", "pyproject.toml"]
     _DEFAULTS = {
         "authors_file": "AUTHORS.rst",
         "ignore": (),
         "author_format": "{name}",
-        "roll_file": ".roll.toml",
+        "credits_file": ".credits.toml",
     }
 
     def __init__(self, *args, **kwds):
-
         user_data = {
             k: v for k, v in dict(*args, **kwds).items() if k in self._DEFAULTS
         }
@@ -34,7 +33,7 @@ class AuthorsConfig(UserDict):
         )
 
     def __str__(self):
-        lines = ["[tool.rollcall]"]
+        lines = ["[tool.landlab.credits]"]
         for key, value in sorted(self.data.items(), key=lambda item: item[0]):
             lines.append(f"{key} = {value!r}")
         return os.linesep.join(lines)
@@ -42,13 +41,13 @@ class AuthorsConfig(UserDict):
     @classmethod
     def from_toml(cls, toml_file):
         with open(toml_file, mode="rb") as fp:
-            config = tomllib.load(fp)["tool"]["rollcall"]
+            config = tomllib.load(fp)["tool"]["landlab"]["credits"]
         return cls(config)
 
     @staticmethod
     def _load_toml(name):
         with open(name, mode="rb") as fp:
-            config = tomllib.load(fp)["tool"]["rollcall"]
+            config = tomllib.load(fp)["tool"]["landlab"]["credits"]
         return config
 
     @staticmethod
@@ -152,7 +151,7 @@ class Author:
 
     def to_toml(self):
         lines = [
-            "[[tool.rollcall.author]]",
+            "[[tool.landlab.credits.author]]",
             f"name = {self.name!r}",
             f"email = {self.email!r}",
         ]
@@ -183,7 +182,10 @@ class Author:
     def __repr__(self):
         aliases = None if not self.aliases else self.aliases
         alternate_emails = None if not self.alternate_emails else self.alternate_emails
-        return f"Author({self.name!r}, {self.email!r}, aliases={aliases!r}, alternate_emails={alternate_emails!r})"
+        return (
+            f"Author({self.name!r}, {self.email!r},"
+            f" aliases={aliases!r}, alternate_emails={alternate_emails!r})"
+        )
 
 
 class AuthorList:
@@ -221,7 +223,7 @@ class AuthorList:
         with open(toml_file, "rb") as fp:
             authors = [
                 Author.from_dict(author)
-                for author in tomllib.load(fp)["tool"]["rollcall"]["author"]
+                for author in tomllib.load(fp)["tool"]["landlab"]["credits"]["author"]
             ]
 
         return cls(authors=authors)
