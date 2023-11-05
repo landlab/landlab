@@ -134,7 +134,7 @@ ignore = [".nox", "build"]
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-*"
 skip = "*-musllinux_*"
-archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+archs = "x86_64,aarch64,arm64,AMD64,x86"
 
 [tool.conda-lock]
 channels = ["conda-forge", "defaults"]
