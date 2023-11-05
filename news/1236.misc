@@ -1,1 +1,0 @@
-Removed the ``on_diagonals`` method from the :class:`~.LinearDiffuser` component.

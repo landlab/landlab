@@ -1,5 +1,0 @@
-
-Reformatted all *doctests* and *reStructuredText* *code-blocks* to conform
-to `black <https://github.com/psf/black>`_, giving the code across all of
-our documentation a consistent format. To keep things formatted correctly,
-added `blackdoc <https://github.com/keewis/blackdoc>`_ to our linters
