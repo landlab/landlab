@@ -1,3 +1,0 @@
-
-Fixed flaky tests of the :class:`~.SedimentPulserAtLinks` and
-:class:`~.SedimentPulserEachParcel` components by testing them using a random seed.
