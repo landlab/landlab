@@ -148,7 +148,6 @@ single_file = true
 underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
 title_format = "{version} ({project_date})"
-
 type = [
   {name="New Components", directory="component", showcontent=true},
   {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
@@ -157,3 +156,8 @@ type = [
   {name="Documentation Enhancements", directory="docs", showcontent=true},
   {name="Other Changes and Additions", directory="misc", showcontent=true},
 ]
+
+[tool.landlab.credits]
+ignore = ["(no author)", "root", "dependabot[bot]"]
+authors_file = "AUTHORS.rst"
+author_format = "* `{name} <https://github.com/{github}>`_"
