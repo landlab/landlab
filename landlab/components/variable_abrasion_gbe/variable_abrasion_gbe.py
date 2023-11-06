@@ -5,7 +5,33 @@ from landlab.components import GravelBedrockEroder
 
 class VariableAbrasionGBE(GravelBedrockEroder):
     """
+    Landlab component that models fluvial landscape evolution based on
+    Bedrock-Incising Gravel-Abrading Near-Threshold River (BIGANTR)
+    theory, with the addition of allowing multiple sediment classes
+    with independent abrasion coefficients.
 
+    VariableAbrasionGBE is a subclass of GravelBedrockEroder.
+
+    Parameters
+    ----------
+        grid : ModelGrid
+        A Landlab model grid object
+    intermittency_factor : float (default 0.01)
+        Fraction of time that bankfull flow occurs
+    transport_coefficient : float (default 0.041)
+        Dimensionless transport efficiency factor (see Wickert & Schildgen 2019)
+    number_of_sediment_classes : int (default 3)
+        Number of sediment abradability classes
+    abrasion_coefficients : iterable containing floats (default 0.0 1/m)
+        Abrasion coefficients; should be same length as number of sed classes
+    sediment_porosity : float (default 0.35)
+        Bulk porosity of bed sediment
+    depth_decay_scale : float (default 1.0)
+        Scale for depth decay in bedrock exposure function
+    plucking_coefficient : float or (n_core_nodes,) array of float (default 1.0e-4 1/m)
+        Rate coefficient for bedrock erosion by plucking
+    coarse_fraction_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
+        Fraction of plucked material that becomes part of gravel sediment load
 
     Examples
     --------
@@ -52,7 +78,7 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         sediment_porosity=0.35,
         depth_decay_scale=1.0,
         plucking_coefficient=1.0e-4,
-        coarse_fraction_from_plucking=1.0,
+        coarse_fractions_from_plucking=0.0,
     ):
         if init_thickness_per_class is None:
             init_thickness_per_class = 1.0 / number_of_sediment_classes
@@ -61,6 +87,9 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         )
         init_thickness_per_class = np.broadcast_to(
             init_thickness_per_class, number_of_sediment_classes
+        )
+        coarse_fractions_from_plucking = np.broadcast_to(
+            coarse_fractions_from_plucking, number_of_sediment_classes
         )
 
         super().__init__(
@@ -71,11 +100,11 @@ class VariableAbrasionGBE(GravelBedrockEroder):
             sediment_porosity,
             depth_decay_scale,
             plucking_coefficient,
-            coarse_fraction_from_plucking,
         )
 
         self._num_sed_classes = number_of_sediment_classes
         self._abr_coefs = abrasion_coefficients
+        self._pluck_coarse_frac = coarse_fractions_from_plucking
 
         # Create 2d arrays
         self._thickness_by_class = np.zeros(
@@ -197,7 +226,7 @@ class VariableAbrasionGBE(GravelBedrockEroder):
             self._dHdt_by_class[i, cores] = self._porosity_factor * (
                 (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
                 / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-                + (self._pluck_rate[cores] * self._pluck_coarse_frac)
+                + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
                 - self._sed_abr_rates[i, cores]
             )
 
