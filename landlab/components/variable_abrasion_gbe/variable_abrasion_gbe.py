@@ -30,8 +30,10 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         Scale for depth decay in bedrock exposure function
     plucking_coefficient : float or (n_core_nodes,) array of float (default 1.0e-4 1/m)
         Rate coefficient for bedrock erosion by plucking
-    coarse_fraction_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
-        Fraction of plucked material that becomes part of gravel sediment load
+    coarse_fractions_from_plucking : iterable or 2d array (default 0.0)
+        Fraction of plucked material for each sed class that becomes part of
+        gravel sediment load. Should either have same # items as # sed classes,
+        or have that on one dimension and # core nodes on the other.
 
     Examples
     --------
@@ -139,6 +141,8 @@ class VariableAbrasionGBE(GravelBedrockEroder):
 
     def calc_transport_rate(self):
         """
+        For each node, calculate outgoing bedload transport rate in
+        each sediment class and store in self._sediment_outfluxes.
 
         Examples
         --------
@@ -184,13 +188,8 @@ class VariableAbrasionGBE(GravelBedrockEroder):
         """Update the volume rate of bedload loss to abrasion, per unit area.
 
         Here we use the average of incoming and outgoing sediment flux to
-        calculate the loss rate to abrasion. The result is stored in the
-        ``bedload_sediment__rate_of_loss_to_abrasion`` field.
-
-        The factor dx (node spacing) appears in the denominator to represent
-        flow segment length (i.e., length of the link along which water is
-        flowing in the cell) divided by cell area. This would need to be updated
-        to handle non-raster and/or non-uniform grids.
+        calculate the loss rate to abrasion in each sediment class.
+        The result is stored in self._sed_abr_rates.
 
         Examples
         --------
@@ -221,6 +220,10 @@ class VariableAbrasionGBE(GravelBedrockEroder):
             )
 
     def calc_sediment_rate_of_change(self):
+        """
+        Calculate and store time rate of change of sediment thickness
+        by sediment class. Result stored in self._dHdt_by_class.
+        """
         cores = self.grid.core_nodes
         for i in range(self._num_sed_classes):
             self._dHdt_by_class[i, cores] = self._porosity_factor * (
@@ -231,8 +234,14 @@ class VariableAbrasionGBE(GravelBedrockEroder):
             )
 
     def _update_rock_sed_and_elev(self, dt):
-        """Update rock elevation, sediment thickness, and elevation
+        """
+        Update rock elevation, sediment thickness by class, and elevation
         using current rates of change extrapolated forward by time dt.
+
+        Parameters
+        ----------
+        dt : float
+            Time-step duration
         """
         self._sed[:] = 0.0
         for i in range(self._num_sed_classes):
