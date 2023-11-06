@@ -16,7 +16,7 @@ Fiolleau, S., Uhlemann, S., Falco, N., & Dafflon, B. (2023). **Assessing probabi
 Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 <https://doi.org/10.1029/2021WR031179>`__.
 
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, `https://doi.org/10.1016/j.jhydrol.2023.129144 <https://doi.org/10.1016/j.jhydrol.2023.129144>`__.
-<
+
 2022
 ----
 
@@ -49,7 +49,7 @@ Zhao, H., Lin, Y., Zhou, J., Delang, C. O., & He, H. (2022). **Simulation of Hol
 2021
 ----
 
-Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245.`https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
+Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245. `https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
 
 Chen, H., Wang, X., Lu, H., & Van Balen, R. (2021). **Anthropogenic impacts on Holocene fluvial dynamics in the Chinese Loess Plateau, an evaluation based on landscape evolution modelling.** *Geomorphology,* 392, 107935, `https://doi.org/10.1016/j.geomorph.2021.107935 <https://doi.org/10.1016/j.geomorph.2021.107935>`__.
 
@@ -222,8 +222,8 @@ Adams, J.M., Gasparini, N.M., Hobley, D.E.J., Tucker, G.E., Hutton,
 E.W.H., Nudurupati, S.S., and Istanbulluoglu, E. **The Landlab v1.0
 OverlandFlow component: a Python tool for computing shallow-water flow
 across watersheds.** *Geoscientific Model Development*, 2017,
-doi:10.5194/gmd-10-1645-2017.
-`abstract <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.html>`__
+doi:10.5194/gmd-10-1645-2017. 
+`abstract <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.html>`__ 
 `paper <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.pdf>`__
 
 Gray, H.J., Shobe, C.M., Hobley, D.E.J., Tucker, G.E., Duvall, A.R.,
