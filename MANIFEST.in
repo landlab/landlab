@@ -7,11 +7,13 @@ include LICENSE.rst
 include README.rst
 include USEDBY.rst
 include CITATION.cff
+include asv.conf.json
 include requirements*
 include noxfile.py
 include notebooks.py
 
 recursive-include docs *.txt
+recursive-include benchmarks *.py
 recursive-include landlab *.pyx *.pxd *.hpp
 recursive-include landlab README.md
 recursive-include landlab/data *
