@@ -2,7 +2,7 @@ import numpy as np
 
 from landlab.graph.structured_quad.structured_quad import (
     StructuredQuadLayoutCython,
-    StructuredQuadLayoutPython
+    StructuredQuadLayoutPython,
 )
 
 

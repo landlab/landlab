@@ -24,7 +24,7 @@ class TimeCalc:
             "calc_diff_at_link": calc_diff_at_link,
             "calc_flux_div_at_node": calc_flux_div_at_node,
             "calc_grad_at_link": calc_grad_at_link,
-        }
+        },
     }
 
     def time_calculation(self, mod_name, func_name):

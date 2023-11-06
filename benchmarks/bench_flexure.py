@@ -15,6 +15,7 @@ def parameterized(names, params):
 
 class TimeFlexure:
     """Change number of loads while maintaining grid size."""
+
     params = ([], [])
     param_names = ["grid_size", "n_loads"]
 
@@ -26,7 +27,7 @@ class TimeFlexure:
         grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
 
         self.loads = grid.zeros(at="node")
-        self.loads[0::size // n_loads] = 1e9
+        self.loads[0 :: size // n_loads] = 1e9
 
         self.out = np.zeros((size, size))
 

@@ -8,6 +8,5 @@ class TimeRasterModelGrid:
         [128, 256, 512, 1024],
     ]
 
-
     def time_creation(self, n_rows, n_cols):
         RasterModelGrid((n_rows, n_cols))
