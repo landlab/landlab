@@ -1,3 +1,0 @@
-Changed the target branch for *dependabot* pull requests to *dependencies*
-and added a GitHub action that automatically keeps the *dependencies* branch
-up-to-date with *master*.
