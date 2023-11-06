@@ -9,16 +9,26 @@ Peer-reviewed journal articles
 2023
 ----
 
+Cardenas, B. T., & Stacey, K. (2023). **Landforms Associated With the Aspect-Controlled Exhumation of Crater-Filling Alluvial Strata on Mars.** Geophysical Research Letters, 50(15), e2023GL103618.
+
 Eschenfelder, J., Lipp, A. G., & Roberts, G. G. (2023). **Quantifying excess heavy metal concentrations in drainage basins using conservative mixing models.** *Journal of Geochemical Exploration,* 248, 107178, `https://doi.org/10.1016/j.gexplo.2023.107178 <https://doi.org/10.1016/j.gexplo.2023.107178>`__.
 
 Fiolleau, S., Uhlemann, S., Falco, N., & Dafflon, B. (2023). **Assessing probability of failure of urban landslides through rapid characterization of soil properties and vegetation distribution.** *Geomorphology,* 423, 108560, `https://doi.org/10.1016/j.geomorph.2022.108560 <https://doi.org/10.1016/j.geomorph.2022.108560>`__.
+
+Morris, M. J., Lipp, A. G., & Roberts, G. G. (2023). **Towards inverse modeling of landscapes using the Wasserstein distance.** *Geophysical Research Letters,* 50(14), e2023GL103880.
 
 Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 <https://doi.org/10.1029/2021WR031179>`__.
 
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, `https://doi.org/10.1016/j.jhydrol.2023.129144 <https://doi.org/10.1016/j.jhydrol.2023.129144>`__.
 
+Shmilovitz, Y., Marra, F., Enzel, Y., Morin, E., Armon, M., Matmon, A., ... & Haviv, I. (2023). **The impact of extreme rainstorms on escarpment morphology in arid areas: Insights from the central Negev Desert.** *Journal of Geophysical Research: Earth Surface,* e2023JF007093.
+
+Wang, Y., Chen, S. M., Xiong, L. Y., & Li, S. J. (2023). **Paleotopography-constrained numerical modeling of loess landform evolution.** *Geomorphology,* 433, 108725.
+
 2022
 ----
+
+Anders, A. M., Lai, J., & Marshak, S. (2022). **Development of Foreland Intracratonic Plateaus (Ozark Plateau and Appalachian Plateaus): A Consequence of Topographic Inversion Due To Erosion of Adjacent Fold-Thrust Belts.** *Tectonics,* 41(4), e2021TC006957.
 
 Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic
 mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research:
@@ -49,7 +59,7 @@ Zhao, H., Lin, Y., Zhou, J., Delang, C. O., & He, H. (2022). **Simulation of Hol
 2021
 ----
 
-Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245. `https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
+Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi-Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post-Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245. `https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
 
 Chen, H., Wang, X., Lu, H., & Van Balen, R. (2021). **Anthropogenic impacts on Holocene fluvial dynamics in the Chinese Loess Plateau, an evaluation based on landscape evolution modelling.** *Geomorphology,* 392, 107935, `https://doi.org/10.1016/j.geomorph.2021.107935 <https://doi.org/10.1016/j.geomorph.2021.107935>`__.
 
@@ -172,7 +182,7 @@ Lai J., and Anders, A. (2018) **Modeled Postglacial Landscape Evolution
 at the Southern Margin of the Laurentide Ice Sheet: Hydrological
 Connection of Uplands Controls the Pace and Style of Fluvial Network
 Expansion.** *Journal of Geophysical Research: Earth Surface*, v. 123, no. 5,
-p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
+p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
 
 Langston, A.L., and Tucker, G. E. (2018) **Developing and exploring a
 theory for the lateral erosion of bedrock channels for use in landscape
@@ -286,15 +296,40 @@ Benjamin Morris, *New Wave: Tulane News*. November 11, 2016.
 Theses, Dissertations, and Reports
 ----------------------------------
 
+2023
+----
+
+Hafiz, A. (2023). **2-Dimensional Transport and Production Limited Analysis of Fault Scarps: Landlab Implementation and Examples from Western US** (Doctoral dissertation, Arizona State University).
+
+2022
+----
+
+Amare, S. D. (2022). **Understanding the process of valley bottom gully formation and development to reduce reservoir sedimentation in the highlands of North-western Ethiopia** (Doctoral dissertation, Wageningen University and Research).
+
+Ariagno, C. (2022). **Suivi et modélisation de l'altération physique des marnes de Draix et de son impact sur l'érosion** (Doctoral dissertation, Université Grenoble Alpes).
+
+Lipp, A. G. (2022). **Predictive and invertible models of sediment geochemistry from catchment to continental scales.**
+
+2021
+----
+
+Walker, S. J. (2021). **Using high-resolution topography for spatial prioritisation of gully erosion management across catchments of the Great Barrier Reef, Australia** (Doctoral dissertation, The Australian National University (Australia)).
+
 2020
 ----
 
 Lai, J. (2020). **Constraining tectonic and climatic controls on glacial/postglacial landscape evolution using numerical modeling** (Doctoral dissertation, University of Illinois at Urbana-Champaign).
 
+Phillips, Z. R. (2020). **Holocene Postglacial Fluvial Processes and Landforms in Low Relief Landscapes** (Doctoral dissertation, North Dakota State University).
+
+Reitman, N. G. (2020). **Strain Across Scales: Exploring Geologic and Geomorphic Records of Past Earthquakes** (Doctoral dissertation, University of Colorado at Boulder).
+
 2018
 ----
 
 Mahmoudi, M. (2018). **Comparing model predictions of hillslope sediment size distribution with field measurements** (Doctoral dissertation, San Francisco State University).
+
+Rivera, S. J. (2018). **Guiding green stormwater infrastructure planning through socio-ecological vulnerability: An integrated and spatially scalable prioritization framework.**
 
 
 -------------
