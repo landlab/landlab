@@ -53,7 +53,7 @@ def test_create_fields():
         grid.at_node["atmosphere_bottom_air_flow__log_law_roughness_length"], 0.02
     )
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air_flow__speed_reference_height"], 10
+        grid.at_node["atmosphere_bottom_air_flow__speed_reference_height"], 2
     )
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"], 3
@@ -104,38 +104,84 @@ def test_assign_parameters():
         met.Cp_air = -1
 
 
-# def test_snow_accumulation():
-#     """Test when there is only snow accumulation"""
-#
-#     grid = RasterModelGrid((2, 2))
-#     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0.001, at="node")
-#     grid.add_full("atmosphere_bottom_air__temperature", -1, at="node")
-#     grid.add_full("land_surface__temperature", -1, at="node")
-#     grid.add_full("land_surface_net-total-energy__energy_flux", 0, at="node")
-#     grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
-#     grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
-#     grid.add_full(
-#         "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2000, at="node"
-#     )
-#
-#     sm = SnowEnergyBalance(grid, grid_area=100)
-#     assert sm.vol_SM == 0, f"wrong vol_SM value is {sm.vol_SM}"
-#     assert sm.vol_swe == 400, f"wrong vol_swe value is {sm.vol_swe}"
-#     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
-#
-#     sm.run_one_step(1000)  # dt = 1000 sec
-#     assert_almost_equal(grid.at_node["snowpack__depth"], 10)
-#     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
-#     # TODO: may need to change Ecc using new code for update_code_content
-#     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
-#     assert_almost_equal(
-#         grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 1
-#     )
-#     assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 0)
-#
-#     assert sm.vol_SM == 0, f"wrong vol_SM value is {sm.vol_SM}"
-#     assert sm.vol_swe == 800, f"wrong vol_swe value is {sm.vol_swe}"
+def test_update_bulk_richardson_number():
+    """ test Ri"""
+    grid = RasterModelGrid((2, 2))
+    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
+    grid.add_full("land_surface__temperature", -1, at="node")
+    grid.add_full("land_surface__latitude", 40, at="node")
+    grid.add_full("land_surface__longitude", -105, at="node")
+
+    met = Meteorology(grid, start_datetime='2023-01-01 12:00:00')
+    met.update_bulk_richardson_number()
+
+    assert_almost_equal(
+        grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"], -0.0159037
+    )
 
 
+def test_update_bulk_aero_conductance():
+    """ test Dn, Dh, De"""
+    # neutral condition (T_air == T_surf)
+    grid = RasterModelGrid((2, 2))
+    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
+    grid.add_full("land_surface__temperature", 1, at="node")
+    grid.add_full("land_surface__latitude", 40, at="node")
+    grid.add_full("land_surface__longitude", -105, at="node")
 
+    met = Meteorology(grid, start_datetime='2023-01-01 12:00:00')
+    met.update_bulk_aero_conductance()
 
+    assert_almost_equal(
+        grid.at_node[
+            "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance"
+        ],
+        0.02354779
+    )  # Dn
+    assert_almost_equal(
+        grid.at_node[
+            "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"
+        ],
+        0.02354779
+    )  # Dh
+    assert_almost_equal(
+        grid.at_node[
+            "atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"
+        ],
+        0.02354779
+    )  # De
+
+    # not neutral condition
+    grid = RasterModelGrid((2, 2))
+    grid.add_field("atmosphere_bottom_air__temperature",
+                   np.array([1., 1., 1., 1.]), at="node")
+    grid.add_field("land_surface__temperature", np.array([-1., -1., 2., 2.]), at="node")
+    grid.add_full("land_surface__latitude", 40, at="node")
+    grid.add_full("land_surface__longitude", -105, at="node")
+
+    met = Meteorology(grid, start_datetime='2023-01-01 12:00:00')
+    met.update_bulk_richardson_number()
+    met.update_bulk_aero_conductance()
+
+    assert_almost_equal(
+        grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"],
+        np.array([-0.0159037, -0.0159037,  0.00795185,  0.00795185])
+    )  # Ri
+    assert_almost_equal(
+        grid.at_node[
+            "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance"
+        ],
+        0.0235478
+    )  # Dn
+    assert_almost_equal(
+        grid.at_node[
+            "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"
+        ],
+        np.array([ 0.02729276,  0.02729276,  0.02181324,  0.02181324])
+    )  # Dh
+    assert_almost_equal(
+        grid.at_node[
+            "atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"
+        ],
+        np.array([ 0.02729276,  0.02729276,  0.02181324,  0.02181324])
+    )  # De
