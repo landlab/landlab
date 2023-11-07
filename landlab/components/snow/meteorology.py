@@ -11,12 +11,14 @@ https://github.com/peckhams/topoflow36/blob/master/topoflow/components/met_base.
 
 """
 
-import numpy as np
 import datetime
+
+import numpy as np
 from dateutil.relativedelta import relativedelta
-from . import solar_funcs
 
 from landlab import Component
+
+from . import solar_funcs
 
 
 class Meteorology(Component):
@@ -67,7 +69,6 @@ class Meteorology(Component):
     _unit_agnostic = False
 
     _info = {
-
         # input fields (4 req var, 13 opt var)
         "atmosphere_bottom_air__temperature": {
             "dtype": float,
@@ -101,7 +102,6 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "snow heat capacity",
         },  # lon_deg
-
         "land_surface__aspect_angle": {
             "dtype": float,
             "intent": "in",
@@ -206,7 +206,6 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "air flow speed reference height",
         },  # uz
-
         # output fields (18 var)
         "land_surface_net-total-energy__energy_flux": {
             "dtype": float,
@@ -390,15 +389,17 @@ class Meteorology(Component):
         # datetime & Julian day
         try:
             self._datetime_obj = datetime.datetime.strptime(
-                start_datetime, '%Y-%m-%d %H:%M:%S'
+                start_datetime, "%Y-%m-%d %H:%M:%S"
             )
         except Exception as e:
             raise e
 
-        self._julian_day = solar_funcs.Julian_Day(self._datetime_obj.month,
-                                                  self._datetime_obj.day,
-                                                  self._datetime_obj.hour,
-                                                  self._datetime_obj.year)
+        self._julian_day = solar_funcs.Julian_Day(
+            self._datetime_obj.month,
+            self._datetime_obj.day,
+            self._datetime_obj.hour,
+            self._datetime_obj.year,
+        )
 
         # input fields
         self._T_air = grid.at_node["atmosphere_bottom_air__temperature"]
@@ -572,10 +573,10 @@ class Meteorology(Component):
         self._Cp_air = Cp_air
 
     def update_bulk_richardson_number(self):
-        """calculate Ri """
+        """calculate Ri"""
         # TODO: check bot function (Dingman 2015 p130)
         top = self._g * self._z * (self._T_surf - self._T_air)
-        bot = self._uz ** 2.0 * (self._T_air + self._C_to_K)
+        bot = self._uz**2.0 * (self._T_air + self._C_to_K)
         self._Ri[:] = top / bot
 
     def update_bulk_aero_conductance(self):
@@ -651,7 +652,7 @@ class Meteorology(Component):
             self._e_air[:] = self._e_sat_air * self._RH
 
     def update_dew_point(self):
-        """ calculate T_dew """
+        """calculate T_dew"""
 
         # https: // en.wikipedia.org / wiki / Dew_point
         # e_air in mbar units
@@ -670,7 +671,7 @@ class Meteorology(Component):
         self._W_p[:] = np.float64(1.12) * np.exp(arg)  # [cm]
 
     def update_latent_heat_flux(self):
-        """calculate Qe """
+        """calculate Qe"""
         # TODO: constant as 0.662 or 0.622? (Dingman 2015 p233 ver3)
 
         const = self._latent_heat_constant
@@ -691,26 +692,30 @@ class Meteorology(Component):
         pass
 
     def update_julian_day(self, dt):
-        """calculate julian_day, dt in seconds """
+        """calculate julian_day, dt in seconds"""
 
         # Update the datetime_obj
         delta = relativedelta(seconds=dt)
         self._datetime_obj += delta
 
         # update Julian day
-        self._julian_day = solar_funcs.Julian_Day(self._datetime_obj.month,
-                                                  self._datetime_obj.day,
-                                                  self._datetime_obj.hour,
-                                                  self._datetime_obj.year)
+        self._julian_day = solar_funcs.Julian_Day(
+            self._datetime_obj.month,
+            self._datetime_obj.day,
+            self._datetime_obj.hour,
+            self._datetime_obj.year,
+        )
         # get TSN_offset
         dec_part = self._julian_day - np.int16(self._julian_day)
         clock_hour = dec_part * self._hours_per_day
-        solar_noon = solar_funcs.True_Solar_Noon(self._julian_day,
-                                                 self._lon_deg,
-                                                 self._GMT_offset,
-                                                 DST_offset=None,
-                                                 year=self._datetime_obj.year)
-        self._TSN_offset = (clock_hour - solar_noon)
+        solar_noon = solar_funcs.True_Solar_Noon(
+            self._julian_day,
+            self._lon_deg,
+            self._GMT_offset,
+            DST_offset=None,
+            year=self._datetime_obj.year,
+        )
+        self._TSN_offset = clock_hour - solar_noon
 
     def update_net_shortwave_radiation(self):
         """calculate Qn_SW"""
