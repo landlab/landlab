@@ -1,4 +1,9 @@
 """
+Utility functions used to calculate short wave radiation
+
+This module is originally from the Topoflow model (by Scott D. Packham).
+https://github.com/peckhams/topoflow36/blob/master/topoflow/components/solar_funcs.py
+
 This file defines a set of functions for computing both shortwave
 and longwave radiation.  Most of the functions are from Appendix
 E of Dingman (2002).  The equation for optical air mass is from
