@@ -45,7 +45,9 @@ class Meteorology(Component):
     start_datetime : string
         start time in format of "yyyy-mm-dd hh:mm:ss"
     GMT_offset: int (default 0)
-        GMT offset
+        GMT offset at the locations of interest. It should be entered as an integer
+        or an array of integers between 0 and 12 with negative values for
+        locations west of the prime meridian.
     rho_H2O : float (default 1000 kg/m3)
         water density
     rho_air : float (default 1.2614 kg/m3)
@@ -82,7 +84,7 @@ class Meteorology(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "",
-        },  # T_surf
+        },  # T_surf (snow pack temp)
         "land_surface__latitude": {
             "dtype": float,
             "intent": "in",
@@ -131,7 +133,7 @@ class Meteorology(Component):
             "units": "-",
             "mapping": "node",
             "doc": "land surface albedo",
-        },  # albedo
+        },  # albedo (snow pack)
         "land_surface__emissivity": {
             "dtype": float,
             "intent": "in",
@@ -139,7 +141,7 @@ class Meteorology(Component):
             "units": "-",
             "mapping": "node",
             "doc": "land surface emissivity",
-        },  # em_surf
+        },  # em_surf (snow pack)
         "atmosphere_aerosol_dust__reduction_of_transmittance": {
             "dtype": float,
             "intent": "in",
@@ -369,7 +371,7 @@ class Meteorology(Component):
         # physical constants
         self._g = np.float64(9.81)  # [m s-2, gravity]
         self._kappa = np.float64(0.408)  # [1]  (von Karman)
-        self._Lv = np.float64(2500000)  # [J kg-1] Latent heat of vaporiz.
+        self._Lv = np.float64(2500000)  # [J kg-1] Latent heat of vaporization.
         self._Lf = np.float64(334000)  # [J kg-1 = W s kg-1], Latent heat of fusion
         self._sigma = np.float64(5.67e-8)  # [W m-2 K-4]  (Stefan-Boltzman constant)
         self._C_to_K = np.float64(273.15)  # (add to convert deg C to K)
@@ -435,7 +437,7 @@ class Meteorology(Component):
             ]
         else:
             self._dust_atten = grid.add_full(
-                "atmosphere_aerosol_dust__reduction_of_transmittance", 0.08
+                "atmosphere_aerosol_dust__reduction_of_transmittance", 0.0
             )
 
         if "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor" in grid.at_node:
@@ -483,7 +485,7 @@ class Meteorology(Component):
             self._z = grid.at_node["atmosphere_bottom_air_flow__speed_reference_height"]
         else:
             self._z = grid.add_full(
-                "atmosphere_bottom_air_flow__speed_reference_height", 10
+                "atmosphere_bottom_air_flow__speed_reference_height", 2
             )
 
         if "atmosphere_bottom_air_flow__reference-height_speed" in grid.at_node:
@@ -571,15 +573,14 @@ class Meteorology(Component):
 
     def update_bulk_richardson_number(self):
         """calculate Ri """
-
-        # TODO: check equation (Dingman (ver3) p130)
+        # TODO: check bot function (Dingman 2015 p130)
         top = self._g * self._z * (self._T_surf - self._T_air)
         bot = self._uz ** 2.0 * (self._T_air + self._C_to_K)
         self._Ri[:] = top / bot
 
     def update_bulk_aero_conductance(self):
         """calculate Dn, Dh, De"""
-
+        # TODO: Dingman 2015 P232 log(z-H_snow/z0) or log(z-0/z0)
         # calculate Dn
         arg = self._kappa / np.log((self._z - self._h_snow) / self._z0_air)
         Dn = self._uz * arg**2.0
@@ -611,6 +612,7 @@ class Meteorology(Component):
     def update_sensible_heat_flux(self):
         """calculate Qh"""
 
+        # TODO: missing 0.622 constant? Dingman 2015 P232
         delta_T = self._T_air - self._T_surf
         self._Qh[:] = (self._rho_air * self._Cp_air) * self._Dh * delta_T
 
@@ -623,7 +625,7 @@ class Meteorology(Component):
             T = self._T_air
 
         if not self._satterlund:
-            # use Brutsaert method (Dingman p254)
+            # use Brutsaert method (Dingman 2015 p148)
             term1 = (np.float64(17.3) * T) / (T + np.float64(237.3))
             e_sat = np.float64(0.611) * np.exp(term1)  # [kPa]
         else:
@@ -652,6 +654,8 @@ class Meteorology(Component):
         """ calculate T_dew """
 
         # https: // en.wikipedia.org / wiki / Dew_point
+        # e_air in mbar units
+
         a = 6.1121  # [mbar]
         b = 18.678
         c = 257.14  # [deg C]
@@ -659,11 +663,16 @@ class Meteorology(Component):
         log_term = np.log(self._e_air / a)
         self._T_dew[:] = c * log_term / (b - log_term)  # [deg C]
 
+    def update_precipitable_water_content(self):
+        """calculate W_p"""
+
+        arg = np.float64(0.0614 * self._T_dew)
+        self._W_p[:] = np.float64(1.12) * np.exp(arg)  # [cm]
+
     def update_latent_heat_flux(self):
         """calculate Qe """
+        # TODO: constant as 0.662 or 0.622? (Dingman 2015 p233 ver3)
 
-        # TODO math
-        # (Dingman p233 ver3)
         const = self._latent_heat_constant
         factor = self._rho_air * self._Lv * self._De
         delta_e = self._e_air - self._e_surf
@@ -702,12 +711,6 @@ class Meteorology(Component):
                                                  DST_offset=None,
                                                  year=self._datetime_obj.year)
         self._TSN_offset = (clock_hour - solar_noon)
-
-    def update_precipitable_water_content(self):
-        """calculate W_p"""
-
-        arg = np.float64(0.0614 * self._T_dew)
-        self._W_p[:] = np.float64(1.12) * np.exp(arg)  # [cm]
 
     def update_net_shortwave_radiation(self):
         """calculate Qn_SW"""
@@ -800,8 +803,8 @@ class Meteorology(Component):
         self.update_saturation_vapor_pressure(MBAR=True)  # e_sat_air
         self.update_saturation_vapor_pressure(MBAR=True, SURFACE=True)  # e_sat_surf
         self.update_vapor_pressure()  # e_air
-        self.update_precipitable_water_content()  # W_p
         self.update_dew_point()  # T_dew
+        self.update_precipitable_water_content()  # W_p [after update_dew_point()]
         self.update_vapor_pressure(SURFACE=True)  # e_surf
         self.update_latent_heat_flux()  # Qe
         self.update_conduction_heat_flux()  # Qc
