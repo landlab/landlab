@@ -37,9 +37,8 @@ class Meteorology(Component):
     - Qn_LW: net long wave energy flux
     - Qh: sensible heat energy flux
     - Qe: latent heat energy flux
-    - Qa: net energy flux advected by moving water (assume this to be negligible; Qa=0)
-    - Qc: net energy flux via conduction from snow to soil (assume this to be negligible
-          ; Qc=0)
+    - Qa: net energy flux advected by moving water (negligible; Qa=0)
+    - Qc: net energy flux via conduction from snow to soil (negligible; Qc=0)
 
 
     Parameters
