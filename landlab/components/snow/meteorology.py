@@ -23,21 +23,23 @@ from . import solar_funcs
 
 class Meteorology(Component):
 
-    """Simulate snowmelt process using snow energy balance method.
+    """Calculate several energy fluxes and climate variables.
 
     This component calculates several energy fluxes (solar radiation,
-    long wave radiation, sensible heat, latent heat) to estimate the net total energy
-    flux that can be used as the input for the snow energy balance component.
+    long wave radiation, sensible heat, latent heat) and related climate variables
+    (e.g., air vapor pressure, dew point, and air emissivity).
 
-    The net total energy flux (Q_sum) is calculated as:
+    The estimated total net energy flux (Q_sum) can be used as the input for
+    the SnowEnergyBalance component. Q_sum is calculated as:
 
     Q_sum = Qn_SW + Qn_LW + Qh + Qe + Qa + Qc
     - Qn_SW: net short wave energy flux
     - Qn_LW: net long wave energy flux
     - Qh: sensible heat energy flux
     - Qe: latent heat energy flux
-    - Qa: net energy flux advected by moving water (default as 0)
-    - Qc: net energy flux via conduction from snow to soil (default as 0)
+    - Qa: net energy flux advected by moving water (assume this to be negligible; Qa=0)
+    - Qc: net energy flux via conduction from snow to soil (assume this to be negligible
+          ; Qc=0)
 
 
     Parameters
@@ -60,8 +62,35 @@ class Meteorology(Component):
         if true, use Satterlund method for saturation vapor pressure
 
 
-    Examples  # TODO add example
+    Examples
     --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.snow import Meteorology
+    >>> grid = RasterModelGrid((2, 2))
+    >>> grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
+    array([ 1.,  1.,  1.,  1.])
+    >>> grid.add_full("land_surface__temperature", -1, at="node")
+    array([-1., -1., -1., -1.])
+    >>> grid.add_full("land_surface__latitude", 40, at="node")
+    array([ 40.,  40.,  40.,  40.])
+    >>> grid.add_full("land_surface__longitude", -105, at="node")
+    array([-105., -105., -105., -105.])
+    >>> grid.add_full(
+    ... "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node")
+    array([ 0.4,  0.4,  0.4,  0.4])
+    >>> grid.add_full(
+    ... "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.5, at="node")
+    array([ 0.5,  0.5,  0.5,  0.5])
+    >>> grid.add_full(
+    ... "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.7, at="node")
+    array([ 0.7,  0.7,  0.7,  0.7])
+    >>> dt = 60 * 60 * 48
+    >>> met = Meteorology(
+    ... grid, start_datetime="2023-01-01 12:00:00", GMT_offset=-7, satterlund=False)
+    >>> met.run_one_step(dt)
+    >>> grid.at_node["land_surface_net-total-energy__energy_flux"]
+    array([ 605.21839499,  605.21839499,  605.21839499,  605.21839499])
     """
 
     _name = "Meteorology"
