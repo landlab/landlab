@@ -13,3 +13,11 @@ SnowEnergyBalance: use snow energy balance method to simulate the snow melt and 
     :members:
     :undoc-members:
     :show-inheritance:
+
+Meteorology: calculate several energy fluxes that can be the inputs for SnowEnergyBalance component
+-------------------------------------------------------------------------------------------------------
+
+.. automodule:: landlab.components.snow.meteorology
+    :members:
+    :undoc-members:
+    :show-inheritance:
