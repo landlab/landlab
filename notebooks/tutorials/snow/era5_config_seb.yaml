@@ -58,4 +58,4 @@ bmi-era5:
     grid:
       - 0.25
       - 0.25
-  path: 'era5_2.nc'
+  path: 'era5_seb.nc'
