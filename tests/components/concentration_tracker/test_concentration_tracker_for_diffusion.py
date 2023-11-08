@@ -57,9 +57,8 @@ def test_input_fields_soil(required_field):
 def test_field_instantiation():
     """
     ConcentrationTrackerForDiffusion should instantiate the following fields
-    when they do not already exist ('sediment_property__mass_flux',
-    'bedrock_property__concentration', 'sediment_property__concentration',
-    'sediment_property_decay__rate', 'sediment_property_production__rate')
+    when they do not already exist ('bedrock_property__concentration' and 
+    'sediment_property__concentration')
     """
     mg = RasterModelGrid((3, 3))
     mg.add_zeros("soil__flux", at="link")
@@ -72,11 +71,8 @@ def test_field_instantiation():
     missing_fields = {
         "bedrock_property__concentration",
         "sediment_property__concentration",
-        "sediment_property_decay__rate",
-        "sediment_property_production__rate",
     } - set(mg.at_node)
     assert not missing_fields
-    assert "sediment_property__mass_flux" in mg.at_link
 
 
 # %% Test different user input options
@@ -92,7 +88,6 @@ def test_fields_for_default_input():
 
     ConcentrationTrackerForDiffusion(mg)
 
-    link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
@@ -100,11 +95,7 @@ def test_fields_for_default_input():
         mg.at_node["sediment_property_decay__rate"],
     ]
 
-    link_check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
     node_check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
-    np.testing.assert_equal(link_field, link_check)
 
     for node_field in node_fields:
         np.testing.assert_equal(node_field, node_check)
@@ -118,7 +109,6 @@ def test_fields_for_default_input_with_preexisting_fields():
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil_production__rate", at="node")
 
-    mg.add_ones("sediment_property__mass_flux", at="link")
     mg.add_ones("sediment_property__concentration", at="node")
     mg.add_ones("bedrock_property__concentration", at="node")
     mg.add_ones("sediment_property_production__rate", at="node")
@@ -126,7 +116,6 @@ def test_fields_for_default_input_with_preexisting_fields():
 
     ConcentrationTrackerForDiffusion(mg)
 
-    link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
@@ -134,11 +123,7 @@ def test_fields_for_default_input_with_preexisting_fields():
         mg.at_node["sediment_property_decay__rate"],
     ]
 
-    link_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-
     node_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-
-    np.testing.assert_equal(link_field, link_check)
 
     for node_field in node_fields:
         np.testing.assert_equal(node_field, node_check)
@@ -156,23 +141,14 @@ def test_fields_for_user_value_input():
         mg,
         concentration_initial=1,
         concentration_in_bedrock=1,
-        local_production_rate=1,
-        local_decay_rate=1,
     )
 
-    link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
-        mg.at_node["sediment_property_production__rate"],
-        mg.at_node["sediment_property_decay__rate"],
     ]
 
-    link_check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
     node_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-
-    np.testing.assert_equal(link_field, link_check)
 
     for node_field in node_fields:
         np.testing.assert_equal(node_field, node_check)
@@ -188,30 +164,19 @@ def test_fields_for_user_array_input():
 
     c_sed = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     c_br = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-    p = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-    d = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
     ConcentrationTrackerForDiffusion(
         mg,
         concentration_initial=c_sed,
         concentration_in_bedrock=c_br,
-        local_production_rate=p,
-        local_decay_rate=d,
     )
 
-    link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
-        mg.at_node["sediment_property_production__rate"],
-        mg.at_node["sediment_property_decay__rate"],
     ]
 
-    link_check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
     node_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-
-    np.testing.assert_equal(link_field, link_check)
 
     for node_field in node_fields:
         np.testing.assert_equal(node_field, node_check)
@@ -227,30 +192,19 @@ def test_fields_for_user_field_input():
 
     c_sed = mg.add_ones("sediment_property__concentration", at="node")
     c_br = mg.add_ones("bedrock_property__concentration", at="node")
-    p = mg.add_ones("sediment_property_production__rate", at="node")
-    d = mg.add_ones("sediment_property_decay__rate", at="node")
 
     ConcentrationTrackerForDiffusion(
         mg,
         concentration_initial=c_sed,
         concentration_in_bedrock=c_br,
-        local_production_rate=p,
-        local_decay_rate=d,
     )
 
-    link_field = mg.at_link["sediment_property__mass_flux"]
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
-        mg.at_node["sediment_property_production__rate"],
-        mg.at_node["sediment_property_decay__rate"],
     ]
 
-    link_check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
     node_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-
-    np.testing.assert_equal(link_field, link_check)
 
     for node_field in node_fields:
         np.testing.assert_equal(node_field, node_check)
