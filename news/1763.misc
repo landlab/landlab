@@ -1,4 +1,0 @@
-
-Updated the *isort* configuration to identify *landlab* as a first-party
-package to prevent it from moving *landlab* imports into the third-party
-section.
