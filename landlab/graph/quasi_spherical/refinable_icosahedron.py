@@ -174,6 +174,7 @@ class RefinableIcosahedron:
         # vtk DataFile Version 2.0
         >>> for i in range(4, 17):
         ...     print(lines[i])
+        ...
         POINTS 12 float
         -0.5257311121191336 0.85065080835204 0.0
         0.5257311121191336 0.85065080835204 0.0
@@ -189,6 +190,7 @@ class RefinableIcosahedron:
         -0.85065080835204 0.0 0.5257311121191336
         >>> for i in range(18, 40):
         ...     print(lines[i])
+        ...
         CELLS 20 80
         3 0 11 5
         3 0 5 1
@@ -212,6 +214,7 @@ class RefinableIcosahedron:
         3 9 8 1
         >>> for i in range(40, 44):
         ...     print(lines[i])
+        ...
         CELL_TYPES 20
         5
         5

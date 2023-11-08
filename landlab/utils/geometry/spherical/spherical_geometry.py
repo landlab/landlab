@@ -70,8 +70,8 @@ def rotate_around_y_axis(x, z, angle):
     Examples
     --------
     >>> import numpy as np
-    >>> x = np.array([1., 1., 2., -1., -1.])
-    >>> z = np.array([1., 0., 0., 1., 0.])
+    >>> x = np.array([1.0, 1.0, 2.0, -1.0, -1.0])
+    >>> z = np.array([1.0, 0.0, 0.0, 1.0, 0.0])
     >>> ang = np.array([-np.pi / 4, -np.pi / 2, -np.pi / 2, np.pi / 4, np.pi / 2])
     >>> xr, zr = rotate_around_y_axis(x, z, ang)
     >>> np.round(np.abs(xr), 2)
@@ -99,8 +99,8 @@ def rotate_around_z_axis(x, y, angle):
     Examples
     --------
     >>> import numpy as np
-    >>> x = np.array([0., 1., 2., -1.])
-    >>> y = np.array([1., 0., 0., -1.])
+    >>> x = np.array([0.0, 1.0, 2.0, -1.0])
+    >>> y = np.array([1.0, 0.0, 0.0, -1.0])
     >>> ang = np.array([-np.pi / 2, -np.pi / 2, np.pi / 2, 3 * np.pi / 4])
     >>> xr, yr = rotate_around_z_axis(x, y, ang)
     >>> np.round(np.abs(xr), 2)
@@ -129,9 +129,9 @@ def rotate_zy(x, y, z, phi, theta):
     Examples
     --------
     >>> import numpy as np
-    >>> x = np.array([1., -1.])
-    >>> y = np.array([1., 0.])
-    >>> z = np.array([0., 1.])
+    >>> x = np.array([1.0, -1.0])
+    >>> y = np.array([1.0, 0.0])
+    >>> z = np.array([0.0, 1.0])
     >>> phi = np.array([-np.pi / 4, np.pi])
     >>> theta = np.array([-np.pi / 2, -np.pi / 4])
     >>> xr, yr, zr = rotate_zy(x, y, z, phi, theta)
@@ -166,10 +166,10 @@ def radial_length_of_sphertri_sides(p0, p1, p2, r=1.0):
 
     >>> import numpy as np
     >>> t = (1.0 + 5.0**0.5) / 2.0
-    >>> p0 = np.array([-1., t, 0.])
-    >>> p1 = np.array([-t, 0., 1.])
-    >>> p2 = np.array([0., 1., t])
-    >>> a,b,c = radial_length_of_sphertri_sides(p0, p1, p2, np.sqrt(np.sum(p0**2)))
+    >>> p0 = np.array([-1.0, t, 0.0])
+    >>> p1 = np.array([-t, 0.0, 1.0])
+    >>> p2 = np.array([0.0, 1.0, t])
+    >>> a, b, c = radial_length_of_sphertri_sides(p0, p1, p2, np.sqrt(np.sum(p0**2)))
     >>> (int(10 * a), int(10 * b), int(10 * c))
     (11, 11, 11)
     """
@@ -259,9 +259,9 @@ def area_of_sphertri(p0, p1, p2, R):
     >>> import numpy as np
     >>> t = (1.0 + 5.0**0.5) / 2.0
     >>> R0 = np.sqrt(1 + t**2)
-    >>> p0 = np.array([-1., t, 0.]) / R0
-    >>> p1 = np.array([-t, 0., 1.]) / R0
-    >>> p2 = np.array([0., 1., t]) / R0
+    >>> p0 = np.array([-1.0, t, 0.0]) / R0
+    >>> p1 = np.array([-t, 0.0, 1.0]) / R0
+    >>> p2 = np.array([0.0, 1.0, t]) / R0
     >>> 20 * area_of_sphertri(p0, p1, p2, 1.0) / np.pi
     4.0
     """
