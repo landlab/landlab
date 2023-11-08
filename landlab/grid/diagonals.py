@@ -26,7 +26,7 @@ def create_nodes_at_diagonal(shape, out=None):
     Examples
     --------
     >>> from landlab.grid.diagonals import create_nodes_at_diagonal
-    >>> create_nodes_at_diagonal((3, 4)) # doctest: +NORMALIZE_WHITESPACE
+    >>> create_nodes_at_diagonal((3, 4))
     array([[ 0, 5], [ 1, 4], [ 1,  6], [ 2, 5], [ 2,  7], [ 3,  6],
            [ 4, 9], [ 5, 8], [ 5, 10], [ 6, 9], [ 6, 11], [ 7, 10]])
     """
@@ -251,7 +251,7 @@ class DiagonalsMixIn:
 
         >>> grid.diagonals_at_node[3]
         array([ 4, -1, -1,  1])
-        >>> grid.nodes_at_diagonal[(4, 1), ]
+        >>> grid.nodes_at_diagonal[(4, 1),]
         array([[3, 7],
                [1, 3]])
         >>> grid.diagonal_dirs_at_node[3]
@@ -369,7 +369,7 @@ class DiagonalsMixIn:
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
-        >>> grid.length_of_d8 # doctest: +NORMALIZE_WHITESPACE
+        >>> grid.length_of_d8
         array([ 4.,  4.,  3.,  3.,  3.,
                 4.,  4.,  3.,  3.,  3.,
                 4.,  4.,  5.,  5.,  5.,

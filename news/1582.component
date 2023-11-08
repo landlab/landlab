@@ -1,2 +1,0 @@
-Added new component :class:`~.AdvectionSolverTVD` for advection using
-a Total Variation Diminishing method.

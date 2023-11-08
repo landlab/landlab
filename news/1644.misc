@@ -1,2 +1,0 @@
-Fixed an issue with a missing package, *hypothesis*, not being installed when
-the notebook tests were run through *nox*.

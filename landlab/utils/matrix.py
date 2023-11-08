@@ -164,7 +164,9 @@ def get_core_node_matrix(grid, value_at_node, coef_at_link=None):
     >>> grid.status_at_node[13] = grid.BC_NODE_IS_FIXED_VALUE
     >>> grid.status_at_node[2] = grid.BC_NODE_IS_CLOSED
 
-    >>> vals = np.arange(grid.number_of_nodes, dtype=np.double)  # made-up state variable array
+    >>> vals = np.arange(
+    ...     grid.number_of_nodes, dtype=np.double
+    ... )  # made-up state variable array
 
     >>> mat, rhs = get_core_node_matrix(grid, vals)
     >>> mat.toarray()
