@@ -19,12 +19,11 @@ class ConcentrationTrackerForDiffusion(Component):
 
     .. math::
 
-        ∂CH / ∂t = [-(∂q_x C_x) / ∂x - (∂q_y C_y) / ∂y] + C_br * H_brw + PH + DH
-
+        ∂CH / ∂t = [-(∂q_x C_x) / ∂x - (∂q_y C_y) / ∂y] + C_br * H_brw
+        
     where :math:`H` is sediment depth, :math:`q_x` and :math:`q_y` are sediment
     fluxed in the x and y directions, :math:`C_br` is concentration in parent
-    bedrock, :math:`H_brw` is the height of bedrock weathered into soil,
-    :math:`P` is the local production rate, :math:`D` is the local decay rate.
+    bedrock, and :math:`H_brw` is the height of bedrock weathered into soil.
 
     .. note::
 
@@ -32,6 +31,9 @@ class ConcentrationTrackerForDiffusion(Component):
         component and must be run after every diffusion step. Currently, this component
         WILL ONLY WORK IF COUPLED with the :class:`~.DepthDependentDiffuser` or the
         :class:`~.DepthDependentTaylorDiffuser` (without the dynamic timestep option).
+        
+        In-situ production and decay of the material property are handled by
+        the ConcentrationTrackerProductionDecay component.
 
     Examples
     --------
@@ -309,22 +311,6 @@ class ConcentrationTrackerForDiffusion(Component):
             "mapping": "node",
             "doc": "Mass concentration of property per unit volume of bedrock",
         },
-        "sediment_property_production__rate": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-/m^3/yr",
-            "mapping": "node",
-            "doc": "Production rate of property per unit volume of sediment per time",
-        },
-        "sediment_property_decay__rate": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "-/m^3/yr",
-            "mapping": "node",
-            "doc": "Decay rate of property per unit volume of sediment per time",
-        },
     }
 
     def __init__(
@@ -333,8 +319,6 @@ class ConcentrationTrackerForDiffusion(Component):
         concentration_initial=0,
         concentration_in_bedrock=0,
         concentration_from_weathering=None,
-        local_production_rate=0,
-        local_decay_rate=0,
     ):
         """
         Parameters
@@ -352,21 +336,15 @@ class ConcentrationTrackerForDiffusion(Component):
             as it weathers to soil. 
             Use this parameter to differentiate between the concentration in 
             weathered material compared to its parent bedrock.
-        local_production_rate: float, array, or field name (optional)
-            Rate of local production, -/m^3/yr
-        local_decay_rate: float, array, or field name (optional)
-            Rate of local decay, -/m^3/yr
         """
 
         super().__init__(grid)
         # Store grid and parameters
 
-        # use setters for C_init, C_br, P, and D defined below
+        # use setters for C_init, C_br, and C_w defined below
         self.C_init = concentration_initial
         self.C_br = concentration_in_bedrock
         self.C_w = concentration_from_weathering
-        self.P = local_production_rate
-        self.D = local_decay_rate
 
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
@@ -385,14 +363,6 @@ class ConcentrationTrackerForDiffusion(Component):
         if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
             self._grid.at_node["bedrock_property__concentration"] += self.C_br
         self.C_br = self._grid.at_node["bedrock_property__concentration"]
-
-        if not self._grid.at_node["sediment_property_production__rate"].any():
-            self._grid.at_node["sediment_property_production__rate"] += self.P
-        self.P = self._grid.at_node["sediment_property_production__rate"]
-
-        if not self._grid.at_node["sediment_property_decay__rate"].any():
-            self._grid.at_node["sediment_property_decay__rate"] += self.D
-        self.D = self._grid.at_node["sediment_property_decay__rate"]
 
         # Sediment property concentration field (at links, to calculate dQCdx)
         self._C_links = np.zeros(self._grid.number_of_links)
@@ -415,16 +385,6 @@ class ConcentrationTrackerForDiffusion(Component):
         """Concentration from the weathering process (kg/m^3)."""
         return self._C_w
 
-    @property
-    def P(self):
-        """Rate of local production (kg/m^3/yr)."""
-        return self._P
-
-    @property
-    def D(self):
-        """Rate of local decay (kg/m^3/yr)."""
-        return self._D
-
     @C_init.setter
     def C_init(self, new_val):
         if np.any(new_val < 0.0):
@@ -444,14 +404,6 @@ class ConcentrationTrackerForDiffusion(Component):
         if np.any(new_val < 0.0):
             raise ValueError("Concentration cannot be negative")
         self._C_w = new_val
-
-    @P.setter
-    def P(self, new_val):
-        self._P = return_array_at_node(self._grid, new_val)
-
-    @D.setter
-    def D(self, new_val):
-        self._D = return_array_at_node(self._grid, new_val)
 
     def concentration(self, dt):
         """Calculate change in concentration for a time period 'dt'.
@@ -493,16 +445,12 @@ class ConcentrationTrackerForDiffusion(Component):
         C_from_weathering = np.divide(
             self._C_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
         )
-        Production = (dt * self._P / 2.0) * (old_depth_over_new + 1.0)
-        Decay = (dt * self._D / 2.0) * (old_depth_over_new + 1.0)
 
         # Calculate concentration
         self._concentration[:] = (
             C_local
             + C_from_weathering
             + dt_over_depth * (-dQCdx)
-            + Production
-            - Decay
         )
         
         self._concentration[~is_soil] = 0.0
