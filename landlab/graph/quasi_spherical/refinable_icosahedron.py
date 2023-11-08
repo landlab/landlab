@@ -61,7 +61,6 @@ class RefinableIcosahedron:
         Initialize RefinableIcosahedron
         """
         self.radius = radius
-        # print("RADIUS", self.radius)
         self.vertices = []
         self.faces = []
         self.middle_point_index_cache = {}
@@ -73,6 +72,15 @@ class RefinableIcosahedron:
         """
         Add a vertex, scaling its coordinates to fit the given radius,
         and return its index in the vertices list.
+
+        Parameters
+        ----------
+        vtx : 3-element tuple of float
+            x, y, and z coordinates of vertex
+
+        Returns
+        -------
+        int : index number of the new vertex
         """
         length = (vtx[0] ** 2 + vtx[1] ** 2 + vtx[2] ** 2) ** 0.5
         scale_fac = self.radius / length
@@ -167,7 +175,10 @@ class RefinableIcosahedron:
         Examples
         --------
         >>> import io
+        >>> import os
         >>> ico = RefinableIcosahedron()
+        >>> file_test = ico.write_to_vtk("testfile.vtk")
+        >>> os.remove("testfile.vtk")
         >>> output = ico.write_to_vtk(io.StringIO())
         >>> lines = output.getvalue().splitlines()
         >>> print(lines[0])
@@ -263,20 +274,6 @@ class RefinableIcosahedron:
         for _ in range(nfaces):
             file_like.write("5\n")
 
-    def dist(self, p1, p2):
-        """
-        Calculate and return the distance between 3D points p1 and p2.
-
-        Parameters
-        ----------
-        p1, p2 : tuple, list, or array with 3 float elements
-            x, y, z coordinates of each point, m
-        """
-        dx = p1[0] - p2[0]
-        dy = p1[1] - p2[1]
-        dz = p1[2] - p2[2]
-        return (dx * dx + dy * dy + dz * dz) ** 0.5
-
     def get_middle_point(self, p1, p2):
         """
         Identify and add a new point between two existing points.
@@ -298,7 +295,7 @@ class RefinableIcosahedron:
         adding the same point twice. To do this, we use a dictionary
         (middle_point_index_cache) to keep track of points already
         added. Each point has a key made of the two vertex IDs (one
-        is bit shifted, then they are added together). We only add
+        is bit-shifted, then they are added together). We only add
         a point if it isn't already in the dict.
         """
 
@@ -345,4 +342,3 @@ class RefinableIcosahedron:
                 faces2.append((a, b, c))
 
             self.faces = faces2
-        # print("after refine, verts", self.vertices)
