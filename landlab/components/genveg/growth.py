@@ -161,13 +161,11 @@ class PlantGrowth(Species):
                         maximum photosyntehtic output
         """
         # Initialize species object to get correct species parameter list
-
-        super().__init__(species_params)
-        self.species_name = self.species_plant_factors["species"]
-
         self._grid = grid
         (_, _latitude) = self._grid.xy_of_reference
         self._lat_rad = np.radians(_latitude)
+        super().__init__(species_params, self._lat_rad)
+        self.species_name = self.species_plant_factors["species"]
 
         self.dt = dt
         self.time_ind = 1
@@ -329,27 +327,14 @@ class PlantGrowth(Species):
         _temperature = self._grid["cell"]["air__temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
-        _declination = np.radians(23.45) * (
-            np.cos(2 * np.pi / 365 * (172 - _current_jday))
-        )
-        _daylength = (
-            24
-            / np.pi
-            * np.arccos(
-                -(np.sin(_declination) * np.sin(self._lat_rad))
-                / (np.cos(_declination) * np.cos(self._lat_rad))
-            )
-        )
 
         _new_live_biomass = self.respire(_temperature, _last_live_biomass)
 
         # Change this so for positive delta_tot we allocate by size and
         if event_flags["_in_growing_season"]:
             delta_photo = processes["_in_growing_season"](
-                _par, _new_live_biomass, _daylength
+                _par, _new_live_biomass, _current_jday
             )
-            # print("Photosynthesis")
-            # print(delta_photo)
             # we will need to add a turnover rate estiamte. Not sure where to include it though.
             # delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
             _new_live_biomass = self.allocate_biomass_dynamically(
