@@ -19,7 +19,6 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
     --------
     >>> ico = IcosphereGlobalGrid()
     """
-
     def __init__(self, radius=1.0, mesh_densification_level=0):
         """Initialize the IcosphereGlobalGrid"""
         DualIcosphereGraph.__init__(self, radius, mesh_densification_level)
@@ -27,7 +26,7 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
 
     def to_vtk(
         self,
-        base_name="icosahedron",
+        base_name="icosphere",
         field_for_cells=None,
         field_name_for_cells="cell_data",
         field_for_patches=None,
@@ -44,11 +43,29 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
         field_for_cells : ndarray, optional
             Array containing data for each Landlab cell; default None
         field_name_for_cells : str, optional
-            Name for field of cell-based values (default "cell_data"
+            Name for field of cell-based values (default "cell_data")
         field_for_patches : ndarray, optional
             Array containing data for each Landlab patch; default None
         field_name_for_patches : str, optional
-            Name for field of patch-based values (default "patch_data"
+            Name for field of patch-based values (default "patch_data")
+
+        Examples
+        --------
+        >>> import os
+        >>> ico = IcosphereGlobalGrid()
+        >>> ico.to_vtk(field_for_patches=np.zeros(20))
+        >>> with open("icosphere_cells.vtk", "r") as f:
+        ...     lines = f.readlines()
+        >>> lines[4][:15] == "POINTS 20 float"
+        True
+        >>> with open("icosphere_patches.vtk", "r") as f:
+        ...     lines = f.readlines()
+        >>> lines[4][:15] == "POINTS 12 float"
+        True
+        >>> lines[61][:12] == "CELL_DATA 20"
+        True
+        >>> os.remove("icosphere_cells.vtk")
+        >>> os.remove("icosphere_patches.vtk")
         """
         self._points_and_cells_to_vtk(
             self.coords_of_corner,
@@ -69,7 +86,7 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
     def _points_and_cells_to_vtk(
         points,
         cells,
-        filename="icosahedron.vtk",
+        filename="icosphere.vtk",
         scalar_field=None,
         scalar_field_name="cell_data",
     ):
