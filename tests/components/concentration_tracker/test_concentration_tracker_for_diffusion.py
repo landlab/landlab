@@ -204,6 +204,84 @@ def test_fields_for_user_field_input():
         np.testing.assert_equal(node_field, node_check)
 
 
+# %% Test concentration from weathering
+# Test that default input produces C_w equal to C_br
+def test_C_w_for_default_input():
+    mg = RasterModelGrid((3, 3))
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+
+    ct = ConcentrationTrackerForDiffusion(mg)
+
+    C_w_check = ct.C_br
+
+    np.testing.assert_equal(C_w_check, ct.C_w)
+
+
+# Test that user input of a single value produces C_w array different to C_br
+def test_C_w_for_user_value_input():
+    mg = RasterModelGrid((3, 3))
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+
+    ct = ConcentrationTrackerForDiffusion(
+            mg,
+            concentration_in_bedrock=0,
+            concentration_from_weathering=1,
+    )
+
+    C_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+
+    np.testing.assert_equal(C_w_check, ct.C_w)
+
+
+# Test that user input of array produces C_w array different to C_br
+def test_C_w_for_user_array_input():
+    mg = RasterModelGrid((3, 3))
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+
+    c_w = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+
+    ct = ConcentrationTrackerForDiffusion(
+            mg,
+            concentration_in_bedrock=0,
+            concentration_from_weathering=c_w,
+    )
+
+    C_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+
+    np.testing.assert_equal(C_w_check, ct.C_w)
+
+
+# Test that user input of grid fields produces C_w array different to C_br
+def test_C_w_for_user_field_input():
+    mg = RasterModelGrid((3, 3))
+    mg.add_zeros("soil__flux", at="link")
+    mg.add_zeros("soil__depth", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("soil_production__rate", at="node")
+
+    c_w = mg.add_ones("weathering__concentration", at="node")
+
+    ct = ConcentrationTrackerForDiffusion(
+            mg,
+            concentration_in_bedrock=0,
+            concentration_from_weathering=c_w,
+    )
+
+    C_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+
+    np.testing.assert_equal(C_w_check, ct.C_w)
+
+
+# %% Test errors for physicaly impossible inputs
 # Test that physically impossible inputs raise correct errors
 def test_properties_concentrations():
     """
