@@ -91,8 +91,6 @@ def test_fields_for_default_input():
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
-        mg.at_node["sediment_property_production__rate"],
-        mg.at_node["sediment_property_decay__rate"],
     ]
 
     node_check = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -111,16 +109,12 @@ def test_fields_for_default_input_with_preexisting_fields():
 
     mg.add_ones("sediment_property__concentration", at="node")
     mg.add_ones("bedrock_property__concentration", at="node")
-    mg.add_ones("sediment_property_production__rate", at="node")
-    mg.add_ones("sediment_property_decay__rate", at="node")
 
     ConcentrationTrackerForDiffusion(mg)
 
     node_fields = [
         mg.at_node["sediment_property__concentration"],
         mg.at_node["bedrock_property__concentration"],
-        mg.at_node["sediment_property_production__rate"],
-        mg.at_node["sediment_property_decay__rate"],
     ]
 
     node_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
@@ -225,14 +219,56 @@ def test_properties_concentrations():
     # Instantiate the component
     with pytest.raises(ValueError):
         ConcentrationTrackerForDiffusion(mg, concentration_initial=-1)
-    # Instantiate the component
     with pytest.raises(ValueError):
         ConcentrationTrackerForDiffusion(mg, concentration_in_bedrock=-1)
+    with pytest.raises(ValueError):
+        ConcentrationTrackerForDiffusion(mg, concentration_from_weathering=-1)
 
 
-# %% Test against analytical solutions
-# PLACEHOLDER: Test results against 1-D analytical solution (for DepthDependentDiffuser)
-# (I think this is covered by the docstring tests, so I haven't added it here)
 
-# PLACEHOLDER: Test results against 1-D analytical solution (for DepthDependentTaylorDiffuser)
-# (I think this is covered by the docstring tests, so I haven't added it here)
+# %% Test against analytical solution
+
+# Test concentration change for soil flux
+mg = RasterModelGrid((3, 5), dx=1)
+mg.axis_units = ('m', 'm')
+mg.set_status_at_node_on_edges(right=4,
+                               top=4,
+                               left=4,
+                               bottom=4)
+mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
+
+mg.add_ones('soil__depth', at='node', units= ['m','m'])
+mg.add_zeros('bedrock__elevation', at='node', units= ['m','m'])
+mg.add_zeros('topographic__elevation', at='node', units= ['m','m'])
+mg.at_node['topographic__elevation'][:] += mg.at_node['bedrock__elevation']
+mg.at_node['topographic__elevation'][:] += mg.at_node['soil__depth']
+
+# Colour band concentration fields
+C_sed = mg.add_zeros('sediment_property__concentration', at='node', units= ['kg/m^3','kg/m^3'])
+mg.at_node['sediment_property__concentration'][8] += 1
+C_br = mg.add_zeros('bedrock_property__concentration', at='node', units= ['kg/m^3','kg/m^3'])
+mg.at_node['bedrock_property__concentration'] += C_br_initial
+
+
+
+# Test concentration change for bedrock weathering to soil
+mg = RasterModelGrid((3, 5), dx=1)
+mg.axis_units = ('m', 'm')
+mg.set_status_at_node_on_edges(right=4,
+                               top=4,
+                               left=4,
+                               bottom=4)
+mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
+
+mg.add_ones('soil__depth', at='node', units= ['m','m'])
+mg.add_zeros('bedrock__elevation', at='node', units= ['m','m'])
+mg.add_zeros('topographic__elevation', at='node', units= ['m','m'])
+mg.at_node['topographic__elevation'][:] += mg.at_node['bedrock__elevation']
+mg.at_node['topographic__elevation'][:] += mg.at_node['soil__depth']
+
+# Colour band concentration fields
+C_sed = mg.add_zeros('sediment_property__concentration', at='node', units= ['kg/m^3','kg/m^3'])
+mg.at_node['sediment_property__concentration'][8] += 1
+C_br = mg.add_zeros('bedrock_property__concentration', at='node', units= ['kg/m^3','kg/m^3'])
+mg.at_node['bedrock_property__concentration'] += C_br_initial
+
