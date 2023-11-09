@@ -344,7 +344,6 @@ class ConcentrationTrackerForDiffusion(Component):
         # use setters for C_init, C_br, and C_w defined below
         self.C_init = concentration_initial
         self.C_br = concentration_in_bedrock
-        self.C_w = concentration_from_weathering
 
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
@@ -360,9 +359,12 @@ class ConcentrationTrackerForDiffusion(Component):
             self._grid.at_node["sediment_property__concentration"] += self.C_init
         self._concentration = self._grid.at_node["sediment_property__concentration"]
 
-        if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
+        if np.allclose(self._grid.at_node["bedrock_property__concentration"], 0.0):
             self._grid.at_node["bedrock_property__concentration"] += self.C_br
         self.C_br = self._grid.at_node["bedrock_property__concentration"]
+
+        # use setter for C_w defined below
+        self.C_w = concentration_from_weathering
 
         # Sediment property concentration field (at links, to calculate dQCdx)
         self._C_links = np.zeros(self._grid.number_of_links)
@@ -399,8 +401,8 @@ class ConcentrationTrackerForDiffusion(Component):
         
     @C_w.setter
     def C_w(self, new_val):
-        if new_val == None:
-            self._C_w = self._C_br
+        if new_val is None:
+            new_val = self._C_br
         if np.any(new_val < 0.0):
             raise ValueError("Concentration cannot be negative")
         self._C_w = new_val
