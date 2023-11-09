@@ -56,9 +56,16 @@ class DualIcosphereGraph:
         Examples
         --------
         >>> import numpy as np
+
+        Basic example: dodecahedron
+
         >>> ico = DualIcosphereGraph()
         >>> np.round(ico.coords_of_node[0], 3)
         array([-0.526,  0.851,  0.   ])
+        >>> ico.r_of_node[0]
+        1.0
+        >>> int(ico.phi_of_node[0] * 100), int(ico.theta_of_node[0] * 100)
+        (212, 157)
         >>> np.round(ico.coords_of_corner[1], 3)
         array([-0.   ,  0.934,  0.357])
         >>> round(ico.length_of_link[0], 3)
@@ -77,6 +84,8 @@ class DualIcosphereGraph:
         7297
         >>> ico.corners_at_node[0]
         array([ 3,  4,  0,  1,  2, -1])
+        >>> ico.corners_at_cell[0]
+        array([ 3,  4,  0,  1,  2, -1])
         >>> int(1e6 * ico.area_of_cell[0])
         1047197
         >>> ico.link_at_face[2]
@@ -85,6 +94,12 @@ class DualIcosphereGraph:
         3
         >>> ico.faces_at_cell[0]
         array([ 0,  2,  4,  6,  8, -1])
+
+        Icosphere with 1 level of subdivision
+
+        >>> ico = DualIcosphereGraph(mesh_densification_level=1)
+        >>> ico.number_of_patches
+        80
         """
         ico = RefinableIcosahedron(radius)
         if mesh_densification_level > 0:
@@ -101,7 +116,6 @@ class DualIcosphereGraph:
         """
         Create corners_at_face and length_of_face.
         """
-
         # Set up a temporary dict to look up patches by pairs of shared nodes.
         patches_at_node_pair = {}
         for i in range(self.number_of_patches):
@@ -166,10 +180,7 @@ class DualIcosphereGraph:
         """
         key = (min(p1, p2) << 32) + max(p1, p2)
         if not (key in self.links):
-            # print(" adding link", min(p1, p2), max(p1, p2))
             self.links[key] = (p1, p2)
-        # else:
-        #    print(" link", min(p1, p2), max(p1, p2), "already exists")
 
     def setup_links(self, ico_faces):
         """
@@ -281,15 +292,15 @@ class DualIcosphereGraph:
         veclen = np.sqrt(
             self.x_of_corner**2 + self.y_of_corner**2 + self.z_of_corner**2
         )  # this is the vector length...
-        # print("vl bef", veclen)
         for i in range(3):
             self.coords_of_corner[:, i] *= (
                 self.radius / veclen
             )  # ... which we use to normalize
-        veclen = np.sqrt(
-            self.x_of_corner**2 + self.y_of_corner**2 + self.z_of_corner**2
-        )  # this is the vector length...
-        # print("vl aft", veclen)
+
+    #        veclen = np.sqrt(
+    #            self.x_of_corner**2 + self.y_of_corner**2 + self.z_of_corner**2
+    #        )  # this is the vector length...
+    # print("vl aft", veclen)
 
     def setup_patches_and_corners(self, ico_faces):
         """
@@ -337,15 +348,37 @@ class DualIcosphereGraph:
         self.sort_corners_ccw()
 
     def _calc_area_of_patch(self):
-        """Calculate and return the surface area of the spherical triangular patches."""
-        pass
+        """
+        Calculate the surface area of the spherical triangular patches.
+        Store result in self._area_of_patch. Called by self.area_of_patch
+        (a @property) when self._area_of_patch does not already exist.
+
+        Examples
+        --------
+
+        For an icosahedron of unit radius, the area of each triangular
+        patch should be 1/20th of sphere area 4 pi.
+
+        >>> import numpy as np
+        >>> from numpy.testing import assert_array_almost_equal
+        >>> ico = DualIcosphereGraph()
+        >>> assert_array_almost_equal(ico.area_of_patch, 4 * np.pi / 20)
+        """
+        self._area_of_patch = np.zeros(self.number_of_patches)
+        for i in range(self.number_of_patches):
+            self._area_of_patch[i] = area_of_sphertri(
+                self.coords_of_node[self.nodes_at_patch[i, 0]],
+                self.coords_of_node[self.nodes_at_patch[i, 1]],
+                self.coords_of_node[self.nodes_at_patch[i, 2]],
+                self.radius,
+            )
 
     @property
     def area_of_patch(self):
         try:
             return self._area_of_patch
         except AttributeError:
-            self._calc_area_of_patch(self)
+            self._calc_area_of_patch()
             return self._area_of_patch
 
     @property
