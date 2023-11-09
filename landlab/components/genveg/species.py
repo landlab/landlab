@@ -407,20 +407,21 @@ class Species(object):
     def emerge(self, plants, jday):
         ns_conc = self.get_daily_nsc_concentration(jday)
         available_stored_biomass = np.zeros_like(plants["root"])
+        total_persistent_biomass = np.zeros_like(plants["root"])
         for part in self.habit.duration.persistent_parts:
             avail_nsc_content = (
                 ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
             ) * np.ones_like(plants[part])
             avail_nsc_content[avail_nsc_content < 0] = 0.0
-            available_stored_biomass += plants[part] * avail_nsc_content
 
-        # This is not running as expected. Need to find out why newly emerged plants have zero leaf biomass
-        plants = self.habit.duration.emerge(plants, available_stored_biomass)
-        print("Newly emerged plants")
-        print(plants)
+            available_stored_biomass += plants[part] * avail_nsc_content
+            total_persistent_biomass += plants[part]
+        plants = self.habit.duration.emerge(
+            plants, available_stored_biomass, total_persistent_biomass
+        )
+
         plants = self.update_morphology(plants)
-        print("Newly emerged plants with morphology")
-        print(plants)
+
         return plants
 
     def get_daily_nsc_concentration(self, _current_jday):
@@ -553,10 +554,6 @@ class Species(object):
         lai = self.calculate_lai(
             _last_biomass["leaf_biomass"], _last_biomass["shoot_sys_width"]
         )
-        print("Shoot width")
-        print(_last_biomass["shoot_sys_width"])
-        print("LAI")
-        print(lai)
         delta_tot = self.photosynthesis.photosynthesize(
             _par, _last_biomass, lai, _current_day
         )
