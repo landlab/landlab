@@ -9,7 +9,6 @@ import numpy as np
 from ...core.utils import argsort_points_by_x_then_y, as_id_array
 from ...utils.jaggedarray import flatten_jagged_array
 from ..quantity.ext.of_element import mean_of_children_at_parent
-from .ext.spoke_sort import sort_spokes_at_wheel
 from .ext.argsort import sort_id_array
 
 

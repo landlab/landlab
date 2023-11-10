@@ -2,7 +2,6 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
-
 from libc.math cimport atan2
 from libc.stdlib cimport free, malloc, qsort
 
