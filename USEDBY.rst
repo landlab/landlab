@@ -30,14 +30,12 @@ Wang, Y., Chen, S. M., Xiong, L. Y., & Li, S. J. (2023). **Paleotopography-const
 
 Anders, A. M., Lai, J., & Marshak, S. (2022). **Development of Foreland Intracratonic Plateaus (Ozark Plateau and Appalachian Plateaus): A Consequence of Topographic Inversion Due To Erosion of Adjacent Fold-Thrust Belts.** *Tectonics,* 41(4), e2021TC006957.
 
-Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic
-mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research:
-Earth Surface,* v. 127(8), e2022JF006745, `https://doi.org/10.1029/2022JF006745 <https://doi.org/10.1029/2022JF006745>`__.
+Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research: Earth Surface,* v. 127(8), e2022JF006745, `https://doi.org/10.1029/2022JF006745 <https://doi.org/10.1029/2022JF006745>`__.
 
 Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
 
 Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
->
+
 Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `https://doi.org/10.5194/esurf-10-329-2022 <https://doi.org/10.5194/esurf-10-329-2022>`__.
 
 Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, `https://doi.org/10.1029/2021JG006616 <https://doi.org/10.1029/2021JG006616>`__.
