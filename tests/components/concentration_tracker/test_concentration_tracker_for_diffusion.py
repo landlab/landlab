@@ -451,3 +451,107 @@ def test_concentration_from_weathering_with_C_w():
     
     np.testing.assert_equal(C_sed_check, mg.at_node['sediment_property__concentration'])
 
+
+# %% Test mass balance against known scenario
+
+def test_mass_balance_with_all_boundaries_closed():
+    """
+    ConcentrationTrackerForDiffusion should conserve mass in a scenario with
+    all boundaries closed. 
+    """
+    mg = RasterModelGrid((3, 5))
+    mg.axis_units = ('m', 'm')
+    mg.set_status_at_node_on_edges(right=4,
+                                   top=4,
+                                   left=4,
+                                   bottom=4)
+    
+    # Grid fields
+    mg.add_ones('soil__depth', at='node')
+    mg.add_zeros('bedrock__elevation', at='node')
+    mg.add_zeros('topographic__elevation', at='node')
+    mg.at_node['topographic__elevation'][:] += mg.at_node['bedrock__elevation']
+    mg.at_node['topographic__elevation'][:] += mg.at_node['soil__depth']
+    
+    # Concentration field for soil
+    mg.add_zeros('sediment_property__concentration', at='node')
+    mg.at_node['sediment_property__concentration'][6] += 1
+    
+    # Forced soil flux and production rate fields
+    mg.add_zeros('soil_production__rate', at='node')
+    mg.add_zeros('soil__flux', at='link')
+    # Soil flux for middle row of grid is negative 1
+    middle_row_link_ids = [9,10,11,12]
+    mg.at_link['soil__flux'][middle_row_link_ids] -= 1
+    
+    # dx is 1 (by default) and soil depth is 1, so soil volume is 1 at each node.
+    # Flux of -1 in the middle row should shift all C_sed values left by one node.
+    # The boundary is closed, so concentration in Node 6 will remain in the domain.
+    
+    M_total_before = np.sum(mg.at_node['sediment_property__concentration'] 
+                            * mg.at_node['soil__depth']
+                            * mg.dx**2
+                            )
+    
+    ct = ConcentrationTrackerForDiffusion(mg)
+    ct.run_one_step(1)
+    
+    M_total_after = np.sum(mg.at_node['sediment_property__concentration'] 
+                            * mg.at_node['soil__depth']
+                            * mg.dx**2
+                            )
+    
+    np.testing.assert_equal(M_total_before, M_total_after)
+
+
+def test_mass_balance_with_one_boundary_open():
+    """
+    ConcentrationTrackerForDiffusion should correctly calculate the mass lost
+    from the system over an open boundary.
+    """
+    mg = RasterModelGrid((3, 5))
+    mg.axis_units = ('m', 'm')
+    mg.set_status_at_node_on_edges(right=4,
+                                   top=4,
+                                   left=4,
+                                   bottom=4)
+    mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
+    
+    # Grid fields
+    mg.add_ones('soil__depth', at='node')
+    mg.add_zeros('bedrock__elevation', at='node')
+    mg.add_zeros('topographic__elevation', at='node')
+    mg.at_node['topographic__elevation'][:] += mg.at_node['bedrock__elevation']
+    mg.at_node['topographic__elevation'][:] += mg.at_node['soil__depth']
+    
+    # Concentration field for soil
+    mg.add_zeros('sediment_property__concentration', at='node')
+    mg.at_node['sediment_property__concentration'][6] += 1
+    
+    # Forced soil flux and production rate fields
+    mg.add_zeros('soil_production__rate', at='node')
+    mg.add_zeros('soil__flux', at='link')
+    # Soil flux for middle row of grid is negative 1
+    middle_row_link_ids = [9,10,11,12]
+    mg.at_link['soil__flux'][middle_row_link_ids] -= 1
+    
+    # dx is 1 (by default) and soil depth is 1, so soil volume is 1 at each node.
+    # Flux of -1 in the middle row should shift all C_sed values left by one node.
+    # The boundary is open, so concentration in Node 6 exits the domain.
+    
+    M_total_before = np.sum(mg.at_node['sediment_property__concentration'] 
+                            * mg.at_node['soil__depth']
+                            * mg.dx**2
+                            )
+    
+    ct = ConcentrationTrackerForDiffusion(mg)
+    ct.run_one_step(1)
+    
+    M_leaving_system = 1
+    M_total_after = np.sum(mg.at_node['sediment_property__concentration'] 
+                            * mg.at_node['soil__depth']
+                            * mg.dx**2
+                            )
+    
+    np.testing.assert_equal(M_total_before, M_total_after + M_leaving_system)
+
