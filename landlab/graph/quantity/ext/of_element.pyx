@@ -13,7 +13,7 @@ ctypedef fused element_id_type:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cpdef diff_children_at_parent(
+cpdef diff_of_children_at_parent(
     const element_id_type [:, :] children_at_parent,
     const cython.floating [:] value_at_parent,
     const cython.floating [:] value_at_child,

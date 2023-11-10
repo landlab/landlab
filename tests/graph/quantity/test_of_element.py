@@ -3,11 +3,11 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab.graph.quantity.ext.of_element import (
-    count_of_elements_at_element,
-    diff_elements_at_element,
-    max_of_elements_at_element,
-    mean_of_elements_at_element,
-    min_of_elements_at_element,
+    count_of_children_at_parent,
+    diff_of_children_at_parent,
+    max_of_children_at_parent,
+    mean_of_children_at_parent,
+    min_of_children_at_parent,
 )
 
 
@@ -74,7 +74,7 @@ def test_diff_of_elements_bench(benchmark, impl):
     if impl == "numpy":
         func = numpy_diff
     else:
-        func = diff_elements_at_element
+        func = diff_of_children_at_parent
 
     benchmark(
         func, np.asarray(elements_at_element), value_at_parent, value_at_child, actual
@@ -102,7 +102,7 @@ def test_mean_of_elements(impl):
     if impl == "numpy":
         func = numpy_mean
     else:
-        func = mean_of_elements_at_element
+        func = mean_of_children_at_parent
 
     func(np.asarray(elements_at_element), values, actual)
 
@@ -120,7 +120,7 @@ def test_min_of_elements():
     actual = np.full(len(elements_at_element), -999, dtype=float)
     expected = [0, 4, 8, -999]
 
-    min_of_elements_at_element(np.asarray(elements_at_element), values, actual)
+    min_of_children_at_parent(np.asarray(elements_at_element), values, actual)
 
     assert_array_equal(actual, expected)
 
@@ -136,7 +136,7 @@ def test_max_of_elements():
     actual = np.full(len(elements_at_element), -999, dtype=float)
     expected = [3, 6, 10, -999]
 
-    max_of_elements_at_element(np.asarray(elements_at_element), values, actual)
+    max_of_children_at_parent(np.asarray(elements_at_element), values, actual)
 
     assert_array_equal(actual, expected)
 
@@ -153,7 +153,7 @@ def test_min_of_elements_bench(benchmark, impl):
     if impl == "numpy":
         func = numpy_min
     else:
-        func = min_of_elements_at_element
+        func = min_of_children_at_parent
 
     benchmark(func, np.asarray(elements_at_element), values, actual)
 
@@ -175,7 +175,7 @@ def test_max_of_elements_bench(benchmark, impl):
     if impl == "numpy":
         func = numpy_max
     else:
-        func = max_of_elements_at_element
+        func = max_of_children_at_parent
 
     benchmark(func, np.asarray(elements_at_element), values, actual)
 
@@ -197,7 +197,7 @@ def test_mean_of_elements_bench(benchmark, impl):
     if impl == "numpy":
         func = numpy_mean
     else:
-        func = mean_of_elements_at_element
+        func = mean_of_children_at_parent
 
     benchmark(func, np.asarray(elements_at_element), values, actual)
 
@@ -216,7 +216,7 @@ def test_count_of_elements():
     actual = np.empty(len(elements_at_element), dtype=int)
     expected = [4, 4, 4]
 
-    count_of_elements_at_element(np.asarray(elements_at_element), actual)
+    count_of_children_at_parent(np.asarray(elements_at_element), actual)
 
     assert_array_equal(actual, expected)
 
@@ -231,7 +231,7 @@ def test_count_of_elements_with_missing():
     actual = np.empty(len(elements_at_element), dtype=int)
     expected = [3, 2, 4, 0]
 
-    count_of_elements_at_element(np.asarray(elements_at_element), actual)
+    count_of_children_at_parent(np.asarray(elements_at_element), actual)
 
     assert_array_equal(actual, expected)
 
@@ -244,7 +244,7 @@ def test_count_of_elements_benchmark(benchmark, impl):
     if impl == "numpy":
         func = numpy_count
     else:
-        func = count_of_elements_at_element
+        func = count_of_children_at_parent
 
     benchmark(func, elements_at_element, actual)
 
