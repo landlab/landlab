@@ -203,8 +203,8 @@ def test_fields_for_user_field_input():
 
 
 # %% Test concentration from weathering
-# Test that default input produces C_w equal to C_br
-def test_C_w_for_default_input():
+# Test that default input produces conc_w equal to conc_br
+def test_conc_w_for_default_input():
     mg = RasterModelGrid((3, 3))
     mg.add_zeros("soil__flux", at="link")
     mg.add_zeros("soil__depth", at="node")
@@ -213,13 +213,13 @@ def test_C_w_for_default_input():
 
     ct = ConcentrationTrackerForDiffusion(mg)
 
-    C_w_check = ct.C_br
+    conc_w_check = ct.conc_br
 
-    np.testing.assert_equal(C_w_check, ct.C_w)
+    np.testing.assert_equal(conc_w_check, ct.conc_w)
 
 
-# Test that user input of a single value produces C_w array different to C_br
-def test_C_w_for_user_value_input():
+# Test that user input of a single value produces conc_w array different to conc_br
+def test_conc_w_for_user_value_input():
     mg = RasterModelGrid((3, 3))
     mg.add_zeros("soil__flux", at="link")
     mg.add_zeros("soil__depth", at="node")
@@ -232,13 +232,13 @@ def test_C_w_for_user_value_input():
         concentration_from_weathering=1,
     )
 
-    C_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    conc_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
-    np.testing.assert_equal(C_w_check, ct.C_w)
+    np.testing.assert_equal(conc_w_check, ct.conc_w)
 
 
-# Test that user input of array produces C_w array different to C_br
-def test_C_w_for_user_array_input():
+# Test that user input of array produces conc_w array different to conc_br
+def test_conc_w_for_user_array_input():
     mg = RasterModelGrid((3, 3))
     mg.add_zeros("soil__flux", at="link")
     mg.add_zeros("soil__depth", at="node")
@@ -253,13 +253,13 @@ def test_C_w_for_user_array_input():
         concentration_from_weathering=c_w,
     )
 
-    C_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    conc_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
-    np.testing.assert_equal(C_w_check, ct.C_w)
+    np.testing.assert_equal(conc_w_check, ct.conc_w)
 
 
-# Test that user input of grid fields produces C_w array different to C_br
-def test_C_w_for_user_field_input():
+# Test that user input of grid fields produces conc_w array different to conc_br
+def test_conc_w_for_user_field_input():
     mg = RasterModelGrid((3, 3))
     mg.add_zeros("soil__flux", at="link")
     mg.add_zeros("soil__depth", at="node")
@@ -274,9 +274,9 @@ def test_C_w_for_user_field_input():
         concentration_from_weathering=c_w,
     )
 
-    C_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    conc_w_check = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
-    np.testing.assert_equal(C_w_check, ct.C_w)
+    np.testing.assert_equal(conc_w_check, ct.conc_w)
 
 
 # %% Test errors for physicaly impossible inputs
@@ -344,7 +344,7 @@ def test_concentration_from_soil_flux():
     np.testing.assert_equal(C_sed_check, mg.at_node["sediment_property__concentration"])
 
 
-def test_concentration_from_weathering_without_C_w():
+def test_concentration_from_weathering_without_conc_w():
     """
     ConcentrationTrackerForDiffusion should correctly calculate concentration
     values based on known soil production rates from bedrock weathering when
@@ -379,8 +379,8 @@ def test_concentration_from_weathering_without_C_w():
     # This is normally done by the DepthDependentDiffuser. Here, it is forced.
     mg.at_node["soil__depth"] += 1
 
-    # Node 7: C_sed remains 1 because parent bedrock had C_br of 1.
-    # Node 8: C_sed is halved from 1 to 0.5 because parent bedrock had C_br = 0.
+    # Node 7: C_sed remains 1 because parent bedrock had conc_br of 1.
+    # Node 8: C_sed is halved from 1 to 0.5 because parent bedrock had conc_br = 0.
 
     ct.run_one_step(1)
 
@@ -391,7 +391,7 @@ def test_concentration_from_weathering_without_C_w():
     np.testing.assert_equal(C_sed_check, mg.at_node["sediment_property__concentration"])
 
 
-def test_concentration_from_weathering_with_C_w():
+def test_concentration_from_weathering_with_conc_w():
     """
     ConcentrationTrackerForDiffusion should correctly calculate concentration
     values based on known soil production rates from bedrock weathering when
@@ -426,11 +426,11 @@ def test_concentration_from_weathering_with_C_w():
     # This is normally done by the DepthDependentDiffuser. Here, it is forced.
     mg.at_node["soil__depth"] += 1
 
-    # C_w overrides C_br values. In this case, no concentration is produced by
-    # the weathering process, even at Node 7 where C_br = 1.
+    # conc_w overrides conc_br values. In this case, no concentration is produced by
+    # the weathering process, even at Node 7 where conc_br = 1.
 
-    # Node 7: C_sed is halved from 1 to 0.5 despite parent bedrock with C_br = 1.
-    # Node 8: C_sed is halved from 1 to 0.5 because C_w = 0.
+    # Node 7: C_sed is halved from 1 to 0.5 despite parent bedrock with conc_br = 1.
+    # Node 8: C_sed is halved from 1 to 0.5 because conc_w = 0.
 
     ct.run_one_step(1)
 
