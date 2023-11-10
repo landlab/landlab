@@ -70,6 +70,22 @@ class TriGraph(Graph):
 
         return nodes_at_patch, links_at_patch
 
+    @classmethod
+    def from_shapefile(
+        cls, path_to_file: str, triangle_opts: str = "", timeout: float = 10
+    ):
+        """Initialize a TriangleGraph from an input file."""
+        polygon = TriangleMesh.read_input_file(path_to_file)
+        nodes_y = np.array(polygon.exterior.xy[1])
+        nodes_x = np.array(polygon.exterior.xy[0])
+        holes = polygon.interiors
+
+        return cls(
+            (nodes_y, nodes_x),
+            holes=holes,
+            triangle_opts=triangle_opts,
+            timeout=timeout,
+        )
 
 class DualTriGraph(DualGraph, TriGraph):
     def __init__(

@@ -7,11 +7,11 @@ import pathlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..graph.triangle import TriangleGraph
+from ..graph.triangle import DualTriGraph
 from .base import ModelGrid
 
 
-class TriangleMeshGrid(TriangleGraph, ModelGrid):
+class TriangleMeshGrid(DualTriGraph, ModelGrid):
 
     """This inherited class implements an unstructured grid from dual
     Delaunay and Voronoi graphs. By convention, nodes, links, and patches
@@ -78,7 +78,7 @@ class TriangleMeshGrid(TriangleGraph, ModelGrid):
         Examples
         --------
         """
-        TriangleGraph.__init__(
+        DualTriGraph.__init__(
             self,
             exterior_y_and_x,
             holes=holes,
