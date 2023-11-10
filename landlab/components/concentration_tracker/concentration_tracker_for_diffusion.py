@@ -371,7 +371,9 @@ class ConcentrationTrackerForDiffusion(Component):
         )
 
         # Calculate concentration
-        self._concentration[:] = conc_local + conc_from_weathering + dt_over_depth * (-dqconc_dx)
+        self._concentration[:] = (
+            conc_local + conc_from_weathering + dt_over_depth * (-dqconc_dx)
+        )
 
         self._concentration[~is_soil] = 0.0
 
