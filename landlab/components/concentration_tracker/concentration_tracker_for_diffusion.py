@@ -13,7 +13,9 @@ from landlab.utils.return_array import return_array_at_node
 
 class ConcentrationTrackerForDiffusion(Component):
 
-    """This component tracks the concentration of any user-defined property of
+    """Track the concentration of any user-defined property.
+
+    This component tracks the concentration of any user-defined property of
     sediment using a mass balance approach in which the concentration :math:`C`
     is calculated as:
 
@@ -75,116 +77,58 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct = ConcentrationTrackerForDiffusion(mg)
     >>> ddd.run_one_step(1.0)
     >>> ct.run_one_step(1.0)
-    >>> np.allclose(
-    ...     mg.at_node["topographic__elevation"].reshape(mg.shape),
-    ...     [
-    ...         [0.0, 4.0, 8.0, 12.0, 16.0],
-    ...         [0.0, 4.11701964, 8.01583689, 11.00247875, 16.0],
-    ...         [0.0, 4.0, 8.0, 12.0, 16.0],
-    ...     ],
-    ... )
-    True
-    >>> np.allclose(
-    ...     mg.at_node["sediment_property__concentration"].reshape(mg.shape),
-    ...     [
-    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
-    ...         [0.0, 0.0, 0.24839685, 1.0, 0.0],
-    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
-    ...     ],
-    ... )
-    True
+
+    >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
+    array([[ 0. ,   4.        ,   8.        ,  12.        , 16. ],
+           [ 0. ,   4.11701964,   8.01583689,  11.00247875, 16. ],
+           [ 0. ,   4.        ,   8.        ,  12.        , 16. ]])
+    >>> mg.at_node["sediment_property__concentration"].reshape(mg.shape)
+    array([[ 0. , 0. , 0.        , 0. , 0. ],
+           [ 0. , 0. , 0.24839685, 1. , 0. ],
+           [ 0. , 0. , 0.        , 0. , 0. ]])
 
     Now, a 2-D pyramid-shaped hillslope.
 
     >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
+
     >>> c = mg.add_zeros("sediment_property__concentration", at="node")
-    >>> h = mg.add_zeros("soil__depth", at="node")
-    >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> c[12] = 1.0
+    >>> h = mg.add_full("soil__depth", 2.0, at="node")
+    >>> z_br = mg.add_field(
+    ...     "bedrock__elevation",
+    ...     8.0 - abs(4.0 - mg.node_x) - abs(4.0 - mg.node_y),
+    ...     at="node",
+    ... )
+    >>> z = mg.add_field("topographic__elevation", z_br + h, at="node")
     >>> _ = mg.add_zeros("soil_production__rate", at="node")
-    >>> c[12] += 1
-    >>> h += 2
-    >>> z_br += 8
-    >>> z_br -= abs(4 - mg.node_x)
-    >>> z_br -= abs(4 - mg.node_y)
-    >>> z += z_br + h
+
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
     >>> ddd.run_one_step(1.0)
     >>> ct.run_one_step(1.0)
-    >>> np.allclose(
-    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...     np.array(
-    ...         [
-    ...             6.0,
-    ...             7.13533528,
-    ...             6.0,
-    ...             7.13533528,
-    ...             8.27067057,
-    ...             7.13533528,
-    ...             6.0,
-    ...             7.13533528,
-    ...             6.0,
-    ...         ]
-    ...     ),
-    ... )
-    True
-    >>> np.allclose(
-    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...     np.array(
-    ...         [
-    ...             0.0,
-    ...             0.38079708,
-    ...             0.0,
-    ...             0.38079708,
-    ...             1.0,
-    ...             0.38079708,
-    ...             0.0,
-    ...             0.38079708,
-    ...             0.0,
-    ...         ]
-    ...     ),
-    ... )
-    True
+
+    >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
+    array([[ 6. , 7.13533528, 6. ],
+           [ 7.13533528, 8.27067057, 7.13533528],
+           [ 6. , 7.13533528, 6. ]])
+    >>> mg.at_node["sediment_property__concentration"][mg.core_nodes].reshape((3, 3))
+    array([[ 0. , 0.38079708, 0. ],
+           [ 0.38079708, 1. , 0.38079708],
+           [ 0. , 0.38079708, 0. ]])
 
     And running one more step.
 
     >>> ddd.run_one_step(1.0)
     >>> ct.run_one_step(1.0)
-    >>> np.allclose(
-    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...     np.array(
-    ...         [
-    ...             5.52060315,
-    ...             6.62473963,
-    ...             5.52060315,
-    ...             6.62473963,
-    ...             8.00144598,
-    ...             6.62473963,
-    ...             5.52060315,
-    ...             6.62473963,
-    ...             5.52060315,
-    ...         ]
-    ...     ),
-    ... )
-    True
-    >>> np.allclose(
-    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...     np.array(
-    ...         [
-    ...             0.09648071,
-    ...             0.44750673,
-    ...             0.09648071,
-    ...             0.44750673,
-    ...             1.0,
-    ...             0.44750673,
-    ...             0.09648071,
-    ...             0.44750673,
-    ...             0.09648071,
-    ...         ]
-    ...     ),
-    ... )
-    True
+
+    >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
+    array([[ 5.52060315, 6.62473963, 5.52060315],
+           [ 6.62473963, 8.00144598, 6.62473963],
+           [ 5.52060315, 6.62473963, 5.52060315]])
+    >>> mg.at_node["sediment_property__concentration"][mg.core_nodes].reshape((3, 3))
+    array([[ 0.09648071, 0.44750673, 0.09648071],
+           [ 0.44750673, 1.        , 0.44750673],
+           [ 0.09648071, 0.44750673, 0.09648071]])
 
     Finally, the same 2D hillslope now using the DepthDependentTaylorDiffuser.
     Note that the timestep must be smaller than 1 to maintain stability in the
@@ -196,55 +140,31 @@ class ConcentrationTrackerForDiffusion(Component):
 
     >>> from landlab.components import DepthDependentTaylorDiffuser
     >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
+
     >>> c = mg.add_zeros("sediment_property__concentration", at="node")
-    >>> h = mg.add_zeros("soil__depth", at="node")
-    >>> z_br = mg.add_zeros("bedrock__elevation", at="node")
-    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> c[12] = 1.0
+    >>> h = mg.add_full("soil__depth", 2.0, at="node")
+    >>> z_br = mg.add_field(
+    ...     "bedrock__elevation",
+    ...     8.0 - abs(4.0 - mg.node_x) - abs(4.0 - mg.node_y),
+    ...     at="node",
+    ... )
+    >>> z = mg.add_field("topographic__elevation", z_br + h, at="node")
     >>> _ = mg.add_zeros("soil_production__rate", at="node")
-    >>> c[12] += 1
-    >>> h += 2
-    >>> z_br += 8
-    >>> z_br -= abs(4 - mg.node_x)
-    >>> z_br -= abs(4 - mg.node_y)
-    >>> z += z_br + h
+
     >>> ddtd = DepthDependentTaylorDiffuser(mg, if_unstable="warn")
     >>> ct = ConcentrationTrackerForDiffusion(mg)
     >>> ddtd.run_one_step(0.4)
     >>> ct.run_one_step(0.4)
-    >>> np.allclose(
-    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...     np.array(
-    ...         [
-    ...             6.0,
-    ...             7.30826823,
-    ...             6.0,
-    ...             7.30826823,
-    ...             8.61653645,
-    ...             7.30826823,
-    ...             6.0,
-    ...             7.30826823,
-    ...             6.0,
-    ...         ]
-    ...     ),
-    ... )
-    True
-    >>> np.allclose(
-    ...     mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...     np.array(
-    ...         [
-    ...             0.0,
-    ...             0.26436925,
-    ...             0.0,
-    ...             0.26436925,
-    ...             1.0,
-    ...             0.26436925,
-    ...             0.0,
-    ...             0.26436925,
-    ...             0.0,
-    ...         ]
-    ...     ),
-    ... )
-    True
+
+    >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
+    array([[ 6.        , 7.30826823, 6.        ],
+           [ 7.30826823, 8.61653645, 7.30826823],
+           [ 6.        , 7.30826823, 6.        ]])
+    >>> mg.at_node["sediment_property__concentration"][mg.core_nodes].reshape((3, 3))
+    array([[ 0.        , 0.26436925, 0.        ],
+           [ 0.26436925, 1.        , 0.26436925],
+           [ 0.        , 0.26436925, 0.        ]])
 
     References
     ----------
@@ -325,17 +245,18 @@ class ConcentrationTrackerForDiffusion(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        concentration_initial: positive float, array, or field name (optional)
-            Initial concentration in soil/sediment, -/m^3
-        concentration_in_bedrock: positive float, array, or field name (optional)
-            Concentration in bedrock, -/m^3
-        concentration_from_weathering: positive float or array (optional)
+        concentration_initial: float, array, or str, optional
+            Initial concentration in soil/sediment as either a scalar, array,
+            or the name of an existing node field, -/m^3.
+        concentration_in_bedrock: float, array, or str, optional
+            Concentration in bedrock as either a scalar, array, or the name
+            of an existing node field, -/m^3.
+        concentration_from_weathering: float or array, optional
             Concentration generated during the weathering process, -/m^3.
-            Defaults to None, which causes all weathered bedrock to retain its
-            original parent material concentration (concentration_in_bedrock)
-            as it weathers to soil.
-            Use this parameter to differentiate between the concentration in
-            weathered material compared to its parent bedrock.
+            Defaults to ``None``, which causes all weathered bedrock to retain its
+            original parent material concentration (``concentration_in_bedrock``)
+            as it weathers to soil. Use this parameter to differentiate between
+            the concentration in weathered material compared to its parent bedrock.
         """
 
         super().__init__(grid)
@@ -412,7 +333,6 @@ class ConcentrationTrackerForDiffusion(Component):
 
         Parameters
         ----------
-
         dt: float (time)
             The imposed timestep.
         """
@@ -459,7 +379,7 @@ class ConcentrationTrackerForDiffusion(Component):
         self._soil__depth_old = self._soil__depth.copy()
 
     def run_one_step(self, dt):
-        """
+        """Run for a time step.
 
         Parameters
         ----------
