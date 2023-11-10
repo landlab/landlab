@@ -262,9 +262,9 @@ class ConcentrationTrackerForDiffusion(Component):
         super().__init__(grid)
         # Store grid and parameters
 
-        # use setters for C_init, C_br, and C_w defined below
-        self.C_init = concentration_initial
-        self.C_br = concentration_in_bedrock
+        # use setters for conc_init, conc_br, and conc_w defined below
+        self.conc_init = concentration_initial
+        self.conc_br = concentration_in_bedrock
 
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
@@ -275,60 +275,60 @@ class ConcentrationTrackerForDiffusion(Component):
         # create outputs if necessary and get reference.
         self.initialize_output_fields()
 
-        # Define concentration field (if all zeros, then add C_init)
+        # Define concentration field (if all zeros, then add conc_init)
         if np.allclose(self._grid.at_node["sediment_property__concentration"], 0.0):
-            self._grid.at_node["sediment_property__concentration"] += self.C_init
+            self._grid.at_node["sediment_property__concentration"] += self.conc_init
         self._concentration = self._grid.at_node["sediment_property__concentration"]
 
         if np.allclose(self._grid.at_node["bedrock_property__concentration"], 0.0):
-            self._grid.at_node["bedrock_property__concentration"] += self.C_br
-        self.C_br = self._grid.at_node["bedrock_property__concentration"]
+            self._grid.at_node["bedrock_property__concentration"] += self.conc_br
+        self.conc_br = self._grid.at_node["bedrock_property__concentration"]
 
-        # use setter for C_w defined below
-        self.C_w = concentration_from_weathering
+        # use setter for conc_w defined below
+        self.conc_w = concentration_from_weathering
 
-        # Sediment property concentration field (at links, to calculate dQCdx)
-        self._C_links = np.zeros(self._grid.number_of_links)
+        # Sediment property concentration field (at links, to calculate dqconc_dx)
+        self._conc_at_links = np.zeros(self._grid.number_of_links)
 
-        # Sediment property mass field (at links, to calculate dQCdx)
-        self._QC_links = np.zeros(self._grid.number_of_links)
+        # Sediment property mass field (at links, to calculate dqconc_dx)
+        self._qconc_at_links = np.zeros(self._grid.number_of_links)
 
     @property
-    def C_init(self):
+    def conc_init(self):
         """Initial concentration in soil/sediment (kg/m^3)."""
-        return self._C_init
+        return self._conc_init
 
     @property
-    def C_br(self):
+    def conc_br(self):
         """Concentration in bedrock (kg/m^3)."""
-        return self._C_br
+        return self._conc_br
 
     @property
-    def C_w(self):
+    def conc_w(self):
         """Concentration from the weathering process (kg/m^3)."""
-        return self._C_w
+        return self._conc_w
 
-    @C_init.setter
-    def C_init(self, new_val):
+    @conc_init.setter
+    def conc_init(self, new_val):
         if np.any(new_val < 0.0):
             raise ValueError("Concentration cannot be negative")
-        self._C_init = return_array_at_node(self._grid, new_val)
+        self._conc_init = return_array_at_node(self._grid, new_val)
 
-    @C_br.setter
-    def C_br(self, new_val):
+    @conc_br.setter
+    def conc_br(self, new_val):
         if np.any(new_val < 0.0):
             raise ValueError("Concentration in bedrock cannot be negative")
-        self._C_br = return_array_at_node(self._grid, new_val)
+        self._conc_br = return_array_at_node(self._grid, new_val)
 
-    @C_w.setter
-    def C_w(self, new_val):
+    @conc_w.setter
+    def conc_w(self, new_val):
         if new_val is None:
-            new_val = self._C_br
+            new_val = self._conc_br
         if np.any(new_val < 0.0):
             raise ValueError("Concentration cannot be negative")
-        self._C_w = new_val
+        self._conc_w = new_val
 
-    def concentration(self, dt):
+    def calc_concentration(self, dt):
         """Calculate change in concentration for a time period 'dt'.
 
         Parameters
@@ -338,21 +338,21 @@ class ConcentrationTrackerForDiffusion(Component):
         """
 
         # Define concentration at previous timestep
-        C_old = self._concentration.copy()
+        conc_old = self._concentration.copy()
 
         # Map concentration from nodes to links (following soil flux direction)
         # Does this overwrite fixed-value/gradient links?
-        self._C_links = map_value_at_max_node_to_link(
+        self._conc_at_links = map_value_at_max_node_to_link(
             self._grid, "topographic__elevation", "sediment_property__concentration"
         )
         # Replace values with zero for all INACTIVE links
-        self._C_links[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
+        self._conc_at_links[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
-        # Calculate QC at links (sediment flux times concentration)
-        self._qc_at_link = self._grid.at_link["soil__flux"] * self._C_links
+        # Calculate qconc at links (sediment flux times concentration)
+        self._qconc_at_links = self._grid.at_link["soil__flux"] * self._conc_at_links
 
         # Calculate flux concentration divergence
-        dQCdx = self._grid.calc_flux_div_at_node(self._qc_at_link)
+        dqconc_dx = self._grid.calc_flux_div_at_node(self._qconc_at_links)
 
         # Calculate other components of mass balance equation
         is_soil = self._soil__depth > 0.0
@@ -365,13 +365,13 @@ class ConcentrationTrackerForDiffusion(Component):
         dt_over_depth = np.divide(dt, self._soil__depth, where=is_soil)
         dt_over_depth[~is_soil] = 0.0
 
-        C_local = C_old * old_depth_over_new
-        C_from_weathering = np.divide(
-            self._C_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
+        conc_local = conc_old * old_depth_over_new
+        conc_from_weathering = np.divide(
+            self._conc_w * self._soil_prod_rate * dt, self._soil__depth, where=is_soil
         )
 
         # Calculate concentration
-        self._concentration[:] = C_local + C_from_weathering + dt_over_depth * (-dQCdx)
+        self._concentration[:] = conc_local + conc_from_weathering + dt_over_depth * (-dqconc_dx)
 
         self._concentration[~is_soil] = 0.0
 
@@ -387,4 +387,4 @@ class ConcentrationTrackerForDiffusion(Component):
             The imposed timestep.
         """
 
-        self.concentration(dt)
+        self.calc_concentration(dt)
