@@ -9,6 +9,7 @@ from cython cimport view
 
 ctypedef fused element_id_type:
     cython.integral
+    long long
 
 
 @cython.boundscheck(False)
