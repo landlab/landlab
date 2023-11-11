@@ -16,18 +16,12 @@ def numpy_count(elements_at_element, out):
 
 
 def numpy_mean(elements_at_element, values, out):
-    # m = np.ma.masked_where(elements_at_element == -1, values[elements_at_element])
-    # out[:] = np.mean(m, axis=1)
-
     np.mean(
         values[elements_at_element], axis=1, where=elements_at_element != -1, out=out
     )
 
 
 def numpy_min(elements_at_element, values, out):
-    # m = np.ma.masked_where(elements_at_element == -1, values[elements_at_element])
-    # out[:] = np.min(m, axis=1)
-
     np.min(
         values[elements_at_element],
         axis=1,
@@ -38,9 +32,6 @@ def numpy_min(elements_at_element, values, out):
 
 
 def numpy_max(elements_at_element, values, out):
-    # m = np.ma.masked_where(elements_at_element == -1, values[elements_at_element])
-    # out[:] = np.max(m, axis=1)
-
     np.max(
         values[elements_at_element],
         axis=1,

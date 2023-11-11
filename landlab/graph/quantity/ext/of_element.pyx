@@ -172,7 +172,6 @@ cpdef max_of_children_at_parent(
 @cython.wraparound(False)
 cpdef count_of_children_at_parent(
     const element_id_type [:, :] children_at_parent,
-    # const cython.integral[:, :] children_at_parent,
     cython.integral [:] out,
 ):
     """Count the number of children for each parent.
@@ -188,24 +187,7 @@ cpdef count_of_children_at_parent(
     cdef int n_cols = children_at_parent.shape[1]
     cdef int parent, col
     cdef int count
-    # cdef char [:, :] is_valid = view.array(shape=(n_rows, n_cols), itemsize=sizeof(char), format="c", allocate_buffer=True)
 
-    # for row in prange(n_rows, nogil=True, schedule="static"):
-    #     for col in range(n_cols):
-    #         # is_valid[row, col] = elements_at_element[row, col] != -1
-    #         if elements_at_element[row, col] == -1:
-    #             is_valid[row, col] = 0
-    #         else:
-    #             is_valid[row, col] = 1
-
-    # for row in prange(n_rows, nogil=True, schedule="static"):
-    #     # out[row] = 0
-    #     count = 0
-    #     for col in range(n_cols):
-    #         if is_valid[row, col]:
-    #             count = count + 1
-    #             # out[row] = out[row] + 1
-    #     out[row] = count
     for parent in prange(n_parents, nogil=True, schedule="static"):
         count = 0
         for col in range(n_cols):
