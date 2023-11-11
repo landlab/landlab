@@ -15,11 +15,28 @@ class Radiation(Component):
 
     """Compute 1D and 2D total incident shortwave radiation.
 
-    Landlab component that computes 1D and 2D total incident shortwave
-    radiation. This code also computes relative incidence shortwave radiation
-    compared to a flat surface. Ref: Bras, Rafael L. Hydrology: an
-    introduction to hydrologic science. Addison Wesley Publishing Company,
-    1990.
+    Landlab component that computes 1D and 2D total extraterrestiral, clear-sky,
+    incident shortwave, net shortwave, longwave, and net radiation. This code also
+    computes relative incidence shortwave radiation compared to a flat surface.
+
+    **References**
+
+    Bras, R. L.: Hydrology: an introduction to hydrologic science, Addison
+    Wesley Publishing Company, Boston, Mass., USA, 643 pp., 1990.
+
+    ASCE-EWRI (2005) The ASCE standardized reference evapotranspiration equation.
+    In: Allen RG, Walter IA, Elliot RL et al (eds) Environmental and Water Resources
+    Institute (EWRI) of the American Society of Civil Engineers, ASCE,
+    Standardization of Reference Evapotranspiration Task Committee final report.
+    American Society of Civil Engineers (ASCE), Reston
+
+    Allen, R.G., 1996. Assessing integrity of weather data for  reference
+    evapotranspiration estimation. J. Irrig. Drain.  Eng., ASCE 122 (2), 97-106.
+
+    Flores-Cervantes, J.H., E. Istanbulluoglu, E.R. Vivoni, and R.L. Bras (2014).
+    A geomorphic perspective on terrain-modulate organization of vegetation productivity:
+    Analysis in two semiarid grassland ecosystems in Southwestern United States.
+    Ecohydrol., 7: 242-257. doi: 10.1002/eco.1333.
 
     .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu & Berkan Mertan
 
@@ -44,90 +61,48 @@ class Radiation(Component):
     4
     >>> rad.grid is grid
     True
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__incoming_shortwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_shortwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_longwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_flux'] == 0.0)
     True
-    >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
+    >>> np.all(grid.at_node['topographic__elevation'] == 0.0)
     True
 
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...     ]
-    ... )
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       1., 1., 1., 1.,
+    ...       2., 2., 2., 2.,
+    ...       3., 4., 4., 3.,
+    ...       4., 4., 4., 4.])
     >>> rad.current_time = 0.5
     >>> rad.update()
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__incoming_shortwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_shortwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_longwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_flux'] == 0.)
     False
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...     ]
-    ... )
-    >>> calc_rad = Radiation(grid, current_time=0.0)
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       100., 100., 100., 100.,
+    ...       200., 200., 200., 200.,
+    ...       300., 400., 400., 300.,
+    ...       400., 400., 400., 400.])
+    >>> calc_rad = Radiation(grid, current_time=0.0, kt=0.2)
     >>> calc_rad.update()
-    >>> proven_net_shortwave_field = [
-    ...     188.107,
-    ...     188.107,
-    ...     187.843,
-    ...     187.691,
-    ...     183.802,
-    ...     183.392,
-    ... ]
-    >>> nsflux = grid.at_cell["radiation__net_shortwave_flux"]
+    >>> proven_net_shortwave_field = [188.107, 188.107, 187.843,
+    ...                                 187.691, 183.824, 183.414]
+    >>> nsflux = grid.at_cell['radiation__net_shortwave_flux']
     >>> print(assert_array_almost_equal(proven_net_shortwave_field, nsflux, decimal=3))
     None
 
@@ -137,19 +112,6 @@ class Radiation(Component):
 
     None Listed
 
-    **Additional References**
-
-    Bras, R. L.: Hydrology: an introduction to hydrologic science, Addison
-    Wesley Publishing Company, Boston, Mass., USA, 643 pp., 1990.
-
-    ASCE-EWRI (2005) The ASCE standardized reference evapotranspiration equation.
-    In: Allen RG, Walter IA, Elliot RL et al (eds) Environmental and Water Resources
-    Institute (EWRI) of the American Society of Civil Engineers, ASCE,
-    Standardization of Reference Evapotranspiration Task Committee final report.
-    American Society of Civil Engineers (ASCE), Reston
-
-    Allen, R.G., 1996. Assessing integrity of weather data for  reference
-    evapotranspiration estimation. J. Irrig. Drain.  Eng., ASCE 122 (2), 97–106.
 
     """
 
@@ -158,13 +120,29 @@ class Radiation(Component):
     _unit_agnostic = False
 
     _info = {
+        "radiation__extraterrestrial_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "extraterrestrial radiation",
+        },
+        "radiation__clearsky_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "clearsky radiation",
+        },
         "radiation__incoming_shortwave_flux": {
             "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "total incident shortwave radiation over the time step",
+            "doc": "incident shortwave radiation",
         },
         "radiation__net_flux": {
             "dtype": float,
@@ -172,7 +150,7 @@ class Radiation(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "net total radiation over the time step",
+            "doc": "net radiation",
         },
         "radiation__net_longwave_flux": {
             "dtype": float,
@@ -180,7 +158,7 @@ class Radiation(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "net incident longwave radiation over the time step",
+            "doc": "net incident longwave radiation",
         },
         "radiation__net_shortwave_flux": {
             "dtype": float,
@@ -188,7 +166,7 @@ class Radiation(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "net incident shortwave radiation over the time step",
+            "doc": "net incident shortwave radiation",
         },
         "radiation__ratio_to_flat_surface": {
             "dtype": float,
@@ -197,7 +175,7 @@ class Radiation(Component):
             "units": "None",
             "mapping": "cell",
             "doc": (
-                "ratio of total incident shortwave radiation on sloped "
+                "ratio of incident shortwave radiation on sloped "
                 "surface to flat surface"
             ),
         },
@@ -218,11 +196,11 @@ class Radiation(Component):
         cloudiness=0.2,
         latitude=34.0,
         albedo=0.2,
+        kt=0.15,
         clearsky_turbidity=None,
         opt_airmass=None,
         current_time=0.0,
         hour=12.0,
-        average_daily_temp=17.5,
         max_daily_temp=25.0,
         min_daily_temp=10.0,
     ):
@@ -239,12 +217,12 @@ class Radiation(Component):
             Latitude (radians).
         albedo: float, optional
             Albedo.
+        kt: float, optional
+            Regional coefficient applied to actual KT coefficient (0.15-0.2). Default is 0.15
         clearsky_turbidity: float, optional
             Clear sky turbidity.
         opt_airmass: float, optional
             Optical air mass.
-        average_daily_temp: float, optional
-            Average daily temperature (Celsius)
         max_daily_temp: float, optional
             Maximum daily temperature (Celsius)
         min_daily_Temp: float, optional
@@ -263,11 +241,17 @@ class Radiation(Component):
         self._N = cloudiness
         self._latitude = latitude
         self._A = albedo
+
+        # note that kt provided by the user is just a
+        # 0.15-0.2 range value meant to indicate the type of region
+        # where the shortwave radiation is hitting, e.g 0.2 for coastal regions,
+        # 0.17 for interior regions, where the default is 0.15
+        self.kt = kt
+
         self._n = clearsky_turbidity
         self._m = opt_airmass
 
         # For computations requiring temperature
-        self._Tavg = average_daily_temp
         self._Tmax = max_daily_temp
         self._Tmin = min_daily_temp
 
@@ -291,6 +275,17 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
+        # Code below can be used to force a closed node omission
+        # from instantiation but this proves slow when many
+        # rad objects are being created at once or in one loop
+
+        # all closed node values will be set to -9999 to be marked
+        # for non consideration later.
+
+        # for N in range(len(self._grid.status_at_node)):
+        #     if self._grid.status_at_node[N] == self._grid.BC_NODE_IS_CLOSED:
+        #         self._nodal_values["topographic__elevation"][N] = -9999.
+
     @property
     def hour(self):
         """Hour of the day.
@@ -305,6 +300,17 @@ class Radiation(Component):
         assert hour <= 24.0
         self._hour = hour
 
+    @property
+    def kt(self):
+        """KT regional coefficient value"""
+        return self._kt
+
+    @kt.setter
+    def kt(self, kt):
+        assert kt >= 0.15
+        assert kt <= 0.2
+        self._kt = kt
+
     def update(self):
         """Update fields with current loading conditions.
 
@@ -312,9 +318,6 @@ class Radiation(Component):
         ``hour`` and uses their values in updating fields.
         """
         self._t = self._hour
-        self._radf = self._cell_values["radiation__ratio_to_flat_surface"]
-        self._Rs = self._cell_values["radiation__incoming_shortwave_flux"]
-        self._Rnet = self._cell_values["radiation__net_shortwave_flux"]
 
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
         self._julian = np.floor(
@@ -337,8 +340,17 @@ class Radiation(Component):
         # sloped surface radiation incidence ratios
         self._ratio_flat_surface_calc()
 
-        # Use the same direct radiation calculation from before, copy variable values
-        self._Rext = self._Rgl
+        # Extraterrestrial radmodel.docx - ASCE-EWRI (2005), Eqn (21)
+        self._Rext = (
+            11.57
+            * (24.0 / np.pi)
+            * 4.92
+            * self._dr
+            * (
+                (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
+                + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
+            )
+        )
 
         # Clear-sky Radiation, Rcs, ASCE-EWRI (2005) as default method
         # if (optionally) turbidity and optical air mass are both user defined,
@@ -352,8 +364,8 @@ class Radiation(Component):
         else:
             self._rcs2valid = False
 
-        # Clear-sky Solar Radiation - ASCE-EWRI (2005) Eqn 19, (47)
-        self._Rcs1 = self._Rext * (0.75 + 2 * (10**-5) * self._hAboveSea)
+        # Clear-sky Solar Radiation - ASCE-EWRI (2005), Eqn 19
+        self._Rcs1 = self._Rext * (0.75 + 2 * (10**-5) * self._elevation)
 
         # Rcs1, set to Rcs2 for empirical method, Rcs for accurate method
         # Using optical air mass and turbidity is optional when watershed
@@ -363,16 +375,16 @@ class Radiation(Component):
         else:
             self._Rc = self._Rcs1
 
-        # Local atmospheric pressure ASCE-EWRI (2005) eqn (34)
-        self._P = 101.3 * ((293 - 0.0065 * self._hAboveSea) / 293) ** 5.26
-
         # KT adjustment factor for incoming short-wave calculations
         # this uses the ratio of local to sealevel barometric
         # pressure following Allen (1996)
         self._Po = 101.325
 
-        # non-constant KT (adjustment coefficient) - Handout_4_Radiation_Balance, Page 3
-        self._KT = 0.2 * (self._P / self._Po) ** 0.5
+        # Local atmospheric pressure ASCE-EWRI (2005), Eqn (34)
+        self._P = self._Po * ((293 - 0.0065 * self._elevation) / 293) ** 5.26
+
+        # non-constant KT (adjustment coefficient) - Based on Allen (1995)
+        self._KT = self._kt * (self._P / self._Po) ** 0.5
 
         # Incoming shortwave radiation cannot exceed clear-sky radiation
         # Shortwave radiation should ideally be below clearsky radiation
@@ -383,18 +395,17 @@ class Radiation(Component):
             self._KT * self._Rext * np.sqrt(self._Tmax - self._Tmin), self._Rc
         )
 
-        # Net shortwave Radiation - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn (43)
+        # Net shortwave Radiation - ASCE-EWRI (2005), Eqn (43)
         self._Rns = self._Rs * (1 - self._A)
 
-        # Relative Cloudiness - ASCE-EWRI (2005), eqn (18)
+        # Relative Cloudiness - ASCE-EWRI (2005), Eqn (18)
         self._u = 1.35 * (self._Rs / self._Rc) - 0.35
 
         # Cloudiness should be within 0.05 and 1 so as to not
         # nullify or incorrectly calculate the net longwave radiation
         self._u = np.clip(self._u, 0.05, 1.0)
 
-        # Net Longwave Radiation - ASCE-EWRI (2005) - Eqn (17) in W/M^2
+        # Net Longwave Radiation - ASCE-EWRI (2005), Eqn (17) in W/M^2
         self._Rnl = (
             5.67
             * (10**-8)
@@ -404,37 +415,51 @@ class Radiation(Component):
             * self._u
         )
 
-        # Net Radiation - ASCE-EWRI (2005) Eqn 15
+        # Load spatially distributed ratio to flat surface function values
+        self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
+
+        # Net Radiation - ASCE-EWRI (2005), Eqn 15
         # Apply the ratio to flat surface to net shortwave
         # radiation first, then use spatially distributed
         # shortwave radiation to calculate net radiation
         np.multiply(
-            self._Rns,
-            self._radf,
-            out=self._cell_values["radiation__net_shortwave_flux"],
+            self._Rext,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__extraterrestrial_flux"],
         )
 
-        # Net radiation flux is net shortwave - net longwave
-        self._Rn = np.subtract(
-            self._cell_values["radiation__net_shortwave_flux"], self._Rnl
+        # Clearsky flux
+        np.multiply(
+            self._Rc,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__clearsky_flux"],
         )
 
-        # Apply shortwave, longwave, net radiation calculations to
-        # the grid slopes.
-        self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
+        # Incoming shortwave flux
         np.multiply(
             self._Rs,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__incoming_shortwave_flux"],
         )
+
+        # Net shortwave flux
+        np.multiply(
+            self._Rns,
+            self._cell_values["radiation__ratio_to_flat_surface"],
+            out=self._cell_values["radiation__net_shortwave_flux"],
+        )
+
+        # Net longwave flux
         np.multiply(
             self._Rnl,
             self._cell_values["radiation__ratio_to_flat_surface"],
             out=self._cell_values["radiation__net_longwave_flux"],
         )
-        np.multiply(
-            self._Rn,
-            self._cell_values["radiation__ratio_to_flat_surface"],
+
+        # Net radiation flux is net shortwave - net longwave
+        np.subtract(
+            self._cell_values["radiation__net_shortwave_flux"],
+            self._cell_values["radiation__net_longwave_flux"],
             out=self._cell_values["radiation__net_flux"],
         )
 
@@ -447,6 +472,21 @@ class Radiation(Component):
         spatially distributed field of flat surface to sloped surface
         ratios / factors.
         """
+
+        # self._elevation, elevation of surface above sea level
+        self._elevation = self._nodal_values["topographic__elevation"]
+
+        # Handle invalid values (closed nodes are not invalid)
+        for Z in self._elevation:
+            if Z < 0 and Z != -9999:
+                raise ValueError(
+                    "No negative (< 0.0) values allowed in an above sea level elevation field."
+                )
+
+        # Map nodal elevation values to cells to calculate clearsky incidence
+        # across a spatially distributed field
+        self._elevation = map_node_to_cell(self._grid, "topographic__elevation")
+
         # Convert latitude to radians and store trig calculations
         self._phi = np.radians(self._latitude)  # Latitude in Radians
         self._sinLat = np.sin(self._phi)
@@ -472,37 +512,8 @@ class Radiation(Component):
         if self._cosSA <= 0.0001:
             self._cosSA = 0.0001
 
-        # self._hAboveSea, elevation of surface above sea level
-        self._hAboveSea = self._nodal_values["topographic__elevation"]
-
-        # Handle invalid values
-        if np.any(self._hAboveSea < 0):
-            raise Exception(
-                "No negative elevations allowed in an above sea elevation field..."
-            )
-
-        # Map nodal elevation values to cells to calculate clearsky incidence
-        # across a spatially distributed field
-        self._hAboveSea = map_node_to_cell(self._grid, "topographic__elevation")
-
-        self._temp = self._Tavg  # in C
-
-        # Sunset Hour Angle - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 28,(60)
+        # Sunset Hour Angle - ASCE-EWRI (2005), Eqn (59)
         self._ws = np.arccos(-np.tan(self._sdecl) * np.tan(self._phi))
-
-        # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
-        # Jan-2005 - Eqn 21, (48)
-        self._Rgl = (
-            11.57
-            * (24.0 / np.pi)
-            * 4.92
-            * self._dr
-            * (
-                (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
-                + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
-            )
-        )
 
         # Sun's Azimuth calculation code
         self._F = np.tan(self._alpha) * np.tan(self._phi) - (
@@ -524,6 +535,8 @@ class Radiation(Component):
             self._phisun - 0
         )  # flat surface reference
 
+        # solar angle of incidence, Multiplying this with incoming radiation
+        # gives radiation on sloped surface see Flores-Cervantes, J.H. (2012)
         self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
             self._slope
         ) * self._cosSA * np.cos(self._phisun - self._aspect)
@@ -536,3 +549,9 @@ class Radiation(Component):
 
         self._radf[self._radf <= 0.0] = 0.0
         self._radf[self._radf > 6.0] = 6.0
+
+        # Closed nodes will be omitted from spatially distributed ratio calculations
+        for Z in range(len(self._elevation)):
+            # Closed nodes will have a -9999 "no value" fixed elevation
+            if self._elevation[Z] == -9999:
+                self._radf[Z] = 0.0
