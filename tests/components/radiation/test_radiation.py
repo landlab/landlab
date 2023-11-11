@@ -19,6 +19,8 @@ def test_input_var_names(rad):
 
 def test_output_var_names(rad):
     assert sorted(rad.output_var_names) == [
+        "radiation__clearsky_flux",
+        "radiation__extraterrestrial_flux",
         "radiation__incoming_shortwave_flux",
         "radiation__net_flux",
         "radiation__net_longwave_flux",
@@ -33,6 +35,8 @@ def test_var_units(rad):
     )
 
     assert rad.var_units("topographic__elevation") == "m"
+    assert rad.var_units("radiation__clearsky_flux") == "W/m^2"
+    assert rad.var_units("radiation__extraterrestrial_flux") == "W/m^2"
     assert rad.var_units("radiation__incoming_shortwave_flux") == "W/m^2"
     assert rad.var_units("radiation__net_shortwave_flux") == "W/m^2"
     assert rad.var_units("radiation__net_longwave_flux") == "W/m^2"
