@@ -3,7 +3,7 @@ import numpy as np
 from landlab import Component
 from landlab.grid.mappers import map_node_to_cell
 
-_VALID_METHODS = {"Grid"}
+_VALID_METHODS = {"grid"}
 
 
 def _assert_method_is_valid(method):
@@ -46,116 +46,46 @@ class Radiation(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import Radiation
     >>> import numpy as np
-    >>> from numpy.testing import assert_array_almost_equal
 
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> z = grid.add_zeros("node", "topographic__elevation")
     >>> rad = Radiation(grid)
-    >>> rad.name
-    'Radiation'
-    >>> rad.input_var_names
-    ('topographic__elevation',)
 
-    >>> rad.grid.number_of_node_rows
-    5
-    >>> rad.grid.number_of_node_columns
-    4
-    >>> rad.grid is grid
-    True
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
-    True
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
-    True
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
-    True
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
-    True
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
-    True
-    >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
-    True
-
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...     ]
-    ... )
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [1.0, 1.0, 1.0, 1.0],
+    ...     [2.0, 2.0, 2.0, 2.0],
+    ...     [3.0, 4.0, 4.0, 3.0],
+    ...     [4.0, 4.0, 4.0, 4.0],
+    ... ]
     >>> rad.current_time = 0.5
     >>> rad.update()
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
-    False
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
-    False
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
-    False
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
-    False
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
-    False
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...     ]
-    ... )
+
+    >>> grid.at_cell["radiation__net_shortwave_flux"].reshape((3, 2))
+    array([[ 252.14550048,  252.14550048],
+           [ 252.13078907,  252.13078907],
+           [ 252.10136783,  252.10136783]])
+
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [100.0, 100.0, 100.0, 100.0],
+    ...     [200.0, 200.0, 200.0, 200.0],
+    ...     [300.0, 400.0, 400.0, 300.0],
+    ...     [400.0, 400.0, 400.0, 400.0],
+    ... ]
     >>> calc_rad = Radiation(grid, current_time=0.0, kt=0.2)
     >>> calc_rad.update()
-    >>> proven_net_shortwave_field = [
-    ...     188.107,
-    ...     188.107,
-    ...     187.843,
-    ...     187.691,
-    ...     183.824,
-    ...     183.414,
-    ... ]
-    >>> nsflux = grid.at_cell["radiation__net_shortwave_flux"]
-    >>> print(assert_array_almost_equal(proven_net_shortwave_field, nsflux, decimal=3))
-    None
+
+    >>> grid.at_cell["radiation__net_shortwave_flux"].reshape((3, 2))
+    array([[ 188.10745478,  188.10745478],
+           [ 187.84329564,  187.69076199],
+           [ 183.82445291,  183.41439585]])
 
     References
     ----------
     **Required Software Citation(s) Specific to this Component**
 
     None Listed
-
-
     """
 
     _name = "Radiation"
@@ -235,7 +165,7 @@ class Radiation(Component):
     def __init__(
         self,
         grid,
-        method="Grid",
+        method="grid",
         cloudiness=0.2,
         latitude=34.0,
         albedo=0.2,
@@ -251,7 +181,7 @@ class Radiation(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        method: {'Grid'}, optional
+        method: {'grid'}, optional
             Currently, only default is available.
         cloudiness: float, optional
             Cloudiness.
@@ -321,6 +251,22 @@ class Radiation(Component):
         closed_nodes = self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED
         self._nodal_values["topographic__elevation"][closed_nodes] = -9999
 
+    @property
+    def day_of_year(self):
+        return (self.current_time - np.floor(self.current_time)) * 365
+
+    @property
+    def solar_declination(self):
+        return 0.409 * np.sin(2.0 * np.pi / 365.0 * self.day_of_year - 1.39)
+
+    @property
+    def relative_distance_factor(self):
+        return 1 + (0.033 * np.cos(2.0 * np.pi / 365.0 * self.day_of_year))
+
+    @property
+    def actual_vapor_pressure(self):
+        return 0.6108 * np.exp((17.27 * self._Tmin) / (237.7 + self._Tmin))
+
     def update(self):
         """Update fields with current loading conditions.
 
@@ -330,9 +276,7 @@ class Radiation(Component):
         self._t = self._hour
 
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
-        self._julian = np.floor(
-            ((self.current_time) - np.floor(self.current_time)) * 365
-        )
+        self._julian = (self.current_time - np.floor(self.current_time)) * 365
 
         # Actual Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 8, (38)
@@ -340,11 +284,11 @@ class Radiation(Component):
 
         # Solar Declination Angle - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 24,(51)
-        self._sdecl = 0.409 * np.sin(((np.pi / 180.0) * self._julian) - 1.39)
+        self._sdecl = 0.409 * np.sin(2.0 * np.pi / 365.0 * self._julian - 1.39)
 
         # Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 23,(50)
-        self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
+        self._dr = 1 + (0.033 * np.cos(2.0 * np.pi / 365.0 * self._julian))
 
         # Generate spatially distributed field of flat surface to
         # sloped surface radiation incidence ratios
@@ -426,7 +370,8 @@ class Radiation(Component):
         )
 
         # Load spatially distributed ratio to flat surface function values
-        self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
+        # self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
+        self._cell_values["radiation__ratio_to_flat_surface"][:] = self._radf
 
         # Net Radiation - ASCE-EWRI (2005), Eqn 15
         # Apply the ratio to flat surface to net shortwave
@@ -487,11 +432,10 @@ class Radiation(Component):
         self._elevation = self._nodal_values["topographic__elevation"]
 
         # Handle invalid values (closed nodes are not invalid)
-        for Z in self._elevation:
-            if Z < 0 and Z != -9999:
-                raise ValueError(
-                    "No negative (< 0.0) values allowed in an above sea level elevation field."
-                )
+        if np.any((self._elevation < 0.0) & ~np.isclose(self._elevation, -9999.0)):
+            raise ValueError(
+                "No negative (< 0.0) values allowed in an above sea level elevation field."
+            )
 
         # Map nodal elevation values to cells to calculate clearsky incidence
         # across a spatially distributed field
