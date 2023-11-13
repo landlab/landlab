@@ -13,11 +13,12 @@ def _assert_method_is_valid(method):
 
 class Radiation(Component):
 
-    """Compute 1D and 2D total incident shortwave radiation.
+    """Compute 1D and 2D daily incident shortwave radiation.
 
-    Landlab component that computes 1D and 2D total extraterrestiral, clear-sky,
+    Landlab component that computes 1D and 2D daily extraterrestiral, clear-sky,
     incident shortwave, net shortwave, longwave, and net radiation. This code also
-    computes relative incidence shortwave radiation compared to a flat surface.
+    computes relative incidence shortwave radiation compared to a flat surface
+    calculated at noon.
 
     **References**
 
@@ -61,90 +62,48 @@ class Radiation(Component):
     4
     >>> rad.grid is grid
     True
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__incoming_shortwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_shortwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_longwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_flux'] == 0.0)
     True
-    >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
+    >>> np.all(grid.at_node['topographic__elevation'] == 0.0)
     True
 
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...     ]
-    ... )
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       1., 1., 1., 1.,
+    ...       2., 2., 2., 2.,
+    ...       3., 4., 4., 3.,
+    ...       4., 4., 4., 4.])
     >>> rad.current_time = 0.5
     >>> rad.update()
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__incoming_shortwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_shortwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_longwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_flux'] == 0.)
     False
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...     ]
-    ... )
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       100., 100., 100., 100.,
+    ...       200., 200., 200., 200.,
+    ...       300., 400., 400., 300.,
+    ...       400., 400., 400., 400.])
     >>> calc_rad = Radiation(grid, current_time=0.0, kt=0.2)
     >>> calc_rad.update()
-    >>> proven_net_shortwave_field = [
-    ...     188.107,
-    ...     188.107,
-    ...     187.843,
-    ...     187.691,
-    ...     183.824,
-    ...     183.414,
-    ... ]
-    >>> nsflux = grid.at_cell["radiation__net_shortwave_flux"]
+    >>> proven_net_shortwave_field = [188.107, 188.107, 187.843,
+    ...                                 187.691, 183.824, 183.414]
+    >>> nsflux = grid.at_cell['radiation__net_shortwave_flux']
     >>> print(assert_array_almost_equal(proven_net_shortwave_field, nsflux, decimal=3))
     None
 
@@ -238,11 +197,10 @@ class Radiation(Component):
         cloudiness=0.2,
         latitude=34.0,
         albedo=0.2,
-        kt=0.15,
+        kt=0.17,
         clearsky_turbidity=None,
         opt_airmass=None,
         current_time=0.0,
-        hour=12.0,
         max_daily_temp=25.0,
         min_daily_temp=10.0,
     ):
@@ -271,13 +229,11 @@ class Radiation(Component):
             Minimum daily temperature (Celsius)
         current_time: float
               Current time (years).
-        hour: float, optional
-              Hour of the day. Default is 12 (solar noon)
         """
         super().__init__(grid)
 
         self.current_time = current_time
-        self.hour = hour
+        self._hour = 12
 
         self._method = method
         self._N = cloudiness
@@ -286,9 +242,10 @@ class Radiation(Component):
 
         # note that kt provided by the user is just a
         # 0.15-0.2 range value meant to indicate the type of region
-        # where the shortwave radiation is hitting, e.g 0.2 for coastal regions,
-        # 0.17 for interior regions, where the default is 0.15
-        self.kt = kt
+        # where the model is run, e.g 0.2 for coastal regions,
+        # 0.17 for interior regions, where the default is 0.17.
+        # this parameter can be used as a calibration coefficient
+        self._kt = kt
 
         self._n = clearsky_turbidity
         self._m = opt_airmass
@@ -323,35 +280,8 @@ class Radiation(Component):
 
         # all closed node values will be set to -9999 to be marked
         # for non consideration later.
-
-        # for N in range(len(self._grid.status_at_node)):
-        #     if self._grid.status_at_node[N] == self._grid.BC_NODE_IS_CLOSED:
-        #         self._nodal_values["topographic__elevation"][N] = -9999.
-
-    @property
-    def hour(self):
-        """Hour of the day.
-
-        Default is 12 (solar noon).
-        """
-        return self._hour
-
-    @hour.setter
-    def hour(self, hour):
-        assert hour >= 0.0
-        assert hour <= 24.0
-        self._hour = hour
-
-    @property
-    def kt(self):
-        """KT regional coefficient value"""
-        return self._kt
-
-    @kt.setter
-    def kt(self, kt):
-        assert kt >= 0.15
-        assert kt <= 0.2
-        self._kt = kt
+        closed_nodes = self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED
+        self._nodal_values["topographic__elevation"][closed_nodes] = -9999
 
     def update(self):
         """Update fields with current loading conditions.
@@ -593,7 +523,6 @@ class Radiation(Component):
         self._radf[self._radf > 6.0] = 6.0
 
         # Closed nodes will be omitted from spatially distributed ratio calculations
-        for Z in range(len(self._elevation)):
-            # Closed nodes will have a -9999 "no value" fixed elevation
-            if self._elevation[Z] == -9999:
-                self._radf[Z] = 0.0
+        # Closed nodes will have a -9999 "no value" fixed elevation
+        closed_elevations = self._elevation == -9999
+        self._radf[closed_elevations] = 0.0
