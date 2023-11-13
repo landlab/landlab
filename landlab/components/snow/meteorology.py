@@ -65,7 +65,7 @@ class Meteorology(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.snow import Meteorology
+    >>> from landlab.components import Meteorology
     >>> grid = RasterModelGrid((2, 2))
     >>> grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
     array([ 1.,  1.,  1.,  1.])
@@ -146,14 +146,14 @@ class Meteorology(Component):
             "mapping": "node",
             "doc": "land surface slope",
         },  # beta (slope) [0, pi/2]
-        "snowpack__depth": {
-            "dtype": float,
-            "intent": "in",
-            "optional": True,
-            "units": "m",
-            "mapping": "node",
-            "doc": "snow depth",
-        },  # h_snow
+        # "snowpack__depth": {
+        #     "dtype": float,
+        #     "intent": "in",
+        #     "optional": True,
+        #     "units": "m",
+        #     "mapping": "node",
+        #     "doc": "snow depth",
+        # },  # h_snow
         "land_surface__albedo": {
             "dtype": float,
             "intent": "in",
@@ -405,7 +405,7 @@ class Meteorology(Component):
 
         self._one_seventh = np.float64(1) / 7
         self._hours_per_day = np.float64(24)
-        self._latent_heat_constant = np.float64(0.662)
+        self._latent_heat_constant = np.float64(0.622)  # TODO: changed by me
 
         # parameters
         self._GMT_offset = GMT_offset
@@ -445,10 +445,10 @@ class Meteorology(Component):
         else:
             self._beta = grid.add_zeros("land_surface__slope_angle", at="node")
 
-        if "snowpack__depth" in grid.at_node:
-            self._h_snow = grid.at_node["snowpack__depth"]
-        else:
-            self._h_snow = grid.add_zeros("snowpack__depth", at="node")
+        # if "snowpack__depth" in grid.at_node:
+        #     self._h_snow = grid.at_node["snowpack__depth"]
+        # else:
+        #     self._h_snow = grid.add_zeros("snowpack__depth", at="node")
 
         if "land_surface__albedo" in grid.at_node:
             self._albedo = grid.at_node["land_surface__albedo"]
@@ -602,16 +602,17 @@ class Meteorology(Component):
 
     def update_bulk_richardson_number(self):
         """calculate Ri"""
-        # TODO: check bot function (Dingman 2015 p130)
-        top = self._g * self._z * (self._T_surf - self._T_air)
+        # see Price & Dunne 1976
+        top = self._g * self._z * (self._T_air - self._T_surf)  # TODO: changed by me
         bot = self._uz**2.0 * (self._T_air + self._C_to_K)
         self._Ri[:] = top / bot
 
     def update_bulk_aero_conductance(self):
         """calculate Dn, Dh, De"""
-        # TODO: Dingman 2015 P232 log(z-H_snow/z0) or log(z-0/z0)
+
+        # see Price & Dunne 1976
         # calculate Dn
-        arg = self._kappa / np.log((self._z - self._h_snow) / self._z0_air)
+        arg = self._kappa / np.log(self._z / self._z0_air)  # TODO: changed by me
         Dn = self._uz * arg**2.0
 
         # check if pixels are neutral
@@ -627,12 +628,11 @@ class Meteorology(Component):
 
         # if one or more pixels are not neutral, make correction using Ri
         Dh = Dn.copy()
-        ws = self._Ri > 0  # If (Ri > 0) or (T_surf > T_air), then STABLE.
+        ws = self._Ri > 0  # If (Ri > 0) or (T_air > T_surf), then STABLE.
         wu = np.invert(ws)  # where unstable
 
-        # TODO check math
-        Dh[ws] = Dh[ws] / (np.float64(1) + (np.float64(10) * self._Ri[ws]))
-        Dh[wu] = Dh[wu] * (np.float64(1) - (np.float64(10) * self._Ri[wu]))
+        Dh[ws] = Dh[ws] / (1.0 + 10 * self._Ri[ws])
+        Dh[wu] = Dh[wu] * (1.0 - 10 * self._Ri[wu])
 
         self._Dn[:] = Dn
         self._Dh[:] = Dh
@@ -641,7 +641,7 @@ class Meteorology(Component):
     def update_sensible_heat_flux(self):
         """calculate Qh"""
 
-        # TODO: missing 0.622 constant? Dingman 2015 P232
+        # see Price & Dunne 1976
         delta_T = self._T_air - self._T_surf
         self._Qh[:] = (self._rho_air * self._Cp_air) * self._Dh * delta_T
 
@@ -700,8 +700,7 @@ class Meteorology(Component):
 
     def update_latent_heat_flux(self):
         """calculate Qe"""
-        # TODO: constant as 0.662 or 0.622? (Dingman 2015 p233 ver3)
-
+        # see Price & Dunne 1976
         const = self._latent_heat_constant
         factor = self._rho_air * self._Lv * self._De
         delta_e = self._e_air - self._e_surf
@@ -758,6 +757,13 @@ class Meteorology(Component):
             self._albedo,
             self._dust_atten,
         )
+
+        # TODO: added by me (Dingman 2015 p227)
+        tau_cloud = 0.355 + 0.68 * (1 - self._cloud_factor)
+        tau_cloud[tau_cloud > 1] = 1
+        tau_canopy = np.exp(-3.91 * self._canopy_factor)
+        Qn_SW = tau_cloud * tau_canopy * Qn_SW
+
         self._Qn_SW[:] = Qn_SW
 
     def update_em_air(self):
@@ -766,7 +772,7 @@ class Meteorology(Component):
         T_air_K = self._T_air + self._C_to_K
 
         if not self._satterlund:
-            # Brutsaert method
+            # Brutsaert method (Dingman 2002 P196)
             e_air_kPa = self._e_air / np.float64(10)  # [kPa]
             F = self._canopy_factor
             C = self._cloud_factor
@@ -781,7 +787,7 @@ class Meteorology(Component):
 
     def update_net_longwave_radiation(self):
         """calculate Qn_LW"""
-
+        # see Dingman 2015 p231
         T_air_K = self._T_air + self._C_to_K
         T_surf_K = self._T_surf + self._C_to_K
         LW_in = self._em_air * self._sigma * (T_air_K) ** 4.0
@@ -803,7 +809,7 @@ class Meteorology(Component):
         # update input fields in case there is new input
         self._T_air = self._grid.at_node["atmosphere_bottom_air__temperature"]
         self._T_surf = self._grid.at_node["land_surface__temperature"]
-        self._h_snow = self._grid.at_node["snowpack__depth"]
+        # self._h_snow = self._grid.at_node["snowpack__depth"]
         self._albedo = self._grid.at_node["land_surface__albedo"]
         self._em_surf = self._grid.at_node["land_surface__emissivity"]
         self._dust_atten = self._grid.at_node[
