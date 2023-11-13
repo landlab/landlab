@@ -83,7 +83,9 @@ def test_turbidity():
 
     radiations = []
     for value in np.linspace(0.0, 1.0):
-        radiation = Radiation(grid, latitude=0.0, clearsky_turbidity=value, opt_airmass=1.0)
+        radiation = Radiation(
+            grid, latitude=0.0, clearsky_turbidity=value, opt_airmass=1.0
+        )
         radiation.update()
         radiations.append(grid.at_cell["radiation__net_flux"].max())
 
@@ -111,17 +113,18 @@ TIMES = {
     "march_equinox": 1.39 * 365.0 / (2.0 * np.pi),
     "june_solstice": (np.pi / 2.0 + 1.39) * 365 / (2.0 * np.pi),
     "september_equinox": (np.pi + 1.39) * 365.0 / (2.0 * np.pi),
-    "december_solstice": (3.0 * np.pi / 2.0 + 1.39) * 365.0 / (2.0 * np.pi)
+    "december_solstice": (3.0 * np.pi / 2.0 + 1.39) * 365.0 / (2.0 * np.pi),
 }
 
 
 @pytest.mark.parametrize(
-    "latitude,solstice", [
+    "latitude,solstice",
+    [
         (70.0, "december"),
         (80.0, "december"),
         (-70.0, "june"),
         (-80.0, "june"),
-    ]
+    ],
 )
 def test_solstice(solstice, latitude):
     time = TIMES[f"{solstice}_solstice"] / 365.0
