@@ -62,90 +62,48 @@ class Radiation(Component):
     4
     >>> rad.grid is grid
     True
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__incoming_shortwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_shortwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_longwave_flux'] == 0.0)
     True
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_flux'] == 0.0)
     True
-    >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
+    >>> np.all(grid.at_node['topographic__elevation'] == 0.0)
     True
 
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         1.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         2.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         3.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...         4.0,
-    ...     ]
-    ... )
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       1., 1., 1., 1.,
+    ...       2., 2., 2., 2.,
+    ...       3., 4., 4., 3.,
+    ...       4., 4., 4., 4.])
     >>> rad.current_time = 0.5
     >>> rad.update()
-    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__incoming_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__incoming_shortwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_shortwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_shortwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_longwave_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_longwave_flux'] == 0.)
     False
-    >>> np.all(grid.at_cell["radiation__net_flux"] == 0.0)
+    >>> np.all(grid.at_cell['radiation__net_flux'] == 0.)
     False
-    >>> grid["node"]["topographic__elevation"] = np.array(
-    ...     [
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         0.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         100.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         200.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         300.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...         400.0,
-    ...     ]
-    ... )
+    >>> grid['node']['topographic__elevation'] = np.array([
+    ...       0., 0., 0., 0.,
+    ...       100., 100., 100., 100.,
+    ...       200., 200., 200., 200.,
+    ...       300., 400., 400., 300.,
+    ...       400., 400., 400., 400.])
     >>> calc_rad = Radiation(grid, current_time=0.0, kt=0.2)
     >>> calc_rad.update()
-    >>> proven_net_shortwave_field = [
-    ...     188.107,
-    ...     188.107,
-    ...     187.843,
-    ...     187.691,
-    ...     183.824,
-    ...     183.414,
-    ... ]
-    >>> nsflux = grid.at_cell["radiation__net_shortwave_flux"]
+    >>> proven_net_shortwave_field = [188.107, 188.107, 187.843,
+    ...                                 187.691, 183.824, 183.414]
+    >>> nsflux = grid.at_cell['radiation__net_shortwave_flux']
     >>> print(assert_array_almost_equal(proven_net_shortwave_field, nsflux, decimal=3))
     None
 
@@ -315,10 +273,6 @@ class Radiation(Component):
 
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
-
-        # Code below can be used to force a closed node omission
-        # from instantiation but this proves slow when many
-        # rad objects are being created at once or in one loop
 
         # all closed node values will be set to -9999 to be marked
         # for non consideration later.
