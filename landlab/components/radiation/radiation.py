@@ -501,11 +501,10 @@ class Radiation(Component):
         else:
             self._phisun = np.pi + np.arccos(self._F)
 
+        # flat surface reference
         self._flat = np.cos(np.arctan(0)) * np.sin(self._alpha) + np.sin(
             np.arctan(0)
-        ) * np.cos(self._alpha) * np.cos(
-            self._phisun - 0
-        )  # flat surface reference
+        ) * np.cos(self._alpha) * np.cos(self._phisun)
 
         # solar angle of incidence, Multiplying this with incoming radiation
         # gives radiation on sloped surface see Flores-Cervantes, J.H. (2012)
@@ -519,8 +518,7 @@ class Radiation(Component):
         # of a flat surface
         self._radf = self._sloped / self._flat
 
-        self._radf[self._radf <= 0.0] = 0.0
-        self._radf[self._radf > 6.0] = 6.0
+        self._radf.clip(0.0, 6.0, out=self._radf)
 
         # Closed nodes will be omitted from spatially distributed ratio calculations
         # Closed nodes will have a -9999 "no value" fixed elevation
