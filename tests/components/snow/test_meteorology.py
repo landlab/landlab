@@ -267,7 +267,7 @@ def test_update_vapor_pressure():
     met.update_saturation_vapor_pressure(SURFACE=True)
     met.update_vapor_pressure(SURFACE=True)
     assert_almost_equal(
-        grid.at_node["land_surface_air_water-vapor__partial_pressure"],  0.2971155
+        grid.at_node["land_surface_air_water-vapor__partial_pressure"], 0.2971155
     )  # e_surf
 
     # Satterlund method
@@ -422,10 +422,12 @@ def test_update_net_shortwave_radiation():
     grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
     grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
     grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
-                  0.988298913583)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
-                  0.626646117223)
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.988298913583
+    )
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.626646117223
+    )
     grid.add_full("land_surface__slope_angle", 0.53511731)
     grid.add_full("land_surface__aspect_angle", 0.98980759)
     grid.add_full("land_surface__albedo", 0.3)
@@ -456,10 +458,12 @@ def test_update_em_air():
     grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
     grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
     grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
-                  0.988298913583)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
-                  0.626646117223)
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.988298913583
+    )
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.626646117223
+    )
 
     # Brutsaert method
     met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
@@ -472,8 +476,9 @@ def test_update_em_air():
     )  # em_air
 
     # Satterlund method
-    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00",
-                      GMT_offset=-7, satterlund=True)
+    met = Meteorology(
+        grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7, satterlund=True
+    )
     met.update_saturation_vapor_pressure(MBAR=True, SURFACE=False)
     met.update_vapor_pressure(SURFACE=False)
     met.update_em_air()
@@ -493,10 +498,12 @@ def test_update_net_longwave_radiation():
     grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
     grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
     grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
-                  0.988298913583)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
-                  0.626646117223)
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.988298913583
+    )
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.626646117223
+    )
 
     met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_saturation_vapor_pressure(MBAR=True, SURFACE=False)
@@ -518,15 +525,17 @@ def test_update_net_energy_flux():
     grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
     grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
     grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
-                  0.988298913583)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
-                  0.626646117223)
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.988298913583
+    )
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.626646117223
+    )
     grid.add_full("land_surface__slope_angle", 0.53511731)
     grid.add_full("land_surface__aspect_angle", 0.98980759)
     grid.add_full("land_surface__albedo", 0.3)
 
-    dt = 60 * 60   # 1hr
+    dt = 60 * 60  # 1hr
 
     met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
 
@@ -549,8 +558,7 @@ def test_update_net_energy_flux():
     met.update_net_energy_flux()  # Q_sum
 
     assert_almost_equal(
-        grid.at_node["land_surface_net-total-energy__energy_flux"],
-        94.6136746
+        grid.at_node["land_surface_net-total-energy__energy_flux"], 94.6136746
     )  # Q_sum
 
 
@@ -566,10 +574,12 @@ def test_run_multiple_steps():
     grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
     grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
     grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
-                  0.988298913583)
-    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
-                  0.626646117223)
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.988298913583
+    )
+    grid.add_full(
+        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.626646117223
+    )
     grid.add_full("land_surface__slope_angle", 0.53511731)
     grid.add_full("land_surface__aspect_angle", 0.98980759)
     grid.add_full("land_surface__albedo", 0.3)
@@ -606,15 +616,15 @@ def test_run_multiple_steps():
     grid.at_node["atmosphere_bottom_air__temperature"].fill(4.78304931115)
     grid.at_node["land_surface__temperature"].fill(-0.335599776544)
     grid.at_node["land_surface__albedo"].fill(0.3)
-    grid.at_node[
-        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"
-    ].fill(0.988298913583)
-    grid.at_node[
-        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
-    ].fill(0.293912990402)
-    grid.at_node[
-        "atmosphere_bottom_air_flow__reference-height_speed"
-    ].fill(2.06779569578)
+    grid.at_node["atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"].fill(
+        0.988298913583
+    )
+    grid.at_node["atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"].fill(
+        0.293912990402
+    )
+    grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"].fill(
+        2.06779569578
+    )
 
     met.run_one_step(dt)
 
