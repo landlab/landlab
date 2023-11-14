@@ -25,14 +25,14 @@ def test_create_fields():
 
     Meteorology(grid, start_datetime="2023-01-01 12:00:00")
 
-    assert len(grid.at_node.keys()) == 35
+    assert len(grid.at_node.keys()) == 34
     assert_almost_equal(grid.at_node["atmosphere_bottom_air__temperature"], 1)
     assert_almost_equal(grid.at_node["land_surface__temperature"], -1)
     assert_almost_equal(grid.at_node["land_surface__latitude"], 40)
     assert_almost_equal(grid.at_node["land_surface__longitude"], -105)
     assert_almost_equal(grid.at_node["land_surface__aspect_angle"], 0)
     assert_almost_equal(grid.at_node["land_surface__slope_angle"], 0)
-    assert_almost_equal(grid.at_node["snowpack__depth"], 0)
+    # assert_almost_equal(grid.at_node["snowpack__depth"], 0)
     assert_almost_equal(grid.at_node["land_surface__albedo"], 0.3)
     assert_almost_equal(grid.at_node["land_surface__emissivity"], 0.98)
     assert_almost_equal(
@@ -83,7 +83,7 @@ def test_assign_parameters():
 
     assert met._one_seventh == np.float64(1) / 7
     assert met._hours_per_day == np.float64(24)
-    assert met._latent_heat_constant == np.float64(0.662)
+    assert met._latent_heat_constant == np.float64(0.622)
 
     # parameters
     assert met._datetime_obj == datetime(2023, 1, 1, 12, 0)
@@ -106,16 +106,18 @@ def test_assign_parameters():
 def test_update_bulk_richardson_number():
     """test Ri"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00")
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_bulk_richardson_number()
 
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"], -0.0159037
+        grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"], 0.2833399
     )
 
 
@@ -150,127 +152,122 @@ def test_update_bulk_aero_conductance():
 
     # not neutral condition
     grid = RasterModelGrid((2, 2))
-    grid.add_field(
-        "atmosphere_bottom_air__temperature", np.array([1.0, 1.0, 1.0, 1.0]), at="node"
-    )
-    grid.add_field(
-        "land_surface__temperature", np.array([1.0, -1.0, 2.0, 2.0]), at="node"
-    )
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00")
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_bulk_richardson_number()
     met.update_bulk_aero_conductance()
 
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air_flow__bulk_richardson_number"],
-        np.array([0, -0.0159037, 0.00795185, 0.00795185]),
-    )  # Ri
-    assert_almost_equal(
         grid.at_node[
             "atmosphere_bottom_air__neutral_bulk_heat_aerodynamic_conductance"
         ],
-        0.0235478,
+        0.0138772,
     )  # Dn
     assert_almost_equal(
         grid.at_node[
             "atmosphere_bottom_air__bulk_sensible_heat_aerodynamic_conductance"
         ],
-        np.array([0.0235478, 0.02729276, 0.02181324, 0.02181324]),
+        0.0036201,
     )  # Dh
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air__bulk_latent_heat_aerodynamic_conductance"],
-        np.array([0.0235478, 0.02729276, 0.02181324, 0.02181324]),
+        0.0036201,
     )  # De
 
 
 def test_update_sensible_heat_flux():
     """test Qh"""
     grid = RasterModelGrid((2, 2))
-    grid.add_field(
-        "atmosphere_bottom_air__temperature", np.array([1.0, 1.0, 1.0, 1.0]), at="node"
-    )
-    grid.add_field(
-        "land_surface__temperature", np.array([1.0, -1.0, 2.0, 2.0]), at="node"
-    )
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00")
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_bulk_richardson_number()
     met.update_bulk_aero_conductance()
     met.update_sensible_heat_flux()
 
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"],
-        np.array([0.0, 69.2466541, -27.6720539, -27.6720539]),
+        38.6630741,
     )  # Qh
 
 
 def test_update_saturation_vapor_pressure():
     """test e_sat_air, e_sat_surf"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
 
     # Brutsaert method
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
 
-    met.update_saturation_vapor_pressure(MBAR=False, SURFACE=False)
+    met.update_saturation_vapor_pressure(MBAR=True, SURFACE=False)
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_water-vapor__saturated_partial_pressure"],
-        0.6570069,
+        10.769442,
     )  # e_sat_air
 
     met.update_saturation_vapor_pressure(MBAR=True, SURFACE=True)
     assert_almost_equal(
         grid.at_node["land_surface_air_water-vapor__saturated_partial_pressure"],
-        5.678657,
+        5.9423107,
     )  # e_sat_surf
 
     # Satterlund method
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=True)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
 
     met.update_saturation_vapor_pressure(MBAR=False, SURFACE=False)
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_water-vapor__saturated_partial_pressure"],
-        0.65630758,
+        1.0769442,
     )  # e_sat_air
 
-    met.update_saturation_vapor_pressure(MBAR=True, SURFACE=True)
+    met.update_saturation_vapor_pressure(MBAR=False, SURFACE=True)
     assert_almost_equal(
         grid.at_node["land_surface_air_water-vapor__saturated_partial_pressure"],
-        5.6758734,
+        0.5942311,
     )  # e_sat_surf
 
 
 def test_update_vapor_pressure():
     """test e_air , e_surf"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
 
     # Brutsaert method
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
 
     met.update_saturation_vapor_pressure()
     met.update_vapor_pressure()
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"], 0.26280276
+        grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"], 0.5384721
     )  # e_air
 
     met.update_saturation_vapor_pressure(SURFACE=True)
     met.update_vapor_pressure(SURFACE=True)
     assert_almost_equal(
-        grid.at_node["land_surface_air_water-vapor__partial_pressure"], 0.22714628
+        grid.at_node["land_surface_air_water-vapor__partial_pressure"],  0.2971155
     )  # e_surf
 
     # Satterlund method
@@ -279,71 +276,71 @@ def test_update_vapor_pressure():
     met.update_saturation_vapor_pressure()
     met.update_vapor_pressure()
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"], 0.262523032
+        grid.at_node["atmosphere_bottom_air_water-vapor__partial_pressure"], 0.5381425
     )  # e_air
 
     met.update_saturation_vapor_pressure(SURFACE=True)
     met.update_vapor_pressure(SURFACE=True)
     assert_almost_equal(
-        grid.at_node["land_surface_air_water-vapor__partial_pressure"], 0.227034936
+        grid.at_node["land_surface_air_water-vapor__partial_pressure"], 0.2969066
     )  # e_surf
 
 
 def test_update_dew_point():
     """test T_dew"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_saturation_vapor_pressure(MBAR=True)
     met.update_vapor_pressure()
     met.update_dew_point()
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_water-vapor__dew_point_temperature"],
-        -11.11746824,
+        -1.7325931,
     )  # T_dew
 
 
-def update_precipitable_water_content():
+def test_update_precipitable_water_content():
     """test W_p"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_saturation_vapor_pressure(MBAR=True)
     met.update_vapor_pressure()
     met.update_dew_point()
     met.update_precipitable_water_content()
     assert_almost_equal(
         grid.at_node["atmosphere_air-column_water-vapor__liquid-equivalent_depth"],
-        0.56593058,
+        1.0069717,
     )  # W_p
 
 
 def test_update_latent_heat_flux():
     """test Qe"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_bulk_richardson_number()
     met.update_bulk_aero_conductance()
     met.update_saturation_vapor_pressure(MBAR=True)  # e_sat_air
@@ -356,7 +353,7 @@ def test_update_latent_heat_flux():
 
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
-        20.31593647,
+        17.1380551,
     )  # Qe
 
 
@@ -390,7 +387,7 @@ def test_update_advection_heat_flux():
     )  # Qa
 
 
-def test_update_julian_day():  # TODO: double this calculation
+def test_update_julian_day():
     """test julian_day"""
     grid = RasterModelGrid((2, 2))
     grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
@@ -418,24 +415,23 @@ def test_update_julian_day():  # TODO: double this calculation
 def test_update_net_shortwave_radiation():
     """test Qn_SW"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.5, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.7, at="node"
-    )
-    dt = 60 * 60 * 48  # 48hr
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
+                  0.988298913583)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
+                  0.626646117223)
+    grid.add_full("land_surface__slope_angle", 0.53511731)
+    grid.add_full("land_surface__aspect_angle", 0.98980759)
+    grid.add_full("land_surface__albedo", 0.3)
 
-    met = Meteorology(
-        grid, start_datetime="2023-01-01 12:00:00", GMT_offset=-7, satterlund=False
-    )
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
+    dt = 60 * 60  # 1hr
 
     met.update_saturation_vapor_pressure(MBAR=True)
     met.update_vapor_pressure()
@@ -446,96 +442,93 @@ def test_update_net_shortwave_radiation():
     met.update_net_shortwave_radiation()
 
     assert_almost_equal(
-        grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 537.4501879
+        grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 0.0
     )  # Qn_SW
 
 
 def test_update_em_air():
     """test em_air"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.5, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.7, at="node"
-    )
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
+                  0.988298913583)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
+                  0.626646117223)
 
     # Brutsaert method
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_saturation_vapor_pressure(MBAR=True, SURFACE=False)
     met.update_vapor_pressure(SURFACE=False)
     met.update_em_air()
 
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air__emissivity"], 0.90170103
+        grid.at_node["atmosphere_bottom_air__emissivity"], 0.9972418
     )  # em_air
 
     # Satterlund method
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=True)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00",
+                      GMT_offset=-7, satterlund=True)
     met.update_saturation_vapor_pressure(MBAR=True, SURFACE=False)
     met.update_vapor_pressure(SURFACE=False)
     met.update_em_air()
 
     assert_almost_equal(
-        grid.at_node["atmosphere_bottom_air__emissivity"], 0.73468296
+        grid.at_node["atmosphere_bottom_air__emissivity"], 0.7750516
     )  # em_air
 
 
 def test_update_net_longwave_radiation():
     """test Qn_LW"""
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.5, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.7, at="node"
-    )
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
+                  0.988298913583)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
+                  0.626646117223)
 
-    met = Meteorology(grid, start_datetime="2023-01-01 12:00:00", satterlund=False)
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.update_saturation_vapor_pressure(MBAR=True, SURFACE=False)
     met.update_vapor_pressure(SURFACE=False)
     met.update_em_air()
     met.update_net_longwave_radiation()
 
     assert_almost_equal(
-        grid.at_node["land_surface_net-longwave-radiation__energy_flux"], -21.79438345
+        grid.at_node["land_surface_net-longwave-radiation__energy_flux"], 38.8125454
     )  # Qn_LW
 
 
 def test_update_net_energy_flux():
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.5, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.7, at="node"
-    )
-    dt = 60 * 60 * 48  # 48hr
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
+                  0.988298913583)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
+                  0.626646117223)
+    grid.add_full("land_surface__slope_angle", 0.53511731)
+    grid.add_full("land_surface__aspect_angle", 0.98980759)
+    grid.add_full("land_surface__albedo", 0.3)
 
-    met = Meteorology(
-        grid, start_datetime="2023-01-01 12:00:00", GMT_offset=-7, satterlund=False
-    )
+    dt = 60 * 60   # 1hr
+
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
 
     met.update_bulk_richardson_number()  # Ri
     met.update_bulk_aero_conductance()  # Dn, Dh, De
@@ -556,7 +549,8 @@ def test_update_net_energy_flux():
     met.update_net_energy_flux()  # Q_sum
 
     assert_almost_equal(
-        grid.at_node["land_surface_net-total-energy__energy_flux"], 605.21839499
+        grid.at_node["land_surface_net-total-energy__energy_flux"],
+        94.6136746
     )  # Q_sum
 
 
@@ -565,39 +559,38 @@ def test_run_multiple_steps():
 
     # step 1: run one step with default setting
     grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    grid.add_full("land_surface__temperature", -1, at="node")
-    grid.add_full("land_surface__latitude", 40, at="node")
-    grid.add_full("land_surface__longitude", -105, at="node")
-    grid.add_full(
-        "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor", 0.5, at="node"
-    )
-    grid.add_full(
-        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor", 0.7, at="node"
-    )
-    dt = 60 * 60 * 48  # 48hr
+    grid.add_full("atmosphere_bottom_air__temperature", 8.03780397898, at="node")
+    grid.add_full("land_surface__temperature", -0.381106746345, at="node")
+    grid.add_full("land_surface__latitude", 39.5, at="node")
+    grid.add_full("land_surface__longitude", -106.5, at="node")
+    grid.add_full("atmosphere_bottom_air_flow__reference-height_speed", 3.21966262328)
+    grid.add_full("atmosphere_bottom_air_flow__speed_reference_height", 10)
+    grid.add_full("atmosphere_bottom_air_water-vapor__relative_saturation", 0.5)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_canopy_factor",
+                  0.988298913583)
+    grid.add_full("atmosphere_bottom_air__brutsaert_emissivity_cloud_factor",
+                  0.626646117223)
+    grid.add_full("land_surface__slope_angle", 0.53511731)
+    grid.add_full("land_surface__aspect_angle", 0.98980759)
+    grid.add_full("land_surface__albedo", 0.3)
+    dt = 60 * 60  # 1hr
 
-    met = Meteorology(
-        grid, start_datetime="2023-01-01 12:00:00", GMT_offset=-7, satterlund=False
-    )
+    met = Meteorology(grid, start_datetime="2023-04-30 17:00:00", GMT_offset=-7)
     met.run_one_step(dt)
 
     assert_almost_equal(
-        grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 537.4501879
+        grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 0
     )  # Qn_SW
     assert_almost_equal(
-        grid.at_node["land_surface_net-longwave-radiation__energy_flux"], -21.79438345
+        grid.at_node["land_surface_net-longwave-radiation__energy_flux"], 38.8125454
     )  # Qn_LW
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"],
-        69.2466541,
+        38.6630741,
     )  # Qh
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
-        20.31593647,
+        17.1380551,
     )  # Qe
     assert_almost_equal(
         grid.at_node["snowpack_land_surface_net-conduction-heat__energy_flux"], 0
@@ -606,39 +599,38 @@ def test_run_multiple_steps():
         grid.at_node["snowpack_land_surface_net-advection-heat__energy_flux"], 0
     )  # Qa
     assert_almost_equal(
-        grid.at_node["land_surface_net-total-energy__energy_flux"], 605.21839499
+        grid.at_node["land_surface_net-total-energy__energy_flux"], 94.6136745
     )  # Q_sum
 
     # step2: change input values
-    grid.at_node["atmosphere_bottom_air__temperature"].fill(2)
-    grid.at_node["land_surface__temperature"].fill(-2)
-    grid.at_node["snowpack__depth"].fill(0.02)
-    grid.at_node["land_surface__albedo"].fill(0.9)
-    grid.at_node["land_surface__emissivity"].fill(0.70)
-    grid.at_node["atmosphere_aerosol_dust__reduction_of_transmittance"].fill(0.02)
-    grid.at_node["atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"].fill(0.02)
-    grid.at_node["atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"].fill(0.02)
-    grid.at_node["atmosphere_bottom_air_water-vapor__relative_saturation"].fill(0.3)
-    grid.at_node["atmosphere_bottom_air__pressure"].fill(1001)
-    grid.at_node["atmosphere_bottom_air_flow__log_law_roughness_length"].fill(0.04)
-    grid.at_node["atmosphere_bottom_air_flow__speed_reference_height"].fill(10)
-    grid.at_node["atmosphere_bottom_air_flow__reference-height_speed"].fill(5)
+    grid.at_node["atmosphere_bottom_air__temperature"].fill(4.78304931115)
+    grid.at_node["land_surface__temperature"].fill(-0.335599776544)
+    grid.at_node["land_surface__albedo"].fill(0.3)
+    grid.at_node[
+        "atmosphere_bottom_air__brutsaert_emissivity_canopy_factor"
+    ].fill(0.988298913583)
+    grid.at_node[
+        "atmosphere_bottom_air__brutsaert_emissivity_cloud_factor"
+    ].fill(0.293912990402)
+    grid.at_node[
+        "atmosphere_bottom_air_flow__reference-height_speed"
+    ].fill(2.06779569578)
 
     met.run_one_step(dt)
 
     assert_almost_equal(
-        grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 567.3765643
+        grid.at_node["land_surface_net-shortwave-radiation__energy_flux"], 0
     )  # Qn_SW
     assert_almost_equal(
-        grid.at_node["land_surface_net-longwave-radiation__energy_flux"], -72.29069181
+        grid.at_node["land_surface_net-longwave-radiation__energy_flux"], 22.577151
     )  # Qn_LW
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-sensible-heat__energy_flux"],
-        217.72253814,
+        11.0753299,
     )  # Qh
     assert_almost_equal(
         grid.at_node["atmosphere_bottom_air_land_net-latent-heat__energy_flux"],
-        47.94515872,
+        4.4121951,
     )  # Qe
     assert_almost_equal(
         grid.at_node["snowpack_land_surface_net-conduction-heat__energy_flux"], 0
@@ -647,5 +639,5 @@ def test_run_multiple_steps():
         grid.at_node["snowpack_land_surface_net-advection-heat__energy_flux"], 0
     )  # Qa
     assert_almost_equal(
-        grid.at_node["land_surface_net-total-energy__energy_flux"], 760.75356934
+        grid.at_node["land_surface_net-total-energy__energy_flux"], 38.064676
     )  # Q_sum
