@@ -17,7 +17,7 @@ bmi-era5:
       # - mean_surface_sensible_heat_flux
       # - mean_surface_net_long_wave_radiation_flux
       # - mean_surface_net_short_wave_radiation_flux
-      
+
 
     product_type: reanalysis
     year: 2023
