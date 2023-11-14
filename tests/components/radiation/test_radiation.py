@@ -49,6 +49,23 @@ def test_fields_updated(name):
     assert np.all(grid.at_cell[name] > 0.0)
 
 
+@pytest.mark.parametrize(
+    "kwds",
+    [
+        {"latitude": -100},
+        {"latitude": 90.1},
+        {"min_daily_temp": 20.0, "max_daily_temp": 15.0},
+        {"albedo": -1.0},
+        {"albedo": 10.0},
+    ],
+)
+def test_validators(kwds):
+    grid = RasterModelGrid((20, 20), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    with pytest.raises(ValueError):
+        Radiation(grid, **kwds)
+
+
 def test_slope():
     grid = RasterModelGrid((5, 4), xy_spacing=10.0)
     grid.at_node["topographic__elevation"] = [

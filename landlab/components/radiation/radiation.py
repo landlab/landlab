@@ -209,8 +209,8 @@ class Radiation(Component):
 
         self._method = method
         self._N = cloudiness
-        self._latitude = latitude
-        self._A = albedo
+        self._latitude = self._validate_latitude(latitude)
+        self._A = self._validate_albedo(albedo)
 
         # note that kt provided by the user is just a
         # 0.15-0.2 range value meant to indicate the type of region
@@ -223,8 +223,9 @@ class Radiation(Component):
         self._m = opt_airmass
 
         # For computations requiring temperature
-        self._Tmax = max_daily_temp
-        self._Tmin = min_daily_temp
+        self._Tmin, self._Tmax = self._validate_temperature_range(
+            min_daily_temp, max_daily_temp
+        )
 
         _assert_method_is_valid(self._method)
 
@@ -250,6 +251,23 @@ class Radiation(Component):
         # for non consideration later.
         closed_nodes = self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED
         self._nodal_values["topographic__elevation"][closed_nodes] = -9999
+
+    def _validate_latitude(self, latitude):
+        if latitude < -90.0 or latitude > 90.0:
+            raise ValueError("latitude must be between -90 and 90 degrees")
+        return latitude
+
+    def _validate_albedo(self, albedo):
+        if albedo < 0.0 or albedo > 1.0:
+            raise ValueError("albedo must be between 0 and 1")
+        return albedo
+
+    def _validate_temperature_range(self, min_temp, max_temp):
+        if min_temp > max_temp:
+            raise ValueError(
+                f"minimum temperature ({min_temp}) must be less than maximum ({max_temp})"
+            )
+        return min_temp, max_temp
 
     @property
     def day_of_year(self):
