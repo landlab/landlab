@@ -21,7 +21,7 @@ class MassWastingRunout(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorMFD
-    >>> from landlab.components.mass_wasting_router import MassWastingRunout
+    >>> from landlab.components.mass_wasting_runout import MassWastingRunout
 
     Define the topographic__elevation field of a 7 columns by 7 rows, 10-meter 
     raster model grid
