@@ -406,10 +406,7 @@ def authors_list(ctx, file):
             print(f"{author.name} <{author.email}> ({n_commits})")
 
 
-def exclude_matches_any(
-    names: Iterable[str],
-    exclude: str
-):
+def exclude_matches_any(names: Iterable[str], exclude: str):
     exclude_re = re.compile(exclude)
     for name in names:
         if exclude_re.search(name):
