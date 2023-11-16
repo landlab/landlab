@@ -21,33 +21,32 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         markers: ["slow", "not slow"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          micromamba-version: latest
-          environment-name: testing
-          create-args: >-
-            python=${{ matrix.python-version }}
-            c-compiler
-            cxx-compiler
-            mamba
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
 
-          channel-priority: true
+      - name: Install compilers
+        run: |
+            conda install c-compiler cxx-compiler
 
       - name: Show conda installation info
         run: |
-          pip install nox
-          mamba info
-          mamba list
+          conda info
+          conda list
 
       - name: Test jupyter notebooks
         env:
           OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
           MPLBACKEND: "Agg"
         run: |
-          nox --verbose -s test-notebooks -- -m "${{ matrix.markers }}"
+          pip install nox
+          nox --verbose -s test-notebooks --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.markers }}"

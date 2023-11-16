@@ -143,7 +143,7 @@ class KinwaveImplicitOverlandFlow(Component):
     2.78
     >>> kw.vel_coef  # default value
     100.0
-    >>> rg.at_node['surface_water__depth'][6:9]
+    >>> rg.at_node["surface_water__depth"][6:9]
     array([ 0.,  0.,  0.])
 
     References

@@ -1,0 +1,198 @@
+# Prevent git from showing duplicate names with commands like "git shortlog"
+# See the manpage of git-shortlog for details.
+# The syntax is:
+#
+#   Name that should be used <email that should be used> Bad name <bad email>
+#
+# You can skip Bad name if it is the same as the one that should be used,
+# and is unique.
+#
+# This file is up-to-date if the command,
+#
+#   git log --format="%aN <%aE>" | sort -u
+#
+# gives no duplicates.
+
+(no author) <(no author)@093548ea-dc74-4ebb-8037-4be9f23db00a> (no author) <(no author)@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Abby Langston <alangston@ksu.edu> Abby Langston <alangston@ksu.edu>
+Abby Langston <alangston@ksu.edu> alangston <alangston@ksu.edu>
+Allison Pfeiffer <pfeif@uw.edu> Allison Pfeiffer <35848814+pfeiffea@users.noreply.github.com>
+Allison Pfeiffer <pfeif@uw.edu> Allison Pfeiffer <pfeif@uw.edu>
+Allison Pfeiffer <pfeif@uw.edu> pfeiffea <35848814+pfeiffea@users.noreply.github.com>
+Allison Pfeiffer <pfeif@uw.edu> pfeiffea <pfeif@uw.edu>
+Amanda Manaster <amanaste@uw.edu> Amanda Manaster <amanaste@uw.edu>
+Andy Wickert <awickert@093548ea-dc74-4ebb-8037-4be9f23db00a> Andy Wickert <awickert@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Andy Wickert <awickert@093548ea-dc74-4ebb-8037-4be9f23db00a> awickert <awickert@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Benjamin Campforts <benjamincampforts@gmail.com> Benjamin <bca@Benjamins-MacBook-Pro.local>
+Benjamin Campforts <benjamincampforts@gmail.com> Benjamin <benjamincampforts@gmail.com>
+Benjamin Campforts <benjamincampforts@gmail.com> Benjamin Campforts <bca@Benjamins-MacBook-Pro.local>
+Benjamin Campforts <benjamincampforts@gmail.com> Benjamin Campforts <benjamincampforts@gmail.com>
+Charlie Shobe <cmshobe@email.wm.edu> Charlie Shobe <cmshobe@email.wm.edu>
+Charlie Shobe <cmshobe@email.wm.edu> Charlie Shobe <cmshobe@users.noreply.github.com>
+Charlie Shobe <cmshobe@email.wm.edu> cmshobe <cmshobe@email.wm.edu>
+Charlie Shobe <cmshobe@email.wm.edu> cmshobe <cmshobe@users.noreply.github.com>
+Christopher Sheehan <56881748+Sheehace@users.noreply.github.com> Christopher Sheehan <56881748+Sheehace@users.noreply.github.com>
+Dan Hobley <dan.hobley@gmail.com> Dan Hobley <dan.hobley@gmail.com>
+Dan Hobley <dan.hobley@gmail.com> Dan Hobley <danhobley@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Dan Hobley <dan.hobley@gmail.com> Dan Hobley <daniel.hobley@adas.co.uk>
+Dan Hobley <dan.hobley@gmail.com> Dan Hobley <daniel@dhmac.geol.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> Dan Hobley <daniel@v3061-0a9084c0.wifi.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> DanielHobley <dan.hobley@gmail.com>
+Dan Hobley <dan.hobley@gmail.com> DanielHobley <danhobley@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Dan Hobley <dan.hobley@gmail.com> DanielHobley <daniel.hobley@adas.co.uk>
+Dan Hobley <dan.hobley@gmail.com> DanielHobley <daniel@dhmac.geol.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> DanielHobley <daniel@v3061-0a9084c0.wifi.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> SiccarPoint <dan.hobley@gmail.com>
+Dan Hobley <dan.hobley@gmail.com> SiccarPoint <danhobley@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Dan Hobley <dan.hobley@gmail.com> SiccarPoint <daniel.hobley@adas.co.uk>
+Dan Hobley <dan.hobley@gmail.com> SiccarPoint <daniel@dhmac.geol.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> SiccarPoint <daniel@v3061-0a9084c0.wifi.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> danhobley <dan.hobley@gmail.com>
+Dan Hobley <dan.hobley@gmail.com> danhobley <danhobley@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Dan Hobley <dan.hobley@gmail.com> danhobley <daniel.hobley@adas.co.uk>
+Dan Hobley <dan.hobley@gmail.com> danhobley <daniel@dhmac.geol.cf.ac.uk>
+Dan Hobley <dan.hobley@gmail.com> danhobley <daniel@v3061-0a9084c0.wifi.cf.ac.uk>
+David Litwin <davidglitwin@posteo.net> David Litwin <45630470+DavidLitwin@users.noreply.github.com>
+David Litwin <davidglitwin@posteo.net> David Litwin <davidglitwin@posteo.net>
+David Litwin <davidglitwin@posteo.net> DavidLitwin <45630470+DavidLitwin@users.noreply.github.com>
+David Litwin <davidglitwin@posteo.net> DavidLitwin <davidglitwin@posteo.net>
+Dylan Ward <dylan.ward@uc.edu> Dylan <dylan.ward@uc.edu>
+Dylan Ward <dylan.ward@uc.edu> Dylan Ward <dylan.ward@uc.edu>
+Eric Hutton <mcflugen@gmail.com> Eric Hutton <huttone@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Eric Hutton <mcflugen@gmail.com> Eric Hutton <huttone@colorado.edu>
+Eric Hutton <mcflugen@gmail.com> Eric Hutton <mcflugen@gmail.com>
+Eric Hutton <mcflugen@gmail.com> Eric Hutton <mcflugen@users.noreply.github.com>
+Eric Hutton <mcflugen@gmail.com> huttone <huttone@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Eric Hutton <mcflugen@gmail.com> huttone <huttone@colorado.edu>
+Eric Hutton <mcflugen@gmail.com> huttone <mcflugen@gmail.com>
+Eric Hutton <mcflugen@gmail.com> huttone <mcflugen@users.noreply.github.com>
+Eric Hutton <mcflugen@gmail.com> mcflugen <huttone@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Eric Hutton <mcflugen@gmail.com> mcflugen <huttone@colorado.edu>
+Eric Hutton <mcflugen@gmail.com> mcflugen <mcflugen@gmail.com>
+Eric Hutton <mcflugen@gmail.com> mcflugen <mcflugen@users.noreply.github.com>
+Francis Rengers <francis.rengers@colorado.edu> Francis Rengers <francis.rengers@colorado.edu>
+Giuseppecipolla95 <36881480+Giuseppecipolla95@users.noreply.github.com> Giuseppecipolla95 <36881480+Giuseppecipolla95@users.noreply.github.com>
+Greg Tucker <gtucker@colorado.edu> Greg Tucker <gregteucro@yahoo.com>
+Greg Tucker <gtucker@colorado.edu> Greg Tucker <gtucker@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Greg Tucker <gtucker@colorado.edu> Greg Tucker <gtucker@colorado.edu>
+Greg Tucker <gtucker@colorado.edu> gregtucker <gregteucro@yahoo.com>
+Greg Tucker <gtucker@colorado.edu> gregtucker <gtucker@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Greg Tucker <gtucker@colorado.edu> gregtucker <gtucker@colorado.edu>
+Greg Tucker <gtucker@colorado.edu> gtucker <gregteucro@yahoo.com>
+Greg Tucker <gtucker@colorado.edu> gtucker <gtucker@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Greg Tucker <gtucker@colorado.edu> gtucker <gtucker@colorado.edu>
+Jay Hariharan <jayaram.hariharan@utexas.edu> Jay Hariharan <jayaram.hariharan@utexas.edu>
+Jay Hariharan <jayaram.hariharan@utexas.edu> jay <jayaram.hariharan@utexas.edu>
+Jeffrey Keck <keckje@gmail.com> Jeffrey Keck <31672064+keckje@users.noreply.github.com>
+Jeffrey Keck <keckje@gmail.com> Jeffrey Keck <keckje@gmail.com>
+Jeffrey Keck <keckje@gmail.com> keckje <31672064+keckje@users.noreply.github.com>
+Jeffrey Keck <keckje@gmail.com> keckje <keckje@gmail.com>
+Jenny Knuth <inkboco@gmail.com> Jenny Knuth <inkboco@gmail.com>
+Jordan Adams <jadams15@tulane.edu> Jordan <Jordan@Jordan-Adamss-MacBook-Pro.local>
+Jordan Adams <jadams15@tulane.edu> Jordan <Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu>
+Jordan Adams <jadams15@tulane.edu> Jordan <jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Jordan Adams <jadams15@tulane.edu> Jordan <jadams15@tulane.edu>
+Jordan Adams <jadams15@tulane.edu> Jordan <jadams15@users.noreply.github.com>
+Jordan Adams <jadams15@tulane.edu> Jordan Adams <Jordan@Jordan-Adamss-MacBook-Pro.local>
+Jordan Adams <jadams15@tulane.edu> Jordan Adams <Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu>
+Jordan Adams <jadams15@tulane.edu> Jordan Adams <jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Jordan Adams <jadams15@tulane.edu> Jordan Adams <jadams15@tulane.edu>
+Jordan Adams <jadams15@tulane.edu> Jordan Adams <jadams15@users.noreply.github.com>
+Jordan Adams <jadams15@tulane.edu> jadams15 <Jordan@Jordan-Adamss-MacBook-Pro.local>
+Jordan Adams <jadams15@tulane.edu> jadams15 <Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu>
+Jordan Adams <jadams15@tulane.edu> jadams15 <jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Jordan Adams <jadams15@tulane.edu> jadams15 <jadams15@tulane.edu>
+Jordan Adams <jadams15@tulane.edu> jadams15 <jadams15@users.noreply.github.com>
+Jordan Adams <jadams15@tulane.edu> jordan <Jordan@Jordan-Adamss-MacBook-Pro.local>
+Jordan Adams <jadams15@tulane.edu> jordan <Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu>
+Jordan Adams <jadams15@tulane.edu> jordan <jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Jordan Adams <jadams15@tulane.edu> jordan <jadams15@tulane.edu>
+Jordan Adams <jadams15@tulane.edu> jordan <jadams15@users.noreply.github.com>
+Josh Wolpert <66105693+josh-wolpert@users.noreply.github.com> Josh Wolpert <66105693+josh-wolpert@users.noreply.github.com>
+Josh Wolpert <66105693+josh-wolpert@users.noreply.github.com> josh-wolpert <66105693+josh-wolpert@users.noreply.github.com>
+Katy Barnhart <krbarnhart@usgs.gov> Barnhart, Katherine (Katy) Ruth <barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Katy Barnhart <krbarnhart@usgs.gov> Barnhart, Katherine (Katy) Ruth <katy.barnhart@gmail.com>
+Katy Barnhart <krbarnhart@usgs.gov> Barnhart, Katherine (Katy) Ruth <katybarnhart@Katys-MacBook-Pro.local>
+Katy Barnhart <krbarnhart@usgs.gov> Barnhart, Katherine (Katy) Ruth <katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu>
+Katy Barnhart <krbarnhart@usgs.gov> Barnhart, Katherine (Katy) Ruth <krbarnhart@usgs.gov>
+Katy Barnhart <krbarnhart@usgs.gov> Katherine Barnhart <barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Katy Barnhart <krbarnhart@usgs.gov> Katherine Barnhart <katy.barnhart@gmail.com>
+Katy Barnhart <krbarnhart@usgs.gov> Katherine Barnhart <katybarnhart@Katys-MacBook-Pro.local>
+Katy Barnhart <krbarnhart@usgs.gov> Katherine Barnhart <katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu>
+Katy Barnhart <krbarnhart@usgs.gov> Katherine Barnhart <krbarnhart@usgs.gov>
+Katy Barnhart <krbarnhart@usgs.gov> Katy <barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Katy Barnhart <krbarnhart@usgs.gov> Katy <katy.barnhart@gmail.com>
+Katy Barnhart <krbarnhart@usgs.gov> Katy <katybarnhart@Katys-MacBook-Pro.local>
+Katy Barnhart <krbarnhart@usgs.gov> Katy <katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu>
+Katy Barnhart <krbarnhart@usgs.gov> Katy <krbarnhart@usgs.gov>
+Katy Barnhart <krbarnhart@usgs.gov> Katy Barnhart <barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Katy Barnhart <krbarnhart@usgs.gov> Katy Barnhart <katy.barnhart@gmail.com>
+Katy Barnhart <krbarnhart@usgs.gov> Katy Barnhart <katybarnhart@Katys-MacBook-Pro.local>
+Katy Barnhart <krbarnhart@usgs.gov> Katy Barnhart <katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu>
+Katy Barnhart <krbarnhart@usgs.gov> Katy Barnhart <krbarnhart@usgs.gov>
+Katy Barnhart <krbarnhart@usgs.gov> barnhark <barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Katy Barnhart <krbarnhart@usgs.gov> barnhark <katy.barnhart@gmail.com>
+Katy Barnhart <krbarnhart@usgs.gov> barnhark <katybarnhart@Katys-MacBook-Pro.local>
+Katy Barnhart <krbarnhart@usgs.gov> barnhark <katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu>
+Katy Barnhart <krbarnhart@usgs.gov> barnhark <krbarnhart@usgs.gov>
+Katy Barnhart <krbarnhart@usgs.gov> kbarnhart <barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Katy Barnhart <krbarnhart@usgs.gov> kbarnhart <katy.barnhart@gmail.com>
+Katy Barnhart <krbarnhart@usgs.gov> kbarnhart <katybarnhart@Katys-MacBook-Pro.local>
+Katy Barnhart <krbarnhart@usgs.gov> kbarnhart <katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu>
+Katy Barnhart <krbarnhart@usgs.gov> kbarnhart <krbarnhart@usgs.gov>
+Kristen Thyng <kthyng@gmail.com> Kristen Thyng <kthyng@gmail.com>
+Laurent Roberge <lroberge@tulane.edu> Laurent Roberge <59940112+loroberge@users.noreply.github.com>
+Laurent Roberge <lroberge@tulane.edu> Laurent Roberge <lroberge@tulane.edu>
+Laurent Roberge <lroberge@tulane.edu> loroberge <59940112+loroberge@users.noreply.github.com>
+Laurent Roberge <lroberge@tulane.edu> loroberge <lroberge@tulane.edu>
+Margaux Mouchene <margaux.mouchene@laposte.net> Margaux Mouchene <margaux.mouchene@laposte.net>
+Margaux Mouchene <margaux.mouchene@laposte.net> Margaux Mouchene <margauxmouchene@Margauxs-iMac.local>
+Margaux Mouchene <margaux.mouchene@laposte.net> Margaux Mouchene <margauxmouchene@dhcp-216-222.tulane.edu>
+Margaux Mouchene <margaux.mouchene@laposte.net> Margaux Mouchene <margauxmouchene@dhcp-216-249.tulane.edu>
+Margaux Mouchene <margaux.mouchene@laposte.net> Margaux Mouchene <margauxmouchene@dhcp-216-251.tulane.edu>
+Margaux Mouchene <margaux.mouchene@laposte.net> margauxmouchene <margaux.mouchene@laposte.net>
+Margaux Mouchene <margaux.mouchene@laposte.net> margauxmouchene <margauxmouchene@Margauxs-iMac.local>
+Margaux Mouchene <margaux.mouchene@laposte.net> margauxmouchene <margauxmouchene@dhcp-216-222.tulane.edu>
+Margaux Mouchene <margaux.mouchene@laposte.net> margauxmouchene <margauxmouchene@dhcp-216-249.tulane.edu>
+Margaux Mouchene <margaux.mouchene@laposte.net> margauxmouchene <margauxmouchene@dhcp-216-251.tulane.edu>
+Mark Piper <mark.piper@colorado.edu> Mark Piper <mark.piper@colorado.edu>
+Muneer Ahammad <65404451+muneerVT@users.noreply.github.com> Muneer Ahammad <65404451+muneerVT@users.noreply.github.com>
+Nathan Lyons <nathan.j.lyons@gmail.com> Nathan Lyons <nathan.j.lyons@gmail.com>
+Nathan Lyons <nathan.j.lyons@gmail.com> Nathan Lyons <njlyons@Icacos.local>
+Nathan Lyons <nathan.j.lyons@gmail.com> NathanLyons <nathan.j.lyons@gmail.com>
+Nathan Lyons <nathan.j.lyons@gmail.com> NathanLyons <njlyons@Icacos.local>
+Nathan Lyons <nathan.j.lyons@gmail.com> nathanlyons <nathan.j.lyons@gmail.com>
+Nathan Lyons <nathan.j.lyons@gmail.com> nathanlyons <njlyons@Icacos.local>
+Nicole M Gasparini <nicgaspar@gmail.com> Nicole M Gasparini <nicgaspar@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Nicole M Gasparini <nicgaspar@gmail.com> Nicole M Gasparini <nicgaspar@gmail.com>
+Nicole M Gasparini <nicgaspar@gmail.com> Nicole M Gasparini <nicolegasparini@Nicoles-Mac-Pro.local>
+Nicole M Gasparini <nicgaspar@gmail.com> Nicole M Gasparini <nicolegasparini@ngaspari.tulane.edu>
+Nicole M Gasparini <nicgaspar@gmail.com> nicgaspar <nicgaspar@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Nicole M Gasparini <nicgaspar@gmail.com> nicgaspar <nicgaspar@gmail.com>
+Nicole M Gasparini <nicgaspar@gmail.com> nicgaspar <nicolegasparini@Nicoles-Mac-Pro.local>
+Nicole M Gasparini <nicgaspar@gmail.com> nicgaspar <nicolegasparini@ngaspari.tulane.edu>
+Rachel Glade <rcglade@gmail.com> Glader011235 <rachel.glade@colorado.edu>
+Rachel Glade <rcglade@gmail.com> Glader011235 <rcglade@gmail.com>
+Rachel Glade <rcglade@gmail.com> Rachel Glade <rachel.glade@colorado.edu>
+Rachel Glade <rcglade@gmail.com> Rachel Glade <rcglade@gmail.com>
+Ronda Strauch <rstrauch@uw.edu> Ronda Strauch <rstrauch@uw.edu>
+Ronda Strauch <rstrauch@uw.edu> RondaStrauch <rstrauch@uw.edu>
+Sai Nudurupati <saisiddu@uw.edu> Sai Nudurupati <saisiddu@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Sai Nudurupati <saisiddu@uw.edu> Sai Nudurupati <saisiddu@e-istanbul-3.ce.washington.edu>
+Sai Nudurupati <saisiddu@uw.edu> Sai Nudurupati <saisiddu@uw.edu>
+Sai Nudurupati <saisiddu@uw.edu> Sai Siddhartha Nudurupati <saisiddu@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Sai Nudurupati <saisiddu@uw.edu> Sai Siddhartha Nudurupati <saisiddu@e-istanbul-3.ce.washington.edu>
+Sai Nudurupati <saisiddu@uw.edu> Sai Siddhartha Nudurupati <saisiddu@uw.edu>
+Sai Nudurupati <saisiddu@uw.edu> saisiddu <saisiddu@093548ea-dc74-4ebb-8037-4be9f23db00a>
+Sai Nudurupati <saisiddu@uw.edu> saisiddu <saisiddu@e-istanbul-3.ce.washington.edu>
+Sai Nudurupati <saisiddu@uw.edu> saisiddu <saisiddu@uw.edu>
+Sarah Lundell <s_lundell@att.net> Sarah Lundell <s_lundell@att.net>
+Sarah Lundell <s_lundell@att.net> slundell123 <s_lundell@att.net>
+Sebastien Lenard <sebastien.lenard@gmail.com> Sebastien Lenard <91671955+sebastien-lenard@users.noreply.github.com>
+Sebastien Lenard <sebastien.lenard@gmail.com> Sebastien Lenard <sebastien.lenard@gmail.com>
+Sebastien Lenard <sebastien.lenard@gmail.com> sebastien-lenard <91671955+sebastien-lenard@users.noreply.github.com>
+Sebastien Lenard <sebastien.lenard@gmail.com> sebastien-lenard <sebastien.lenard@gmail.com>
+Shelby Ahrendt <36043125+shelbyahrendt@users.noreply.github.com> Shelby Ahrendt <36043125+shelbyahrendt@users.noreply.github.com>
+dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com> dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com> pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+root <root@093548ea-dc74-4ebb-8037-4be9f23db00a> root <root@093548ea-dc74-4ebb-8037-4be9f23db00a>

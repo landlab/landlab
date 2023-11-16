@@ -1,3 +1,0 @@
-
-Fixed incorrect doctests for ``parallel_links_at_link`` and
-``orientation_of_link``.
