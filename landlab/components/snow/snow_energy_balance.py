@@ -73,14 +73,17 @@ class SnowEnergyBalance(Component):
     array([ 1.,  1.,  1.,  1.])
     >>> grid.add_full("land_surface__temperature", -1, at="node")
     array([-1., -1., -1., -1.])
-    >>> grid.add_full("land_surface_net-total-energy__energy_flux", 2e3+334, at="node")
+    >>> grid.add_full(
+    ...     "land_surface_net-total-energy__energy_flux", 2e3 + 334, at="node"
+    ... )
     array([ 2334.,  2334.,  2334.,  2334.])
     >>> grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
     array([ 1.,  1.,  1.,  1.])
-    >>> grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at='node')
+    >>> grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
     array([ 200.,  200.,  200.,  200.])
-    >>> grid.add_full("snowpack__z_mean_of_mass-specific_isobaric_heat_capacity",
-    ...     2000, at='node')
+    >>> grid.add_full(
+    ...     "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2000, at="node"
+    ... )
     array([ 2000.,  2000.,  2000.,  2000.])
     >>> sm = SnowEnergyBalance(grid, grid_area=100)
     >>> grid.at_node["snowpack__depth"]

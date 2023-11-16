@@ -43,22 +43,22 @@ class SnowDegreeDay(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.snow import SnowDegreeDay
     >>> grid = RasterModelGrid((2, 2))
-    >>> grid.add_full('atmosphere_bottom_air__temperature', 2, at='node')
+    >>> grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
     array([ 2.,  2.,  2.,  2.])
-    >>> grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at='node')
+    >>> grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
     array([ 0.,  0.,  0.,  0.])
-    >>> grid.add_full('snowpack__liquid-equivalent_depth', 0.005)  # m
+    >>> grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
     array([ 0.005,  0.005,  0.005,  0.005])
-    >>> grid.add_full('snowpack__degree-day_coefficient', 3)  # mm -day -K
+    >>> grid.add_full("snowpack__degree-day_coefficient", 3)  # mm -day -K
     array([ 3.,  3.,  3.,  3.])
     >>> sm = SnowDegreeDay(grid)
-    >>> sm.run_one_step(np.float64(8.64E4)) # 1 day in sec
-    >>> grid.at_node['snowpack__melt_volume_flux']
+    >>> sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    >>> grid.at_node["snowpack__melt_volume_flux"]
     array([  5.78703704e-08,   5.78703704e-08,   5.78703704e-08,
          5.78703704e-08])
-    >>> grid.at_node['snowpack__time_integral_melt_volume_flux']
+    >>> grid.at_node["snowpack__time_integral_melt_volume_flux"]
     array([ 0.005,  0.005,  0.005,  0.005])
-    >>> grid.at_node['snowpack__liquid-equivalent_depth']
+    >>> grid.at_node["snowpack__liquid-equivalent_depth"]
     array([ 0.,  0.,  0.,  0.])
     """
 

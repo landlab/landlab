@@ -76,11 +76,13 @@ class Meteorology(Component):
     >>> grid.add_full("land_surface__longitude", -105, at="node")
     array([-105., -105., -105., -105.])
     >>> grid.add_full(
-    ... "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node")
+    ...     "atmosphere_bottom_air_water-vapor__relative_saturation", 0.4, at="node"
+    ... )
     array([ 0.4,  0.4,  0.4,  0.4])
     >>> dt = 60 * 60 * 48
     >>> met = Meteorology(
-    ... grid, start_datetime="2023-01-01 12:00:00",  GMT_offset=-7, satterlund=False)
+    ...     grid, start_datetime="2023-01-01 12:00:00", GMT_offset=-7, satterlund=False
+    ... )
     >>> met.run_one_step(dt)
     >>> grid.at_node["land_surface_net-total-energy__energy_flux"]
     array([ 498.41796974,  498.41796974,  498.41796974,  498.41796974])
