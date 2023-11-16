@@ -3,9 +3,11 @@ import inspect
 import itertools
 import os
 import pathlib
+import re
 import sys
 import textwrap
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import partial
 
 import numpy as np
@@ -144,7 +146,6 @@ def validate(component):
 
 
 @landlab.group()
-@click.option("--ignore", help="users to ignore", multiple=True, type=str)
 @click.option(
     "--authors-file",
     type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
@@ -157,7 +158,7 @@ def validate(component):
     help="The file that contains a list of authors",
 )
 @click.pass_context
-def authors(ctx, ignore, authors_file, credits_file):
+def authors(ctx, authors_file, credits_file):
     """Commands for working with lists of authors."""
     verbose = ctx.parent.params["verbose"]
     silent = ctx.parent.params["silent"]
@@ -216,7 +217,7 @@ def build(ctx):
     """Build an authors file."""
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
-    ignore = set(ctx.parent.params["ignore"])
+    exclude = ctx.parent.params["exclude"]
     authors_file = pathlib.Path(ctx.parent.params["authors_file"])
     author_format = ctx.parent.params["author_format"]
     credits_file = pathlib.Path(ctx.parent.params["credits_file"])
@@ -257,7 +258,7 @@ def build(ctx):
         if github is None:
             github = "landlab"
         author.github = github
-        if ignore.isdisjoint(author.names):
+        if not exclude_matches_any(author.names, exclude):
             lines.append(
                 author_format.format(
                     name=author.name, github=author.github, email=author.email
@@ -367,7 +368,7 @@ def mailmap(ctx):
             print(f"{good_name} <{good_email}> {bad_name} <{bad_email}>")
 
 
-@authors.command()
+@authors.command(name="list")
 @click.option(
     "--file",
     default="authors.toml",
@@ -375,10 +376,10 @@ def mailmap(ctx):
     help="existing authors file",
 )
 @click.pass_context
-def list(ctx, file):
-    ignore = set(ctx.parent.params["ignore"])
+def authors_list(ctx, file):
     verbose = ctx.parent.parent.params["verbose"]
     silent = ctx.parent.parent.params["silent"]
+    exclude = ctx.parent.params["exclude"]
 
     git_log = GitLog("%aN")
     try:
@@ -401,8 +402,16 @@ def list(ctx, file):
 
     for name, n_commits in sorted(commits.items(), key=lambda x: x[1], reverse=True):
         author = authors.find_author(name)
-        if ignore.isdisjoint(author.names):
+        if not exclude_matches_any(author.names, exclude):
             print(f"{author.name} <{author.email}> ({n_commits})")
+
+
+def exclude_matches_any(names: Iterable[str], exclude: str):
+    exclude_re = re.compile(exclude)
+    for name in names:
+        if exclude_re.search(name):
+            return True
+    return False
 
 
 @landlab.group(chain=True)
