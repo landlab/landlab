@@ -21,6 +21,7 @@ Hillslope geomorphology
    taylor_nonlinear_hillslope_flux
    depth_dependent_taylor_soil_creep
    threshold_eroder
+   concentration_tracker
 
 Fluvial geomorphology
 ---------------------

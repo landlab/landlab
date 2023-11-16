@@ -422,6 +422,59 @@ mapping = 'node'
 optional = false
 units = '-'
 
+[components.ConcentrationTrackerForDiffusion]
+name = 'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion'
+unit_agnostic = true
+summary = 'Track the concentration of any user-defined property.'
+
+[components.ConcentrationTrackerForDiffusion.info.bedrock_property__concentration]
+doc = 'Mass concentration of property per unit volume of bedrock'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-/m^3'
+
+[components.ConcentrationTrackerForDiffusion.info.sediment_property__concentration]
+doc = 'Mass concentration of property per unit volume of sediment'
+dtype = 'float64'
+intent = 'out'
+mapping = 'node'
+optional = false
+units = '-/m^3'
+
+[components.ConcentrationTrackerForDiffusion.info.soil__depth]
+doc = 'Depth of soil or weathered bedrock'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
+[components.ConcentrationTrackerForDiffusion.info.soil__flux]
+doc = 'flux of soil in direction of link'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = false
+units = 'm^2/yr'
+
+[components.ConcentrationTrackerForDiffusion.info.soil_production__rate]
+doc = 'rate of soil production at nodes'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm/yr'
+
+[components.ConcentrationTrackerForDiffusion.info.topographic__elevation]
+doc = 'Land surface topographic elevation'
+dtype = 'float64'
+intent = 'in'
+mapping = 'node'
+optional = false
+units = 'm'
+
 [components.DepressionFinderAndRouter]
 name = 'landlab.components.depression_finder.lake_mapper.DepressionFinderAndRouter'
 unit_agnostic = true
@@ -3889,6 +3942,13 @@ provided_by = [
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
 ]
 
+[fields.bedrock_property__concentration]
+desc = 'Mass concentration of property per unit volume of bedrock'
+used_by = []
+provided_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+]
+
 [fields.carbonate_production_rate]
 desc = 'Carbonate production rate'
 used_by = []
@@ -4652,6 +4712,13 @@ provided_by = [
   'landlab.components.sink_fill.sink_fill_barnes.SinkFillerBarnes',
 ]
 
+[fields.sediment_property__concentration]
+desc = 'Mass concentration of property per unit volume of sediment'
+used_by = []
+provided_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+]
+
 [fields.slope_coefficient]
 desc = 'Slope coefficient to define channels.'
 used_by = [
@@ -4677,6 +4744,7 @@ provided_by = []
 desc = 'Depth of soil or weathered bedrock'
 used_by = [
   'landlab.components.bedrock_landslider.bedrock_landslider.BedrockLandslider',
+  'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
   'landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder.GravelBedrockEroder',
@@ -4697,7 +4765,9 @@ provided_by = [
 
 [fields.soil__flux]
 desc = 'flux of soil in direction of link'
-used_by = []
+used_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
+]
 provided_by = [
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
@@ -4805,6 +4875,7 @@ provided_by = [
 [fields.soil_production__rate]
 desc = 'rate of soil production at nodes'
 used_by = [
+  'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
 ]
@@ -4983,6 +5054,7 @@ used_by = [
   'landlab.components.bedrock_landslider.bedrock_landslider.BedrockLandslider',
   'landlab.components.carbonate.carbonate_producer.CarbonateProducer',
   'landlab.components.chi_index.channel_chi.ChiFinder',
+  'landlab.components.concentration_tracker.concentration_tracker_for_diffusion.ConcentrationTrackerForDiffusion',
   'landlab.components.depression_finder.lake_mapper.DepressionFinderAndRouter',
   'landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux.DepthDependentDiffuser',
   'landlab.components.depth_dependent_taylor_soil_creep.hillslope_depth_dependent_taylor_flux.DepthDependentTaylorDiffuser',
