@@ -22,7 +22,7 @@ doc = 'Link-parallel advection flux'
 dtype = 'float64'
 intent = 'out'
 mapping = 'link'
-optional = false
+optional = true
 units = 'm2/y'
 
 [components.AdvectionSolverTVD.info.advection__velocity]
@@ -2081,7 +2081,7 @@ units = 'm3'
 [components.LinearDiffuser]
 name = 'landlab.components.diffusion.diffusion.LinearDiffuser'
 unit_agnostic = true
-summary = 'This component implements linear diffusion of a Landlab field.'
+summary = 'Linear diffusion of a Landlab field.'
 
 [components.LinearDiffuser.info.hillslope_sediment__unit_volume_flux]
 doc = 'Volume flux per unit width along links'
@@ -2171,18 +2171,26 @@ units = 'm/s'
 [components.ListricKinematicExtender]
 name = 'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender'
 unit_agnostic = true
-summary = 'Apply tectonic extension and subsidence kinematically to a raster or'
+summary = 'Apply tectonic extension kinematically to a raster or'
 
-[components.ListricKinematicExtender.info.cumulative_subsidence_depth]
-doc = 'Cumulative depth of tectonic subsidence'
+[components.ListricKinematicExtender.info.advection__velocity]
+doc = 'Link-parallel advection velocity magnitude'
+dtype = 'float64'
+intent = 'in'
+mapping = 'link'
+optional = true
+units = 'm/y'
+
+[components.ListricKinematicExtender.info.fault_plane__elevation]
+doc = 'Elevation of fault plane'
 dtype = 'float64'
 intent = 'out'
 mapping = 'node'
-optional = true
+optional = false
 units = 'm'
 
-[components.ListricKinematicExtender.info.subsidence_rate]
-doc = 'Rate of tectonic subsidence in hangingwall area'
+[components.ListricKinematicExtender.info.hangingwall__thickness]
+doc = 'Thickness of material in hangingwall block'
 dtype = 'float64'
 intent = 'out'
 mapping = 'node'
@@ -2195,14 +2203,6 @@ dtype = 'float64'
 intent = 'inout'
 mapping = 'node'
 optional = false
-units = 'm'
-
-[components.ListricKinematicExtender.info.upper_crust_thickness]
-doc = 'Thickness of upper crust (arbitrary datum)'
-dtype = 'float64'
-intent = 'inout'
-mapping = 'node'
-optional = true
 units = 'm'
 
 [components.LithoLayers]
@@ -3778,6 +3778,7 @@ provided_by = [
 desc = 'Link-parallel advection velocity magnitude'
 used_by = [
   'landlab.components.advection.advection_solver_tvd.AdvectionSolverTVD',
+  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 provided_by = []
 
@@ -4001,13 +4002,6 @@ used_by = [
 ]
 provided_by = []
 
-[fields.cumulative_subsidence_depth]
-desc = 'Cumulative depth of tectonic subsidence'
-used_by = []
-provided_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
-]
-
 [fields.depression__depth]
 desc = 'Depth of depression below its spillway point'
 used_by = []
@@ -4105,6 +4099,13 @@ desc = 'Horizontal flow velocity along links during ebb tide'
 used_by = []
 provided_by = [
   'landlab.components.tidal_flow.tidal_flow_calculator.TidalFlowCalculator',
+]
+
+[fields.fault_plane__elevation]
+desc = 'Elevation of fault plane'
+used_by = []
+provided_by = [
+  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 
 [fields.flood_status_code]
@@ -4299,6 +4300,13 @@ desc = 'velocity of groundwater in link direction'
 used_by = []
 provided_by = [
   'landlab.components.groundwater.dupuit_percolator.GroundwaterDupuitPercolator',
+]
+
+[fields.hangingwall__thickness]
+desc = 'Thickness of material in hangingwall block'
+used_by = []
+provided_by = [
+  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 
 [fields.height_above_drainage__elevation]
@@ -4821,13 +4829,6 @@ provided_by = [
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
 ]
 
-[fields.subsidence_rate]
-desc = 'Rate of tectonic subsidence in hangingwall area'
-used_by = []
-provided_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
-]
-
 [fields.surface__evapotranspiration]
 desc = 'actual sum of evaporation and plant transpiration'
 used_by = [
@@ -5120,15 +5121,6 @@ provided_by = [
   'landlab.components.flow_director.flow_director_mfd.FlowDirectorMFD',
   'landlab.components.flow_director.flow_director_steepest.FlowDirectorSteepest',
   'landlab.components.priority_flood_flow_router.priority_flood_flow_router.PriorityFloodFlowRouter',
-]
-
-[fields.upper_crust_thickness]
-desc = 'Thickness of upper crust (arbitrary datum)'
-used_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
-]
-provided_by = [
-  'landlab.components.tectonics.listric_kinematic_extender.ListricKinematicExtender',
 ]
 
 [fields.user_d50]
@@ -5632,7 +5624,6 @@ uncategorized = [
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.link_with_node_status',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.load',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_link_vector_components_to_node',
-  'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_link_vector_to_nodes',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_node_to_link_linear_upwind',
   'landlab.grid.framed_voronoi.FramedVoronoiGrid.map_vectors_to_links',
@@ -6049,7 +6040,6 @@ uncategorized = [
   'landlab.grid.hex.HexModelGrid.link_with_node_status',
   'landlab.grid.hex.HexModelGrid.load',
   'landlab.grid.hex.HexModelGrid.map_link_vector_components_to_node',
-  'landlab.grid.hex.HexModelGrid.map_link_vector_to_nodes',
   'landlab.grid.hex.HexModelGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.hex.HexModelGrid.map_node_to_link_linear_upwind',
   'landlab.grid.hex.HexModelGrid.map_vectors_to_links',
@@ -6394,7 +6384,6 @@ uncategorized = [
   'landlab.grid.base.ModelGrid.link_with_angle',
   'landlab.grid.base.ModelGrid.link_with_node_status',
   'landlab.grid.base.ModelGrid.map_link_vector_components_to_node',
-  'landlab.grid.base.ModelGrid.map_link_vector_to_nodes',
   'landlab.grid.base.ModelGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.base.ModelGrid.map_node_to_link_linear_upwind',
   'landlab.grid.base.ModelGrid.map_vectors_to_links',
@@ -6763,7 +6752,6 @@ uncategorized = [
   'landlab.grid.radial.RadialModelGrid.link_with_node_status',
   'landlab.grid.radial.RadialModelGrid.load',
   'landlab.grid.radial.RadialModelGrid.map_link_vector_components_to_node',
-  'landlab.grid.radial.RadialModelGrid.map_link_vector_to_nodes',
   'landlab.grid.radial.RadialModelGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.radial.RadialModelGrid.map_node_to_link_linear_upwind',
   'landlab.grid.radial.RadialModelGrid.map_vectors_to_links',
@@ -7318,7 +7306,6 @@ uncategorized = [
   'landlab.grid.raster.RasterModelGrid.looped_neighbors_at_patch',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_components_to_node',
   'landlab.grid.raster.RasterModelGrid.map_link_vector_components_to_node_raster',
-  'landlab.grid.raster.RasterModelGrid.map_link_vector_to_nodes',
   'landlab.grid.raster.RasterModelGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.raster.RasterModelGrid.map_node_to_link_linear_upwind',
   'landlab.grid.raster.RasterModelGrid.map_vectors_to_links',
@@ -7753,7 +7740,6 @@ uncategorized = [
   'landlab.grid.voronoi.VoronoiDelaunayGrid.link_with_node_status',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.load',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_components_to_node',
-  'landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_link_lax_wendroff',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_link_linear_upwind',
   'landlab.grid.voronoi.VoronoiDelaunayGrid.map_vectors_to_links',
