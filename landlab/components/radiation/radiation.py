@@ -1,9 +1,11 @@
+import copy
+
 import numpy as np
 
 from landlab import Component
 from landlab.grid.mappers import map_node_to_cell
 
-_VALID_METHODS = {"grid"}
+_VALID_METHODS = {"Grid"}
 
 
 def _assert_method_is_valid(method):
@@ -41,6 +43,7 @@ class Radiation(Component):
 
     .. codeauthor:: Sai Nudurupati & Erkan Istanbulluoglu & Berkan Mertan
 
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -62,10 +65,9 @@ class Radiation(Component):
     >>> rad.update()
 
     >>> grid.at_cell["radiation__net_shortwave_flux"].reshape((3, 2))
-    array([[ 252.14550048,  252.14550048],
-           [ 252.13078907,  252.13078907],
-           [ 252.10136783,  252.10136783]])
-
+    array([[ 251.63813643,  251.63813643],
+           [ 251.62345462,  251.62345462],
+           [ 251.59409258,  251.59409258]])
     >>> grid.at_node["topographic__elevation"] = [
     ...     [0.0, 0.0, 0.0, 0.0],
     ...     [100.0, 100.0, 100.0, 100.0],
@@ -86,6 +88,8 @@ class Radiation(Component):
     **Required Software Citation(s) Specific to this Component**
 
     None Listed
+
+
     """
 
     _name = "Radiation"
@@ -165,7 +169,7 @@ class Radiation(Component):
     def __init__(
         self,
         grid,
-        method="grid",
+        method="Grid",
         cloudiness=0.2,
         latitude=34.0,
         albedo=0.2,
@@ -181,7 +185,7 @@ class Radiation(Component):
         ----------
         grid: RasterModelGrid
             A grid.
-        method: {'grid'}, optional
+        method: {'Grid'}, optional
             Currently, only default is available.
         cloudiness: float, optional
             Cloudiness.
@@ -247,10 +251,25 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-        # all closed node values will be set to -9999 to be marked
-        # for non consideration later.
-        closed_nodes = self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED
-        self._nodal_values["topographic__elevation"][closed_nodes] = -9999
+        # Create a 'status' nodal field to store the status_at_node values
+        # then map it to a cell-based field the same statuses. Use this to
+        # generate a "closed elevations" field of boolean indexing.self
+        self._gridCopy = copy.deepcopy(self._grid)
+        self._gridCopy.add_field(
+            "radiation_status_at_node", self._grid.status_at_node, at="node"
+        )
+        self._cellular_status = map_node_to_cell(
+            self._gridCopy, "radiation_status_at_node"
+        )
+        self._closed_elevations = (
+            self._cellular_status == self._gridCopy.BC_NODE_IS_CLOSED
+        )
+
+    def run_one_step(self, dt=None):
+        if dt is None:
+            dt = 1.0 / 365.0
+        self.current_time += dt
+        self.update()
 
     def _validate_latitude(self, latitude):
         if latitude < -90.0 or latitude > 90.0:
@@ -302,11 +321,11 @@ class Radiation(Component):
 
         # Solar Declination Angle - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 24,(51)
-        self._sdecl = 0.409 * np.sin(2.0 * np.pi / 365.0 * self._julian - 1.39)
+        self._sdecl = 0.409 * np.sin(((np.pi / 180.0) * self._julian) - 1.39)
 
         # Inverse Relative Distance Factor - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 23,(50)
-        self._dr = 1 + (0.033 * np.cos(2.0 * np.pi / 365.0 * self._julian))
+        self._dr = 1 + (0.033 * np.cos(np.pi / 180.0 * self._julian))
 
         # Generate spatially distributed field of flat surface to
         # sloped surface radiation incidence ratios
@@ -388,8 +407,12 @@ class Radiation(Component):
         )
 
         # Load spatially distributed ratio to flat surface function values
-        # self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
-        self._cell_values["radiation__ratio_to_flat_surface"][:] = self._radf
+        self._cell_values["radiation__ratio_to_flat_surface"] = self._radf
+
+        # If sun does not rise, accounted by an invalid trig function
+        # input, set all NaN grid values to 0.0 instead.
+        self._radf[np.isnan(self._radf)] = 0.0
+        self._Rext = 0.0 if np.isnan(self._Rext) else self._Rext
 
         # Net Radiation - ASCE-EWRI (2005), Eqn 15
         # Apply the ratio to flat surface to net shortwave
@@ -450,7 +473,10 @@ class Radiation(Component):
         self._elevation = self._nodal_values["topographic__elevation"]
 
         # Handle invalid values (closed nodes are not invalid)
-        if np.any((self._elevation < 0.0) & ~np.isclose(self._elevation, -9999.0)):
+        if np.any(
+            (self._elevation < 0.0)
+            & (self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED)
+        ):
             raise ValueError(
                 "No negative (< 0.0) values allowed in an above sea level elevation field."
             )
@@ -488,29 +514,37 @@ class Radiation(Component):
         self._ws = np.arccos(-np.tan(self._sdecl) * np.tan(self._phi))
 
         # Sun's Azimuth calculation code
-        self._F = np.tan(self._alpha) * np.tan(self._phi) - (
+        F = np.tan(self._alpha) * np.tan(self._phi) - (
             np.sin(self._sdecl) / (self._cosSA * self._cosLat)
         )
 
         # Rounding
-        if self._F > 0.99999 or self._F < -0.99999:
-            self._F = 0.99999
+        # if self._F > 0.99999 or self._F < -0.99999:
+        #     self._F = 0.99999
+        F = np.clip(F, -0.99999, 0.99999)
+
         #
         if self._t < 12.0:
-            self._phisun = np.pi - np.arccos(self._F)
+            self._phisun = np.pi - np.arccos(F)
         else:
-            self._phisun = np.pi + np.arccos(self._F)
+            self._phisun = np.pi + np.arccos(F)
 
-        # flat surface reference
-        self._flat = np.cos(np.arctan(0)) * np.sin(self._alpha) + np.sin(
-            np.arctan(0)
-        ) * np.cos(self._alpha) * np.cos(self._phisun)
+        self._flat = np.sin(self._alpha)
 
         # solar angle of incidence, Multiplying this with incoming radiation
         # gives radiation on sloped surface see Flores-Cervantes, J.H. (2012)
-        self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
-            self._slope
-        ) * self._cosSA * np.cos(self._phisun - self._aspect)
+        #  self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
+        #     self._slope
+        # ) * self._cosSA * np.cos(self._phisun - self._aspect)
+
+        if self._latitude > 0.0:
+            self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
+                self._slope
+            ) * self._cosSA * np.cos(self._phisun - self._aspect)
+        else:
+            self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
+                self._slope
+            ) * self._cosSA * np.cos(self._phisun - self._aspect - np.pi)
 
         self._sloped[self._sloped <= 0.0] = 0.0
 
@@ -518,9 +552,8 @@ class Radiation(Component):
         # of a flat surface
         self._radf = self._sloped / self._flat
 
-        self._radf.clip(0.0, 6.0, out=self._radf)
+        self._radf[self._radf <= 0.0] = 0.0
+        self._radf[self._radf > 6.0] = 6.0
 
         # Closed nodes will be omitted from spatially distributed ratio calculations
-        # Closed nodes will have a -9999 "no value" fixed elevation
-        closed_elevations = self._elevation == -9999
-        self._radf[closed_elevations] = 0.0
+        self._radf[self._closed_elevations] = 0.0
