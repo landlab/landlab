@@ -151,7 +151,7 @@ def test_solstice(solstice, latitude):
     radiation = Radiation(grid, latitude=latitude, current_time=time)
     radiation.update()
 
-    assert np.all(np.isnan(grid.at_cell["radiation__extraterrestrial_flux"]))
+    assert np.allclose(grid.at_cell["radiation__extraterrestrial_flux"], 0.0)
 
 
 @pytest.mark.parametrize("time", ["march_equinox", "september_equinox"])
