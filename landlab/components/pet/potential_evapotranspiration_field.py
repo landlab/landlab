@@ -43,7 +43,7 @@ class PotentialEvapotranspiration(Component):
      'radiation__net_longwave_flux',
      'radiation__net_shortwave_flux',
      'surface__potential_evapotranspiration_rate']
-    >>> sorted(PET.units)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(PET.units)
     [('radiation__incoming_shortwave_flux', 'W/m^2'),
      ('radiation__net_flux', 'W/m^2'),
      ('radiation__net_longwave_flux', 'W/m^2'),
