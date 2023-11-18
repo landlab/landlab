@@ -583,7 +583,7 @@ circles and then connected to
 form a Delaunay triangulation (again with Voronoi polygons as cells).
 :py:class:`landlab.grid.network.NetworkModelGrid` represents a branching network of nodes and links,
 without cells or patches.
-An :py:class:`landlab.grid.icosphere.IcosphereGlobalGrid` represents the surface of a sphere. 
+An :py:class:`landlab.grid.icosphere.IcosphereGlobalGrid` represents the surface of a sphere.
 The default configuration is a spherical grid of unit radius that
 forms the spherical version an icosahedron (20 triangular patches,
 12 nodes), with the dual complement representing a dodecahedron
@@ -591,7 +591,7 @@ forms the spherical version an icosahedron (20 triangular patches,
 parameter allows you to densify this initial shape by subdividing
 each triangular patch into four triangles, with corresponding
 addition of nodes (as the triangle vertices), together with
-corresponding cells and corners. 
+corresponding cells and corners.
 
 .. _importing_a_dem:
 
