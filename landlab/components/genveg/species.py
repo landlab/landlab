@@ -646,6 +646,7 @@ class Species(object):
         plants["root_sys_width"] = self.shape.calc_root_sys_width(
             plants["shoot_sys_width"]
         )
+        plants["leaf_area"] = plants["leaf"] * self.species_morph_params["sp_leaf_area"]
         return plants
 
     def sum_plant_parts(self, _new_biomass, parts="total"):

@@ -238,6 +238,10 @@ class PlantGrowth(Species):
                         self.plants["dead_reproductive"], (self.plants["pid"].size, 1)
                     ),
                 ),
+                "vegetation__leaf_area": (
+                    ["item_id", "time"],
+                    np.reshape(self.plants["leaf_area"], (self.plants["pid"].size, 1)),
+                ),
                 "vegetation__plant_age": (
                     ["item_id", "time"],
                     np.reshape(self.plants["plant_age"], (self.plants["pid"].size, 1)),
@@ -253,6 +257,7 @@ class PlantGrowth(Species):
                 "vegetation__dead_leaf_biomass": "g",
                 "vegetation__dead_stem_biomass": "g",
                 "vegetation__dead_repro_biomass": "g",
+                "vegetation__leaf_area": "sq m",
                 "vegetation__plant_age": "days",
             },
         )
@@ -292,8 +297,6 @@ class PlantGrowth(Species):
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
-        print(_current_jday)
-        print(self.species_name)
         growdict = self.species_grow_params
         _last_biomass = self.plants
         _last_dead_biomass = self.sum_plant_parts(_last_biomass, parts="dead")
@@ -393,6 +396,7 @@ class PlantGrowth(Species):
             ("root_sys_width", float),
             ("shoot_sys_height", float),
             ("root_sys_depth", float),
+            ("leaf_area", float),
             ("plant_age", float),
             ("n_stems", int),
             ("pup_x_loc", float),
@@ -445,6 +449,7 @@ class PlantGrowth(Species):
                                 0.0,
                                 0.0,
                                 new_plant_width,
+                                0.0,
                                 0.0,
                                 0.0,
                                 0.0,
@@ -745,6 +750,12 @@ class PlantGrowth(Species):
         self.record_plants.dataset["vegetation__dead_repro_biomass"].values[
             item_ids, self.time_ind
         ] = self.plants["dead_reproductive"]
+        self.record_plants.dataset["vegetation__leaf_area"].values[
+            item_ids, self.time_ind
+        ] = self.plants["leaf_area"]
+        self.record_plants.dataset["vegetation__plant_age"].values[
+            item_ids, self.time_ind
+        ] = self.plants["plant_age"]
         #    item_id= np.reshape(self.plants['item_id'],(self.plants['item_id'].size,1)),
         #    new_record={
         #        'vegetation__species':(['item_id','time'],self.plants['species']),
