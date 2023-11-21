@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from landlab import FieldError, RasterModelGrid
-from landlab.components import COMPONENTS
+from landlab.components import COMPONENTS, PriorityFloodFlowRouter
 
 _VALID_LOCS = {"grid", "node", "link", "patch", "corner", "face", "cell"}
 
@@ -20,7 +20,19 @@ _EXCLUDE_COMPONENTS = {
     "Profiler",
     "SoilMoisture",
     "Vegetation",
+    "BedParcelInitializerDischarge",
+    "BedParcelInitializerDepth",
+    "BedParcelInitializerArea",
+    "BedParcelInitializerUserD50",
+    "SedimentPulserEachParcel",
+    "SedimentPulserAtLinks",
 }
+
+
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    _EXCLUDE_COMPONENTS.add("PriorityFloodFlowRouter")
 
 
 @pytest.mark.parametrize("Comp", COMPONENTS)
@@ -114,10 +126,10 @@ def test_component_info_valid_dtype(Comp):
         dtype = meta["dtype"]
         try:
             np.dtype(dtype)
-        except TypeError:
+        except TypeError as exc:
             raise ValueError(
                 f"{component_name} has a bad dtype ({dtype}) for variable: {name}"
-            )
+            ) from exc
 
 
 @pytest.mark.parametrize("Comp", COMPONENTS)
@@ -153,7 +165,6 @@ def test_consistent_doc_names():
     for field in unique_fields:
         where = df.field == field
         if where.sum() > 1:
-
             sel = df[where]
 
             doc_vals = df.doc[where].values.astype(str)

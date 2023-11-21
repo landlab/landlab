@@ -19,20 +19,14 @@ jobs:
             shell: bash -l {0}
 
         steps:
-          - uses: actions/checkout@v2
-          - uses: conda-incubator/setup-miniconda@v2
+          - uses: actions/checkout@v4
+          - name: Set up Python 3.11
+            uses: actions/setup-python@v4
             with:
-              auto-update-conda: true
-              python-version: 3.8
-              channels: conda-forge
-              channel-priority: true
-
-          - name: Show conda installation info
-            run: |
-              conda info
+              python-version: 3.11
 
           - name: Install dependencies
             run: pip install nox
 
           - name: Build documentation
-            run: nox -s docs
+            run: nox -s build-docs

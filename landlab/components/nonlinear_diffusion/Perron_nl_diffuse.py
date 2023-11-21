@@ -35,20 +35,22 @@ class PerronNLDiffuse(Component):
     >>> import numpy as np
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.)
-    >>> dt = 100.
+    >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.0)
+    >>> dt = 100.0
     >>> nt = 20
     >>> uplift_rate = 0.001
     >>> for i in range(nt):
-    ...     z[mg.core_nodes] += uplift_rate*dt
+    ...     z[mg.core_nodes] += uplift_rate * dt
     ...     nl.run_one_step(dt)
-    >>> z_target = np.array(
-    ...     [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-    ...       0.        ,  0.00778637,  0.0075553 ,  0.00778637,  0.        ,
-    ...       0.        ,  0.0075553 ,  0.0078053 ,  0.0075553 ,  0.        ,
-    ...       0.        ,  0.00778637,  0.0075553 ,  0.00778637,  0.        ,
-    ...       0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
-    >>> np.allclose(z, z_target)
+    ...
+    >>> z_target = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.00778637, 0.0075553, 0.00778637, 0.0],
+    ...     [0.0, 0.0075553, 0.0078053, 0.0075553, 0.0],
+    ...     [0.0, 0.00778637, 0.0075553, 0.00778637, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> np.allclose(z.reshape(mg.shape), z_target)
     True
 
     References
@@ -428,16 +430,15 @@ class PerronNLDiffuse(Component):
 
         try:
             elev = grid["node"][self._values_to_diffuse]
-        except KeyError:
-            raise NameError("elevations not found in grid!")
+        except KeyError as exc:
+            raise NameError("elevations not found in grid!") from exc
         try:
             _delta_t = self._delta_t
-        except AttributeError:
+        except AttributeError as exc:
             raise NameError(
-                """Timestep not set! Call _gear_timestep(tstep)
-                            after initializing the component, but before
-                            running it."""
-            )
+                "Timestep not set! Call _gear_timestep(tstep) "
+                "after initializing the component, but before running it."
+            ) from exc
         _one_over_delta_x = self._one_over_delta_x
         _one_over_delta_x_sqd = self._one_over_delta_x_sqd
         _one_over_delta_y = self._one_over_delta_y

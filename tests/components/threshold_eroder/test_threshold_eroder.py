@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Unit tests for landlab.components.threshold_eroder.py"""
 import numpy as np
+import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab import HexModelGrid, RasterModelGrid
@@ -11,8 +12,15 @@ from landlab.components import (
     ThresholdEroder,
 )
 
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    with_richdem = False
+else:
+    with_richdem = True
 
-# %%
+
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_topography_rasterGrid():
     # %%
     mg = RasterModelGrid((5, 5))
@@ -44,7 +52,7 @@ def test_topography_rasterGrid():
     )
 
 
-# %%
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_topo_soil_rasterGrid():
     # %%
     mg = RasterModelGrid((5, 5))

@@ -169,11 +169,11 @@ def read_shapefile(
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
     >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
-    >>> w.line([[[5,5],[10,10]]])
+    >>> w.line([[[5, 5], [10, 10]]])
     >>> w.record(37)
-    >>> w.line([[[5,0],[5,5]]])
+    >>> w.line([[[5, 0], [5, 5]]])
     >>> w.record(100)
-    >>> w.line([[[5,5],[0,10]]])
+    >>> w.line([[[5, 5], [0, 10]]])
     >>> w.record(239)
     >>> w.close()
 
@@ -203,11 +203,11 @@ def read_shapefile(
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
     >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
-    >>> w.line([[[5,5],[10,10]]])
+    >>> w.line([[[5, 5], [10, 10]]])
     >>> w.record(37)
-    >>> w.line([[[5,0],[5,5]]])
+    >>> w.line([[[5, 0], [5, 5]]])
     >>> w.record(100)
-    >>> w.line([[[5,5],[0,10]]])
+    >>> w.line([[[5, 5], [0, 10]]])
     >>> w.record(239)
     >>> w.close()
 
@@ -311,10 +311,8 @@ def read_shapefile(
     # iterate through shapes and records
     shapeRecs = sf.shapeRecords()
     for sr in shapeRecs:
-
         # if not a multi-part polyline:
         if len(sr.shape.parts) == 1:
-
             # get all the points on the polyline and deconstruct into x and y
             points = sr.shape.points
             x, y = zip(*points)
@@ -378,10 +376,11 @@ def read_shapefile(
     # add values to fields.
     for field_name in link_fields:
         mapped_field_name = link_field_conversion.get(field_name, field_name)
-        grid.at_link[mapped_field_name] = _infer_data_type(
-            np.take(fields[field_name], sorted_links),
-            dtype=link_field_dtype.get(field_name, None),
+
+        values = _convert_array(
+            fields[field_name], dtype=link_field_dtype.get(field_name, None)
         )
+        grid.at_link[mapped_field_name] = np.take(values, sorted_links)
 
     # if a points shapefile is added, bring in and use.
     if points_shapefile:
@@ -458,3 +457,19 @@ def read_shapefile(
             )
 
     return grid
+
+
+def _convert_array(values, dtype=None):
+    try:
+        array = np.asarray(values, dtype=dtype)
+    except ValueError:
+        is_jagged_array = True
+    else:
+        is_jagged_array = False
+
+    if is_jagged_array:
+        array = np.array(
+            [_infer_data_type(value, dtype=dtype) for value in values],
+            dtype=object,
+        )
+    return array

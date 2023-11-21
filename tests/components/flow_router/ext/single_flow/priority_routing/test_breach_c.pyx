@@ -1,6 +1,6 @@
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
-#distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
+#distutils: extra_compile_args = -std=c++11
+#distutils: extra_link_args = -std=c++11
 
 # NB: apparently not possible to add language: C++ in this file
 # because of the extracompile -std=c++11 (necessary to understand the
@@ -8,17 +8,22 @@
 # must add a .pxd file with the instruction # distutils: language = c++
 
 import numpy as np
-cimport numpy as cnp
+
 cimport cython
+cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
-from libcpp.vector cimport vector
 from libcpp.queue cimport queue
+from libcpp.vector cimport vector
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from landlab.components.flow_router.ext.single_flow.priority_routing cimport breach as breach_c
+from landlab.components.flow_router.ext.single_flow.priority_routing cimport (
+    breach as breach_c,
+)
+
 import landlab.components.flow_router.ext.single_flow.priority_routing.breach as breach
+
 
 cdef extern from "_priority_queue.hpp" nogil:
     cdef cppclass _priority_queue:

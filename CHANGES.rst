@@ -6,6 +6,298 @@ Release Notes
 
 .. towncrier release notes start
 
+2.7.0 (2023-11-04)
+------------------
+
+New Components
+``````````````
+
+- Added new component :class:`~.GravelBedrockEroder` to model rock-cutting gravel rivers. (`#1505 <https://github.com/landlab/landlab/issues/1505>`_)
+- Added new component :class:`~.AdvectionSolverTVD` for advection using
+  a Total Variation Diminishing method. (`#1582 <https://github.com/landlab/landlab/issues/1582>`_)
+
+
+New Tutorial Notebooks
+``````````````````````
+
+- Added a tutorial notebook for the :class:`~.AdvectionSolverTVD` component. (`#1582 <https://github.com/landlab/landlab/issues/1582>`_)
+
+
+New Features
+````````````
+
+- Added two new mapping functions to assist numerical advection schemes:
+  :func:`~.map_node_to_link_linear_upwind` and :func:`~.map_node_to_link_lax_wendroff`. (`#1570 <https://github.com/landlab/landlab/issues/1570>`_)
+- Added :attr:`.RasterModelGrid.orientation_of_link` and :attr:`.HexModelGrid.orientation_of_link`
+  attributes to get orientation codes for links. (`#1573 <https://github.com/landlab/landlab/issues/1573>`_)
+- Added :attr:`.RasterModelGrid.parallel_links_at_link` and :attr:`.HexModelGrid.parallel_links_at_link`
+  attributes. (`#1576 <https://github.com/landlab/landlab/issues/1576>`_)
+- AdvectionSolverTVD can now handle advection of multiple fields (`#1632 <https://github.com/landlab/landlab/issues/1632>`_)
+- Refactor ListricKinematicExtender to use AdvectionSolverTVD (`#1635 <https://github.com/landlab/landlab/issues/1635>`_)
+- Add output function for legacy VTK files (`#1643 <https://github.com/landlab/landlab/issues/1643>`_)
+- Added an ``rng`` keyword to the :class:`~.NetworkSedimentTransporter` utilities
+  that allows a user to control the random number generator used. (`#1722 <https://github.com/landlab/landlab/issues/1722>`_)
+- Added an ``alpha`` keyword to :func:`~.plot.imshow_grid` that allows a user to set
+  the transparency value for image plots. (`#1735 <https://github.com/landlab/landlab/issues/1735>`_)
+- Added the ability for :class:`~.OverlandFlow` to accept an array
+  for the ``rainfall_intensity`` keyword. (`#1743 <https://github.com/landlab/landlab/issues/1743>`_)
+
+
+Bug Fixes
+`````````
+
+- Fixed a bug that prevented the :class:`~.DrainageDensity` component from
+  working on hex grids. (`#1266 <https://github.com/landlab/landlab/issues/1266>`_)
+- Fixed a boundary condition issue on D8 flow accumulation in the :class:`~.PriorityFloodFlowRouter`. (`#1542 <https://github.com/landlab/landlab/issues/1542>`_)
+- Fixed broken link to header image in `notebooks/tutorials/syllabus.ipynb`. (`#1556 <https://github.com/landlab/landlab/issues/1556>`_)
+- Update obsolete function name in raster_gradients.calc_slope_at_node (`#1606 <https://github.com/landlab/landlab/issues/1606>`_)
+- Fixed a bug in :class:`~.SpaceLargeScaleEroder` where it would overwrite parts
+  of the *sediment__influx* field with zeros. (`#1638 <https://github.com/landlab/landlab/issues/1638>`_)
+- Fixed a bug where the ``colorbar_label`` keyword of :func:`~.imshow.imshow_grid`
+  was being ignored for non-raster grids. (`#1654 <https://github.com/landlab/landlab/issues/1654>`_)
+- Fixed  errors introduced with *argsort* from *numpy* v1.25. These were the result of
+  vectorized versions of the quicksort algorithm used on some architectures. (`#1670 <https://github.com/landlab/landlab/issues/1670>`_)
+- Fixed an issue with the agent based modeling tutorial notebooks that
+  caused a "too many values to unpack" error with *mesa* v2. (`#1674 <https://github.com/landlab/landlab/issues/1674>`_)
+- Fixed an issue with :class:`~.PriorityFloodFlowRouter` where flooded nodes were not updated properly.
+  This is fixed by setting the ``flood_status_code`` to 3 (i.e. ``_FLOODED``) (`#1683 <https://github.com/landlab/landlab/issues/1683>`_)
+- Fixed a bug that caused an incorrect Python version to be used in *Landlab*'s
+  continuous integration tests. (`#1754 <https://github.com/landlab/landlab/issues/1754>`_)
+
+
+Documentation Enhancements
+``````````````````````````
+
+- Added links in docs and README to open Landlab tutorials on EarthscapeHub. (`#1556 <https://github.com/landlab/landlab/issues/1556>`_)
+- Removed out-dated installation instructions from the documentation. (`#1592 <https://github.com/landlab/landlab/issues/1592>`_)
+- Add a tutorial notebook on bringing Landlab raster NetCDF output into Paraview for visualization and animation. (`#1646 <https://github.com/landlab/landlab/issues/1646>`_)
+- Fixed an error that caused the documentation build to fail with an error
+  saying that the documentation was not using `furo.css` as the stylesheet. (`#1696 <https://github.com/landlab/landlab/issues/1696>`_)
+- Add tutorial on bringing Landlab .obj output into Blender (`#1698 <https://github.com/landlab/landlab/issues/1698>`_)
+- Updated the installation instructions to include options to fetch dependencies
+  from, and only from, *conda-forge*. (`#1704 <https://github.com/landlab/landlab/issues/1704>`_)
+- Reformatted all *doctests* and *reStructuredText* *code-blocks* to conform
+  to `black <https://github.com/psf/black>`_, giving the code across all of
+  our documentation a consistent format. To keep things formatted correctly,
+  added `blackdoc <https://github.com/keewis/blackdoc>`_ to our linters (`#1785 <https://github.com/landlab/landlab/issues/1785>`_)
+
+
+Other Changes and Additions
+```````````````````````````
+
+- Removed the ``on_diagonals`` method from the :class:`~.LinearDiffuser` component. (`#1236 <https://github.com/landlab/landlab/issues/1236>`_)
+- Moved unversioned requirements into *requirements.in* files and pinned
+  requirements into *requirements.txt* files. (`#1546 <https://github.com/landlab/landlab/issues/1546>`_)
+- Set up `dependabot <https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates>`_
+  to track and update dependencies. (`#1546 <https://github.com/landlab/landlab/issues/1546>`_)
+- Added pre-commit hooks for delinting the notebooks and removed newly-found
+  lint. (`#1585 <https://github.com/landlab/landlab/issues/1585>`_)
+- Changed the target branch for *dependabot* pull requests to *dependencies*
+  and added a GitHub action that automatically keeps the *dependencies* branch
+  up-to-date with *master*. (`#1602 <https://github.com/landlab/landlab/issues/1602>`_)
+- Added two new references to list of publications. (`#1603 <https://github.com/landlab/landlab/issues/1603>`_)
+- Added better error reporting and input validation for the LinearDiffser
+  component. (`#1607 <https://github.com/landlab/landlab/issues/1607>`_)
+- Added Cython 3.x (beta) to the build-system for compiling extension modules. (`#1639 <https://github.com/landlab/landlab/issues/1639>`_)
+- Fixed an issue with a missing package, *hypothesis*, not being installed when
+  the notebook tests were run through *nox*. (`#1644 <https://github.com/landlab/landlab/issues/1644>`_)
+- Added getters for several :class:`~.BedrockLandslider` input parameters. (`#1651 <https://github.com/landlab/landlab/issues/1651>`_)
+- Added getter for several :class:`~SpaceLargeScaleEroder` input parameters. (`#1652 <https://github.com/landlab/landlab/issues/1652>`_)
+- Modified the *TaylorDiffuser* components, :class:`~.DepthDependentTaylorDiffuser` and
+  :class:`~.TaylorNonLinearDiffuser` to use the shortest link instead of ``dx`` in calculatting
+  time steps. (`#1694 <https://github.com/landlab/landlab/issues/1694>`_)
+- Changed the continuous integraion to use *micromamba* rather than *miniconda*. (`#1703 <https://github.com/landlab/landlab/issues/1703>`_)
+- Updated *Landlab* for *matplotlib* 3.7.2. Removed calls to newly deprecated
+  ``get_cmap`` and fixed some notebook errors. (`#1714 <https://github.com/landlab/landlab/issues/1714>`_)
+- Removed unused requirements for building the documentation. (`#1720 <https://github.com/landlab/landlab/issues/1720>`_)
+- Fixed a flaky test with the :class:`~.lateral_erosion.lateral_erosion.LateralEroder` where it would occasionally
+  fail to reach the steady state solution. (`#1722 <https://github.com/landlab/landlab/issues/1722>`_)
+- Fixed a flaky test with the `sediment_pulser_at_links.ipynb` notebook where it
+  would occasionally hang. (`#1722 <https://github.com/landlab/landlab/issues/1722>`_)
+- Fixed incorrect doctests for ``parallel_links_at_link`` and
+  ``orientation_of_link``. (`#1738 <https://github.com/landlab/landlab/issues/1738>`_)
+- Fixed an issue with *Landlab*'s environment file that caused an error when
+  trying to run the tutorial notebooks through *Binder*. (`#1758 <https://github.com/landlab/landlab/issues/1758>`_)
+- Updated the *readthedocs* configuration file to exclude the
+  `now invalid <https://blog.readthedocs.com/drop-support-system-packages>`_
+  ``system_packages`` option. (`#1762 <https://github.com/landlab/landlab/issues/1762>`_)
+- Updated the *isort* configuration to identify *landlab* as a first-party
+  package to prevent it from moving *landlab* imports into the third-party
+  section. (`#1763 <https://github.com/landlab/landlab/issues/1763>`_)
+- Updated *dependabot* to only manage *Landlab* direct dependencies and changed
+  our CI to ensure we are running with those pinned dependencies. (`#1773 <https://github.com/landlab/landlab/issues/1773>`_)
+- Added support for Python 3.12 and dropped Python 3.9. (`#1782 <https://github.com/landlab/landlab/issues/1782>`_)
+- Removed the unused and broken *cython* functions ``reorient_links`` and
+  ``get_angle_of_links`` from the ``remap_element`` *cython* module. (`#1788 <https://github.com/landlab/landlab/issues/1788>`_)
+- Fixed flaky tests of the :class:`~.SedimentPulserAtLinks` and
+  :class:`~.SedimentPulserEachParcel` components by testing them using a random seed. (`#1794 <https://github.com/landlab/landlab/issues/1794>`_)
+- Added a tool that builds a list of *Landlab* contributors and updates the
+  ``AUTHORS.rst`` and ``.mailmap`` files. (`#1795 <https://github.com/landlab/landlab/issues/1795>`_)
+
+
+2.6.0 (2023-02-16)
+------------------
+
+New Components
+``````````````
+
+- Added two :class:`SedimentPulser <.SedimentPulserBase>` components (:class:`~.SedimentPulserAtLinks`,
+  :class:`~.SedimentPulserEachParcel`) that allow the user to efficiently add sediment
+  parcels to the :class:`~.DataRecord` while using the
+  :class:`~.NetworkSedimentTransporter` component. (`#1208 <https://github.com/landlab/landlab/issues/1208>`_)
+- Added a set of :class:`BedParcelInitializer <.BedParcelInitializerBase>` components
+  (:class:`~.BedParcelInitializerDischarge`, :class:`~.BedParcelInitializerDepth`,
+  :class:`~.BedParcelInitializerArea`, :class:`~.BedParcelInitializerUserD50`) that
+  allow the user to efficiently create initial river bed sediment conditions for use
+  in the :class:`~.NetworkSedimentTransporter` component. (`#1208 <https://github.com/landlab/landlab/issues/1208>`_)
+- Added a new component, :class:`~.GravelRiverTransporter`, that models
+  gravel transport and abrasion in a gridded network of river segments. (`#1439 <https://github.com/landlab/landlab/issues/1439>`_)
+- Added a new component, :class:`~.AreaSlopeTransporter`.
+
+  The :class:`~.AreaSlopeTransporter` is a generic transport-limited landscape evolution component that models the time rate of change of elevation at a set of grid nodes, each of which has a defined contributing drainage area 𝐴 (field drainage_area) and a local steepest-descent slope gradient, 𝑆, defined from the node itself toward one of its neighboring nodes. The drainage area and slope can be computed with a drainage-routing component such as :class:`~.FlowAccumulator` or :class:`~.PriorityFloodFlowRouter`. The component is designed to function as an integral part of a transport-limited landscape evolution model in the spirit of the Willgoose et al. "SIBERIA" model. (`#1502 <https://github.com/landlab/landlab/issues/1502>`_)
+
+
+New Tutorial Notebooks
+``````````````````````
+
+- Added tutorial notebooks for the new
+  :class:`BedParcelInitializer <.BedParcelInitializerBase>` and
+  :class:`SedimentPulser <.SedimentPulserBase>` components, all associated with the
+  :class:`~.NetworkSedimentTransporter`. (`#1208 <https://github.com/landlab/landlab/issues/1208>`_)
+- Added a tutorial notebook that demonstrates use of the new :class:`~.GravelRiverTransporter` component. (`#1439 <https://github.com/landlab/landlab/issues/1439>`_)
+
+
+New Features
+````````````
+
+- Updated the ``NetworkSedimentTransporter`` component to allow the user to
+  specify a minimum acceptable channel slope threshold. (`#1208 <https://github.com/landlab/landlab/issues/1208>`_)
+- Added the ``calculate_window_statistic`` utility that calculates local grid node statistics within a moving window. (`#1263 <https://github.com/landlab/landlab/issues/1263>`_)
+- Added the ``at`` keyword to the ``imshow_grid`` functions so that they now
+  use the same pattern as many other *landlab* functions. (`#1424 <https://github.com/landlab/landlab/issues/1424>`_)
+- The ``plot_graph`` function now can take lists of graph elements rather than only comma-separated strings. (`#1425 <https://github.com/landlab/landlab/issues/1425>`_)
+- Added a new keyword, ``axes`` to ``plot_graph`` to allow plotting within an
+  existing axes. (`#1425 <https://github.com/landlab/landlab/issues/1425>`_)
+- Enhanced the ``plot_graph`` function: allow the ``with_id`` keyword to
+  accept a list of elements that should have included IDs, fill in patches and
+  cells. (`#1425 <https://github.com/landlab/landlab/issues/1425>`_)
+- Added an ``imshow`` method to all *landlab* model grids that is a wrapper for
+  the ``imshow_grid`` function. (`#1430 <https://github.com/landlab/landlab/issues/1430>`_)
+- Updated the ``BedrockLandslider`` component so that a user can now specify a
+  threshold slope to determine the transport length within the deposition part
+  of the component. (`#1431 <https://github.com/landlab/landlab/issues/1431>`_)
+- Added the ``ThresholdEroder`` component that erodes material to a user-suplied maximum slope. (`#1440 <https://github.com/landlab/landlab/issues/1440>`_)
+- Added a new class of grid, *FramedVoronoiGrid* which is an elaborated version of the VoronoiDelaunayGrid. The user input parameters to automatically calculate the positions of the nodes. The boundary nodes are automatically fixed, in a not random way. The core nodes are first positioned in a rectangular pattern, and then moved by a random distance in such a way that a minimal distance between nodes is respected. This minimal distance is convenient when we have to run diffusion or river incision processes on the grid, which can become unstable for two small distances between nodes (depending on the timestep of the run). (`#1450 <https://github.com/landlab/landlab/issues/1450>`_)
+- Enhance possibilities for .pyx compilation through setup.py update. Now include the tests and compile using Python 3. Compilation instructions (C++, multithreading openmp, macros) can be added at top of the .pyx and .pxd files. See use case with files linked to the future FlowRouter component (including tests). (`#1467 <https://github.com/landlab/landlab/issues/1467>`_)
+- Enhance Exponential weatherer so that it takes spatially explicit input values for soil production maximum rate and soil production decay depth. (`#1529 <https://github.com/landlab/landlab/issues/1529>`_)
+
+
+Bug Fixes
+`````````
+
+- Fixed an issue in the NetworkSedimentTransporter tutorial notebooks related to
+  deprecated xarray dataset syntax in the calc_aggregate_value method of ``DataRecord`` (`#1208 <https://github.com/landlab/landlab/issues/1208>`_)
+- Fixed a bug in notebooks that use *bmi-topography* where an incorrect API key was being used. (`#1410 <https://github.com/landlab/landlab/issues/1410>`_)
+- Fixed a bug in ``plot_graph`` where patch and cell polygons were not drawn. (`#1428 <https://github.com/landlab/landlab/issues/1428>`_)
+- Fixed a bug where ``plot_graph`` would incorrectly include the last
+  node/corner with patches/cells that had fewer links/faces than the maximum of
+  the graph. (`#1428 <https://github.com/landlab/landlab/issues/1428>`_)
+- Fixed an issue related to flow re-routing on an irregular Voronoi-Delaunay grid. (`#1442 <https://github.com/landlab/landlab/issues/1442>`_)
+- Fixed the ABM tutorial notebooks that were using an older syntax for the
+  *Mesa* *remove_agent* method. (`#1444 <https://github.com/landlab/landlab/issues/1444>`_)
+- Fixed a bug where the *tests* folder was also being installed in
+  *site-packages*. (`#1445 <https://github.com/landlab/landlab/issues/1445>`_)
+- Fixed a bug where the ``SpaceLargeScaleEroder`` was only able to accept a scalar value for the erodibility coefficient.
+  Now it is able to accept either a scalar or an array. (`#1477 <https://github.com/landlab/landlab/issues/1477>`_)
+- Fixed a bug in *imshowhs_grid* where, when a no-data drape was provided, the plot was
+  inverted in the north-south directions. (`#1484 <https://github.com/landlab/landlab/issues/1484>`_)
+- Fixed a bug in *imshowhs_grid* where the hillshade base layer was not plotting data from rows and columns adjacent to boundary nodes. (`#1484 <https://github.com/landlab/landlab/issues/1484>`_)
+- Fixed a bug in the *HyLandsTutorial* notebook where the *BedrockLandslider*'s
+  *topographic__elevation* field was not being updated correctly. (`#1490 <https://github.com/landlab/landlab/issues/1490>`_)
+- Fixed a bug in *imshowhs_grid* that caused the axis tick marks to be slightly in the wrong position. (`#1492 <https://github.com/landlab/landlab/issues/1492>`_)
+- Fixed a bug in *imshowhs_grid* where boundary nodes were not indicated even if requested. (`#1492 <https://github.com/landlab/landlab/issues/1492>`_)
+- Fixed an issue when plotting the colorbar in the ``plot_drainage`` function
+  using *matplotlib* 3.6. (`#1493 <https://github.com/landlab/landlab/issues/1493>`_)
+- Fixed usages of ``plt.gca`` that used keywords to create new axes objects. With
+  *matplotlib* 3.6, the way to do this is with ``plt.axes``. (`#1494 <https://github.com/landlab/landlab/issues/1494>`_)
+- Fixed a possible memory leak caused by using the *lru_cache* decorator of
+  class methods. (`#1514 <https://github.com/landlab/landlab/issues/1514>`_)
+- Fixed a bug that, when using randomly positioned nodes, sometimes resulted in a voronoi
+  diagram that contained cells without any vertices. (`#1516 <https://github.com/landlab/landlab/issues/1516>`_)
+
+
+Documentation Enhancements
+``````````````````````````
+
+- Combined multiple "Tectonics" sections on the component documentation page. (`#1415 <https://github.com/landlab/landlab/issues/1415>`_)
+- Fixed the broken links to the openearthscape JupyterHub. (`#1419 <https://github.com/landlab/landlab/issues/1419>`_)
+- Cleaned up the indexing of field names used and provided by all landlab
+  components. (`#1476 <https://github.com/landlab/landlab/issues/1476>`_)
+- Cleaned up the categorization of all the landlab grid methods. (`#1476 <https://github.com/landlab/landlab/issues/1476>`_)
+- Updated the installation instructions for the tutorial notebooks to better
+  describe how to install the tutorial dependencies. (`#1526 <https://github.com/landlab/landlab/issues/1526>`_)
+- Added additional publications to the list in the documentation. (`#1538 <https://github.com/landlab/landlab/issues/1538>`_)
+
+
+Other Changes and Additions
+```````````````````````````
+
+- Added a pull request template that contains a checklist of items for
+  contributors to complete. (`#1340 <https://github.com/landlab/landlab/issues/1340>`_)
+- Added a citation file, using the Citation File Format, that describes how to cite the *landlab* code base. (`#1342 <https://github.com/landlab/landlab/issues/1342>`_)
+- Added a short script that can be used to download a set of *landlab* notebooks
+  that are compatible with a specified version of *landlab*. (`#1408 <https://github.com/landlab/landlab/issues/1408>`_)
+- Moved static project metadata into pyproject.toml. (`#1409 <https://github.com/landlab/landlab/issues/1409>`_)
+- Fixed an issue where notebooks that download DEMs from OpenTopography were
+  failing with an error about a missing API key. (`#1410 <https://github.com/landlab/landlab/issues/1410>`_)
+- Fixed some failing read_shapefile tests related to a new version of pyshp by requiring pyshp != v2.3.0. (`#1418 <https://github.com/landlab/landlab/issues/1418>`_)
+- Fixed some typos in the doctest for the ``StreamPowerEroder``. (`#1426 <https://github.com/landlab/landlab/issues/1426>`_)
+- Added  *water_surface__elevation* as a field in the
+  ``LinearDiffusionOverlandFlowRouter``. (`#1433 <https://github.com/landlab/landlab/issues/1433>`_)
+- Fixed doctests that were failing because "0"s were being printed as "-0"s. (`#1435 <https://github.com/landlab/landlab/issues/1435>`_)
+- Added a GitHub Actions workflow to the continuous integration that checks to
+  see if a pull request contains a news fragment. (`#1446 <https://github.com/landlab/landlab/issues/1446>`_)
+- Update tutorial template notebook remove obsolute "%" magic and edit description of link to tutorials page. (`#1457 <https://github.com/landlab/landlab/issues/1457>`_)
+- Added unit tests for the cython function, *adjust_flow_receivers*, used by the *FlowDirectorSteepest* component. (`#1459 <https://github.com/landlab/landlab/issues/1459>`_)
+- Added a *nox* file to help with routine project maintenance tasks like, for
+  example, running the tests, and checking for coding style. (`#1469 <https://github.com/landlab/landlab/issues/1469>`_)
+- Added two new *nox* sessions: *requirements* and *nuke*. *requirements*
+  recreates the various requirements files while *nuke* does an extra bit of
+  cleaning. (`#1474 <https://github.com/landlab/landlab/issues/1474>`_)
+- Fixed an issue that prevented the docs from building due to a compatibility
+  issue with *sphinxcontrib.towncrier* and *towncrier* v22.8. (`#1480 <https://github.com/landlab/landlab/issues/1480>`_)
+- Changed ``FramedVoronoiGrid`` to accept a single seed for the *seed* keyword. (`#1495 <https://github.com/landlab/landlab/issues/1495>`_)
+- Modified to skip the doctests for ``ExampleData`` and ``write_esri_ascii`` that created
+  files in the user's working directory. These doctests are now repeated as unit tests
+  that clean up after themselves. (`#1496 <https://github.com/landlab/landlab/issues/1496>`_)
+- Improved the error message that's reported when a user attempts to add a field
+  to a grid that already contains a field with that name. (`#1500 <https://github.com/landlab/landlab/issues/1500>`_)
+- Allow the cumulative_subsidence_depth field in ListricKinematicExtender to clobber a pre-existing field, which is needed if the caller has read in a pre-existing saved grid. (`#1510 <https://github.com/landlab/landlab/issues/1510>`_)
+- Fixed a broken *pre-commit* hook that caused an error when checking for lint
+  with *flake8*. (`#1512 <https://github.com/landlab/landlab/issues/1512>`_)
+- Added *flake8-comprehension* to the *flake8* *pre-commit* hook to identify
+  comprehension-related lint. (`#1512 <https://github.com/landlab/landlab/issues/1512>`_)
+- Added additional linters via pre-commit hooks and removed the newly discovered
+  lint. (`#1514 <https://github.com/landlab/landlab/issues/1514>`_)
+- In the Tutorials doc, updated the URL to download the ``notebook.py`` script from GitHub. (`#1520 <https://github.com/landlab/landlab/issues/1520>`_)
+- Updated code to work with *numpy* v1.24 and *scipy* v1.10. (`#1521 <https://github.com/landlab/landlab/issues/1521>`_)
+- Removed the *richdem* package as a mandatory requirement for *landlab*. Users
+  needing to use *richdem* (i.e. the `PriorityFloodFlowRouter`) must now install it
+  separately. (`#1523 <https://github.com/landlab/landlab/issues/1523>`_)
+- Updated the pre-commit hooks (most notably flake8 and its plugins) and removed
+  newly-found lint. (`#1524 <https://github.com/landlab/landlab/issues/1524>`_)
+- Updated *Landlab*'s CI to use Python 3.11 and to drop testing with Python 3.8. (`#1527 <https://github.com/landlab/landlab/issues/1527>`_)
+- Updated ``landlab.__version__`` to match that of the latest release. (`#1531 <https://github.com/landlab/landlab/issues/1531>`_)
+- Removed obsolete files from the top-level directory of the repository. (`#1534 <https://github.com/landlab/landlab/issues/1534>`_)
+- Updated the ci workflows to use a newer version of cibuildwheel when building
+  wheels for releases and pre-releases. (`#1536 <https://github.com/landlab/landlab/issues/1536>`_)
+- Fixed a test failure in the ``PriorityFlood_realDEMs.ipynb`` notebook by
+  constraining bmi-topography to versions other than 0.8.1. (`#1539 <https://github.com/landlab/landlab/issues/1539>`_)
+- Changed the ci testing of the notebooks to use nbmake. (`#1541 <https://github.com/landlab/landlab/issues/1541>`_)
+- Increased the stacklevel for warnings from 1 (the default) to 2 to provide
+  more information to the user. (`#1545 <https://github.com/landlab/landlab/issues/1545>`_)
+
+
 2.5.0 (2022-04-15)
 ------------------
 

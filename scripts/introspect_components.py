@@ -192,7 +192,7 @@ for name in comp_elements.keys():
         all_fields_here = all_fields_here | this_un["_output_var_names"]
     except (TypeError, KeyError):
         all_fields_here = set()
-    if type(name) != str:
+    if not isinstance(name, str):
         problems.append("The _name " + str(name) + " is not a string.")
     for prop in this_un:
         if prop in ("_input_var_names", "_output_var_names") and not isinstance(
@@ -200,7 +200,7 @@ for name in comp_elements.keys():
         ):
             problems.append(prop + " is not a set. It should be.")
         if prop in ("_var_units", "_var_mapping", "_var_doc"):
-            if type(this_un[prop]) != dict:
+            if not isinstance(this_un[prop], dict):
                 problems.append(prop + " is not a dict. It should be.")
             elif all_fields_here and not set(this_un[prop].keys()).issubset(
                 all_fields_here
@@ -243,7 +243,7 @@ for name in comp_elements.keys():
             problematic_components[name] = copy(problems)
 
 # final formatting change to problematic_components:
-for (key, vals) in problematic_components.items():
+for key, vals in problematic_components.items():
     if len(vals) == 0:
         problematic_components.pop(key)
     elif type(vals) is dict:

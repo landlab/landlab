@@ -55,11 +55,11 @@ class ThresholdEroder(Component):
     >>> mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
     >>> z = np.array(
     ...     [
-    ...         [0., 0., 0., 0., 0.],
-    ...         [0., 1., 1., 1., 0.],
-    ...         [0., 1., 10., 1., 0.],
-    ...         [0., 1., 1., 1., 0.],
-    ...         [0., 0., 0., 0., 0.],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...         [0.0, 1.0, 10.0, 1.0, 0.0],
+    ...         [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
     ...     ]
     ... )
     >>> _ = mg.add_field("topographic__elevation", z, at="node")
@@ -74,6 +74,7 @@ class ThresholdEroder(Component):
     >>> for t in range(2):
     ...     fdir.run_one_step()
     ...     th_ero.run_one_step()
+    ...
 
 
     References
@@ -90,17 +91,20 @@ class ThresholdEroder(Component):
 
     _unit_agnostic = True
 
-    _cite_as = """@Article{gmd-13-3863-2020,
-                  AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
-                  TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to simulate the impact of landslides and landslide-derived sediment on landscape evolution.},
-                  JOURNAL = {Geoscientific Model Development},
-                  VOLUME = {13},
-                  YEAR = {2020},
-                  NUMBER = {9},
-                  PAGES = {3863--3886},
-                  URL = {https://doi.org/10.5194/gmd-13-3863-2020},
-                  DOI = {10.5194/gmd-13-3863-2020}
-                  }"""
+    _cite_as = """
+    @Article{gmd-13-3863-2020,
+      AUTHOR = {Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.},
+      TITLE = {BedrockLandslider 1.0: a hybrid landscape evolution model to
+               simulate the impact of landslides and landslide-derived sediment on
+               landscape evolution.},
+      JOURNAL = {Geoscientific Model Development},
+      VOLUME = {13},
+      YEAR = {2020},
+      NUMBER = {9},
+      PAGES = {3863--3886},
+      URL = {https://doi.org/10.5194/gmd-13-3863-2020},
+      DOI = {10.5194/gmd-13-3863-2020}
+    }"""
 
     _info = {
         "topographic__elevation": {
@@ -154,7 +158,6 @@ class ThresholdEroder(Component):
     }
 
     def __init__(self, grid, slope_crit=1.0):
-
         """Initialize Threshold Eroder.
 
         Parameters

@@ -5,7 +5,6 @@ from landlab import RasterModelGrid
 
 
 class TestPatchesAtNode:
-
     patch_values = np.array(
         [
             [0, -1, -1, -1],

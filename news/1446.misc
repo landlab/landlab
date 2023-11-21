@@ -1,2 +1,0 @@
-Added a GitHub Actions workflow to the continuous integration that checks to
-see if a pull request contains a news fragment.

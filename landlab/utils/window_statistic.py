@@ -130,7 +130,8 @@ def calculate_window_statistic(
     >>> relief = calculate_window_statistic(
     ...     grid,
     ...     "topographic__elevation",
-    ...     np.ptp,search_radius=15,
+    ...     np.ptp,
+    ...     search_radius=15,
     ...     calc_on_closed_nodes=False,
     ... )
     >>> grid.at_node["topographic__elevation"]
@@ -151,9 +152,10 @@ def calculate_window_statistic(
     >>> perc_90 = calculate_window_statistic(
     ...     grid,
     ...     "topographic__elevation",
-    ...     np.percentile,search_radius=15,
+    ...     np.percentile,
+    ...     search_radius=15,
     ...     calc_on_closed_nodes=False,
-    ...     q=90
+    ...     q=90,
     ... )
     >>> grid.at_node["topographic__elevation"]
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
@@ -174,6 +176,7 @@ def calculate_window_statistic(
     >>> def max_minus_percentile(elev, q):
     ...     output = np.max(elev) - np.percentile(elev, q)
     ...     return output
+    ...
     >>> rel_above_90th_perc = calculate_window_statistic(
     ...     grid,
     ...     "topographic__elevation",

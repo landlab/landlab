@@ -49,9 +49,7 @@ class SpaceLargeScaleEroder(Component):
     ---------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import (
-    ...     PriorityFloodFlowRouter, SpaceLargeScaleEroder
-    ... )
+    >>> from landlab.components import PriorityFloodFlowRouter, SpaceLargeScaleEroder
     >>> import matplotlib.pyplot as plt  # For plotting results; optional
     >>> from landlab import imshow_grid  # For plotting results; optional
 
@@ -66,7 +64,7 @@ class SpaceLargeScaleEroder(Component):
     >>> mg.at_node["soil__depth"][mg.core_nodes] = 2.0
     >>> _ = mg.add_zeros("bedrock__elevation", at="node")
     >>> mg.at_node["bedrock__elevation"] += (
-    ...     mg.node_y / 10. + mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.
+    ...     mg.node_y / 10.0 + mg.node_x / 10.0 + np.random.rand(len(mg.node_y)) / 10.0
     ... )
     >>> mg.at_node["bedrock__elevation"][:] = mg.at_node["topographic__elevation"]
     >>> mg.at_node["topographic__elevation"][:] += mg.at_node["soil__depth"]
@@ -77,10 +75,10 @@ class SpaceLargeScaleEroder(Component):
     ...     top_is_closed=True,
     ... )
     >>> mg.set_watershed_boundary_condition_outlet_id(
-    ...     0, mg.at_node['topographic__elevation'], -9999.0
+    ...     0, mg.at_node["topographic__elevation"], -9999.0
     ... )
 
-    >>> fr = PriorityFloodFlowRouter(mg, flow_metric='D8', suppress_out = True)
+    >>> fr = PriorityFloodFlowRouter(mg, flow_metric="D8", suppress_out=True)
     >>> sp = SpaceLargeScaleEroder(
     ...     mg,
     ...     K_sed=0.01,
@@ -105,6 +103,7 @@ class SpaceLargeScaleEroder(Component):
     ...     sed_flux[count] = mg.at_node["sediment__flux"][node_next_to_outlet]
     ...     elapsed_time += timestep
     ...     count += 1
+    ...
 
     Plot the results.
 
@@ -131,7 +130,9 @@ class SpaceLargeScaleEroder(Component):
     ... )
     >>> fig = plt.figure()
     >>> sedfluxplot = plt.subplot()
-    >>> _ = sedfluxplot.plot(np.arange(len(sed_flux)) * timestep, sed_flux, color="k", linewidth=1.0)
+    >>> _ = sedfluxplot.plot(
+    ...     np.arange(len(sed_flux)) * timestep, sed_flux, color="k", linewidth=1.0
+    ... )
     >>> _ = sedfluxplot.set_xlabel("Time [yr]")
     >>> _ = sedfluxplot.set_ylabel(r"Sediment flux [m$^3$/yr]")
 
@@ -148,7 +149,7 @@ class SpaceLargeScaleEroder(Component):
 
     None Listed
 
-    """
+    """  # noqa: B950
 
     _name = "SpaceLargeScaleEroder"
 
@@ -229,17 +230,19 @@ class SpaceLargeScaleEroder(Component):
         },
     }
 
-    _cite_as = """@Article{gmd-10-4577-2017,
-                  AUTHOR = {Shobe, C. M. and Tucker, G. E. and Barnhart, K. R.},
-                  TITLE = {The SPACE~1.0 model: a~Landlab component for 2-D calculation of sediment transport, bedrock erosion, and landscape evolution},
-                  JOURNAL = {Geoscientific Model Development},
-                  VOLUME = {10},
-                  YEAR = {2017},
-                  NUMBER = {12},
-                  PAGES = {4577--4604},
-                  URL = {https://www.geosci-model-dev.net/10/4577/2017/},
-                  DOI = {10.5194/gmd-10-4577-2017}
-                  }"""
+    _cite_as = """
+    @Article{gmd-10-4577-2017,
+        AUTHOR = {Shobe, C. M. and Tucker, G. E. and Barnhart, K. R.},
+        TITLE = {The SPACE~1.0 model: a~Landlab component for 2-D calculation
+                 of sediment transport, bedrock erosion, and landscape evolution},
+        JOURNAL = {Geoscientific Model Development},
+        VOLUME = {10},
+        YEAR = {2017},
+        NUMBER = {12},
+        PAGES = {4577--4604},
+        URL = {https://www.geosci-model-dev.net/10/4577/2017/},
+        DOI = {10.5194/gmd-10-4577-2017}
+    }"""
 
     def __init__(
         self,
@@ -325,14 +328,14 @@ class SpaceLargeScaleEroder(Component):
             )
 
         # Check consistency of bedrock, soil and topogarphic elevation fields
-        err_msg = (
-            "The sum of bedrock elevation and topographic elevation should be equal"
-        )
         np.testing.assert_almost_equal(
             grid.at_node["bedrock__elevation"] + grid.at_node["soil__depth"],
             grid.at_node["topographic__elevation"],
             decimal=5,
-            err_msg=err_msg,
+            err_msg=(
+                "The sum of bedrock elevation and topographic elevation should "
+                "be equal"
+            ),
         )
 
         # specific inits
@@ -415,6 +418,31 @@ class SpaceLargeScaleEroder(Component):
     @K_sed.setter
     def K_sed(self, new_val):
         self._K_sed = return_array_at_node(self._grid, new_val)
+
+    @property
+    def fraction_fines(self):
+        """Fraction of permanently suspendable fines in bedrock [-]."""
+        return self._F_f
+
+    @property
+    def sediment_porosity(self):
+        """Sediment porosity [-]."""
+        return self._phi
+
+    @property
+    def settling_velocity(self):
+        """Effective settling velocity for chosen grain size metric [L/T]."""
+        return self._v_s
+
+    @property
+    def drainage_area_exp(self):
+        """Drainage area exponent (units vary)."""
+        return self._m_sp
+
+    @property
+    def slope_exp(self):
+        """Slope exponent (units vary)."""
+        return self._n_sp
 
     @property
     def Es(self):
@@ -549,7 +577,7 @@ class SpaceLargeScaleEroder(Component):
             self._thickness_lim,
         )
 
-        V_leaving_riv = np.sum(self.sediment_influx) * dt
+        V_leaving_riv = np.sum(self.sediment_influx[self.grid.boundary_nodes]) * dt
         # Update topography
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]

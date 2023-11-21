@@ -33,7 +33,7 @@ def _set_netcdf_attributes(root, attrs):
     attrs : dict
         Attributes as key-value pairs.
     """
-    for (key, val) in attrs.items():
+    for key, val in attrs.items():
         setattr(root, key, val)
 
 
@@ -53,7 +53,7 @@ def _get_dimension_names(shape):
     Examples
     --------
     >>> from landlab.io.netcdf.write import _get_dimension_names
-    >>> _get_dimension_names((4, ))
+    >>> _get_dimension_names((4,))
     ['ni']
     >>> _get_dimension_names((4, 5))
     ['nj', 'ni']
@@ -80,19 +80,19 @@ def _get_dimension_sizes(shape):
     Examples
     --------
     >>> from landlab.io.netcdf.write import _get_dimension_sizes
-    >>> _get_dimension_sizes((4, ))
+    >>> _get_dimension_sizes((4,))
     {'ni': 4}
     >>> sizes = _get_dimension_sizes((4, 5))
-    >>> sizes['ni'], sizes['nj']
+    >>> sizes["ni"], sizes["nj"]
     (5, 4)
     >>> sizes = _get_dimension_sizes((4, 5, 6))
-    >>> sizes['ni'], sizes['nj'], sizes['nk']
+    >>> sizes["ni"], sizes["nj"], sizes["nk"]
     (6, 5, 4)
     """
     names = _AXIS_DIMENSION_NAMES[-1 : -(len(shape) + 1) : -1]
 
     sizes = {}
-    for (axis, name) in enumerate(names):
+    for axis, name in enumerate(names):
         sizes[name] = shape[-(axis + 1)]
 
     return sizes
@@ -114,7 +114,7 @@ def _get_axes_names(shape):
     Examples
     --------
     >>> from landlab.io.netcdf.write import _get_axes_names
-    >>> _get_axes_names((2, ))
+    >>> _get_axes_names((2,))
     ['x']
     >>> _get_axes_names((2, 3))
     ['y', 'x']
@@ -148,10 +148,10 @@ def _get_cell_bounds(shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     --------
     >>> from landlab.io.netcdf.write import _get_cell_bounds
     >>> bounds = _get_cell_bounds((3, 4))
-    >>> bounds['y_bnds'] # doctest: +NORMALIZE_WHITESPACE
+    >>> bounds["y_bnds"]
     array([[[ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.]],
            [[ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.]]])
-    >>> bounds['x_bnds'] # doctest: +NORMALIZE_WHITESPACE
+    >>> bounds["x_bnds"]
     array([[[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]],
            [[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]]])
     """
@@ -203,7 +203,7 @@ def _set_netcdf_cell_structured_dimensions(root, shape):
     if "nt" not in dims:
         root.createDimension("nt", None)
 
-    for (name, dim_size) in dimensions.items():
+    for name, dim_size in dimensions.items():
         if name not in dims:
             root.createDimension(name, dim_size - 2)
 
@@ -238,7 +238,7 @@ def _set_netcdf_structured_dimensions(root, shape):
     if "nt" not in dims:
         root.createDimension("nt", None)
 
-    for (name, dim_size) in dimensions.items():
+    for name, dim_size in dimensions.items():
         if name not in dims:
             root.createDimension(name, dim_size)
 
@@ -335,7 +335,7 @@ def _add_spatial_variables(root, grid, **kwds):
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
-    for (axis, name) in enumerate(spatial_variable_names):
+    for axis, name in enumerate(spatial_variable_names):
         try:
             var = netcdf_vars[name]
         except KeyError:
@@ -374,7 +374,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
     spatial_variable_names = _get_axes_names(grid.shape)
     spatial_variable_shape = _get_dimension_names(grid.shape)
 
-    for (axis, name) in enumerate(spatial_variable_names):
+    for axis, name in enumerate(spatial_variable_names):
         try:
             var = netcdf_vars[name]
         except KeyError:
@@ -623,18 +623,23 @@ def write_netcdf(
     Read the file back in and check its contents.
 
     >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file('test.nc', 'r')
-    >>> 'uplift_rate' in fp.variables
+    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> "uplift_rate" in fp.variables
     True
-    >>> 'topographic__elevation' in fp.variables
+    >>> "topographic__elevation" in fp.variables
     False
-    >>> fp.variables['uplift_rate'][:].flatten()
+    >>> fp.variables["uplift_rate"][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
     >>> rmg.at_cell["air__temperature"] = np.arange(2.0)
-    >>> write_netcdf("test-cell.nc", rmg, format="NETCDF3_64BIT",
-    ...     names="air__temperature", at="cell")
+    >>> write_netcdf(
+    ...     "test-cell.nc",
+    ...     rmg,
+    ...     format="NETCDF3_64BIT",
+    ...     names="air__temperature",
+    ...     at="cell",
+    ... )
     """
     path = pathlib.Path(path)
     if append and not path.exists():
@@ -722,7 +727,6 @@ def write_raster_netcdf(
     names=None,
     at=None,
 ):
-
     """Write Raster Model Grid landlab fields to netcdf.
 
     Write the data and grid information for *fields* to *path* as NetCDF.
@@ -796,17 +800,17 @@ def write_raster_netcdf(
     Read the file back in and check its contents.
 
     >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file('test.nc', 'r')
-    >>> 'uplift_rate' in fp.variables
+    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> "uplift_rate" in fp.variables
     True
-    >>> 'topographic__elevation' in fp.variables
+    >>> "topographic__elevation" in fp.variables
     False
-    >>> fp.variables['uplift_rate'][:].flatten()
+    >>> fp.variables["uplift_rate"][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
-    >>> fp.variables['x'][:]
+    >>> fp.variables["x"][:].astype("=f8")
     array([ 0.,  1.,  2.])
-    >>> fp.variables['y'][:]
+    >>> fp.variables["y"][:].astype("=f8")
     array([ 0.,  1.,  2.,  3.])
 
     Read now with read_netcdf

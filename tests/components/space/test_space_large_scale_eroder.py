@@ -11,6 +11,13 @@ from landlab.components import (
     SpaceLargeScaleEroder,
 )
 
+try:
+    PriorityFloodFlowRouter.load_richdem()
+except ModuleNotFoundError:
+    with_richdem = False
+else:
+    with_richdem = True
+
 
 def test_inputFields_flowRouter():
     """
@@ -187,47 +194,24 @@ def test_soil_field_already_on_grid():
     )
 
     # %% Check getters
-    testing.assert_array_equal(
-        0.01,
-        sp.K_br,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
-    testing.assert_array_equal(
-        0.01,
-        sp.K_sed,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    assert sp.K_br == pytest.approx(0.01)
+    assert sp.K_sed == pytest.approx(0.01)
+    assert sp.fraction_fines == pytest.approx(0.0)
+    assert sp.sediment_porosity == pytest.approx(0.0)
+    assert sp.settling_velocity == pytest.approx(0.001)
+    assert sp.drainage_area_exp == pytest.approx(0.5)
+    assert sp.slope_exp == pytest.approx(1.0)
+
     # sediment erosion is zero before running the component
-    testing.assert_array_equal(
-        np.zeros(mg.number_of_nodes),
-        sp.Es,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    testing.assert_array_equal(np.zeros(mg.number_of_nodes), sp.Es)
     # rock erosion is zero before running the component
-    testing.assert_array_equal(
-        np.zeros(mg.number_of_nodes),
-        sp.Er,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    testing.assert_array_equal(np.zeros(mg.number_of_nodes), sp.Er)
+
     # %% Check setters
     sp.K_br = 0.02
-    testing.assert_array_equal(
-        0.02,
-        sp.K_br,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    assert sp.K_br == pytest.approx(0.02)
     sp.K_sed = 0.02
-    testing.assert_array_equal(
-        0.02,
-        sp.K_sed,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    assert sp.K_sed == pytest.approx(0.02)
 
     with pytest.raises(AttributeError):
         sp.Es = np.zeros(mg.number_of_nodes)
@@ -454,9 +438,6 @@ def test_matches_detachment_solution_n_gr_1():
         err_msg="SpaceLargeScaleEroder detachment-limited test failed",
         verbose=True,
     )
-
-
-# %%
 
 
 @pytest.mark.slow
@@ -724,7 +705,7 @@ def test_can_run_with_hex():
         z[mg.core_nodes] += U * dt
 
 
-# %%
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_detachment_solution_PF():
     # %%
     """
@@ -809,8 +790,8 @@ def test_matches_detachment_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_transport_solution_PF():
-
     """
     Test that model matches the transport-limited analytical solution
     for slope/area relationship at steady state: S=((U * v_s) / (K_sed * A^m)
@@ -925,6 +906,7 @@ def test_matches_transport_solution_PF():
 
 # %%
 @pytest.mark.slow
+@pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
 def test_matches_bedrock_alluvial_solution_PF():
     """
     Test that model matches the bedrock-alluvial analytical solution
@@ -1036,6 +1018,7 @@ def test_matches_bedrock_alluvial_solution_PF():
     # %%
 
 
+@pytest.mark.slow
 def test_MassBalance():
     # %%
     # set up a 15x15 grid with one open outlet node and low initial elevations.
@@ -1062,10 +1045,6 @@ def test_MassBalance():
     soil[:] += 0.0  # initial condition of no soil depth.
     br[:] = z[:]
     z[:] += soil[:]
-
-    # Create a D8 flow handler
-    # fa = PriorityFloodFlowRouter(mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True)
-    # fa.run_one_step()
 
     # Create a D8 flow handler
     fa = FlowAccumulator(
@@ -1103,6 +1082,7 @@ def test_MassBalance():
     H = mg.at_node["soil__depth"]
     cores = mg.core_nodes
     area = mg.cell_area_at_node
+
     # ... and run it to steady state (10000x1-year timesteps).
     for _ in range(10000):
         fa.run_one_step()
@@ -1131,6 +1111,9 @@ def test_MassBalance():
         testing.assert_array_less(
             abs(diff_MB),
             1e-8 * mg.number_of_nodes,
-            err_msg="Mass balance error SpaceLargeScaleEroder! Try to resolve by becreasing timestep",
+            err_msg=(
+                "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
+                "becreasing timestep"
+            ),
             verbose=True,
         )

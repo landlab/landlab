@@ -62,7 +62,9 @@ parcel_size_options = [
 ]
 
 
-@pytest.mark.parametrize("arg", ["synthetic", "methow"])
+@pytest.mark.parametrize(
+    "arg", ["synthetic", pytest.param("methow", marks=pytest.mark.slow)]
+)
 @pytest.mark.parametrize(
     ("l_opts", "pc_opts", "ps_opts"),
     zip(link_color_options, parcel_color_options, parcel_size_options),
@@ -76,7 +78,9 @@ def test_link_options(arg, l_opts, pc_opts, ps_opts, request):
 
 
 @pytest.mark.parametrize("title", ["A random number", None])
-@pytest.mark.parametrize("arg", ["synthetic", "methow"])
+@pytest.mark.parametrize(
+    "arg", ["synthetic", pytest.param("methow", marks=pytest.mark.slow)]
+)
 def test_link_array(arg, title, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid
@@ -95,7 +99,9 @@ def test_link_array(arg, title, request):
     plot_network_and_parcels(grid, parcels, parcel_time_index=0, **opts)
 
 
-@pytest.mark.parametrize("arg", ["synthetic", "methow"])
+@pytest.mark.parametrize(
+    "arg", ["synthetic", pytest.param("methow", marks=pytest.mark.slow)]
+)
 def test_with_filter(arg, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid

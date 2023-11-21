@@ -12,7 +12,6 @@ from landlab.components import ErosionDeposition, FlowAccumulator
 
 
 def test_without_depression_handling():
-
     grid = RasterModelGrid((3, 5), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     z = grid.add_zeros("node", "topographic__elevation")
@@ -63,7 +62,6 @@ def test_without_depression_handling():
 
 
 def test_with_depression_handling():
-
     grid = RasterModelGrid((3, 5), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     z = grid.add_zeros("node", "topographic__elevation")
@@ -164,7 +162,6 @@ def test_with_depression_handling():
 
 
 def test_adaptive_solver_without_depression_handling():
-
     grid = RasterModelGrid((3, 5), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     z = grid.add_zeros("node", "topographic__elevation")
@@ -215,7 +212,6 @@ def test_adaptive_solver_without_depression_handling():
 
 
 def test_adaptive_solver_with_depression_handling():
-
     grid = RasterModelGrid((3, 5), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     z = grid.add_zeros("node", "topographic__elevation")
