@@ -108,6 +108,7 @@ class GenVeg(Component, PlantGrowth):
         _ = self._grid.add_zeros("vegetation__total_biomass", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__n_plants", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__plant_height", at="cell", clobber=True)
+        _ = self._grid.add_zeros("vegetation__cell_lai", at="cell", clobber=True)
         self.species_cover_allocation = []
 
         for cell_index in range(self._grid.number_of_cells):
@@ -164,6 +165,11 @@ class GenVeg(Component, PlantGrowth):
             )
             / self._grid.area_of_cell
         )
+        cell_leaf_area = np.bincount(
+            all_plants["cell_index"],
+            weights=all_plants["leaf_area"],
+            minlength=self._grid.number_of_cells,
+        )
         plant_height = np.zeros_like(frac_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.where(n_of_plants > 0.0)
@@ -180,6 +186,9 @@ class GenVeg(Component, PlantGrowth):
         self._grid.at_cell["vegetation__n_plants"] = cell_plant_count
         self._grid.at_cell["vegetation__percent_cover"] = frac_cover
         self._grid.at_cell["vegetation__plant_height"] = plant_height
+        self._grid.at_cell["vegetation__cell_lai"] = (
+            cell_leaf_area / self._grid.area_of_cell
+        )
 
         # add location information for each plant
         for cell_index in range(self._grid.number_of_cells):
@@ -266,6 +275,11 @@ class GenVeg(Component, PlantGrowth):
             )
             / self._grid.area_of_cell
         )
+        cell_leaf_area = np.bincount(
+            all_plants["cell_index"],
+            weights=all_plants["leaf_area"],
+            minlength=self._grid.number_of_cells,
+        )
         plant_height = np.zeros_like(cell_percent_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.nonzero(n_of_plants > 0.0)
@@ -281,6 +295,9 @@ class GenVeg(Component, PlantGrowth):
         self._grid.at_cell["vegetation__n_plants"] = cell_plant_count
         self._grid.at_cell["vegetation__percent_cover"] = cell_percent_cover
         self._grid.at_cell["vegetation__plant_height"] = plant_height
+        self._grid.at_cell["vegetation__cell_lai"] = (
+            cell_leaf_area / self._grid.area_of_cell
+        )
         self.current_day += 1
 
     def _calc_current_jday(self):
