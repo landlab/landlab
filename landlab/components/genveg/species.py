@@ -12,7 +12,7 @@ from sympy import symbols, diff, lambdify, log
 
 # Define species class that inherits composite class methods
 class Species(object):
-    def __init__(self, species_params):
+    def __init__(self, species_params, latitude):
         self.all_parts = list(
             species_params["grow_params"]["glucose_requirement"].keys()
         )
@@ -47,7 +47,7 @@ class Species(object):
         self.habit = self.select_habit_class()
         self.form = self.select_form_class()
         self.shape = self.select_shape_class()
-        self.photosynthesis = self.select_photosythesis_type()
+        self.photosynthesis = self.select_photosythesis_type(latitude)
 
     def validate_plant_factors(self, plant_factors):
         plant_factor_options = {
@@ -206,9 +206,16 @@ class Species(object):
 
         return species_params
 
-    def select_photosythesis_type(self):
-        photosynthesis_options = {"C3": C3(), "C4": C4(), "cam": Cam()}
-        return photosynthesis_options[self.species_plant_factors["p_type"]]
+    def calculate_lai(self, leaf_biomass, shoot_sys_width):
+        return (
+            self.species_morph_params["sp_leaf_area"]
+            * leaf_biomass
+            / (0.25 * np.pi * shoot_sys_width**2)
+        )
+
+    def select_photosythesis_type(self, latitude):
+        photosynthesis_options = {"C3": C3, "C4": C4, "cam": Cam}
+        return photosynthesis_options[self.species_plant_factors["p_type"]](latitude)
 
     def select_habit_class(self):
         habit = {
@@ -400,14 +407,21 @@ class Species(object):
     def emerge(self, plants, jday):
         ns_conc = self.get_daily_nsc_concentration(jday)
         available_stored_biomass = np.zeros_like(plants["root"])
+        total_persistent_biomass = np.zeros_like(plants["root"])
         for part in self.habit.duration.persistent_parts:
             avail_nsc_content = (
                 ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
             ) * np.ones_like(plants[part])
             avail_nsc_content[avail_nsc_content < 0] = 0.0
-            available_stored_biomass += plants[part] * avail_nsc_content
 
-        plants = self.habit.duration.emerge(plants, available_stored_biomass)
+            available_stored_biomass += plants[part] * avail_nsc_content
+            total_persistent_biomass += plants[part]
+        plants = self.habit.duration.emerge(
+            plants, available_stored_biomass, total_persistent_biomass
+        )
+
+        plants = self.update_morphology(plants)
+
         return plants
 
     def get_daily_nsc_concentration(self, _current_jday):
@@ -536,17 +550,12 @@ class Species(object):
         )
         return plants
 
-    def photosynthesize(self, _par, _last_biomass, _daylength):
-        _glu_req = np.zeros_like(_last_biomass["root"])
-        _total_biomass = self.sum_plant_parts(_last_biomass, parts="total")
-        for part in self.all_parts:
-            _glu_req += (
-                _last_biomass[part]
-                / _total_biomass
-                * self.species_grow_params["glucose_requirement"][part]
-            )
+    def photosynthesize(self, _par, _last_biomass, _current_day):
+        lai = self.calculate_lai(
+            _last_biomass["leaf_biomass"], _last_biomass["shoot_sys_width"]
+        )
         delta_tot = self.photosynthesis.photosynthesize(
-            _par, self.species_grow_params, _last_biomass, _glu_req, _daylength
+            _par, _last_biomass, lai, _current_day
         )
         return delta_tot
 

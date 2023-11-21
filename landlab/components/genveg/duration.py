@@ -126,8 +126,8 @@ class Annual(Duration):
             plants[part] -= plants[part] * self.senesce_rate
         return plants
 
-    def emerge(self, plants):
-        print("I emerge from dormancy")
+    def emerge(self, plants, available_mass, persistent_total_mass):
+        print("I emerge from dormancy and I am an annual")
         plants = self.set_new_biomass(plants)
         return plants
 
@@ -161,7 +161,7 @@ class Evergreen(Perennial):
         self.keep_green_parts = True
         super().__init__(species_grow_params)
 
-    def emerge(self, plants, available_mass):
+    def emerge(self, plants, available_mass, persistent_total_mass):
         return plants
 
     def senesce(self, plants, mass_of_green=None, mass_of_persistent=None):
@@ -172,15 +172,18 @@ class Deciduous(Perennial):
     def __init__(self, species_grow_params, green_parts, senesce_rate):
         self.keep_green_parts = False
         all_veg_sources = ("root", "leaf", "stem", "reproductive")
-        persistent_parts = (
-            part for part in all_veg_sources if part not in self.green_parts
-        )
+        persistent_parts = []
+        for part in all_veg_sources:
+            if part not in green_parts:
+                persistent_parts.append(part)
+        persistent_parts = tuple(persistent_parts)
+
         super().__init__(
             species_grow_params, green_parts, persistent_parts, senesce_rate
         )
 
-    def emerge(self, plants, available_mass):
-        print("I emerge from dormancy")
+    def emerge(self, plants, available_mass, persistent_total_mass):
+        print("I emerge from dormancy and I am a deciduous perennial")
         # next steps are to clean this up using same approach as dormancy
 
         total_mass_new_green = np.zeros_like(plants["root_biomass"])
@@ -192,19 +195,16 @@ class Deciduous(Perennial):
                 size=plants.size,
             )
             total_mass_new_green += new_green_biomass[part]
-
         adjusted_total_new_green = np.minimum(available_mass, total_mass_new_green)
 
         for part in self.green_parts:
             plants[part] = (
-                plants[part]
-                + (adjusted_total_new_green / total_mass_new_green)
-                * new_green_biomass[part]
-            )
+                adjusted_total_new_green / total_mass_new_green
+            ) * new_green_biomass[part]
 
         for part in self.persistent_parts:
             plants[part] = plants[part] - (
-                adjusted_total_new_green * plants[part] / total_mass_persistent_parts
+                adjusted_total_new_green * plants[part] / persistent_total_mass
             )
         return plants
 
