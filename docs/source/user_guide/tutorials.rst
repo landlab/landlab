@@ -14,14 +14,40 @@ Launch notebooks online
 -----------------------
 
 Landlab Notebooks can be accessed online with the following link:
-`Binder <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
+`Binder <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb>`_.
 Here the notebooks are provided within a binder online environment that
 includes Landlab.
 
 The welcome page on Binder provides onward links to most of our tutorials.
 If you're a newbie you might want to skip directly to a recommended syllabus
 for learning Landlab
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/syllabus.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/syllabus.ipynb>`_.
+
+.. _tutorials_EarthscapeHub:
+
+Launch notebooks on EarthscapeHub
+---------------------------------
+
+Landlab notebooks can also be run on `EarthscapeHub`_.
+
+If you have a *lab* login for class,
+start the Landlab welcome notebook `here`__.
+Likewise,
+if you have a *jupyter* login associated with your CSDMS membership,
+start the welcome notebook `here`__.
+
+To directly access the recommended syllabus for learning Landlab
+on *lab*, start `here`__, and for *jupyter*, start `here`__.
+
+Note that software is grouped into kernels on EarthscapeHub.
+Landlab is installed in the kernel titled "CSDMS";
+select this kernel to run the tutorial notebooks.
+
+.. _EarthscapeHub: https://csdms.colorado.edu/wiki/JupyterHub
+.. __: https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb%3Fautodecode&branch=master
+.. __: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Fwelcome.ipynb%3Fautodecode&branch=master
+.. __: https://lab.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Ftutorials%2Fsyllabus.ipynb%3Fautodecode&branch=master
+.. __: https://jupyter.openearthscape.org/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgithub.com%2Flandlab%2Flandlab&urlpath=lab%2Ftree%2Flandlab%2Fnotebooks%2Ftutorials%2Fsyllabus.ipynb%3Fautodecode&branch=master
 
 Launch notebooks locally
 ------------------------
@@ -39,32 +65,56 @@ Get the notebooks
 If you have the *landlab* source code, you already have the notebooks (they are
 in the *notebooks/* folder).
 
-If you don't have a copy of the source code, you can run the
-`notebooks.py`_
+If you don't have a copy of the source code, you can run the `notebooks.py`_
 script to fetch the set of notebooks that matches your version of *landlab*.
 This can be done either by running,
 
 .. code-block:: bash
 
-   $ curl -L https://raw.githubusercontent.com/landlab/landlab/mcflugen/fetch-notebooks-script/notebooks.py | python -
+   curl -L https://raw.githubusercontent.com/landlab/landlab/master/notebooks.py | python -
 
 or by downloading the script and running the following from the terminal,
 
 .. code-block:: bash
 
-   $ python -m notebooks
+   python -m notebooks
 
-.. _notebooks.py: https://github.com/landlab/landlab/blob/mcflugen/fetch-notebooks-script/notebooks.py
+The download script will create a folder called *landlab-<VERSION>*, where *<VERSION>*
+is the version of the notebooks you have requested (e.g. *master* or *2.5.0*). If
+you would like to get a specific version of the notebooks, which may not match your
+version of *Landlab*, you can specify that as a command line argument. For example,
+
+.. code-block:: bash
+
+   curl -L https://raw.githubusercontent.com/landlab/landlab/master/notebooks.py | python - 2.4.1
+
+.. _notebooks.py: https://github.com/landlab/landlab/blob/master/notebooks.py
 
 Install dependencies
 ````````````````````
 
-The dependencies required to run the notebooks are listed in the file, *requirements-notebooks.txt*
-and can be installed with *conda*,
+Within the downloaded folder is a file named *requirements-notebooks.txt* that
+contains a list of requirements needed to run the notebook tutorials.
 
-.. code-block:: bash
+.. important::
 
-   $ conda install --file=requirements-notebooks.txt
+  The following will install the requirements into your current environment. Although
+  not necessary, we **highly recommend** you install these into a separate
+  :ref:`virtual environment <virtual_environments>`.
+
+Use *mamba* or *conda* to install the requirements.
+
+.. tab:: mamba
+
+  .. code-block:: bash
+
+     mamba install --file=requirements-notebooks.txt
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+     conda install --file=requirements-notebooks.txt
 
 
 Run the tutorials

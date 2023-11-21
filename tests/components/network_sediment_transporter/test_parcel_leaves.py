@@ -6,7 +6,6 @@ from landlab.data_record import DataRecord
 
 
 def test_parcel_leaves(example_nmg, example_flow_director):
-
     example_nmg.at_link["reach_length"] = ([10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0],)
 
     time = [0.0]

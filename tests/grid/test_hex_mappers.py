@@ -19,7 +19,6 @@ from landlab.grid.mappers import map_link_vector_components_to_node
 @pytest.mark.parametrize("node_layout", ("rect", "hex"))
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
 def test_along_links(orientation, node_layout, angle):
-
     if orientation == "horizontal":
         east = np.deg2rad(0.0)
         nne = np.deg2rad(60.0)

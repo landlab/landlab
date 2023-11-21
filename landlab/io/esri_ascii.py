@@ -242,7 +242,7 @@ def _header_is_valid(header):
         if len(set(keys) & header_keys) != 1:
             raise MissingRequiredKeyError("|".join(keys))
 
-    for (key, requires) in _HEADER_VALUE_TESTS.items():
+    for key, requires in _HEADER_VALUE_TESTS.items():
         to_type, is_valid = requires
 
         if key not in header:
@@ -250,8 +250,8 @@ def _header_is_valid(header):
 
         try:
             header[key] = to_type(header[key])
-        except ValueError:
-            raise KeyTypeError(key, to_type)
+        except ValueError as exc:
+            raise KeyTypeError(key, to_type) from exc
 
         if not is_valid(header[key]):
             raise KeyValueError(key, "Bad value")
@@ -311,8 +311,8 @@ def read_asc_header(asc_file):
     >>> hdr["xllcenter"], hdr["yllcenter"]
     (0.5, -0.5)
 
-    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the header does not contain all of the
-    necessary keys.
+    :class:`~landlab.io.esri_ascii.MissingRequiredKeyError` is raised if the
+    header does not contain all of the necessary keys.
 
     >>> contents = '''
     ... ncols 200
@@ -320,12 +320,12 @@ def read_asc_header(asc_file):
     ... xllcenter 0.5
     ... yllcenter -0.5
     ... '''
-    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> read_asc_header(StringIO(contents))
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
-    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of the wrong type. For instance,
-    *nrows* and *ncols* must be ``int``.
+    :class:`~landlab.io.esri_ascii.KeyTypeError` is raised if a value is of
+    the wrong type. For instance, *nrows* and *ncols* must be ``int``.
 
     >>> contents = '''
     ... nrows 100.5
@@ -334,12 +334,12 @@ def read_asc_header(asc_file):
     ... xllcenter 0.5
     ... yllcenter -0.5
     ... '''
-    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> read_asc_header(StringIO(contents))
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
     header = {}
-    for (key, value) in _header_lines(asc_file):
+    for key, value in _header_lines(asc_file):
         header[key] = value
 
     _header_is_valid(header)
@@ -456,7 +456,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
            [ -1.,   3.,   4.,   5.,  -1.],
            [ -1.,   0.,   1.,   2.,  -1.],
            [ -1.,  -1.,  -1.,  -1.,  -1.]])
-    """
+    """  # noqa: B950
     from ..grid import RasterModelGrid
 
     if halo < 0:
@@ -547,16 +547,16 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
-    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
     >>> grid.at_node["air__temperature"] = np.arange(20.0)
     >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
-    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)]  # doctest: +SKIP
     ['test.asc']
 
-    >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
+    >>> _ = grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
     >>> grid.at_node["land_surface__elevation"] = np.arange(20.0)
-    >>> files = write_esri_ascii("test.asc", grid))  # doctest: +SKIP
-    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
+    >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)]  # doctest: +SKIP
     ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
     """
     if os.path.exists(path) and not clobber:

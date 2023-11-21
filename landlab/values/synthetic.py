@@ -26,19 +26,35 @@ Create the grid.
 
 Create a tetrahedron by adding planes selectively using ``where``.
 
->>> southwest = plane(mg, 'topographic__elevation',
-...                   where=((mg.x_of_node <= 3) & (mg.y_of_node <= 3)),
-...                   point=(0, 0, 0), normal=(-1, -1, 1))
->>> southeast = plane(mg, 'topographic__elevation',
-...                   where=((mg.x_of_node > 3) & (mg.y_of_node <= 3)),
-...                   point=(6, 0, 0), normal=(1, -1, 1))
->>> northeast = plane(mg, 'topographic__elevation',
-...                   where=((mg.x_of_node > 3) & (mg.y_of_node > 3)),
-...                   point=(6, 6, 0), normal=(1, 1, 1))
->>> northwest = plane(mg, 'topographic__elevation',
-...                   where=((mg.x_of_node <= 3) & (mg.y_of_node > 3)),
-...                   point=(0, 6, 0), normal=(-1, 1, 1))
->>> mg.at_node['topographic__elevation']
+>>> southwest = plane(
+...     mg,
+...     "topographic__elevation",
+...     where=((mg.x_of_node <= 3) & (mg.y_of_node <= 3)),
+...     point=(0, 0, 0),
+...     normal=(-1, -1, 1),
+... )
+>>> southeast = plane(
+...     mg,
+...     "topographic__elevation",
+...     where=((mg.x_of_node > 3) & (mg.y_of_node <= 3)),
+...     point=(6, 0, 0),
+...     normal=(1, -1, 1),
+... )
+>>> northeast = plane(
+...     mg,
+...     "topographic__elevation",
+...     where=((mg.x_of_node > 3) & (mg.y_of_node > 3)),
+...     point=(6, 6, 0),
+...     normal=(1, 1, 1),
+... )
+>>> northwest = plane(
+...     mg,
+...     "topographic__elevation",
+...     where=((mg.x_of_node <= 3) & (mg.y_of_node > 3)),
+...     point=(0, 6, 0),
+...     normal=(-1, 1, 1),
+... )
+>>> mg.at_node["topographic__elevation"]
 array([ 0.,  1.,  2.,  3.,  2.,  1.,  0.,
         1.,  2.,  3.,  4.,  3.,  2.,  1.,
         2.,  3.,  4.,  5.,  4.,  3.,  2.,
@@ -50,9 +66,9 @@ array([ 0.,  1.,  2.,  3.,  2.,  1.,  0.,
 Next add uniformly distributed noise.
 
 >>> noise = random(
-...     mg, "topographic__elevation", where=NodeStatus.CORE, distribution='uniform'
+...     mg, "topographic__elevation", where=NodeStatus.CORE, distribution="uniform"
 ... )
->>> np.round(mg.at_node['topographic__elevation'], decimals=3)
+>>> np.round(mg.at_node["topographic__elevation"], decimals=3)
 array([ 0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ,
         1.   ,  2.375,  3.951,  4.732,  3.599,  2.156,  1.   ,
         2.   ,  3.156,  4.058,  5.866,  4.601,  3.708,  2.   ,
@@ -144,13 +160,13 @@ def _where_to_add_values(grid, at, where):
 
 def _convert_where(where, at):
     if at not in _STATUS:
-        raise AttributeError(f"boundary conditions are not defined at {at}")
+        raise AttributeError(f"boundary conditions are not defined at {at!r}")
 
     if isinstance(where, str):
         try:
             return _STATUS[at][where]
-        except KeyError:
-            raise ValueError(f"'{where}' status does not exists for {at}.")
+        except KeyError as exc:
+            raise ValueError(f"{where!r} status does not exists for {at!r}.") from exc
     else:
         return where
 
@@ -211,7 +227,7 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     ...     high=3.0,
     ...     low=2.0,
     ... )
-    >>> mg.at_node['soil__depth']
+    >>> mg.at_node["soil__depth"]
     array([ 0.        ,  0.        ,  0.        ,  0.        ,
             0.        ,  2.37454012,  2.95071431,  0.        ,
             0.        ,  2.73199394,  2.59865848,  0.        ,
@@ -266,12 +282,10 @@ def plane(
     >>> from landlab import RasterModelGrid
     >>> from landlab.values import plane
     >>> mg = RasterModelGrid((4, 4))
-    >>> values = plane(mg,
-    ...                'soil__depth',
-    ...                'node',
-    ...                point=(0., 0., 0.),
-    ...                normal=(-1., -1., 1.))
-    >>> mg.at_node['soil__depth']
+    >>> values = plane(
+    ...     mg, "soil__depth", "node", point=(0.0, 0.0, 0.0), normal=(-1.0, -1.0, 1.0)
+    ... )
+    >>> mg.at_node["soil__depth"]
     array([ 0.,  1.,  2.,  3.,
             1.,  2.,  3.,  4.,
             2.,  3.,  4.,  5.,
@@ -356,10 +370,8 @@ def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
     >>> from landlab import RasterModelGrid
     >>> from landlab.values import constant
     >>> mg = RasterModelGrid((4, 4))
-    >>> values = constant(
-    ...     mg, "some_flux", "link", where="ACTIVE_LINK", value=10.0
-    ... )
-    >>> mg.at_link['some_flux']
+    >>> values = constant(mg, "some_flux", "link", where="ACTIVE_LINK", value=10.0)
+    >>> mg.at_link["some_flux"]
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
             10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
              0.,   0.])
@@ -427,16 +439,17 @@ def sine(
     >>> from landlab import RasterModelGrid
     >>> from landlab.values import sine
     >>> mg = RasterModelGrid((5, 5))
-    >>> values = sine(mg,
-    ...               'topographic__elevation',
-    ...               amplitude=2, wavelength=4,
-    ...               a=1, b=0)
-    >>> new_field = mg.at_node['topographic__elevation'].reshape(mg.shape)
-    >>> truth = np.array([[ 0.,  2.,  0., -2., -0.],
-    ...                   [ 0.,  2.,  0., -2., -0.],
-    ...                   [ 0.,  2.,  0., -2., -0.],
-    ...                   [ 0.,  2.,  0., -2., -0.],
-    ...                   [ 0.,  2.,  0., -2., -0.]])
+    >>> values = sine(mg, "topographic__elevation", amplitude=2, wavelength=4, a=1, b=0)
+    >>> new_field = mg.at_node["topographic__elevation"].reshape(mg.shape)
+    >>> truth = np.array(
+    ...     [
+    ...         [0.0, 2.0, 0.0, -2.0, -0.0],
+    ...         [0.0, 2.0, 0.0, -2.0, -0.0],
+    ...         [0.0, 2.0, 0.0, -2.0, -0.0],
+    ...         [0.0, 2.0, 0.0, -2.0, -0.0],
+    ...         [0.0, 2.0, 0.0, -2.0, -0.0],
+    ...     ]
+    ... )
     >>> assert_array_almost_equal(new_field, truth)
     """
     x, y = _get_x_and_y(grid, at)

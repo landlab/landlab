@@ -1,4 +1,6 @@
-"""Define collections of fields that are attached to a *Landlab* :class:`~landlab.graph.graph.Graph`."""
+"""Define collections of fields that are attached to a *Landlab*
+:class:`~landlab.graph.graph.Graph`.
+"""
 import numpy as np
 import xarray as xr
 
@@ -84,16 +86,16 @@ def shape_for_storage(array, field_size=None):
     True
     >>> shape_for_storage(data, 2) == (2, 3)
     True
-    >>> shape_for_storage(data, 6) == (6, )
+    >>> shape_for_storage(data, 6) == (6,)
     True
 
     If a field size is not given, the array will be stored as a
     flattened array.
 
-    >>> shape_for_storage(data) == (6, )
+    >>> shape_for_storage(data) == (6,)
     True
     >>> data = np.arange(6).reshape((3, 2))
-    >>> shape_for_storage(data) == (6, )
+    >>> shape_for_storage(data) == (6,)
     True
 
     For field sizes of 1, the array is always flattened.
@@ -103,22 +105,22 @@ def shape_for_storage(array, field_size=None):
 
     For scalar arrays, the field size must be 1.
 
-    >>> data = np.array(1.)
-    >>> shape_for_storage(data) == (1, )
+    >>> data = np.array(1.0)
+    >>> shape_for_storage(data) == (1,)
     True
-    >>> shape_for_storage(data, field_size=1) == (1, )
+    >>> shape_for_storage(data, field_size=1) == (1,)
     True
 
     If the array cannot be shaped into a storage shape, a ``ValueError``
     is raised.
 
-    >>> data = np.array(1.)
-    >>> shape_for_storage(data, field_size=4) # DOCTEST: +IGNORE_EXCEPTION_DETAIL
+    >>> data = np.array(1.0)
+    >>> shape_for_storage(data, field_size=4)
     Traceback (most recent call last):
     ...
     ValueError: unable to reshape array to field size
-    >>> data = np.arange(6.)
-    >>> shape_for_storage(data, field_size=4) # DOCTEST: +IGNORE_EXCEPTION_DETAIL
+    >>> data = np.arange(6.0)
+    >>> shape_for_storage(data, field_size=4)
     Traceback (most recent call last):
     ...
     ValueError: unable to reshape array to field size
@@ -360,8 +362,8 @@ class FieldDataset(dict):
         if isinstance(name, str):
             try:
                 return self._ds[name].values
-            except KeyError:
-                raise FieldError(name)
+            except KeyError as exc:
+                raise FieldError(name) from exc
         else:
             raise TypeError("field name not a string")
 
@@ -459,7 +461,7 @@ class GraphFields:
     >>> fields.at_grid["g"] = 9.81
     >>> fields.at_grid["g"]
     array(9.81)
-    >>> fields.at_grid["w"] = (3., 4.)
+    >>> fields.at_grid["w"] = (3.0, 4.0)
     >>> fields.at_grid["w"]
     array([ 3.,  4.])
 
@@ -493,8 +495,8 @@ class GraphFields:
         """Get the collection of fields from the named group."""
         try:
             return getattr(self, "at_" + name)
-        except AttributeError:
-            raise GroupError(name)
+        except AttributeError as exc:
+            raise GroupError(name) from exc
 
     @property
     def default_group(self):
@@ -602,10 +604,10 @@ class GraphFields:
 
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 12)
-        >>> fields.has_group('node')
+        >>> fields.new_field_location("node", 12)
+        >>> fields.has_group("node")
         True
-        >>> fields.has_group('cell')
+        >>> fields.has_group("cell")
         False
 
         :meta landlab: info-field
@@ -767,15 +769,15 @@ class GraphFields:
         Raise FieldError if *field* does not exist in *group*.
 
         >>> fields.field_values("planet_surface__temperature", at="node")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         FieldError: planet_surface__temperature
 
         If *group* does not exists, raise :class:`~landlab.field.errors.GroupError`.
 
         >>> fields.field_values("topographic__elevation", at="cell")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         GroupError: cell
 
         :meta landlab: field-io
@@ -791,13 +793,13 @@ class GraphFields:
 
         try:
             fields = self[group]
-        except KeyError:
+        except KeyError as exc:
             groups = ", ".join([repr(g) for g in sorted(self._groups)])
-            raise GroupError(f"{group!r}: Not one of {groups}.")
+            raise GroupError(f"{group!r}: Not one of {groups}.") from exc
         try:
             return fields[field]
-        except KeyError:
-            raise FieldError(f"{field!r}")
+        except KeyError as exc:
+            raise FieldError(f"{field!r}") from exc
 
     def return_array_or_field_values(self, *args, **kwds):
         """return_array_or_field_values(field, at=None)
@@ -808,8 +810,9 @@ class GraphFields:
         data array. *field* is either a string that is a field in the group
         or an array of the correct size.
 
-        This function is meant to serve like the :class:`~landlab.utils.decorators.use_field_name_or_array`
-        decorator for bound functions.
+        This function is meant to serve like the
+        :class:`~landlab.utils.decorators.use_field_name_or_array` decorator for
+        bound functions.
 
         Parameters
         ----------
@@ -837,7 +840,7 @@ class GraphFields:
         >>> import numpy as np
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 4)
+        >>> fields.new_field_location("node", 4)
 
         Add a field, initialized to ones, called *topographic__elevation*
         to the *node* group. The *field_values* method returns a reference
@@ -850,30 +853,30 @@ class GraphFields:
         Alternatively, if the second argument is an array, its size is
         checked and returned if correct.
 
-        >>> vals = np.array([4., 5., 7., 3.])
+        >>> vals = np.array([4.0, 5.0, 7.0, 3.0])
         >>> fields.return_array_or_field_values(vals, at="node")
         array([ 4.,  5.,  7.,  3.])
 
         Raise FieldError if *field* does not exist in *group*.
 
         >>> fields.return_array_or_field_values("surface__temperature", at="node")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         FieldError: surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
         >>> fields.return_array_or_field_values("topographic__elevation", at="cell")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         GroupError: cell
 
         And if the array of values provided is incorrect, raise a :class:`ValueError`.
 
-        >>> vals = np.array([3., 2., 1.])
+        >>> vals = np.array([3.0, 2.0, 1.0])
         >>> fields.return_array_or_field_values(vals, at="node")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         ValueError: Array has incorrect size.
 
         :meta landlab: field-io
@@ -953,15 +956,15 @@ class GraphFields:
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        GraphFields.ones : Equivalent method that initializes the data to 1.
-        GraphFields.zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.ones` : Equivalent method that initializes the data to 1.
+        :meth:`~.zeros` : Equivalent method that initializes the data to 0.
 
         Examples
         --------
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
         >>> field.new_field_location("node", 4)
-        >>> field.empty("node") # doctest: +SKIP
+        >>> field.empty("node")  # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
         ... 2.78134232e-309]) # Uninitialized memory
 
@@ -1006,8 +1009,8 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        GraphFields.empty : Equivalent method that does not initialize the new array.
-        GraphFields.zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.zeros` : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1046,8 +1049,8 @@ class GraphFields:
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
-        GraphFields.empty : Equivalent method that does not initialize the new array.
-        GraphFields.ones : Equivalent method that initializes the data to 1.
+        :meth:`~.empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.ones` : Equivalent method that initializes the data to 1.
 
         Examples
         --------
@@ -1136,10 +1139,9 @@ class GraphFields:
         array([1, 1, 1, 1])
         >>> field.at_node["topographic__elevation"] is values
         False
-        >>> field.add_field(
-        ...     "topographic__elevation", values, at="node", clobber=False
-        ... ) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field("topographic__elevation", values, at="node", clobber=False)
         Traceback (most recent call last):
+        ...
         FieldError: topographic__elevation
 
         :meta landlab: field-add
@@ -1169,8 +1171,8 @@ class GraphFields:
 
         if not clobber and name in ds:
             raise FieldError(
-                f"Unable to add the field, {name!r}, to the group, {at!r}, because a field "
-                "with that name already exists in that group. "
+                f"Unable to add the field, {name!r}, to the group, {at!r}, because a "
+                "field with that name already exists in that group. "
                 "Use `clobber=True` to replace the existing field. "
                 f"For example, grid.add_field({name!r}, at={at!r}, clobber=True)"
             )
@@ -1204,8 +1206,8 @@ class GraphFields:
         """
         try:
             ds = getattr(self, "at_" + loc)
-        except AttributeError:
-            raise KeyError(loc)
+        except AttributeError as exc:
+            raise KeyError(loc) from exc
         ds._ds = ds._ds.drop_vars(name)
 
     def add_empty(self, *args, **kwds):
@@ -1240,8 +1242,8 @@ class GraphFields:
         See Also
         --------
         numpy.empty : See for a description of optional keywords.
-        GraphFields.empty : Equivalent method that does not initialize the new array.
-        GraphFields.zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.zeros` : Equivalent method that initializes the data to 0.
 
 
         :meta landlab: field-add
@@ -1296,8 +1298,8 @@ class GraphFields:
         See Also
         --------
         numpy.ones : See for a description of optional keywords.
-        GraphFields.add_empty : Equivalent method that does not initialize the new array.
-        GraphFields.add_zeros : Equivalent method that initializes the data to 0.
+        :meth:`~.add_empty` : Equivalent method that does not initialize the new array.
+        :meth:`~.add_zeros` : Equivalent method that initializes the data to 0.
 
         Examples
         --------
@@ -1305,14 +1307,14 @@ class GraphFields:
 
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
-        >>> field.new_field_location('node', 4)
+        >>> field.new_field_location("node", 4)
         >>> field.add_ones("topographic__elevation", at="node")
         array([ 1.,  1.,  1.,  1.])
-        >>> list(field.keys('node'))
+        >>> list(field.keys("node"))
         ['topographic__elevation']
-        >>> field['node']['topographic__elevation']
+        >>> field["node"]["topographic__elevation"]
         array([ 1.,  1.,  1.,  1.])
-        >>> field.at_node['topographic__elevation']
+        >>> field.at_node["topographic__elevation"]
         array([ 1.,  1.,  1.,  1.])
 
         :meta landlab: field-add
@@ -1353,8 +1355,10 @@ class GraphFields:
         See also
         --------
         numpy.zeros : See for a description of optional keywords.
-        GraphFields.add_empty : Equivalent method that does not initialize the new array.
-        GraphFields.add_ones : Equivalent method that initializes the data to 1.
+        :meth:`~.GraphFields.add_empty` : Equivalent method that does not initialize
+            the new array.
+        :meth:`~.GraphFields.add_ones` : Equivalent method that initializes the data
+            to 1.
 
 
         :meta landlab: field-add

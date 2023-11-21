@@ -128,8 +128,8 @@ class ConventionConverter:
         """Get a named convention as a GraphConvention object."""
         try:
             return cls.CONVENTION[name]
-        except KeyError:
-            raise ValueError(f"convention not understood ({name})")
+        except KeyError as exc:
+            raise ValueError(f"convention not understood ({name})") from exc
 
     def conform(self, name, from_convention):
         """Convert a name to a new convention.

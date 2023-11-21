@@ -28,7 +28,15 @@ from packaging.version import Version
 
 
 def main(version=None):
-    notebooks = NotebookFetcher(version)
+    if version in ("master", "latest", "dev"):
+        version = None
+
+    if not version or (version := Version(version)).is_devrelease:
+        tag = "master"
+    else:
+        tag = "v" + version.base_version
+
+    notebooks = NotebookFetcher(tag)
 
     out(f"fetching notebooks for landlab {notebooks.version}")
     out(f"{notebooks.url}")
@@ -44,8 +52,11 @@ def main(version=None):
 
     out(f"notebooks have been extracted into {base}")
     out("To run the notebooks first install the required dependencies:")
+    out("")
     out(f"    $ conda install --file={base}/requirements-notebooks.txt")
+    out("")
     out("and then open the welcome notebook:")
+    out("")
     out(f"    $ jupyter notebook {base}/notebooks/welcome.ipynb")
     print(base)
 
@@ -61,14 +72,10 @@ class NotebookError(Exception):
 
 
 class NotebookFetcher:
-
     URL = "https://github.com/landlab/landlab/archive/refs"
 
-    def __init__(self, version=None):
-        if not version:
-            self._version = "master"
-        else:
-            self._version = "v" + Version(version).base_version
+    def __init__(self, version):
+        self._version = version
 
     @property
     def version(self):
@@ -86,7 +93,7 @@ class NotebookFetcher:
                 msg = f"unable to find notebooks for requested landlab version ({self.version})"
             else:
                 msg = f"unable to fetch notebooks ({error.reason})"
-            raise NotebookError(msg)
+            raise NotebookError(msg) from error
         else:
             return stream
 
@@ -127,6 +134,13 @@ def err(text):
 
 
 if __name__ == "__main__":
+    try:
+        import landlab
+    except ModuleNotFoundError:
+        version = ""
+    else:
+        version = landlab.__version__
+
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -134,7 +148,7 @@ if __name__ == "__main__":
         "version",
         metavar="VERSION",
         nargs="?",
-        default="",
+        default=version,
         help="a landlab version (e.g. 2.5.0)",
     )
     args = parser.parse_args()

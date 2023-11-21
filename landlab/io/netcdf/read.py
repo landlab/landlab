@@ -176,7 +176,7 @@ def _read_netcdf_structured_data(root):
     fields = {}
     grid_mapping_exists = False
     grid_mapping_dict = None
-    for (name, var) in root.variables.items():
+    for name, var in root.variables.items():
         # identify if a grid mapping variable exist and do not pass it as a field
         if name not in _COORDINATE_NAMES and hasattr(var, "grid_mapping"):
             grid_mapping = var.grid_mapping
@@ -187,7 +187,7 @@ def _read_netcdf_structured_data(root):
     dont_use = list(_COORDINATE_NAMES)
     if grid_mapping_exists:
         dont_use.append(grid_mapping)
-    for (name, var) in root.variables.items():
+    for name, var in root.variables.items():
         if name not in dont_use:
             fields[name] = var.values.reshape((-1,))
 
@@ -218,7 +218,7 @@ def _get_raster_spacing(coords):
     """
     spacing = np.empty(len(coords), dtype=np.float64)
 
-    for (axis, coord) in enumerate(coords):
+    for axis, coord in enumerate(coords):
         coord_spacing = np.diff(coord, axis=axis)
         if not np.all(coord_spacing == coord_spacing.flat[0]):
             raise NotRasterGridError()
@@ -283,24 +283,24 @@ def read_netcdf(
     The data file also contains data defined at the nodes for the grid for
     a variable called, *surface__elevation*.
 
-    >>> grid = read_netcdf("test-netcdf4.nc") # doctest: +SKIP
-    >>> grid.shape == (4, 3) # doctest: +SKIP
+    >>> grid = read_netcdf("test-netcdf4.nc")  # doctest: +SKIP
+    >>> grid.shape == (4, 3)  # doctest: +SKIP
     True
-    >>> grid.dy, grid.dx # doctest: +SKIP
+    >>> grid.dy, grid.dx  # doctest: +SKIP
     (1.0, 1.0)
-    >>> list(grid.at_node.keys()) # doctest: +SKIP
+    >>> list(grid.at_node.keys())  # doctest: +SKIP
     ['surface__elevation']
-    >>> grid.at_node['surface__elevation'] # doctest: +SKIP
+    >>> grid.at_node["surface__elevation"]  # doctest: +SKIP
     array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
             11.])
 
     :func:`read_netcdf` will try to determine the format of the netcdf file.
     For example, the same call will also work for *netcdf3*-formatted files.
 
-    >>> grid = read_netcdf("test-netcdf3-64bit.nc") # doctest: +SKIP
-    >>> grid.shape == (4, 3) # doctest: +SKIP
+    >>> grid = read_netcdf("test-netcdf3-64bit.nc")  # doctest: +SKIP
+    >>> grid.shape == (4, 3)  # doctest: +SKIP
     True
-    >>> grid.dy, grid.dx # doctest: +SKIP
+    >>> grid.dy, grid.dx  # doctest: +SKIP
     (1.0, 1.0)
 
     A more complicated example might add data with a halo to an existing grid.
@@ -308,14 +308,14 @@ def read_netcdf(
     and the grid to align correctly.
 
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((6, 5), xy_of_lower_left=(-1., -1.)) # doctest: +SKIP
+    >>> grid = RasterModelGrid((6, 5), xy_of_lower_left=(-1.0, -1.0))  # doctest: +SKIP
     >>> grid = read_netcdf(
     ...     "test-netcdf4.nc",
     ...     grid=grid,
     ...     halo=1,
     ...     nodata_value=-1,
-    ... ) # doctest: +SKIP
-    >>> grid.at_node['surface__elevation'].reshape(grid.shape) # doctest: +SKIP
+    ... )  # doctest: +SKIP
+    >>> grid.at_node["surface__elevation"].reshape(grid.shape)  # doctest: +SKIP
     array([[ -1.,  -1.,  -1.,  -1.,  -1.],
            [ -1.,   0.,   1.,   2.,  -1.],
            [ -1.,   3.,   4.,   5.,  -1.],
@@ -373,8 +373,7 @@ def read_netcdf(
 
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(dataset)
-        for (field_name, values) in fields.items():
-
+        for field_name, values in fields.items():
             # add halo if necessary
             if halo > 0:
                 values = add_halo(

@@ -225,7 +225,7 @@ class FractureGridGenerator(Component):
     >>> grid = RasterModelGrid((5, 5))
     >>> fg = FractureGridGenerator(grid=grid, frac_spacing=3)
     >>> fg.run_one_step()
-    >>> grid.at_node['fracture_at_node'].reshape((5, 5))
+    >>> grid.at_node["fracture_at_node"].reshape((5, 5))
     array([[1, 0, 0, 1, 0],
            [0, 1, 1, 1, 1],
            [0, 0, 0, 1, 1],
@@ -325,7 +325,6 @@ class FractureGridGenerator(Component):
         # Add fractures to grid
         nfracs = (nr + nc) // frac_spacing
         for _ in range(nfracs):
-
             (c, r) = _calc_fracture_starting_position_raster((nr, nc))
             ang = _calc_fracture_orientation((c, r), (nr, nc))
             (dx, dy) = _calc_fracture_step_sizes(ang)
@@ -352,7 +351,6 @@ class FractureGridGenerator(Component):
         # Add fractures to grid
         nfracs = (nr + nc) // frac_spacing
         for _ in range(nfracs):
-
             (x, y, ang) = _calc_fracture_starting_position_and_angle_hex(
                 (nr, nc),
                 is_horiz=(self._grid.orientation[0] == "h"),

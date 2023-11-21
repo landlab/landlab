@@ -1,9 +1,9 @@
 import numpy as np
-cimport numpy as np
-cimport cython
 
+cimport cython
+cimport numpy as np
+from libc.stdlib cimport free, malloc
 from libc.string cimport memcpy, memmove
-from libc.stdlib cimport malloc, free
 
 DTYPE = int
 ctypedef np.int_t DTYPE_t

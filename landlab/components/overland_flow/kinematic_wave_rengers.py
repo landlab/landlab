@@ -68,20 +68,21 @@ class KinematicWaveRengers(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import KinematicWaveRengers
-    >>> mg = RasterModelGrid((5, 10), 10.)
+    >>> mg = RasterModelGrid((5, 10), 10.0)
     >>> mg.status_at_node[mg.nodes_at_left_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
     >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
     >>> mg.status_at_node[mg.nodes_at_bottom_edge] = mg.BC_NODE_IS_CLOSED
     >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_CLOSED
-    >>> _ = mg.add_field('node', 'topographic__elevation', 0.05*mg.node_x)
-    >>> _ = mg.add_empty('node', 'surface_water__depth')
-    >>> mg.at_node['surface_water__depth'].fill(1.e-8)
-    >>> dt = 60.  # 1 min intervals
-    >>> rain_intensities = (1.e-5, 1.e-5, 1.e-5, 1.e-5, 1.e-5)
+    >>> _ = mg.add_field("node", "topographic__elevation", 0.05 * mg.node_x)
+    >>> _ = mg.add_empty("node", "surface_water__depth")
+    >>> mg.at_node["surface_water__depth"].fill(1.0e-8)
+    >>> dt = 60.0  # 1 min intervals
+    >>> rain_intensities = (1.0e-5, 1.0e-5, 1.0e-5, 1.0e-5, 1.0e-5)
     >>> kw = KinematicWaveRengers(mg)
     >>> for i in rain_intensities:
     ...     kw.run_one_step(dt, rainfall_intensity=i)
-    >>> mg.at_node['surface_water__depth']
+    ...
+    >>> mg.at_node["surface_water__depth"]
     array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
              1.00000000e-08,   1.00000000e-08,   1.00000000e-08,

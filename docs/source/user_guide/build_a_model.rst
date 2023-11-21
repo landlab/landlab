@@ -138,7 +138,7 @@ An example might be:
 
 .. code-block:: python
 
-    mg = RasterModelGrid((10, 10), xy_spacing(1., 2.))  # 100 nodes, dy=1., dx=2.
+    mg = RasterModelGrid((10, 10), xy_spacing(1.0, 2.0))  # 100 nodes, dy=1., dx=2.
     fr = FlowAccumlator(mg)
 
 3. Load/create data in fields
@@ -162,14 +162,14 @@ the above cases:
 
 .. code-block:: python
 
-    mg = RasterModelGrid((10, 10), 1.)  # make a grid
+    mg = RasterModelGrid((10, 10), 1.0)  # make a grid
     z = np.zeros(100, dtype=float)  # make a flat surface, elev 0
     # or…
-    z = mg.node_y*0.01  # a flat surface dipping shallowly south
+    z = mg.node_y * 0.01  # a flat surface dipping shallowly south
     # add a little noise to the surface:
-    z += np.random.rand(100.)/10000.
+    z += np.random.rand(100.0) / 10000.0
     # create the field:
-    mg.add_field('node', 'topographic__elevation', z, units='m')
+    mg.add_field("node", "topographic__elevation", z, units="m")
 
 Alternatively, we can use the specialized Landlab function
 :py:func:`read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>`
@@ -179,9 +179,10 @@ If not, you'll have to load the data output (*z*, below) manually
 
   .. code-block:: python
 
-    from landlab.io import read_esri_ascii
-    mg, z = read_esri_ascii('my_ARC_output.asc', name='topographic__elevation')
-    np.all(mg.at_node['topographic__elevation'] == z)
+      from landlab.io import read_esri_ascii
+
+      mg, z = read_esri_ascii("my_ARC_output.asc", name="topographic__elevation")
+      np.all(mg.at_node["topographic__elevation"] == z)
 
 
 Note that if you don't want to use any Landlab components, you can continue to
@@ -200,8 +201,8 @@ nodes
 
   .. code-block:: python
 
-    mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
-    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+      mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
+      mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
 This will give a grid with fixed value boundaries at the left and right edges,
 and closed boundaries at the top and bottom.
@@ -211,7 +212,7 @@ closed nodes (e.g., -9999), you can do this
 
   .. code-block:: python
 
-    mg.set_nodata_nodes_to_closed(mg.at_node['topographic__elevation'], -9999)
+      mg.set_nodata_nodes_to_closed(mg.at_node["topographic__elevation"], -9999)
 
 (Be aware that you're still likely to have to reopen an outlet node manually!
 In which case you'll also need to follow the instructions below.)
@@ -225,16 +226,21 @@ change concomitantly. For example
 
   .. code-block:: python
 
-    # find the ID of the lowest elevation core node.
-    # we'll make this a fixed gradient outlet:
-    outlet_id = mg.core_nodes[np.argmin(mg.at_node['topographic__elevation'][mg.core_nodes])]
-    # show there are no links with *mg.BC_LINK_IS_FIXED* boundary conditions
-    in the grid yet:
-    np.any(mg.status_at_link==mg.BC_LINK_IS_FIXED)
-    # update the outlet node:
-    mg.status_at_node[outlet_id] = mg.BC_LINK_IS_FIXED
-    np.any(mg.status_at_link==mg.BC_LINK_IS_FIXED)
-    # the corresponding link has been automatically updated.
+      # find the ID of the lowest elevation core node.
+      # we'll make this a fixed gradient outlet:
+      outlet_id = mg.core_nodes[
+          np.argmin(mg.at_node["topographic__elevation"][mg.core_nodes])
+      ]
+
+      # show there are no links with *mg.BC_LINK_IS_FIXED* boundary conditions
+      # in the grid yet:
+      np.any(mg.status_at_link == mg.BC_LINK_IS_FIXED)
+
+      # update the outlet node:
+      mg.status_at_node[outlet_id] = mg.BC_LINK_IS_FIXED
+      np.any(mg.status_at_link == mg.BC_LINK_IS_FIXED)
+
+      # the corresponding link has been automatically updated.
 
 5. Run the model
 ++++++++++++++++
@@ -247,18 +253,19 @@ while statement, either:
 
 .. code-block:: python
 
-    dt = 10.
+    dt = 10.0
     for tstep in xrange(100):
-        #...do the thing for one timestep dt
+        # ...do the thing for one timestep dt
+        pass
 
 or:
 
 .. code-block:: python
 
-    dt = 10.
-    accumulated_time = 0.
-    while accumulated_time<1000.:
-        #...do the thing for one timestep dt
+    dt = 10.0
+    accumulated_time = 0.0
+    while accumulated_time < 1000.0:
+        # ...do the thing for one timestep dt
         accumulated_time += dt
 
 Both produce 1000 time units of run, with an explicit timestep of 10. Notice
@@ -275,17 +282,24 @@ This means producing a storm series in Landlab is also very easy:
 .. code-block:: python
 
     from landlab.components.uniform_precip import PrecipitationDistribution
-    time_to_run = 500000.
-    precip_perturb = PrecipitationDistribution(input_file=input_file_string, total_t=time_to_run)
-    for (interval_duration, rainfall_rate) in precip_perturb.yield_storm_interstorm_duration_intensity():
-        if rainfall_rate != 0.:
+
+    time_to_run = 500000.0
+    precip_perturb = PrecipitationDistribution(
+        input_file=input_file_string, total_t=time_to_run
+    )
+    for (
+        interval_duration,
+        rainfall_rate,
+    ) in precip_perturb.yield_storm_interstorm_duration_intensity():
+        if rainfall_rate != 0.0:
             # ...do the thing, making sure to pass it the current
             # interval_duration and rainfall_rate
+            pass
 
 Notice that the advantage of the generator is that it just stops when the
 desired number of events/time duration has expired! See the end of `this
 tutorial
-<https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/component_tutorial/component_tutorial.ipynb>`_
+<https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/component_tutorial/component_tutorial.ipynb>`_
 for an example of this generator in action.
 
 What exactly "…do the thing" consists of is up to you. You can either design
@@ -310,14 +324,14 @@ and all its fields. Save your raster like this:
 
 .. code-block:: python
 
-    rmg.save('my_savename.asc', names=['field1','field2'])
+    rmg.save("my_savename.asc", names=["field1", "field2"])
     # for esri ascii, only saving the fields 1 and 2
 
 or:
 
 .. code-block:: python
 
-    rmg.save('my_savename.nc')
+    rmg.save("my_savename.nc")
     # save as netCDF3, saving all fields by default
 
 The former way will give two save files, ``my_savename_field1.asc`` and
@@ -329,7 +343,8 @@ To reload a netCDF file, use the Landlab io function
 .. code-block:: python
 
     from landlab.io.netcdf import read_netcdf
-    mg = read_netcdf('my_savename.nc')
+
+    mg = read_netcdf("my_savename.nc")
 
 Note all the original fields you had will automatically be repopulated.
 
@@ -339,9 +354,9 @@ native Python way of saving ("pickling") any Python object. It works like this::
 
     >>> import cPickle as pickle
     # cPickle is a lot faster than normal pickle
-    >>> pickle.dump( mg, open('my_savename.pickle', 'wb') )
+    >>> pickle.dump(mg, open("my_savename.pickle", "wb"))
     # ...save the grid, and all its fields
-    >>> mg = pickle.load( open('my_savename.pickle', 'rb') )
+    >>> mg = pickle.load(open("my_savename.pickle", "rb"))
     # ...load the grid and fields back into a grid object
 
 Unfortunately, the power of pickle comes somewhat at the expense of both disk
@@ -354,10 +369,10 @@ and ``load`` and ``loadtxt`` can be called on any NumPy array, including those
 saved as fields. Save and load use the NumPy specific ``.npy`` file format;
 ``savetxt`` and ``loadtxt`` use ``textfiles``. Use them like this::
 
-    >>> np.save('savename.npy', mg.at_node['my_field'])
-    >>> mg.at_node['my_field'] = np.load('savename.npy')
-    >>> np.savetxt('savename.txt', mg.at_node['my_field'])
-    >>> mg.at_node['my_field'] = np.loadtxt('savename.txt')
+    >>> np.save("savename.npy", mg.at_node["my_field"])
+    >>> mg.at_node["my_field"] = np.load("savename.npy")
+    >>> np.savetxt("savename.txt", mg.at_node["my_field"])
+    >>> mg.at_node["my_field"] = np.loadtxt("savename.txt")
 
 Plot the data
 ^^^^^^^^^^^^^
@@ -377,15 +392,18 @@ Instead, you can try something like:
 .. code-block:: python
 
     import plot
-    dt = 10.
-    accumulated_time = 0.
-    last_accumulated_time_remainder = 0.
-    while accumulated_time<1000.:
-         #...do the thing for one timestep dt
-         accumulated_time += dt
-    if last_accumulated_time_remainder < accumulated_time%100.:  # output every 100.
-         plot(mg.node_vector_to_raster(z)[mg.number_of_node_rows//2,:])  # a cross section
-         last_accumulated_time_remainder = accumulated_time%100.
+
+    dt = 10.0
+    accumulated_time = 0.0
+    last_accumulated_time_remainder = 0.0
+    while accumulated_time < 1000.0:
+        # ...do the thing for one timestep dt
+        accumulated_time += dt
+    if last_accumulated_time_remainder < accumulated_time % 100.0:  # output every 100.
+        plot(
+            mg.node_vector_to_raster(z)[mg.number_of_node_rows // 2, :]
+        )  # a cross section
+        last_accumulated_time_remainder = accumulated_time % 100.0
     show()
 
 Note that if you're running inside an interactive Python session like iPython,

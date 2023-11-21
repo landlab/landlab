@@ -186,9 +186,7 @@ class SpacingAtLeast(SegmentReducer):
         return np.sqrt(
             np.sum(
                 np.diff(
-                    self.xy_of_node[
-                        segment,
-                    ],
+                    self.xy_of_node[segment,],
                     axis=0,
                     prepend=self.xy_of_node[None, segment[0], :],
                 )
@@ -211,9 +209,7 @@ class AlongChannelSpacingAtLeast(SpacingAtLeast):
     def reduce(self, segment):
         nodes = _reduce_nodes(
             self.calc_distance_along_segment(segment),
-            spacing=self.spacing[
-                segment,
-            ],
+            spacing=self.spacing[segment,],
         )
         return np.take(segment, nodes)
 
@@ -311,7 +307,7 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
     The end nodes are always retained.
 
     >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
-    >>> _reduce_nodes(distance, spacing=100.)
+    >>> _reduce_nodes(distance, spacing=100.0)
     [0, 4]
 
     """
@@ -383,7 +379,7 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
     The end nodes are always retained.
 
     >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
-    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.)
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.0)
     [0, 4]
     """
     xy_of_node = np.asarray(xy_of_node)

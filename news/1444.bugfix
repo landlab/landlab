@@ -1,2 +1,0 @@
-Fixed the ABM tutorial notebooks that were using an older syntax for the
-*Mesa* *remove_agent* method.

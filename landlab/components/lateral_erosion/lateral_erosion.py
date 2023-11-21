@@ -49,23 +49,17 @@ class LateralEroder(Component):
     ...     bottom=mg.BC_NODE_IS_CLOSED,
     ... )
     >>> mg.status_at_node[1] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> mg.add_zeros("topographic__elevation", at="node")
-    array([ 0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.])
-    >>> rand_noise=np.array(
+    >>> rand_noise = np.array(
     ...     [
-    ...         0.00436992,  0.03225985,  0.03107455,  0.00461312,
-    ...         0.03771756,  0.02491226,  0.09613959,  0.07792969,
-    ...         0.08707156,  0.03080568,  0.01242658,  0.08827382,
-    ...         0.04475065,  0.07391732,  0.08221057,  0.02909259,
-    ...         0.03499337,  0.09423741,  0.01883171,  0.09967794,
+    ...         [0.00436992, 0.03225985, 0.03107455, 0.00461312],
+    ...         [0.03771756, 0.02491226, 0.09613959, 0.07792969],
+    ...         [0.08707156, 0.03080568, 0.01242658, 0.08827382],
+    ...         [0.04475065, 0.07391732, 0.08221057, 0.02909259],
+    ...         [0.03499337, 0.09423741, 0.01883171, 0.09967794],
     ...     ]
-    ... )
-    >>> mg.at_node["topographic__elevation"] += (
-    ...     mg.node_y / 10. + mg.node_x / 10. + rand_noise
+    ... ).flatten()
+    >>> mg.at_node["topographic__elevation"] = (
+    ...     mg.node_y / 10.0 + mg.node_x / 10.0 + rand_noise
     ... )
     >>> U = 0.001
     >>> dt = 100
@@ -99,6 +93,7 @@ class LateralEroder(Component):
     ...     newlatvol = mg.at_node["volume__lateral_erosion"]
     ...     newelev = mg.at_node["topographic__elevation"]
     ...     mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
+    ...
 
     Before lateral erosion occurs, *volume__lateral_erosion* has values at
     nodes 6 and 10.
@@ -430,9 +425,10 @@ class LateralEroder(Component):
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
 
-        # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
-        # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
-        # or add self.dzlat to itself after each time step.
+        # dz_lat needs to be reset. Otherwise, once a lateral node
+        # erode's once, it will continue eroding at every subsequent
+        # time setp. If you want to track all lateral erosion, create
+        # another attribute, or add self.dzlat to itself after each time step.
         self._dzlat.fill(0.0)
 
         if inlet_on is True:
@@ -482,11 +478,12 @@ class LateralEroder(Component):
                     # if the elevation of the lateral node is higher than primary node,
                     # calculate a new potential lateral erosion (L/T), which is negative
                     petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
-                    # the calculated potential lateral erosion is mutiplied by the length of the node
-                    # and the bank height, then added to an array, vol_lat_dt, for volume eroded
-                    # laterally  *per timestep* at each node. This vol_lat_dt is reset to zero for
-                    # each timestep loop. vol_lat_dt is added to itself in case more than one primary
-                    # nodes are laterally eroding this lat_node
+                    # the calculated potential lateral erosion is mutiplied by
+                    # the length of the node and the bank height, then added
+                    # to an array, vol_lat_dt, for volume eroded laterally
+                    # *per timestep* at each node. This vol_lat_dt is reset to zero for
+                    # each timestep loop. vol_lat_dt is added to itself in case
+                    # more than one primary nodes are laterally eroding this lat_node
                     # volume of lateral erosion per timestep
                     vol_lat_dt[lat_node] += abs(petlat) * grid.dx * wd
 
@@ -556,8 +553,9 @@ class LateralEroder(Component):
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
 
-        # dz_lat needs to be reset. Otherwise, once a lateral node erode's once, it will continue eroding
-        # at every subsequent time setp. If you want to track all lateral erosion, create another attribute,
+        # dz_lat needs to be reset. Otherwise, once a lateral node erode's
+        # once, it will continue eroding at every subsequent time setp.
+        # If you want to track all lateral erosion, create another attribute,
         # or add self.dzlat to itself after each time step.
         self._dzlat.fill(0.0)
 
@@ -603,16 +601,18 @@ class LateralEroder(Component):
                     lat_nodes[i] = lat_node
                     # if the lateral node is not 0 or -1 continue.
                     if lat_node > 0 and z[lat_node] > z[i]:
-                        # if the elevation of the lateral node is higher than primary node,
-                        # calculate a new potential lateral erosion (L/T), which is
-                        # negative
+                        # if the elevation of the lateral node is higher than
+                        # primary node, calculate a new potential lateral
+                        # erosion (L/T), which is negative
                         petlat = -Kl[i] * da[i] * max_slopes[i] * inv_rad_curv
-                        # the calculated potential lateral erosion is mutiplied by the length of the node
-                        # and the bank height, then added to an array, vol_lat_dt, for volume eroded
-                        # laterally  *per timestep* at each node. This vol_lat_dt is reset to zero for
-                        # each timestep loop. vol_lat_dt is added to itself more than one primary nodes are
-                        # laterally eroding this lat_node
-                        # volume of lateral erosion per timestep
+                        # the calculated potential lateral erosion is mutiplied
+                        # by the length of the node and the bank height, then
+                        # added to an array, vol_lat_dt, for volume eroded
+                        # laterally  *per timestep* at each node. This vol_lat_dt
+                        # is reset to zero for each timestep loop. vol_lat_dt
+                        # is added to itself more than one primary nodes are
+                        # laterally eroding this lat_node volume of lateral
+                        # erosion per timestep
                         vol_lat_dt[lat_node] += abs(petlat) * grid.dx * wd
                 # send sediment downstream. sediment eroded from vertical incision
                 # and lateral erosion is sent downstream
@@ -629,8 +629,8 @@ class LateralEroder(Component):
             # Limit dt so that this flattening or reversal doesn't happen.
             # How close you allow these two points to get to eachother is
             # determined by the cfl timestep condition, hard coded to equal 0.3
-            # dtn is an arbitrarily large number to begin with, but will be adapted as we step through
-            # the nodes
+            # dtn is an arbitrarily large number to begin with, but will be
+            # adapted as we step through the nodes
             dtn = dt * 50  # starting minimum timestep for this round
             for i in dwnst_nodes:
                 # are points converging? ie, downstream eroding slower than upstream

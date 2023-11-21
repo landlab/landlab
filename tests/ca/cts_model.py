@@ -28,9 +28,8 @@ class CTSModel:
         run_duration=1.0,
         output_interval=1.0e99,
         plot_every_transition=False,
-        **kwds
+        **kwds,
     ):
-
         self.initialize(
             grid_size,
             report_interval,
@@ -41,7 +40,7 @@ class CTSModel:
             run_duration,
             output_interval,
             plot_every_transition,
-            **kwds
+            **kwds,
         )
 
     def initialize(
@@ -55,9 +54,8 @@ class CTSModel:
         run_duration=1.0,
         output_interval=1.0e99,
         plot_every_transition=False,
-        **kwds
+        **kwds,
     ):
-
         # Remember the clock time, and calculate when we next want to report
         # progress.
         self.current_real_time = time.time()
@@ -170,7 +168,6 @@ class CTSModel:
         axis("off")
 
     def run_for(self, dt):
-
         self.ca.run(self.ca.current_time + dt, self.ca.node_state)
 
 

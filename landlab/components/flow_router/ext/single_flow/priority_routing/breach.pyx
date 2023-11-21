@@ -1,15 +1,17 @@
 #distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: extra_compile_args = -std=c++11 -Xpreprocessor -fopenmp
-#distutils: extra_link_args = -std=c++11 -Xpreprocessor -fopenmp
+#distutils: extra_compile_args = -std=c++11
+#distutils: extra_link_args = -std=c++11
 """ Contains the cython functions for the component method
 Flow_router.run_directions(). Flow directions and depression handling are done
 adapting Barnes et al., 2014 algorithm #4."""
 
 import numpy as np
-cimport numpy as cnp
+
 cimport cython
+cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
+
 
 # 1-3. Instantiate the Queues (Steps noted #1-3, #5-6 in Barnes, 2014's algorithm #4
 ####################################################################################

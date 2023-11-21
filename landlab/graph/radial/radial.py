@@ -151,8 +151,8 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         """
         try:
             spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        except TypeError as exc:
+            raise TypeError("spacing must be a float") from exc
 
         xy_of_center = tuple(np.broadcast_to(xy_of_center, 2))
 
@@ -205,7 +205,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
             The distance from the center node of each node.
 
         >>> from landlab.graph import RadialGraph
-        >>> graph = RadialGraph((2, 6), spacing=2.)
+        >>> graph = RadialGraph((2, 6), spacing=2.0)
         >>> graph.spacing_of_rings
         2.0
 

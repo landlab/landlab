@@ -6,22 +6,45 @@ Papers and Presentations
 Peer-reviewed journal articles
 ------------------------------
 
+2023
+----
+
+Eschenfelder, J., Lipp, A. G., & Roberts, G. G. (2023). **Quantifying excess heavy metal concentrations in drainage basins using conservative mixing models.** *Journal of Geochemical Exploration,* 248, 107178, `https://doi.org/10.1016/j.gexplo.2023.107178 <https://doi.org/10.1016/j.gexplo.2023.107178>`__.
+
+Fiolleau, S., Uhlemann, S., Falco, N., & Dafflon, B. (2023). **Assessing probability of failure of urban landslides through rapid characterization of soil properties and vegetation distribution.** *Geomorphology,* 423, 108560, `https://doi.org/10.1016/j.geomorph.2022.108560 <https://doi.org/10.1016/j.geomorph.2022.108560>`__.
+
+Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 <https://doi.org/10.1029/2021WR031179>`__.
+
+Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, `https://doi.org/10.1016/j.jhydrol.2023.129144 <https://doi.org/10.1016/j.jhydrol.2023.129144>`__.
+<
 2022
 ----
 
-Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
+Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic
+mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research:
+Earth Surface,* v. 127(8), e2022JF006745, `https://doi.org/10.1029/2022JF006745 <https://doi.org/10.1029/2022JF006745>`__.
 
+Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
+
+Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
+>
 Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `https://doi.org/10.5194/esurf-10-329-2022 <https://doi.org/10.5194/esurf-10-329-2022>`__.
 
 Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, `https://doi.org/10.1029/2021JG006616 <https://doi.org/10.1029/2021JG006616>`__.
 
 Litwin, D. G., Tucker, G. E., Barnhart, K. R., & Harman, C. J. (2022). **Groundwater affects the geomorphic and hydrologic properties of coevolved landscapes.** *Journal of Geophysical Research: Earth Surface,* 127(1), e2021JF006239, `https://doi.org/10.1029/2021JF006239 <https://doi.org/10.1029/2021JF006239>`__.
 
+Maneerat, P., Bürgmann, R., & Betka, P. M. (2022). **Thrust Sequence in the Western Fold-and-Thrust Belt of the Indo-Burma Range Determined from Fluvial Profile Analysis and Dynamic Landform Modeling.** *Tectonophysics,* 845, 229638, `https://doi.org/10.1016/j.tecto.2022.229638 <https://doi.org/10.1016/j.tecto.2022.229638>`__.
+
 Reitman, N. G., Mueller, K. J., & Tucker, G. E. (2022). **Surface slip variability on strike‐slip faults.** *Earth Surface Processes and Landforms,* 47(4), 908-935, `https://doi.org/10.1002/esp.5294 <https://doi.org/10.1002/esp.5294>`__.
 
 Tucker, G. E., Hutton, E. W., Piper, M. D., Campforts, B., Gan, T., Barnhart, K. R., ... & Syvitski, J. (2022). **CSDMS: a community platform for numerical modeling of Earth surface processes.** *Geoscientific Model Development,* 15(4), 1413-1439, `https://doi.org/10.5194/gmd-15-1413-2022 <https://doi.org/10.5194/gmd-15-1413-2022>`__.
 
 Uhlemann, S., Dafflon, B., Wainwright, H. M., Williams, K. H., Minsley, B., Zamudio, K., ... & Hubbard, S. (2022). **Surface parameters and bedrock properties covary across a mountainous watershed: Insights from machine learning and geophysics.** *Science Advances,* 8(12), eabj2479.`https://doi.org/10.1126/sciadv.abj2479 <https://doi.org/10.1126/sciadv.abj2479>`__.
+
+Xi, C., Hu, X., Ma, G., Rezania, M., Liu, B., & He, K. (2022). **Predictive model of regional coseismic landslides’ permanent displacement considering uncertainty.** *Landslides,* 19(10), 2513-2534, `https://doi.org/10.1007/s10346-022-01918-3 <https://doi.org/10.1007/s10346-022-01918-3>`__.
+
+Zhao, H., Lin, Y., Zhou, J., Delang, C. O., & He, H. (2022). **Simulation of Holocene soil erosion and sediment deposition processes in the Yellow River basin during the Holocene.** *Catena,* 219, 106600, `https://doi.org/10.1016/j.catena.2022.106600 <https://doi.org/10.1016/j.catena.2022.106600>`__.
 
 2021
 ----
@@ -37,6 +60,10 @@ Hooshyar, M., & Porporato, A. (2021). **Mean Dynamics and Elevation‐Contributi
 Lai, J., & Anders, A. M. (2021). **Climatic controls on mountain glacier basal thermal regimes dictate spatial patterns of glacial erosion.** *Earth Surface Dynamics*, 9(4), 845-859, `https://doi.org/10.5194/esurf-9-845-2021 <https://doi.org/10.5194/esurf-9-845-2021>`__.
 
 Lipp, A. G., & Roberts, G. G. (2021). **Scale‐Dependent Flow Directions of Rivers and the Importance of Subplate Support.** *Geophysical Research Letters,* 48(1), e2020GL091107, `https://doi.org/10.1029/2020GL091107 <https://doi.org/10.1029/2020GL091107>`__.
+
+Lipp, A. G., Roberts, G. G., Whittaker, A. C., Gowing, C. J., & Fernandes, V. M. (2021). **Source region geochemistry from unmixing downstream sedimentary elemental compositions.** *Geochemistry, Geophysics, Geosystems,* 22(10), e2021GC009838, `https://doi.org/10.1029/2021GC009838 <https://doi.org/10.1029/2021GC009838>`__.
+
+O’Malley, C. P. B., White, N. J., Stephenson, S. N., & Roberts, G. G. (2021). **Large‐scale tectonic forcing of the African landscape.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006345 https://doi.org/10.1029/2021JF006345.
 
 Pan, B., Cai, S., & Geng, H. (2021). **Numerical simulation of landscape evolution and mountain uplift history constrain-A case study from the youthful stage mountains around the central Hexi Corridor, NE Tibetan Plateau.** *Science China Earth Sciences,* 1-13, `https://doi.org/10.1007/s11430-020-9716-6 <https://doi.org/10.1007/s11430-020-9716-6>`__.
 
@@ -113,6 +140,13 @@ feedbacks.** *Geology*,
 `doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal
 contributions
 
+Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch,
+L. Setiawan, and S. D. Mooney (2019). **Automated retrieval,
+preprocessing, and visualization of gridded hydrometeorology data
+products for spatial-temporal exploratory analysis and
+intercomparison.** Environmental Modeling and Software. Vol 116.
+p. 119-30: https://linkinghub.elsevier.com/retrieve/pii/S136481521830865X.
+
 Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research: Solid Earth*, 124, `doi:10.1029/2019JB018596 <https://doi.org/10.1029/2019JB018596>`__.
 
 Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of
@@ -125,13 +159,6 @@ Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019).
 (Kurdistan Region of Iraq): Constrained by geomorphic indices and
 landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
 `doi:10.5194/se-10-663-2019 <https://www.solid-earth.net/10/663/2019/>`__.
-
-Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch,
-L. Setiawan, and S. D. Mooney (2019). **Automated retrieval,
-preprocessing, and visualization of gridded hydrometeorology data
-products for spatial-temporal exploratory analysis and
-intercomparison.** Environmental Modeling and Software. Vol 116.
-p. 119-30: https://linkinghub.elsevier.com/retrieve/pii/S136481521830865X.
 
 2018
 ----

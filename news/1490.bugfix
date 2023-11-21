@@ -1,2 +1,0 @@
-Fixed a bug in the *HyLandsTutorial* notebook where the *BedrockLandslider*'s
-*topographic__elevation* field was not being updated correctly.

@@ -44,12 +44,12 @@ def _deposit_or_erode(layers, n_layers, dz):
     this array is created with np.empty, but that creates different numbers
     every time and doesn't work for testing.
 
-    >>> allocated_layers_array = np.full((4, 3), 0.)
+    >>> allocated_layers_array = np.full((4, 3), 0.0)
 
     Next we add a layer with spatially variable thickness. We specify that the
     number of active layers (including the one being added) is 1.
 
-    >>> dz = np.array([1., 2., 3.])
+    >>> dz = np.array([1.0, 2.0, 3.0])
     >>> _deposit_or_erode(allocated_layers_array, 1, dz)
     >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
@@ -64,7 +64,7 @@ def _deposit_or_erode(layers, n_layers, dz):
     Next we add a layer of thickness 1. To do this, we now need to specify that
     the number of active layers is 2.
 
-    >>> dz = np.array([1., 1., 1.])
+    >>> dz = np.array([1.0, 1.0, 1.0])
     >>> _deposit_or_erode(allocated_layers_array, 2, dz)
     >>> allocated_layers_array
     array([[ 1.,  2.,  3.],
@@ -75,14 +75,14 @@ def _deposit_or_erode(layers, n_layers, dz):
     Finally, we do some erosion. We specify that the number of active layers is
     3 and give a spatially variable field of erosion and deposition.
 
-    >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
+    >>> _deposit_or_erode(allocated_layers_array, 3, [1.0, -1.0, -2.0])
     >>> allocated_layers_array
     array([[ 1.,  2.,  2.],
            [ 1.,  0.,  0.],
            [ 1.,  0.,  0.],
            [ 0.,  0.,  0.]])
 
-    >>> _deposit_or_erode(allocated_layers_array, 3, [1., -1., -2.])
+    >>> _deposit_or_erode(allocated_layers_array, 3, [1.0, -1.0, -2.0])
     >>> allocated_layers_array
     array([[ 1.,  1.,  0.],
            [ 1.,  0.,  0.],
@@ -117,11 +117,10 @@ def _get_surface_index(layers, n_layers, surface_index):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.layers.eventlayers import (_deposit_or_erode,
-    ...                                         _get_surface_index)
+    >>> from landlab.layers.eventlayers import _deposit_or_erode, _get_surface_index
 
-    >>> layers = np.full((5, 3), 1.)
-    >>> dz = np.array([-1., -2., -3.])
+    >>> layers = np.full((5, 3), 1.0)
+    >>> dz = np.array([-1.0, -2.0, -3.0])
 
     Note here, if you are very confused by the use of ``_deposit_or_erode``
     we recommend you read the docstring associated with that function.
@@ -409,19 +408,19 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
     >>> layers = _allocate_layers_for(3, 2, 4)
     >>> layers.shape == (2, 4)
     True
-    >>> layers.dtype.kind == 'i'
+    >>> layers.dtype.kind == "i"
     True
 
     >>> layers = _allocate_layers_for(np.zeros(4), 2, 4)
     >>> layers.shape == (2, 4)
     True
-    >>> layers.dtype.kind == 'f'
+    >>> layers.dtype.kind == "f"
     True
 
     >>> layers = _allocate_layers_for(np.zeros(2), 2, 4)
     >>> layers.shape == (2, 4, 2)
     True
-    >>> layers.dtype.kind == 'f'
+    >>> layers.dtype.kind == "f"
     True
     """
     array = np.asarray(array)
@@ -497,7 +496,7 @@ class EventLayers:
 
     Add a second layer with uneven thickness.
 
-    >>> layers.add([1., 2., .5, 5., 0.])
+    >>> layers.add([1.0, 2.0, 0.5, 5.0, 0.0])
     >>> layers.dz
     array([[ 1.5,  1.5,  1.5,  1.5,  1.5],
            [ 1. ,  2. ,  0.5,  5. ,  0. ]])
@@ -575,7 +574,7 @@ class EventLayers:
         >>> layers = EventLayers(3)
         >>> layers.tracking
         []
-        >>> layers.add(1., age=1.)
+        >>> layers.add(1.0, age=1.0)
         >>> layers.tracking
         ['age']
         """
@@ -610,8 +609,8 @@ class EventLayers:
 
         After adding some layers, the stacks have varying thicknesses.
 
-        >>> layers.add(15.)
-        >>> layers.add([1., -1., 2.])
+        >>> layers.add(15.0)
+        >>> layers.add([1.0, -1.0, 2.0])
         >>> layers.thickness
         array([ 16.,  14.,  17.])
         """
@@ -637,8 +636,8 @@ class EventLayers:
 
         After adding some layers, elevations are to the top of each layer.
 
-        >>> layers.add(15.)
-        >>> layers.add([1., -1., 2.])
+        >>> layers.add(15.0)
+        >>> layers.add([1.0, -1.0, 2.0])
         >>> layers.dz
         array([[ 15.,  14.,  15.],
                [  1.,   0.,   2.]])
@@ -668,8 +667,8 @@ class EventLayers:
         Now add two layers, the first of uniform thickness and the
         second non-uniform and with some erosion.
 
-        >>> layers.add(15.)
-        >>> layers.add([1., -1., 2.])
+        >>> layers.add(15.0)
+        >>> layers.add([1.0, -1.0, 2.0])
         >>> layers.dz
         array([[ 15.,  14.,  15.],
                [  1.,   0.,   2.]])
@@ -688,8 +687,8 @@ class EventLayers:
         >>> layers.number_of_layers
         0
 
-        >>> layers.add(15.)
-        >>> layers.add([1., -1., 2.])
+        >>> layers.add(15.0)
+        >>> layers.add([1.0, -1.0, 2.0])
         >>> layers.number_of_layers
         2
         """
@@ -709,12 +708,14 @@ class EventLayers:
         >>> layers.allocated == 0
         True
 
-        >>> layers.add(15.)
+        >>> layers.add(15.0)
         >>> layers.number_of_layers
         1
         >>> layers.allocated == 7
         True
-        >>> for _ in range(layers.allocated): layers.add(0.)
+        >>> for _ in range(layers.allocated):
+        ...     layers.add(0.0)
+        ...
         >>> layers.number_of_layers
         8
         >>> layers.allocated == 15
@@ -730,12 +731,14 @@ class EventLayers:
         >>> layers.allocated == 15
         True
 
-        >>> layers.add(15.)
+        >>> layers.add(15.0)
         >>> layers.number_of_layers
         1
         >>> layers.allocated == 15
         True
-        >>> for _ in range(layers.allocated): layers.add(0.)
+        >>> for _ in range(layers.allocated):
+        ...     layers.add(0.0)
+        ...
         >>> layers.number_of_layers
         16
         >>> layers.allocated == 24
@@ -771,7 +774,7 @@ class EventLayers:
 
         Add a second layer with uneven thickness.
 
-        >>> layers.add([1., 2., .5])
+        >>> layers.add([1.0, 2.0, 0.5])
         >>> layers.dz
         array([[ 1.5,  1.5,  1.5],
                [ 1. ,  2. ,  0.5]])
@@ -791,32 +794,32 @@ class EventLayers:
         were a dictionary.
 
         >>> layers = EventLayers(3)
-        >>> layers.add(1., age=3.)
+        >>> layers.add(1.0, age=3.0)
         >>> layers.dz
         array([[ 1.,  1.,  1.]])
-        >>> layers['age']
+        >>> layers["age"]
         array([[ 3.,  3.,  3.]])
-        >>> layers.add(2., age=6.)
-        >>> layers['age']
+        >>> layers.add(2.0, age=6.0)
+        >>> layers["age"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.]])
 
         Attributes for each layer will exist even if the the layer is
         associated with erosion.
 
-        >>> layers.add([-2, -1, 1], age=8.)
+        >>> layers.add([-2, -1, 1], age=8.0)
         >>> layers.dz
         array([[ 1.,  1.,  1.],
                [ 0.,  1.,  2.],
                [ 0.,  0.,  1.]])
-        >>> layers['age']
+        >>> layers["age"]
         array([[ 3.,  3.,  3.],
                [ 6.,  6.,  6.],
                [ 8.,  8.,  8.]])
 
         To get the values at the surface of the layer stack:
 
-        >>> layers.get_surface_values('age')
+        >>> layers.get_surface_values("age")
         array([ 3.,  6.,  8.])
         """
         if self.number_of_layers == 0:
@@ -832,12 +835,10 @@ class EventLayers:
         for name in kwds:
             try:
                 self[name][-1] = kwds[name]
-            except KeyError:
+            except KeyError as exc:
                 raise ValueError(
-                    "EventLayers: {} is not being tracked. Error in adding.".format(
-                        name
-                    )
-                )
+                    f"{name!r} is not being tracked. Error in adding."
+                ) from exc
 
     def reduce(self, *args, **kwds):
         """reduce([start], stop, [step])
@@ -865,7 +866,7 @@ class EventLayers:
 
         Add a second layer with uneven thickness.
 
-        >>> layers.add([1., 2., .5])
+        >>> layers.add([1.0, 2.0, 0.5])
         >>> layers.dz
         array([[ 1.5,  1.5,  1.5],
                [ 1. ,  2. ,  0.5]])
@@ -879,8 +880,8 @@ class EventLayers:
         Add two additional layers to the top. The bottom-most layer is row
         0, and the two new layers are rows 1 and 2.
 
-        >>> layers.add([1., 2., .5])
-        >>> layers.add([1., 2., .5])
+        >>> layers.add([1.0, 2.0, 0.5])
+        >>> layers.add([1.0, 2.0, 0.5])
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ],
                [ 1. ,  2. ,  0.5],
@@ -893,8 +894,8 @@ class EventLayers:
         array([[ 2.5,  3.5,  2. ],
                [ 2. ,  4. ,  1. ]])
 
-        >>> layers.add([1., 2., .5])
-        >>> layers.add([1., 2., .5])
+        >>> layers.add([1.0, 2.0, 0.5])
+        >>> layers.add([1.0, 2.0, 0.5])
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ],
                [ 2. ,  4. ,  1. ],
@@ -908,7 +909,7 @@ class EventLayers:
         array([[ 2.5,  3.5,  2. ],
                [ 3. ,  6. ,  1.5],
                [ 1. ,  2. ,  0.5]])
-        >>> layers.add([1., 1., 1.])
+        >>> layers.add([1.0, 1.0, 1.0])
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ],
                [ 3. ,  6. ,  1.5],
@@ -927,15 +928,15 @@ class EventLayers:
         can be combined in other ways (e.g. max, or mean)
 
         >>> layers = EventLayers(3)
-        >>> layers.add([1, 1, 1], age=0.)
-        >>> layers.add([1, 2, 5], age=1.)
-        >>> layers.add([2, 2, 2], age=2.)
+        >>> layers.add([1, 1, 1], age=0.0)
+        >>> layers.add([1, 2, 5], age=1.0)
+        >>> layers.add([2, 2, 2], age=2.0)
         >>> layers.reduce(age=np.max)
         >>> layers["age"]
         array([[ 2.,  2.,  2.]])
 
-        >>> layers.add([2, 2, 2], age=3.)
-        >>> layers.add([2, 2, 2], age=4.)
+        >>> layers.add([2, 2, 2], age=3.0)
+        >>> layers.add([2, 2, 2], age=4.0)
         >>> layers.reduce(1, 3, age=np.mean)
         >>> layers["age"]
         array([[ 2. ,  2. ,  2. ],
@@ -976,7 +977,9 @@ class EventLayers:
 
         Add a layer with a uniform thickness.
 
-        >>> for _ in range(5): layers.add(1.0)
+        >>> for _ in range(5):
+        ...     layers.add(1.0)
+        ...
         >>> layers.surface_index
         array([4, 4, 4])
 
