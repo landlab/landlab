@@ -223,7 +223,6 @@ def test_wt_above_surface_adaptive_run_step():
 
 
 def test_inactive_interior_node():
-
     """
     Test that component returns correct values for recharge flux and
     storage when an interior node is INACTIVE

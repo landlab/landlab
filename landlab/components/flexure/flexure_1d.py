@@ -10,10 +10,8 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure1D
->>> grid = RasterModelGrid((3, 4), xy_spacing=(1.e4, 1.e4))
->>> lith_press = grid.add_zeros(
-...     "node",
-...     "lithosphere__increment_of_overlying_pressure")
+>>> grid = RasterModelGrid((3, 4), xy_spacing=(1.0e4, 1.0e4))
+>>> lith_press = grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
 
 Because `Flexure1D` is a one-dimensional component, it operates
 *independently* on each row of grid nodes. By default, it will
@@ -32,7 +30,7 @@ If the grid already had this field, the component would use the
 existing field. This can be accessed either through the *grid*
 attribute in the same way as other landlab fields,
 
->>> flex.grid.at_node['lithosphere__increment_of_overlying_pressure']
+>>> flex.grid.at_node["lithosphere__increment_of_overlying_pressure"]
 array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
 or through the `load_at_node` attribute of `Flexure1D`,
@@ -52,7 +50,7 @@ array to add loads to the grid,
 The output deflections can be retrieved either using landlab fields
 as,
 
->>> flex.grid.at_node['lithosphere_surface__increment_of_elevation']
+>>> flex.grid.at_node["lithosphere_surface__increment_of_elevation"]
 array([ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
 
 or through the `dz_at_node` attribute,
@@ -101,10 +99,10 @@ class Flexure1D(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure1D
-    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.0e4, 1.0e4))
     >>> lith_press = grid.add_zeros(
-    ...     "node",
-    ...     "lithosphere__increment_of_overlying_pressure")
+    ...     "node", "lithosphere__increment_of_overlying_pressure"
+    ... )
     >>> flex = Flexure1D(grid)
     >>> flex.name
     '1D Flexure Equation'
@@ -112,7 +110,7 @@ class Flexure1D(Component):
     ('lithosphere__increment_of_overlying_pressure',)
     >>> flex.output_var_names
     ('lithosphere_surface__increment_of_elevation',)
-    >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(flex.units)
     [('lithosphere__increment_of_overlying_pressure', 'Pa'),
      ('lithosphere_surface__increment_of_elevation', 'm')]
 
@@ -123,23 +121,23 @@ class Flexure1D(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__increment_of_elevation"] == 0.0)
     True
 
-    >>> np.all(grid.at_node['lithosphere__increment_of_overlying_pressure'] == 0.)
+    >>> np.all(grid.at_node["lithosphere__increment_of_overlying_pressure"] == 0.0)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__increment_of_elevation"] == 0.0)
     True
 
-    >>> load = grid.at_node['lithosphere__increment_of_overlying_pressure']
+    >>> load = grid.at_node["lithosphere__increment_of_overlying_pressure"]
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere_surface__increment_of_elevation']
-    >>> np.all(dz == 0.)
+    >>> dz = grid.at_node["lithosphere_surface__increment_of_elevation"]
+    >>> np.all(dz == 0.0)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__increment_of_elevation"] == 0.0)
     False
     """
 
@@ -162,7 +160,10 @@ class Flexure1D(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+            "doc": (
+                "The change in elevation of the top of the lithosphere (the "
+                "land surface) in one timestep"
+            ),
         },
     }
 

@@ -57,9 +57,9 @@ class OverlandFlowBates(Component):
 
     Examples
     --------
-    >>> DEM_name = 'DEM_name.asc'
-    >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-    >>> of = OverlandFlowBates(rg) # doctest: +SKIP
+    >>> DEM_name = "DEM_name.asc"
+    >>> (rg, z) = read_esri_ascii(DEM_name)  # doctest: +SKIP
+    >>> of = OverlandFlowBates(rg)  # doctest: +SKIP
 
     References
     ----------
@@ -175,7 +175,6 @@ class OverlandFlowBates(Component):
         self._dt = dt
 
     def calc_time_step(self):
-
         # Adaptive time stepper from Bates et al., 2010 and de Almeida et al.,
         # 2012
         self._dt = (

@@ -322,10 +322,10 @@ def test_grid_from_dict_radial(xy_of_center):
 @pytest.mark.parametrize(
     "to_list",
     (
-        lambda l: ((k, v) for k, v in l),
-        lambda l: tuple((k, v) for k, v in l),
-        lambda l: [[k, v] for k, v in l],
-        lambda l: [{k: v} for k, v in l],
+        lambda items: ((k, v) for k, v in items),
+        lambda items: tuple((k, v) for k, v in items),
+        lambda items: [[k, v] for k, v in items],
+        lambda items: [{k: v} for k, v in items],
         OrderedDict,
     ),
 )
@@ -425,10 +425,10 @@ def test_add_field_from_function_constant_as_dict(at):
 @pytest.mark.parametrize(
     "to_list",
     (
-        lambda l: ((k, v) for k, v in l),
-        lambda l: tuple((k, v) for k, v in l),
-        lambda l: [[k, v] for k, v in l],
-        lambda l: [{k: v} for k, v in l],
+        lambda items: ((k, v) for k, v in items),
+        lambda items: tuple((k, v) for k, v in items),
+        lambda items: [[k, v] for k, v in items],
+        lambda items: [{k: v} for k, v in items],
     ),
 )
 @pytest.mark.parametrize("at", ("node", "link", "patch", "corner", "face", "cell"))
@@ -450,10 +450,10 @@ def test_add_field_from_function_with_list(at, to_list):
 @pytest.mark.parametrize(
     "to_list",
     (
-        lambda l: ((k, v) for k, v in l),
-        lambda l: tuple((k, v) for k, v in l),
-        lambda l: [[k, v] for k, v in l],
-        lambda l: [{k: v} for k, v in l],
+        lambda items: ((k, v) for k, v in items),
+        lambda items: tuple((k, v) for k, v in items),
+        lambda items: [[k, v] for k, v in items],
+        lambda items: [{k: v} for k, v in items],
     ),
 )
 def test_add_boundary_conditions(to_list):

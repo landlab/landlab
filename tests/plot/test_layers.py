@@ -79,8 +79,7 @@ def test_interp_zero_crossings_bounds_error(shoreline):
 
 
 def test_interp_zero_crossings_last_element():
-    with pytest.raises(ValueError):
-        _interp_zero_crossings([1.0, 3.0, 5.0], [1, 1, 0], [2])
+    assert_array_equal(_interp_zero_crossings([1.0, 3.0, 5.0], [1, 1, 0], [2]), [5.0])
 
 
 def test_interp_shoreline_all_shoreline():

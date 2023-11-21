@@ -38,20 +38,23 @@ class _FlowDirectorToMany(_FlowDirector):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_director.flow_director_to_many import(
-    ... _FlowDirectorToMany)
-    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> from landlab.components.flow_director.flow_director_to_many import (
+    ...     _FlowDirectorToMany,
+    ... )
+    >>> mg = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
     ...     at="node",
     ... )
-    >>> fd = _FlowDirectorToMany(mg, 'topographic__elevation')
+    >>> fd = _FlowDirectorToMany(mg, "topographic__elevation")
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__link_to_receiver_node', 'flow__receiver_node', 'flow__receiver_proportions', 'flow__sink_flag', 'topographic__elevation', 'topographic__steepest_slope']
+    ['flow__link_to_receiver_node', 'flow__receiver_node',
+     'flow__receiver_proportions', 'flow__sink_flag', 'topographic__elevation',
+     'topographic__steepest_slope']
     """
 
     _name = "FlowDirectorToMany"

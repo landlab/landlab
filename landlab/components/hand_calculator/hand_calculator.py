@@ -33,9 +33,15 @@ class HeightAboveDrainageCalculator(Component):
 
     >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> mg.set_status_at_node_on_edges(right=mg.BC_NODE_IS_CLOSED, bottom=mg.BC_NODE_IS_FIXED_VALUE, \
-                                  left=mg.BC_NODE_IS_CLOSED, top=mg.BC_NODE_IS_CLOSED)
-    >>> elev = np.array([[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4],[5,4,4,4,5]])
+    >>> mg.set_status_at_node_on_edges(
+    ...     right=mg.BC_NODE_IS_CLOSED,
+    ...     bottom=mg.BC_NODE_IS_FIXED_VALUE,
+    ...     left=mg.BC_NODE_IS_CLOSED,
+    ...     top=mg.BC_NODE_IS_CLOSED,
+    ... )
+    >>> elev = np.array(
+    ...     [[2, 1, 0, 1, 2], [3, 2, 1, 2, 3], [4, 3, 2, 3, 4], [5, 4, 4, 4, 5]]
+    ... )
     >>> z[:] = elev.reshape(len(z))
     >>> elev
     array([[2, 1, 0, 1, 2],
@@ -47,7 +53,7 @@ class HeightAboveDrainageCalculator(Component):
     >>> fa.run_one_step()
 
     >>> channel__mask = mg.zeros(at="node")
-    >>> channel__mask[[2,7]] = 1
+    >>> channel__mask[[2, 7]] = 1
     >>> channel__mask.reshape(elev.shape)
     array([[ 0.,  0.,  1.,  0.,  0.],
        [ 0.,  0.,  1.,  0.,  0.],
@@ -57,7 +63,7 @@ class HeightAboveDrainageCalculator(Component):
     >>> hd = HeightAboveDrainageCalculator(mg, channel_mask=channel__mask)
     >>> hd.run_one_step()
 
-    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> mg.at_node["height_above_drainage__elevation"].reshape(elev.shape)
     array([[ 2.,  0.,  0.,  0.,  0.],
            [ 3.,  2.,  0.,  2.,  3.],
            [ 4.,  2.,  1.,  2.,  4.],
@@ -137,14 +143,13 @@ class HeightAboveDrainageCalculator(Component):
         super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            msg = (
+            raise NotImplementedError(
                 "A route-to-multiple flow director has been "
                 "run on this grid. The landlab development team has not "
                 "verified that HeightAboveDrainageCalculator is compatible with "
                 "route-to-multiple methods. Please open a GitHub Issue "
                 "to start this process."
             )
-            raise NotImplementedError(msg)
 
         self._grid = grid
         self._channel_mask = return_array_at_node(self._grid, channel_mask)
@@ -166,7 +171,6 @@ class HeightAboveDrainageCalculator(Component):
         self._channel_mask = return_array_at_node(self._grid, new_val)
 
     def run_one_step(self):
-
         is_drainage_node = self._channel_mask
         is_drainage_node[self._grid.open_boundary_nodes] = 1
 

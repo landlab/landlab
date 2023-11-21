@@ -50,8 +50,8 @@ def grid_from_dict(grid_type, params):
     """Create a grid from a dictionary of parameters."""
     try:
         cls = _MODEL_GRIDS[grid_type]
-    except KeyError:
-        raise ValueError(f"unknown grid type ({grid_type})")
+    except KeyError as exc:
+        raise ValueError(f"unknown grid type ({grid_type})") from exc
     args, kwargs = _parse_args_kwargs(params)
     return cls(*args, **kwargs)
 
@@ -63,10 +63,10 @@ def grids_from_file(file_like, section=None):
     if section:
         try:
             grids = params[section]
-        except KeyError:  # TODO: not tested.
+        except KeyError as exc:  # TODO: not tested.
             raise ValueError(
                 f"missing required section ({section})"
-            )  # TODO: not tested.
+            ) from exc  # TODO: not tested.
     else:  # TODO: not tested.
         grids = params  # TODO: not tested.
 
@@ -142,15 +142,13 @@ def add_boundary_conditions(grid, boundary_conditions=()):
         args, kwargs = _parse_args_kwargs(bc_args)
         try:
             func = getattr(grid, bc_name)
-        except AttributeError:
+        except AttributeError as exc:
             raise ValueError(
-                "create_grid: No function {func} exists for grid types {grid}."
-                "If you think this type of grid should have such a "
-                "function. Please create a GitHub Issue to discuss "
-                "contributing it to the Landlab codebase.".format(
-                    func=bc_name, grid=grid.__class__.__name__
-                )
-            )
+                f"create_grid: No function {bc_name} exists for grid types "
+                f"{grid.__class__.__name__}. If you think this type of grid "
+                "should have such a function. Please create a GitHub Issue to "
+                "discuss contributing it to the Landlab codebase."
+            ) from exc
         else:
             func(*args, **kwargs)
 
@@ -326,20 +324,31 @@ def create_grid(file_like, section=None):
     ...                 "fields": {
     ...                     "node": {
     ...                         "spam": {
-    ...                             "plane": [{"point": (1, 1, 1), "normal": (-2, -1, 1)}],
+    ...                             "plane": [
+    ...                                 {"point": (1, 1, 1), "normal": (-2, -1, 1)}
+    ...                             ],
     ...                             "random": [
     ...                                 {"distribution": "uniform", "low": 1, "high": 4}
     ...                             ],
     ...                         }
     ...                     },
     ...                     "link": {
-    ...                         "eggs": {"constant": [{"where": "ACTIVE_LINK", "value": 12}]}
+    ...                         "eggs": {
+    ...                             "constant": [{"where": "ACTIVE_LINK", "value": 12}]
+    ...                         }
     ...                     },
     ...                 }
     ...             },
     ...             {
     ...                 "boundary_conditions": [
-    ...                     {"set_closed_boundaries_at_grid_edges": [True, True, True, True]}
+    ...                     {
+    ...                         "set_closed_boundaries_at_grid_edges": [
+    ...                             True,
+    ...                             True,
+    ...                             True,
+    ...                             True,
+    ...                         ]
+    ...                     }
     ...                 ]
     ...             },
     ...         ]
@@ -362,7 +371,7 @@ def create_grid(file_like, section=None):
            4, 0, 0, 0, 4,
            4, 0, 0, 0, 4,
            4, 4, 4, 4, 4], dtype=uint8)
-    >>> np.round(mg.at_node['spam'].reshape(mg.shape), decimals=2)
+    >>> np.round(mg.at_node["spam"].reshape(mg.shape), decimals=2)
     array([[  0.12,   7.85,  13.2 ,  18.8 ,  23.47],
            [  3.47,   9.17,  17.6 ,  22.8 ,  29.12],
            [  7.06,  15.91,  21.5 ,  25.64,  31.55],
@@ -404,9 +413,7 @@ def norm_grid_description(grid_desc):
     --------
     >>> from landlab.grid.create import norm_grid_description
 
-    >>> grid_desc = [
-    ...     (3, 4), {"xy_spacing": 4.0, "xy_of_lower_left": (1.0, 2.0)}
-    ... ]
+    >>> grid_desc = [(3, 4), {"xy_spacing": 4.0, "xy_of_lower_left": (1.0, 2.0)}]
     >>> normed_items = list(norm_grid_description(grid_desc).items())
     >>> normed_items.sort()
     >>> normed_items

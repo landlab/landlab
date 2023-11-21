@@ -86,6 +86,7 @@ class GravelRiverTransporter(Component):
     ...     fa.run_one_step()
     ...     elev[grid.core_nodes] += 1.0
     ...     transporter.run_one_step(10000.0)
+    ...
     >>> int(elev[4] * 100)
     2366
     """
@@ -221,7 +222,9 @@ class GravelRiverTransporter(Component):
 
             from landlab.utils.matrix import get_core_node_at_node
 
-            warnings.warn("Matrix-based solver is experimental & not fully tested")
+            warnings.warn(
+                "Matrix-based solver is experimental & not fully tested", stacklevel=2
+            )
             self.run_one_step = self.run_one_step_matrix_inversion
             self._mat, self._rhs = make_empty_matrix_and_rhs(grid)
             self._mat_id = np.zeros(grid.number_of_nodes, dtype=int)
@@ -329,7 +332,7 @@ class GravelRiverTransporter(Component):
         >>> width = transporter.calc_implied_width()
         >>> int(width[4] * 100)
         3833
-        >>> grid.at_node["surface_water__discharge"] *= 1. / (3600 * 24 * 365.25)
+        >>> grid.at_node["surface_water__discharge"] *= 1.0 / (3600 * 24 * 365.25)
         >>> width = transporter.calc_implied_width(time_unit="s")
         >>> int(width[4] * 100)
         3838

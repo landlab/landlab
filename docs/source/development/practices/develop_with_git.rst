@@ -132,8 +132,7 @@ again, it's time to merge it back into the master. This procedure
 generally works best if you first pull any changes from the main Landlab
 master branch (not just the master branch on your fork) into your active
 branch, and resolve any conflicts there (so you don't mess up the
-master). To do this, refer to the documentation on
-:ref:`updating your fork from the master fork<updating>`.
+master).
 Once you've done that pull, in git at the command line, make the master
 your active branch again then *merge* the branch:
 
@@ -157,7 +156,7 @@ Landlab, we'd like to incorporate your changes back into the main code
 of Landlab so everyone can benefit from your enhancements. This is done
 by creating a *pull request* from your fork into the Landlab master
 fork. This is basically the inverse process you use to update your fork
-from the master fork, as described :ref:`here<updating>`
+from the master fork
 (but in this case, one of us will review your changes before it gets
 merged in).
 
@@ -167,7 +166,7 @@ The next page shows you which branch on which fork (the "head") will be
 merged into which other branch and fork (the "base"). These details
 should all be correct as shown. There may well be conflicts reported on
 this page. If there are, consider
-:ref:`updating your fork from the master fork<updating>`
+updating your fork from the master fork
 before finalising the request. Once you're ready to go, click the next
 "Create pull request" green button. You'll be redirected to a discussion
 page for your request, and it will be visible to all of the admins for

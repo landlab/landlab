@@ -94,7 +94,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "Pa",
             "mapping": "node",
-            "doc": "Shear exerted on the bed of the channel, assuming all discharge travels along a single, self-formed channel",
+            "doc": (
+                "Shear exerted on the bed of the channel, assuming all "
+                "discharge travels along a single, self-formed channel"
+            ),
         },
         "channel__depth": {
             "dtype": float,
@@ -110,7 +113,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Volumetric water flux of the a single channel carrying all runoff through the node",
+            "doc": (
+                "Volumetric water flux of the a single channel carrying all "
+                "runoff through the node"
+            ),
         },
         "channel__width": {
             "dtype": float,
@@ -126,7 +132,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "The fluvial_sediment_flux_into_node divided by the fluvial_sediment_transport_capacity",
+            "doc": (
+                "The fluvial_sediment_flux_into_node divided by the "
+                "fluvial_sediment_transport_capacity"
+            ),
         },
         "channel_sediment__volumetric_flux": {
             "dtype": float,
@@ -142,7 +151,10 @@ class SedDepEroder(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Volumetric transport capacity of a channel carrying all runoff through the node, assuming the Meyer-Peter Muller transport equation",
+            "doc": (
+                "Volumetric transport capacity of a channel carrying all runoff "
+                "through the node, assuming the Meyer-Peter Muller transport equation"
+            ),
         },
         "drainage_area": {
             "dtype": float,
@@ -416,7 +428,7 @@ class SedDepEroder(Component):
                 # manually set.
                 # print("Found a shear stress threshold to use: ", self._thresh)
             else:
-                warnings.warn("Found no incision threshold to use.")
+                warnings.warn("Found no incision threshold to use.", stacklevel=2)
                 self._thresh = 0.0
                 self._set_threshold = False
             self._a = a_sp
@@ -427,7 +439,7 @@ class SedDepEroder(Component):
             self._k_w = k_w
             self._mannings_n = mannings_n
             if mannings_n < 0.0 or mannings_n > 0.2:
-                warnings.warn("Manning's n outside it's typical range")
+                warnings.warn("Manning's n outside it's typical range", stacklevel=2)
 
             self._diffusivity_power_on_A = 0.9 * self._c * (1.0 - self._b)
             # ^i.e., q/D**(1/6)
@@ -1082,50 +1094,52 @@ class SedDepEroder(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator, SedDepEroder
-        >>> mg1 = RasterModelGrid((3,4))
+        >>> mg1 = RasterModelGrid((3, 4))
         >>> z1 = mg1.add_zeros("node", "topographic__elevation")
         >>> fa1 = FlowAccumulator(mg1)
-        >>> thresh_shields = np.arange(1, mg1.number_of_nodes+1, dtype=float)
-        >>> thresh_shields /= 100.
+        >>> thresh_shields = np.arange(1, mg1.number_of_nodes + 1, dtype=float)
+        >>> thresh_shields /= 100.0
         >>> sde1 = SedDepEroder(
         ...     mg1,
-        ...     threshold_shear_stress=100.,
-        ...     Qc='MPM',
+        ...     threshold_shear_stress=100.0,
+        ...     Qc="MPM",
         ...     Dchar=None,
         ...     set_threshold_from_Dchar=False,
         ...     set_Dchar_from_threshold=True,
         ...     threshold_Shields=thresh_shields,
-        ...     g=9.81)
-        >>> sde1.characteristic_grainsize
-        array([ 0.59962823,  0.29981412,  0.19987608,  0.14990706,  0.11992565,
-                0.09993804,  0.08566118,  0.07495353,  0.06662536,  0.05996282,
-                0.05451166,  0.04996902])
+        ...     g=9.81,
+        ... )
+        >>> sde1.characteristic_grainsize.reshape(mg1.shape)
+        array([[ 0.59962823,  0.29981412,  0.19987608,  0.14990706],
+               [ 0.11992565,  0.09993804,  0.08566118,  0.07495353],
+               [ 0.06662536,  0.05996282,  0.05451166,  0.04996902]])
 
-        >>> mg2 = RasterModelGrid((3,4))
+        >>> mg2 = RasterModelGrid((3, 4))
         >>> z2 = mg2.add_zeros("node", "topographic__elevation")
         >>> fa2 = FlowAccumulator(mg2)
         >>> sde2 = SedDepEroder(
         ...     mg2,
-        ...     threshold_shear_stress=100.,
-        ...     Qc='MPM',
+        ...     threshold_shear_stress=100.0,
+        ...     Qc="MPM",
         ...     Dchar=None,
         ...     set_threshold_from_Dchar=False,
         ...     set_Dchar_from_threshold=True,
         ...     threshold_Shields=None,
         ...     slope_sensitive_threshold=True,
-        ...     g=9.81)
-        >>> S = mg2['node']['topographic__steepest_slope']
+        ...     g=9.81,
+        ... )
+        >>> S = mg2.at_node["topographic__steepest_slope"]
         >>> S[:] = 0.05  # thresh = 100 Pa @ 5pc slope
-        >>> sde2.characteristic_grainsize  # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.08453729,  0.08453729,  0.08453729,  0.08453729,
-                0.08453729,  0.08453729,  0.08453729,  0.08453729,
-                0.08453729,  0.08453729,  0.08453729,  0.08453729])
+        >>> sde2.characteristic_grainsize.reshape(mg2.shape)
+        array([[ 0.08453729,  0.08453729,  0.08453729,  0.08453729],
+               [ 0.08453729,  0.08453729,  0.08453729,  0.08453729],
+               [ 0.08453729,  0.08453729,  0.08453729,  0.08453729]])
         """
         # Dchar is None means self._lamb_flag, Dchar is spatially variable,
         # and not calculated until the main loop
-        assert self._Qc == "MPM", (
-            "Characteristic grainsize is only " + "calculated if Qc == 'MPM'"
-        )
+        assert (
+            self._Qc == "MPM"
+        ), "Characteristic grainsize is only calculated if Qc == 'MPM'"
         if self._Dchar_in is not None:
             return self._Dchar_in
         else:

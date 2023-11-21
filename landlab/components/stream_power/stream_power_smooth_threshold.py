@@ -55,11 +55,11 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4))
     >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("node", "topographic__elevation")
     >>> z[5] = 2.0
     >>> z[6] = 1.0
     >>> from landlab.components import FlowAccumulator
-    >>> fr = FlowAccumulator(rg, flow_director='D4')
+    >>> fr = FlowAccumulator(rg, flow_director="D4")
     >>> fr.run_one_step()
     >>> from landlab.components import StreamPowerSmoothThresholdEroder
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
@@ -103,8 +103,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
     _cite_as = """
     @article{barnhart2019terrain,
-      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
-      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M
+                and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in
+                long-term drainage basin evolution}},
       doi = {10.5194/gmd-12-1267-2019},
       pages = {1267---1297},
       number = {4},
@@ -257,10 +259,10 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((3, 3))
         >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("node", "topographic__elevation")
         >>> z[4] = 1.0
         >>> from landlab.components import FlowAccumulator
-        >>> fr = FlowAccumulator(rg, flow_director='D4')
+        >>> fr = FlowAccumulator(rg, flow_director="D4")
         >>> fr.run_one_step()
         >>> from landlab.components import StreamPowerSmoothThresholdEroder
         >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)

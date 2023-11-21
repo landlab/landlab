@@ -34,7 +34,7 @@ class DualGraphMeta(type):
 
                     See Also
                     --------
-                    Graph.{}
+                    :attr:`~{}`
                     """.format(
                         converter.conform(fdoc.splitlines()[0], "nlp"), name
                     )
@@ -69,7 +69,6 @@ class DualGraph(metaclass=DualGraphMeta):
         return self._create_link_at_face()
 
     def _create_link_at_face(self):
-
         link_at_nodes = {}
         for link, pair in enumerate(self.nodes_at_link):
             # pair.sort()

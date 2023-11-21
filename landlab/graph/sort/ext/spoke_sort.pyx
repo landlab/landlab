@@ -1,11 +1,11 @@
 import numpy as np
-cimport numpy as np
+
 cimport cython
-
-from libc.stdlib cimport malloc, free, qsort
+cimport numpy as np
 from libc.math cimport atan2
+from libc.stdlib cimport free, malloc, qsort
 
-from .argsort cimport argsort
+from .argsort cimport argsort_flt
 
 
 cdef _calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
@@ -35,8 +35,6 @@ cdef _argsort_spokes_around_hub(long * spokes, int n_spokes,
     cdef int spoke
     cdef double * points = <double *>malloc(2 * n_spokes * sizeof(double))
     cdef double * angles = <double *>malloc(n_spokes * sizeof(double))
-    # cdef int * ordered = <int *>malloc(n_spokes * sizeof(int))
-    # cdef int * temp = <int *>malloc(n_spokes * sizeof(int))
 
     try:
         point = 0
@@ -46,7 +44,7 @@ cdef _argsort_spokes_around_hub(long * spokes, int n_spokes,
             point += 2
 
         _calc_spoke_angles(xy_of_hub, points, n_spokes, angles)
-        argsort(angles, n_spokes, ordered)
+        argsort_flt(angles, n_spokes, ordered)
 
         # for spoke in range(n_spokes):
         #     temp[spoke] = spokes[ordered[spoke]]
@@ -135,7 +133,7 @@ def argsort_points_around_hub(np.ndarray[double, ndim=2, mode="c"] points,
 
     try:
         _calc_spoke_angles(&hub[0], &points[0, 0], n_points, angles)
-        argsort(angles, n_points, &out[0])
+        argsort_flt(angles, n_points, &out[0])
     finally:
       free(angles)
 

@@ -1,2 +1,0 @@
-Fixed a bug where the *tests* folder was also being installed in
-*site-packages*.
