@@ -119,7 +119,7 @@ class SnowEnergyBalance(Component):
             "optional": False,
             "units": "deg_C",
             "mapping": "node",
-            "doc": "",
+            "doc": "atmosphere bottom air temperature",
         },  # T_air
         "land_surface__temperature": {
             "dtype": float,
@@ -127,8 +127,8 @@ class SnowEnergyBalance(Component):
             "optional": False,
             "units": "deg_C",
             "mapping": "node",
-            "doc": "",
-        },  # T_surf
+            "doc": "land surface temperature",
+        },  # T_surf (snow pack temp)
         "land_surface_net-total-energy__energy_flux": {
             "dtype": float,
             "intent": "in",

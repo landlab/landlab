@@ -139,7 +139,7 @@ class SnowDegreeDay(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "total precipitation as snow (in water equivalent) during model time ",
+            "doc": "total precipitation as snow (in water equivalent) during model time",
         },  # variable defined by me
         "snowpack__time_integral_melt_volume_flux": {
             "dtype": float,

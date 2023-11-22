@@ -100,7 +100,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "deg_C",
             "mapping": "node",
-            "doc": "",
+            "doc": "atmosphere bottom air temperature",
         },  # T_air
         "land_surface__temperature": {
             "dtype": float,
@@ -108,7 +108,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "deg_C",
             "mapping": "node",
-            "doc": "",
+            "doc": "land surface temperature",
         },  # T_surf (snow pack temp)
         "land_surface__latitude": {
             "dtype": float,
@@ -116,7 +116,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "J kg-1 K-1",
             "mapping": "node",
-            "doc": "snow heat capacity",
+            "doc": "latitude",
         },  # lat_deg
         "land_surface__longitude": {
             "dtype": float,
@@ -124,7 +124,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "J kg-1 K-1",
             "mapping": "node",
-            "doc": "snow heat capacity",
+            "doc": "longitude",
         },  # lon_deg
         "land_surface__aspect_angle": {
             "dtype": float,
@@ -204,7 +204,7 @@ class Meteorology(Component):
             "optional": True,
             "units": "mbar",
             "mapping": "node",
-            "doc": "air water vapor relative saturation",
+            "doc": "bottom air pressure",
         },  # p0
         "atmosphere_bottom_air_flow__log_law_roughness_length": {
             "dtype": float,
@@ -228,7 +228,7 @@ class Meteorology(Component):
             "optional": True,
             "units": "m s-1",
             "mapping": "node",
-            "doc": "air flow speed reference height",
+            "doc": "air flow speed at reference height",
         },  # uz
         # output fields (18 var)
         "land_surface_net-total-energy__energy_flux": {
@@ -245,7 +245,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "W m-2",
             "mapping": "node",
-            "doc": "net short wave radiation energy flux",
+            "doc": "net shortwave radiation energy flux",
         },  # Qn_SW
         "land_surface_net-longwave-radiation__energy_flux": {
             "dtype": float,
@@ -253,7 +253,7 @@ class Meteorology(Component):
             "optional": False,
             "units": "W m-2",
             "mapping": "node",
-            "doc": "net long wave radiation energy flux",
+            "doc": "net longwave radiation energy flux",
         },  # Qn_LW
         "atmosphere_bottom_air_land_net-latent-heat__energy_flux": {
             "dtype": float,
