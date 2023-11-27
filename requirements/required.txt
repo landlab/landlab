@@ -8,4 +8,5 @@ pyyaml==6.0.1
 rich-click==1.7.0
 scipy==1.11.3
 statsmodels==0.14.0
+sympy==1.11.1
 xarray==2023.10.1
