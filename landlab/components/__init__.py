@@ -129,6 +129,7 @@ COMPONENTS = [
     LithoLayers,
     Lithology,
     LossyFlowAccumulator,
+    MassWastingRunout,
     NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,
