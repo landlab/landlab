@@ -8,18 +8,9 @@ A virtual environment is a self-contained directory tree that contains a Python 
 version of Python along with additional packages. It solves the problem of one application's
 package requirements conflicting with another's.
 
-Two popular tools used for creating virtual environments are the built-in *venv* module and *conda*
-(or the *much* faster and more reliable *mamba*). For virtual environments created using *conda*/*mamba*,
-you can use either *conda*/*mamba* or *pip* to install additional packages, while *venv*-created environments
-should stick with *pip*.
-
-.. tab:: mamba
-
-    .. code-block:: bash
-
-        conda install mamba -c conda-forge
-        mamba create -n landlab
-        mamba activate landlab
+Two popular tools used for creating virtual environments are the built-in *venv* module and *conda*.
+For virtual environments created using *conda*, you can use either *conda* or *pip* to install additional
+packages, while *venv*-created environments should stick with *pip*.
 
 .. tab:: conda
 

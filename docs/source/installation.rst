@@ -20,12 +20,6 @@ scientific computing.
 
 To install *Landlab*, simply run the following in your terminal of choice:
 
-.. tab:: mamba
-
-  .. code-block:: bash
-
-    mamba install landlab -c nodefaults -c conda-forge --override-channels
-
 .. tab:: conda
 
   .. code-block:: bash
