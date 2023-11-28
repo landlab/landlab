@@ -1,12 +1,12 @@
-class MWR_Saver():
-    """This class is instantiated and called by MassWastingRunout to save
-    model ouput. Only called in MassWastingRunout if save = True"""
+class MassWastingSaver():
+    """This class is instantiated and called by MassWastingRunout. It saves
+    MWR model ouput. It is only called in MassWastingRunout if save = True"""
     
     def __init__(
             self,
-            MWR):
+            MassWastingRunout):
     
-        self.MWR = MWR
+        self.MWR = MassWastingRunout
     
     def prep_data_containers(self):
         # lists and dictionaries for tracking model behavior 

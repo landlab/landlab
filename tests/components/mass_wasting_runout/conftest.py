@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 from landlab import RasterModelGrid
-from landlab.components import SinkFillerBarnes, FlowAccumulator, FlowDirectorMFD
+from landlab.components import FlowDirectorMFD
 from landlab.components.mass_wasting_runout import MassWastingRunout
 
 
@@ -13,15 +13,12 @@ def example_square_mg():
     dem = np.array([[10,8,4,3,4,7.5,10],[10,9,3.5,4,5,8,10],
                     [10,9,6.5,5,6,8,10],[10,9.5,7,6,7,9,10],[10,10,9.5,8,9,9.5,10],
                     [10,10,10,10,10,10,10],[10,10,10,10,10,10,10]])
-
     dem = np.hstack(dem).astype(float)
     mg = RasterModelGrid((7,7),10)
     _ = mg.add_field('topographic__elevation',
                         dem,
-                        at='node')
-    
-    mg.set_closed_boundaries_at_grid_edges(True, True, True, True) #close all boundaries
-    # mg.set_watershed_boundary_condition_outlet_id(3,dem)   
+                        at='node')    
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     mg.at_node['node_id'] = np.hstack(mg.nodes)
     fd = FlowDirectorMFD(mg, diagonals=True,
                           partition_method = 'slope')
@@ -43,10 +40,7 @@ def example_square_MWRu(example_square_mg):
     qsc = 0.01
     k = 0.02
     mofd = 1
-
-
-    tracked_attributes = ['particle__diameter','organic__content']
-        
+    tracked_attributes = ['particle__diameter','organic__content']        
     example_square_MWRu = MassWastingRunout(example_square_mg,
                                             critical_slope=slpc,
                                             threshold_flux=qsc,
@@ -65,10 +59,8 @@ def example_flat_mg():
     mg = RasterModelGrid((5,5),10)
     _ = mg.add_field('topographic__elevation',
                         dem,
-                        at='node')
-    
-    
-    mg.set_closed_boundaries_at_grid_edges(True, True, True, True) #close all boundaries
+                        at='node')    
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     mg.set_watershed_boundary_condition_outlet_id(3,dem)   
     mg.at_node['node_id'] = np.hstack(mg.nodes)
     nn = mg.number_of_nodes
@@ -85,7 +77,7 @@ def example_bumpy_mg():
     _ = mg.add_field('topographic__elevation',
                         dem,
                         at='node')        
-    mg.set_closed_boundaries_at_grid_edges(True, True, True, True) #close all boundaries
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     mg.set_watershed_boundary_condition_outlet_id(3,dem)   
     mg.at_node['node_id'] = np.hstack(mg.nodes)
     mg.at_node['topographic__elevation'][np.array([6,7,8,11,13,16,17,18])] = np.array([3,2,5,5,7,9,8,11])   
@@ -119,7 +111,6 @@ def example_pile_MWRu():
     deposition_rule = "critical_slope"
     effective_qsi = True
     settle_deposit = False
-    
     #create model grid
     mg = RasterModelGrid((r,c),dxdy)
     dem = mg.add_field('topographic__elevation',
@@ -128,7 +119,7 @@ def example_pile_MWRu():
     
     mg.at_node['node_id'] = np.hstack(mg.nodes)
     # set boundary conditions
-    mg.set_closed_boundaries_at_grid_edges(True, True, True, True) #close all boundaries
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     # soil thickness
     thickness = np.ones(mg.number_of_nodes)*hs
     mg.add_field('node', 'soil__thickness',thickness)
@@ -173,7 +164,6 @@ def example_pile_MWRu():
 
 @pytest.fixture
 def example_flume_MWRu():
-    # Define the flume terrain
     dxdy = 10
     rows = 15 #
     columns = 15 # must be odd number
@@ -329,3 +319,4 @@ def flume_maker(rows = 5, columns = 3, slope_above_break =.5, slope_below_break 
     else:
         mg, lsn, pf, cc = single_flume()        
     return mg, lsn, pf, cc
+
