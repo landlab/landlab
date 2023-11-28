@@ -46,9 +46,7 @@ class MassWastingRunout(Component):
 
     Define boundary conditions
 
-    >>> mg.set_closed_boundaries_at_grid_edges(
-    ...     True, True, True, True
-    ... )
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     Add multiflow direction fields, soil thickness (here set to 1 meter)
 
@@ -813,6 +811,7 @@ class MassWastingRunout(Component):
                 self.arnL.append(rn)
                 self.arqsoL.append(rqso)
                 self.arndnL.append(rndn)
+
         [rn_proportions_attributes(r) for r in self.nudat]
 
     def _determine_qsi(self):
