@@ -48,7 +48,7 @@ class MassWastingRunout(Component):
 
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     True, True, True, True
-    ... )  # close all boundaries
+    ... )
 
     Add multiflow direction fields, soil thickness (here set to 1 meter)
 
@@ -132,15 +132,15 @@ class MassWastingRunout(Component):
       0.18147989  0.12407022  0.1418186   0.19386482  0.13259837  0.23128465
       0.08609032]
 
-    Also see that the attribute value is set to zero at any node in which the regolith
+    Also note that the attribute value is set to zero at any node in which the regolith
     depth is 0.
 
 
     References
     ----------
-    Keck, J., Istanbulluoglu, E., Campforts, B., Tucker G., Horner-Devine A., (2023),
+    Keck, J., Istanbulluoglu, E., Campforts, B., Tucker G., Horner-Devine A.,
     A landslide runout model for sediment transport, landscape evolution and hazard
-    assessment applications, submitted to Earth Surface Dynamics.
+    assessment applications, submitted to Earth Surface Dynamics (2023)
 
     """
 
@@ -161,20 +161,18 @@ class MassWastingRunout(Component):
         "topographic__elevation": {
             "dtype": float,
             "intent": "in",
-            "optional": False,
-            "units": "-",
+            "optional": True,
+            "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         },
         "soil__thickness": {
             "dtype": float,
-            "intent": "out",
+            "intent": "in",
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "regolith (soil) thickness, measured perpendicular to the \
-            land surface and includes all materials above the unweathered bedrock \
-            surface, e.g., saprolite, colluvium, alluvium, glacial drift",
+            "doc": "soil depth to restrictive layer",
         },
         "flow__receiver_node": {
             "dtype": int,
@@ -214,9 +212,9 @@ class MassWastingRunout(Component):
     def __init__(
         self,
         grid,
-        critical_slope,
-        threshold_flux,
-        erosion_coefficient,
+        critical_slope=0.05,
+        threshold_flux=0.25,
+        erosion_coefficient=0.005,
         tracked_attributes=None,
         deposition_rule="critical_slope",
         grain_shear=True,
@@ -380,7 +378,7 @@ class MassWastingRunout(Component):
         self.s = typical_slope_of_erosion_zone
         self.eta = erosion_exponent
         self.qsi_max = max_flow_depth_observed_in_field
-        if (self.effecitve_qsi) == True & (self.qsi_max == None):
+        if (self.effecitve_qsi) is True & (self.qsi_max is None):
             raise ValueError(
                 "Need to define the max_flow_depth_observed_in_field n\
                                  or set effecitve_qsi to False"
@@ -398,12 +396,12 @@ class MassWastingRunout(Component):
 
             # check attributes are included in grid
             for key in self._tracked_attributes:
-                if self._grid.has_field("node", key) == False:
+                if self._grid.has_field("node", key) is False:
                     raise ValueError(f"{key} not included as field in grid")
 
             # if using grain size dependent erosion, check
             # particle_diameter is included as an attribute
-            if self.grain_shear == True:
+            if self.grain_shear is True:
                 if "particle__diameter" in self._tracked_attributes:
                     print(" running with spatially variable Dp ")
                 else:
@@ -458,7 +456,7 @@ class MassWastingRunout(Component):
                 * self._grid.dy
             )
 
-            if self.qsi_max == None:
+            if self.qsi_max is None:
                 self.qsi_max = self._grid.at_node["soil__thickness"][inn].max()
 
             # prepare temporary data containers for each mass wasting event mw_i
@@ -570,7 +568,6 @@ class MassWastingRunout(Component):
         # data containers for initial recieving node, outgoing flux and attributes
         rni = np.array([])
         rqsoi = np.array([])
-        rpdi = np.array([])
         if self._tracked_attributes:
             att = dict.fromkeys(self._tracked_attributes, np.array([]))
 
@@ -617,7 +614,6 @@ class MassWastingRunout(Component):
 
             if self._tracked_attributes:
                 # get initial mass wasting attributes moving (out) of node ni
-                att_out = {}
                 self.att_ar_out = {}
                 for key in self._tracked_attributes:
                     att_val = self._grid.at_node.dataset[key].values[ni]
@@ -673,16 +669,6 @@ class MassWastingRunout(Component):
                 qsi_ = min(qsi, self.qsi_max)
             else:
                 qsi_ = qsi
-
-            dn = self.arndn[self.arn == n]
-
-            # get adjacent nodes
-            adj_n = np.hstack(
-                (
-                    self._grid.adjacent_nodes_at_node[n],
-                    self._grid.diagonal_adjacent_nodes_at_node[n],
-                )
-            )
 
             # look up critical slope at node n
             if (
@@ -807,7 +793,6 @@ class MassWastingRunout(Component):
                 if self._tracked_attributes:
                     att_out = self._attribute_out(att_up, att_in, qsi, E, A)
 
-                    rpd_ns = {}
                     for key_n, key in enumerate(self._tracked_attributes):
                         ratt = np.ones(len(rqso)) * att_out[key]
                         self.aratt_ns[key] = np.concatenate(
@@ -828,9 +813,7 @@ class MassWastingRunout(Component):
                 self.arnL.append(rn)
                 self.arqsoL.append(rqso)
                 self.arndnL.append(rndn)
-
-        nudat_ = self.nudat[self.nudat[:, 2] > 0]  # only run on nodes with qso>0
-        ll = np.array([rn_proportions_attributes(r) for r in self.nudat], dtype=object)
+        [rn_proportions_attributes(r) for r in self.nudat]
 
     def _determine_qsi(self):
         """determine flux of incoming material (qsi) to a node.
