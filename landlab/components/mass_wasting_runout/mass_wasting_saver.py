@@ -3,7 +3,6 @@ class MassWastingSaver:
     MWR model ouput. It is only called in MassWastingRunout if save = True"""
 
     def __init__(self, MassWastingRunout):
-
         self.MWR = MassWastingRunout
 
     def prep_data_containers(self):

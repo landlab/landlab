@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from landlab import Component
 from landlab.components import FlowDirectorMFD
 from landlab.components.mass_wasting_runout.mass_wasting_saver import MassWastingSaver
@@ -27,30 +28,35 @@ class MassWastingRunout(Component):
     Define the topographic__elevation field of a 7 columns by 7 rows, 10-meter
     raster model grid
 
-    >>> dem = np.array([[10,8,4,3,4,7.5,10],[10,9,3.5,4,5,8,10],[10,9,6.5,5,6,8,10],
-    ...                 [10,9.5,7,6,7,9,10],[10,10,9.5,8,9,9.5,10],
-    ...                 [10,10,10,10,10,10,10],[10,10,10,10,10,10,10]]
+    >>> dem = np.array(
+    ...     [
+    ...         [10, 8, 4, 3, 4, 7.5, 10],
+    ...         [10, 9, 3.5, 4, 5, 8, 10],
+    ...         [10, 9, 6.5, 5, 6, 8, 10],
+    ...         [10, 9.5, 7, 6, 7, 9, 10],
+    ...         [10, 10, 9.5, 8, 9, 9.5, 10],
+    ...         [10, 10, 10, 10, 10, 10, 10],
+    ...         [10, 10, 10, 10, 10, 10, 10],
+    ...     ]
     ... )
 
     >>> dem = np.hstack(dem).astype(float)
-    >>> mg = RasterModelGrid((7,7),10)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                   dem,
-    ...                   at='node'
-    ... )
+    >>> mg = RasterModelGrid((7, 7), 10)
+    >>> _ = mg.add_field("topographic__elevation", dem, at="node")
 
     Define boundary conditions
 
-    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True) # close all boundaries
+    >>> mg.set_closed_boundaries_at_grid_edges(
+    ...     True, True, True, True
+    ... )  # close all boundaries
 
     Add multiflow direction fields, soil thickness (here set to 1 meter)
 
-    >>> fd = FlowDirectorMFD(mg, diagonals=True,
-    ...                       partition_method = 'slope')
+    >>> fd = FlowDirectorMFD(mg, diagonals=True, partition_method="slope")
     >>> fd.run_one_step()
     >>> nn = mg.number_of_nodes
-    >>> depth = np.ones(nn)*1
-    >>> _ = mg.add_field('node', 'soil__thickness',depth)
+    >>> depth = np.ones(nn) * 1
+    >>> _ = mg.add_field("node", "soil__thickness", depth)
 
     Define the initial landslide. Any mass_wasting_id value >1 is considered a
     landslide. The landslide extent is defined by assigining all nodes withing
@@ -58,8 +64,8 @@ class MassWastingRunout(Component):
     Here, the landslide is represented by a single node (node 38), which assigned
     a mass_wasting_id value of 1:
 
-    >>> mg.at_node['mass__wasting_id'] = np.zeros(nn).astype(int)
-    >>> mg.at_node['mass__wasting_id'][np.array([38])] = 1
+    >>> mg.at_node["mass__wasting_id"] = np.zeros(nn).astype(int)
+    >>> mg.at_node["mass__wasting_id"][np.array([38])] = 1
 
     Add attributes of the regolith as fields of the raster model grid that will
     be tracked by the model. These could be any attribute in which the tracking
@@ -69,23 +75,24 @@ class MassWastingRunout(Component):
     is determined as a function of grain size.
 
     >>> np.random.seed(seed=7)
-    >>> mg.at_node['particle__diameter'] = np.random.uniform(0.05,0.25,nn)
-    >>> mg.at_node['organic__content'] = np.random.uniform(0.01,0.10,nn)
+    >>> mg.at_node["particle__diameter"] = np.random.uniform(0.05, 0.25, nn)
+    >>> mg.at_node["organic__content"] = np.random.uniform(0.01, 0.10, nn)
 
     Next define parameter values for MassWastingRunout and instantiate the model:
 
-    >>> Sc = [0.03] # Sc, note: defined as a list (see below)
-    >>> qsc = 0.01 # qsc
-    >>> k = 0.02 # k
+    >>> Sc = [0.03]  # Sc, note: defined as a list (see below)
+    >>> qsc = 0.01  # qsc
+    >>> k = 0.02  # k
     >>> h_max = 1
-    >>> tracked_attributes = ['particle__diameter','organic__content']
-    >>> example_square_MWR = MassWastingRunout(mg,
-    ...                                        critical_slope = Sc,
-    ...                                        threshold_flux = qsc,
-    ...                                        erosion_coefficient = k,
-    ...                                        tracked_attributes = tracked_attributes,
-    ...                                        max_flow_depth_observed_in_field = h_max,
-    ...                                        save = True
+    >>> tracked_attributes = ["particle__diameter", "organic__content"]
+    >>> example_square_MWR = MassWastingRunout(
+    ...     mg,
+    ...     critical_slope=Sc,
+    ...     threshold_flux=qsc,
+    ...     erosion_coefficient=k,
+    ...     tracked_attributes=tracked_attributes,
+    ...     max_flow_depth_observed_in_field=h_max,
+    ...     save=True,
     ... )
 
     Run MassWastingRunout
@@ -97,8 +104,8 @@ class MassWastingRunout(Component):
     and erosion (negative values). Nodes with non-zero topographic change
     represent the runout extent.
 
-    >>> DEM_initial = mg.at_node['topographic__initial_elevation']
-    >>> DEM_final = mg.at_node['topographic__elevation']
+    >>> DEM_initial = mg.at_node["topographic__initial_elevation"]
+    >>> DEM_final = mg.at_node["topographic__elevation"]
     >>> print(DEM_final - DEM_initial)
     [ 0.          0.          0.          0.          0.          0.
       0.          0.          0.          0.96579201  0.52734339 -0.00778869
@@ -114,7 +121,7 @@ class MassWastingRunout(Component):
 
     Look at the final spatial distribution of regolith particle diameter.
 
-    >>> print(mg.at_node['particle__diameter'])
+    >>> print(mg.at_node["particle__diameter"])
     [ 0.06526166  0.20598376  0.13768185  0.19469304  0.2455979   0.15769917
       0.15022409  0.06441023  0.1036878   0.15619144  0.17680799  0.21074781
       0.12618823  0.06318727  0.10762912  0.23191871  0.09295928  0.14042479
@@ -229,7 +236,6 @@ class MassWastingRunout(Component):
         itL=1000,
         run_id=0,
     ):
-
         """
         Parameters
         ----------
@@ -393,7 +399,7 @@ class MassWastingRunout(Component):
             # check attributes are included in grid
             for key in self._tracked_attributes:
                 if self._grid.has_field("node", key) == False:
-                    raise ValueError("{} not included as field in grid".format(key))
+                    raise ValueError(f"{key} not included as field in grid")
 
             # if using grain size dependent erosion, check
             # particle_diameter is included as an attribute
@@ -445,7 +451,6 @@ class MassWastingRunout(Component):
 
         # For each mass wasting event in list:
         for mw_i, inn in enumerate(innL):
-
             mw_id = self.mw_ids[mw_i]
             self._lsvol = (
                 self._grid.at_node["soil__thickness"][inn].sum()
@@ -473,7 +478,6 @@ class MassWastingRunout(Component):
             # repeat until no more receiving nodes (material deposits)
             self.c = 0  # model iteration counter
             while len(self.arn) > 0 and self.c < self.itL:
-
                 # set qsc: the qsc constraint does not fully apply until runout
                 # has traveled dist_to_full_qsc_constraint
                 if self.d_it == 0:
@@ -576,7 +580,6 @@ class MassWastingRunout(Component):
         zdf = zdf.sort_values("z")
 
         for ci, ni in enumerate(zdf["nodes"].values):
-
             # regolith (soil) thickness at node. soil thickness in source area
             # represents landslide thickness
             s_t = self._grid.at_node.dataset["soil__thickness"].values[ni]
@@ -641,6 +644,7 @@ class MassWastingRunout(Component):
         function below.
         """
         self.D_L = []  # list of deposition depths, if the _settle function is
+
         # implemented, this is used to determine settlement after deposition
         def EAqA(qsi_r):
             """function for iteratively determining Erosion and Aggradiation depths,
@@ -720,7 +724,6 @@ class MassWastingRunout(Component):
                     Tau = 0
                     u = 0
                 else:
-
                     # erosion
                     E, att_up, Tau, u = self._erosion(n, qsi_, slpn, att_in=att_in)
 
@@ -904,7 +907,7 @@ class MassWastingRunout(Component):
         n = self.nudat[:, 0].astype(int)
         new_node_pd = np.array([d[key] for d in self.nudat[:, 6]])
         if np.isnan(np.sum(new_node_pd)):
-            raise ValueError("{} is {}".format(key, new_node_pd))
+            raise ValueError(f"{key} is {new_node_pd}")
         self._grid.at_node[key][n] = new_node_pd
 
     def _settle(self):
@@ -938,7 +941,6 @@ class MassWastingRunout(Component):
 
                 # if slope to downlsope nodes > Sc, adjust elevation of node n
                 if len(rn) >= 1:
-
                     # destribute material to downslope nodes based on weighted
                     # average slope (same as multiflow direciton proportions,
                     # but here only determined for downslope nodes in which
@@ -1306,7 +1308,7 @@ class MassWastingRunout(Component):
             )
             check_val = att_out[key]
             if (check_val <= 0) or (np.isnan(check_val)) or (np.isinf(check_val)):
-                msg = "out-flowing {} is zero, negative, nan or inf".format(key)
+                msg = f"out-flowing {key} is zero, negative, nan or inf"
                 raise ValueError(msg)
         return att_out
 
