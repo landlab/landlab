@@ -101,36 +101,24 @@ def example_pile_MWRu():
     dxdy = 5
     ls_h = 5
     w = 5
-
     slpc = [0.03]
     qsc = 0.01
     k = 0.02
-    ros = 2650  # density
-    vs = 0.6  # volumetric solids concentration
-    h = 2  # typical flow thickness
-    s = 0.6  # typical slope
     eta = 0.2  # exponent
     Dp = 0.2  # particle diameter
     ls_h = 5  # landslide (pile) thickness
     hs = 1  # soil thickness
-    deposition_rule = "critical_slope"
-    effective_qsi = True
-    settle_deposit = False
     # create model grid
     mg = RasterModelGrid((r, c), dxdy)
-    dem = mg.add_field("topographic__elevation", np.ones(r * c) * 1, at="node")
-
     mg.at_node["node_id"] = np.hstack(mg.nodes)
     # set boundary conditions
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     # soil thickness
     thickness = np.ones(mg.number_of_nodes) * hs
     mg.add_field("node", "soil__thickness", thickness)
+    mg.add_field("topographic__elevation", np.ones(r * c) * 1, at="node")
     # set particle diameter
     mg.at_node["particle__diameter"] = np.ones(len(mg.node_x)) * Dp
-    # view node ids
-    field = "node_id"
-    field_back = "topographic__elevation"
     # run flow director, add slope and receiving node fields
     fd = FlowDirectorMFD(mg, diagonals=True, partition_method="square_root_of_slope")
     fd.run_one_step()
@@ -183,7 +171,6 @@ def example_flume_MWRu():
     Dp = 0.2  # particle diameter
     qsi_max = 5
     ls_h = 5
-    deposition_rule = "critical_slope"
 
     # run parameters
     qsc = 0.01  # pick qsc
@@ -271,9 +258,9 @@ def flume_maker(
     dxdy : float
         side length of sqaure cell, [m]. The default is 10.
     double_flume : boolean
-        False: makes just one flume; True: makes two flumes and puts attaches the lower end of
-        one to the upper end of the other to make one long flume with a slope break in the middle
-        of the flume
+        False: makes just one flume; True: makes two flumes and puts attaches the
+        lower end of one to the upper end of the other to make one long flume with
+        a slope break in the middle of the flume
 
     Returns
     -------
@@ -336,7 +323,8 @@ def flume_maker(
         mg1, lsn1, pf1, cc1 = single_flume(slope_break)
         mg2, lsn2, pf2, cc2 = single_flume(min(slope_break * 2, 0.8))
         mg = RasterModelGrid((rows * 2, columns + 2), dxdy)
-        # translate mg1 vertically to the max height of mg2 minus the wall height plus the flume slope * dxdy
+        # translate mg1 vertically to the max height of mg2 minus the wall
+        # height plus the flume slope * dxdy
         t1 = (
             mg1.at_node["topographic__elevation"]
             + mg2.at_node["topographic__elevation"].max()

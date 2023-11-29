@@ -73,7 +73,6 @@ class Test__virtual_laboratory_smoke_tests:
         DEMi = MWRu._grid.at_node["topographic__initial_elevation"]
         DEMf = MWRu._grid.at_node["topographic__elevation"]
         DEMdf = DEMf - DEMi
-
         np.testing.assert_allclose(pf, pf_e, atol=1e-4)
         np.testing.assert_allclose(0, DEMdf.sum(), atol=1e-4)
 
@@ -123,7 +122,6 @@ class Test__virtual_laboratory_smoke_tests:
         DEMi = MWRu._grid.at_node["topographic__initial_elevation"]
         DEMf = MWRu._grid.at_node["topographic__elevation"]
         DEMdf = DEMf - DEMi
-
         np.testing.assert_allclose(pf_d, e_pf_d, rtol=1e-4)
         np.testing.assert_allclose(0, DEMdf.sum(), atol=1e-4)
 
@@ -176,7 +174,6 @@ class Test__prep_initial_mass_wasting_material:
         slpc = [0.03]
         qsc = 0.01
         k = 0.02
-
         example_square_MWRu = MassWastingRunout(
             example_square_mg,
             critical_slope=slpc,
@@ -200,7 +197,6 @@ class Test__prep_initial_mass_wasting_material:
         example_square_MWRu.run_one_step()
         rn = example_square_MWRu.arn
         rqso = example_square_MWRu.arqso
-
         # determine manually from flow directions (mass wasting id = node 38)
         mask = (
             example_square_MWRu._grid.at_node["flow__link_to_receiver_node"][38] != -1
@@ -222,7 +218,6 @@ class Test__prep_initial_mass_wasting_material:
         slpc = [0.03]
         qsc = 0.01
         k = 0.02
-
         example_square_MWRu = MassWastingRunout(
             example_square_mg,
             critical_slope=slpc,
@@ -242,7 +237,6 @@ class Test__prep_initial_mass_wasting_material:
         rn_slope_1 = example_square_MWRu._grid.at_node["topographic__steepest_slope"][
             31
         ][mask_1]
-
         # now get flow direction and proportions of second node, which is
         # which is determined after the debriton has been removed, from
         # bottom surface of the debriton
@@ -257,12 +251,10 @@ class Test__prep_initial_mass_wasting_material:
         rn_slope_2 = example_square_MWRu._grid.at_node["topographic__steepest_slope"][
             38
         ][mask_2]
-
         rn_e = np.concatenate((rn_e_1, rn_e_2))
         rqso_e = np.concatenate(
             (rn_slope_1 / rn_slope_1.sum(), rn_slope_2 / rn_slope_2.sum())
         )
-
         np.testing.assert_allclose(rn, rn_e, rtol=1e-4)
         np.testing.assert_allclose(rqso, rqso_e, rtol=1e-4)
 
@@ -274,13 +266,10 @@ class Test_E_A_qso_determine_attributes:
         """
         example_square_MWRu.itL = 1
         example_square_MWRu.run_one_step()
-        nodes = example_square_MWRu.nudat[:, 0].astype(float)
         deta = example_square_MWRu.nudat[:, 1].astype(float)
         qso = example_square_MWRu.nudat[:, 2].astype(float)
         qsi = example_square_MWRu.nudat[:, 3].astype(float)
         E = example_square_MWRu.nudat[:, 4].astype(float)
-        A = example_square_MWRu.nudat[:, 5].astype(float)
-
         key = "particle__diameter"
         pd_n = np.array([d[key] for d in example_square_MWRu.nudat[:, 6]]).astype(float)
         pd_up = np.array([d[key] for d in example_square_MWRu.nudat[:, 7]]).astype(
@@ -328,9 +317,6 @@ class Test_E_A_qso_determine_attributes:
         deta = example_square_MWRu.nudat[:, 1].astype(float)
         qso = example_square_MWRu.nudat[:, 2].astype(float)
         qsi = example_square_MWRu.nudat[:, 3].astype(float)
-        E = example_square_MWRu.nudat[:, 4].astype(float)
-        A = example_square_MWRu.nudat[:, 5].astype(float)
-
         key = "particle__diameter"
         pd_n = np.array([d[key] for d in example_square_MWRu.nudat[:, 6]]).astype(float)
         pd_up = np.array([d[key] for d in example_square_MWRu.nudat[:, 7]]).astype(
@@ -347,20 +333,16 @@ class Test_E_A_qso_determine_attributes:
         oc_in = np.array([d[key] for d in example_square_MWRu.nudat[:, 8]]).astype(
             float
         )
-
         nodes_e = np.array([30, 31, 32])
         deta_e = np.array([-0.01225359, -0.06877944, -0.04888238])
         qso_e = np.array([0.127769, 0.72223323, 0.27991319])
         qsi_e = np.array([0.1155154, 0.65345379, 0.2310308])
-        E_e = np.array([0.01225359, 0.06877944, 0.04888238])
-        A_e = np.array([0, 0, 0])
         pd_n_e = np.array([0.09096982, 0.14815318, 0.12447694])
         pd_up_e = np.array([0.09096982, 0.14815318, 0.12447694])
         pd_in_e = np.array([0.16452507, 0.16452507, 0.16452507])
         oc_n_e = np.array([0.0370377, 0.02489513, 0.04734116])
         oc_up_e = np.array([0.0370377, 0.02489513, 0.04734116])
         oc_in_e = np.array([0.08003922, 0.08003922, 0.08003922])
-
         np.testing.assert_array_almost_equal(nodes, nodes_e)
         np.testing.assert_array_almost_equal(deta, deta_e)
         np.testing.assert_array_almost_equal(qso, qso_e)
@@ -381,43 +363,21 @@ class Test_E_A_qso_determine_attributes:
         example_square_MWRu._grid.at_node["soil__thickness"] = np.ones(nn) * 0.01
         example_square_MWRu.itL = 1
         example_square_MWRu.run_one_step()
-        nodes = example_square_MWRu.nudat[:, 0].astype(float)
         deta = example_square_MWRu.nudat[:, 1].astype(float)
         qso = example_square_MWRu.nudat[:, 2].astype(float)
         qsi = example_square_MWRu.nudat[:, 3].astype(float)
         E = example_square_MWRu.nudat[:, 4].astype(float)
         A = example_square_MWRu.nudat[:, 5].astype(float)
-
         key = "particle__diameter"
-        pd_n = np.array([d[key] for d in example_square_MWRu.nudat[:, 6]]).astype(float)
         pd_up = np.array([d[key] for d in example_square_MWRu.nudat[:, 7]]).astype(
             float
         )
-        pd_in = np.array([d[key] for d in example_square_MWRu.nudat[:, 8]]).astype(
-            float
-        )
+
         key = "organic__content"
-        oc_n = np.array([d[key] for d in example_square_MWRu.nudat[:, 6]]).astype(float)
+
         oc_up = np.array([d[key] for d in example_square_MWRu.nudat[:, 7]]).astype(
             float
         )
-        oc_in = np.array([d[key] for d in example_square_MWRu.nudat[:, 8]]).astype(
-            float
-        )
-
-        nodes_e = np.array([30, 31, 32])
-        deta_e = np.array([0.00115515, 0.00653454, 0.00231031])
-        qso_e = np.array([0, 0, 0])
-        qsi_e = np.array([0.00115515, 0.00653454, 0.00231031])
-        E_e = np.array([0, 0, 0])
-        A_e = np.array([0.00115515, 0.00653454, 0.00231031])
-        pd_n_e = np.array([0.09858671, 0.15462344, 0.13199288])
-        pd_up_e = np.array([0, 0, 0])
-        pd_in_e = np.array([0.16452507, 0.16452507, 0.16452507])
-        oc_n_e = np.array([0.04149065, 0.04668837, 0.05347769])
-        oc_up_e = np.array([0, 0, 0])
-        oc_in_e = np.array([0.08003922, 0.08003922, 0.08003922])
-
         np.testing.assert_array_almost_equal(deta, qsi)  # change eta equals qsi
         np.testing.assert_array_almost_equal(qso, np.array([0, 0, 0]))  # no qso
         np.testing.assert_array_almost_equal(E, np.array([0, 0, 0]))  # no erosion
@@ -461,7 +421,6 @@ class Test_E_A_qso_determine_attributes:
         oc_in = np.array([d[key] for d in example_square_MWRu.nudat[:, 8]]).astype(
             float
         )
-
         nodes_e = np.array([30, 31, 32])
         deta_e = np.array([0.00115515, 0.00653454, 0.00231031])
         qso_e = np.array([0, 0, 0])
@@ -474,7 +433,6 @@ class Test_E_A_qso_determine_attributes:
         oc_n_e = np.array([0.04149065, 0.04668837, 0.05347769])
         oc_up_e = np.array([0, 0, 0])
         oc_in_e = np.array([0.08003922, 0.08003922, 0.08003922])
-
         np.testing.assert_array_almost_equal(nodes, nodes_e)
         np.testing.assert_array_almost_equal(deta, deta_e)
         np.testing.assert_array_almost_equal(qso, qso_e)
@@ -500,7 +458,6 @@ class Test_determine_qsi:
         nodes = np.hstack(example_square_MWRu.saver.arn_r[1][1])
         qsi_e = np.sum(qs_to_nodes[nodes == n])
         qsi = example_square_MWRu.qsi_dat[2, 1]
-
         np.testing.assert_allclose(qsi_e, qsi, rtol=1e-4)
 
 
@@ -549,18 +506,13 @@ class Test_settle:
         mg = example_flat_mg
         n = 12
         mg.at_node["topographic__elevation"][12] = 20
-        fd = FlowDirectorMFD(
-            mg, diagonals=True, partition_method="slope"
-        )  # why are flow proportions not equal? diagonals are slightly further from centralnode and have smaller slope
+        fd = FlowDirectorMFD(mg, diagonals=True, partition_method="slope")
         fd.run_one_step()
         rn = mg.at_node.dataset["flow__receiver_node"].values[n]
-        npu = [1]
-        nid = [1]
         slpc = [0.03]
         qsc = 0.01
         k = 0.02
         mofd = 4
-
         example_MWRu = MassWastingRunout(
             mg,
             critical_slope=slpc,
@@ -570,15 +522,11 @@ class Test_settle:
             save=True,
             settle_deposit=True,
         )
-        example_MWRu.arn_u = np.array(
-            [n]
-        )  # np.unique(rn) # set the array of unique receiver nodes
+        example_MWRu.arn_u = np.array([n])
         example_MWRu.D_L = [19]  # deposition depth at node
-
         example_MWRu._settle()  # run the settle function
         rn_e = mg.at_node["topographic__elevation"][rn]
         n_e = mg.at_node["topographic__elevation"][n]
-
         expected_rn_e = np.array(
             [
                 2.36927701,
@@ -604,13 +552,10 @@ class Test_settle:
         fd = FlowDirectorMFD(mg, diagonals=True, partition_method="slope")
         fd.run_one_step()
         rn = mg.at_node.dataset["flow__receiver_node"].values[n]
-        npu = [1]
-        nid = [1]
         slpc = [0.03]
         qsc = 0.01
         k = 0.02
         mofd = 4
-
         example_MWRu = MassWastingRunout(
             mg,
             critical_slope=slpc,
@@ -620,14 +565,9 @@ class Test_settle:
             save=True,
             settle_deposit=True,
         )
-
-        example_MWRu.arn_u = np.array(
-            [n]
-        )  # np.unique(rn) # set the array of unique receiver nodes
+        example_MWRu.arn_u = np.array([n])
         example_MWRu.D_L = [5]  # deposition depth at node
         example_MWRu._settle()  # run the settle function
-        # example_MWRu.D_L = [5] # deposition depth
-        # example_MWRu._settle([n])
         rn_e = mg.at_node["topographic__elevation"][rn]
         n_e = mg.at_node["topographic__elevation"][n]
         expected_r_ne = np.array(
@@ -655,13 +595,10 @@ class Test_settle:
         fd = FlowDirectorMFD(mg, diagonals=True, partition_method="slope")
         fd.run_one_step()
         rn = mg.at_node.dataset["flow__receiver_node"].values[n]
-        npu = [1]
-        nid = [1]
         slpc = [0.03]
         qsc = 0.01
         k = 0.02
         mofd = 4
-
         example_MWRu = MassWastingRunout(
             mg,
             critical_slope=slpc,
@@ -671,7 +608,6 @@ class Test_settle:
             save=True,
             settle_deposit=True,
         )
-
         example_MWRu.arn_u = np.array(
             [n]
         )  # np.unique(rn) # set the array of unique receiver nodes
@@ -688,18 +624,14 @@ class Test_settle:
         """test topographic__elevation and soil__thickness change correctly"""
         mg = example_bumpy_mg
         n = 12
-
         mg.at_node["topographic__elevation"][12] = 20
         fd = FlowDirectorMFD(mg, diagonals=True, partition_method="slope")
         fd.run_one_step()
         rn = mg.at_node.dataset["flow__receiver_node"].values[n]
-        npu = [1]
-        nid = [1]
         slpc = [0.03]
         qsc = 0.01
         k = 0.02
         mofd = 4
-
         example_MWRu = MassWastingRunout(
             mg,
             critical_slope=slpc,
@@ -737,7 +669,6 @@ class Test_settle:
         """test topographic__elevation and soil__thickness change correctly"""
         mg = example_bumpy_mg
         n = 12
-
         mg.at_node["topographic__elevation"][12] = 10
         fd = FlowDirectorMFD(mg, diagonals=True, partition_method="slope")
         fd.run_one_step()
@@ -746,7 +677,6 @@ class Test_settle:
         qsc = 0.01
         k = 0.02
         mofd = 4
-
         example_MWRu = MassWastingRunout(
             mg,
             critical_slope=slpc,
@@ -756,7 +686,6 @@ class Test_settle:
             save=True,
             settle_deposit=True,
         )
-
         example_MWRu.arn_u = np.array(
             [n]
         )  # np.unique(rn) # set the array of unique receiver nodes
@@ -788,7 +717,6 @@ class Test_erosion:
         n = 24
         qsi = 2
         slope = 0.087489
-        opt = 1
         depth = qsi
         example_square_MWRu.itL = 0
         example_square_MWRu.grain_shear = False
@@ -797,13 +725,12 @@ class Test_erosion:
         expected_E = 0.1017184
         np.testing.assert_allclose(E[0], expected_E, rtol=1e-4)
 
-    def test_quasi_normal_1(self, example_square_MWRu):
+    def test_quasi_normal_2(self, example_square_MWRu):
         """"""
         n = 24
         qsi = 2
         slope = 0.57735
         example_square_MWRu.slpc = 0.01
-        opt = 1
         depth = qsi
         example_square_MWRu.itL = 0
         example_square_MWRu.grain_shear = False
@@ -934,7 +861,7 @@ class Test_aggradation:
         np.testing.assert_allclose(D, expected_D, rtol=1e-4)
 
     def test_aggradation_normal_1(self, example_square_MWRu):
-        example_square_MWRu.deposition_rule == "both"
+        example_square_MWRu.deposition_rule = "both"
         qsi = 2
         n = 24
         zi = 50
@@ -951,7 +878,7 @@ class Test_aggradation:
         np.testing.assert_allclose(A, expected_A, rtol=1e-4)
 
     def test_aggradation_normal_2(self, example_square_MWRu):
-        example_square_MWRu.deposition_rule == "both"
+        example_square_MWRu.deposition_rule = "both"
         qsi = 2
         n = 24
         zi = 50
@@ -980,7 +907,6 @@ class Test_aggradation:
     def test_determine_zo_normal_2(self, example_square_MWRu):
         example_square_MWRu.itL = 1
         example_square_MWRu.run_one_step()
-
         n = 24
         qsi = 2
         zi = example_square_MWRu._grid.at_node["topographic__elevation"][n]
@@ -991,7 +917,6 @@ class Test_aggradation:
     def test_determine_zo_boundary_1(self, example_square_MWRu):
         example_square_MWRu.itL = 1
         example_square_MWRu.run_one_step()
-
         n = 24
         qsi = 0
         zi = example_square_MWRu._grid.at_node["topographic__elevation"][n]
@@ -999,36 +924,17 @@ class Test_aggradation:
         expected_zo = 5
         np.testing.assert_allclose(zo, expected_zo, rtol=1e-4)
 
-    def test_determine_zo_special_1(self, example_square_MWRu):
-        example_square_MWRu.routing_surface = "energy__elevation"
-        example_square_MWRu.itL = 1
-        example_square_MWRu.settle_deposit = True
-        example_square_MWRu.run_one_step()
 
-        # make node 24 a pit
-        example_square_MWRu._grid.at_node["topographic__elevation"][24] = 3
-        n = 24
-        qsi = 0
-        zi = example_square_MWRu._grid.at_node["topographic__elevation"][n]
-        zo = example_square_MWRu._determine_zo(n, zi, qsi)
-        expected_zo = None
-        assert (zo, expected_zo)
-
-
-# @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
 class Test_attributes_in:
     def test_normal_values_1(self, example_square_MWRu):
         """"""
         example_square_MWRu.itL = 1
         example_square_MWRu.run_one_step()
-
         n = 24
         qsi = np.sum(example_square_MWRu.arqso[example_square_MWRu.arn == n])
         att_in = example_square_MWRu._attributes_in(n, qsi)
-
         expected_pd_in = 0.161438
         expected_oc_in = 0.074791
-
         np.testing.assert_allclose(
             att_in["particle__diameter"], expected_pd_in, rtol=1e-4
         )
@@ -1038,17 +944,13 @@ class Test_attributes_in:
 
     def test_normal_values_2(self, example_square_MWRu):
         """"""
-
         example_square_MWRu.itL = 1
         example_square_MWRu.run_one_step()
-
         n = 31
         qsi = np.sum(example_square_MWRu.arqso[example_square_MWRu.arn == n])
         att_in = example_square_MWRu._attributes_in(n, qsi)
-
         expected_pd_in = 0.15751
         expected_oc_in = 0.074886
-
         np.testing.assert_allclose(
             att_in["particle__diameter"], expected_pd_in, rtol=1e-4
         )
@@ -1060,14 +962,11 @@ class Test_attributes_in:
         """no incoming volume"""
         example_square_MWRu.itL = 0
         example_square_MWRu.run_one_step()
-
         n = 24
         qsi = np.sum(example_square_MWRu.arqso[example_square_MWRu.arn == n])
         att_in = example_square_MWRu._attributes_in(n, qsi)
-
         expected_pd_in = 0
         expected_oc_in = 0
-
         np.testing.assert_allclose(
             att_in["particle__diameter"], expected_pd_in, rtol=1e-4
         )
@@ -1079,16 +978,13 @@ class Test_attributes_in:
         """incoming is np.nan"""
         example_square_MWRu.itL = 8
         example_square_MWRu.run_one_step()
-
         with pytest.raises(ValueError) as exc_info:
             n = 24
             qsi = np.nan
             att_in = example_square_MWRu._attributes_in(n, qsi)
-
         assert exc_info.match("in-flowing flux is nan or inf")
 
 
-# @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
 class Test_attribute_out:
     def test_normal_values_1(self, example_square_MWRu):
         # use inputs from MWR
@@ -1099,9 +995,7 @@ class Test_attribute_out:
         A = example_square_MWRu.nudat[:, 5][0]
         att_up = example_square_MWRu.nudat[:, 7][0]
         att_in = example_square_MWRu.nudat[:, 8][0]
-
         att_out = example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
-
         expected_pd_out = np.array([0.157470803])
         expected_oc_out = np.array([0.075915194])
 
@@ -1119,12 +1013,9 @@ class Test_attribute_out:
         A = 1
         att_up = {"particle__diameter": 0.5, "organic__content": 0.05}
         att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
-
         att_out = example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
-
         expected_pd_out = np.array([0.375])
         expected_oc_out = np.array([0.125])
-
         np.testing.assert_allclose(
             att_out["particle__diameter"], expected_pd_out, rtol=1e-4
         )
@@ -1139,9 +1030,7 @@ class Test_attribute_out:
             A = 1
             att_up = {"particle__diameter": 0.5, "organic__content": 0.05}
             att_in = {"particle__diameter": np.nan, "organic__content": 0.2}
-
             att_out = example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
-
         assert exc_info.match(
             "out-flowing {} is zero, negative, nan or inf".format("particle__diameter")
         )
@@ -1153,15 +1042,12 @@ class Test_attribute_out:
             A = 1
             att_up = {"particle__diameter": 0.5, "organic__content": np.nan}
             att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
-
             att_out = example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
-
         assert exc_info.match(
             "out-flowing {} is zero, negative, nan or inf".format("organic__content")
         )
 
 
-# @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
 class Test_attribute_node:
     def test_normal_values_1(self, example_square_MWRu):
         # normal values
@@ -1169,10 +1055,8 @@ class Test_attribute_node:
         att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
         A = 0.5
         E = 0.5
-
         att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
         expected_att_node = 0.240913
-
         np.testing.assert_allclose(
             att_node["particle__diameter"], expected_att_node, rtol=1e-4
         )
@@ -1183,11 +1067,8 @@ class Test_attribute_node:
         att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
         A = 0.3
         E = 1
-
         att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
-
         expected_att_node = 0.25
-
         np.testing.assert_allclose(
             att_node["particle__diameter"], expected_att_node, rtol=1e-4
         )
@@ -1198,11 +1079,8 @@ class Test_attribute_node:
         att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
         A = 0
         E = 1
-
         att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
-
         expected_att_node = 0
-
         np.testing.assert_allclose(
             att_node["particle__diameter"], expected_att_node, rtol=1e-4
         )
@@ -1214,10 +1092,7 @@ class Test_attribute_node:
             att_in = {"particle__diameter": np.nan, "organic__content": 0.2}
             A = 0.5
             E = 0.5
-            # grid node depth = 1, node particle diameter = 0.075
-
             att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
-
         assert exc_info.match("node particle diameter is negative, nan or inf")
 
     def test_bad_values_2(self, example_square_MWRu):
@@ -1227,7 +1102,5 @@ class Test_attribute_node:
             att_in = {"particle__diameter": np.inf, "organic__content": 0.2}
             A = 0.5
             E = 0.5
-
             att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
-
         assert exc_info.match("node particle diameter is negative, nan or inf")

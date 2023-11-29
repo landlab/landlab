@@ -404,7 +404,8 @@ class MassWastingRunout(Component):
                     print(" running with spatially variable Dp ")
                 else:
                     raise ValueError(
-                        "{} not included as field in grid and/or key in tracked_attributes".format(
+                        "{} not included as field in grid and/or key in \
+                            tracked_attributes".format(
                             key
                         )
                     )
@@ -791,7 +792,7 @@ class MassWastingRunout(Component):
                 if self._tracked_attributes:
                     att_out = self._attribute_out(att_up, att_in, qsi, E, A)
 
-                    for key_n, key in enumerate(self._tracked_attributes):
+                    for key in self._tracked_attributes:
                         ratt = np.ones(len(rqso)) * att_out[key]
                         self.aratt_ns[key] = np.concatenate(
                             (self.aratt_ns[key], ratt), axis=0
@@ -940,13 +941,12 @@ class MassWastingRunout(Component):
                     # height of node n using Sc*dx above min downslope elevation
                     slp_h = self.slpc * self._grid.dx
 
-                    # out going sediment depth, determined as half the depth above the critical slope
+                    # out going sediment depth, determined as half the depth
+                    # above the critical slope
                     qso_s = (zi - (zo + slp_h)) / 2
 
-                    if (
-                        qso_s < 0
-                    ):  # no negative (this shouldn't be needed because only nodes greater than slpc considered)
-                        # print("negative outlflow settling, n, {}, rn, {}, qso_s, {}".format(n,rn,qso_s))
+                    if qso_s < 0:  # no negative (this shouldn't be needed because only
+                        # nodes greater than slpc considered)
                         qso_s = 0
 
                     if qso_s > self.D_L[ii]:  # settlement out can not exceed deposit

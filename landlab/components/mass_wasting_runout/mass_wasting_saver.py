@@ -16,7 +16,7 @@ class MassWastingSaver:
         self.arqso_r = {}  # flux out
         self.arn_r = {}  # receiver nodes
         self.arndn_r = {}  # donar nodes
-        self.aratt_r = {}  #  arriving attributes
+        self.aratt_r = {}  # arriving attributes
         self.flowing_volume = (
             {}
         )  # the total volume [m3] of the mobilized runout material
@@ -50,7 +50,8 @@ class MassWastingSaver:
             self.aratt_r[mw_id] = dict.fromkeys(self.MWR._tracked_attributes, [])
 
     def save_conditions_before_runout(self, mw_i, mw_id):
-        # save first set of data to reflect scar/depression in DEM created by mass wasting source area
+        # save first set of data to reflect scar/depression in DEM created by
+        # mass wasting source area
         self.runout_evo_maps[mw_i][0] = self.MWR._grid.at_node[
             "energy__elevation"
         ].copy()
