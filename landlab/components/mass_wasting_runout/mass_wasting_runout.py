@@ -352,9 +352,10 @@ class MassWastingRunout(Component):
 
         Returns
         -------
-        None.
-
+        None
         """
+        if isinstance(critical_slope, (float, int)):
+            critical_slope = (critical_slope, )
 
         super().__init__(grid)
 
