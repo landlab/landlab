@@ -979,9 +979,7 @@ class Test_attributes_in:
         example_square_MWRu.itL = 8
         example_square_MWRu.run_one_step()
         with pytest.raises(ValueError) as exc_info:
-            n = 24
-            qsi = np.nan
-            att_in = example_square_MWRu._attributes_in(n, qsi)
+            example_square_MWRu._attributes_in(24, np.nan)
         assert exc_info.match("in-flowing flux is nan or inf")
 
 
@@ -1024,25 +1022,25 @@ class Test_attribute_out:
         )
 
     def test_bad_values_1(self, example_square_MWRu):
+        qsi = 3
+        E = 2
+        A = 1
+        att_up = {"particle__diameter": 0.5, "organic__content": 0.05}
+        att_in = {"particle__diameter": np.nan, "organic__content": 0.2}
         with pytest.raises(ValueError) as exc_info:
-            qsi = 3
-            E = 2
-            A = 1
-            att_up = {"particle__diameter": 0.5, "organic__content": 0.05}
-            att_in = {"particle__diameter": np.nan, "organic__content": 0.2}
-            att_out = example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
+            example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
         assert exc_info.match(
             "out-flowing {} is zero, negative, nan or inf".format("particle__diameter")
         )
 
     def test_bad_values_2(self, example_square_MWRu):
+        qsi = 3
+        E = 2
+        A = 1
+        att_up = {"particle__diameter": 0.5, "organic__content": np.nan}
+        att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
         with pytest.raises(ValueError) as exc_info:
-            qsi = 3
-            E = 2
-            A = 1
-            att_up = {"particle__diameter": 0.5, "organic__content": np.nan}
-            att_in = {"particle__diameter": 0.25, "organic__content": 0.2}
-            att_out = example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
+            example_square_MWRu._attribute_out(att_up, att_in, qsi, E, A)
         assert exc_info.match(
             "out-flowing {} is zero, negative, nan or inf".format("organic__content")
         )
@@ -1087,20 +1085,20 @@ class Test_attribute_node:
 
     def test_bad_values_1(self, example_square_MWRu):
         # incoming particle diameter is np.nan
+        n = 24
+        att_in = {"particle__diameter": np.nan, "organic__content": 0.2}
+        A = 0.5
+        E = 0.5
         with pytest.raises(ValueError) as exc_info:
-            n = 24
-            att_in = {"particle__diameter": np.nan, "organic__content": 0.2}
-            A = 0.5
-            E = 0.5
-            att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
+            example_square_MWRu._attributes_node(n, att_in, E, A)
         assert exc_info.match("node particle diameter is negative, nan or inf")
 
     def test_bad_values_2(self, example_square_MWRu):
         # incoming particle diameter is np.inf
+        n = 24
+        att_in = {"particle__diameter": np.inf, "organic__content": 0.2}
+        A = 0.5
+        E = 0.5
         with pytest.raises(ValueError) as exc_info:
-            n = 24
-            att_in = {"particle__diameter": np.inf, "organic__content": 0.2}
-            A = 0.5
-            E = 0.5
-            att_node = example_square_MWRu._attributes_node(n, att_in, E, A)
+            example_square_MWRu._attributes_node(n, att_in, E, A)
         assert exc_info.match("node particle diameter is negative, nan or inf")
