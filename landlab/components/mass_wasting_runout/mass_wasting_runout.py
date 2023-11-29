@@ -1181,7 +1181,8 @@ class MassWastingRunout(Component):
 
         if A_f < 0:
             warnings.warn(
-                f"negative aggradation!! n={n}, qsi={qsi}, A={A}, zo={zo}, zi={zi}"
+                f"negative aggradation!! n={n}, qsi={qsi}, A_f={A_f}, zo={zo}, zi={zi}",
+                stacklevel=2,
             )
             # raise(ValueError)
         return A_f
