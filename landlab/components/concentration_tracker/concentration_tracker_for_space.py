@@ -353,7 +353,7 @@ class ConcentrationTrackerForSpace(Component):
         self._C_br = return_array_at_node(self._grid, new_val)
 
 
-    def concentration_watercolumn_and_bed(self, dt):
+    def calc_concentration_watercolumn_and_bed(self, dt):
         """Calculate change in concentration within sediment transported in
         the water column and within sediment on the bed for a time period 'dt'.
 
@@ -454,4 +454,4 @@ class ConcentrationTrackerForSpace(Component):
             The imposed timestep.
         """
 
-        self.concentration_watercolumn_and_bed(dt)
+        self.calc_concentration_watercolumn_and_bed(dt)
