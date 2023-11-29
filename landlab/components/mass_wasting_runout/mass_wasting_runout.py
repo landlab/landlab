@@ -371,7 +371,7 @@ class MassWastingRunout(Component):
         self._tracked_attributes = tracked_attributes
         self.deposition_rule = deposition_rule
         self.grain_shear = grain_shear
-        self.effecitve_qsi = effective_qsi
+        self.effective_qsi = effective_qsi
         self.settle_deposit = settle_deposit
         self.E_constraint = E_constraint
         self.save = save
@@ -379,10 +379,10 @@ class MassWastingRunout(Component):
         self.s = typical_slope_of_erosion_zone
         self.eta = erosion_exponent
         self.qsi_max = max_flow_depth_observed_in_field
-        if (self.effecitve_qsi) is True & (self.qsi_max is None):
+        if self.effective_qsi and self.qsi_max is None:
             raise ValueError(
                 "Need to define the 'max_flow_depth_observed_in_field'"
-                " or set effecitve_qsi to False"
+                " or set effective_qsi to False"
             )
         self.vs = vol_solids_concentration
         self.ros = density_solids
@@ -665,7 +665,7 @@ class MassWastingRunout(Component):
             # maximum slope at node n
             slpn = self._grid.at_node["topographic__steepest_slope"][n].max()
 
-            if self.effecitve_qsi:
+            if self.effective_qsi:
                 qsi_ = min(qsi, self.qsi_max)
             else:
                 qsi_ = qsi
