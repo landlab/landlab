@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -267,29 +269,29 @@ class MassWastingRunout(Component):
             "both" uses the minimum value of both rules.
             Default value is "critical_slope".
 
-        grain_shear : boolean
+        grain_shear : bool
             Indicate whether to define shear stress at the base of the runout material
             as a function of grain size using Equation 13 (True) or the depth-slope
             approximation using Equation 12 (False). Default is True.
 
-        effective_qsi : boolean
+        effective_qsi : bool
             Indicate whether to limit erosion and aggradation rates to <= the
             erosion and aggradation rates coorisponding to the maximum observed flow
             depth. All results in Keck et al. 2023 use this constraint. Default is True.
 
-        E_constraint : boolean
+        E_constraint : bool
              Indicate if erosion can not simultaneously occur with aggradation. If True,
              aggradation > 0, then erosion = 0. This is True in Keck et al., 2023.
              Default is True.
 
-        settle_deposit : boolean
+        settle_deposit : bool
             Indicate whether to allow deposits to settle before the next model iteration
             is implemented. Settlement is determined the critical slope as evaluated from
             the lowest adjacent node to the deposit. This is not used in Keck et al. 2023
             but tends to allow model to better reproduce smooth, evenly sloped deposits.
             Default is False.
 
-        save : boolean
+        save : bool
             Save topographic elevation of watershed after each model iteration?
             This uses a lot of memory but is helpful for illustrating runout.
             The default is False.
@@ -378,8 +380,8 @@ class MassWastingRunout(Component):
         self.qsi_max = max_flow_depth_observed_in_field
         if (self.effecitve_qsi) is True & (self.qsi_max is None):
             raise ValueError(
-                "Need to define the max_flow_depth_observed_in_field n\
-                                 or set effecitve_qsi to False"
+                "Need to define the 'max_flow_depth_observed_in_field'"
+                " or set effecitve_qsi to False"
             )
         self.vs = vol_solids_concentration
         self.ros = density_solids
@@ -394,28 +396,23 @@ class MassWastingRunout(Component):
 
             # check attributes are included in grid
             for key in self._tracked_attributes:
-                if self._grid.has_field("node", key) is False:
+                if not self._grid.has_field(key, at="node"):
                     raise ValueError(f"{key} not included as field in grid")
 
             # if using grain size dependent erosion, check
             # particle_diameter is included as an attribute
-            if self.grain_shear is True:
-                if "particle__diameter" in self._tracked_attributes:
-                    print(" running with spatially variable Dp ")
-                else:
-                    raise ValueError(
-                        "{} not included as field in grid and/or key in \
-                            tracked_attributes".format(
-                            key
-                        )
-                    )
+            if self.grain_shear and "particle__diameter" not in self._tracked_attributes:
+                raise ValueError(
+                    "'particle__diameter' not included as field in grid and/or"
+                    " key in tracked_attributes"
+                )
         else:
             self.track_attributes = False
 
         # flow routing option
-        self.routing_partition_method = (
-            "slope"  # 'square_root_of_slope', see flow director
-        )
+        # 'square_root_of_slope', see flow director
+        self.routing_partition_method = "slope"
+
         # density of runout mixture
         self.ro_mw = self.vs * self.ros + (1 - self.vs) * self.rof
         # number of model iterations needed to reach dist_to_full_qsc_constraint
@@ -1179,10 +1176,8 @@ class MassWastingRunout(Component):
             A_f = 0
 
         if A_f < 0:
-            print(
-                "negative aggradation!! n {}, qsi{}, A {}, zo{}, zi{}".format(
-                    n, qsi, A_f, zo, zi
-                )
+            warnings.warn(
+                f"negative aggradation!! n={n}, qsi={qsi}, A={A}, zo={zo}, zi={zi}"
             )
             # raise(ValueError)
         return A_f
