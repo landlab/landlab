@@ -355,7 +355,7 @@ class MassWastingRunout(Component):
         None
         """
         if isinstance(critical_slope, (float, int)):
-            critical_slope = (critical_slope, )
+            critical_slope = (critical_slope,)
 
         super().__init__(grid)
 
@@ -402,7 +402,10 @@ class MassWastingRunout(Component):
 
             # if using grain size dependent erosion, check
             # particle_diameter is included as an attribute
-            if self.grain_shear and "particle__diameter" not in self._tracked_attributes:
+            if (
+                self.grain_shear
+                and "particle__diameter" not in self._tracked_attributes
+            ):
                 raise ValueError(
                     "'particle__diameter' not included as field in grid and/or"
                     " key in tracked_attributes"
