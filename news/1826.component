@@ -1,0 +1,2 @@
+Added new components: ``SnowDegreeDay``,``SnowEnergyBalance``,``Meteorology``
+for simulating the snow accumulation and melt process
