@@ -46,7 +46,7 @@ class Meteorology(Component):
     grid : ModelGrid
         A Landlab model grid object
     start_datetime : string
-        start time in format of "yyyy-mm-dd hh:mm:ss"
+        start time (local time) in format of "yyyy-mm-dd hh:mm:ss"
     GMT_offset: int (default 0)
         GMT offset at the locations of interest. It should be entered as an integer
         or an array of integers between 0 and 12 with negative values for
@@ -380,7 +380,7 @@ class Meteorology(Component):
     def __init__(
         self,
         grid,
-        start_datetime,
+        start_datetime=None,
         GMT_offset=0,
         rho_H2O=1000,
         rho_air=1.2614,
@@ -412,9 +412,13 @@ class Meteorology(Component):
 
         # datetime & Julian day
         try:
-            self._datetime_obj = datetime.datetime.strptime(
-                start_datetime, "%Y-%m-%d %H:%M:%S"
-            )
+            if start_datetime is not None:
+                self._datetime_obj = datetime.datetime.strptime(
+                    start_datetime, "%Y-%m-%d %H:%M:%S"
+                )
+            else:
+                self._datetime_obj = datetime.datetime.now()
+
         except Exception as e:
             raise e
 
