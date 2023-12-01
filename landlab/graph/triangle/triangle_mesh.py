@@ -53,9 +53,9 @@ class TriangleMesh:
     Examples
     --------
     >>> poly = shapely.Polygon([[0, 0], [0, 1], [1, 1], [1, 0]])
-    >>> tri = TriangleMesh(poly, opts = 'pqa0.1Devjz', timeout = 10)
+    >>> tri = TriangleMesh(poly, opts="pqa0.1Devjz", timeout=10)
     >>> tri.triangulate()
-    >>> tri.delaunay['nodes']
+    >>> tri.delaunay["nodes"]
         Node     x     y  BC
     0      0  0.00  0.00   1
     1      1  0.00  1.00   1
@@ -70,7 +70,7 @@ class TriangleMesh:
     10    10  0.25  0.75   0
     11    11  0.75  0.75   0
     12    12  0.25  0.25   0
-    >>> tri.voronoi['faces']
+    >>> tri.voronoi["faces"]
         Link  head  tail
     0      0     0    13
     1      1     0     7

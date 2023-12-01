@@ -80,4 +80,3 @@ def test_multiple_interior_rings(datadir):
     assert grid.number_of_corners == grid.number_of_patches
     assert grid.number_of_faces == 41
     assert grid.number_of_cells == 6
-

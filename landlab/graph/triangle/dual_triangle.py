@@ -87,6 +87,7 @@ class TriGraph(Graph):
             timeout=timeout,
         )
 
+
 class DualTriGraph(DualGraph, TriGraph):
     def __init__(
         self,

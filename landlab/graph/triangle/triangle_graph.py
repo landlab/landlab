@@ -41,7 +41,7 @@ class TriangleGraph(Graph):
     --------
     >>> ys = [0, 0, 10, 10]
     >>> xs = [0, 10, 10, 0]
-    >>> graph = TriangleGraph(np.array([ys, xs]), triangle_opts = 'pqa1Djevz')
+    >>> graph = TriangleGraph(np.array([ys, xs]), triangle_opts="pqa1Djevz")
     >>> graph.number_of_nodes
     89
     >>> graph.number_of_links
