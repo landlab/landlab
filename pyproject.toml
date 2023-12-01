@@ -29,13 +29,13 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "bmipy",
   "matplotlib",
@@ -116,8 +116,7 @@ addopts = """
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
-  "IGNORE_EXCEPTION_DETAIL",
-  "ALLOW_UNICODE"
+  "IGNORE_EXCEPTION_DETAIL"
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -125,19 +124,17 @@ markers = [
 ]
 
 [tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
 combine_as_imports = true
-line_length = 88
+known_first_party = "landlab"
+profile = "black"
 
 [tool.check-manifest]
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp39-* cp310-* cp311-*"
+build = "cp310-* cp311-* cp312-*"
 skip = "*-musllinux_*"
-archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+archs = "x86_64,aarch64,arm64,AMD64,x86"
 
 [tool.conda-lock]
 channels = ["conda-forge", "defaults"]
@@ -151,7 +148,6 @@ single_file = true
 underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
 title_format = "{version} ({project_date})"
-
 type = [
   {name="New Components", directory="component", showcontent=true},
   {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
@@ -160,3 +156,14 @@ type = [
   {name="Documentation Enhancements", directory="docs", showcontent=true},
   {name="Other Changes and Additions", directory="misc", showcontent=true},
 ]
+
+[tool.landlab.credits]
+exclude = '''
+(?x)^(
+  \(no\ author\)|
+  root|
+  .*\[bot\]  # ignore all bots
+)
+'''
+authors_file = "AUTHORS.rst"
+author_format = "* `{name} <https://github.com/{github}>`_"

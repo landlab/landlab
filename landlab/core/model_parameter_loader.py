@@ -63,15 +63,15 @@ def load_params(file_like):
     Examples
     --------
     >>> from landlab.core import load_params
-    >>> contents = \"\"\"
+    >>> contents = '''
     ... start: 0.
     ... stop: 10.
     ... step: 2.
-    ... \"\"\"
+    ... '''
     >>> params = load_params(contents)
     >>> isinstance(params, dict)
     True
-    >>> params['start'], params['stop'], params['step']
+    >>> params["start"], params["stop"], params["step"]
     (0.0, 10.0, 2.0)
     """
     contents = load_file_contents(file_like)

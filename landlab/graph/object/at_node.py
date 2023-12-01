@@ -79,20 +79,21 @@ def sort_links_at_node_by_angle(
 
     >>> links_at_node = [[2, 0], [1, 2], [3, 0], [3, 1]]
     >>> link_dirs_at_node = [[1, -1], [-1, -1], [-1, 1], [1, 1]]
-    >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
+    >>> angle_of_link = np.array([0.0, 0.0, -90.0, 90.0]) * np.pi / 180.0
 
-    >>> out = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-    ...     angle_of_link)
+    >>> out = sort_links_at_node_by_angle(
+    ...     links_at_node, link_dirs_at_node, angle_of_link
+    ... )
 
     The first item of the returned tuple is links at each node sorted
     counterclockwise by angle.
 
-    >>> out[0] # doctest: +NORMALIZE_WHITESPACE
+    >>> out[0]
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
 
     The second item is the direction of the link (entering or leaving).
 
-    >>> out[1] # doctest: +NORMALIZE_WHITESPACE
+    >>> out[1]
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
 
     Because the input arrays are lists, not numpy arrays, the sort is not
@@ -102,14 +103,17 @@ def sort_links_at_node_by_angle(
     True
 
     >>> links_at_node = np.asarray([[2, 0], [1, 2], [3, 0], [3, 1]], dtype=int)
-    >>> link_dirs_at_node = np.asarray([[1, -1], [-1, -1], [-1, 1], [1, 1]], dtype=np.int8)
-    >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
+    >>> link_dirs_at_node = np.asarray(
+    ...     [[1, -1], [-1, -1], [-1, 1], [1, 1]], dtype=np.int8
+    ... )
+    >>> angle_of_link = np.array([0.0, 0.0, -90.0, 90.0]) * np.pi / 180.0
 
-    >>> _ = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-    ...     angle_of_link, inplace=True)
-    >>> links_at_node # doctest: +NORMALIZE_WHITESPACE
+    >>> _ = sort_links_at_node_by_angle(
+    ...     links_at_node, link_dirs_at_node, angle_of_link, inplace=True
+    ... )
+    >>> links_at_node
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
-    >>> link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+    >>> link_dirs_at_node
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
     from .ext.at_node import reorder_link_dirs_at_node, reorder_links_at_node

@@ -14,14 +14,14 @@ Launch notebooks online
 -----------------------
 
 Landlab Notebooks can be accessed online with the following link:
-`Binder <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
+`Binder <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb>`_.
 Here the notebooks are provided within a binder online environment that
 includes Landlab.
 
 The welcome page on Binder provides onward links to most of our tutorials.
 If you're a newbie you might want to skip directly to a recommended syllabus
 for learning Landlab
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/syllabus.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/syllabus.ipynb>`_.
 
 .. _tutorials_EarthscapeHub:
 

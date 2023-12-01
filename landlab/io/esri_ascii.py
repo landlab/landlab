@@ -320,7 +320,7 @@ def read_asc_header(asc_file):
     ... xllcenter 0.5
     ... yllcenter -0.5
     ... '''
-    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> read_asc_header(StringIO(contents))
     Traceback (most recent call last):
     MissingRequiredKeyError: nrows
 
@@ -334,7 +334,7 @@ def read_asc_header(asc_file):
     ... xllcenter 0.5
     ... yllcenter -0.5
     ... '''
-    >>> read_asc_header(StringIO(contents)) # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> read_asc_header(StringIO(contents))
     Traceback (most recent call last):
     KeyTypeError: Unable to convert nrows to <type 'int'>
     """
@@ -547,16 +547,16 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
-    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
     >>> grid.at_node["air__temperature"] = np.arange(20.0)
     >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
-    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)]  # doctest: +SKIP
     ['test.asc']
 
-    >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
+    >>> _ = grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
     >>> grid.at_node["land_surface__elevation"] = np.arange(20.0)
-    >>> files = write_esri_ascii("test.asc", grid))  # doctest: +SKIP
-    >>> [os.path.basename(name) for name in sorted(files)])  # doctest: +SKIP
+    >>> files = write_esri_ascii("test.asc", grid)  # doctest: +SKIP
+    >>> [os.path.basename(name) for name in sorted(files)]  # doctest: +SKIP
     ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
     """
     if os.path.exists(path) and not clobber:

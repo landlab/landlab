@@ -205,7 +205,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
             The distance from the center node of each node.
 
         >>> from landlab.graph import RadialGraph
-        >>> graph = RadialGraph((2, 6), spacing=2.)
+        >>> graph = RadialGraph((2, 6), spacing=2.0)
         >>> graph.spacing_of_rings
         2.0
 

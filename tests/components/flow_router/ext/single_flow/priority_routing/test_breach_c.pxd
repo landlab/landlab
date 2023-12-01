@@ -1,9 +1,11 @@
 # distutils: language = c++
 import numpy as np
-cimport numpy as cnp
+
 cimport cython
+cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
+
 
 cdef extern from "_priority_queue.hpp" nogil:
     cdef cppclass _priority_queue:

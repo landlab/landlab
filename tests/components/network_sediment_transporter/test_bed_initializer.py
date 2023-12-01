@@ -157,12 +157,12 @@ class Test_BedParcelInitializer:
         Minimum attributes specified, most attributes should use
         defaults specified at instantiation. uses BedParcelInitializerDischarge.
         """
-        np.random.seed(seed=5)
         discharge = np.full(example_nmg2.number_of_links, 1.0)
         initialize_parcels = BedParcelInitializerDischarge(
             example_nmg2,
             discharge_at_link=discharge,
             median_number_of_starting_parcels=1,
+            rng=5,
         )
 
         parcels = initialize_parcels()
@@ -185,18 +185,16 @@ class Test_BedParcelInitializer:
         ALe = np.expand_dims(np.ones(8), axis=1)
         AL = parcels.dataset["active_layer"]
         LL = parcels.dataset["location_in_link"]
-        De = np.array(
-            [
-                [0.06802885],
-                [0.06232028],
-                [0.37674903],
-                [0.06607135],
-                [0.07391346],
-                [0.29280262],
-                [0.04609956],
-                [0.05135768],
-            ]
-        )
+        De = [
+            [0.02704727],
+            [0.02982003],
+            [0.05161594],
+            [0.10882225],
+            [0.15829283],
+            [0.09817898],
+            [0.06006139],
+            [0.0445011],
+        ]
         D = parcels.dataset["D"]
         V = parcels.dataset["volume"]
 
@@ -216,13 +214,13 @@ class Test_BedParcelInitializer:
         Test normal outputs of bed parcel initializer with abrasion.
         uses BedParcelInitializerDischarge.
         """
-        np.random.seed(seed=5)
         discharge = np.full(example_nmg2.number_of_links, 1.0)
         initialize_parcels = BedParcelInitializerDischarge(
             example_nmg2,
             discharge_at_link=discharge,
             median_number_of_starting_parcels=1,
             abrasion_rate=0.1,
+            rng=5,
         )
 
         parcels = initialize_parcels()
@@ -244,18 +242,16 @@ class Test_BedParcelInitializer:
         TA = parcels.dataset["time_arrival_in_link"]
         ALe = np.expand_dims(np.ones(8), axis=1)
         AL = parcels.dataset["active_layer"]
-        De = np.array(
-            [
-                [0.06802885],
-                [0.06232028],
-                [0.37674903],
-                [0.06607135],
-                [0.07391346],
-                [0.29280262],
-                [0.04609956],
-                [0.05135768],
-            ]
-        )
+        De = [
+            [0.02704727],
+            [0.02982003],
+            [0.05161594],
+            [0.10882225],
+            [0.15829283],
+            [0.09817898],
+            [0.06006139],
+            [0.0445011],
+        ]
         D = parcels.dataset["D"]
         V = parcels.dataset["volume"]
 

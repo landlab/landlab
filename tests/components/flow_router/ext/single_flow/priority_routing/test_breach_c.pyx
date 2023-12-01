@@ -8,17 +8,22 @@
 # must add a .pxd file with the instruction # distutils: language = c++
 
 import numpy as np
-cimport numpy as cnp
+
 cimport cython
+cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
-from libcpp.vector cimport vector
 from libcpp.queue cimport queue
+from libcpp.vector cimport vector
 
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from landlab.components.flow_router.ext.single_flow.priority_routing cimport breach as breach_c
+from landlab.components.flow_router.ext.single_flow.priority_routing cimport (
+    breach as breach_c,
+)
+
 import landlab.components.flow_router.ext.single_flow.priority_routing.breach as breach
+
 
 cdef extern from "_priority_queue.hpp" nogil:
     cdef cppclass _priority_queue:

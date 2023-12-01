@@ -5,7 +5,7 @@
 *********************
 
 For a quick introduction to Landlab, check out `this tutorial on Binder
-<https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/fault_scarp/landlab-fault-scarp.ipynb>`_
+<https://mybinder.org/v2/gh/landlab/landlab/master?labpath=notebooks%2Ftutorials%2Ffault_scarp%2Flandlab-fault-scarp.ipynb>`_
 showing its major features in the context of a 2D model for fault-scarp
 degradation.
 

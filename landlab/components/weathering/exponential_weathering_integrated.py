@@ -67,10 +67,10 @@ class ExponentialWeathererIntegrated(Component):
     >>> expw = ExponentialWeathererIntegrated(mg)
     >>> dt = 1000
     >>> expw.run_one_step(dt)
-    >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
+    >>> np.allclose(mg.at_node["soil_production__rate"][mg.core_nodes], 1.0)
     True
     >>> np.allclose(
-    ...     mg.at_node['soil_production__dt_produced_depth'][mg.core_nodes], 6.9088
+    ...     mg.at_node["soil_production__dt_produced_depth"][mg.core_nodes], 6.9088
     ... )
     True
 

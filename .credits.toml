@@ -1,0 +1,378 @@
+[[tool.landlab.credits.author]]
+name = '(no author)'
+email = '(no author)@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Abby Langston'
+email = 'alangston@ksu.edu'
+aliases = [
+  'alangston',
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Allison Pfeiffer'
+email = 'pfeif@uw.edu'
+aliases = [
+  'pfeiffea',
+]
+alternate_emails = [
+  '35848814+pfeiffea@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Amanda Manaster'
+email = 'amanaste@uw.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'amanaster2'
+
+[[tool.landlab.credits.author]]
+name = 'Andy Wickert'
+email = 'awickert@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+  'awickert',
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Benjamin Campforts'
+email = 'benjamincampforts@gmail.com'
+aliases = [
+  'Benjamin',
+]
+alternate_emails = [
+  'bca@Benjamins-MacBook-Pro.local',
+]
+github = 'BCampforts'
+
+[[tool.landlab.credits.author]]
+name = 'Charlie Shobe'
+email = 'cmshobe@email.wm.edu'
+aliases = [
+  'cmshobe',
+]
+alternate_emails = [
+  'cmshobe@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Christopher Sheehan'
+email = '56881748+Sheehace@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Dan Hobley'
+email = 'dan.hobley@gmail.com'
+aliases = [
+  'DanielHobley',
+  'SiccarPoint',
+  'danhobley',
+]
+alternate_emails = [
+  'danhobley@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'daniel.hobley@adas.co.uk',
+  'daniel@dhmac.geol.cf.ac.uk',
+  'daniel@v3061-0a9084c0.wifi.cf.ac.uk',
+]
+github = 'SiccarPoint'
+
+[[tool.landlab.credits.author]]
+name = 'David Litwin'
+email = 'davidglitwin@posteo.net'
+aliases = [
+  'DavidLitwin',
+]
+alternate_emails = [
+  '45630470+DavidLitwin@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Dylan Ward'
+email = 'dylan.ward@uc.edu'
+aliases = [
+  'Dylan',
+]
+alternate_emails = [
+]
+github = 'ddoubleprime'
+
+[[tool.landlab.credits.author]]
+name = 'Eric Hutton'
+email = 'mcflugen@gmail.com'
+aliases = [
+  'huttone',
+  'mcflugen',
+]
+alternate_emails = [
+  'huttone@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'huttone@colorado.edu',
+  'mcflugen@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Francis Rengers'
+email = 'francis.rengers@colorado.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'frengers'
+
+[[tool.landlab.credits.author]]
+name = 'Giuseppecipolla95'
+email = '36881480+Giuseppecipolla95@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Greg Tucker'
+email = 'gtucker@colorado.edu'
+aliases = [
+  'gregtucker',
+  'gtucker',
+]
+alternate_emails = [
+  'gregteucro@yahoo.com',
+  'gtucker@093548ea-dc74-4ebb-8037-4be9f23db00a',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Jay Hariharan'
+email = 'jayaram.hariharan@utexas.edu'
+aliases = [
+  'jay',
+]
+alternate_emails = [
+]
+github = 'elbeejay'
+
+[[tool.landlab.credits.author]]
+name = 'Jeffrey Keck'
+email = 'keckje@gmail.com'
+aliases = [
+  'keckje',
+]
+alternate_emails = [
+  '31672064+keckje@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Jenny Knuth'
+email = 'inkboco@gmail.com'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'jennyknuth'
+
+[[tool.landlab.credits.author]]
+name = 'Jordan Adams'
+email = 'jadams15@tulane.edu'
+aliases = [
+  'Jordan',
+  'jadams15',
+  'jordan',
+]
+alternate_emails = [
+  'Jordan@Jordan-Adamss-MacBook-Pro.local',
+  'Jordan@e0-f8-47-11-a-8c.cg-guest.ucar.edu',
+  'jadams15@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'jadams15@users.noreply.github.com',
+]
+github = 'jadams15'
+
+[[tool.landlab.credits.author]]
+name = 'Josh Wolpert'
+email = '66105693+josh-wolpert@users.noreply.github.com'
+aliases = [
+  'josh-wolpert',
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Katy Barnhart'
+email = 'krbarnhart@usgs.gov'
+aliases = [
+  'Barnhart, Katherine (Katy) Ruth',
+  'Katherine Barnhart',
+  'Katy',
+  'barnhark',
+  'kbarnhart',
+]
+alternate_emails = [
+  'barnhark@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'katy.barnhart@gmail.com',
+  'katybarnhart@Katys-MacBook-Pro.local',
+  'katybarnhart@engr2-2-94-28-dhcp.int.colorado.edu',
+]
+github = 'kbarnhart'
+
+[[tool.landlab.credits.author]]
+name = 'Kristen Thyng'
+email = 'kthyng@gmail.com'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'kthyng'
+
+[[tool.landlab.credits.author]]
+name = 'Laurent Roberge'
+email = 'lroberge@tulane.edu'
+aliases = [
+  'loroberge',
+]
+alternate_emails = [
+  '59940112+loroberge@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Margaux Mouchene'
+email = 'margaux.mouchene@laposte.net'
+aliases = [
+  'margauxmouchene',
+]
+alternate_emails = [
+  'margauxmouchene@Margauxs-iMac.local',
+  'margauxmouchene@dhcp-216-222.tulane.edu',
+  'margauxmouchene@dhcp-216-249.tulane.edu',
+  'margauxmouchene@dhcp-216-251.tulane.edu',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Mark Piper'
+email = 'mark.piper@colorado.edu'
+aliases = [
+]
+alternate_emails = [
+]
+github = 'mdpiper'
+
+[[tool.landlab.credits.author]]
+name = 'Muneer Ahammad'
+email = '65404451+muneerVT@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Nathan Lyons'
+email = 'nathan.j.lyons@gmail.com'
+aliases = [
+  'NathanLyons',
+  'nathanlyons',
+]
+alternate_emails = [
+  'njlyons@Icacos.local',
+]
+github = 'nathanlyons'
+
+[[tool.landlab.credits.author]]
+name = 'Nicole M Gasparini'
+email = 'nicgaspar@gmail.com'
+aliases = [
+  'nicgaspar',
+]
+alternate_emails = [
+  'nicgaspar@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'nicolegasparini@Nicoles-Mac-Pro.local',
+  'nicolegasparini@ngaspari.tulane.edu',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Rachel Glade'
+email = 'rcglade@gmail.com'
+aliases = [
+  'Glader011235',
+]
+alternate_emails = [
+  'rachel.glade@colorado.edu',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Ronda Strauch'
+email = 'rstrauch@uw.edu'
+aliases = [
+  'RondaStrauch',
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Sai Nudurupati'
+email = 'saisiddu@uw.edu'
+aliases = [
+  'Sai Siddhartha Nudurupati',
+  'saisiddu',
+]
+alternate_emails = [
+  'saisiddu@093548ea-dc74-4ebb-8037-4be9f23db00a',
+  'saisiddu@e-istanbul-3.ce.washington.edu',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Sarah Lundell'
+email = 's_lundell@att.net'
+aliases = [
+  'slundell123',
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'Sebastien Lenard'
+email = 'sebastien.lenard@gmail.com'
+aliases = [
+  'sebastien-lenard',
+]
+alternate_emails = [
+  '91671955+sebastien-lenard@users.noreply.github.com',
+]
+
+[[tool.landlab.credits.author]]
+name = 'Shelby Ahrendt'
+email = '36043125+shelbyahrendt@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'dependabot[bot]'
+email = '49699333+dependabot[bot]@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'pre-commit-ci[bot]'
+email = '66853113+pre-commit-ci[bot]@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
+name = 'root'
+email = 'root@093548ea-dc74-4ebb-8037-4be9f23db00a'
+aliases = [
+]
+alternate_emails = [
+]

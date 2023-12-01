@@ -20,7 +20,7 @@
     :target: https://coveralls.io/r/landlab/landlab
 
 .. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
+ :target: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb
 
 =======
 Landlab
@@ -107,11 +107,11 @@ Run on Binder
 To launch an instance of
 Binder and `explore the notebooks click here`_.
 
-.. _explore the notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
+.. _explore the notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb
 
 To launch a Binder instance that goes straight to the `teaching notebooks click here`_.
 
-.. _teaching notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb
+.. _teaching notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/teaching/welcome_teaching.ipynb
 
 Run on EarthscapeHub
 ````````````````````

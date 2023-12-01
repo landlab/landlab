@@ -43,7 +43,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     >>> nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
     >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
+    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, 0.01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
 
     Define a function that contains which times a pulse is allowed to occur.
@@ -51,6 +51,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
     >>> def time_to_pulse(time):
     ...     return True
+    ...
 
     Instantiate :class:`~.SedimentPulserAtLinks`
 
@@ -68,7 +69,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
     Check the element_id of each parcel
 
-    >>> print(parcels.dataset['element_id'].values)
+    >>> print(parcels.dataset["element_id"].values)
     [[2]
      [2]
      [6]
@@ -92,6 +93,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         rho_sediment=2650.0,
         parcel_volume=0.5,
         abrasion_rate=0.0,
+        rng=None,
     ):
         """Create :class:`~.SedimentPulserAtLinks`.
 
@@ -116,6 +118,11 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         abrasion_rate: float
             Volumetric abrasion exponent [1 / m]
         """
+        if rng is None:
+            rng = np.random.default_rng()
+        elif isinstance(rng, int):
+            rng = np.random.default_rng(seed=rng)
+        self._rng = rng
 
         SedimentPulserBase.__init__(
             self,
@@ -282,7 +289,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         offset = 0
         for link, n_parcels in enumerate(n_parcels_at_link):
             element_id[offset : offset + n_parcels] = links[link]
-            grain_size[offset : offset + n_parcels] = np.random.lognormal(
+            grain_size[offset : offset + n_parcels] = self._rng.lognormal(
                 np.log(D50[link]), np.log(D84_D50[link]), n_parcels
             )
             volume[offset : offset + n_parcels] = parcel_volume[link] % n_parcels
@@ -313,7 +320,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
         # link location (distance from link inlet / link length) is stochastically
         # determined
         location_in_link = np.expand_dims(
-            np.random.uniform(size=np.sum(n_parcels_at_link)), axis=1
+            self._rng.uniform(size=np.sum(n_parcels_at_link)), axis=1
         )
 
         # All parcels in pulse are in the active layer (1) rather than subsurface (0)
