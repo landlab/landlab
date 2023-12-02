@@ -52,6 +52,7 @@ class DualIcosphereGraph:
         - length_of_face
         - link_at_face, face_at_link
         - faces_at_cell
+        - adjacent_nodes_at_node
 
         Examples
         --------
@@ -94,6 +95,8 @@ class DualIcosphereGraph:
         3
         >>> ico.faces_at_cell[0]
         array([ 0,  2,  4,  6,  8, -1])
+        >>> ico.adjacent_nodes_at_node[0]
+        array([11,  5,  1,  7, 10, -1])
 
         Icosphere with 1 level of subdivision
 
@@ -196,6 +199,7 @@ class DualIcosphereGraph:
         self.nodes_at_link = np.zeros((int(1.5 * len(ico_faces)), 2), dtype=int)
         self.links_at_node = np.zeros((self.number_of_nodes, 6), dtype=int) - 1
         self.link_dirs_at_node = np.zeros((self.number_of_nodes, 6), dtype=int)
+        self.adjacent_nodes_at_node = np.zeros((self.number_of_nodes, 6), dtype=int) - 1
         link_at_node_index = np.zeros(self.number_of_nodes, dtype=int)
         for icoface in ico_faces:
             # print("face", icoface)
@@ -207,18 +211,20 @@ class DualIcosphereGraph:
         self.length_of_link = np.zeros(self.number_of_links)
         for link in self.links.values():
             tail = link[0]
+            head = link[1]
             # print("Tail of link", i, "is", tail)
             # print(" it is link number", link_at_node_index[tail], "for this node")
             self.nodes_at_link[i, 0] = tail
             self.links_at_node[tail, link_at_node_index[tail]] = i
             self.link_dirs_at_node[tail, link_at_node_index[tail]] = -1
+            self.adjacent_nodes_at_node[tail, link_at_node_index[tail]] = head
             link_at_node_index[tail] += 1
-            head = link[1]
             # print("Head of link", i, "is", head)
             # print(" it is link number", link_at_node_index[head], "for this node")
             self.nodes_at_link[i, 1] = head
             self.links_at_node[head, link_at_node_index[head]] = i
             self.link_dirs_at_node[head, link_at_node_index[head]] = 1
+            self.adjacent_nodes_at_node[head, link_at_node_index[head]] = tail
             link_at_node_index[head] += 1
             self.length_of_link[i] = self.radius * arc_length(
                 self.coords_of_node[tail], self.coords_of_node[head], self.radius
