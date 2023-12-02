@@ -373,7 +373,10 @@ class TriangleMesh:
         # ----------------------------
         # Set up a temporary directory
         # ----------------------------
-        with tempfile.TemporaryDirectory() as tmpdir, as_cwd(tmpdir):
+        with (
+            tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir,
+            as_cwd(tmpdir),
+        ):
             self._write_poly_file(
                 "tri.poly", self._vertices, self._segments, self._holes
             )
