@@ -9,5 +9,6 @@ pyshp != 2.3.0
 pyyaml
 rich-click
 scipy
+shapely
 statsmodels
 xarray >= 0.16
