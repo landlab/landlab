@@ -8,6 +8,7 @@ import numpy as np
 
 from ..graph import DualIcosphereGraph
 from .base import ModelGrid
+from .nodestatus import NodeStatus
 
 
 class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
@@ -74,6 +75,10 @@ class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):
         """Initialize the IcosphereGlobalGrid"""
         DualIcosphereGraph.__init__(self, radius, mesh_densification_level)
         ModelGrid.__init__(self)
+
+        self._node_status = np.full(
+            self.number_of_nodes, NodeStatus.CORE, dtype=np.uint8
+        )
 
     def to_vtk(
         self,
