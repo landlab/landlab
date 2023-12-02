@@ -7,8 +7,8 @@ import pathlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..graph.triangle import DualTriGraph
-from .base import ModelGrid
+from landlab.graph.triangle.dual_triangle import DualTriGraph
+from landlab.grid.base import ModelGrid
 
 
 class TriangleMeshGrid(DualTriGraph, ModelGrid):
@@ -29,7 +29,7 @@ class TriangleMeshGrid(DualTriGraph, ModelGrid):
 
     See also
     --------
-    TriangleGraph.from_shapefile
+    TriGraph.from_shapefile
         Constructs the grid from a shapefile, geojson, geopackage, etc.
 
     Examples

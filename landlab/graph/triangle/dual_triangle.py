@@ -2,10 +2,10 @@ import numpy as np
 import shapely
 from shapely.validation import explain_validity
 
-from ..dual import DualGraph
-from ..graph import Graph
-from ..sort.sort import reverse_one_to_many, sort_links_at_patch
-from .triangle_mesh import TriangleMesh
+from landlab.graph.dual import DualGraph
+from landlab.graph.graph import Graph
+from landlab.graph.sort.sort import reverse_one_to_many, sort_links_at_patch
+from landlab.graph.triangle.triangle_mesh import TriangleMesh
 
 
 class TriGraph(Graph):
@@ -23,8 +23,8 @@ class TriGraph(Graph):
 
         if not polygon.is_valid:
             raise ValueError(
-                "Shapely considers the input geometry invalid for the following reasons:\n"
-                + str(explain_validity(polygon))
+                "Shapely considers the input geometry invalid for the following"
+                f" reasons:\n{explain_validity(polygon)}"
             )
 
         mesh_generator = TriangleMesh(polygon, opts=triangle_opts, timeout=timeout)

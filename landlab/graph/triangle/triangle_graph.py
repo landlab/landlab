@@ -3,9 +3,9 @@ import shapely
 import xarray as xr
 from shapely.validation import explain_validity
 
-from ..graph import Graph
-from ..sort.sort import reverse_one_to_many
-from .triangle_mesh import TriangleMesh
+from landlab.graph.graph import Graph
+from landlab.graph.sort.sort import reverse_one_to_many
+from landlab.graph.triangle.triangle_mesh import TriangleMesh
 
 
 class TriangleGraph(Graph):
