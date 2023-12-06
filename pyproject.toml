@@ -158,6 +158,12 @@ type = [
 ]
 
 [tool.landlab.credits]
-ignore = ["(no author)", "root", "dependabot[bot]"]
+exclude = '''
+(?x)^(
+  \(no\ author\)|
+  root|
+  .*\[bot\]  # ignore all bots
+)
+'''
 authors_file = "AUTHORS.rst"
 author_format = "* `{name} <https://github.com/{github}>`_"

@@ -362,6 +362,14 @@ alternate_emails = [
 ]
 
 [[tool.landlab.credits.author]]
+name = 'pre-commit-ci[bot]'
+email = '66853113+pre-commit-ci[bot]@users.noreply.github.com'
+aliases = [
+]
+alternate_emails = [
+]
+
+[[tool.landlab.credits.author]]
 name = 'root'
 email = 'root@093548ea-dc74-4ebb-8037-4be9f23db00a'
 aliases = [
