@@ -102,11 +102,11 @@ units of m3/s.
 
 Now we map nodes into links when it is required
 
->>> grid.at_link["surface_water__depth"] = (
-...     map_mean_of_link_nodes_to_link(grid, "surface_water__depth")
+>>> grid.at_link["surface_water__depth"] = map_mean_of_link_nodes_to_link(
+...     grid, "surface_water__depth"
 ... )
->>> grid.at_link["surface_water__velocity"] = (
-...     map_mean_of_link_nodes_to_link(grid, "surface_water__velocity")
+>>> grid.at_link["surface_water__velocity"] = map_mean_of_link_nodes_to_link(
+...     grid, "surface_water__velocity"
 ... )
 
 We will assume, for the sake of demonstration, that we have two sectors with
@@ -115,11 +115,11 @@ of these two different GSD within the watershed (labeled as 0 and 1). This will
 be included during the instantiation
 
 >>> gsd_loc = [
-...     [0, 1., 1., 1., 0],
-...     [0, 1., 1., 1., 0],
-...     [0, 1., 1., 1., 0],
-...     [0, 1., 1., 1., 0],
-...     [0, 1., 1., 1., 0],
+...     [0, 1.0, 1.0, 1.0, 0],
+...     [0, 1.0, 1.0, 1.0, 0],
+...     [0, 1.0, 1.0, 1.0, 0],
+...     [0, 1.0, 1.0, 1.0, 0],
+...     [0, 1.0, 1.0, 1.0, 0],
 ... ]
 
 We assign a GSD to each location. The structure of this array is:
@@ -315,15 +315,7 @@ array([[ 32, 100],
 
 The sand content can be calculated from a grain size distribution
 
->>> gsd = [
-...     [128, 100],
-...     [64, 90],
-...     [32, 80],
-...     [16, 50],
-...     [8, 20],
-...     [2, 10],
-...     [1, 0]
-... ]
+>>> gsd = [[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [2, 10], [1, 0]]
 >>> rbd = RiverBedDynamics(grid, gsd=gsd, bedload_equation="MPM")
 >>> sandContent = rbd._bed_surface__sand_fraction_node[20]
 >>> print(float("{:.4f}".format(round(sandContent, 4))))
@@ -339,10 +331,8 @@ What happens if we give it a set of wrong optional fields. The following
 fields will have only two elements, which is different than the number of
 nodes and links
 
->>> qb_imposed = np.array([1,2])
->>> rbd = RiverBedDynamics(
-...     grid, sed_transport__bedload_rate_imposed_link=qb_imposed
-... )
+>>> qb_imposed = np.array([1, 2])
+>>> rbd = RiverBedDynamics(grid, sed_transport__bedload_rate_imposed_link=qb_imposed)
 >>> rbd._sed_transport__bedload_rate_imposed_link
 array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
@@ -388,10 +378,8 @@ For sed_transport__bedload_gsd_imposed_link, for simplicity, we only show
 links 0, 5, and 10
 
 >>> qb_gsd_imposed = np.array([1, 2])
->>> rbd = RiverBedDynamics(
-...     grid, sed_transport__bedload_gsd_imposed_link=qb_gsd_imposed
-... )
->>> rbd._sed_transport__bedload_gsd_imposed_link[[0,5,10],:]
+>>> rbd = RiverBedDynamics(grid, sed_transport__bedload_gsd_imposed_link=qb_gsd_imposed)
+>>> rbd._sed_transport__bedload_gsd_imposed_link[[0, 5, 10], :]
 array([[ 0.,  0.],
        [ 0.,  0.],
        [ 0.,  0.]])
@@ -423,7 +411,7 @@ array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1]])
 
->>> elev_fix = np.full(grid.number_of_nodes,1)
+>>> elev_fix = np.full(grid.number_of_nodes, 1)
 >>> rbd = RiverBedDynamics(grid, bed_surface__elevation_fixed_node=elev_fix)
 >>> rbd._bed_surface__elevation_fixed_node.reshape(grid.shape)
 array([[1, 1, 1, 1, 1],
@@ -432,15 +420,13 @@ array([[1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1]])
 
->>> vel_n_1  = np.full(grid.number_of_links,1)
+>>> vel_n_1 = np.full(grid.number_of_links, 1)
 >>> rbd = RiverBedDynamics(grid, surface_water__velocity_prev_time_link=vel_n_1)
 >>> rbd._surface_water__velocity_prev_time_link[[0, 5, 10]]
 array([1, 1, 1])
 
->>> qb_gsd_imposed = np.ones((grid.number_of_links, 2)) # 2 comes from gsd.shape[0]-1
->>> rbd = RiverBedDynamics(
-...     grid, sed_transport__bedload_gsd_imposed_link=qb_gsd_imposed
-... )
+>>> qb_gsd_imposed = np.ones((grid.number_of_links, 2))  # 2 comes from gsd.shape[0]-1
+>>> rbd = RiverBedDynamics(grid, sed_transport__bedload_gsd_imposed_link=qb_gsd_imposed)
 >>> rbd._sed_transport__bedload_gsd_imposed_link[[0, 5, 10]]
 array([[ 1.,  1.],
        [ 1.,  1.],
@@ -1281,11 +1267,11 @@ class RiverBedDynamics(Component):
         >>> grid.at_node["surface_water__velocity"] = np.full(
         ...     grid.number_of_nodes, 0.25
         ... )
-        >>> grid.at_link["surface_water__depth"] = (
-        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__depth")
+        >>> grid.at_link["surface_water__depth"] = map_mean_of_link_nodes_to_link(
+        ...     grid, "surface_water__depth"
         ... )
-        >>> grid.at_link["surface_water__velocity"] = (
-        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__velocity")
+        >>> grid.at_link["surface_water__velocity"] = map_mean_of_link_nodes_to_link(
+        ...     grid, "surface_water__velocity"
         ... )
         >>> grid.at_node["topographic__elevation"] = [
         ...     [1.07, 1.06, 1.00, 1.06, 1.07],
@@ -1298,11 +1284,11 @@ class RiverBedDynamics(Component):
         ...     grid.at_node["topographic__elevation"]
         ... )
         >>> gsd_loc = [
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
         ... ]
         >>> gsd = [[128, 100], [64, 90], [32, 80], [16, 50], [8, 20], [2, 10], [1, 0]]
         >>> qb_imposed_gsd = np.zeros(
@@ -1447,11 +1433,11 @@ class RiverBedDynamics(Component):
         >>> grid.at_node["surface_water__velocity"] = np.full(
         ...     grid.number_of_nodes, 0.25
         ... )
-        >>> grid.at_link["surface_water__depth"] = (
-        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__depth")
+        >>> grid.at_link["surface_water__depth"] = map_mean_of_link_nodes_to_link(
+        ...     grid, "surface_water__depth"
         ... )
-        >>> grid.at_link["surface_water__velocity"] = (
-        ...     map_mean_of_link_nodes_to_link(grid, "surface_water__velocity")
+        >>> grid.at_link["surface_water__velocity"] = map_mean_of_link_nodes_to_link(
+        ...     grid, "surface_water__velocity"
         ... )
 
         In this topography the outlet is at the left edge
@@ -2582,7 +2568,7 @@ class RiverBedDynamics(Component):
         >>> fixed_bed_gsd_nodes[fixed_nodes_id] = 1
 
         >>> in_qb = -0.002
-        >>> in_l = np.array((28,33))
+        >>> in_l = np.array((28, 33))
         >>> qb = np.full(grid.number_of_links, 0.0)
         >>> qb[in_l] = in_qb
 
@@ -2602,16 +2588,18 @@ class RiverBedDynamics(Component):
         >>> for t in range(1300):
         ...     rbd._current_t = t
         ...     rbd.run_one_step()
+        ...
         >>> z = grid.at_node["topographic__elevation"][16]
-        >>> np.round(z,decimals=3)
+        >>> np.round(z, decimals=3)
         1.05
 
         >>> rbd._sed_transport__bedload_rate_imposed_link[in_l] = 0.001
         >>> for t in range(1300, 2605 + 1300):
         ...     rbd._current_t = t
         ...     rbd.run_one_step()
+        ...
         >>> z = grid.at_node["topographic__elevation"][16]
-        >>> np.round(z,decimals=3)
+        >>> np.round(z, decimals=3)
         1.01
 
         We will delete any temp folder created during docstring tests
@@ -2858,11 +2846,11 @@ class RiverBedDynamics(Component):
         ... )
 
         >>> gsd_loc = [
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
         ... ]
 
         >>> gsd = [[32, 100, 100], [16, 25, 50], [8, 0, 0]]
@@ -3004,16 +2992,16 @@ class RiverBedDynamics(Component):
         ... )
 
         >>> gsd_loc = [
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
-        ...     [0, 1., 1., 1., 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
+        ...     [0, 1.0, 1.0, 1.0, 0],
         ... ]
 
         >>> gsd = [[32, 100, 100], [16, 25, 50], [8, 0, 0]]
 
-        >>> timeStep = 1 # time step in seconds
+        >>> timeStep = 1  # time step in seconds
 
         >>> rbd = RiverBedDynamics(
         ...     grid,
