@@ -387,3 +387,34 @@ def _clean_rglob(pattern):
             p.rmdir()
         else:
             p.unlink()
+
+
+@nox.session
+def credits(session):
+    """Update the various authors files."""
+    from landlab.cmd.authors import AuthorsConfig
+
+    config = AuthorsConfig()
+
+    with open(".mailmap", "wb") as fp:
+        session.run(
+            "landlab", "--silent", "authors", "mailmap", stdout=fp, external=True
+        )
+
+    contents = session.run(
+        "landlab",
+        "--silent",
+        "authors",
+        "create",
+        "--update-existing",
+        external=True,
+        silent=True,
+    )
+    with open(config["credits_file"], "w") as fp:
+        print(contents, file=fp, end="")
+
+    contents = session.run(
+        "landlab", "--silent", "authors", "build", silent=True, external=True
+    )
+    with open(config["authors_file"], "w") as fp:
+        print(contents, file=fp, end="")

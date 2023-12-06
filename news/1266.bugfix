@@ -1,3 +1,0 @@
-
-Fixed a bug that prevented the :class:`~.DrainageDensity` component from
-working on hex grids.
