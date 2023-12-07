@@ -6,4 +6,3 @@ mesa==2.1.2
 pymt_era5==0.1.0
 pymt_topography==0.1
 xesmf==0.8.2
-pymt==1.3.1
