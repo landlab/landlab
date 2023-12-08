@@ -35,24 +35,33 @@ class DualIcosphereGraph:
         """
         Initialize DualIcosphereGraph
 
+        Parameters
+        ----------
+        radius : float, optional
+            Radius of the sphere (default 1.0)
+        mesh_densification_level : int, optional
+            Number of times to subdivide the mesh (default 0)
+
         Notes
         -----
-        Data structures set up include:
+        Data structures set up include the following (note that
+        n_cells = n_nodes and n_faces = n_links):
         - coords_of_node : ndarray of float (n_nodes, 3)
         - x_of_node, y_of_node, z_of_node : ((n_nodes, ) views of coords_of_node)
         - coords_of_corner : ndarray of float (n_corners, 3)
         - x_of_corner, y_of_corner, z_of_corner : ndarray of float (n_corners, )
         - length_of_link : ndarray of float (n_links, )
-        - nodes_at_link, node_at_link_tail, node_at_link_head
-        - links_at_node
-        - cell_at_node, node_at_cell
-        - corners_at_face
-        - corners_at_node, corners_at_cell
-        - area_of_cell
-        - length_of_face
-        - link_at_face, face_at_link
-        - faces_at_cell
-        - adjacent_nodes_at_node
+        - nodes_at_link : ndarray of int (n_links, 2)
+        - node_at_link_tail, node_at_link_head : (n_links, ) views of nodes_at_link
+        - links_at_node : ndarray of int (n_nodes, 6)
+        - cell_at_node, node_at_cell : ndarray of int (n_nodes, )
+        - corners_at_face : ndarray of int (n_links, 2)
+        - corners_at_node, corners_at_cell : ndarray of int (n_nodes, 6)
+        - area_of_cell : ndarray of float (n_nodes, )
+        - length_of_face : ndarray of float (n_links, )
+        - link_at_face, face_at_link : ndarray of int (n_links, )
+        - faces_at_cell : ndarray of int (n_nodes, 6)
+        - adjacent_nodes_at_node : ndarray of int (n_nodes, 6)
 
         Examples
         --------
@@ -108,14 +117,14 @@ class DualIcosphereGraph:
         if mesh_densification_level > 0:
             ico.refine_triangles(mesh_densification_level)
 
-        self.radius = radius
-        self.setup_nodes(ico.vertices)
-        self.setup_links(ico.faces)
-        self.setup_patches_and_corners(ico.faces)
-        self.setup_faces()
-        self.setup_cells()
+        self._radius = radius
+        self._setup_nodes(ico.vertices)
+        self._setup_links(ico.faces)
+        self._setup_patches_and_corners(ico.faces)
+        self._setup_faces()
+        self._setup_cells()
 
-    def setup_faces(self):
+    def _setup_faces(self):
         """
         Create corners_at_face and length_of_face.
         """
@@ -139,16 +148,15 @@ class DualIcosphereGraph:
             ln1 = min(self.nodes_at_link[face])
             ln2 = max(self.nodes_at_link[face])
             cnr0, cnr1 = patches_at_node_pair[(ln1, ln2)]
-            # print(link, ln1, ln2, patches_at_link)
             # the corners are the same as patches, and faces same as links, so we
             # can assign the two corners (patches) to the face (link)
             self.corners_at_face[face, 0] = cnr0
             self.corners_at_face[face, 1] = cnr1
-            self.length_of_face[face] = self.radius * arc_length(
-                self.coords_of_corner[cnr0], self.coords_of_corner[cnr1], self.radius
+            self.length_of_face[face] = self._radius * arc_length(
+                self.coords_of_corner[cnr0], self.coords_of_corner[cnr1], self._radius
             )
 
-    def setup_nodes(self, ico_vertices):
+    def _setup_nodes(self, ico_vertices):
         """
         Set up the arrays coords_of_node, x_of_node, y_of_node, z_of_node
         (the latter 3 being views of the coords_of_node).
@@ -176,18 +184,28 @@ class DualIcosphereGraph:
             self.y_of_node[i] = vtx[1]
             self.z_of_node[i] = vtx[2]
 
-    def add_link(self, p1, p2):
+    def _add_link(self, p1, p2):
         """
-        Add a link between p1 and p2 to a temperatory list of links,
+        Add a link between p1 and p2 to a temporary list of links,
         if it doesn't already exist.
+
+        Parameters
+        ----------
+        p1, p2 : int
+            IDs of the two points.
         """
         key = (min(p1, p2) << 32) + max(p1, p2)
         if not (key in self.links):
             self.links[key] = (p1, p2)
 
-    def setup_links(self, ico_faces):
+    def _setup_links(self, ico_faces):
         """
         Set up link-related data structures.
+
+        Parameters
+        ----------
+        ico_faces : list of 3-int tuples
+            List of triangular faces
 
         Examples
         --------
@@ -202,37 +220,31 @@ class DualIcosphereGraph:
         self.adjacent_nodes_at_node = np.zeros((self.number_of_nodes, 6), dtype=int) - 1
         link_at_node_index = np.zeros(self.number_of_nodes, dtype=int)
         for icoface in ico_faces:
-            # print("face", icoface)
-            self.add_link(icoface[0], icoface[1])
-            self.add_link(icoface[1], icoface[2])
-            self.add_link(icoface[2], icoface[0])
+            self._add_link(icoface[0], icoface[1])
+            self._add_link(icoface[1], icoface[2])
+            self._add_link(icoface[2], icoface[0])
         i = 0
         self.number_of_links = len(self.links)
         self.length_of_link = np.zeros(self.number_of_links)
         for link in self.links.values():
             tail = link[0]
             head = link[1]
-            # print("Tail of link", i, "is", tail)
-            # print(" it is link number", link_at_node_index[tail], "for this node")
             self.nodes_at_link[i, 0] = tail
             self.links_at_node[tail, link_at_node_index[tail]] = i
             self.link_dirs_at_node[tail, link_at_node_index[tail]] = -1
             self.adjacent_nodes_at_node[tail, link_at_node_index[tail]] = head
             link_at_node_index[tail] += 1
-            # print("Head of link", i, "is", head)
-            # print(" it is link number", link_at_node_index[head], "for this node")
             self.nodes_at_link[i, 1] = head
             self.links_at_node[head, link_at_node_index[head]] = i
             self.link_dirs_at_node[head, link_at_node_index[head]] = 1
             self.adjacent_nodes_at_node[head, link_at_node_index[head]] = tail
             link_at_node_index[head] += 1
-            self.length_of_link[i] = self.radius * arc_length(
-                self.coords_of_node[tail], self.coords_of_node[head], self.radius
+            self.length_of_link[i] = self._radius * arc_length(
+                self.coords_of_node[tail], self.coords_of_node[head], self._radius
             )
             i += 1
         self.node_at_link_tail = self.nodes_at_link[:, 0]
         self.node_at_link_head = self.nodes_at_link[:, 1]
-        # print("There are", len(self.links), "links")
 
     @property
     def cell_at_node(self):
@@ -271,8 +283,42 @@ class DualIcosphereGraph:
         """Face-cell and node-link numbering are the same!"""
         return self.links_at_node
 
-    def set_coords_of_corner(self):
+    @property
+    def area_of_patch(self):
+        try:
+            return self._area_of_patch
+        except AttributeError:
+            self._calc_area_of_patch()
+            return self._area_of_patch
+
+    @property
+    def r_of_node(self):
+        try:
+            return self._r_of_node
+        except AttributeError:
+            self._setup_node_spherical_coords()
+            return self._r_of_node
+
+    @property
+    def phi_of_node(self):
+        try:
+            return self._phi_of_node
+        except AttributeError:
+            self._setup_node_spherical_coords()
+            return self._phi_of_node
+
+    @property
+    def theta_of_node(self):
+        try:
+            return self._theta_of_node
+        except AttributeError:
+            self._setup_node_spherical_coords()
+            return self._theta_of_node
+
+    def _set_coords_of_corner(self):
         """
+        Set up (x,y,z) coordinates for each corner.
+
         Examples
         --------
         >>> import numpy as np
@@ -282,8 +328,6 @@ class DualIcosphereGraph:
                 1.,  1.,  1.,  1.,  1.,  1.,  1.])
         """
 
-        # print("SCOC HERE")
-        # coords of first, second, and third points of triangular patches
         p0 = self.coords_of_node[self.nodes_at_patch[:, 0]]
         p1 = self.coords_of_node[self.nodes_at_patch[:, 1]]
         p2 = self.coords_of_node[self.nodes_at_patch[:, 2]]
@@ -300,16 +344,18 @@ class DualIcosphereGraph:
         )  # this is the vector length...
         for i in range(3):
             self.coords_of_corner[:, i] *= (
-                self.radius / veclen
+                self._radius / veclen
             )  # ... which we use to normalize
 
-    #        veclen = np.sqrt(
-    #            self.x_of_corner**2 + self.y_of_corner**2 + self.z_of_corner**2
-    #        )  # this is the vector length...
-    # print("vl aft", veclen)
-
-    def setup_patches_and_corners(self, ico_faces):
+    def _setup_patches_and_corners(self, ico_faces):
         """
+        Set up nodes_at_patch and corners_at_node.
+
+        Parameters
+        ----------
+        ico_faces : list of 3-int tuples
+            List of triangular faces
+
         Notes
         -----
         Landlab *patches* are the same as what the original algorithm/code
@@ -344,14 +390,11 @@ class DualIcosphereGraph:
         corners_at_node_index = np.zeros(self.number_of_nodes, dtype=int)
         for p in range(self.number_of_patches):
             self.nodes_at_patch[p, :] = np.array(ico_faces[p])
-            # print("Patch", p, "has nodes", self.nodes_at_patch[p, :])
             for node in self.nodes_at_patch[p, :]:
                 self.corners_at_node[node, corners_at_node_index[node]] = p
                 corners_at_node_index[node] += 1
-        # print("Corners at node:")
-        # print(self.corners_at_node)
-        self.set_coords_of_corner()
-        self.sort_corners_ccw()
+        self._set_coords_of_corner()
+        self._sort_corners_ccw()
 
     def _calc_area_of_patch(self):
         """
@@ -376,50 +419,22 @@ class DualIcosphereGraph:
                 self.coords_of_node[self.nodes_at_patch[i, 0]],
                 self.coords_of_node[self.nodes_at_patch[i, 1]],
                 self.coords_of_node[self.nodes_at_patch[i, 2]],
-                self.radius,
+                self._radius,
             )
 
-    @property
-    def area_of_patch(self):
-        try:
-            return self._area_of_patch
-        except AttributeError:
-            self._calc_area_of_patch()
-            return self._area_of_patch
-
-    @property
-    def r_of_node(self):
-        try:
-            return self._r_of_node
-        except AttributeError:
-            self._setup_node_spherical_coords()
-            return self._r_of_node
-
-    @property
-    def phi_of_node(self):
-        try:
-            return self._phi_of_node
-        except AttributeError:
-            self._setup_node_spherical_coords()
-            return self._phi_of_node
-
-    @property
-    def theta_of_node(self):
-        try:
-            return self._theta_of_node
-        except AttributeError:
-            self._setup_node_spherical_coords()
-            return self._theta_of_node
-
     def _setup_node_spherical_coords(self):
+        """Calculate and store spherical coordinates of nodes."""
         (
             self._r_of_node,
             self._phi_of_node,
             self._theta_of_node,
         ) = cartesian_to_spherical(self.x_of_node, self.y_of_node, self.z_of_node)
 
-    def sort_corners_ccw(self):
+    def _sort_corners_ccw(self):
         """
+        Sort the arrays of corners at node counter-clockwise with respect
+        to the node.
+
         Notes
         -----
 
@@ -457,7 +472,7 @@ class DualIcosphereGraph:
             idx = np.argsort(ang)
             self.corners_at_node[node, :nc] = self.corners_at_node[node, idx]
 
-    def setup_cells(self):
+    def _setup_cells(self):
         """
         Calculate areas of cells.
 
@@ -478,6 +493,6 @@ class DualIcosphereGraph:
             p0 = self.coords_of_node[cell]
             p1 = self.coords_of_corner[self.corners_at_node[cell][0]]
             p2 = self.coords_of_corner[self.corners_at_node[cell][1]]
-            area_of_tri = area_of_sphertri(p0, p1, p2, self.radius)
+            area_of_tri = area_of_sphertri(p0, p1, p2, self._radius)
             ntri = 5 + int(np.amin(self.corners_at_node[cell]) > -1)
             self.area_of_cell[cell] = ntri * area_of_tri
