@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-from landlab.graph.triangle import TriangleMesh
+from landlab.graph.triangle.mesh import TriangleMesh
 from landlab.grid.triangle import TriangleModelGrid
 
 if not TriangleMesh.validate_triangle():
