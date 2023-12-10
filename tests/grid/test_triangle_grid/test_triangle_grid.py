@@ -1,11 +1,11 @@
-"""Tests for the TriangleMeshGrid class."""
+"""Tests for the TriangleModelGrid class."""
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
 from landlab.graph.triangle import TriangleMesh
-from landlab.grid.triangle import TriangleMeshGrid
+from landlab.grid.triangle import TriangleModelGrid
 
 if not TriangleMesh.validate_triangle():
     pytestmark = pytest.mark.skip(reason="triangle is not installed")
@@ -16,13 +16,13 @@ xs = np.array([0, 10, 10, 0])
 
 
 def test_grid_init():
-    grid = TriangleMeshGrid((ys, xs), triangle_opts="pqa1Devjz")
+    grid = TriangleModelGrid((ys, xs), triangle_opts="pqa1Devjz")
 
     assert grid.number_of_nodes == 89
 
 
 def test_plot_nodes_and_links():
-    grid = TriangleMeshGrid((ys, xs), triangle_opts="pqa1Devjz")
+    grid = TriangleModelGrid((ys, xs), triangle_opts="pqa1Devjz")
     plot = grid.plot_nodes_and_links()
 
     assert len(plot.axes) == 1
@@ -32,7 +32,7 @@ def test_plot_nodes_and_links():
 
 
 def test_circular_polygon(datadir):
-    grid = TriangleMeshGrid.from_shapefile(
+    grid = TriangleModelGrid.from_shapefile(
         datadir / "polygon_circular.geojson", triangle_opts="pqDjevz"
     )
 
@@ -49,7 +49,7 @@ def test_circular_polygon(datadir):
 
 
 def test_concave_polygon(datadir):
-    grid = TriangleMeshGrid.from_shapefile(
+    grid = TriangleModelGrid.from_shapefile(
         datadir / "polygon_concave.geojson", triangle_opts="pqa10Djevz"
     )
 
@@ -66,7 +66,7 @@ def test_concave_polygon(datadir):
 
 
 def test_multiple_interior_rings(datadir):
-    grid = TriangleMeshGrid.from_shapefile(
+    grid = TriangleModelGrid.from_shapefile(
         datadir / "polygon_two_interior_rings.geojson", triangle_opts="pqa10Djevz"
     )
 

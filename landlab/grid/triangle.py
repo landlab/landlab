@@ -1,4 +1,4 @@
-"""Python implementation of TriangleMeshGrid, a class used to create and
+"""Python implementation of TriangleModelGrid, a class used to create and
 manage unstructured, irregular grids for 2D numerical models.
 """
 
@@ -11,7 +11,7 @@ from landlab.graph.triangle.graph import DualTriangleGraph
 from landlab.grid.base import ModelGrid
 
 
-class TriangleMeshGrid(DualTriangleGraph, ModelGrid):
+class TriangleModelGrid(DualTriangleGraph, ModelGrid):
 
     """This inherited class implements an unstructured grid from dual
     Delaunay and Voronoi graphs. By convention, nodes, links, and patches
@@ -24,7 +24,7 @@ class TriangleMeshGrid(DualTriangleGraph, ModelGrid):
 
     Returns
     -------
-    TriangleMeshGrid
+    TriangleModelGrid
         A newly-created grid.
 
     See also
@@ -47,7 +47,7 @@ class TriangleMeshGrid(DualTriangleGraph, ModelGrid):
         xy_axis_name=("x", "y"),
         xy_axis_units="-",
     ):
-        """Create a TriangleMeshGrid from a set of points.
+        """Create a TriangleModelGrid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
         by the arrays *x*, *y*.
@@ -72,7 +72,7 @@ class TriangleMeshGrid(DualTriangleGraph, ModelGrid):
 
         Returns
         -------
-        TriangleMeshGrid
+        TriangleModelGrid
             A newly-created grid.
 
         Examples
@@ -99,7 +99,7 @@ class TriangleMeshGrid(DualTriangleGraph, ModelGrid):
 
     @classmethod
     def from_dict(cls, kwds):
-        """Initialize a new TriangleMeshGrid from a dict with "x" and "y" keys."""
+        """Initialize a new TriangleModelGrid from a dict with "x" and "y" keys."""
         args = (kwds.pop("x"), kwds.pop("y"))
         return cls(*args, **kwds)
 
