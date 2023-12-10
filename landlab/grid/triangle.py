@@ -7,11 +7,11 @@ import pathlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from landlab.graph.triangle.dual_triangle import DualTriGraph
+from landlab.graph.triangle.graph import DualTriangleGraph
 from landlab.grid.base import ModelGrid
 
 
-class TriangleMeshGrid(DualTriGraph, ModelGrid):
+class TriangleMeshGrid(DualTriangleGraph, ModelGrid):
 
     """This inherited class implements an unstructured grid from dual
     Delaunay and Voronoi graphs. By convention, nodes, links, and patches
@@ -29,7 +29,7 @@ class TriangleMeshGrid(DualTriGraph, ModelGrid):
 
     See also
     --------
-    TriGraph.from_shapefile
+    TriangleGraph.from_shapefile
         Constructs the grid from a shapefile, geojson, geopackage, etc.
 
     Examples
@@ -78,7 +78,7 @@ class TriangleMeshGrid(DualTriGraph, ModelGrid):
         Examples
         --------
         """
-        DualTriGraph.__init__(
+        DualTriangleGraph.__init__(
             self,
             exterior_y_and_x,
             holes=holes,

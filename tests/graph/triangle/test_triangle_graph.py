@@ -4,15 +4,17 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab.graph.triangle.dual_triangle import DualTriGraph
-from landlab.graph.triangle.triangle_mesh import TriangleMesh
+from landlab.graph.triangle.graph import DualTriangleGraph
+from landlab.graph.triangle.mesh import TriangleMesh
 
-if not TriangleMesh.validate_triangle():
+try:
+    TriangleMesh.validate_triangle()
+except FileNotFoundError:
     pytestmark = pytest.mark.skip(reason="triangle is not installed")
 
 
 def test_graph_init():
-    graph = DualTriGraph(([0, 0, 10, 10], [0, 10, 10, 0]), triangle_opts="pqa1Djevz")
+    graph = DualTriangleGraph(([0, 0, 10, 10], [0, 10, 10, 0]), triangle_opts="pqa1Djevz")
 
     assert graph.number_of_nodes == 89
     assert len(graph.x_of_node) == graph.number_of_nodes
@@ -106,14 +108,14 @@ def test_graph_init():
 def test_raise_error_if_no_interior_nodes(datadir):
     """If no cells are generated, raise a ValueError."""
     with pytest.raises(ValueError):
-        DualTriGraph.from_shapefile(
+        DualTriangleGraph.from_shapefile(
             datadir / "polygon_concave.geojson", triangle_opts="pqa100Djevz"
         )
 
 
 def test_generate_graph_from_geojson(datadir):
     """Test the graph constructor from a geojson file."""
-    graph = DualTriGraph.from_shapefile(
+    graph = DualTriangleGraph.from_shapefile(
         datadir / "polygon_concave.geojson", triangle_opts="pqa10Djevz"
     )
 
@@ -158,4 +160,4 @@ def test_invalid_polygon_error():
     xs = [0, 0, 3, 3, 2, 2, 1, 1, 2, 2, 0]
 
     with pytest.raises(ValueError):
-        DualTriGraph([ys, xs], triangle_opts="pqa0.1Devjz")
+        DualTriangleGraph([ys, xs], triangle_opts="pqa0.1Devjz")
