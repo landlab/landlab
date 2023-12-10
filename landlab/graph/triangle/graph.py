@@ -5,7 +5,7 @@ from shapely.validation import explain_validity
 from landlab.graph.dual import DualGraph
 from landlab.graph.graph import Graph
 from landlab.graph.sort.sort import reverse_one_to_many, sort_links_at_patch
-from landlab.graph.triangle.triangle_mesh import TriangleMesh
+from landlab.graph.triangle.mesh import TriangleMesh
 
 
 class TriangleGraph(Graph):
@@ -127,11 +127,6 @@ class DualTriangleGraph(DualGraph, TriangleGraph):
             sort=False,
         )
 
-        if np.any(self.length_of_link <= 0.0):
-            raise RuntimeError(
-               "triangle has generated a graph that contains zero-length links."
-            )
-
         self._voronoi = mesh_generator.voronoi
         corners_at_face = self._voronoi["faces"][["head", "tail"]].values
 
@@ -148,11 +143,6 @@ class DualTriangleGraph(DualGraph, TriangleGraph):
         ]
         sort_links_at_patch(faces_at_cell, corners_at_face, xy_of_corner)
 
-        if np.any(self.length_of_face <= 0.0):
-            raise RuntimeError(
-               "triangle has generated a graph that contains zero-length faces."
-            )
-
         dual_graph = Graph(
             (
                 np.ascontiguousarray(self._voronoi["corners"]["y"]),
@@ -168,6 +158,12 @@ class DualTriangleGraph(DualGraph, TriangleGraph):
             node_at_cell=np.ascontiguousarray(node_at_cell),
             nodes_at_face=np.ascontiguousarray(nodes_at_face),
         )
+
+        for edge in ("face", "link"):
+            if np.any(getattr(self, f"length_of_{edge}") <= 0.0):
+                raise RuntimeError(
+                   f"triangle has generated a graph that contains zero-length {edges}."
+                )
 
         if sort:
             self.sort()
