@@ -5,7 +5,7 @@ import pytest
 import shapely
 from numpy.testing import assert_array_equal
 
-from landlab.graph.triangle import TriangleMesh
+from landlab.graph.triangle.mesh import TriangleMesh
 
 if not TriangleMesh.validate_triangle():
     pytestmark = pytest.mark.skip(reason="triangle is not installed")
@@ -46,11 +46,9 @@ def test_triangulate_from_points():
     mesh.triangulate()
 
 
-def test_init_from_geojson(datadir):
+def test_init_from_geojson(concave_polygon):
     """Test initialization from a geojson file."""
-    mesh = TriangleMesh.from_shapefile(
-        datadir / "polygon_concave.geojson", opts="pqDevjz"
-    )
+    mesh = TriangleMesh.from_shapefile(concave_polygon, opts="pqDevjz")
 
     assert_array_equal(
         mesh._vertices,
@@ -79,19 +77,15 @@ def test_init_from_geojson(datadir):
     assert mesh._opts == "pqDevjz"
 
 
-def test_triangulate_from_geojson(datadir):
+def test_triangulate_from_geojson(concave_polygon):
     """Test triangulation routine."""
-    mesh = TriangleMesh.from_shapefile(
-        datadir / "polygon_concave.geojson", opts="pqDevjz"
-    )
+    mesh = TriangleMesh.from_shapefile(concave_polygon, opts="pqDevjz")
     mesh.triangulate()
 
 
-def test_segment(datadir):
+def test_segment(concave_polygon):
     "Test segmentation routine."
-    mesh = TriangleMesh.from_shapefile(
-        datadir / "polygon_concave.geojson", opts="pqDevjz"
-    )
+    mesh = TriangleMesh.from_shapefile(concave_polygon, opts="pqDevjz")
     segments = mesh._segment(mesh._poly)
 
     assert len(mesh._holes) == len(mesh._poly.interiors)

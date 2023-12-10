@@ -162,7 +162,7 @@ class DualTriangleGraph(DualGraph, TriangleGraph):
         for edge in ("face", "link"):
             if np.any(getattr(self, f"length_of_{edge}") <= 0.0):
                 raise RuntimeError(
-                   f"triangle has generated a graph that contains zero-length {edge}."
+                    f"triangle has generated a graph that contains zero-length {edge}."
                 )
 
         if sort:

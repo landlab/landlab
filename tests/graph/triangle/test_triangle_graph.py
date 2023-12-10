@@ -1,5 +1,4 @@
 """Tests for the TriangleGraph object."""
-
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -14,7 +13,9 @@ except FileNotFoundError:
 
 
 def test_graph_init():
-    graph = DualTriangleGraph(([0, 0, 11, 11], [0, 10, 10, 0]), triangle_opts="pqa1Djevz")
+    graph = DualTriangleGraph(
+        ([0, 0, 11, 11], [0, 10, 10, 0]), triangle_opts="pqa1Djevz"
+    )
 
     assert len(graph.x_of_node) == graph.number_of_nodes
     assert len(graph.y_of_node) == graph.number_of_nodes
@@ -37,18 +38,16 @@ def test_graph_init_zero_length_edges():
         DualTriangleGraph(([0, 0, 10, 10], [0, 10, 10, 0]), triangle_opts="pqa1Djevz")
 
 
-def test_raise_error_if_no_interior_nodes(datadir):
+def test_raise_error_if_no_interior_nodes(concave_polygon):
     """If no cells are generated, raise a ValueError."""
     with pytest.raises(ValueError):
-        DualTriangleGraph.from_shapefile(
-            datadir / "polygon_concave.geojson", triangle_opts="pqa100Djevz"
-        )
+        DualTriangleGraph.from_shapefile(concave_polygon, triangle_opts="pqa100Djevz")
 
 
-def test_generate_graph_from_geojson(datadir):
+def test_generate_graph_from_geojson(concave_polygon):
     """Test the graph constructor from a geojson file."""
     graph = DualTriangleGraph.from_shapefile(
-        datadir / "polygon_concave.geojson", triangle_opts="pqa10Djevz"
+        concave_polygon, triangle_opts="pqa10Djevz"
     )
 
     assert graph.number_of_nodes == 25
