@@ -387,8 +387,9 @@ class TriangleMesh:
             result = subprocess.run(
                 [self.triangle, f"-{self.options}", "tri.poly"],
                 timeout=self._timeout,
-                capture_output=True,
-                cwd=tmpdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                cwd=tmp_path,
             )
 
             if result.returncode == 0:
