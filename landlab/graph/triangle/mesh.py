@@ -13,8 +13,8 @@ and a list of command line switches that can be passed as opts are here:
 
 https://www.cs.cmu.edu/~quake/triangle.switch.html
 """
-import contextlib
-import os
+from __future__ import annotations
+
 import pathlib
 import shutil
 import subprocess
@@ -287,7 +287,11 @@ class TriangleMesh:
         return np.array(segments)
 
     def _write_poly_file(
-        self, path: str, vertices: np.ndarray, segments: np.ndarray, holes: np.ndarray
+        self,
+        path: str | pathlib.Path,
+        vertices: np.ndarray,
+        segments: np.ndarray,
+        holes: np.ndarray,
     ):
         """Write an input .poly file for Triangle."""
         vertex_header = np.array([vertices.shape[0], 2, 0, 0])[np.newaxis]
@@ -318,7 +322,7 @@ class TriangleMesh:
                 np.savetxt(outfile, holes, fmt="%f")
 
     def _read_mesh_files(
-        self, node: str, edge: str, ele: str, v_node: str, v_edge: str
+        self, node: str | pathlib.Path, edge: str, ele: str, v_node: str, v_edge: str
     ) -> tuple[dict, dict]:
         """Read output from mesh files."""
         delaunay = {
@@ -373,28 +377,27 @@ class TriangleMesh:
         # ----------------------------
         # Set up a temporary directory
         # ----------------------------
-        with (
-            tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir,
-            as_cwd(tmpdir),
-        ):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
+            tmp_path = pathlib.Path(tmpdir)
+
             self._write_poly_file(
-                "tri.poly", self._vertices, self._segments, self._holes
+                tmp_path / "tri.poly", self._vertices, self._segments, self._holes
             )
 
             result = subprocess.run(
                 [self.triangle, f"-{self.options}", "tri.poly"],
                 timeout=self._timeout,
                 capture_output=True,
-                cwd=".",
+                cwd=tmpdir,
             )
 
             if result.returncode == 0:
                 self.delaunay, self.voronoi = self._read_mesh_files(
-                    node="tri.1.node",
-                    edge="tri.1.edge",
-                    ele="tri.1.ele",
-                    v_node="tri.1.v.node",
-                    v_edge="tri.1.v.edge",
+                    node=tmp_path / "tri.1.node",
+                    edge=tmp_path / "tri.1.edge",
+                    ele=tmp_path / "tri.1.ele",
+                    v_node=tmp_path / "tri.1.v.node",
+                    v_edge=tmp_path / "tri.1.v.edge",
                 )
             else:
                 # Triangle sends more informative error messages to stdout
@@ -402,12 +405,3 @@ class TriangleMesh:
                     "Triangle failed to generate the mesh, raising the following error:\n"
                     + result.stdout.decode()
                 )
-
-
-@contextlib.contextmanager
-def as_cwd(path):
-    """Change directory context."""
-    prev_cwd = pathlib.Path.cwd()
-    os.chdir(path)
-    yield prev_cwd
-    os.chdir(prev_cwd)
