@@ -392,7 +392,8 @@ class TriangleMesh:
                 cwd=tmp_path,
             )
 
-            if result.returncode == 0:
+            # if result.returncode == 0:
+            try:
                 self.delaunay, self.voronoi = self._read_mesh_files(
                     node=tmp_path / "tri.1.node",
                     edge=tmp_path / "tri.1.edge",
@@ -400,9 +401,15 @@ class TriangleMesh:
                     v_node=tmp_path / "tri.1.v.node",
                     v_edge=tmp_path / "tri.1.v.edge",
                 )
-            else:
-                # Triangle sends more informative error messages to stdout
+            except FileNotFoundError as error:
                 raise OSError(
                     "Triangle failed to generate the mesh, raising the following error:\n"
                     + result.stdout.decode()
-                )
+                ) from error
+
+            # else:
+            #     # Triangle sends more informative error messages to stdout
+            #     raise OSError(
+            #         "Triangle failed to generate the mesh, raising the following error:\n"
+            #         + result.stdout.decode()
+            #     )
