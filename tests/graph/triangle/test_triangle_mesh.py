@@ -46,9 +46,9 @@ def test_triangulate_from_points():
     mesh.triangulate()
 
 
-def test_init_from_geojson(concave_polygon):
+def test_init_from_geojson(geojson_concave_polygon):
     """Test initialization from a geojson file."""
-    mesh = TriangleMesh.from_shapefile(concave_polygon, opts="pqDevjz")
+    mesh = TriangleMesh.from_shapefile(geojson_concave_polygon, opts="pqDevjz")
 
     assert_array_equal(
         mesh._vertices,
@@ -77,15 +77,15 @@ def test_init_from_geojson(concave_polygon):
     assert mesh._opts == "pqDevjz"
 
 
-def test_triangulate_from_geojson(concave_polygon):
+def test_triangulate_from_geojson(geojson_concave_polygon):
     """Test triangulation routine."""
-    mesh = TriangleMesh.from_shapefile(concave_polygon, opts="pqDevjz")
+    mesh = TriangleMesh.from_shapefile(geojson_concave_polygon, opts="pqDevjz")
     mesh.triangulate()
 
 
-def test_segment(concave_polygon):
+def test_segment(geojson_concave_polygon):
     "Test segmentation routine."
-    mesh = TriangleMesh.from_shapefile(concave_polygon, opts="pqDevjz")
+    mesh = TriangleMesh.from_shapefile(geojson_concave_polygon, opts="pqDevjz")
     segments = mesh._segment(mesh._poly)
 
     assert len(mesh._holes) == len(mesh._poly.interiors)
