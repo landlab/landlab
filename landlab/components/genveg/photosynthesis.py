@@ -15,8 +15,17 @@ class Photosynthesis(object):
             (0.7692465, 0.2393144),
             (0.9530899, 0.1184635),
         ]
+        self.rubisco_limits_by_temp = self.calculate_rubisco_limited_photosynthesis()
 
-    def photosynthesize(self, grid_par_W_per_sqm, last_biomass, lai, _current_day):
+    def photosynthesize(
+        self,
+        grid_par_W_per_sqm,
+        _min_temperature,
+        _max_temperature,
+        last_biomass,
+        lai,
+        _current_day,
+    ):
         print("I am photosynthesizing during the growing season")
         self.update_solar_variables(_current_day)
         total_canopy_assimilated_CO2 = np.zeros_like(last_biomass["leaf_biomass"])
@@ -32,10 +41,10 @@ class Photosynthesis(object):
                 increment_hour, solar_elevation, grid_par_W_per_sqm, lai
             )
             sunlit_assimilated_CO2 = self.calculate_leaf_assimilation(
-                absorbed_PAR_sunlit
+                increment_hour, absorbed_PAR_sunlit, _min_temperature, _max_temperature
             )
             shaded_assimilated_CO2 = self.calculate_leaf_assimilation(
-                absorbed_PAR_shaded
+                increment_hour, absorbed_PAR_shaded, _min_temperature, _max_temperature
             )
             sunlit_LAI, shaded_LAI = self.calculate_sunlit_shaded_LAI_proportion(
                 increment_hour, lai
@@ -52,8 +61,43 @@ class Photosynthesis(object):
         return gphot_CH20
 
     # Ignore leaf assimilation for now
-    def calculate_leaf_assimilation(self, par):
-        return par
+    def calculate_leaf_assimilation(
+        self, increment_hour, par, _min_temperature, _max_temperature
+    ):
+        # We are assuming here that air temperature ~canopy temperature
+        offset = 1.5
+        temp_rise = self._sunrise + offset
+        leaf_CO2_conc = 245
+        if (increment_hour >= temp_rise) & (increment_hour < self._sunset):
+            tau = (
+                np.pi
+                * (increment_hour * self._sunrise - offset)
+                / (self._sunset - self._sunrise)
+            )
+            hour_temp = _min_temperature + (
+                _max_temperature - _min_temperature
+            ) * np.sin(tau)
+        else:
+            if increment_hour < temp_rise:
+                increment_hour += 24
+            tau = (
+                np.pi
+                * (increment_hour * self._sunrise - offset)
+                / (self._sunset - self._sunrise)
+            )
+            sunset_temp = _min_temperature + (
+                _max_temperature - _min_temperature
+            ) * np.sin(tau)
+            interp_slope = (_min_temperature - sunset_temp) / (
+                temp_rise + 24 - self._sunset
+            )
+            hour_temp = sunset_temp + interp_slope * (increment_hour * self._sunset)
+
+        max_rubisco = self.get_rubsico_limits(hour_temp)
+        max_light_limit = self.get_light_limits(par, hour_temp)
+        max_sink_limit = self.get_sink_limits(hour_temp)
+        min_photo = np.min([max_rubisco, max_light_limit, max_sink_limit])
+        return min_photo
 
     def calculate_hourly_direct_light_extinction(self, solar_elevation):
         if solar_elevation < 0.00000001:
@@ -144,6 +188,27 @@ class Photosynthesis(object):
         shaded_lai = lai - sunlit_lai
         return (sunlit_lai, shaded_lai)
 
+    def calculate_rubisco_limited_photosynthesis():
+    #this needs to happen at init then have leaf temp interpolated
+        leaf_temp = np.arange([-50, 50, 1])
+        O2_max_coeff = 300
+        CO2_max_coeff = 300000
+        O2_conc = 210000
+        CO2_conc = 245
+        Vc_max_rate = 200
+        spec_factor_base = 2600.0
+
+        O2_coeff = O2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
+        CO2_coeff = CO2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)
+        dcoeffm = O2_coeff * (1 + (O2_conc / CO2_coeff))
+        Vc_exponent = 1 + np.exp(0.128 * (leaf_temp - 40))
+        Vc_adj = (Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10)) / Vc_exponent
+        CO2_comp = 0.5 * O2_conc / (spec_factor_base * 0.57 ** ((leaf_temp - 25) / 10))
+        dA = Vc_adj * (CO2_conc - CO2_comp)
+        dB = CO2_conc + dcoeffm
+        return dA / dB
+
+    def calculate_light_limited_photosynthesis():
 
 class C3(Photosynthesis):
     def __init__(self, latitude):
