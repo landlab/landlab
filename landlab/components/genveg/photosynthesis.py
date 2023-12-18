@@ -15,7 +15,13 @@ class Photosynthesis(object):
             (0.7692465, 0.2393144),
             (0.9530899, 0.1184635),
         ]
-        self.rubisco_limits_by_temp = self.calculate_rubisco_limited_photosynthesis()
+        self.O2_max_coeff = 300
+        self.CO2_max_coeff = 300000
+        self.O2_conc = 210000
+        self.CO2_conc = 245
+        self.Vc_max_rate = 200
+        self.spec_factor_base = 2600.0
+        self.assim_limits_by_temp = self.calculate_assimilation_limits()
 
     def photosynthesize(
         self,
@@ -67,7 +73,6 @@ class Photosynthesis(object):
         # We are assuming here that air temperature ~canopy temperature
         offset = 1.5
         temp_rise = self._sunrise + offset
-        leaf_CO2_conc = 245
         if (increment_hour >= temp_rise) & (increment_hour < self._sunset):
             tau = (
                 np.pi
@@ -92,12 +97,17 @@ class Photosynthesis(object):
                 temp_rise + 24 - self._sunset
             )
             hour_temp = sunset_temp + interp_slope * (increment_hour * self._sunset)
-
         max_rubisco = self.get_rubsico_limits(hour_temp)
-        max_light_limit = self.get_light_limits(par, hour_temp)
+        max_light_limit = self.calculate_light_limits(par, hour_temp)
         max_sink_limit = self.get_sink_limits(hour_temp)
-        min_photo = np.min([max_rubisco, max_light_limit, max_sink_limit])
-        return min_photo
+        print("Rubsico")
+        print(max_rubisco)
+        print("Light")
+        print(max_light_limit)
+        print("Sink")
+        print(max_sink_limit)
+        min_assim = np.min([max_rubisco, max_light_limit, max_sink_limit])
+        return min_assim
 
     def calculate_hourly_direct_light_extinction(self, solar_elevation):
         if solar_elevation < 0.00000001:
@@ -188,27 +198,70 @@ class Photosynthesis(object):
         shaded_lai = lai - sunlit_lai
         return (sunlit_lai, shaded_lai)
 
-    def calculate_rubisco_limited_photosynthesis():
-    #this needs to happen at init then have leaf temp interpolated
-        leaf_temp = np.arange([-50, 50, 1])
-        O2_max_coeff = 300
-        CO2_max_coeff = 300000
-        O2_conc = 210000
-        CO2_conc = 245
-        Vc_max_rate = 200
-        spec_factor_base = 2600.0
-
-        O2_coeff = O2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
-        CO2_coeff = CO2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)
-        dcoeffm = O2_coeff * (1 + (O2_conc / CO2_coeff))
-        Vc_exponent = 1 + np.exp(0.128 * (leaf_temp - 40))
-        Vc_adj = (Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10)) / Vc_exponent
-        CO2_comp = 0.5 * O2_conc / (spec_factor_base * 0.57 ** ((leaf_temp - 25) / 10))
-        dA = Vc_adj * (CO2_conc - CO2_comp)
-        dB = CO2_conc + dcoeffm
+    def calculate_light_limits(self, par, hour_temp):
+        quantum_yield = 0.06
+        absorption_frac = 0.8
+        CO2_comp = self.get_CO2_comp(hour_temp)
+        dA = absorption_frac * quantum_yield * par * (self.CO2_conc - CO2_comp)
+        dB = self.CO2_conc + 2 * CO2_comp
         return dA / dB
 
-    def calculate_light_limited_photosynthesis():
+    def calculate_assimilation_limits(self):
+        # this needs to happen at init then have leaf temp interpolated
+        leaf_temp = np.arange(-50, 50, 5)
+        O2_coeff = self.O2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
+        CO2_coeff = self.CO2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)
+        dcoeffm = O2_coeff * (1 + (self.O2_conc / CO2_coeff))
+        Vc_exponent = 1 + np.exp(0.128 * (leaf_temp - 40))
+        Vc_adj = (self.Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10)) / Vc_exponent
+        CO2_comp = (
+            0.5
+            * self.O2_conc
+            / (self.spec_factor_base * 0.57 ** ((leaf_temp - 25) / 10))
+        )
+        dA = Vc_adj * (self.CO2_conc - CO2_comp)
+        dB = self.CO2_conc + dcoeffm
+        rubisco_limits = dA / dB
+        sink_limits = 0.5 * Vc_adj
+        dtypes = [
+            ("leaf_temp", float),
+            ("rubisco_limits", float),
+            ("sink_limits", float),
+            ("CO2_comp", float),
+        ]
+
+        limit_map = np.column_stack((leaf_temp, rubisco_limits, sink_limits, CO2_comp))
+        limit_map = list(map(tuple, limit_map))
+        limit_lookup = np.array(limit_map, dtypes)
+        return limit_lookup
+
+    def calculate_light_limited_assimilation(self):
+        pass
+
+    def get_rubsico_limits(self, hour_temp):
+        limits = np.interp(
+            hour_temp,
+            self.assim_limits_by_temp["leaf_temp"],
+            self.assim_limits_by_temp["rubisco_limits"],
+        )
+        return limits
+
+    def get_sink_limits(self, hour_temp):
+        limits = np.interp(
+            hour_temp,
+            self.assim_limits_by_temp["leaf_temp"],
+            self.assim_limits_by_temp["sink_limits"],
+        )
+        return limits
+
+    def get_CO2_comp(self, hour_temp):
+        comp_pt = np.interp(
+            hour_temp,
+            self.assim_limits_by_temp["CO2_comp"],
+            self.assim_limits_by_temp["sink_limits"],
+        )
+        return comp_pt
+
 
 class C3(Photosynthesis):
     def __init__(self, latitude):
