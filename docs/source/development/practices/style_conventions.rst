@@ -30,15 +30,15 @@ If you followed the
 :ref:`developer installation instructions <install>` you have
 everything you need in the `landlab_dev` conda environment.
 
-Currently we check for all the `flake8
+Currently we check for all the `Ruff Linter
+violations <https://docs.astral.sh/ruff/linter/>`_ (based on `flake8
 violations <https://pycodestyle.readthedocs.io/en/latest/intro.html#error-codes>`_
 and `pycodestyle
-violations <http://flake8.pycqa.org/en/latest/user/error-codes.html>`_
-except for (as defined in our ``setup.cfg``)
+violations <http://flake8.pycqa.org/en/latest/user/error-codes.html>`_),
+except for (as defined in ``pyproject.toml``):
 
 * E203: whitespace before
 * E501: line too long (n > 88 characters)
-* W503: line break before binary operator
 
 To format files to meet these standards, we recommend using
 `isort <https://pypi.org/project/isort/>`_ +

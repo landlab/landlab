@@ -42,14 +42,14 @@ repos:
   - id: blackdoc
     description: "Black for doctests"
 
-- repo: https://github.com/pycqa/flake8
-  rev: 6.1.0
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.8
   hooks:
-  - id: flake8
-    additional_dependencies:
-    - flake8-bugbear
-    - flake8-comprehensions
-    - flake8-simplify
+    # Run the linter
+    - id: ruff
+      args: [ --fix ]
+    # Run the formatter
+    # - id: ruff-format
 
 - repo: https://github.com/nbQA-dev/nbQA
   rev: 1.7.1
@@ -57,7 +57,7 @@ repos:
     - id: nbqa-pyupgrade
       args: ["--py310-plus"]
     - id: nbqa-isort
-    - id: nbqa-flake8
+    - id: nbqa-ruff
       args: ["--extend-ignore=E402"]
       exclude: |
           (?x)^(
@@ -70,12 +70,6 @@ repos:
     - id: nbstripout
       description: Strip output from jupyter notebooks
       args: [--drop-empty-cells]
-
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.0
-  hooks:
-  - id: pyupgrade
-    args: [--py310-plus]
 
 - repo: https://github.com/PyCQA/isort
   rev: 5.12.0

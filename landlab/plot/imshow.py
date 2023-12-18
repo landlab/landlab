@@ -407,16 +407,16 @@ def _imshow_grid_values(
 
     if var_name is not None or var_units is not None:
         if var_name is not None:
-            assert type(var_name) is str
+            assert isinstance(var_name, str)
             if var_units is not None:
-                assert type(var_units) is str
+                assert isinstance(var_units, str)
                 colorbar_label = var_name + " (" + var_units + ")"
             else:
                 colorbar_label = var_name
         else:
-            assert type(var_units) is str
+            assert isinstance(var_units, str)
             colorbar_label = "(" + var_units + ")"
-        assert type(colorbar_label) is str
+        assert isinstance(colorbar_label, str)
         assert allow_colorbar
         cb.set_label(colorbar_label)
 
@@ -424,7 +424,7 @@ def _imshow_grid_values(
         plt.gca().set_facecolor(color_for_background)
 
     if output is not None:
-        if type(output) is str:
+        if isinstance(output, str):
             plt.savefig(output)
             plt.clf()
         elif output:

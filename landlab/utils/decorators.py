@@ -130,13 +130,9 @@ def add_signature_to_doc(func):
     <BLANKLINE>
     Do something.
     """
-    return """{name}{argspec}
+    return f"""{func.__name__}{inspect.signature(func)!s}
 
-{body}""".format(
-        name=func.__name__,
-        argspec=str(inspect.signature(func)),
-        body=inspect.getdoc(func),
-    )
+{inspect.getdoc(func)}"""
 
 
 class use_field_name_or_array:
@@ -377,14 +373,12 @@ def deprecated(use, version):
     """
 
     def real_decorator(func):
-        warning_str = """
-.. note:: This method is deprecated as of Landlab version {ver}.
+        warning_str = f"""
+.. note:: This method is deprecated as of Landlab version {version}.
 
     Use :func:`{use}` instead.
 
-""".format(
-            ver=version, use=use
-        )
+"""
 
         doc_lines = (func.__doc__ or "").split(os.linesep)
 
@@ -406,9 +400,7 @@ def deprecated(use, version):
                 pass
             else:
                 warnings.warn(
-                    message="Call to deprecated function {name}.".format(
-                        name=func.__name__
-                    ),
+                    message=f"Call to deprecated function {func.__name__}.",
                     category=DeprecationWarning,
                     stacklevel=2,
                 )

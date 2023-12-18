@@ -140,6 +140,30 @@ archs = "x86_64,aarch64,arm64,AMD64,x86"
 channels = ["conda-forge", "defaults"]
 platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    #"B",
+    # flake8-simplify
+    #"SIM",
+    # isort
+    #"I",
+]
+ignore = [
+    # whitespace before
+    "E203",
+    # line too long (n > 88 characters)
+    "E501",
+    # avoid for now; see https://github.com/astral-sh/ruff/issues/7871
+    "UP038",
+]
+
 [tool.towncrier]
 directory = "news"
 package = "landlab"

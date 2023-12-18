@@ -365,7 +365,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         # Handle *data*: if it's a numpy array, then we consider it the
         # data to be plotted. If it's a string, we consider it the name of the
         # node-field to plot, and we fetch it.
-        if type(data) is str:
+        if isinstance(data, str):
             data_label = data
             data = self.at_node[data]
 

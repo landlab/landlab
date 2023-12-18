@@ -209,9 +209,7 @@ class _BlockSlice:
 
         if self._stop is not None and self._stop < self._start:
             raise ValueError(
-                "stop ({}) must be greater than start ({})".format(
-                    self._stop, self._start
-                )
+                f"stop ({self._stop}) must be greater than start ({self._start})"
             )
 
     def __repr__(self):
@@ -307,11 +305,10 @@ def _valid_keywords_or_raise(kwds, required=(), optional=()):
 
     unknown = keys - optional
     if unknown:
+        unknown_str = ", ".join(sorted(repr(name) for name in unknown))
+        optional_str = ", ".join(sorted(repr(name) for name in optional))
         raise TypeError(
-            "invalid keyword arguments ({0} not in {{{1}}})".format(
-                ", ".join(sorted(repr(name) for name in unknown)),
-                ", ".join(sorted(repr(name) for name in optional)),
-            )
+            f"invalid keyword arguments ({unknown_str} not in {optional_str})"
         )
 
     missing = required - keys
@@ -560,9 +557,7 @@ class EventLayers:
         )
 
     def __repr__(self):
-        return self.__class__.__name__ + "({number_of_stacks})".format(
-            number_of_stacks=self.number_of_stacks
-        )
+        return self.__class__.__name__ + f"({self.number_of_stacks})"
 
     @property
     def tracking(self):

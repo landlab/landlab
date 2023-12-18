@@ -963,9 +963,7 @@ class DataRecord:
                [ 0.4]])
         """
         if data_variable not in self.variable_names:
-            raise KeyError(
-                "the variable '{}' is not in the " "DataRecord".format(data_variable)
-            )
+            raise KeyError(f"the variable '{data_variable}' is not in the DataRecord")
 
         # If record to be changed is 'grid_element' or 'element_id',
         # check that provided grid_element is valid and that new
