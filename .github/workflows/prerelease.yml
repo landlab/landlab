@@ -110,7 +110,7 @@ jobs:
     name: "Show artifacts"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: pypi-artifacts
         path: ${{ github.workspace }}/dist
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: pypi-artifacts
           path: ${{ github.workspace }}/dist
