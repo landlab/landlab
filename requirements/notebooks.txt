@@ -1,4 +1,4 @@
-bmi-topography==0.8.2
+bmi-topography==0.8.3
 dask[array]==2023.12.1
 holoviews==1.18.1
 jupyter==1.0.0
