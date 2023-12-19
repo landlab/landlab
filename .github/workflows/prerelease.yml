@@ -86,7 +86,7 @@ jobs:
         with:
           only: ${{ matrix.cibw-only }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: pypi-artifacts
           path: ./wheelhouse/*.whl
@@ -100,7 +100,7 @@ jobs:
       - name: Build sdist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: pypi-artifacts
           path: dist/*.tar.gz
