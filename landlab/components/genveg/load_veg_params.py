@@ -389,10 +389,6 @@ class VegParams:
         uni_xs = np.zeros_like(uni_ys)
         for i in range(len(uni_ys + 1)):
             uni_xs[i] = np.mean(xs[inverses == i])
-        # Assign sigma weights to prioritize points near 0 and 1
-        weights = np.ones(len(uni_ys))
-        weights[(uni_ys < 0.1) | (uni_ys > 0.9)] = 10
-        weights[(uni_ys < 0.02) | (uni_ys > 0.98)] = 500
         # Assume no mortality if not enough data provided for sigmoid curve estimate
         if len(uni_xs) <= 1:
             msg = "Not enough points to generate logistic function. Assuming zero mortality."
@@ -419,10 +415,13 @@ class VegParams:
             x[1] = uni_xs[max(idx_05, idx_limit)]
             y[1] = uni_ys[max(idx_05, idx_limit)]
             b_guess = -(
-                np.log((1 - uni_ys[1]) / uni_ys[1])
-                - np.log((1 - uni_ys[0]) / uni_ys[0])
-            ) / (uni_xs[1] - uni_xs[0])
-            a_guess = ((1 - uni_ys[1]) / uni_ys[1]) / np.exp(-uni_xs[1] * b_guess)
+                    np.log((1 - y[1]) / y[1]) - np.log((1 - y[0]) / y[0])
+            ) / (x[1] - x[0])
+            a_guess = ((1 - y[1]) / y[1]) / np.exp(-x[1] * b_guess)
+            # Assign sigma weights to prioritize points near 0 and 1
+            weights = np.ones(len(uni_ys))
+            weights[(uni_ys < 0.1) | (uni_ys > 0.9)] = 10
+            weights[(uni_ys < 0.02) | (uni_ys > 0.98)] = 500
             S, pcov = curve_fit(
                 self._cfunc,
                 uni_xs,
