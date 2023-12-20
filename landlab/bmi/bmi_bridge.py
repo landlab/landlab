@@ -249,11 +249,9 @@ def wrap_as_bmi(cls):
         raise TypeError("class must inherit from Component")
 
     class BmiWrapper(Bmi):
-        __doc__ = """
-        Basic Modeling Interface for the {name} component.
-        """.format(
-            name=cls.__name__
-        ).strip()
+        __doc__ = f"""
+        Basic Modeling Interface for the {cls.__name__} component.
+        """.strip()
 
         _cls = cls
 

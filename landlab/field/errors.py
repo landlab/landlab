@@ -38,8 +38,6 @@ class GroupSizeError(Error, KeyError):
 
     def __str__(self):
         return (
-            "number of {group} elements has changed. "
-            "(was = {was}, now={now})".format(
-                group=self._group, was=self._old_size, now=self._new_size
-            )
+            f"number of {self._group} elements has changed. "
+            f"(was = {self._old_size}, now={self._new_size})"
         )

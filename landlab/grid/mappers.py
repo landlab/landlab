@@ -119,7 +119,7 @@ def map_link_head_node_to_link(grid, var_name, out=None):
 
     :meta landlab: info-node, info-link, map
     """
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     if out is None:
         out = grid.empty(at="link")
@@ -178,7 +178,7 @@ def map_link_tail_node_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     out[:] = var_name[grid.node_at_link_tail]
 
@@ -241,7 +241,7 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     np.minimum(
         var_name[grid.node_at_link_head], var_name[grid.node_at_link_tail], out=out
@@ -306,7 +306,7 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     np.maximum(
         var_name[grid.node_at_link_head], var_name[grid.node_at_link_tail], out=out
@@ -363,7 +363,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     out[:] = 0.5 * (var_name[grid.node_at_link_head] + var_name[grid.node_at_link_tail])
 
@@ -432,9 +432,9 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(control_name) is str:
+    if isinstance(control_name, str):
         control_name = grid.at_node[control_name]
-    if type(value_name) is str:
+    if isinstance(value_name, str):
         value_name = grid.at_node[value_name]
     head_control = control_name[grid.node_at_link_head]
     tail_control = control_name[grid.node_at_link_tail]
@@ -507,9 +507,9 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     if out is None:
         out = grid.empty(at="link")
 
-    if type(control_name) is str:
+    if isinstance(control_name, str):
         control_name = grid.at_node[control_name]
-    if type(value_name) is str:
+    if isinstance(value_name, str):
         value_name = grid.at_node[value_name]
     head_control = control_name[grid.node_at_link_head]
     tail_control = control_name[grid.node_at_link_tail]
@@ -566,7 +566,7 @@ def map_node_to_cell(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="cell")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     out[:] = var_name[grid.node_at_cell]
 
@@ -625,7 +625,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
 
     values_at_linksX = np.empty(grid.number_of_links + 1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).max
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_linksX[:-1] = grid.at_link[var_name]
     else:
         values_at_linksX[:-1] = var_name
@@ -686,7 +686,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
 
     values_at_linksX = np.empty(grid.number_of_links + 1, dtype=float)
     values_at_linksX[-1] = np.finfo(dtype=float).min
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_linksX[:-1] = grid.at_link[var_name]
     else:
         values_at_linksX[:-1] = var_name
@@ -765,7 +765,7 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_link[var_name]
     values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
@@ -844,7 +844,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(at="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_link[var_name]
     values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
@@ -925,7 +925,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
         out = grid.empty(at="node")
     out[:] = 0.0
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_link[var_name]
     values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
@@ -1010,7 +1010,7 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
         out = grid.empty(at="node")
     out[:] = 0.0
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_link[var_name]
     values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
@@ -1101,9 +1101,9 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
     if out is None:
         out = grid.empty(at="node")
 
-    if type(control_name) is str:
+    if isinstance(control_name, str):
         control_name = grid.at_link[control_name]
-    if type(value_name) is str:
+    if isinstance(value_name, str):
         value_name = grid.at_link[value_name]
     values_at_nodes = control_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
@@ -1196,9 +1196,9 @@ def map_value_at_downwind_node_link_max_to_node(
     if out is None:
         out = grid.empty(at="node")
 
-    if type(control_name) is str:
+    if isinstance(control_name, str):
         control_name = grid.at_link[control_name]
-    if type(value_name) is str:
+    if isinstance(value_name, str):
         value_name = grid.at_link[value_name]
     values_at_nodes = control_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
@@ -1267,7 +1267,7 @@ def map_mean_of_patch_nodes_to_patch(
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
@@ -1343,7 +1343,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
@@ -1419,7 +1419,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     if out is None:
         out = np.zeros(grid.number_of_patches, dtype=float)
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_node[var_name]
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
@@ -1528,7 +1528,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     else:
         assert len(out) == 2
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         var_name = grid.at_link[var_name]
     angles_at_links = grid.angle_of_link  # CCW round tail
     hoz_cpt = np.cos(angles_at_links)

@@ -394,7 +394,7 @@ class CellLabCTSModel:
         self.num_node_states_sq = self.num_node_states * self.num_node_states
         self.num_link_states = self.number_of_orientations * self.num_node_states_sq
 
-        assert type(transition_list) is list, "transition_list must be a list!"
+        assert isinstance(transition_list, list), "transition_list must be a list!"
         assert transition_list, "Transition list must contain at least one transition"
         last_type = None
         for t in transition_list:

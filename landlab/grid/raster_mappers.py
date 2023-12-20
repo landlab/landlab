@@ -188,7 +188,7 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -241,7 +241,7 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -296,7 +296,7 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -350,7 +350,7 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -404,7 +404,7 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -458,7 +458,7 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -512,7 +512,7 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -565,7 +565,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -620,7 +620,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -686,7 +686,7 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -747,7 +747,7 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     else:
         out.fill(0.0)
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -803,7 +803,7 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.empty(centering="node")
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name
@@ -864,7 +864,7 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     else:
         out.fill(0.0)
 
-    if type(var_name) is str:
+    if isinstance(var_name, str):
         values_at_links = grid.at_link[var_name]
     else:
         values_at_links = var_name

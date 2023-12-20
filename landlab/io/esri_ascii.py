@@ -105,9 +105,7 @@ class DataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "{} != {}".format(
-            self._actual, self._expected
-        )  # this line not yet tested
+        return f"{self._actual} != {self._expected}"  # this line not yet tested
 
 
 class MismatchGridDataSizeError(Error):
@@ -119,10 +117,7 @@ class MismatchGridDataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return "(data size) {} != {} (grid size)".format(
-            self._actual,
-            self._expected,
-        )  # this line not yet tested
+        return f"(data size) {self._actual} != {self._expected} (grid size)"  # this line not yet tested
 
 
 class MismatchGridXYSpacing(Error):
@@ -134,10 +129,7 @@ class MismatchGridXYSpacing(Error):
         self._expected = expected_dx
 
     def __str__(self):
-        return "(data dx) {} != {} (grid dx)".format(
-            self._actual,
-            self._expected,
-        )  # this line not yet tested
+        return f"(data dx) {self._actual} != {self._expected} (grid dx)"  # this line not yet tested
 
 
 class MismatchGridXYLowerLeft(Error):
@@ -149,10 +141,7 @@ class MismatchGridXYLowerLeft(Error):
         self._expected = expected_llc
 
     def __str__(self):
-        return "(data lower-left) {} != {} (grid lower-left)".format(
-            self._actual,
-            self._expected,
-        )  # this line not yet tested
+        return f"(data lower-left) {self._actual} != {self._expected} (grid lower-left)"  # this line not yet tested
 
 
 def _parse_header_key_value(line):

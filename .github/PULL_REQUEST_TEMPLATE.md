@@ -21,8 +21,8 @@
     Ensure proper code formatting with black. You can do this by running
     black from landlab's top-level folder.
 
-    Ensure landlab is lint-free by running flake8 at landlab's top-level
-    folder.
+    Ensure landlab is lint-free by running `ruff check .` at landlab's
+    top-level folder.
 
     If you like, you can automate these tasks by installing pre-commit hooks.
     This is done by running `pre-commit install` at landlab's top-level
@@ -34,7 +34,7 @@
 - [ ] Add new / update outdated documentation?
 - [ ] All tests have passed?
 - [ ] Formatted code with black?
-- [ ] Removed lint reported by flake8?
+- [ ] Removed lint reported by ruff check?
 - [ ] Sucessful documentation built? (if documentation added or modified)
 
 <!-- Thanks for your time and effort. If you have any feedback in regards

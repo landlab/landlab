@@ -130,9 +130,7 @@ def shape_for_storage(array, field_size=None):
 
     if array.size % field_size != 0:
         raise ValueError(
-            "unable to reshape array to field size ({} != {})".format(
-                array.size, field_size
-            )
+            f"unable to reshape array to field size ({array.size} != {field_size})"
         )
 
     if field_size == array.size:
@@ -233,9 +231,7 @@ class FieldDataset(dict):
         if self._size != size:
             if self._size is not None and self.fixed_size:
                 raise ValueError(
-                    "size has already been set ({size}) and fixed_size is True".format(
-                        size=self._size
-                    )
+                    f"size has already been set ({self._size}) and fixed_size is True"
                 )
             elif not isinstance(size, int) or size < 0:
                 raise ValueError(f"size must be a positive integer or None ({size})")

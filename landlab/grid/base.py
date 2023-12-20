@@ -1655,7 +1655,7 @@ class ModelGrid(
         else:
             assert out.shape is self.links_at_node.shape
             assert out.dtype is bool
-        if type(values) is str:
+        if isinstance(values, str):
             vals = self.at_link[values]
         else:
             assert len(values) == self.number_of_links
@@ -1737,7 +1737,7 @@ class ModelGrid(
         else:
             assert out.shape is self.links_at_node.shape
             assert out.dtype is bool
-        if type(values) is str:
+        if isinstance(values, str):
             vals = self.at_link[values]
         else:
             assert len(values) == self.number_of_links
@@ -1810,7 +1810,7 @@ class ModelGrid(
 
         :meta landlab: info-link, info-node, connectivity
         """
-        if type(values) is str:
+        if isinstance(values, str):
             vals = self.at_link[values]
         else:
             assert len(values) == self.number_of_links
@@ -1895,7 +1895,7 @@ class ModelGrid(
 
         :meta landlab: info-link, info-node, connectivity
         """
-        if type(values) is str:
+        if isinstance(values, str):
             vals = self.at_link[values]
         else:
             assert len(values) == self.number_of_links

@@ -152,12 +152,8 @@ def test_layouts_cython_is_faster(method, size):
 
     def time_method(impl):
         return timeit(
-            "{impl}.{method}(({n_rows}, {n_cols}))".format(
-                impl=impl, method=method, n_rows=n_rows, n_cols=n_cols
-            ),
-            setup="from landlab.graph.structured_quad.structured_quad import {impl}".format(
-                impl=impl
-            ),
+            f"{impl}.{method}(({n_rows}, {n_cols}))",
+            setup=f"from landlab.graph.structured_quad.structured_quad import {impl}",
             number=1,
         )
 

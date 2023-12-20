@@ -1232,7 +1232,7 @@ class LakeMapperBarnes(Component):
                     for neighbor_set, link_set in zip(
                         self._neighbor_arrays, self._link_arrays
                     ):
-                        for n, l in zip(neighbor_set[c, :], link_set[c, :]):
+                        for n, lks in zip(neighbor_set[c, :], link_set[c, :]):
                             # fully closed
                             if (closedq[n] == 2) or (n == -1):
                                 continue
@@ -1242,7 +1242,7 @@ class LakeMapperBarnes(Component):
                             else:
                                 if closedq[n] == 0:
                                     self._receivers[n] = c
-                                    self._receiverlinks[n] = l
+                                    self._receiverlinks[n] = lks
                                     self._steepestslopes[n] = 0.0
                                     closedq[n] = 2  # close it
                                     openq.add_task(n, priority=surface[n])

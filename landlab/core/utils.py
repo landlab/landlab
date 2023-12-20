@@ -66,9 +66,7 @@ class ExampleData:
         for dst in (dstdir / p for p in self):
             if dst.exists():
                 raise FileExistsError(
-                    "[Errno {errno}] File exists: {name}".format(
-                        errno=errno.EEXIST, name=repr(dst.name)
-                    )
+                    f"[Errno {errno.EEXIST}] File exists: {dst.name!r}"
                 )
 
         for src in (srcdir / p for p in self):

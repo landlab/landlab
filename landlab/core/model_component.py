@@ -76,9 +76,7 @@ class Component:
                 # if required input, verify that it exists.
                 if name not in self._grid[at]:
                     raise FieldError(
-                        "{component} is missing required input field: {name} at {at}".format(
-                            component=self._name, name=name, at=at
-                        )
+                        f"{self._name} is missing required input field: {name} at {at}"
                     )
 
                 # if required input exists, check dtype.

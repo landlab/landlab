@@ -222,7 +222,7 @@ for name in comp_elements.keys():
                                 + "('node', 'link', etc)."
                             )
                 else:
-                    if any(type(x) is not str for x in this_un[prop].values()):
+                    if any(not isinstance(x, str) for x in this_un[prop].values()):
                         problems.append(
                             "One or more values in the dict "
                             + prop
@@ -246,7 +246,7 @@ for name in comp_elements.keys():
 for key, vals in problematic_components.items():
     if len(vals) == 0:
         problematic_components.pop(key)
-    elif type(vals) is dict:
+    elif isinstance(vals, dict):
         problematic_components[key] = (
             "The following LL standard interface "
             + "properties are not defined: "

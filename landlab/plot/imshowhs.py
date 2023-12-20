@@ -945,16 +945,16 @@ def _imshowhs_grid_values(
         and plot_type != "Drape2"
     ):
         if var_name is not None:
-            assert type(var_name) is str
+            assert isinstance(var_name, str)
             if var_units is not None:
-                assert type(var_units) is str
+                assert isinstance(var_units, str)
                 colorbar_label = var_name + " (" + var_units + ")"
             else:
                 colorbar_label = var_name
         else:
-            assert type(var_units) is str
+            assert isinstance(var_units, str)
             colorbar_label = "(" + var_units + ")"
-        assert type(colorbar_label) is str
+        assert isinstance(colorbar_label, str)
         if allow_colorbar:
             cb.set_label(
                 colorbar_label,
