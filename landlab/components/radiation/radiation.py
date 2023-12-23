@@ -518,12 +518,9 @@ class Radiation(Component):
             np.sin(self._sdecl) / (self._cosSA * self._cosLat)
         )
 
-        # Rounding
-        # if self._F > 0.99999 or self._F < -0.99999:
-        #     self._F = 0.99999
+        # Clip azimuth within these bounds
         F = np.clip(F, -0.99999, 0.99999)
 
-        #
         if self._t < 12.0:
             self._phisun = np.pi - np.arccos(F)
         else:
@@ -533,18 +530,9 @@ class Radiation(Component):
 
         # solar angle of incidence, Multiplying this with incoming radiation
         # gives radiation on sloped surface see Flores-Cervantes, J.H. (2012)
-        #  self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
-        #     self._slope
-        # ) * self._cosSA * np.cos(self._phisun - self._aspect)
-
-        if self._latitude > 0.0:
-            self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
-                self._slope
-            ) * self._cosSA * np.cos(self._phisun - self._aspect)
-        else:
-            self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
-                self._slope
-            ) * self._cosSA * np.cos(self._phisun - self._aspect - np.pi)
+        self._sloped = np.cos(self._slope) * self._sinSA + np.sin(
+            self._slope
+        ) * self._cosSA * np.cos(self._phisun - self._aspect)
 
         self._sloped[self._sloped <= 0.0] = 0.0
 
