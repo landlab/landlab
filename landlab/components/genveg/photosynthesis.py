@@ -34,8 +34,12 @@ class Photosynthesis(object):
     ):
         print("I am photosynthesizing during the growing season")
         self.update_solar_variables(_current_day)
+        print("Solar vars")
+        print(self._sunrise)
+        print(self._sunset)
+        print(self._sunlit_increment)
         total_canopy_assimilated_CO2 = np.zeros_like(last_biomass["leaf_biomass"])
-        total_gross_photosynthesis = np.zeros_like(last_biomass["leaf_biomass"])
+        hourly_gross_assimilation = np.zeros_like(last_biomass["leaf_biomass"])
         for day_increment in self.gauss_integration_params:
             (abscissa, weight) = day_increment
             increment_hour = self._sunrise + abscissa * self._sunlit_increment
@@ -44,7 +48,7 @@ class Photosynthesis(object):
                 absorbed_PAR_sunlit,
                 absorbed_PAR_shaded,
             ) = self.calculate_absorbed_incremental_PAR(
-                increment_hour, solar_elevation, grid_par_W_per_sqm, lai
+                increment_hour, solar_elevation, grid_par_W_per_sqm, lai, _current_day
             )
             sunlit_assimilated_CO2 = self.calculate_leaf_assimilation(
                 increment_hour, absorbed_PAR_sunlit, _min_temperature, _max_temperature
@@ -53,17 +57,31 @@ class Photosynthesis(object):
                 increment_hour, absorbed_PAR_shaded, _min_temperature, _max_temperature
             )
             sunlit_LAI, shaded_LAI = self.calculate_sunlit_shaded_LAI_proportion(
-                increment_hour, lai
+                solar_elevation, lai
             )
-            total_gross_photosynthesis += (sunlit_assimilated_CO2 * sunlit_LAI) + (
+            print("Sunlit assim")
+            print(sunlit_assimilated_CO2)
+            print("Shaded assim")
+            print(shaded_assimilated_CO2)
+            print("Sunlit LAI")
+            print(sunlit_LAI)
+            print("Shaded LAI")
+            print(shaded_LAI)
+            # It is right up to here
+            hourly_gross_assimilation = (sunlit_assimilated_CO2 * sunlit_LAI) + (
                 shaded_assimilated_CO2 * shaded_LAI
             )
+            # This value is wrong which means the sunlit increment is wrong or LAI is wrong
             total_canopy_assimilated_CO2 += (
-                total_gross_photosynthesis * weight * 3600 * self._sunlit_increment
+                hourly_gross_assimilation * weight * 3600 * self._sunlit_increment
             )
+            print("Hourly total canopy assim")
+            print(total_canopy_assimilated_CO2)
         gphot_CH20 = np.zeros_like(last_biomass["leaf_biomass"])
         filter = np.nonzero(total_canopy_assimilated_CO2 > 0)
         gphot_CH20 = total_canopy_assimilated_CO2[filter] * 30 / 1000000
+        print("GPHOT")
+        print(gphot_CH20)
         return gphot_CH20
 
     # Ignore leaf assimilation for now
@@ -100,13 +118,8 @@ class Photosynthesis(object):
         max_rubisco = self.get_rubsico_limits(hour_temp)
         max_light_limit = self.calculate_light_limits(par, hour_temp)
         max_sink_limit = self.get_sink_limits(hour_temp)
-        print("Rubsico")
-        print(max_rubisco)
-        print("Light")
-        print(max_light_limit)
-        print("Sink")
-        print(max_sink_limit)
-        min_assim = np.min([max_rubisco, max_light_limit, max_sink_limit])
+        min_assim = np.minimum(max_rubisco, max_light_limit)
+        min_assim = np.minimum(min_assim, max_sink_limit)
         return min_assim
 
     def calculate_hourly_direct_light_extinction(self, solar_elevation):
@@ -142,54 +155,107 @@ class Photosynthesis(object):
         return np.arcsin(dA + dB * np.cos(dHa))
 
     def calculate_absorbed_incremental_PAR(
-        self, increment_hour, solar_elevation, grid_par_W_per_sqm, lai
+        self, increment_hour, solar_elevation, grid_par_W_per_sqm, lai, current_day
     ):
         P = 0.04  # // reflection coefficient
         A = 0.80  # // scatter coefficient
         S = A**0.5  # // scatter correction
         conv = 4.55  # conversion factor to umol
 
-        hourly_PAR = self.calculate_incremental_PAR(
-            increment_hour, grid_par_W_per_sqm
-        )  # Need to find this
+        hourly_direct_PAR, hourly_diffuse_PAR = self.calculate_incremental_PAR(
+            increment_hour, solar_elevation, grid_par_W_per_sqm, current_day
+        )  # Need to find this as direct and diffuse fraction - not the same as factoring in clouds
+
+        print("Hourly PAR")
+        print(hourly_direct_PAR)
+        print(hourly_diffuse_PAR)
         hourly_direct_light_extinction_k = (
             self.calculate_hourly_direct_light_extinction(solar_elevation)
         )
         hourly_diffuse_light_extinction_k = (
             self.calculate_hourly_diffuse_light_extinction(lai)
         )
-        dI = (1.0 - P) * hourly_PAR
+        dI = (1.0 - P) * hourly_diffuse_PAR
         dIpdr = dI * np.exp(-hourly_direct_light_extinction_k * S * lai)
+        print("dIpdr")
+        print(dIpdr)
         dIpdrdr = dI * np.exp(
             -hourly_direct_light_extinction_k * lai
         )  # direct of direct
+        print("dIpdrdr")
+        print(dIpdrdr)
         dIpdra = (dIpdr - dIpdrdr) / 2  # scatter beams
+        print("dIpdra")
+        print(dIpdra)
         dN = hourly_diffuse_light_extinction_k * S * lai
-        dI = (1.0 - P) * hourly_PAR
         dIpdf = dI * (1.0 - np.exp(-dN)) / dN  # diffuse
-
+        print("dIpdf")
+        print(dIpdf)
         absorbed_PAR_sunlit = (
-            conv * A * (hourly_direct_light_extinction_k * hourly_PAR + dIpdf + dIpdra)
+            conv
+            * A
+            * (hourly_direct_light_extinction_k * hourly_direct_PAR + dIpdf + dIpdra)
         )
         absorbed_PAR_shaded = conv * A * (dIpdf + dIpdra)
         return (absorbed_PAR_sunlit, absorbed_PAR_shaded)
 
-    def calculate_incremental_PAR(self, increment_hour, grid_par_W_per_sqm):
+    def calculate_hourly_ET_rad(self, solar_elevation, _current_day):
+        E0 = 1 + 0.033 * np.cos(2 * np.pi * (_current_day - 10) / 365)
+        ET_rad = 1370 * E0 * np.sin(solar_elevation)
+        if ET_rad < 0:
+            ET_rad = 0.0
+        return ET_rad
+
+    def calculate_incremental_PAR(
+        self, increment_hour, solar_elevation, grid_par_W_per_sqm, _current_day
+    ):
+        # Check these values to see what is scalar and what is an array. Adjust logic accordingly
         dA = np.sin(self._solar_declination) * np.sin(self.latitude)
         dB = np.cos(self._solar_declination) * np.cos(self.latitude)
         dAoB = dA / dB
-        dPhi = (np.pi * grid_par_W_per_sqm / 86400) / (
+        dPhi = (np.pi * grid_par_W_per_sqm) / (
             dA * np.arccos(-dAoB) + dB * np.sqrt(1 - dAoB * dAoB)
         )
         dCoefA = -dB * dPhi
         dCoefB = dA * dPhi
         total_incremental_PAR = dCoefA * np.cos(np.pi * increment_hour / 12) + dCoefB
-        return total_incremental_PAR
+        print("Total incremental PAR")
+        print(total_incremental_PAR)
+        print("Solar elevation")
+        print(solar_elevation)
+        total_ET_PAR = 0.5 * self.calculate_hourly_ET_rad(solar_elevation, _current_day)
+        R = (
+            0.847
+            - 1.61 * np.sin(solar_elevation)
+            + 1.04 * (np.sin(solar_elevation)) ** 2
+        )
+        K = (1.47 - R) / 1.66
+        transferred_PAR = total_incremental_PAR / total_ET_PAR
+        condition_list = [
+            (total_incremental_PAR < 0.0) & (np.sin(solar_elevation) < 0),
+            transferred_PAR > K,
+            (transferred_PAR <= K) & (transferred_PAR > 0.35),
+            (transferred_PAR <= 0.35) & (transferred_PAR > 0.22),
+        ]
 
-    def calculate_sunlit_shaded_LAI_proportion(self, increment_hour, lai):
+        option_list = [
+            np.ones_like(total_incremental_PAR),
+            R * np.ones_like(total_incremental_PAR),
+            1.47 - 1.66 * transferred_PAR,
+            1 - 6.4 * (transferred_PAR - 0.22) ** 2,
+        ]
+        diffuse_frac = np.select(condition_list, option_list)
+        print("DIffuse fraction")
+        print(diffuse_frac)
+        total_incremental_PAR[total_incremental_PAR < 0] = 0
+        diffuse_PAR = diffuse_frac * total_incremental_PAR
+        direct_PAR = total_incremental_PAR - diffuse_PAR
+        return direct_PAR, diffuse_PAR
+
+    def calculate_sunlit_shaded_LAI_proportion(self, solar_elevation, lai):
         sunlit_lai = np.zeros_like(lai)
         hourly_direct_light_extinction_k = (
-            self.calculate_hourly_direct_light_extinction(increment_hour)
+            self.calculate_hourly_direct_light_extinction(solar_elevation)
         )
         if hourly_direct_light_extinction_k > 0.0:
             sunlit_lai = (
@@ -234,9 +300,6 @@ class Photosynthesis(object):
         limit_map = list(map(tuple, limit_map))
         limit_lookup = np.array(limit_map, dtypes)
         return limit_lookup
-
-    def calculate_light_limited_assimilation(self):
-        pass
 
     def get_rubsico_limits(self, hour_temp):
         limits = np.interp(
