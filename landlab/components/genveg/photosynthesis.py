@@ -103,10 +103,10 @@ class Photosynthesis(object):
         # We are assuming here that air temperature ~canopy temperature
         offset = 1.5
         temp_rise = self._sunrise + offset
-        if (increment_hour >= temp_rise) & (increment_hour < self._sunset):
+        if (increment_hour >= temp_rise) & (increment_hour <= self._sunset):
             tau = (
                 np.pi
-                * (increment_hour * self._sunrise - offset)
+                * (increment_hour - self._sunrise - offset)
                 / (self._sunset - self._sunrise)
             )
             hour_temp = _min_temperature + (
@@ -117,16 +117,18 @@ class Photosynthesis(object):
                 increment_hour += 24
             tau = (
                 np.pi
-                * (increment_hour * self._sunrise - offset)
+                * (self._sunset - self._sunrise - offset)
                 / (self._sunset - self._sunrise)
             )
             sunset_temp = _min_temperature + (
                 _max_temperature - _min_temperature
             ) * np.sin(tau)
             interp_slope = (_min_temperature - sunset_temp) / (
-                temp_rise + 24 - self._sunset
+                temp_rise + offset + 24 - self._sunset
             )
-            hour_temp = sunset_temp + interp_slope * (increment_hour * self._sunset)
+            hour_temp = sunset_temp + interp_slope * (increment_hour - self._sunset)
+
+        # hour_temp is wrong. Check this
         max_rubisco = self.get_rubsico_limits(hour_temp)
         max_light_limit = self.calculate_light_limits(par, hour_temp)
         max_sink_limit = self.get_sink_limits(hour_temp)
