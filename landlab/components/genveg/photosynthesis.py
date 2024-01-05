@@ -22,6 +22,9 @@ class Photosynthesis(object):
         self.Vc_max_rate = 200
         self.spec_factor_base = 2600.0
         self.assim_limits_by_temp = self.calculate_assimilation_limits()
+        print("Assimilation limits lookup table")
+        print("Temperature     Rubisco     Sink     CO2 Compensation")
+        print(self.assim_limits_by_temp)
 
     def photosynthesize(
         self,
@@ -59,6 +62,10 @@ class Photosynthesis(object):
             sunlit_LAI, shaded_LAI = self.calculate_sunlit_shaded_LAI_proportion(
                 solar_elevation, lai
             )
+            print("Sunlit PAR")
+            print(absorbed_PAR_sunlit)
+            print("Shaded PAR")
+            print(absorbed_PAR_shaded)
             print("Sunlit assim")
             print(sunlit_assimilated_CO2)
             print("Shaded assim")
@@ -118,8 +125,24 @@ class Photosynthesis(object):
         max_rubisco = self.get_rubsico_limits(hour_temp)
         max_light_limit = self.calculate_light_limits(par, hour_temp)
         max_sink_limit = self.get_sink_limits(hour_temp)
+        print("PAR")
+        print(par)
+        print("Minimum Daily Air Temp")
+        print(_min_temperature)
+        print("Maximum Daily Air Temp")
+        print(_max_temperature)
+        print("Estimated leaf temperature")
+        print(hour_temp)
+        print("Maximum Rubisco")
+        print(max_rubisco)
+        print("Maximum Light Limited")
+        print(max_light_limit)
+        print("Maximum Sink Limit")
+        print(max_sink_limit)
         min_assim = np.minimum(max_rubisco, max_light_limit)
         min_assim = np.minimum(min_assim, max_sink_limit)
+        print("Minimum Assimilation - should be equal to minimum of above maxes")
+        print(min_assim)
         return min_assim
 
     def calculate_hourly_direct_light_extinction(self, solar_elevation):
@@ -164,33 +187,22 @@ class Photosynthesis(object):
 
         hourly_direct_PAR, hourly_diffuse_PAR = self.calculate_incremental_PAR(
             increment_hour, solar_elevation, grid_par_W_per_sqm, current_day
-        )  # Need to find this as direct and diffuse fraction - not the same as factoring in clouds
-
-        print("Hourly PAR")
-        print(hourly_direct_PAR)
-        print(hourly_diffuse_PAR)
+        )
         hourly_direct_light_extinction_k = (
             self.calculate_hourly_direct_light_extinction(solar_elevation)
         )
         hourly_diffuse_light_extinction_k = (
             self.calculate_hourly_diffuse_light_extinction(lai)
         )
-        dI = (1.0 - P) * hourly_diffuse_PAR
-        dIpdr = dI * np.exp(-hourly_direct_light_extinction_k * S * lai)
-        print("dIpdr")
-        print(dIpdr)
-        dIpdrdr = dI * np.exp(
+        dI_direct = (1.0 - P) * hourly_direct_PAR
+        dIpdr = dI_direct * np.exp(-hourly_direct_light_extinction_k * S * lai)
+        dIpdrdr = dI_direct * np.exp(
             -hourly_direct_light_extinction_k * lai
         )  # direct of direct
-        print("dIpdrdr")
-        print(dIpdrdr)
         dIpdra = (dIpdr - dIpdrdr) / 2  # scatter beams
-        print("dIpdra")
-        print(dIpdra)
         dN = hourly_diffuse_light_extinction_k * S * lai
-        dIpdf = dI * (1.0 - np.exp(-dN)) / dN  # diffuse
-        print("dIpdf")
-        print(dIpdf)
+        dI_diffuse = (1.0 - P) * hourly_diffuse_PAR
+        dIpdf = dI_diffuse * (1.0 - np.exp(-dN)) / dN  # diffuse
         absorbed_PAR_sunlit = (
             conv
             * A
@@ -219,10 +231,6 @@ class Photosynthesis(object):
         dCoefA = -dB * dPhi
         dCoefB = dA * dPhi
         total_incremental_PAR = dCoefA * np.cos(np.pi * increment_hour / 12) + dCoefB
-        print("Total incremental PAR")
-        print(total_incremental_PAR)
-        print("Solar elevation")
-        print(solar_elevation)
         total_ET_PAR = 0.5 * self.calculate_hourly_ET_rad(solar_elevation, _current_day)
         R = (
             0.847
@@ -237,7 +245,6 @@ class Photosynthesis(object):
             (transferred_PAR <= K) & (transferred_PAR > 0.35),
             (transferred_PAR <= 0.35) & (transferred_PAR > 0.22),
         ]
-
         option_list = [
             np.ones_like(total_incremental_PAR),
             R * np.ones_like(total_incremental_PAR),
@@ -245,8 +252,6 @@ class Photosynthesis(object):
             1 - 6.4 * (transferred_PAR - 0.22) ** 2,
         ]
         diffuse_frac = np.select(condition_list, option_list)
-        print("DIffuse fraction")
-        print(diffuse_frac)
         total_incremental_PAR[total_incremental_PAR < 0] = 0
         diffuse_PAR = diffuse_frac * total_incremental_PAR
         direct_PAR = total_incremental_PAR - diffuse_PAR
