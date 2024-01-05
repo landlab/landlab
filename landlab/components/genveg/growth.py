@@ -327,16 +327,19 @@ class PlantGrowth(Species):
         _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
             filter
         ]
-        _temperature = self._grid["cell"]["air__temperature_C"][
+        _min_temperature = self._grid["cell"]["air__min_temperature_C"][
+            _last_biomass["cell_index"]
+        ][filter]
+        _max_temperature = self._grid["cell"]["air__max_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
 
-        _new_live_biomass = self.respire(_temperature, _last_live_biomass)
+        _new_live_biomass = self.respire(_min_temperature, _max_temperature, _last_live_biomass)
 
         # Change this so for positive delta_tot we allocate by size and
         if event_flags["_in_growing_season"]:
             delta_photo = processes["_in_growing_season"](
-                _par, _new_live_biomass, _current_jday
+                _par, _min_temperature, _max_temperature, _new_live_biomass, _current_jday
             )
             # we will need to add a turnover rate estiamte. Not sure where to include it though.
             # delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt

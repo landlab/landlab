@@ -1,19 +1,15 @@
 """
-Plant integration component of GenVeg - this is the part of GenVeg that handles interactions
-between plants and plants and the physical grid. 
+Plant integration component of GenVeg - this is the part of GenVeg 
+that handles interactions between plants and plants and the physical grid
 """
-from logging.config import valid_ident
-from matplotlib.pyplot import grid
+
 
 # from landlab.components import Radiation
 from landlab import Component
 import numpy as np
 import pandas as pd
-from scipy.optimize import fsolve
 from .growth import PlantGrowth
 import matplotlib as plt
-import warnings
-from landlab.data_record import DataRecord
 
 rng = np.random.default_rng()
 
@@ -56,9 +52,10 @@ class GenVeg(Component, PlantGrowth):
             raise ValueError(msg)
         # Check to see if grid contains required environmental fields
         try:
-            self._air_temp = self._grid["cell"]["air__temperature_C"][:].copy()
+            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:].copy()
+            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:].copy()
         except KeyError:
-            msg = "GenVeg requires air temperature in Celcius for each time step."
+            msg = "GenVeg requires min and max air temperatures in Celcius for each time step."
             raise ValueError(msg)
 
         try:

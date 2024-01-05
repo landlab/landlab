@@ -94,3 +94,4 @@ genveg/test.ipynb
 
 # nox virtual envs
 .nox
+notebooks/GenVeg/veg_params.yml

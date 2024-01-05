@@ -210,7 +210,7 @@ class Species(object):
         return (
             self.species_morph_params["sp_leaf_area"]
             * leaf_biomass
-            / (0.25 * np.pi * shoot_sys_width**2)
+            / (100 * 0.25 * np.pi * shoot_sys_width**2)
         )
 
     def select_photosythesis_type(self, latitude):
@@ -550,16 +550,25 @@ class Species(object):
         )
         return plants
 
-    def photosynthesize(self, _par, _last_biomass, _current_day):
+    def photosynthesize(
+        self, _par, _min_temperature, _max_temperature, _last_biomass, _current_day
+    ):
         lai = self.calculate_lai(
             _last_biomass["leaf_biomass"], _last_biomass["shoot_sys_width"]
         )
+        print("Leaf biomass")
+        print(_last_biomass["leaf_biomass"])
+        print("Plant width")
+        print(_last_biomass["shoot_sys_width"])
+        print("LAI")
+        print(lai)
         delta_tot = self.photosynthesis.photosynthesize(
-            _par, _last_biomass, lai, _current_day
+            _par, _min_temperature, _max_temperature, _last_biomass, lai, _current_day
         )
         return delta_tot
 
-    def respire(self, _temperature, _last_biomass):
+    def respire(self, _min_temperature, _max_temperature, _last_biomass):
+        _temperature = (_min_temperature + _max_temperature) / 2
         growdict = self.species_grow_params
         _new_biomass = _last_biomass.copy()
         # respiration coefficient temp dependence from Teh 2006
