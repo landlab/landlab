@@ -90,6 +90,7 @@ test-results.xml
 # Hypothesis
 .hypothesis
 genveg/test.ipynb
+notebooks/GenVeg/veg_params.yml
 
 
 # nox virtual envs
