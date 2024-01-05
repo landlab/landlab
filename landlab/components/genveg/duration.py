@@ -35,9 +35,9 @@ class Duration(object):
         for part in self.persistent_parts:
             plants[part][filter] += (
                 self.senesce_rate
-                * ns_green_mass
+                * ns_green_mass[filter]
                 * plants[part][filter]
-                / persistent_mass
+                / persistent_mass[filter]
             )
         for part in self.green_parts:
             plants[part][filter] -= self.senesce_rate * plants[part][filter]

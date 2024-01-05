@@ -22,9 +22,6 @@ class Photosynthesis(object):
         self.Vc_max_rate = 200
         self.spec_factor_base = 2600.0
         self.assim_limits_by_temp = self.calculate_assimilation_limits()
-        print("Assimilation limits lookup table")
-        print("Temperature     Rubisco     Sink     CO2 Compensation")
-        print(self.assim_limits_by_temp)
 
     def photosynthesize(
         self,
@@ -35,12 +32,7 @@ class Photosynthesis(object):
         lai,
         _current_day,
     ):
-        print("I am photosynthesizing during the growing season")
         self.update_solar_variables(_current_day)
-        print("Solar vars")
-        print(self._sunrise)
-        print(self._sunset)
-        print(self._sunlit_increment)
         total_canopy_assimilated_CO2 = np.zeros_like(last_biomass["leaf_biomass"])
         hourly_gross_assimilation = np.zeros_like(last_biomass["leaf_biomass"])
         for day_increment in self.gauss_integration_params:
@@ -62,38 +54,16 @@ class Photosynthesis(object):
             sunlit_LAI, shaded_LAI = self.calculate_sunlit_shaded_LAI_proportion(
                 solar_elevation, lai
             )
-            print("Sunlit PAR")
-            print(absorbed_PAR_sunlit)
-            print("Shaded PAR")
-            print(absorbed_PAR_shaded)
-            print("Sunlit assim")
-            print(sunlit_assimilated_CO2)
-            print("Shaded assim")
-            print(shaded_assimilated_CO2)
-            print("Sunlit LAI")
-            print(sunlit_LAI)
-            print("Shaded LAI")
-            print(shaded_LAI)
-            # It is right up to here
             hourly_gross_assimilation = (sunlit_assimilated_CO2 * sunlit_LAI) + (
                 shaded_assimilated_CO2 * shaded_LAI
             )
-            print("hourly gross assimilation (dAn)")
-            print(hourly_gross_assimilation)
-            # This value is wrong which means the sunlit increment is wrong or LAI is wrong
             total_canopy_assimilated_CO2 += (
                 hourly_gross_assimilation * weight * 3600 * self._sunlit_increment
             )
-            print("Hourly total canopy assim")
-            print(total_canopy_assimilated_CO2)
         gphot_CH20 = np.zeros_like(last_biomass["leaf_biomass"])
         filter = np.nonzero(total_canopy_assimilated_CO2 > 0)
         gphot_CH20 = total_canopy_assimilated_CO2[filter] * 30 / 1000000
-        print("GPHOT per sq m")
-        print(gphot_CH20)
         gphot_plant = gphot_CH20 * (0.25 * np.pi * last_biomass["shoot_sys_width"] ** 2)
-        print("GPHOT per plant")
-        print(gphot_plant)
         return gphot_plant
 
     # Ignore leaf assimilation for now
@@ -127,29 +97,11 @@ class Photosynthesis(object):
                 temp_rise + offset + 24 - self._sunset
             )
             hour_temp = sunset_temp + interp_slope * (increment_hour - self._sunset)
-
-        # hour_temp is wrong. Check this
         max_rubisco = self.get_rubsico_limits(hour_temp)
         max_light_limit = self.calculate_light_limits(par, hour_temp)
         max_sink_limit = self.get_sink_limits(hour_temp)
-        print("PAR")
-        print(par)
-        print("Minimum Daily Air Temp")
-        print(_min_temperature)
-        print("Maximum Daily Air Temp")
-        print(_max_temperature)
-        print("Estimated leaf temperature")
-        print(hour_temp)
-        print("Maximum Rubisco")
-        print(max_rubisco)
-        print("Maximum Light Limited")
-        print(max_light_limit)
-        print("Maximum Sink Limit")
-        print(max_sink_limit)
         min_assim = np.minimum(max_rubisco, max_light_limit)
         min_assim = np.minimum(min_assim, max_sink_limit)
-        print("Minimum Assimilation - should be equal to minimum of above maxes")
-        print(min_assim)
         return min_assim
 
     def calculate_hourly_direct_light_extinction(self, solar_elevation):
@@ -228,7 +180,6 @@ class Photosynthesis(object):
     def calculate_incremental_PAR(
         self, increment_hour, solar_elevation, grid_par_W_per_sqm, _current_day
     ):
-        # Check these values to see what is scalar and what is an array. Adjust logic accordingly
         dA = np.sin(self._solar_declination) * np.sin(self.latitude)
         dB = np.cos(self._solar_declination) * np.cos(self.latitude)
         dAoB = dA / dB
