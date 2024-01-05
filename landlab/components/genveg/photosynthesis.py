@@ -78,6 +78,8 @@ class Photosynthesis(object):
             hourly_gross_assimilation = (sunlit_assimilated_CO2 * sunlit_LAI) + (
                 shaded_assimilated_CO2 * shaded_LAI
             )
+            print("hourly gross assimilation (dAn)")
+            print(hourly_gross_assimilation)
             # This value is wrong which means the sunlit increment is wrong or LAI is wrong
             total_canopy_assimilated_CO2 += (
                 hourly_gross_assimilation * weight * 3600 * self._sunlit_increment
@@ -87,9 +89,12 @@ class Photosynthesis(object):
         gphot_CH20 = np.zeros_like(last_biomass["leaf_biomass"])
         filter = np.nonzero(total_canopy_assimilated_CO2 > 0)
         gphot_CH20 = total_canopy_assimilated_CO2[filter] * 30 / 1000000
-        print("GPHOT")
+        print("GPHOT per sq m")
         print(gphot_CH20)
-        return gphot_CH20
+        gphot_plant = gphot_CH20 * (0.25 * np.pi * last_biomass["shoot_sys_width"] ** 2)
+        print("GPHOT per plant")
+        print(gphot_plant)
+        return gphot_plant
 
     # Ignore leaf assimilation for now
     def calculate_leaf_assimilation(
