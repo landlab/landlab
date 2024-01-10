@@ -28,14 +28,14 @@ class Photosynthesis(object):
         grid_par_W_per_sqm,
         _min_temperature,
         _max_temperature,
-        last_biomass,
         lai,
+        last_biomass,
         _current_day,
     ):
         self.update_solar_variables(_current_day)
         total_canopy_assimilated_CO2 = (
             hourly_gross_assimilation
-        ) = gphot_CH20 = gphot_plant = np.zeros_like(last_biomass["shoot_sys_width"])
+        ) = gphot_CH20 = np.zeros_like(last_biomass["shoot_sys_width"])
         for day_increment in self.gauss_integration_params:
             (abscissa, weight) = day_increment
             increment_hour = self._sunrise + abscissa * self._sunlit_increment
@@ -44,27 +44,41 @@ class Photosynthesis(object):
                 absorbed_PAR_sunlit,
                 absorbed_PAR_shaded,
             ) = self.calculate_absorbed_incremental_PAR(
-                increment_hour, solar_elevation, grid_par_W_per_sqm, lai, _current_day
+                increment_hour,
+                solar_elevation,
+                grid_par_W_per_sqm,
+                lai,
+                _current_day,
             )
             sunlit_assimilated_CO2 = self.calculate_leaf_assimilation(
-                increment_hour, absorbed_PAR_sunlit, _min_temperature, _max_temperature
+                increment_hour,
+                absorbed_PAR_sunlit,
+                _min_temperature,
+                _max_temperature,
             )
             shaded_assimilated_CO2 = self.calculate_leaf_assimilation(
-                increment_hour, absorbed_PAR_shaded, _min_temperature, _max_temperature
+                increment_hour,
+                absorbed_PAR_shaded,
+                _min_temperature,
+                _max_temperature,
             )
-            sunlit_LAI, shaded_LAI = self.calculate_sunlit_shaded_LAI_proportion(
-                solar_elevation, lai
-            )
-            hourly_gross_assimilation = (sunlit_assimilated_CO2 * sunlit_LAI) + (
-                shaded_assimilated_CO2 * shaded_LAI
+            (
+                sunlit_lai,
+                shaded_lai,
+            ) = self.calculate_sunlit_shaded_lai_proportion(solar_elevation, lai)
+            hourly_gross_assimilation = (
+                0.25 * np.pi * last_biomass["shoot_sys_width"] ** 2
+            ) * (
+                (sunlit_assimilated_CO2 * sunlit_lai)
+                + (shaded_assimilated_CO2 * shaded_lai)
             )
             total_canopy_assimilated_CO2 += (
                 hourly_gross_assimilation * weight * 3600 * self._sunlit_increment
             )
-        filter = np.nonzero(total_canopy_assimilated_CO2 > 0)
-        gphot_CH20 = total_canopy_assimilated_CO2[filter] * 30 / 1000000
-        gphot_plant = gphot_CH20 * (0.25 * np.pi * last_biomass["shoot_sys_width"] ** 2)
-        return gphot_plant
+        gphot_CH20 = total_canopy_assimilated_CO2 * 30 / 1000000
+        gphot_CH20[gphot_CH20 < 0] = 0.0
+        # gphot_plant = gphot_CH20 * (0.25 * np.pi * last_biomass["shoot_sys_width"] ** 2)
+        return gphot_CH20
 
     # Ignore leaf assimilation for now
     def calculate_leaf_assimilation(
@@ -215,7 +229,7 @@ class Photosynthesis(object):
         direct_PAR = total_incremental_PAR - diffuse_PAR
         return direct_PAR, diffuse_PAR
 
-    def calculate_sunlit_shaded_LAI_proportion(self, solar_elevation, lai):
+    def calculate_sunlit_shaded_lai_proportion(self, solar_elevation, lai):
         sunlit_lai = np.zeros_like(lai)
         hourly_direct_light_extinction_k = (
             self.calculate_hourly_direct_light_extinction(solar_elevation)

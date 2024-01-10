@@ -551,13 +551,24 @@ class Species(object):
         return plants
 
     def photosynthesize(
-        self, _par, _min_temperature, _max_temperature, _last_biomass, _current_day
+        self,
+        _par,
+        _min_temperature,
+        _max_temperature,
+        cell_lai,
+        _last_biomass,
+        _current_day,
     ):
         lai = self.calculate_lai(
             _last_biomass["leaf_biomass"], _last_biomass["shoot_sys_width"]
         )
         delta_tot = self.photosynthesis.photosynthesize(
-            _par, _min_temperature, _max_temperature, _last_biomass, lai, _current_day
+            _par,
+            _min_temperature,
+            _max_temperature,
+            cell_lai,
+            _last_biomass,
+            _current_day,
         )
         return delta_tot
 
