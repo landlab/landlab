@@ -38,6 +38,10 @@ jobs:
         run: |
             conda install c-compiler cxx-compiler
 
+      - name: Install xesmf
+        run: |
+            conda install xesmf
+
       - name: Show conda installation info
         run: |
           conda info
