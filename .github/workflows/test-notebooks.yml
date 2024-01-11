@@ -38,10 +38,6 @@ jobs:
         run: |
             conda install c-compiler cxx-compiler
 
-      - name: Install pymt
-        run: |
-            conda install pymt=1.3.1 -c conda-forge
-
       - name: Show conda installation info
         run: |
           conda info
