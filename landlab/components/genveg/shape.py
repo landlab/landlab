@@ -19,15 +19,15 @@ class PlantShape(object):
         )
         # Calculate log10 linear equation to calculate relationship between aboveground biomass and aspect ratio
         # This is not working as expected
-        width_x0 = np.log10(self.grow_params["min_abg_biomass"] / 1000)
-        width_x1 = np.log10(self.grow_params["max_abg_biomass"] / 1000)
+        width_x0 = self.abg_biomass_transform(self.grow_params["min_abg_biomass"])
+        width_x1 = self.abg_biomass_transform(self.grow_params["max_abg_biomass"])
         width_y0 = np.log10(self.min_crown_area)
         width_y1 = np.log10(self.max_crown_area)
         width_m = (width_y1 - width_y0) / (width_x1 - width_x0)
-        width_b = width_y0 - width_m * width_x0
+        width_b = width_y0 - (width_m * width_x0)
         self.crown_area_coeffs = {"m": width_m, "b": width_b}
-        height_x0 = np.log10(self.grow_params["min_abg_biomass"] / 1000)
-        height_x1 = np.log10(self.grow_params["max_abg_biomass"] / 1000)
+        height_x0 = width_x0
+        height_x1 = width_x1
         height_y0 = np.log10(self.morph_params["min_height"])
         height_y1 = np.log10(self.morph_params["max_height"])
         height_m = (height_y1 - height_y0) / (height_x1 - height_x0)
@@ -46,7 +46,7 @@ class PlantShape(object):
         return root_sys_width
 
     def calc_crown_area_from_shoot_width(self, shoot_sys_width):
-        crown_area = np.pi / 4 * shoot_sys_width**2
+        crown_area = 0.25 * np.pi * shoot_sys_width**2
         return crown_area
 
     def calc_vital_volume_from_biomass(self, abg_biomass):
@@ -71,9 +71,10 @@ class PlantShape(object):
         ) = log_plant_height = crown_area = plant_height = np.zeros_like(abg_biomass)
         filter = np.nonzero(abg_biomass > 0)
         # log_aspect_ratio[filter]=self.aspect_ratio_interp_func(np.log10(abg_biomass[filter]/1000))
-        log_crown_area[filter] = self.crown_area_coeffs["b"] + self.crown_area_coeffs[
-            "m"
-        ] * self.abg_biomass_transform(abg_biomass[filter])
+        log_crown_area[filter] = self.crown_area_coeffs["b"] + (
+            self.crown_area_coeffs["m"]
+            * self.abg_biomass_transform(abg_biomass[filter])
+        )
         crown_area[filter] = 10 ** log_crown_area[filter]
         shoot_sys_width = (4 * crown_area / np.pi) ** 0.5
         vital_volume[filter] = self.calc_vital_volume_from_biomass(abg_biomass[filter])
