@@ -238,6 +238,12 @@ class PlantGrowth(Species):
                         self.plants["dead_reproductive"], (self.plants["pid"].size, 1)
                     ),
                 ),
+                "vegetation__shoot_sys_width": (
+                    ["item_id", "time"],
+                    np.reshape(
+                        self.plants["shoot_sys_width"], (self.plants["pid"].size, 1)
+                    ),
+                ),
                 "vegetation__leaf_area": (
                     ["item_id", "time"],
                     np.reshape(self.plants["leaf_area"], (self.plants["pid"].size, 1)),
@@ -258,6 +264,7 @@ class PlantGrowth(Species):
                 "vegetation__dead_stem_biomass": "g",
                 "vegetation__dead_repro_biomass": "g",
                 "vegetation__leaf_area": "sq m",
+                "vegetation__shoot_sys_width": "m",
                 "vegetation__plant_age": "days",
             },
         )
@@ -333,13 +340,22 @@ class PlantGrowth(Species):
         _max_temperature = self._grid["cell"]["air__max_temperature_C"][
             _last_biomass["cell_index"]
         ][filter]
-
-        _new_live_biomass = self.respire(_min_temperature, _max_temperature, _last_live_biomass)
+        _cell_lai = self._grid["cell"]["vegetation__cell_lai"][
+            _last_biomass["cell_index"]
+        ][filter]
+        _new_live_biomass = self.respire(
+            _min_temperature, _max_temperature, _last_live_biomass
+        )
 
         # Change this so for positive delta_tot we allocate by size and
         if event_flags["_in_growing_season"]:
             delta_photo = processes["_in_growing_season"](
-                _par, _min_temperature, _max_temperature, _new_live_biomass, _current_jday
+                _par,
+                _min_temperature,
+                _max_temperature,
+                _cell_lai,
+                _new_live_biomass,
+                _current_jday,
             )
             # we will need to add a turnover rate estiamte. Not sure where to include it though.
             # delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
@@ -756,6 +772,9 @@ class PlantGrowth(Species):
         self.record_plants.dataset["vegetation__leaf_area"].values[
             item_ids, self.time_ind
         ] = self.plants["leaf_area"]
+        self.record_plants.dataset["vegetation__shoot_sys_width"].values[
+            item_ids, self.time_ind
+        ] = self.plants["shoot_sys_width"]
         self.record_plants.dataset["vegetation__plant_age"].values[
             item_ids, self.time_ind
         ] = self.plants["plant_age"]
