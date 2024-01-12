@@ -395,12 +395,8 @@ class VegParams:
         # Direct solve for coefficients if only two points provided to prevent solver errors
         elif len(uni_xs) == 2:
             # Solve for constant (see function below)
-            b = -(
-                    np.log((1 - uni_ys[1]) / uni_ys[1])
-                    - np.log((1 - uni_ys[0]) / uni_ys[0])
-            ) / (uni_xs[1] - uni_xs[0])
-            a = ((1 - uni_ys[1]) / uni_ys[1]) / np.exp(-uni_xs[1] * b)
-            S = [a, b]
+            guess = self._a_b_func(uni_xs, uni_ys)
+            S = [guess['a'], guess['b']]
         # Use scipy solver to estimate sigmoid coefficients
         else:
             S = self._get_best_a_b_guess(uni_xs, uni_ys)
