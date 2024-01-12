@@ -357,7 +357,7 @@ class VegParams:
                             predictor = predictor[predictor != -9999]
                             sigmoid_coeffs[descriptor] = self._build_logistic(
                                 predictor, response, fit_method="dogbox"
-                            )
+                            ).tolist()
                         nested_dict["mortality_params"]["coeffs"] = sigmoid_coeffs
                         # Add species nested dictionary to master parameter dictionary
                         param_dict[
@@ -379,9 +379,7 @@ class VegParams:
     def _build_logistic(self, xs, ys, fit_method):
         if len(xs) != len(ys):
             msg = "Predictor and response variable arrays must be same length"
-            S = []
             raise ValueError(msg)
-        S = []
         ys[ys <= 0] = 0.0001
         ys[ys >= 1] = 0.9999
         # Keep only unique y values and average x values for repeated ys
@@ -398,40 +396,102 @@ class VegParams:
         elif len(uni_xs) == 2:
             # Solve for constant (see function below)
             b = -(
-                np.log((1 - uni_ys[1]) / uni_ys[1])
-                - np.log((1 - uni_ys[0]) / uni_ys[0])
+                    np.log((1 - uni_ys[1]) / uni_ys[1])
+                    - np.log((1 - uni_ys[0]) / uni_ys[0])
             ) / (uni_xs[1] - uni_xs[0])
             a = ((1 - uni_ys[1]) / uni_ys[1]) / np.exp(-uni_xs[1] * b)
             S = [a, b]
         # Use scipy solver to estimate sigmoid coefficients
-        # Find first guess a,b by finding points closest to 0.5 survival and near sigmoid limit
         else:
-            x = [0, 0]
-            y = [0, 0]
-            idx_05 = (np.abs(uni_ys - 0.5)).argmin()
-            idx_limit = np.gradient(np.gradient(uni_ys, uni_xs), uni_xs).argmax()
-            x[0] = uni_xs[min(idx_05, idx_limit)]
-            y[0] = uni_ys[min(idx_05, idx_limit)]
-            x[1] = uni_xs[max(idx_05, idx_limit)]
-            y[1] = uni_ys[max(idx_05, idx_limit)]
-            b_guess = -(
-                    np.log((1 - y[1]) / y[1]) - np.log((1 - y[0]) / y[0])
-            ) / (x[1] - x[0])
-            a_guess = ((1 - y[1]) / y[1]) / np.exp(-x[1] * b_guess)
-            # Assign sigma weights to prioritize points near 0 and 1
-            weights = np.ones(len(uni_ys))
-            weights[(uni_ys < 0.1) | (uni_ys > 0.9)] = 10
-            weights[(uni_ys < 0.02) | (uni_ys > 0.98)] = 500
+            S = self._get_best_a_b_guess(uni_xs, uni_ys)
+        return S
+
+    def _get_best_a_b_guess(self, uni_xs, uni_ys):
+        """
+        This function finds the best guess for 'a' and 'b' for _cfunc based on the values uni_xs
+        and uni_ys values. List of priority for choosing a pair of (x, y) points is the uni_ys
+        point closest to 0.5 survival and near sigmoid limit and then finding the best fit best
+        fit using min/max points, min point/0.5 survival, 0.5 survival / max point, no intial guess
+        inputs:
+         - uni_xs: unique xs values
+         - uni_ys: unique ys values
+        outputs:
+         - S: vector of a, b values
+        """
+        idx_05 = (np.abs(uni_ys - 0.5)).argmin()
+        idx_limit = np.gradient(np.gradient(uni_ys, uni_xs), uni_xs).argmax()
+
+        # Assign sigma weights to prioritize points near 0 and 1
+        weights = np.ones(len(uni_ys))
+        weights[(uni_ys < 0.1) | (uni_ys > 0.9)] = 10
+        weights[(uni_ys < 0.02) | (uni_ys > 0.98)] = 500
+
+        if idx_05 != idx_limit:
+            x = [uni_xs[min(idx_05, idx_limit)], uni_xs[max(idx_05, idx_limit)]]
+            y = [uni_ys[min(idx_05, idx_limit)], uni_ys[max(idx_05, idx_limit)]]
+            guess = self._a_b_func(x, y)
             S, pcov = curve_fit(
                 self._cfunc,
                 uni_xs,
                 uni_ys,
-                p0=[a_guess, b_guess],
+                p0=[guess['a'], guess['b']],
                 sigma=weights,
-                method=fit_method,
+                method="dogbox"
             )
-            S = S.tolist()
+        else:
+            max_val_indx = np.argmax(uni_ys)
+            min_val_indx = np.argmin(uni_ys)
+
+            guess_min = None
+            guess_max = None
+            guess_min_max = None
+            if min_val_indx != idx_05:
+                x = [uni_xs[min_val_indx], uni_xs[idx_05]]
+                y = [uni_ys[min_val_indx], uni_ys[idx_05]]
+                guess_min = self._a_b_func(x, y)
+            if max_val_indx != idx_05:
+                x = [uni_xs[idx_05], uni_xs[max_val_indx]]
+                y = [uni_ys[idx_05], uni_ys[max_val_indx]]
+                guess_max = self._a_b_func(x, y)
+            if min_val_indx != max_val_indx:
+                x = [uni_xs[min_val_indx], uni_xs[max_val_indx]]
+                y = [uni_ys[min_val_indx], uni_ys[max_val_indx]]
+                guess_min_max = self._a_b_func(x, y)
+
+            S_vals = []
+            mse_vals = []
+            for guess in [None, guess_min, guess_max, guess_min_max]:
+                if guess != None:
+                    p0 = [guess['a'], guess['b']]
+                else:
+                    p0 = None
+                S_temp, pcov = curve_fit(self._cfunc, uni_xs, uni_ys, p0=p0, sigma=weights, method="dogbox")
+                S_vals.append(S_temp)
+                mse_vals.append(self.mse(uni_xs, uni_ys, S_temp))
+
+            lowest_mse_idx = np.argmin(mse_vals)
+
+            S = S_vals[lowest_mse_idx]
+
         return S
+
+    def mse(self, x, y, coeffs):
+        return np.mean((self._cfunc(x, *coeffs) - y) ** 2)
+
+    def _a_b_func(self, x, y):
+        """
+        a and b guess values based on a pair of x/y points ((x_0, y_0), (x_1, y_1))
+        inputs
+        - x: vector of x points [x_0, x_1]
+        - y: vector of y points [y_0, y_1]
+        outputs:
+        (dict) of a, b guess
+        """
+        b_guess = -(np.log((1 - y[1]) / y[1]) - np.log((1 - y[0]) / y[0])) / (x[1] - x[0])
+        return {
+            'b': b_guess,
+            'a': ((1 - y[1]) / y[1]) / np.exp(-x[1] * b_guess)
+        }
 
     def _cfunc(self, x, a, b):
         return 1 / (1 + a * np.exp(-b * x))
