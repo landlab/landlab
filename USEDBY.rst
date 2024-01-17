@@ -9,7 +9,11 @@ Peer-reviewed journal articles
 2024
 ----
 
+Bower, S. J., Shobe, C. M., Maxwell, A. E., & Campforts, B. (2024). **The uncertain future of mountaintop-removal-mined landscapes 2: Modeling the influence of topography and vegetation.** *Geomorphology,* 446, 108985.
+
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2024). **Maximising runoff retention by vegetated landscape elements positioned through spatial optimisation.** *Landscape and Urban Planning,* 243, 104968.
+
+Shobe, C. M., Bower, S. J., Maxwell, A. E., Glade, R. C., & Samassi, N. M. (2024). **The uncertain future of mountaintop-removal-mined landscapes 1: How mining changes erosion processes and variables.** *Geomorphology,* 445, 108984.
 
 2023
 ----
