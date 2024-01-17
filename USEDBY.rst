@@ -6,6 +6,11 @@ Papers and Presentations
 Peer-reviewed journal articles
 ------------------------------
 
+2024
+----
+
+Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2024). **Maximising runoff retention by vegetated landscape elements positioned through spatial optimisation.** *Landscape and Urban Planning,* 243, 104968.
+
 2023
 ----
 
@@ -16,7 +21,8 @@ Fiolleau, S., Uhlemann, S., Falco, N., & Dafflon, B. (2023). **Assessing probabi
 Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 <https://doi.org/10.1029/2021WR031179>`__.
 
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, `https://doi.org/10.1016/j.jhydrol.2023.129144 <https://doi.org/10.1016/j.jhydrol.2023.129144>`__.
-<
+
+
 2022
 ----
 
