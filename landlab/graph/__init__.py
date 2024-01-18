@@ -3,6 +3,7 @@ from .framed_voronoi import DualFramedVoronoiGraph, FramedVoronoiGraph
 from .graph import Graph, NetworkGraph
 from .graph_convention import ConventionConverter, GraphConvention
 from .hex import DualHexGraph, TriGraph
+from .quasi_spherical import DualIcosphereGraph
 from .radial import DualRadialGraph, RadialGraph
 from .structured_quad import (
     DualRectilinearGraph,
@@ -34,4 +35,5 @@ __all__ = [
     "DualFramedVoronoiGraph",
     "ConventionConverter",
     "GraphConvention",
+    "DualIcosphereGraph",
 ]

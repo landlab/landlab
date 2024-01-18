@@ -23,6 +23,7 @@ from .field import FieldError
 from .grid import (
     FramedVoronoiGrid,
     HexModelGrid,
+    IcosphereGlobalGrid,
     ModelGrid,
     NetworkModelGrid,
     RadialModelGrid,
@@ -56,6 +57,7 @@ __all__ = [
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
+    "IcosphereGlobalGrid",
     "LinkStatus",
     "NodeStatus",
     "create_grid",

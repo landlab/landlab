@@ -7,8 +7,8 @@ Landlab Grids
 Grid types
 ----------
 
-Landlab presently supports five types of grids. The base class is ``ModelGrid``
-with subclasses ``RasterModelGrid`` and ``VoronoiDelaunayGrid``.
+Landlab presently supports seven types of grids. The base class is ``ModelGrid``
+with subclasses ``RasterModelGrid``, ``VoronoiDelaunayGrid``, and ``IcosphereGlobalGrid``.
 ``VoronoiDelaunayGrid`` has three further specialized subclasses: ``FramedVoronoiGrid``,
 ``HexModelGrid`` and ``RadialModelGrid``. A final class is ``NetworkModelGrid``.
 
@@ -23,6 +23,7 @@ The following is an introduction to their properties and methods:
    hex
    radial
    network
+   icosphere
 
 
 Additional Methods and Properties
@@ -60,6 +61,7 @@ API for each grid type
    hex
    radial
    network
+   icosphere
 
 Additional Grid Base Classes
 ----------------------------

@@ -17,6 +17,7 @@ Landlab Graph
    structured_quad
    voronoi
    framed_voronoi
+   dual_icosphere
 
 
 Extensions
