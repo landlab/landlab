@@ -3,7 +3,3 @@ dask[array]
 holoviews
 jupyter
 mesa >1
-pymt
-pymt_era5
-pymt_topography
-xesmf
