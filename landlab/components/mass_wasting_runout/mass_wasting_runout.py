@@ -91,6 +91,7 @@ class MassWastingRunout(Component):
     ...     threshold_flux=qsc,
     ...     erosion_coefficient=k,
     ...     tracked_attributes=tracked_attributes,
+    ...     effective_qsi=True,
     ...     max_flow_depth_observed_in_field=h_max,
     ...     save=True,
     ... )
@@ -160,7 +161,7 @@ class MassWastingRunout(Component):
         },
         "topographic__elevation": {
             "dtype": float,
-            "intent": "in",
+            "intent": "inout",
             "optional": True,
             "units": "m",
             "mapping": "node",
@@ -168,7 +169,7 @@ class MassWastingRunout(Component):
         },
         "soil__thickness": {
             "dtype": float,
-            "intent": "in",
+            "intent": "inout",
             "optional": False,
             "units": "m",
             "mapping": "node",
@@ -176,7 +177,7 @@ class MassWastingRunout(Component):
         },
         "flow__receiver_node": {
             "dtype": int,
-            "intent": "out",
+            "intent": "in",
             "optional": False,
             "units": "-",
             "mapping": "node",
@@ -184,7 +185,7 @@ class MassWastingRunout(Component):
         },
         "flow__receiver_proportions": {
             "dtype": float,
-            "intent": "out",
+            "intent": "in",
             "optional": False,
             "units": "-",
             "mapping": "node",
@@ -192,7 +193,7 @@ class MassWastingRunout(Component):
         },
         "topographic__steepest_slope": {
             "dtype": float,
-            "intent": "out",
+            "intent": "in",
             "optional": False,
             "units": "-",
             "mapping": "node",
@@ -200,7 +201,7 @@ class MassWastingRunout(Component):
         },
         "particle__diameter": {
             "dtype": float,
-            "intent": "out",
+            "intent": "inout",
             "optional": True,
             "units": "m",
             "mapping": "node",
@@ -218,7 +219,7 @@ class MassWastingRunout(Component):
         tracked_attributes=None,
         deposition_rule="critical_slope",
         grain_shear=True,
-        effective_qsi=True,
+        effective_qsi=False,
         settle_deposit=False,
         E_constraint=True,
         save=False,
@@ -455,9 +456,6 @@ class MassWastingRunout(Component):
                 * self._grid.dx
                 * self._grid.dy
             )
-
-            if self.qsi_max is None:
-                self.qsi_max = self._grid.at_node["soil__thickness"][inn].max()
 
             # prepare temporary data containers for each mass wasting event mw_i
             if self.save:
@@ -700,7 +698,7 @@ class MassWastingRunout(Component):
 
             else:
                 # aggradation
-                A = min(qsi, self._aggradation(qsi_, slpn, n))
+                A = min(qsi, self._aggradation(qsi, slpn, n))
                 if A > 0 and self.E_constraint:
                     E = 0
                     if self._tracked_attributes:
