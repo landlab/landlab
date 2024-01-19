@@ -505,17 +505,25 @@ class Species(object):
         return _new_biomass
 
     def mortality(self, plants, _in_growing_season):
-        # set flags for three types of mortality periods
+        ###EMILY - the cleanest way to handle this may be to move the code here for whole plant mortality to a
+        # separate method (function) and call it then call your leaf mortality method
         mortdict = self.species_mort_params
+        #
+        # This is just used for whole plant mortality. You can leave it here so you
+        # don't have to pass the entire mortdict but you will need to pass the mort_period_bool
+        # and factors to the whole plant mortality function
+        # set flags for three types of mortality periods
         mort_period_bool = {
             "during growing season": _in_growing_season == True,
             "during dormant season": _in_growing_season == False,
             "year-round": True,
         }
         factors = mortdict["mort_variable_name"]
+        # Leave this here since it is used for the dead plant part mass balance
         old_dead_bio = self.sum_plant_parts(plants, parts="dead")
         old_dead_age = plants["dead_age"]
 
+        ####move to whole plant mortality
         for fact in factors:
             # Determine if mortality factor is applied
             run_mort = mort_period_bool[mortdict["period"][fact]]
@@ -543,7 +551,8 @@ class Species(object):
                 except KeyError:
                     msg = f"No data available for mortality factor {factors[fact]}"
                     raise ValueError(msg)
-
+        # leave this part here since we can use the same routine to move the dead leaves
+        # into the dead biomass pool and calculate the weighted dead age - which is used for decomp
         new_dead_bio = self.sum_plant_parts(plants, parts="dead")
         plants["dead_age"] = self.calculate_dead_age(
             old_dead_age, old_dead_bio, new_dead_bio
