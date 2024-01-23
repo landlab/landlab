@@ -1,0 +1,1 @@
+Added new component :class:`~.RiverBeddDynamics` to model river bed evolution in gravel-bedded rivers.
