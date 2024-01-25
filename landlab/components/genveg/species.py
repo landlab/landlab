@@ -507,10 +507,30 @@ class Species(object):
     def mortality(self, plants, _in_growing_season):
         ###EMILY - the cleanest way to handle this may be to move the code here for whole plant mortality to a
         # separate method (function) and call it then call your leaf mortality method
+        
+        
+        # Leave this here since it is used for the dead plant part mass balance
+        old_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        old_dead_age = plants["dead_age"]
+
+        self._whole_plant_mortality = self.calculate_whole_plant_mortality(plants, _in_growing_season)
+        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        plants["dead_age"] = self.calculate_dead_age(
+            old_dead_age, old_dead_bio, new_dead_bio
+        )
+        #self._shaded_leaf_mortality=self.calculate_shaded_leaf_mortality(plants, lai_cr=4)
+        # leave this part here since we can use the same routine to move the dead leaves
+        # into the dead biomass pool and calculate the weighted dead age - which is used for decomp
+        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        plants["dead_age"] = self.calculate_dead_age(
+            old_dead_age, old_dead_bio, new_dead_bio
+        )
+        return plants
+    
+    def calculate_whole_plant_mortality(self, plants, _in_growing_season):
+        # I had to move mortdict here because it said it was not defined if I left in mortality function
         mortdict = self.species_mort_params
-        #
-        # This is just used for whole plant mortality. You can leave it here so you
-        # don't have to pass the entire mortdict but you will need to pass the mort_period_bool
+        # you will need to pass the mort_period_bool
         # and factors to the whole plant mortality function
         # set flags for three types of mortality periods
         mort_period_bool = {
@@ -519,10 +539,6 @@ class Species(object):
             "year-round": True,
         }
         factors = mortdict["mort_variable_name"]
-        # Leave this here since it is used for the dead plant part mass balance
-        old_dead_bio = self.sum_plant_parts(plants, parts="dead")
-        old_dead_age = plants["dead_age"]
-
         ####move to whole plant mortality
         for fact in factors:
             # Determine if mortality factor is applied
@@ -551,13 +567,23 @@ class Species(object):
                 except KeyError:
                     msg = f"No data available for mortality factor {factors[fact]}"
                     raise ValueError(msg)
-        # leave this part here since we can use the same routine to move the dead leaves
-        # into the dead biomass pool and calculate the weighted dead age - which is used for decomp
-        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
-        plants["dead_age"] = self.calculate_dead_age(
-            old_dead_age, old_dead_bio, new_dead_bio
-        )
         return plants
+    
+    def calculate_shaded_leaf_mortality(self, plants, lai_cr=4):
+    # Based on Teh code equation 7.18 and 7.20 (pg. 154)
+        lai = self.calculate_lai(
+                plants["leaf_biomass"], plants["shoot_sys_width"]
+            )
+        excess_lai = (lai-lai_cr)/lai_cr
+        shaded_leaf = excess_lai>0
+        D_shade = np.zeros(plants.shape)    
+        D_shade[shaded_leaf]=0.03*excess_lai[shaded_leaf]
+        D_shade[D_shade>0.03] = 0.03
+        # Am I overwriting the dead leaf biomass here?
+        # should this actually be plants["dead_leaf"]+=plants["leaf_biomass"]*D_shade
+        # because I called calculate_whole_plant_mortality first in the mortality method. 
+        plants["dead_leaf"]= plants["leaf_biomass"]*D_shade
+        return(plants)
 
     def photosynthesize(
         self,
