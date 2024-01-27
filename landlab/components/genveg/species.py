@@ -207,11 +207,14 @@ class Species(object):
         return species_params
 
     def calculate_lai(self, leaf_biomass, shoot_sys_width):
-        return (
+        lai = np.zeros_like(leaf_biomass)
+        filter = np.nonzero(leaf_biomass > 0)
+        lai[filter] = (
             self.species_morph_params["sp_leaf_area"]
-            * leaf_biomass
-            / (100 * 0.25 * np.pi * shoot_sys_width**2)
+            * leaf_biomass[filter]
+            / (100 * 0.25 * np.pi * shoot_sys_width[filter] ** 2)
         )
+        return lai
 
     def select_photosythesis_type(self, latitude):
         photosynthesis_options = {"C3": C3, "C4": C4, "cam": Cam}
@@ -507,18 +510,13 @@ class Species(object):
     def mortality(self, plants, _in_growing_season):
         ###EMILY - the cleanest way to handle this may be to move the code here for whole plant mortality to a
         # separate method (function) and call it then call your leaf mortality method
-        
-        
+
         # Leave this here since it is used for the dead plant part mass balance
         old_dead_bio = self.sum_plant_parts(plants, parts="dead")
         old_dead_age = plants["dead_age"]
 
-        self._whole_plant_mortality = self.calculate_whole_plant_mortality(plants, _in_growing_season)
-        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
-        plants["dead_age"] = self.calculate_dead_age(
-            old_dead_age, old_dead_bio, new_dead_bio
-        )
-        #self._shaded_leaf_mortality=self.calculate_shaded_leaf_mortality(plants, lai_cr=4)
+        plants = self.calculate_whole_plant_mortality(plants, _in_growing_season)
+        plants = self.calculate_shaded_leaf_mortality(plants)
         # leave this part here since we can use the same routine to move the dead leaves
         # into the dead biomass pool and calculate the weighted dead age - which is used for decomp
         new_dead_bio = self.sum_plant_parts(plants, parts="dead")
@@ -526,12 +524,9 @@ class Species(object):
             old_dead_age, old_dead_bio, new_dead_bio
         )
         return plants
-    
+
     def calculate_whole_plant_mortality(self, plants, _in_growing_season):
-        # I had to move mortdict here because it said it was not defined if I left in mortality function
         mortdict = self.species_mort_params
-        # you will need to pass the mort_period_bool
-        # and factors to the whole plant mortality function
         # set flags for three types of mortality periods
         mort_period_bool = {
             "during growing season": _in_growing_season == True,
@@ -539,7 +534,6 @@ class Species(object):
             "year-round": True,
         }
         factors = mortdict["mort_variable_name"]
-        ####move to whole plant mortality
         for fact in factors:
             # Determine if mortality factor is applied
             run_mort = mort_period_bool[mortdict["period"][fact]]
@@ -568,22 +562,23 @@ class Species(object):
                     msg = f"No data available for mortality factor {factors[fact]}"
                     raise ValueError(msg)
         return plants
-    
-    def calculate_shaded_leaf_mortality(self, plants, lai_cr=4):
-    # Based on Teh code equation 7.18 and 7.20 (pg. 154)
-        lai = self.calculate_lai(
-                plants["leaf_biomass"], plants["shoot_sys_width"]
-            )
-        excess_lai = (lai-lai_cr)/lai_cr
-        shaded_leaf = excess_lai>0
-        D_shade = np.zeros(plants.shape)    
-        D_shade[shaded_leaf]=0.03*excess_lai[shaded_leaf]
-        D_shade[D_shade>0.03] = 0.03
+
+    def calculate_shaded_leaf_mortality(self, plants):
+        # Based on Teh code equation 7.18 and 7.20 (pg. 154)
+        lai = self.calculate_lai(plants["leaf_biomass"], plants["shoot_sys_width"])
+        excess_lai = (
+            lai - self.species_morph_params["lai_cr"]
+        ) / self.species_morph_params["lai_cr"]
+        shaded_leaf = np.nonzero(excess_lai > 0)
+        D_shade = np.zeros(plants.shape)
+        D_shade[shaded_leaf] = 0.03 * excess_lai[shaded_leaf]
+        D_shade[D_shade > 0.03] = 0.03
         # Am I overwriting the dead leaf biomass here?
         # should this actually be plants["dead_leaf"]+=plants["leaf_biomass"]*D_shade
-        # because I called calculate_whole_plant_mortality first in the mortality method. 
-        plants["dead_leaf"]= plants["leaf_biomass"]*D_shade
-        return(plants)
+        # because I called calculate_whole_plant_mortality first in the mortality method.
+        plants["dead_leaf"] += plants["leaf_biomass"] * D_shade
+        plants["leaf"] -= plants["dead_leaf"]
+        return plants
 
     def photosynthesize(
         self,
