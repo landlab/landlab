@@ -373,16 +373,12 @@ class ConcentrationTrackerForSpace(Component):
         Er = self._sp.Er   # USE VALUES INSTEAD OF SPACE INSTANCE
         D_sw = np.zeros(np.shape(q))
         D_sw[q!=0] = v_s*self._Qs_out[q!=0]/q[q!=0]
-        #D_sw = v_s*self._Qs_out/q (ORIGINAL EQN WITH DIVIDE BY ZERO ISSUE)
-
-        # Calculate WC mass balance terms that don't need downstream iteration
-        WC_Es_term = (1-phi)*Es*self._cell_area
-        WC_Er_term = (1-F_f)*Er*self._cell_area
-        WC_denominator_term = np.ones(np.shape(q))
-        WC_denominator_term[q!=0] = 1 + v_s*self._cell_area/q[q!=0]
-        #WC_denominator_term = 1 + v_s*self._cell_area/q (ORIGINAL EQN WITH DIVIDE BY ZERO ISSUE)
         
-        # Calculate BED mass balance terms that don't need downstream iteration
+        # Back-calculate soil depth from prior to running SPACE component
+        #(REPLACE WITH AN OLD SOIL DEPTH FROM SPACE COMPONENT IF IT HAS ONE)
+        self._soil__depth_old = self._soil__depth.copy() + (Es - D_sw)/(1-phi)
+        
+        # Calculate portions of equation that have soil depth as denominator
         is_soil = self._soil__depth > 0.0
         
         old_depth_over_new = np.divide(self._soil__depth_old, self._soil__depth, where=is_soil)
@@ -391,6 +387,11 @@ class ConcentrationTrackerForSpace(Component):
         dt_over_depth = np.divide(dt, self._soil__depth, where=is_soil)
         dt_over_depth[~is_soil] = 0.0
         
+        # Calculate mass balance terms that don't need downstream iteration
+        WC_Es_term = Es*self._cell_area/(1-phi)
+        WC_Er_term = (1-F_f)*Er*self._cell_area
+        WC_denominator_term = np.ones(np.shape(q))
+        WC_denominator_term[q!=0] = 1 + v_s*self._cell_area/q[q!=0]        
         BED_C_local_term = self._concentration * old_depth_over_new
                         
         # Get stack of node ids from top to bottom of channel network
@@ -429,8 +430,8 @@ class ConcentrationTrackerForSpace(Component):
 
             # Calculate BED erosion/deposition term (requires C_sw from above)
             self._BED_ero_depo_term[node_id] = (
-                self._C_sw[node_id] * D_sw[node_id]
-                - self._concentration[node_id] * (1-phi)*Es[node_id]
+                self._C_sw[node_id] * D_sw[node_id]/(1-phi)
+                - self._concentration[node_id] * Es[node_id]/(1-phi)
                 )
             
             # Calculate BED concentration
@@ -439,11 +440,7 @@ class ConcentrationTrackerForSpace(Component):
                                             * self._BED_ero_depo_term[node_id]
                                             )
                 
-            self._concentration[~is_soil] = 0.0
-
-        # Update old soil depth to new value
-        self._soil__depth_old = self._soil__depth.copy()
-        
+            self._concentration[~is_soil] = 0.0      
         
     def run_one_step(self, dt):
         """
