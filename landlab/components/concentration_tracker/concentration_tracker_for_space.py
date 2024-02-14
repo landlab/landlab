@@ -376,8 +376,8 @@ class ConcentrationTrackerForSpace(Component):
         
         # Back-calculate soil depth from prior to running SPACE component
         #(REPLACE WITH AN OLD SOIL DEPTH FROM SPACE COMPONENT IF IT HAS ONE)
-        self._soil__depth_old = self._soil__depth.copy() + (Es - D_sw)/(1-phi)
-        
+        self._soil__depth_old = self._soil__depth.copy() + ((Es - D_sw)/(1-phi))*dt
+                
         # Calculate portions of equation that have soil depth as denominator
         is_soil = self._soil__depth > 0.0
         
@@ -388,7 +388,7 @@ class ConcentrationTrackerForSpace(Component):
         dt_over_depth[~is_soil] = 0.0
         
         # Calculate mass balance terms that don't need downstream iteration
-        WC_Es_term = Es*self._cell_area/(1-phi)
+        WC_Es_term = (1-phi)*Es*self._cell_area
         WC_Er_term = (1-F_f)*Er*self._cell_area
         WC_denominator_term = np.ones(np.shape(q))
         WC_denominator_term[q!=0] = 1 + v_s*self._cell_area/q[q!=0]        
