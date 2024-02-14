@@ -46,6 +46,7 @@ class TriangleModelGrid(DualTriangleGraph, ModelGrid):
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
         xy_axis_units="-",
+        sort=False
     ):
         """Create a TriangleModelGrid from a set of points.
 
@@ -84,6 +85,7 @@ class TriangleModelGrid(DualTriangleGraph, ModelGrid):
             holes=holes,
             triangle_opts=triangle_opts,
             timeout=timeout,
+            sort=sort
         )
         ModelGrid.__init__(
             self,
