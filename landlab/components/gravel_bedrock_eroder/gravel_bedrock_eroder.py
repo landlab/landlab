@@ -13,6 +13,9 @@ from landlab.grid.diagonals import DiagonalsMixIn
 _DT_MAX = 1.0e-2
 _ONE_SIXTH = 1.0 / 6.0
 _SEVEN_SIXTHS = 7.0 / 6.0
+_D8_CHAN_LENGTH_FACTOR = 0.5 * (
+    1.0 + 2.0**0.5
+)  # D8 raster: average of straight and diagonal
 
 
 class GravelBedrockEroder(Component):
@@ -303,30 +306,32 @@ class GravelBedrockEroder(Component):
     def _setup_length_of_flow_link(self):
         """Set up a float or array containing length of the flow link from
         each node, which is needed for the abrasion rate calculations.
+
+        Note: if raster, assumes grid.dx == grid.dy
         """
         if isinstance(self.grid, HexModelGrid):
             self._flow_link_length_over_cell_area = (
                 self.grid.spacing / self.grid.area_of_cell[0]
             )
             self._flow_length_is_variable = False
+            self._grid_has_diagonals = False
         elif isinstance(self.grid, DiagonalsMixIn):
-            self._flow_length_is_variable = True
+            self._flow_length_is_variable = False
             self._grid_has_diagonals = True
+            self._flow_link_length_over_cell_area = (
+                _D8_CHAN_LENGTH_FACTOR * self.grid.dx / self.grid.area_of_cell[0]
+            )
             self._update_flow_link_length_over_cell_area()
         else:
             self._flow_length_is_variable = True
-            self._grid_has_diagonals = False
             self._update_flow_link_length_over_cell_area()
+            self._grid_has_diagonals = False
 
     def _update_flow_link_length_over_cell_area(self):
         """Update the ratio of the length of link along which water flows out of
         each node to the area of the node's cell."""
-        if self._grid_has_diagonals:
-            flow_link_len = self.grid.length_of_d8
-        else:
-            flow_link_len = self.grid.length_of_link
         self._flow_link_length_over_cell_area = (
-            flow_link_len[self._receiver_link[self.grid.core_nodes]]
+            self.grid.length_of_link[self._receiver_link[self.grid.core_nodes]]
             / self.grid.area_of_cell[self.grid.cell_at_node[self.grid.core_nodes]]
         )
 
@@ -644,7 +649,7 @@ class GravelBedrockEroder(Component):
         Result is stored in field ``topographic__steepest_slope``.
         """
         dz = np.maximum(self._elev - self._elev[self._receiver_node], 0.0)
-        if self._flow_length_is_variable:
+        if self._flow_length_is_variable or self._grid_has_diagonals:
             if self._grid_has_diagonals:
                 link_len = self.grid.length_of_d8
             else:
