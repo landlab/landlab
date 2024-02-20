@@ -1,10 +1,9 @@
 import numpy as np
-from cython.parallel cimport prange
 
 cimport cython
 cimport numpy as cnp
+from cython.parallel cimport prange
 from libc.stdlib cimport free, malloc
-
 
 ctypedef fused float_or_int:
     cython.integral
