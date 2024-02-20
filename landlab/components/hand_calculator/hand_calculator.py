@@ -39,7 +39,9 @@ class HeightAboveDrainageCalculator(Component):
     ...     left=mg.BC_NODE_IS_CLOSED,
     ...     top=mg.BC_NODE_IS_CLOSED,
     ... )
-    >>> elev = np.array([[2,1,0,1,2],[3,2,1,2,3],[4,3,2,3,4],[5,4,4,4,5]])
+    >>> elev = np.array(
+    ...     [[2, 1, 0, 1, 2], [3, 2, 1, 2, 3], [4, 3, 2, 3, 4], [5, 4, 4, 4, 5]]
+    ... )
     >>> z[:] = elev.reshape(len(z))
     >>> elev
     array([[2, 1, 0, 1, 2],
@@ -51,7 +53,7 @@ class HeightAboveDrainageCalculator(Component):
     >>> fa.run_one_step()
 
     >>> channel__mask = mg.zeros(at="node")
-    >>> channel__mask[[2,7]] = 1
+    >>> channel__mask[[2, 7]] = 1
     >>> channel__mask.reshape(elev.shape)
     array([[ 0.,  0.,  1.,  0.,  0.],
        [ 0.,  0.,  1.,  0.,  0.],

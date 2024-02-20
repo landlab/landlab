@@ -29,7 +29,7 @@ class NodeGrid:
 
     Create a 1D grid.
 
-    >>> ngrid = NodeGrid(((0, 1, 3), ))
+    >>> ngrid = NodeGrid(((0, 1, 3),))
     >>> ngrid.ndim == 1
     True
     >>> ngrid.number_of_nodes
@@ -69,7 +69,7 @@ class NodeGrid:
 
         Create a 1D grid.
 
-        >>> ngrid = NodeGrid(((0, 1, 3), ))
+        >>> ngrid = NodeGrid(((0, 1, 3),))
         >>> ngrid.ndim == 1
         True
         >>> ngrid.number_of_nodes

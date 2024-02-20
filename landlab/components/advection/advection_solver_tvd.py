@@ -197,6 +197,7 @@ class AdvectionSolverTVD(Component):
     >>> advec = AdvectionSolverTVD(grid, fields_to_advect="advected__quantity")
     >>> for _ in range(5):
     ...     advec.update(0.2)
+    ...
     >>> np.argmax(s[7:14])
     4
     """

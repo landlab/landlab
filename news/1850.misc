@@ -1,0 +1,3 @@
+
+Fixed an issue that caused with the CI to fail when building *multidict* on
+Mac and Python 3.12.

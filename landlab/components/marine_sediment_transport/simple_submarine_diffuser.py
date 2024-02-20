@@ -48,9 +48,9 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
     >>> from landlab.components import SimpleSubmarineDiffuser
     >>> grid = RasterModelGrid((3, 7), xy_spacing=100.0)
     >>> grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    >>> topo = grid.add_zeros('topographic__elevation', at='node')
+    >>> topo = grid.add_zeros("topographic__elevation", at="node")
     >>> topo[:] = -10.0
-    >>> topo[9:14] = [0., 10., 10., 5., 5.]
+    >>> topo[9:14] = [0.0, 10.0, 10.0, 5.0, 5.0]
     >>> ssd = SimpleSubmarineDiffuser(grid, tidal_range=0.0)
     >>> ssd.run_one_step(dt=5.0)
     >>> topo[8:13]

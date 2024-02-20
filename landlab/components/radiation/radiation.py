@@ -35,11 +35,11 @@ class Radiation(Component):
     'Radiation'
     >>> rad.input_var_names
     ('topographic__elevation',)
-    >>> sorted(rad.output_var_names) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(rad.output_var_names)
     ['radiation__incoming_shortwave_flux',
      'radiation__net_shortwave_flux',
      'radiation__ratio_to_flat_surface']
-    >>> sorted(rad.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(rad.units)
     [('radiation__incoming_shortwave_flux', 'W/m^2'),
      ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
@@ -51,20 +51,21 @@ class Radiation(Component):
     4
     >>> rad.grid is grid
     True
-    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
+    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
     True
-    >>> np.all(grid.at_node['topographic__elevation'] == 0.)
+    >>> np.all(grid.at_node["topographic__elevation"] == 0.0)
     True
 
-    >>> grid['node']['topographic__elevation'] = np.array([
-    ...       0., 0., 0., 0.,
-    ...       1., 1., 1., 1.,
-    ...       2., 2., 2., 2.,
-    ...       3., 4., 4., 3.,
-    ...       4., 4., 4., 4.])
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [1.0, 1.0, 1.0, 1.0],
+    ...     [2.0, 2.0, 2.0, 2.0],
+    ...     [3.0, 4.0, 4.0, 3.0],
+    ...     [4.0, 4.0, 4.0, 4.0],
+    ... ]
     >>> rad.current_time = 0.5
     >>> rad.update()
-    >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
+    >>> np.all(grid.at_cell["radiation__ratio_to_flat_surface"] == 0.0)
     False
 
     References

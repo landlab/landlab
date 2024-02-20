@@ -194,47 +194,24 @@ def test_soil_field_already_on_grid():
     )
 
     # %% Check getters
-    testing.assert_array_equal(
-        0.01,
-        sp.K_br,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
-    testing.assert_array_equal(
-        0.01,
-        sp.K_sed,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    assert sp.K_br == pytest.approx(0.01)
+    assert sp.K_sed == pytest.approx(0.01)
+    assert sp.fraction_fines == pytest.approx(0.0)
+    assert sp.sediment_porosity == pytest.approx(0.0)
+    assert sp.settling_velocity == pytest.approx(0.001)
+    assert sp.drainage_area_exp == pytest.approx(0.5)
+    assert sp.slope_exp == pytest.approx(1.0)
+
     # sediment erosion is zero before running the component
-    testing.assert_array_equal(
-        np.zeros(mg.number_of_nodes),
-        sp.Es,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    testing.assert_array_equal(np.zeros(mg.number_of_nodes), sp.Es)
     # rock erosion is zero before running the component
-    testing.assert_array_equal(
-        np.zeros(mg.number_of_nodes),
-        sp.Er,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    testing.assert_array_equal(np.zeros(mg.number_of_nodes), sp.Er)
+
     # %% Check setters
     sp.K_br = 0.02
-    testing.assert_array_equal(
-        0.02,
-        sp.K_br,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    assert sp.K_br == pytest.approx(0.02)
     sp.K_sed = 0.02
-    testing.assert_array_equal(
-        0.02,
-        sp.K_sed,
-        err_msg="Parameter value issue",
-        verbose=True,
-    )
+    assert sp.K_sed == pytest.approx(0.02)
 
     with pytest.raises(AttributeError):
         sp.Es = np.zeros(mg.number_of_nodes)
@@ -1070,12 +1047,6 @@ def test_MassBalance():
     z[:] += soil[:]
 
     # Create a D8 flow handler
-    # fa = PriorityFloodFlowRouter(
-    #   mg, surface="topographic__elevation", flow_metric = 'D8',suppress_out=True
-    # )
-    # fa.run_one_step()
-
-    # Create a D8 flow handler
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
     )
@@ -1111,6 +1082,7 @@ def test_MassBalance():
     H = mg.at_node["soil__depth"]
     cores = mg.core_nodes
     area = mg.cell_area_at_node
+
     # ... and run it to steady state (10000x1-year timesteps).
     for _ in range(10000):
         fa.run_one_step()

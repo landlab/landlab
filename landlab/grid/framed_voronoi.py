@@ -36,18 +36,23 @@ class FramedVoronoiGrid(DualFramedVoronoiGraph, ModelGrid):
     6
 
     >>> grid = FramedVoronoiGrid(
-    ...     (4, 3), xy_spacing=(10., 10.), xy_min_spacing=(5., 5.), seed=200
+    ...     (4, 3), xy_spacing=(10.0, 10.0), xy_min_spacing=(5.0, 5.0), seed=200
     ... )
-    >>> grid.status_at_node
-    array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[1, 1, 1],
+           [1, 0, 1],
+           [1, 0, 1],
+           [1, 1, 1]], dtype=uint8)
     >>> grid.x_of_node[3]
     0.0
     >>> grid.x_of_node[5]
     20.0
-    >>> grid.y_of_node[0::3]       # doctest: +NORMALIZE_WHITESPACE
+    >>> grid.y_of_node[0::3]
     array([  0.   ,   7.499,  17.499,  30.   ])
 
-    >>> grid = FramedVoronoiGrid((3, 5), xy_spacing=(10., 10.), xy_min_spacing=5., seed=None)
+    >>> grid = FramedVoronoiGrid(
+    ...     (3, 5), xy_spacing=(10.0, 10.0), xy_min_spacing=5.0, seed=None
+    ... )
     >>> grid.boundary_nodes
     array([ 0,  1,  2,  3,  4,  5,  9, 10, 11, 12, 13, 14])
     """

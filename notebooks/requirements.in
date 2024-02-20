@@ -2,4 +2,4 @@ bmi-topography >=0.5,!=0.8.1
 dask[array]
 holoviews
 jupyter
-mesa
+mesa >1

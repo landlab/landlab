@@ -199,15 +199,29 @@ instantiate a component:
 
    >>> from landlab.components import FastscapeEroder
    >>> from landlab import RasterModelGrid, load_params, ModelParameterDictionary
-   >>> mg = RasterModelGrid((4, 5), 1.)
-   >>> sp1 = FastscapeEroder(mg, K_sp=1.e-6)  # the minimum information needed, passed by hand, OR
-   >>> sp2 = FastscapeEroder(mg, K_sp=np.random.rand(20.), m_sp=0.5, n_sp=1.,
-   ...                       threshold_sp=0., rainfall_intensity=1.)  # note the array, OR
-   >>> myparamdict1 = load_params('my_input_file.txt')
-   >>> sp3 = FastscapeEroder(mg, **myparamdict1)  # note the "**". Necessary args come from the dict, OR
-   >>> myparamdict2 = ModelParameterDictionary('my_input_file.txt', auto_type=True)
-   >>> sp4 = FastscapeEroder(mg, **myparamdict2)  # ...but it's best practice to use load_params instead
-   >>> sp5 = FastscapeEroder(mg, 'my_input_file.txt')  # still works in many cases, but DEPRECATED
+   >>> mg = RasterModelGrid((4, 5), 1.0)
+   >>> sp1 = FastscapeEroder(
+   ...     mg, K_sp=1.0e-6
+   ... )  # the minimum information needed, passed by hand, OR
+   >>> sp2 = FastscapeEroder(
+   ...     mg,
+   ...     K_sp=np.random.rand(20.0),
+   ...     m_sp=0.5,
+   ...     n_sp=1.0,
+   ...     threshold_sp=0.0,
+   ...     rainfall_intensity=1.0,
+   ... )  # note the array, OR
+   >>> myparamdict1 = load_params("my_input_file.txt")
+   >>> sp3 = FastscapeEroder(
+   ...     mg, **myparamdict1
+   ... )  # note the "**". Necessary args come from the dict, OR
+   >>> myparamdict2 = ModelParameterDictionary("my_input_file.txt", auto_type=True)
+   >>> sp4 = FastscapeEroder(
+   ...     mg, **myparamdict2
+   ... )  # ...but it's best practice to use load_params instead
+   >>> sp5 = FastscapeEroder(
+   ...     mg, "my_input_file.txt"
+   ... )  # still works in many cases, but DEPRECATED
 
 3 - All components now have a "run method" with the standardised name
 ``run_one_step``. The first argument is always the timestep, dt, if
@@ -216,10 +230,11 @@ control run behaviour. As an example:
 
 ::
 
-   >>> sp = FastscapeEroder(mg, K_sp=1.e-6)
-   >>> dt = 1000.
+   >>> sp = FastscapeEroder(mg, K_sp=1.0e-6)
+   >>> dt = 1000.0
    >>> for i in range(100):  # 100 ka of erosion
    ...     sp.run_one_step(dt)
+   ...
 
 The old run methods still exist inside many components, but we encourage
 migration to this new standardised format.

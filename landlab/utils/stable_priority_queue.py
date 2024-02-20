@@ -17,20 +17,20 @@ class StablePriorityQueue:
     Examples
     --------
     >>> q = StablePriorityQueue()
-    >>> q.add_task('b', priority=2)
-    >>> q.add_task('a', priority=1)
+    >>> q.add_task("b", priority=2)
+    >>> q.add_task("a", priority=1)
     >>> q.add_task(0, priority=0)
-    >>> q.add_task('c', priority=2)
+    >>> q.add_task("c", priority=2)
     >>> q.remove_task(0)
     >>> q.pop_task()
     'a'
     >>> q.peek_at_task()
     'b'
-    >>> np.all(q.tasks_currently_in_queue() == np.array(['b', 'c']))
+    >>> np.all(q.tasks_currently_in_queue() == np.array(["b", "c"]))
     True
     >>> q.pop_task()
     'b'
-    >>> np.all(q.tasks_ever_in_queue() == np.array(['b', 'a', '0', 'c']))
+    >>> np.all(q.tasks_ever_in_queue() == np.array(["b", "a", "0", "c"]))
     True
 
     If only ints or floats are loaded into the array, the _in_queue methods
@@ -52,7 +52,8 @@ class StablePriorityQueue:
     >>> try:
     ...     q.pop_task()
     ... except KeyError:
-    ...     print('No tasks left')
+    ...     print("No tasks left")
+    ...
     No tasks left
     """
 
