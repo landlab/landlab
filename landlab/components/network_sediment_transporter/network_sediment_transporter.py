@@ -13,28 +13,31 @@ import warnings
 import numpy as np
 import scipy.constants
 
-from landlab import Component
-from landlab.components import FlowDirectorSteepest
-from landlab.data_record import DataRecord
-from landlab.grid.network import NetworkModelGrid
-
-from .aggregate_parcels import (
+from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
+from landlab.components.network_sediment_transporter.aggregate_parcels import (
     aggregate_parcels_at_link_mean,
     aggregate_parcels_at_link_sum,
 )
+from landlab.core.model_component import Component
+from landlab.data_record.data_record import DataRecord
+from landlab.grid.network import NetworkModelGrid
 
-_SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
-_SUPPORTED_ACTIVE_LAYER_METHODS = ["WongParker", "GrainSizeDependent", "Constant10cm"]
+_SUPPORTED_TRANSPORT_METHODS = frozenset(("WilcockCrowe",))
+_SUPPORTED_ACTIVE_LAYER_METHODS = frozenset(
+    ("WongParker", "GrainSizeDependent", "Constant10cm")
+)
 
-_REQUIRED_PARCEL_ATTRIBUTES = [
-    "time_arrival_in_link",
-    "abrasion_rate",
-    "density",
-    "active_layer",
-    "location_in_link",
-    "D",
-    "volume",
-]
+_REQUIRED_PARCEL_ATTRIBUTES = frozenset(
+    (
+        "time_arrival_in_link",
+        "abrasion_rate",
+        "density",
+        "active_layer",
+        "location_in_link",
+        "D",
+        "volume",
+    )
+)
 
 _ACTIVE = 1
 _INACTIVE = 0
