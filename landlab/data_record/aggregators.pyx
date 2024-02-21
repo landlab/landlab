@@ -17,54 +17,54 @@ ctypedef fused float_or_int_weights:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def aggregate_parcels_at_link_count(
+def aggregate_items_at_link_count(
     cython.integral [:] out,
     const long number_of_links,
-    const cython.integral [:] link_of_parcel,
-    const long number_of_parcels,
+    const cython.integral [:] link_of_item,
+    const long number_of_items,
 ):
-    cdef int parcel, link
+    cdef int item, link
 
     for link in prange(number_of_links, nogil=True, schedule="static"):
         out[link] = 0
 
-    for parcel in range(number_of_parcels):
-        link = link_of_parcel[parcel]
+    for item in range(number_of_items):
+        link = link_of_item[item]
         if link >= 0:
             out[link] = out[link] + 1
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def aggregate_parcels_at_link_sum(
+def aggregate_items_at_link_sum(
     cython.floating [:] out,
     const long number_of_links,
-    const cython.integral [:] link_of_parcel,
-    const long number_of_parcels,
-    const float_or_int [:] value_of_parcel,
+    const cython.integral [:] link_of_item,
+    const long number_of_items,
+    const float_or_int [:] value_of_item,
 ):
-    cdef int parcel, link
+    cdef int item, link
 
     for link in prange(number_of_links, nogil=True, schedule="static"):
         out[link] = 0
 
-    for parcel in range(number_of_parcels):
-        link = link_of_parcel[parcel]
+    for item in range(number_of_items):
+        link = link_of_item[item]
         if link >= 0:
-            out[link] = out[link] + value_of_parcel[parcel]
+            out[link] = out[link] + value_of_item[item]
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def aggregate_parcels_at_link_mean(
+def aggregate_items_at_link_mean(
     cython.floating [:] out,
     const long number_of_links,
-    const cython.integral [:] link_of_parcel,
-    const long number_of_parcels,
-    const float_or_int [:] value_of_parcel,
-    const float_or_int_weights [:] weight_of_parcel,
+    const cython.integral [:] link_of_item,
+    const long number_of_items,
+    const float_or_int [:] value_of_item,
+    const float_or_int_weights [:] weight_of_item,
 ):
-    cdef int parcel, link
+    cdef int item, link
     cdef double * total_weight_at_link = <double *>malloc(number_of_links * sizeof(double))
 
     try:
@@ -72,11 +72,11 @@ def aggregate_parcels_at_link_mean(
             out[link] = 0.0
             total_weight_at_link[link] = 0.0
 
-        for parcel in range(number_of_parcels):
-            link = link_of_parcel[parcel]
+        for item in range(number_of_items):
+            link = link_of_item[item]
             if link >= 0:
-                out[link] = out[link] + value_of_parcel[parcel] * weight_of_parcel[parcel]
-                total_weight_at_link[link] = total_weight_at_link[link] + weight_of_parcel[parcel]
+                out[link] = out[link] + value_of_item[item] * weight_of_item[item]
+                total_weight_at_link[link] = total_weight_at_link[link] + weight_of_item[item]
 
         for link in range(number_of_links):
             if total_weight_at_link[link] > 0:

@@ -14,11 +14,11 @@ import numpy as np
 import scipy.constants
 
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
-from landlab.components.network_sediment_transporter.aggregate_parcels import (
-    aggregate_parcels_at_link_mean,
-    aggregate_parcels_at_link_sum,
-)
 from landlab.core.model_component import Component
+from landlab.data_record.aggregators import (
+    aggregate_items_at_link_mean,
+    aggregate_items_at_link_sum,
+)
 from landlab.data_record.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
@@ -459,7 +459,7 @@ class NetworkSedimentTransporter(Component):
         self._d_mean_active = self._grid.zeros(at="link")
         self._rhos_mean_active = self._grid.zeros(at="link")
 
-        aggregate_parcels_at_link_mean(
+        aggregate_items_at_link_mean(
             self._rhos_mean_active,
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
@@ -467,7 +467,7 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.density.values.reshape(-1),
             self._parcels.dataset.volume.values[:, -1],
         )
-        aggregate_parcels_at_link_mean(
+        aggregate_items_at_link_mean(
             self._d_mean_active,
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
@@ -482,7 +482,7 @@ class NetworkSedimentTransporter(Component):
         elevations.
         """
         self._vol_tot = self.grid.zeros(at="link")
-        aggregate_parcels_at_link_sum(
+        aggregate_items_at_link_sum(
             self._vol_tot,
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
@@ -600,7 +600,7 @@ class NetworkSedimentTransporter(Component):
         parcel_volumes[~self._active_parcel_records.values[:, -1].astype(bool)] = 0.0
 
         self._vol_act = self.grid.zeros(at="link")
-        aggregate_parcels_at_link_sum(
+        aggregate_items_at_link_sum(
             self._vol_act,
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
@@ -721,7 +721,7 @@ class NetworkSedimentTransporter(Component):
         parcel_volumes[~findactivesand[:, -1].astype(bool)] = 0.0
 
         vol_act_sand = self.grid.zeros(at="link")
-        aggregate_parcels_at_link_sum(
+        aggregate_items_at_link_sum(
             vol_act_sand,
             self.grid.number_of_links,
             self._parcels.dataset.element_id.values[:, -1].astype(int),
