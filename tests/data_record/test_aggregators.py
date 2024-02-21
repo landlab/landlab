@@ -1,10 +1,10 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.components.network_sediment_transporter.aggregate_parcels import (
-    aggregate_parcels_at_link_count,
-    aggregate_parcels_at_link_mean,
-    aggregate_parcels_at_link_sum,
+from landlab.data_record.aggregators import (
+    aggregate_items_at_link_count,
+    aggregate_items_at_link_mean,
+    aggregate_items_at_link_sum,
 )
 
 
@@ -14,7 +14,7 @@ def test_count_bench(benchmark):
     out = np.empty(n_links, dtype=int)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
-    benchmark(aggregate_parcels_at_link_count, out, n_links, link_of_parcel, n_parcels)
+    benchmark(aggregate_items_at_link_count, out, n_links, link_of_parcel, n_parcels)
 
     assert_array_equal(out[0], 100000)
     assert_array_equal(out[1:], 0)
@@ -28,7 +28,7 @@ def test_sum_bench(benchmark):
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
     benchmark(
-        aggregate_parcels_at_link_sum,
+        aggregate_items_at_link_sum,
         out,
         n_links,
         link_of_parcel,
@@ -49,7 +49,7 @@ def test_mean_bench(benchmark):
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
     benchmark(
-        aggregate_parcels_at_link_mean,
+        aggregate_items_at_link_mean,
         out,
         n_links,
         link_of_parcel,
@@ -69,7 +69,7 @@ def test_sum():
     value_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.arange(n_parcels, dtype=int) // n_links
 
-    aggregate_parcels_at_link_sum(
+    aggregate_items_at_link_sum(
         out, n_links, link_of_parcel, n_parcels, value_of_parcel
     )
 
@@ -82,7 +82,7 @@ def test_count():
     out = np.empty(n_links, dtype=int)
     link_of_parcel = np.arange(n_parcels, dtype=int) // n_links
 
-    aggregate_parcels_at_link_count(out, n_links, link_of_parcel, n_parcels)
+    aggregate_items_at_link_count(out, n_links, link_of_parcel, n_parcels)
 
     assert_array_equal(out, 10)
 
@@ -94,7 +94,7 @@ def test_sum_with_negative_links():
     value_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.full(n_parcels, -1, dtype=int)
 
-    aggregate_parcels_at_link_sum(
+    aggregate_items_at_link_sum(
         out, n_links, link_of_parcel, n_parcels, value_of_parcel
     )
 
@@ -109,7 +109,7 @@ def test_mean():
     weight_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.arange(n_parcels, dtype=int) // n_links
 
-    aggregate_parcels_at_link_mean(
+    aggregate_items_at_link_mean(
         out, n_links, link_of_parcel, n_parcels, value_of_parcel, weight_of_parcel
     )
 
@@ -124,7 +124,7 @@ def test_mean_with_negative_links():
     weight_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.full(n_parcels, -1, dtype=int)
 
-    aggregate_parcels_at_link_mean(
+    aggregate_items_at_link_mean(
         out, n_links, link_of_parcel, n_parcels, value_of_parcel, weight_of_parcel
     )
 
