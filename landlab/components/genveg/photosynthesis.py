@@ -19,7 +19,7 @@ class Photosynthesis(object):
         self.CO2_max_coeff = 300000
         self.O2_conc = 210000
         self.CO2_conc = 245
-        self.Vc_max_rate = 200
+        self.Vc_max_rate = 250
         self.spec_factor_base = 2600.0
         self.assim_limits_by_temp = self.calculate_assimilation_limits()
 
@@ -33,9 +33,9 @@ class Photosynthesis(object):
         _current_day,
     ):
         self.update_solar_variables(_current_day)
-        total_canopy_assimilated_CO2 = (
-            hourly_gross_assimilation
-        ) = gphot_CH20 = np.zeros_like(last_biomass["shoot_sys_width"])
+        total_canopy_assimilated_CO2 = hourly_gross_assimilation = gphot_CH20 = (
+            np.zeros_like(last_biomass["shoot_sys_width"])
+        )
         for day_increment in self.gauss_integration_params:
             (abscissa, weight) = day_increment
             increment_hour = self._sunrise + abscissa * self._sunlit_increment
@@ -66,15 +66,23 @@ class Photosynthesis(object):
                 sunlit_lai,
                 shaded_lai,
             ) = self.calculate_sunlit_shaded_lai_proportion(solar_elevation, lai)
-            sunlit_proportion = sunlit_lai / lai
-            shaded_proportion = shaded_lai / lai
+
             hourly_gross_assimilation = (
-                sunlit_assimilated_CO2 * sunlit_proportion * last_biomass["leaf_area"]
-            ) + (shaded_assimilated_CO2 * shaded_proportion * last_biomass["leaf_area"])
+                sunlit_assimilated_CO2
+                * (sunlit_lai / lai)
+                * last_biomass["live_leaf_area"]
+            ) + (
+                shaded_assimilated_CO2
+                * (shaded_lai / lai)
+                * last_biomass["live_leaf_area"]
+            )
             total_canopy_assimilated_CO2 += (
                 hourly_gross_assimilation * weight * 3600 * self._sunlit_increment
             )
-        gphot_CH20 = total_canopy_assimilated_CO2 * 30 / 1000000
+        gphot_CH20 = (total_canopy_assimilated_CO2 * 30 / 1000000) * (
+            np.pi / 4 * last_biomass["shoot_sys_width"] ** 2
+        )
+        gphot_CH20 = gphot_CH20
         gphot_CH20[gphot_CH20 < 0] = 0.0
         return gphot_CH20
 

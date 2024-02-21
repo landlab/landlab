@@ -2,6 +2,7 @@
 Species class definition, composition classes, and factory methods to generate species classes. 
 These are used by PlantGrowth to differentiate plant properties and processes for species.
 """
+
 from .habit import *
 from .form import *
 from .shape import *
@@ -206,13 +207,16 @@ class Species(object):
 
         return species_params
 
-    def calculate_lai(self, leaf_biomass, shoot_sys_width):
-        lai = np.zeros_like(leaf_biomass)
-        filter = np.nonzero(leaf_biomass > 0)
-        lai[filter] = (
-            self.species_morph_params["sp_leaf_area"]
-            * leaf_biomass[filter]
-            / (100 * 0.25 * np.pi * shoot_sys_width[filter] ** 2)
+    def calculate_lai(self, leaf_area, shoot_sys_width):
+        # lai = np.zeros_like(leaf_area)
+        # filter = np.nonzero(shoot_sys_width > 0)
+        # lai[filter] = leaf_area[filter] / (0.25 * np.pi * shoot_sys_width[filter] ** 2)
+        crown_area = self.shape.calc_crown_area_from_shoot_width(shoot_sys_width)
+        lai = np.divide(
+            leaf_area,
+            crown_area,
+            out=np.zeros_like(leaf_area),
+            where=~np.isclose(crown_area, np.zeros_like(shoot_sys_width)),
         )
         return lai
 
@@ -365,33 +369,77 @@ class Species(object):
         )
         self.biomass_allocation_array["abg_biomass"] = _leaf_biomasss + _stem_biomass
 
+    def allocate_biomass_dynamically(self, _live_biomass, delta_tot):
+        ###
+        # This method allocates new biomass according to the size-dependent
+        # biomass allocation array calculated upon initiation of the PlantGrowth class.
+        # The array is only valid for actively growing plants so this method is only
+        # used during the growing season.
+        # After initial allocation, storage redistribution, reallocation, and the
+        # minimum size check methods are called to adjust the biomass in each part before
+        # saving.
+        # Required parameters are the new net biomass generated for the day
+        ###
+
+        _new_biomass = _live_biomass
+        growth_biomass = self.sum_plant_parts(_live_biomass, parts="growth")
+
+        # Interpolate values from biomass allocation array
+        delta_leaf_unit_root = np.interp(
+            _live_biomass["root_biomass"],
+            self.biomass_allocation_array["prior_root_biomass"],
+            self.biomass_allocation_array["delta_leaf_unit_root"],
+        )
+        delta_stem_unit_root = np.interp(
+            _live_biomass["root_biomass"],
+            self.biomass_allocation_array["prior_root_biomass"],
+            self.biomass_allocation_array["delta_stem_unit_root"],
+        )
+        filter = np.nonzero(delta_tot > 0)
+        frac_to_growth = np.ones_like(_live_biomass["root"])
+        frac_to_repro = np.zeros_like(_live_biomass["root"])
+        mass_ratio = growth_biomass / self.species_grow_params["max_growth_biomass"]
+        frac_to_growth[filter] = 1 / (1 + 0.002 * np.exp(9.50 * mass_ratio[filter]))
+        frac_to_repro[filter] = 1 - frac_to_growth[filter]
+        _new_biomass["reproductive"] += (
+            delta_tot
+            * frac_to_repro
+            / self.species_grow_params["glucose_requirement"]["reproductive"]
+        )
+
+        # Calculate allocation
+        _glu_req_sum = np.zeros_like(_new_biomass["root"])
+        for part in self.growth_parts:
+            _glu_req_sum = (
+                self.species_grow_params["glucose_requirement"][part]
+                * _new_biomass[part]
+                / growth_biomass
+            )
+        filter = np.nonzero(_glu_req_sum > 0)
+        delta_tot_growth = np.zeros_like(_new_biomass["root"])
+        delta_tot_growth[filter] = (
+            delta_tot[filter] * frac_to_growth[filter] / _glu_req_sum[filter]
+        )
+
+        root = delta_tot_growth / (1 + delta_leaf_unit_root + delta_stem_unit_root)
+        delta = {
+            "root": root,
+            "leaf": delta_leaf_unit_root * root,
+            "stem": delta_stem_unit_root * root,
+        }
+        for part in self.growth_parts:
+            # update biomass in plant array
+            _new_biomass[part] = _live_biomass[part] + delta[part]
+        # Adjust biomass allocation among storage and growth parts
+        # _new_biomass = self.redistribute_storage_biomass(_new_biomass)
+        _new_biomass = self.adjust_biomass_allocation_towards_ideal(_new_biomass)
+        return _new_biomass
+
     def branch(self):
         self.form.branch()
 
     def disperse(self, plants, jday):
         # decide how to parameterize reproductive schedule, make repro event
-        # right now we are just taking 20% of available storage and moving to
-        # growth_biomass = self.sum_plant_parts(plants, parts="growth")
-        # filter = np.nonzero(
-        #    growth_biomass
-        #    >= (
-        #        self.species_dispersal_params["min_size_dispersal"]
-        #        * self.species_grow_params["max_growth_biomass"]
-        #    )
-        # )
-        # ns_conc = self.get_daily_nsc_concentration(jday)
-        # available_stored_biomass = np.zeros_like(plants["root"])
-        # for part in self.growth_parts:
-        #    avail_nsc_content = np.ones_like(plants[part]) * (
-        #        ns_conc[part] - self.species_grow_params["min_nsc_content"][part]
-        #    )
-        #    avail_nsc_content[avail_nsc_content < 0] = 0.0
-        #    available_stored_biomass += plants[part] * avail_nsc_content
-        # plants["repro_biomass"][filter] += 0.05 * available_stored_biomass[filter]
-        # for part in self.growth_parts:
-        #    plants[part][filter] -= (0.05 * (available_stored_biomass[filter])) * (
-        #        plants[part][filter] / growth_biomass[filter]
-        #    )
         plants = self.form.disperse(plants)
         return plants
 
@@ -485,10 +533,12 @@ class Species(object):
     def litter_decomp(self, _new_biomass):
         decay_rate = self.species_morph_params["biomass_decay_rate"]
         sum_dead_mass = self.sum_plant_parts(_new_biomass, parts="dead")
-        cohort_init_mass = sum_dead_mass / np.exp(
-            -decay_rate * _new_biomass["dead_age"]
-        )
         filter = np.nonzero(sum_dead_mass > 0.0)
+        cohort_init_mass = np.zeros_like(_new_biomass["root"])
+        cohort_init_mass[filter] = sum_dead_mass[filter] / np.exp(
+            -decay_rate * _new_biomass["dead_age"][filter]
+        )
+
         for part in self.dead_parts:
             part_init_mass = np.zeros_like(_new_biomass["dead_age"])
             part_init_mass[filter] = (
@@ -503,22 +553,19 @@ class Species(object):
             _new_biomass["dead_age"]
         )
         for part in self.dead_parts:
-            filter = np.nonzero(_new_biomass[part] < 0)
+            filter = np.nonzero(
+                np.isnan(_new_biomass[part])
+                | (_new_biomass[part] < 0)
+                | np.isinf(_new_biomass[part])
+            )
             _new_biomass[part][filter] = np.zeros_like(_new_biomass[part][filter])
         return _new_biomass
 
     def mortality(self, plants, _in_growing_season):
-        ###EMILY - the cleanest way to handle this may be to move the code here for whole plant mortality to a
-        # separate method (function) and call it then call your leaf mortality method
-
-        # Leave this here since it is used for the dead plant part mass balance
         old_dead_bio = self.sum_plant_parts(plants, parts="dead")
         old_dead_age = plants["dead_age"]
-
         plants = self.calculate_whole_plant_mortality(plants, _in_growing_season)
         plants = self.calculate_shaded_leaf_mortality(plants)
-        # leave this part here since we can use the same routine to move the dead leaves
-        # into the dead biomass pool and calculate the weighted dead age - which is used for decomp
         new_dead_bio = self.sum_plant_parts(plants, parts="dead")
         plants["dead_age"] = self.calculate_dead_age(
             old_dead_age, old_dead_bio, new_dead_bio
@@ -565,19 +612,18 @@ class Species(object):
 
     def calculate_shaded_leaf_mortality(self, plants):
         # Based on Teh code equation 7.18 and 7.20 (pg. 154)
-        lai = self.calculate_lai(plants["leaf_biomass"], plants["shoot_sys_width"])
+        lai = self.calculate_lai(plants["total_leaf_area"], plants["shoot_sys_width"])
+
         excess_lai = (
             lai - self.species_morph_params["lai_cr"]
         ) / self.species_morph_params["lai_cr"]
-        shaded_leaf = np.nonzero(excess_lai > 0)
-        D_shade = np.zeros(plants.shape)
+        shaded_leaf = np.nonzero((excess_lai > 0) & (plants["leaf"] > 0))
+        D_shade = np.zeros_like(plants["total_leaf_area"])
         D_shade[shaded_leaf] = 0.03 * excess_lai[shaded_leaf]
         D_shade[D_shade > 0.03] = 0.03
-        # Am I overwriting the dead leaf biomass here?
-        # should this actually be plants["dead_leaf"]+=plants["leaf_biomass"]*D_shade
-        # because I called calculate_whole_plant_mortality first in the mortality method.
-        plants["dead_leaf"] += plants["leaf_biomass"] * D_shade
-        plants["leaf"] -= plants["dead_leaf"]
+        leaf_loss = plants["leaf_biomass"] * D_shade
+        plants["dead_leaf"][shaded_leaf] += leaf_loss[shaded_leaf]
+        plants["leaf"][shaded_leaf] -= leaf_loss[shaded_leaf]
         return plants
 
     def photosynthesize(
@@ -589,18 +635,19 @@ class Species(object):
         _last_biomass,
         _current_day,
     ):
-        lai = self.calculate_lai(
-            _last_biomass["leaf_biomass"], _last_biomass["shoot_sys_width"]
+        ind_lai = self.calculate_lai(
+            _last_biomass["total_leaf_area"], _last_biomass["shoot_sys_width"]
         )
-        delta_tot = self.photosynthesis.photosynthesize(
+        lai = np.maximum(cell_lai, ind_lai)
+        carb_generated = self.photosynthesis.photosynthesize(
             _par,
             _min_temperature,
             _max_temperature,
-            cell_lai,
+            lai,
             _last_biomass,
             _current_day,
         )
-        return delta_tot
+        return carb_generated
 
     def respire(self, _min_temperature, _max_temperature, _last_biomass):
         _temperature = (_min_temperature + _max_temperature) / 2
@@ -608,20 +655,15 @@ class Species(object):
         _new_biomass = _last_biomass.copy()
         # respiration coefficient temp dependence from Teh 2006
         temp_adj = 2 ** ((_temperature - 25) / 10)
-        total_delta_respire = np.zeros_like(_last_biomass["root"])
         for part in self.all_parts:
             delta_respire = np.zeros_like(_last_biomass["root"])
             filter = np.nonzero(_last_biomass[part] > 0)
-            delta_respire = (
+            delta_respire[filter] = (
                 temp_adj[filter]
                 * growdict["respiration_coefficient"][part]
                 * _last_biomass[part][filter]
             ) / growdict["glucose_requirement"][part]
-            total_delta_respire[filter] += delta_respire[filter]
             _new_biomass[part][filter] -= delta_respire[filter]
-
-        # print("Respiration")
-        # print(total_delta_respire)
 
         return _new_biomass
 
@@ -690,8 +732,41 @@ class Species(object):
         plants["root_sys_width"] = self.shape.calc_root_sys_width(
             plants["shoot_sys_width"]
         )
-        plants["leaf_area"] = plants["leaf"] * self.species_morph_params["sp_leaf_area"]
+        dead_leaf_area = plants["total_leaf_area"] - plants["live_leaf_area"]
+        dead_leaf_area[dead_leaf_area < 0] = 0.0
+        filter = np.nonzero((plants["dead_age"] > 0) & (dead_leaf_area > 0))
+        plants["live_leaf_area"] = (
+            plants["leaf"] * self.species_morph_params["sp_leaf_area"]
+        )
+
+        cohort_dead_leaf_area = np.zeros_like(dead_leaf_area)
+        # We are still getting an error here
+        cohort_dead_leaf_area[filter] = dead_leaf_area[filter] / np.exp(
+            -self.species_morph_params["biomass_decay_rate"]
+            * plants["dead_age"][filter]
+        )
+        dead_leaf_area_ratio = np.ones_like(plants["live_leaf_area"])
+        dead_leaf_area_ratio[filter] = (
+            dead_leaf_area[filter] / cohort_dead_leaf_area[filter]
+        )
+        plants["total_leaf_area"] = plants["live_leaf_area"] + (
+            plants["dead_leaf"]
+            * self.species_morph_params["sp_leaf_area"]
+            * dead_leaf_area_ratio
+        )
         return plants
+
+    def update_dead_biomass(self, _new_biomass, old_biomass, old_dead_biomass):
+        for part in self.all_parts:
+            part_biomass_change = _new_biomass[part] - old_biomass[part]
+            filter = np.nonzero(part_biomass_change < 0.0)
+            _new_biomass["dead_" + str(part)][filter] -= part_biomass_change[filter]
+
+        _new_dead_biomass = self.sum_plant_parts(_new_biomass, parts="dead")
+        _new_biomass["dead_age"] = self.calculate_dead_age(
+            _new_biomass["dead_age"], old_dead_biomass, _new_dead_biomass
+        )
+        return _new_biomass
 
     def sum_plant_parts(self, _new_biomass, parts="total"):
         parts_choices = {
@@ -712,7 +787,7 @@ class Species(object):
 
     def calculate_dead_age(self, age_t1, mass_t1, mass_t2):
         age_t2 = np.zeros_like(age_t1)
-        filter = np.where(mass_t2 > 0)
+        filter = np.nonzero(mass_t2 > 0)
         age_t2[filter] = (
             (age_t1[filter] * mass_t1[filter])
             + ((mass_t2[filter] - mass_t1[filter]) * np.zeros_like(age_t1[filter]))
