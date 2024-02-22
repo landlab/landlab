@@ -456,38 +456,56 @@ class NetworkSedimentTransporter(Component):
 
     def _calculate_mean_D_and_rho(self):
         """Calculate mean grain size and density on each link"""
-        self._d_mean_active = self._grid.zeros(at="link")
-        self._rhos_mean_active = self._grid.zeros(at="link")
+        # self._d_mean_active = self._grid.zeros(at="link")
+        # self._rhos_mean_active = self._grid.zeros(at="link")
 
-        aggregate_items_as_mean(
-            self._rhos_mean_active,
-            self.grid.number_of_links,
-            self._parcels.dataset.element_id.values[:, -1].astype(int),
-            len(self._parcels.dataset.element_id.values[:, -1]),
-            self._parcels.dataset.density.values.reshape(-1),
-            self._parcels.dataset.volume.values[:, -1],
+        self._rhos_mean_active = aggregate_items_as_mean(
+            self._parcels.dataset["element_id"].values[:, -1].astype(int),
+            self._parcels.dataset["density"].values.reshape(-1),
+            weights=self._parcels.dataset["volume"].values[:, -1],
+            size=self._grid.number_of_links,
         )
-        aggregate_items_as_mean(
-            self._d_mean_active,
-            self.grid.number_of_links,
-            self._parcels.dataset.element_id.values[:, -1].astype(int),
-            len(self._parcels.dataset.element_id.values[:, -1]),
-            self._parcels.dataset.D.values.reshape(-1),
-            self._parcels.dataset.volume.values[:, -1],
+        self._d_mean_active = aggregate_items_as_mean(
+            self._parcels.dataset["element_id"].values[:, -1].astype(int),
+            self._parcels.dataset["D"].values.reshape(-1),
+            weights=self._parcels.dataset["volume"].values[:, -1],
+            size=self._grid.number_of_links,
         )
+
+        # aggregate_items_as_mean(
+        #     self._rhos_mean_active,
+        #     self.grid.number_of_links,
+        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
+        #     len(self._parcels.dataset.element_id.values[:, -1]),
+        #     self._parcels.dataset.density.values.reshape(-1),
+        #     self._parcels.dataset.volume.values[:, -1],
+        # )
+        # aggregate_items_as_mean(
+        #     self._d_mean_active,
+        #     self.grid.number_of_links,
+        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
+        #     len(self._parcels.dataset.element_id.values[:, -1]),
+        #     self._parcels.dataset.D.values.reshape(-1),
+        #     self._parcels.dataset.volume.values[:, -1],
+        # )
 
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep, then updates node
         elevations.
         """
-        self._vol_tot = self.grid.zeros(at="link")
-        aggregate_items_as_sum(
-            self._vol_tot,
-            self.grid.number_of_links,
-            self._parcels.dataset.element_id.values[:, -1].astype(int),
-            len(self._parcels.dataset.volume.values[:, -1]),
-            self._parcels.dataset.volume.values[:, -1],
+        # self._vol_tot = self.grid.zeros(at="link")
+        # aggregate_items_as_sum(
+        #     self._vol_tot,
+        #     self.grid.number_of_links,
+        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
+        #     len(self._parcels.dataset.volume.values[:, -1]),
+        #     self._parcels.dataset.volume.values[:, -1],
+        # )
+        self._vol_tot = aggregate_items_as_sum(
+            self._parcels.dataset["element_id"].values[:, -1].astype(int),
+            self._parcels.dataset["volume"].values[:, -1],
+            size=self._grid.number_of_links,
         )
 
         if self._active_layer_method == "WongParker":
@@ -599,13 +617,18 @@ class NetworkSedimentTransporter(Component):
         parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
         parcel_volumes[~self._active_parcel_records.values[:, -1].astype(bool)] = 0.0
 
-        self._vol_act = self.grid.zeros(at="link")
-        aggregate_items_as_sum(
-            self._vol_act,
-            self.grid.number_of_links,
-            self._parcels.dataset.element_id.values[:, -1].astype(int),
-            len(self._parcels.dataset.volume.values[:, -1]),
+        # self._vol_act = self.grid.zeros(at="link")
+        # aggregate_items_as_sum(
+        #     self._vol_act,
+        #     self.grid.number_of_links,
+        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
+        #     len(self._parcels.dataset.volume.values[:, -1]),
+        #     parcel_volumes,
+        # )
+        self._vol_act = aggregate_items_as_sum(
+            self._parcels.dataset["element_id"].values[:, -1].astype(int),
             parcel_volumes,
+            size=self._grid.number_of_links,
         )
 
         self._vol_stor = (self._vol_tot - self._vol_act) / (1 - self._bed_porosity)
@@ -720,13 +743,18 @@ class NetworkSedimentTransporter(Component):
         parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
         parcel_volumes[~findactivesand[:, -1].astype(bool)] = 0.0
 
-        vol_act_sand = self.grid.zeros(at="link")
-        aggregate_items_as_sum(
-            vol_act_sand,
-            self.grid.number_of_links,
-            self._parcels.dataset.element_id.values[:, -1].astype(int),
-            len(self._parcels.dataset.volume.values[:, -1]),
+        # vol_act_sand = self.grid.zeros(at="link")
+        # aggregate_items_as_sum(
+        #     vol_act_sand,
+        #     self.grid.number_of_links,
+        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
+        #     len(self._parcels.dataset.volume.values[:, -1]),
+        #     parcel_volumes,
+        # )
+        vol_act_sand = aggregate_items_as_sum(
+            self._parcels.dataset["element_id"].values[:, -1].astype(int),
             parcel_volumes,
+            size=self._grid.number_of_links,
         )
 
         frac_sand = np.zeros_like(self._vol_act)
