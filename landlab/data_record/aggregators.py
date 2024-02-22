@@ -11,17 +11,14 @@ from landlab.data_record._aggregators import (
 
 
 def aggregate_items_as_sum(
-    values: ArrayLike, ids: ArrayLike, size: int | None = None
+    ids: ArrayLike, values: ArrayLike, size: int | None = None
 ) -> NDArray[np.floating]:
     values = np.asarray(values, dtype=float)
     ids = np.asarray(ids, dtype=int)
 
-    if size is None:
-        size = ids.max() + 1
-    elif size < ids.max() + 1:
-        raise ValueError("size must be greater than or equal to the largest input id")
+    size = _validate_size(ids, size=size)
 
-    out = np.zeros(size, dtype=float)
+    out = np.empty(size, dtype=float)
 
     assert len(values) >= len(out)
 
@@ -31,8 +28,8 @@ def aggregate_items_as_sum(
 
 
 def aggregate_items_as_mean(
-    values: ArrayLike,
     ids: ArrayLike,
+    values: ArrayLike,
     weights: ArrayLike | None = None,
     size: int | None = None,
 ) -> NDArray[np.floating]:
@@ -43,12 +40,9 @@ def aggregate_items_as_mean(
         weights = np.asarray(weights, dtype=values.dtype)
     ids = np.asarray(ids, dtype=int)
 
-    if size is None:
-        size = ids.max() + 1
-    elif size < ids.max() + 1:
-        raise ValueError("size must be greater than or equal to the largest input id")
+    size = _validate_size(ids, size=size)
 
-    out = np.zeros(size, dtype=float)
+    out = np.empty(size, dtype=float)
 
     assert len(values) == len(weights)
     assert len(values) >= len(out)
@@ -60,16 +54,23 @@ def aggregate_items_as_mean(
 
 def aggregate_items_as_count(
     ids: ArrayLike, size: int | None = None
- ) -> NDArray[np.int_]:
+) -> NDArray[np.int_]:
     ids = np.asarray(ids, dtype=int)
 
-    if size is None:
-        size = ids.max() + 1
-    elif size < ids.max() + 1:
-        raise ValueError("size must be greater than or equal to the largest input id")
+    size = _validate_size(ids, size=size)
 
-    out = np.zeros(size, dtype=int)
+    out = np.empty(size, dtype=int)
 
     _aggregate_items_as_count(out, len(out), ids, len(ids))
 
     return out
+
+
+def _validate_size(ids: NDArray[np.int_], size: int | None = None):
+    if size is None:
+        size = ids.max() + 1
+    else:
+        assert (
+            size >= ids.max() + 1
+        ), "size must be greater than or equal to the largest input id"
+    return size
