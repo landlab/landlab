@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.data_record.aggregators import (
+from landlab.data_record._aggregators import (
     aggregate_items_as_count,
     aggregate_items_as_mean,
     aggregate_items_as_sum,
