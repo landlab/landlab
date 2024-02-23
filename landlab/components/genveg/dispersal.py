@@ -28,7 +28,7 @@ class Clonal(Repro):
             available_carb[available_carb > 0] / self.unit_cost
         )
         runner_length = rng.uniform(
-            low=plants["root_sys_width"] / 2,
+            low=0.05,
             high=self.max_dist_dispersal,
             size=plants.size,
         )
