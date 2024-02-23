@@ -1,19 +1,14 @@
 """
-Plant integration component of GenVeg - this is the part of GenVeg that handles interactions
-between plants and plants and the physical grid. 
+Plant integration component of GenVeg - this is the part of GenVeg 
+that handles interactions between plants and plants and the physical grid
 """
-from logging.config import valid_ident
-from matplotlib.pyplot import grid
 
 # from landlab.components import Radiation
 from landlab import Component
 import numpy as np
 import pandas as pd
-from scipy.optimize import fsolve
 from .growth import PlantGrowth
 import matplotlib as plt
-import warnings
-from landlab.data_record import DataRecord
 
 rng = np.random.default_rng()
 
@@ -56,9 +51,10 @@ class GenVeg(Component, PlantGrowth):
             raise ValueError(msg)
         # Check to see if grid contains required environmental fields
         try:
-            self._air_temp = self._grid["cell"]["air__temperature_C"][:].copy()
+            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:].copy()
+            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:].copy()
         except KeyError:
-            msg = "GenVeg requires air temperature in Celcius for each time step."
+            msg = "GenVeg requires min and max air temperatures in Celcius for each time step."
             raise ValueError(msg)
 
         try:
@@ -167,7 +163,7 @@ class GenVeg(Component, PlantGrowth):
         )
         cell_leaf_area = np.bincount(
             all_plants["cell_index"],
-            weights=all_plants["leaf_area"],
+            weights=all_plants["total_leaf_area"],
             minlength=self._grid.number_of_cells,
         )
         plant_height = np.zeros_like(frac_cover)
@@ -277,9 +273,11 @@ class GenVeg(Component, PlantGrowth):
         )
         cell_leaf_area = np.bincount(
             all_plants["cell_index"],
-            weights=all_plants["leaf_area"],
+            weights=all_plants["total_leaf_area"],
             minlength=self._grid.number_of_cells,
         )
+        cell_leaf_area[cell_leaf_area < 0] = 0
+        cell_leaf_area[np.isnan(cell_leaf_area)] = 0
         plant_height = np.zeros_like(cell_percent_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.nonzero(n_of_plants > 0.0)
@@ -295,8 +293,14 @@ class GenVeg(Component, PlantGrowth):
         self._grid.at_cell["vegetation__n_plants"] = cell_plant_count
         self._grid.at_cell["vegetation__percent_cover"] = cell_percent_cover
         self._grid.at_cell["vegetation__plant_height"] = plant_height
-        self._grid.at_cell["vegetation__cell_lai"] = (
-            cell_leaf_area / self._grid.area_of_cell
+        self._grid.at_cell["vegetation__cell_lai"] = np.divide(
+            cell_leaf_area,
+            self._grid.area_of_cell,
+            np.zeros_like(self._grid.at_cell["vegetation__total_biomass"]),
+            where=~np.isclose(
+                cell_leaf_area,
+                np.zeros_like(self._grid.at_cell["vegetation__total_biomass"]),
+            ),
         )
         self.current_day += 1
 
