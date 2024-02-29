@@ -14,7 +14,7 @@ repos:
       language: pygrep
 
 - repo: https://github.com/psf/black
-  rev: 23.11.0
+  rev: 23.12.1
   hooks:
   - id: black
     name: black
@@ -43,7 +43,7 @@ repos:
     description: "Black for doctests"
 
 - repo: https://github.com/pycqa/flake8
-  rev: 6.1.0
+  rev: 7.0.0
   hooks:
   - id: flake8
     additional_dependencies:
@@ -52,7 +52,7 @@ repos:
     - flake8-simplify
 
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.7.0
+  rev: 1.7.1
   hooks:
     - id: nbqa-pyupgrade
       args: ["--py310-plus"]
@@ -78,7 +78,7 @@ repos:
     args: [--py310-plus]
 
 - repo: https://github.com/PyCQA/isort
-  rev: 5.12.0
+  rev: 5.13.2
   hooks:
   - id: isort
     name: isort (python)
