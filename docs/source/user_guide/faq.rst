@@ -68,9 +68,9 @@ It's also possible to set the boundary conditions "by hand", if you know the ID 
     my_fixed_node = mg.find_nearest_node((1.2, 2.3))
     my_fixed_node
     9
-    grid.status_at_node[
-        my_fixed_node
-    ] = grid.BC_NODE_IS_FIXED_GRADIENT  # to fix the node closest to (1.2, 2.3)
+    grid.status_at_node[my_fixed_node] = (
+        grid.BC_NODE_IS_FIXED_GRADIENT
+    )  # to fix the node closest to (1.2, 2.3)
 
 See also:
 
