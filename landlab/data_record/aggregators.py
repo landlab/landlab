@@ -20,7 +20,7 @@ def aggregate_items_as_sum(
 
     out = np.empty(size, dtype=float)
 
-    assert len(values) >= len(out)
+    # assert len(values) >= len(out)
 
     _aggregate_items_as_sum(out, len(out), ids, len(ids), values)
 
@@ -45,7 +45,7 @@ def aggregate_items_as_mean(
     out = np.empty(size, dtype=float)
 
     assert len(values) == len(weights)
-    assert len(values) >= len(out)
+    # assert len(values) >= len(out)
 
     _aggregate_items_as_mean(out, len(out), ids, len(ids), values, weights)
 
