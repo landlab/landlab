@@ -8,14 +8,13 @@
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
-from .cfuncs import (
-    brent_method_erode_fixed_threshold,
-    brent_method_erode_variable_threshold,
-)
+from .cfuncs import brent_method_erode_fixed_threshold
+from .cfuncs import brent_method_erode_variable_threshold
 
 
 class FastscapeEroder(Component):

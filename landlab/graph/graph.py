@@ -67,6 +67,7 @@ array([[4, 3, 0, 1],
        [7, 6, 3, 4],
        [8, 7, 4, 5]])
 """
+
 import json
 from functools import cached_property
 
@@ -77,14 +78,15 @@ from ..core.utils import as_id_array
 from ..utils.decorators import read_only_array
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
-from .quantity.of_link import (
-    get_angle_of_link,
-    get_length_of_link,
-    get_midpoint_of_link,
-)
-from .quantity.of_patch import get_area_of_patch, get_centroid_of_patch
+from .quantity.of_link import get_angle_of_link
+from .quantity.of_link import get_length_of_link
+from .quantity.of_link import get_midpoint_of_link
+from .quantity.of_patch import get_area_of_patch
+from .quantity.of_patch import get_centroid_of_patch
 from .sort import reindex_by_xy
-from .sort.sort import reorient_link_dirs, reverse_one_to_many, sort_spokes_at_hub
+from .sort.sort import reorient_link_dirs
+from .sort.sort import reverse_one_to_many
+from .sort.sort import sort_spokes_at_hub
 from .ugrid import ugrid_from_unstructured
 
 
@@ -847,7 +849,6 @@ class NetworkGraph:
 
 
 class Graph(NetworkGraph):
-
     """Define the connectivity of a graph of nodes, links, and patches."""
 
     def __init__(self, node_y_and_x, links=None, patches=None, sort=False):

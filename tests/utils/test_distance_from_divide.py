@@ -1,8 +1,10 @@
 import numpy as np
 import pytest
 
-from landlab import FieldError, RasterModelGrid
-from landlab.components import FlowAccumulator, FlowDirectorSteepest
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import FlowDirectorSteepest
 from landlab.utils.distance_to_divide import calculate_distance_to_divide
 
 

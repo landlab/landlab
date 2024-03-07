@@ -14,7 +14,6 @@ def _assert_method_is_valid(method):
 
 
 class Radiation(Component):
-
     """Compute 1D and 2D daily incident shortwave radiation.
 
     Landlab component that computes 1D and 2D daily extraterrestiral, clear-sky,

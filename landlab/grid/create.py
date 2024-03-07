@@ -4,7 +4,11 @@
 from ..core import load_params
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
-from ..values import constant, plane, random, sine, units
+from ..values import constant
+from ..values import plane
+from ..values import random
+from ..values import sine
+from ..values import units
 from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
@@ -29,14 +33,12 @@ _SYNTHETIC_FIELD_CONSTRUCTORS = {
 
 
 class Error(Exception):
-
     """Base class for exceptions from this module."""
 
     pass
 
 
 class BadGridTypeError(Error):
-
     """Raise this error for a bad grid type."""
 
     def __init__(self, grid_type):

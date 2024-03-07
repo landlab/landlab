@@ -2,17 +2,14 @@ import numpy as np
 
 from ..dual import DualGraph
 from ..voronoi.dual_voronoi import DualVoronoiGraph
-from .hex import (
-    HorizontalHexTriGraph,
-    HorizontalRectTriGraph,
-    TriGraph,
-    VerticalHexTriGraph,
-    VerticalRectTriGraph,
-)
+from .hex import HorizontalHexTriGraph
+from .hex import HorizontalRectTriGraph
+from .hex import TriGraph
+from .hex import VerticalHexTriGraph
+from .hex import VerticalRectTriGraph
 
 
 class DualHexGraph(DualGraph, TriGraph):
-
     """Graph of a structured grid of triangles.
 
     Examples

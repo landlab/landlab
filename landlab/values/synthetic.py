@@ -88,6 +88,7 @@ They all take two keyword arguments: ``at``, which specifies which grid element
 values are placed, and ``where``, which indicates where the values are placed.
 Additional keyword arguments are required as needed by each function.
 """
+
 from collections import defaultdict
 
 import numpy as np

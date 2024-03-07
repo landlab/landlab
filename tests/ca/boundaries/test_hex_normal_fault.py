@@ -6,13 +6,12 @@ Created on Fri Jun 15 09:31:10 2018
 """
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_equal
+from numpy.testing import assert_array_equal
+from numpy.testing import assert_equal
 
 from landlab import HexModelGrid
-from landlab.ca.boundaries.hex_lattice_tectonicizer import (
-    LatticeNormalFault,
-    LatticeUplifter,
-)
+from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
 from landlab.ca.celllab_cts import Transition
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
 

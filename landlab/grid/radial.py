@@ -15,7 +15,6 @@ from .base import ModelGrid
 
 
 class RadialModelGrid(DualRadialGraph, ModelGrid):
-
     """Grid of concentric circles.
 
     This inherited class implements a circular grid in which grid nodes are

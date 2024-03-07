@@ -1,10 +1,12 @@
 """Define collections of fields that are attached to a *Landlab*
 :class:`~landlab.graph.graph.Graph`.
 """
+
 import numpy as np
 import xarray as xr
 
-from .errors import FieldError, GroupError
+from .errors import FieldError
+from .errors import GroupError
 
 
 def reshape_for_storage(array, field_size=None):

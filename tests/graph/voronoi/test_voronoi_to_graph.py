@@ -3,12 +3,11 @@ import inspect
 import numpy as np
 import pytest
 from pytest import approx
-from scipy.spatial import Delaunay, Voronoi
+from scipy.spatial import Delaunay
+from scipy.spatial import Voronoi
 
-from landlab.graph.voronoi.voronoi_to_graph import (
-    VoronoiDelaunay,
-    VoronoiDelaunayToGraph,
-)
+from landlab.graph.voronoi.voronoi_to_graph import VoronoiDelaunay
+from landlab.graph.voronoi.voronoi_to_graph import VoronoiDelaunayToGraph
 
 XY_OF_NODE = {
     "rect-horizontal-3-3": [

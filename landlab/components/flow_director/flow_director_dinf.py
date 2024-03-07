@@ -15,7 +15,6 @@ from landlab.components.flow_director.flow_director_to_many import _FlowDirector
 
 
 class FlowDirectorDINF(_FlowDirectorToMany):
-
     """Flow direction on a raster grid by the D infinity method.
 
     Directs flow by the D infinity method (Tarboton, 1997). Each node is

@@ -6,12 +6,12 @@ import xarray as xr
 from scipy.interpolate import interp1d
 
 from landlab import Component
-from landlab.layers import EventLayers, MaterialLayers
+from landlab.layers import EventLayers
+from landlab.layers import MaterialLayers
 from landlab.utils.return_array import return_array_at_node
 
 
 class Lithology(Component):
-
     """Create a Lithology object.
 
     A Lithology is a three dimentional representation of material operated on
