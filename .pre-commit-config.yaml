@@ -41,6 +41,9 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
+    additional_dependencies: ["black==24.2.0"]
+  - id: blackdoc-autoupdate-black
+
 
 - repo: https://github.com/pycqa/flake8
   rev: 7.0.0
