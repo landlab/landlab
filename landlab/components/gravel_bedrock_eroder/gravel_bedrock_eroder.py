@@ -5,6 +5,7 @@ Model bedrock incision and gravel transport and abrasion in a network of rivers.
 @author: gtucker
 """
 
+from warnings import warn
 import numpy as np
 
 from landlab import Component, HexModelGrid
@@ -71,7 +72,7 @@ class GravelBedrockEroder(Component):
         Fraction of time that bankfull flow occurs
     transport_coefficient : float (default 0.041)
         Dimensionless transport efficiency factor (see Wickert & Schildgen 2019)
-    abrasion_coefficient : float (default 0.0 1/m)
+    abrasion_coefficient : float (default 0.0 1/m) *DEPRECATED*
         Abrasion coefficient with units of inverse length
     sediment_porosity : float (default 0.35)
         Bulk porosity of bed sediment
@@ -81,6 +82,10 @@ class GravelBedrockEroder(Component):
         Rate coefficient for bedrock erosion by plucking
     coarse_fraction_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
         Fraction of plucked material that becomes part of gravel sediment load
+    number_of_sediment_classes : int (default 1)
+        Number of sediment abradability classes
+    abrasion_coefficients : iterable containing floats (default 0.0 1/m)
+        Abrasion coefficients; should be same length as number of sed classes
 
     Examples
     --------
@@ -246,11 +251,15 @@ class GravelBedrockEroder(Component):
         grid,
         intermittency_factor=0.01,
         transport_coefficient=0.041,
-        abrasion_coefficient=0.0,
+        abrasion_coefficient=None,
         sediment_porosity=0.35,
         depth_decay_scale=1.0,
         plucking_coefficient=1.0e-4,
-        coarse_fraction_from_plucking=1.0,
+        coarse_fraction_from_plucking=None,
+        number_of_sediment_classes=1,
+        init_thickness_per_class=None,
+        abrasion_coefficients=[0.0],
+        coarse_fractions_from_plucking=[1.0],
     ):
         """Initialize GravelBedrockEroder."""
 
@@ -259,7 +268,6 @@ class GravelBedrockEroder(Component):
         # Parameters
         self._trans_coef = transport_coefficient
         self._intermittency_factor = intermittency_factor
-        self._abrasion_coef = abrasion_coefficient
         self._porosity_factor = 1.0 / (1.0 - sediment_porosity)
         self._depth_decay_scale = depth_decay_scale
         if (
@@ -268,14 +276,41 @@ class GravelBedrockEroder(Component):
         ):
             plucking_coefficient = plucking_coefficient[self.grid.core_nodes]
         self._plucking_coef = plucking_coefficient
-        if (
-            isinstance(coarse_fraction_from_plucking, np.ndarray)
-            and len(coarse_fraction_from_plucking) == self.grid.number_of_nodes
-        ):
-            coarse_fraction_from_plucking = coarse_fraction_from_plucking[
-                self.grid.core_nodes
-            ]
-        self._pluck_coarse_frac = coarse_fraction_from_plucking
+
+        # Handle sediment classes, abrasion coefficients, and plucking fractions
+        if abrasion_coefficient is not None:
+            if number_of_sediment_classes == 1:
+                warn("Use abrasion_coefficients (plural)", DeprecationWarning)
+                abrasion_coefficients = [abrasion_coefficient]
+            else:
+                warn("Ignoring abrasion_coefficient; use abrasion_coefficients (plural)", DeprecationWarning)
+        self._abrasion_coef = abrasion_coefficients[0] # temporary for dev/test
+        if coarse_fraction_from_plucking is not None:
+            if number_of_sediment_classes == 1:
+                warn("Use coarse_fractions_from_plucking (plural)", DeprecationWarning)
+                if (
+                        isinstance(coarse_fraction_from_plucking, np.ndarray)
+                        and len(coarse_fraction_from_plucking) == self.grid.number_of_nodes
+                ):
+                    coarse_fraction_from_plucking = coarse_fraction_from_plucking[
+                        self.grid.core_nodes
+                    ]
+                coarse_fractions_from_plucking = [coarse_fraction_from_plucking]
+            else:
+                warn("Ignoring abrasion_coefficient; use abrasion_coefficients (plural)", DeprecationWarning)
+        self._pluck_coarse_frac = coarse_fractions_from_plucking[0] # temporary for dev/test
+
+        if init_thickness_per_class is None:
+            init_thickness_per_class = 1.0 / number_of_sediment_classes
+        abrasion_coefficients = np.broadcast_to(
+            abrasion_coefficients, number_of_sediment_classes
+        )
+        init_thickness_per_class = np.broadcast_to(
+            init_thickness_per_class, number_of_sediment_classes
+        )
+        coarse_fractions_from_plucking = np.broadcast_to(
+            coarse_fractions_from_plucking, number_of_sediment_classes
+        )
 
         # Fields and arrays
         self._elev = grid.at_node["topographic__elevation"]
