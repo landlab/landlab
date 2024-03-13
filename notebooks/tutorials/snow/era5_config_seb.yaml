@@ -1,0 +1,61 @@
+bmi-era5:
+  name: reanalysis-era5-single-levels
+  request:
+    variable:
+      - total_precipitation
+      - 2m_temperature
+      - snow_depth
+      - temperature_of_snow_layer
+      - mean_surface_latent_heat_flux
+      - mean_surface_sensible_heat_flux
+      - mean_surface_net_long_wave_radiation_flux
+      - mean_surface_net_short_wave_radiation_flux
+
+    product_type: reanalysis
+    year: 2023
+    month: 05
+    day:
+      - '1'
+      - '2'
+      - '3'
+      - '4'
+      - '5'
+      - '6'
+      - '7'
+      - '8'
+
+    time:
+      - '00:00'
+      - '01:00'
+      - '02:00'
+      - '03:00'
+      - '04:00'
+      - '05:00'
+      - '06:00'
+      - '07:00'
+      - '08:00'
+      - '09:00'
+      - '10:00'
+      - '11:00'
+      - '12:00'
+      - '13:00'
+      - '14:00'
+      - '15:00'
+      - '16:00'
+      - '17:00'
+      - '18:00'
+      - '19:00'
+      - '20:00'
+      - '21:00'
+      - '22:00'
+      - '23:00'
+    format: netcdf
+    area:
+      - 39.5
+      - -109
+      - 37.5
+      - -106
+    grid:
+      - 0.25
+      - 0.25
+  path: 'era5_seb.nc'
