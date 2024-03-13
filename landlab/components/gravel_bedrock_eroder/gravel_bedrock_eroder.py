@@ -263,6 +263,18 @@ class GravelBedrockEroder(Component):
     ):
         """Initialize GravelBedrockEroder."""
 
+        if init_thickness_per_class is None:
+            init_thickness_per_class = 1.0 / number_of_sediment_classes
+        abrasion_coefficients = np.broadcast_to(
+            abrasion_coefficients, number_of_sediment_classes
+        )
+        init_thickness_per_class = np.broadcast_to(
+            init_thickness_per_class, number_of_sediment_classes
+        )
+        coarse_fractions_from_plucking = np.broadcast_to(
+            coarse_fractions_from_plucking, number_of_sediment_classes
+        )
+
         super().__init__(grid)
 
         # Parameters
@@ -278,39 +290,35 @@ class GravelBedrockEroder(Component):
         self._plucking_coef = plucking_coefficient
 
         # Handle sediment classes, abrasion coefficients, and plucking fractions
-        if abrasion_coefficient is not None:
-            if number_of_sediment_classes == 1:
-                warn("Use abrasion_coefficients (plural)", DeprecationWarning)
-                abrasion_coefficients = [abrasion_coefficient]
-            else:
-                warn("Ignoring abrasion_coefficient; use abrasion_coefficients (plural)", DeprecationWarning)
-        self._abrasion_coef = abrasion_coefficients[0] # temporary for dev/test
-        if coarse_fraction_from_plucking is not None:
-            if number_of_sediment_classes == 1:
-                warn("Use coarse_fractions_from_plucking (plural)", DeprecationWarning)
-                if (
-                        isinstance(coarse_fraction_from_plucking, np.ndarray)
-                        and len(coarse_fraction_from_plucking) == self.grid.number_of_nodes
-                ):
-                    coarse_fraction_from_plucking = coarse_fraction_from_plucking[
-                        self.grid.core_nodes
-                    ]
-                coarse_fractions_from_plucking = [coarse_fraction_from_plucking]
-            else:
-                warn("Ignoring abrasion_coefficient; use abrasion_coefficients (plural)", DeprecationWarning)
-        self._pluck_coarse_frac = coarse_fractions_from_plucking[0] # temporary for dev/test
-
-        if init_thickness_per_class is None:
-            init_thickness_per_class = 1.0 / number_of_sediment_classes
-        abrasion_coefficients = np.broadcast_to(
-            abrasion_coefficients, number_of_sediment_classes
-        )
-        init_thickness_per_class = np.broadcast_to(
-            init_thickness_per_class, number_of_sediment_classes
-        )
-        coarse_fractions_from_plucking = np.broadcast_to(
-            coarse_fractions_from_plucking, number_of_sediment_classes
-        )
+        # if abrasion_coefficient is not None:
+        #     if number_of_sediment_classes == 1:
+        #         warn("Use abrasion_coefficients (plural)", DeprecationWarning)
+        #         abrasion_coefficients = [abrasion_coefficient]
+        #     else:
+        #         warn(
+        #             "Ignoring abrasion_coefficient; use abrasion_coefficients (plural)",
+        #             DeprecationWarning,
+        #         )
+        # self._abrasion_coef = abrasion_coefficients[0]  # temporary for dev/test
+        # if coarse_fraction_from_plucking is not None:
+        #     if number_of_sediment_classes == 1:
+        #         warn("Use coarse_fractions_from_plucking (plural)", DeprecationWarning)
+        #         if (
+        #             isinstance(coarse_fraction_from_plucking, np.ndarray)
+        #             and len(coarse_fraction_from_plucking) == self.grid.number_of_nodes
+        #         ):
+        #             coarse_fraction_from_plucking = coarse_fraction_from_plucking[
+        #                 self.grid.core_nodes
+        #             ]
+        #         coarse_fractions_from_plucking = [coarse_fraction_from_plucking]
+        #     else:
+        #         warn(
+        #             "Ignoring abrasion_coefficient; use abrasion_coefficients (plural)",
+        #             DeprecationWarning,
+        #         )
+        # self._pluck_coarse_frac = coarse_fractions_from_plucking[
+        #    0
+        # ]  # temporary for dev/test
 
         # Fields and arrays
         self._elev = grid.at_node["topographic__elevation"]
@@ -337,6 +345,33 @@ class GravelBedrockEroder(Component):
         self._pluck_rate = grid.at_node["bedrock__plucking_rate"]
 
         self._setup_length_of_flow_link()
+
+        # Create 2d arrays
+        self._thickness_by_class = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
+        for i in range(number_of_sediment_classes):
+            self._thickness_by_class[i, :] = init_thickness_per_class[i] * self._sed
+
+        self._sed_influxes = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
+        self._sed_outfluxes = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
+        self._sed_abr_rates = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
+        self._sediment_fraction = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
+        self._dHdt_by_class = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
+        )
+
+        self._num_sed_classes = number_of_sediment_classes
+        self._abr_coefs = abrasion_coefficients
+        self._pluck_coarse_frac = coarse_fractions_from_plucking
 
     def _setup_length_of_flow_link(self):
         """Set up a float or array containing length of the flow link from
@@ -459,6 +494,14 @@ class GravelBedrockEroder(Component):
         )
         return width
 
+    def calc_sediment_fractions(self):
+        """
+        Calculate and store fraction of each sediment class in the sediment
+        at each grid node.
+        """
+        for i in range(self._num_sed_classes):
+            self._sediment_fraction[i, :] = self._thickness_by_class[i, :] / self._sed
+
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.
 
@@ -520,6 +563,11 @@ class GravelBedrockEroder(Component):
             * self._slope**_SEVEN_SIXTHS
             * (1.0 - self._rock_exposure_fraction)
         )
+        self.calc_sediment_fractions()
+        for i in range(self._num_sed_classes):
+            self._sed_outfluxes[i, :] = (
+                self._sediment_fraction[i, :] * self._sediment_outflux
+            )
 
     def calc_abrasion_rate(self):
         """Update the volume rate of bedload loss to abrasion, per unit area.
