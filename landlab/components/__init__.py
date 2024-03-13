@@ -34,6 +34,7 @@ from .landslides import LandslideProbability
 from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .marine_sediment_transport import SimpleSubmarineDiffuser
+from .mass_wasting_runout import MassWastingRunout
 from .network_sediment_transporter import NetworkSedimentTransporter
 from .network_sediment_transporter.bed_parcel_initializers import (
     BedParcelInitializerArea,
@@ -130,6 +131,7 @@ COMPONENTS = [
     LithoLayers,
     Lithology,
     LossyFlowAccumulator,
+    MassWastingRunout,
     NetworkSedimentTransporter,
     NormalFault,
     OverlandFlow,
