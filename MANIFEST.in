@@ -19,6 +19,7 @@ recursive-include requirements *.md *.txt
 recursive-include tests *py
 recursive-include tests *.asc
 recursive-include tests *.dbf
+recursive-include tests *.geojson
 recursive-include tests *.nc
 recursive-include tests *.shp
 recursive-include tests *.shx

@@ -1,11 +1,14 @@
 bmipy
+geopandas
 matplotlib
 netcdf4
 numpy >=1.20
 pandas
+shapely
 pyshp != 2.3.0
 pyyaml
 rich-click
 scipy
+shapely
 statsmodels
 xarray >= 0.16
