@@ -330,7 +330,6 @@ class PlantGrowth(Species):
         filter = np.nonzero(_total_biomass > 0.0)
         _last_live_biomass = _last_biomass[filter]
         _live_biomass = _new_biomass[filter]
-        _last_total_biomass = _total_biomass[filter]
 
         # calculate variables needed to run plant processes
         _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
@@ -372,6 +371,7 @@ class PlantGrowth(Species):
                 _new_live_biomass = processes[process[0]](
                     _new_live_biomass, _current_jday
                 )
+
         _new_live_biomass["plant_age"] += self.dt.astype(float) * np.ones_like(
             _new_live_biomass["plant_age"]
         )
