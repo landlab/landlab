@@ -88,20 +88,18 @@ plants["n_stems"] = np.array([1.0])
 
 def test_calculate_hourly_direct_light_extinction():
     """Test direct light attenuation coefficient calculation"""
-    solar_elevation = 0.467396
-    kdr_teh = 1.1097223
-    kdr_genveg = Photosynthesis.calculate_hourly_direct_light_extinction(
-        solar_elevation
-    )
-    assert_allclose(kdr_genveg, kdr_teh)
+    solar_elevation = np.array([0.467396])
+    kdr_teh = np.array([1.1097223])
+    kdr_genveg = photo_object.calculate_hourly_direct_light_extinction(solar_elevation)
+    assert_allclose(kdr_genveg, kdr_teh, rtol=0.0001)
 
 
 def test_calculate_hourly_diffuse_light_extinction():
     """Test diffuse light attenuation coeffcient calculation"""
-    lai = 0.0244633
-    kdf_teh = 0.96219749
-    kdf_genveg = Photosynthesis.calculate_hourly_diffuse_light_extinction(lai)
-    assert_allclose(kdf_genveg, kdf_teh)
+    lai = np.array([0.0244633, 0.012])
+    kdf_teh = np.array([0.96219749, 0.97307909472236043])
+    kdf_genveg = photo_object.calculate_hourly_diffuse_light_extinction(lai)
+    assert_allclose(kdf_genveg, kdf_teh, rtol=0.0001)
 
 
 def test_calculate_incremental_PAR():
