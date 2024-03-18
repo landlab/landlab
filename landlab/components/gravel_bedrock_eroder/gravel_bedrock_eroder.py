@@ -87,6 +87,24 @@ class GravelBedrockEroder(Component):
     abrasion_coefficients : iterable containing floats (default 0.0 1/m)
         Abrasion coefficients; should be same length as number of sed classes
 
+    Notes
+    -----
+    The doctest below demonstrates approximate equilibrium between uplift, transport,
+    and sediment abrasion in a case with effectively unlimited sediment. The
+    analytical solution is:
+
+    sediment input by uplift = sediment outflux + sediment loss to abrasion
+
+    In math,
+
+    U A = kq I Q S^(7/6) + 0.5 b Qs dx
+
+    S = (U A / (kq I Q (1 + 0.5 b dx))) ^ 6/7 ~ 0.0342
+
+    Elevation of the single core node = 0.0342 x 1,000 m ~ 34 m.
+    However, because of VERY long time steps, the post-erosion elevation is 1 m
+    lower, at 33 m (it will be uplifted by a meter at the start of each step).
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -94,21 +112,25 @@ class GravelBedrockEroder(Component):
     >>> grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
     >>> elev = grid.add_zeros("topographic__elevation", at="node")
     >>> sed = grid.add_zeros("soil__depth", at="node")
-    >>> sed[4] = 300.0
+    >>> sed[4] = 1.0e6
     >>> grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
     >>> grid.status_at_node[5] = grid.BC_NODE_IS_FIXED_VALUE
     >>> fa = FlowAccumulator(grid, runoff_rate=10.0)
     >>> fa.run_one_step()
-    >>> eroder = GravelBedrockEroder(grid, abrasion_coefficient=0.0005)
+    >>> eroder = GravelBedrockEroder(
+    ...     grid,
+    ...     sediment_porosity=0.0,
+    ...     abrasion_coefficients=[0.0005]
+    ... )
     >>> rock_elev = grid.at_node["bedrock__elevation"]
-    >>> for _ in range(200):
+    >>> for _ in range(150):
     ...     rock_elev[grid.core_nodes] += 1.0
     ...     elev[grid.core_nodes] += 1.0
     ...     fa.run_one_step()
     ...     eroder.run_one_step(10000.0)
     ...
-    >>> int(elev[4] * 100)
-    2266
+    >>> int(elev[4])
+    33
     """
 
     _name = "GravelBedrockEroder"
@@ -251,15 +273,14 @@ class GravelBedrockEroder(Component):
         grid,
         intermittency_factor=0.01,
         transport_coefficient=0.041,
-        abrasion_coefficient=None,
         sediment_porosity=0.35,
         depth_decay_scale=1.0,
         plucking_coefficient=1.0e-4,
-        coarse_fraction_from_plucking=None,
         number_of_sediment_classes=1,
         init_thickness_per_class=None,
         abrasion_coefficients=[0.0],
         coarse_fractions_from_plucking=[1.0],
+        rock_abrasion_index=0,
     ):
         """Initialize GravelBedrockEroder."""
 
@@ -288,6 +309,7 @@ class GravelBedrockEroder(Component):
         ):
             plucking_coefficient = plucking_coefficient[self.grid.core_nodes]
         self._plucking_coef = plucking_coefficient
+        self._rock_abrasion_index = rock_abrasion_index
 
         # Handle sediment classes, abrasion coefficients, and plucking fractions
         # if abrasion_coefficient is not None:
@@ -339,7 +361,7 @@ class GravelBedrockEroder(Component):
         self._sediment_outflux = grid.at_node["bedload_sediment__volume_outflux"]
         self._dHdt = grid.at_node["sediment__rate_of_change"]
         self._rock_lowering_rate = grid.at_node["bedrock__lowering_rate"]
-        self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
+        # self._abrasion = grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"]
         self._rock_exposure_fraction = grid.at_node["bedrock__exposure_fraction"]
         self._rock_abrasion_rate = grid.at_node["bedrock__abrasion_rate"]
         self._pluck_rate = grid.at_node["bedrock__plucking_rate"]
@@ -573,8 +595,8 @@ class GravelBedrockEroder(Component):
         """Update the volume rate of bedload loss to abrasion, per unit area.
 
         Here we use the average of incoming and outgoing sediment flux to
-        calculate the loss rate to abrasion. The result is stored in the
-        ``bedload_sediment__rate_of_loss_to_abrasion`` field.
+        calculate the loss rate to abrasion in each sediment class.
+        The result is stored in self._sed_abr_rates.
 
         The factor dx (node spacing) appears in the denominator to represent
         flow segment length (i.e., length of the link along which water is
@@ -592,19 +614,24 @@ class GravelBedrockEroder(Component):
         >>> sed[3:] = 100.0
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficient=0.0002)
+        >>> eroder = GravelBedrockEroder(
+        ...     grid,
+        ...     number_of_sediment_classes=3,
+        ...     abrasion_coefficients=[0.002, 0.0002, 0.00002]
+        ... )
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
-        >>> int(eroder._abrasion[4] * 1e8)
-        19
+        >>> eroder._sed_abr_rates[:, 4]
+        array([ 6.34350474e-07, 6.34350474e-08, 6.34350474e-09])
         """
         cores = self._grid.core_nodes
-        self._abrasion[cores] = (
-            self._abrasion_coef
-            * 0.5
-            * (self._sediment_outflux[cores] + self._sediment_influx[cores])
-            * self._flow_link_length_over_cell_area
-        )
+        for i in range(self._num_sed_classes):
+            self._sed_abr_rates[i, cores] = (
+                self._abr_coefs[i]
+                * 0.5
+                * (self._sed_outfluxes[i, cores] + self._sed_influxes[i, cores])
+                * self._flow_link_length_over_cell_area
+            )
 
     def calc_bedrock_abrasion_rate(self):
         """Update the rate of bedrock abrasion.
@@ -624,7 +651,7 @@ class GravelBedrockEroder(Component):
         >>> sed[:] = 1.0
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficient=1.0e-4)
+        >>> eroder = GravelBedrockEroder(grid, abrasion_coefficients=[1.0e-4])
         >>> eroder.calc_rock_exposure_fraction()
         >>> round(eroder._rock_exposure_fraction[6], 4)
         0.3679
@@ -632,13 +659,16 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._sediment_outflux[5:7], 3)
         array([ 0.024,  0.012])
         >>> eroder.calc_abrasion_rate()
-        >>> np.round(eroder._abrasion[5:7], 9)
+        >>> np.round(eroder._sed_abr_rates[0, 5:7], 9)
         array([  1.20000000e-08,   6.00000000e-09])
         >>> eroder.calc_bedrock_abrasion_rate()
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
         array([  4.40000000e-09,   2.20000000e-09])
         """
-        self._rock_abrasion_rate = self._abrasion * self._rock_exposure_fraction
+        self._rock_abrasion_rate = (
+            self._sed_abr_rates[self._rock_abrasion_index]
+            * self._rock_exposure_fraction
+        )
 
     def calc_bedrock_plucking_rate(self):
         """Update the rate of bedrock erosion by plucking.
@@ -679,19 +709,59 @@ class GravelBedrockEroder(Component):
         ) * self._flow_link_length_over_cell_area
 
     def calc_sediment_influx(self):
-        """Update the volume influx at each node.
+        """
+        Update the volume influx at each node for each sediment class.
 
-        Result is stored in the field ``bedload_sediment__volume_influx``.
+        Results are stored:
+        (1) Total flux in the field ``bedload_sediment__volume_influx``
+        (2) Per size class in the _sed_influxes array
         """
         self._sediment_influx[:] = 0.0
+        self._sed_influxes[:, :] = 0.0
         for c in self.grid.core_nodes:  # send sediment downstream
             r = self._receiver_node[c]
             self._sediment_influx[r] += self._sediment_outflux[c]
+            for i in range(self._num_sed_classes):
+                self._sed_influxes[i, r] += self._sed_outfluxes[i, c]
 
     def calc_sediment_rate_of_change(self):
-        """Update the rate of thickness change of coarse sediment at each core node.
+        """
+        Calculate and store time rate of change of sediment thickness
+        by sediment class. Result stored in self._dHdt_by_class.
 
-        Result is stored in the field ``sediment__rate_of_change``.
+        The doctest below illustrates some of the steps in calculating
+        the rate of change of sediment thickness. calc_transport_rate()
+        sets the _sediment_outflux at each core node. The value of
+        outflux can be calculated as follows:
+
+        outflux = transport coefficient x intermittency factor
+                  x discharge x slope^(7/6) x (1 - rock exposure fraction)
+
+        Using default parameters, assuming a runoff rate of unity, and
+        given the negligible bedrock exposure fraction,
+        for the upstream grid cell this works out to:
+
+        outflux = 0.041 x 0.01 x (100 x 100) x 0.01^(7/6) x 1
+                ~ 0.19 m3/y
+
+        For the downstream node, the discharge is doubled, so the
+        flux is doubled.
+
+        The call to calc_sediment_influx() then passes the outflux to
+        each downstream neighbor (the "receiver" node), in the array
+        _sediment_influx. For purposes of the test, we are *not*
+        calculating sediment loss to abrasion, which therefore remains
+        at its initial value of zero for each node.
+
+        The call to calc_sediment_rate_of_change() adds up the influx
+        and subtracts the outflux for each core node, dividing by its
+        cell area and multiplying by the porosity factor to get a rate
+        of thickness change. For both nodes, we have a net outflux of
+        ~0.19 m3/y, a porosity factor of 1 / (1 - 0.35) ~ 1.54, and a
+        grid cell area of 10,000 m2, so the rate of change should be
+        ~2.93 x 10^-5 m/y. This is stored in _dHdt_by_class; because
+        we have only on sediment class, these are the values that should
+        be assigned to the single class at each of the two core nodes.
 
         Examples
         --------
@@ -711,20 +781,29 @@ class GravelBedrockEroder(Component):
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_sediment_influx()
         >>> eroder.calc_sediment_rate_of_change()
-        >>> np.round(eroder._sediment_outflux[4:7], 3)
+        >>> np.round(eroder._sed_outfluxes[0, 4:7], 3)
         array([ 0.   ,  0.038,  0.019])
-        >>> np.round(eroder._sediment_influx[4:7], 3)
+        >>> np.round(eroder._sed_influxes[0, 4:7], 3)
         array([ 0.038,  0.019,  0.   ])
-        >>> np.round(eroder._dHdt[5:7], 8)
+        >>> np.round(eroder._dHdt_by_class[0, 5:7], 8)
         array([ -2.93000000e-06,  -2.93000000e-06])
         """
         cores = self.grid.core_nodes
-        self._dHdt[cores] = self._porosity_factor * (
-            (self._sediment_influx[cores] - self._sediment_outflux[cores])
-            / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-            + (self._pluck_rate[cores] * self._pluck_coarse_frac)
-            - self._abrasion[cores]
-        )
+        for i in range(self._num_sed_classes):
+            #print("Class", i)
+            #print("in", self._sed_influxes[i, cores])
+            #print("out", self._sed_outfluxes[i, cores])
+            #print("pr", self._pluck_rate[cores])
+            #print("pcf", self._pluck_coarse_frac[i])
+            #print("sar", self._sed_abr_rates[i, cores])
+            self._dHdt_by_class[i, cores] = self._porosity_factor * (
+                (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
+                / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
+                + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
+                - self._sed_abr_rates[i, cores]
+            )
+        self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
+        #print("dhdt", self._dHdt[4])
 
     def _update_slopes(self):
         """Update self._slope.
@@ -752,6 +831,85 @@ class GravelBedrockEroder(Component):
         Combined rate of rock lowering relative to underlying material is stored in the field
         ``bedrock__lowering_rate``.
 
+        The doctest below evaluates the code against the following
+        calculation. We have two core nodes, each with a gradient of
+        0.01 m/m and a surface area of 10,000 m2.
+
+        The sediment cover is 0.69315 m, which happens to give a
+        cover fraction of ~0.5.
+
+        We run just one time step, in which the transport and abrasion
+        rates apply to an initial slope of 0.01 and a discharge of
+        10,000 and 20,000 m3/y at the upstream and downstream nodes,
+        respectively.
+
+        Transport rate, upstream node:
+
+        coefficient x intermittency x discharge x slope^(7/6) x cover
+        0.041       x 0.01          x 10,000 m3/y x 0.004642 x 0.5
+        ~0.0095 m3/y
+
+        Downstream node: ~0.019 m3/y (because of 2x discharge)
+
+        Sediment influxes: at the open boundary node, should equal the
+        outflux from the downstream core node (0.019 m3/y); at the
+        downstream core node, should equal outflux from the upstream
+        node (0.095 m3/y), and at the upstream node should be zero.
+
+        With 50% bedrock exposure, the bedrock plucking rate for the
+        upstream node should be:
+
+        pluck coef x intermittency x discharge x slope^(7/6) x exposure
+        / width of grid cell
+
+        1e-4 x 0.01 x 10,000 x 0.01^(7/6) x 0.5 / 100 ~ 2.32e-7
+
+        For the downstream node, it should be twice this value.
+
+        With an abrasion coefficient of 0.001 1/m (fast!), the
+        sediment abrasion rate at the upstream node should derive
+        from the average of influx and outflux:
+
+        0.5 x (0.0095 + 0) m3/y x 0.001 1/m  x 100 m ~ 0.000475 m3/y
+        = 4.75e-8 m/y lowering equivalent
+
+        For the downstream node,
+
+        0.5 x (0.019 + 0.0095) m3/y x 0.001 1/m  x 100 m ~ 0.001425 m3/y
+        = 1.425e-7 m/y lowering equivalent
+
+        The sediment rate of change should be the sum of 3 terms:
+        (1) the difference between influx and outflux, multiplied by
+        the porosity factor 1 / (1 - phi) and divided by cell area.
+        That equates to:
+        -1 / (1 - 0.35) x 0.0095 / 10000 ~ -1.46 x 10^-6
+        (2) the abrasion lowering rate above.
+        (3) the plucking rate times the coarse fraction derived from
+        plucking:
+        + 2.32e-7 m/y x 0.25 ~ 5.8e-8 upstream, and 1.16e-7 downstream.
+        Their sum is (approximately, subject to rounding errors):
+        ~ -1.46e-6 - 1.43e-7 + 1.16e-7 = -1.487e-6 m/y downstream,
+        ~ -1.46e-6 - 4.8e-8 + 5.8e-8 = -1.45e-6 m/y upstream.
+
+        This should be stored in both _dHdt_by_class (the rate of
+        thickening per sediment class, of which there's only one in
+        this case) and _dHdt (which totals up all the classes).
+
+        This rate is then extrapolated for one time step of 1000 y,
+        so that the thickness is reduced by about 1.5 mm. The resulting
+        thickness should be its original value minus this amount:
+        0.69315 - 1.45e-3 = 0.6917 m, 0.69315 - 1.5e-3 = 0.69165 m
+
+        Rock elevation should reduced by the loss of sediment plus the loss
+        of rock. Rock loss is (plucking rate + rock abrasion rate) x time step.
+        Upstream: (2 - 0.69315) - (2.32e-7 + 0.5 * 4.76e-8) m x 1000 y = 1.3065942 m
+        Downstream: (1 - 0.69315) - (2.32e-7 + 0.5 * 4.76e-8) m x 1000 y = 0.3063145 m
+
+        Finally, total elevation is the sum of the new sediment thickness
+        and rock elevation (again, approximate, subject to rounding):
+        Upstream: 0.3063 + 0.6917 = 0.9980
+        Downstream: 1.3066 + 0.6917 = 1.9983
+
         Examples
         --------
         >>> import numpy as np
@@ -761,15 +919,39 @@ class GravelBedrockEroder(Component):
         >>> elev = grid.add_zeros("topographic__elevation", at="node")
         >>> elev[:] = 0.01 * grid.x_of_node
         >>> sed = grid.add_zeros("soil__depth", at="node")
-        >>> sed[:] = 1000.0
+        >>> sed[:] = 0.69315
+        >>> rock = grid.add_zeros("bedrock__elevation", at="node")
+        >>> rock[:] = elev - sed
         >>> grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
         >>> grid.status_at_node[4] = grid.BC_NODE_IS_FIXED_VALUE
         >>> fa = FlowAccumulator(grid)
         >>> fa.run_one_step()
-        >>> eroder = GravelBedrockEroder(grid)
+        >>> eroder = GravelBedrockEroder(
+        ...     grid,
+        ...     abrasion_coefficients=[0.001],
+        ...     coarse_fractions_from_plucking=[0.25],
+        ... )
+        >>> eroder._bedrock__elevation[5:7]
+        array([ 0.30685,  1.30685])
         >>> eroder.run_one_step(1000.0)
+        >>> np.round(eroder._sed_outfluxes[0, 5:7], 3)
+        array([ 0.019,  0.01 ])
+        >>> np.round(eroder._sed_influxes[0, 4:7], 3)
+        array([ 0.019,  0.01 ,  0.   ])
+        >>> np.round(eroder._pluck_rate[5:7], 10)
+        array([  4.64200000e-07,   2.32100000e-07])
+        >>> np.round(eroder._sed_abr_rates[0, 5:7], 9)
+        array([  1.43000000e-07,   4.80000000e-08])
+        >>> np.round(eroder._dHdt_by_class[0, 5:7], 8)
+        array([ -1.50000000e-06,  -1.45000000e-06])
+        >>> np.round(eroder._dHdt[5:7], 8)
+        array([ -1.50000000e-06,  -1.45000000e-06])
+        >>> np.round(sed[5:7], 4)
+        array([ 0.6916,  0.6917])
+        >>> np.round(eroder._bedrock__elevation[5:7], 5)
+        array([ 0.30631,  1.30659])
         >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.9971,  1.9971])
+        array([ 0.    ,  0.998 ,  1.9983])
         """
         self._update_slopes()
         self.calc_rock_exposure_fraction()
@@ -779,7 +961,7 @@ class GravelBedrockEroder(Component):
         if self._flow_length_is_variable:
             self._update_flow_link_length_over_cell_area()
         self.calc_bedrock_plucking_rate()
-        if self._abrasion_coef > 0.0:
+        if np.amax(self._abr_coefs) > 0.0:
             self.calc_abrasion_rate()
             self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
@@ -790,7 +972,10 @@ class GravelBedrockEroder(Component):
         using current rates of change extrapolated forward by time dt.
         """
         self._sed += self._dHdt * dt
+        #print("be bef", self._bedrock__elevation)
+        #print("blr", self._rock_lowering_rate)
         self._bedrock__elevation -= self._rock_lowering_rate * dt
+        #print("be aft", self._bedrock__elevation)
         self._elev[:] = self._bedrock__elevation + self._sed
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
