@@ -6,6 +6,7 @@ Model bedrock incision and gravel transport and abrasion in a network of rivers.
 """
 
 from warnings import warn
+
 import numpy as np
 
 from landlab import Component, HexModelGrid
@@ -118,9 +119,7 @@ class GravelBedrockEroder(Component):
     >>> fa = FlowAccumulator(grid, runoff_rate=10.0)
     >>> fa.run_one_step()
     >>> eroder = GravelBedrockEroder(
-    ...     grid,
-    ...     sediment_porosity=0.0,
-    ...     abrasion_coefficients=[0.0005]
+    ...     grid, sediment_porosity=0.0, abrasion_coefficients=[0.0005]
     ... )
     >>> rock_elev = grid.at_node["bedrock__elevation"]
     >>> for _ in range(150):
@@ -628,7 +627,7 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(
         ...     grid,
         ...     number_of_sediment_classes=3,
-        ...     abrasion_coefficients=[0.002, 0.0002, 0.00002]
+        ...     abrasion_coefficients=[0.002, 0.0002, 0.00002],
         ... )
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
@@ -805,12 +804,12 @@ class GravelBedrockEroder(Component):
         """
         cores = self.grid.core_nodes
         for i in range(self._num_sed_classes):
-            #print("Class", i)
-            #print("in", self._sed_influxes[i, cores])
-            #print("out", self._sed_outfluxes[i, cores])
-            #print("pr", self._pluck_rate[cores])
-            #print("pcf", self._pluck_coarse_frac[i])
-            #print("sar", self._sed_abr_rates[i, cores])
+            # print("Class", i)
+            # print("in", self._sed_influxes[i, cores])
+            # print("out", self._sed_outfluxes[i, cores])
+            # print("pr", self._pluck_rate[cores])
+            # print("pcf", self._pluck_coarse_frac[i])
+            # print("sar", self._sed_abr_rates[i, cores])
             self._dHdt_by_class[i, cores] = self._porosity_factor * (
                 (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
                 / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
@@ -818,7 +817,7 @@ class GravelBedrockEroder(Component):
                 - self._sed_abr_rates[i, cores]
             )
         self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
-        #print("dhdt", self._dHdt[4])
+        # print("dhdt", self._dHdt[4])
 
     def _update_slopes(self):
         """Update self._slope.
@@ -990,10 +989,10 @@ class GravelBedrockEroder(Component):
         using current rates of change extrapolated forward by time dt.
         """
         self._sed += self._dHdt * dt
-        #print("be bef", self._bedrock__elevation)
-        #print("blr", self._rock_lowering_rate)
+        # print("be bef", self._bedrock__elevation)
+        # print("blr", self._rock_lowering_rate)
         self._bedrock__elevation -= self._rock_lowering_rate * dt
-        #print("be aft", self._bedrock__elevation)
+        # print("be aft", self._bedrock__elevation)
         self._elev[:] = self._bedrock__elevation + self._sed
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):

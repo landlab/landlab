@@ -280,8 +280,8 @@ def test_calculations_in_sequence():
         grid.at_node["bedrock__plucking_rate"][4], 1.58113883e-7, decimal=15
     )
     assert_almost_equal(
-        gbe._sed_abr_rates[0,4],
-        #grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"][4],
+        gbe._sed_abr_rates[0, 4],
+        # grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"][4],
         3.952847e-9,
         decimal=15,
     )
