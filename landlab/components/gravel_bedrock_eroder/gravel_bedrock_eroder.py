@@ -384,15 +384,25 @@ class GravelBedrockEroder(Component):
         self._sed_abr_rates = np.zeros(
             (number_of_sediment_classes, grid.number_of_nodes)
         )
-        self._sediment_fraction = np.zeros(
-            (number_of_sediment_classes, grid.number_of_nodes)
-        )
         self._dHdt_by_class = np.zeros(
             (number_of_sediment_classes, grid.number_of_nodes)
         )
+        if number_of_sediment_classes == 1:  # use view of array to save space
+            self._sediment_outflux = self._sed_outfluxes[0]
+            grid.at_node["bedload_sediment__volume_outflux"] = self._sediment_outflux
+            self._sediment_influx = self._sed_influxes[0]
+            grid.at_node["bedload_sediment__volume_influx"] = self._sediment_influx
+        elif number_of_sediment_classes > 1:
+            self._sediment_fraction = np.zeros(
+                (number_of_sediment_classes, grid.number_of_nodes)
+            )
+        else:
+            print("number_of_sediment_classes must be >0")
+            raise ValueError
 
         self._num_sed_classes = number_of_sediment_classes
-        self._abr_coefs = abrasion_coefficients
+        self._abr_coefs = np.array(abrasion_coefficients)
+        print("ac", self._abr_coefs)
         self._pluck_coarse_frac = coarse_fractions_from_plucking
 
     def _setup_length_of_flow_link(self):
@@ -585,11 +595,12 @@ class GravelBedrockEroder(Component):
             * self._slope**_SEVEN_SIXTHS
             * (1.0 - self._rock_exposure_fraction)
         )
-        self.calc_sediment_fractions()
-        for i in range(self._num_sed_classes):
-            self._sed_outfluxes[i, :] = (
-                self._sediment_fraction[i, :] * self._sediment_outflux
-            )
+        if self._num_sed_classes > 1:
+            self.calc_sediment_fractions()
+            for i in range(self._num_sed_classes):
+                self._sed_outfluxes[i, :] = (
+                    self._sediment_fraction[i, :] * self._sediment_outflux
+                )
 
     def calc_abrasion_rate(self):
         """Update the volume rate of bedload loss to abrasion, per unit area.
@@ -626,6 +637,10 @@ class GravelBedrockEroder(Component):
         """
         cores = self._grid.core_nodes
         for i in range(self._num_sed_classes):
+            print("class", i)
+            print("ac", self._abr_coefs[i])
+            print("so", self._sed_outfluxes[i, cores])
+            print("si", self._sed_influxes[i, cores])
             self._sed_abr_rates[i, cores] = (
                 self._abr_coefs[i]
                 * 0.5
@@ -962,8 +977,11 @@ class GravelBedrockEroder(Component):
             self._update_flow_link_length_over_cell_area()
         self.calc_bedrock_plucking_rate()
         if np.amax(self._abr_coefs) > 0.0:
+            print("all is well")
             self.calc_abrasion_rate()
             self.calc_bedrock_abrasion_rate()
+        else:
+            print("NO NOT THIS")
         self.calc_sediment_rate_of_change()
         self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
 
