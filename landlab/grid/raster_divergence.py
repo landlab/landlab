@@ -4,8 +4,8 @@ import numpy as np
 
 from landlab.utils.decorators import use_field_name_or_array
 
-from .ext.raster_divergence import calc_flux_div_at_node as _calc_flux_div_at_node_c
 from .ext.raster_divergence import (
+    calc_flux_div_at_node as _calc_flux_div_at_node_c,
     calc_net_face_flux_at_cell as calc_net_face_flux_at_cell_c,
 )
 
