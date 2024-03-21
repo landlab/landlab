@@ -8,7 +8,10 @@ style
 
 import numpy as np
 
-from landlab import Component, LinkStatus, NodeStatus, RasterModelGrid
+from landlab import Component
+from landlab import LinkStatus
+from landlab import NodeStatus
+from landlab import RasterModelGrid
 
 _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)

@@ -12,8 +12,10 @@ from ..field import GraphFields
 from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
 from .base import BAD_INDEX_VALUE
-from .decorators import override_array_setitem_and_reset, return_readonly_id_array
-from .linkstatus import LinkStatus, set_status_at_link
+from .decorators import override_array_setitem_and_reset
+from .decorators import return_readonly_id_array
+from .linkstatus import LinkStatus
+from .linkstatus import set_status_at_link
 from .nodestatus import NodeStatus
 
 

@@ -1,4 +1,5 @@
 """Calculate Hack parameters."""
+
 import collections
 from itertools import chain
 

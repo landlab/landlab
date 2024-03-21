@@ -14,7 +14,8 @@ import xarray as xr
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import make_return_array_immutable
 
-from ..core.utils import add_module_functions_to_class, as_id_array
+from ..core.utils import add_module_functions_to_class
+from ..core.utils import as_id_array
 from ..field import FieldError
 from ..graph import DualUniformRectilinearGraph
 from . import raster_funcs as rfuncs
@@ -103,7 +104,6 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
 
 
 class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
-
     """A 2D uniform rectilinear grid.
 
     Examples

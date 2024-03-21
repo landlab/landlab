@@ -5,14 +5,17 @@ Created on Sun Sep 27 09:52:50, 2015
 
 @author: gtucker, amended dejh
 """
+
 import numpy as np  # for use of np.round
 import pytest
-from numpy import pi, sin
+from numpy import pi
+from numpy import sin
 from numpy.testing import assert_array_equal
 from pytest import approx
 
 from landlab import RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator
+from landlab.components import DepressionFinderAndRouter
+from landlab.components import FlowAccumulator
 from landlab.components.depression_finder.cfuncs import (
     find_lowest_node_on_lake_perimeter_c,
 )

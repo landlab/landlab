@@ -7,7 +7,8 @@ Created on Fri Mar  3 10:39:32 2017
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import DepthDependentDiffuser, ExponentialWeatherer
+from landlab.components import DepthDependentDiffuser
+from landlab.components import ExponentialWeatherer
 
 
 def test_raise_kwargs_error():

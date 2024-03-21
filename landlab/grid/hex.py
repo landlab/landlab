@@ -271,7 +271,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         import matplotlib
         from matplotlib.collections import PatchCollection
         from matplotlib.patches import Polygon
-        from numpy import array, sqrt, zeros
+        from numpy import array
+        from numpy import sqrt
+        from numpy import zeros
 
         # color
         if color_map is None:
@@ -352,7 +354,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         import copy
 
         import matplotlib.pyplot as plt
-        from numpy import amax, amin, array
+        from numpy import amax
+        from numpy import amin
+        from numpy import array
 
         try:
             self._hexplot_configured

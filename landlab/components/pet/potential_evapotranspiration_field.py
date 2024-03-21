@@ -11,7 +11,6 @@ def _assert_method_is_valid(method):
 
 
 class PotentialEvapotranspiration(Component):
-
     """
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial

@@ -58,7 +58,6 @@ def simple_poly_area(x, y):
 
 
 class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
-
     """This inherited class implements an unstructured grid in which cells are
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.

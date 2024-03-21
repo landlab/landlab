@@ -31,7 +31,6 @@ from landlab.plot import imshow
 
 
 class VideoPlotter:
-
     """Create animations of landlab output.
 
     Create Landlab movies.

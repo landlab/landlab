@@ -10,7 +10,6 @@ from .framed_voronoi import FramedVoronoiGraph
 
 
 class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
-
     """Graph of a unstructured grid of Voronoi Delaunay cells and
     irregular patches. It is a special type of VoronoiDelaunay graph in which
     the initial set of points is arranged in a fixed lattice (e.g. like a rectangular

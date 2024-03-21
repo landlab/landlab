@@ -1,10 +1,10 @@
 import numpy as np
 
+from .ext.remap_element import map_pairs_to_values as _map_pairs_to_values
 from .ext.remap_element import (
-    map_pairs_to_values as _map_pairs_to_values,
     map_rolling_pairs_to_values as _map_rolling_pairs_to_values,
-    pair_isin as _pair_isin,
 )
+from .ext.remap_element import pair_isin as _pair_isin
 
 
 def pair_isin(src, pairs, out=None, sorter=None, sorted=False):
