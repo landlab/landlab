@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from functools import cached_property
 
 import numpy as np
@@ -16,48 +17,39 @@ class StructuredQuadLayout(ABC):
 
     @staticmethod
     @abstractmethod
-    def links_at_patch(shape):
-        ...
+    def links_at_patch(shape): ...
 
     @staticmethod
     @abstractmethod
-    def nodes_at_link(shape):
-        ...
+    def nodes_at_link(shape): ...
 
     @staticmethod
     @abstractmethod
-    def horizontal_links(shape):
-        ...
+    def horizontal_links(shape): ...
 
     @staticmethod
     @abstractmethod
-    def vertical_links(shape):
-        ...
+    def vertical_links(shape): ...
 
     @staticmethod
     @abstractmethod
-    def perimeter_nodes(shape):
-        ...
+    def perimeter_nodes(shape): ...
 
     @staticmethod
     @abstractmethod
-    def links_at_node(shape):
-        ...
+    def links_at_node(shape): ...
 
     @staticmethod
     @abstractmethod
-    def patches_at_link(shape):
-        ...
+    def patches_at_link(shape): ...
 
     @staticmethod
     @abstractmethod
-    def link_dirs_at_node(shape):
-        ...
+    def link_dirs_at_node(shape): ...
 
     @staticmethod
     @abstractmethod
-    def patches_at_node(shape):
-        ...
+    def patches_at_node(shape): ...
 
 
 class StructuredQuadLayoutCython(StructuredQuadLayout):
@@ -658,7 +650,6 @@ class StructuredQuadGraph(StructuredQuadGraphExtras):
 
 
 class RectilinearGraph(StructuredQuadGraphExtras):
-
     """Graph of a rectlinear grid of nodes.
 
     Examples
@@ -695,7 +686,6 @@ class RectilinearGraph(StructuredQuadGraphExtras):
 
 
 class UniformRectilinearGraph(StructuredQuadGraphExtras):
-
     """Graph of a structured grid of quadrilaterals.
 
     Examples

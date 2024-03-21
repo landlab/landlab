@@ -23,12 +23,11 @@ from ..layers.materiallayers import MaterialLayersMixIn
 from ..plot.imshow import ModelGridPlotterMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
-from .decorators import (
-    override_array_setitem_and_reset,
-    return_id_array,
-    return_readonly_id_array,
-)
-from .linkstatus import LinkStatus, set_status_at_link
+from .decorators import override_array_setitem_and_reset
+from .decorators import return_id_array
+from .decorators import return_readonly_id_array
+from .linkstatus import LinkStatus
+from .linkstatus import set_status_at_link
 from .nodestatus import NodeStatus
 
 #: Indicates an index is, in some way, *bad*.
@@ -264,7 +263,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 class ModelGrid(
     GraphFields, EventLayersMixIn, MaterialLayersMixIn, ModelGridPlotterMixIn
 ):
-
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
@@ -2096,7 +2094,8 @@ class ModelGrid(
 
         Call whenever boundary conditions are updated on the grid.
         """
-        from landlab import RasterModelGrid, VoronoiDelaunayGrid
+        from landlab import RasterModelGrid
+        from landlab import VoronoiDelaunayGrid
 
         node_status_at_patch = self.status_at_node[self.nodes_at_patch]
         if isinstance(self, RasterModelGrid):

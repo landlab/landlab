@@ -3,7 +3,9 @@
 from collections import OrderedDict
 
 import numpy as np
-from matplotlib import cm, colors, pyplot as plt
+from matplotlib import cm
+from matplotlib import colors
+from matplotlib import pyplot as plt
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 

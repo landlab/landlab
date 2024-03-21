@@ -88,10 +88,12 @@ array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  1.1,  1.1,  1.1,  0. ,
         0. ,  0. ,  0. ,  0. ])
 """
+
 import numpy as np
 import scipy.constants
 
-from landlab import Component, FieldError
+from landlab import Component
+from landlab import FieldError
 
 from . import _links as links
 
@@ -156,7 +158,6 @@ def _active_links_at_node(grid, *args):
 
 
 class OverlandFlow(Component):
-
     """Simulate overland flow using de Almeida approximations.
 
     Landlab component that simulates overland flow using the de Almeida
@@ -583,9 +584,9 @@ class OverlandFlow(Component):
             ]
 
             # And insert these values into an array of all links
-            self._water_surface_slope[
-                self._active_links
-            ] = self._water_surface__gradient
+            self._water_surface_slope[self._active_links] = (
+                self._water_surface__gradient
+            )
             # If the user chooses to set boundary links to the neighbor value,
             # we set the discharge array to have the boundary links set to
             # their neighbor value

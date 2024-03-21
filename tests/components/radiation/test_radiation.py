@@ -1,6 +1,7 @@
 """
 Unit tests for landlab.components.radiation.radiation
 """
+
 import numpy as np
 import pytest
 

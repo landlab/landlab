@@ -19,12 +19,15 @@ from functools import partial
 import numpy as np
 import numpy.matlib as npm
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component
+from landlab import FieldError
+from landlab import RasterModelGrid
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
-from .cfuncs import _D8_FlowAcc, _D8_flowDir
+from .cfuncs import _D8_FlowAcc
+from .cfuncs import _D8_flowDir
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -38,7 +41,6 @@ PMULTIPLE_FMs = ["Quinn", "Freeman", "Holmgren", "Dinf"]
 
 
 class PriorityFloodFlowRouter(Component):
-
     """Component to accumulate flow and calculate drainage area based RICHDEM software package.
 
     See also: https://richdem.readthedocs.io/en/latest/

@@ -20,7 +20,6 @@ from .celllab_cts import CellLabCTSModel
 
 
 class OrientedRasterCTS(CellLabCTSModel):
-
     """Oriented raster CellLab-CTS model.
 
     RasterCTS constructor: sets number of orientations to 2 and calls

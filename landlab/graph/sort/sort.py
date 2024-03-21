@@ -6,7 +6,8 @@ structure.
 
 import numpy as np
 
-from ...core.utils import argsort_points_by_x_then_y, as_id_array
+from ...core.utils import argsort_points_by_x_then_y
+from ...core.utils import as_id_array
 from ...utils.jaggedarray import flatten_jagged_array
 from ..quantity.ext.of_element import mean_of_children_at_parent
 from .ext.argsort import sort_id_array
@@ -533,7 +534,8 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     >>> offset_to_patch
     array([0, 3, 6])
     """
-    from .ext.remap_element import calc_center_of_patch, reorder_patches
+    from .ext.remap_element import calc_center_of_patch
+    from .ext.remap_element import reorder_patches
 
     n_patches = len(offset_to_patch) - 1
     xy_at_patch = np.empty((n_patches, 2), dtype=float)

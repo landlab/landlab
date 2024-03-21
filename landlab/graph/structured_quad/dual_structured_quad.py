@@ -1,11 +1,9 @@
 import numpy as np
 
 from ..dual import DualGraph
-from .structured_quad import (
-    RectilinearGraph,
-    StructuredQuadGraph,
-    UniformRectilinearGraph,
-)
+from .structured_quad import RectilinearGraph
+from .structured_quad import StructuredQuadGraph
+from .structured_quad import UniformRectilinearGraph
 
 
 class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
@@ -108,7 +106,6 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
 
 
 class DualRectilinearGraph(DualGraph, RectilinearGraph):
-
     """Create a dual graph for a rectilinear grid.
 
     Examples
@@ -153,7 +150,6 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
 
 
 class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
-
     """Create a dual graph for a uniform rectilinear grid.
 
     Examples

@@ -9,8 +9,10 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import ErosionDeposition, FlowAccumulator
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components import ErosionDeposition
+from landlab.components import FlowAccumulator
 
 
 def test_route_to_multiple_error_raised():

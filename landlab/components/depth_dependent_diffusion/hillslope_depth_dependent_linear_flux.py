@@ -5,11 +5,11 @@
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 
 
 class DepthDependentDiffuser(Component):
-
     """This component implements a depth and slope dependent linear diffusion
     rule in the style of Johnstone and Hilley (2014).
 

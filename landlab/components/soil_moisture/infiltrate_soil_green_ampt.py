@@ -6,7 +6,6 @@ from landlab import Component
 
 
 class SoilInfiltrationGreenAmpt(Component):
-
     """Infiltrate surface water into a soil following the Green-Ampt method.
 
     This component calculates the infiltation of surface water into the soil,

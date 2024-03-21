@@ -3,12 +3,10 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab.graph.hex.hex import (
-    HorizontalHexTriGraph,
-    HorizontalRectTriGraph,
-    VerticalHexTriGraph,
-    VerticalRectTriGraph,
-)
+from landlab.graph.hex.hex import HorizontalHexTriGraph
+from landlab.graph.hex.hex import HorizontalRectTriGraph
+from landlab.graph.hex.hex import VerticalHexTriGraph
+from landlab.graph.hex.hex import VerticalRectTriGraph
 
 
 @pytest.mark.parametrize(

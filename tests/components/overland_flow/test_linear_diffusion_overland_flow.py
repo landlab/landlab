@@ -7,7 +7,8 @@ Created on Sat Apr  1 10:49:33 2017
 @author: gtucker
 """
 
-from numpy.testing import assert_allclose, assert_raises
+from numpy.testing import assert_allclose
+from numpy.testing import assert_raises
 
 from landlab import RasterModelGrid
 from landlab.components import LinearDiffusionOverlandFlowRouter

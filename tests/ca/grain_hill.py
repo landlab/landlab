@@ -7,13 +7,19 @@ import sys
 import time
 
 from matplotlib.pyplot import axis
-from numpy import amax, arange, count_nonzero, logical_and, where, zeros
+from numpy import amax
+from numpy import arange
+from numpy import count_nonzero
+from numpy import logical_and
+from numpy import where
+from numpy import zeros
 
 from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
 from landlab.ca.celllab_cts import Transition
 
 from .cts_model import CTSModel
-from .lattice_grain import lattice_grain_node_states, lattice_grain_transition_list
+from .lattice_grain import lattice_grain_node_states
+from .lattice_grain import lattice_grain_transition_list
 
 _DEBUG = False
 

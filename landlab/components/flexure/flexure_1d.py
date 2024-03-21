@@ -70,7 +70,6 @@ from .ext import subside_load_1d
 
 
 class Flexure1D(Component):
-
     """Deform the lithosphere with 1D flexure.
 
     Landlab component that implements a 1D lithospheric flexure model.

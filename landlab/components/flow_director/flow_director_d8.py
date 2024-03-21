@@ -18,7 +18,6 @@ from landlab.components.flow_director.flow_director_to_one import _FlowDirectorT
 
 
 class FlowDirectorD8(_FlowDirectorToOne):
-
     """Single-path (steepest direction) flow direction with diagonals on
     rasters.
 

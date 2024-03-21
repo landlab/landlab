@@ -5,17 +5,23 @@ Tests written by Jeff Keck and Allison Pfeiffer
 import numpy as np
 import pytest
 
-from landlab.components import (
-    BedParcelInitializerArea,
-    BedParcelInitializerDepth,
-    BedParcelInitializerDischarge,
-    BedParcelInitializerUserD50,
-)
+from landlab.components import BedParcelInitializerArea
+from landlab.components import BedParcelInitializerDepth
+from landlab.components import BedParcelInitializerDischarge
+from landlab.components import BedParcelInitializerUserD50
 from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     _determine_approx_parcel_volume,
+)
+from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     calc_d50_dArea_scaling,
+)
+from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     calc_d50_depth,
+)
+from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     calc_d50_discharge,
+)
+from landlab.components.network_sediment_transporter.bed_parcel_initializers import (
     calc_total_parcel_volume,
 )
 from landlab.data_record import DataRecord
