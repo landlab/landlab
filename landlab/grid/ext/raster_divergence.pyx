@@ -38,6 +38,8 @@ def calc_flux_div_at_node(
             link = link + 1
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def calc_net_face_flux_at_cell(
     shape,
     xy_spacing,
@@ -50,13 +52,14 @@ def calc_net_face_flux_at_cell(
     cdef int n_rows = shape[0] - 2
     cdef int n_cells = n_rows * n_cols
     cdef int cell
+    cdef int col
     cdef int face
     cdef int row
 
-    for cell in range(n_cells):
+    for cell in prange(n_cells, nogil=True, schedule="static"):
         out[cell] = 0.0
 
-    for row in range(n_rows):
+    for row in prange(n_rows, nogil=True, schedule="static"):
         cell = row * n_cols
         face = n_cols + row * (2 * n_cols + 1)
 
