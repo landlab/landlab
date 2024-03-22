@@ -237,9 +237,14 @@ def test_calculations_in_sequence():
           0.5 x (0.079 + 0) m3/y x 0.0001 1/m x 1000 m / 1e6 m2 ~ 3.952847e-9 m/y
         - bedrock abrasion rate: should be 0.5 times above ~ 1.9764235e-09 m/y
         - sediment rate of change: should be
-          (1 / (1 - 0.5) x ((0 - 0.079) / 1e6) + 1.58e-7 - 3.95e-9)
-        self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
+          (1 / (1 - 0.5)) x ((0 - 0.079) / 1e6) + 1.58e-7 - 3.95e-9)
+          = 2 x (7.9e-8 + 1.58e-7 - 3.95e-9)
+          ~ +1.501e-7
+        - rock lowering rate: should be ~1.58e-7 + 2.0e-9 ~ 1.60e-7
 
+    _update_rock_sed_and_elev() updates:
+        - sediment thickness: starting with 0.69314718 m, adding 10,000 x 1.50208e-7 ~0.69464926 m
+        - bedrock elevation: starting with 0.3068528 m, losing ~1.6e-7 x 10,000 ~0.3052528
     """
     grid = RasterModelGrid((3, 3), 1000.0)
     grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
@@ -264,7 +269,9 @@ def test_calculations_in_sequence():
         abrasion_coefficients=[0.0001],
         coarse_fractions_from_plucking=[1.0],
     )
-    gbe.run_one_step(1.0)
+    gbe.run_one_step(
+        0.001
+    )  # tiny time step to calculate rates but mostly preserve elev and sed thickness
 
     assert_almost_equal(grid.at_node["bedrock__elevation"][4], 0.30685281944, decimal=6)
     assert_almost_equal(grid.at_node["soil__depth"][4], 0.69314718, decimal=6)
@@ -279,10 +286,22 @@ def test_calculations_in_sequence():
     assert_almost_equal(
         grid.at_node["bedrock__plucking_rate"][4], 1.58113883e-7, decimal=15
     )
+    print("passed to here, trying sar")
     assert_almost_equal(
-        gbe._sed_abr_rates[0,4],
-        #grid.at_node["bedload_sediment__rate_of_loss_to_abrasion"][4],
+        gbe._sed_abr_rates[0, 4],
         3.952847e-9,
         decimal=15,
     )
-    assert_almost_equal(grid.at_node["bedrock__abrasion_rate"][4], 1.9764235e-09)
+    assert_almost_equal(
+        grid.at_node["bedrock__abrasion_rate"][4], 1.9764235e-09, decimal=15
+    )
+    assert_almost_equal(gbe._dHdt[4], 1.50e-7, decimal=9)
+    assert_almost_equal(gbe._rock_lowering_rate[4], 1.60e-7, decimal=9)
+
+    gbe.run_one_step(
+        10000.0
+    )  # big time step to get measurable change in elev and sed thickness
+
+    assert_almost_equal(sed[4], 0.694649262)
+    assert_almost_equal(rock[4], 0.305252, decimal=6)
+    assert_almost_equal(elev[4], 0.9999, decimal=5)
