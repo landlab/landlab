@@ -117,9 +117,7 @@ class GravelBedrockEroder(Component):
     >>> fa = FlowAccumulator(grid, runoff_rate=10.0)
     >>> fa.run_one_step()
     >>> eroder = GravelBedrockEroder(
-    ...     grid,
-    ...     sediment_porosity=0.0,
-    ...     abrasion_coefficients=[0.0005]
+    ...     grid, sediment_porosity=0.0, abrasion_coefficients=[0.0005]
     ... )
     >>> rock_elev = grid.at_node["bedrock__elevation"]
     >>> for _ in range(150):
@@ -277,8 +275,8 @@ class GravelBedrockEroder(Component):
         plucking_coefficient=1.0e-4,
         number_of_sediment_classes=1,
         init_thickness_per_class=None,
-        abrasion_coefficients=[0.0],
-        coarse_fractions_from_plucking=[1.0],
+        abrasion_coefficients=0.0,
+        coarse_fractions_from_plucking=1.0,
         rock_abrasion_index=0,
     ):
         """Initialize GravelBedrockEroder."""
@@ -532,11 +530,9 @@ class GravelBedrockEroder(Component):
         self._sediment_fraction[:, :] = 0.0
         for i in range(self._num_sed_classes):
             self._sediment_fraction[i, :] = np.divide(
-                self._thickness_by_class[i, :],
-                self._sed,
-                where=self._sed > 0.0
+                self._thickness_by_class[i, :], self._sed, where=self._sed > 0.0
             )
-        assert(np.all(self._sed >= 0.0)) # temp test, to be removed
+        assert np.all(self._sed >= 0.0)  # temp test, to be removed
 
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.
@@ -632,7 +628,7 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(
         ...     grid,
         ...     number_of_sediment_classes=3,
-        ...     abrasion_coefficients=[0.002, 0.0002, 0.00002]
+        ...     abrasion_coefficients=[0.002, 0.0002, 0.00002],
         ... )
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()

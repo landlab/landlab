@@ -243,8 +243,10 @@ def test_calculations_in_sequence():
         - rock lowering rate: should be ~1.58e-7 + 2.0e-9 ~ 1.60e-7
 
     _update_rock_sed_and_elev() updates:
-        - sediment thickness: starting with 0.69314718 m, adding 10,000 x 1.50208e-7 ~0.69464926 m
-        - bedrock elevation: starting with 0.3068528 m, losing ~1.6e-7 x 10,000 ~0.3052528
+        - sediment thickness:
+          starting with 0.69314718 m, adding 10,000 x 1.50208e-7 ~0.69464926 m
+        - bedrock elevation:
+          starting with 0.3068528 m, losing ~1.6e-7 x 10,000 ~0.3052528
     """
     grid = RasterModelGrid((3, 3), 1000.0)
     grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
