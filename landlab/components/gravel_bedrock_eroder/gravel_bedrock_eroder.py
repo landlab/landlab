@@ -79,12 +79,17 @@ class GravelBedrockEroder(Component):
         Scale for depth decay in bedrock exposure function
     plucking_coefficient : float or (n_core_nodes,) array of float (default 1.0e-4 1/m)
         Rate coefficient for bedrock erosion by plucking
-    coarse_fraction_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
-        Fraction of plucked material that becomes part of gravel sediment load
     number_of_sediment_classes : int (default 1)
         Number of sediment abradability classes
+    init_thickness_per_class : float or (n_core_nodes,) array of float (default 1 / n-classes)
+        Starting thickness for each sediment fraction
     abrasion_coefficients : iterable containing floats (default 0.0 1/m)
         Abrasion coefficients; should be same length as number of sed classes
+    coarse_fractions_from_plucking : float or (n_core_nodes,) array of float (default 1.0)
+        Fraction(s) of plucked material that becomes part of gravel sediment load
+    rock_abrasion_index : int (default 0)
+        If multiple classes, specifies which contains the abrasion
+        coefficient for bedrock
 
     Notes
     -----
