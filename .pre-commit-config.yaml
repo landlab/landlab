@@ -14,7 +14,7 @@ repos:
       language: pygrep
 
 - repo: https://github.com/psf/black
-  rev: 24.2.0
+  rev: 24.3.0
   hooks:
   - id: black
     name: black
@@ -41,7 +41,7 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
-    additional_dependencies: ["black==24.2.0"]
+    additional_dependencies: ["black==24.3.0"]
   - id: blackdoc-autoupdate-black
 
 
@@ -75,7 +75,7 @@ repos:
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.1
+  rev: v3.15.2
   hooks:
   - id: pyupgrade
     args: [--py310-plus]
