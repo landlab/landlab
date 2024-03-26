@@ -826,7 +826,7 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._dHdt_by_class[0, 5:7], 8)
         array([ -2.93000000e-06,  -2.93000000e-06])
         """
-        if False:  # use_cfuncs:
+        if use_cfuncs:
             _calc_sediment_rate_of_change(
                 self._num_sed_classes,
                 self.grid.number_of_core_nodes,
