@@ -76,13 +76,12 @@ def _calc_sediment_rate_of_change(
     np.ndarray[DTYPE_t, ndim=2] sed_outfluxes,
     np.ndarray[DTYPE_t, ndim=2] sed_abr_rates,
 ):
-
     cdef int c, i, j
 
     for j in range(num_core_nodes):
-        dHdt[j] = 0.0
+        c = core_nodes[j]
+        dHdt[c] = 0.0
         for i in range(num_sed_classes):
-            c = core_nodes[j]
             dHdt_by_class[i, c] = porosity_factor * (
                 (sed_influxes[i, c] - sed_outfluxes[i, c])
                 / area_of_cell
