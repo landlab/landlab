@@ -12,7 +12,11 @@ from landlab.grid.diagonals import DiagonalsMixIn
 
 use_cfuncs = True
 if use_cfuncs:
-    from .cfuncs import _calc_sediment_influx, _estimate_max_time_step_size_ext
+    from .cfuncs import (
+        _calc_sediment_influx,
+        _calc_sediment_rate_of_change,
+        _estimate_max_time_step_size_ext,
+    )
 
 
 _DT_MAX = 1.0e-2
@@ -822,15 +826,31 @@ class GravelBedrockEroder(Component):
         >>> np.round(eroder._dHdt_by_class[0, 5:7], 8)
         array([ -2.93000000e-06,  -2.93000000e-06])
         """
-        cores = self.grid.core_nodes
-        for i in range(self._num_sed_classes):
-            self._dHdt_by_class[i, cores] = self._porosity_factor * (
-                (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
-                / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
-                + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
-                - self._sed_abr_rates[i, cores]
+        if False:  # use_cfuncs:
+            _calc_sediment_rate_of_change(
+                self._num_sed_classes,
+                self.grid.number_of_core_nodes,
+                self._porosity_factor,
+                self.grid.area_of_cell[0],
+                self.grid.core_nodes,
+                self._pluck_coarse_frac,
+                self._dHdt,
+                self._pluck_rate,
+                self._dHdt_by_class,
+                self._sed_influxes,
+                self._sed_outfluxes,
+                self._sed_abr_rates,
             )
-        self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
+        else:
+            cores = self.grid.core_nodes
+            for i in range(self._num_sed_classes):
+                self._dHdt_by_class[i, cores] = self._porosity_factor * (
+                    (self._sed_influxes[i, cores] - self._sed_outfluxes[i, cores])
+                    / self.grid.area_of_cell[self.grid.cell_at_node[cores]]
+                    + (self._pluck_rate[cores] * self._pluck_coarse_frac[i])
+                    - self._sed_abr_rates[i, cores]
+                )
+            self._dHdt[:] = np.sum(self._dHdt_by_class, axis=0)
 
     def _update_slopes(self):
         """Update self._slope.
@@ -1039,10 +1059,13 @@ class GravelBedrockEroder(Component):
             dzdt = self._dHdt - self._rock_lowering_rate
             rate_diff = dzdt[self._receiver_node] - dzdt
             height_above_rcvr = self._elev - self._elev[self._receiver_node]
-            slope_is_declining = np.logical_and(rate_diff > 0.0, height_above_rcvr > 0.0)
+            slope_is_declining = np.logical_and(
+                rate_diff > 0.0, height_above_rcvr > 0.0
+            )
             if np.any(slope_is_declining):
                 min_time_to_flatten_slope = np.amin(
-                    height_above_rcvr[slope_is_declining] / rate_diff[slope_is_declining]
+                    height_above_rcvr[slope_is_declining]
+                    / rate_diff[slope_is_declining]
                 )
             else:
                 min_time_to_flatten_slope = upper_limit_dt

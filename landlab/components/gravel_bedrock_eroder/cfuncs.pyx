@@ -1,4 +1,5 @@
 import numpy as np
+from cython.parallel import prange
 
 cimport cython
 cimport numpy as np
@@ -33,6 +34,7 @@ def _calc_sediment_influx(
         for i in range(num_sed_classes):
             sed_influxes[i, r] += sed_outfluxes[i, c]
 
+@cython.boundscheck(False)
 def _estimate_max_time_step_size_ext(
     DTYPE_t upper_limit_dt,
     DTYPE_INT_t num_nodes,
@@ -57,4 +59,34 @@ def _estimate_max_time_step_size_ext(
         if rate_diff > 0.0 and height_above_rcvr > 0.0:
             min_time_to_flatten_slope = min(min_time_to_flatten_slope, height_above_rcvr / rate_diff)
 
-        return 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
+    return 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
+
+@cython.boundscheck(False)
+def _calc_sediment_rate_of_change(
+    DTYPE_INT_t num_sed_classes,
+    DTYPE_INT_t num_core_nodes,
+    DTYPE_t porosity_factor,
+    DTYPE_t area_of_cell,
+    np.ndarray[DTYPE_INT_t, ndim=1] core_nodes,
+    np.ndarray[DTYPE_t, ndim=1] pluck_coarse_frac,
+    np.ndarray[DTYPE_t, ndim=1] dHdt,
+    np.ndarray[DTYPE_t, ndim=1] pluck_rate,
+    np.ndarray[DTYPE_t, ndim=2] dHdt_by_class,
+    np.ndarray[DTYPE_t, ndim=2] sed_influxes,
+    np.ndarray[DTYPE_t, ndim=2] sed_outfluxes,
+    np.ndarray[DTYPE_t, ndim=2] sed_abr_rates,
+):
+
+    cdef int c, i, j
+
+    for j in range(num_core_nodes):
+        dHdt[j] = 0.0
+        for i in range(num_sed_classes):
+            c = core_nodes[j]
+            dHdt_by_class[i, c] = porosity_factor * (
+                (sed_influxes[i, c] - sed_outfluxes[i, c])
+                / area_of_cell
+                + (pluck_rate[c] * pluck_coarse_frac[i])
+                - sed_abr_rates[i, c]
+            )
+            dHdt[c] += dHdt_by_class[i, c]

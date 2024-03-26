@@ -1,30 +1,34 @@
+import cProfile
 
 import numpy as np
-import cProfile
-import matplotlib.pyplot as plt
+
 from landlab import HexModelGrid
 from landlab.components import FlowAccumulator, GravelBedrockEroder
 
 
 class BigantrSimulator:
     def __init__(
-            self,
-            nrows,
-            ncols,
-            dx,
-            rand_elev,
-            init_sed,
-            ngrains,
-            abrasion_coefs,
-            gravel_fracs,
-            pluck_coef,
-            uplift_rate,
-            update_interval=50000.0
+        self,
+        nrows,
+        ncols,
+        dx,
+        rand_elev,
+        init_sed,
+        ngrains,
+        abrasion_coefs,
+        gravel_fracs,
+        pluck_coef,
+        uplift_rate,
+        update_interval=50000.0,
     ):
         self.grid = HexModelGrid((nrows, ncols), spacing=dx, node_layout="rect")
 
-        self.grid.status_at_node[self.grid.perimeter_nodes] = self.grid.BC_NODE_IS_CLOSED
-        self.grid.status_at_node[self.grid.y_of_node == 0.0] = self.grid.BC_NODE_IS_FIXED_VALUE
+        self.grid.status_at_node[
+            self.grid.perimeter_nodes
+        ] = self.grid.BC_NODE_IS_CLOSED
+        self.grid.status_at_node[
+            self.grid.y_of_node == 0.0
+        ] = self.grid.BC_NODE_IS_FIXED_VALUE
 
         self.elev = self.grid.add_zeros("topographic__elevation", at="node")
         self.rock = self.grid.add_zeros("bedrock__elevation", at="node")
@@ -83,4 +87,6 @@ def main():
 
     model.update_until(1.0e5, 100.0)
 
-cProfile.run('main()', sort="tottime")
+
+if __name__ == "__main__":
+    cProfile.run("main()", sort="tottime")
