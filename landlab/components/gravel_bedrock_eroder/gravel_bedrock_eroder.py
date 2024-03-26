@@ -10,6 +10,11 @@ import numpy as np
 from landlab import Component, HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
+use_cfuncs = True
+if use_cfuncs:
+    from .cfuncs import _calc_sediment_influx, _estimate_max_time_step_size_ext
+
+
 _DT_MAX = 1.0e-2
 _ONE_SIXTH = 1.0 / 6.0
 _SEVEN_SIXTHS = 7.0 / 6.0
@@ -732,14 +737,26 @@ class GravelBedrockEroder(Component):
         (1) Total flux in the field ``bedload_sediment__volume_influx``
         (2) Per size class in the _sed_influxes array
         """
-        self._sediment_influx[:] = 0.0
-        self._sed_influxes[:, :] = 0.0
-        for c in self.grid.core_nodes:  # send sediment downstream
-            r = self._receiver_node[c]
-            if self._num_sed_classes > 1:
-                self._sediment_influx[r] += self._sediment_outflux[c]
-            for i in range(self._num_sed_classes):
-                self._sed_influxes[i, r] += self._sed_outfluxes[i, c]
+        if use_cfuncs:
+            _calc_sediment_influx(
+                self._num_sed_classes,
+                self.grid.number_of_core_nodes,
+                self._sediment_influx,
+                self._sed_influxes,
+                self._sediment_outflux,
+                self._sed_outfluxes,
+                self.grid.core_nodes,
+                self._receiver_node,
+            )
+        else:
+            self._sediment_influx[:] = 0.0
+            self._sed_influxes[:, :] = 0.0
+            for c in self.grid.core_nodes:  # send sediment downstream
+                r = self._receiver_node[c]
+                if self._num_sed_classes > 1:
+                    self._sediment_influx[r] += self._sediment_outflux[c]
+                for i in range(self._num_sed_classes):
+                    self._sed_influxes[i, r] += self._sed_outfluxes[i, c]
 
     def calc_sediment_rate_of_change(self):
         """
@@ -975,7 +992,7 @@ class GravelBedrockEroder(Component):
             self.calc_abrasion_rate()
             self.calc_bedrock_abrasion_rate()
         self.calc_sediment_rate_of_change()
-        self._rock_lowering_rate = self._pluck_rate + self._rock_abrasion_rate
+        self._rock_lowering_rate[:] = self._pluck_rate + self._rock_abrasion_rate
 
     def _update_rock_sed_and_elev(self, dt):
         """Update rock elevation, sediment thickness, and elevation
@@ -1001,24 +1018,36 @@ class GravelBedrockEroder(Component):
         dt : float (default 1.0e6)
             Maximum time step size
         """
-        sed_is_declining = np.logical_and(self._dHdt < 0.0, self._sed > 0.0)
-        if np.any(sed_is_declining):
-            min_time_to_exhaust_sed = np.amin(
-                -self._sed[sed_is_declining] / self._dHdt[sed_is_declining]
+        if use_cfuncs:
+            min_dt = _estimate_max_time_step_size_ext(
+                upper_limit_dt,
+                self.grid.number_of_nodes,
+                self._sed,
+                self._elev,
+                self._dHdt,
+                self._dHdt - self._rock_lowering_rate,
+                self._receiver_node,
             )
         else:
-            min_time_to_exhaust_sed = upper_limit_dt
-        dzdt = self._dHdt - self._rock_lowering_rate
-        rate_diff = dzdt[self._receiver_node] - dzdt
-        height_above_rcvr = self._elev - self._elev[self._receiver_node]
-        slope_is_declining = np.logical_and(rate_diff > 0.0, height_above_rcvr > 0.0)
-        if np.any(slope_is_declining):
-            min_time_to_flatten_slope = np.amin(
-                height_above_rcvr[slope_is_declining] / rate_diff[slope_is_declining]
-            )
-        else:
-            min_time_to_flatten_slope = upper_limit_dt
-        return 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
+            sed_is_declining = np.logical_and(self._dHdt < 0.0, self._sed > 0.0)
+            if np.any(sed_is_declining):
+                min_time_to_exhaust_sed = np.amin(
+                    -self._sed[sed_is_declining] / self._dHdt[sed_is_declining]
+                )
+            else:
+                min_time_to_exhaust_sed = upper_limit_dt
+            dzdt = self._dHdt - self._rock_lowering_rate
+            rate_diff = dzdt[self._receiver_node] - dzdt
+            height_above_rcvr = self._elev - self._elev[self._receiver_node]
+            slope_is_declining = np.logical_and(rate_diff > 0.0, height_above_rcvr > 0.0)
+            if np.any(slope_is_declining):
+                min_time_to_flatten_slope = np.amin(
+                    height_above_rcvr[slope_is_declining] / rate_diff[slope_is_declining]
+                )
+            else:
+                min_time_to_flatten_slope = upper_limit_dt
+            min_dt = 0.5 * min(min_time_to_exhaust_sed, min_time_to_flatten_slope)
+        return min_dt
 
     def run_one_step(self, global_dt):
         """Advance solution by time interval global_dt, subdividing
