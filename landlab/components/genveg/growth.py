@@ -1,8 +1,9 @@
 """
 Growth component of GenVeg - this is the main driver of vegetation growth and
 is driven by a photosynthesis model. Vegetation growth depends on the availability
-of carbohydrate produced by photosynthetically active plant parts. 
+of carbohydrate produced by photosynthetically active plant parts.
 """
+
 from landlab.components.genveg.species import Species
 from landlab.data_record import DataRecord
 import numpy as np
@@ -298,13 +299,12 @@ class PlantGrowth(Species):
         return self.plants
 
     def _grow(self, _current_jday):
-        ###This is the primary method in PlantGrowth and is run within each
+        # This is the primary method in PlantGrowth and is run within each
         # GenVeg run_one_step at each timestep. This method applies new environmental
         # conditions daily from the grid, determines what processes run, and implements
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
-        growdict = self.species_grow_params
         _last_biomass = self.plants
         _last_dead_biomass = self.sum_plant_parts(_last_biomass, parts="dead")
         _new_biomass = _last_biomass.copy()
@@ -328,7 +328,6 @@ class PlantGrowth(Species):
         filter = np.nonzero(_total_biomass > 0.0)
         _last_live_biomass = _last_biomass[filter]
         _live_biomass = _new_biomass[filter]
-        _last_total_biomass = _total_biomass[filter]
 
         # calculate variables needed to run plant processes
         _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][
@@ -389,7 +388,7 @@ class PlantGrowth(Species):
         self.plants = _new_biomass
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
-        ###This method initializes the plants in the PlantGrowth class
+        # This method initializes the plants in the PlantGrowth class
         # from the vegetation fields stored on the grid. This method
         # is only called if no initial plant array is parameterized
         # as part of the PlantGrowth initialization.
@@ -486,7 +485,7 @@ class PlantGrowth(Species):
         return plant_array
 
     def allocate_biomass_dynamically(self, _live_biomass, delta_tot):
-        ###This method allocates new biomass according to the size-dependent
+        # This method allocates new biomass according to the size-dependent
         # biomass allocation array calculated upon initiation of the PlantGrowth class.
         # The array is only valid for actively growing plants so this method is only
         # used during the growing season.
@@ -513,13 +512,6 @@ class PlantGrowth(Species):
         filter = np.nonzero(delta_tot > 0)
         frac_to_growth = np.ones_like(_live_biomass["root"])
         frac_to_repro = np.zeros_like(_live_biomass["root"])
-        # filter = np.nonzero(
-        #    growth_biomass
-        #    >= (
-        #        self.species_dispersal_params["min_size_dispersal"]
-        #        * self.species_grow_params["max_growth_biomass"]
-        #    )
-        # )
         mass_ratio = growth_biomass / self.species_grow_params["max_growth_biomass"]
         frac_to_growth[filter] = 1 / (1 + 0.002 * np.exp(9.50 * mass_ratio[filter]))
         frac_to_repro[filter] = 1 - frac_to_growth[filter]
@@ -553,14 +545,13 @@ class PlantGrowth(Species):
             # update biomass in plant array
             _new_biomass[part] = _live_biomass[part] + delta[part]
         # Adjust biomass allocation among storage and growth parts
-        # _new_biomass = self.redistribute_storage_biomass(_new_biomass)
         _new_biomass = self.adjust_biomass_allocation_towards_ideal(_new_biomass)
         return _new_biomass
 
     def allocate_biomass_proportionately(
         self, _last_biomass, _total_biomass, delta_tot
     ):
-        ###This method allocates new net biomass amongst growth parts
+        # This method allocates new net biomass amongst growth parts
         # proportionately based on the relative size of the part. This
         # method is used outside of the growing season since some plant parts
         # may not be present while the plant is dormant. The storage redistribution
@@ -578,7 +569,7 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
-        ###This method adjusts biomass allocation towards the ideal allocation
+        # This method adjusts biomass allocation towards the ideal allocation
         # proportions based on the plant size. If parts of the plant are
         # removed via herbivory or damage, this allows the plant to utilize
         # other stored resources to regrow the damaged parts.
@@ -630,12 +621,12 @@ class PlantGrowth(Species):
             )
         )
 
-        _new_leaf_mass_frac[
-            _new_leaf_mass_frac < _min_leaf_mass_frac
-        ] = _min_leaf_mass_frac[_new_leaf_mass_frac < _min_leaf_mass_frac]
-        _new_stem_mass_frac[
-            _new_stem_mass_frac < _min_stem_mass_frac
-        ] = _min_stem_mass_frac[_new_stem_mass_frac < _min_stem_mass_frac]
+        _new_leaf_mass_frac[_new_leaf_mass_frac < _min_leaf_mass_frac] = (
+            _min_leaf_mass_frac[_new_leaf_mass_frac < _min_leaf_mass_frac]
+        )
+        _new_stem_mass_frac[_new_stem_mass_frac < _min_stem_mass_frac] = (
+            _min_stem_mass_frac[_new_stem_mass_frac < _min_stem_mass_frac]
+        )
 
         _new_biomass["root_biomass"] = (
             1 - _new_leaf_mass_frac - _new_stem_mass_frac
@@ -645,7 +636,7 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def set_event_flags(self, _current_jday):
-        ###This method sets event flags so required processes are run based
+        # This method sets event flags so required processes are run based
         # on the day of year.
         durationdict = self.species_duration_params
         flags_to_test = {
@@ -671,7 +662,7 @@ class PlantGrowth(Species):
         return flags_to_test
 
     def kill_small_plants(self, _new_biomass):
-        ###This method moved live biomass to dead biomass is the plant
+        # This method moved live biomass to dead biomass is the plant
         # is too small to grow.
 
         # Edit this and figure out when to kill plants
@@ -710,7 +701,7 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def remove_plants(self, _new_biomass):
-        ###Plants that have too little dead biomass remaining to track
+        # Plants that have too little dead biomass remaining to track
         # are removed from the plant array and no longer tracked.
         min_size_dead = 0.1
         min_size_live = self.species_grow_params["min_growth_biomass"]
@@ -719,24 +710,12 @@ class PlantGrowth(Species):
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
-        # print("There were " + str(_new_biomass.size) + " plants")
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
-        # print("After removal, there were " + str(_new_biomass.size) + (" plants"))
         return _new_biomass
 
     def save_plant_output(self, rel_time, save_params):
-        ###This method saves plant properties at the required time step
+        # This method saves plant properties at the required time step
         # future work versions will save additional variables based on user input.
-        prev_time = self.record_plants.latest_time
-        # new_ids=np.where(np.isin(self.plants['pid'],self.record_plants.dataset['item_id'].values[:,prev_time], invert=True))
-        # for i in new_ids:
-        #    self.record_plants.add_item(time=[rel_time],
-        #        new_item={
-        #            'grid_element'=['cell'],
-        #            'element_id'=self.plants['cell_index'][i],
-        #        },
-
-        #    )
         self.record_plants.add_record(time=np.array([rel_time]))
         self.record_plants.ffill_grid_element_and_id()
 
@@ -778,12 +757,4 @@ class PlantGrowth(Species):
         self.record_plants.dataset["vegetation__plant_age"].values[
             item_ids, self.time_ind
         ] = self.plants["plant_age"]
-        #    item_id= np.reshape(self.plants['item_id'],(self.plants['item_id'].size,1)),
-        #    new_record={
-        #        'vegetation__species':(['item_id','time'],self.plants['species']),
-        #        #'vegetation__root_biomass':(['item_id','time'],np.reshape(self.plants['root_biomass'],(self.plants['cell_index'].size,1))),
-        #        #'vegetation__leaf_biomass':(['item_id','time'],np.reshape(self.plants['leaf_biomass'],(self.plants['cell_index'].size,1))),
-        #        #'vegetation__stem_biomass':(['item_id','time'],np.reshape(self.plants['stem_biomass'],(self.plants['cell_index'].size,1)))
-        #    }
-        # )
         self.time_ind += 1

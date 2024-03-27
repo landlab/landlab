@@ -1,13 +1,15 @@
 """
-Species class definition, composition classes, and factory methods to generate species classes. 
+Species class definition, composition classes, and factory methods to generate species classes.
 These are used by PlantGrowth to differentiate plant properties and processes for species.
 """
-from .habit import *
-from .form import *
-from .shape import *
-from .photosynthesis import *
+from .habit import Forbherb, Graminoid, Shrub, Tree, Vine
+from .form import Bunch, Colonizing, Multiplestems, Rhizomatous, Singlecrown, Singlestem, Stoloniferous, Thicketforming
+from .shape import Climbing, Conical, Decumbent, Erect, Irregular, Oval, Prostrate, Rounded, Semierect, Vase
+from .photosynthesis import C3, C4, Cam
 import numpy as np
 from sympy import symbols, diff, lambdify, log
+
+rng = np.random.default_rng()
 
 
 # Define species class that inherits composite class methods
@@ -89,9 +91,8 @@ class Species(object):
                     if plant_factors[key] not in opt_list:
                         msg = "Invalid " + str(key) + " option"
                         raise ValueError(msg)
-            except:
-                msg = "Unexpected variable name in species parameter dictionary. Please check input parameter file."
-                raise ValueError(msg)
+            except ValueError:
+                print("Unexpected variable name in species parameter dictionary. Please check input parameter file")
 
     def validate_duration_params(self, duration_params):
         if (duration_params["growing_season_start"] < 0) | (
@@ -508,17 +509,13 @@ class Species(object):
         return _new_biomass
 
     def mortality(self, plants, _in_growing_season):
-        ###EMILY - the cleanest way to handle this may be to move the code here for whole plant mortality to a
-        # separate method (function) and call it then call your leaf mortality method
-
-        # Leave this here since it is used for the dead plant part mass balance
+        # used for the dead plant part mass balance
         old_dead_bio = self.sum_plant_parts(plants, parts="dead")
         old_dead_age = plants["dead_age"]
 
         plants = self.calculate_whole_plant_mortality(plants, _in_growing_season)
         plants = self.calculate_shaded_leaf_mortality(plants)
-        # leave this part here since we can use the same routine to move the dead leaves
-        # into the dead biomass pool and calculate the weighted dead age - which is used for decomp
+        # move the dead leaves into the dead biomass pool and calculate the weighted dead age - used for decomp
         new_dead_bio = self.sum_plant_parts(plants, parts="dead")
         plants["dead_age"] = self.calculate_dead_age(
             old_dead_age, old_dead_bio, new_dead_bio
@@ -529,8 +526,8 @@ class Species(object):
         mortdict = self.species_mort_params
         # set flags for three types of mortality periods
         mort_period_bool = {
-            "during growing season": _in_growing_season == True,
-            "during dormant season": _in_growing_season == False,
+            "during growing season": _in_growing_season is True,
+            "during dormant season": _in_growing_season is False,
             "year-round": True,
         }
         factors = mortdict["mort_variable_name"]
@@ -573,9 +570,6 @@ class Species(object):
         D_shade = np.zeros(plants.shape)
         D_shade[shaded_leaf] = 0.03 * excess_lai[shaded_leaf]
         D_shade[D_shade > 0.03] = 0.03
-        # Am I overwriting the dead leaf biomass here?
-        # should this actually be plants["dead_leaf"]+=plants["leaf_biomass"]*D_shade
-        # because I called calculate_whole_plant_mortality first in the mortality method.
         plants["dead_leaf"] += plants["leaf_biomass"] * D_shade
         plants["leaf"] -= plants["dead_leaf"]
         return plants
@@ -589,9 +583,6 @@ class Species(object):
         _last_biomass,
         _current_day,
     ):
-        lai = self.calculate_lai(
-            _last_biomass["leaf_biomass"], _last_biomass["shoot_sys_width"]
-        )
         delta_tot = self.photosynthesis.photosynthesize(
             _par,
             _min_temperature,
