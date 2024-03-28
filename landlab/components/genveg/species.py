@@ -737,6 +737,7 @@ class Species(object):
             plants["dead_leaf"]
             * self.species_morph_params["sp_leaf_area"]
             * dead_leaf_area_ratio
+            / 3
         )
         return plants
 
