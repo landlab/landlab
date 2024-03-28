@@ -253,7 +253,7 @@ class PlantGrowth(Species):
                 ),
                 "vegetation__plant_age": (
                     ["item_id", "time"],
-                    np.reshape(self.plants["dead_age"], (self.plants["pid"].size, 1)),
+                    np.reshape(self.plants["plant_age"], (self.plants["pid"].size, 1)),
                 ),
             },
             attrs={
@@ -378,16 +378,14 @@ class PlantGrowth(Species):
 
         _new_biomass[filter] = _new_live_biomass
         _new_biomass = self.update_morphology(_new_biomass)
-        _new_biomass = self.update_dead_biomass(
-            _new_biomass, _last_biomass, _last_dead_biomass
-        )
+        _new_biomass = self.update_dead_biomass(_new_biomass, _last_biomass)
         _new_biomass = self.remove_plants(_new_biomass)
 
         # print('Completed run_one_step for '+self.species_name+' on day '+str(_current_jday))
         self.plants = _new_biomass
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
-        ###This method initializes the plants in the PlantGrowth class
+        # This method initializes the plants in the PlantGrowth class
         # from the vegetation fields stored on the grid. This method
         # is only called if no initial plant array is parameterized
         # as part of the PlantGrowth initialization.
@@ -405,10 +403,13 @@ class PlantGrowth(Species):
             (("stem", "stem_biomass"), float),
             (("reproductive", "repro_biomass"), float),
             ("dead_root", float),
-            ("dead_stem", float),
             ("dead_leaf", float),
+            ("dead_stem", float),
             ("dead_reproductive", float),
-            ("dead_age", float),
+            ("dead_root_age", float),
+            ("dead_leaf_age", float),
+            ("dead_stem_age", float),
+            ("dead_reproductive_age", float),
             ("shoot_sys_width", float),
             ("root_sys_width", float),
             ("shoot_sys_height", float),
@@ -466,6 +467,9 @@ class PlantGrowth(Species):
                                 0.0,
                                 0.0,
                                 0.0,
+                                0.0,
+                                0.0,
+                                0.0,
                                 new_plant_width,
                                 0.0,
                                 0.0,
@@ -488,7 +492,7 @@ class PlantGrowth(Species):
     def allocate_biomass_proportionately(
         self, _last_biomass, _total_biomass, delta_tot
     ):
-        ###This method allocates new net biomass amongst growth parts
+        # This method allocates new net biomass amongst growth parts
         # proportionately based on the relative size of the part. This
         # method is used outside of the growing season since some plant parts
         # may not be present while the plant is dormant. The storage redistribution
