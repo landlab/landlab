@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import interpolate
 
 # Growth form classes and selection method
 
@@ -37,12 +36,12 @@ class PlantShape(object):
     def calc_root_sys_width(self, shoot_sys_width, shoot_sys_height=1):
         volume = self.calc_crown_volume(shoot_sys_width, shoot_sys_height)
         root_sys_width = 0.08 + 0.24 * volume
-        root_sys_width[
-            root_sys_width > self.morph_params["max_root_sys_width"]
-        ] = self.morph_params["max_root_sys_width"]
-        root_sys_width[
-            root_sys_width < self.morph_params["min_root_sys_width"]
-        ] = self.morph_params["max_root_sys_width"]
+        root_sys_width[root_sys_width > self.morph_params["max_root_sys_width"]] = (
+            self.morph_params["max_root_sys_width"]
+        )
+        root_sys_width[root_sys_width < self.morph_params["min_root_sys_width"]] = (
+            self.morph_params["max_root_sys_width"]
+        )
         return root_sys_width
 
     def calc_crown_area_from_shoot_width(self, shoot_sys_width):
@@ -66,9 +65,9 @@ class PlantShape(object):
     def calc_abg_dims_from_biomass(self, abg_biomass):
         # interpolation function not working as expected
         # shoot sys width(t) should be dependent on shoot_sys_width (t-1)
-        log_crown_area = (
-            vital_volume
-        ) = log_plant_height = crown_area = plant_height = np.zeros_like(abg_biomass)
+        log_crown_area = vital_volume = log_plant_height = crown_area = plant_height = (
+            np.zeros_like(abg_biomass)
+        )
         filter = np.nonzero(abg_biomass > 0)
         # log_aspect_ratio[filter]=self.aspect_ratio_interp_func(np.log10(abg_biomass[filter]/1000))
         log_crown_area[filter] = self.crown_area_coeffs["b"] + (

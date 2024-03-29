@@ -33,9 +33,9 @@ class Photosynthesis(object):
         _current_day,
     ):
         self.update_solar_variables(_current_day)
-        total_canopy_assimilated_CO2 = (
-            hourly_gross_assimilation
-        ) = gphot_CH20 = np.zeros_like(last_biomass["shoot_sys_width"])
+        total_canopy_assimilated_CO2 = hourly_gross_assimilation = gphot_CH20 = (
+            np.zeros_like(last_biomass["shoot_sys_width"])
+        )
         for day_increment in self.gauss_integration_params:
             (abscissa, weight) = day_increment
             increment_hour = self._sunrise + abscissa * self._sunlit_increment

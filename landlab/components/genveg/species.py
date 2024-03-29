@@ -2,9 +2,30 @@
 Species class definition, composition classes, and factory methods to generate species classes.
 These are used by PlantGrowth to differentiate plant properties and processes for species.
 """
+
 from .habit import Forbherb, Graminoid, Shrub, Tree, Vine
-from .form import Bunch, Colonizing, Multiplestems, Rhizomatous, Singlecrown, Singlestem, Stoloniferous, Thicketforming
-from .shape import Climbing, Conical, Decumbent, Erect, Irregular, Oval, Prostrate, Rounded, Semierect, Vase
+from .form import (
+    Bunch,
+    Colonizing,
+    Multiplestems,
+    Rhizomatous,
+    Singlecrown,
+    Singlestem,
+    Stoloniferous,
+    Thicketforming,
+)
+from .shape import (
+    Climbing,
+    Conical,
+    Decumbent,
+    Erect,
+    Irregular,
+    Oval,
+    Prostrate,
+    Rounded,
+    Semierect,
+    Vase,
+)
 from .photosynthesis import C3, C4, Cam
 import numpy as np
 from sympy import symbols, diff, lambdify, log
@@ -92,7 +113,9 @@ class Species(object):
                         msg = "Invalid " + str(key) + " option"
                         raise ValueError(msg)
             except ValueError:
-                print("Unexpected variable name in species parameter dictionary. Please check input parameter file")
+                print(
+                    "Unexpected variable name in species parameter dictionary. Please check input parameter file"
+                )
 
     def validate_duration_params(self, duration_params):
         if (duration_params["growing_season_start"] < 0) | (

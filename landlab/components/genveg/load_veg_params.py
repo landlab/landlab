@@ -3,6 +3,7 @@ Load veg veg_params
 May need to change this to output a landlab configured input file
 Want to retain formatted Excel file due to type of data required
 """
+
 import numpy as np
 import pandas as pd
 import pathlib
@@ -360,9 +361,9 @@ class VegParams:
                             )
                         nested_dict["mortality_params"]["coeffs"] = sigmoid_coeffs
                         # Add species nested dictionary to master parameter dictionary
-                        param_dict[
-                            nested_dict["plant_factors"]["species"]
-                        ] = nested_dict
+                        param_dict[nested_dict["plant_factors"]["species"]] = (
+                            nested_dict
+                        )
                 else:
                     if exten == "csv":
                         # Add Carra's code here and load into dict called x
