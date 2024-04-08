@@ -14,7 +14,7 @@ repos:
       language: pygrep
 
 - repo: https://github.com/psf/black
-  rev: 24.2.0
+  rev: 24.3.0
   hooks:
   - id: black
     name: black
@@ -55,7 +55,7 @@ repos:
     - flake8-simplify
 
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.8.4
+  rev: 1.8.5
   hooks:
     - id: nbqa-pyupgrade
       args: ["--py310-plus"]
@@ -75,7 +75,7 @@ repos:
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.1
+  rev: v3.15.2
   hooks:
   - id: pyupgrade
     args: [--py310-plus]
@@ -92,7 +92,7 @@ repos:
     types: [cython]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
+  rev: v4.6.0
   hooks:
     - id: check-builtin-literals
     - id: check-added-large-files
