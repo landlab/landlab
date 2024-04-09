@@ -446,13 +446,9 @@ class Species(object):
     def enter_dormancy(
         self, plants, jday
     ):  # calculate sum of green parts and sum of persistant parts
-        end_dead_age = plants["dead_age"]
-        end_dead_bio = self.sum_plant_parts(plants, parts="dead")
+        end_plants = plants.copy()
         plants = self.habit.enter_dormancy(plants)
-        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
-        plants["dead_age"] = self.calculate_dead_age(
-            end_dead_age, end_dead_bio, new_dead_bio
-        )
+        plants = self.update_dead_biomass(plants, end_plants)
         return plants
 
     def emerge(self, plants, jday):
@@ -532,26 +528,18 @@ class Species(object):
 
     def litter_decomp(self, _new_biomass):
         decay_rate = self.species_morph_params["biomass_decay_rate"]
-        sum_dead_mass = self.sum_plant_parts(_new_biomass, parts="dead")
-        filter = np.nonzero(sum_dead_mass > 0.0)
-        cohort_init_mass = np.zeros_like(_new_biomass["root"])
-        cohort_init_mass[filter] = sum_dead_mass[filter] / np.exp(
-            -decay_rate * _new_biomass["dead_age"][filter]
-        )
-
         for part in self.dead_parts:
-            part_init_mass = np.zeros_like(_new_biomass["dead_age"])
-            part_init_mass[filter] = (
-                cohort_init_mass[filter]
-                * _new_biomass[part][filter]
-                / sum_dead_mass[filter]
+            filter = np.nonzero(_new_biomass[part] > 0.0)
+            part_init_mass = np.zeros_like(_new_biomass[part])
+            part_init_mass[filter] = _new_biomass[part][filter] / np.exp(
+                -decay_rate * _new_biomass[str(part) + "_age"][filter]
             )
             _new_biomass[part] = part_init_mass * np.exp(
-                -decay_rate * (_new_biomass["dead_age"] + self.dt.astype(float))
+                -decay_rate * (_new_biomass[str(part) + "_age"] + self.dt.astype(float))
             )
-        _new_biomass["dead_age"] += self.dt.astype(float) * np.ones_like(
-            _new_biomass["dead_age"]
-        )
+            _new_biomass[str(part) + "_age"] += self.dt.astype(float) * np.ones_like(
+                _new_biomass[part]
+            )
         for part in self.dead_parts:
             filter = np.nonzero(
                 np.isnan(_new_biomass[part])
@@ -562,14 +550,10 @@ class Species(object):
         return _new_biomass
 
     def mortality(self, plants, _in_growing_season):
-        old_dead_bio = self.sum_plant_parts(plants, parts="dead")
-        old_dead_age = plants["dead_age"]
+        old_biomass = plants.copy()
         plants = self.calculate_whole_plant_mortality(plants, _in_growing_season)
         plants = self.calculate_shaded_leaf_mortality(plants)
-        new_dead_bio = self.sum_plant_parts(plants, parts="dead")
-        plants["dead_age"] = self.calculate_dead_age(
-            old_dead_age, old_dead_bio, new_dead_bio
-        )
+        plants = self.update_dead_biomass(plants, old_biomass)
         return plants
 
     def calculate_whole_plant_mortality(self, plants, _in_growing_season):
@@ -734,7 +718,7 @@ class Species(object):
         )
         dead_leaf_area = plants["total_leaf_area"] - plants["live_leaf_area"]
         dead_leaf_area[dead_leaf_area < 0] = 0.0
-        filter = np.nonzero((plants["dead_age"] > 0) & (dead_leaf_area > 0))
+        filter = np.nonzero(dead_leaf_area > 0)
         plants["live_leaf_area"] = (
             plants["leaf"] * self.species_morph_params["sp_leaf_area"]
         )
@@ -743,7 +727,7 @@ class Species(object):
         # We are still getting an error here
         cohort_dead_leaf_area[filter] = dead_leaf_area[filter] / np.exp(
             -self.species_morph_params["biomass_decay_rate"]
-            * plants["dead_age"][filter]
+            * plants["dead_leaf_age"][filter]
         )
         dead_leaf_area_ratio = np.ones_like(plants["live_leaf_area"])
         dead_leaf_area_ratio[filter] = (
@@ -753,19 +737,16 @@ class Species(object):
             plants["dead_leaf"]
             * self.species_morph_params["sp_leaf_area"]
             * dead_leaf_area_ratio
+            / 3
         )
         return plants
 
-    def update_dead_biomass(self, _new_biomass, old_biomass, old_dead_biomass):
+    def update_dead_biomass(self, _new_biomass, old_biomass):
         for part in self.all_parts:
             part_biomass_change = _new_biomass[part] - old_biomass[part]
             filter = np.nonzero(part_biomass_change < 0.0)
             _new_biomass["dead_" + str(part)][filter] -= part_biomass_change[filter]
-
-        _new_dead_biomass = self.sum_plant_parts(_new_biomass, parts="dead")
-        _new_biomass["dead_age"] = self.calculate_dead_age(
-            _new_biomass["dead_age"], old_dead_biomass, _new_dead_biomass
-        )
+            _new_biomass["dead_" + str(part) + "_age"][filter] = 0.0
         return _new_biomass
 
     def sum_plant_parts(self, _new_biomass, parts="total"):
