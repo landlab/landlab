@@ -400,6 +400,7 @@ class VegParams:
         # Use scipy solver to estimate sigmoid coefficients
         else:
             S = self._get_general_s_curve(uni_xs, uni_ys, fit_method=fit_method)
+
         return S
 
     def _get_general_s_curve(self, uni_xs, uni_ys, fit_method):
@@ -437,7 +438,7 @@ class VegParams:
 
         return S
 
-    def mse(self, x, y, coeffs):
+    def _mse(self, x, y, coeffs):
         # currently this is not used but will be when we produce the graphs and show
         # a warning message for bad fit
         return np.mean((self._cfunc(x, *coeffs) - y) ** 2)
