@@ -11,7 +11,7 @@ ctypedef fused float_or_int:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def calc_flux_div_at_node(
+def _calc_flux_div_at_node(
     shape,
     xy_spacing,
     const float_or_int[:] value_at_link,
@@ -40,7 +40,7 @@ def calc_flux_div_at_node(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def calc_net_face_flux_at_cell(
+def _calc_net_face_flux_at_cell(
     shape,
     xy_spacing,
     const float_or_int[:] unit_flux_at_face,

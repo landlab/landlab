@@ -5,12 +5,10 @@ from numpy.testing import assert_array_almost_equal
 from landlab import RasterModelGrid
 from landlab.grid.divergence import (
     _calc_net_face_flux_at_cell as calc_net_face_flux_at_cell_slow,
-    calc_flux_div_at_node as calc_flux_div_at_node_slow,
 )
-from landlab.grid.raster_divergence import (
-    calc_flux_div_at_node,
-    calc_net_face_flux_at_cell,
-)
+from landlab.grid.divergence import calc_flux_div_at_node as calc_flux_div_at_node_slow
+from landlab.grid.raster_divergence import calc_flux_div_at_node
+from landlab.grid.raster_divergence import calc_net_face_flux_at_cell
 
 
 def test_calc_net_face_flux_at_cell():
