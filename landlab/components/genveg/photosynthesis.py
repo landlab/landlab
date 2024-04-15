@@ -6,12 +6,14 @@ class Photosynthesis(object):
         self,
         latitude,
         _current_day=0,
-        O2_max_coeff=300,
-        CO2_max_coeff=300000,
-        O2_conc=210000,
-        CO2_conc=245,
-        Vc_max_rate=200,
-        spec_factor_base=2600.0,
+        photo_params={
+            "vcmax": 200,
+            "kc": 300,
+            "ko": 300000,
+            "ci": 245,
+            "co": 210000,
+            "spec_factor_base": 2600.0,
+        },
         gauss_integration_params=[
             (0.0469101, 0.1184635),
             (0.2307534, 0.2393144),
@@ -26,12 +28,12 @@ class Photosynthesis(object):
         self._sunset = 0.0
         self._sunlit_increment = 0.0
         self.gauss_integration_params = gauss_integration_params
-        self.O2_max_coeff = O2_max_coeff
-        self.CO2_max_coeff = CO2_max_coeff
-        self.O2_conc = O2_conc
-        self.CO2_conc = CO2_conc
-        self.Vc_max_rate = Vc_max_rate
-        self.spec_factor_base = spec_factor_base
+        self.O2_max_coeff = photo_params["ko"]
+        self.CO2_max_coeff = photo_params["kc"]
+        self.O2_conc = photo_params["co"]
+        self.CO2_conc = photo_params["ci"]
+        self.Vc_max_rate = photo_params["vcmax"]
+        self.spec_factor_base = photo_params["spec_factor_25"]
         self.update_solar_variables(_current_day)
         self.assim_limits_by_temp = self.calculate_assimilation_limits()
 
@@ -277,12 +279,12 @@ class Photosynthesis(object):
 
     def calculate_assimilation_limits(self):
         # this needs to happen at init then have leaf temp interpolated
-        leaf_temp = np.arange(-50, 50, 0.25)
-        O2_coeff = self.O2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
-        CO2_coeff = self.CO2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)
-        dcoeffm = O2_coeff * (1 + (self.O2_conc / CO2_coeff))
-        Vc_exponent = 1 + np.exp(0.128 * (leaf_temp - 40))
-        Vc_adj = (self.Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10)) / Vc_exponent
+        leaf_temp = np.arange(10, 40, 1)
+        O2_coeff = self.O2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)  # 142.86
+        CO2_coeff = self.CO2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
+        dcoeffm = CO2_coeff * (1 + self.O2_conc / O2_coeff)
+        Vc_denom = 1 + np.exp(0.128 * (leaf_temp - 40))
+        Vc_adj = self.Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10) / Vc_denom
         CO2_comp = (
             0.5
             * self.O2_conc
@@ -330,13 +332,36 @@ class Photosynthesis(object):
 
 
 class C3(Photosynthesis):
-    def __init__(self, latitude):
-        super().__init__(latitude)
+    def __init__(
+        self,
+        latitude,
+        photo_params={
+            "vcmax": 200,
+            "kc": 300,
+            "ko": 300000,
+            "ci": 245,
+            "co": 210000,
+            "spec_factor_base": 2600.0,
+        },
+    ):
+        super().__init__(latitude, photo_params=photo_params)
 
 
 class C4(Photosynthesis):
-    def __init__(self, latitude):
-        super().__init__(latitude)
+    def __init__(
+        self,
+        latitude,
+        photo_params={
+            "vcmax": 200,
+            "kc": 300,
+            "ko": 300000,
+            "ci": 245,
+            "co": 210000,
+            "spec_factor_base": 2600.0,
+        },
+    ):
+        super().__init__(latitude, photo_params=photo_params)
+        # This will be updated with C4 changes
 
 
 class Cam(Photosynthesis):

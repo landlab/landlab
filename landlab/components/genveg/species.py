@@ -10,6 +10,8 @@ from .photosynthesis import *
 import numpy as np
 from sympy import symbols, diff, lambdify, log
 
+rng = np.random.default_rng()
+
 
 # Define species class that inherits composite class methods
 class Species(object):
@@ -39,6 +41,7 @@ class Species(object):
         self.species_plant_factors = species_params["plant_factors"]
         self.species_duration_params = species_params["duration_params"]
         self.species_grow_params = species_params["grow_params"]
+        self.species_photo_params = species_params["photo_params"]
         self.species_dispersal_params = species_params["dispersal_params"]
         self.species_mort_params = species_params["mortality_params"]
         self.species_morph_params = species_params["morph_params"]
@@ -222,7 +225,9 @@ class Species(object):
 
     def select_photosythesis_type(self, latitude):
         photosynthesis_options = {"C3": C3, "C4": C4, "cam": Cam}
-        return photosynthesis_options[self.species_plant_factors["p_type"]](latitude)
+        return photosynthesis_options[self.species_plant_factors["p_type"]](
+            latitude, photo_params=self.species_photo_params
+        )
 
     def select_habit_class(self):
         habit = {
@@ -631,7 +636,11 @@ class Species(object):
             _last_biomass,
             _current_day,
         )
-        return carb_generated
+        random_water_stress = rng.normal(loc=0.65, scale=0.12, size=carb_generated.size)
+        random_water_stress[random_water_stress < 0] = 0.0
+        random_water_stress[random_water_stress > 1] = 1.0
+        adj_carb_generated = random_water_stress * carb_generated
+        return adj_carb_generated
 
     def respire(self, _min_temperature, _max_temperature, _last_biomass):
         _temperature = (_min_temperature + _max_temperature) / 2
