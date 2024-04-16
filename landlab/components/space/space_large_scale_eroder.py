@@ -496,12 +496,6 @@ class SpaceLargeScaleEroder(Component):
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
 
-        # Do not allow for the formation of potholes (addition v2)
-        r = self._grid.at_node["flow__receiver_node"]
-        br_e_max = br - br[r]
-        br_e_max[br_e_max < 0] = 0
-        self._br_erosion_term = np.minimum(self._br_erosion_term, br_e_max)
-
         self._Es = self._sed_erosion_term * (1.0 - np.exp(-H / self._H_star))
         self._Er = self._br_erosion_term * np.exp(-H / self._H_star)
 
