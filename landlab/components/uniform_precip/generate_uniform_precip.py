@@ -10,16 +10,15 @@ hours (hr) and depth units in millimeters (mm)
 Written by Jordan Adams, 2013, updated May 2016
 """
 
-
 import random
 
 import numpy as np
 
-from landlab import Component, ModelGrid
+from landlab import Component
+from landlab import ModelGrid
 
 
 class PrecipitationDistribution(Component):
-
     """Generate precipitation events.
 
     This component can generate a random storm duration, interstorm

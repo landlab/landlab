@@ -8,7 +8,9 @@ Last significant modification: conversion to proper component 7/2019 GT
 
 import numpy as np
 
-from landlab import Component, HexModelGrid, RasterModelGrid
+from landlab import Component
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 
 
 def _calc_fracture_starting_position_raster(shape):
@@ -212,7 +214,6 @@ def _trace_fracture_through_grid_raster(m, start_xy, spacing):
 
 
 class FractureGridGenerator(Component):
-
     """Create a 2D grid with randomly generated fractures.
 
     The grid contains the value 1 where fractures (one cell wide) exist, and

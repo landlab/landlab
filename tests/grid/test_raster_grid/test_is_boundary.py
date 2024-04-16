@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import NodeStatus, RasterModelGrid
+from landlab import NodeStatus
+from landlab import RasterModelGrid
 
 
 def test_id_as_int():

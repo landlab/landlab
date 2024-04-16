@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Zone functions and class of SpeciesEvolver."""
 from collections import OrderedDict
-from enum import IntEnum, unique
+from enum import IntEnum
+from enum import unique
 
 import numpy as np
 from pandas import Series

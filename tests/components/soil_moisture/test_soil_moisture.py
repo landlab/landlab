@@ -2,6 +2,7 @@
 Unit tests for \
     landlab.components.soil_moisture.soil_moisture_dynamics
 """
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal

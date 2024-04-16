@@ -6,21 +6,20 @@ from io import StringIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io import (
-    BadHeaderLineError,
-    DataSizeError,
-    KeyTypeError,
-    KeyValueError,
-    MismatchGridDataSizeError,
-    MismatchGridXYLowerLeft,
-    MismatchGridXYSpacing,
-    MissingRequiredKeyError,
-    read_asc_header,
-    read_esri_ascii,
-)
+from landlab.io import BadHeaderLineError
+from landlab.io import DataSizeError
+from landlab.io import KeyTypeError
+from landlab.io import KeyValueError
+from landlab.io import MismatchGridDataSizeError
+from landlab.io import MismatchGridXYLowerLeft
+from landlab.io import MismatchGridXYSpacing
+from landlab.io import MissingRequiredKeyError
+from landlab.io import read_asc_header
+from landlab.io import read_esri_ascii
 
 
 def test_hugo_read_file_name(datadir):

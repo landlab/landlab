@@ -8,7 +8,9 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from landlab import FieldError, NodeStatus, RasterModelGrid
+from landlab import FieldError
+from landlab import NodeStatus
+from landlab import RasterModelGrid
 from landlab.components import ConcentrationTrackerForDiffusion
 
 

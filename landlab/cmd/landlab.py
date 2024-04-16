@@ -13,16 +13,17 @@ from functools import partial
 import numpy as np
 import rich_click as click
 
-from landlab import (
-    FramedVoronoiGrid,
-    HexModelGrid,
-    ModelGrid,
-    RadialModelGrid,
-    RasterModelGrid,
-    VoronoiDelaunayGrid,
-)
+from landlab import FramedVoronoiGrid
+from landlab import HexModelGrid
+from landlab import ModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
+from landlab import VoronoiDelaunayGrid
 
-from .authors import AuthorList, AuthorsConfig, AuthorsSubprocessError, GitLog
+from .authors import AuthorList
+from .authors import AuthorsConfig
+from .authors import AuthorsSubprocessError
+from .authors import GitLog
 
 GRIDS = [
     ModelGrid,

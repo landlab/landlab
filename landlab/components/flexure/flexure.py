@@ -65,7 +65,6 @@ from .funcs import get_flexure_parameter
 
 
 class Flexure(Component):
-
     """Deform the lithosphere with 1D or 2D flexure.
 
     Landlab component that implements a 1 and 2D lithospheric flexure

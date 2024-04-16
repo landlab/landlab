@@ -8,7 +8,8 @@ laterally.
 
 import numpy as np
 
-from landlab import Component, FieldError
+from landlab import Component
+from landlab import FieldError
 
 TWO_PI = 2.0 * np.pi
 
@@ -405,9 +406,9 @@ class NormalFault(Component):
                     elevations_to_average = surfs_before_uplift[surf_name][
                         self._grid.adjacent_nodes_at_node
                     ]
-                    elevations_to_average[
-                        self._grid.adjacent_nodes_at_node == -1
-                    ] = np.nan
+                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = (
+                        np.nan
+                    )
                     elevations_to_average[~neighbor_for_averaging] = np.nan
                     self._surfaces[surf_name][averaged_nodes] = np.nanmean(
                         elevations_to_average[averaged_nodes], axis=1
@@ -426,9 +427,9 @@ class NormalFault(Component):
                     elevations_to_average = self._surfaces[surf_name][
                         self._grid.adjacent_nodes_at_node
                     ]
-                    elevations_to_average[
-                        self._grid.adjacent_nodes_at_node == -1
-                    ] = np.nan
+                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = (
+                        np.nan
+                    )
                     elevations_to_average[~neighbor_is_faulted] = np.nan
                     self._surfaces[surf_name][un_averaged_nodes] = np.nanmean(
                         elevations_to_average[un_averaged_nodes], axis=1

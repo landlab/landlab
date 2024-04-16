@@ -6,10 +6,13 @@ Created on Tue Jun  4 16:26:31 2019
 """
 
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_equal
+from numpy.testing import assert_almost_equal
+from numpy.testing import assert_equal
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import FlowAccumulator, GroundwaterDupuitPercolator
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import GroundwaterDupuitPercolator
 from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
 

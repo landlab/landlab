@@ -8,7 +8,8 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import NotRasterGridError, write_netcdf
+from landlab.io.netcdf import NotRasterGridError
+from landlab.io.netcdf import write_netcdf
 from landlab.io.netcdf.read import _get_raster_spacing
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")

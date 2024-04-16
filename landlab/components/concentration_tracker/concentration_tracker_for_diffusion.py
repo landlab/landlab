@@ -6,13 +6,13 @@ Created on Wed May 31 11:41:20 2023
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 from landlab.grid.mappers import map_value_at_max_node_to_link
 from landlab.utils.return_array import return_array_at_node
 
 
 class ConcentrationTrackerForDiffusion(Component):
-
     """Track the concentration of any user-defined property.
 
     This component tracks the concentration of any user-defined property of
