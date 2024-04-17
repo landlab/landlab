@@ -2,13 +2,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab.graph.quantity.ext.of_element import (
-    count_of_children_at_parent,
-    diff_of_children_at_parent,
-    max_of_children_at_parent,
-    mean_of_children_at_parent,
-    min_of_children_at_parent,
-)
+from landlab.graph.quantity.ext.of_element import count_of_children_at_parent
+from landlab.graph.quantity.ext.of_element import diff_of_children_at_parent
+from landlab.graph.quantity.ext.of_element import max_of_children_at_parent
+from landlab.graph.quantity.ext.of_element import mean_of_children_at_parent
+from landlab.graph.quantity.ext.of_element import min_of_children_at_parent
 
 
 def numpy_count(elements_at_element, out):

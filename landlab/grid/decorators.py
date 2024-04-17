@@ -9,6 +9,7 @@ Grid decorators
     ~landlab.grid.decorators.return_id_array
     ~landlab.grid.decorators.return_readonly_id_array
 """
+
 from functools import wraps
 
 import numpy as np
@@ -17,7 +18,6 @@ from ..core.utils import as_id_array
 
 
 class override_array_setitem_and_reset:
-
     """Decorator that calls a grid method after setting array values.
 
     This decorator wraps `ModelGrid` methods that return a numpy array
@@ -63,7 +63,6 @@ class override_array_setitem_and_reset:
             """Embed a grid into a numpy array and override set methods."""
 
             class array(np.ndarray):
-
                 """Override numpy setters and reset grid topology."""
 
                 def __new__(cls, arr):

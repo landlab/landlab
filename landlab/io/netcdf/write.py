@@ -13,11 +13,9 @@ import pathlib
 import numpy as np
 import xarray as xr
 
-from landlab.io.netcdf._constants import (
-    _AXIS_COORDINATE_NAMES,
-    _AXIS_DIMENSION_NAMES,
-    _NP_TO_NC_TYPE,
-)
+from landlab.io.netcdf._constants import _AXIS_COORDINATE_NAMES
+from landlab.io.netcdf._constants import _AXIS_DIMENSION_NAMES
+from landlab.io.netcdf._constants import _NP_TO_NC_TYPE
 
 
 def _set_netcdf_attributes(root, attrs):

@@ -7,7 +7,8 @@ Model bedrock incision and gravel transport and abrasion in a network of rivers.
 
 import numpy as np
 
-from landlab import Component, HexModelGrid
+from landlab import Component
+from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 use_cfuncs = True

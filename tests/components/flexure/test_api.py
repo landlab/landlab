@@ -1,7 +1,9 @@
 import numpy as np
-from pytest import approx, raises
+from pytest import approx
+from pytest import raises
 
-from landlab.components.flexure import get_flexure_parameter, subside_point_load
+from landlab.components.flexure import get_flexure_parameter
+from landlab.components.flexure import subside_point_load
 
 
 def test_calc_flexure_parameter():

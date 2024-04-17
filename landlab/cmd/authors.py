@@ -2,7 +2,8 @@ import itertools
 import os
 import subprocess
 import textwrap
-from collections import ChainMap, UserDict
+from collections import ChainMap
+from collections import UserDict
 
 try:
     import tomllib

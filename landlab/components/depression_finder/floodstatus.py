@@ -1,4 +1,5 @@
-from enum import IntEnum, unique
+from enum import IntEnum
+from enum import unique
 
 
 @unique

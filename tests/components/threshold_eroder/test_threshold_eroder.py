@@ -4,13 +4,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import (
-    FlowAccumulator,
-    FlowDirectorSteepest,
-    PriorityFloodFlowRouter,
-    ThresholdEroder,
-)
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import FlowDirectorSteepest
+from landlab.components import PriorityFloodFlowRouter
+from landlab.components import ThresholdEroder
 
 try:
     PriorityFloodFlowRouter.load_richdem()

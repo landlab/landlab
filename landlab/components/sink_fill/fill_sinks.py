@@ -2,12 +2,16 @@
 
 @author: dejh
 """
+
 import contextlib
 
 import numpy as np
 
-from landlab import Component, FieldError, RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator
+from landlab import Component
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.components import DepressionFinderAndRouter
+from landlab.components import FlowAccumulator
 
 # TODO: this should probably follow Barnes et al., 2014 for max efficiency
 

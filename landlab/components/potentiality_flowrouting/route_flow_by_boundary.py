@@ -11,7 +11,9 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import Component, LinkStatus, RasterModelGrid
+from landlab import Component
+from landlab import LinkStatus
+from landlab import RasterModelGrid
 
 
 class PotentialityFlowRouter(Component):

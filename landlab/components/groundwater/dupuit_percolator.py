@@ -2,16 +2,16 @@
 
 @author: G Tucker, D Litwin, K Barnhart
 """
+
 from warnings import warn
 
 import numpy as np
 
 from landlab import Component
-from landlab.grid.mappers import (
-    map_mean_of_link_nodes_to_link,
-    map_value_at_max_node_to_link,
-)
-from landlab.utils import return_array_at_link, return_array_at_node
+from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+from landlab.grid.mappers import map_value_at_max_node_to_link
+from landlab.utils import return_array_at_link
+from landlab.utils import return_array_at_node
 
 
 # regularization functions used to deal with numerical demons of seepage

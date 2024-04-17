@@ -5,7 +5,8 @@ import pathlib
 
 import numpy
 from Cython.Build import cythonize
-from setuptools import Extension, setup
+from setuptools import Extension
+from setuptools import setup
 
 
 def find_extensions(path="."):

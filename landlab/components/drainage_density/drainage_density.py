@@ -1,4 +1,5 @@
 """Landlab component to calculate drainage density."""
+
 from warnings import warn
 
 import numpy as np

@@ -7,9 +7,11 @@ Created on Thu Jul  9 08:20:06 2015
 """
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_raises
+from numpy.testing import assert_array_equal
+from numpy.testing import assert_raises
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.ca.celllab_cts import Transition
 from landlab.ca.hex_cts import HexCTS
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
