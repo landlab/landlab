@@ -23,9 +23,9 @@ if use_cfuncs:
 _DT_MAX = 1.0e-2
 _ONE_SIXTH = 1.0 / 6.0
 _SEVEN_SIXTHS = 7.0 / 6.0
-_D8_CHAN_LENGTH_FACTOR = 0.5 * (
-    1.0 + 2.0**0.5
-)  # D8 raster: average of straight and diagonal
+_D8_CHAN_LENGTH_FACTOR = 1.0 #0.5 * (
+#    1.0 + 2.0**0.5
+#)  # D8 raster: average of straight and diagonal
 
 
 class GravelBedrockEroder(Component):
@@ -434,7 +434,7 @@ class GravelBedrockEroder(Component):
             self._flow_link_length_over_cell_area = (
                 _D8_CHAN_LENGTH_FACTOR * self.grid.dx / self.grid.area_of_cell[0]
             )
-            self._update_flow_link_length_over_cell_area()
+            #self._update_flow_link_length_over_cell_area()
         else:
             self._flow_length_is_variable = True
             self._update_flow_link_length_over_cell_area()
