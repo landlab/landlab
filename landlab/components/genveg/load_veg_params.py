@@ -399,79 +399,48 @@ class VegParams:
             S = [guess['a'], guess['b']]
         # Use scipy solver to estimate sigmoid coefficients
         else:
-            S = self._get_best_a_b_guess(uni_xs, uni_ys)
+            S = self._get_general_s_curve(uni_xs, uni_ys, fit_method=fit_method)
+
         return S
 
-    def _get_best_a_b_guess(self, uni_xs, uni_ys):
-        """
-        This function finds the best guess for 'a' and 'b' for _cfunc based on the values uni_xs
-        and uni_ys values. List of priority for choosing a pair of (x, y) points is the uni_ys
-        point closest to 0.5 survival and near sigmoid limit and then finding the best fit best
-        fit using min/max points, min point/0.5 survival, 0.5 survival / max point, no intial guess
-        inputs:
-         - uni_xs: unique xs values
-         - uni_ys: unique ys values
-        outputs:
-         - S: vector of a, b values
-        """
-        idx_05 = (np.abs(uni_ys - 0.5)).argmin()
-        idx_limit = np.gradient(np.gradient(uni_ys, uni_xs), uni_xs).argmax()
+    def _get_general_s_curve(self, uni_xs, uni_ys, fit_method):
+        # This function yeilds a general S curve based on the _cfunc method. It utilizes uni_xs,
+        # and uni_ys values. This method will utilizes SciPy's curve_fit function. It is assumed
+        # that using the points closest to 0.5 survival and near the sigmoid limit finds the best
+        # gerneral s curve. Weights are also used to priortize points near 0 and 1.  If there is
+        # only one point that is both the 0.5 survival and near the sigmoid limit the TAM method
+        # will be used to create more points and then the curve_fit function will be used to
+        # obtain and a and b estimation
 
-        # Assign sigma weights to prioritize points near 0 and 1
-        weights = np.ones(len(uni_ys))
-        weights[(uni_ys < 0.1) | (uni_ys > 0.9)] = 10
-        weights[(uni_ys < 0.02) | (uni_ys > 0.98)] = 500
-
+        # find the index for the 0.5 survival and sigmoid limit
+        idx_05, idx_limit = self.find_index_values(uni_xs=uni_xs, uni_ys=uni_ys)
+        # check to see if they are the same point
         if idx_05 != idx_limit:
+            # get x and y coordinates
             x = [uni_xs[min(idx_05, idx_limit)], uni_xs[max(idx_05, idx_limit)]]
             y = [uni_ys[min(idx_05, idx_limit)], uni_ys[max(idx_05, idx_limit)]]
-            guess = self._a_b_func(x, y)
-            S, pcov = curve_fit(
+            # get initial a and b guess
+            initial_guess = self._a_b_func(x, y)
+            # get weights to prioritize points near 0 and 1
+            weights = self.get_weights(uni_xs)
+            # get the a and be estimation from curve_fit
+            S, _ = curve_fit(
                 self._cfunc,
                 uni_xs,
                 uni_ys,
-                p0=[guess['a'], guess['b']],
+                p0=[initial_guess['a'], initial_guess['b']],
                 sigma=weights,
-                method="dogbox"
+                method=fit_method
             )
+        # goes to TAM method to make the curve
         else:
-            max_val_indx = np.argmax(uni_ys)
-            min_val_indx = np.argmin(uni_ys)
-
-            guess_min = None
-            guess_max = None
-            guess_min_max = None
-            if min_val_indx != idx_05:
-                x = [uni_xs[min_val_indx], uni_xs[idx_05]]
-                y = [uni_ys[min_val_indx], uni_ys[idx_05]]
-                guess_min = self._a_b_func(x, y)
-            if max_val_indx != idx_05:
-                x = [uni_xs[idx_05], uni_xs[max_val_indx]]
-                y = [uni_ys[idx_05], uni_ys[max_val_indx]]
-                guess_max = self._a_b_func(x, y)
-            if min_val_indx != max_val_indx:
-                x = [uni_xs[min_val_indx], uni_xs[max_val_indx]]
-                y = [uni_ys[min_val_indx], uni_ys[max_val_indx]]
-                guess_min_max = self._a_b_func(x, y)
-
-            S_vals = []
-            mse_vals = []
-            for guess in [None, guess_min, guess_max, guess_min_max]:
-                if guess != None:
-                    p0 = [guess['a'], guess['b']]
-                else:
-                    p0 = None
-                S_temp, pcov = curve_fit(self._cfunc, uni_xs, uni_ys, p0=p0, sigma=weights, method="dogbox")
-                S_vals.append(S_temp)
-                mse_vals.append(self.mse(uni_xs, uni_ys, S_temp))
-
-            lowest_mse_idx = np.argmin(mse_vals)
-
-            S = S_vals[lowest_mse_idx]
+            S = self._TAM_method(uni_xs=uni_xs, uni_ys=uni_ys, method=fit_method)
 
         return S
 
-    def mse(self, x, y, coeffs):
+    def _mse(self, x, y, coeffs):
+        # currently this is not used but will be when we produce the graphs and show
+        # a warning message for bad fit
         return np.mean((self._cfunc(x, *coeffs) - y) ** 2)
 
     def _a_b_func(self, x, y):
@@ -488,6 +457,72 @@ class VegParams:
             'b': b_guess,
             'a': ((1 - y[1]) / y[1]) / np.exp(-x[1] * b_guess)
         }
+
+    def _TAM_method(self, uni_xs, uni_ys, method='dogbox'):
+        # This will be used when the data List of priority for choosing a pair of (x, y) points is the uni_ys
+        # point closest to 0.5 survival and near sigmoid limit is the same point. This is another method to
+        # estimate the build logistic mortality function for up to five acute mortality This is a python updated
+        # version of the logistic function from "Ecological Model Development: Toolkit for interActive Modeling
+        # (TAM)" by Carrillo, Carra C. et al. 2022. Paper suggested "The simplest approach is to identify the points
+        # where the index value is approximately 1 andwhere the index value is approximately 0" and so we will be using
+        # the unique point where unique y is closest 0 and 1
+
+        # Get the index value for the min and max data point of uni_xs and uni_ys
+        min_val_idx = np.argmin(uni_ys)
+        max_val_idx = np.argmax(uni_ys)
+
+        x_1 = uni_xs[min_val_idx]
+        x_2 = uni_xs[max_val_idx]
+        y_1 = uni_ys[min_val_idx]
+        y_2 = uni_ys[max_val_idx]
+
+        # smooth uni_xs values for a fine estimation (note this will create points 50 points inclusively between
+        # x1 and x2.)
+        uni_xs_range = np.linspace(x_1, x_2)
+
+        # Equations found in index of referenced paper above
+        G = np.log(y_1 / (1 - y_1))
+        F = np.log(y_2 / (1 - y_2))
+        B = (G - F) / (x_1 - x_2)
+        A = G - B * x_1
+        Z = np.exp(A + B * uni_xs_range)
+        si_x = Z / (1 + Z)
+
+        # Optaion the a, b, parameter from _cfunc
+        tam_weights = self.get_weights(si_x)
+
+        # get point values closes to 0.5 survival and near sigmoid limit for TAM curve
+        tam_idx_05, tam_idx_limit = self.find_index_values(uni_xs=uni_xs_range, uni_ys=si_x)
+        x = [uni_xs_range[min(tam_idx_05, tam_idx_limit)], uni_xs_range[max(tam_idx_05, tam_idx_limit)]]
+        y = [si_x[min(tam_idx_05, tam_idx_limit)], si_x[max(tam_idx_05, tam_idx_limit)]]
+
+        # a, b guess from TAM curve
+        tam_a_b = self._a_b_func(x, y)
+
+        # a, b estimation
+        tam_S, _ = curve_fit(
+            self._cfunc,
+            uni_xs_range,
+            si_x,
+            p0=[tam_a_b['a'], tam_a_b['b']],
+            sigma=tam_weights,
+            method=method
+        )
+        return tam_S
+
+    def get_weights(self, y_vals):
+        # Assign sigma weights to prioritize points near 0 and 1
+        weights = np.ones(len(y_vals))
+        weights[(y_vals < 0.1) | (y_vals > 0.9)] = 10
+        weights[(y_vals < 0.02) | (y_vals > 0.98)] = 500
+
+        return weights
+
+    def find_index_values(self, uni_xs, uni_ys):
+        # Return the index value of the point closest to the 0.5 survival and near sigmoid limit
+        idx_05 = (np.abs(uni_ys - 0.5)).argmin()
+        idx_limit = np.gradient(np.gradient(uni_ys, uni_xs), uni_xs).argmax()
+        return idx_05, idx_limit
 
     def _cfunc(self, x, a, b):
         return 1 / (1 + a * np.exp(-b * x))
