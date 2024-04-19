@@ -5,8 +5,10 @@ Unit tests for landlab.components.gravel_bedrock_eroder.gravel_bedrock_eroder
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import FlowAccumulator, GravelBedrockEroder
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import GravelBedrockEroder
 
 
 def test_transport_rate():

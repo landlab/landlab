@@ -3,7 +3,8 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, VariableAbrasionGBE
+from landlab.components import FlowAccumulator
+from landlab.components import VariableAbrasionGBE
 
 
 def test_sediment_thickness():

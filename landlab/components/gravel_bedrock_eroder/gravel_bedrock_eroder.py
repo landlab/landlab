@@ -13,19 +13,17 @@ from landlab.grid.diagonals import DiagonalsMixIn
 
 use_cfuncs = True
 if use_cfuncs:
-    from .cfuncs import (
-        _calc_sediment_influx,
-        _calc_sediment_rate_of_change,
-        _estimate_max_time_step_size_ext,
-    )
+    from .cfuncs import _calc_sediment_influx
+    from .cfuncs import _calc_sediment_rate_of_change
+    from .cfuncs import _estimate_max_time_step_size_ext
 
 
 _DT_MAX = 1.0e-2
 _ONE_SIXTH = 1.0 / 6.0
 _SEVEN_SIXTHS = 7.0 / 6.0
-_D8_CHAN_LENGTH_FACTOR = 1.0 #0.5 * (
+_D8_CHAN_LENGTH_FACTOR = 1.0  # 0.5 * (
 #    1.0 + 2.0**0.5
-#)  # D8 raster: average of straight and diagonal
+# )  # D8 raster: average of straight and diagonal
 
 
 class GravelBedrockEroder(Component):
@@ -434,7 +432,7 @@ class GravelBedrockEroder(Component):
             self._flow_link_length_over_cell_area = (
                 _D8_CHAN_LENGTH_FACTOR * self.grid.dx / self.grid.area_of_cell[0]
             )
-            #self._update_flow_link_length_over_cell_area()
+            # self._update_flow_link_length_over_cell_area()
         else:
             self._flow_length_is_variable = True
             self._update_flow_link_length_over_cell_area()
