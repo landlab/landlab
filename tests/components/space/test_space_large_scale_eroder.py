@@ -1125,7 +1125,8 @@ def test_matches_bedrock_alluvial_solution_PF_extended_range():
         err_msg="SpaceLargeScaleEroder bedrock-alluvial soil thickness test failed",
         verbose=True,
     )
-    
+
+
 # %%
 @pytest.mark.slow
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
@@ -1138,7 +1139,7 @@ def test_matches_bedrock_alluvial_solution_PF_high_v_high_hstar():
     Also test that the soil depth everywhere matches the bedrock-alluvial
     analytical solution at steady state:
     H = -H_star * ln(1 - (v_s / (K_sed / (K_br * (1 - F_f)) + v_s))).
-    
+
     Also test that the sediment flux at the outlet is:
     Qs = U * A.
     """
@@ -1237,7 +1238,7 @@ def test_matches_bedrock_alluvial_solution_PF_high_v_high_hstar():
         err_msg="SpaceLargeScaleEroder bedrock-alluvial soil thickness test failed",
         verbose=True,
     )
-    
+
     # compare numerical and analytical sediment flux solutions
     num_sedflux = mg.at_node["sediment__outflux"][mg.core_nodes]
     analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes] * (1 - phi)
