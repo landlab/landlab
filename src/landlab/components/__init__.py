@@ -25,6 +25,7 @@ from .flow_director import FlowDirectorD8
 from .flow_director import FlowDirectorDINF
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorSteepest
+from .flow_router import FlowRouter
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
 from .gravel_bedrock_eroder import GravelBedrockEroder
@@ -126,6 +127,7 @@ COMPONENTS = [
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
+    FlowRouter,
     FractureGridGenerator,
     gFlex,
     GravelBedrockEroder,
