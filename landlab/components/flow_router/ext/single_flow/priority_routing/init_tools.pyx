@@ -9,8 +9,8 @@ cimport cython
 cimport numpy as cnp
 
 
-def _get_start_end_indexes_in_sorted_array(cnp.int_t [:] sorted_array,
-    cnp.int_t n_values, cnp.int_t max_value):
+def _get_start_end_indexes_in_sorted_array(cnp.int64_t [:] sorted_array,
+    cnp.int64_t n_values, cnp.int64_t max_value):
     """ Get the start and end indexes of each value in a nd.array sorted by the value.
     Starts are in return[0, :] and ends in return[1, :].
 
@@ -28,8 +28,8 @@ def _get_start_end_indexes_in_sorted_array(cnp.int_t [:] sorted_array,
     void
     """
     cdef:
-        cnp.int_t [:, :] idx2
-        cnp.int_t i, value
+        cnp.int64_t [:, :] idx2
+        cnp.int64_t i, value
     idx2 = np.empty((2, n_values), dtype=int)
     idx2[1, :] = -max_value
     idx2[0, :] = max_value
