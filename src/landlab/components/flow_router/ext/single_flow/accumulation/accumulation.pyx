@@ -12,10 +12,10 @@ cimport numpy as cnp
 from libcpp cimport bool
 
 
-cdef cnp.int_t _add_to_upstream_ordered_nodes(cnp.int_t receiver_id,
-    cnp.int_t node_idx_in_stack,
-    cnp.int_t [:] upstream_ordered_nodes, cnp.int_t [:] donors_start_indexes,
-    cnp.int_t [:] donors):
+cdef cnp.int64_t _add_to_upstream_ordered_nodes(cnp.int64_t receiver_id,
+    cnp.int64_t node_idx_in_stack,
+    cnp.int64_t [:] upstream_ordered_nodes, cnp.int64_t [:] donors_start_indexes,
+    cnp.int64_t [:] donors):
     """
     Adapted version of the recursive algorithm of Braun and Willett, 2013.
     This function updates node_idx_in_stack and upstream_ordered_nodes.
@@ -44,11 +44,11 @@ cdef cnp.int_t _add_to_upstream_ordered_nodes(cnp.int_t receiver_id,
     node_idx_in_stack: long.
         Current index in the stack to be used to add a new receiver id (noted j).
     """
-    cdef cnp.int_t donor_index
-    cdef cnp.int_t donor_id
-    cdef cnp.int_t idx1 = donors_start_indexes[receiver_id]
-    cdef cnp.int_t idx2 = donors_start_indexes[receiver_id + 1]
-    cdef cnp.int_t _return_node_idx_in_stack = 0
+    cdef cnp.int64_t donor_index
+    cdef cnp.int64_t donor_id
+    cdef cnp.int64_t idx1 = donors_start_indexes[receiver_id]
+    cdef cnp.int64_t idx2 = donors_start_indexes[receiver_id + 1]
+    cdef cnp.int64_t _return_node_idx_in_stack = 0
     upstream_ordered_nodes[node_idx_in_stack] = receiver_id
     node_idx_in_stack += 1
 
@@ -61,13 +61,13 @@ cdef cnp.int_t _add_to_upstream_ordered_nodes(cnp.int_t receiver_id,
     return node_idx_in_stack
 
 
-cdef void _calc_upstream_order_for_nodes_c(cnp.int_t[:] base_level_and_closed_nodes,
-    cnp.int_t[:] upstream_ordered_nodes, cnp.int_t[:] donors_start_indexes,
-    cnp.int_t[:] donors):
-    cdef cnp.int_t node_idx_in_stack = 0
-    cdef cnp.int_t n = len(base_level_and_closed_nodes)
-    cdef cnp.int_t receiver_id
-    cdef cnp.int_t i
+cdef void _calc_upstream_order_for_nodes_c(cnp.int64_t[:] base_level_and_closed_nodes,
+    cnp.int64_t[:] upstream_ordered_nodes, cnp.int64_t[:] donors_start_indexes,
+    cnp.int64_t[:] donors):
+    cdef cnp.int64_t node_idx_in_stack = 0
+    cdef cnp.int64_t n = len(base_level_and_closed_nodes)
+    cdef cnp.int64_t receiver_id
+    cdef cnp.int64_t i
     """
     Orders nodes downstream to upstream for each base-level and add closed nodes.
 
@@ -98,9 +98,9 @@ cdef void _calc_upstream_order_for_nodes_c(cnp.int_t[:] base_level_and_closed_no
                             donors_start_indexes, donors)
 
 
-def _calc_upstream_order_for_nodes(cnp.int_t[:] base_level_and_closed_nodes,
-    cnp.int_t[:] upstream_ordered_nodes,
-    cnp.int_t[:] donors_start_indexes, cnp.int_t[:] donors):
+def _calc_upstream_order_for_nodes(cnp.int64_t[:] base_level_and_closed_nodes,
+    cnp.int64_t[:] upstream_ordered_nodes,
+    cnp.int64_t[:] donors_start_indexes, cnp.int64_t[:] donors):
     """
     Orders nodes downstream to upstream for each base-level and add closed nodes.
     Updates upstream_ordered_nodes.
@@ -127,8 +127,8 @@ def _calc_upstream_order_for_nodes(cnp.int_t[:] base_level_and_closed_nodes,
         upstream_ordered_nodes, donors_start_indexes, donors)
 
 
-def _calc_drainage_areas(cnp.int_t [:] downstream_ordered_nodes,
-                         cnp.int_t [:] receivers, cnp.float_t [:] drainage_areas):
+def _calc_drainage_areas(cnp.int64_t [:] downstream_ordered_nodes,
+                         cnp.int64_t [:] receivers, cnp.float64_t [:] drainage_areas):
     """
     Calculates drainage areas for each node.
     Updates drainage_areas.
@@ -141,7 +141,7 @@ def _calc_drainage_areas(cnp.int_t [:] downstream_ordered_nodes,
     drainage_areas: memoryview(long).
         drainage areas of each node (ordered by node id)
     """
-    cdef cnp.int_t n = len(downstream_ordered_nodes), i, donor_id, receiver_id
+    cdef cnp.int64_t n = len(downstream_ordered_nodes), i, donor_id, receiver_id
 
     for i in range(n):
         donor_id = downstream_ordered_nodes[i]
