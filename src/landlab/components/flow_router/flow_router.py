@@ -538,7 +538,9 @@ class FlowRouter(Component):
         # start is at array[0, :] and end at array[1, :]
         self._head_start_end_indexes = (
             self._init_tools_funcs._get_start_end_indexes_in_sorted_array(
-                np.int64(sorted_pseudo_heads), np.int64(nodes_n), np.int64(self._max_number_of_nodes)
+                np.int64(sorted_pseudo_heads),
+                np.int64(nodes_n),
+                np.int64(self._max_number_of_nodes),
             )
         )
 
@@ -909,7 +911,9 @@ class FlowRouter(Component):
         )
 
         self._accumulation_funcs._calc_drainage_areas(
-            np.int64(downstream_ordered_nodes), np.int64(receivers), np.float64(drainage_areas)
+            np.int64(downstream_ordered_nodes),
+            np.int64(receivers),
+            np.float64(drainage_areas),
         )
         if not self._uniform_water_external_influx:
             discharges = drainage_areas.copy() * water_external_influxes
