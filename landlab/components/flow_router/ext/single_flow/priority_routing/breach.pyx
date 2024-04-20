@@ -317,9 +317,9 @@ cdef void _direct_flow_c(cnp.int64_t nodes_n, const cnp.int64_t[:] base_level_no
         cnp.int64_t [:] neighbors
         pair[cnp.int64_t, cnp.float64_t] node_pair
 
-    done = np.full(nodes_n, 0, dtype=int)
-    tmp_neighbors = np.full(neighbors_max_number, 0, dtype=int)
-    neighbors_to_do = np.array([], dtype=int)
+    done = np.full(nodes_n, 0, dtype=np.int64)
+    tmp_neighbors = np.full(neighbors_max_number, 0, dtype=np.int64)
+    neighbors_to_do = np.array([], dtype=np.int64)
     done_n = 0 # done_n is input only for MULTITHREADING, a future evolution, and
                # is not checked in this function.
 
