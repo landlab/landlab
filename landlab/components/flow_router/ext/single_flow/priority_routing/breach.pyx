@@ -9,9 +9,9 @@ import numpy as np
 
 cimport cython
 cimport numpy as cnp
+from libc.stdio cimport printf
 from libcpp cimport bool
 from libcpp.pair cimport pair
-from libc.stdio cimport printf
 
 
 # 1-3. Instantiate the Queues (Steps noted #1-3, #5-6 in Barnes, 2014's algorithm #4
