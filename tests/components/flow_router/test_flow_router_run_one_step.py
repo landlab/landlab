@@ -11,7 +11,7 @@ from landlab.components import FlowRouter
 def test_run_one_step_raster():
     spacing = 10
     g = RasterModelGrid((4, 4), (spacing, spacing))
-    g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_CLOSED
+    g.status_at_node[g.perimeter_nodes] = np.int64(g.BC_NODE_IS_CLOSED)
     self = FlowRouter(g)
     g.at_node["topographic__elevation"] = np.float64(
         [10.0, 20.0, 10.0, 10.0]
@@ -101,8 +101,8 @@ def test_run_one_step_hex():
     spacing = 10
 
     g = HexModelGrid((5, 3), spacing, node_layout="hex")
-    g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_FIXED_VALUE
-    g.status_at_node[0] = g.BC_NODE_IS_CLOSED
+    g.status_at_node[g.perimeter_nodes] = np.int64(g.BC_NODE_IS_FIXED_VALUE)
+    g.status_at_node[0] = np.int64(g.BC_NODE_IS_CLOSED)
 
     self = FlowRouter(g, surface="soil__elevation", diagonals=True, runoff_rate=2.0)
     g.at_node["soil__elevation"] = np.float64(
@@ -230,12 +230,16 @@ def test_run_one_step_network():
         "links": ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6)),
     }
     g = NetworkModelGrid(**params)
-    g.at_node["topographic__elevation"] = [0.0, 0.2, 0.25, 0.15, 0.25, 0.4, 0.8, 0.8]
-    g.at_node["water__unit_flux_in"] = [1.0, 2.0, 3.0, 4.0, 3.0, 3.2, 4.5, 1.0]
+    g.at_node["topographic__elevation"] = np.float64(
+        [0.0, 0.2, 0.25, 0.15, 0.25, 0.4, 0.8, 0.8]
+    )
+    g.at_node["water__unit_flux_in"] = np.float64(
+        [1.0, 2.0, 3.0, 4.0, 3.0, 3.2, 4.5, 1.0]
+    )
 
     self = FlowRouter(g, runoff_rate="water__unit_flux_in")
 
-    g.status_at_node[7] = g.BC_NODE_IS_CLOSED
+    g.status_at_node[7] = np.int64(g.BC_NODE_IS_CLOSED)
     self.run_one_step()
 
     assert_array_equal(

@@ -21,7 +21,7 @@ def test_init_raster():
         + [10.0, 20.0, 25.0, 15.0]
     )
 
-    assert_array_equal(self._nodes, np.arange(16))
+    assert_array_equal(self._nodes, np.int64(np.arange(16)))
 
     # 1. Initialization of the input parameters
     ###########################################
@@ -70,13 +70,13 @@ def test_init_raster():
     )
 
     # 2.3. Max number of nodes (for sort head/tails/links)
-    assert self._max_number_of_nodes == 1e9
+    assert self._max_number_of_nodes == np.int64(1e9)
 
     # 3. Determination of stable input grid data necessary to calculate
     # run_flow_directions
     ###################################################################
 
-    assert self._neighbors_max_number == 8
+    assert self._neighbors_max_number == np.int64(8)
 
     # Link infos(tail, head, link id, gradient) sorted by head id.
     # These infos are voluntarily duplicate
@@ -121,8 +121,8 @@ def test_init_hex():
     spacing = 10
 
     g = HexModelGrid((5, 3), spacing, node_layout="hex")
-    g.status_at_node[g.perimeter_nodes] = g.BC_NODE_IS_FIXED_VALUE
-    g.status_at_node[0] = g.BC_NODE_IS_CLOSED
+    g.status_at_node[g.perimeter_nodes] = np.int64(g.BC_NODE_IS_FIXED_VALUE)
+    g.status_at_node[0] = np.int64(g.BC_NODE_IS_CLOSED)
 
     self = FlowRouter(g, surface="soil__elevation", diagonals=True, runoff_rate=2.0)
     g.at_node["soil__elevation"] = np.float64(
@@ -133,7 +133,7 @@ def test_init_hex():
         + [5.0, 0.0, 5.0]
     )
 
-    assert_array_equal(self._nodes, np.arange(19))
+    assert_array_equal(self._nodes, np.int64(np.arange(19)))
 
     # 1. Initialization of the input parameters
     ###########################################
@@ -142,7 +142,7 @@ def test_init_hex():
 
     # 1.2. Water influx external to grid
     assert self._uniform_water_external_influx
-    assert_almost_equal(g.at_node["water__unit_flux_in"][0], 2.0)
+    assert_almost_equal(g.at_node["water__unit_flux_in"][0], np.float64(2.0))
 
     # 1.3. Options
     assert not self._diagonals
@@ -178,13 +178,13 @@ def test_init_hex():
     )
 
     # 2.3. Max number of nodes (for sort head/tails/links)
-    assert self._max_number_of_nodes == 1e9
+    assert self._max_number_of_nodes == np.float64(1e9)
 
     # 3. Determination of stable input grid data necessary to calculate
     # run_flow_directions
     ###################################################################################
 
-    assert self._neighbors_max_number == 6
+    assert self._neighbors_max_number == np.int64(6)
 
     # Link infos(tail, head, link id, gradient) sorted by head id.
     # These infos are voluntarily duplicate
@@ -233,14 +233,18 @@ def test_init_network():
         "links": ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6)),
     }
     g = NetworkModelGrid(**params)
-    g.at_node["topographic__elevation"] = [0.0, 0.08, 0.25, 0.15, 0.25, 0.4, 0.8, 0.8]
-    g.at_node["water__unit_flux_in"] = [1.0, 2.0, 3.0, 4.0, 3.0, 3.2, 4.5, 1.0]
+    g.at_node["topographic__elevation"] = np.float64(
+        [0.0, 0.08, 0.25, 0.15, 0.25, 0.4, 0.8, 0.8]
+    )
+    g.at_node["water__unit_flux_in"] = np.float64(
+        [1.0, 2.0, 3.0, 4.0, 3.0, 3.2, 4.5, 1.0]
+    )
 
     self = FlowRouter(g, runoff_rate="water__unit_flux_in")
 
-    g.status_at_node[7] = g.BC_NODE_IS_CLOSED
+    g.status_at_node[7] = np.int64(g.BC_NODE_IS_CLOSED)
 
-    assert_array_equal(self._nodes, np.arange(8))
+    assert_array_equal(self._nodes, np.int64(np.arange(8)))
 
     # 1. Initialization of the input parameters
     ###########################################
@@ -250,7 +254,8 @@ def test_init_network():
     # 1.2. Water influx external to grid
     assert not self._uniform_water_external_influx
     assert_almost_equal(
-        g.at_node["water__unit_flux_in"], [1.0, 2.0, 3.0, 4.0, 3.0, 3.2, 4.5, 1.0]
+        g.at_node["water__unit_flux_in"],
+        np.float64([1.0, 2.0, 3.0, 4.0, 3.0, 3.2, 4.5, 1.0]),
     )
 
     # 1.3. Options
@@ -274,7 +279,7 @@ def test_init_network():
     )
 
     # 2.3. Max number of nodes (for sort head/tails/links)
-    assert self._max_number_of_nodes == 1e9
+    assert self._max_number_of_nodes == np.int64(1e9)
 
     # 3. Determination of stable input grid data necessary to calculate
     # run_flow_directions
@@ -311,5 +316,5 @@ def test_init_network():
         np.int64([7, 0, 1, 9, 10, 8, 2, 11, 3, 4, 12, 13, 5, 6]),
     )
 
-    assert g.status_at_node[0] == g.BC_NODE_IS_FIXED_VALUE
-    assert self._neighbors_max_number == 4
+    assert g.status_at_node[0] == np.int64(g.BC_NODE_IS_FIXED_VALUE)
+    assert self._neighbors_max_number == np.int64(4)
