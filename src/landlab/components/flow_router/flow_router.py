@@ -96,6 +96,10 @@ class FlowRouter(Component):
     - For optimization, the code of the component is partly delegated to
       Cython.
 
+    - Because int/float numpy default implementation and c/cc-compiler on
+      windows and mac mess up, the FlowRouter converts all field at nodes
+      into np.int64 or np.float64.
+
     - For flow direction and depression overcoming, we constructed and adapted
       an algorithm  based on the priority flood algorithm description #4 in
       Barnes et al., 2014. The major differences with the Barnes algorithm is
@@ -144,7 +148,7 @@ class FlowRouter(Component):
         intent is set to inout."""
         # Input grid-fields
         "cell_area_at_node": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "inout",
             "optional": True,
             "units": "m**2",
@@ -152,7 +156,7 @@ class FlowRouter(Component):
             "doc": "Area of the cell surrounding the node",
         },
         "topographic__elevation": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "inout",
             "optional": True,
             "units": "m",
@@ -160,7 +164,7 @@ class FlowRouter(Component):
             "doc": "Land surface topographic elevation",
         },
         "water__unit_flux_in": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "inout",
             "optional": True,
             "units": "m/s",
@@ -170,7 +174,7 @@ class FlowRouter(Component):
         },
         # Output grid-fields
         "depression_free__elevation": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -178,7 +182,7 @@ class FlowRouter(Component):
             "doc": "Filled land surface topographic elevation.",
         },
         "depression__depth": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -186,7 +190,7 @@ class FlowRouter(Component):
             "doc": "Depth of depression below its spillway point",
         },
         "depression__outlet_node": {
-            "dtype": int,
+            "dtype": np.int64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -195,7 +199,7 @@ class FlowRouter(Component):
             + " depression, otherwise grid.BAD_INDEX",
         },
         "drainage_area": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "out",
             "optional": False,
             "units": "m**2",
@@ -204,7 +208,7 @@ class FlowRouter(Component):
             + " the node's discharge",
         },
         "flood_status_code": {
-            "dtype": int,
+            "dtype": np.int64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -213,7 +217,7 @@ class FlowRouter(Component):
             + " or _FLOODED).",
         },
         "flow__link_to_receiver_node": {
-            "dtype": int,
+            "dtype": np.int64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -222,7 +226,7 @@ class FlowRouter(Component):
             + " discharge",
         },
         "flow__receiver_node": {
-            "dtype": int,
+            "dtype": np.int64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -231,7 +235,7 @@ class FlowRouter(Component):
             + " current node)",
         },
         "flow__upstream_node_order": {
-            "dtype": int,
+            "dtype": np.int64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -240,7 +244,7 @@ class FlowRouter(Component):
             + " of node IDs",
         },
         "outlet_node": {
-            "dtype": int,
+            "dtype": np.int64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -248,7 +252,7 @@ class FlowRouter(Component):
             "doc": "Base-level outlet of the flux coming from the node.",
         },
         "surface_water__discharge": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -256,7 +260,7 @@ class FlowRouter(Component):
             "doc": "Volumetric discharge of surface water",
         },
         "topographic__steepest_slope": {
-            "dtype": float,
+            "dtype": np.float64,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -401,8 +405,16 @@ class FlowRouter(Component):
                 if field not in g.at_node.keys():
                     g.add_zeros(field, at="node")
 
+        # Make sure all fields at node are either int64 or float64 (compatibility
+        # c/cc-compiler for windows and mac).
+        for field in g.at_node.keys():
+            if isinstance(g.at_node[field], int):
+                g.at_node[field][:] = np.int64(g.at_node[field])
+            elif isinstance(g.at_node[field], float):
+                g.at_node[field][:] = np.float64(g.at_node[field])
+
         nodes_n = g.number_of_nodes
-        self._nodes = nodes = (
+        self._nodes = nodes = np.int64(
             g.nodes.reshape(nodes_n) if (isinstance(g, RasterModelGrid)) else g.nodes
         )
 
@@ -413,8 +425,8 @@ class FlowRouter(Component):
         if not isinstance(s, str):
             s = "topographic__elevation"
         if s not in g.at_node:
-            g.add_field(s, np.zeros(nodes_n, dtype=float))
-        z = g.at_node[s][:] = g.at_node[s].astype(float)
+            g.add_field(s, np.zeros(nodes_n, dtype=np.float64))
+        z = g.at_node[s][:] = g.at_node[s].astype(np.float64)
         # NB: the [:] is crucial to let the variables referencing the surface outside
         # the component stil referencing the surface
 
@@ -432,7 +444,7 @@ class FlowRouter(Component):
             g.at_node["water__unit_flux_in"][:] = g.at_node[v][:]
         elif not isinstance(v, str):
             g.at_node["water__unit_flux_in"][:] = np.full(
-                nodes_n, v if v is not None else 1.0
+                nodes_n, v if v is not None else 1.0, dtype=np.float64
             )
 
         # 1.3. Options
@@ -471,7 +483,7 @@ class FlowRouter(Component):
         # 2.2 Cell area at boundary nodes = 0, NetworkModelGrid cell area = 1
         # used in run_flow_accumulations()
         # NB: We assume "cell_area_at_node" wasn't previously defined
-        g.at_node["cell_area_at_node"] = (
+        g.at_node["cell_area_at_node"] = np.float64(
             np.full(nodes_n, 1.0)
             if isinstance(g, NetworkModelGrid)
             else g.cell_area_at_node.copy()
@@ -479,31 +491,31 @@ class FlowRouter(Component):
         self._cell_area_at_nodes = g.at_node["cell_area_at_node"]
 
         # 2.2. Max number of nodes (for sort head/tails/links)
-        self._max_number_of_nodes = 1e9
+        self._max_number_of_nodes = np.int64(1e9)
 
         # 2.3. Minimum relative difference in elevation required in the
         # construction of the depression_free_elevations surface
-        self._min_elevation_relative_diff = 1e-8
+        self._min_elevation_relative_diff = np.float64(1e-8)
 
         # 3. Determination of stable input grid data necessary to calculate
         # run_flow_directions
         ###################################################################
         diagonals = self._diagonals
         z = g.at_node[self._surface]
-        nodes_n = g.number_of_nodes
+        nodes_n = np.int64(g.number_of_nodes)
 
         if diagonals:
             # d8 include classic nodes and nodes at diagonal
             # tails and heads sorted by link ids
-            head_nodes = g.nodes_at_d8[:, 1]
-            tail_nodes = g.nodes_at_d8[:, 0]
-            links_n = g.number_of_d8
+            head_nodes = np.int64(g.nodes_at_d8[:, 1])
+            tail_nodes = np.int64(g.nodes_at_d8[:, 0])
+            links_n = np.int64(g.number_of_d8)
         else:
-            head_nodes = g.node_at_link_head
-            tail_nodes = g.node_at_link_tail
-            links_n = g.number_of_links
+            head_nodes = np.int64(g.node_at_link_head)
+            tail_nodes = np.int64(g.node_at_link_tail)
+            links_n = np.int64(g.number_of_links)
 
-        self._neighbors_max_number = (
+        self._neighbors_max_number = np.int64(
             8
             if isinstance(g, RasterModelGrid)
             else len(g.adjacent_nodes_at_node[0])  # noqa: E501
@@ -538,9 +550,9 @@ class FlowRouter(Component):
         # start is at array[0, :] and end at array[1, :]
         self._head_start_end_indexes = (
             self._init_tools_funcs._get_start_end_indexes_in_sorted_array(
-                np.int64(sorted_pseudo_heads),
-                np.int64(nodes_n),
-                np.int64(self._max_number_of_nodes),
+                sorted_pseudo_heads,
+                nodes_n,
+                self._max_number_of_nodes,
             )
         )
 
@@ -702,17 +714,25 @@ class FlowRouter(Component):
         # 1. Get the input grid data (steps #4 and #11)
         ##############################################
         g = self._grid
+        # Make sure all fields at node are either int64 or float64 (compatibility
+        # c/cc-compiler for windows and mac).
+        for field in g.at_node.keys():
+            if isinstance(g.at_node[field], int):
+                g.at_node[field][:] = np.int64(g.at_node[field])
+            elif isinstance(g.at_node[field], float):
+                g.at_node[field][:] = np.float64(g.at_node[field])
+
         z = g.at_node[self._surface][:] = g.at_node[self._surface].astype(float)
         diagonals = self._diagonals
         idx = self._link_idx_sorted_by_heads
 
-        nodes_n = g.number_of_nodes
+        nodes_n = np.int64(g.number_of_nodes)
         base_level_nodes = self._base_level_nodes
         closed_nodes = self._closed_nodes
         neighbors_max_number = self._neighbors_max_number
         min_elevation_relative_diff = self._min_elevation_relative_diff
 
-        gradients = (
+        gradients = np.float64(
             g.calc_grad_at_d8(z) if diagonals else g.calc_grad_at_link(z)
         )  # slopes
         sorted_dupli_gradients = np.abs(np.concatenate((gradients, gradients)))[idx]
@@ -729,54 +749,54 @@ class FlowRouter(Component):
         ##################################################
         if self._single_flow:
             receivers = g.at_node["flow__receiver_node"]
-            receivers[:] = g.BAD_INDEX
+            receivers[:] = np.int64(g.BAD_INDEX)
 
             steepest_slopes = g.at_node["topographic__steepest_slope"]
-            steepest_slopes[:] = 0.0
+            steepest_slopes[:] = np.float64(0.0)
             links_to_receivers = g.at_node["flow__link_to_receiver_node"]
-            links_to_receivers[:] = g.BAD_INDEX
+            links_to_receivers[:] = np.int64(g.BAD_INDEX)
 
             outlet_nodes = g.at_node["outlet_node"]
-            outlet_nodes[:] = g.BAD_INDEX
+            outlet_nodes[:] = np.int64(g.BAD_INDEX)
         else:
-            receivers = g.BAD_INDEX * np.ones(nodes_n, dtype=int)
-            steepest_slopes = np.zeros(nodes_n, dtype=float)
-            links_to_receivers = g.BAD_INDEX * np.ones(nodes_n, dtype=int)
-            outlet_nodes = g.BAD_INDEX * np.ones(nodes_n, dtype=int)
+            receivers = g.BAD_INDEX * np.ones(nodes_n, dtype=np.int64)
+            steepest_slopes = np.zeros(nodes_n, dtype=np.float64)
+            links_to_receivers = g.BAD_INDEX * np.ones(nodes_n, dtype=np.int64)
+            outlet_nodes = g.BAD_INDEX * np.ones(nodes_n, dtype=np.int64)
 
         flooded_nodes = g.at_node["flood_status_code"]
-        flooded_nodes[:] = FloodStatus._UNFLOODED
+        flooded_nodes[:] = np.int64(FloodStatus._UNFLOODED)
         depression_depths = g.at_node["depression__depth"]
-        depression_depths[:] = 0.0
+        depression_depths[:] = np.float64(0.0)
         depression_free_elevations = g.at_node["depression_free__elevation"]
         depression_free_elevations[:] = z.copy()
         depression_outlet_nodes = g.at_node["depression__outlet_node"]
-        depression_outlet_nodes[:] = g.BAD_INDEX
+        depression_outlet_nodes[:] = np.int64(g.BAD_INDEX)
 
         # 3. Flow direction process (Steps #11 - 20)
         ############################################
 
         self._breach_funcs._direct_flow(
-            np.int64(nodes_n),
-            np.int64(base_level_nodes),
-            np.int64(closed_nodes),
-            np.int64(sorted_pseudo_tails),
-            np.float64(sorted_dupli_gradients),
-            np.int64(sorted_dupli_links),
-            np.int64(head_start_end_indexes),
-            np.int64(outlet_nodes),
-            np.int64(depression_outlet_nodes),
-            np.int64(flooded_nodes),
-            np.float64(depression_depths),
-            np.float64(depression_free_elevations),
-            np.int64(links_to_receivers),
-            np.int64(receivers),
-            np.float64(steepest_slopes),
-            np.float64(z),
+            nodes_n,
+            base_level_nodes,
+            closed_nodes,
+            sorted_pseudo_tails,
+            sorted_dupli_gradients,
+            sorted_dupli_links,
+            head_start_end_indexes,
+            outlet_nodes,
+            depression_outlet_nodes,
+            flooded_nodes,
+            depression_depths,
+            depression_free_elevations,
+            links_to_receivers,
+            receivers,
+            steepest_slopes,
+            z,
             np.int64(FloodStatus._FLOODED.value),
             np.int64(g.BAD_INDEX),
-            neighbors_max_number=np.int64(neighbors_max_number),
-            min_elevation_relative_diff=np.float64(min_elevation_relative_diff),
+            neighbors_max_number=neighbors_max_number,
+            min_elevation_relative_diff=min_elevation_relative_diff,
         )
 
     def run_flow_accumulations(self):
@@ -858,21 +878,29 @@ class FlowRouter(Component):
             return
 
         g = self._grid
-        nodes_n = g.number_of_nodes
+        # Make sure all fields at node are either int64 or float64 (compatibility
+        # c/cc-compiler for windows and mac).
+        for field in g.at_node.keys():
+            if isinstance(g.at_node[field], int):
+                g.at_node[field][:] = np.int64(g.at_node[field])
+            elif isinstance(g.at_node[field], float):
+                g.at_node[field][:] = np.float64(g.at_node[field])
+
+        nodes_n = np.int64(g.number_of_nodes)
         nodes = self._nodes
         base_level_and_closed_nodes = self._base_level_and_closed_nodes
         receivers = g.at_node["flow__receiver_node"]
         upstream_ordered_nodes = g.at_node["flow__upstream_node_order"]
 
         # number of donors for each node d_i
-        donors_n_by_node = np.bincount(receivers, minlength=nodes_n)
+        donors_n_by_node = np.int64(np.bincount(receivers, minlength=nodes_n))
 
         """start index of the list of donors for each node delta_i.
         Note that donors_start_indexes has a size of nodes_n + 1 to avoid out
         of boundary error in _add_to_upstream_ordered_nodes when accessing
         donors_start_indexes[receiver_id + 1]."""
-        donors_start_indexes = np.cumsum(
-            np.concatenate(([0], donors_n_by_node))
+        donors_start_indexes = np.int64(
+            np.cumsum(np.concatenate(([0], donors_n_by_node)))
         )  # noqa: E501
 
         """D, in python, this way is 10xtimes faster than the way of updating
@@ -887,15 +915,15 @@ class FlowRouter(Component):
         g.at_node["flow__upstream_node_order"][:] = -1 triggers an error in
         _calc_upstream_order_for_nodes."""
         upstream_ordered_nodes[:] = np.full(
-            nodes_n, g.BAD_INDEX, dtype=int
+            nodes_n, g.BAD_INDEX, dtype=np.int64
         )  # noqa: E501
 
         # Call to the algorithm.
         self._accumulation_funcs._calc_upstream_order_for_nodes(
-            np.int64(base_level_and_closed_nodes),
-            np.int64(upstream_ordered_nodes),
-            np.int64(donors_start_indexes),
-            np.int64(donors),
+            base_level_and_closed_nodes,
+            upstream_ordered_nodes,
+            donors_start_indexes,
+            donors,
         )
 
         # Calculation of drainage areas and water discharges
@@ -908,12 +936,13 @@ class FlowRouter(Component):
         discharges = np.full(
             shape=nodes_n,
             fill_value=cell_area_at_nodes * water_external_influxes,  # noqa: E501
+            dtype=np.float64,
         )
 
         self._accumulation_funcs._calc_drainage_areas(
-            np.int64(downstream_ordered_nodes),
-            np.int64(receivers),
-            np.float64(drainage_areas),
+            downstream_ordered_nodes,
+            receivers,
+            drainage_areas,
         )
         if not self._uniform_water_external_influx:
             discharges = drainage_areas.copy() * water_external_influxes
