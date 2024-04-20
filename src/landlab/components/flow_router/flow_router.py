@@ -538,7 +538,7 @@ class FlowRouter(Component):
         # start is at array[0, :] and end at array[1, :]
         self._head_start_end_indexes = (
             self._init_tools_funcs._get_start_end_indexes_in_sorted_array(
-                sorted_pseudo_heads, nodes_n, self._max_number_of_nodes
+                np.int64(sorted_pseudo_heads), np.int64(nodes_n), np.int64(self._max_number_of_nodes)
             )
         )
 
@@ -755,26 +755,26 @@ class FlowRouter(Component):
         ############################################
 
         self._breach_funcs._direct_flow(
-            nodes_n,
-            base_level_nodes,
-            closed_nodes,
-            sorted_pseudo_tails,
-            sorted_dupli_gradients,
-            sorted_dupli_links,
-            head_start_end_indexes,
-            outlet_nodes,
-            depression_outlet_nodes,
-            flooded_nodes,
-            depression_depths,
-            depression_free_elevations,
-            links_to_receivers,
-            receivers,
-            steepest_slopes,
-            z,
-            FloodStatus._FLOODED.value,
-            g.BAD_INDEX,
-            neighbors_max_number=neighbors_max_number,
-            min_elevation_relative_diff=min_elevation_relative_diff,
+            np.int64(nodes_n),
+            np.int64(base_level_nodes),
+            np.int64(closed_nodes),
+            np.int64(sorted_pseudo_tails),
+            np.float64(sorted_dupli_gradients),
+            np.int64(sorted_dupli_links),
+            np.int64(head_start_end_indexes),
+            np.int64(outlet_nodes),
+            np.int64(depression_outlet_nodes),
+            np.int64(flooded_nodes),
+            np.float64(depression_depths),
+            np.float64(depression_free_elevations),
+            np.int64(links_to_receivers),
+            np.int64(receivers),
+            np.float64(steepest_slopes),
+            np.float64(z),
+            np.int64(FloodStatus._FLOODED.value),
+            np.int64(g.BAD_INDEX),
+            neighbors_max_number=np.int64(neighbors_max_number),
+            min_elevation_relative_diff=np.float64(min_elevation_relative_diff),
         )
 
     def run_flow_accumulations(self):
@@ -890,10 +890,10 @@ class FlowRouter(Component):
 
         # Call to the algorithm.
         self._accumulation_funcs._calc_upstream_order_for_nodes(
-            base_level_and_closed_nodes,
-            upstream_ordered_nodes,
-            donors_start_indexes,
-            donors,
+            np.int64(base_level_and_closed_nodes),
+            np.int64(upstream_ordered_nodes),
+            np.int64(donors_start_indexes),
+            np.int64(donors),
         )
 
         # Calculation of drainage areas and water discharges
@@ -909,7 +909,7 @@ class FlowRouter(Component):
         )
 
         self._accumulation_funcs._calc_drainage_areas(
-            downstream_ordered_nodes, receivers, drainage_areas
+            np.int64(downstream_ordered_nodes), np.int64(receivers), np.float64(drainage_areas)
         )
         if not self._uniform_water_external_influx:
             discharges = drainage_areas.copy() * water_external_influxes
