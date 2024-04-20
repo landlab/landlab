@@ -11,6 +11,7 @@ cimport cython
 cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
+from libc.stdio cimport printf
 
 
 # 1-3. Instantiate the Queues (Steps noted #1-3, #5-6 in Barnes, 2014's algorithm #4
@@ -385,6 +386,7 @@ cdef void _direct_flow_c(
             if done[donor_id] == 1:
                 continue  # 0 for False.
             _set_receiver(donor_id, receiver_id, receivers, done, &done_n)
+            # printf(" receiver %d, %d, %d, %d\n", receiver_id, receivers[0], receivers[1], receivers[2])
             _set_flooded_and_outlet(
                 donor_id,
                 z,
