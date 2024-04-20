@@ -30,7 +30,7 @@ def _get_start_end_indexes_in_sorted_array(cnp.int64_t [:] sorted_array,
     cdef:
         cnp.int64_t [:, :] idx2
         cnp.int64_t i, value
-    idx2 = np.empty((2, n_values), dtype=int)
+    idx2 = np.empty((2, n_values), dtype=np.int64)
     idx2[1, :] = -max_value
     idx2[0, :] = max_value
     for i in range(len(sorted_array)):
