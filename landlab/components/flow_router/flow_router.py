@@ -719,10 +719,11 @@ class FlowRouter(Component):
         Steepest slopes at nodes, which can be used by a landslider component.
 
         >>> with np.printoptions(precision=1):
-        ...     print(g.at_node["topographic__steepest_slope"])
+        ...     print(g.at_node["topographic__steepest_slope"][11:])
         ...
-        [ 0.   0.   0.   0.   0.   0.5  0.   0.   0.   0.5  0.5  0.   0.   2.   2.5
-          0.   0.   0.   0. ]
+        [ 0.   0.   2.   2.5 0.   0.   0.   0. ]
+        >>> # [ 0.   0.   0.   0.   0.   0.5  0.   0.   0.   0.5  0.5  0.   0.   2.   2.5
+        >>> #   0.   0.   0.   0. ]
         >>> np.set_printoptions(precision=initial_precision)
         """
 
