@@ -335,6 +335,7 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
+        >>> np.set_printoptions(precision=0)
         >>> from landlab import RasterModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -348,15 +349,15 @@ class FlowRouter(Component):
         >>> # Creation of the router
         >>> router_params = {"grid": g}
         >>> router = FlowRouter(**router_params)
-        >>> g.at_node["depression_free__elevation"]
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., 0.,
-                0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        >>> print(g.at_node["depression_free__elevation"])
+        [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.
+          0.  0.  0.  0.  0.  0.  0.]
 
         Set up a external water influx if none.
 
-        >>> g.at_node["water__unit_flux_in"]
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1., 1.,
-        1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        >>> print(g.at_node["water__unit_flux_in"])
+        [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.
+          1.  1.  1.  1.  1.  1.  1.]
 
         2. NetworkModelGrid.
 
@@ -380,16 +381,17 @@ class FlowRouter(Component):
 
         Includes creation of an outlet (status_at_node = 1).
 
-        >>> g.status_at_node
-        array([1, 0, 0, 0, 0, 0, 0, 0], dtype=uint8)
+        >>> print(g.status_at_node)
+        [1 0 0 0 0 0 0 0]
 
         Set up of an cell area of 1.
 
-        >>> g.at_node["cell_area_at_node"]
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        >>> print(g.at_node["cell_area_at_node"])
+        [ 1.  1.  1.  1.  1.  1.  1.  1.]
         """
         super().__init__(grid)
         g = self._grid
+        nodes_n = g.number_of_nodes
 
         self.initialize_optional_output_fields()
         self._single_flow = single_flow
@@ -399,11 +401,15 @@ class FlowRouter(Component):
             for field in [
                 "depression_free__elevation",
                 "depression__depth",
+            ]:
+                if field not in g.at_node.keys():
+                    g.at_node[field] = np.zeros(nodes_n, dtype=np.float64)
+            for field in [
                 "depression__outlet_node",
                 "flooded_status_code",
             ]:
                 if field not in g.at_node.keys():
-                    g.add_zeros(field, at="node")
+                    g.at_node[field] = np.zeros(nodes_n, dtype=np.int64)
 
         # Make sure all fields at node are either int64 or float64 (compatibility
         # c/cc-compiler for windows and mac).
@@ -412,8 +418,9 @@ class FlowRouter(Component):
                 g.at_node[field][:] = np.int64(g.at_node[field])
             elif isinstance(g.at_node[field], float):
                 g.at_node[field][:] = np.float64(g.at_node[field])
+            else:
+                g.at_node[field][:] = np.float64(g.at_node[field])
 
-        nodes_n = g.number_of_nodes
         self._nodes = nodes = np.int64(
             g.nodes.reshape(nodes_n) if (isinstance(g, RasterModelGrid)) else g.nodes
         )
@@ -644,6 +651,7 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
+        >>> np.set_printoptions(precision=0)
         >>> from landlab import HexModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -672,43 +680,42 @@ class FlowRouter(Component):
         Depression-free surface that can be used by a multiple flow director
         component.
 
-        >>> g.at_node["depression_free__elevation"]
-        array([ 10.       ,  20.       ,  10.       ,  10.       ,  10.0000001,
-                10.0000002,  10.       ,  20.       ,  10.       ,  10.0000002,
-                10.       ,  20.       ,  10.       ,  20.       ,  25.       ,
-                15.       ,   5.       ,   0.       ,   5.       ])
+        >>> print(g.at_node["depression_free__elevation"])
+        [ 10.  20.  10.  10.  10.  10.  10.  20.  10.  10.  10.  20.  10.  20.  25.
+          15.   5.   0.   5.]
 
         Receivers ordered by the node id of the donors, used to calculate flow
         accumulation.
 
-        >>> g.at_node["flow__receiver_node"]
-        array([ 0,  1,  2,  3,  3,  4,  6,  7,  3,  4,  5, 11, 12, 17, 17, 15, 16,
-           17, 18])
+        >>> print(g.at_node["flow__receiver_node"])
+        [ 0  1  2  3  3  4  6  7  3  4  5 11 12 17 17 15 16 17 18]
 
         Flooded nodes that can be used to prevent river incision in lakes (by
         the Space component, for instance).
         Flooded nodes are coded 3.
 
-        >>> g.at_node["flood_status_code"]
-        array([0, 0, 0, 0, 3, 3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        >>> print(g.at_node["flood_status_code"])
+        [0 0 0 0 3 3 0 0 0 3 0 0 0 0 0 0 0 0 0]
 
         Depths of depressions.
 
-        >>> g.at_node["depression__depth"]
-        array([  0.,   0.,   0.,   0.,  10.,   5.,   0.,   0.,   0.,   5.,   0.,
-             0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.])
+        >>> print(g.at_node["depression__depth"])
+        [  0.   0.   0.   0.  10.   5.   0.   0.   0.   5.   0.   0.   0.   0.   0.
+           0.   0.   0.   0.]
 
         Set up a external water influx if none.
 
-        >>> g.at_node["water__unit_flux_in"]
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-            1.,  1.,  1.,  1.,  1.,  1.])
+        >>> print(g.at_node["water__unit_flux_in"])
+        [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.
+          1.]
 
         Steepest slopes at nodes, which can be used by a landslider component.
 
-        >>> g.at_node["topographic__steepest_slope"]
-        array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0.5,  0. ,  0. ,  0. ,  0.5,  0.5,
-            0. ,  0. ,  2. ,  2.5,  0. ,  0. ,  0. ,  0. ])
+        >>> with np.printoptions(precision=1):
+        ...     print(g.at_node["topographic__steepest_slope"])
+        ...
+        [ 0.   0.   0.   0.   0.   0.5  0.   0.   0.   0.5  0.5  0.   0.   2.   2.5
+          0.   0.   0.   0. ]
         """
 
         # 1. Get the input grid data (steps #4 and #11)
@@ -722,7 +729,7 @@ class FlowRouter(Component):
             elif isinstance(g.at_node[field], float):
                 g.at_node[field][:] = np.float64(g.at_node[field])
 
-        z = g.at_node[self._surface][:] = g.at_node[self._surface].astype(float)
+        z = g.at_node[self._surface][:] = g.at_node[self._surface].astype(np.float64)
         diagonals = self._diagonals
         idx = self._link_idx_sorted_by_heads
 
@@ -825,6 +832,7 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
+        >>> np.set_printoptions(precision=1)
         >>> from landlab import HexModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -853,25 +861,22 @@ class FlowRouter(Component):
 
         Generates an array of nodes ordered from downstream to upstream.
 
-        >>> g.at_node["flow__upstream_node_order"]
-        array([ 3,  4,  9,  5, 10,  8,  6,  7, 11, 12, 15, 16, 17, 13, 14, 18,  0,
-                1,  2])
+        >>> with np.printoptions(precision=0):
+        ...     print(g.at_node["flow__upstream_node_order"])
+        ...
+        [ 3  4  9  5 10  8  6  7 11 12 15 16 17 13 14 18  0  1  2]
 
         Calculates drainage areas.
 
-        >>> g.at_node["drainage_area"]
-        array([   0.     ,    0.     ,    0.     ,  433.0127 ,  346.41016,
-                173.20508,    0.     ,    0.     ,   86.60254,   86.60254,
-                 86.60254,    0.     ,    0.     ,   86.60254,   86.60254,
-                  0.     ,    0.     ,  173.20508,    0.     ])
+        >>> print(g.at_node["drainage_area"])
+        [   0.     0.     0.   433.   346.4  173.2    0.     0.    86.6   86.6
+           86.6    0.     0.    86.6   86.6    0.     0.   173.2    0. ]
 
         Calculates discharges.
 
-        >>> g.at_node["surface_water__discharge"]
-        array([   0.     ,    0.     ,    0.     ,  866.0254 ,  692.82032,
-                346.41016,    0.     ,    0.     ,  173.20508,  173.20508,
-                173.20508,    0.     ,    0.     ,  173.20508,  173.20508,
-                  0.     ,    0.     ,  346.41016,    0.     ])
+        >>> print(g.at_node["surface_water__discharge"])
+        [   0.     0.     0.   866.   692.8  346.4    0.     0.   173.2  173.2
+          173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
         """
 
         if not self._single_flow:
@@ -964,6 +969,7 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
+        >>> np.set_printoptions(precision=1)
         >>> from landlab import HexModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -992,11 +998,9 @@ class FlowRouter(Component):
         Calculates discharges (and all the fields described in
         run_flow_directions() and run_flow_accumulations().
 
-        >>> g.at_node["surface_water__discharge"]
-        array([   0.     ,    0.     ,    0.     ,  866.0254 ,  692.82032,
-                346.41016,    0.     ,    0.     ,  173.20508,  173.20508,
-                173.20508,    0.     ,    0.     ,  173.20508,  173.20508,
-                  0.     ,    0.     ,  346.41016,    0.     ])
+        >>> print(g.at_node["surface_water__discharge"])
+        [   0.     0.     0.   866.   692.8  346.4    0.     0.   173.2  173.2
+          173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
         """
         self.run_flow_directions()
         self.run_flow_accumulations()
