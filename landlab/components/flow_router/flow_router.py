@@ -1012,4 +1012,3 @@ class FlowRouter(Component):
         """
         self.run_flow_directions()
         self.run_flow_accumulations()
-        
