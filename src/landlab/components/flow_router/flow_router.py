@@ -335,7 +335,6 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
-        >>> np.set_printoptions(precision=0)
         >>> from landlab import RasterModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -388,7 +387,6 @@ class FlowRouter(Component):
 
         >>> print(g.at_node["cell_area_at_node"])
         [ 1.  1.  1.  1.  1.  1.  1.  1.]
-        >>> np.set_printoptions()
         """
         super().__init__(grid)
         g = self._grid
@@ -652,7 +650,6 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
-        >>> np.set_printoptions(precision=0)
         >>> from landlab import HexModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -717,7 +714,6 @@ class FlowRouter(Component):
         ...
         [ 0.   0.   0.   0.   0.   0.5  0.   0.   0.   0.5  0.5  0.   0.   2.   2.5
           0.   0.   0.   0. ]
-        >>> np.set_printoptions()
         """
 
         # 1. Get the input grid data (steps #4 and #11)
@@ -834,7 +830,6 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
-        >>> np.set_printoptions(precision=1)
         >>> from landlab import HexModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -879,7 +874,6 @@ class FlowRouter(Component):
         >>> print(g.at_node["surface_water__discharge"])
         [   0.     0.     0.   866.   692.8  346.4    0.     0.   173.2  173.2
           173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
-        >>> np.set_printoptions()
         """
 
         if not self._single_flow:
@@ -972,7 +966,6 @@ class FlowRouter(Component):
 
         >>> # Libraries
         >>> import numpy as np
-        >>> np.set_printoptions(precision=1)
         >>> from landlab import HexModelGrid
         >>> # from landlab.components import FlowRouter
         >>> # Creation of the grid
@@ -1004,7 +997,6 @@ class FlowRouter(Component):
         >>> print(g.at_node["surface_water__discharge"])
         [   0.     0.     0.   866.   692.8  346.4    0.     0.   173.2  173.2
           173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
-        >>> np.set_printoptions()
         """
         self.run_flow_directions()
         self.run_flow_accumulations()
