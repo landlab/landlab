@@ -874,26 +874,18 @@ class FlowRouter(Component):
         ...     print(g.at_node["flow__upstream_node_order"][7:])
         ...
         [ 7 11 12 15 16 17 13 14 18  0  1  2]
-        >>> # The doctest doesnt work for full array in workflow mac os,
-        >>> # supposedly because of int32/int64 gradients and lack of unit
-        >>> # test and conversion in the hex grid classes
-        >>> # [ 3  4  9  5 10  8  6  7 11 12 15 16 17 13 14 18  0  1  2]
 
         Calculates drainage areas.
 
         >>> print(g.at_node["drainage_area"][7:])
         [   0.    86.6   86.6
            86.6    0.     0.    86.6   86.6    0.     0.   173.2    0. ]
-        >>> # [   0.     0.     0.   433.   346.4  173.2    0.     0.    86.6   86.6
-        >>> # 86.6    0.     0.    86.6   86.6    0.     0.   173.2    0. ]
 
         Calculates discharges.
 
         >>> print(g.at_node["surface_water__discharge"][7:])
         [   0.   173.2  173.2
           173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
-        >>> # [   0.     0.     0.   866.   692.8  346.4    0.     0.   173.2  173.2
-        >>> # 173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
         >>> np.set_printoptions(precision=initial_precision)
         """
 
@@ -1020,11 +1012,6 @@ class FlowRouter(Component):
         >>> print(g.at_node["surface_water__discharge"][7:])
         [   0.   173.2  173.2
           173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
-        >>> # The doctest doesnt work for full array in workflow mac os,
-        >>> # supposedly because of int32/int64 gradients and lack of unit
-        >>> # test and conversion in the hex grid classes
-        >>> # [   0.     0.     0.   866.   692.8  346.4    0.     0.   173.2  173.2
-        >>> # 173.2    0.     0.   173.2  173.2    0.     0.   346.4    0. ]
         >>> np.set_printoptions(precision=initial_precision)
         """
         self.run_flow_directions()
