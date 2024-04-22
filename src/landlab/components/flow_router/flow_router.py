@@ -793,6 +793,9 @@ class FlowRouter(Component):
 
         # 3. Flow direction process (Steps #11 - 20)
         ############################################
+        # Windows notebook test validation github workflow needs the
+        # conversions into np.int64 even if they are not necessary (the arrays
+        # are already in np.int64...
         self._breach_funcs._direct_flow(
             np.int64(nodes_n),
             np.int64(base_level_nodes),
