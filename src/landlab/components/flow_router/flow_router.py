@@ -557,7 +557,9 @@ class FlowRouter(Component):
         # array of start and end indexes of the pseudo head id in the array of
         # link infos.
         # start is at array[0, :] and end at array[1, :]
-        self._head_start_end_indexes = (
+        # NB: important to convert into np.int64 because the func doesnt do that
+        # and otherwise windows cython will yell.
+        self._head_start_end_indexes = np.int64(
             self._init_tools_funcs._get_start_end_indexes_in_sorted_array(
                 sorted_pseudo_heads,
                 nodes_n,
@@ -791,7 +793,6 @@ class FlowRouter(Component):
 
         # 3. Flow direction process (Steps #11 - 20)
         ############################################
-
         self._breach_funcs._direct_flow(
             nodes_n,
             base_level_nodes,
