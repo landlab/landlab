@@ -416,7 +416,9 @@ class FlowRouter(Component):
         # Make sure all fields at node are either int64 or float64 (compatibility
         # c/cc-compiler for windows and mac).
         for field in g.at_node.keys():
-            if isinstance(g.at_node[field], int):
+            if isinstance(g.at_node[field], int) or isinstance(
+                g.at_node[field], np.int32
+            ):
                 g.at_node[field][:] = np.int64(g.at_node[field])
             elif isinstance(g.at_node[field], float):
                 g.at_node[field][:] = np.float64(g.at_node[field])
@@ -735,7 +737,9 @@ class FlowRouter(Component):
         # Make sure all fields at node are either int64 or float64 (compatibility
         # c/cc-compiler for windows and mac).
         for field in g.at_node.keys():
-            if isinstance(g.at_node[field], int):
+            if isinstance(g.at_node[field], int) or isinstance(
+                g.at_node[field], np.int32
+            ):
                 g.at_node[field][:] = np.int64(g.at_node[field])
             elif isinstance(g.at_node[field], float):
                 g.at_node[field][:] = np.float64(g.at_node[field])
@@ -797,26 +801,26 @@ class FlowRouter(Component):
         # conversions into np.int64 even if they are not necessary (the arrays
         # are already in np.int64...
         self._breach_funcs._direct_flow(
-            np.int64(nodes_n),
-            np.int64(base_level_nodes),
-            np.int64(closed_nodes),
-            np.int64(sorted_pseudo_tails),
-            np.float64(sorted_dupli_gradients),
-            np.int64(sorted_dupli_links),
-            np.int64(head_start_end_indexes),
-            np.int64(outlet_nodes),
-            np.int64(depression_outlet_nodes),
-            np.int64(flooded_nodes),
-            np.float64(depression_depths),
-            np.float64(depression_free_elevations),
-            np.int64(links_to_receivers),
-            np.int64(receivers),
-            np.float64(steepest_slopes),
-            np.float64(z),
+            nodes_n,
+            base_level_nodes,
+            closed_nodes,
+            sorted_pseudo_tails,
+            sorted_dupli_gradients,
+            sorted_dupli_links,
+            head_start_end_indexes,
+            outlet_nodes,
+            depression_outlet_nodes,
+            flooded_nodes,
+            depression_depths,
+            depression_free_elevations,
+            links_to_receivers,
+            receivers,
+            steepest_slopes,
+            z,
             np.int64(FloodStatus._FLOODED.value),
             np.int64(g.BAD_INDEX),
-            neighbors_max_number=np.int64(neighbors_max_number),
-            min_elevation_relative_diff=np.float64(min_elevation_relative_diff),
+            neighbors_max_number=neighbors_max_number,
+            min_elevation_relative_diff=min_elevation_relative_diff,
         )
 
     def run_flow_accumulations(self):
@@ -909,7 +913,9 @@ class FlowRouter(Component):
         # Make sure all fields at node are either int64 or float64 (compatibility
         # c/cc-compiler for windows and mac).
         for field in g.at_node.keys():
-            if isinstance(g.at_node[field], int):
+            if isinstance(g.at_node[field], int) or isinstance(
+                g.at_node[field], np.int32
+            ):
                 g.at_node[field][:] = np.int64(g.at_node[field])
             elif isinstance(g.at_node[field], float):
                 g.at_node[field][:] = np.float64(g.at_node[field])
