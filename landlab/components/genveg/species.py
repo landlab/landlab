@@ -471,7 +471,6 @@ class Species(object):
         plants = self.habit.duration.emerge(
             plants, available_stored_biomass, total_persistent_biomass
         )
-
         plants = self.update_morphology(plants)
 
         return plants
@@ -483,14 +482,19 @@ class Species(object):
         nsc_content = {}
         day_conditions = [
             d < days["growing_season_start"],
-            (d >= days["growing_season_start"]) & (d < days["reproduction_start"]),
-            (d >= days["reproduction_start"]) & (d < days["senescence_start"]),
+            (d >= days["growing_season_start"]) & (d < days["peak_biomass"]),
+            (d >= days["peak_biomass"]) & (d < days["senescence_start"]),
             (d >= days["senescence_start"]) & (d < days["growing_season_end"]),
             d >= days["growing_season_end"],
         ]
 
         for part in self.all_parts:
             nsc_content_opts_b = [
+                (
+                    self.species_grow_params["incremental_nsc"][part][3]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
                 (
                     self.species_grow_params["incremental_nsc"][part][0]
                     + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
@@ -511,19 +515,14 @@ class Species(object):
                     + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
                 )
                 ** 2,
-                (
-                    self.species_grow_params["incremental_nsc"][part][0]
-                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
-                )
-                ** 2,
             ]
 
             nsc_content_opts_mx = [
                 rate["winter_nsc_rate"][part] * (d + 365 - days["growing_season_end"]),
-                rate["spring_nsc_rate"][part] * (days["growing_season_start"] - d),
-                rate["summer_nsc_rate"][part] * (days["reproduction_start"] - d),
-                rate["fall_nsc_rate"][part] * (days["senescence_start"] - d),
-                rate["winter_nsc_rate"][part] * (days["growing_season_end"] - d),
+                rate["spring_nsc_rate"][part] * (d - days["growing_season_start"]),
+                rate["summer_nsc_rate"][part] * (d - days["peak_biomass"]),
+                rate["fall_nsc_rate"][part] * (d - days["senescence_start"]),
+                rate["winter_nsc_rate"][part] * (d - days["growing_season_end"]),
             ]
             nsc_content[part] = (
                 (np.select(day_conditions, nsc_content_opts_b)) ** 0.5

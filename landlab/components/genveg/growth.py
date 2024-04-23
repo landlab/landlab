@@ -328,8 +328,8 @@ class PlantGrowth(Species):
         # Limit growth processes only to live plants
         _total_biomass = self.sum_plant_parts(_new_biomass, parts="total")
         filter = np.nonzero(_total_biomass > 0.0)
-        _last_live_biomass = _last_biomass[filter]
-        _live_biomass = _new_biomass[filter]
+        _last_live_biomass = _last_biomass[filter].copy()
+        _live_biomass = _new_biomass[filter].copy()
 
         # calculate variables needed to run plant processes
         _par = self._grid["cell"]["radiation__par_tot"][_last_biomass["cell_index"]][

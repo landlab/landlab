@@ -6,13 +6,15 @@ class Photosynthesis(object):
         self,
         latitude,
         _current_day=0,
+        _CO2_atmos=245,
         photo_params={
             "vcmax": 200,
             "kc": 300,
             "ko": 300000,
             "ci": 245,
             "co": 210000,
-            "spec_factor_base": 2600.0,
+            "spec_factor_25": 2600.0,
+            "stomatal_conductance": 1000000000,
         },
         gauss_integration_params=[
             (0.0469101, 0.1184635),
@@ -31,9 +33,11 @@ class Photosynthesis(object):
         self.O2_max_coeff = photo_params["ko"]
         self.CO2_max_coeff = photo_params["kc"]
         self.O2_conc = photo_params["co"]
-        self.CO2_conc = photo_params["ci"]
+        self.init_CO2_conc = photo_params["ci"]
+        self._CO2_atmos = _CO2_atmos
         self.Vc_max_rate = photo_params["vcmax"]
         self.spec_factor_base = photo_params["spec_factor_25"]
+        self.stomatal_conductance = photo_params["stomatal_conductance"]
         self.update_solar_variables(_current_day)
         self.assim_limits_by_temp = self.calculate_assimilation_limits()
 
@@ -50,9 +54,13 @@ class Photosynthesis(object):
         total_canopy_assimilated_CO2 = hourly_gross_assimilation = gphot_CH20 = (
             np.zeros_like(last_biomass["shoot_sys_width"])
         )
+        CO2_conc = self.init_CO2_conc
         for day_increment in self.gauss_integration_params:
             (abscissa, weight) = day_increment
             increment_hour = self._sunrise + abscissa * self._sunlit_increment
+            leaf_temp_est = self.calculate_hour_temp(
+                increment_hour, _min_temperature, _max_temperature
+            )
             solar_elevation = self.calculate_solar_elevation(
                 increment_hour
             ) * np.ones_like(grid_par_W_per_sqm)
@@ -67,16 +75,10 @@ class Photosynthesis(object):
                 _current_day,
             )
             sunlit_assimilated_CO2 = self.calculate_leaf_assimilation(
-                increment_hour,
-                absorbed_PAR_sunlit,
-                _min_temperature,
-                _max_temperature,
+                absorbed_PAR_sunlit, CO2_conc, leaf_temp_est
             )
             shaded_assimilated_CO2 = self.calculate_leaf_assimilation(
-                increment_hour,
-                absorbed_PAR_shaded,
-                _min_temperature,
-                _max_temperature,
+                absorbed_PAR_shaded, CO2_conc, leaf_temp_est
             )
             (
                 sunlit_lai,
@@ -89,16 +91,18 @@ class Photosynthesis(object):
             total_canopy_assimilated_CO2 += (
                 hourly_gross_assimilation * weight * 3600 * self._sunlit_increment
             )
+            CO2_conc = (
+                self._CO2_atmos - hourly_gross_assimilation / self.stomatal_conductance
+            )
         gphot_CH20 = (
             total_canopy_assimilated_CO2 * last_biomass["live_leaf_area"] * 30 / 1000000
         )
         gphot_CH20[gphot_CH20 < 0] = 0.0
         return gphot_CH20
 
-    def calculate_leaf_assimilation(
+    def calculate_hour_temp(
         self,
         increment_hour,
-        par,
         _min_temperature=25.792034827239835,
         _max_temperature=25.792034827239835,
     ):
@@ -106,31 +110,32 @@ class Photosynthesis(object):
         offset = 1.5
         temp_rise = self._sunrise + offset
         if (increment_hour >= temp_rise) & (increment_hour <= self._sunset):
-            tau = (
-                np.pi
-                * (increment_hour - self._sunrise - offset)
-                / (self._sunset - self._sunrise)
-            )
+            tau = np.pi * (increment_hour - temp_rise) / (self._sunset - self._sunrise)
             hour_temp = _min_temperature + (
                 _max_temperature - _min_temperature
             ) * np.sin(tau)
         else:
             if increment_hour < temp_rise:
                 increment_hour += 24
-            tau = (
-                np.pi
-                * (self._sunset - self._sunrise - offset)
-                / (self._sunset - self._sunrise)
-            )
+            tau = np.pi * (self._sunset - temp_rise) / (self._sunset - self._sunrise)
             sunset_temp = _min_temperature + (
                 _max_temperature - _min_temperature
             ) * np.sin(tau)
             interp_slope = (_min_temperature - sunset_temp) / (
-                temp_rise + offset + 24 - self._sunset
+                temp_rise + 24 - self._sunset
             )
             hour_temp = sunset_temp + interp_slope * (increment_hour - self._sunset)
-        max_rubisco = self.get_rubsico_limits(hour_temp)
-        max_light_limit = self.calculate_light_limits(par, hour_temp)
+        return hour_temp
+
+    def calculate_leaf_assimilation(
+        self,
+        par,
+        CO2_conc,
+        hour_temp,
+    ):
+
+        max_rubisco = self.calculate_rubisco_limits(CO2_conc, hour_temp)
+        max_light_limit = self.calculate_light_limits(par, CO2_conc, hour_temp)
         max_sink_limit = self.get_sink_limits(hour_temp)
         min_assim = np.minimum(max_rubisco, max_light_limit)
         min_assim = np.minimum(min_assim, max_sink_limit)
@@ -269,20 +274,29 @@ class Photosynthesis(object):
         shaded_lai = lai - sunlit_lai
         return (sunlit_lai, shaded_lai)
 
-    def calculate_light_limits(self, par, hour_temp):
+    def calculate_light_limits(self, par, CO2_conc, hour_temp):
         quantum_yield = 0.06
         absorption_frac = 0.8
         CO2_comp = self.get_CO2_comp(hour_temp)
-        dA = absorption_frac * quantum_yield * par * (self.CO2_conc - CO2_comp)
-        dB = self.CO2_conc + 2 * CO2_comp
+        dA = absorption_frac * quantum_yield * par * (CO2_conc - CO2_comp)
+        dB = CO2_conc + 2 * CO2_comp
         return dA / dB
+
+    def calculate_rubisco_limits(self, CO2_conc, leaf_temp):
+        CO2_comp = self.get_CO2_comp(leaf_temp)
+        O2_coeff = self.O2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)  # 142.86
+        CO2_coeff = self.CO2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
+        Vc_denom = 1 + np.exp(0.128 * (leaf_temp - 40))
+        Vc_adj = self.Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10) / Vc_denom
+        dcoeffm = CO2_coeff * (1 + self.O2_conc / O2_coeff)
+        dA = Vc_adj * (CO2_conc - CO2_comp)
+        dB = CO2_conc + dcoeffm
+        rubisco_limits = dA / dB
+        return rubisco_limits
 
     def calculate_assimilation_limits(self):
         # this needs to happen at init then have leaf temp interpolated
-        leaf_temp = np.arange(10, 40, 1)
-        O2_coeff = self.O2_max_coeff * 1.2 ** ((leaf_temp - 25) / 10)  # 142.86
-        CO2_coeff = self.CO2_max_coeff * 2.1 ** ((leaf_temp - 25) / 10)
-        dcoeffm = CO2_coeff * (1 + self.O2_conc / O2_coeff)
+        leaf_temp = np.arange(-50, 50, 0.25)
         Vc_denom = 1 + np.exp(0.128 * (leaf_temp - 40))
         Vc_adj = self.Vc_max_rate * 2.4 ** ((leaf_temp - 25) / 10) / Vc_denom
         CO2_comp = (
@@ -290,29 +304,17 @@ class Photosynthesis(object):
             * self.O2_conc
             / (self.spec_factor_base * 0.57 ** ((leaf_temp - 25) / 10))
         )
-        dA = Vc_adj * (self.CO2_conc - CO2_comp)
-        dB = self.CO2_conc + dcoeffm
-        rubisco_limits = dA / dB
         sink_limits = 0.5 * Vc_adj
         dtypes = [
             ("leaf_temp", float),
-            ("rubisco_limits", float),
             ("sink_limits", float),
             ("CO2_comp", float),
         ]
 
-        limit_map = np.column_stack((leaf_temp, rubisco_limits, sink_limits, CO2_comp))
+        limit_map = np.column_stack((leaf_temp, sink_limits, CO2_comp))
         limit_map = list(map(tuple, limit_map))
         limit_lookup = np.array(limit_map, dtypes)
         return limit_lookup
-
-    def get_rubsico_limits(self, hour_temp):
-        limits = np.interp(
-            hour_temp,
-            self.assim_limits_by_temp["leaf_temp"],
-            self.assim_limits_by_temp["rubisco_limits"],
-        )
-        return limits
 
     def get_sink_limits(self, hour_temp):
         limits = np.interp(
@@ -351,6 +353,7 @@ class C4(Photosynthesis):
     def __init__(
         self,
         latitude,
+        _CO2_atmos=400,
         photo_params={
             "vcmax": 200,
             "kc": 300,
@@ -358,9 +361,10 @@ class C4(Photosynthesis):
             "ci": 245,
             "co": 210000,
             "spec_factor_base": 2600.0,
+            "stomatal_conductance": 0.5,
         },
     ):
-        super().__init__(latitude, photo_params=photo_params)
+        super().__init__(latitude, _CO2_atmos=_CO2_atmos, photo_params=photo_params)
         # This will be updated with C4 changes
 
 

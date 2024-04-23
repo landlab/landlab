@@ -201,11 +201,13 @@ class Deciduous(Perennial):
             plants[part] = (
                 adjusted_total_new_green / total_mass_new_green
             ) * new_green_biomass[part]
+            new_green_biomass[part] = plants[part]
 
+        total_mass_emerged = sum(new_green_biomass.values())
         for part in self.persistent_parts:
-            plants[part] = plants[part] - (
-                adjusted_total_new_green * plants[part] / persistent_total_mass
-            )
+            deleted_mass = total_mass_emerged * plants[part] / persistent_total_mass
+            plants[part] -= deleted_mass
+
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
