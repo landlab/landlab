@@ -463,7 +463,6 @@ class SpaceLargeScaleEroder(Component):
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
 
-        br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
 
         # if sp_crits are zero, then this colapses to correct all the time.
