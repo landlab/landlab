@@ -1126,6 +1126,7 @@ def test_matches_bedrock_alluvial_solution_PF_extended_range():
         verbose=True,
     )
 
+
 # %%
 @pytest.mark.slow
 @pytest.mark.skipif(not with_richdem, reason="richdem is not installed")
@@ -1248,7 +1249,6 @@ def test_matches_bedrock_alluvial_solution_PF_high_v_high_hstar():
         err_msg="SpaceLargeScaleEroder bedrock-alluvial sediment flux test failed",
         verbose=True,
     )
-
 
 
 # %%
