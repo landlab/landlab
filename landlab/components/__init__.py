@@ -23,6 +23,7 @@ from .flow_director import (
     FlowDirectorSteepest,
 )
 from .fracture_grid import FractureGridGenerator
+from .genveg import VegParams, GenVeg
 from .gflex import gFlex
 from .gravel_bedrock_eroder import GravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
