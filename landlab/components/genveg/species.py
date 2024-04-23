@@ -1,12 +1,32 @@
 """
-Species class definition, composition classes, and factory methods to generate species classes. 
+Species class definition, composition classes, and factory methods to generate species classes.
 These are used by PlantGrowth to differentiate plant properties and processes for species.
 """
 
-from .habit import *
-from .form import *
-from .shape import *
-from .photosynthesis import *
+from .habit import Forbherb, Graminoid, Shrub, Tree, Vine
+from .form import (
+    Bunch,
+    Colonizing,
+    Multiplestems,
+    Rhizomatous,
+    Singlecrown,
+    Singlestem,
+    Stoloniferous,
+    Thicketforming,
+)
+from .shape import (
+    Climbing,
+    Conical,
+    Decumbent,
+    Erect,
+    Irregular,
+    Oval,
+    Prostrate,
+    Rounded,
+    Semierect,
+    Vase,
+)
+from .photosynthesis import C3, C4, Cam
 import numpy as np
 from sympy import symbols, diff, lambdify, log
 
@@ -93,9 +113,10 @@ class Species(object):
                     if plant_factors[key] not in opt_list:
                         msg = "Invalid " + str(key) + " option"
                         raise ValueError(msg)
-            except:
-                msg = "Unexpected variable name in species parameter dictionary. Please check input parameter file."
-                raise ValueError(msg)
+            except ValueError:
+                print(
+                    "Unexpected variable name in species parameter dictionary. Please check input parameter file"
+                )
 
     def validate_duration_params(self, duration_params):
         if (duration_params["growing_season_start"] < 0) | (
@@ -564,8 +585,8 @@ class Species(object):
         mortdict = self.species_mort_params
         # set flags for three types of mortality periods
         mort_period_bool = {
-            "during growing season": _in_growing_season == True,
-            "during dormant season": _in_growing_season == False,
+            "during growing season": _in_growing_season is True,
+            "during dormant season": _in_growing_season is False,
             "year-round": True,
         }
         factors = mortdict["mort_variable_name"]

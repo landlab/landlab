@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import interpolate
 
 # Growth form classes and selection method
 

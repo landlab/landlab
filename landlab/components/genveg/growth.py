@@ -1,7 +1,7 @@
 """
 Growth component of GenVeg - this is the main driver of vegetation growth and
 is driven by a photosynthesis model. Vegetation growth depends on the availability
-of carbohydrate produced by photosynthetically active plant parts. 
+of carbohydrate produced by photosynthetically active plant parts.
 """
 
 from landlab.components.genveg.species import Species
@@ -18,7 +18,12 @@ class PlantGrowth(Species):
     _unit_agnostic = False
     _cite_as =
     @article{piercygv,
-        author = {Piercy, C.D.; Swannack, T.M.; Carrillo, C.C.; Russ, E.R.; Charbonneau, B. M.]
+        author = {
+            Piercy, C.D.;
+            Swannack, T.M.;
+            Carrillo, C.C.;
+            Russ, E.R.;
+            Charbonneau, B. M.;
     }
     #Add all variables to be saved or chosen as outputs here
     _info = {
@@ -107,12 +112,13 @@ class PlantGrowth(Species):
                 leaf_biomass: float, title='stem', plant live leaf biomass in g
                 stem_biomass: float, title='stem', plant live stem biomass in g
                 storage_biomass: float, title='storage', plant live stem biomass in g
-                repro_biomass: float, title='reproductive', plant live reproductive biomass in g
+                repro_biomass: float, title='reproductive',
+                                plant live reproductive biomass in g
                 plant_age: int, plant age in days
 
             species_params: dict, optional,
                 a nested dictionary of named vegetation parameters for the
-                species or community and process of interest with below sub-dictionaries.
+                species or community and process of interest with below sub-dictionaries
                 plant_factors: dict, required,
                     dictionary of plant characteristics describing the
                     species or community of interest with below keys
@@ -301,14 +307,13 @@ class PlantGrowth(Species):
         return self.plants
 
     def _grow(self, _current_jday):
-        ###This is the primary method in PlantGrowth and is run within each
+        # This is the primary method in PlantGrowth and is run within each
         # GenVeg run_one_step at each timestep. This method applies new environmental
         # conditions daily from the grid, determines what processes run, and implements
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
         _last_biomass = self.plants
-        _last_dead_biomass = self.sum_plant_parts(_last_biomass, parts="dead")
         _new_biomass = _last_biomass.copy()
 
         # Decide what processes happen today
@@ -358,8 +363,7 @@ class PlantGrowth(Species):
                 _new_live_biomass,
                 _current_jday,
             )
-            # we will need to add a turnover rate estiamte. Not sure where to include it though.
-            # delta_tot=delta_tot-self.species_grow_params['biomass_turnover_rate']*self.dt
+            # Future add turnover rate
             _new_live_biomass = self.allocate_biomass_dynamically(
                 _live_biomass, carb_generated_photo
             )
@@ -380,8 +384,6 @@ class PlantGrowth(Species):
         _new_biomass = self.update_morphology(_new_biomass)
         _new_biomass = self.update_dead_biomass(_new_biomass, _last_biomass)
         _new_biomass = self.remove_plants(_new_biomass)
-
-        # print('Completed run_one_step for '+self.species_name+' on day '+str(_current_jday))
         self.plants = _new_biomass
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
@@ -510,7 +512,7 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def adjust_biomass_allocation_towards_ideal(self, _new_biomass):
-        ###This method adjusts biomass allocation towards the ideal allocation
+        # This method adjusts biomass allocation towards the ideal allocation
         # proportions based on the plant size. If parts of the plant are
         # removed via herbivory or damage, this allows the plant to utilize
         # other stored resources to regrow the damaged parts.
@@ -595,7 +597,7 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def set_event_flags(self, _current_jday):
-        ###This method sets event flags so required processes are run based
+        # This method sets event flags so required processes are run based
         # on the day of year.
         durationdict = self.species_duration_params
         flags_to_test = {
@@ -621,7 +623,7 @@ class PlantGrowth(Species):
         return flags_to_test
 
     def kill_small_plants(self, _new_biomass):
-        ###This method moved live biomass to dead biomass is the plant
+        # This method moved live biomass to dead biomass is the plant
         # is too small to grow.
 
         # Edit this and figure out when to kill plants
@@ -648,7 +650,7 @@ class PlantGrowth(Species):
         return _new_biomass
 
     def remove_plants(self, _new_biomass):
-        ###Plants that have too little dead biomass remaining to track
+        # Plants that have too little dead biomass remaining to track
         # are removed from the plant array and no longer tracked.
         min_size_dead = 0.1
         min_size_live = self.species_grow_params["min_growth_biomass"]
@@ -657,24 +659,12 @@ class PlantGrowth(Species):
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
-        # print("There were " + str(_new_biomass.size) + " plants")
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
-        # print("After removal, there were " + str(_new_biomass.size) + (" plants"))
         return _new_biomass
 
     def save_plant_output(self, rel_time, save_params):
-        ###This method saves plant properties at the required time step
+        # This method saves plant properties at the required time step
         # future work versions will save additional variables based on user input.
-        prev_time = self.record_plants.latest_time
-        # new_ids=np.where(np.isin(self.plants['pid'],self.record_plants.dataset['item_id'].values[:,prev_time], invert=True))
-        # for i in new_ids:
-        #    self.record_plants.add_item(time=[rel_time],
-        #        new_item={
-        #            'grid_element'=['cell'],
-        #            'element_id'=self.plants['cell_index'][i],
-        #        },
-
-        #    )
         self.record_plants.add_record(time=np.array([rel_time]))
         self.record_plants.ffill_grid_element_and_id()
 
@@ -716,12 +706,4 @@ class PlantGrowth(Species):
         self.record_plants.dataset["vegetation__plant_age"].values[
             item_ids, self.time_ind
         ] = self.plants["plant_age"]
-        #    item_id= np.reshape(self.plants['item_id'],(self.plants['item_id'].size,1)),
-        #    new_record={
-        #        'vegetation__species':(['item_id','time'],self.plants['species']),
-        #        #'vegetation__root_biomass':(['item_id','time'],np.reshape(self.plants['root_biomass'],(self.plants['cell_index'].size,1))),
-        #        #'vegetation__leaf_biomass':(['item_id','time'],np.reshape(self.plants['leaf_biomass'],(self.plants['cell_index'].size,1))),
-        #        #'vegetation__stem_biomass':(['item_id','time'],np.reshape(self.plants['stem_biomass'],(self.plants['cell_index'].size,1)))
-        #    }
-        # )
         self.time_ind += 1

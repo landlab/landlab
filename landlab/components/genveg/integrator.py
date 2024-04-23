@@ -1,5 +1,5 @@
 """
-Plant integration component of GenVeg - this is the part of GenVeg 
+Plant integration component of GenVeg - this is the part of GenVeg
 that handles interactions between plants and plants and the physical grid
 """
 
@@ -97,8 +97,8 @@ class GenVeg(Component, PlantGrowth):
         _current_jday = self._calc_current_jday()
         rel_time = self._calc_rel_time()
 
-        ##Need to modify to allow user to input plant array for hotstarting
-        ##Instantiate a plantgrowth object and summarize number of plants and biomass per cell
+        # Need to modify to allow user to input plant array for hotstarting
+        # Instantiate a plantgrowth object and summarize number of plants and biomass per cell
         # Create empty array to store PlantGrowth objects
         plantspecies = []
         _ = self._grid.add_zeros("vegetation__total_biomass", at="cell", clobber=True)
@@ -201,7 +201,7 @@ class GenVeg(Component, PlantGrowth):
             for idx, plant in enumerate(cell_plants):
                 unoccupied_center = False
                 radius = plant["shoot_sys_width"] / 2
-                while unoccupied_center == False:
+                while unoccupied_center is False:
                     x = rng.uniform(low=min_x + radius, high=max_x - radius, size=1)
                     y_lims = self.get_cell_boundary_points(corner_vertices, x)
                     y = rng.uniform(
@@ -212,7 +212,7 @@ class GenVeg(Component, PlantGrowth):
                         [unoccupied_center] = self.check_if_loc_unocc(
                             [point], [radius], cell_plants, "above"
                         )
-                        if (unoccupied_center == True) or (idx == 0):
+                        if (unoccupied_center is True) or (idx == 0):
                             cell_plants[idx]["x_loc"] = x
                             cell_plants[idx]["y_loc"] = y
                             break
@@ -337,12 +337,6 @@ class GenVeg(Component, PlantGrowth):
         plants_with_locations = all_plants[~np.isnan(all_plants["x_loc"])]
 
         # This code looks for the cells around the plant cell_index
-        #    parent_cell=new_pups['cell_index']
-        #    query_cells=self._grid.looped_neighbors_at_cell[pup['cell_index']]
-        #    query_cells.append(parent_cell)
-        #    plants_to_check=all_plants[np.isin(new_pups['cell_index'], query_cells)]
-        # check to see if we can vectorize this method
-        # We can also downselect so we are only checking plants in the surrounding cells
         area = {"above": "shoot_sys_width", "below": "root_sys_width"}
         is_center_unocc = []
         for idx, loc in enumerate(plant_loc):
@@ -366,9 +360,7 @@ class GenVeg(Component, PlantGrowth):
             loc_unoccupied = self.check_if_loc_unocc(
                 pup_locs, pup_widths, all_plants, "below"
             )
-            # print("There were " + str(new_pups.size) + " potential new plants")
             new_pups = new_pups[np.nonzero(loc_unoccupied)]
-            # print("Only " + str(new_pups.size) + " were successful")
             new_pups["x_loc"] = new_pups["pup_x_loc"]
             new_pups["y_loc"] = new_pups["pup_y_loc"]
 

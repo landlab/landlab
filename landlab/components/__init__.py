@@ -116,7 +116,6 @@ COMPONENTS = [
     FlowDirectorMFD,
     FlowDirectorSteepest,
     FractureGridGenerator,
-    GenVeg,
     gFlex,
     GravelBedrockEroder,
     GravelRiverTransporter,
