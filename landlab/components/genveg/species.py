@@ -1,6 +1,8 @@
 """
-Species class definition, composition classes, and factory methods to generate species classes.
-These are used by PlantGrowth to differentiate plant properties and processes for species.
+Species class definition, composition classes, and factory methods
+to generate species classes.
+These are used by PlantGrowth to differentiate plant properties
+and processes for species.
 """
 
 from .habit import Forbherb, Graminoid, Shrub, Tree, Vine
@@ -115,7 +117,8 @@ class Species(object):
                         raise ValueError(msg)
             except ValueError:
                 print(
-                    "Unexpected variable name in species parameter dictionary. Please check input parameter file"
+                    "Unexpected variable name in species parameter dictionary."
+                    "Please check input parameter file"
                 )
 
     def validate_duration_params(self, duration_params):
@@ -128,7 +131,10 @@ class Species(object):
             duration_params["growing_season_end"]
             < duration_params["growing_season_start"]
         ) | (duration_params["growing_season_end"] > 366):
-            msg = "Growing season end must be between 1-365 and greater than the growing season beginning"
+            msg = (
+                "Growing season end must be between 1-365"
+                "and greater than the growing season beginning"
+            )
             raise ValueError(msg)
         elif (
             duration_params["senescence_start"]
@@ -232,9 +238,6 @@ class Species(object):
         return species_params
 
     def calculate_lai(self, leaf_area, shoot_sys_width):
-        # lai = np.zeros_like(leaf_area)
-        # filter = np.nonzero(shoot_sys_width > 0)
-        # lai[filter] = leaf_area[filter] / (0.25 * np.pi * shoot_sys_width[filter] ** 2)
         crown_area = self.shape.calc_crown_area_from_shoot_width(shoot_sys_width)
         lai = np.divide(
             leaf_area,
@@ -363,7 +366,8 @@ class Species(object):
             ),
             rootsym,
         )
-        # Generate numpy expressions and solve for rate change in leaf and stem biomass per unit mass of root
+        # Generate numpy expressions and solve for rate change
+        # in leaf and stem biomass per unit mass of root
         fleaf = lambdify(rootsym, dleaf, "numpy")
         fstem = lambdify(rootsym, dstem, "numpy")
         self.biomass_allocation_array["delta_leaf_unit_root"] = fleaf(
@@ -402,8 +406,8 @@ class Species(object):
         # The array is only valid for actively growing plants so this method is only
         # used during the growing season.
         # After initial allocation, storage redistribution, reallocation, and the
-        # minimum size check methods are called to adjust the biomass in each part before
-        # saving.
+        # minimum size check methods are called to adjust the biomass in each part
+        # before saving.
         # Required parameters are the new net biomass generated for the day
         ###
 
@@ -457,7 +461,6 @@ class Species(object):
             # update biomass in plant array
             _new_biomass[part] = _live_biomass[part] + delta[part]
         # Adjust biomass allocation among storage and growth parts
-        # _new_biomass = self.redistribute_storage_biomass(_new_biomass)
         _new_biomass = self.adjust_biomass_allocation_towards_ideal(_new_biomass)
         return _new_biomass
 
@@ -736,9 +739,8 @@ class Species(object):
 
     def update_morphology(self, plants):
         abg_biomass = self.sum_plant_parts(plants, parts="aboveground")
-        # dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
-        # total_abg_biomass = abg_biomass + dead_abg_biomass
-        total_abg_biomass = abg_biomass
+        dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
+        total_abg_biomass = abg_biomass + dead_abg_biomass
         dims = self.shape.calc_abg_dims_from_biomass(total_abg_biomass)
         plants["shoot_sys_width"] = dims[0]
         plants["shoot_sys_height"] = dims[1]
@@ -753,7 +755,6 @@ class Species(object):
         )
 
         cohort_dead_leaf_area = np.zeros_like(dead_leaf_area)
-        # We are still getting an error here
         cohort_dead_leaf_area[filter] = dead_leaf_area[filter] / np.exp(
             -self.species_morph_params["biomass_decay_rate"]
             * plants["dead_leaf_age"][filter]

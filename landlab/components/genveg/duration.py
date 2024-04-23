@@ -4,7 +4,8 @@ from scipy.optimize import fsolve
 rng = np.random.default_rng()
 
 
-# Duration class and child classes Annual and Perennial (Child classes are Deciduous and Evergreen)
+# Duration class and child classes Annual and Perennial
+# (Child classes are Deciduous and Evergreen)
 class Duration(object):
     def __init__(
         self,

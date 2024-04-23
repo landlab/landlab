@@ -2,9 +2,6 @@ import numpy as np
 
 # Growth form classes and selection method
 
-# how do these composition classes need to relate to each other? we need to use properties from one composition class to in methods of another.
-# Need to distinguish live plant size from dead. How should we handle this? Make a dead flag? Make a dead array? We have plants with live and dead parts.
-
 
 class PlantShape(object):
     def __init__(self, morph_params, grow_params):
@@ -16,7 +13,8 @@ class PlantShape(object):
         self.max_crown_area = self.calc_crown_area_from_shoot_width(
             self.morph_params["max_shoot_sys_width"]
         )
-        # Calculate log10 linear equation to calculate relationship between aboveground biomass and aspect ratio
+        # Calculate log10 linear equation to calculate relationship between
+        # aboveground biomass and aspect ratio
         # This is not working as expected
         width_x0 = self.abg_biomass_transform(self.grow_params["min_abg_biomass"])
         width_x1 = self.abg_biomass_transform(self.grow_params["max_abg_biomass"])
@@ -42,7 +40,6 @@ class PlantShape(object):
         root_sys_width[root_sys_width < self.morph_params["min_root_sys_width"]] = (
             self.morph_params["max_root_sys_width"]
         )
-
         return root_sys_width
 
     def calc_crown_area_from_shoot_width(self, shoot_sys_width):
