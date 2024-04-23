@@ -4,7 +4,6 @@ from numpy.testing import assert_allclose
 from landlab.components.genveg.photosynthesis import Photosynthesis
 
 photo_object = Photosynthesis(0.9074, _current_day=90)
-photo_object.update_solar_variables(90)
 
 dtypes = [
     ("species", "U10"),
@@ -102,6 +101,21 @@ def test_calculate_hourly_diffuse_light_extinction():
     assert_allclose(kdf_genveg, kdf_teh, rtol=0.0001)
 
 
+def test_calculate_hour_temp():
+    increment_hour = np.array([12.00, 18.461916000000002])
+    min_temp = np.array([0.10000000000000001])
+    max_temp = np.array([16.699999999999999])
+    hour_temp_teh = np.array([15.552812015345607, 6.0881570941648402])
+    hour_temp_calc_noon = photo_object.calculate_hour_temp(
+        increment_hour[0], min_temp, max_temp
+    )
+    hour_temp_calc_afternoon = photo_object.calculate_hour_temp(
+        increment_hour[1], min_temp, max_temp
+    )
+    assert_allclose(hour_temp_calc_noon, hour_temp_teh[0], rtol=0.0001)
+    assert_allclose(hour_temp_calc_afternoon, hour_temp_teh[1], rtol=0.0001)
+
+
 def test_calculate_incremental_PAR():
     """Test Gaussian integration of PAR into hourly increments"""
     increment_hour = np.array([12.00, 18.461916000000002])
@@ -151,13 +165,18 @@ def test_calculate_leaf_assimilation():
     Test leaf assimilation calculation in assim.h from Teh with assumption that leaf
     temperature is the same as air temperature
     """
-    increment_hour = np.array([12.0])
+    CO2_conc = np.array([245])
+    hour_temp = photo_object.calculate_hour_temp(np.array([12]))
     sunlit_par = np.array([951.36361799661461])
     shaded_par = np.array([341.88946400925738])
     shaded_leaf_assim_teh = np.array([10.100904909580670])
     sunlit_leaf_assim_teh = np.array([28.107427842696641])
-    sunlit_assim = photo_object.calculate_leaf_assimilation(increment_hour, sunlit_par)
-    shaded_assim = photo_object.calculate_leaf_assimilation(increment_hour, shaded_par)
+    sunlit_assim = photo_object.calculate_leaf_assimilation(
+        sunlit_par, CO2_conc, hour_temp
+    )
+    shaded_assim = photo_object.calculate_leaf_assimilation(
+        shaded_par, CO2_conc, hour_temp
+    )
     assert_allclose(sunlit_assim, sunlit_leaf_assim_teh, rtol=0.0001)
     assert_allclose(shaded_assim, shaded_leaf_assim_teh, rtol=0.0001)
 
@@ -188,6 +207,8 @@ def test_photosynthesize():
     """
     Test the integrated output of GenVeg photosythesize with the equivalent output
     from Teh modified to output per plant
+
+    NEED TO AMEND FOR STOMATAL CONDUCTANCE ADJUSTMENT
     """
     grid_par_W_per_sqm = np.array([18399966.731363025 / 86400 / 2])
     min_temp = np.array([0.10000000000000001])

@@ -10,6 +10,8 @@ from .photosynthesis import *
 import numpy as np
 from sympy import symbols, diff, lambdify, log
 
+rng = np.random.default_rng()
+
 
 # Define species class that inherits composite class methods
 class Species(object):
@@ -39,6 +41,7 @@ class Species(object):
         self.species_plant_factors = species_params["plant_factors"]
         self.species_duration_params = species_params["duration_params"]
         self.species_grow_params = species_params["grow_params"]
+        self.species_photo_params = species_params["photo_params"]
         self.species_dispersal_params = species_params["dispersal_params"]
         self.species_mort_params = species_params["mortality_params"]
         self.species_morph_params = species_params["morph_params"]
@@ -222,7 +225,9 @@ class Species(object):
 
     def select_photosythesis_type(self, latitude):
         photosynthesis_options = {"C3": C3, "C4": C4, "cam": Cam}
-        return photosynthesis_options[self.species_plant_factors["p_type"]](latitude)
+        return photosynthesis_options[self.species_plant_factors["p_type"]](
+            latitude, photo_params=self.species_photo_params
+        )
 
     def select_habit_class(self):
         habit = {
@@ -466,7 +471,6 @@ class Species(object):
         plants = self.habit.duration.emerge(
             plants, available_stored_biomass, total_persistent_biomass
         )
-
         plants = self.update_morphology(plants)
 
         return plants
@@ -478,14 +482,19 @@ class Species(object):
         nsc_content = {}
         day_conditions = [
             d < days["growing_season_start"],
-            (d >= days["growing_season_start"]) & (d < days["reproduction_start"]),
-            (d >= days["reproduction_start"]) & (d < days["senescence_start"]),
+            (d >= days["growing_season_start"]) & (d < days["peak_biomass"]),
+            (d >= days["peak_biomass"]) & (d < days["senescence_start"]),
             (d >= days["senescence_start"]) & (d < days["growing_season_end"]),
             d >= days["growing_season_end"],
         ]
 
         for part in self.all_parts:
             nsc_content_opts_b = [
+                (
+                    self.species_grow_params["incremental_nsc"][part][3]
+                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
+                )
+                ** 2,
                 (
                     self.species_grow_params["incremental_nsc"][part][0]
                     + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
@@ -506,19 +515,14 @@ class Species(object):
                     + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
                 )
                 ** 2,
-                (
-                    self.species_grow_params["incremental_nsc"][part][0]
-                    + (self.species_grow_params["nsc_content"][part] * 1000) ** 0.5
-                )
-                ** 2,
             ]
 
             nsc_content_opts_mx = [
                 rate["winter_nsc_rate"][part] * (d + 365 - days["growing_season_end"]),
-                rate["spring_nsc_rate"][part] * (days["growing_season_start"] - d),
-                rate["summer_nsc_rate"][part] * (days["reproduction_start"] - d),
-                rate["fall_nsc_rate"][part] * (days["senescence_start"] - d),
-                rate["winter_nsc_rate"][part] * (days["growing_season_end"] - d),
+                rate["spring_nsc_rate"][part] * (d - days["growing_season_start"]),
+                rate["summer_nsc_rate"][part] * (d - days["peak_biomass"]),
+                rate["fall_nsc_rate"][part] * (d - days["senescence_start"]),
+                rate["winter_nsc_rate"][part] * (d - days["growing_season_end"]),
             ]
             nsc_content[part] = (
                 (np.select(day_conditions, nsc_content_opts_b)) ** 0.5
@@ -631,7 +635,11 @@ class Species(object):
             _last_biomass,
             _current_day,
         )
-        return carb_generated
+        random_water_stress = rng.normal(loc=0.65, scale=0.12, size=carb_generated.size)
+        random_water_stress[random_water_stress < 0] = 0.0
+        random_water_stress[random_water_stress > 1] = 1.0
+        adj_carb_generated = random_water_stress * carb_generated
+        return adj_carb_generated
 
     def respire(self, _min_temperature, _max_temperature, _last_biomass):
         _temperature = (_min_temperature + _max_temperature) / 2
