@@ -49,6 +49,7 @@ extensions = (
     "landlab/layers/ext/eventlayers.pyx",
     "landlab/utils/_matrix.pyx",
     "landlab/utils/ext/jaggedarray.pyx",
+    "tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx",
 )
 
 compile_args = ["-fopenmp"] if "WITH_OPENMP" in os.environ else []
