@@ -5,7 +5,6 @@ from .voronoi_to_graph import VoronoiDelaunayToGraph
 
 
 class DelaunayGraph(Graph):
-
     """Graph of a voronoi grid.
 
     Examples

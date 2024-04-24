@@ -2,8 +2,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from landlab import FieldError, RasterModelGrid
-from landlab.components import COMPONENTS, PriorityFloodFlowRouter
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.components import COMPONENTS
+from landlab.components import PriorityFloodFlowRouter
 
 _VALID_LOCS = {"grid", "node", "link", "patch", "corner", "face", "cell"}
 

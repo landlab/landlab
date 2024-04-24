@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 
 class KinematicWaveRengers(Component):

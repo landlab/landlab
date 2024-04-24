@@ -5,7 +5,6 @@ Created on Fri May 27 14:26:13 2016
 @author: gtucker
 """
 
-
 import numpy as np
 
 from landlab import Component

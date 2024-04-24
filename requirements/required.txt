@@ -2,10 +2,10 @@ bmipy==2.0.1
 matplotlib==3.8.2
 netcdf4==1.6.5
 numpy==1.26.3
-pandas==2.2.0
+pandas==2.2.2
 pyshp==2.3.1
 pyyaml==6.0.1
 rich-click==1.7.3
-scipy==1.12.0
+scipy==1.13.0
 statsmodels==0.14.1
 xarray==2024.1.1

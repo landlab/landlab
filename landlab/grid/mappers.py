@@ -1585,7 +1585,8 @@ def map_link_vector_components_to_node(grid, data_at_link):
     >>> vy
     array([ 0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
     """
-    from landlab import HexModelGrid, RasterModelGrid
+    from landlab import HexModelGrid
+    from landlab import RasterModelGrid
 
     if isinstance(grid, HexModelGrid):
         from .hex_mappers import map_link_vector_components_to_node_hex

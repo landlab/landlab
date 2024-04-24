@@ -28,11 +28,12 @@ import numpy
 
 from landlab.core.utils import as_id_array
 
-from .cfuncs import _accumulate_bw, _add_to_stack, _make_donors
+from .cfuncs import _accumulate_bw
+from .cfuncs import _add_to_stack
+from .cfuncs import _make_donors
 
 
 class _DrainageStack:
-
     """Implements Braun & Willett's add_to_stack function.
 
     The _DrainageStack() class implements Braun & Willett's add_to_stack

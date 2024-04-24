@@ -2,6 +2,8 @@ import numpy as np
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
+)
+from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     _GeneralizedErosionDeposition,
 )
 from landlab.utils.return_array import return_array_at_node
