@@ -1,13 +1,11 @@
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import (
-    FastscapeEroder,
-    FlowAccumulator,
-    SedDepEroder,
-    StreamPowerEroder,
-    StreamPowerSmoothThresholdEroder,
-)
+from landlab.components import FastscapeEroder
+from landlab.components import FlowAccumulator
+from landlab.components import SedDepEroder
+from landlab.components import StreamPowerEroder
+from landlab.components import StreamPowerSmoothThresholdEroder
 
 
 def test_route_to_multiple_error_raised_init_FastscapeEroder():

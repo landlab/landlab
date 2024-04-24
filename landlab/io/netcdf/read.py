@@ -13,16 +13,12 @@ import contextlib
 import numpy as np
 import xarray as xr
 
-from landlab.io import (
-    MismatchGridDataSizeError,
-    MismatchGridXYLowerLeft,
-    MismatchGridXYSpacing,
-)
-from landlab.io.netcdf._constants import (
-    _AXIS_COORDINATE_NAMES,
-    _AXIS_DIMENSION_NAMES,
-    _COORDINATE_NAMES,
-)
+from landlab.io import MismatchGridDataSizeError
+from landlab.io import MismatchGridXYLowerLeft
+from landlab.io import MismatchGridXYSpacing
+from landlab.io.netcdf._constants import _AXIS_COORDINATE_NAMES
+from landlab.io.netcdf._constants import _AXIS_DIMENSION_NAMES
+from landlab.io.netcdf._constants import _COORDINATE_NAMES
 from landlab.io.netcdf.errors import NotRasterGridError
 from landlab.utils import add_halo
 

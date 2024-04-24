@@ -5,10 +5,12 @@ Created on Thu Apr 23 09:09:49 2020
 @author: gtucker
 """
 
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components import ErosionDeposition, FlowAccumulator
+from landlab.components import ErosionDeposition
+from landlab.components import FlowAccumulator
 
 
 def test_without_depression_handling():

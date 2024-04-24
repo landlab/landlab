@@ -436,7 +436,6 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
 
 
 class EventLayersMixIn:
-
     """MixIn that adds a EventLayers attribute to a ModelGrid."""
 
     @property
@@ -455,7 +454,6 @@ class EventLayersMixIn:
 
 
 class EventLayers:
-
     """Track EventLayers where each event is its own layer.
 
     EventLayers are meant to represent a layered object in which each layer

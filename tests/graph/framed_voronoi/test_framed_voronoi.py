@@ -1,18 +1,15 @@
 import numpy as np
 import pytest
 from hypothesis import given
-from hypothesis.strategies import integers, lists
-from numpy.testing import (
-    assert_array_almost_equal,
-    assert_array_equal,
-    assert_array_less,
-)
+from hypothesis.strategies import integers
+from hypothesis.strategies import lists
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_less
 from pytest import approx
 
-from landlab.graph.framed_voronoi.framed_voronoi import (
-    FramedVoronoiGraph,
-    HorizontalRectVoronoiGraph,
-)
+from landlab.graph.framed_voronoi.framed_voronoi import FramedVoronoiGraph
+from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
 
 
 def test_number_of_nodes_horizontal_rect():

@@ -1,17 +1,17 @@
 import numpy as np
 import pytest
 from hypothesis import given
-from hypothesis.strategies import integers, lists
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from hypothesis.strategies import integers
+from hypothesis.strategies import lists
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 from pytest import approx
 
 from landlab.graph import TriGraph
-from landlab.graph.hex.hex import (
-    HorizontalHexTriGraph,
-    HorizontalRectTriGraph,
-    VerticalHexTriGraph,
-    VerticalRectTriGraph,
-)
+from landlab.graph.hex.hex import HorizontalHexTriGraph
+from landlab.graph.hex.hex import HorizontalRectTriGraph
+from landlab.graph.hex.hex import VerticalHexTriGraph
+from landlab.graph.hex.hex import VerticalRectTriGraph
 
 
 def test_number_of_nodes_horizontal_rect():

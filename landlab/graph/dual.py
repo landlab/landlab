@@ -3,6 +3,7 @@
 This class should not be used directly. Instead, it should be used as a
 base class when defining other types of graphs.
 """
+
 import inspect
 from functools import cached_property
 

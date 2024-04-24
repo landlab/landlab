@@ -1,11 +1,9 @@
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab.grid.unstructured.links import (
-    in_link_ids_at_node,
-    link_ids_at_node,
-    out_link_ids_at_node,
-)
+from landlab.grid.unstructured.links import in_link_ids_at_node
+from landlab.grid.unstructured.links import link_ids_at_node
+from landlab.grid.unstructured.links import out_link_ids_at_node
 
 
 def test_array_length_mismatch():

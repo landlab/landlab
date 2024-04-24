@@ -66,7 +66,6 @@ from landlab import Component
 
 
 class FireGenerator(Component):
-
     """Generate a random fire event or time series.
 
     Parameters

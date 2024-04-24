@@ -2,16 +2,15 @@ from io import StringIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
-from landlab import (
-    FramedVoronoiGrid,
-    HexModelGrid,
-    NetworkModelGrid,
-    RadialModelGrid,
-    RasterModelGrid,
-    VoronoiDelaunayGrid,
-)
+from landlab import FramedVoronoiGrid
+from landlab import HexModelGrid
+from landlab import NetworkModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
+from landlab import VoronoiDelaunayGrid
 
 
 def test_raster_from_file():

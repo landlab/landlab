@@ -1,7 +1,9 @@
 import numpy as np
 
 from .cells import CellGrid
-from .links import LinkGrid, _split_link_ends, find_active_links
+from .links import LinkGrid
+from .links import _split_link_ends
+from .links import find_active_links
 from .nodes import NodeGrid
 from .status import StatusGrid
 

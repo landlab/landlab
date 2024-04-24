@@ -1,6 +1,7 @@
 import pytest
 
-from landlab import NetworkModelGrid, RasterModelGrid
+from landlab import NetworkModelGrid
+from landlab import RasterModelGrid
 from landlab.values.synthetic import _STATUS
 
 

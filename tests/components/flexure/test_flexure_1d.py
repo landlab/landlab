@@ -2,11 +2,9 @@
 """Unit tests for landlab.components.flexure.Flexure1D."""
 import numpy as np
 import pytest
-from numpy.testing import (
-    assert_array_almost_equal,
-    assert_array_equal,
-    assert_array_less,
-)
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_less
 
 from landlab import RasterModelGrid
 from landlab.components.flexure import Flexure1D

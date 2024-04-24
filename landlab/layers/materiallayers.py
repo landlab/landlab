@@ -1,14 +1,11 @@
 import numpy as np
 
-from landlab.layers.eventlayers import (
-    EventLayers,
-    _deposit_or_erode,
-    _get_surface_index,
-)
+from landlab.layers.eventlayers import EventLayers
+from landlab.layers.eventlayers import _deposit_or_erode
+from landlab.layers.eventlayers import _get_surface_index
 
 
 class MaterialLayersMixIn:
-
     """MixIn that adds a MaterialLayers attribute to a ModelGrid."""
 
     @property
@@ -22,7 +19,6 @@ class MaterialLayersMixIn:
 
 
 class MaterialLayers(EventLayers):
-
     """Track MaterialLayers where each layer has some material in it.
 
     MaterialLayers are meant to represent a layered object in which each layer

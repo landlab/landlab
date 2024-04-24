@@ -1,79 +1,204 @@
 """
 Unit tests for landlab.components.radiation.radiation
 """
+
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
 
-(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0.0, 0.0))
-_ARGS = (_SHAPE, _SPACING, _ORIGIN)
-
-
-def test_name(rad):
-    assert rad.name == "Radiation"
+from landlab import RasterModelGrid
+from landlab.components import Radiation
 
 
-def test_input_var_names(rad):
-    assert rad.input_var_names == ("topographic__elevation",)
-
-
-def test_output_var_names(rad):
-    assert sorted(rad.output_var_names) == [
+@pytest.mark.parametrize(
+    "name",
+    [
+        "radiation__extraterrestrial_flux",
+        "radiation__clearsky_flux",
         "radiation__incoming_shortwave_flux",
+        "radiation__net_flux",
+        "radiation__net_longwave_flux",
         "radiation__net_shortwave_flux",
         "radiation__ratio_to_flat_surface",
+    ],
+)
+def test_fields_created_and_initialized(name):
+    grid = RasterModelGrid((20, 20), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    Radiation(grid)
+
+    assert np.allclose(grid.at_cell[name], 0.0)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "radiation__extraterrestrial_flux",
+        "radiation__clearsky_flux",
+        "radiation__incoming_shortwave_flux",
+        "radiation__net_flux",
+        "radiation__net_longwave_flux",
+        "radiation__net_shortwave_flux",
+        "radiation__ratio_to_flat_surface",
+    ],
+)
+def test_fields_updated(name):
+    grid = RasterModelGrid((20, 20), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    radiation = Radiation(grid)
+    radiation.update()
+
+    assert np.all(grid.at_cell[name] > 0.0)
+
+
+@pytest.mark.parametrize(
+    "kwds",
+    [
+        {"latitude": -100},
+        {"latitude": 90.1},
+        {"min_daily_temp": 20.0, "max_daily_temp": 15.0},
+        {"albedo": -1.0},
+        {"albedo": 10.0},
+    ],
+)
+def test_validators(kwds):
+    grid = RasterModelGrid((20, 20), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    with pytest.raises(ValueError):
+        Radiation(grid, **kwds)
+
+
+def test_slope():
+    grid = RasterModelGrid((5, 4), xy_spacing=10.0)
+    grid.at_node["topographic__elevation"] = [
+        [0.0, 0.0, 0.0, 0.0],
+        [1.0, 1.0, 1.0, 1.0],
+        [2.0, 2.0, 2.0, 2.0],
+        [3.0, 4.0, 4.0, 3.0],
+        [4.0, 4.0, 4.0, 4.0],
     ]
+    radiation = Radiation(grid)
+    radiation.update()
+
+    assert np.all(grid.at_cell["radiation__ratio_to_flat_surface"] > 1.0)
+
+    grid = RasterModelGrid((5, 4), xy_spacing=10.0)
+    grid.at_node["topographic__elevation"] = [
+        [4.0, 4.0, 4.0, 4.0],
+        [3.0, 4.0, 4.0, 3.0],
+        [2.0, 2.0, 2.0, 2.0],
+        [1.0, 1.0, 1.0, 1.0],
+        [0.0, 0.0, 0.0, 0.0],
+    ]
+    radiation = Radiation(grid)
+    radiation.update()
+
+    assert np.all(grid.at_cell["radiation__ratio_to_flat_surface"] < 1.0)
 
 
-def test_var_units(rad):
-    assert set(rad.input_var_names) | set(rad.output_var_names) == set(
-        dict(rad.units).keys()
-    )
+def test_turbidity():
+    grid = RasterModelGrid((5, 5), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
 
-    assert rad.var_units("topographic__elevation") == "m"
-    assert rad.var_units("radiation__incoming_shortwave_flux") == "W/m^2"
-    assert rad.var_units("radiation__net_shortwave_flux") == "W/m^2"
-    assert rad.var_units("radiation__ratio_to_flat_surface") == "None"
-
-
-def test_grid_shape(rad):
-    assert rad.grid.number_of_node_rows == _SHAPE[0]
-    assert rad.grid.number_of_node_columns == _SHAPE[1]
-
-
-def test_grid_x_extent(rad):
-    assert rad.grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
-
-
-def test_grid_y_extent(rad):
-    assert rad.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
-
-
-def test_field_getters(rad):
-    for name in rad.grid["node"]:
-        field = rad.grid["node"][name]
-        assert isinstance(field, np.ndarray)
-        assert field.shape == (
-            rad.grid.number_of_node_rows * rad.grid.number_of_node_columns,
+    radiations = []
+    for value in np.linspace(0.0, 1.0):
+        radiation = Radiation(
+            grid, latitude=0.0, clearsky_turbidity=value, opt_airmass=1.0
         )
+        radiation.update()
+        radiations.append(grid.at_cell["radiation__net_flux"].max())
 
-    for name in rad.grid["cell"]:
-        field = rad.grid["cell"][name]
-        assert isinstance(field, np.ndarray)
-        assert field.shape == (
-            rad.grid.number_of_cell_rows * rad.grid.number_of_cell_columns,
-        )
-
-    with pytest.raises(KeyError):
-        rad.grid["not_a_var_name"]
+    assert np.all(np.diff(radiations) < 0.0)
 
 
-def test_field_initialized_to_zero(rad):
-    for name in rad.grid["node"]:
-        field = rad.grid["node"][name]
-        assert_array_almost_equal(field, np.zeros(rad.grid.number_of_nodes))
-    for name in rad.grid["cell"]:
-        if name == "Slope" or name == "Aspect":
-            continue
-        field = rad.grid["cell"][name]
-        assert_array_almost_equal(field, np.zeros(rad.grid.number_of_cells))
+@pytest.mark.parametrize("time_0,time_1", [(0.0, 1.0), (2000.5, 2010.5), (-0.5, 0.5)])
+def test_time(time_0, time_1):
+    grid = RasterModelGrid((5, 5), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    radiation = Radiation(grid, latitude=0.0, current_time=time_0)
+    radiation.update()
+
+    radiation_at_time_0 = grid.at_cell["radiation__net_shortwave_flux"].copy()
+
+    radiation = Radiation(grid, latitude=0.0, current_time=time_1)
+    radiation.update()
+
+    radiation_at_time_1 = grid.at_cell["radiation__net_shortwave_flux"]
+
+    assert np.allclose(radiation_at_time_0, radiation_at_time_1)
+
+
+TIMES = {
+    "march_equinox": 1.39 * 365.0 / (2.0 * np.pi),
+    "june_solstice": (np.pi / 2.0 + 1.39) * 365 / (2.0 * np.pi),
+    "september_equinox": (np.pi + 1.39) * 365.0 / (2.0 * np.pi),
+    "december_solstice": (3.0 * np.pi / 2.0 + 1.39) * 365.0 / (2.0 * np.pi),
+}
+
+
+@pytest.mark.parametrize(
+    "latitude,solstice",
+    [
+        (70.0, "december"),
+        (80.0, "december"),
+        (-70.0, "june"),
+        (-80.0, "june"),
+    ],
+)
+def test_solstice(solstice, latitude):
+    time = TIMES[f"{solstice}_solstice"] / 365.0
+
+    grid = RasterModelGrid((5, 5), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+    radiation = Radiation(grid, latitude=latitude, current_time=time)
+    radiation.update()
+
+    assert np.allclose(grid.at_cell["radiation__extraterrestrial_flux"], 0.0)
+
+
+@pytest.mark.parametrize("time", ["march_equinox", "september_equinox"])
+@pytest.mark.parametrize("latitude", [10.0, 30.0, 45.0, 60.0])
+def test_equinox(time, latitude):
+    """Check that radiation at the equinox is symmetric."""
+    equinox = TIMES[time] / 365.0
+
+    grid = RasterModelGrid((5, 5), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+
+    radiation = Radiation(grid, latitude=latitude, current_time=equinox)
+    radiation.update()
+
+    radiation_at_north = grid.at_cell["radiation__ratio_to_flat_surface"].copy()
+
+    radiation = Radiation(grid, latitude=-latitude, current_time=equinox)
+    radiation.update()
+
+    radiation_at_south = grid.at_cell["radiation__ratio_to_flat_surface"]
+
+    assert np.allclose(radiation_at_north, radiation_at_south)
+
+
+@pytest.mark.parametrize("latitude", [10.0, 30.0, 45.0, 60.0])
+@pytest.mark.parametrize("hemisphere", ["north", "south"])
+def test_latitude(latitude, hemisphere):
+    """Check that radiation decreases away from the equator."""
+    equinox = 81.0 / 365.0
+
+    latitude *= -1.0 if hemisphere == "south" else 1.0
+
+    grid = RasterModelGrid((5, 5), xy_spacing=10e0)
+    grid.add_zeros("topographic__elevation", at="node")
+
+    radiation = Radiation(grid, latitude=0.0, current_time=equinox)
+    radiation.update()
+    radiation_at_equator = grid.at_cell["radiation__net_shortwave_flux"].copy()
+
+    radiation = Radiation(grid, latitude=latitude / 2, current_time=equinox)
+    radiation.update()
+    radiation_at_half_latitude = grid.at_cell["radiation__net_shortwave_flux"].copy()
+
+    radiation = Radiation(grid, latitude=latitude, current_time=equinox)
+    radiation.update()
+    radiation_at_latitude = grid.at_cell["radiation__net_shortwave_flux"]
+
+    assert np.all(radiation_at_equator > radiation_at_half_latitude)
+    assert np.all(radiation_at_half_latitude > radiation_at_latitude)
