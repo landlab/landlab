@@ -2,12 +2,15 @@
 
 import os
 
-import numpy
+import numpy as np
 from Cython.Build import cythonize
 from setuptools import Extension
 from setuptools import setup
 
-extensions = (
+
+compile_args = ["-fopenmp"] if "WITH_OPENMP" in os.environ else []
+
+cython_files = (
     "landlab/ca/cfuncs.pyx",
     "landlab/components/bedrock_landslider/cfuncs.pyx",
     "landlab/components/depression_finder/cfuncs.pyx",
@@ -52,22 +55,20 @@ extensions = (
     "tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx",
 )
 
-compile_args = ["-fopenmp"] if "WITH_OPENMP" in os.environ else []
-
 ext_modules = cythonize(
     [
         Extension(
-            ext[:-4].replace("/", "."),
-            [ext],
+            path[:-4].replace("/", "."),
+            [path],
             extra_compile_args=compile_args,
             extra_link_args=compile_args,
         )
-        for ext in extensions
+        for path in cython_files
     ],
     compiler_directives={"embedsignature": True, "language_level": 3},
 )
 
 setup(
-    include_dirs=[numpy.get_include()],
+    include_dirs=[np.get_include()],
     ext_modules=ext_modules,
 )
