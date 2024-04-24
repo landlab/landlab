@@ -45,8 +45,6 @@ class PlantGrowth(Species):
         rel_time,
         _current_jday,
         species_params={
-            "col_params": {},
-            "disp_params": {},
             "duration_params": {
                 "growing_season_start": 91,
                 "growing_season_end": 290,
