@@ -14,13 +14,12 @@ from collections import deque
 
 import numpy as np
 
-from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
+from landlab.core.utils import make_optional_arg_into_id_array
+from landlab.core.utils import radians_to_degrees
 from landlab.utils.decorators import use_field_name_or_array
 
-from .ext.raster_gradient import (
-    calc_diff_at_link as _calc_diff_at_link_c,
-    calc_grad_at_link as _calc_grad_at_link_c,
-)
+from .ext.raster_gradient import calc_diff_at_link as _calc_diff_at_link_c
+from .ext.raster_gradient import calc_grad_at_link as _calc_grad_at_link_c
 
 
 @use_field_name_or_array("node")

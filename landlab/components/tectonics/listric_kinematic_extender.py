@@ -12,7 +12,9 @@ See notebook tutorial for theory and examples.
 
 import numpy as np
 
-from landlab import Component, HexModelGrid, RasterModelGrid
+from landlab import Component
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.components import AdvectionSolverTVD
 
 

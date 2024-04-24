@@ -6,7 +6,9 @@ Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from landlab import Component, HexModelGrid, RasterModelGrid
+from landlab import Component
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.grid.mappers import map_min_of_link_nodes_to_link
 from landlab.utils import get_core_node_matrix
 from landlab.utils.return_array import return_array_at_link

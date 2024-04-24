@@ -1,13 +1,12 @@
 import numpy as np
 
-from landlab import Component, MissingKeyError
+from landlab import Component
+from landlab import MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
-from .cfuncs import (
-    brent_method_erode_fixed_threshold,
-    brent_method_erode_variable_threshold,
-)
+from .cfuncs import brent_method_erode_fixed_threshold
+from .cfuncs import brent_method_erode_variable_threshold
 
 
 class StreamPowerEroder(Component):

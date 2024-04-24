@@ -1,13 +1,16 @@
 """Test StructuredQuadGraph."""
+
 import numpy as np
 from numpy.testing import assert_array_equal
-from pytest import approx, mark, raises
+from pytest import approx
+from pytest import mark
+from pytest import raises
 
-from landlab.graph import RectilinearGraph, StructuredQuadGraph, UniformRectilinearGraph
-from landlab.graph.structured_quad.structured_quad import (
-    StructuredQuadLayoutCython,
-    StructuredQuadLayoutPython,
-)
+from landlab.graph import RectilinearGraph
+from landlab.graph import StructuredQuadGraph
+from landlab.graph import UniformRectilinearGraph
+from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutCython
+from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutPython
 
 
 def test_graph_is_frozen():

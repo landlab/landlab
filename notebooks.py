@@ -15,6 +15,7 @@ a version number as an argument. For example,
 
     $ python -m notebooks 2.5.0
 """
+
 import argparse
 import os
 import pathlib

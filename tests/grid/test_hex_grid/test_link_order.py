@@ -3,6 +3,7 @@ Created on Sat Nov 14 10:36:03 2015
 
 @author: gtucker
 """
+
 import numpy as np
 from numpy.testing import assert_array_equal
 from pytest import approx

@@ -13,14 +13,13 @@ together.
 
 import numpy as np
 
-from landlab import (  # for type tests
-    Component,
-    FieldError,
-    NetworkModelGrid,
-    RasterModelGrid,
-    VoronoiDelaunayGrid,
-)
-from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
+from landlab import Component  # for type tests
+from landlab import FieldError
+from landlab import NetworkModelGrid
+from landlab import RasterModelGrid
+from landlab import VoronoiDelaunayGrid
+from landlab.components.flow_accum import flow_accum_bw
+from landlab.components.flow_accum import flow_accum_to_n
 from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
@@ -31,7 +30,6 @@ _UNFLOODED = FloodStatus._UNFLOODED
 
 
 class FlowAccumulator(Component):
-
     """Component to accumulate flow and calculate drainage area.
 
     This is accomplished by first finding flow directions by a user-specified
@@ -905,12 +903,10 @@ class FlowAccumulator(Component):
             if flow_director[:12] == "FlowDirector":
                 flow_director = flow_director[12:]
 
-            from landlab.components.flow_director import (
-                FlowDirectorD8,
-                FlowDirectorDINF,
-                FlowDirectorMFD,
-                FlowDirectorSteepest,
-            )
+            from landlab.components.flow_director import FlowDirectorD8
+            from landlab.components.flow_director import FlowDirectorDINF
+            from landlab.components.flow_director import FlowDirectorMFD
+            from landlab.components.flow_director import FlowDirectorSteepest
 
             DIRECTOR_METHODS = {
                 "D4": FlowDirectorSteepest,

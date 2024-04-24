@@ -1,12 +1,10 @@
 class Error(Exception):
-
     """Base class for errors in this module."""
 
     pass
 
 
 class FieldError(Error, KeyError):
-
     """Raise this error for a missing field name."""
 
     def __init__(self, field):
@@ -17,7 +15,6 @@ class FieldError(Error, KeyError):
 
 
 class GroupError(Error, KeyError):
-
     """Raise this error for a missing group name."""
 
     def __init__(self, group):
@@ -28,7 +25,6 @@ class GroupError(Error, KeyError):
 
 
 class GroupSizeError(Error, KeyError):
-
     """Raise this error if a group has changed sizes."""
 
     def __init__(self, group, old_size, new_size):

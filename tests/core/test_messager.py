@@ -3,13 +3,11 @@ import os
 
 import pytest
 
-from landlab.core.messages import (
-    assert_or_print,
-    error_message,
-    format_message,
-    split_paragraphs,
-    warning_message,
-)
+from landlab.core.messages import assert_or_print
+from landlab.core.messages import error_message
+from landlab.core.messages import format_message
+from landlab.core.messages import split_paragraphs
+from landlab.core.messages import warning_message
 
 LOREM_IPSUM = os.linesep.join(
     [

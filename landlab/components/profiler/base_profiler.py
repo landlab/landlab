@@ -1,7 +1,8 @@
 # ! /usr/env/python
 """Base class for profile constructors."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection

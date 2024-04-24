@@ -1,6 +1,7 @@
 """
 Unit tests for landlab.components.plant_competition_ca.plant_competition_ca
 """
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal

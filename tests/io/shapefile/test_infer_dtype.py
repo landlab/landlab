@@ -1,7 +1,8 @@
 import hypothesis.extra.numpy as hynp
 import numpy as np
 import pytest
-from hypothesis import assume, given
+from hypothesis import assume
+from hypothesis import given
 from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
 
