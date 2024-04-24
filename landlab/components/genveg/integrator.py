@@ -1,19 +1,14 @@
 """
-Plant integration component of GenVeg - this is the part of GenVeg that handles interactions
-between plants and plants and the physical grid. 
+Plant integration component of GenVeg - this is the part of GenVeg
+that handles interactions between plants and plants and the physical grid
 """
-from logging.config import valid_ident
-from matplotlib.pyplot import grid
 
 # from landlab.components import Radiation
 from landlab import Component
 import numpy as np
 import pandas as pd
-from scipy.optimize import fsolve
 from .growth import PlantGrowth
 import matplotlib as plt
-import warnings
-from landlab.data_record import DataRecord
 
 rng = np.random.default_rng()
 
@@ -29,7 +24,12 @@ class GenVeg(Component, PlantGrowth):
 
     _cite_as = """
     @article{piercygv,
-        author = {Piercy, C.D.; Swannack, T.M.; Carrillo, C.C.; Russ, E.R.; Charbonneau, B. M.]
+        author = {
+            Piercy, C.D.;
+            Swannack, T.M.;
+            Carrillo, C.C.;
+            Russ, E.R.;
+            Charbonneau, B. M.
     }
     """
     # Add all variables to be saved or chosen as outputs here
@@ -40,7 +40,7 @@ class GenVeg(Component, PlantGrowth):
             "optional": False,
             "units": "g",
             "mapping": "cell",
-            "doc": "Total plant biomass for the plant class at the end of the time step",
+            "doc": "Total plant biomass at the end of the time step",
         },
     }
 
@@ -56,35 +56,23 @@ class GenVeg(Component, PlantGrowth):
             raise ValueError(msg)
         # Check to see if grid contains required environmental fields
         try:
-            self._air_temp = self._grid["cell"]["air__temperature_C"][:].copy()
+            self.min_air_temp = self._grid["cell"]["air__min_temperature_C"][:].copy()
+            self.max_air_temp = self._grid["cell"]["air__max_temperature_C"][:].copy()
         except KeyError:
-            msg = "GenVeg requires air temperature in Celcius for each time step."
+            msg = (
+                "GenVeg requires min and max air temperatures"
+                "in Celcius for each time step."
+            )
             raise ValueError(msg)
 
         try:
             self._par = self._grid["cell"]["radiation__par_tot"][:].copy()
         except RuntimeWarning:
-            msg = "GenVeg requires incoming PAR for each timestep. Empiricial estimation will be used for the run."
+            msg = (
+                "GenVeg requires incoming PAR for each timestep."
+                "Empiricial estimation will be used for the run."
+            )
             print(msg)
-            # try:
-            #    self.__albedo_bare=self._grid['cell']['bare_ground_albedo'][:].copy()
-            # except KeyError:
-            #   msg=('Empirical estimation of PAR requires bare ground albedo at-cell field.')
-            #   raise ValueError(msg)
-            #            # From chapter 2 of Teh 2006 (pg. 31; equation 2.13)
-            # try:
-
-            # except KeyError:
-            #    msg=('Empirical estimation of PAR requires lat/long of grid xy reference.')
-            # try:
-            #    self._clear_sky_index=self._grid['cell']['air__clear_sky_index'][:].copy()
-            # except KeyError:
-            #    msg=('Empirical estimation of PAR requires a clear sky index value at-cell field')
-            # except RuntimeError:
-
-            #    raise RuntimeError(msg)
-            # else:
-            #    self._par_method='empirical_estimation'
         else:
             self._par_method = "direct_input"
 
@@ -101,8 +89,9 @@ class GenVeg(Component, PlantGrowth):
         _current_jday = self._calc_current_jday()
         rel_time = self._calc_rel_time()
 
-        ##Need to modify to allow user to input plant array for hotstarting
-        ##Instantiate a plantgrowth object and summarize number of plants and biomass per cell
+        # Need to modify to allow user to input plant array for hotstarting
+        # Instantiate a PlantGrowth object and
+        # summarize number of plants and biomass per cell
         # Create empty array to store PlantGrowth objects
         plantspecies = []
         _ = self._grid.add_zeros("vegetation__total_biomass", at="cell", clobber=True)
@@ -167,7 +156,7 @@ class GenVeg(Component, PlantGrowth):
         )
         cell_leaf_area = np.bincount(
             all_plants["cell_index"],
-            weights=all_plants["leaf_area"],
+            weights=all_plants["total_leaf_area"],
             minlength=self._grid.number_of_cells,
         )
         plant_height = np.zeros_like(frac_cover)
@@ -205,7 +194,7 @@ class GenVeg(Component, PlantGrowth):
             for idx, plant in enumerate(cell_plants):
                 unoccupied_center = False
                 radius = plant["shoot_sys_width"] / 2
-                while unoccupied_center == False:
+                while unoccupied_center is False:
                     x = rng.uniform(low=min_x + radius, high=max_x - radius, size=1)
                     y_lims = self.get_cell_boundary_points(corner_vertices, x)
                     y = rng.uniform(
@@ -216,7 +205,7 @@ class GenVeg(Component, PlantGrowth):
                         [unoccupied_center] = self.check_if_loc_unocc(
                             [point], [radius], cell_plants, "above"
                         )
-                        if (unoccupied_center == True) or (idx == 0):
+                        if (unoccupied_center is True) or (idx == 0):
                             cell_plants[idx]["x_loc"] = x
                             cell_plants[idx]["y_loc"] = y
                             break
@@ -277,9 +266,11 @@ class GenVeg(Component, PlantGrowth):
         )
         cell_leaf_area = np.bincount(
             all_plants["cell_index"],
-            weights=all_plants["leaf_area"],
+            weights=all_plants["total_leaf_area"],
             minlength=self._grid.number_of_cells,
         )
+        cell_leaf_area[cell_leaf_area < 0] = 0
+        cell_leaf_area[np.isnan(cell_leaf_area)] = 0
         plant_height = np.zeros_like(cell_percent_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.nonzero(n_of_plants > 0.0)
@@ -295,8 +286,14 @@ class GenVeg(Component, PlantGrowth):
         self._grid.at_cell["vegetation__n_plants"] = cell_plant_count
         self._grid.at_cell["vegetation__percent_cover"] = cell_percent_cover
         self._grid.at_cell["vegetation__plant_height"] = plant_height
-        self._grid.at_cell["vegetation__cell_lai"] = (
-            cell_leaf_area / self._grid.area_of_cell
+        self._grid.at_cell["vegetation__cell_lai"] = np.divide(
+            cell_leaf_area,
+            self._grid.area_of_cell,
+            np.zeros_like(self._grid.at_cell["vegetation__total_biomass"]),
+            where=~np.isclose(
+                cell_leaf_area,
+                np.zeros_like(self._grid.at_cell["vegetation__total_biomass"]),
+            ),
         )
         self.current_day += 1
 
@@ -320,7 +317,8 @@ class GenVeg(Component, PlantGrowth):
             x1, y1 = vertices[i]
             x2, y2 = vertices[(i + 1) % len(vertices)]
             if x1 <= x_value and x2 >= x_value or x1 >= x_value and x2 <= x_value:
-                # Calculate the intersection point between the polygon edge and the vertical line at x_value
+                # Calculate the intersection point between the polygon edge
+                # and the vertical line at x_value
                 y_intersection = (x_value - x1) * (y2 - y1) / (x2 - x1) + y1
                 intersection_points.append(y_intersection)
 
@@ -333,12 +331,6 @@ class GenVeg(Component, PlantGrowth):
         plants_with_locations = all_plants[~np.isnan(all_plants["x_loc"])]
 
         # This code looks for the cells around the plant cell_index
-        #    parent_cell=new_pups['cell_index']
-        #    query_cells=self._grid.looped_neighbors_at_cell[pup['cell_index']]
-        #    query_cells.append(parent_cell)
-        #    plants_to_check=all_plants[np.isin(new_pups['cell_index'], query_cells)]
-        # check to see if we can vectorize this method
-        # We can also downselect so we are only checking plants in the surrounding cells
         area = {"above": "shoot_sys_width", "below": "root_sys_width"}
         is_center_unocc = []
         for idx, loc in enumerate(plant_loc):
@@ -362,9 +354,7 @@ class GenVeg(Component, PlantGrowth):
             loc_unoccupied = self.check_if_loc_unocc(
                 pup_locs, pup_widths, all_plants, "below"
             )
-            # print("There were " + str(new_pups.size) + " potential new plants")
             new_pups = new_pups[np.nonzero(loc_unoccupied)]
-            # print("Only " + str(new_pups.size) + " were successful")
             new_pups["x_loc"] = new_pups["pup_x_loc"]
             new_pups["y_loc"] = new_pups["pup_y_loc"]
 
@@ -422,20 +412,7 @@ class GenVeg(Component, PlantGrowth):
         all_plants_array = all_plants[0]
         for i in range(1, len(all_plants)):
             all_plants_array = np.concatenate((all_plants_array, all_plants[i]))
-        # all_plants_array=np.ravel(all_plants_array)
         return all_plants_array
-
-        # need list of all plants within neighborhood plus their location and radius
-        # for pup in new_pups:
-        #    parent_cell=new_pups['cell_index']
-        #    query_cells=self._grid.looped_neighbors_at_cell[pup['cell_index']]
-        #    query_cells.append(parent_cell)
-        #    plants_to_check=all_plants[np.isin(new_pups['cell_index'], query_cells)]
-        #    plant_centers=zip(plants_to_check['pup_x_loc'], plants_to_check['pup_y_loc'])
-        #    plant_radii=plants_to_check['root_sys_width']/2
-        #    parent_loc=zip(pup['x_loc'], pup['y_loc'])
-        #    pup_loc=zip(pup['pup_x_loc'], pup['pup_y_loc'])
-        #    shortest_distance=self._calc_shortest_path(parent_loc, pup_loc, plant_centers, plant_radii)
 
     def view_record_grid(
         self,
@@ -469,65 +446,3 @@ class GenVeg(Component, PlantGrowth):
                 if species_obj.species_name == species:
                     out_df = species_obj.record_plants.dataset.to_dataframe()
         return out_df
-
-    def _calc_shortest_path(
-        self, parent_loc, pup_loc, obstacle_centers, obstacle_radii
-    ):
-        min_distance = np.inf
-        min_path = None
-
-        for idx, obs_center in enumerate(obstacle_centers):
-            obs_radius = obstacle_radii(idx)
-
-            runner_direction = parent_loc - pup_loc
-            obs_direction = parent_loc - obs_center
-
-            angle = np.arccos(
-                np.dot(runner_direction, obs_direction)
-                / (np.linalg.norm(obs_direction))
-            )
-            distance_to_obstacle = (
-                np.linalg.norm(obs_direction) * np.sin(angle) - obs_radius
-            )
-
-            # Calculate the vector from the obstacle center to the closest point on the path
-            path_direction = np.array([-obs_direction[1], obs_direction[0]])
-            if np.dot(path_direction, runner_direction) < 0:
-                path_direction = -path_direction
-
-            # Calculate the closest point on the path to the start point
-            path_point = (
-                parent_loc
-                + path_direction * distance_to_obstacle / np.linalg.norm(path_direction)
-            )
-
-            # Calculate the distance from the start point to the closest point on the path
-            distance_to_path = np.linalg.norm(path_point - parent_loc)
-
-            # Calculate the distance from the closest point on the path to the end point
-            distance_from_path_to_end = np.linalg.norm(pup_loc - path_point)
-
-            # Calculate the total distance
-            total_distance = distance_to_path + distance_from_path_to_end
-
-            # Update the minimum distance and path if necessary
-            if total_distance < min_distance:
-                min_distance = total_distance
-                min_path = path_point
-
-        # If there are no obstacles, the shortest path is a straight line
-        if min_path is None:
-            return np.linalg.norm(pup_loc - parent_loc)
-
-        # Calculate the shortest path from the start point to the closest point on the path
-        shortest_path_start = self.shortest_path(
-            parent_loc, min_path, obstacle_centers, obstacle_radii
-        )
-
-        # Calculate the shortest path from the closest point on the path to the end point
-        shortest_path_end = self.shortest_path(
-            min_path, pup_loc, obstacle_centers, obstacle_radii
-        )
-
-        # Return the total shortest path
-        return shortest_path_start + shortest_path_end

@@ -4,7 +4,8 @@ from scipy.optimize import fsolve
 rng = np.random.default_rng()
 
 
-# Duration class and child classes Annual and Perennial (Child classes are Deciduous and Evergreen)
+# Duration class and child classes Annual and Perennial
+# (Child classes are Deciduous and Evergreen)
 class Duration(object):
     def __init__(
         self,
@@ -35,9 +36,9 @@ class Duration(object):
         for part in self.persistent_parts:
             plants[part][filter] += (
                 self.senesce_rate
-                * ns_green_mass
+                * ns_green_mass[filter]
                 * plants[part][filter]
-                / persistent_mass
+                / persistent_mass[filter]
             )
         for part in self.green_parts:
             plants[part][filter] -= self.senesce_rate * plants[part][filter]
@@ -201,11 +202,13 @@ class Deciduous(Perennial):
             plants[part] = (
                 adjusted_total_new_green / total_mass_new_green
             ) * new_green_biomass[part]
+            new_green_biomass[part] = plants[part]
 
+        total_mass_emerged = sum(new_green_biomass.values())
         for part in self.persistent_parts:
-            plants[part] = plants[part] - (
-                adjusted_total_new_green * plants[part] / persistent_total_mass
-            )
+            deleted_mass = total_mass_emerged * plants[part] / persistent_total_mass
+            plants[part] -= deleted_mass
+
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):

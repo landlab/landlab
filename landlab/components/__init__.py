@@ -24,7 +24,7 @@ from .flow_director import FlowDirectorDINF
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorSteepest
 from .fracture_grid import FractureGridGenerator
-from .genveg import VegParams, PlantGrowth, GenVeg
+from .genveg import VegParams, GenVeg
 from .gflex import gFlex
 from .gravel_bedrock_eroder import GravelBedrockEroder
 from .gravel_river_transporter import GravelRiverTransporter
@@ -124,7 +124,6 @@ COMPONENTS = [
     FlowDirectorMFD,
     FlowDirectorSteepest,
     FractureGridGenerator,
-    GenVeg,
     gFlex,
     GravelBedrockEroder,
     GravelRiverTransporter,

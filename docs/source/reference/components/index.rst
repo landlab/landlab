@@ -97,6 +97,7 @@ Vegetation
 
   vegetation_dynamics
   plant_competition_ca
+  genveg
 
 Biota
 -----
@@ -227,6 +228,7 @@ Alphabetical Listing of Modules
    flow_director
    flow_routing
    fracture_grid
+   genveg
    gflex
    groundwater
    hack_calculator
