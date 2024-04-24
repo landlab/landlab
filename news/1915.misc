@@ -1,4 +1,4 @@
 
 Added a list of Landlab's extensions to setup.py that must be
 maintained manually. This replaces the old, and somewhat buggy,
-conducting a recursive glob for pyx files.
+method of conducting a recursive glob for pyx files.
