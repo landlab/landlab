@@ -7,7 +7,6 @@ from Cython.Build import cythonize
 from setuptools import Extension
 from setuptools import setup
 
-
 compile_args = ["-fopenmp"] if "WITH_OPENMP" in os.environ else []
 
 cython_files = (
