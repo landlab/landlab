@@ -9,6 +9,7 @@ Written by Jordan Adams, based on code written by Greg Tucker.
 
 Last updated: April 21, 2016
 """
+
 import numpy as np
 import scipy.constants
 

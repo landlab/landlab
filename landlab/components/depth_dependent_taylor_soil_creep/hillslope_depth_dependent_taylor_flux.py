@@ -7,7 +7,8 @@
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 from landlab.core.messages import deprecation_message
 
 

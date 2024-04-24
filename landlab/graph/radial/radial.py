@@ -120,7 +120,6 @@ class RadialGraphExtras:
 
 
 class RadialGraph(RadialGraphExtras, DelaunayGraph):
-
     """Graph of a series of points on concentric circles.
 
     Examples

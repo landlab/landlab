@@ -2,20 +2,21 @@
 
 @author: krb
 """
+
 # Created on Thurs Nov 12, 2015
 import os
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.components.flow_director import (
-    FlowDirectorD8,
-    FlowDirectorDINF,
-    FlowDirectorMFD,
-    FlowDirectorSteepest,
-)
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components.flow_director import FlowDirectorD8
+from landlab.components.flow_director import FlowDirectorDINF
+from landlab.components.flow_director import FlowDirectorMFD
+from landlab.components.flow_director import FlowDirectorSteepest
 from landlab.components.flow_director.flow_director import _FlowDirector
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
@@ -80,9 +81,7 @@ def test_check_fields():
     """
 
     mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg0.add_field(
-        "topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node"
-    )
+    mg0.add_field("topographic__elevation", mg0.node_x**2 + mg0.node_y**2, at="node")
     _FlowDirector(mg0, "topographic__elevation")
     assert sorted(mg0.at_node) == [
         "flow__sink_flag",
@@ -91,9 +90,7 @@ def test_check_fields():
     assert np.size(mg0.at_node["topographic__elevation"]) == mg0.number_of_nodes
 
     mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg1.add_field(
-        "topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node"
-    )
+    mg1.add_field("topographic__elevation", mg1.node_x**2 + mg1.node_y**2, at="node")
     _FlowDirectorToMany(mg1, "topographic__elevation")
     assert sorted(mg1.at_node) == [
         "flow__link_to_receiver_node",
@@ -106,9 +103,7 @@ def test_check_fields():
     assert np.size(mg1.at_node["topographic__elevation"]) == mg1.number_of_nodes
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg2.add_field(
-        "topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node"
-    )
+    mg2.add_field("topographic__elevation", mg2.node_x**2 + mg2.node_y**2, at="node")
     _FlowDirectorToOne(mg2, "topographic__elevation")
     assert sorted(mg2.at_node) == [
         "flow__link_to_receiver_node",
@@ -120,9 +115,7 @@ def test_check_fields():
     assert np.size(mg2.at_node["topographic__elevation"]) == mg2.number_of_nodes
 
     mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg3.add_field(
-        "topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node"
-    )
+    mg3.add_field("topographic__elevation", mg3.node_x**2 + mg3.node_y**2, at="node")
     FlowDirectorMFD(mg3, "topographic__elevation")
     assert sorted(mg3.at_node) == [
         "flow__link_to_receiver_node",
@@ -135,9 +128,7 @@ def test_check_fields():
     assert np.size(mg3.at_node["topographic__elevation"]) == mg3.number_of_nodes
 
     mg4 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg4.add_field(
-        "topographic__elevation", mg4.node_x**2 + mg4.node_y**2, at="node"
-    )
+    mg4.add_field("topographic__elevation", mg4.node_x**2 + mg4.node_y**2, at="node")
     FlowDirectorDINF(mg4, "topographic__elevation")
     assert sorted(mg4.at_node) == [
         "flow__link_to_receiver_node",
@@ -150,9 +141,7 @@ def test_check_fields():
     assert np.size(mg4.at_node["topographic__elevation"]) == mg4.number_of_nodes
 
     mg5 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg5.add_field(
-        "topographic__elevation", mg5.node_x**2 + mg5.node_y**2, at="node"
-    )
+    mg5.add_field("topographic__elevation", mg5.node_x**2 + mg5.node_y**2, at="node")
     FlowDirectorSteepest(mg5, "topographic__elevation")
     assert sorted(mg5.at_node) == [
         "flow__link_to_receiver_node",
@@ -164,9 +153,7 @@ def test_check_fields():
     assert np.size(mg5.at_node["topographic__elevation"]) == mg5.number_of_nodes
 
     mg6 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg6.add_field(
-        "topographic__elevation", mg6.node_x**2 + mg6.node_y**2, at="node"
-    )
+    mg6.add_field("topographic__elevation", mg6.node_x**2 + mg6.node_y**2, at="node")
     FlowDirectorD8(mg6, "topographic__elevation")
     assert sorted(mg6.at_node) == [
         "flow__link_to_receiver_node",

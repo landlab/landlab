@@ -11,13 +11,13 @@ use FlowDirectorD8.
 
 import numpy
 
-from landlab import NodeStatus, VoronoiDelaunayGrid
+from landlab import NodeStatus
+from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_mfd
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorMFD(_FlowDirectorToMany):
-
     """Multiple-path flow direction with or without out diagonals.
 
     Directs flow by the multiple flow direction method. Each node is assigned

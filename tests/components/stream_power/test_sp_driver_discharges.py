@@ -1,11 +1,13 @@
 """Test simple stream power functionality when a discharge array is specified."""
+
 import os
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, StreamPowerEroder
+from landlab.components import FlowAccumulator
+from landlab.components import StreamPowerEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
