@@ -1,6 +1,6 @@
-#distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: extra_compile_args = -std=c++11
-#distutils: extra_link_args = -std=c++11
+# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+# distutils: extra_compile_args = -std=c++11
+# distutils: extra_link_args = -std=c++11
 
 # NB: apparently not possible to add language: C++ in this file
 # because of the extracompile -std=c++11 (necessary to understand the
@@ -34,6 +34,7 @@ cdef extern from "_priority_queue.hpp" nogil:
         bool empty()
         cnp.int_t size()
 
+
 def test_priority_queue():
     cdef:
         pair[cnp.int_t, cnp.float_t] a = pair[cnp.int_t, cnp.float_t](0, 1045.3)
@@ -48,6 +49,7 @@ def test_priority_queue():
     to_do.push(c)
     to_do.pop()
     assert to_do.top() == a
+
 
 def test_init_flow_direction_queues():
     # on a grid of 7 nodes
@@ -139,10 +141,11 @@ def test_set_flooded_and_outlet():
     assert_array_equal(flooded_nodes, np.array([0, 0, 3, 0, 0]))
     assert_array_almost_equal(depression_depths, np.array([0, 0, 67.1 - 42.1, 0, 0]))
     assert_array_almost_equal(
-        depression_free_elevations, np.array([ 0.1, 67.1, 67.771, 70.3, 34.5])
+        depression_free_elevations, np.array([0.1, 67.1, 67.771, 70.3, 34.5])
     )
     assert flooded_status == 3
     assert bad_index == -1
+
 
 def test_set_receiver():
     # on a grid of 6 nodes
@@ -156,6 +159,7 @@ def test_set_receiver():
     assert done_n == 2
     assert_array_equal(receivers, np.array([0, -1, -1, 4, -1, -1]))
     assert_array_equal(done, np.array([1, 0, 0, 1, 0, 0]))
+
 
 def test_set_donor_properties():
     # on a grid of 9 nodes
@@ -173,7 +177,7 @@ def test_set_donor_properties():
                 4, 7, 3, 1, 5, 4, 2, 8, 7, 3, 8, 4, 6, 5, 7
             ]
         )
-        cnp.int_t [:,:] head_start_end_indexes = np.array(
+        cnp.int_t [:, :] head_start_end_indexes = np.array(
             [
                 [0, 2, 5, 7, 10, 14, 17, 19, 22],
                 [1, 4, 6, 9, 13, 16, 18, 21, 23]
@@ -285,6 +289,7 @@ def test_set_donor_properties():
 
 #######################################################################################
 
+
 def test_direct_flow_c():
     # Grid of 25 nodes
     cdef:
@@ -306,7 +311,7 @@ def test_direct_flow_c():
                 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 20,
                 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24
             ]
-        ) # unused, for info
+        )  # unused, for info
         cnp.int_t[:] sorted_pseudo_tails = np.array(
             [
                 5, 1, 6, 2, 0, 3,
@@ -488,6 +493,7 @@ def test_direct_flow_c():
     )
     assert_array_almost_equal(z, z_0)
 
+
 def test_direct_flow():
     # Grid of 25 nodes
     cdef:
@@ -509,7 +515,7 @@ def test_direct_flow():
                 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 20,
                 20, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24
             ]
-        ) # unused, for info
+        )  # unused, for info
         cnp.int_t[:] sorted_pseudo_tails = np.array(
             [
                 5, 1, 6, 2, 0, 3,
