@@ -9,12 +9,9 @@
 
 import numpy as np
 
-cimport cython
 cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
-from libcpp.queue cimport queue
-from libcpp.vector cimport vector
 
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
@@ -42,9 +39,10 @@ def test_priority_queue():
         pair[cnp.int_t, cnp.float_t] c = pair[cnp.int_t, cnp.float_t](2, 2034.12)
         _priority_queue to_do = _priority_queue(breach_c._compare_second)
 
-    assert to_do.empty() == True
-    to_do.push(a); to_do.push(b)
-    assert to_do.empty() == False
+    assert to_do.empty() is True
+    to_do.push(a)
+    to_do.push(b)
+    assert to_do.empty() is False
     assert to_do.top() == b
     to_do.push(c)
     to_do.pop()
@@ -165,7 +163,7 @@ def test_set_donor_properties():
     # on a grid of 9 nodes
     cdef:
         cnp.int_t donor_id = 5, receiver_id = 7
-        cnp.int_t [:] sorted_pseudo_heads = np.array(
+        cnp.int_t [:] _sorted_pseudo_heads = np.array(
             [
                 0, 0, 1, 1, 1, 2, 2, 3, 3,
                 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8
@@ -302,7 +300,7 @@ def test_direct_flow_c():
         cnp.int_t[:] base_level_nodes_0 = np.copy(base_level_nodes)
         cnp.int_t[:] closed_nodes = np.array([3])
         cnp.int_t[:] closed_nodes_0 = np.copy(closed_nodes)
-        cnp.int_t[:] sorted_pseudo_heads = np.array(
+        cnp.int_t[:] _sorted_pseudo_heads = np.array(
             [
                 0, 0, 1, 1, 1,
                 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6,
@@ -506,7 +504,7 @@ def test_direct_flow():
         cnp.int_t[:] base_level_nodes_0 = np.copy(base_level_nodes)
         cnp.int_t[:] closed_nodes = np.array([3])
         cnp.int_t[:] closed_nodes_0 = np.copy(closed_nodes)
-        cnp.int_t[:] sorted_pseudo_heads = np.array(
+        cnp.int_t[:] _sorted_pseudo_heads = np.array(
             [
                 0, 0, 1, 1, 1,
                 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 6,
