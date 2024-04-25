@@ -137,7 +137,6 @@ cpdef sort_children_at_parent(
     cdef int n_children
     cdef int col
     cdef int parent, child
-    cdef cython.floating total
     cdef double [:, :] values = view.array(
         shape=(n_parents, n_cols),
         itemsize=sizeof(double),
