@@ -623,7 +623,9 @@ class NetworkSedimentTransporter(Component):
             size=self._grid.number_of_links,
         )
 
-        self._vol_stor = (self._vol_tot - self._vol_act) # stored parcel rock volume (bug fix AP 4/25/24)
+        self._vol_stor = (
+            self._vol_tot - self._vol_act
+        )  # stored parcel rock volume (bug fix AP 4/25/24)
 
     def _adjust_node_elevation(self):
         """Adjusts slope for each link based on parcel motions from last
