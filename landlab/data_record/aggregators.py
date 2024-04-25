@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from landlab.data_record._aggregators import (
     aggregate_items_as_count as _aggregate_items_as_count,
+)
+from landlab.data_record._aggregators import (
     aggregate_items_as_mean as _aggregate_items_as_mean,
+)
+from landlab.data_record._aggregators import (
     aggregate_items_as_sum as _aggregate_items_as_sum,
 )
 
