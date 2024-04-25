@@ -63,6 +63,8 @@ Bug Fixes
   This is fixed by setting the ``flood_status_code`` to 3 (i.e. ``_FLOODED``) (`#1683 <https://github.com/landlab/landlab/issues/1683>`_)
 - Fixed a bug that caused an incorrect Python version to be used in *Landlab*'s
   continuous integration tests. (`#1754 <https://github.com/landlab/landlab/issues/1754>`_)
+- Fixed a bug in :class:`~.NetworkSedimentTransporter` where porosity was corrected for twice in calculated 
+  topographic change at nodes. (`#1921 <https://github.com/landlab/landlab/issues/1921>`_)
 
 
 Documentation Enhancements
