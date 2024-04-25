@@ -44,8 +44,9 @@ Flow routing
 .. toctree::
    :maxdepth: 2
 
-   flow_director
    flow_accum
+   flow_director
+   flow_router
    flow_routing
    lake_fill
    priority_flood_flow_router
@@ -225,6 +226,7 @@ Alphabetical Listing of Modules
    flexure
    flow_accum
    flow_director
+   flow_router
    flow_routing
    fracture_grid
    gflex
