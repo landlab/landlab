@@ -6,9 +6,9 @@ Greg Tucker, CU Boulder, November 2023
 
 import numpy as np
 
-from ..graph import DualIcosphereGraph
-from .base import ModelGrid
-from .nodestatus import NodeStatus
+from landlab.graph.quasi_spherical.dual_icosphere import DualIcosphereGraph
+from landlab.grid.base import ModelGrid
+from landlab.grid.nodestatus import NodeStatus
 
 
 class IcosphereGlobalGrid(DualIcosphereGraph, ModelGrid):

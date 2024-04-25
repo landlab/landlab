@@ -1,12 +1,12 @@
-from .base import ModelGrid
-from .create import create_grid
-from .framed_voronoi import FramedVoronoiGrid
-from .hex import HexModelGrid
-from .icosphere import IcosphereGlobalGrid
-from .network import NetworkModelGrid
-from .radial import RadialModelGrid
-from .raster import RasterModelGrid
-from .voronoi import VoronoiDelaunayGrid
+from landlab.grid.base import ModelGrid
+from landlab.grid.create import create_grid
+from landlab.grid.framed_voronoi import FramedVoronoiGrid
+from landlab.grid.hex import HexModelGrid
+from landlab.grid.icosphere import IcosphereGlobalGrid
+from landlab.grid.network import NetworkModelGrid
+from landlab.grid.radial import RadialModelGrid
+from landlab.grid.raster import RasterModelGrid
+from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 __all__ = [
     "ModelGrid",
