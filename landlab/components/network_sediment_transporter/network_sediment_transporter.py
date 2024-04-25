@@ -617,21 +617,13 @@ class NetworkSedimentTransporter(Component):
         parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
         parcel_volumes[~self._active_parcel_records.values[:, -1].astype(bool)] = 0.0
 
-        # self._vol_act = self.grid.zeros(at="link")
-        # aggregate_items_as_sum(
-        #     self._vol_act,
-        #     self.grid.number_of_links,
-        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
-        #     len(self._parcels.dataset.volume.values[:, -1]),
-        #     parcel_volumes,
-        # )
         self._vol_act = aggregate_items_as_sum(
             self._parcels.dataset["element_id"].values[:, -1].astype(int),
             parcel_volumes,
             size=self._grid.number_of_links,
         )
 
-        self._vol_stor = (self._vol_tot - self._vol_act) / (1 - self._bed_porosity)
+        self._vol_stor = (self._vol_tot - self._vol_act) # stored parcel rock volume (bug fix AP 4/25/24)
 
     def _adjust_node_elevation(self):
         """Adjusts slope for each link based on parcel motions from last
@@ -642,9 +634,7 @@ class NetworkSedimentTransporter(Component):
             self._fd.flow_link_incoming_at_node() == 1, axis=1
         )
         downstream_link_id = self._fd.link_to_flow_receiving_node
-        # USED TO BE      downstream_link_id = self._fd.link_to_flow_receiving_node[
-        #            self._fd.downstream_node_at_link()
-        #        ]
+
         upstream_contributing_links_at_node = np.where(
             self._fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
         )
@@ -662,14 +652,6 @@ class NetworkSedimentTransporter(Component):
                 length_of_upstream_links = self._grid.at_link["reach_length"][
                     real_upstream_links
                 ]
-
-                #                ALERT: Moved this to the "else" statement below. AP 11/11/19
-                #                length_of_downstream_link = self._grid.at_link["reach_length"][
-                #                    downstream_link_id
-                #                ][n]
-                #                width_of_downstream_link = self._grid.at_link["channel_width"][
-                #                    downstream_link_id
-                #                ][n]
 
                 if (
                     downstream_link_id[n] == self._grid.BAD_INDEX
@@ -725,13 +707,9 @@ class NetworkSedimentTransporter(Component):
         Sarray = np.zeros(self._num_parcels)
         Harray = np.zeros(self._num_parcels)
         Larray = np.zeros(self._num_parcels)
-        # D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
-        # active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
+
         D_mean_activearray = np.full(self._num_parcels, np.nan)
         active_layer_thickness_array = np.full(self._num_parcels, np.nan)
-
-        #        rhos_mean_active = np.zeros(self._num_parcels)
-        #        rhos_mean_active.fill(np.nan)
 
         # find active sand
         # since find active already sets all prior timesteps to False, we
