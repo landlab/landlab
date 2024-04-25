@@ -23,12 +23,11 @@ from ..layers.materiallayers import MaterialLayersMixIn
 from ..plot.imshow import ModelGridPlotterMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
-from .decorators import (
-    override_array_setitem_and_reset,
-    return_id_array,
-    return_readonly_id_array,
-)
-from .linkstatus import LinkStatus, set_status_at_link
+from .decorators import override_array_setitem_and_reset
+from .decorators import return_id_array
+from .decorators import return_readonly_id_array
+from .linkstatus import LinkStatus
+from .linkstatus import set_status_at_link
 from .nodestatus import NodeStatus
 
 #: Indicates an index is, in some way, *bad*.
@@ -264,7 +263,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 class ModelGrid(
     GraphFields, EventLayersMixIn, MaterialLayersMixIn, ModelGridPlotterMixIn
 ):
-
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
@@ -2096,7 +2094,8 @@ class ModelGrid(
 
         Call whenever boundary conditions are updated on the grid.
         """
-        from landlab import RasterModelGrid, VoronoiDelaunayGrid
+        from landlab import RasterModelGrid
+        from landlab import VoronoiDelaunayGrid
 
         node_status_at_patch = self.status_at_node[self.nodes_at_patch]
         if isinstance(self, RasterModelGrid):
@@ -2476,239 +2475,6 @@ class ModelGrid(
         :meta landlab: info-node, quantity
         """
         return self.unit_vector_at_node[:, 1]
-
-    def map_link_vector_to_nodes(self, q):
-        r"""Map data defined on links to nodes.
-
-        .. danger::
-
-            THIS ALGORITHM IS NOT CORRECT AND NEEDS TO BE CHANGED!
-
-        Given a variable defined on links, breaks it into x and y components
-        and assigns values to nodes by averaging each node's attached links.
-
-        Parameters
-        ----------
-        q : ndarray of floats (1D, length = number of links in grid)
-            Variable defined on links
-
-        Returns
-        -------
-        ndarray, ndarray
-            x and y components of variable mapped to nodes (1D,
-            length = number of nodes)
-
-        See Also
-        --------
-        _create_link_unit_vectors : sets up unit vectors at links and unit-vector
-                                  sums at nodes
-
-        Notes
-        -----
-
-        The concept here is that q contains a vector variable that is defined
-        at each link. The magnitude is given by the value of q, and the
-        direction is given by the orientation of the link, as described by
-        its unit vector.
-
-        To map the link-vector values to the nodes, we break the values into
-        x- and y-components according to each link's unit vector. The
-        x-component of q at a node is a weighted sum of the x-components of the
-        links that are attached to that node. A good way to appreciate this
-        is by example. Consider a 3x4 raster grid::
-
-            8--14---9--15--10--16--11
-            |       |       |       |
-            4       5       6       7
-            |       |       |       |
-            4--11---5---12--6---13--7
-            |       |       |       |
-            0       1       2       3
-            |       |       |       |
-            0---8---1---9---2--10---3
-
-        Imagine that for each node, we were to add up the unit vector
-        components for each connected link; in other words, add up all the x
-        components of the unit vectors associated with each link, and add up
-        all the y components. Here's what that would look like for the above
-        grid ("vsx" and "vsy" stand for "vector sum x" and "vector sum y"):
-
-        *  Corner nodes (0, 3, 8, 11): vsx = 1, vsy = 1
-        *  Bottom and top nodes (1-2, 9-10): vsx = 2, vsy = 1
-        *  Left and right nodes (4, 7): vsx = 1, vsy = 2
-        *  All others: vsx = 2, vsy = 2
-
-        The process of creating unit-vector sums at nodes is handled by
-        ModelGrid._create_link_unit_vectors() (and, for raster grids, by the
-        overriding method RasterModelGrid._create_link_unit_vectors()). The node
-        unit-vector sums are then stored in self.node_unit_vector_sum_x and
-        self.node_unit_vector_sum_y.
-
-        How would you use this? Suppose you have a vector variable q defined at
-        links. What's the average at the nodes? We'll define the average as
-        follows.  The terminology here is: :math:`q = (u,v)` represents the
-        vector quantity defined at links, :math:`Q = (U,V)` represents its
-        definition at nodes, :math:`(m,n)` represents the unit vector
-        components at a link, and :math:`(S_x,S_y)` represents the unit-vector
-        sum at a given node.
-
-        .. math::
-
-            U_i = \sum_{j=1}^{L_i} q_j m_j / S_{xi}
-            V_i = \sum_{j=1}^{L_i} q_j n_j / S_{yi}
-
-        Suppose that the vector q is uniform and equal to one.
-        Then, at node 0 in the above grid, this works out to::
-
-            U_0 = (q_0 m_0) / 1 + (q_8 m_8) / 1 = (1 0)/ 1 + (1 1)/1 = 1
-            V_0 = (q_0 n_0) / 1 + (q_8 n_8) / 1 = (1 1) / 1 + (1 0) / 1 = 1
-
-        At node 1, in the bottom row but not a corner, we add up the values
-        of **q** associated with THREE links. The x-vector sum of these links
-        is 2 because there are two horizontal links, each with an x- unit
-        vector value of unity.  The y-vector sum is 1 because only one of the
-        three (link #1) has a non-zero y component (equal to one). Here is
-        how the numbers work out::
-
-            U_1 = (q_1 m_1) / 2 + (q_8 m_8) / 2 + (q_9 m_9) / 2
-                = (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
-            V_1 = (q_1 n_1) / 1 + (q_8 n_8) / 1 + (q_9 n_9) / 1
-                = (1 1) / 1 + (1 0) / 1 + (1 0) / 1 = 1
-
-        At node 5, in the interior, there are four connected links (two
-        in-links and two out-links; two horizontal and two vertical). So, we
-        add up the q values associated with all four::
-
-            U_5 = (q_1 m_1) / 2 + (q_5 m_5) / 2 + (q_11 m_11) / 2 + (q_12 m_12) / 2
-                = (1 0) / 2 + (1 0) / 2 + (1 1) / 2 + (1 1) / 2 = 1
-
-            V_5 = (q_1 n_1) / 2 + (q_5 n_5) / 2 + (q_11 n_11) / 2 + (q_12 n_12) / 2
-                = (1 1) / 2 + (1 1) / 2 + (1 0) / 2 + (1 0) / 2 = 1
-
-        To do this calculation efficiently, we use the following algorithm::
-
-            FOR each row in _node_inlink_matrix (representing one inlink @ each
-            node)
-                Multiply the link's q value by its unit x component ...
-                ... divide by node's unit vector sum in x ...
-                ... and add it to the node's total q_x
-                Multiply the link's q value by its unit y component ...
-                ... divide by node's unit vector sum in y ...
-                ... and add it to the node's total q_y
-
-        Examples
-        --------
-
-        **Example 1**
-
-        q[:] = 1. Vector magnitude is :math:`\sqrt{2}`, direction is
-        :math:`(1,1)`.
-
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(2.0, 2.0))
-        >>> grid.unit_vector_at_node
-        array([[ 1.,  1.],
-               [ 2.,  1.],
-               [ 2.,  1.],
-               [ 1.,  1.],
-               [ 1.,  2.],
-               [ 2.,  2.],
-               [ 2.,  2.],
-               [ 1.,  2.],
-               [ 1.,  1.],
-               [ 2.,  1.],
-               [ 2.,  1.],
-               [ 1.,  1.]])
-        >>> q = grid.ones(at="link")
-        >>> grid.map_link_vector_to_nodes(q)
-        array([[ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.],
-               [ 1.,  1.]])
-
-        **Example 2**
-
-        Vector magnitude is 5, angle is 30 degrees from horizontal,
-        forming a 3-4-5 triangle.
-
-        >>> import numpy as np
-        >>> q = np.array(
-        ...     [
-        ...         4.0,
-        ...         4.0,
-        ...         4.0,
-        ...         3.0,
-        ...         3.0,
-        ...         3.0,
-        ...         3.0,
-        ...         4.0,
-        ...         4.0,
-        ...         4.0,
-        ...         3.0,
-        ...         3.0,
-        ...         3.0,
-        ...         3.0,
-        ...         4.0,
-        ...         4.0,
-        ...         4,
-        ...     ]
-        ... )
-        >>> grid.map_link_vector_to_nodes(q)
-        array([[ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.],
-               [ 4.,  3.]])
-
-        ..todo::
-
-            Fix and finish example 3 below.
-
-        Example 3: Hexagonal grid with vector as above. Here, q is
-        pre-calculated to have the right values to represent a uniform
-        vector with magnitude 5 and orientation 30 degrees counter-clockwise
-        from horizontal.
-        """
-        # Break the link-based vector input variable, q, into x- and
-        # y-components.
-        # Notes:
-        #   1) We make the arrays 1 element longer than the number of links,
-        #       so that references to -1 in the node-link matrices will refer
-        #       to the last element of these two arrays, which will contain
-        #       zeros. (Same trick as in the flux divergence functions)
-        #   2) This requires memory allocation. Because this function might be
-        #       called repeatedly, it would be good to find a way to
-        #       pre-allocate to improve speed.
-        qx = q * self.unit_vector_at_link[:, 0]
-        qy = q * self.unit_vector_at_link[:, 1]
-
-        active_links_at_node = self.link_dirs_at_node != 0
-        unit_vec_at_node = np.empty((self.number_of_nodes, 2), dtype=float)
-        unit_vec_at_node[:, 0] = (qx[self.links_at_node] * active_links_at_node).sum(
-            axis=1
-        )
-        unit_vec_at_node[:, 1] = (qy[self.links_at_node] * active_links_at_node).sum(
-            axis=1
-        )
-
-        return np.divide(
-            unit_vec_at_node, self.unit_vector_at_node, out=unit_vec_at_node
-        )
 
     def node_is_boundary(self, ids, boundary_flag=None):
         """Check if nodes are boundary nodes.

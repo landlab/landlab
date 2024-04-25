@@ -12,7 +12,6 @@ from landlab.components.flow_director.flow_director import _FlowDirector
 
 
 class _FlowDirectorToMany(_FlowDirector):
-
     """Private class for creating components to calculate flow directions.
 
     This class is not meant to be used directly in modeling efforts. It

@@ -17,7 +17,6 @@ from .celllab_cts import CellLabCTSModel
 
 
 class OrientedHexCTS(CellLabCTSModel):
-
     """Oriented hex-grid CellLab-CTS model.
 
     OrientedHexCTS constructor: sets number of orientations to 3 and calls

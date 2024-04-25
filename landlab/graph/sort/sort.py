@@ -6,9 +6,11 @@ structure.
 
 import numpy as np
 
-from ...core.utils import argsort_points_by_x_then_y, as_id_array
+from ...core.utils import argsort_points_by_x_then_y
+from ...core.utils import as_id_array
 from ...utils.jaggedarray import flatten_jagged_array
-from .ext.spoke_sort import sort_spokes_at_wheel
+from ..quantity.ext.of_element import mean_of_children_at_parent
+from .ext.argsort import sort_id_array
 
 
 def remap(src, mapping, out=None, inplace=False):
@@ -203,16 +205,31 @@ def sort_links_at_patch(links_at_patch, nodes_at_link, xy_of_node):
     >>> links_at_patch
     array([[ 2,  1,  0,  3],
            [ 4,  2,  5, -1]])
+
+    >>> xy_of_node = np.array(
+    ...     [
+    ...         [0.0, 0.0],
+    ...         [0.0, 1.0],
+    ...         [1.0, 1.0],
+    ...         [1.0, 0.0],
+    ...         [2.0, 1.0],
+    ...     ]
+    ... )
+    >>> nodes_at_link = np.array([[0, 1], [1, 2], [2, 3], [3, 0], [2, 4], [3, 4]])
+    >>> links_at_patch = np.array([[0, 1, 3, 2], [2, -1, 4, 5]])
+    >>> sort_links_at_patch(links_at_patch, nodes_at_link, xy_of_node)
+    >>> links_at_patch
+    array([[ 2,  1,  0,  3],
+           [ 4,  2,  5, -1]])
     """
     xy_of_link = np.mean(xy_of_node[nodes_at_link], axis=1)
 
-    xy_of_patch = np.mean(xy_of_link[links_at_patch], axis=1)
+    xy_of_patch = np.empty((len(links_at_patch), 2), dtype=float)
 
-    offset_to_wheel = np.arange(links_at_patch.shape[0] + 1) * links_at_patch.shape[1]
+    mean_of_children_at_parent(links_at_patch, xy_of_link[:, 0], xy_of_patch[:, 0])
+    mean_of_children_at_parent(links_at_patch, xy_of_link[:, 1], xy_of_patch[:, 1])
 
-    sort_spokes_at_wheel(
-        links_at_patch.reshape((-1,)), offset_to_wheel, xy_of_patch, xy_of_link
-    )
+    sort_spokes_at_hub(links_at_patch, xy_of_patch, xy_of_link, inplace=True)
 
 
 def reindex_by_xy(graph):
@@ -517,7 +534,8 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     >>> offset_to_patch
     array([0, 3, 6])
     """
-    from .ext.remap_element import calc_center_of_patch, reorder_patches
+    from .ext.remap_element import calc_center_of_patch
+    from .ext.remap_element import reorder_patches
 
     n_patches = len(offset_to_patch) - 1
     xy_at_patch = np.empty((n_patches, 2), dtype=float)
@@ -694,14 +712,20 @@ def calc_angle_of_spoke_on_graph(graph, spoke=None, at="node", badval=None):
 
 
 def sort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes, inplace=False):
-    sorted_spokes = argsort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes)
-
     if inplace:
         out = spokes_at_hub
     else:
         out = np.empty_like(spokes_at_hub)
 
-    return np.take(spokes_at_hub, sorted_spokes, out=out)
+    dx = np.subtract(xy_of_spokes[:, 0][spokes_at_hub], xy_of_hub[:, 0, None])
+    dy = np.subtract(xy_of_spokes[:, 1][spokes_at_hub], xy_of_hub[:, 1, None])
+
+    angle_of_spoke_at_hub = np.arctan2(dy, dx, where=spokes_at_hub != -1)
+    angle_of_spoke_at_hub[angle_of_spoke_at_hub < 0.0] += np.pi * 2.0
+
+    sort_id_array(spokes_at_hub, angle_of_spoke_at_hub, out)
+
+    return out
 
 
 def argsort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes):

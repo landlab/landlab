@@ -4,13 +4,15 @@ Test the sed dep eroder by turning it over a few times. No attempt has been
 made to ensure the solution is stable. Takes a topo already output and runs it
 a few more times, to ensure repeatability.
 """
+
 import os
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, SedDepEroder
+from landlab.components import FlowAccumulator
+from landlab.components import SedDepEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 

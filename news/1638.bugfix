@@ -1,3 +1,0 @@
-
-Fixed a bug in :class:`~.SpaceLargeScaleEroder` where it would overwrite parts
-of the *sediment__influx* field with zeros.

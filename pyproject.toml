@@ -134,7 +134,7 @@ ignore = [".nox", "build"]
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-*"
 skip = "*-musllinux_*"
-archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+archs = "x86_64,aarch64,arm64,AMD64,x86"
 
 [tool.cython-lint]
 max-line-length = 88
@@ -152,7 +152,6 @@ single_file = true
 underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
 title_format = "{version} ({project_date})"
-
 type = [
   {name="New Components", directory="component", showcontent=true},
   {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
@@ -161,3 +160,14 @@ type = [
   {name="Documentation Enhancements", directory="docs", showcontent=true},
   {name="Other Changes and Additions", directory="misc", showcontent=true},
 ]
+
+[tool.landlab.credits]
+exclude = '''
+(?x)^(
+  \(no\ author\)|
+  root|
+  .*\[bot\]  # ignore all bots
+)
+'''
+authors_file = "AUTHORS.rst"
+author_format = "* `{name} <https://github.com/{github}>`_"
