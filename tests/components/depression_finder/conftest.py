@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator
+from landlab.components import DepressionFinderAndRouter
+from landlab.components import FlowAccumulator
 
 XX = RasterModelGrid.BAD_INDEX
 

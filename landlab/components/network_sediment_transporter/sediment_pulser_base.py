@@ -3,7 +3,6 @@ from landlab.grid.network import NetworkModelGrid
 
 
 class SedimentPulserBase(Component):
-
     """Base class of :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachParcel`.
 
     :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachParcel` run the

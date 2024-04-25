@@ -6,18 +6,15 @@ DEJH, late 2018
 
 import sys
 
-from landlab.components.flow_accum import (
-    FlowAccumulator,
-    flow_accum_bw,
-    flow_accum_to_n,
-)
+from landlab.components.flow_accum import FlowAccumulator
+from landlab.components.flow_accum import flow_accum_bw
+from landlab.components.flow_accum import flow_accum_to_n
 
 if sys.version_info[0] >= 3:
     from inspect import signature
 
 
 class LossyFlowAccumulator(FlowAccumulator):
-
     """Component to calculate drainage area and accumulate flow, while
     permitting dynamic loss or gain of flow downstream.
 

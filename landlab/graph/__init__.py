@@ -1,18 +1,22 @@
 from .dual import DualGraph
-from .framed_voronoi import DualFramedVoronoiGraph, FramedVoronoiGraph
-from .graph import Graph, NetworkGraph
-from .graph_convention import ConventionConverter, GraphConvention
-from .hex import DualHexGraph, TriGraph
-from .radial import DualRadialGraph, RadialGraph
-from .structured_quad import (
-    DualRectilinearGraph,
-    DualStructuredQuadGraph,
-    DualUniformRectilinearGraph,
-    RectilinearGraph,
-    StructuredQuadGraph,
-    UniformRectilinearGraph,
-)
-from .voronoi import DelaunayGraph, DualVoronoiGraph
+from .framed_voronoi import DualFramedVoronoiGraph
+from .framed_voronoi import FramedVoronoiGraph
+from .graph import Graph
+from .graph import NetworkGraph
+from .graph_convention import ConventionConverter
+from .graph_convention import GraphConvention
+from .hex import DualHexGraph
+from .hex import TriGraph
+from .radial import DualRadialGraph
+from .radial import RadialGraph
+from .structured_quad import DualRectilinearGraph
+from .structured_quad import DualStructuredQuadGraph
+from .structured_quad import DualUniformRectilinearGraph
+from .structured_quad import RectilinearGraph
+from .structured_quad import StructuredQuadGraph
+from .structured_quad import UniformRectilinearGraph
+from .voronoi import DelaunayGraph
+from .voronoi import DualVoronoiGraph
 
 __all__ = [
     "Graph",

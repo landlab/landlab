@@ -263,12 +263,15 @@ class CarbonateProducer(Component):
         """
         self._depth[:] = self.sea_level - self._grid.at_node["topographic__elevation"]
         self._depth.clip(min=-2.0 * self._tidal_range - _EPSILON, out=self._depth)
-        self._carb_prod_rate[
-            self.grid.core_nodes
-        ] = self._max_carbonate_production_rate * np.tanh(
-            self.surface_light
-            * np.exp(-self.extinction_coefficient * self._depth[self.grid.core_nodes])
-            / self.saturating_light
+        self._carb_prod_rate[self.grid.core_nodes] = (
+            self._max_carbonate_production_rate
+            * np.tanh(
+                self.surface_light
+                * np.exp(
+                    -self.extinction_coefficient * self._depth[self.grid.core_nodes]
+                )
+                / self.saturating_light
+            )
         )
         self._carb_prod_rate *= smooth_heaviside(self._depth, width=self.tidal_range)
         return self._carb_prod_rate

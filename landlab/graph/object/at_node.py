@@ -116,7 +116,8 @@ def sort_links_at_node_by_angle(
     >>> link_dirs_at_node
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
-    from .ext.at_node import reorder_link_dirs_at_node, reorder_links_at_node
+    from .ext.at_node import reorder_link_dirs_at_node
+    from .ext.at_node import reorder_links_at_node
 
     out = (
         np.asarray(links_at_node, dtype=int),

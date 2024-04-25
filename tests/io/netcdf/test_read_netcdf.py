@@ -6,11 +6,9 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io import (
-    MismatchGridDataSizeError,
-    MismatchGridXYLowerLeft,
-    MismatchGridXYSpacing,
-)
+from landlab.io import MismatchGridDataSizeError
+from landlab.io import MismatchGridXYLowerLeft
+from landlab.io import MismatchGridXYSpacing
 from landlab.io.netcdf import read_netcdf
 
 grid_mapping_keys = [

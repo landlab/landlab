@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from numpy.testing import assert_allclose, assert_array_equal
+from numpy.testing import assert_allclose
+from numpy.testing import assert_array_equal
 from pytest import approx
 
 from landlab.components.network_sediment_transporter.sediment_pulser_at_links import (

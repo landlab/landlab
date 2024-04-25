@@ -7,13 +7,12 @@ the surface over which flow will be routed to the component, and sets up
 part of the boundary condition testing.
 """
 
-from landlab import RasterModelGrid  # for type tests
 from landlab import Component
+from landlab import RasterModelGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
 
 
 class _FlowDirector(Component):
-
     """Private class for creating components to calculate flow directions.
 
     This class is not meant to be used directly in modeling efforts.

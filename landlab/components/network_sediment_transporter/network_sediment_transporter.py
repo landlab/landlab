@@ -423,9 +423,9 @@ class NetworkSedimentTransporter(Component):
 
             # copy parcel attributes forward in time.
             for at in self._time_variable_parcel_attributes:
-                self._parcels.dataset[at].values[
-                    :, self._time_idx
-                ] = self._parcels.dataset[at].values[:, self._time_idx - 1]
+                self._parcels.dataset[at].values[:, self._time_idx] = (
+                    self._parcels.dataset[at].values[:, self._time_idx - 1]
+                )
 
         self._this_timesteps_parcels = np.zeros_like(
             self._parcels.dataset.element_id, dtype=bool
@@ -953,13 +953,13 @@ class NetworkSedimentTransporter(Component):
         ] = self._time_idx
 
         # location in link
-        self._parcels.dataset.location_in_link[
-            active_parcel_ids, self._time_idx
-        ] = location_in_link[active_parcel_ids]
+        self._parcels.dataset.location_in_link[active_parcel_ids, self._time_idx] = (
+            location_in_link[active_parcel_ids]
+        )
 
-        self._parcels.dataset.element_id[
-            active_parcel_ids, self._time_idx
-        ] = current_link[active_parcel_ids]
+        self._parcels.dataset.element_id[active_parcel_ids, self._time_idx] = (
+            current_link[active_parcel_ids]
+        )
         #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
         # ^ reset to 1 (active) to be recomputed/determined at next timestep
         self._parcels.dataset.D[active_parcel_ids, self._time_idx] = D

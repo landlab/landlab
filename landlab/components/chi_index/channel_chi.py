@@ -3,10 +3,10 @@
 @author: dejh
 """
 
-
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 try:
     from itertools import izip
@@ -621,7 +621,11 @@ class ChiFinder(Component):
             A matplotlib-style string for the style to use for the line, if
             plot_line.
         """
-        from matplotlib.pyplot import clf, figure, plot, xlabel, ylabel
+        from matplotlib.pyplot import clf
+        from matplotlib.pyplot import figure
+        from matplotlib.pyplot import plot
+        from matplotlib.pyplot import xlabel
+        from matplotlib.pyplot import ylabel
 
         figure("Chi plot")
         clf()

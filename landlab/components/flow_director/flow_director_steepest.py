@@ -11,13 +11,13 @@ use FlowDirectorD8.
 
 import numpy as np
 
-from landlab import NodeStatus, VoronoiDelaunayGrid
+from landlab import NodeStatus
+from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
-
     """Single-path (steepest direction) flow direction without diagonals.
 
     This components finds the steepest single-path steepest descent flow
