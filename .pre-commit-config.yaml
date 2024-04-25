@@ -1,12 +1,8 @@
 repos:
 - repo: https://github.com/MarcoGorelli/cython-lint
-  rev: v0.15.0
+  rev: v0.16.2
   hooks:
   - id: cython-lint
-    exclude: |
-        (?x)^(
-            tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx
-        )
   - id: double-quote-cython-strings
 
 - repo: local
