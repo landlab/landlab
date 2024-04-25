@@ -5,8 +5,10 @@ import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.io.netcdf import from_netcdf, to_netcdf
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.io.netcdf import from_netcdf
+from landlab.io.netcdf import to_netcdf
 
 
 def test_netcdf_write_int64(tmpdir, format):

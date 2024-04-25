@@ -8,11 +8,13 @@ Plotting functions
     ~landlab.plot.imshow.imshowhs_grid
     ~landlab.plot.imshow.imshowhs_grid_at_node
 """
+
 import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LightSource, to_rgba
+from matplotlib.colors import LightSource
+from matplotlib.colors import to_rgba
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from .event_handler import query_grid_on_button_press

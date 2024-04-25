@@ -2,7 +2,8 @@ import re
 
 import numpy as np
 import xarray as xr
-from scipy.spatial import Delaunay, Voronoi
+from scipy.spatial import Delaunay
+from scipy.spatial import Voronoi
 
 from ...core.utils import as_id_array
 from ...utils import jaggedarray

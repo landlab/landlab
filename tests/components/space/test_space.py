@@ -2,8 +2,10 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import FlowAccumulator, Space
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import Space
 
 
 def test_route_to_multiple_error_raised():
@@ -340,9 +342,9 @@ def test_matches_transport_solution():
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
-        soil[
-            0
-        ] = 100.0  # enforce constant soil depth at boundary to keep lowering steady
+        soil[0] = (
+            100.0  # enforce constant soil depth at boundary to keep lowering steady
+        )
         z[:] = br[:] + soil[:]
 
     # compare numerical and analytical slope solutions

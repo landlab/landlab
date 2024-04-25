@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import LinkStatus, RasterModelGrid
+from landlab import LinkStatus
+from landlab import RasterModelGrid
 
 
 def test_issue_428_a():

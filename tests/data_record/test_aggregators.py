@@ -3,14 +3,16 @@ from numpy.testing import assert_array_equal
 
 from landlab.data_record._aggregators import (
     aggregate_items_as_count as _aggregate_items_as_count,
+)
+from landlab.data_record._aggregators import (
     aggregate_items_as_mean as _aggregate_items_as_mean,
+)
+from landlab.data_record._aggregators import (
     aggregate_items_as_sum as _aggregate_items_as_sum,
 )
-from landlab.data_record.aggregators import (
-    aggregate_items_as_count,
-    aggregate_items_as_mean,
-    aggregate_items_as_sum,
-)
+from landlab.data_record.aggregators import aggregate_items_as_count
+from landlab.data_record.aggregators import aggregate_items_as_mean
+from landlab.data_record.aggregators import aggregate_items_as_sum
 
 
 def test_count_bench_cython(benchmark):

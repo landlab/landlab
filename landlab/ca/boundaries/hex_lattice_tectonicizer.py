@@ -13,22 +13,21 @@ Created on Mon Nov 17 08:01:49 2014
 @author: gtucker
 """
 
-from numpy import (
-    amax,
-    arange,
-    array,
-    cos,
-    logical_and,
-    logical_or,
-    logical_xor,
-    pi,
-    sqrt,
-    tan,
-    where,
-    zeros,
-)
+from numpy import amax
+from numpy import arange
+from numpy import array
+from numpy import cos
+from numpy import logical_and
+from numpy import logical_or
+from numpy import logical_xor
+from numpy import pi
+from numpy import sqrt
+from numpy import tan
+from numpy import where
+from numpy import zeros
 
-from landlab import HexModelGrid, LinkStatus
+from landlab import HexModelGrid
+from landlab import LinkStatus
 from landlab.core.utils import as_id_array
 
 from ..cfuncs import get_next_event_new  # , update_link_state_new

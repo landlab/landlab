@@ -1,8 +1,10 @@
 import numpy as np
 import pytest
 
-from landlab import FieldError, RasterModelGrid
-from landlab.utils.return_array import return_array_at_link, return_array_at_node
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.utils.return_array import return_array_at_link
+from landlab.utils.return_array import return_array_at_node
 
 
 def test_no_field():

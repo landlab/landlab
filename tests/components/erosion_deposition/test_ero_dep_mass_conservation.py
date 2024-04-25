@@ -2,7 +2,9 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import ErosionDeposition, FlowAccumulator, Space
+from landlab.components import ErosionDeposition
+from landlab.components import FlowAccumulator
+from landlab.components import Space
 
 
 @pytest.fixture

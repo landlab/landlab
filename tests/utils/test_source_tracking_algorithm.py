@@ -8,7 +8,8 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from landlab.utils import find_unique_upstream_hsd_ids_and_fractions, track_source
+from landlab.utils import find_unique_upstream_hsd_ids_and_fractions
+from landlab.utils import track_source
 
 
 def test_route_to_multiple_error_raised():

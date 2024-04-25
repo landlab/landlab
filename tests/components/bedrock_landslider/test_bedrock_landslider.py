@@ -11,8 +11,10 @@ import numpy as np
 import pytest
 from numpy import testing
 
-from landlab import FieldError, RasterModelGrid
-from landlab.components import BedrockLandslider, PriorityFloodFlowRouter
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.components import BedrockLandslider
+from landlab.components import PriorityFloodFlowRouter
 
 try:
     PriorityFloodFlowRouter.load_richdem()

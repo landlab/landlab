@@ -2,6 +2,7 @@
 
 .. codeauthor:: gtucker, DEJH (Flow routing)
 """
+
 # Routing by DEJH, Oct 15.
 
 
@@ -24,7 +25,6 @@ use_cfuncs = True
 
 
 class DepressionFinderAndRouter(Component):
-
     """Find depressions on a topographic surface.
 
     This component identifies depressions in a topographic surface, finds an
@@ -403,12 +403,12 @@ class DepressionFinderAndRouter(Component):
 
         # These two lines assign the False flag to any node that is higher
         # than its partner on the other end of its link
-        self._is_pit[
-            h_orth[np.where(self._elev[h_orth] > self._elev[t_orth])[0]]
-        ] = False
-        self._is_pit[
-            t_orth[np.where(self._elev[t_orth] > self._elev[h_orth])[0]]
-        ] = False
+        self._is_pit[h_orth[np.where(self._elev[h_orth] > self._elev[t_orth])[0]]] = (
+            False
+        )
+        self._is_pit[t_orth[np.where(self._elev[t_orth] > self._elev[h_orth])[0]]] = (
+            False
+        )
 
         # If we have a raster grid, handle the diagonal active links too
         # (At the moment, their data structure is a bit different)

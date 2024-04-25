@@ -57,7 +57,8 @@ import numpy as np
 
 from ...core.utils import as_id_array
 from ...grid.linkorientation import LinkOrientation
-from ...utils.decorators import cache_result_in_object, make_return_array_immutable
+from ...utils.decorators import cache_result_in_object
+from ...utils.decorators import make_return_array_immutable
 from ..graph import Graph
 from ..voronoi.voronoi import DelaunayGraph
 
@@ -889,7 +890,6 @@ class HexGraphExtras:
 
 
 class TriGraph(HexGraphExtras, DelaunayGraph):
-
     """Graph of a structured grid of triangles.
 
     Examples

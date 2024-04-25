@@ -2,7 +2,8 @@
 """Functions to calculate flow distance."""
 import numpy as np
 
-from landlab import FieldError, RasterModelGrid
+from landlab import FieldError
+from landlab import RasterModelGrid
 
 
 def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
