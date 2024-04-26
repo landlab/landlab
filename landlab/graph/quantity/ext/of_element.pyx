@@ -1,11 +1,6 @@
-import multiprocessing
-
 cimport cython
-from cpython.mem cimport PyMem_Free, PyMem_Malloc
 
 from cython.parallel import prange
-
-from cython cimport view
 
 ctypedef fused element_id_type:
     cython.integral
