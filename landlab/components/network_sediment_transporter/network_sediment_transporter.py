@@ -15,10 +15,8 @@ import scipy.constants
 
 from landlab.components.flow_director.flow_director_steepest import FlowDirectorSteepest
 from landlab.core.model_component import Component
-from landlab.data_record.aggregators import (
-    aggregate_items_as_mean,
-    aggregate_items_as_sum,
-)
+from landlab.data_record.aggregators import aggregate_items_as_mean
+from landlab.data_record.aggregators import aggregate_items_as_sum
 from landlab.data_record.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
