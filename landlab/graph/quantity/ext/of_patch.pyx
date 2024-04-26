@@ -9,21 +9,25 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
-def calc_area_at_patch(np.ndarray[long, ndim=2] nodes_at_patch,
-                       np.ndarray[np.float_t, ndim=1] x_of_node,
-                       np.ndarray[np.float_t, ndim=1] y_of_node,
-                       np.ndarray[np.float_t, ndim=1] out):
+def calc_area_at_patch(
+    np.ndarray[long, ndim=2] nodes_at_patch,
+    np.ndarray[np.float_t, ndim=1] x_of_node,
+    np.ndarray[np.float_t, ndim=1] y_of_node,
+    np.ndarray[np.float_t, ndim=1] out,
+):
     cdef long n_patches = nodes_at_patch.shape[0]
     cdef long n_vertices = nodes_at_patch.shape[1]
     cdef long n
 
     for n in range(n_patches):
-      out[n] = calc_area_of_patch(&nodes_at_patch[n, 0], n_vertices,
-                                  &x_of_node[0], &y_of_node[0])
+        out[n] = calc_area_of_patch(
+            &nodes_at_patch[n, 0], n_vertices, &x_of_node[0], &y_of_node[0]
+        )
 
 
-cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
-                        double * x_of_node, double * y_of_node):
+cdef calc_area_of_patch(
+    long * nodes_at_patch, long n_vertices, double * x_of_node, double * y_of_node
+):
     cdef int n
     cdef int node
     cdef double * x_of_vertex = <double *>malloc(n_vertices * sizeof(double))
@@ -45,22 +49,29 @@ cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
 
 
 @cython.boundscheck(False)
-def calc_centroid_at_patch(np.ndarray[long, ndim=2] nodes_at_patch,
-                           np.ndarray[np.float_t, ndim=1] x_of_node,
-                           np.ndarray[np.float_t, ndim=1] y_of_node,
-                           np.ndarray[np.float_t, ndim=2] out):
+def calc_centroid_at_patch(
+    np.ndarray[long, ndim=2] nodes_at_patch,
+    np.ndarray[np.float_t, ndim=1] x_of_node,
+    np.ndarray[np.float_t, ndim=1] y_of_node,
+    np.ndarray[np.float_t, ndim=2] out,
+):
     cdef long n_patches = nodes_at_patch.shape[0]
     cdef long n_vertices = nodes_at_patch.shape[1]
     cdef long n
 
     for n in range(n_patches):
-        calc_centroid_of_patch(&nodes_at_patch[n, 0], n_vertices,
-                               &x_of_node[0], &y_of_node[0],
-                               &out[n, 0])
+        calc_centroid_of_patch(
+            &nodes_at_patch[n, 0], n_vertices, &x_of_node[0], &y_of_node[0], &out[n, 0]
+        )
 
 
-cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
-                            double * x_of_node, double * y_of_node, double * out):
+cdef calc_centroid_of_patch(
+    long * nodes_at_patch,
+    long n_vertices,
+    double * x_of_node,
+    double * y_of_node,
+    double * out,
+):
     cdef int n
     cdef int node
     cdef double * x = <double *>malloc(n_vertices * sizeof(double))
@@ -80,8 +91,12 @@ cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
         free(x)
 
 
-cdef calc_centroid_of_polygon(double * x, double * y, long n_vertices,
-                              double * out):
+cdef calc_centroid_of_polygon(
+    double * x,
+    double * y,
+    long n_vertices,
+    double * out,
+):
     cdef double x_of_centroid = 0.
     cdef double y_of_centroid = 0.
     cdef double area = calc_area_of_polygon(x, y, n_vertices)
