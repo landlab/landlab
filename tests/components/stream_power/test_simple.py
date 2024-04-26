@@ -3,6 +3,7 @@
 A simple driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
 """
+
 # DEJH, 09/15/14
 
 import os
@@ -11,7 +12,8 @@ import numpy
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, StreamPowerEroder
+from landlab.components import FlowAccumulator
+from landlab.components import StreamPowerEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 

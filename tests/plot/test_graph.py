@@ -1,7 +1,8 @@
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.plot.graph import _parse_locations_as_set, plot_graph
+from landlab.plot.graph import _parse_locations_as_set
+from landlab.plot.graph import plot_graph
 
 
 def _axes_arrows(ax):

@@ -12,7 +12,8 @@ import pytest
 from numpy import testing
 
 from landlab import RasterModelGrid
-from landlab.components import FlowAccumulator, LateralEroder
+from landlab.components import FlowAccumulator
+from landlab.components import LateralEroder
 
 
 def test_lateral_erosion_and_node():

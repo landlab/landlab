@@ -140,7 +140,6 @@ def add_signature_to_doc(func):
 
 
 class use_field_name_or_array:
-
     """Decorate a function so that it accepts a field name or array.
 
     Parameters
@@ -231,7 +230,6 @@ class use_field_name_or_array:
 
 
 class use_field_name_array_or_value:
-
     """Decorate a function so that it accepts a field name, array, or value.
 
     Parameters

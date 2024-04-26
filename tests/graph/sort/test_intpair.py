@@ -2,11 +2,9 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab.graph.sort.ext.remap_element import offset_to_sorted_block
-from landlab.graph.sort.intpair import (
-    map_pairs_to_values,
-    map_rolling_pairs_to_values,
-    pair_isin,
-)
+from landlab.graph.sort.intpair import map_pairs_to_values
+from landlab.graph.sort.intpair import map_rolling_pairs_to_values
+from landlab.graph.sort.intpair import pair_isin
 
 
 def test_pair_isin_one_pair():

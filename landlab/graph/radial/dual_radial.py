@@ -2,11 +2,11 @@ import numpy as np
 
 from ..dual import DualGraph
 from ..voronoi.dual_voronoi import DualVoronoiGraph
-from .radial import RadialGraph, RadialGraphLayout
+from .radial import RadialGraph
+from .radial import RadialGraphLayout
 
 
 class DualRadialGraph(DualGraph, RadialGraph):
-
     """Graph of a series of points on concentric circles.
 
     Examples

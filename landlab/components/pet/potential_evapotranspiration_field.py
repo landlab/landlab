@@ -11,7 +11,6 @@ def _assert_method_is_valid(method):
 
 
 class PotentialEvapotranspiration(Component):
-
     """
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial
@@ -98,7 +97,7 @@ class PotentialEvapotranspiration(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "total incident shortwave radiation over the time step",
+            "doc": "incident shortwave radiation",
         },
         "radiation__net_flux": {
             "dtype": float,
@@ -106,7 +105,7 @@ class PotentialEvapotranspiration(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "net total radiation over the time step",
+            "doc": "net radiation",
         },
         "radiation__net_longwave_flux": {
             "dtype": float,
@@ -114,7 +113,7 @@ class PotentialEvapotranspiration(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "net incident longwave radiation over the time step",
+            "doc": "net incident longwave radiation",
         },
         "radiation__net_shortwave_flux": {
             "dtype": float,
@@ -122,7 +121,7 @@ class PotentialEvapotranspiration(Component):
             "optional": False,
             "units": "W/m^2",
             "mapping": "cell",
-            "doc": "net incident shortwave radiation over the time step",
+            "doc": "net incident shortwave radiation",
         },
         "radiation__ratio_to_flat_surface": {
             "dtype": float,
@@ -131,7 +130,7 @@ class PotentialEvapotranspiration(Component):
             "units": "None",
             "mapping": "cell",
             "doc": (
-                "ratio of total incident shortwave radiation on sloped "
+                "ratio of incident shortwave radiation on sloped "
                 "surface to flat surface"
             ),
         },

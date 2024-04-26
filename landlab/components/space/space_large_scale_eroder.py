@@ -5,7 +5,8 @@ Benjamin Campforts
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
@@ -462,7 +463,6 @@ class SpaceLargeScaleEroder(Component):
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
 
-        br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
 
         # if sp_crits are zero, then this colapses to correct all the time.
@@ -495,12 +495,6 @@ class SpaceLargeScaleEroder(Component):
         self._br_erosion_term = omega_br - self._sp_crit_br * (
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
-
-        # Do not allow for the formation of potholes (addition v2)
-        r = self._grid.at_node["flow__receiver_node"]
-        br_e_max = br - br[r]
-        br_e_max[br_e_max < 0] = 0
-        self._br_erosion_term = np.minimum(self._br_erosion_term, br_e_max)
 
         self._Es = self._sed_erosion_term * (1.0 - np.exp(-H / self._H_star))
         self._Er = self._br_erosion_term * np.exp(-H / self._H_star)

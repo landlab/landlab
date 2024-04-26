@@ -1,9 +1,11 @@
 import contextlib
 
 import numpy as np
-from scipy.stats import fisk, genextreme
+from scipy.stats import fisk
+from scipy.stats import genextreme
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 
 class SpatialPrecipitationDistribution(Component):
@@ -1385,9 +1387,9 @@ class SpatialPrecipitationDistribution(Component):
                     Storm_total_local_seas[storm, :] = (
                         self._rain_int_gauge[opennodes] * duration_val / 60.0
                     )
-                    Storm_total_local_year[
-                        (storm + storms_yr_so_far), :
-                    ] = Storm_total_local_seas[storm, :]
+                    Storm_total_local_year[(storm + storms_yr_so_far), :] = (
+                        Storm_total_local_seas[storm, :]
+                    )
                     self._max_storm_depth = Storm_total_local_seas[storm, :].max()
 
                     self._Storm_total_local_seas = Storm_total_local_seas
@@ -1422,9 +1424,9 @@ class SpatialPrecipitationDistribution(Component):
                         raise ValueError("_max_numstorms set too low for this run")
                 storms_yr_so_far = seas_storm_count
                 self._storm_running_sum_of_seasons += Storm_running_sum_seas[0, :]
-                self._total_rainfall_last_season[
-                    self._opennodes
-                ] = Storm_running_sum_seas[0, :]
+                self._total_rainfall_last_season[self._opennodes] = (
+                    Storm_running_sum_seas[0, :]
+                )
                 self._storm_running_sum_1st_seas += Storm_running_sum_seas[0, :]
                 if yield_seasons:
                     yield seas_storm_count
@@ -1593,9 +1595,9 @@ class SpatialPrecipitationDistribution(Component):
     def total_rainfall_this_season(self):
         """Get the accumulated, spatially resolved total rainfall over the grid
         for the season so far (mm)."""
-        self._running_total_rainfall_this_season[
-            self._opennodes
-        ] = self._Storm_running_sum_seas
+        self._running_total_rainfall_this_season[self._opennodes] = (
+            self._Storm_running_sum_seas
+        )
         return self._running_total_rainfall_this_season
 
     @property

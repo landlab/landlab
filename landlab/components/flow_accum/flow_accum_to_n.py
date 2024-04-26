@@ -50,11 +50,11 @@ import numpy
 
 from landlab.core.utils import as_id_array
 
-from .cfuncs import _accumulate_to_n, _make_donors_to_n
+from .cfuncs import _accumulate_to_n
+from .cfuncs import _make_donors_to_n
 
 
 class _DrainageStack_to_n:
-
     """Implementation of the DrainageStack_to_n class.
 
     The _DrainageStack_to_n() class implements a set based approach to

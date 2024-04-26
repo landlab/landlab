@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from landlab import Component, HexModelGrid
+from landlab import Component
+from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 

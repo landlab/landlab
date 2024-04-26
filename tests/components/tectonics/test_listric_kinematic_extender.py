@@ -6,14 +6,13 @@ Created on Fri Mar  5 08:42:24 2021
 """
 
 import numpy as np
-from numpy.testing import (
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_equal,
-    assert_raises,
-)
+from numpy.testing import assert_almost_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_equal
+from numpy.testing import assert_raises
 
-from landlab import RadialModelGrid, RasterModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
 from landlab.components import ListricKinematicExtender
 
 
