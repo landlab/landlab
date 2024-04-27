@@ -7,7 +7,6 @@ from landlab.graph.graph_convention import ConventionConverter
 from landlab.graph.graph_convention import GraphConvention
 from landlab.graph.hex.dual_hex import DualHexGraph
 from landlab.graph.hex.hex import TriGraph
-from landlab.graph.quasi_spherical.dual_icosphere import DualIcosphereGraph
 from landlab.graph.radial.dual_radial import DualRadialGraph
 from landlab.graph.radial.radial import RadialGraph
 from landlab.graph.structured_quad.dual_structured_quad import DualRectilinearGraph
@@ -41,5 +40,4 @@ __all__ = [
     "DualFramedVoronoiGraph",
     "ConventionConverter",
     "GraphConvention",
-    "DualIcosphereGraph",
 ]
