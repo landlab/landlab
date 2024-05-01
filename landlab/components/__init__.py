@@ -3,11 +3,8 @@ from .area_slope_transporter import AreaSlopeTransporter
 from .bedrock_landslider import BedrockLandslider
 from .carbonate import CarbonateProducer
 from .chi_index import ChiFinder
-<<<<<<< HEAD
 from .concentration_tracker import ConcentrationTrackerForDiffusion
-=======
 from .concentration_tracker import ConcentrationTrackerForSpace
->>>>>>> 487ead3e6 (Add concentration tracker to __init__.py)
 from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -103,11 +100,8 @@ COMPONENTS = [
     CarbonateProducer,
     ChannelProfiler,
     ChiFinder,
-<<<<<<< HEAD
     ConcentrationTrackerForDiffusion,
-=======
     ConcentrationTrackerForSpace,
->>>>>>> 487ead3e6 (Add concentration tracker to __init__.py)
     DepressionFinderAndRouter,
     DepthDependentDiffuser,
     DepthDependentTaylorDiffuser,
