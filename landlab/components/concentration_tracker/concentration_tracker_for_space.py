@@ -19,10 +19,10 @@ class ConcentrationTrackerForSpace(Component):
 
     .. math::
         
-                        ∂C_sH/∂t = C_sw*D_sw + C_s*E_s
+                        ∂C_sH/∂t = C_s_w*D_s_w + C_s*E_s
         
-    where :math:`H` is sediment depth, :math:`C_sw` is concentration in 
-    sediment suspended in the water column, :math:`D_sw` is volumetric 
+    where :math:`H` is sediment depth, :math:`C_s_w` is concentration in 
+    sediment suspended in the water column, :math:`D_s_w` is volumetric 
     depositional flux of sediment from the water column per unit bed area, and
     :math:`E_s` is volumetric erosional flux of sediment from the bed per unit 
     bed area.
