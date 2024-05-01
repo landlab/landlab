@@ -25,9 +25,13 @@ import os
 import pathlib
 import re
 import shutil
+import sys
 
 import numpy as np
-import pkg_resources
+if sys.version_info >= (3, 12):  # pragma: no cover (PY12+)
+    import importlib.resources as importlib_resources
+else:  # pragma: no cover (<PY312)
+    import importlib_resources
 
 SIZEOF_INT = np.dtype(int).itemsize
 
@@ -38,9 +42,7 @@ class ExampleData:
         self._case = case
 
         self._base = pathlib.Path(
-            pkg_resources.resource_filename(
-                "landlab", str(pathlib.Path("data").joinpath(example, case))
-            )
+            importlib_resources.files("landlab") / "data" / example / case
         )
 
     @property
