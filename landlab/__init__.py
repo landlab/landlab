@@ -9,10 +9,6 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
-import contextlib
-
-from numpy import set_printoptions
-
 from ._registry import registry
 from ._version import __version__
 from .core.errors import MissingKeyError
@@ -35,10 +31,6 @@ from .plot import imshow_grid
 from .plot import imshow_grid_at_node
 from .plot import imshowhs_grid
 from .plot import imshowhs_grid_at_node
-
-with contextlib.suppress(TypeError):
-    set_printoptions(legacy="1.13")
-del set_printoptions
 
 cite_as = registry.format_citations
 
