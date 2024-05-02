@@ -157,7 +157,7 @@ class NormalFault(Component):
                [False,  True,  True,  True, False, False],
                [False,  True,  True,  True,  True, False],
                [False,  True,  True,  True,  True, False],
-               [False, False, False, False, False, False]], dtype=bool)
+               [False, False, False, False, False, False]])
 
         As we can see, only a subset of the nodes have been identified as
         *faulted nodes*. Because we have set include_boundaries' to False none
@@ -170,12 +170,12 @@ class NormalFault(Component):
         ...     nf.run_one_step(dt)
         ...
         >>> z.reshape(grid.shape)
-        array([[ 0.,  0.,  0.,  0.,  0.,  0.],
-               [ 0.,  1.,  0.,  0.,  0.,  0.],
-               [ 0.,  1.,  1.,  1.,  0.,  0.],
-               [ 0.,  1.,  1.,  1.,  1.,  0.],
-               [ 0.,  1.,  1.,  1.,  1.,  0.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.]])
+        array([[0., 0., 0., 0., 0., 0.],
+               [0., 1., 0., 0., 0., 0.],
+               [0., 1., 1., 1., 0., 0.],
+               [0., 1., 1., 1., 1., 0.],
+               [0., 1., 1., 1., 1., 0.],
+               [0., 0., 0., 0., 0., 0.]])
 
         This results in uplift of the faulted nodes, as we would expect.
 
@@ -185,12 +185,12 @@ class NormalFault(Component):
 
         >>> nf.run_one_earthquake(dz=100)
         >>> z.reshape(grid.shape)
-        array([[   0.,    0.,    0.,    0.,    0.,    0.],
-               [   0.,  101.,    0.,    0.,    0.,    0.],
-               [   0.,  101.,  101.,  101.,    0.,    0.],
-               [   0.,  101.,  101.,  101.,  101.,    0.],
-               [   0.,  101.,  101.,  101.,  101.,    0.],
-               [   0.,    0.,    0.,    0.,    0.,    0.]])
+        array([[  0.,   0.,   0.,   0.,   0.,   0.],
+               [  0., 101.,   0.,   0.,   0.,   0.],
+               [  0., 101., 101., 101.,   0.,   0.],
+               [  0., 101., 101., 101., 101.,   0.],
+               [  0., 101., 101., 101., 101.,   0.],
+               [  0.,   0.,   0.,   0.,   0.,   0.]])
 
         Next, we make a very simple landscape model. We need a few components
         and we will set include_boundaries to True.
@@ -222,12 +222,12 @@ class NormalFault(Component):
         ...     fs.run_one_step(dt)
         ...
         >>> z.reshape(grid.shape).round(decimals=2)
-        array([[  0.  ,   0.  ,   0.  ,   0.  ,   0.  ,   0.  ],
-               [  5.  ,   5.  ,   0.  ,   0.  ,   0.  ,   0.  ],
-               [  7.39,   7.38,   2.38,   2.89,   0.  ,   0.  ],
-               [  9.36,  11.43,   5.51,   6.42,   3.54,   3.54],
-               [ 15.06,  15.75,  10.6 ,  11.42,   8.54,   8.54],
-               [ 15.06,  15.06,  10.7 ,  11.42,   8.54,   8.54]])
+        array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+               [ 5.  ,  5.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+               [ 7.39,  7.38,  2.38,  2.89,  0.  ,  0.  ],
+               [ 9.36, 11.43,  5.51,  6.42,  3.54,  3.54],
+               [15.06, 15.75, 10.6 , 11.42,  8.54,  8.54],
+               [15.06, 15.06, 10.7 , 11.42,  8.54,  8.54]])
 
         The faulted nodes have been uplifted and eroded! Note that here the
         boundary nodes are also uplifted.

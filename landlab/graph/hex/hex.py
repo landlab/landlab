@@ -19,11 +19,11 @@ Examples
 >>> graph.number_of_nodes
 14
 >>> graph.x_of_node
-array([ 1. ,  2. ,
-        0.5,  1.5,  2.5,
-        0. ,  1. ,  2. ,  3. ,
-        0.5,  1.5, 2.5,
-        1. ,  2. ])
+array([1. , 2. ,
+       0.5, 1.5, 2.5,
+       0. , 1. , 2. , 3. ,
+       0.5, 1.5, 2.5,
+       1. , 2. ])
 >>> graph.number_of_links
 29
 >>> graph.number_of_patches
@@ -42,9 +42,9 @@ array([ 1. ,  2. ,
 >>> graph.number_of_nodes
 12
 >>> graph.x_of_node.reshape((3, 4))
-array([[ 0. ,  1. ,  2. ,  3. ],
-       [ 0.5,  1.5,  2.5,  3.5],
-       [ 0. ,  1. ,  2. ,  3. ]])
+array([[0. , 1. , 2. , 3. ],
+       [0.5, 1.5, 2.5, 3.5],
+       [0. , 1. , 2. , 3. ]])
 >>> graph.number_of_links
 23
 >>> graph.number_of_patches
@@ -901,9 +901,9 @@ class TriGraph(HexGraphExtras, DelaunayGraph):
     >>> graph.number_of_nodes == 6
     True
     >>> np.round(graph.y_of_node * 2.0 / np.sqrt(3))
-    array([ 0.,  0.,  1.,  1.,  2.,  2.])
+    array([0., 0., 1., 1., 2., 2.])
     >>> graph.x_of_node
-    array([ 0. ,  1. ,  0.5,  1.5,  0. ,  1. ])
+    array([0. , 1. , 0.5, 1.5, 0. , 1. ])
     """
 
     def __init__(

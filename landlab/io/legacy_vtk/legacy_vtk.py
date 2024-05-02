@@ -17,9 +17,9 @@ def _write_vtk_points(grid, file_like, z_at_node):
     x = grid.x_of_node
     y = grid.y_of_node
     z = z_at_node
-    file_like.write("POINTS " + str(grid.number_of_nodes) + " float\n")
+    file_like.write(f"POINTS {grid.number_of_nodes} float\n")
     for i in range(grid.number_of_nodes):
-        file_like.write(str(x[i]) + " " + str(y[i]) + " " + str(z[i]) + "\n")
+        file_like.write(f"{x[i]} {y[i]} {z[i]}\n")
     file_like.write("\n")
 
 
@@ -27,13 +27,7 @@ def _write_vtk_patches(grid, file_like):
     """Write the CELLS section (in a Landlab grid these are patches)"""
     num_patches = grid.number_of_patches
     nodes_per_patch = len(grid.nodes_at_patch[0])
-    file_like.write(
-        "CELLS "
-        + str(num_patches)
-        + " "
-        + str((nodes_per_patch + 1) * num_patches)
-        + "\n"
-    )
+    file_like.write(f"CELLS {num_patches}  {(nodes_per_patch + 1) * num_patches}\n")
     for i in range(grid.number_of_patches):
         file_like.write(str(nodes_per_patch))
         for j in range(nodes_per_patch):
@@ -102,7 +96,7 @@ def write_legacy_vtk(
     >>> topo = grid.add_zeros("topographic__elevation", at="node")
     >>> topo[:] = np.arange(len(topo))
     >>> water = grid.add_zeros("surface_water__depth", at="node")
-    >>> water[:] = 0.1 * (7.0 - topo)
+    >>> water[:] = (7.0 - topo) / 10.0
 
     >>> vtk_file = write_legacy_vtk(io.StringIO(), grid)
     >>> lines = vtk_file.getvalue().splitlines()

@@ -24,11 +24,11 @@ class DualVoronoiGraph(DualGraph, DelaunayGraph):
         >>> node_y = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
         >>> graph = DualVoronoiGraph((node_y, node_x), sort=True)
         >>> graph.x_of_corner
-        array([ 0.5,  1.5,  2.5,  0.7,  1.7,  2.7,  0.7,  1.7,  2.7,  0.9,  1.9,
-                2.9])
+        array([0.5,  1.5,  2.5,  0.7,  1.7,  2.7,  0.7,  1.7,  2.7,  0.9,  1.9,
+               2.9])
         >>> graph.y_of_corner
-        array([ 0.42,  0.42,  0.42,  0.58,  0.58,  0.58,  1.42,  1.42,  1.42,
-                1.58,  1.58,  1.58])
+        array([0.42,  0.42,  0.42,  0.58,  0.58,  0.58,  1.42,  1.42,  1.42,
+               1.58,  1.58,  1.58])
         >>> graph.corners_at_face
         array([[ 0,  3], [ 3,  1], [ 1,  4], [ 4,  2], [ 2,  5],
                [ 3,  6], [ 4,  7], [ 5,  8],

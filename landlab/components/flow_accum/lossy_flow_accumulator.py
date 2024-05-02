@@ -102,17 +102,17 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> fa.run_one_step()
 
     >>> mg.at_node["drainage_area"].reshape(mg.shape)
-    array([[ 0.,  0.,  0.,  0.,  0.],
-           [ 6.,  6.,  4.,  2.,  0.],
-           [ 0.,  0.,  0.,  0.,  0.]])
+    array([[0., 0., 0., 0., 0.],
+           [6., 6., 4., 2., 0.],
+           [0., 0., 0., 0., 0.]])
     >>> mg.at_node["surface_water__discharge"].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 1.75,  3.5 ,  3.  ,  2.  ,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  , 0.  , 0.  , 0.  , 0.  ],
+           [1.75, 3.5 , 3.  , 2.  , 0.  ],
+           [0.  , 0.  , 0.  , 0.  , 0.  ]])
     >>> mg.at_node["surface_water__discharge_loss"].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.75,  1.5 ,  1.  ,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  , 0.  , 0.  , 0.  , 0.  ],
+           [0.  , 1.75, 1.5 , 1.  , 0.  ],
+           [0.  , 0.  , 0.  , 0.  , 0.  ]])
 
     Here we use a spatially distributed field to derive loss terms, and also
     use a filled, non-raster grid.
@@ -144,17 +144,17 @@ class LossyFlowAccumulator(FlowAccumulator):
            12,  9,  9, 15,
            16, 17, 18])
     >>> np.round(hmg.at_node["drainage_area"])
-    array([ 7.,  0.,  0.,
-            0.,  7.,  1.,  0.,
-            0.,  1.,  6.,  1.,  0.,
-            0., 1.,  1.,  0.,
-            0.,  0.,  0.])
+    array([7., 0., 0.,
+           0., 7., 1., 0.,
+           0., 1., 6., 1., 0.,
+           0., 1., 1., 0.,
+           0., 0., 0.])
     >>> np.round(hmg.at_node["surface_water__discharge"])
-    array([ 7.,  0.,  0.,
-            0.,  7.,  1.,  0.,
-            0.,  1.,  6.,  1.,  0.,
-            0., 1.,  1.,  0.,
-            0.,  0.,  0.])
+    array([7., 0., 0.,
+           0., 7., 1., 0.,
+           0., 1., 6., 1., 0.,
+           0., 1., 1., 0.,
+           0., 0., 0.])
 
     With loss looks like this:
 
@@ -170,17 +170,17 @@ class LossyFlowAccumulator(FlowAccumulator):
     ... )
     >>> fa.run_one_step()
     >>> np.round(hmg.at_node["drainage_area"])
-    array([ 7.,  0.,  0.,
-            0.,  7.,  1.,  0.,
-            0.,  1.,  6.,  1.,  0.,
-            0., 1.,  1.,  0.,
-            0.,  0.,  0.])
+    array([7., 0., 0.,
+           0., 7., 1., 0.,
+           0., 1., 6., 1., 0.,
+           0., 1., 1., 0.,
+           0., 0., 0.])
     >>> np.round(hmg.at_node["surface_water__discharge"])
-    array([ 6.,  0.,  0.,
-            0.,  6.,  1.,  0.,
-            0.,  1.,  5.,  1.,  0.,
-            0., 1.,  1.,  0.,
-            0.,  0.,  0.])
+    array([6., 0., 0.,
+           0., 6., 1., 0.,
+           0., 1., 5., 1., 0.,
+           0., 1., 1., 0.,
+           0., 0., 0.])
     >>> np.allclose(
     ...     hmg.at_node["surface_water__discharge_loss"],
     ...     lossy * hmg.at_node["surface_water__discharge"],
@@ -218,15 +218,15 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> fa.run_one_step()
 
     >>> mg.at_node["drainage_area"].reshape(mg.shape)
-    array([[  0. ,   0. ,   0. ,   0. ,   0. ,   0. ],
-           [  5.6,   5.6,   3.6,   2. ,   2. ,   0. ],
-           [ 10.4,  10.4,   8.4,   6.4,   4. ,   0. ],
-           [  0. ,   0. ,   0. ,   0. ,   0. ,   0. ]])
+    array([[ 0. ,  0. , 0. ,  0. ,  0. ,  0. ],
+           [ 5.6,  5.6, 3.6,  2. ,  2. ,  0. ],
+           [10.4, 10.4, 8.4,  6.4,  4. ,  0. ],
+           [ 0. ,  0. , 0. ,  0. ,  0. ,  0. ]])
     >>> mg.at_node["surface_water__discharge"].reshape(mg.shape)
-    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 4. ,  4. ,  2. ,  2. ,  2. ,  0. ],
-           [ 0. ,  8.5,  6.5,  4.5,  2.5,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
+    array([[0. , 0. , 0. , 0. , 0. , 0. ],
+           [4. , 4. , 2. , 2. , 2. , 0. ],
+           [0. , 8.5, 6.5, 4.5, 2.5, 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. ]])
 
     References
     ----------
