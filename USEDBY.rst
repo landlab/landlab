@@ -21,7 +21,7 @@ Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2024). **Maximising runof
 
 Shmilovitz, Y., Tucker, G. E., Rossi, M. W., Morin, E., Armon, M., Pederson, J., ... & Enzel, Y. (2024). **Impacts of rainstorm intensity and temporal pattern on caprock cliff persistence and hillslope morphology in drylands.** *Journal of Geophysical Research: Earth Surface,* 129(2), e2023JF007478, `https://doi.org/10.1029/2023JF007478 <https://doi.org/10.1029/2023JF007478>`__.
 
-Shobe, C. M., Bower, S. J., Maxwell, A. E., Glade, R. C., & Samassi, N. M. (2024). **The uncertain future of mountaintop-removal-mined landscapes 1: How mining changes erosion processes and variables.** *Geomorphology,* 445, 108984. 
+Shobe, C. M., Bower, S. J., Maxwell, A. E., Glade, R. C., & Samassi, N. M. (2024). **The uncertain future of mountaintop-removal-mined landscapes 1: How mining changes erosion processes and variables.** *Geomorphology,* 445, 108984.
 
 Walker, S. J., Wilkinson, S. N., & Hairsine, P. B. (2024). **Advancing gully topographic threshold analysis using an automated algorithm and high-resolution topography.** *CATENA,* 239, 107897.
 
