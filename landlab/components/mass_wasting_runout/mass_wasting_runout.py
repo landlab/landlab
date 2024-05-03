@@ -9,7 +9,6 @@ from landlab.components.mass_wasting_runout.mass_wasting_saver import MassWastin
 
 
 class MassWastingRunout(Component):
-
     """a cellular-automata mass wasting runout model that routes an initial mass
     wasting body (e.g., a landslide) through a watershed, determines erosion and
     aggradation depths, evolves the terrain and regolith and tracks attributes of

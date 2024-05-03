@@ -82,9 +82,9 @@ def example_bumpy_mg():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     mg.set_watershed_boundary_condition_outlet_id(3, dem)
     mg.at_node["node_id"] = np.hstack(mg.nodes)
-    mg.at_node["topographic__elevation"][
-        np.array([6, 7, 8, 11, 13, 16, 17, 18])
-    ] = np.array([3, 2, 5, 5, 7, 9, 8, 11])
+    mg.at_node["topographic__elevation"][np.array([6, 7, 8, 11, 13, 16, 17, 18])] = (
+        np.array([3, 2, 5, 5, 7, 9, 8, 11])
+    )
     nn = mg.number_of_nodes
     mg.at_node["mass__wasting_id"] = np.zeros(mg.number_of_nodes).astype(int)
     depth = np.ones(nn) * 1
