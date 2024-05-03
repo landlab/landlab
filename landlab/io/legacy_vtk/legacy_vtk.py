@@ -27,24 +27,25 @@ def _write_vtk_patches(grid, file_like):
     """Write the CELLS section (in a Landlab grid these are patches)"""
     num_patches = grid.number_of_patches
     nodes_per_patch = len(grid.nodes_at_patch[0])
-    file_like.write(f"CELLS {num_patches}  {(nodes_per_patch + 1) * num_patches}\n")
+    file_like.write(f"CELLS {num_patches} {(nodes_per_patch + 1) * num_patches}\n")
     for i in range(grid.number_of_patches):
         file_like.write(str(nodes_per_patch))
         for j in range(nodes_per_patch):
-            file_like.write(" " + str(grid.nodes_at_patch[i, j]))
+            file_like.write(f" {grid.nodes_at_patch[i, j]}")
         file_like.write("\n")
     file_like.write("\n")
 
 
 def _write_vtk_cell_types(grid, file_like):
     """Write the CELL_TYPES section (triangles or quads)"""
-    file_like.write("CELL_TYPES " + str(grid.number_of_patches) + "\n")
+    file_like.write(f"CELL_TYPES {grid.number_of_patches}\n")
     if len(grid.nodes_at_patch[0]) == 3:  # triangles
-        cell_type = "5\n"  # vtk code for a triangle
+        cell_type = 5  # vtk code for a triangle
     else:
-        cell_type = "9\n"  # vtk code for a quad
+        cell_type = 9  # vtk code for a quad
     for _ in range(grid.number_of_patches):
-        file_like.write(cell_type)
+        file_like.write(f"{cell_type}\n")
+
     file_like.write("\n")
 
 
