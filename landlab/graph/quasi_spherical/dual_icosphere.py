@@ -321,8 +321,8 @@ class DualIcosphereGraph:
         >>> import numpy as np
         >>> ico = DualIcosphereGraph()
         >>> ico.x_of_corner**2 + ico.y_of_corner**2 + ico.z_of_corner**2
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+               1., 1., 1.])
         """
 
         p0 = self.coords_of_node[self.nodes_at_patch[:, 0]]
