@@ -158,7 +158,7 @@ def radians_to_degrees(rads):
     >>> radians_to_degrees(-3 * np.pi / 2.0)
     0.0
     >>> radians_to_degrees(np.array([-np.pi, np.pi]))
-    array([ 270.,  270.])
+    array([270., 270.])
     """
     degrees = (5.0 * np.pi / 2.0 - rads) % (2.0 * np.pi)
     return 180.0 / np.pi * degrees

@@ -66,11 +66,9 @@ class DimensionlessDischarge(Component):
      ... )
      >>> dd = DimensionlessDischarge(watershed_grid, gravity=9.8)
      >>> dd.run_one_step()
-     >>> print(watershed_grid.at_node["dimensionless_discharge"])
-     [ 0.55372743  0.55372743  0.55372743  0.55372743  0.55372743
-             0.55372743  0.55372743  0.55372743  0.55372743]
-
-
+     >>> watershed_grid.at_node["dimensionless_discharge"]
+     array([0.55372743, 0.55372743, 0.55372743, 0.55372743, 0.55372743,
+            0.55372743, 0.55372743, 0.55372743, 0.55372743])
 
      References
      ----------

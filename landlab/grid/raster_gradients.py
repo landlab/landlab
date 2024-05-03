@@ -330,21 +330,19 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     A decrease in quantity across a face is a negative gradient.
 
     >>> grid.calc_grad_across_cell_faces(x)
-    masked_array(data =
-     [[ 1.  3.  0.  0.]
-     [ 0.  2. -1. -1.]],
-                 mask =
-     False,
-           fill_value = 1e+20)
+    masked_array(
+      data=[[ 1.,  3.,  0.,  0.],
+            [ 0.,  2., -1., -1.]],
+      mask=False,
+      fill_value=1e+20)
 
     >>> grid = RasterModelGrid((3, 4), xy_spacing=(1, 2))
     >>> grid.calc_grad_across_cell_faces(x)
-    masked_array(data =
-     [[ 1.   1.5  0.   0. ]
-     [ 0.   1.  -1.  -0.5]],
-                  mask =
-     False,
-           fill_value = 1e+20)
+    masked_array(
+      data=[[ 1. , 1.5,  0. ,  0. ],
+            [ 0. , 1. , -1. , -0.5]],
+      mask=False,
+      fill_value=1e+20)
 
     :meta landlab: info-face, gradient
     """
@@ -478,51 +476,49 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     A decrease in quantity across a face is a negative gradient.
 
     >>> grid.calc_grad_along_node_links(x)
-    masked_array(data =
-     [[-- -- -- --]
-     [-- 1.0 -- --]
-     [-- -- -- --]
-     [1.0 -- -- --]
-     [1.0 1.0 1.0 1.0]
-     [-- -- 1.0 --]
-     [-- -- -- --]
-     [-- -- -- 1.0]
-     [-- -- -- --]],
-                 mask =
-     [[ True  True  True  True]
-     [ True False  True  True]
-     [ True  True  True  True]
-     [False  True  True  True]
-     [False False False False]
-     [ True  True False  True]
-     [ True  True  True  True]
-     [ True  True  True False]
-     [ True  True  True  True]],
-           fill_value = 1e+20)
+    masked_array(
+      data=[[--, --, --, --],
+            [--, 1.0, --, --],
+            [--, --, --, --],
+            [1.0, --, --, --],
+            [1.0, 1.0, 1.0, 1.0],
+            [--, --, 1.0, --],
+            [--, --, --, --],
+            [--, --, --, 1.0],
+            [--, --, --, --]],
+      mask=[[ True,  True,  True,  True],
+            [ True, False,  True,  True],
+            [ True,  True,  True,  True],
+            [False,  True,  True,  True],
+            [False, False, False, False],
+            [ True,  True, False,  True],
+            [ True,  True,  True,  True],
+            [ True,  True,  True, False],
+            [ True,  True,  True,  True]],
+      fill_value=1e+20)
 
     >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 2))
     >>> grid.calc_grad_along_node_links(x)
-    masked_array(data =
-     [[-- -- -- --]
-     [-- 0.5 -- --]
-     [-- -- -- --]
-     [0.25 -- -- --]
-     [0.25 0.5 0.25 0.5]
-     [-- -- 0.25 --]
-     [-- -- -- --]
-     [-- -- -- 0.5]
-     [-- -- -- --]],
-                 mask =
-     [[ True  True  True  True]
-     [ True False  True  True]
-     [ True  True  True  True]
-     [False  True  True  True]
-     [False False False False]
-     [ True  True False  True]
-     [ True  True  True  True]
-     [ True  True  True False]
-     [ True  True  True  True]],
-           fill_value = 1e+20)
+    masked_array(
+      data=[[--, --, --, --],
+            [--, 0.5, --, --],
+            [--, --, --, --],
+            [0.25, --, --, --],
+            [0.25, 0.5, 0.25, 0.5],
+            [--, --, 0.25, --],
+            [--, --, --, --],
+            [--, --, --, 0.5],
+            [--, --, --, --]],
+      mask=[[ True,  True,  True,  True],
+            [ True, False,  True,  True],
+            [ True,  True,  True,  True],
+            [False,  True,  True,  True],
+            [False, False, False, False],
+            [ True,  True, False,  True],
+            [ True,  True,  True,  True],
+            [ True,  True,  True, False],
+            [ True,  True,  True,  True]],
+      fill_value=1e+20)
 
     :meta landlab: info-node, info-link, gradient
     """
@@ -1181,8 +1177,8 @@ def calc_aspect_at_cell_subtriangles(
     >>> len(A[0]) == mg.number_of_cells
     True
     >>> A0
-    (array([ 180.]), array([ 270.]), array([ 90.]), array([ 180.]),
-     array([ 0.]), array([ 90.]), array([ 270.]), array([ 0.]))
+    (array([180.]), array([270.]), array([90.]), array([180.]),
+     array([0.]), array([90.]), array([270.]), array([0.]))
 
     :meta landlab: info-cell, surface
     """
@@ -1582,9 +1578,9 @@ def calc_slope_at_patch(
     True
     >>> z = mg.node_y**2
     >>> mg.calc_slope_at_patch(elevs=z).reshape((3, 4))
-    array([[ 0.78539816,  0.78539816,  0.78539816,  0.78539816],
-           [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
-           [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
+    array([[0.78539816,  0.78539816,  0.78539816,  0.78539816],
+           [1.24904577,  1.24904577,  1.24904577,  1.24904577],
+           [1.37340077,  1.37340077,  1.37340077,  1.37340077]])
 
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -1595,9 +1591,9 @@ def calc_slope_at_patch(
     >>> mg.calc_slope_at_patch(elevs=z, ignore_closed_nodes=True).reshape(
     ...     (3, 4)
     ... ) * 4.0 / np.pi
-    array([[ 0.,  0.,  0.,  0.],
-           [ 0.,  1.,  1.,  1.],
-           [ 0.,  0.,  0.,  0.]])
+    array([[0.,  0.,  0.,  0.],
+           [0.,  1.,  1.,  1.],
+           [0.,  0.,  0.,  0.]])
 
     :meta landlab: info-patch, gradient
     """
@@ -1829,10 +1825,10 @@ def calc_slope_at_node(
     >>> z = mg.node_x**2 + mg.node_y**2
     >>> slopes, cmp = mg.calc_slope_at_node(z, return_components=True)
     >>> slopes
-    array([ 0.95531662,  1.10991779,  1.32082849,  1.37713803,  1.10991779,
-            1.20591837,  1.3454815 ,  1.38904403,  1.32082849,  1.3454815 ,
-            1.39288142,  1.41562833,  1.37713803,  1.38904403,  1.41562833,
-            1.43030663])
+    array([0.95531662,  1.10991779,  1.32082849,  1.37713803,  1.10991779,
+           1.20591837,  1.3454815 ,  1.38904403,  1.32082849,  1.3454815 ,
+           1.39288142,  1.41562833,  1.37713803,  1.38904403,  1.41562833,
+           1.43030663])
 
     Check radial symmetry.
 

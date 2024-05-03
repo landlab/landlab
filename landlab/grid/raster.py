@@ -135,15 +135,15 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
     >>> grid.dx, grid.dy
     (2.0, 1.0)
     >>> grid.node_y.reshape(grid.shape)
-    array([[ 0.,  0.,  0.,  0.,  0.],
-           [ 1.,  1.,  1.,  1.,  1.],
-           [ 2.,  2.,  2.,  2.,  2.],
-           [ 3.,  3.,  3.,  3.,  3.]])
+    array([[0.,  0.,  0.,  0.,  0.],
+           [1.,  1.,  1.,  1.,  1.],
+           [2.,  2.,  2.,  2.,  2.],
+           [3.,  3.,  3.,  3.,  3.]])
     >>> grid.node_x.reshape(grid.shape)
-    array([[ 0.,  2.,  4.,  6.,  8.],
-           [ 0.,  2.,  4.,  6.,  8.],
-           [ 0.,  2.,  4.,  6.,  8.],
-           [ 0.,  2.,  4.,  6.,  8.]])
+    array([[0.,  2.,  4.,  6.,  8.],
+           [0.,  2.,  4.,  6.,  8.],
+           [0.,  2.,  4.,  6.,  8.],
+           [0.,  2.,  4.,  6.,  8.]])
     """
 
     def __init__(
@@ -432,18 +432,18 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> mg = RasterModelGrid((3, 4), xy_spacing=(2.0, 2.0))
 
         >>> mg.unit_vector_at_link[:, 0]
-        array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
-                1.,  1.,  1.,  0.,  0.,  0.,  0.,
-                1.,  1.,  1.])
+        array([1.,  1.,  1.,  0.,  0.,  0.,  0.,
+               1.,  1.,  1.,  0.,  0.,  0.,  0.,
+               1.,  1.,  1.])
         >>> mg.unit_vector_at_link[:, 1]
-        array([ 0.,  0.,  0.,  1.,  1.,  1.,  1.,
-                0.,  0.,  0.,  1.,  1.,  1.,  1.,
-                0.,  0.,  0.])
+        array([0.,  0.,  0.,  1.,  1.,  1.,  1.,
+               0.,  0.,  0.,  1.,  1.,  1.,  1.,
+               0.,  0.,  0.])
 
         >>> mg.unit_vector_at_node[:, 0]
-        array([ 1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
+        array([1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.,  1.,  2.,  2.,  1.])
         >>> mg.unit_vector_at_node[:, 1]
-        array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
+        array([1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
         """
         unit_vec_at_link = np.zeros((self.number_of_links + 1, 2), dtype=float)
         unit_vec_at_link[self.horizontal_links, 0] = 1.0
@@ -596,9 +596,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         ...     (1, 1, 1),
         ...     (1, 3.1, 6.1),
         ... )
-        array([ True,  True, False], dtype=bool)
+        array([ True,  True, False])
         >>> grid.is_point_on_grid((-0.1, 0.1, 3.9, 4.1), (1, 1, 1, 1))
-        array([False,  True,  True, False], dtype=bool)
+        array([False,  True,  True, False])
 
         :meta landlab: info-grid, quantity, subset
         """
@@ -1036,8 +1036,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                [1, 0, 0, 0, 1],
                [1, 1, 1, 1, 1]], dtype=uint8)
         >>> rmg.add_zeros("topographic__elevation", at="node")
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-                0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        array([0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+               0.,  0.,  0.,  0.,  0.,  0.,  0.])
         >>> rmg.set_looped_boundaries(True, True)
         >>> rmg.looped_node_properties["boundary_node_IDs"]
         array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
@@ -1164,16 +1164,16 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
                11.,  12.,  13.,  14.,  15.,  16.,  17.,  18.,  19.])
         >>> ur = rmg.node_vector_to_raster(u)
         >>> ur
-        array([[  0.,   1.,   2.,   3.,   4.],
-               [  5.,   6.,   7.,   8.,   9.],
-               [ 10.,  11.,  12.,  13.,  14.],
-               [ 15.,  16.,  17.,  18.,  19.]])
+        array([[ 0.,   1.,   2.,   3.,   4.],
+               [ 5.,   6.,   7.,   8.,   9.],
+               [10.,  11.,  12.,  13.,  14.],
+               [15.,  16.,  17.,  18.,  19.]])
         >>> ur = rmg.node_vector_to_raster(u, flip_vertically=True)
         >>> ur
-        array([[ 15.,  16.,  17.,  18.,  19.],
-               [ 10.,  11.,  12.,  13.,  14.],
-               [  5.,   6.,   7.,   8.,   9.],
-               [  0.,   1.,   2.,   3.,   4.]])
+        array([[15.,  16.,  17.,  18.,  19.],
+               [10.,  11.,  12.,  13.,  14.],
+               [ 5.,   6.,   7.,   8.,   9.],
+               [ 0.,   1.,   2.,   3.,   4.]])
 
         :meta landlab: info-grid, info-node
         """
@@ -1197,15 +1197,15 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> u = rmg.zeros(centering="cell")
         >>> u = u + range(0, len(u))
         >>> u
-        array([ 0.,  1.,  2.,  3.,  4.,  5.])
+        array([0.,  1.,  2.,  3.,  4.,  5.])
         >>> ur = rmg.cell_vector_to_raster(u)
         >>> ur
-        array([[ 0.,  1.,  2.],
-               [ 3.,  4.,  5.]])
+        array([[0.,  1.,  2.],
+               [3.,  4.,  5.]])
         >>> ur = rmg.cell_vector_to_raster(u, flip_vertically=True)
         >>> ur
-        array([[ 3.,  4.,  5.],
-               [ 0.,  1.,  2.]])
+        array([[3.,  4.,  5.],
+               [0.,  1.,  2.]])
 
         :meta landlab: info-grid, info-cell
         """
@@ -1310,11 +1310,11 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> mg.node_has_boundary_neighbor(12)
         False
         >>> mg.node_has_boundary_neighbor([12, -1])
-        array([False,  True], dtype=bool)
+        array([False,  True])
 
         >>> mg.node_has_boundary_neighbor(25)
         Traceback (most recent call last):
-            ...
+        ...
         IndexError: index 25 is out of bounds for axis 0 with size 25
 
         :meta landlab: info-node, connectivity, boundary-condition
@@ -1421,9 +1421,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         >>> z = np.array([0.0, 0.0, 0.0, 0.0, 3.0, 3.0, 3.0, 3, 6.0, 6.0, 6.0, 6.0])
         >>> slope, aspect = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
         >>> np.tan(slope)
-        array([ 0.75,  0.75])
+        array([0.75,  0.75])
         >>> np.degrees(aspect)
-        array([ 180.,  180.])
+        array([180.,  180.])
 
         We recommend using the following functions instead of this one:
         - :py:meth:`~landlab.grid.RasterModelGrid.calc_slope_at_node`
@@ -1435,9 +1435,9 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         compass-style angles in degrees.
 
         >>> np.tan(grid.calc_slope_at_node(elevs=z)[grid.core_nodes])
-        array([ 0.75,  0.75])
+        array([0.75,  0.75])
         >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
-        array([ 180.,  180.])
+        array([180.,  180.])
 
         :meta landlab: info-node, surface, gradient
         """

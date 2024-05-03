@@ -24,9 +24,9 @@ class DualHexGraph(DualGraph, TriGraph):
     6
 
     >>> np.round(graph.y_of_node * 2.0 / np.sqrt(3))
-    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
+    array([0., 0., 1., 1., 1., 2., 2.])
     >>> graph.x_of_node
-    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    array([0.5, 1.5, 0. , 1. , 2. , 0.5, 1.5])
     """
 
     def __init__(
