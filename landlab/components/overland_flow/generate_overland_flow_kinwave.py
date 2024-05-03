@@ -33,8 +33,8 @@ class KinwaveOverlandFlowModel(Component):
     >>> kw.vel_coef
     100.0
     >>> rg.at_node["surface_water__depth"]
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+           0., 0., 0., 0., 0., 0., 0.])
 
     References
     ----------

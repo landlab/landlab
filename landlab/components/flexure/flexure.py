@@ -50,11 +50,11 @@ grid. Reset the interior nodes for the loading.
 >>> flex.output_var_names
 ('lithosphere_surface__elevation_increment',)
 >>> flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape(grid.shape)
-array([[ 0.,  0.,  0.,  0.],
-       [ 0.,  1.,  1.,  0.],
-       [ 0.,  1.,  1.,  0.],
-       [ 0.,  1.,  1.,  0.],
-       [ 0.,  0.,  0.,  0.]])
+array([[0., 0., 0., 0.],
+       [0., 1., 1., 0.],
+       [0., 1., 1., 0.],
+       [0., 1., 1., 0.],
+       [0., 0., 0., 0.]])
 """
 
 import numpy as np

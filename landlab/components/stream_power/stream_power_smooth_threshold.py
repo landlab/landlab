@@ -68,7 +68,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> sp.run_one_step(dt=1.0)
     >>> import numpy as np
     >>> np.round(z[5:7], 3)
-    array([ 1.646,  0.667])
+    array([1.646, 0.667])
     >>> z[5] = 2.0
     >>> z[6] = 1.0
     >>> import numpy as np
@@ -77,7 +77,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0, discharge_field=q)
     >>> sp.run_one_step(dt=1.0)
     >>> np.round(z[5:7], 3)
-    array([ 1.754,  0.164])
+    array([1.754, 0.164])
 
     References
     ----------
@@ -268,11 +268,11 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
         >>> sp.run_one_step(dt=1.0)
         >>> sp.alpha
-        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
         >>> sp.gamma
-        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
         >>> sp.delta
-        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
         """
         if not self._erode_flooded_nodes:
             flood_status = self._grid.at_node["flood_status_code"]
