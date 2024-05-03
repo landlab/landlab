@@ -50,11 +50,11 @@ import numpy
 
 from landlab.core.utils import as_id_array
 
-from .cfuncs import _accumulate_to_n, _make_donors_to_n
+from .cfuncs import _accumulate_to_n
+from .cfuncs import _make_donors_to_n
 
 
 class _DrainageStack_to_n:
-
     """Implementation of the DrainageStack_to_n class.
 
     The _DrainageStack_to_n() class implements a set based approach to
@@ -653,9 +653,9 @@ def find_drainage_area_and_discharge_to_n_lossy(
 
     >>> a, q = find_drainage_area_and_discharge_to_n_lossy(s, r, l, p, lossfunc, mg)
     >>> a
-    array([ 1. ,  2.7,  1.5,  4. ])
+    array([1. , 2.7, 1.5, 4. ])
     >>> q
-    array([ 1.  ,  1.75,  1.25,  2.  ])
+    array([1.  , 1.75, 1.25, 2.  ])
     >>> np.allclose(mg.at_node["surface_water__discharge_loss"][:3], 0.5 * q[:3])
     True
 
@@ -669,9 +669,9 @@ def find_drainage_area_and_discharge_to_n_lossy(
     ...
     >>> a, q = find_drainage_area_and_discharge_to_n_lossy(s, r, l, p, lossfunc, mg)
     >>> a
-    array([ 1. ,  2.7,  1.5,  4. ])
+    array([1. , 2.7, 1.5, 4. ])
     >>> q
-    array([ 1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1.])
     """
     # Number of points
     np = r.shape[0]

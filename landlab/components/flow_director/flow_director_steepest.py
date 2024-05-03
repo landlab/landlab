@@ -11,13 +11,13 @@ use FlowDirectorD8.
 
 import numpy as np
 
-from landlab import NodeStatus, VoronoiDelaunayGrid
+from landlab import NodeStatus
+from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
-
     """Single-path (steepest direction) flow direction without diagonals.
 
     This components finds the steepest single-path steepest descent flow
@@ -58,12 +58,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ... )
     >>> fd = FlowDirectorSteepest(mg, "topographic__elevation")
     >>> fd.surface_values
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    array([0., 1., 2., 1., 2., 3., 2., 3., 4.])
     >>> fd.run_one_step()
     >>> mg.at_node["flow__receiver_node"]
     array([0, 1, 2, 3, 1, 5, 6, 7, 8])
     >>> mg.at_node["topographic__steepest_slope"]
-    array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+    array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
     >>> mg.at_node["flow__link_to_receiver_node"]
     array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
     >>> mg.at_node["flow__sink_flag"].astype(int)
@@ -97,7 +97,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     >>> mg_2.at_link["flow__link_direction"]
     array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
-        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
+            0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
 
     This indicates that flow on links 4, 5, 12, and 19 goes against the
     topologic ordering -- that is that flow goes from head node to tail node --
@@ -211,11 +211,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ... )
     >>> fd = FlowDirectorSteepest(mg, "topographic__elevation")
     >>> fd.surface_values
-    array([ 1. ,  2. ,  3. ,
-        1.5,  2.5,  3.5,  4.5,
-      2. ,  3. ,  4. ,  5. ,  6. ,
-        3.5,  4.5,  5.5,  6.5,
-            4. ,  5. ,  6. ])
+    array([1. ,  2. ,  3. ,
+       1.5,  2.5,  3.5,  4.5,
+     2. ,  3. ,  4. ,  5. ,  6. ,
+       3.5,  4.5,  5.5,  6.5,
+           4. ,  5. ,  6. ])
     >>> fd.run_one_step()
     >>> mg.at_node["flow__receiver_node"]
     array([ 0,  1,  2,
@@ -224,11 +224,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
           12,  8,  9, 15,
             16, 17, 18])
     >>> mg.at_node["topographic__steepest_slope"]
-    array([ 0. ,  0. ,  0. ,
-        0. ,  1.5,  1.5,   0. ,
-      0. ,  1.5,  1.5,  1.5,  0. ,
-        0. ,  1.5,  1.5,  0. ,
-            0. ,  0. ,  0. ])
+    array([0. ,  0. ,  0. ,
+       0. ,  1.5,  1.5,   0. ,
+     0. ,  1.5,  1.5,  1.5,  0. ,
+       0. ,  1.5,  1.5,  0. ,
+           0. ,  0. ,  0. ])
     >>> mg.at_node["flow__link_to_receiver_node"]
     array([-1, -1, -1,
          -1,  3,  5, -1,

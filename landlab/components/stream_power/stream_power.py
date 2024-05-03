@@ -1,13 +1,12 @@
 import numpy as np
 
-from landlab import Component, MissingKeyError
+from landlab import Component
+from landlab import MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
-from .cfuncs import (
-    brent_method_erode_fixed_threshold,
-    brent_method_erode_variable_threshold,
-)
+from .cfuncs import brent_method_erode_fixed_threshold
+from .cfuncs import brent_method_erode_variable_threshold
 
 
 class StreamPowerEroder(Component):
@@ -58,11 +57,11 @@ class StreamPowerEroder(Component):
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=1.0)
     >>> z
-    array([ 7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
-            7.        ,  2.92996598,  2.02996598,  4.01498299,  7.        ,
-            7.        ,  0.85993197,  1.87743897,  3.28268321,  7.        ,
-            7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
-            7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
+    array([7.        , 7.        , 7.        , 7.        , 7.        ,
+           7.        , 2.92996598, 2.02996598, 4.01498299, 7.        ,
+           7.        , 0.85993197, 1.87743897, 3.28268321, 7.        ,
+           7.        , 0.28989795, 0.85403051, 2.42701526, 7.        ,
+           7.        , 0.        , 7.        , 7.        , 7.        ])
 
     >>> mg2 = RasterModelGrid((3, 7))
     >>> z = np.array(mg2.node_x**2.0)
@@ -76,8 +75,8 @@ class StreamPowerEroder(Component):
     >>> fr2.run_one_step()
     >>> sp2.run_one_step(dt=10.0)
     >>> z.reshape((3, 7))[1, :]
-    array([  0.        ,   1.        ,   4.        ,   8.52493781,
-            13.29039716,  18.44367965,  36.        ])
+    array([ 0.        ,  1.        ,  4.        ,  8.52493781,
+           13.29039716, 18.44367965, 36.        ])
 
     >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.0)
     >>> z = mg.node_x / 100.0
@@ -100,11 +99,11 @@ class StreamPowerEroder(Component):
     >>> fr3.run_one_step()
     >>> sp3.run_one_step(1.0)
     >>> z
-    array([ 0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ,
-            0.        ,  0.02898979,  0.0859932 ,  0.17463772,  0.4       ,
-            0.        ,  0.02240092,  0.06879049,  0.14586033,  0.4       ,
-            0.        ,  0.01907436,  0.05960337,  0.12929386,  0.4       ,
-            0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ])
+    array([0.        , 0.1       , 0.2       , 0.3       , 0.4       ,
+           0.        , 0.02898979, 0.0859932 , 0.17463772, 0.4       ,
+           0.        , 0.02240092, 0.06879049, 0.14586033, 0.4       ,
+           0.        , 0.01907436, 0.05960337, 0.12929386, 0.4       ,
+           0.        , 0.1       , 0.2       , 0.3       , 0.4       ])
 
     References
     ----------

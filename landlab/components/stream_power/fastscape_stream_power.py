@@ -8,14 +8,13 @@
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
-from .cfuncs import (
-    brent_method_erode_fixed_threshold,
-    brent_method_erode_variable_threshold,
-)
+from .cfuncs import brent_method_erode_fixed_threshold
+from .cfuncs import brent_method_erode_variable_threshold
 
 
 class FastscapeEroder(Component):
@@ -79,11 +78,11 @@ class FastscapeEroder(Component):
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=1.0)
     >>> z
-    array([ 7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
-            7.        ,  2.92996598,  2.02996598,  4.01498299,  7.        ,
-            7.        ,  0.85993197,  1.87743897,  3.28268321,  7.        ,
-            7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
-            7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
+    array([7.        , 7.        , 7.        , 7.        , 7.        ,
+           7.        , 2.92996598, 2.02996598, 4.01498299, 7.        ,
+           7.        , 0.85993197, 1.87743897, 3.28268321, 7.        ,
+           7.        , 0.28989795, 0.85403051, 2.42701526, 7.        ,
+           7.        , 0.        , 7.        , 7.        , 7.        ])
 
     >>> grid = RasterModelGrid((3, 7), xy_spacing=1.0)
     >>> z = np.array(grid.node_x**2.0)
@@ -97,8 +96,8 @@ class FastscapeEroder(Component):
     >>> fr.run_one_step()
     >>> sp.run_one_step(dt=10.0)
     >>> z.reshape(grid.shape)[1, :]
-    array([  0.        ,   1.        ,   4.        ,   8.52493781,
-            13.29039716,  18.44367965,  36.        ])
+    array([ 0.        ,  1.        ,  4.        ,  8.52493781,
+           13.29039716, 18.44367965, 36.        ])
 
     >>> grid = RasterModelGrid((3, 7), xy_spacing=1.0)
     >>> z = np.array(grid.node_x**2.0)
@@ -110,8 +109,8 @@ class FastscapeEroder(Component):
     >>> cell_area = 1.0
     >>> fr = FlowAccumulator(grid, flow_director="D8", runoff_rate=2.0)
     >>> grid.at_node["water__unit_flux_in"]
-    array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,
-            2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.])
+    array([2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.,
+           2., 2., 2., 2., 2., 2., 2., 2.])
     >>> K_field = grid.ones(at="node")  # K can be a field
     >>> sp = FastscapeEroder(
     ...     grid,
@@ -124,8 +123,8 @@ class FastscapeEroder(Component):
     >>> fr.run_one_step()
     >>> sp.run_one_step(1.0)
     >>> z.reshape(grid.shape)[1, :]
-    array([  0.        ,   0.0647484 ,   0.58634455,   2.67253503,
-             8.49212152,  20.92606987,  36.        ])
+    array([ 0.        ,  0.0647484 ,  0.58634455,  2.67253503,
+            8.49212152, 20.92606987, 36.        ])
 
     References
     ----------

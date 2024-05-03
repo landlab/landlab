@@ -4,8 +4,11 @@ import numpy as np
 import pytest
 import shapefile
 from numpy.testing import assert_array_equal
-from pytest import approx, raises
-from shapefile import POINT, POLYLINE, ShapefileException
+from pytest import approx
+from pytest import raises
+from shapefile import POINT
+from shapefile import POLYLINE
+from shapefile import ShapefileException
 
 from landlab import ExampleData
 from landlab.io.shapefile import read_shapefile

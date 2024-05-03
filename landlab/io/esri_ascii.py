@@ -44,14 +44,12 @@ _HEADER_VALUE_TESTS = {
 
 
 class Error(Exception):
-
     """Base class for errors in this module."""
 
     pass
 
 
 class BadHeaderLineError(Error):
-
     """Raise this error for a bad header is line."""
 
     def __init__(self, line):
@@ -62,7 +60,6 @@ class BadHeaderLineError(Error):
 
 
 class MissingRequiredKeyError(Error):
-
     """Raise this error when a header is missing a required key."""
 
     def __init__(self, key):
@@ -73,7 +70,6 @@ class MissingRequiredKeyError(Error):
 
 
 class KeyTypeError(Error):
-
     """Raise this error when a header's key value is of the wrong type."""
 
     def __init__(self, key, expected_type):
@@ -85,7 +81,6 @@ class KeyTypeError(Error):
 
 
 class KeyValueError(Error):
-
     """Raise this error when a header's key value has a bad value."""
 
     def __init__(self, key, message):
@@ -97,7 +92,6 @@ class KeyValueError(Error):
 
 
 class DataSizeError(Error):
-
     """Raise this error if the size of data does not match the header."""
 
     def __init__(self, size, expected_size):
@@ -111,7 +105,6 @@ class DataSizeError(Error):
 
 
 class MismatchGridDataSizeError(Error):
-
     """Raise this error if the data size does not match the grid size."""
 
     def __init__(self, size, expected_size):
@@ -126,7 +119,6 @@ class MismatchGridDataSizeError(Error):
 
 
 class MismatchGridXYSpacing(Error):
-
     """Raise this error if the file cell size does not match the grid dx."""
 
     def __init__(self, dx, expected_dx):
@@ -141,7 +133,6 @@ class MismatchGridXYSpacing(Error):
 
 
 class MismatchGridXYLowerLeft(Error):
-
     """Raise this error if the file lower left does not match the grid."""
 
     def __init__(self, llc, expected_llc):
@@ -450,12 +441,12 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     >>> grid
     RasterModelGrid((6, 5), xy_spacing=(10.0, 10.0), xy_of_lower_left=(-9.0, -8.0))
     >>> data.reshape(grid.shape)
-    array([[ -1.,  -1.,  -1.,  -1.,  -1.],
-           [ -1.,   9.,  10.,  11.,  -1.],
-           [ -1.,   6.,   7.,   8.,  -1.],
-           [ -1.,   3.,   4.,   5.,  -1.],
-           [ -1.,   0.,   1.,   2.,  -1.],
-           [ -1.,  -1.,  -1.,  -1.,  -1.]])
+    array([[-1.,  -1.,  -1.,  -1.,  -1.],
+           [-1.,   9.,  10.,  11.,  -1.],
+           [-1.,   6.,   7.,   8.,  -1.],
+           [-1.,   3.,   4.,   5.,  -1.],
+           [-1.,   0.,   1.,   2.,  -1.],
+           [-1.,  -1.,  -1.,  -1.,  -1.]])
     """  # noqa: B950
     from ..grid import RasterModelGrid
 

@@ -13,7 +13,9 @@ scarp degradation, Tucker, Hobley, McCoy.
 import sys
 
 import numpy as np
-from pylab import figure, plot, show
+from pylab import figure
+from pylab import plot
+from pylab import show
 
 from landlab.plot import imshow as gridshow
 

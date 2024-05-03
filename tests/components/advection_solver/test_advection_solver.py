@@ -1,17 +1,14 @@
 import numpy as np
 import pytest
-from numpy.testing import (
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_array_equal,
-)
+from numpy.testing import assert_almost_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.components import AdvectionSolverTVD
-from landlab.components.advection import (
-    find_upwind_link_at_link,
-    upwind_to_local_grad_ratio,
-)
+from landlab.components.advection import find_upwind_link_at_link
+from landlab.components.advection import upwind_to_local_grad_ratio
 from landlab.grid.linkorientation import LinkOrientation
 
 

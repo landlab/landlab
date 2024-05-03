@@ -1,4 +1,10 @@
 repos:
+- repo: https://github.com/MarcoGorelli/cython-lint
+  rev: v0.16.2
+  hooks:
+  - id: cython-lint
+  - id: double-quote-cython-strings
+
 - repo: local
   hooks:
     - id: unnecessary_doctest_directives
@@ -14,7 +20,7 @@ repos:
       language: pygrep
 
 - repo: https://github.com/psf/black
-  rev: 23.12.1
+  rev: 24.4.0
   hooks:
   - id: black
     name: black
@@ -41,18 +47,21 @@ repos:
   hooks:
   - id: blackdoc
     description: "Black for doctests"
+    additional_dependencies: ["black==24.4.0"]
+  - id: blackdoc-autoupdate-black
+
 
 - repo: https://github.com/pycqa/flake8
   rev: 7.0.0
   hooks:
   - id: flake8
     additional_dependencies:
-    - flake8-bugbear
+    - flake8-bugbear!=24.4.21
     - flake8-comprehensions
     - flake8-simplify
 
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.7.1
+  rev: 1.8.5
   hooks:
     - id: nbqa-pyupgrade
       args: ["--py310-plus"]
@@ -65,14 +74,14 @@ repos:
           )
 
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.6.1
+  rev: 0.7.1
   hooks:
     - id: nbstripout
       description: Strip output from jupyter notebooks
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.0
+  rev: v3.15.2
   hooks:
   - id: pyupgrade
     args: [--py310-plus]
@@ -82,13 +91,14 @@ repos:
   hooks:
   - id: isort
     name: isort (python)
+    args: [--force-single-line-imports]
     types: [python]
   - id: isort
     name: isort (cython)
     types: [cython]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.5.0
+  rev: v4.6.0
   hooks:
     - id: check-builtin-literals
     - id: check-added-large-files

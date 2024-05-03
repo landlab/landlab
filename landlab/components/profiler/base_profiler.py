@@ -1,7 +1,8 @@
 # ! /usr/env/python
 """Base class for profile constructors."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
@@ -172,7 +173,7 @@ class _BaseProfiler(ABC, Component):
         >>> profiler = ChannelProfiler(mg)
         >>> profiler.run_one_step()
         >>> np.round(profiler.colors, decimals=2)
-        array([[ 0.27,  0.  ,  0.33,  1.  ]])
+        array([[0.27, 0.  , 0.33, 1.  ]])
         """
         return self._colors
 

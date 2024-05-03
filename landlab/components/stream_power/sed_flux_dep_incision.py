@@ -3,7 +3,8 @@ import warnings
 import numpy as np
 import scipy.constants
 
-from landlab import Component, MissingKeyError
+from landlab import Component
+from landlab import MissingKeyError
 from landlab.utils.decorators import make_return_array_immutable
 
 
@@ -1110,9 +1111,9 @@ class SedDepEroder(Component):
         ...     g=9.81,
         ... )
         >>> sde1.characteristic_grainsize.reshape(mg1.shape)
-        array([[ 0.59962823,  0.29981412,  0.19987608,  0.14990706],
-               [ 0.11992565,  0.09993804,  0.08566118,  0.07495353],
-               [ 0.06662536,  0.05996282,  0.05451166,  0.04996902]])
+        array([[0.59962823, 0.29981412, 0.19987608, 0.14990706],
+               [0.11992565, 0.09993804, 0.08566118, 0.07495353],
+               [0.06662536, 0.05996282, 0.05451166, 0.04996902]])
 
         >>> mg2 = RasterModelGrid((3, 4))
         >>> z2 = mg2.add_zeros("node", "topographic__elevation")
@@ -1131,9 +1132,9 @@ class SedDepEroder(Component):
         >>> S = mg2.at_node["topographic__steepest_slope"]
         >>> S[:] = 0.05  # thresh = 100 Pa @ 5pc slope
         >>> sde2.characteristic_grainsize.reshape(mg2.shape)
-        array([[ 0.08453729,  0.08453729,  0.08453729,  0.08453729],
-               [ 0.08453729,  0.08453729,  0.08453729,  0.08453729],
-               [ 0.08453729,  0.08453729,  0.08453729,  0.08453729]])
+        array([[0.08453729, 0.08453729, 0.08453729, 0.08453729],
+               [0.08453729, 0.08453729, 0.08453729, 0.08453729],
+               [0.08453729, 0.08453729, 0.08453729, 0.08453729]])
         """
         # Dchar is None means self._lamb_flag, Dchar is spatially variable,
         # and not calculated until the main loop

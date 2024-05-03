@@ -38,6 +38,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
   "bmipy",
+  "importlib-resources; python_version < '3.12'",
   "matplotlib",
   "netcdf4",
   "numpy >=1.20",
@@ -135,6 +136,10 @@ ignore = [".nox", "build"]
 build = "cp310-* cp311-* cp312-*"
 skip = "*-musllinux_*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
+
+[tool.cython-lint]
+max-line-length = 88
+exclude = "tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx"
 
 [tool.conda-lock]
 channels = ["conda-forge", "defaults"]

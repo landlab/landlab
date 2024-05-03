@@ -9,34 +9,28 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
-import contextlib
-
-from numpy import set_printoptions
-
 from ._registry import registry
 from ._version import __version__
-from .core.errors import MissingKeyError, ParameterValueError
+from .core.errors import MissingKeyError
+from .core.errors import ParameterValueError
 from .core.model_component import Component
 from .core.model_parameter_loader import load_params
 from .core.utils import ExampleData
 from .field import FieldError
-from .grid import (
-    FramedVoronoiGrid,
-    HexModelGrid,
-    ModelGrid,
-    NetworkModelGrid,
-    RadialModelGrid,
-    RasterModelGrid,
-    VoronoiDelaunayGrid,
-    create_grid,
-)
+from .grid import FramedVoronoiGrid
+from .grid import HexModelGrid
+from .grid import ModelGrid
+from .grid import NetworkModelGrid
+from .grid import RadialModelGrid
+from .grid import RasterModelGrid
+from .grid import VoronoiDelaunayGrid
+from .grid import create_grid
 from .grid.linkstatus import LinkStatus
 from .grid.nodestatus import NodeStatus
-from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid, imshowhs_grid_at_node
-
-with contextlib.suppress(TypeError):
-    set_printoptions(legacy="1.13")
-del set_printoptions
+from .plot import imshow_grid
+from .plot import imshow_grid_at_node
+from .plot import imshowhs_grid
+from .plot import imshowhs_grid_at_node
 
 cite_as = registry.format_citations
 

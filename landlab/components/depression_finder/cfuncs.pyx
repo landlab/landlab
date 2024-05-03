@@ -19,8 +19,8 @@ cpdef find_lowest_node_on_lake_perimeter_c(
         np.ndarray[DTYPE_FLOAT_t, ndim=1] elev,
         np.ndarray[DTYPE_INT_t, ndim=1] nodes_this_depression,
         DTYPE_INT_t pit_count,
-        DTYPE_FLOAT_t BIG_ELEV
-    ):
+        DTYPE_FLOAT_t BIG_ELEV,
+):
     """Locate the lowest node on the margin of the "lake".
 
     Parameters
@@ -50,7 +50,9 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, DepressionFinderAndRouter
-    >>> from landlab.components.flow_routing.cfuncs import find_lowest_node_on_lake_perimeter_c
+    >>> from landlab.components.flow_routing.cfuncs import (
+    ...     find_lowest_node_on_lake_perimeter_c
+    ... )
     >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y

@@ -7,7 +7,8 @@ import numpy as np
 from landlab import RasterModelGrid
 from landlab.io import write_legacy_vtk
 
-EXPECTED_VTK_FOR_RASTER = """# vtk DataFile Version 2.0
+EXPECTED_VTK_FOR_RASTER = """\
+# vtk DataFile Version 2.0
 Landlab output
 ASCII
 DATASET UNSTRUCTURED_GRID

@@ -12,6 +12,7 @@ The `wrap_as_bmi` function wraps a landlab component class so that it
 exposes a Basic Modelling Interface.
 
 """
+
 import inspect
 
 import numpy as np
@@ -20,7 +21,8 @@ from bmipy import Bmi
 from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
-from ..grid import HexModelGrid, RasterModelGrid
+from ..grid import HexModelGrid
+from ..grid import RasterModelGrid
 from ..grid.create import create_grid
 
 BMI_LOCATION = {
@@ -45,7 +47,6 @@ BMI_GRID = {
 
 
 class TimeStepper:
-
     """Step through time.
 
     Parameters
@@ -358,9 +359,9 @@ def wrap_as_bmi(cls):
             self._clock = TimeStepper(**clock_params)
 
             self._base = self._cls(grid, **params.pop(snake_case(cls.__name__), {}))
-            self._base.grid.at_node[
-                "boundary_condition_flag"
-            ] = self._base.grid.status_at_node
+            self._base.grid.at_node["boundary_condition_flag"] = (
+                self._base.grid.status_at_node
+            )
 
         def update(self):
             """Update the component one time step."""

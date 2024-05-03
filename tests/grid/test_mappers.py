@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.grid.mappers import map_upwind_node_link_max_to_node
 
 

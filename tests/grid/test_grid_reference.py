@@ -2,7 +2,9 @@ import numpy as np
 import pytest
 from pytest import approx
 
-from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
+from landlab import HexModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
 
 
 def test_xy_of_reference_default_is_zero():

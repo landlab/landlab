@@ -65,10 +65,10 @@ def get_midpoint_of_link(graph, out=None):
 
     >>> graph = UniformRectilinearGraph((2, 2))
     >>> get_midpoint_of_link(graph)
-    array([[ 0.5,  0. ],
-           [ 0. ,  0.5],
-           [ 1. ,  0.5],
-           [ 0.5,  1. ]])
+    array([[0.5, 0. ],
+           [0. , 0.5],
+           [1. , 0.5],
+           [0.5, 1. ]])
 
     >>> points = np.empty((graph.number_of_links, 2), dtype=float)
     >>> rtn = get_midpoint_of_link(graph, out=points)

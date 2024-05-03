@@ -3,7 +3,9 @@
 from collections import OrderedDict
 
 import numpy as np
-from matplotlib import cm, colors, pyplot as plt
+from matplotlib import cm
+from matplotlib import colors
+from matplotlib import pyplot as plt
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
@@ -98,9 +100,9 @@ class Profiler(_BaseProfiler):
     >>> profiler.data_structure[0]["ids"]
     array([10, 11, 12, 13, 14, 15, 16])
     >>> profiler.data_structure[0]["distances"]
-    array([  0.,  10.,  20.,  30.,  40.,  50.,  60.])
+    array([ 0., 10., 20., 30., 40., 50., 60.])
     >>> np.round(profiler.data_structure[0]["color"], decimals=2)
-    array([ 0.27,  0.  ,  0.33,  1.  ])
+    array([0.27, 0.  , 0.33, 1.  ])
 
     Note that the first node of the second segment is the same as the final
     node of the first segment.

@@ -2,6 +2,7 @@
 
 .. codeauthor:: gtucker, DEJH (Flow routing)
 """
+
 # Routing by DEJH, Oct 15.
 
 
@@ -24,7 +25,6 @@ use_cfuncs = True
 
 
 class DepressionFinderAndRouter(Component):
-
     """Find depressions on a topographic surface.
 
     This component identifies depressions in a topographic surface, finds an
@@ -72,13 +72,13 @@ class DepressionFinderAndRouter(Component):
            [35, 35, 30, 31, 32, 32, 41],
            [42, 43, 44, 45, 46, 47, 48]])
     >>> mg.at_node["drainage_area"].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  3.  ,  0.75,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  2.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ],
+           [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
+           [0.25, 0.25, 5.  , 1.5 , 1.  , 0.25, 0.  ],
+           [0.25, 0.25, 3.  , 0.75, 0.5 , 0.25, 0.  ],
+           [0.25, 0.25, 2.  , 1.5 , 1.  , 0.25, 0.  ],
+           [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
+           [0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ]])
     >>> df = DepressionFinderAndRouter(mg)
     >>> df.map_depressions()  # reroute_flow defaults to True
     >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
@@ -90,13 +90,13 @@ class DepressionFinderAndRouter(Component):
            [35, 35, 30, 31, 32, 32, 41],
            [42, 43, 44, 45, 46, 47, 48]])
     >>> mg.at_node["drainage_area"].reshape(mg.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
-           [ 5.25,  5.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.25,  0.25,  5.  ,  1.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.75,  2.25,  0.5 ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.5 ,  0.5 ,  1.  ,  0.25,  0.  ],
-           [ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ],
+           [5.25, 5.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
+           [0.25, 0.25, 5.  , 1.5 , 1.  , 0.25, 0.  ],
+           [0.25, 0.25, 0.75, 2.25, 0.5 , 0.25, 0.  ],
+           [0.25, 0.25, 0.5 , 0.5 , 1.  , 0.25, 0.  ],
+           [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
+           [0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ]])
     >>> df.lake_at_node.reshape(mg.shape)
     array([[False, False, False, False, False, False, False],
            [False, False, False, False, False, False, False],
@@ -104,7 +104,7 @@ class DepressionFinderAndRouter(Component):
            [False, False,  True,  True,  True, False, False],
            [False, False,  True,  True,  True, False, False],
            [False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False]], dtype=bool)
+           [False, False, False, False, False, False, False]])
     >>> df.lake_map.reshape(mg.shape)
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
@@ -118,7 +118,7 @@ class DepressionFinderAndRouter(Component):
     >>> df.lake_outlets  # the outlet node of each lake in lake_codes
     array([8])
     >>> df.lake_areas  # the area of each lake in lake_codes
-    array([ 2.25])
+    array([2.25])
 
     Because ``rereoute_flow`` defaults to ``True``, the flow connectivity fields
     created by the :py:class:`~landlab.components.flow_accum.FlowAccumulator`
@@ -403,12 +403,12 @@ class DepressionFinderAndRouter(Component):
 
         # These two lines assign the False flag to any node that is higher
         # than its partner on the other end of its link
-        self._is_pit[
-            h_orth[np.where(self._elev[h_orth] > self._elev[t_orth])[0]]
-        ] = False
-        self._is_pit[
-            t_orth[np.where(self._elev[t_orth] > self._elev[h_orth])[0]]
-        ] = False
+        self._is_pit[h_orth[np.where(self._elev[h_orth] > self._elev[t_orth])[0]]] = (
+            False
+        )
+        self._is_pit[t_orth[np.where(self._elev[t_orth] > self._elev[h_orth])[0]]] = (
+            False
+        )
 
         # If we have a raster grid, handle the diagonal active links too
         # (At the moment, their data structure is a bit different)

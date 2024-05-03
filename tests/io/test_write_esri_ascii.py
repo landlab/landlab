@@ -6,7 +6,8 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.io import read_esri_ascii, write_esri_ascii
+from landlab.io import read_esri_ascii
+from landlab.io import write_esri_ascii
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

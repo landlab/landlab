@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from functools import cached_property
 
 import numpy as np
@@ -16,48 +17,39 @@ class StructuredQuadLayout(ABC):
 
     @staticmethod
     @abstractmethod
-    def links_at_patch(shape):
-        ...
+    def links_at_patch(shape): ...
 
     @staticmethod
     @abstractmethod
-    def nodes_at_link(shape):
-        ...
+    def nodes_at_link(shape): ...
 
     @staticmethod
     @abstractmethod
-    def horizontal_links(shape):
-        ...
+    def horizontal_links(shape): ...
 
     @staticmethod
     @abstractmethod
-    def vertical_links(shape):
-        ...
+    def vertical_links(shape): ...
 
     @staticmethod
     @abstractmethod
-    def perimeter_nodes(shape):
-        ...
+    def perimeter_nodes(shape): ...
 
     @staticmethod
     @abstractmethod
-    def links_at_node(shape):
-        ...
+    def links_at_node(shape): ...
 
     @staticmethod
     @abstractmethod
-    def patches_at_link(shape):
-        ...
+    def patches_at_link(shape): ...
 
     @staticmethod
     @abstractmethod
-    def link_dirs_at_node(shape):
-        ...
+    def link_dirs_at_node(shape): ...
 
     @staticmethod
     @abstractmethod
-    def patches_at_node(shape):
-        ...
+    def patches_at_node(shape): ...
 
 
 class StructuredQuadLayoutCython(StructuredQuadLayout):
@@ -658,7 +650,6 @@ class StructuredQuadGraph(StructuredQuadGraphExtras):
 
 
 class RectilinearGraph(StructuredQuadGraphExtras):
-
     """Graph of a rectlinear grid of nodes.
 
     Examples
@@ -668,15 +659,15 @@ class RectilinearGraph(StructuredQuadGraphExtras):
     >>> graph.number_of_nodes
     12
     >>> graph.y_of_node.reshape(graph.shape)
-    array([[ 0.,  0.,  0.],
-           [ 1.,  1.,  1.],
-           [ 2.,  2.,  2.],
-           [ 3.,  3.,  3.]])
+    array([[0., 0., 0.],
+           [1., 1., 1.],
+           [2., 2., 2.],
+           [3., 3., 3.]])
     >>> graph.x_of_node.reshape(graph.shape)
-    array([[ 1.,  4.,  8.],
-           [ 1.,  4.,  8.],
-           [ 1.,  4.,  8.],
-           [ 1.,  4.,  8.]])
+    array([[1., 4., 8.],
+           [1., 4., 8.],
+           [1., 4., 8.],
+           [1., 4., 8.]])
     """
 
     def __init__(self, nodes, sort=False):
@@ -695,7 +686,6 @@ class RectilinearGraph(StructuredQuadGraphExtras):
 
 
 class UniformRectilinearGraph(StructuredQuadGraphExtras):
-
     """Graph of a structured grid of quadrilaterals.
 
     Examples
@@ -710,10 +700,10 @@ class UniformRectilinearGraph(StructuredQuadGraphExtras):
            [ 1.,  1.,  1.],
            [ 2.,  2.,  2.]])
     >>> graph.x_of_node.reshape(graph.shape)
-    array([[ 0.,  2.,  4.],
-           [ 0.,  2.,  4.],
-           [ 0.,  2.,  4.],
-           [ 0.,  2.,  4.]])
+    array([[0.,  2.,  4.],
+           [0.,  2.,  4.],
+           [0.,  2.,  4.],
+           [0.,  2.,  4.]])
     >>> graph.links_at_node
     array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
            [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],

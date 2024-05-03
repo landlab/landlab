@@ -36,10 +36,11 @@ Now operate on the link values for each node.
 >>> values_at_node.foreach_row(sum)
 array([  6.,   8.,   9.,  17.,  22.,  22.,  11.,  19.,  16.])
 >>> values_at_node.foreach_row(min)
-array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
+array([0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 >>> values_at_node.foreach_row(np.ptp)
-array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
+array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
+
 import numpy as np
 
 
@@ -117,7 +118,6 @@ def unravel(data, offset, out=None, pad=None):
 
 
 class JaggedArray:
-
     """A container for an array of variable-length arrays.
 
     JaggedArray([row0, row1, ...])

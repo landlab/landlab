@@ -7,13 +7,12 @@ the surface over which flow will be routed to the component, and sets up
 part of the boundary condition testing.
 """
 
-from landlab import RasterModelGrid  # for type tests
 from landlab import Component
+from landlab import RasterModelGrid  # for type tests
 from landlab.utils.return_array import return_array_at_node
 
 
 class _FlowDirector(Component):
-
     """Private class for creating components to calculate flow directions.
 
     This class is not meant to be used directly in modeling efforts.
@@ -47,7 +46,7 @@ class _FlowDirector(Component):
     ... )
     >>> fd = _FlowDirector(mg, "topographic__elevation")
     >>> fd.surface_values
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    array([0., 1., 2., 1., 2., 3., 2., 3., 4.])
     >>> "topographic__elevation" in mg.at_node.keys()
     True
     >>> "flow__sink_flag" in mg.at_node.keys()
@@ -60,7 +59,7 @@ class _FlowDirector(Component):
     >>> z = np.array([0.0, 1.0, 2.0, 1.0, 2.0, 3.0, 2.0, 3.0, 4.0])
     >>> fd = _FlowDirector(mg, z)
     >>> fd.surface_values
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    array([0., 1., 2., 1., 2., 3., 2., 3., 4.])
     """
 
     _name = "_FlowDirector"

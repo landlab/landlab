@@ -6,13 +6,13 @@ Created on Wed May 31 11:41:20 2023
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 from landlab.grid.mappers import map_value_at_max_node_to_link
 from landlab.utils.return_array import return_array_at_node
 
 
 class ConcentrationTrackerForDiffusion(Component):
-
     """Track the concentration of any user-defined property.
 
     This component tracks the concentration of any user-defined property of
@@ -79,13 +79,13 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct.run_one_step(1.0)
 
     >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
-    array([[ 0. ,   4.        ,   8.        ,  12.        , 16. ],
-           [ 0. ,   4.11701964,   8.01583689,  11.00247875, 16. ],
-           [ 0. ,   4.        ,   8.        ,  12.        , 16. ]])
+    array([[ 0. ,  4.        ,  8.        , 12.        , 16. ],
+           [ 0. ,  4.11701964,  8.01583689, 11.00247875, 16. ],
+           [ 0. ,  4.        ,  8.        , 12.        , 16. ]])
     >>> mg.at_node["sediment_property__concentration"].reshape(mg.shape)
-    array([[ 0. , 0. , 0.        , 0. , 0. ],
-           [ 0. , 0. , 0.24839685, 1. , 0. ],
-           [ 0. , 0. , 0.        , 0. , 0. ]])
+    array([[0. , 0. , 0.        , 0. , 0. ],
+           [0. , 0. , 0.24839685, 1. , 0. ],
+           [0. , 0. , 0.        , 0. , 0. ]])
 
     Now, a 2-D pyramid-shaped hillslope.
 
@@ -108,13 +108,13 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct.run_one_step(1.0)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
-    array([[ 6. , 7.13533528, 6. ],
-           [ 7.13533528, 8.27067057, 7.13533528],
-           [ 6. , 7.13533528, 6. ]])
+    array([[6. ,        7.13533528, 6. ],
+           [7.13533528, 8.27067057, 7.13533528],
+           [6. ,        7.13533528, 6. ]])
     >>> mg.at_node["sediment_property__concentration"][mg.core_nodes].reshape((3, 3))
-    array([[ 0. , 0.38079708, 0. ],
-           [ 0.38079708, 1. , 0.38079708],
-           [ 0. , 0.38079708, 0. ]])
+    array([[0.        , 0.38079708, 0. ],
+           [0.38079708, 1.        , 0.38079708],
+           [0.        , 0.38079708, 0. ]])
 
     And running one more step.
 
@@ -122,13 +122,13 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct.run_one_step(1.0)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
-    array([[ 5.52060315, 6.62473963, 5.52060315],
-           [ 6.62473963, 8.00144598, 6.62473963],
-           [ 5.52060315, 6.62473963, 5.52060315]])
+    array([[5.52060315, 6.62473963, 5.52060315],
+           [6.62473963, 8.00144598, 6.62473963],
+           [5.52060315, 6.62473963, 5.52060315]])
     >>> mg.at_node["sediment_property__concentration"][mg.core_nodes].reshape((3, 3))
-    array([[ 0.09648071, 0.44750673, 0.09648071],
-           [ 0.44750673, 1.        , 0.44750673],
-           [ 0.09648071, 0.44750673, 0.09648071]])
+    array([[0.09648071, 0.44750673, 0.09648071],
+           [0.44750673, 1.        , 0.44750673],
+           [0.09648071, 0.44750673, 0.09648071]])
 
     Finally, the same 2D hillslope now using the DepthDependentTaylorDiffuser.
     Note that the timestep must be smaller than 1 to maintain stability in the
@@ -158,13 +158,13 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ct.run_one_step(0.4)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
-    array([[ 6.        , 7.30826823, 6.        ],
-           [ 7.30826823, 8.61653645, 7.30826823],
-           [ 6.        , 7.30826823, 6.        ]])
+    array([[6.        , 7.30826823, 6.        ],
+           [7.30826823, 8.61653645, 7.30826823],
+           [6.        , 7.30826823, 6.        ]])
     >>> mg.at_node["sediment_property__concentration"][mg.core_nodes].reshape((3, 3))
-    array([[ 0.        , 0.26436925, 0.        ],
-           [ 0.26436925, 1.        , 0.26436925],
-           [ 0.        , 0.26436925, 0.        ]])
+    array([[0.        , 0.26436925, 0.        ],
+           [0.26436925, 1.        , 0.26436925],
+           [0.        , 0.26436925, 0.        ]])
 
     References
     ----------

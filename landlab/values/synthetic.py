@@ -55,13 +55,13 @@ Create a tetrahedron by adding planes selectively using ``where``.
 ...     normal=(-1, 1, 1),
 ... )
 >>> mg.at_node["topographic__elevation"]
-array([ 0.,  1.,  2.,  3.,  2.,  1.,  0.,
-        1.,  2.,  3.,  4.,  3.,  2.,  1.,
-        2.,  3.,  4.,  5.,  4.,  3.,  2.,
-        3.,  4.,  5.,  6.,  5.,  4.,  3.,
-        2.,  3.,  4.,  5.,  4.,  3.,  2.,
-        1.,  2.,  3.,  4., 3.,   2.,  1.,
-        0.,  1.,  2.,  3.,  2.,  1.,  0.])
+array([0.,  1.,  2.,  3.,  2.,  1.,  0.,
+       1.,  2.,  3.,  4.,  3.,  2.,  1.,
+       2.,  3.,  4.,  5.,  4.,  3.,  2.,
+       3.,  4.,  5.,  6.,  5.,  4.,  3.,
+       2.,  3.,  4.,  5.,  4.,  3.,  2.,
+       1.,  2.,  3.,  4., 3.,   2.,  1.,
+       0.,  1.,  2.,  3.,  2.,  1.,  0.])
 
 Next add uniformly distributed noise.
 
@@ -69,13 +69,13 @@ Next add uniformly distributed noise.
 ...     mg, "topographic__elevation", where=NodeStatus.CORE, distribution="uniform"
 ... )
 >>> np.round(mg.at_node["topographic__elevation"], decimals=3)
-array([ 0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ,
-        1.   ,  2.375,  3.951,  4.732,  3.599,  2.156,  1.   ,
-        2.   ,  3.156,  4.058,  5.866,  4.601,  3.708,  2.   ,
-        3.   ,  4.021,  5.97 ,  6.832,  5.212,  4.182,  3.   ,
-        2.   ,  3.183,  4.304,  5.525,  4.432,  3.291,  2.   ,
-        1.   ,  2.612,  3.139,  4.292,  3.366,  2.456,  1.   ,
-        0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ])
+array([0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ,
+       1.   ,  2.375,  3.951,  4.732,  3.599,  2.156,  1.   ,
+       2.   ,  3.156,  4.058,  5.866,  4.601,  3.708,  2.   ,
+       3.   ,  4.021,  5.97 ,  6.832,  5.212,  4.182,  3.   ,
+       2.   ,  3.183,  4.304,  5.525,  4.432,  3.291,  2.   ,
+       1.   ,  2.612,  3.139,  4.292,  3.366,  2.456,  1.   ,
+       0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ])
 
 At present only a small selection of possible synthetic functions exist. If
 your research requires additional functions, consider contributing one back to
@@ -88,6 +88,7 @@ They all take two keyword arguments: ``at``, which specifies which grid element
 values are placed, and ``where``, which indicates where the values are placed.
 Additional keyword arguments are required as needed by each function.
 """
+
 from collections import defaultdict
 
 import numpy as np
@@ -228,10 +229,10 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     ...     low=2.0,
     ... )
     >>> mg.at_node["soil__depth"]
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  2.37454012,  2.95071431,  0.        ,
-            0.        ,  2.73199394,  2.59865848,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ])
+    array([0.        ,  0.        ,  0.        ,  0.        ,
+           0.        ,  2.37454012,  2.95071431,  0.        ,
+           0.        ,  2.73199394,  2.59865848,  0.        ,
+           0.        ,  0.        ,  0.        ,  0.        ])
     """
     where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
@@ -286,10 +287,10 @@ def plane(
     ...     mg, "soil__depth", "node", point=(0.0, 0.0, 0.0), normal=(-1.0, -1.0, 1.0)
     ... )
     >>> mg.at_node["soil__depth"]
-    array([ 0.,  1.,  2.,  3.,
-            1.,  2.,  3.,  4.,
-            2.,  3.,  4.,  5.,
-            3.,  4.,  5.,  6.])
+    array([0.,  1.,  2.,  3.,
+           1.,  2.,  3.,  4.,
+           2.,  3.,  4.,  5.,
+           3.,  4.,  5.,  6.])
     """
     x, y = _get_x_and_y(grid, at)
 

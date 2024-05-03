@@ -1,0 +1,3 @@
+
+Added a new linter, *cython-lint*, that checks for lint in cython
+files.
