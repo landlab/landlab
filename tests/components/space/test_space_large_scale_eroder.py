@@ -1322,7 +1322,7 @@ def test_MassBalance():
         fa.run_one_step()
         soil_B = cp.deepcopy(H)
         bed_B = cp.deepcopy(br)
-        vol_SSY_riv, V_leaving_riv = sp.run_one_step(dt=dt)
+        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective =  sp.run_one_step(dt=dt)
         diff_MB = (
             np.sum((bed_B[cores] - br[cores]) * area[cores])
             + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
@@ -1351,3 +1351,112 @@ def test_MassBalance():
             ),
             verbose=True,
         )
+        
+        #Check mass balance on effective erosion and deposition values
+        soil_new_calc = soil_B + (depo_effective- ero_sed_effective)*dt
+        np.testing.assert_almost_equal( H[mg.core_nodes],soil_new_calc[mg.core_nodes],decimal=8)
+
+# %%
+@pytest.mark.slow
+def test_MassBalance_lower_pore_density():
+    # %%
+    # set up a 15x15 grid with one open outlet node and low initial elevations.
+    nr = 15
+    nc = 15
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
+
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
+
+    mg["node"]["topographic__elevation"] += (
+        mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
+    )
+    mg.set_closed_boundaries_at_grid_edges(
+        bottom_is_closed=True,
+        left_is_closed=True,
+        right_is_closed=True,
+        top_is_closed=True,
+    )
+    mg.set_watershed_boundary_condition_outlet_id(
+        0, mg["node"]["topographic__elevation"], -9999.0
+    )
+    soil[:] += 0.0  # initial condition of no soil depth.
+    br[:] = z[:]
+    z[:] += soil[:]
+
+    # Create a D8 flow handler
+    fa = FlowAccumulator(
+        mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
+    )
+
+    # Parameter values for detachment-limited test
+    K_br = 0.002
+    K_sed = 0.002
+    U = 0.0001
+    dt = 10.0
+    F_f = 0.2  # all detached rock disappears; detachment-ltd end-member
+    m_sp = 0.5
+    n_sp = 1.0
+    v_s = 0.25
+    H_star = 0.1
+
+    # Instantiate the Space component...
+    sp = SpaceLargeScaleEroder(
+        mg,
+        K_sed=K_sed,
+        K_br=K_br,
+        F_f=F_f,
+        phi=0.4,
+        H_star=H_star,
+        v_s=v_s,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        sp_crit_sed=0,
+        sp_crit_br=0,
+    )
+    # Get values before run
+    z = mg.at_node["topographic__elevation"]
+    br = mg.at_node["bedrock__elevation"]
+    H = mg.at_node["soil__depth"]
+    cores = mg.core_nodes
+    area = mg.cell_area_at_node
+
+    # ... and run it to steady state (10000x1-year timesteps).
+    for _ in range(10000):
+        fa.run_one_step()
+        soil_B = cp.deepcopy(H)
+        bed_B = cp.deepcopy(br)
+        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective =  sp.run_one_step(dt=dt)
+        diff_MB = (
+            np.sum((bed_B[cores] - br[cores]) * area[cores])
+            + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
+            - vol_SSY_riv * dt
+            - V_leaving_riv
+        )
+
+        br[mg.core_nodes] += U * dt  # m
+        soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
+        z[:] = br[:] + soil[:]
+
+        # Test Every iteration
+        testing.assert_array_almost_equal(
+            z[cores],
+            br[cores] + H[cores],
+            decimal=5,
+            err_msg="Topography does not equal sum of bedrock and soil! Decrease timestep",
+            verbose=True,
+        )
+        testing.assert_array_less(
+            abs(diff_MB),
+            1e-8 * mg.number_of_nodes,
+            err_msg=(
+                "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
+                "becreasing timestep"
+            ),
+            verbose=True,
+        )
+        
+        #Check mass balance on effective erosion and deposition values
+        soil_new_calc = soil_B + (depo_effective- ero_sed_effective)*dt
+        np.testing.assert_almost_equal( H[mg.core_nodes],soil_new_calc[mg.core_nodes],decimal=8)

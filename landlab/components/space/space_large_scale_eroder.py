@@ -546,6 +546,10 @@ class SpaceLargeScaleEroder(Component):
         self.sediment_influx[:] = 0
 
         K_sed_vector = np.broadcast_to(self._K_sed, self._q.shape)
+        
+        ero_sed_effective = np.zeros_like(K_sed_vector)
+        depo_effective = np.zeros_like(K_sed_vector)
+
 
         vol_SSY_riv = _sequential_ero_depo(
             stack_flip_ud_sel,
@@ -563,6 +567,8 @@ class SpaceLargeScaleEroder(Component):
             self._sed_erosion_term,
             self._br_erosion_term,
             K_sed_vector,
+            ero_sed_effective,
+            depo_effective,
             self._v_s,
             self._phi,
             self._F_f,
@@ -576,8 +582,16 @@ class SpaceLargeScaleEroder(Component):
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]
 
-        return vol_SSY_riv, V_leaving_riv
+        return vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective
 
     def run_one_step(self, dt):
-        vol_SSY_riv, V_leaving_riv = self.run_one_step_basic(dt)
-        return vol_SSY_riv, V_leaving_riv
+        '''
+        Returns:
+        - vol_SSY_riv (float): Volume of suspended sediment yield leaving the domain as wash load 
+        - V_leaving_riv (float): Volume of bedload sediment leaving the domain during the time step.
+        - ero_sed_effective (float): Effective erosion of sediment [L/T].
+        - depo_effective (float): Effective deposition [L/T].
+        '''
+        
+        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective = self.run_one_step_basic(dt)
+        return vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective

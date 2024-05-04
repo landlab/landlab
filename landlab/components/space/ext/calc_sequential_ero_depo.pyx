@@ -36,6 +36,8 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] ero_sed_effective,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] depo_effective,
                     DTYPE_FLOAT_t v,
                     DTYPE_FLOAT_t phi,
                     DTYPE_FLOAT_t F_f,
@@ -96,5 +98,13 @@ def _sequential_ero_depo(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
 
         H[node_id] = H_loc
         br[node_id]  += -dt * ero_bed
+        
         vol_SSY_riv += F_f*ero_bed* cell_area[node_id]
+        
+        #Update deposition rate based on adjusted fluxes
+        Hd = H_loc - H_Before
+        depo_effective[node_id]  =  (v*qs_out_adj/q[node_id])/(1 - phi)
+        #deposition should be larger or equal to increase in soil depth 
+        depo_effective[node_id] = max(depo_effective[node_id],Hd/dt)
+        ero_sed_effective[node_id]  = depo_effective[node_id] - Hd/dt
     return vol_SSY_riv
