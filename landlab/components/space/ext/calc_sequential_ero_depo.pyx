@@ -17,8 +17,6 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_UINT8 = np.uint8
 ctypedef np.uint8_t DTYPE_UINT8_t
 
-
-
 def _sequential_ero_depo(
                     np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
                     np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
@@ -119,10 +117,10 @@ def _sequential_ero_depo(
         br[node_id] += -dt * ero_bed
         vol_SSY_riv += F_f*ero_bed* cell_area[node_id]
 
-        #Update deposition rate based on adjusted fluxes
+        # Update deposition rate based on adjusted fluxes
         Hd = H_loc - H_Before
-        depo_effective[node_id]  =  (v*qs_out_adj/q[node_id])/(1 - phi)
-        #Deposition should be larger or equal to increase in soil depth
-        depo_effective[node_id] = max(depo_effective[node_id],Hd/dt)
-        ero_sed_effective[node_id]  = depo_effective[node_id] - Hd/dt
+        depo_effective[node_id] = (v*qs_out_adj/q[node_id])/(1 - phi)
+        # Deposition should be larger or equal to increase in soil depth
+        depo_effective[node_id] = max(depo_effective[node_id], Hd/dt)
+        ero_sed_effective[node_id] = depo_effective[node_id] - Hd/dt
     return vol_SSY_riv
