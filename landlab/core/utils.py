@@ -25,9 +25,14 @@ import os
 import pathlib
 import re
 import shutil
+import sys
 
 import numpy as np
-import pkg_resources
+
+if sys.version_info >= (3, 12):  # pragma: no cover (PY12+)
+    import importlib.resources as importlib_resources
+else:  # pragma: no cover (<PY312)
+    import importlib_resources
 
 SIZEOF_INT = np.dtype(int).itemsize
 
@@ -38,9 +43,7 @@ class ExampleData:
         self._case = case
 
         self._base = pathlib.Path(
-            pkg_resources.resource_filename(
-                "landlab", str(pathlib.Path("data").joinpath(example, case))
-            )
+            importlib_resources.files("landlab") / "data" / example / case
         )
 
     @property
@@ -155,7 +158,7 @@ def radians_to_degrees(rads):
     >>> radians_to_degrees(-3 * np.pi / 2.0)
     0.0
     >>> radians_to_degrees(np.array([-np.pi, np.pi]))
-    array([ 270.,  270.])
+    array([270., 270.])
     """
     degrees = (5.0 * np.pi / 2.0 - rads) % (2.0 * np.pi)
     return 180.0 / np.pi * degrees

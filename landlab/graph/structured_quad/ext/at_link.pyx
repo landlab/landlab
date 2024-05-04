@@ -100,7 +100,6 @@ def fill_nodes_at_link(shape, np.ndarray[DTYPE_t, ndim=2] nodes_at_link):
     cdef int node
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
-    cdef int n_links = (2 * n_cols - 1) * n_rows - n_cols
     cdef int links_per_row = 2 * n_cols - 1
 
     # Horizontal links

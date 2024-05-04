@@ -87,8 +87,8 @@ def _argsort_points_by_x_then_y(np.ndarray[DTYPE_INT_t, ndim=1] pts,
     cdef np.ndarray[DTYPE_INT_t, ndim=1] a
     cdef np.ndarray[DTYPE_INT_t, ndim=1] b
 
-    a = pts[:, 0].argsort(kind='mergesort')
-    b = pts[a, 1].argsort(kind='mergesort')
+    a = pts[:, 0].argsort(kind="mergesort")
+    b = pts[a, 1].argsort(kind="mergesort")
     out[:] = a[b]
 
 
