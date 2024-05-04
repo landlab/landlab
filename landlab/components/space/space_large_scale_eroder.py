@@ -586,13 +586,16 @@ class SpaceLargeScaleEroder(Component):
     def run_one_step(self, dt):
         """
         Returns:
-        - vol_SSY_riv (float): Volume of suspended sediment yield leaving the domain as wash load
-        - V_leaving_riv (float): Volume of bedload sediment leaving the domain during the time step.
+        - vol_SSY_riv (float): Suspended sediment yield leaving the domain as wash load
+        - V_leaving_riv (float): Volume of bedload sediment leaving the domain.
         - ero_sed_effective (float): Effective erosion of sediment [L/T].
         - depo_effective (float): Effective deposition [L/T].
         """
 
-        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective = (
-            self.run_one_step_basic(dt)
-        )
+        (
+            vol_SSY_riv,
+            V_leaving_riv,
+            ero_sed_effective,
+            depo_effective,
+        ) = self.run_one_step_basic(dt)
         return vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective
