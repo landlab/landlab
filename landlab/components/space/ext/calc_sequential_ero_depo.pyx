@@ -17,6 +17,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_UINT8 = np.uint8
 ctypedef np.uint8_t DTYPE_UINT8_t
 
+
 def _sequential_ero_depo(
                     np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
                     np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
