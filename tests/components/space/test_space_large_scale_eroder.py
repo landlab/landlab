@@ -1322,7 +1322,9 @@ def test_MassBalance():
         fa.run_one_step()
         soil_B = cp.deepcopy(H)
         bed_B = cp.deepcopy(br)
-        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective =  sp.run_one_step(dt=dt)
+        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective = sp.run_one_step(
+            dt=dt
+        )
         diff_MB = (
             np.sum((bed_B[cores] - br[cores]) * area[cores])
             + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
@@ -1351,10 +1353,13 @@ def test_MassBalance():
             ),
             verbose=True,
         )
-        
-        #Check mass balance on effective erosion and deposition values
-        soil_new_calc = soil_B + (depo_effective- ero_sed_effective)*dt
-        np.testing.assert_almost_equal( H[mg.core_nodes],soil_new_calc[mg.core_nodes],decimal=8)
+
+        # Check mass balance on effective erosion and deposition values
+        soil_new_calc = soil_B + (depo_effective - ero_sed_effective) * dt
+        np.testing.assert_almost_equal(
+            H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
+        )
+
 
 # %%
 @pytest.mark.slow
@@ -1427,7 +1432,9 @@ def test_MassBalance_lower_pore_density():
         fa.run_one_step()
         soil_B = cp.deepcopy(H)
         bed_B = cp.deepcopy(br)
-        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective =  sp.run_one_step(dt=dt)
+        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective = sp.run_one_step(
+            dt=dt
+        )
         diff_MB = (
             np.sum((bed_B[cores] - br[cores]) * area[cores])
             + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
@@ -1456,7 +1463,9 @@ def test_MassBalance_lower_pore_density():
             ),
             verbose=True,
         )
-        
-        #Check mass balance on effective erosion and deposition values
-        soil_new_calc = soil_B + (depo_effective- ero_sed_effective)*dt
-        np.testing.assert_almost_equal( H[mg.core_nodes],soil_new_calc[mg.core_nodes],decimal=8)
+
+        # Check mass balance on effective erosion and deposition values
+        soil_new_calc = soil_B + (depo_effective - ero_sed_effective) * dt
+        np.testing.assert_almost_equal(
+            H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
+        )

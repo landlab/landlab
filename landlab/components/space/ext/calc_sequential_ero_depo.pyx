@@ -118,7 +118,7 @@ def _sequential_ero_depo(
         H[node_id] = H_loc
         br[node_id] += -dt * ero_bed
         vol_SSY_riv += F_f*ero_bed* cell_area[node_id]
-        
+
         #Update deposition rate based on adjusted fluxes
         Hd = H_loc - H_Before
         depo_effective[node_id]  =  (v*qs_out_adj/q[node_id])/(1 - phi)
