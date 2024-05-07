@@ -1,7 +1,192 @@
-#! /usr/bin/env python
-
 import os
 import pathlib
+from enum import IntEnum
+from enum import unique
+
+import numpy as np
+
+
+def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
+    """Format a grid in VTK legacy format.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A *Landlab* grid.
+    stream : file_like, optional
+        File-like object to write the formatted output. If not provided,
+        return the formatted vtk as a string.
+    include : str, or iterable of str, optional
+        Glob-style pattern for field names to include.
+    exclude : str, or iterable of str, optional
+        Glob-style pattern for field names to exclude.
+    z_coord : array_like or str, optional
+        If the grid does not have a *z* coordinate, use this value. If
+        a ``str``, use the corresponding field.
+    at : 'node' or 'corner', optional
+        Use either the grid's *node*s (and *patches*) or *corners* (and *cells*).
+
+    Returns
+    -------
+    str or ``None``
+        The grid formatted as legacy VTK or ``None`` if an output stream
+        was provided.
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from landlab import HexModelGrid
+    >>> import landlab.io.legacy_vtk.legacy_vtk as vtk
+
+    >>> grid = HexModelGrid((3, 2))
+    >>> topo = grid.add_zeros("topographic__elevation", at="node")
+    >>> topo[:] = np.arange(len(topo))
+    >>> water = grid.add_zeros("surface_water__depth", at="node")
+    >>> water[:] = (7.0 - topo) / 10.0
+
+    >>> lines = vtk.dump(grid).splitlines()
+    >>> print(os.linesep.join(lines[:4]))
+    # vtk DataFile Version 2.0
+    Landlab output
+    ASCII
+    DATASET UNSTRUCTURED_GRID
+    """
+    content = _format_as_vtk(
+        grid, include=include, exclude=exclude, z_coord=z_coord, at=at
+    )
+    if stream is None:
+        return content
+    else:
+        stream.write(content)
+
+
+def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
+    if at not in ("node", "corner"):
+        raise ValueError(f"`at` keyword must be one of 'node' or 'corner' ({at})")
+
+    if at == "node":
+        point, cell = "node", "patch"
+    else:
+        point, cell = "corner", "cell"
+
+    at_point = getattr(grid, f"at_{point}")
+    at_cell = getattr(grid, f"at_{cell}")
+    points_at_cell = getattr(grid, f"{point}s_at_{cell}")
+
+    if isinstance(z_coord, str):
+        z_coord = at_point[z_coord]
+
+    try:
+        coords_of_point = getattr(grid, f"coords_of_{point}")
+    except AttributeError:
+        coords_of_point = np.pad(getattr(grid, f"xy_of_{point}"), ((0, 0), (0, 1)))
+        coords_of_point[:, -1] = z_coord
+
+    content = [
+        _format_vtk_header(),
+        _format_vtk_points(coords_of_point),
+        _format_vtk_cells(points_at_cell),
+    ]
+
+    fields = grid.fields(include=include, exclude=exclude)
+
+    point_fields = {
+        field.split(":")[1]: at_point[field.split(":")[1]]
+        for field in fields if field.startswith(f"at_{point}:")
+    }
+    if point_fields:
+        content.append(_format_vtk_point_data(point_fields))
+
+    cell_fields = {
+        field.split(":")[1]: at_point[field.split(":")[1]]
+        for field in fields if field.startswith(f"at_{cell}:")
+    }
+    if cell_fields:
+        content.append(_format_vtk_cell_data(cell_fields))
+
+    return (2 * os.linesep).join(content)
+
+
+@unique
+class CellType(IntEnum):
+    TRIANGLE = 3
+    QUAD = 9
+    POLYGON = 7
+
+
+VTK_CELL_TYPE = {
+    3: CellType.TRIANGLE,
+    4: CellType.QUAD,
+}
+
+
+def _format_vtk_header():
+    return """\
+# vtk DataFile Version 2.0
+Landlab output
+ASCII
+DATASET UNSTRUCTURED_GRID"""
+
+
+def _format_vtk_points(coords_of_points):
+    return os.linesep.join(
+        [f"POINTS {len(coords_of_points)} float"]
+        + [
+            " ".join(str(coord) for coord in coords)
+            for coords in coords_of_points
+        ]
+    )
+
+
+def _format_vtk_cells(points_at_cell):
+    cells = []
+    types = []
+    n_points = 0
+    for cell in points_at_cell:
+        points = [point for point in cell if point >= -1]
+        if points:
+            cells.append(f"{len(points)} " + " ".join(str(point) for point in points))
+            types.append(str(VTK_CELL_TYPE.get(len(points), CellType.POLYGON)))
+            n_points += len(points) + 1
+
+    cells_section = os.linesep.join(
+        [f"CELLS {len(cells)} {n_points}"] + cells
+    )
+
+    types_section = os.linesep.join(
+        [f"CELL_TYPES {len(types)}"] + types
+    )
+
+    return (2 * os.linesep).join([cells_section, types_section])
+
+
+def _format_vtk_point_data(point_data):
+    content = []
+    for name, value_at_point in point_data.items():
+        content.append(_format_vtk_scalar_data(value_at_point, name=name))
+        number_of_points = len(value_at_point)
+
+    return (2 * os.linesep).join([f"POINT_DATA {number_of_points}"] + content)
+
+
+def _format_vtk_cell_data(cell_data):
+    content = []
+    for name, value_at_cell in cell_data.items():
+        content.append(_format_vtk_scalar_data(value_at_cell, name=name))
+        number_of_cells = len(value_at_cell)
+
+    return (2 * os.linesep).join([f"CELL_DATA {number_of_cells}"] + content)
+
+
+def _format_vtk_scalar_data(values, name="data"):
+    return os.linesep.join(
+        [
+            f"""\
+SCALARS {name} float 1
+LOOKUP_TABLE default"""
+        ] + [str(value) for value in values]
+    )
 
 
 def _write_vtk_header(file_like):
