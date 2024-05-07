@@ -341,7 +341,7 @@ def _format_vtk_cells(points_at_cell):
         points = [point for point in cell if point >= -1]
         if points:
             cells.append(f"{len(points)} " + " ".join(str(point) for point in points))
-            types.append(str(VTK_CELL_TYPE.get(len(points), CellType.POLYGON)))
+            types.append(format(VTK_CELL_TYPE.get(len(points), CellType.POLYGON)))
             n_points += len(points) + 1
 
     cells_section = os.linesep.join([f"CELLS {len(cells)} {n_points}"] + cells)
