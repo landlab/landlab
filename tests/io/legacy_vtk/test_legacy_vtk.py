@@ -97,7 +97,7 @@ def test_dump(tmpdir):
         with open("grid.vtk") as fp:
             actual = fp.read()
 
-    assert actual == EXPECTED_VTK_FOR_RASTER
+    assert actual == EXPECTED_VTK_FOR_RASTER.replace("\n", os.linesep)
 
 
 def test_dump_patches():
