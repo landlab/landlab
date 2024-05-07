@@ -40,9 +40,9 @@ def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
     >>> import landlab.io.legacy_vtk as vtk
 
     >>> grid = HexModelGrid((3, 2))
-    >>> topo = grid.add_zeros("topographic__elevation", at="node")
-    >>> topo[:] = np.arange(len(topo))
-    >>> water = grid.add_zeros("surface_water__depth", at="node")
+
+    >>> topo = np.arange(grid.number_of_nodes)
+    >>> grid.at_node["topographic__elevation"] = topo
     >>> grid.at_node["surface_water__depth"] = (7.0 - topo) / 10.0
 
     >>> lines = vtk.dump(grid, z_coord=topo).splitlines()
@@ -357,23 +357,23 @@ def write_legacy_vtk(
     Examples
     --------
     >>> import io
+    >>> import os
     >>> import numpy as np
     >>> from landlab import HexModelGrid
     >>> from landlab.io.legacy_vtk import write_legacy_vtk
 
     >>> grid = HexModelGrid((3, 2))
-    >>> topo = grid.add_zeros("topographic__elevation", at="node")
-    >>> topo[:] = np.arange(len(topo))
-    >>> water = grid.add_zeros("surface_water__depth", at="node")
-    >>> water[:] = (7.0 - topo) / 10.0
+
+    >>> topo = np.arange(grid.number_of_nodes)
+    >>> grid.at_node["topographic__elevation"] = topo
+    >>> grid.at_node["surface_water__depth"] = (7.0 - topo) / 10.0
 
     >>> vtk_file = write_legacy_vtk(io.StringIO(), grid)
     >>> lines = vtk_file.getvalue().splitlines()
     >>> print(lines[0])
     # vtk DataFile Version 2.0
-    >>> for i in range(5, 13):
-    ...     print(lines[i])
-    ...
+
+    >>> print(os.linesep.join(lines[5:13]))
     POINTS 7 float
     0.5 0.0 0.0
     1.5 0.0 1.0
@@ -382,9 +382,8 @@ def write_legacy_vtk(
     2.0 0.866025 4.0
     0.5 1.732051 5.0
     1.5 1.732051 6.0
-    >>> for i in range(14, 21):
-    ...     print(lines[i])
-    ...
+
+    >>> print(os.linesep.join(lines[14:21]))
     CELLS 6 24
     3 3 0 1
     3 3 2 0
@@ -392,9 +391,8 @@ def write_legacy_vtk(
     3 5 2 3
     3 6 3 4
     3 6 5 3
-    >>> for i in range(22, 29):
-    ...     print(lines[i])
-    ...
+
+    >>> print(os.linesep.join(lines[22:29]))
     CELL_TYPES 6
     5
     5
@@ -402,19 +400,10 @@ def write_legacy_vtk(
     5
     5
     5
-    >>> for i in range(30, 49):
-    ...     print(lines[i])
-    ...
+
+    >>> print(os.linesep.join(lines[30:51]))
     POINT_DATA 7
-    SCALARS topographic__elevation float 1
-    LOOKUP_TABLE default
-    0.0
-    1.0
-    2.0
-    3.0
-    4.0
-    5.0
-    6.0
+    <BLANKLINE>
     SCALARS surface_water__depth float 1
     LOOKUP_TABLE default
     0.7
@@ -424,20 +413,36 @@ def write_legacy_vtk(
     0.3
     0.2
     0.1
+    <BLANKLINE>
+    SCALARS topographic__elevation float 1
+    LOOKUP_TABLE default
+    0.0
+    1.0
+    2.0
+    3.0
+    4.0
+    5.0
+    6.0
     """
     if isinstance(z_at_node, str):
         z_at_node = grid.at_node[z_at_node]
+
     if fields is None:
         fields = grid.at_node.keys()
+
+    if isinstance(fields, str):
+        fields = [fields]
+    fields = [f"at_node:{field}" for field in fields]
 
     if isinstance(path, (str, pathlib.Path)):
         if os.path.exists(path) and not clobber:
             raise ValueError(f"file exists ({path})")
 
         with open(path, "w") as fp:
-            _write_legacy_vtk_to_filelike(fp, grid, z_at_node, fields)
+            dump(grid, stream=fp, include=fields, z_coord=z_at_node, at="node")
+
     else:
-        _write_legacy_vtk_to_filelike(path, grid, z_at_node, fields)
+        dump(grid, stream=path, include=fields, z_coord=z_at_node, at="node")
 
     return path
 
