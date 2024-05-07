@@ -3,6 +3,15 @@ import pytest
 
 from landlab.components import FlowDirectorMFD
 from landlab.components.mass_wasting_runout import MassWastingRunout
+from landlab.components.mass_wasting_runout.mass_wasting_runout import erosion_coef_k
+from landlab.components.mass_wasting_runout.mass_wasting_runout import erosion_rate
+from landlab.components.mass_wasting_runout.mass_wasting_runout import flow_velocity
+from landlab.components.mass_wasting_runout.mass_wasting_runout import (
+    shear_stress_grains,
+)
+from landlab.components.mass_wasting_runout.mass_wasting_runout import (
+    shear_stress_static,
+)
 
 
 class Test__virtual_laboratory_smoke_tests:
@@ -447,6 +456,55 @@ class Test_E_A_qso_determine_attributes:
         np.testing.assert_array_almost_equal(oc_in, oc_in_e)
 
 
+class Test_determine_rn_proportions_attributes:
+    """this function calls a number of other functions. Output from each
+    function should be an  array or list of the same length. This test checks
+    that the length of each output is uniform"""
+
+    def test_normal_1(self, example_square_MWRu):
+        """run 3 iterations, then check"""
+        example_square_MWRu.itL = 3
+        example_square_MWRu.run_one_step()
+        attributes = example_square_MWRu._tracked_attributes
+        length_check_list = []  # list to store length of each output
+        # length of attributes
+        for key in attributes:
+            length = len(example_square_MWRu.aratt_ns[key])
+            length_check_list.append(length)
+            # length of donor nodes
+            length = len(example_square_MWRu.arndn_ns)
+            length_check_list.append(length)
+            # length of receiver nodes
+            length = len(example_square_MWRu.arqso_ns)
+            length_check_list.append(length)
+            # length of qso
+            length = len(example_square_MWRu.arqso_ns)
+            length_check_list.append(length)
+
+        assert np.all(np.array(length_check_list) == length)
+
+    def test_special_1(self, example_square_MWRu):
+        """run until model stops, then check"""
+        example_square_MWRu.run_one_step()
+        attributes = example_square_MWRu._tracked_attributes
+        length_check_list = []  # list to store length of each output
+        # length of attributes
+        for key in attributes:
+            length = len(example_square_MWRu.aratt_ns[key])
+            length_check_list.append(length)
+            # length of donor nodes
+            length = len(example_square_MWRu.arndn_ns)
+            length_check_list.append(length)
+            # length of receiver nodes
+            length = len(example_square_MWRu.arqso_ns)
+            length_check_list.append(length)
+            # length of qso
+            length = len(example_square_MWRu.arqso_ns)
+            length_check_list.append(length)
+
+        assert np.all(np.array(length_check_list) == length)
+
+
 class Test_determine_qsi:
     def test_normal_1(self, example_square_MWRu):
         """test ouput of function  _determine_qsi is correct and stored
@@ -476,6 +534,21 @@ class Test_update_E_dem:
         np.testing.assert_allclose(E_e, E, rtol=1e-4)
 
 
+class Test_update_energy_slope:
+    def test_normal_1(self, example_square_MWRu):
+        """Check that FlowDirectorMFD is called correctly to update the
+        slope of the surface defined by the topography + flow thickness"""
+        example_square_MWRu.itL = 1
+        example_square_MWRu.run_one_step()
+        slope1 = example_square_MWRu._grid.at_node["topographic__steepest_slope"].copy()
+        # add 100 meters to one node of the energy__elevation field
+        example_square_MWRu._grid.at_node["energy__elevation"][25] = 100
+        example_square_MWRu._update_energy_slope()
+        slope2 = example_square_MWRu._grid.at_node["topographic__steepest_slope"].copy()
+        # if updated correctly, the max slope of the energy surface should have changed
+        assert slope1.max() != slope2.max()
+
+
 class Test_update_dem:
     def test_normal_1(self, example_square_MWRu):
         """test topographic dem updated correctly"""
@@ -489,7 +562,23 @@ class Test_update_dem:
         np.testing.assert_allclose(el_e, el, rtol=1e-4)
 
 
-class Test_update_channel_particle_diameter:
+class Test_update_topographic_slope:
+    def test_normal_1(self, example_square_MWRu):
+        """Check that FlowDirectorMFD is called correctly to update the
+        topographic slope"""
+        example_square_MWRu.itL = 1
+        example_square_MWRu.run_one_step()
+        slope1 = example_square_MWRu._grid.at_node["topographic__steepest_slope"].copy()
+        # add 100 meters to one node of the topographic__elevation field
+        example_square_MWRu._grid.at_node["topographic__elevation"][25] = 100
+        example_square_MWRu._update_topographic_slope()
+        slope2 = example_square_MWRu._grid.at_node["topographic__steepest_slope"].copy()
+        # if updated correctly, the max slope of the topographic surface should have
+        # changed
+        assert slope1.max() != slope2.max()
+
+
+class Test_update_particle_diameter:
     def test_normal_1(self, example_square_MWRu):
         """test particle diameter updated correctly"""
         example_square_MWRu.itL = 1
@@ -498,6 +587,20 @@ class Test_update_channel_particle_diameter:
         pd = example_square_MWRu._grid.at_node["particle__diameter"][n]
         pd_e = 0.09096981
         np.testing.assert_allclose(pd_e, pd, rtol=1e-4)
+
+
+class Test_update_attribute_at_node:
+    def test_normal_1(self, example_square_MWRu):
+        """check that the values in the array "nudat" were correctly transferred to
+        the raster model grid"""
+        example_square_MWRu.itL = 2
+        example_square_MWRu.run_one_step()
+        # values in the nudat array
+        n = example_square_MWRu.nudat[:, 0].astype(int)
+        key = "organic__content"
+        new_node_pd = np.array([d[key] for d in example_square_MWRu.nudat[:, 6]])
+        # check passed to grid
+        assert (example_square_MWRu._grid.at_node[key][n] == new_node_pd).all()
 
 
 class Test_settle:
@@ -1102,3 +1205,177 @@ class Test_attribute_node:
         with pytest.raises(ValueError) as exc_info:
             example_square_MWRu._attributes_node(n, att_in, E, A)
         assert exc_info.match("node particle diameter is negative, nan or inf")
+
+
+class Test_flow_velocity:
+    def test_normal_1(self):
+        Dp = 0.2
+        h = 2
+        s = 0.5
+        g = 9.81
+        np.testing.assert_allclose(flow_velocity(Dp, h, s, g), 18.0095, rtol=1e-4)
+
+    def test_normal_2(self):
+        Dp = 0.01
+        h = 2
+        s = 0.5
+        g = 9.81
+        np.testing.assert_allclose(flow_velocity(Dp, h, s, g), 41.44047, rtol=1e-4)
+
+    def test_normal_3(self):
+        Dp = 0.2
+        h = 2
+        s = 5
+        g = 9.81
+        np.testing.assert_allclose(flow_velocity(Dp, h, s, g), 56.95113, rtol=1e-4)
+
+    def test_special_1(self):
+        Dp = 0.01
+        h = 2
+        s = 5
+        g = 0
+        np.testing.assert_allclose(flow_velocity(Dp, h, s, g), 0, rtol=1e-4)
+
+
+class Test_shear_stress_grains:
+    def test_normal_1(self):
+        vs = 0.6
+        ros = 2650
+        Dp = 0.2
+        h = 2
+        s = 0.5
+        g = 9.81
+        np.testing.assert_allclose(
+            shear_stress_grains(vs, ros, Dp, h, s, g), 1476.03547, rtol=1e-4
+        )
+
+    def test_normal_2(self):
+        vs = 0.6
+        ros = 2650
+        Dp = 0.01
+        h = 2
+        s = 0.5
+        g = 9.81
+        np.testing.assert_allclose(
+            shear_stress_grains(vs, ros, Dp, h, s, g), 19.53806, rtol=1e-4
+        )
+
+    def test_normal_3(self):
+        vs = 0.6
+        ros = 2650
+        Dp = 0.2
+        h = 2
+        s = 5
+        g = 9.81
+        np.testing.assert_allclose(
+            shear_stress_grains(vs, ros, Dp, h, s, g), 3236.42186, rtol=1e-4
+        )
+
+    def test_special_1(self):
+        vs = 0.6
+        ros = 2650
+        Dp = 0.2
+        h = 2
+        s = 0.5
+        g = 0
+        np.testing.assert_allclose(
+            shear_stress_grains(vs, ros, Dp, h, s, g), 0, rtol=1e-4
+        )
+
+
+class Test_shear_stress_static:
+    def test_normal_1(self):
+        vs = 0.6
+        ros = 2650
+        rof = 1000
+        h = 2
+        s = 0.5
+        g = 9.81
+        np.testing.assert_allclose(
+            shear_stress_static(vs, ros, rof, h, s, g), 17460.91818, rtol=1e-4
+        )
+
+    def test_normal_2(self):
+        vs = 0.06
+        ros = 2650
+        rof = 1000
+        h = 2
+        s = 0.5
+        g = 9.81
+        np.testing.assert_allclose(
+            shear_stress_static(vs, ros, rof, h, s, g), 9642.989487, rtol=1e-4
+        )
+
+    def test_normal_3(self):
+        vs = 0.6
+        ros = 2650
+        rof = 1000
+        h = 2
+        s = 5
+        g = 9.81
+        np.testing.assert_allclose(
+            shear_stress_static(vs, ros, rof, h, s, g), 38285.59579, rtol=1e-4
+        )
+
+    def test_special_1(self):
+        vs = 0.6
+        ros = 2650
+        rof = 1000
+        h = 2
+        s = 0.5
+        g = 0
+        np.testing.assert_allclose(
+            shear_stress_static(vs, ros, rof, h, s, g), 0, rtol=1e-4
+        )
+
+
+class Test_erosion_coef_k:
+    def test_normal_1(self):
+        E_l = 0.05
+        tau = 500
+        f = 0.5
+        dx = 10
+        np.testing.assert_allclose(
+            erosion_coef_k(E_l, tau, f, dx), 0.02236068, rtol=1e-4
+        )
+
+    def test_normal_2(self):
+        E_l = 0.5
+        tau = 2000
+        f = 0.5
+        dx = 10
+        np.testing.assert_allclose(
+            erosion_coef_k(E_l, tau, f, dx), 0.111803399, rtol=1e-4
+        )
+
+    def test_normal_3(self):
+        E_l = 0.5
+        tau = 500
+        f = 0.5
+        dx = 0.01
+        np.testing.assert_allclose(
+            erosion_coef_k(E_l, tau, f, dx), 0.000223607, rtol=1e-4
+        )
+
+
+class Test_erosion_rate:
+    def test_normal_1(self):
+        k = 0.02236068
+        tau = 500
+        f = 0.5
+        dx = 10
+        np.testing.assert_allclose(erosion_rate(k, tau, f, dx), 0.05, rtol=1e-4)
+
+    def test_normal_2(self):
+        k = 0.111803399
+        tau = 2000
+        f = 0.5
+        dx = 10
+        np.testing.assert_allclose(erosion_rate(k, tau, f, dx), 0.5, rtol=1e-4)
+
+    def test_normal_3(self):
+        k = 0.000223607
+        tau = 500
+        f = 0.5
+        dx = 0.01
+        np.testing.assert_allclose(erosion_rate(k, tau, f, dx), 0.5, rtol=1e-4)

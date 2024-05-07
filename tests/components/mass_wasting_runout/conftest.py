@@ -257,7 +257,7 @@ def flume_maker(
         length of landslide in number of cells, must be <= than rows-2
     dxdy : float
         side length of sqaure cell, [m]. The default is 10.
-    double_flume : boolean
+    double_flume : bool
         False: makes just one flume; True: makes two flumes and puts attaches the
         lower end of one to the upper end of the other to make one long flume with
         a slope break in the middle of the flume

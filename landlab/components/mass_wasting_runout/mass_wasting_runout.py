@@ -309,7 +309,7 @@ class MassWastingRunout(Component):
             the runout path [m], used to estimate erosion_coefficient k using
             erosion_coef_k function. Default value: 3
 
-        typical slope_of_erosion_zone: floatf
+        typical slope_of_erosion_zone: float
             field or remote sensing estimated slope in the scour dominated reach
             of the runout path [L/L], used to estimate erosion_coefficient k using
             erosion_coef_k function. Default value: 0.4
@@ -318,7 +318,8 @@ class MassWastingRunout(Component):
             The exponent of equation 11, that scales erosion depth as a function of
             shear stress. Default value: 0.5
 
-        max_flow_depth_observed: maximum observed flow depth, over the entire
+        max_flow_depth_observed: float
+            Maximum observed flow depth, over the entire
             runout path [m], h_max in equation 24. Only used effective_qsi is True.
             Default value: 4
 
@@ -379,7 +380,7 @@ class MassWastingRunout(Component):
         self.save = save
         self.h = typical_flow_thickness_of_erosion_zone
         self.s = typical_slope_of_erosion_zone
-        self.eta = erosion_exponent
+        self.f = erosion_exponent
         self.qsi_max = max_flow_depth_observed_in_field
         if self.effective_qsi and self.qsi_max is None:
             raise ValueError(
@@ -745,7 +746,7 @@ class MassWastingRunout(Component):
         self.nudat = np.concatenate((arn_ur, ll), axis=1)
 
     def _determine_rn_proportions_attributes(self):
-        """determine how outgoing flux is partioned to downslope cells and
+        """determine how outgoing flux is partitioned to downslope cells and
         attributes of each parition"""
 
         def rn_proportions_attributes(nudat_r):
@@ -1027,12 +1028,12 @@ class MassWastingRunout(Component):
 
             Tau = shear_stress_grains(self.vs, self.ros, Dp, depth, slpn, self.g)
 
-            Ec = self._grid.dx * erosion_rate(self.k, Tau, self.eta, self._grid.dx)
+            Ec = self._grid.dx * erosion_rate(self.k, Tau, self.f, self._grid.dx)
 
         else:
             # quasi-static approximation
             Tau = self.ro_mw * self.g * depth * (np.sin(theta))
-            Ec = self.k * (Tau) ** self.eta
+            Ec = self.k * (Tau) ** self.f
             u = np.nan
 
         dmx = self._grid.at_node["soil__thickness"][n]
@@ -1317,11 +1318,11 @@ def shear_stress_static(vs, ros, rof, h, s, g):
     return tau
 
 
-def erosion_rate(k, tau, eta, dx):
-    E_l = (k * tau**eta) / dx
-    return E_l
-
-
-def erosion_coef_k(E_l, tau, eta, dx):
-    k = E_l * dx / (tau**eta)
+def erosion_coef_k(E_l, tau, f, dx):
+    k = E_l * dx / (tau**f)
     return k
+
+
+def erosion_rate(k, tau, f, dx):
+    E_l = (k * tau**f) / dx
+    return E_l
