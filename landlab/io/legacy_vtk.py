@@ -376,5 +376,5 @@ def _format_vtk_scalar_data(values, name="data"):
 SCALARS {name} float 1
 LOOKUP_TABLE default"""
         ]
-        + [str(value) for value in values]
+        + [str(float(value)) for value in values]
     )
