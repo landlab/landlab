@@ -37,20 +37,93 @@ def dump(grid, stream=None, include="*", exclude=None, z_coord=0.0, at="node"):
     >>> import os
     >>> import numpy as np
     >>> from landlab import HexModelGrid
-    >>> import landlab.io.legacy_vtk.legacy_vtk as vtk
+    >>> import landlab.io.legacy_vtk as vtk
 
     >>> grid = HexModelGrid((3, 2))
     >>> topo = grid.add_zeros("topographic__elevation", at="node")
     >>> topo[:] = np.arange(len(topo))
     >>> water = grid.add_zeros("surface_water__depth", at="node")
-    >>> water[:] = (7.0 - topo) / 10.0
+    >>> grid.at_node["surface_water__depth"] = (7.0 - topo) / 10.0
 
-    >>> lines = vtk.dump(grid).splitlines()
+    >>> lines = vtk.dump(grid, z_coord=topo).splitlines()
     >>> print(os.linesep.join(lines[:4]))
     # vtk DataFile Version 2.0
     Landlab output
     ASCII
     DATASET UNSTRUCTURED_GRID
+
+    The x, y, and z coordinates of each grid node (VTK calls these
+    "points")
+
+    >>> print(os.linesep.join(lines[5:13]))
+    POINTS 7 float
+    0.5 0.0 0.0
+    1.5 0.0 1.0
+    0.0 0.866025 2.0
+    1.0 0.866025 3.0
+    2.0 0.866025 4.0
+    0.5 1.732051 5.0
+    1.5 1.732051 6.0
+
+    Grid nodes that form each patch (VTK calls these "cells").
+
+    >>> print(os.linesep.join(lines[14:21]))
+    CELLS 6 24
+    3 3 0 1
+    3 3 2 0
+    3 4 3 1
+    3 5 2 3
+    3 6 3 4
+    3 6 5 3
+
+    The type of each patch. A value of 5 is VTK code for triangle.
+
+    >>> print(os.linesep.join(lines[22:29]))
+    CELL_TYPES 6
+    5
+    5
+    5
+    5
+    5
+    5
+
+    The data fields at grid nodes.
+
+    >>> print(os.linesep.join(lines[30:51]))
+    POINT_DATA 7
+    <BLANKLINE>
+    SCALARS surface_water__depth float 1
+    LOOKUP_TABLE default
+    0.7
+    0.6
+    0.5
+    0.4
+    0.3
+    0.2
+    0.1
+    <BLANKLINE>
+    SCALARS topographic__elevation float 1
+    LOOKUP_TABLE default
+    0.0
+    1.0
+    2.0
+    3.0
+    4.0
+    5.0
+    6.0
+
+    To write the dual grid (i.e. corners and cells) use the ``at``
+    keyword.
+
+    >>> lines = vtk.dump(grid, at="corner").splitlines()
+    >>> print(os.linesep.join(lines[5:12]))
+    POINTS 6 float
+    1.0 0.288675 0.0
+    0.5 0.57735 0.0
+    1.5 0.57735 0.0
+    0.5 1.154701 0.0
+    1.5 1.154701 0.0
+    1.0 1.443376 0.0
     """
     content = _format_as_vtk(
         grid, include=include, exclude=exclude, z_coord=z_coord, at=at
@@ -80,8 +153,18 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
     try:
         coords_of_point = getattr(grid, f"coords_of_{point}")
     except AttributeError:
+        coords_of_point = getattr(grid, f"xy_of_{point}")
+
+    if coords_of_point.shape[1] == 2:
         coords_of_point = np.pad(getattr(grid, f"xy_of_{point}"), ((0, 0), (0, 1)))
-        coords_of_point[:, -1] = z_coord
+        try:
+            coords_of_point[:, -1] = z_coord
+        except ValueError as e:
+            e.add_note(
+                f"The grid has {len(coords_of_point)} {at}s but the provided value"
+                f" value for z_coord has size {np.shape(np.atleast_1d(z_coord))}."
+            )
+            raise
 
     content = [
         _format_vtk_header(),
@@ -93,14 +176,14 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
 
     point_fields = {
         field.split(":")[1]: at_point[field.split(":")[1]]
-        for field in fields if field.startswith(f"at_{point}:")
+        for field in sorted(fields) if field.startswith(f"at_{point}:")
     }
     if point_fields:
         content.append(_format_vtk_point_data(point_fields))
 
     cell_fields = {
         field.split(":")[1]: at_point[field.split(":")[1]]
-        for field in fields if field.startswith(f"at_{cell}:")
+        for field in sorted(fields) if field.startswith(f"at_{cell}:")
     }
     if cell_fields:
         content.append(_format_vtk_cell_data(cell_fields))
@@ -110,7 +193,7 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
 
 @unique
 class CellType(IntEnum):
-    TRIANGLE = 3
+    TRIANGLE = 5
     QUAD = 9
     POLYGON = 7
 
