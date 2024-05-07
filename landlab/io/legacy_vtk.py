@@ -295,7 +295,7 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
         content.append(_format_vtk_point_data(point_fields))
 
     cell_fields = {
-        field.split(":")[1]: at_point[field.split(":")[1]]
+        field.split(":")[1]: at_cell[field.split(":")[1]]
         for field in sorted(fields)
         if field.startswith(f"at_{cell}:")
     }
