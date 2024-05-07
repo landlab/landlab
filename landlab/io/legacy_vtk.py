@@ -288,14 +288,16 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
 
     point_fields = {
         field.split(":")[1]: at_point[field.split(":")[1]]
-        for field in sorted(fields) if field.startswith(f"at_{point}:")
+        for field in sorted(fields)
+        if field.startswith(f"at_{point}:")
     }
     if point_fields:
         content.append(_format_vtk_point_data(point_fields))
 
     cell_fields = {
         field.split(":")[1]: at_point[field.split(":")[1]]
-        for field in sorted(fields) if field.startswith(f"at_{cell}:")
+        for field in sorted(fields)
+        if field.startswith(f"at_{cell}:")
     }
     if cell_fields:
         content.append(_format_vtk_cell_data(cell_fields))
@@ -327,10 +329,7 @@ DATASET UNSTRUCTURED_GRID"""
 def _format_vtk_points(coords_of_points):
     return os.linesep.join(
         [f"POINTS {len(coords_of_points)} float"]
-        + [
-            " ".join(str(coord) for coord in coords)
-            for coords in coords_of_points
-        ]
+        + [" ".join(str(coord) for coord in coords) for coords in coords_of_points]
     )
 
 
@@ -345,13 +344,9 @@ def _format_vtk_cells(points_at_cell):
             types.append(str(VTK_CELL_TYPE.get(len(points), CellType.POLYGON)))
             n_points += len(points) + 1
 
-    cells_section = os.linesep.join(
-        [f"CELLS {len(cells)} {n_points}"] + cells
-    )
+    cells_section = os.linesep.join([f"CELLS {len(cells)} {n_points}"] + cells)
 
-    types_section = os.linesep.join(
-        [f"CELL_TYPES {len(types)}"] + types
-    )
+    types_section = os.linesep.join([f"CELL_TYPES {len(types)}"] + types)
 
     return (2 * os.linesep).join([cells_section, types_section])
 
@@ -380,5 +375,6 @@ def _format_vtk_scalar_data(values, name="data"):
             f"""\
 SCALARS {name} float 1
 LOOKUP_TABLE default"""
-        ] + [str(value) for value in values]
+        ]
+        + [str(value) for value in values]
     )
