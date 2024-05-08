@@ -61,8 +61,9 @@ def _calc_net_face_flux_at_cell(
         face = n_cols + row * (2 * n_cols + 1)
 
         for col in range(n_cols):
-            out[cell + col] = (
-                dy * (unit_flux_at_face[face] - unit_flux_at_face[face + 1])
-                + dx * (unit_flux_at_face[face - n_cols] - unit_flux_at_face[face + n_cols + 1])
+            out[cell + col] = dy * (
+                unit_flux_at_face[face] - unit_flux_at_face[face + 1]
+            ) + dx * (
+                unit_flux_at_face[face - n_cols] - unit_flux_at_face[face + n_cols + 1]
             )
             face = face + 1
