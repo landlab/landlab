@@ -302,7 +302,7 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
     if cell_fields:
         content.append(_format_vtk_cell_data(cell_fields))
 
-    return (2 * os.linesep).join(content)
+    return (2 * "\n").join(content)
 
 
 @unique
@@ -327,7 +327,7 @@ DATASET UNSTRUCTURED_GRID"""
 
 
 def _format_vtk_points(coords_of_points):
-    return os.linesep.join(
+    return "\n".join(
         [f"POINTS {len(coords_of_points)} float"]
         + [" ".join(str(coord) for coord in coords) for coords in coords_of_points]
     )
@@ -344,11 +344,11 @@ def _format_vtk_cells(points_at_cell):
             types.append(format(VTK_CELL_TYPE.get(len(points), CellType.POLYGON)))
             n_points += len(points) + 1
 
-    cells_section = os.linesep.join([f"CELLS {len(cells)} {n_points}"] + cells)
+    cells_section = "\n".join([f"CELLS {len(cells)} {n_points}"] + cells)
 
-    types_section = os.linesep.join([f"CELL_TYPES {len(types)}"] + types)
+    types_section = "\n".join([f"CELL_TYPES {len(types)}"] + types)
 
-    return (2 * os.linesep).join([cells_section, types_section])
+    return (2 * "\n").join([cells_section, types_section])
 
 
 def _format_vtk_point_data(point_data):
@@ -357,7 +357,7 @@ def _format_vtk_point_data(point_data):
         content.append(_format_vtk_scalar_data(value_at_point, name=name))
         number_of_points = len(value_at_point)
 
-    return (2 * os.linesep).join([f"POINT_DATA {number_of_points}"] + content)
+    return (2 * "\n").join([f"POINT_DATA {number_of_points}"] + content)
 
 
 def _format_vtk_cell_data(cell_data):
@@ -366,11 +366,11 @@ def _format_vtk_cell_data(cell_data):
         content.append(_format_vtk_scalar_data(value_at_cell, name=name))
         number_of_cells = len(value_at_cell)
 
-    return (2 * os.linesep).join([f"CELL_DATA {number_of_cells}"] + content)
+    return (2 * "\n").join([f"CELL_DATA {number_of_cells}"] + content)
 
 
 def _format_vtk_scalar_data(values, name="data"):
-    return os.linesep.join(
+    return "\n".join(
         [
             f"""\
 SCALARS {name} float 1
