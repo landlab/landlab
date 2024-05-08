@@ -75,7 +75,7 @@ def test_raster_grid():
     # Write output in legacy VTK format
     vtk_file = vtk.write_legacy_vtk(io.StringIO(), grid)
 
-    assert vtk_file.getvalue() == EXPECTED_VTK_FOR_RASTER.replace("\n", os.linesep)
+    assert vtk_file.getvalue() == EXPECTED_VTK_FOR_RASTER
 
 
 def test_dump(tmpdir):
@@ -88,7 +88,7 @@ def test_dump(tmpdir):
 
     actual = vtk.dump(grid, z_coord=topo)
 
-    assert actual == EXPECTED_VTK_FOR_RASTER.replace("\n", os.linesep)
+    assert actual == EXPECTED_VTK_FOR_RASTER
 
     with tmpdir.as_cwd():
         with open("grid.vtk", "w") as fp:
