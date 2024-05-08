@@ -141,6 +141,7 @@ archs = "x86_64,aarch64,arm64,AMD64,x86"
 before-all = [
     "brew install llvm libomp",
     "echo 'export PATH=\"/opt/homebrew/opt/llvm/bin:$PATH\"' >> /Users/runner/.bash_profile",
+	"source /Users/runner/.bash_profile",
 ]
 
 [tool.cibuildwheel.macos.environment]
