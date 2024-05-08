@@ -14,7 +14,7 @@ from landlab.components.mass_wasting_runout.mass_wasting_runout import (
 )
 
 
-class Test__virtual_laboratory_smoke_tests:
+class TestVirtualLaboratorySmokeTests:
     def test_pile_collapse(self, example_pile_MWRu):
         """Smoke test. Model the collapse of a pile of debris. Check that profile
         of final topographic surface is as expected and that mass is conserved"""
@@ -135,7 +135,7 @@ class Test__virtual_laboratory_smoke_tests:
         np.testing.assert_allclose(0, DEMdf.sum(), atol=1e-4)
 
 
-class Test__mass_conserved:
+class TestMassConserved:
     def test_full_runout(self, example_square_MWRu):
         """check that cumulative topographic change at end of model run (len(rn) = 0)
         equals zero"""
@@ -163,7 +163,7 @@ class Test__mass_conserved:
         np.testing.assert_allclose(0, diff.sum() + qs, atol=1e-4)
 
 
-class Test__prep_initial_mass_wasting_material:
+class TestPrepInitialMassWastingMaterial:
     def test_single_node_positive(self, example_square_MWRu):
         """Test correct number of receiving nodes and volumes from
         initial mass wasting cells are positive"""
@@ -268,7 +268,7 @@ class Test__prep_initial_mass_wasting_material:
         np.testing.assert_allclose(rqso, rqso_e, rtol=1e-4)
 
 
-class Test_E_A_qso_determine_attributes:
+class TestEAqsoDetermineAttributes:
     def test_normal_1(self, example_square_MWRu):
         """Test that output of _E_A_qso_determine_attributes shows correct directional
         change (e.g., positive negative or no change)
@@ -456,7 +456,7 @@ class Test_E_A_qso_determine_attributes:
         np.testing.assert_array_almost_equal(oc_in, oc_in_e)
 
 
-class Test_determine_rn_proportions_attributes:
+class TestDetermineRNProportionsAttributes:
     """this function calls a number of other functions. Output from each
     function should be an  array or list of the same length. This test checks
     that the length of each output is uniform"""
@@ -505,7 +505,7 @@ class Test_determine_rn_proportions_attributes:
         assert np.all(np.array(length_check_list) == length)
 
 
-class Test_determine_qsi:
+class TestDetermineQsi:
     def test_normal_1(self, example_square_MWRu):
         """test ouput of function  _determine_qsi is correct and stored
         in class variable vqdat as expected"""
@@ -519,7 +519,7 @@ class Test_determine_qsi:
         np.testing.assert_allclose(qsi_e, qsi, rtol=1e-4)
 
 
-class Test_update_E_dem:
+class TestUpdateEDEM:
     def test_normal_1(self, example_square_MWRu):
         """run one iteration, check qsi+initial dem matches energy__elevation"""
         example_square_MWRu.itL = 1
@@ -534,7 +534,7 @@ class Test_update_E_dem:
         np.testing.assert_allclose(E_e, E, rtol=1e-4)
 
 
-class Test_update_energy_slope:
+class TestUpdateEnergySlope:
     def test_normal_1(self, example_square_MWRu):
         """Check that FlowDirectorMFD is called correctly to update the
         slope of the surface defined by the topography + flow thickness"""
@@ -549,7 +549,7 @@ class Test_update_energy_slope:
         assert slope1.max() != slope2.max()
 
 
-class Test_update_dem:
+class TestUpdateDEM:
     def test_normal_1(self, example_square_MWRu):
         """test topographic dem updated correctly"""
         example_square_MWRu.itL = 1
@@ -562,7 +562,7 @@ class Test_update_dem:
         np.testing.assert_allclose(el_e, el, rtol=1e-4)
 
 
-class Test_update_topographic_slope:
+class TestUpdateTopographicSlope:
     def test_normal_1(self, example_square_MWRu):
         """Check that FlowDirectorMFD is called correctly to update the
         topographic slope"""
@@ -578,7 +578,7 @@ class Test_update_topographic_slope:
         assert slope1.max() != slope2.max()
 
 
-class Test_update_particle_diameter:
+class TestUpdateParticleDiameter:
     def test_normal_1(self, example_square_MWRu):
         """test particle diameter updated correctly"""
         example_square_MWRu.itL = 1
@@ -589,7 +589,7 @@ class Test_update_particle_diameter:
         np.testing.assert_allclose(pd_e, pd, rtol=1e-4)
 
 
-class Test_update_attribute_at_node:
+class TestUpdateAttributeAtNode:
     def test_normal_1(self, example_square_MWRu):
         """check that the values in the array "nudat" were correctly transferred to
         the raster model grid"""
@@ -603,7 +603,7 @@ class Test_update_attribute_at_node:
         assert (example_square_MWRu._grid.at_node[key][n] == new_node_pd).all()
 
 
-class Test_settle:
+class TestSettle:
     def test_normal_1(self, example_flat_mg):
         """test topographic__elevation and soil__thickness change correctly"""
         mg = example_flat_mg
@@ -813,8 +813,7 @@ class Test_settle:
         np.testing.assert_allclose(n_e, expected_ne, rtol=1e-4)
 
 
-# @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
-class Test_erosion:
+class TestErosion:
     def test_quasi_normal_1(self, example_square_MWRu):
         """"""
         n = 24
@@ -885,8 +884,7 @@ class Test_erosion:
         np.testing.assert_allclose(E[0], expected_E, rtol=1e-4)
 
 
-# @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
-class Test_aggradation:
+class TestAggradation:
     def test_deposit_L_normal_1(self, example_square_MWRu):
         qsi = 2
         slpn = 0.02
@@ -1028,7 +1026,7 @@ class Test_aggradation:
         np.testing.assert_allclose(zo, expected_zo, rtol=1e-4)
 
 
-class Test_attributes_in:
+class TestAttributesIn:
     def test_normal_values_1(self, example_square_MWRu):
         """"""
         example_square_MWRu.itL = 1
@@ -1086,7 +1084,7 @@ class Test_attributes_in:
         assert exc_info.match("in-flowing flux is nan or inf")
 
 
-class Test_attribute_out:
+class TestAttributeOut:
     def test_normal_values_1(self, example_square_MWRu):
         # use inputs from MWR
         example_square_MWRu.itL = 1
@@ -1149,7 +1147,7 @@ class Test_attribute_out:
         )
 
 
-class Test_attribute_node:
+class TestAttributeNode:
     def test_normal_values_1(self, example_square_MWRu):
         # normal values
         n = 24
@@ -1207,7 +1205,7 @@ class Test_attribute_node:
         assert exc_info.match("node particle diameter is negative, nan or inf")
 
 
-class Test_flow_velocity:
+class TestFlowVelocity:
     def test_normal_1(self):
         Dp = 0.2
         h = 2
@@ -1237,7 +1235,7 @@ class Test_flow_velocity:
         np.testing.assert_allclose(flow_velocity(Dp, h, s, g), 0, rtol=1e-4)
 
 
-class Test_shear_stress_grains:
+class TestShearStressGrains:
     def test_normal_1(self):
         vs = 0.6
         ros = 2650
@@ -1283,7 +1281,7 @@ class Test_shear_stress_grains:
         )
 
 
-class Test_shear_stress_static:
+class TestShearStressStatic:
     def test_normal_1(self):
         vs = 0.6
         ros = 2650
@@ -1329,7 +1327,7 @@ class Test_shear_stress_static:
         )
 
 
-class Test_erosion_coef_k:
+class TestErosionCoefk:
     def test_normal_1(self):
         E_l = 0.05
         tau = 500
@@ -1358,7 +1356,7 @@ class Test_erosion_coef_k:
         )
 
 
-class Test_erosion_rate:
+class TestErosionRate:
     def test_normal_1(self):
         k = 0.02236068
         tau = 500
