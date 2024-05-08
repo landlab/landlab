@@ -48,9 +48,7 @@ def fill_perimeter_nodes_rect_vertical(
 ):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
-    cdef int n_nodes = n_rows * n_cols
     cdef int i
-    cdef int node
     cdef int offset_to_right_edge
     cdef int offset_to_top_edge
     cdef int offset_to_left_edge
@@ -106,8 +104,7 @@ def fill_perimeter_nodes_hex_horizontal(
     cdef int offset_to_top_edge
     cdef int offset_to_left_edge
     cdef int offset_to_bottom_edge
-    cdef int i, i0
-    cdef int node
+    cdef int i
     cdef int row
     cdef int * nodes_per_row
 
@@ -163,9 +160,7 @@ def fill_perimeter_nodes_hex_vertical(
     cdef int offset_to_top_edge
     cdef int offset_to_left_edge
     cdef int offset_to_bottom_edge
-    cdef int i, i0
-    cdef int node
-    cdef int row
+    cdef int i
 
     if n_cols % 2 == 1:
         offset_to_top_edge = n_rows - 1

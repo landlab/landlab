@@ -2,16 +2,15 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
-from libc.stdlib cimport free, malloc, qsort
-
-from ...sort.ext.argsort cimport unique_int
+from libc.stdlib cimport free, malloc
 
 
 @cython.boundscheck(True)
 def get_rightmost_edge_at_patch(
     np.ndarray[long, ndim=2, mode="c"] links_at_patch,
     np.ndarray[double, ndim=2, mode="c"] xy_of_link,
-    np.ndarray[long, ndim=1, mode="c"] edge):
+    np.ndarray[long, ndim=1, mode="c"] edge,
+):
     cdef int n_patches = links_at_patch.shape[0]
     cdef int n_cols = links_at_patch.shape[1]
     cdef int patch
@@ -39,7 +38,7 @@ cdef find_common_node(long * link_a, long * link_b):
     elif link_a[1] == link_b[0] or link_a[1] == link_b[1]:
         return link_a[1]
     else:
-        raise ValueError('links are not connected')
+        raise ValueError("links are not connected")
 
 
 cdef all_nodes_at_patch(long * links_at_patch, long max_links,
@@ -86,15 +85,11 @@ def get_nodes_at_patch(np.ndarray[long, ndim=2, mode="c"] links_at_patch,
     cdef int n_patches = links_at_patch.shape[0]
     cdef int max_links_at_patch = links_at_patch.shape[1]
     cdef int patch
-    cdef int link
-    cdef int i
-    cdef int n_links
-    cdef int n_unique
     cdef long * all_nodes = <long *>malloc(2 * links_at_patch.shape[1] * sizeof(long))
 
     try:
         for patch in range(n_patches):
-            n_links = _nodes_at_patch(
+            _nodes_at_patch(
                 &links_at_patch[patch, 0], max_links_at_patch,
                 &nodes_at_link[0, 0], &nodes_at_patch[patch, 0])
     finally:
@@ -104,7 +99,7 @@ def get_nodes_at_patch(np.ndarray[long, ndim=2, mode="c"] links_at_patch,
 cdef _nodes_at_patch(long * links_at_patch, long max_links,
                      long * nodes_at_link, long * out):
     cdef long n_links = max_links
-    cdef long link, next_link, prev_link
+    cdef long link, next_link
     cdef long i
 
     while links_at_patch[n_links - 1] == -1:

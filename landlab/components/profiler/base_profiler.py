@@ -173,7 +173,7 @@ class _BaseProfiler(ABC, Component):
         >>> profiler = ChannelProfiler(mg)
         >>> profiler.run_one_step()
         >>> np.round(profiler.colors, decimals=2)
-        array([[ 0.27,  0.  ,  0.33,  1.  ]])
+        array([[0.27, 0.  , 0.33, 1.  ]])
         """
         return self._colors
 

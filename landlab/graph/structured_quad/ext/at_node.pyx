@@ -134,7 +134,6 @@ def fill_links_at_node(shape, np.ndarray[DTYPE_t, ndim=2] links_at_node):
     cdef int n_cols = shape[1]
     cdef int n_nodes = n_rows * n_cols
     cdef int links_per_row = 2 * n_cols - 1
-    cdef int patches_per_row = n_cols - 1
 
     # Bottom nodes
     link = 0
@@ -220,8 +219,6 @@ def fill_link_dirs_at_node(shape,
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
     cdef int n_nodes = n_rows * n_cols
-    cdef int links_per_row = 2 * n_cols - 1
-    cdef int patches_per_row = n_cols - 1
 
     # Bottom nodes
     for node in range(1, n_cols - 1):

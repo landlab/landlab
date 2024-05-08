@@ -42,7 +42,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
     >>> grid.x_of_node
     array([ 0.,  0., -1.,  1.])
     >>> grid.y_of_node
-    array([ 0.,  1.,  2.,  2.])
+    array([0.,  1.,  2.,  2.])
     >>> grid.nodes_at_link
     array([[0, 1],
            [2, 1],
@@ -370,7 +370,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
         >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.y_of_link
-        array([ 0.5,  1.5,  1.5])
+        array([0.5,  1.5,  1.5])
 
         :meta landlab: info-link, quantity
         """

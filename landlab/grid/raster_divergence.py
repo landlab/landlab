@@ -49,23 +49,23 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     array([[ 0. ,  5. ,  3.6,  0. ],
            [ 0. , -5. , -3.6,  0. ]])
     >>> calc_flux_div_at_node(grid, -grads).reshape(grid.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.64,  0.94,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  ,  0.  ,  0.  ,  0.  ],
+           [0.  ,  1.64,  0.94,  0.  ],
+           [0.  ,  0.  ,  0.  ,  0.  ]])
 
     >>> grid.set_status_at_node_on_edges(right=grid.BC_NODE_IS_CLOSED)
     >>> grid.set_status_at_node_on_edges(top=grid.BC_NODE_IS_CLOSED)
     >>> unit_flux_at_links = grid.zeros(at="link")
     >>> unit_flux_at_links[grid.active_links] = -grads[grid.active_links]
     >>> calc_flux_div_at_node(grid, unit_flux_at_links).reshape(grid.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.14,  0.22,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  ,  0.  ,  0.  ,  0.  ],
+           [0.  ,  1.14,  0.22,  0.  ],
+           [0.  ,  0.  ,  0.  ,  0.  ]])
     >>> _ = grid.add_field("neg_grad_at_link", -grads, at="link")
     >>> calc_flux_div_at_node(grid, "neg_grad_at_link").reshape(grid.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.64,  0.94,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  ,  0.  ,  0.  ,  0.  ],
+           [0.  ,  1.64,  0.94,  0.  ],
+           [0.  ,  0.  ,  0.  ,  0.  ]])
 
     Notes
     -----

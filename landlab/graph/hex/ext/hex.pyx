@@ -16,8 +16,6 @@ def fill_xy_of_node_hex_horizontal(
 ):
     """Get x and y coordinates for each node."""
     cdef long n_rows = shape[0]
-    cdef long n_cols = shape[1]
-    cdef long n_nodes = len(x_of_node)
     cdef long longest_row = n_rows // 2
     cdef long row
     cdef long offset
@@ -210,12 +208,10 @@ def get_xy_of_node(shape,
 
 
 @cython.boundscheck(False)
-def get_nodes_at_link(shape,
-                   np.ndarray[DTYPE_t, ndim=2] nodes_at_link):
+def get_nodes_at_link(
+    shape, np.ndarray[DTYPE_t, ndim=2] nodes_at_link
+):
     """Get nodes at the tail and head of each node."""
-    cdef int n_links = nodes_at_link.shape[0]
-    cdef int n_short_rows = (shape[0] + 1) // 2
-    cdef int n_long_rows = shape[0] // 2
     cdef int n_cols = shape[1]
     cdef int n_rows = shape[0]
     cdef int stride = 2 * n_cols + 1
@@ -269,8 +265,6 @@ def get_links_at_patch(shape,
                        np.ndarray[DTYPE_t, ndim=2] links_at_patch):
     """Get links that bound each patch."""
     cdef int n_patches = links_at_patch.shape[0]
-    cdef int n_short_rows = (shape[0] + 1) // 2
-    cdef int n_long_rows = shape[0] // 2
     cdef int n_cols = shape[1]
     cdef int n_rows = shape[0]
     cdef int row

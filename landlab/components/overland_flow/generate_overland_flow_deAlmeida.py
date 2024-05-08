@@ -55,13 +55,10 @@ The `surface_water__depth` field is defined at nodes.
 >>> of.var_loc("surface_water__depth")
 'node'
 >>> grid.at_node["surface_water__depth"]
-array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
-         1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
-         1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
-         1.00000000e-05,   1.00000000e-05,   2.00100000e-02,
-         2.00100000e-02,   2.00100000e-02,   1.00000000e-05,
-         1.00010000e-01,   1.00010000e-01,   1.00010000e-01,
-         1.00010000e-01,   1.00010000e-01])
+array([1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
+       1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
+       1.0000e-05, 2.0010e-02, 2.0010e-02, 2.0010e-02, 1.0000e-05,
+       1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01])
 
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
@@ -80,13 +77,13 @@ The *water_surface__gradient* is also defined at links.
 >>> of.var_loc("water_surface__gradient")
 'link'
 >>> grid.at_link["water_surface__gradient"]
-array([ 0. ,  0. ,  0. ,  0. ,
-        0. ,  1. ,  1. ,  1. ,  0. ,
-        0. ,  0. ,  0. ,  0. ,
-        0. ,  1. ,  1. ,  1. ,  0. ,
-        0. ,  0. ,  0. ,  0. ,
-        0. ,  1.1,  1.1,  1.1,  0. ,
-        0. ,  0. ,  0. ,  0. ])
+array([0. , 0. , 0. , 0. ,
+       0. , 1. , 1. , 1. , 0. ,
+       0. , 0. , 0. , 0. ,
+       0. , 1. , 1. , 1. , 0. ,
+       0. , 0. , 0. , 0. ,
+       0. , 1.1, 1.1, 1.1, 0. ,
+       0. , 0. , 0. , 0. ])
 """
 
 import numpy as np
