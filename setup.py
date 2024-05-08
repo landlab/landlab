@@ -7,7 +7,7 @@ from Cython.Build import cythonize
 from setuptools import Extension
 from setuptools import setup
 
-compile_args = ["-fopenmp"] if "WITH_OPENMP" in os.environ else []
+compile_args = [] if "LANDLAB_WITHOUT_OPENMP" in os.environ else ["-fopenmp"]
 
 cython_files = (
     "landlab/ca/cfuncs.pyx",
@@ -19,7 +19,9 @@ cython_files = (
     "landlab/components/flexure/ext/flexure1d.pyx",
     "landlab/components/flow_accum/cfuncs.pyx",
     "landlab/components/flow_director/cfuncs.pyx",
+    "landlab/components/flow_router/ext/single_flow/priority_routing/init_tools.pyx",
     "landlab/components/flow_router/ext/single_flow/priority_routing/breach.pyx",
+    "landlab/components/flow_router/ext/single_flow/accumulation/accumulation.pyx",
     "landlab/components/overland_flow/_neighbors_at_link.pyx",
     "landlab/components/priority_flood_flow_router/cfuncs.pyx",
     "landlab/components/space/ext/calc_qs.pyx",
