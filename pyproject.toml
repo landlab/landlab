@@ -138,7 +138,7 @@ skip = "*-musllinux_*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
 
 [tool.cibuildwheel.macos]
-before-all = "brew install libomp"
+before-all = "brew install llvm libomp"
 
 [tool.cython-lint]
 max-line-length = 88
