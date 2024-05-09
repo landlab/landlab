@@ -141,12 +141,16 @@ archs = "x86_64,aarch64,arm64,AMD64,x86"
 test-command = "python -c \"import landlab; print(landlab.__version__)\""
 
 [tool.cibuildwheel.macos]
-before-all = "brew install llvm libomp"
+before-all = "brew install libomp"
+# before-all = "brew install llvm libomp"
 
 [tool.cibuildwheel.macos.environment]
-LDFLAGS = "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"
-CPPFLAGS = "-I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/libomp/include"
-PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
+# LDFLAGS = "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
+LDFLAGS = "-L/opt/homebrew/opt/libomp/lib -lomp"
+# CPPFLAGS = "-I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/libomp/include"
+CPPFLAGS = "-I/opt/homebrew/opt/libomp/include"
+CFLAGS = "-Xclang -fopenmp $CFLAGS"
+# PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
 
 [tool.cibuildwheel.windows.environment]
 LANDLAB_WITHOUT_OPENMP = "1"
