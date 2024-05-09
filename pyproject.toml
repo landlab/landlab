@@ -147,6 +147,7 @@ before-all = [
 [tool.cibuildwheel.macos.environment]
 LDFLAGS = "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"
 CPPFLAGS = "-I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/libomp/include"
+PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
 
 [tool.cython-lint]
 max-line-length = 88
