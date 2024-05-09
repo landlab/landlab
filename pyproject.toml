@@ -146,11 +146,10 @@ before-all = "brew install libomp"
 
 [tool.cibuildwheel.macos.environment]
 LANDLAB_WITHOUT_OPENMP = "1"
-# LDFLAGS = "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
-LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -lomp"
-# CPPFLAGS = "-I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/libomp/include"
+LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
 CPPFLAGS = "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
-# CFLAGS = "-Xclang -fopenmp-extensions -fopenmp $CFLAGS"
+CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
+CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
 # PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
 
 [tool.cibuildwheel.windows.environment]
