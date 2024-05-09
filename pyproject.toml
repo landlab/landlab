@@ -138,7 +138,7 @@ ignore = [".nox", "build"]
 build = "cp310-* cp311-* cp312-*"
 skip = "*-musllinux_*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
-test-command = "python -m landlab"
+test-command = "python -c \"import landlab; print(landlab.__version__)\""
 
 [tool.cibuildwheel.macos]
 before-all = "brew install llvm libomp"
