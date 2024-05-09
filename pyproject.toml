@@ -21,7 +21,6 @@ keywords = [
   "model coupling",
   "numerical modeling",
 ]
-license = {file = "LICENSE.rst"}
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -51,6 +50,9 @@ dependencies = [
   "xarray >= 0.16",
 ]
 dynamic = ["readme", "version"]
+
+[project.license]
+text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
