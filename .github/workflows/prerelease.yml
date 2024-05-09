@@ -54,14 +54,6 @@ jobs:
           - cibw-only: "cp312-win_amd64"
             os: "windows-latest"
 
-          # Windows 32
-          - cibw-only: "cp310-win32"
-            os: "windows-latest"
-          - cibw-only: "cp311-win32"
-            os: "windows-latest"
-          - cibw-only: "cp312-win32"
-            os: "windows-latest"
-
     steps:
       - uses: actions/checkout@v4
 
