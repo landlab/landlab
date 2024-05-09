@@ -136,7 +136,7 @@ ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-*"
-skip = "*-musllinux_*"
+skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
 test-command = "python -c \"import landlab; print(landlab.__version__)\""
 
