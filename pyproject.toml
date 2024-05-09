@@ -149,7 +149,7 @@ LANDLAB_WITHOUT_OPENMP = "1"
 LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
 CPPFLAGS = "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
 CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
-CXXFLAGS: "-I/opt/homebrew/opt/libomp/include"
+CXXFLAGS = "-I/opt/homebrew/opt/libomp/include"
 # PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
 
 [tool.cibuildwheel.windows.environment]
