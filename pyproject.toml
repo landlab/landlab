@@ -152,6 +152,10 @@ CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
 CXXFLAGS = "-I/opt/homebrew/opt/libomp/include"
 # PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
 
+[[tool.cibuildwheel.overrides]]
+select = "*x86_64*"
+environment = {"LANDLAB_WITHOUT_OPENMP"="1"}
+
 [tool.cibuildwheel.windows.environment]
 LANDLAB_WITHOUT_OPENMP = "1"
 
