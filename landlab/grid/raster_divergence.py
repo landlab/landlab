@@ -1,8 +1,10 @@
 #! /usr/bin/env python
 """Calculate flux divergence on a raster grid."""
-from landlab.utils.decorators import use_field_name_or_array
+import numpy as np
 
-from .ext.raster_divergence import calc_flux_div_at_node as _calc_flux_div_at_node_c
+from landlab.grid.ext.raster_divergence import _calc_flux_div_at_node
+from landlab.grid.ext.raster_divergence import _calc_net_face_flux_at_cell
+from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array("link")
@@ -81,6 +83,20 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     out.reshape(grid.shape)[:, (0, -1)] = 0.0
     out.reshape(grid.shape)[(0, -1), :] = 0.0
 
-    _calc_flux_div_at_node_c(grid.shape, (grid.dx, grid.dy), unit_flux, out)
+    _calc_flux_div_at_node(grid.shape, (grid.dx, grid.dy), unit_flux, out)
+
+    return out
+
+
+def calc_net_face_flux_at_cell(grid, unit_flux_at_face, out=None):
+    if len(unit_flux_at_face) != grid.number_of_faces:
+        raise ValueError("Parameter unit_flux_at_face must be num faces long")
+
+    if out is None:
+        out = grid.empty(at="cell")
+
+    _calc_net_face_flux_at_cell(
+        grid.shape, (grid.dx, grid.dy), np.asarray(unit_flux_at_face), out
+    )
 
     return out
