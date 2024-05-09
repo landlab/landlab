@@ -138,16 +138,15 @@ skip = "*-musllinux_*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
 
 [tool.cibuildwheel.macos]
-before-all = [
-    "brew install llvm libomp",
-    "echo 'export PATH=\"/opt/homebrew/opt/llvm/bin:$PATH\"' >> /Users/runner/.bash_profile",
-	"source /Users/runner/.bash_profile",
-]
+before-all = "brew install llvm libomp"
 
 [tool.cibuildwheel.macos.environment]
 LDFLAGS = "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"
 CPPFLAGS = "-I/opt/homebrew/opt/llvm/include -I/opt/homebrew/opt/libomp/include"
 PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
+
+[tool.cibuildwheel.windows.environment]
+LANDLAB_WITHOUT_OPENMP = "1"
 
 [tool.cython-lint]
 max-line-length = 88
