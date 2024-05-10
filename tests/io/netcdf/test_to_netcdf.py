@@ -134,14 +134,14 @@ def test_with_and_without_time(tmpdir, format, mode):
         with xr.open_dataset("test-without-time.nc") as actual:
             assert "time" not in actual.sizes
             assert "time" not in actual.variables
-            assert actual["at_node:elevation"].sizes == ("node",)
+            assert tuple(actual["at_node:elevation"].sizes) == ("node",)
 
         to_netcdf(grid, "test-with-time.nc", format=format, time=10.0, mode=mode)
         with xr.open_dataset("test-with-time.nc") as actual:
             assert "time" in actual.sizes
             assert "time" in actual.variables
             assert actual["time"] == [10.0]
-            assert actual["at_node:elevation"].sizes == ("time", "node")
+            assert tuple(actual["at_node:elevation"].sizes) == ("time", "node")
 
 
 @pytest.mark.parametrize("mode", ("w", "a"))
