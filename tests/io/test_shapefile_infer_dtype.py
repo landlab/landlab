@@ -6,7 +6,7 @@ from hypothesis import given
 from hypothesis.strategies import integers
 from numpy.testing import assert_array_equal
 
-from landlab.io.shapefile.read_shapefile import _infer_data_type
+from landlab.io.shapefile import _infer_data_type
 
 
 @pytest.mark.parametrize("src_type", [np.int32, np.int64, float, bool])

@@ -101,10 +101,11 @@ def read_shapefile(
     """Read shapefile and create a NetworkModelGrid.
 
     There are a number of assumptions that are required about the shapefile.
-        * The shapefile must be a polyline shapefile.
-        * All polylines must be their own object (e.g. no multi-part
-          polylines).
-        * Polyline endpoints match perfectly.
+
+    * The shapefile must be a polyline shapefile.
+    * All polylines must be their own object (e.g. no multi-part
+      polylines).
+    * Polyline endpoints match perfectly.
 
     You might notice that there is no ``write_shapefile`` function. If this is
     something you need for your work, please make a GitHub issue to start this
@@ -179,7 +180,7 @@ def read_shapefile(
 
     Now create a NetworkModelGrid with read_shapefile:
 
-    >>> from landlab.io import read_shapefile
+    >>> from landlab.io.shapefile import read_shapefile
     >>> grid = read_shapefile(shp, dbf=dbf)
     >>> grid.nodes
     array([0, 1, 2, 3])
