@@ -10,16 +10,149 @@ ESRI ASCII functions
     ~landlab.io.esri_ascii.read_esri_ascii
     ~landlab.io.esri_ascii.write_esri_ascii
 """
-
+import contextlib
+import io
 import os
 import pathlib
 import re
+from typing import Any
 
 import numpy as np
 
+from landlab.grid.raster import RasterModelGrid
+from landlab.layers.eventlayers import _valid_keywords_or_raise
 from landlab.utils import add_halo
 
-_VALID_HEADER_KEYS = [
+
+def dump(grid, stream=None, at="node", name=None):
+    """Dump a grid field to ESRII ASCII format.
+
+    Parameters
+    ----------
+    at : {"node", "patch", "corner", "cell"}, optional
+        Where the field to be written is located on the grid.
+    """
+    shape = np.asarray(grid.shape)
+    if at in ("corner", "patch"):
+        shape -= 1
+    elif at == "cell":
+        shape -= 2
+
+    xy_of_point = getattr(grid, f"xy_of_{at}")
+
+    header = f"""\
+NCOLS {shape[1]}
+NROWS {shape[0]}
+XLLCENTER {xy_of_point[0, 0]}
+YLLCENTER {xy_of_point[0, 1]}
+CELLSIZE {grid.dx}"""
+
+    lines = [header]
+
+    if name:
+        data = getattr(grid, f"at_{at}")[name]
+        fp = io.StringIO()
+        kwds = {"comments": ""}
+        if data.dtype.kind in ("i", "u"):
+            kwds["fmt"] = "%d"
+        np.savetxt(fp, np.flipud(data.reshape(shape)), **kwds)
+        lines.append(fp.getvalue())
+
+    content = "\n".join(lines)
+    if stream is None:
+        return content
+    else:
+        stream.write(content)
+
+
+def load(stream, at="node", name=None):
+    return loads(stream.read(), at=at, name=name)
+
+
+def loads(s: str, at="node", name=None):
+    lines = s.splitlines()
+
+    header = {}
+    for lineno, line in enumerate(lines):
+        if re.match(r"[a-zA-Z_]+", line, re.UNICODE):
+            key, value = line.split(maxsplit=1)
+            header[key.lower()] = value
+        else:
+            break
+
+    header = _validate_header(header)
+
+    shape = np.asarray((header["nrows"], header["ncols"]))
+    if at in ("corner", "patch"):
+        shape += 1
+    elif at == "cell":
+        shape += 2
+
+    grid = RasterModelGrid(
+        shape,
+        xy_spacing=header["cellsize"],
+        xy_of_lower_left=(header["xllcenter"], header["yllcenter"]),
+    )
+
+    if name:
+        data = np.loadtxt([" ".join(lines[lineno:])])
+
+        if data.dtype.kind in ("i", "u"):
+            header["nodata_value"] = int(header["nodata_value"])
+        else:
+            header["nodata_value"] = float(header["nodata_value"])
+
+        getattr(grid, f"at_{at}")[name] = np.flipud(
+            data.reshape((header["nrows"], header["ncols"]))
+        )
+
+    return grid
+
+
+def _validate_header(header: dict[str, str]):
+    _valid_keywords_or_raise(
+        header,
+        required=("ncols", "nrows", "cellsize"),
+        optional=(
+            "xllcorner",
+            "xllcenter",
+            "yllcorner",
+            "yllcenter",
+            "nodata_value",
+        )
+    )
+
+    if len(set(header) & {"xllcorner", "xllcenter"}) != 1:
+        raise ValueError()
+    if len(set(header) & {"yllcorner", "yllcenter"}) != 1:
+        raise ValueError()
+
+    n_rows = int(header["nrows"])
+    n_cols = int(header["ncols"])
+
+    validated = {
+        "nrows": n_rows,
+        "ncols": n_cols,
+        "cellsize": float(header.get("cellsize", 1.0)),
+        "xllcenter": float(header.get("xllcenter", header.get("xllcorner", 0.0))),
+        "yllcenter": float(header.get("yllcenter", header.get("yllcorner", 0.0))),
+        "nodata_value": header.get("nodata_value", -9999),
+    }
+
+    with contextlib.suppress(KeyError):
+        validated["nodata_value"] = header["nodata_value"]
+
+    if validated["nrows"] <= 0:
+        raise ValueError()
+    if validated["ncols"] <= 0:
+        raise ValueError()
+    if validated["cellsize"] <= 0:
+        raise ValueError()
+
+    return validated
+
+
+_VALID_HEADER_KEYS = (
     "ncols",
     "nrows",
     "xllcorner",
@@ -28,7 +161,7 @@ _VALID_HEADER_KEYS = [
     "yllcenter",
     "cellsize",
     "nodata_value",
-]
+)
 _HEADER_KEY_REGEX_PATTERN = re.compile(r"\s*(?P<key>[a-zA-z]\w+)")
 _HEADER_REGEX_PATTERN = re.compile(r"\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)")
 _HEADER_VALUE_TESTS = {
