@@ -38,7 +38,7 @@ def test_permitted_locations(dr_2dim):
 
 
 def test_coordinates(dr_2dim):
-    assert len(dr_2dim.dataset.dims) == 2
+    assert len(dr_2dim.dataset.sizes) == 2
     assert list(dr_2dim.dataset.time.values) == time
     assert list(dr_2dim.time_coordinates) == time
     assert list(dr_2dim.dataset.item_id.values) == [0, 1]
