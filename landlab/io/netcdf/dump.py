@@ -136,5 +136,8 @@ def _add_time_dimension_to_dataset(dataset, time=0.0):
     }
 
     for name in names:
-        dataset[name] = (("time",) + tuple(dataset[name].sizes), dataset[name].values[None])
+        dataset[name] = (
+            ("time",) + tuple(dataset[name].sizes),
+            dataset[name].values[None],
+        )
     dataset["time"] = (("time",), [time])
