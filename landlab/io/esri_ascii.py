@@ -499,7 +499,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     array of doubles with that has been reshaped to have the number of rows
     and columns given in the header.
 
-    .. _ESRI ASCII file: http://resources.esri.com/help/9.3/arcgisengine/java/GP_ToolRef/spatial_analyst_tools/esri_ascii_raster_format.htm
+    .. _ESRI ASCII file: https://desktop.arcgis.com/en/arcmap/latest/manage-data/raster-and-images/esri-ascii-raster-format.htm
 
     Parameters
     ----------
