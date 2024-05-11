@@ -14,6 +14,10 @@ translated into Python (plus function to output in vtk format)
 import os
 import pathlib
 
+from landlab.io.legacy_vtk import _format_vtk_cells
+from landlab.io.legacy_vtk import _format_vtk_header
+from landlab.io.legacy_vtk import _format_vtk_points
+
 
 class RefinableIcosahedron:
     """
@@ -152,18 +156,18 @@ class RefinableIcosahedron:
         self.faces.append((8, 6, 7))
         self.faces.append((9, 8, 1))
 
-    def write_to_vtk(self, path="icosahedron.vtk", clobber=False):
-        """
-        Save the geometry in a vtk-format text file.
+    def write_to_vtk(self, path, clobber=False):
+        """Save the geometry in a vtk-format text file.
 
         Note: this function is intended to test the RefinableIcosahedron.
         To write vtk for a Landlab IcosphereGlobalGrid, use
-        grid.to_vtk() to capture the full set of geometric primitives.
+        `landlab.io.legacy_vtk.dump` to capture the full set of geometric
+        primitives.
 
         Parameters
         ----------
-        path : str, Path object, or StringIO object (optional)
-            Target for output (defaults to "icosahedron.vtk")
+        path : str, path-like , or file-like
+            Target for output.
         clobber : bool, optional
             Whether to allow overwriting of existing file.
 
@@ -176,16 +180,15 @@ class RefinableIcosahedron:
         --------
         >>> import io
         >>> import os
+
         >>> ico = RefinableIcosahedron()
-        >>> file_test = ico.write_to_vtk("testfile.vtk")
-        >>> os.remove("testfile.vtk")
         >>> output = ico.write_to_vtk(io.StringIO())
         >>> lines = output.getvalue().splitlines()
+
         >>> print(lines[0])
         # vtk DataFile Version 2.0
-        >>> for i in range(4, 17):
-        ...     print(lines[i])
-        ...
+
+        >>> print(os.linesep.join(lines[5:18]))
         POINTS 12 float
         -0.5257311121191336 0.85065080835204 0.0
         0.5257311121191336 0.85065080835204 0.0
@@ -199,9 +202,8 @@ class RefinableIcosahedron:
         0.85065080835204 0.0 0.5257311121191336
         -0.85065080835204 0.0 -0.5257311121191336
         -0.85065080835204 0.0 0.5257311121191336
-        >>> for i in range(18, 40):
-        ...     print(lines[i])
-        ...
+
+        >>> print(os.linesep.join(lines[18:40]))
         CELLS 20 80
         3 0 11 5
         3 0 5 1
@@ -223,9 +225,8 @@ class RefinableIcosahedron:
         3 6 2 10
         3 8 6 7
         3 9 8 1
-        >>> for i in range(40, 44):
-        ...     print(lines[i])
-        ...
+
+        >>> print(os.linesep.join(lines[41:45]))
         CELL_TYPES 20
         5
         5
@@ -255,24 +256,15 @@ class RefinableIcosahedron:
         -------
         None
         """
-        file_like.write("# vtk DataFile Version 2.0\n")
-        file_like.write("icosahedron\n")
-        file_like.write("ASCII\n")
-        file_like.write("DATASET UNSTRUCTURED_GRID\n")
-        file_like.write("POINTS " + str(len(self.vertices)) + " float\n")
-        for vtx in self.vertices:
-            file_like.write(str(vtx[0]) + " " + str(vtx[1]) + " " + str(vtx[2]) + "\n")
-        file_like.write("\n")
-        nfaces = len(self.faces)
-        file_like.write("CELLS " + str(nfaces) + " " + str(4 * nfaces) + "\n")
-        for face in self.faces:
-            file_like.write(
-                "3 " + str(face[0]) + " " + str(face[1]) + " " + str(face[2]) + "\n"
+        file_like.write(
+            (2 * "\n").join(
+                [
+                    _format_vtk_header(),
+                    _format_vtk_points(self.vertices),
+                    _format_vtk_cells(self.faces),
+                ]
             )
-        file_like.write("\n")
-        file_like.write("CELL_TYPES " + str(nfaces) + "\n")
-        for _ in range(nfaces):
-            file_like.write("5\n")
+        )
 
     def get_middle_point(self, p1, p2):
         """
