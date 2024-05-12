@@ -1,2 +1,0 @@
-Added new component :class:`~.MassWastingRunout`
-for predicting the hazard extent, sediment transport and topographic change associated with the runout of a landslide.
