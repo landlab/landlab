@@ -10,10 +10,10 @@ Greg Tucker, University of Colorado Boulder, September 2023
 import numpy as np
 
 from landlab.graph.quasi_spherical.refinable_icosahedron import RefinableIcosahedron
-from landlab.utils.geometry.spherical.spherical_geometry import arc_length
-from landlab.utils.geometry.spherical.spherical_geometry import area_of_sphertri
-from landlab.utils.geometry.spherical.spherical_geometry import cartesian_to_spherical
-from landlab.utils.geometry.spherical.spherical_geometry import rotate_zy
+from landlab.utils.geometry.spherical import arc_length
+from landlab.utils.geometry.spherical import area_of_sphertri
+from landlab.utils.geometry.spherical import cartesian_to_spherical
+from landlab.utils.geometry.spherical import rotate_zy
 
 
 class DualIcosphereGraph:
