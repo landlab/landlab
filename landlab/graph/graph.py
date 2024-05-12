@@ -411,7 +411,7 @@ class NetworkGraph:
 
         :meta landlab: info-node
         """
-        return self.ds.dims["node"]
+        return self.ds.sizes["node"]
 
     @property
     def nodes_at_link(self):
@@ -534,7 +534,7 @@ class NetworkGraph:
         True
         """
         try:
-            return self.ds.dims["link"]
+            return self.ds.sizes["link"]
         except KeyError:
             return 0
 
@@ -982,7 +982,7 @@ class Graph(NetworkGraph):
         :meta landlab: info-patch
         """
         try:
-            return self.ds.dims["patch"]
+            return self.ds.sizes["patch"]
         except KeyError:
             return 0
 

@@ -270,7 +270,7 @@ class FieldDataset(dict):
     def fixed_size(self, fixed_size):
         self._fixed_size = bool(fixed_size)
         if self._fixed_size:
-            self.size = self._ds.dims[self._name]
+            self.size = self._ds.sizes[self._name]
 
     @property
     def units(self):
