@@ -1,1 +1,2 @@
-Add a new grid type: IcosphereGlobalGrid (plus underlying graph machinery, etc.)
+Added a new grid type, :class:`~.IcosphereGlobalGrid` (plus underlying graph
+machinery, etc.).
