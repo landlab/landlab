@@ -1,14 +1,13 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+from cython.parallel cimport prange
 
 
 @cython.boundscheck(False)
-def fill_nodes_at_face(shape, np.ndarray[DTYPE_t, ndim=2] nodes_at_face):
+@cython.wraparound(False)
+def fill_nodes_at_face(
+    shape,
+    cython.integral [:, :] nodes_at_face,
+):
     """Get nodes on either side of a face.
 
     Parameters
@@ -26,21 +25,20 @@ def fill_nodes_at_face(shape, np.ndarray[DTYPE_t, ndim=2] nodes_at_face):
     cdef int n_cols = shape[1]
 
     # Horizontal faces first
-    face = 0
-    for row in range(n_rows - 1):
+    for row in prange(n_rows - 1, nogil=True, schedule="static"):
+        face = row * ((n_cols - 1) + (n_cols - 2))
         for col in range(1, n_cols - 1):
             node = row * n_cols + col
             nodes_at_face[face, 0] = node
             nodes_at_face[face, 1] = node + n_cols
-            face += 1
-        face += n_cols - 1
+            face = face + 1
 
     # Vertical faces next
-    face = n_cols - 2
-    for row in range(1, n_rows - 1):
+    for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
+        face = row * (n_cols - 2) + (row - 1) * (n_cols - 1)
+        # face = row * ((n_cols - 2) + (n_cols - 1))
         for col in range(n_cols - 1):
             node = row * n_cols + col
             nodes_at_face[face, 0] = node
             nodes_at_face[face, 1] = node + 1
-            face += 1
-        face += n_cols - 2
+            face = face + 1

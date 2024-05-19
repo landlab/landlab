@@ -1,14 +1,13 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+from cython.parallel cimport prange
 
 
 @cython.boundscheck(False)
-def fill_node_at_cell(shape, np.ndarray[DTYPE_t, ndim=1] node_at_cell):
+@cython.wraparound(False)
+def fill_node_at_cell(
+    shape,
+    cython.integral [:] node_at_cell,
+):
     """Get node contained in a cell.
 
     Parameters
@@ -26,10 +25,9 @@ def fill_node_at_cell(shape, np.ndarray[DTYPE_t, ndim=1] node_at_cell):
     cdef int row
     cdef int col
 
-    cell = 0
-    row_offset = shape[1] + 1
-    for row in range(cell_rows):
+    for row in prange(cell_rows, nogil=True, schedule="static"):
+        cell = row * cell_cols
+        row_offset = (row + 1) * node_cols + 1
         for col in range(cell_cols):
             node_at_cell[cell] = row_offset + col
-            cell += 1
-        row_offset += node_cols
+            cell = cell + 1
