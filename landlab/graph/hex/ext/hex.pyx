@@ -1,7 +1,8 @@
 cimport cython
+
 from cython.parallel import prange
+
 from libc.stdlib cimport free, malloc
-from libc.math cimport cos, tan, M_PI
 
 ctypedef fused id_t:
     cython.integral
@@ -175,14 +176,12 @@ def fill_xy_of_node_rect_horizontal(
     cython.floating [:] y_of_node,
 ):
     """Get x and y coordinates for each node."""
-    cdef int n_nodes = x_of_node.shape[0]
     cdef int stride = 2 * shape[1]
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
     cdef int row
     cdef int col
     cdef int node
-    cdef int offset
     # cdef int n
 
     for row in range(0, n_rows, 2):

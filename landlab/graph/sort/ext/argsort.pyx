@@ -52,7 +52,9 @@ cdef int _compare_int(const_void *a, const_void *b) noexcept:
         return 0
 
 
-cdef void argsort_flt(cython.floating * data, int n_elements, id_t * out) noexcept nogil:
+cdef void argsort_flt(
+    cython.floating * data, int n_elements, id_t * out
+) noexcept nogil:
     cdef Sorter *sorted_struct = <Sorter*>malloc(n_elements * sizeof(Sorter))
     cdef int i
 

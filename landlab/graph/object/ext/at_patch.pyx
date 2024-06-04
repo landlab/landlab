@@ -1,9 +1,6 @@
 cimport cython
 from cython.parallel cimport prange
-
 from libc.stdint cimport int8_t
-from libc.stdlib cimport free, malloc
-
 
 ctypedef fused float_or_int:
     cython.floating
@@ -14,11 +11,7 @@ ctypedef fused id_t:
     cython.integral
     long long
 
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdlib cimport free, malloc
 
 
 @cython.boundscheck(False)

@@ -1,10 +1,9 @@
 cimport cython
-from cython.parallel import prange
 
 import numpy as np
+from cython.parallel import prange
 
 cimport numpy as np
-from libc.stdlib cimport free, malloc
 from libc.stdint cimport uint8_t
 
 DTYPE = int

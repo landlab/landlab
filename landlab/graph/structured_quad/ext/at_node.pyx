@@ -1,7 +1,6 @@
 cimport cython
-from cython.parallel cimport prange
-
 cimport numpy as np
+from cython.parallel cimport prange
 
 
 @cython.boundscheck(False)
@@ -51,7 +50,6 @@ def fill_patches_at_node(
         patches_at_face[node, 1] = node - 1
         patches_at_face[node, 2] = - 1
         patches_at_face[node, 3] = - 1
-
 
     # Interior nodes
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
@@ -147,7 +145,6 @@ def fill_links_at_node(
         links_at_node[node, 2] = link
         links_at_node[node, 3] = - 1
 
-
     # Interior nodes
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
         link = row * links_per_row
@@ -171,7 +168,6 @@ def fill_links_at_node(
         links_at_node[node, 2] = link
         links_at_node[node, 3] = link - (n_cols - 1)
 
-
     # Left nodes
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
         node = row * n_cols
@@ -182,12 +178,11 @@ def fill_links_at_node(
         links_at_node[node, 2] = - 1
         links_at_node[node, 3] = link - (n_cols - 1)
 
-
     # Right nodes
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
         node = row * n_cols + n_cols - 1
         link = row * links_per_row + n_cols - 2
-    
+
         links_at_node[node, 0] = - 1
         links_at_node[node, 1] = link + n_cols
         links_at_node[node, 2] = link
@@ -250,7 +245,9 @@ def fill_link_dirs_at_node(
             node = node + 1
 
     # Top nodes
-    for node in prange(n_nodes - n_cols + 1, n_nodes - 1, nogil=True, schedule="static"):
+    for node in prange(
+        n_nodes - n_cols + 1, n_nodes - 1, nogil=True, schedule="static"
+    ):
         link_dirs_at_node[node, 0] = -1
         link_dirs_at_node[node, 1] = 0
         link_dirs_at_node[node, 2] = 1

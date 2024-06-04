@@ -1,7 +1,6 @@
 cimport cython
 from libc.stdlib cimport free, malloc
 
-
 ctypedef fused id_t:
     cython.integral
     long long

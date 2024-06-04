@@ -1,7 +1,8 @@
 cimport cython
+
 from cython.parallel import prange
 
-from libc.math cimport atan2, M_PI
+from libc.math cimport M_PI, atan2
 from libc.stdlib cimport free, malloc
 
 from .argsort cimport argsort_flt
@@ -44,8 +45,12 @@ cdef void _argsort_spokes_around_hub(
 ) noexcept nogil:
     cdef int point
     cdef int spoke
-    cdef cython.floating * points = <cython.floating *>malloc(2 * n_spokes * sizeof(cython.floating))
-    cdef cython.floating * angles = <cython.floating *>malloc(n_spokes * sizeof(cython.floating))
+    cdef cython.floating * points = <cython.floating *>malloc(
+        2 * n_spokes * sizeof(cython.floating)
+    )
+    cdef cython.floating * angles = <cython.floating *>malloc(
+        n_spokes * sizeof(cython.floating)
+    )
 
     try:
         point = 0
@@ -129,7 +134,9 @@ def argsort_points_around_hub(
         Indices of sorted points.
     """
     cdef int n_points = points.shape[0]
-    cdef cython.floating *angles = <cython.floating *>malloc(n_points * sizeof(cython.floating))
+    cdef cython.floating *angles = <cython.floating *>malloc(
+        n_points * sizeof(cython.floating)
+    )
 
     try:
         _calc_spoke_angles(&hub[0], &points[0, 0], n_points, angles)
