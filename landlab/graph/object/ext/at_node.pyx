@@ -1,12 +1,7 @@
 cimport cython
-cimport openmp
-from cython.parallel cimport prange
-from cython.parallel cimport threadid
-
-from libc.stdlib cimport free
+from cython.parallel cimport parallel, prange
 from libc.stdint cimport int8_t
-from libc.stdlib cimport malloc
-
+from libc.stdlib cimport free, malloc
 
 ctypedef fused float_or_int:
     cython.floating
@@ -101,25 +96,18 @@ def reorder_rows(
     cdef int n_cols = value_at_row.shape[1]
     cdef int row
     cdef int col
-    cdef int n_threads
-    cdef float_or_int *buffer
-    cdef float_or_int *thread_buffer
+    cdef float_or_int *scratch
 
-    with nogil:
-        n_threads = openmp.omp_get_max_threads()
+    with nogil, parallel():
+        scratch = <float_or_int *>malloc(n_cols * sizeof(float_or_int))
 
-    try:
-        buffer = <float_or_int *>malloc(n_threads * n_cols * sizeof(float_or_int))
-
-        for row in prange(n_rows, nogil=True, schedule="static"):
-            thread_buffer = buffer + n_cols * threadid()
+        for row in prange(n_rows, schedule="static"):
             for col in range(n_cols):
-                thread_buffer[col] = value_at_row[row, sorted_cols[row, col]]
+                scratch[col] = value_at_row[row, sorted_cols[row, col]]
             for col in range(n_cols):
-                value_at_row[row, col] = thread_buffer[col]
+                value_at_row[row, col] = scratch[col]
 
-    finally:
-        free(buffer)
+        free(scratch)
 
 
 @cython.boundscheck(False)
