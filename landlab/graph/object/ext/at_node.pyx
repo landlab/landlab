@@ -1,7 +1,12 @@
 cimport cython
+cimport openmp
 from cython.parallel cimport prange
+from cython.parallel cimport threadid
+
+from libc.stdlib cimport free
 from libc.stdint cimport int8_t
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport malloc
+
 
 ctypedef fused float_or_int:
     cython.floating
@@ -15,54 +20,11 @@ ctypedef fused id_t:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def find_links_at_node(
+cdef long _find_links_at_node(
     const int node,
-    const id_t [:, :] nodes_at_link,
-    id_t [:] links_at_node,
-    int8_t [:] link_dirs_at_node,
-):
-    """Find links touching a node and their directions.
-
-    Parameters
-    ----------
-    node : int
-        A node ID.
-    nodes_at_link : ndarray of int, shape `(n_links, 2)`
-        Nodes at link tail and head.
-    links_at_node : ndarray of int, shape `(max_links_per_node, )`
-        Buffer to hold link identifiers for links around node.
-    link_dirs_at_node : ndarray of int, shape `(max_links_per_node, )`
-        Buffer to hold link directions for links around node.
-
-    Returns
-    -------
-    int
-        The number of links found.
-    """
-    cdef int n_links_found
-    cdef int max_links_at_node = links_at_node.shape[0]
-    cdef int n_links = nodes_at_link.shape[0]
-
-    with nogil:
-        n_links_found = _find_links_at_node(
-            node,
-            &nodes_at_link[0, 0],
-            n_links,
-            &links_at_node[0],
-            &link_dirs_at_node[0],
-            max_links_at_node,
-        )
-
-    return n_links_found
-
-
-cdef int _find_links_at_node(
-    const int node,
-    const id_t * nodes_at_link,
-    const int n_links,
-    id_t * links_at_node,
-    int8_t * link_dirs_at_node,
-    const int max_links_at_node,
+    const id_t[:, :] nodes_at_link,
+    id_t[:] links_at_node,
+    int8_t[:] link_dirs_at_node,
 ) noexcept nogil:
     """Find links touching a node and their directions.
 
@@ -82,17 +44,17 @@ cdef int _find_links_at_node(
     int
         The number of links found.
     """
-    cdef int link = 0
-    cdef int n_links_found = 0
-    cdef int offset
+    cdef long link = 0
+    cdef long n_links_found = 0
+    cdef long max_links_at_node = links_at_node.shape[0]
+    cdef long n_links = nodes_at_link.shape[0]
 
     while n_links_found < max_links_at_node and link < n_links:
-        offset = 2 * link
-        if nodes_at_link[offset] == node:
+        if nodes_at_link[link, 0] == node:
             links_at_node[n_links_found] = link
             link_dirs_at_node[n_links_found] = -1
             n_links_found += 1
-        elif nodes_at_link[offset + 1] == node:
+        elif nodes_at_link[link, 1] == node:
             links_at_node[n_links_found] = link
             link_dirs_at_node[n_links_found] = 1
             n_links_found += 1
@@ -105,9 +67,9 @@ cdef int _find_links_at_node(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def get_links_at_node(
-    const id_t [:, :] nodes_at_link,
-    id_t [:, :] links_at_node,
-    int8_t [:, :] link_dirs_at_node,
+    const id_t[:, :] nodes_at_link,
+    id_t[:, :] links_at_node,
+    int8_t[:, :] link_dirs_at_node,
 ):
     """Get links touching each node and their directions.
 
@@ -122,51 +84,71 @@ def get_links_at_node(
     """
     cdef int node
     cdef int n_nodes = links_at_node.shape[0]
-    cdef int max_links_at_node = links_at_node.shape[0]
-    cdef int n_links = nodes_at_link.shape[0]
 
     for node in prange(n_nodes, nogil=True, schedule="static"):
         _find_links_at_node(
-            node,
-            &nodes_at_link[0, 0],
-            n_links,
-            &links_at_node[node, 0],
-            &link_dirs_at_node[node, 0],
-            max_links_at_node,
+            node, nodes_at_link, links_at_node[node], link_dirs_at_node[node]
         )
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def reorder_links_at_node(
-    float_or_int [:, :] links_at_node,
-    const cython.integral [:, :] sorted_links,
+def reorder_rows(
+    float_or_int[:, :] value_at_row,
+    const id_t[:, :] sorted_cols,
 ):
-    cdef int n_rows = links_at_node.shape[0]
-    cdef int n_cols = links_at_node.shape[1]
+    cdef int n_rows = value_at_row.shape[0]
+    cdef int n_cols = value_at_row.shape[1]
     cdef int row
     cdef int col
-    cdef float_or_int *buffer = <float_or_int *>malloc(
-        n_rows * n_cols * sizeof(float_or_int)
-    )
-    cdef float_or_int *row_buffer
+    cdef int n_threads
+    cdef float_or_int *buffer
+    cdef float_or_int *thread_buffer
 
-    for row in prange(n_rows, nogil=True, schedule="static"):
-        row_buffer = buffer + row * n_cols
+    with nogil:
+        n_threads = openmp.omp_get_max_threads()
 
-        for col in range(n_cols):
-            row_buffer[col] = links_at_node[row, sorted_links[row, col]]
-        for col in range(n_cols):
-            links_at_node[row, col] = row_buffer[col]
+    try:
+        buffer = <float_or_int *>malloc(n_threads * n_cols * sizeof(float_or_int))
 
-    free(buffer)
+        for row in prange(n_rows, nogil=True, schedule="static"):
+            thread_buffer = buffer + n_cols * threadid()
+            for col in range(n_cols):
+                thread_buffer[col] = value_at_row[row, sorted_cols[row, col]]
+            for col in range(n_cols):
+                value_at_row[row, col] = thread_buffer[col]
+
+    finally:
+        free(buffer)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def reorder_links_at_node(
+    id_t[:, :] links_at_node,
+    const id_t[:, :] sorted_links,
+):
+    cdef int n_nodes = links_at_node.shape[0]
+    cdef int n_links_per_node = links_at_node.shape[1]
+    cdef int i
+    cdef int node
+    cdef int *buffer = <int *>malloc(n_links_per_node * sizeof(int))
+
+    try:
+        for node in range(n_nodes):
+            for i in range(n_links_per_node):
+                buffer[i] = links_at_node[node, sorted_links[node, i]]
+            for i in range(n_links_per_node):
+                links_at_node[node, i] = buffer[i]
+    finally:
+        free(buffer)
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def reorder_link_dirs_at_node(
-    int8_t [:, :] link_dirs_at_node,
-    cython.integral [:, :] sorted_links,
+    int8_t[:, :] link_dirs_at_node,
+    const id_t[:, :] sorted_links,
 ):
     cdef int n_nodes = link_dirs_at_node.shape[0]
     cdef int n_links_per_node = link_dirs_at_node.shape[1]
@@ -174,12 +156,11 @@ def reorder_link_dirs_at_node(
     cdef int node
     cdef int *buffer = <int *>malloc(n_links_per_node * sizeof(int))
 
-    with nogil:
-        try:
-            for node in range(n_nodes):
-                for i in range(n_links_per_node):
-                    buffer[i] = link_dirs_at_node[node, sorted_links[node, i]]
-                for i in range(n_links_per_node):
-                    link_dirs_at_node[node, i] = buffer[i]
-        finally:
-            free(buffer)
+    try:
+        for node in range(n_nodes):
+            for i in range(n_links_per_node):
+                buffer[i] = link_dirs_at_node[node, sorted_links[node, i]]
+            for i in range(n_links_per_node):
+                link_dirs_at_node[node, i] = buffer[i]
+    finally:
+        free(buffer)

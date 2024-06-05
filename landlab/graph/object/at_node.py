@@ -118,6 +118,7 @@ def sort_links_at_node_by_angle(
     """
     from .ext.at_node import reorder_link_dirs_at_node
     from .ext.at_node import reorder_links_at_node
+    from .ext.at_node import reorder_rows
 
     out = (
         np.asarray(links_at_node, dtype=int),
@@ -147,7 +148,9 @@ def sort_links_at_node_by_angle(
 
     sorted_links = as_id_array(np.argsort(outward_angle))
 
-    reorder_links_at_node(links_at_node, sorted_links)
-    reorder_link_dirs_at_node(link_dirs_at_node, sorted_links)
+    # reorder_links_at_node(links_at_node, sorted_links)
+    # reorder_link_dirs_at_node(link_dirs_at_node, sorted_links)
+    reorder_rows(links_at_node, sorted_links)
+    reorder_rows(link_dirs_at_node, sorted_links)
 
     return links_at_node, link_dirs_at_node
