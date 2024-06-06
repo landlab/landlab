@@ -170,7 +170,7 @@ def fill_link_dirs_at_node(
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
         first_node = row * n_cols
 
-        for node in range(first_node, first_node + n_cols - 1):
+        for node in range(first_node, first_node + n_cols):
             link_dirs_at_node[node, 0] = - 1
             link_dirs_at_node[node, 1] = - 1
             link_dirs_at_node[node, 2] = 1
@@ -180,10 +180,10 @@ def fill_link_dirs_at_node(
 
     # Top row
     first_node = (n_rows - 1) * n_cols
-    for node in prange(first_node, n_nodes - 1, nogil=True, schedule="static"):
+    for node in prange(first_node, first_node + n_cols, nogil=True, schedule="static"):
         link_dirs_at_node[node, 0] = -1
         link_dirs_at_node[node, 1] = 0
         link_dirs_at_node[node, 2] = 1
         link_dirs_at_node[node, 3] = 1
     link_dirs_at_node[first_node, 2] = 0
-    link_dirs_at_node[n_nodes - 1, 0] = 0
+    link_dirs_at_node[first_node + n_cols - 1, 0] = 0
