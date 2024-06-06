@@ -113,7 +113,6 @@ def fill_nodes_at_link(
     cdef long node
     cdef long n_rows = shape[0]
     cdef long n_cols = shape[1]
-    # cdef int links_per_row = 2 * n_cols - 1
     cdef long horizontal_links_per_row = n_cols - 1
     cdef long vertical_links_per_row = n_cols
     cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
@@ -128,7 +127,7 @@ def fill_nodes_at_link(
             node = node + 1
             link = link + 1
 
-        link = row * links_per_row + n_cols - 1
+        node = row * n_cols
         for col in range(vertical_links_per_row):
             nodes_at_link[link, 0] = node
             nodes_at_link[link, 1] = node + n_cols
