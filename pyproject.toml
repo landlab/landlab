@@ -21,7 +21,6 @@ keywords = [
   "model coupling",
   "numerical modeling",
 ]
-license = {file = "LICENSE.rst"}
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -51,6 +50,9 @@ dependencies = [
   "xarray >= 0.16",
 ]
 dynamic = ["readme", "version"]
+
+[project.license]
+text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
@@ -134,8 +136,28 @@ ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
 build = "cp310-* cp311-* cp312-*"
-skip = "*-musllinux_*"
+skip = "*-musllinux_* *-win32*"
 archs = "x86_64,aarch64,arm64,AMD64,x86"
+test-command = "python -c \"import landlab; print(landlab.__version__)\""
+
+[tool.cibuildwheel.macos]
+before-all = "brew install libomp"
+# before-all = "brew install llvm libomp"
+
+[tool.cibuildwheel.macos.environment]
+LANDLAB_WITHOUT_OPENMP = "1"
+LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
+CPPFLAGS = "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
+CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
+CXXFLAGS = "-I/opt/homebrew/opt/libomp/include"
+# PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
+
+[[tool.cibuildwheel.overrides]]
+select = "*x86_64*"
+environment = {"LANDLAB_WITHOUT_OPENMP"="1"}
+
+[tool.cibuildwheel.windows.environment]
+LANDLAB_WITHOUT_OPENMP = "1"
 
 [tool.cython-lint]
 max-line-length = 88
