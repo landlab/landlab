@@ -1,12 +1,16 @@
 cimport cython
 from cython.parallel cimport prange
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def fill_nodes_at_face(
     shape,
-    cython.integral [:, :] nodes_at_face,
+    id_t [:, :] nodes_at_face,
 ):
     """Get nodes on either side of a face.
 
@@ -23,22 +27,31 @@ def fill_nodes_at_face(
     cdef int col
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
+    cdef long vertical_faces_per_row = n_cols - 1
+    cdef long horizontal_faces_per_row = n_cols - 2
+    cdef long faces_per_row = vertical_faces_per_row + horizontal_faces_per_row
 
-    # Horizontal faces first
-    for row in prange(n_rows - 1, nogil=True, schedule="static"):
-        face = row * ((n_cols - 1) + (n_cols - 2))
-        for col in range(1, n_cols - 1):
-            node = row * n_cols + col
+    for row in prange(n_rows - 2, nogil=True, schedule="static"):
+        face = row * faces_per_row
+        node = row * n_cols + 1
+
+        for col in range(horizontal_faces_per_row):
             nodes_at_face[face, 0] = node
             nodes_at_face[face, 1] = node + n_cols
+
+            node = node + 1
             face = face + 1
 
-    # Vertical faces next
-    for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
-        face = row * (n_cols - 2) + (row - 1) * (n_cols - 1)
-        # face = row * ((n_cols - 2) + (n_cols - 1))
-        for col in range(n_cols - 1):
-            node = row * n_cols + col
+        node = (row + 1) * n_cols
+        for col in range(vertical_faces_per_row):
             nodes_at_face[face, 0] = node
             nodes_at_face[face, 1] = node + 1
+
+            node = node + 1
             face = face + 1
+
+    face = (n_rows - 2) * faces_per_row
+    node = (n_rows - 2) * n_cols + 1
+    for col in prange(horizontal_faces_per_row, nogil=True, schedule="static"):
+        nodes_at_face[face + col, 0] = node + col
+        nodes_at_face[face + col, 1] = node + col + n_cols

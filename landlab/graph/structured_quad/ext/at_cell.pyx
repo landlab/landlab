@@ -1,12 +1,16 @@
 cimport cython
 from cython.parallel cimport prange
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def fill_node_at_cell(
     shape,
-    cython.integral [:] node_at_cell,
+    id_t[:] node_at_cell,
 ):
     """Get node contained in a cell.
 

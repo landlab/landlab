@@ -1,12 +1,16 @@
 cimport cython
 from cython.parallel cimport prange
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def fill_links_at_patch(
     shape,
-    cython.integral [:, :] links_at_patch,
+    id_t [:, :] links_at_patch,
 ):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
