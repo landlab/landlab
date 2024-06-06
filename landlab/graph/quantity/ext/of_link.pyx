@@ -10,7 +10,7 @@ ctypedef fused id_t:
 @cython.wraparound(False)
 def calc_midpoint_of_link(
     const id_t [:, :] nodes_at_link,
-    const id_t [:] x_of_node,
+    const cython.floating [:] x_of_node,
     const cython.floating [:] y_of_node,
     cython.floating [:, :] xy_of_link,
 ):

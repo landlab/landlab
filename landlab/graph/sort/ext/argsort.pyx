@@ -233,7 +233,7 @@ cpdef void argsort_id_array(
     const cython.floating [:] data,
     const id_t [:] id_array,
     cython.integral [:] out,
-) nogil:
+) noexcept nogil:
     cdef int n_elements = len(data)
     cdef int i
     cdef int count = 0
