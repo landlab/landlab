@@ -13,7 +13,8 @@ cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
 
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from landlab.components.flow_router.ext.single_flow.priority_routing cimport (
     breach as breach_c,

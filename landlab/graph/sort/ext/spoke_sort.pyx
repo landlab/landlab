@@ -2,8 +2,10 @@ cimport cython
 
 from cython.parallel import prange
 
-from libc.math cimport M_PI, atan2
-from libc.stdlib cimport free, malloc
+from libc.math cimport M_PI
+from libc.math cimport atan2
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 from .argsort cimport argsort_flt
 

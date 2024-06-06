@@ -2,7 +2,8 @@ cimport cython
 
 from cython.parallel import prange
 
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 ctypedef fused id_t:
     cython.integral

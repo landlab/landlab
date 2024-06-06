@@ -1,12 +1,16 @@
 cimport cython
 from cython.parallel cimport prange
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def calc_midpoint_of_link(
-    const cython.integral [:, :] nodes_at_link,
-    const cython.floating [:] x_of_node,
+    const id_t [:, :] nodes_at_link,
+    const id_t [:] x_of_node,
     const cython.floating [:] y_of_node,
     cython.floating [:, :] xy_of_link,
 ):

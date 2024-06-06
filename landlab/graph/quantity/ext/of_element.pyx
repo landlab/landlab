@@ -1,5 +1,4 @@
 cimport cython
-
 from cython.parallel import prange
 
 ctypedef fused id_t:

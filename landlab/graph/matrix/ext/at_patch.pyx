@@ -1,13 +1,17 @@
 cimport cython
 from cython.parallel cimport prange
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def fill_links_at_patch(
-    cython.integral [:] links_at_patch,
-    cython.integral [:] offset_to_patch,
-    cython.integral [:, :] out,
+    const id_t [:] links_at_patch,
+    const id_t [:] offset_to_patch,
+    id_t [:, :] out,
 ):
     cdef int i
     cdef int link

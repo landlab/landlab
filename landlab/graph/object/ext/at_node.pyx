@@ -1,7 +1,9 @@
 cimport cython
-from cython.parallel cimport parallel, prange
+from cython.parallel cimport parallel
+from cython.parallel cimport prange
 from libc.stdint cimport int8_t
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 ctypedef fused float_or_int:
     cython.floating

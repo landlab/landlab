@@ -152,7 +152,6 @@ def fill_link_dirs_at_node(
 ):
     cdef long n_rows = shape[0]
     cdef long n_cols = shape[1]
-    cdef long n_nodes = n_rows * n_cols
     cdef long first_node
     cdef long node
     cdef long row

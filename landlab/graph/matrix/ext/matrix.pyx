@@ -1,7 +1,9 @@
 cimport cython
 from cython.parallel cimport prange
-from libc.stdlib cimport free, malloc
-from libc.string cimport memcpy, memmove
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
+from libc.string cimport memcpy
+from libc.string cimport memmove
 
 
 cdef void roll(

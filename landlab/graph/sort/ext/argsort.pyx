@@ -2,11 +2,12 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
-from cython cimport view
 
 from cython.parallel import prange
 
-from libc.stdlib cimport free, malloc
+from cython cimport view
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 # ctypedef fused id_t:
 #     cython.integral

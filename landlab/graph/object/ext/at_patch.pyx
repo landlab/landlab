@@ -11,8 +11,6 @@ ctypedef fused id_t:
     cython.integral
     long long
 
-cimport cython
-
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

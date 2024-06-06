@@ -4,7 +4,8 @@ import numpy as np
 from cython.parallel import prange
 
 cimport numpy as np
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 
 cdef extern from "math.h":

@@ -1,12 +1,17 @@
 cimport cython
 from cython.parallel cimport prange
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
+
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def calc_area_at_patch(
-    const cython.integral [:, :] nodes_at_patch,
+    const id_t [:, :] nodes_at_patch,
     const cython.floating [:] x_of_node,
     const cython.floating [:] y_of_node,
     cython.floating [:] out,
@@ -22,7 +27,7 @@ def calc_area_at_patch(
 
 
 cdef cython.floating calc_area_of_patch(
-    const cython.integral * nodes_at_patch,
+    const id_t * nodes_at_patch,
     const long n_vertices,
     const cython.floating * x_of_node,
     const cython.floating * y_of_node,
@@ -54,7 +59,7 @@ cdef cython.floating calc_area_of_patch(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def calc_centroid_at_patch(
-    const cython.integral [:, :] nodes_at_patch,
+    const id_t [:, :] nodes_at_patch,
     const cython.floating [:] x_of_node,
     const cython.floating [:] y_of_node,
     cython.floating [:, :] out,
@@ -70,7 +75,7 @@ def calc_centroid_at_patch(
 
 
 cdef void calc_centroid_of_patch(
-    const cython.integral * nodes_at_patch,
+    const id_t * nodes_at_patch,
     const long n_vertices,
     const cython.floating * x_of_node,
     const cython.floating * y_of_node,
