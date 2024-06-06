@@ -1,3 +1,0 @@
-
-Fixed warnings caused by using xarray.Dataset.dims rather than
-xarray.Dataset.sizes.
