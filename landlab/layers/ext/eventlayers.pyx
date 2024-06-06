@@ -10,7 +10,7 @@ ctypedef fused id_t:
 def deposit_or_erode(
     cython.floating [:, :] layers,
     long n_layers,
-    cython.floating [:] dz,
+    const cython.floating [:] dz,
 ):
     cdef int n_stacks = layers.shape[1]
     cdef int top_ind = n_layers - 1
@@ -37,7 +37,7 @@ def deposit_or_erode(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def get_surface_index(
-    cython.floating [:, :] layers,
+    const cython.floating [:, :] layers,
     long n_layers,
     id_t [:] surface_index,
 ):
