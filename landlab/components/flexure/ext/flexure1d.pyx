@@ -1,9 +1,6 @@
 cimport cython
 from cython.parallel cimport prange
-from libc.math cimport cos
-from libc.math cimport exp
-from libc.math cimport fabs
-from libc.math cimport sin
+from libc.math cimport cos, exp, fabs, sin
 
 
 @cython.boundscheck(False)
