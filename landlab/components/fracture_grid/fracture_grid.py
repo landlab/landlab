@@ -8,7 +8,9 @@ Last significant modification: conversion to proper component 7/2019 GT
 
 import numpy as np
 
-from landlab import Component, HexModelGrid, RasterModelGrid
+from landlab import Component
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 
 
 def _calc_fracture_starting_position_raster(shape):
@@ -139,19 +141,19 @@ def _calc_fracture_step_sizes(ang):
     Examples
     --------
     >>> np.round(_calc_fracture_step_sizes(0 * np.pi / 6), 3)
-    array([ 1.,  0.])
+    array([1., 0.])
     >>> np.round(_calc_fracture_step_sizes(1 * np.pi / 6), 3)
-    array([ 1.   , 0.577])
+    array([1.   , 0.577])
     >>> np.round(_calc_fracture_step_sizes(2 * np.pi / 6), 3)
-    array([ 0.577,  1.   ])
+    array([0.577, 1.   ])
     >>> np.round(_calc_fracture_step_sizes(3 * np.pi / 6), 3)
-    array([ 0., 1.])
+    array([0., 1.])
     >>> np.round(_calc_fracture_step_sizes(4 * np.pi / 6), 3)
-    array([-0.577, 1.   ])
+    array([-0.577,  1.   ])
     >>> np.round(_calc_fracture_step_sizes(5 * np.pi / 6), 3)
-    array([-1.   , 0.577])
+    array([-1.   ,  0.577])
     >>> np.round(_calc_fracture_step_sizes(6 * np.pi / 6), 3)
-    array([-1., 0.])
+    array([-1.,  0.])
     >>> np.round(_calc_fracture_step_sizes(7 * np.pi / 6), 3)
     array([-1.   , -0.577])
     >>> np.round(_calc_fracture_step_sizes(8 * np.pi / 6), 3)
@@ -212,7 +214,6 @@ def _trace_fracture_through_grid_raster(m, start_xy, spacing):
 
 
 class FractureGridGenerator(Component):
-
     """Create a 2D grid with randomly generated fractures.
 
     The grid contains the value 1 where fractures (one cell wide) exist, and
@@ -225,7 +226,7 @@ class FractureGridGenerator(Component):
     >>> grid = RasterModelGrid((5, 5))
     >>> fg = FractureGridGenerator(grid=grid, frac_spacing=3)
     >>> fg.run_one_step()
-    >>> grid.at_node['fracture_at_node'].reshape((5, 5))
+    >>> grid.at_node["fracture_at_node"].reshape((5, 5))
     array([[1, 0, 0, 1, 0],
            [0, 1, 1, 1, 1],
            [0, 0, 0, 1, 1],

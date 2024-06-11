@@ -42,28 +42,31 @@ class DetachmentLtdErosion(Component):
 
     Create fields of data for each of these input variables.
 
-    >>> grid.at_node['topographic__elevation'] = np.array([
-    ...     0., 0., 0., 0., 0.,
-    ...     1., 1., 1., 1., 1.,
-    ...     2., 2., 2., 2., 2.,
-    ...     3., 3., 3., 3., 3.])
+    >>> grid.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [1.0, 1.0, 1.0, 1.0, 1.0],
+    ...     [2.0, 2.0, 2.0, 2.0, 2.0],
+    ...     [3.0, 3.0, 3.0, 3.0, 3.0],
+    ... ]
 
     Using the set topography, now we will calculate slopes on all nodes.
 
-
-    >>> grid.at_node['topographic__slope'] = np.array([
-    ...     -0.        , -0.        , -0.        , -0.        , -0,
-    ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
-    ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678,
-    ...      0.70710678,  1.        ,  1.        ,  1.        ,  0.70710678])
+    >>> grid.at_node["topographic__slope"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.70710678, 1.0, 1.0, 1.0, 0.70710678],
+    ...     [0.70710678, 1.0, 1.0, 1.0, 0.70710678],
+    ...     [0.70710678, 1.0, 1.0, 1.0, 0.70710678],
+    ... ]
 
 
     Now we will arbitrarily add water discharge to each node for simplicity.
-    >>> grid.at_node['surface_water__discharge'] = np.array([
-    ...     30., 30., 30., 30., 30.,
-    ...     20., 20., 20., 20., 20.,
-    ...     10., 10., 10., 10., 10.,
-    ...      5., 5., 5., 5., 5.])
+
+    >>> grid.at_node["surface_water__discharge"] = [
+    ...     [30.0, 30.0, 30.0, 30.0, 30.0],
+    ...     [20.0, 20.0, 20.0, 20.0, 20.0],
+    ...     [10.0, 10.0, 10.0, 10.0, 10.0],
+    ...     [5.0, 5.0, 5.0, 5.0, 5.0],
+    ... ]
 
     Instantiate the `DetachmentLtdErosion` component to work on this grid, and
     run it. In this simple case, we need to pass it a time step ('dt')
@@ -81,18 +84,18 @@ class DetachmentLtdErosion(Component):
 
     The `topographic__elevation` field is defined at nodes.
 
-    >>> dle.var_loc('topographic__elevation')
+    >>> dle.var_loc("topographic__elevation")
     'node'
 
 
     Now we test to see how the topography changed as a function of the erosion
     rate.
 
-    >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
-            1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
-            2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
+    >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
+    array([[0.        , 0.        , 0.        , 0.        , 0.        ],
+           [0.99936754, 0.99910557, 0.99910557, 0.99910557, 0.99936754],
+           [1.99955279, 1.99936754, 1.99936754, 1.99936754, 1.99955279],
+           [2.99968377, 2.99955279, 2.99955279, 2.99955279, 2.99968377]])
 
     References
     ----------

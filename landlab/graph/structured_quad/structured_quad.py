@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from functools import cached_property
 
 import numpy as np
@@ -16,48 +17,39 @@ class StructuredQuadLayout(ABC):
 
     @staticmethod
     @abstractmethod
-    def links_at_patch(shape):
-        ...
+    def links_at_patch(shape): ...
 
     @staticmethod
     @abstractmethod
-    def nodes_at_link(shape):
-        ...
+    def nodes_at_link(shape): ...
 
     @staticmethod
     @abstractmethod
-    def horizontal_links(shape):
-        ...
+    def horizontal_links(shape): ...
 
     @staticmethod
     @abstractmethod
-    def vertical_links(shape):
-        ...
+    def vertical_links(shape): ...
 
     @staticmethod
     @abstractmethod
-    def perimeter_nodes(shape):
-        ...
+    def perimeter_nodes(shape): ...
 
     @staticmethod
     @abstractmethod
-    def links_at_node(shape):
-        ...
+    def links_at_node(shape): ...
 
     @staticmethod
     @abstractmethod
-    def patches_at_link(shape):
-        ...
+    def patches_at_link(shape): ...
 
     @staticmethod
     @abstractmethod
-    def link_dirs_at_node(shape):
-        ...
+    def link_dirs_at_node(shape): ...
 
     @staticmethod
     @abstractmethod
-    def patches_at_node(shape):
-        ...
+    def patches_at_node(shape): ...
 
 
 class StructuredQuadLayoutCython(StructuredQuadLayout):
@@ -67,7 +59,9 @@ class StructuredQuadLayoutCython(StructuredQuadLayout):
 
         Examples
         --------
-        >>> from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutCython
+        >>> from landlab.graph.structured_quad.structured_quad import (
+        ...     StructuredQuadLayoutCython,
+        ... )
         >>> StructuredQuadLayoutCython.links_at_patch((3, 4))
         array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
                [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]])
@@ -84,7 +78,9 @@ class StructuredQuadLayoutCython(StructuredQuadLayout):
         """
         Examples
         --------
-        >>> from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutCython
+        >>> from landlab.graph.structured_quad.structured_quad import (
+        ...     StructuredQuadLayoutCython,
+        ... )
         >>> StructuredQuadLayoutCython.nodes_at_link((3, 4))
         array([[ 0,  1], [ 1,  2], [ 2,  3],
                [ 0,  4], [ 1,  5], [ 2,  6], [ 3,  7],
@@ -592,11 +588,11 @@ class StructuredQuadGraphExtras(StructuredQuadGraphTopology, Graph):
         >>> pll[4:13, :]
         array([[-1, 11],
                [-1, 12],
-               [-1, -1],
+               [-1, 13],
                [-1,  8],
                [ 7,  9],
                [ 8, -1],
-               [-1, -1],
+               [ 3, -1],
                [ 4, -1],
                [ 5, -1]])
         """
@@ -654,7 +650,6 @@ class StructuredQuadGraph(StructuredQuadGraphExtras):
 
 
 class RectilinearGraph(StructuredQuadGraphExtras):
-
     """Graph of a rectlinear grid of nodes.
 
     Examples
@@ -663,16 +658,16 @@ class RectilinearGraph(StructuredQuadGraphExtras):
     >>> graph = RectilinearGraph(([0, 1, 2, 3], [1, 4, 8]))
     >>> graph.number_of_nodes
     12
-    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0., 0., 0.,
-            1., 1., 1.,
-            2., 2., 2.,
-            3., 3., 3.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 1., 4., 8.,
-            1., 4., 8.,
-            1., 4., 8.,
-            1., 4., 8.])
+    >>> graph.y_of_node.reshape(graph.shape)
+    array([[0., 0., 0.],
+           [1., 1., 1.],
+           [2., 2., 2.],
+           [3., 3., 3.]])
+    >>> graph.x_of_node.reshape(graph.shape)
+    array([[1., 4., 8.],
+           [1., 4., 8.],
+           [1., 4., 8.],
+           [1., 4., 8.]])
     """
 
     def __init__(self, nodes, sort=False):
@@ -691,7 +686,6 @@ class RectilinearGraph(StructuredQuadGraphExtras):
 
 
 class UniformRectilinearGraph(StructuredQuadGraphExtras):
-
     """Graph of a structured grid of quadrilaterals.
 
     Examples
@@ -700,36 +694,36 @@ class UniformRectilinearGraph(StructuredQuadGraphExtras):
     >>> graph = UniformRectilinearGraph((4, 3), spacing=(1, 2), origin=(-1, 0))
     >>> graph.number_of_nodes
     12
-    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([-1., -1., -1.,
-            0.,  0.,  0.,
-            1.,  1.,  1.,
-            2.,  2.,  2.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  2.,  4.,
-            0.,  2.,  4.,
-            0.,  2.,  4.,
-            0.,  2.,  4.])
-    >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.y_of_node.reshape(graph.shape)
+    array([[-1., -1., -1.],
+           [ 0.,  0.,  0.],
+           [ 1.,  1.,  1.],
+           [ 2.,  2.,  2.]])
+    >>> graph.x_of_node.reshape(graph.shape)
+    array([[0.,  2.,  4.],
+           [0.,  2.,  4.],
+           [0.,  2.,  4.],
+           [0.,  2.,  4.]])
+    >>> graph.links_at_node
     array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
            [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],
            [10, 12, -1,  7], [11, 13, 10,  8], [-1, 14, 11,  9],
            [15, -1, -1, 12], [16, -1, 15, 13], [-1, -1, 16, 14]])
-    >>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.link_dirs_at_node
     array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
            [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]], dtype=int8)
-    >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.nodes_at_link
     array([[ 0,  1], [ 1,  2], [ 0,  3], [ 1,  4], [ 2,  5],
            [ 3,  4], [ 4,  5], [ 3,  6], [ 4,  7], [ 5,  8],
            [ 6,  7], [ 7,  8], [ 6,  9], [ 7, 10], [ 8, 11],
            [ 9, 10], [10, 11]])
-    >>> graph.links_at_patch # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.links_at_patch
     array([[ 3,  5,  2,  0], [ 4,  6,  3,  1],
            [ 8, 10,  7,  5], [ 9, 11,  8,  6],
            [13, 15, 12, 10], [14, 16, 13, 11]])
-    >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.nodes_at_patch
     array([[ 4,  3,  0,  1], [ 5,  4,  1,  2],
            [ 7,  6,  3,  4], [ 8,  7,  4,  5],
            [10,  9,  6,  7], [11, 10,  7,  8]])

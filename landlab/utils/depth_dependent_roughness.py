@@ -21,20 +21,22 @@ Examples
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
 >>> grid = RasterModelGrid((5, 5))
->>> grid.at_node['surface_water__depth'] = np.array(
-...     [5., 5., 5., 5., 5.,
-...     4., 4., 4., 4., 4.,
-...     3., 3., 3., 3., 3.,
-...     2., 2., 2., 2., 2.,
-...     1., 1., 1., 1., 1.])
->>> depth_dependent_mannings_n(grid, index_flow_depth=2.)
->>> grid.at_node['mannings_n']
-array([ 0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
-        0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
-        0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
-        0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
-        0.07559526,  0.07559526,  0.07559526,  0.07559526,  0.07559526])
+>>> grid.at_node["surface_water__depth"] = [
+...     [5.0, 5.0, 5.0, 5.0, 5.0],
+...     [4.0, 4.0, 4.0, 4.0, 4.0],
+...     [3.0, 3.0, 3.0, 3.0, 3.0],
+...     [2.0, 2.0, 2.0, 2.0, 2.0],
+...     [1.0, 1.0, 1.0, 1.0, 1.0],
+... ]
+>>> depth_dependent_mannings_n(grid, index_flow_depth=2.0)
+>>> grid.at_node["mannings_n"]
+array([0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
+       0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
+       0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
+       0.06      ,  0.06      ,  0.06      ,  0.06      ,  0.06      ,
+       0.07559526,  0.07559526,  0.07559526,  0.07559526,  0.07559526])
 """
+
 import contextlib
 
 import numpy as np

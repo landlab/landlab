@@ -19,7 +19,8 @@ from .event_handler import query_grid_on_button_press
 
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.collections import LineCollection, PatchCollection
+    from matplotlib.collections import LineCollection
+    from matplotlib.collections import PatchCollection
     from matplotlib.patches import Polygon
 except ImportError:
     import warnings
@@ -28,7 +29,6 @@ except ImportError:
 
 
 class ModelGridPlotterMixIn:
-
     """MixIn that provides plotting functionality.
 
     Inhert from this class to provide a ModelDataFields object with the
@@ -277,10 +277,12 @@ def _imshow_grid_values(
     color_for_background=None,
     show_elements=False,
     output=None,
+    alpha=1.0,
 ):
     from ..grid.raster import RasterModelGrid
 
-    cmap = plt.get_cmap(cmap)
+    if isinstance(cmap, str):
+        cmap = plt.colormaps[cmap]
 
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
@@ -318,10 +320,11 @@ def _imshow_grid_values(
                 kwds["vmin"] = vmin
             if vmax is not None:
                 kwds["vmax"] = vmax
+        kwds["alpha"] = alpha
 
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
-        plt.gca().set_aspect(1.0)
+        myimage.axes.set_aspect("equal")
         plt.autoscale(tight=True)
 
         if allow_colorbar:
@@ -346,7 +349,7 @@ def _imshow_grid_values(
 
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
-        colorVal = scalarMap.to_rgba(values)[grid.node_at_cell]
+        colorVal = scalarMap.to_rgba(values, alpha=alpha)[grid.node_at_cell]
 
         patches = []
 
@@ -375,7 +378,7 @@ def _imshow_grid_values(
             line_segments.set_color("black")
             ax.add_collection(line_segments)
 
-        ax.set_aspect(1.0)
+        ax.set_aspect("equal")
         ax.set_rasterized(True)
 
         plt.xlim((np.min(grid.x_of_node), np.max(grid.x_of_node)))
@@ -384,6 +387,8 @@ def _imshow_grid_values(
         scalarMap.set_array(values)
         if allow_colorbar:
             cb = plt.colorbar(scalarMap, shrink=shrink, ax=ax)
+            if colorbar_label:
+                cb.set_label(colorbar_label)
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
@@ -472,6 +477,8 @@ def imshow_grid(grid, values, **kwds):
         Make the colormap symetric about 0.
     cmap : str
         Name of a colormap
+    alpha : array-like or scalar or None, optional
+        Set the transparency.
     limits : tuple of float
         Minimum and maximum of the colorbar.
     vmin, vmax: floats

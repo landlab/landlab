@@ -3,15 +3,92 @@
 This tester turns over the diffuser a couple of times to ensure basic
 functionality is working.
 """
-import os
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_equal
+import pytest
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_equal
 
+from landlab import HexModelGrid
 from landlab import RasterModelGrid
 from landlab.components.diffusion import LinearDiffuser
 
-_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+
+@pytest.mark.parametrize("at", ("node", "link"))
+def test_diffusion_as_string(at):
+    grid = RasterModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.add_ones("k", at=at)
+    k[0] = 999
+
+    diffuser = LinearDiffuser(grid, linear_diffusivity="k")
+
+    assert_array_almost_equal(diffuser._kd, k)
+
+
+@pytest.mark.parametrize("at", ("node", "link"))
+def test_diffusion_as_number(at):
+    grid = RasterModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.ones(at=at) * 0.01
+
+    diffuser = LinearDiffuser(grid, linear_diffusivity=k)
+
+    assert_array_almost_equal(diffuser._kd, k)
+
+
+@pytest.mark.parametrize("at", ("patch", "corner", "face", "cell"))
+def test_diffusion_as_bad_string(at):
+    grid = RasterModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    grid.add_ones("k", at=at)
+
+    with pytest.raises(ValueError):
+        LinearDiffuser(grid, linear_diffusivity="k")
+
+
+@pytest.mark.parametrize("at", ("patch", "corner", "face", "cell"))
+def test_diffusion_as_bad_number(at):
+    grid = RasterModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.ones(at=at) * 0.01
+
+    with pytest.raises(ValueError):
+        LinearDiffuser(grid, linear_diffusivity=k)
+
+
+def test_diffusion_with_resolve_on_patches():
+    grid = RasterModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.add_ones("diffusivity", at="link")
+
+    LinearDiffuser(grid, linear_diffusivity=k, method="resolve_on_patches")
+    LinearDiffuser(grid, linear_diffusivity=0.01, method="resolve_on_patches")
+    LinearDiffuser(grid, linear_diffusivity="diffusivity", method="resolve_on_patches")
+
+    grid = RasterModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.add_ones("diffusivity", at="node")
+
+    with pytest.raises(ValueError):
+        LinearDiffuser(grid, linear_diffusivity=k, method="resolve_on_patches")
+    with pytest.raises(ValueError):
+        LinearDiffuser(
+            grid, linear_diffusivity="diffusivity", method="resolve_on_patches"
+        )
+
+    grid = HexModelGrid((5, 5))
+    grid.add_ones("topographic__elevation", at="node")
+    k = grid.add_ones("diffusivity", at="link")
+
+    with pytest.raises(TypeError):
+        LinearDiffuser(grid, linear_diffusivity=k, method="resolve_on_patches")
+    with pytest.raises(TypeError):
+        LinearDiffuser(grid, linear_diffusivity=0.01, method="resolve_on_patches")
+    with pytest.raises(TypeError):
+        LinearDiffuser(
+            grid, linear_diffusivity="diffusivity", method="resolve_on_patches"
+        )
 
 
 def test_diffusion():
@@ -270,7 +347,6 @@ def test_diffusion_no_deposit():
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
-    # instantiate:
     dfn = LinearDiffuser(mg, linear_diffusivity=1.0, method="simple", deposit=False)
 
     dfn.run_one_step(100)

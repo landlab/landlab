@@ -6,23 +6,54 @@ Papers and Presentations
 Peer-reviewed journal articles
 ------------------------------
 
+2024
+----
+
+Bower, S. J., Shobe, C. M., Maxwell, A. E., & Campforts, B. (2024). **The uncertain future of mountaintop-removal-mined landscapes 2: Modeling the influence of topography and vegetation.** *Geomorphology,* 446, 108985.
+
+Chen, H., Wang, X., Yu, Y., Lu, H., & Van Balen, R. (2024). **Past anthropogenic land use change caused a regime shift of the fluvial response to Holocene climate change in the Chinese Loess Plateau.** *Earth Surface Dynamics,* 12(1), 163-180.
+
+Gan, T., Tucker, G. E., Hutton, E. W., Piper, M. D., Overeem, I., Kettner, A. J., Campforts, B., Moriarty, J.M., Undzis, B., Pierce, E. and McCready, L., (2024). **CSDMS Data Components: data–model integration tools for Earth surface processes modeling**. *Geoscientific Model Development,* 17(5), 2165-2185, `https://doi.org/10.5194/gmd-17-2165-2024 <https://doi.org/10.5194/gmd-17-2165-2024>`__.
+
+Mohr, C. H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Mohr, C.H., Dietze, M., Tolorza, V., Gonzalez, E., Sotomayor, B., Iroume, A., Gilfert, S., and Tautz, F. (2024). **Ideas and perspectives: Sensing energy and matter fluxes in a biota-dominated Patagonian landscape through environmental seismology–introducing the Pumalín Critical Zone Observatory.** *Biogeosciences,* 21(6), 1583-1599.
+
+Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2024). **Maximising runoff retention by vegetated landscape elements positioned through spatial optimisation.** *Landscape and Urban Planning,* 243, 104968.
+
+Shmilovitz, Y., Tucker, G. E., Rossi, M. W., Morin, E., Armon, M., Pederson, J., ... & Enzel, Y. (2024). **Impacts of rainstorm intensity and temporal pattern on caprock cliff persistence and hillslope morphology in drylands.** *Journal of Geophysical Research: Earth Surface,* 129(2), e2023JF007478, `https://doi.org/10.1029/2023JF007478 <https://doi.org/10.1029/2023JF007478>`__.
+
+Shobe, C. M., Bower, S. J., Maxwell, A. E., Glade, R. C., & Samassi, N. M. (2024). **The uncertain future of mountaintop-removal-mined landscapes 1: How mining changes erosion processes and variables.** *Geomorphology,* 445, 108984.
+
+Walker, S. J., Wilkinson, S. N., & Hairsine, P. B. (2024). **Advancing gully topographic threshold analysis using an automated algorithm and high-resolution topography.** *CATENA,* 239, 107897.
+
+Wang, Y. (2024) **Identifying geomorphic domains using hierarchically clustered drainage area‐slope scaling.** *Earth Surface Processes and Landforms,* https://doi.org/10.1002/esp.5796.
+
 2023
 ----
+
+Cardenas, B. T., & Stacey, K. (2023). **Landforms Associated With the Aspect-Controlled Exhumation of Crater-Filling Alluvial Strata on Mars.** Geophysical Research Letters, 50(15), e2023GL103618.
 
 Eschenfelder, J., Lipp, A. G., & Roberts, G. G. (2023). **Quantifying excess heavy metal concentrations in drainage basins using conservative mixing models.** *Journal of Geochemical Exploration,* 248, 107178, `https://doi.org/10.1016/j.gexplo.2023.107178 <https://doi.org/10.1016/j.gexplo.2023.107178>`__.
 
 Fiolleau, S., Uhlemann, S., Falco, N., & Dafflon, B. (2023). **Assessing probability of failure of urban landslides through rapid characterization of soil properties and vegetation distribution.** *Geomorphology,* 423, 108560, `https://doi.org/10.1016/j.geomorph.2022.108560 <https://doi.org/10.1016/j.geomorph.2022.108560>`__.
 
+Morris, M. J., Lipp, A. G., & Roberts, G. G. (2023). **Towards inverse modeling of landscapes using the Wasserstein distance.** *Geophysical Research Letters,* 50(14), e2023GL103880.
+
 Nudurupati, S. S., Istanbulluoglu, E., Tucker, G. E., Gasparini, N. M., Hobley, D. E., Hutton, E. W., Barnhart, Katherine R., and Adams, J. M. (2023). **On transient semi‐arid ecosystem dynamics using Landlab: Vegetation shifts, topographic refugia, and response to climate.** *Water Resources Research,* e2021WR031179, `https://doi.org/10.1029/2021WR031179 <https://doi.org/10.1029/2021WR031179>`__.
 
+Raistrick, A., Lipson, L., Ma, Z., Mei, L., Wang, M., Zuo, Y., Kayan, K., Wen, H., Han, B., Wang, Y., and Newell, A. (2023). **Infinite photorealistic worlds using procedural generation.** In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition* (pp. 12630-12641).
+
 Rosier, I., Diels, J., Somers, B., & Van Orshoven, J. (2023). **The impact of vegetated landscape elements on runoff in a small agricultural watershed: A modelling study.** *Journal of Hydrology,* 129144, `https://doi.org/10.1016/j.jhydrol.2023.129144 <https://doi.org/10.1016/j.jhydrol.2023.129144>`__.
-<
+
+Shmilovitz, Y., Marra, F., Enzel, Y., Morin, E., Armon, M., Matmon, A., ... & Haviv, I. (2023). **The impact of extreme rainstorms on escarpment morphology in arid areas: Insights from the central Negev Desert.** *Journal of Geophysical Research: Earth Surface,* e2023JF007093.
+
+Wang, Y., Chen, S. M., Xiong, L. Y., & Li, S. J. (2023). **Paleotopography-constrained numerical modeling of loess landform evolution.** *Geomorphology,* 433, 108725.
+
 2022
 ----
 
-Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic
-mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research:
-Earth Surface,* v. 127(8), e2022JF006745, `https://doi.org/10.1029/2022JF006745 <https://doi.org/10.1029/2022JF006745>`__.
+Anders, A. M., Lai, J., & Marshak, S. (2022). **Development of Foreland Intracratonic Plateaus (Ozark Plateau and Appalachian Plateaus): A Consequence of Topographic Inversion Due To Erosion of Adjacent Fold-Thrust Belts.** *Tectonics,* 41(4), e2021TC006957.
+
+Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of landslides: how stochastic mass wasting shapes topography and influences landscape dynamics.** *Journal of Geophysical Research: Earth Surface,* v. 127(8), e2022JF006745, `https://doi.org/10.1029/2022JF006745 <https://doi.org/10.1029/2022JF006745>`__.
 
 Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
 
@@ -119,45 +150,21 @@ Walker, S. J., Wilkinson, S. N., van Dijk, A. I., & Hairsine, P. B. (2020). **A 
 
 Baldazo, D., Parras, J., & Zazo, S. (2019). **Decentralized multi-agent deep reinforcement learning in swarms of drones for flood monitoring.** In *2019 27th European Signal Processing Conference (EUSIPCO)* (pp. 1-5). IEEE.
 
-Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R.,
-Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart,
-K.R., Hutton, E.W.H., Hobley, D.E.J., Lyons, N.J., Tucker, G.E.,
-Tarboton, D.G., Idaszak, R., and Wang S. (2019). **Enabling
-collaborative numerical Modeling in Earth sciences using Knowledge
-Infrastructure.** *Environmental Modelling & Software*,
-`doi:10.1016/j.envsoft.2019.03.020 <https://linkinghub.elsevier.com/retrieve/pii/S1364815219301562>`__.
+Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R., Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart, K.R., Hutton, E.W.H., Hobley, D.E.J., Lyons, N.J., Tucker, G.E., Tarboton, D.G., Idaszak, R., and Wang S. (2019). **Enabling collaborative numerical Modeling in Earth sciences using Knowledge Infrastructure.** *Environmental Modelling & Software*, `doi:10.1016/j.envsoft.2019.03.020 <https://linkinghub.elsevier.com/retrieve/pii/S1364815219301562>`__.
 
-Barnhart, K. R., Glade, R. C., Shobe, C. M., and Tucker, G. E. (2019)
-**Terrainbento 1.0: a Python package for multi-model analysis in
-long-term drainage basin evolution.** *Geosci. Model Dev.*, v. 12,
-p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://www.geosci-model-dev.net/12/1267/2019/>`__.
+Barnhart, K. R., Glade, R. C., Shobe, C. M., and Tucker, G. E. (2019) **Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution.** *Geosci. Model Dev.*, v. 12, p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://www.geosci-model-dev.net/12/1267/2019/>`__.
 
 Barnhart, K.R., Hutton, E., and Tucker, G.E. (2019) **umami: a Python package for Earth surface dynamics objective function construction**, *Journal of Open Source Software*, 4(42), 1776, `doi:10.21105/joss.01776 <https://doi.org/10.21105/joss.01776>`__.
 
-Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019)
-**Canyon shape and erosion dynamics governed by channel-hillslope
-feedbacks.** *Geology*,
-`doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal
-contributions
+Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019) **Canyon shape and erosion dynamics governed by channel-hillslope feedbacks.** *Geology*, `doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal contributions
 
-Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch,
-L. Setiawan, and S. D. Mooney (2019). **Automated retrieval,
-preprocessing, and visualization of gridded hydrometeorology data
-products for spatial-temporal exploratory analysis and
-intercomparison.** Environmental Modeling and Software. Vol 116.
-p. 119-30: https://linkinghub.elsevier.com/retrieve/pii/S136481521830865X.
+Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch, L. Setiawan, and S. D. Mooney (2019). **Automated retrieval, preprocessing, and visualization of gridded hydrometeorology data products for spatial-temporal exploratory analysis and intercomparison.** Environmental Modeling and Software. Vol 116. p. 119-30: https://linkinghub.elsevier.com/retrieve/pii/S136481521830865X.
 
 Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research: Solid Earth*, 124, `doi:10.1029/2019JB018596 <https://doi.org/10.1029/2019JB018596>`__.
 
-Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of
-tectonic and climatic forcings into records of sediment supply and
-provenance.** *Scientific Reports*, 9(1), 4115,
-`doi:10.1038/s41598-019-39754-6 <https://www.nature.com/articles/s41598-019-39754-6>`__.
+Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of tectonic and climatic forcings into records of sediment supply and provenance.** *Scientific Reports*, 9(1), 4115, `doi:10.1038/s41598-019-39754-6 <https://www.nature.com/articles/s41598-019-39754-6>`__.
 
-Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019).
-**Relative timing of uplift along the Zagros Mountain Front Flexure
-(Kurdistan Region of Iraq): Constrained by geomorphic indices and
-landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
+Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019). **Relative timing of uplift along the Zagros Mountain Front Flexure (Kurdistan Region of Iraq): Constrained by geomorphic indices and landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
 `doi:10.5194/se-10-663-2019 <https://www.solid-earth.net/10/663/2019/>`__.
 
 2018

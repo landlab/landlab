@@ -35,13 +35,13 @@ class SoilMoisture(Component):
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> SoilMoisture.name
     'Soil Moisture'
-    >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(SoilMoisture.output_var_names)
     ['soil_moisture__root_zone_leakage',
      'soil_moisture__saturation_fraction',
      'surface__evapotranspiration',
      'surface__runoff',
      'vegetation__water_stress']
-    >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(SoilMoisture.units)
     [('rainfall__daily_depth', 'mm'),
      ('soil_moisture__initial_saturation_fraction', 'None'),
      ('soil_moisture__root_zone_leakage', 'mm'),
@@ -53,8 +53,9 @@ class SoilMoisture(Component):
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None'),
      ('vegetation__water_stress', 'None')]
-    >>> grid['cell']['vegetation__plant_functional_type']= (
-    ...            np.zeros(grid.number_of_cells, dtype=int))
+    >>> grid["cell"]["vegetation__plant_functional_type"] = np.zeros(
+    ...     grid.number_of_cells, dtype=int
+    ... )
     >>> _ = grid.add_zeros("vegetation__cover_fraction", at="cell")
     >>> _ = grid.add_zeros("vegetation__live_leaf_area_index", at="cell")
     >>> _ = grid.add_zeros("surface__potential_evapotranspiration_rate", at="cell")
@@ -68,22 +69,22 @@ class SoilMoisture(Component):
     >>> SM.grid is grid
     True
     >>> import numpy as np
-    >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
+    >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.0)
     True
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
-    ...            0.2554777, 0.2554777 , 0.22110221, 0.22110221,
-    ...            0.24813062, 0.24813062])
-    >>> grid['cell']['soil_moisture__initial_saturation_fraction']= (
-    ...        0.75 * np.ones(grid.number_of_cells))
-    >>> grid['cell']['vegetation__live_leaf_area_index']= (
-    ...        2. * np.ones(grid.number_of_cells))
-    >>> grid['cell']['vegetation__cover_fraction']= (
-    ...        np.ones(grid.number_of_cells))
-    >>> grid['cell']['rainfall__daily_depth'] = (
-    ...        25. * np.ones(grid.number_of_cells))
+    >>> grid["cell"]["surface__potential_evapotranspiration_rate"] = np.array(
+    ...     [0.2554777, 0.2554777, 0.22110221, 0.22110221, 0.24813062, 0.24813062]
+    ... )
+    >>> grid["cell"]["soil_moisture__initial_saturation_fraction"] = 0.75 * np.ones(
+    ...     grid.number_of_cells
+    ... )
+    >>> grid["cell"]["vegetation__live_leaf_area_index"] = 2.0 * np.ones(
+    ...     grid.number_of_cells
+    ... )
+    >>> grid["cell"]["vegetation__cover_fraction"] = np.ones(grid.number_of_cells)
+    >>> grid["cell"]["rainfall__daily_depth"] = 25.0 * np.ones(grid.number_of_cells)
     >>> SM.current_time = 0.5
     >>> current_time = SM.update()
-    >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
+    >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.0)
     False
 
     References

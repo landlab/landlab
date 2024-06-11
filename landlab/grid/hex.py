@@ -37,7 +37,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     >>> grid = HexModelGrid((3, 3), node_layout="rect", orientation="vertical")
     >>> grid.status_at_node
     array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
-    >>> grid = HexModelGrid((4, 4), node_layout='rect', orientation="vertical")
+    >>> grid = HexModelGrid((4, 4), node_layout="rect", orientation="vertical")
     >>> grid.status_at_node
     array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
     >>> grid.boundary_nodes
@@ -228,10 +228,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid((3, 4), node_layout='rect', orientation="vertical")
+        >>> grid = HexModelGrid((3, 4), node_layout="rect", orientation="vertical")
         >>> grid.node_row_and_column(5)
         (1, 2)
-        >>> grid = HexModelGrid((3, 5), node_layout='rect', orientation="vertical")
+        >>> grid = HexModelGrid((3, 5), node_layout="rect", orientation="vertical")
         >>> grid.node_row_and_column(13)
         (2, 1)
         """
@@ -271,7 +271,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         import matplotlib
         from matplotlib.collections import PatchCollection
         from matplotlib.patches import Polygon
-        from numpy import array, sqrt, zeros
+        from numpy import array
+        from numpy import sqrt
+        from numpy import zeros
 
         # color
         if color_map is None:
@@ -352,7 +354,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         import copy
 
         import matplotlib.pyplot as plt
-        from numpy import amax, amin, array
+        from numpy import amax
+        from numpy import amin
+        from numpy import array
 
         try:
             self._hexplot_configured
@@ -427,7 +431,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1,
            1], dtype=uint8)
 
-        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(9, z, -9999.)
+        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(9, z, -9999.0)
         >>> hmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
@@ -498,7 +502,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> hmg = HexModelGrid((5, 4))
         >>> z = hmg.add_zeros("topographic__elevation", at="node")
         >>> z += hmg.x_of_node + 1.0
-        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999., True)
+        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999.0, True)
         >>> out_id
         array([9])
         >>> hmg.status_at_node

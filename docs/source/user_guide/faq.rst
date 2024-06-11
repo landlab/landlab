@@ -3,12 +3,6 @@
 Frequently Asked Questions
 ==========================
 
-I can't install/test/run Landlab, what should I do?
----------------------------------------------------
-
-If you are having trouble when installing, testing or running Landlab, please
-visit our :ref:`Troubleshooting page <troubleshooting>`.
-
 
 What is the difference between a cell and a node?
 -------------------------------------------------
@@ -57,23 +51,26 @@ The following code snippet sets the southern boundary nodes to be closed:
 
 .. code-block:: python
 
-  import landlab
-  grid = landlab.RasterModelGrid(3, 4)
-  grid.set_closed_boundaries_at_grid_edges(True, False, False, False)
-  grid.status_at_node
-  array([4, 4, 4, 4, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+    import landlab
+
+    grid = landlab.RasterModelGrid(3, 4)
+    grid.set_closed_boundaries_at_grid_edges(True, False, False, False)
+    grid.status_at_node
+    array([4, 4, 4, 4, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
 
 It's also possible to set the boundary conditions "by hand", if you know the ID of the element you're trying to change:
 :
 
 .. code-block:: python
 
-  mynodes_to_close = z < 0.  # if z is some elevation field
-  grid.status_at_node[mynodes_to_close] = grid.BC_NODE_IS_CLOSED
-  my_fixed_node = mg.find_nearest_node((1.2, 2.3))
-  my_fixed_node
-  9
-  grid.status_at_node[my_fixed_node] = grid.BC_NODE_IS_FIXED_GRADIENT  # to fix the node closest to (1.2, 2.3)
+    mynodes_to_close = z < 0.0  # if z is some elevation field
+    grid.status_at_node[mynodes_to_close] = grid.BC_NODE_IS_CLOSED
+    my_fixed_node = mg.find_nearest_node((1.2, 2.3))
+    my_fixed_node
+    9
+    grid.status_at_node[my_fixed_node] = (
+        grid.BC_NODE_IS_FIXED_GRADIENT
+    )  # to fix the node closest to (1.2, 2.3)
 
 See also:
 
@@ -118,7 +115,7 @@ are some options:
 (3) assign the downstream value
 
 Look at this
-`Tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/file=mappers/mappers.ipynb>`_
+`Tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/file=mappers/mappers.ipynb>`_
 for all the Landlab mappers
 
 How do I test whether my grid is regular or irregular?
@@ -131,19 +128,20 @@ The way to do this is:
 .. code-block:: python
 
     from landlab import RasterModelGrid, VoronoiDelaunayGrid
+
     # ...
     if isinstance(mg, RasterModelGrid):
-        print('Doing it one way')
+        print("Doing it one way")
     elif isinstance(mg, VoronoiDelaunayGrid):
-        print('Doing it the other way')
+        print("Doing it the other way")
     else:
-        raise TypeError('Landlab did not recognize your grid type!')
+        raise TypeError("Landlab did not recognize your grid type!")
 
 
 How do I modify boundary conditions for part of the grid where I know the coordinates?
 --------------------------------------------------------------------------------------
 
-See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/boundary_conds/set_BCs_from_xy.ipynb>`_.
+See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/boundary_conds/set_BCs_from_xy.ipynb>`_.
 
 I am having trouble installing Landlab on Ubuntu without Anaconda. What is the fix?
 -----------------------------------------------------------------------------------
@@ -152,7 +150,7 @@ Andy Wickert (5/16) suggests the following:
 
 "The version of setuptools that comes standard on Ubuntu is out-of-date with respect to Landlab's Cython code. Here is the fix:"
 
-.. code-block:: python
+.. code-block:: bash
 
     sudo apt-get install python-setuptools # if you don't have it already
     sudo easy_install pip
@@ -161,7 +159,7 @@ Andy Wickert (5/16) suggests the following:
 
 And then you can cd to landlab and this works:
 
-.. code-block:: python
+.. code-block:: bash
 
     pip install -e .
 

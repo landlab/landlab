@@ -2,7 +2,8 @@
 """Functions to calculate flow distance."""
 import numpy as np
 
-from landlab import FieldError, RasterModelGrid
+from landlab import FieldError
+from landlab import RasterModelGrid
 
 
 def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
@@ -34,25 +35,28 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 21., 10., 0.,
-    ...                  0., 31., 20., 0.,
-    ...                  0., 32., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
-    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-    ...                                        left_is_closed=True,
-    ...                                        right_is_closed=True,
-    ...                                        top_is_closed=True)
-    >>> fr = FlowAccumulator(mg, flow_director = 'D8')
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> mg.set_closed_boundaries_at_grid_edges(
+    ...     bottom_is_closed=True,
+    ...     left_is_closed=True,
+    ...     right_is_closed=True,
+    ...     top_is_closed=True,
+    ... )
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
-    >>> mg.at_node['flow__distance']
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  1.        ,  0.        ,  0.        ,
-            0.        ,  1.41421356,  1.        ,  0.        ,
-            0.        ,  2.41421356,  2.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ])
+    >>> mg.at_node["flow__distance"]
+    array([0.        ,  0.        ,  0.        ,  0.        ,
+           0.        ,  1.        ,  0.        ,  0.        ,
+           0.        ,  1.41421356,  1.        ,  0.        ,
+           0.        ,  2.41421356,  2.        ,  0.        ,
+           0.        ,  0.        ,  0.        ,  0.        ])
 
     Now, let's change to D4 the flow_director method, which does not
     consider diagonal links bewtween nodes.
@@ -61,27 +65,28 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> elev = np.array([0.,  0.,  0., 0.,
-    ...                  0., 21., 10., 0.,
-    ...                  0., 31., 20., 0.,
-    ...                  0., 32., 30., 0.,
-    ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.at_node["topographic__elevation"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=True,
     ...     left_is_closed=True,
     ...     right_is_closed=True,
     ...     top_is_closed=True,
     ... )
-    >>> fr = FlowAccumulator(mg, flow_director = 'D4')
+    >>> fr = FlowAccumulator(mg, flow_director="D4")
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
-    >>> mg.at_node['flow__distance']
-    array([ 0.,  0.,  0.,  0.,
-            0.,  1.,  0.,  0.,
-            0.,  2.,  1.,  0.,
-            0.,  3.,  2.,  0.,
-            0.,  0.,  0.,  0.])
+    >>> mg.at_node["flow__distance"]
+    array([0.,  0.,  0.,  0.,
+           0.,  1.,  0.,  0.,
+           0.,  2.,  1.,  0.,
+           0.,  3.,  2.,  0.,
+           0.,  0.,  0.,  0.])
 
     The flow__distance utility can also work on irregular grids. For the example we
     will use a Hexagonal Model Grid, a special type of Voroni Grid that has
@@ -99,15 +104,15 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     ... )
     >>> hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
     >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
-    >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
+    >>> fr = FlowAccumulator(hmg, flow_director="D4")
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(hmg, add_to_grid=True, clobber=True)
-    >>> hmg.at_node['flow__distance']
-    array([ 0.,  0.,  0.,
-            0.,  1.,  2.,  0.,
-            0.,  2.,  2.,  3.,  0.,
-            0.,  3.,  3.,  0.,
-            0.,  0.,  0.])
+    >>> hmg.at_node["flow__distance"]
+    array([0.,  0.,  0.,
+           0.,  1.,  2.,  0.,
+           0.,  2.,  2.,  3.,  0.,
+           0.,  3.,  3.,  0.,
+           0.,  0.,  0.])
     """
     # check that flow__receiver nodes exists
     if "flow__receiver_node" not in grid.at_node:

@@ -38,19 +38,19 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
     >>> calc_flux_div_at_node(rg, -lg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> unit_flux_at_links = np.zeros(rg.number_of_links)
     >>> unit_flux_at_links[rg.active_links] = -lg[rg.active_links]
     >>> calc_flux_div_at_node(rg, unit_flux_at_links)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
     >>> _ = rg.add_field("neg_grad_at_link", -lg, at="link")
-    >>> calc_flux_div_at_node(rg, 'neg_grad_at_link')
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    >>> calc_flux_div_at_node(rg, "neg_grad_at_link")
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
 
 
     Notes
@@ -114,16 +114,16 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> calc_flux_div_at_cell(rg, -fg)
-    array([ 1.64,  0.94])
+    array([1.64,  0.94])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> calc_flux_div_at_cell(rg, unit_flux_at_faces)
-    array([ 1.14,  0.22])
+    array([1.14,  0.22])
     >>> _ = rg.add_field("neg_grad_at_link", -lg, at="link")
-    >>> calc_flux_div_at_cell(rg, 'neg_grad_at_link')
-    array([ 1.64,  0.94])
+    >>> calc_flux_div_at_cell(rg, "neg_grad_at_link")
+    array([1.64,  0.94])
 
     Notes
     -----
@@ -265,13 +265,13 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_net_face_flux_at_cell(rg, -fg)
-    array([ 164.,   94.])
+    array([164.,   94.])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> _calc_net_face_flux_at_cell(rg, unit_flux_at_faces)
-    array([ 114.,   22.])
+    array([114.,   22.])
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
@@ -284,7 +284,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = _calc_net_face_flux_at_cell(hg, -fg)
     >>> np.round(nffc)
-    array([ 152.,   96.])
+    array([152.,   96.])
 
     Notes
     -----
@@ -333,14 +333,14 @@ def _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     >>> lg[rg.link_at_face]
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_face_flux_divergence_at_cell(rg, -lg[rg.link_at_face])
-    array([ 1.64,  0.94])
+    array([1.64,  0.94])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> unit_flux_at_faces = np.zeros(rg.number_of_faces)
     >>> fg = lg[rg.link_at_face]
     >>> unit_flux_at_faces[rg.active_faces] = -fg[rg.active_faces]
     >>> _calc_face_flux_divergence_at_cell(rg, unit_flux_at_faces)
-    array([ 1.14,  0.22])
+    array([1.14,  0.22])
 
     Notes
     -----
@@ -383,11 +383,11 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_net_active_face_flux_at_cell(rg, -fg)
-    array([ 164.,   94.])
+    array([164.,   94.])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> _calc_net_active_face_flux_at_cell(rg, -fg)
-    array([ 114.,   22.])
+    array([114.,   22.])
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
@@ -399,7 +399,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
     >>> nffc = _calc_net_active_face_flux_at_cell(hg, -fg)
     >>> np.round(nffc)
-    array([ 152.,   96.])
+    array([152.,   96.])
 
     Notes
     -----
@@ -453,11 +453,11 @@ def _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_active_face_flux_divergence_at_cell(rg, -fg)
-    array([ 1.64,  0.94])
+    array([1.64,  0.94])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> _calc_active_face_flux_divergence_at_cell(rg, -fg)
-    array([ 1.14,  0.22])
+    array([1.14,  0.22])
 
     Notes
     -----
@@ -578,13 +578,13 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None
     array([ 0. ,  0. ,  0. ,  0. ,  5. ,  3.6,  0. ,  5. , -1.4, -3.6,  0. ,
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
     >>> _calc_active_link_flux_divergence_at_node(rg, -lg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> _calc_active_link_flux_divergence_at_node(rg, -lg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
 
     Notes
     -----
@@ -772,13 +772,13 @@ def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None
     >>> fg
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
     >>> _calc_active_face_flux_divergence_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.64,  0.94,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
     >>> rg.set_status_at_node_on_edges(right=rg.BC_NODE_IS_CLOSED)
     >>> rg.set_status_at_node_on_edges(top=rg.BC_NODE_IS_CLOSED)
     >>> _calc_active_face_flux_divergence_at_node(rg, -fg)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ])
+    array([0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  1.14,  0.22,  0.  ,  0.  ,
+           0.  ,  0.  ,  0.  ])
 
     Notes
     -----

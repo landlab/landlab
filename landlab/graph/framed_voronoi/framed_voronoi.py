@@ -31,7 +31,9 @@ class HorizontalRectVoronoiGraph:
 
         Examples
         --------
-        >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
+        >>> from landlab.graph.framed_voronoi.framed_voronoi import (
+        ...     HorizontalRectVoronoiGraph,
+        ... )
         >>> HorizontalRectVoronoiGraph.number_of_nodes((3, 2))
         6
         """
@@ -87,9 +89,13 @@ class HorizontalRectVoronoiGraph:
 
         Examples
         --------
-        >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
+        >>> from landlab.graph.framed_voronoi.framed_voronoi import (
+        ...     HorizontalRectVoronoiGraph,
+        ... )
 
-        >>> x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node((3, 3), seed=200)
+        >>> x_of_node, y_of_node = HorizontalRectVoronoiGraph.xy_of_node(
+        ...     (3, 3), seed=200
+        ... )
 
         Coordinates of the lower left node,
 
@@ -157,7 +163,9 @@ class HorizontalRectVoronoiGraph:
 
         Examples
         --------
-        >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
+        >>> from landlab.graph.framed_voronoi.framed_voronoi import (
+        ...     HorizontalRectVoronoiGraph,
+        ... )
         >>> HorizontalRectVoronoiGraph.corner_nodes((3, 4))
         (11, 8, 0, 3)
         """
@@ -179,7 +187,9 @@ class HorizontalRectVoronoiGraph:
 
         Examples
         --------
-        >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
+        >>> from landlab.graph.framed_voronoi.framed_voronoi import (
+        ...     HorizontalRectVoronoiGraph,
+        ... )
         >>> HorizontalRectVoronoiGraph.number_of_perimeter_nodes((3, 4))
         10
         """
@@ -202,7 +212,9 @@ class HorizontalRectVoronoiGraph:
 
         Examples
         --------
-        >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
+        >>> from landlab.graph.framed_voronoi.framed_voronoi import (
+        ...     HorizontalRectVoronoiGraph,
+        ... )
         >>> HorizontalRectVoronoiGraph.perimeter_nodes((3, 3))
         array([2, 5, 8, 7, 6, 3, 0, 1])
         """
@@ -223,7 +235,9 @@ class HorizontalRectVoronoiGraph:
 
         Examples
         --------
-        >>> from landlab.graph.framed_voronoi.framed_voronoi import HorizontalRectVoronoiGraph
+        >>> from landlab.graph.framed_voronoi.framed_voronoi import (
+        ...     HorizontalRectVoronoiGraph,
+        ... )
         >>> HorizontalRectVoronoiGraph.nodes_at_edge((3, 3))
         (array([2, 5]), array([8, 7]), array([6, 3]), array([0, 1]))
         """
@@ -273,12 +287,12 @@ class FramedVoronoiGraph(DelaunayGraph):
     >>> graph.number_of_nodes
     9
 
-    >>> graph.x_of_node[2:4]    # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.,  0.])
-    >>> graph.y_of_node[2:4]    # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.   ,  0.749])
-    >>> graph.y_of_node[5]    # doctest: +NORMALIZE_WHITESPACE
-    1.2509999999999999
+    >>> graph.x_of_node[2:4]
+    array([2., 0.])
+    >>> graph.y_of_node[2:4]
+    array([0.   , 0.749])
+    >>> graph.y_of_node[5]
+    1.251
 
     >>> graph.number_of_links
     16

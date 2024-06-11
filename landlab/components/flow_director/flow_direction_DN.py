@@ -69,15 +69,15 @@ def flow_directions(
     >>> import numpy as np
     >>> from landlab.components.flow_director import flow_directions
     >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
-    >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
-    >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
+    >>> fn = np.array([1, 4, 4, 0, 1, 2, 5, 1, 5, 6, 7, 7, 8, 6, 3, 3, 2, 0])
+    >>> tn = np.array([4, 5, 7, 1, 2, 5, 6, 5, 7, 7, 8, 9, 9, 8, 8, 6, 3, 3])
     >>> s = z[fn] - z[tn]  # slope with unit link length, positive downhill
     >>> active_links = np.arange(len(fn))
     >>> r, ss, snk, rl = flow_directions(z, active_links, fn, tn, s)
     >>> r
     array([1, 4, 1, 6, 4, 4, 5, 4, 6, 7])
     >>> ss
-    array([ 1.4,  1. ,  1.2,  1. ,  0. ,  1.1,  0.9,  2.3,  1.1,  0.9])
+    array([1.4, 1. , 1.2, 1. , 0. , 1.1, 0.9, 2.3, 1.1, 0.9])
     >>> snk
     array([4])
     >>> rl[3:8]

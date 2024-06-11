@@ -11,11 +11,13 @@ ctypedef np.double_t DTYPE_FLOAT_t
 
 
 @cython.boundscheck(False)
-cpdef _add_to_stack(DTYPE_INT_t l, DTYPE_INT_t j,
-                    np.ndarray[DTYPE_INT_t, ndim=1] s,
-                    np.ndarray[DTYPE_INT_t, ndim=1] delta,
-                    np.ndarray[DTYPE_INT_t, ndim=1] donors):
-
+cpdef _add_to_stack(
+    DTYPE_INT_t l,
+    DTYPE_INT_t j,
+    np.ndarray[DTYPE_INT_t, ndim=1] s,
+    np.ndarray[DTYPE_INT_t, ndim=1] delta,
+    np.ndarray[DTYPE_INT_t, ndim=1] donors,
+):
     """
     Adds node l to the stack and increments the current index (j).
     """
@@ -35,12 +37,15 @@ cpdef _add_to_stack(DTYPE_INT_t l, DTYPE_INT_t j,
 
 
 @cython.boundscheck(False)
-cpdef _accumulate_to_n(DTYPE_INT_t np, DTYPE_INT_t q,
-                       np.ndarray[DTYPE_INT_t, ndim=1] s,
-                       np.ndarray[DTYPE_INT_t, ndim=2] r,
-                       np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
-                       np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-                       np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
+cpdef _accumulate_to_n(
+    DTYPE_INT_t size,
+    DTYPE_INT_t q,
+    np.ndarray[DTYPE_INT_t, ndim=1] s,
+    np.ndarray[DTYPE_INT_t, ndim=2] r,
+    np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge,
+):
     """
     Accumulates drainage area and discharge, permitting transmission losses.
     """
@@ -49,7 +54,7 @@ cpdef _accumulate_to_n(DTYPE_INT_t np, DTYPE_INT_t q,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    for i in range(np-1, -1, -1):
+    for i in range(size - 1, -1, -1):
         donor = s[i]
         for v in range(q):
             recvr = r[donor, v]
@@ -64,11 +69,13 @@ cpdef _accumulate_to_n(DTYPE_INT_t np, DTYPE_INT_t q,
 
 
 @cython.boundscheck(False)
-cpdef _accumulate_bw(DTYPE_INT_t np,
-                     np.ndarray[DTYPE_INT_t, ndim=1] s,
-                     np.ndarray[DTYPE_INT_t, ndim=1] r,
-                     np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-                     np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
+cpdef _accumulate_bw(
+    DTYPE_INT_t size,
+    np.ndarray[DTYPE_INT_t, ndim=1] s,
+    np.ndarray[DTYPE_INT_t, ndim=1] r,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
+    np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge,
+):
     """
     Accumulates drainage area and discharge, permitting transmission losses.
     """
@@ -77,7 +84,7 @@ cpdef _accumulate_bw(DTYPE_INT_t np,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    for i in range(np-1, -1, -1):
+    for i in range(size - 1, -1, -1):
         donor = s[i]
         recvr = r[donor]
         if donor != recvr:
@@ -89,32 +96,35 @@ cpdef _accumulate_bw(DTYPE_INT_t np,
 
 
 @cython.boundscheck(False)
-cpdef _make_donors(DTYPE_INT_t np,
-                   np.ndarray[DTYPE_INT_t, ndim=1] w,
-                   np.ndarray[DTYPE_INT_t, ndim=1] D,
-                   np.ndarray[DTYPE_INT_t, ndim=1] delta,
-                   np.ndarray[DTYPE_INT_t, ndim=1] r):
+cpdef _make_donors(
+    DTYPE_INT_t size,
+    np.ndarray[DTYPE_INT_t, ndim=1] w,
+    np.ndarray[DTYPE_INT_t, ndim=1] D,
+    np.ndarray[DTYPE_INT_t, ndim=1] delta,
+    np.ndarray[DTYPE_INT_t, ndim=1] r,
+):
     """Determines number of donors"""
     cdef int ri, i
-    for i in range(np):
+    for i in range(size):
         ri = r[i]
         D[delta[ri] + w[ri]] = i
         w[ri] += 1
 
 
 @cython.boundscheck(False)
-cpdef _make_donors_to_n(DTYPE_INT_t np,
-                  DTYPE_INT_t q,
-                  np.ndarray[DTYPE_INT_t, ndim=1] w,
-                  np.ndarray[DTYPE_INT_t, ndim=1] D,
-                  np.ndarray[DTYPE_INT_t, ndim=1] delta,
-                  np.ndarray[DTYPE_INT_t, ndim=2] r,
-                  np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
-                  ):
+cpdef _make_donors_to_n(
+    DTYPE_INT_t size,
+    DTYPE_INT_t q,
+    np.ndarray[DTYPE_INT_t, ndim=1] w,
+    np.ndarray[DTYPE_INT_t, ndim=1] D,
+    np.ndarray[DTYPE_INT_t, ndim=1] delta,
+    np.ndarray[DTYPE_INT_t, ndim=2] r,
+    np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
+):
     """Determines number of donors for route to n"""
     cdef int ri, i, v, ind
     for v in range(q):
-        for i in range(np):
+        for i in range(size):
             ri = r[i, v]
             if p[i, v] > 0:
                 ind = delta[ri] + w[ri]

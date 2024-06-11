@@ -63,19 +63,17 @@ def to_netcdf(
     Write the grid to a netcdf3 file but only include the *uplift_rate*
     data in the file.
 
-    >>> to_netcdf(
-    ...     rmg, "test.nc", format="NETCDF3_64BIT", include="at_node:uplift_rate"
-    ... )
+    >>> to_netcdf(rmg, "test.nc", format="NETCDF3_64BIT", include="at_node:uplift_rate")
 
     Read the file back in and check its contents.
 
     >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file('test.nc', 'r')
-    >>> 'at_node:uplift_rate' in fp.variables
+    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> "at_node:uplift_rate" in fp.variables
     True
-    >>> 'at_node:topographic__elevation' in fp.variables
+    >>> "at_node:topographic__elevation" in fp.variables
     False
-    >>> fp.variables['at_node:uplift_rate'][:].flatten()
+    >>> fp.variables["at_node:uplift_rate"][:].flatten().astype("=f8")
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
@@ -105,13 +103,13 @@ def to_netcdf(
 
     if mode == "a":
         with xr.open_dataset(path) as that_dataset:
-            if "time" not in that_dataset.dims:
+            if "time" not in that_dataset.sizes:
                 _add_time_dimension_to_dataset(that_dataset, time=np.nan)
 
             new_vars = set(this_dataset.variables) - set(that_dataset.variables)
             for var in new_vars:
                 that_dataset[var] = (
-                    this_dataset[var].dims,
+                    this_dataset[var].sizes,
                     np.full_like(this_dataset[var].values, np.nan),
                 )
 
@@ -138,5 +136,8 @@ def _add_time_dimension_to_dataset(dataset, time=0.0):
     }
 
     for name in names:
-        dataset[name] = (("time",) + dataset[name].dims, dataset[name].values[None])
+        dataset[name] = (
+            ("time",) + tuple(dataset[name].sizes),
+            dataset[name].values[None],
+        )
     dataset["time"] = (("time",), [time])

@@ -102,9 +102,7 @@ Creating a Grid
 
 Creating a grid is easy.  The first step is to import Landlab's
 :py:class:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>` class (this
-assumes you have :ref:`installed Landlab <install>`
-and are working in your favorite
-:ref:`Python environment <python_installation>`):
+assumes you have :ref:`installed Landlab <install>`)
 
 .. code-block:: python
 
@@ -114,7 +112,7 @@ Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spa
 
 .. code-block:: python
 
-    >>> mg = RasterModelGrid((10, 40), 5.)
+    >>> mg = RasterModelGrid((10, 40), 5.0)
 
 *mg* is now a grid object with 400 ``( 10*40 )`` nodes and 750 ``( 40*(10-1) + 30*(10-1) )`` links.
 
@@ -171,7 +169,7 @@ or the alternative notation:
 
 .. code-block:: python
 
-    >>> mg['node']['elevation'][5]
+    >>> mg["node"]["elevation"][5]
     1000.
 
 Now the sixth element in the model's elevation field array, or in *z*, is equal to 1000.  (Remember that the first element of a Python array has an index of 0 (zero)).
@@ -207,7 +205,9 @@ that prevents accidentally overwriting an existing field.
 
     >>> import numpy as np
     >>> elevs_in = np.random.rand(mg.number_of_nodes)
-    >>> mg.add_field("elevation", elevs_in, at="node", units="m", copy=True, clobber=True)
+    >>> mg.add_field(
+    ...     "elevation", elevs_in, at="node", units="m", copy=True, clobber=True
+    ... )
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
@@ -237,7 +237,7 @@ no cells around the edge of a grid, there are fewer cells than nodes:
 
 .. code-block:: python
 
-    >>> mg.at_cell['percent_vegetation'].size
+    >>> mg.at_cell["percent_vegetation"].size
     304
 
 As you can see, fields are convenient because you don't have to keep track of how many nodes, links, cells, etc.
@@ -318,8 +318,8 @@ Each of these is then followed by the field name as a string in square brackets,
 
 .. code-block:: python
 
-    >>> grid.at_node['my_field_name'] #or
-    >>> grid['node']['my_field_name']
+    >>> grid.at_node["my_field_name"]  # or
+    >>> grid["node"]["my_field_name"]
 
 You can also use these commands to create fields from existing arrays,
 as long as you don't want to take advantage of the added control ``add_field()`` gives you.
@@ -354,7 +354,7 @@ evaluated between pairs of adjacent nodes. ModelGrid makes these calculations
 easier for programmers by providing built-in functions to calculate gradients
 along links and allowing applications to associate an array of gradient values
 with their corresponding links or edges. The `tutorial examples
-<https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_
+<https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/welcome.ipynb>`_
 illustrate how this capability can be used to create models of processes
 such as diffusion and overland flow.
 
@@ -463,7 +463,7 @@ is one that joins either two core nodes, or one *core* and one
 *open boundary* node (Figure 3). You can use this
 distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as seen in `this tutorial
-<https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
+<https://mybinder.org/v2/gh/landlab/landlab/master?filepath=notebooks/tutorials/fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
 
 
 .. _bc_details:
@@ -516,12 +516,12 @@ alongside these changes automatically:
 
 .. code-block:: python
 
-    >>> grid = RasterModelGrid((5,5))
+    >>> grid = RasterModelGrid((5, 5))
     >>> grid.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> grid.number_of_active_links
     18
     >>> grid.status_at_node[[6, 8]] = mg.BC_NODE_IS_CLOSED
-    >>> grid.status_at_node.reshape((5,5))
+    >>> grid.status_at_node.reshape((5, 5))
     array([[4, 4, 4, 4, 4],
            [1, 4, 0, 4, 1],
            [1, 0, 0, 0, 1],
@@ -547,21 +547,23 @@ As noted earlier, Landlab provides several different types of grid. Available gr
 classes, with more specialized grids inheriting properties and behavior from more
 general types. The class hierarchy is given in the second column, **Inherits from**.
 
-+-------------------------+-------------------------+--------------------+-------------------+
-| Grid type               | Inherits from           | Node arrangement   | Cell geometry     |
-+=========================+=========================+====================+===================+
-| ``RasterModelGrid``     | ``ModelGrid``           | raster             | squares           |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``VoronoiDelaunayGrid`` | ``ModelGrid``           | Delaunay triangles | Voronoi polygons  |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``FramedVoronoiGrid``   | ``VoronoiDelaunayGrid`` | Delaunay triangles | Voronoi polygons  |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``HexModelGrid``        | ``VoronoiDelaunayGrid`` | triagonal          | hexagons          |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``RadialModelGrid``     | ``VoronoiDelaunayGrid`` | concentric         | Voronoi polygons  |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``NetworkModelGrid``    | ``ModelGrid``           | ad libitum         | No cells          |
-+-------------------------+-------------------------+--------------------+-------------------+
++-------------------------+-------------------------+--------------------+----------------------+
+| Grid type               | Inherits from           | Node arrangement   | Cell geometry        |
++=========================+=========================+====================+======================+
+| ``RasterModelGrid``     | ``ModelGrid``           | raster             | squares              |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``VoronoiDelaunayGrid`` | ``ModelGrid``           | Delaunay triangles | Voronoi polygons     |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``FramedVoronoiGrid``   | ``VoronoiDelaunayGrid`` | Delaunay triangles | Voronoi polygons     |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``HexModelGrid``        | ``VoronoiDelaunayGrid`` | triagonal          | hexagons             |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``RadialModelGrid``     | ``VoronoiDelaunayGrid`` | concentric         | Voronoi polygons     |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``NetworkModelGrid``    | ``ModelGrid``           | ad libitum         | No cells             |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``IcosphereGlobalGrid`` | ``ModelGrid``           | spherical          | hexagons & pentagons |
++-------------------------+-------------------------+--------------------+----------------------+
 
 :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`
 gives a regular (square) grid, initialized
@@ -579,6 +581,17 @@ regular hexagons.
 In a :py:class:`landlab.grid.radial.RadialModelGrid <landlab.grid.radial.RadialModelGrid>`, nodes are created in concentric
 circles and then connected to
 form a Delaunay triangulation (again with Voronoi polygons as cells).
+:py:class:`landlab.grid.network.NetworkModelGrid` represents a branching network of nodes and links,
+without cells or patches.
+An :py:class:`landlab.grid.icosphere.IcosphereGlobalGrid` represents the surface of a sphere.
+The default configuration is a spherical grid of unit radius that
+forms the spherical version an icosahedron (20 triangular patches,
+12 nodes), with the dual complement representing a dodecahedron
+(12 hexagonal cells, 20 corners). The mesh_densification_level
+parameter allows you to densify this initial shape by subdividing
+each triangular patch into four triangles, with corresponding
+addition of nodes (as the triangle vertices), together with
+corresponding cells and corners.
 
 .. _importing_a_dem:
 
@@ -641,12 +654,16 @@ and used as follows:
 
     >>> from landlab.plot.imshow import imshow_node_grid
     >>> from pylab import show, figure
-    >>> mg = RasterModelGrid((50, 50), 1.)  # make a grid to plot
+    >>> mg = RasterModelGrid((50, 50), 1.0)  # make a grid to plot
     >>> z - mg.node_x * 0.1  # Make an arbitrary sloping surface
-    >>> mg.add_field("topographic_elevation", z, at="node", units="meters", copy=True)  # Create the data as a field
-    >>> figure('Elevations from the field')  # new fig, with a name
-    >>> imshow_node_grid(mg, 'topographic_elevation')
-    >>> figure('You can also use values directly, not fields')  # ...but if you, do you'll lose the units, figure naming capabilities, etc
+    >>> mg.add_field(
+    ...     "topographic_elevation", z, at="node", units="meters", copy=True
+    ... )  # Create the data as a field
+    >>> figure("Elevations from the field")  # new fig, with a name
+    >>> imshow_node_grid(mg, "topographic_elevation")
+    >>> figure(
+    ...     "You can also use values directly, not fields"
+    ... )  # ...but if you, do you'll lose the units, figure naming capabilities, etc
     >>> imshow_node_grid(mg, z)
     >>> show()
 
@@ -685,10 +702,10 @@ which you can then take slices of, e.g., we can do this:
 .. code-block:: python
 
     >>> from pylab import plot, show
-    >>> mg = RasterModelGrid((10, 10), 1.)
+    >>> mg = RasterModelGrid((10, 10), 1.0)
     >>> z = mg.node_x * 0.1
-    >>> my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
-    >>> my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
+    >>> my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:, 5]
+    >>> my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:, 5]
     >>> plot(my_ycoords, my_section)
     >>> show()
 

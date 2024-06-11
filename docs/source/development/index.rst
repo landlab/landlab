@@ -18,24 +18,18 @@ The most important things to remember are to:
   `master` branch; and
 * Keep your fork's `master` and development branches up to date with changes
   in the main Landlab repository.
-* Consider creating a small Pull Request to update the page on
-  :ref:`ongoing development <ongoing_development>` so that others know what
-  you are working on.
 
 Supported Python Versions
 -------------------------
-Python 3.9, 3.10, and 3.11
+Python 3.10, 3.11, and 3.12
 
 If you need to introduce a new dependency, that dependency must be compatible
-with Python 3.9+ and be available on Linux, Mac, and Windows.
-
-Installation, Contribution, and Development Practices
------------------------------------------------------
+with Python 3.10+ and be available on Linux, Mac, and Windows.
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
-   install/index
    contribution/index
    practices/index
    package_organization
@@ -47,7 +41,6 @@ There are a few pages that are particularly important for the maintenance of
 the package. These are:
 
 * :ref:`directory organization <organization>`
-* :ref:`testing protocol <testing>`
 * :ref:`dependency organization <dependencies>`, and
 * :ref:`release workflow <dev_releases>`
 

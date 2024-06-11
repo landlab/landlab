@@ -3,7 +3,6 @@
 @author: dejh
 """
 
-
 import numpy as np
 
 from landlab import Component
@@ -20,42 +19,47 @@ class SteepnessFinder(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> from landlab.components import SteepnessFinder
-    >>> mg = RasterModelGrid((3, 10), xy_spacing=100.)
-    >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
-    ...               mg.nodes_at_top_edge):
+    >>> mg = RasterModelGrid((3, 10), xy_spacing=100.0)
+    >>> for nodes in (
+    ...     mg.nodes_at_right_edge,
+    ...     mg.nodes_at_bottom_edge,
+    ...     mg.nodes_at_top_edge,
+    ... ):
     ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
     >>> _ = mg.add_zeros("topographic__elevation", at="node")
-    >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
-    ...     mg.core_nodes]/1000.
-    >>> fr = FlowAccumulator(mg, flow_director='D8')
+    >>> mg.at_node["topographic__elevation"][mg.core_nodes] = (
+    ...     mg.node_x[mg.core_nodes] / 1000.0
+    ... )
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> sp = FastscapeEroder(mg, K_sp=0.01)
-    >>> sf = SteepnessFinder(mg, min_drainage_area=10000.)
+    >>> sf = SteepnessFinder(mg, min_drainage_area=10000.0)
     >>> for i in range(10):
-    ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes] += 10.0
     ...     _ = fr.run_one_step()
-    ...     sp.run_one_step(1000.)
+    ...     sp.run_one_step(1000.0)
+    ...
     >>> sf.calculate_steepnesses()
-    >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
-    array([  0.        ,  29.28427125,   1.        ,   1.        ,
-             1.        ,   1.        ,   1.        ,   1.        ,
-             0.99999997,   0.        ])
+    >>> mg.at_node["channel__steepness_index"].reshape((3, 10))[1, :]
+    array([ 0.        , 29.28427125,  1.        ,  1.        ,
+            1.        ,  1.        ,  1.        ,  1.        ,
+            0.99999997,  0.        ])
     >>> sf.hillslope_mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
             True, False, False, False, False, False, False, False, False,
            False,  True,  True,  True,  True,  True,  True,  True,  True,
-            True,  True,  True], dtype=bool)
+            True,  True,  True])
 
-    >>> sf = SteepnessFinder(mg, min_drainage_area=10000., discretization_length=350.)
+    >>> sf = SteepnessFinder(mg, min_drainage_area=10000.0, discretization_length=350.0)
     >>> sf.calculate_steepnesses()
-    >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
-    array([ 0.        ,  3.08232295,  3.08232295,  3.08232295,  1.        ,
-            1.        ,  1.        ,  1.        ,  0.        ,  0.        ])
+    >>> mg.at_node["channel__steepness_index"].reshape((3, 10))[1, :]
+    array([0.        , 3.08232295, 3.08232295, 3.08232295, 1.        ,
+           1.        , 1.        , 1.        , 0.        , 0.        ])
 
-    >>> sf = SteepnessFinder(mg, min_drainage_area=10000., elev_step=1.5)
+    >>> sf = SteepnessFinder(mg, min_drainage_area=10000.0, elev_step=1.5)
     >>> sf.calculate_steepnesses()
-    >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
-    array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
-            1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
+    >>> mg.at_node["channel__steepness_index"].reshape((3, 10))[1, :]
+    array([0.        , 1.22673541, 1.2593727 , 1.27781936, 1.25659369,
+           1.12393156, 0.97335328, 0.79473963, 0.56196578, 0.        ])
 
     References
     ----------
@@ -307,13 +311,16 @@ class SteepnessFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> mg = RasterModelGrid((4,5), xy_spacing=(10., 5.))
-        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
-        ...               mg.nodes_at_top_edge):
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(10.0, 5.0))
+        >>> for nodes in (
+        ...     mg.nodes_at_right_edge,
+        ...     mg.nodes_at_bottom_edge,
+        ...     mg.nodes_at_top_edge,
+        ... ):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> mg.status_at_node[[6, 12, 13, 14]] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
-        >>> fr = FlowAccumulator(mg, flow_director='D8')
+        >>> fr = FlowAccumulator(mg, flow_director="D8")
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
         >>> ch_nodes = np.array([8, 7, 11, 10])
@@ -354,29 +361,30 @@ class SteepnessFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
-        >>> mg = RasterModelGrid((3,10), xy_spacing=(10., 5.))
-        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
-        ...               mg.nodes_at_top_edge):
+        >>> mg = RasterModelGrid((3, 10), xy_spacing=(10.0, 5.0))
+        >>> for nodes in (
+        ...     mg.nodes_at_right_edge,
+        ...     mg.nodes_at_bottom_edge,
+        ...     mg.nodes_at_top_edge,
+        ... ):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field("topographic__elevation", mg.node_x**1.1, at="node")
-        >>> fr = FlowAccumulator(mg, flow_director='D8')
+        >>> fr = FlowAccumulator(mg, flow_director="D8")
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
         >>> ch_nodes = np.arange(18, 9, -1)
         >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
-        >>> interp_pt_elevs = np.array([0., 30., 60., 90., 120.])
-        >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists,
-        ...                                 interp_pt_elevs)
-        array([ 1.67970205,  1.67970205,  1.67970205,  1.65129294,  1.62115336,
-        1.5811951 ,  1.53157521,  1.44240187,  1.36442227])
-        >>> mg.at_node['topographic__steepest_slope'][ch_nodes]
-        array([ 1.69383001,  1.66972677,  1.64200694,  1.60928598,  1.56915472,
-        1.51678178,  1.43964028,  1.25892541,  0.        ])
-        >>> mg.at_node['topographic__elevation'][:] = mg.node_x
-        >>> interp_pt_elevs = np.array([0., 25., 50., 75., 80.])
-        >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists,
-        ...                                 interp_pt_elevs)
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        >>> interp_pt_elevs = np.array([0.0, 30.0, 60.0, 90.0, 120.0])
+        >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists, interp_pt_elevs)
+        array([1.67970205, 1.67970205, 1.67970205, 1.65129294, 1.62115336,
+               1.5811951 , 1.53157521, 1.44240187, 1.36442227])
+        >>> mg.at_node["topographic__steepest_slope"][ch_nodes]
+        array([1.69383001, 1.66972677, 1.64200694, 1.60928598, 1.56915472,
+               1.51678178, 1.43964028, 1.25892541, 0.        ])
+        >>> mg.at_node["topographic__elevation"][:] = mg.node_x
+        >>> interp_pt_elevs = np.array([0.0, 25.0, 50.0, 75.0, 80.0])
+        >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists, interp_pt_elevs)
+        array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
         """
         ch_z = self._grid.at_node["topographic__elevation"][ch_nodes]
         assert (
@@ -434,33 +442,37 @@ class SteepnessFinder(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import SteepnessFinder
-        >>> mg = RasterModelGrid((3,10), xy_spacing=(10., 5.))
-        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
-        ...               mg.nodes_at_top_edge):
+        >>> mg = RasterModelGrid((3, 10), xy_spacing=(10.0, 5.0))
+        >>> for nodes in (
+        ...     mg.nodes_at_right_edge,
+        ...     mg.nodes_at_bottom_edge,
+        ...     mg.nodes_at_top_edge,
+        ... ):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
-        >>> fr = FlowAccumulator(mg, flow_director='D8')
+        >>> fr = FlowAccumulator(mg, flow_director="D8")
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
         >>> ch_nodes = np.arange(18, 9, -1)
         >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
-        >>> ch_A = mg.at_node['drainage_area'][ch_nodes]
-        >>> ch_S = mg.at_node['topographic__steepest_slope'][ch_nodes]
+        >>> ch_A = mg.at_node["drainage_area"][ch_nodes]
+        >>> ch_S = mg.at_node["topographic__steepest_slope"][ch_nodes]
 
-        >>> ksn_25 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 25.)
+        >>> ksn_25 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 25.0)
         >>> ksn_25.size == ch_dists.size - 1
         True
         >>> ksn_25
-        array([ -1.        ,  11.0668192 ,  11.0668192 ,  15.70417802,
-                15.70417802,  15.70417802,  19.3433642 ,  19.3433642 ])
+        array([-1.        , 11.0668192 , 11.0668192 , 15.70417802,
+               15.70417802, 15.70417802, 19.3433642 , 19.3433642 ])
 
-        >>> ksn_10 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 10.)
+        >>> ksn_10 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 10.0)
         >>> ksn_10
-        array([  8.40896415,   8.40896415,  13.16074013,  13.16074013,
-                16.5487546 ,  16.5487546 ,  19.3433642 ,  19.3433642 ])
+        array([ 8.40896415,  8.40896415, 13.16074013, 13.16074013,
+               16.5487546 , 16.5487546 , 19.3433642 , 19.3433642 ])
 
         >>> ch_ksn_overdiscretized = sf.calc_ksn_discretized(
-        ...     ch_dists, ch_A, ch_S, 0.5, 10.)
+        ...     ch_dists, ch_A, ch_S, 0.5, 10.0
+        ... )
         >>> np.allclose(ch_ksn_overdiscretized, ksn_10)
         True
         """
@@ -536,29 +548,35 @@ class SteepnessFinder(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator, FastscapeEroder
         >>> from landlab.components import SteepnessFinder
-        >>> mg = RasterModelGrid((5, 5), xy_spacing=100.)
-        >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
-        ...               mg.nodes_at_top_edge):
+        >>> mg = RasterModelGrid((5, 5), xy_spacing=100.0)
+        >>> for nodes in (
+        ...     mg.nodes_at_right_edge,
+        ...     mg.nodes_at_bottom_edge,
+        ...     mg.nodes_at_top_edge,
+        ... ):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_zeros("topographic__elevation", at="node")
-        >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
-        ...     mg.core_nodes]/1000.
+        >>> mg.at_node["topographic__elevation"][mg.core_nodes] = (
+        ...     mg.node_x[mg.core_nodes] / 1000.0
+        ... )
         >>> np.random.seed(0)
-        >>> mg.at_node['topographic__elevation'][
-        ...     mg.core_nodes] += np.random.rand(mg.number_of_core_nodes)
-        >>> fr = FlowAccumulator(mg, flow_director='D8')
+        >>> mg.at_node["topographic__elevation"][mg.core_nodes] += np.random.rand(
+        ...     mg.number_of_core_nodes
+        ... )
+        >>> fr = FlowAccumulator(mg, flow_director="D8")
         >>> sp = FastscapeEroder(mg, K_sp=0.01)
-        >>> cf = SteepnessFinder(mg, min_drainage_area=20000.)
+        >>> cf = SteepnessFinder(mg, min_drainage_area=20000.0)
         >>> for i in range(10):
-        ...     mg.at_node['topographic__elevation'][mg.core_nodes] += 10.
+        ...     mg.at_node["topographic__elevation"][mg.core_nodes] += 10.0
         ...     _ = fr.run_one_step()
-        ...     sp.run_one_step(1000.)
+        ...     sp.run_one_step(1000.0)
+        ...
         >>> _ = fr.run_one_step()
         >>> cf.calculate_steepnesses()
 
-        >>> imshow_grid_at_node(mg, 'topographic__elevation',
-        ...                     allow_colorbar=False)
-        >>> imshow_grid_at_node(mg, cf.masked_steepness_indices,
-        ...                     color_for_closed=None, cmap='winter')
+        >>> imshow_grid_at_node(mg, "topographic__elevation", allow_colorbar=False)
+        >>> imshow_grid_at_node(
+        ...     mg, cf.masked_steepness_indices, color_for_closed=None, cmap="winter"
+        ... )
         """
         return np.ma.array(self.steepness_indices, mask=self.hillslope_mask)

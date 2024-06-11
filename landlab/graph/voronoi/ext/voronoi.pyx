@@ -36,10 +36,12 @@ def id_array_contains(
         )
 
 
-def _is_finite_region(np.ndarray[DTYPE_t, ndim=1] vertices_at_region,
-                      np.ndarray[DTYPE_t, ndim=1] vertices_per_region,
-                      np.ndarray[DTYPE_t, ndim=1] is_finite_region,
-                      DTYPE_t min_patch_size):
+def _is_finite_region(
+    np.ndarray[DTYPE_t, ndim=1] vertices_at_region,
+    np.ndarray[DTYPE_t, ndim=1] vertices_per_region,
+    np.ndarray[DTYPE_t, ndim=1] is_finite_region,
+    DTYPE_t min_patch_size,
+):
     """Test if each region if finite.
 
     Parameters
@@ -72,10 +74,12 @@ def _is_finite_region(np.ndarray[DTYPE_t, ndim=1] vertices_at_region,
         offset += n_vertices
 
 
-def _get_neighbor_regions(np.ndarray[DTYPE_t, ndim=2] ridge_points,
-                          np.ndarray[DTYPE_t, ndim=1] point_region,
-                          np.ndarray[DTYPE_t, ndim=1] is_finite_region,
-                          np.ndarray[DTYPE_t, ndim=2] regions_at_ridge):
+def _get_neighbor_regions(
+    np.ndarray[DTYPE_t, ndim=2] ridge_points,
+    np.ndarray[DTYPE_t, ndim=1] point_region,
+    np.ndarray[DTYPE_t, ndim=1] is_finite_region,
+    np.ndarray[DTYPE_t, ndim=2] regions_at_ridge,
+):
     """Get voronoi regions on either side of ridges.
 
     Parameters
@@ -106,9 +110,11 @@ def _get_neighbor_regions(np.ndarray[DTYPE_t, ndim=2] ridge_points,
 
 
 @cython.boundscheck(False)
-def _get_cell_at_region(np.ndarray[DTYPE_t, ndim=2] regions_at_ridge,
-                        np.ndarray[DTYPE_t, ndim=2] ridges_at_cell,
-                        np.ndarray[DTYPE_t, ndim=1] cell_at_region):
+def _get_cell_at_region(
+    np.ndarray[DTYPE_t, ndim=2] regions_at_ridge,
+    np.ndarray[DTYPE_t, ndim=2] ridges_at_cell,
+    np.ndarray[DTYPE_t, ndim=1] cell_at_region,
+):
     """Get cell corresponding to each voronoi region.
 
     Parameters
@@ -130,7 +136,7 @@ def _get_cell_at_region(np.ndarray[DTYPE_t, ndim=2] regions_at_ridge,
     cdef int *ridges_per_cell = <int *>malloc(n_ridges * sizeof(int))
 
     if not ridges_per_cell:
-        raise MemoryError('unable to allocate {bytes} bytes'.format(
+        raise MemoryError("unable to allocate {bytes} bytes".format(
             bytes=n_ridges * sizeof(int)))
 
     try:
@@ -163,9 +169,11 @@ def _get_cell_at_region(np.ndarray[DTYPE_t, ndim=2] regions_at_ridge,
 
 
 @cython.boundscheck(False)
-def _get_faces_at_cell(np.ndarray[DTYPE_t, ndim=2] ridges_at_cell,
-                       np.ndarray[DTYPE_t, ndim=2] faces_at_cell,
-                       np.ndarray[DTYPE_t, ndim=1] face_at_ridge):
+def _get_faces_at_cell(
+    np.ndarray[DTYPE_t, ndim=2] ridges_at_cell,
+    np.ndarray[DTYPE_t, ndim=2] faces_at_cell,
+    np.ndarray[DTYPE_t, ndim=1] face_at_ridge,
+):
     """Get faces that define each cell.
 
     Parameters
@@ -201,8 +209,8 @@ def _get_faces_at_cell(np.ndarray[DTYPE_t, ndim=2] ridges_at_cell,
                 face = face_at_ridge[ridge]
 
                 if face == -1:
-                  face_at_ridge[ridge] = n_faces
-                  n_faces += 1
+                    face_at_ridge[ridge] = n_faces
+                    n_faces += 1
                 face = face_at_ridge[ridge]
 
                 faces_at_cell[cell, i] = face
@@ -212,10 +220,12 @@ def _get_faces_at_cell(np.ndarray[DTYPE_t, ndim=2] ridges_at_cell,
 
 
 @cython.boundscheck(False)
-def _get_corners_at_face(np.ndarray[DTYPE_t, ndim=1] face_at_ridge,
-                         np.ndarray[DTYPE_t, ndim=2] vertices_at_ridge,
-                         np.ndarray[DTYPE_t, ndim=1] corner_at_vertex,
-                         np.ndarray[DTYPE_t, ndim=2] corners_at_face):
+def _get_corners_at_face(
+    np.ndarray[DTYPE_t, ndim=1] face_at_ridge,
+    np.ndarray[DTYPE_t, ndim=2] vertices_at_ridge,
+    np.ndarray[DTYPE_t, ndim=1] corner_at_vertex,
+    np.ndarray[DTYPE_t, ndim=2] corners_at_face,
+):
     """Get corners for each face.
 
     Parameters
@@ -234,7 +244,6 @@ def _get_corners_at_face(np.ndarray[DTYPE_t, ndim=1] face_at_ridge,
     """
     cdef int i
     cdef int ridge
-    cdef int corner
     cdef int vertex
     cdef int face
     cdef int n_ridges = len(face_at_ridge)
@@ -243,21 +252,21 @@ def _get_corners_at_face(np.ndarray[DTYPE_t, ndim=1] face_at_ridge,
     cdef int n_corners = 0
 
     for vertex in range(n_vertices):
-      corner_at_vertex[vertex] = -1
+        corner_at_vertex[vertex] = -1
 
     for face in range(n_faces):
-      for i in range(2):
-        corners_at_face[face, i] = -1
+        for i in range(2):
+            corners_at_face[face, i] = -1
 
     for ridge in range(n_ridges):
         for i in range(2):
             vertex = vertices_at_ridge[ridge, i]
             if vertex >= 0 and face_at_ridge[ridge] >= 0:
-              if corner_at_vertex[vertex] == -1:
-                  corner_at_vertex[vertex] = n_corners
-                  n_corners += 1
+                if corner_at_vertex[vertex] == -1:
+                    corner_at_vertex[vertex] = n_corners
+                    n_corners += 1
 
-              corners_at_face[face_at_ridge[ridge], i] = corner_at_vertex[vertex]
+                corners_at_face[face_at_ridge[ridge], i] = corner_at_vertex[vertex]
 
 
 @cython.boundscheck(False)
@@ -285,15 +294,17 @@ def _get_xy_at_corners(np.ndarray[np.double_t, ndim=2] vertices,
         corner = corner_at_vertex[vertex]
 
         if corner >= 0:
-          xy_at_corner[corner, 0] = vertices[vertex, 0]
-          xy_at_corner[corner, 1] = vertices[vertex, 1]
+            xy_at_corner[corner, 0] = vertices[vertex, 0]
+            xy_at_corner[corner, 1] = vertices[vertex, 1]
 
 
 @cython.boundscheck(False)
-def _get_node_at_cell(np.ndarray[DTYPE_t, ndim=2] ridge_points,
-                      np.ndarray[DTYPE_t, ndim=1] point_region,
-                      np.ndarray[DTYPE_t, ndim=1] cell_at_region,
-                      np.ndarray[DTYPE_t, ndim=1] node_at_cell):
+def _get_node_at_cell(
+    np.ndarray[DTYPE_t, ndim=2] ridge_points,
+    np.ndarray[DTYPE_t, ndim=1] point_region,
+    np.ndarray[DTYPE_t, ndim=1] cell_at_region,
+    np.ndarray[DTYPE_t, ndim=1] node_at_cell,
+):
     """Get node-to-cell connectivity.
 
     Parameters

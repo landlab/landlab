@@ -15,6 +15,7 @@ output to a file.
   netcdf
   shapefile
   obj
+  legacy_vtk
 
 Module contents
 ---------------

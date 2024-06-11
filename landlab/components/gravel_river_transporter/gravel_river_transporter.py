@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from landlab import Component, HexModelGrid
+from landlab import Component
+from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 
@@ -86,6 +87,7 @@ class GravelRiverTransporter(Component):
     ...     fa.run_one_step()
     ...     elev[grid.core_nodes] += 1.0
     ...     transporter.run_one_step(10000.0)
+    ...
     >>> int(elev[4] * 100)
     2366
     """
@@ -331,7 +333,7 @@ class GravelRiverTransporter(Component):
         >>> width = transporter.calc_implied_width()
         >>> int(width[4] * 100)
         3833
-        >>> grid.at_node["surface_water__discharge"] *= 1. / (3600 * 24 * 365.25)
+        >>> grid.at_node["surface_water__discharge"] *= 1.0 / (3600 * 24 * 365.25)
         >>> width = transporter.calc_implied_width(time_unit="s")
         >>> int(width[4] * 100)
         3838
@@ -430,11 +432,11 @@ class GravelRiverTransporter(Component):
         >>> transporter = GravelRiverTransporter(grid)
         >>> transporter.calc_sediment_rate_of_change()
         >>> np.round(transporter._sediment_outflux[4:7], 3)
-        array([ 0.   ,  0.038,  0.019])
+        array([0.   , 0.038, 0.019])
         >>> np.round(transporter._sediment_influx[4:7], 3)
-        array([ 0.038,  0.019,  0.   ])
+        array([0.038, 0.019, 0.   ])
         >>> np.round(transporter._dzdt[5:7], 8)
-        array([ -2.93000000e-06,  -2.93000000e-06])
+        array([-2.93e-06, -2.93e-06])
         """
         self.calc_transport_capacity()
         if self._abrasion_coef > 0.0:
@@ -468,7 +470,7 @@ class GravelRiverTransporter(Component):
         >>> transporter = GravelRiverTransporter(grid, solver="explicit")
         >>> transporter.run_one_step(1000.0)
         >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.9971,  1.9971])
+        array([0.    , 0.9971, 1.9971])
         """
         self.calc_sediment_rate_of_change()
         self._elev += self._dzdt * dt
@@ -489,14 +491,14 @@ class GravelRiverTransporter(Component):
         >>> fa = FlowAccumulator(grid)
         >>> transporter = GravelRiverTransporter(grid, solver="matrix")
         >>> transporter._mat.toarray()
-        array([[ 0.,  0.],
-               [ 0.,  0.]])
+        array([[0., 0.],
+               [0., 0.]])
         >>> fa.run_one_step()
         >>> transporter._receiver_node[5:7]
         array([4, 5])
         >>> transporter._fill_matrix_and_rhs(1000.0)
         >>> transporter._rhs
-        array([ 1.,  2.])
+        array([1., 2.])
         """
         prefac = (
             self._trans_coef * self._intermittency_factor * self._porosity_factor * dt

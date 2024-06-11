@@ -5,6 +5,7 @@ functionality is working.
 
 Probably doesn't account for cell area yet.
 """
+
 import numpy as np
 from numpy.testing import assert_allclose
 

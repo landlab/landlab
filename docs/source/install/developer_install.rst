@@ -23,9 +23,17 @@ Source Install
 If you would like to modify or contribute code, you can either clone our
 repository
 
-.. code-block:: bash
+.. tab:: ssh
 
-   git clone git://github.com/landlab/landlab.git
+    .. code-block:: bash
+
+       git clone git@github.com:landlab/landlab.git
+
+.. tab:: https
+
+    .. code-block:: bash
+
+       git clone https://github.com/landlab/landlab.git
 
 or download a `zip file <https://github.com/landlab/landlab/archive/refs/heads/master.zip>`_:
 
@@ -34,30 +42,70 @@ or download a `zip file <https://github.com/landlab/landlab/archive/refs/heads/m
    curl -OL https://github.com/landlab/landlab/archive/refs/heads/master.zip
 
 Once you have a copy of the source code, you can install it into your current
-Python environment,
+Python environment by first installing *Landlab* dependencies and then building
+and installing *Landlab*.
+
+
+Install dependencies
+````````````````````
+
+*Landlab*'s dependencies are listed in *requirements.in*.
 
 .. tab:: mamba
 
   .. code-block:: bash
 
      cd landlab
-     mamba install --file=requirements.in
-     pip install -e .
+     mamba install --file=requirements.in -c nodefaults -c conda-forge --override-channels
 
 .. tab:: conda
 
   .. code-block:: bash
 
      cd landlab
-     conda install --file=requirements.in
-     pip install -e .
+     conda install --file=requirements.in -c nodefaults -c conda-forge --override-channels
 
 .. tab:: pip
 
   .. code-block:: bash
 
      cd landlab
-     pip install -e .
+     pip install -r requirements.in
+
+
+Build and install *Landlab*
+```````````````````````````
+*Landlab*'s build process includes compiling Python extensions, which requires
+you to have a C++ compiler installed. *Linux* will usually already have one,
+on *Mac* you can use *XCode*, and on *Windows* you will need to install *MSVC*.
+For help on installing *MSVC*, you may want to refer to the *conda-forge* page
+on `compiling code on Windows <https://conda-forge.org/docs/maintainer/knowledge_base.html#notes-on-native-code>`__
+or the `Python wiki page for Windows compilers <https://wiki.python.org/moin/WindowsCompilers>`__.
+
+
+If you are using *conda*/*mamba*, set up your compilers to build libraries
+compatible with other installed packages,
+
+.. tab:: mamba
+
+  .. code-block:: bash
+
+     mamba install compilers -c nodefaults -c conda-forge --override-channels
+
+.. tab:: conda
+
+  .. code-block:: bash
+
+     conda install compilers -c nodefaults -c conda-forge --override-channels
+
+
+With compilers set up and dependencies installed, build and install *Landlab*,
+
+.. code-block:: bash
+
+   pip install -e .
+
+
 
 .. end-install-source
 
@@ -74,7 +122,7 @@ finding lint.
 
   pip install nox
 
-The following list show how to use `nox`_ for some of the more common tasks:
+The following list shows how to use `nox`_ for some of the more common tasks:
 
 * Run the tests:
 

@@ -1,4 +1,5 @@
 """Plot drainage network."""
+
 import matplotlib.pylab as plt
 import numpy as np
 
@@ -34,7 +35,7 @@ def drainage_plot(
 
     nreceievers = receivers.shape[-1]
 
-    propColor = plt.get_cmap(quiver_cmap)
+    propColor = plt.colormaps[quiver_cmap]
     for j in range(nreceievers):
         rec = receivers[:, j]
         is_bad = rec == -1

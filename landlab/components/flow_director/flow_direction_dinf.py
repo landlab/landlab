@@ -68,21 +68,29 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flow_director.flow_direction_dinf import(
-    ...                                                  flow_directions_dinf)
+    >>> from landlab.components.flow_director.flow_direction_dinf import (
+    ...     flow_directions_dinf,
+    ... )
 
     Dinfinity routes flow based on the relative proportion of flow along the
     triangular facets around a central raster node.
 
-    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> _ = grid.add_field(
     ...     "topographic__elevation",
-    ...     2.*grid.node_x+grid.node_y,
+    ...     2.0 * grid.node_x + grid.node_y,
     ...     at="node",
     ... )
-    >>> (receivers, proportions, slopes,
-    ... steepest_slope, steepest_receiver,
-    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid)
+    >>> (
+    ...     receivers,
+    ...     proportions,
+    ...     slopes,
+    ...     steepest_slope,
+    ...     steepest_receiver,
+    ...     sink,
+    ...     receiver_links,
+    ...     steepest_link,
+    ... ) = flow_directions_dinf(grid)
     >>> receivers
     array([[ 0, -1],
            [ 0, -1],
@@ -107,10 +115,17 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     This method also works if the elevations are passed as an array instead of
     the (implied) field name 'topographic__elevation'.
 
-    >>> z = grid['node']['topographic__elevation']
-    >>> (receivers, proportions, slopes,
-    ... steepest_slope, steepest_receiver,
-    ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
+    >>> z = grid["node"]["topographic__elevation"]
+    >>> (
+    ...     receivers,
+    ...     proportions,
+    ...     slopes,
+    ...     steepest_slope,
+    ...     steepest_receiver,
+    ...     sink,
+    ...     receiver_links,
+    ...     steepest_link,
+    ... ) = flow_directions_dinf(grid, z)
     >>> receivers
     array([[ 0, -1],
            [ 0, -1],
@@ -338,7 +353,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # sort slopes
     # we've set slopes going to closed or non-existant triangles to -999.0, so
     # we shouldn't ever choose these.
-    steepest_sort = np.argsort(s)
+    steepest_sort = np.argsort(s, kind="stable")
 
     # determine the steepest triangle
     steepest_triangle = tri_numbers[steepest_sort[:, -1]]
@@ -428,9 +443,9 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned.
-    slope_sort = np.argsort(np.argsort(slopes_to_receivers, axis=1), axis=1) == (
-        num_receivers - 1
-    )
+    slope_sort = np.argsort(
+        np.argsort(slopes_to_receivers, axis=1, kind="stable"), axis=1, kind="stable"
+    ) == (num_receivers - 1)
     steepest_slope = slopes_to_receivers[slope_sort]
     steepest_slope[drains_to_self] = 0.0
 

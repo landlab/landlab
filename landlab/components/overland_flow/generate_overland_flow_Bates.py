@@ -9,6 +9,7 @@ Written by Jordan Adams, based on code written by Greg Tucker.
 
 Last updated: April 21, 2016
 """
+
 import numpy as np
 import scipy.constants
 
@@ -57,9 +58,9 @@ class OverlandFlowBates(Component):
 
     Examples
     --------
-    >>> DEM_name = 'DEM_name.asc'
-    >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
-    >>> of = OverlandFlowBates(rg) # doctest: +SKIP
+    >>> DEM_name = "DEM_name.asc"
+    >>> (rg, z) = read_esri_ascii(DEM_name)  # doctest: +SKIP
+    >>> of = OverlandFlowBates(rg)  # doctest: +SKIP
 
     References
     ----------

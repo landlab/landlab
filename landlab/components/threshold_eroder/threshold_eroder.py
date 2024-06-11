@@ -3,13 +3,13 @@
 
 @author: benjamincampforts
 """
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 from .cfuncs import _thresholder
 
 
 class ThresholdEroder(Component):
-
     """Threshold eroder.
 
     Threshold eroder that cuts off slopes at a given threshold slope (Sc) and
@@ -55,11 +55,11 @@ class ThresholdEroder(Component):
     >>> mg.set_closed_boundaries_at_grid_edges(False, False, False, False)
     >>> z = np.array(
     ...     [
-    ...         [0., 0., 0., 0., 0.],
-    ...         [0., 1., 1., 1., 0.],
-    ...         [0., 1., 10., 1., 0.],
-    ...         [0., 1., 1., 1., 0.],
-    ...         [0., 0., 0., 0., 0.],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...         [0.0, 1.0, 10.0, 1.0, 0.0],
+    ...         [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
     ...     ]
     ... )
     >>> _ = mg.add_field("topographic__elevation", z, at="node")
@@ -74,6 +74,7 @@ class ThresholdEroder(Component):
     >>> for t in range(2):
     ...     fdir.run_one_step()
     ...     th_ero.run_one_step()
+    ...
 
 
     References

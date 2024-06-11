@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-from enum import IntEnum, unique
+from enum import IntEnum
+from enum import unique
 
 import numpy as np
 
@@ -39,18 +40,18 @@ def is_fixed_link(node_status_at_link):
     >>> from landlab.grid.linkstatus import is_fixed_link
     >>> from landlab import NodeStatus
     >>> is_fixed_link([NodeStatus.CORE, NodeStatus.FIXED_GRADIENT])
-    array([ True], dtype=bool)
+    array([ True])
 
     >>> is_fixed_link([NodeStatus.CORE, NodeStatus.FIXED_VALUE])
-    array([False], dtype=bool)
+    array([False])
 
     >>> is_fixed_link(
     ...     [
     ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CORE],
-    ...         [NodeStatus.CORE, NodeStatus.CORE]
+    ...         [NodeStatus.CORE, NodeStatus.CORE],
     ...     ]
     ... )
-    array([ True, False], dtype=bool)
+    array([ True, False])
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
 
@@ -83,14 +84,18 @@ def is_inactive_link(node_status_at_link):
     >>> from landlab.grid.linkstatus import is_inactive_link
     >>> from landlab import NodeStatus
     >>> is_inactive_link([NodeStatus.CORE, NodeStatus.CLOSED])
-    array([ True], dtype=bool)
+    array([ True])
 
     >>> is_inactive_link([NodeStatus.FIXED_GRADIENT, NodeStatus.FIXED_VALUE])
-    array([ True], dtype=bool)
+    array([ True])
 
-    >>> is_inactive_link([[NodeStatus.FIXED_GRADIENT, NodeStatus.CLOSED],
-    ...                   [NodeStatus.CORE, NodeStatus.CORE]])
-    array([ True, False], dtype=bool)
+    >>> is_inactive_link(
+    ...     [
+    ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CLOSED],
+    ...         [NodeStatus.CORE, NodeStatus.CORE],
+    ...     ]
+    ... )
+    array([ True, False])
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
 
@@ -128,18 +133,18 @@ def is_active_link(node_status_at_link):
     >>> from landlab.grid.linkstatus import is_active_link
     >>> from landlab import NodeStatus
     >>> is_active_link([NodeStatus.CORE, NodeStatus.FIXED_GRADIENT])
-    array([False], dtype=bool)
+    array([False])
 
     >>> is_active_link([NodeStatus.CORE, NodeStatus.FIXED_VALUE])
-    array([ True], dtype=bool)
+    array([ True])
 
     >>> is_active_link(
     ...     [
     ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CORE],
-    ...         [NodeStatus.CORE, NodeStatus.CORE]
+    ...         [NodeStatus.CORE, NodeStatus.CORE],
     ...     ]
     ... )
-    array([False, True], dtype=bool)
+    array([False, True])
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
 

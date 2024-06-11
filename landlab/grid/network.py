@@ -12,8 +12,10 @@ from ..field import GraphFields
 from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
 from .base import BAD_INDEX_VALUE
-from .decorators import override_array_setitem_and_reset, return_readonly_id_array
-from .linkstatus import LinkStatus, set_status_at_link
+from .decorators import override_array_setitem_and_reset
+from .decorators import return_readonly_id_array
+from .linkstatus import LinkStatus
+from .linkstatus import set_status_at_link
 from .nodestatus import NodeStatus
 
 
@@ -40,7 +42,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
     >>> grid.x_of_node
     array([ 0.,  0., -1.,  1.])
     >>> grid.y_of_node
-    array([ 0.,  1.,  2.,  2.])
+    array([0.,  1.,  2.,  2.])
     >>> grid.nodes_at_link
     array([[0, 1],
            [2, 1],
@@ -129,9 +131,9 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
-        >>> grid = NetworkModelGrid((y_of_node, x_of_node),
-        ...                         nodes_at_link,
-        ...                         xy_of_reference = (12345, 678910))
+        >>> grid = NetworkModelGrid(
+        ...     (y_of_node, x_of_node), nodes_at_link, xy_of_reference=(12345, 678910)
+        ... )
         >>> grid.xy_of_reference
         (12345, 678910)
         >>> grid.xy_of_reference = (98765, 43210)
@@ -160,11 +162,10 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
-        >>> grid = NetworkModelGrid((y_of_node, x_of_node),
-        ...                         nodes_at_link)
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.axis_units
         ('-', '-')
-        >>> grid.axis_units = ('km', 'km')
+        >>> grid.axis_units = ("km", "km")
         >>> grid.axis_units
         ('km', 'km')
 
@@ -198,7 +199,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.axis_name
         ('x', 'y')
-        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name = ("lon", "lat")
         >>> grid.axis_name
         ('lon', 'lat')
 
@@ -225,7 +226,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name = ("lon", "lat")
         >>> grid.axis_name
         ('lon', 'lat')
         """
@@ -258,7 +259,8 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         ...     grid.BC_NODE_IS_CLOSED,
         ...     grid.BC_NODE_IS_CORE,
         ...     grid.BC_NODE_IS_CORE,
-        ...     grid.BC_NODE_IS_CORE]
+        ...     grid.BC_NODE_IS_CORE,
+        ... ]
         >>> grid.status_at_node
         array([4, 0, 0, 0], dtype=uint8)
         >>> grid.status_at_link
@@ -368,7 +370,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
         >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.y_of_link
-        array([ 0.5,  1.5,  1.5])
+        array([0.5,  1.5,  1.5])
 
         :meta landlab: info-link, quantity
         """

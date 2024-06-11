@@ -8,46 +8,25 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from landlab.utils import find_unique_upstream_hsd_ids_and_fractions, track_source
+from landlab.utils import find_unique_upstream_hsd_ids_and_fractions
+from landlab.utils import track_source
 
 
 def test_route_to_multiple_error_raised():
     grid = RasterModelGrid((5, 5), xy_spacing=(1.0, 1.0))
-    grid.at_node["topographic__elevation"] = np.array(
-        [
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            4.0,
-            5.0,
-            1.0,
-            5.0,
-            0.0,
-            3.0,
-            5.0,
-            3.0,
-            0.0,
-            5.0,
-            4.0,
-            5.0,
-            2.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-        ]
-    )
+    grid.at_node["topographic__elevation"] = [
+        [5.0, 5.0, 5.0, 5.0, 5.0],
+        [5.0, 4.0, 5.0, 1.0, 5.0],
+        [0.0, 3.0, 5.0, 3.0, 0.0],
+        [5.0, 4.0, 5.0, 2.0, 5.0],
+        [5.0, 5.0, 5.0, 5.0, 5.0],
+    ]
+
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
     fa = FlowAccumulator(grid, flow_director="MFD")
     fa.run_one_step()
-    hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
-    hsd_ids[:] = 1
+    hsd_ids = np.full(grid.number_of_nodes, 1, dtype=int)
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
 
@@ -58,35 +37,14 @@ def test_route_to_multiple_error_raised():
 def test_track_source():
     """Unit tests for track_source()."""
     grid = RasterModelGrid((5, 5), xy_spacing=(1.0, 1.0))
-    grid.at_node["topographic__elevation"] = np.array(
-        [
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            4.0,
-            5.0,
-            1.0,
-            5.0,
-            0.0,
-            3.0,
-            5.0,
-            3.0,
-            0.0,
-            5.0,
-            4.0,
-            5.0,
-            2.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-        ]
-    )
+    grid.at_node["topographic__elevation"] = [
+        [5.0, 5.0, 5.0, 5.0, 5.0],
+        [5.0, 4.0, 5.0, 1.0, 5.0],
+        [0.0, 3.0, 5.0, 3.0, 0.0],
+        [5.0, 4.0, 5.0, 2.0, 5.0],
+        [5.0, 5.0, 5.0, 5.0, 5.0],
+    ]
+
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
     fr = FlowAccumulator(grid, flow_director="D8")
@@ -95,8 +53,7 @@ def test_track_source():
     assert r[6] == 10
     assert r[7] == 8
     assert r[18] == 14
-    hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
-    hsd_ids[:] = 1
+    hsd_ids = np.full(grid.number_of_nodes, 1, dtype=int)
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
     (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)
@@ -108,41 +65,19 @@ def test_track_source():
 def test_find_unique_upstream_hsd_ids_and_fractions():
     """Unit tests find_unique_upstream_hsd_ids_and_fractions()."""
     grid = RasterModelGrid((5, 5), xy_spacing=(1.0, 1.0))
-    grid.at_node["topographic__elevation"] = np.array(
-        [
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            4.0,
-            5.0,
-            1.0,
-            5.0,
-            0.0,
-            3.0,
-            5.0,
-            3.0,
-            0.0,
-            5.0,
-            4.0,
-            5.0,
-            2.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-            5.0,
-        ]
-    )
+    grid.at_node["topographic__elevation"] = [
+        [5.0, 5.0, 5.0, 5.0, 5.0],
+        [5.0, 4.0, 5.0, 1.0, 5.0],
+        [0.0, 3.0, 5.0, 3.0, 0.0],
+        [5.0, 4.0, 5.0, 2.0, 5.0],
+        [5.0, 5.0, 5.0, 5.0, 5.0],
+    ]
+
     grid.status_at_node[10] = 0
     grid.status_at_node[14] = 0
     fr = FlowAccumulator(grid, flow_director="D8")
     fr.run_one_step()
-    hsd_ids = np.empty(grid.number_of_nodes, dtype=int)
-    hsd_ids[:] = 1
+    hsd_ids = np.full(grid.number_of_nodes, 1, dtype=int)
     hsd_ids[2:5] = 0
     hsd_ids[7:10] = 0
     (hsd_upstr, flow_accum) = track_source(grid, hsd_ids)

@@ -120,7 +120,6 @@ class RadialGraphExtras:
 
 
 class RadialGraph(RadialGraphExtras, DelaunayGraph):
-
     """Graph of a series of points on concentric circles.
 
     Examples
@@ -205,7 +204,7 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
             The distance from the center node of each node.
 
         >>> from landlab.graph import RadialGraph
-        >>> graph = RadialGraph((2, 6), spacing=2.)
+        >>> graph = RadialGraph((2, 6), spacing=2.0)
         >>> graph.spacing_of_rings
         2.0
 
@@ -225,8 +224,8 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> from landlab.graph import RadialGraph
         >>> graph = RadialGraph((2, 6), sort=True)
         >>> np.round(graph.radius_at_node, 3)
-        array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,  1.,  2.,  1.,
-                1.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 1., 1., 2., 1., 0., 1., 2., 1.,
+               1., 2., 2., 2., 2., 2.])
 
         :meta landlab: info-node, quantity
         """

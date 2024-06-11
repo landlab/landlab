@@ -3,6 +3,7 @@ Created on Sat Nov 14 10:48:23 2015
 
 @author: gtucker
 """
+
 import numpy as np
 from numpy.testing import assert_array_equal
 

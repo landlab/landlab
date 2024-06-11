@@ -27,7 +27,7 @@ Examples
 Create an instance of the FireGenerator component
 
 >>> mg = RasterModelGrid((10, 10))
->>> fg = FireGenerator(mg, mean_fire_recurrence = 15.0, shape_parameter = 4.5)
+>>> fg = FireGenerator(mg, mean_fire_recurrence=15.0, shape_parameter=4.5)
 
 This creates an instance of the component that has a mean_fire_recurrence, or
 average interval between fires of 15 years. We gave it a shape parameter of
@@ -66,7 +66,6 @@ from landlab import Component
 
 
 class FireGenerator(Component):
-
     """Generate a random fire event or time series.
 
     Parameters

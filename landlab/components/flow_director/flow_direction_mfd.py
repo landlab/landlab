@@ -85,9 +85,10 @@ def flow_directions_mfd(
     --------
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
-    >>> from landlab.components.flow_director.flow_direction_mfd import(
-    ...                                           flow_directions_mfd)
-    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> from landlab.components.flow_director.flow_direction_mfd import (
+    ...     flow_directions_mfd,
+    ... )
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> elev = grid.add_field(
     ...     "topographic__elevation",
     ...     grid.node_x + grid.node_y,
@@ -101,21 +102,27 @@ def flow_directions_mfd(
     >>> links_at_node = grid.links_at_node
     >>> active_link_dir_at_node = grid.active_link_dirs_at_node
     >>> link_slope = np.arctan(grid.calc_grad_at_link(elev))
-    >>> slopes_to_neighbors_at_node = link_slope[links_at_node]*active_link_dir_at_node
-    >>> (receivers,
-    ... proportions,
-    ... slopes,
-    ... steepest_slope,
-    ... steepest_receiver,
-    ... sink,
-    ... receiver_links,
-    ... steepest_link)= flow_directions_mfd(elev,
-    ...                                     neighbors_at_node,
-    ...                                     links_at_node,
-    ...                                     active_link_dir_at_node,
-    ...                                     link_slope,
-    ...                                     baselevel_nodes=None,
-    ...                                     partition_method='slope')
+    >>> slopes_to_neighbors_at_node = (
+    ...     link_slope[links_at_node] * active_link_dir_at_node
+    ... )
+    >>> (
+    ...     receivers,
+    ...     proportions,
+    ...     slopes,
+    ...     steepest_slope,
+    ...     steepest_receiver,
+    ...     sink,
+    ...     receiver_links,
+    ...     steepest_link,
+    ... ) = flow_directions_mfd(
+    ...     elev,
+    ...     neighbors_at_node,
+    ...     links_at_node,
+    ...     active_link_dir_at_node,
+    ...     link_slope,
+    ...     baselevel_nodes=None,
+    ...     partition_method="slope",
+    ... )
     >>> receivers
     array([[ 0, -1, -1, -1],
            [ 1, -1, -1, -1],
@@ -127,52 +134,56 @@ def flow_directions_mfd(
            [-1, -1, -1,  4],
            [ 8, -1, -1, -1]])
     >>> proportions
-    array([[ 1. ,  0. ,  0. ,  0. ],
-           [ 1. ,  0. ,  0. ,  0. ],
-           [ 1. ,  0. ,  0. ,  0. ],
-           [ 1. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0.5,  0.5],
-           [ 0. ,  0. ,  1. ,  0. ],
-           [ 1. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  1. ],
-           [ 1. ,  0. ,  0. ,  0. ]])
+    array([[1. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. ],
+           [0. , 0. , 0.5, 0.5],
+           [0. , 0. , 1. , 0. ],
+           [1. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 1. ],
+           [1. , 0. , 0. , 0. ]])
     >>> proportions.sum(axis=-1)
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
     In the second example, we will pass diagonal elements to the flow direction
     algorithm.
 
     >>> dal = grid.active_d8
-    >>> neighbors_at_node = np.hstack((grid.adjacent_nodes_at_node,
-    ...                                grid.diagonal_adjacent_nodes_at_node))
+    >>> neighbors_at_node = np.hstack(
+    ...     (grid.adjacent_nodes_at_node, grid.diagonal_adjacent_nodes_at_node)
+    ... )
     >>> links_at_node = grid.d8s_at_node
     >>> active_link_dir_at_node = grid.active_d8_dirs_at_node
 
     We need to create a list of diagonal links since it doesn't exist.
 
     >>> diag_links = np.sort(np.unique(grid.d8s_at_node[:, 4:]))
-    >>> diag_links = diag_links[diag_links>0]
+    >>> diag_links = diag_links[diag_links > 0]
     >>> diag_grads = np.zeros(diag_links.shape)
-    >>> where_active_diag = dal>=diag_links.min()
-    >>> active_diags_inds = dal[where_active_diag]-diag_links.min()
+    >>> where_active_diag = dal >= diag_links.min()
+    >>> active_diags_inds = dal[where_active_diag] - diag_links.min()
     >>> diag_grads = grid.calc_grad_at_diagonal(elev)
     >>> ortho_grads = grid.calc_grad_at_link(elev)
-    >>> link_slope = np.hstack((np.arctan(ortho_grads),
-    ...                         np.arctan(diag_grads)))
-    >>> (receivers,
-    ... proportions,
-    ... slopes,
-    ... steepest_slope,
-    ... steepest_receiver,
-    ... sink,
-    ... receiver_links,
-    ... steepest_link)= flow_directions_mfd(elev,
-    ...                                     neighbors_at_node,
-    ...                                     links_at_node,
-    ...                                     active_link_dir_at_node,
-    ...                                     link_slope,
-    ...                                     baselevel_nodes=None,
-    ...                                     partition_method='slope')
+    >>> link_slope = np.hstack((np.arctan(ortho_grads), np.arctan(diag_grads)))
+    >>> (
+    ...     receivers,
+    ...     proportions,
+    ...     slopes,
+    ...     steepest_slope,
+    ...     steepest_receiver,
+    ...     sink,
+    ...     receiver_links,
+    ...     steepest_link,
+    ... ) = flow_directions_mfd(
+    ...     elev,
+    ...     neighbors_at_node,
+    ...     links_at_node,
+    ...     active_link_dir_at_node,
+    ...     link_slope,
+    ...     baselevel_nodes=None,
+    ...     partition_method="slope",
+    ... )
     >>> receivers
     array([[ 0, -1, -1, -1, -1, -1, -1, -1],
            [ 1, -1, -1, -1, -1, -1, -1, -1],
@@ -184,45 +195,45 @@ def flow_directions_mfd(
            [-1, -1, -1,  4, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1,  4, -1]])
     >>> proportions
-    array([[ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.31091174,  0.31091174,  0.        ,
-             0.        ,  0.37817653,  0.        ],
-           [ 0.        ,  0.        ,  1.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  1.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  1.        ,  0.        ]])
+    array([[1.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [1.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [1.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [1.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.31091174,  0.31091174, 0.        ,
+            0.        , 0.37817653, 0.        ],
+           [0.        , 0.        , 1.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [1.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 1.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 1.        , 0.        ]])
     >>> slopes
-    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.78539816,  0.78539816,  0.        ,
-             0.        ,  0.95531662,  0.        ],
-           [ 0.        ,  0.        ,  0.78539816,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.78539816,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.95531662,  0.        ]])
+    array([[0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.78539816, 0.78539816, 0.        ,
+            0.        , 0.95531662, 0.        ],
+           [0.        , 0.        , 0.78539816, 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.78539816, 0.        ,
+            0.        , 0.        , 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ,
+            0.        , 0.95531662, 0.        ]])
     >>> proportions.sum(axis=-1)
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
     """
     # Calculate the number of nodes.
     num_nodes = len(elev)
@@ -306,9 +317,9 @@ def flow_directions_mfd(
 
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned.
-    slope_sort = np.argsort(np.argsort(flow_slopes, axis=1), axis=1) == (
-        max_number_of_neighbors - 1
-    )
+    slope_sort = np.argsort(
+        np.argsort(flow_slopes, axis=1, kind="stable"), axis=1, kind="stable"
+    ) == (max_number_of_neighbors - 1)
     steepest_slope = flow_slopes[slope_sort]
 
     # identify the steepest link and steepest receiever.

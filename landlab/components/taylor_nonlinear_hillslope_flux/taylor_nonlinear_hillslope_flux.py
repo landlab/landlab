@@ -9,11 +9,11 @@
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 
 
 class TaylorNonLinearDiffuser(Component):
-
     """Hillslope evolution using a Taylor Series expansion of the Andrews-
     Bucknam formulation of nonlinear hillslope flux derived following following
     Ganti et al., 2012. The flux is given as::
@@ -38,9 +38,7 @@ class TaylorNonLinearDiffuser(Component):
     >>> initial_slope = 1.0
     >>> leftmost_elev = 1000.0
     >>> z[:] = leftmost_elev
-    >>> z[:] += (
-    ...    (initial_slope * np.amax(mg.x_of_node)) - (initial_slope * mg.x_of_node)
-    ... )
+    >>> z[:] += (initial_slope * np.amax(mg.x_of_node)) - (initial_slope * mg.x_of_node)
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1)
     >>> cubicflux.run_one_step(1.0)
@@ -48,7 +46,7 @@ class TaylorNonLinearDiffuser(Component):
     ...     mg.at_node["topographic__elevation"],
     ...     np.array(
     ...         [1002.0, 1001.0, 1000.0, 1002.0, 1001.0, 1000.0, 1002.0, 1001.0, 1000.0]
-    ...     )
+    ...     ),
     ... )
     True
 
@@ -68,7 +66,8 @@ class TaylorNonLinearDiffuser(Component):
 
         dtmax = courant_factor * dx * dx / Demax
 
-    Where the courant factor is a user defined scale (default is 0.2)
+    Where the courant factor is a user defined scale (default is 0.2), and
+    dx is the length of the shortest link in the grid.
 
     The :class:`~.TaylorNonLinearDiffuser` has a boolean
     flag that permits a user to be
@@ -77,7 +76,7 @@ class TaylorNonLinearDiffuser(Component):
     timesteppping (``dynamic_dt=False``).
 
     >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1, if_unstable="warn")
-    >>> cubicflux.run_one_step(2.)
+    >>> cubicflux.run_one_step(2.0)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -95,7 +94,7 @@ class TaylorNonLinearDiffuser(Component):
 
     We'll use a steep slope.
 
-    >>> z += mg.node_x.copy()**2
+    >>> z += mg.node_x.copy() ** 2
     >>> cubicflux = TaylorNonLinearDiffuser(mg, if_unstable="warn", dynamic_dt=False)
 
     Lets try to move the soil with a large timestep. Without dynamic time
@@ -116,9 +115,9 @@ class TaylorNonLinearDiffuser(Component):
 
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> z += mg.node_x.copy()**2
+    >>> z += mg.node_x.copy() ** 2
     >>> cubicflux = TaylorNonLinearDiffuser(mg, if_unstable="warn", dynamic_dt=True)
-    >>> cubicflux.run_one_step(10.)
+    >>> cubicflux.run_one_step(10.0)
     >>> np.any(np.isnan(z))
     False
 
@@ -228,6 +227,7 @@ class TaylorNonLinearDiffuser(Component):
         self._dynamic_dt = dynamic_dt
         self._courant_factor = courant_factor
         self._if_unstable = if_unstable
+        self._shortest_link = np.amin(grid.length_of_link)  # for Courant
 
         # Create fields:
 
@@ -276,7 +276,7 @@ class TaylorNonLinearDiffuser(Component):
             # Calculate De Max
             De_max = self._K * (courant_slope_term)
             # Calculate longest stable timestep
-            self._dt_max = self._courant_factor * (self._grid.dx**2) / De_max
+            self._dt_max = self._courant_factor * (self._shortest_link**2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.

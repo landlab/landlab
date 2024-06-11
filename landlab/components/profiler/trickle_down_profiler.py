@@ -96,11 +96,12 @@ class TrickleDownProfiler(_BaseProfiler):
 
     .. code-block:: python
 
-        {48: {
-            (3, 48) : {
-                "ids": [3, 13, 23, 24, 25, 26, 36, 46, 47, 48],
-                "distances": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                "color": (1, 0, 1, 1),
+        {
+            48: {
+                (3, 48): {
+                    "ids": [3, 13, 23, 24, 25, 26, 36, 46, 47, 48],
+                    "distances": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    "color": (1, 0, 1, 1),
                 }
             }
         }
@@ -135,19 +136,21 @@ class TrickleDownProfiler(_BaseProfiler):
 
     .. code-block:: python
 
-        {54: {
-            (40, 54) : {
-                "ids": [40, 41, 42, 43, 44, 54],
-                "distances": [0, 1, 3, 4, 5, 6],
-                "color": [ 0.27,  0.  ,  0.33,  1.  ],
+        {
+            54: {
+                (40, 54): {
+                    "ids": [40, 41, 42, 43, 44, 54],
+                    "distances": [0, 1, 3, 4, 5, 6],
+                    "color": [0.27, 0.0, 0.33, 1.0],
                 },
-            }
-        66: {
-            (8, 66) : {
-                "ids": [8, 18, 17, 16, 26, 36, 46, 56, 66],
-                "distances": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-                "color": [ 0.13,  0.57,  0.55,  1.  ],
+            },
+            66: {
+                (8, 66): {
+                    "ids": [8, 18, 17, 16, 26, 36, 46, 56, 66],
+                    "distances": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                    "color": [0.13, 0.57, 0.55, 1.0],
                 },
+            },
         }
 
     Examples
@@ -165,19 +168,24 @@ class TrickleDownProfiler(_BaseProfiler):
     elevation is only provided along the profiles. The third line of code below
     sets all nodes with a value of zero to closed, such that these nodes are
     igored.
-    >>> z = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0,
-    ...                0,  0,  0,  0,  0,  0,  4,  3,  2,  0,
-    ...                0,  0,  0,  8,  7,  6,  5,  0,  0,  0,
-    ...                0,  0,  0,  0,  0,  0,  6,  0,  0,  0,
-    ...                1,  3,  4,  5,  6,  0,  7,  0,  0,  0,
-    ...                0,  4,  0,  0,  7,  0,  8,  0,  0,  0,
-    ...                0,  5,  6,  0,  0,  0,  9,  0,  0,  0,
-    ...                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,], dtype=float)
+    >>> z = np.array(
+    ...     [
+    ...         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    ...         [0, 0, 0, 0, 0, 0, 4, 3, 2, 0],
+    ...         [0, 0, 0, 8, 7, 6, 5, 0, 0, 0],
+    ...         [0, 0, 0, 0, 0, 0, 6, 0, 0, 0],
+    ...         [1, 3, 4, 5, 6, 0, 7, 0, 0, 0],
+    ...         [0, 4, 0, 0, 7, 0, 8, 0, 0, 0],
+    ...         [0, 5, 6, 0, 0, 0, 9, 0, 0, 0],
+    ...         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ...     ],
+    ...     dtype=float,
+    ... )
 
     >>> mg = RasterModelGrid((8, 10))
     >>> z = mg.add_field("topographic__elevation", z, at="node")
     >>> mg.set_nodata_nodes_to_closed(z, 0)
-    >>> fa = FlowAccumulator(mg, flow_director='D4')
+    >>> fa = FlowAccumulator(mg, flow_director="D4")
     >>> fa.run_one_step()
     >>> fa.node_drainage_area.reshape(mg.shape)
     array([[  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  11.,   0.],
@@ -189,9 +197,7 @@ class TrickleDownProfiler(_BaseProfiler):
            [  0.,   2.,   1.,   0.,   0.,   0.,   1.,   0.,   0.,   0.],
            [  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.]])
 
-    >>> profiler = TrickleDownProfiler(
-    ...     mg,
-    ...     starting_nodes=[54, 66])
+    >>> profiler = TrickleDownProfiler(mg, starting_nodes=[54, 66])
     >>> profiler.run_one_step()
 
     The keys of the property ``data_structure`` are the IDs of the two outlet
@@ -212,9 +218,9 @@ class TrickleDownProfiler(_BaseProfiler):
     >>> profiler.data_structure[54][(40, 54)]["ids"]
     array([40, 41, 42, 43, 44, 54])
     >>> profiler.data_structure[54][(40, 54)]["distances"]
-    array([ 0.,  1.,  2.,  3.,  4.,  5.])
+    array([0., 1., 2., 3., 4., 5.])
     >>> np.round(profiler.data_structure[54][(40, 54)]["color"], decimals=2)
-    array([ 0.27,  0.  ,  0.33,  1.  ])
+    array([0.27, 0.  , 0.33, 1.  ])
 
     The rest of the ``profile_structure`` encodes information about the second
     profile which starts at node 66.
@@ -225,9 +231,9 @@ class TrickleDownProfiler(_BaseProfiler):
     >>> profiler.data_structure[66][(8, 66)]["ids"]
     array([ 8, 18, 17, 16, 26, 36, 46, 56, 66])
     >>> profiler.data_structure[66][(8, 66)]["distances"]
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.])
+    array([0., 1., 2., 3., 4., 5., 6., 7., 8.])
     >>> np.round(profiler.data_structure[66][(8, 66)]["color"], decimals=2)
-    array([ 0.13,  0.57,  0.55,  1.  ])
+    array([0.13, 0.57, 0.55, 1.  ])
 
 
     References
@@ -282,7 +288,7 @@ class TrickleDownProfiler(_BaseProfiler):
         """
         super().__init__(grid)
 
-        self._cmap = plt.get_cmap(cmap)
+        self._cmap = plt.colormaps[cmap]
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
         self._starting_nodes = starting_nodes

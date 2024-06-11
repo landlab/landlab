@@ -10,7 +10,6 @@ from landlab import Component
 
 
 class PerronNLDiffuse(Component):
-
     """Nonlinear diffusion, following Perron (2011).
 
     This module uses Taylor Perron's implicit (2011) method to solve the
@@ -35,20 +34,22 @@ class PerronNLDiffuse(Component):
     >>> import numpy as np
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros("topographic__elevation", at="node")
-    >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.)
-    >>> dt = 100.
+    >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.0)
+    >>> dt = 100.0
     >>> nt = 20
     >>> uplift_rate = 0.001
     >>> for i in range(nt):
-    ...     z[mg.core_nodes] += uplift_rate*dt
+    ...     z[mg.core_nodes] += uplift_rate * dt
     ...     nl.run_one_step(dt)
-    >>> z_target = np.array(
-    ...     [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-    ...       0.        ,  0.00778637,  0.0075553 ,  0.00778637,  0.        ,
-    ...       0.        ,  0.0075553 ,  0.0078053 ,  0.0075553 ,  0.        ,
-    ...       0.        ,  0.00778637,  0.0075553 ,  0.00778637,  0.        ,
-    ...       0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
-    >>> np.allclose(z, z_target)
+    ...
+    >>> z_target = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.00778637, 0.0075553, 0.00778637, 0.0],
+    ...     [0.0, 0.0075553, 0.0078053, 0.0075553, 0.0],
+    ...     [0.0, 0.00778637, 0.0075553, 0.00778637, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> np.allclose(z.reshape(mg.shape), z_target)
     True
 
     References
@@ -776,13 +777,13 @@ class PerronNLDiffuse(Component):
             bottom_op_mat_row_add[: (bottom_interior_IDs.size * 3)] = np.repeat(
                 bottom_interior_IDs, 3
             )
-            bottom_op_mat_col_add[
-                : (bottom_interior_IDs.size * 3)
-            ] = self._realIDtointerior(
-                self._operating_matrix_ID_map[self._bottom_interior_IDs, :][
-                    :, self._bottom_mask[0:3]
-                ]
-            ).flatten()
+            bottom_op_mat_col_add[: (bottom_interior_IDs.size * 3)] = (
+                self._realIDtointerior(
+                    self._operating_matrix_ID_map[self._bottom_interior_IDs, :][
+                        :, self._bottom_mask[0:3]
+                    ]
+                ).flatten()
+            )
             bottom_op_mat_data_add[: (bottom_interior_IDs.size * 3)] = (
                 _delta_t
                 * (nine_node_map[_bottom_list, :][:, bottom_antimask]).flatten()
@@ -856,13 +857,13 @@ class PerronNLDiffuse(Component):
                 bottom_interior_IDs, 3
             )
             # ^...put the values in the same places in the operating matrix...
-            bottom_op_mat_col_add[
-                : (bottom_interior_IDs.size * 3)
-            ] = self._realIDtointerior(
-                self._operating_matrix_ID_map[self._top_interior_IDs, :][
-                    :, self._top_mask[3:6]
-                ]
-            ).flatten()
+            bottom_op_mat_col_add[: (bottom_interior_IDs.size * 3)] = (
+                self._realIDtointerior(
+                    self._operating_matrix_ID_map[self._top_interior_IDs, :][
+                        :, self._top_mask[3:6]
+                    ]
+                ).flatten()
+            )
             bottom_op_mat_data_add[: (bottom_interior_IDs.size * 3)] = (
                 _delta_t
                 * (nine_node_map[_bottom_list, :][:, bottom_antimask]).flatten()
@@ -1096,13 +1097,13 @@ class PerronNLDiffuse(Component):
             left_op_mat_row_add[: (left_interior_IDs.size * 3)] = np.repeat(
                 left_interior_IDs, 3
             )
-            left_op_mat_col_add[
-                : (left_interior_IDs.size * 3)
-            ] = self._realIDtointerior(
-                self._operating_matrix_ID_map[self._left_interior_IDs, :][
-                    :, self._left_mask[::2]
-                ]
-            ).flatten()
+            left_op_mat_col_add[: (left_interior_IDs.size * 3)] = (
+                self._realIDtointerior(
+                    self._operating_matrix_ID_map[self._left_interior_IDs, :][
+                        :, self._left_mask[::2]
+                    ]
+                ).flatten()
+            )
             left_op_mat_data_add[: (left_interior_IDs.size * 3)] = (
                 _delta_t * (nine_node_map[_left_list, :][:, left_antimask]).flatten()
             )
@@ -1155,13 +1156,13 @@ class PerronNLDiffuse(Component):
             left_op_mat_row_add[: (left_interior_IDs.size * 3)] = np.repeat(
                 left_interior_IDs, 3
             )
-            left_op_mat_col_add[
-                : (left_interior_IDs.size * 3)
-            ] = self._realIDtointerior(
-                self._operating_matrix_ID_map[self._right_interior_IDs, :][
-                    :, self._right_mask[1::2]
-                ]
-            ).flatten()
+            left_op_mat_col_add[: (left_interior_IDs.size * 3)] = (
+                self._realIDtointerior(
+                    self._operating_matrix_ID_map[self._right_interior_IDs, :][
+                        :, self._right_mask[1::2]
+                    ]
+                ).flatten()
+            )
             left_op_mat_data_add[: (left_interior_IDs.size * 3)] = (
                 _delta_t * (nine_node_map[_left_list, :][:, left_antimask]).flatten()
             )
@@ -1171,13 +1172,13 @@ class PerronNLDiffuse(Component):
             right_op_mat_row_add[: (right_interior_IDs.size * 3)] = np.repeat(
                 right_interior_IDs, 3
             )
-            right_op_mat_col_add[
-                : (right_interior_IDs.size * 3)
-            ] = self._realIDtointerior(
-                self._operating_matrix_ID_map[self._left_interior_IDs, :][
-                    :, self._left_mask[::2]
-                ]
-            ).flatten()
+            right_op_mat_col_add[: (right_interior_IDs.size * 3)] = (
+                self._realIDtointerior(
+                    self._operating_matrix_ID_map[self._left_interior_IDs, :][
+                        :, self._left_mask[::2]
+                    ]
+                ).flatten()
+            )
             right_op_mat_data_add[: (right_interior_IDs.size * 3)] = (
                 _delta_t * (nine_node_map[_right_list, :][:, right_antimask]).flatten()
             )
@@ -1262,13 +1263,13 @@ class PerronNLDiffuse(Component):
             right_op_mat_row_add[: (right_interior_IDs.size * 3)] = np.repeat(
                 right_interior_IDs, 3
             )
-            right_op_mat_col_add[
-                : (right_interior_IDs.size * 3)
-            ] = self._realIDtointerior(
-                self._operating_matrix_ID_map[self._right_interior_IDs, :][
-                    :, self._right_mask[1::2]
-                ]
-            ).flatten()
+            right_op_mat_col_add[: (right_interior_IDs.size * 3)] = (
+                self._realIDtointerior(
+                    self._operating_matrix_ID_map[self._right_interior_IDs, :][
+                        :, self._right_mask[1::2]
+                    ]
+                ).flatten()
+            )
             right_op_mat_data_add[: (right_interior_IDs.size * 3)] = (
                 _delta_t * (nine_node_map[_right_list, :][:, right_antimask]).flatten()
             )

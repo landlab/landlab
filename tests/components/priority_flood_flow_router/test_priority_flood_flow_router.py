@@ -2,17 +2,19 @@
 
 @author: benjaminCampforts
 """
+
 import numpy as np
 import pytest
 from numpy import testing
+from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_array_equal
 
-from landlab import FieldError, HexModelGrid, RasterModelGrid
+from landlab import FieldError
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.components import PriorityFloodFlowRouter
-from landlab.components.priority_flood_flow_router.cfuncs import (
-    _D8_FlowAcc,
-    _D8_flowDir,
-)
+from landlab.components.priority_flood_flow_router.cfuncs import _D8_FlowAcc
+from landlab.components.priority_flood_flow_router.cfuncs import _D8_flowDir
 from landlab.grid.nodestatus import NodeStatus
 
 try:
@@ -25,35 +27,49 @@ def test_check_fields():
     """Check to make sure the right fields have been created."""
     # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    z = mg.add_field(
-        "topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node"
-    )
+    z = mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
 
     PriorityFloodFlowRouter(mg)
     assert_array_equal(z, mg.at_node["topographic__elevation"])
-    assert_array_equal(np.zeros(100), mg.at_node["drainage_area"])
-    assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
+    assert_array_equal(mg.at_node["drainage_area"], 0.0)
+    assert_array_equal(mg.at_node["water__unit_flux_in"], 1.0)
 
     PriorityFloodFlowRouter(mg, runoff_rate=2.0)
-    assert_array_equal(np.full(100, 2.0), mg.at_node["water__unit_flux_in"])
+    assert_array_equal(mg.at_node["water__unit_flux_in"], 2.0)
 
 
-# %%
 def input_values():
-    # %%
     """
     PriorityFloodFlowRouter should throw an error when wrong input values are provided
     """
 
     # %% Default configuration
-    mg1 = RasterModelGrid((5, 5), xy_spacing=(1, 1))
-    mg1.add_field("topographic__elevation", mg1.node_x + mg1.node_y, at="node")
+    grid = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    grid.add_field("topographic__elevation", grid.node_x + grid.node_y, at="node")
 
     with pytest.raises(ValueError):
-        _ = PriorityFloodFlowRouter(mg1, suppress_out=True, flow_metric="Oops")
+        PriorityFloodFlowRouter(grid, suppress_out=True, flow_metric="Oops")
 
     with pytest.raises(ValueError):
-        _ = PriorityFloodFlowRouter(mg1, suppress_out=True, depression_handler="Oops")
+        PriorityFloodFlowRouter(grid, suppress_out=True, depression_handler="Oops")
+
+    assert "water__unit_flux_in" not in grid.at_node
+    PriorityFloodFlowRouter(grid)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 1.0)
+
+    grid.at_node.pop("water__unit_flux_in")
+    assert "water__unit_flux_in" not in grid.at_node
+    PriorityFloodFlowRouter(grid, runoff_rate=999)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 999)
+
+    grid.at_node["water__unit_flux_in"].fill(10.0)
+    assert "water__unit_flux_in" in grid.at_node
+    PriorityFloodFlowRouter(grid)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 10.0)
+
+    assert "water__unit_flux_in" in grid.at_node
+    PriorityFloodFlowRouter(grid, runoff_rate=5.0)
+    assert_array_almost_equal(grid.at_node["water__unit_flux_in"], 5.0)
 
 
 # %%
@@ -865,3 +881,34 @@ def test_cython_functions():
         err_msg="Error with D8_FlowAcc calculations",
         verbose=True,
     )
+
+
+# %% test flooded nodes
+def test_flooded_nodes():
+    mg = RasterModelGrid((6, 6), xy_spacing=(1, 1))
+    z = mg.add_ones("topographic__elevation", at="node")
+    z[mg.boundary_nodes] = 0
+    z[14:16] = 0.5
+    z[20:22] = 0.75
+    pf = PriorityFloodFlowRouter(mg)
+    pf.run_one_step()
+    # FLOODED nodes have code 3
+    testing.assert_array_equal(12, np.sum(mg.at_node["flood_status_code"]))
+
+
+# %% test boundary conditions
+def test_boundary_conditions():
+    mg = RasterModelGrid((10, 10), 1)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.at_node["topographic__elevation"][mg.core_nodes] = np.random.rand(
+        len(mg.core_nodes)
+    )
+    # set boundary conditions - right, top, left, bottom
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    # All of the interior nodes flow to outlet node number 5
+    mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
+    flow = PriorityFloodFlowRouter(mg, flow_metric="D8", update_flow_depressions=True)
+    flow.run_one_step()
+    # on a 10 by 10 grid, there are 8 by 8 (64) cells draining to the outlet node (5)
+    # if boundary conditions are properly set
+    testing.assert_array_equal(64, mg.at_node["drainage_area"][5])

@@ -18,7 +18,6 @@ from landlab.components.flow_director.flow_director_to_one import _FlowDirectorT
 
 
 class FlowDirectorD8(_FlowDirectorToOne):
-
     """Single-path (steepest direction) flow direction with diagonals on
     rasters.
 
@@ -50,32 +49,34 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorD8
-    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> mg = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
     ...     at="node",
     ... )
-    >>> fd = FlowDirectorD8(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorD8(mg, "topographic__elevation")
     >>> fd.surface_values
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    array([0., 1., 2., 1., 2., 3., 2., 3., 4.])
     >>> fd.run_one_step()
-    >>> mg.at_node['flow__receiver_node']
+    >>> mg.at_node["flow__receiver_node"]
     array([0, 1, 2, 3, 0, 5, 6, 7, 8])
-    >>> mg.at_node['topographic__steepest_slope']
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  1.41421356,
-            0.        ,  0.        ,  0.        ,  0.        ])
-    >>> mg.at_node['flow__link_to_receiver_node']
+    >>> mg.at_node["topographic__steepest_slope"]
+    array([0.        , 0.        , 0.        , 0.        , 1.41421356,
+           0.        , 0.        , 0.        , 0.        ])
+    >>> mg.at_node["flow__link_to_receiver_node"]
     array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag'].astype(int)
+    >>> mg.at_node["flow__sink_flag"].astype(int)
     array([1, 1, 1, 1, 0, 1, 1, 1, 1])
     >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
-    ...                                    0., 21., 10., 0.,
-    ...                                    0., 31., 20., 0.,
-    ...                                    0., 32., 30., 0.,
-    ...                                    0.,  0.,  0., 0.])
+    >>> topographic__elevation = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 21.0, 10.0, 0.0],
+    ...     [0.0, 31.0, 20.0, 0.0],
+    ...     [0.0, 32.0, 30.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> _ = mg_2.add_field(
     ...     "topographic__elevation",
     ...     topographic__elevation,
@@ -84,12 +85,12 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorD8(mg_2)
     >>> fd_2.run_one_step()
-    >>> mg_2.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
-    array([  0,  1,  2,  3,
-             4,  1,  2,  7,
-             8,  6,  6, 11,
-            12, 10, 10, 15,
-            16, 17, 18, 19])
+    >>> mg_2.at_node["flow__receiver_node"].reshape(mg_2.shape)
+    array([[ 0,  1,  2,  3],
+           [ 4,  1,  2,  7],
+           [ 8,  6,  6, 11],
+           [12, 10, 10, 15],
+           [16, 17, 18, 19]])
 
     The flow directors also have the ability to return the flow receiver nodes
 

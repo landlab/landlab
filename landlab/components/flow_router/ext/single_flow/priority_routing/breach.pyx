@@ -1,15 +1,17 @@
-#distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
-#distutils: extra_compile_args = -std=c++11
-#distutils: extra_link_args = -std=c++11
+# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
+# distutils: extra_compile_args = -std=c++11
+# distutils: extra_link_args = -std=c++11
 """ Contains the cython functions for the component method
 Flow_router.run_directions(). Flow directions and depression handling are done
 adapting Barnes et al., 2014 algorithm #4."""
 
 import numpy as np
-cimport numpy as cnp
+
 cimport cython
+cimport numpy as cnp
 from libcpp cimport bool
 from libcpp.pair cimport pair
+
 
 # 1-3. Instantiate the Queues (Steps noted #1-3, #5-6 in Barnes, 2014's algorithm #4
 ####################################################################################
@@ -22,15 +24,22 @@ cdef extern from "_priority_queue.hpp" nogil:
         bool empty()
         cnp.int_t size()
 
+
 cdef bool _compare_second(pair[int, double] a, pair[int, double] b) nogil:
     return a.second > b.second
 
 
-@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.boundscheck(False)  # turn off bounds-checking for entire function
 cdef void _init_flow_direction_queues(
-    const cnp.int_t [:] base_level_nodes, const cnp.int_t [:] closed_nodes,
-    cnp.float_t [:] z, _priority_queue& to_do, cnp.int_t [:] receivers,
-    cnp.int_t [:] outlet_nodes, cnp.int_t [:] done, cnp.int_t* done_n_ptr) nogil:
+    const cnp.int_t [:] base_level_nodes,
+    const cnp.int_t [:] closed_nodes,
+    cnp.float_t [:] z,
+    _priority_queue& to_do,
+    cnp.int_t [:] receivers,
+    cnp.int_t [:] outlet_nodes,
+    cnp.int_t [:] done,
+    cnp.int_t* done_n_ptr,
+) nogil:
     """
     Add the base-level nodes to the queue and update receivers for base-level and
     closed nodes. Updates to_do, receivers, outlet_nodes, done and the value pointed
@@ -73,13 +82,15 @@ cdef void _init_flow_direction_queues(
         to_do.push(node_pair)
         receivers[node_id] = node_id
         outlet_nodes[node_id] = node_id
-        done[node_id] = 1; done_n_ptr[0] +=1
+        done[node_id] = 1
+        done_n_ptr[0] += 1
 
     for i in range(m):
         node_id = closed_nodes[i]
         receivers[node_id] = node_id
         outlet_nodes[node_id] = node_id
-        done[node_id] = 1; done_n_ptr[0] +=1
+        done[node_id] = 1
+        done_n_ptr[0] += 1
         # NB: done_n_ptr[0]: method to dereference the pointer. The
         # cython.operator.dereference doesn't seem to work on this pointer to a
         # long-type variable.
@@ -87,13 +98,21 @@ cdef void _init_flow_direction_queues(
 # 4. Functions necessary for the flow direction processing (Steps #11 - 20)
 ###########################################################################
 
+
 @cython.boundscheck(False)
-cdef void _set_flooded_and_outlet(cnp.int_t donor_id, cnp.float_t [:] z,
-    cnp.int_t [:] receivers, cnp.int_t [:] outlet_nodes,
-    cnp.int_t [:] depression_outlet_nodes, cnp.int_t [:] flooded_nodes,
-    cnp.float_t [:] depression_depths, cnp.float_t [:] depression_free_elevations,
-    cnp.int_t flooded_status, cnp.int_t bad_index,
-    cnp.float_t min_elevation_relative_diff) nogil:
+cdef void _set_flooded_and_outlet(
+    cnp.int_t donor_id,
+    cnp.float_t [:] z,
+    cnp.int_t [:] receivers,
+    cnp.int_t [:] outlet_nodes,
+    cnp.int_t [:] depression_outlet_nodes,
+    cnp.int_t [:] flooded_nodes,
+    cnp.float_t [:] depression_depths,
+    cnp.float_t [:] depression_free_elevations,
+    cnp.int_t flooded_status,
+    cnp.int_t bad_index,
+    cnp.float_t min_elevation_relative_diff,
+) nogil:
     """ Updates the base-level outlet nodes (outlet_nodes), the depression outlet
     nodes (depression_outlet_nodes), the flooded status (flooded_nodes), and the
     depths of the depressions (depression_depths) for the node donor_id depending
@@ -149,9 +168,15 @@ cdef void _set_flooded_and_outlet(cnp.int_t donor_id, cnp.float_t [:] z,
             (1 + min_elevation_relative_diff) * depression_free_elevations[receiver_id]
         )
 
+
 @cython.boundscheck(False)
-cdef void _set_receiver(cnp.int_t donor_id, cnp.int_t receiver_id,
-    cnp.int_t [:] receivers, cnp.int_t [:] done, cnp.int_t* done_n_ptr) nogil:
+cdef void _set_receiver(
+    cnp.int_t donor_id,
+    cnp.int_t receiver_id,
+    cnp.int_t [:] receivers,
+    cnp.int_t [:] done,
+    cnp.int_t* done_n_ptr,
+) nogil:
     """ Updates the receiver (receivers) and the process statuses (done) of the donor
     node donor_id.
 
@@ -166,18 +191,23 @@ cdef void _set_receiver(cnp.int_t donor_id, cnp.int_t receiver_id,
     done: memoryview(bool)
         Process statuses for all nodes. 1 for done. 0 otherwise.
     """
-    cdef cnp.int_t done_n
-
     receivers[donor_id] = receiver_id
-    done[donor_id] = 1 # 1 For True
+    done[donor_id] = 1  # 1 For True
     done_n_ptr[0] += 1
 
+
 @cython.boundscheck(False)
-cdef void _set_donor_properties(cnp.int_t donor_id, cnp.int_t receiver_id,
-    cnp.int_t [:] sorted_pseudo_tails, const cnp.int_t [:,:] head_start_end_indexes,
+cdef void _set_donor_properties(
+    cnp.int_t donor_id,
+    cnp.int_t receiver_id,
+    cnp.int_t [:] sorted_pseudo_tails,
+    const cnp.int_t [:, :] head_start_end_indexes,
     const cnp.int_t [:] sorted_dupli_links,
-    cnp.float_t [:] sorted_dupli_gradients, cnp.float_t [:] z,
-    cnp.float_t [:] steepest_slopes, cnp.int_t [:] links_to_receivers) nogil:
+    cnp.float_t [:] sorted_dupli_gradients,
+    cnp.float_t [:] z,
+    cnp.float_t [:] steepest_slopes,
+    cnp.int_t [:] links_to_receivers,
+) nogil:
     """ Updates the steepest_slopes and the links_to_receivers of a donor in function
     of the slopes with its neighbors and the head-tail links of the grid. Steepest
     slope is set to 0. if the donor is in a depression.
@@ -215,7 +245,6 @@ cdef void _set_donor_properties(cnp.int_t donor_id, cnp.int_t receiver_id,
         cnp.int_t idx1 = head_start_end_indexes[0, donor_id]
         cnp.int_t idx2 = head_start_end_indexes[1, donor_id] + 1
 
-
         cnp.int_t [:] s = sorted_pseudo_tails[idx1:idx2]
         cnp.int_t n = len(s), c = -1, i
 
@@ -232,22 +261,33 @@ cdef void _set_donor_properties(cnp.int_t donor_id, cnp.int_t receiver_id,
     )
     links_to_receivers[donor_id] = sorted_dupli_links[c]
 
-#######################################################################################
-
+# ######################################################################################
 # Main functions to direct flow
-###############################
+
 
 @cython.boundscheck(False)
-cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
-    const cnp.int_t[:] closed_nodes, cnp.int_t[:] sorted_pseudo_tails,
-    cnp.float_t[:] sorted_dupli_gradients, const cnp.int_t[:] sorted_dupli_links,
-    const cnp.int_t[:, :] head_start_end_indexes, cnp.int_t [:] outlet_nodes,
-    cnp.int_t [:] depression_outlet_nodes, cnp.int_t[:] flooded_nodes,
-    cnp.float_t[:] depression_depths, cnp.float_t[:] depression_free_elevations,
-    cnp.int_t[:] links_to_receivers, cnp.int_t[:] receivers,
-    cnp.float_t[:] steepest_slopes, cnp.float_t[:] z, cnp.int_t flooded_status,
-    cnp.int_t bad_index, cnp.int_t neighbors_max_number,
-    cnp.float_t min_elevation_relative_diff):
+cdef void _direct_flow_c(
+    cnp.int_t nodes_n,
+    const cnp.int_t[:] base_level_nodes,
+    const cnp.int_t[:] closed_nodes,
+    cnp.int_t[:] sorted_pseudo_tails,
+    cnp.float_t[:] sorted_dupli_gradients,
+    const cnp.int_t[:] sorted_dupli_links,
+    const cnp.int_t[:, :] head_start_end_indexes,
+    cnp.int_t [:] outlet_nodes,
+    cnp.int_t [:] depression_outlet_nodes,
+    cnp.int_t[:] flooded_nodes,
+    cnp.float_t[:] depression_depths,
+    cnp.float_t[:] depression_free_elevations,
+    cnp.int_t[:] links_to_receivers,
+    cnp.int_t[:] receivers,
+    cnp.float_t[:] steepest_slopes,
+    cnp.float_t[:] z,
+    cnp.int_t flooded_status,
+    cnp.int_t bad_index,
+    cnp.int_t neighbors_max_number,
+    cnp.float_t min_elevation_relative_diff,
+):
     """
     Main function implementing the flow directing through breaching depressions.
     Updates outlet_nodes, depression_outlet_nodes, flooded_nodes, links_to_receivers,
@@ -308,28 +348,33 @@ cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
     """
     cdef:
         cnp.int_t [:] done
-        cnp.int_t [:] tmp_neighbors
-        cnp.int_t [:] neighbors_to_do
+        # cnp.int_t [:] tmp_neighbors
+        # cnp.int_t [:] neighbors_to_do
         _priority_queue to_do = _priority_queue(_compare_second)
-        cnp.int_t receiver_id, donor_id, n, i, j, done_n
-        cnp.int_t [:] neighbors
+        cnp.int_t receiver_id, donor_id, i, j, done_n
+        # cnp.int_t [:] neighbors
         pair[cnp.int_t, cnp.float_t] node_pair
 
     done = np.full(nodes_n, 0, dtype=int)
-    tmp_neighbors = np.full(neighbors_max_number, 0, dtype=int)
-    neighbors_to_do = np.array([], dtype=int)
-    done_n = 0 # done_n is input only for MULTITHREADING, a future evolution, and
-               # is not checked in this function.
+    # tmp_neighbors = np.full(neighbors_max_number, 0, dtype=int)
+    # neighbors_to_do = np.array([], dtype=int)
 
-    _init_flow_direction_queues(base_level_nodes, closed_nodes, z, to_do,
-        receivers, outlet_nodes, done, &done_n)
+    # done_n is input only for MULTITHREADING, a future evolution, and
+    # is not checked in this function.
+    done_n = 0
+
+    _init_flow_direction_queues(
+        base_level_nodes, closed_nodes, z, to_do, receivers, outlet_nodes, done, &done_n
+    )
 
     for j in range(nodes_n):
         # a while loop is possible here, but prefer for loop, with future
         # multithreading evolution.
-        if to_do.empty() == True:
+        if to_do.empty():
             break
-        receiver_id = to_do.top().first; to_do.pop(); done[0] = 1
+        receiver_id = to_do.top().first
+        to_do.pop()
+        done[0] = 1
 
         # Get the neighbors to handle.
         idx1 = head_start_end_indexes[0, receiver_id]
@@ -337,29 +382,60 @@ cdef void _direct_flow_c(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
 
         # Handle each neighbor.
         for i in range(idx1, idx2):
-            donor_id = sorted_pseudo_tails[i];
-            if done[donor_id] == 1: continue # 0 for False.
+            donor_id = sorted_pseudo_tails[i]
+            if done[donor_id] == 1:
+                continue  # 0 for False.
             _set_receiver(donor_id, receiver_id, receivers, done, &done_n)
-            _set_flooded_and_outlet(donor_id, z, receivers, outlet_nodes,
-                depression_outlet_nodes, flooded_nodes, depression_depths,
-                depression_free_elevations, flooded_status, bad_index,
-                min_elevation_relative_diff)
-            _set_donor_properties(donor_id, receiver_id, sorted_pseudo_tails,
-                head_start_end_indexes, sorted_dupli_links, sorted_dupli_gradients,
-                z, steepest_slopes, links_to_receivers)
+            _set_flooded_and_outlet(
+                donor_id,
+                z,
+                receivers,
+                outlet_nodes,
+                depression_outlet_nodes,
+                flooded_nodes,
+                depression_depths,
+                depression_free_elevations,
+                flooded_status,
+                bad_index,
+                min_elevation_relative_diff,
+            )
+            _set_donor_properties(
+                donor_id,
+                receiver_id,
+                sorted_pseudo_tails,
+                head_start_end_indexes,
+                sorted_dupli_links,
+                sorted_dupli_gradients,
+                z,
+                steepest_slopes,
+                links_to_receivers,
+            )
             node_pair = pair[cnp.int_t, cnp.float_t](donor_id, z[donor_id])
             to_do.push(node_pair)
 
-def _direct_flow(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
-    const cnp.int_t[:] closed_nodes, cnp.int_t[:] sorted_pseudo_tails,
-    cnp.float_t[:] sorted_dupli_gradients, const cnp.int_t[:] sorted_dupli_links,
-    const cnp.int_t[:, :] head_start_end_indexes, cnp.int_t [:] outlet_nodes,
-    cnp.int_t [:] depression_outlet_nodes, cnp.int_t[:] flooded_nodes,
-    cnp.float_t[:] depression_depths, cnp.float_t[:] depression_free_elevations,
-    cnp.int_t[:] links_to_receivers, cnp.int_t[:] receivers,
-    cnp.float_t[:] steepest_slopes, cnp.float_t[:] z, cnp.int_t flooded_status,
-    cnp.int_t bad_index, cnp.int_t neighbors_max_number,
-    cnp.float_t min_elevation_relative_diff):
+
+def _direct_flow(
+    cnp.int_t nodes_n,
+    const cnp.int_t[:] base_level_nodes,
+    const cnp.int_t[:] closed_nodes,
+    cnp.int_t[:] sorted_pseudo_tails,
+    cnp.float_t[:] sorted_dupli_gradients,
+    const cnp.int_t[:] sorted_dupli_links,
+    const cnp.int_t[:, :] head_start_end_indexes,
+    cnp.int_t [:] outlet_nodes,
+    cnp.int_t [:] depression_outlet_nodes,
+    cnp.int_t[:] flooded_nodes,
+    cnp.float_t[:] depression_depths,
+    cnp.float_t[:] depression_free_elevations,
+    cnp.int_t[:] links_to_receivers,
+    cnp.int_t[:] receivers,
+    cnp.float_t[:] steepest_slopes,
+    cnp.float_t[:] z,
+    cnp.int_t flooded_status,
+    cnp.int_t bad_index,
+    cnp.int_t neighbors_max_number,
+    cnp.float_t min_elevation_relative_diff,
+):
     """
     Main function calling the function that implements flow directing through
     breaching depressions. Updates outlet_nodes, depression_outlet_nodes,
@@ -418,11 +494,25 @@ def _direct_flow(cnp.int_t nodes_n, const cnp.int_t[:] base_level_nodes,
         Minimum relative difference in elevation for the depression_free_elevations
         surface.
     """
-    _direct_flow_c(nodes_n, base_level_nodes, closed_nodes,
-                    sorted_pseudo_tails, sorted_dupli_gradients,
-                    sorted_dupli_links, head_start_end_indexes,
-                    outlet_nodes, depression_outlet_nodes,
-                    flooded_nodes, depression_depths, depression_free_elevations,
-                    links_to_receivers, receivers, steepest_slopes, z,
-                    flooded_status, bad_index, neighbors_max_number,
-                    min_elevation_relative_diff)
+    _direct_flow_c(
+        nodes_n,
+        base_level_nodes,
+        closed_nodes,
+        sorted_pseudo_tails,
+        sorted_dupli_gradients,
+        sorted_dupli_links,
+        head_start_end_indexes,
+        outlet_nodes,
+        depression_outlet_nodes,
+        flooded_nodes,
+        depression_depths,
+        depression_free_elevations,
+        links_to_receivers,
+        receivers,
+        steepest_slopes,
+        z,
+        flooded_status,
+        bad_index,
+        neighbors_max_number,
+        min_elevation_relative_diff,
+    )

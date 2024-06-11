@@ -17,7 +17,6 @@ from .celllab_cts import CellLabCTSModel
 
 
 class OrientedHexCTS(CellLabCTSModel):
-
     """Oriented hex-grid CellLab-CTS model.
 
     OrientedHexCTS constructor: sets number of orientations to 3 and calls
@@ -49,10 +48,10 @@ class OrientedHexCTS(CellLabCTSModel):
     >>> from landlab.ca.celllab_cts import Transition
 
     >>> mg = HexModelGrid((4, 3), spacing=1.0)
-    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> nsd = {0: "yes", 1: "no"}
     >>> xnlist = []
-    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
-    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "frogging"))
+    >>> nsg = mg.add_zeros("node", "node_state_grid")
     >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     """
 

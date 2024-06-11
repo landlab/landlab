@@ -1,11 +1,9 @@
 import numpy as np
 
 from ..dual import DualGraph
-from .structured_quad import (
-    RectilinearGraph,
-    StructuredQuadGraph,
-    UniformRectilinearGraph,
-)
+from .structured_quad import RectilinearGraph
+from .structured_quad import StructuredQuadGraph
+from .structured_quad import UniformRectilinearGraph
 
 
 class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
@@ -14,19 +12,15 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     Examples
     --------
     >>> from landlab.graph import DualStructuredQuadGraph
-    >>> node_y = [-1, -2, -3,
-    ...            0,  0,  0,
-    ...            1,  2,  3]
-    >>> node_x = [ 0,  1,  2,
-    ...            0,  2,  3,
-    ...            0,  1,  2]
+    >>> node_y = [-1, -2, -3, 0, 0, 0, 1, 2, 3]
+    >>> node_x = [0, 1, 2, 0, 2, 3, 0, 1, 2]
     >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3), sort=True)
     >>> graph.number_of_corners == 4
     True
     >>> graph.y_of_corner
     array([-1.25, -0.75,  0.75,  1.25])
     >>> graph.x_of_corner
-    array([ 2.  ,  0.75,  0.75,  2.  ])
+    array([2.  , 0.75, 0.75, 2.  ])
     >>> graph.node_at_cell
     array([4])
     """
@@ -112,19 +106,18 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
 
 
 class DualRectilinearGraph(DualGraph, RectilinearGraph):
-
     """Create a dual graph for a rectilinear grid.
 
     Examples
     --------
     >>> from landlab.graph import DualRectilinearGraph
     >>> graph = DualRectilinearGraph(([0, 1, 3], [0, 5, 15, 30]))
-    >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.5, 10. , 22.5,
-            2.5, 10. , 22.5])
-    >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5, 0.5, 0.5,
-            2. , 2. , 2. ])
+    >>> graph.x_of_corner.reshape((2, 3))
+    array([[  2.5,  10. ,  22.5],
+           [  2.5,  10. ,  22.5]])
+    >>> graph.y_of_corner.reshape((2, 3))
+    array([[0.5, 0.5, 0.5],
+           [2. , 2. , 2. ]])
     >>> graph.number_of_cells == 2
     True
     >>> graph.faces_at_cell
@@ -157,21 +150,20 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
 
 
 class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
-
     """Create a dual graph for a uniform rectilinear grid.
 
     Examples
     --------
     >>> from landlab.graph import DualUniformRectilinearGraph
     >>> graph = DualUniformRectilinearGraph((4, 3))
-    >>> graph.x_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5, 1.5,
-            0.5, 1.5,
-            0.5, 1.5])
-    >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5, 0.5,
-            1.5, 1.5,
-            2.5, 2.5])
+    >>> graph.x_of_corner.reshape((3, 2))
+    array([[0.5, 1.5],
+           [0.5, 1.5],
+           [0.5, 1.5]])
+    >>> graph.y_of_corner.reshape((3, 2))
+    array([[0.5, 0.5],
+           [1.5, 1.5],
+           [2.5, 2.5]])
     >>> graph.number_of_cells == 2
     True
     >>> graph.faces_at_cell

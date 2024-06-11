@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
+from numpy.testing import assert_allclose
+from numpy.testing import assert_array_equal
+from pytest import approx
 
 from landlab.components.network_sediment_transporter.sediment_pulser_at_links import (
     SedimentPulserAtLinks,
@@ -28,12 +31,10 @@ def test_call_SedimentPulserBase(example_nmg2):
     make_pulse = SedimentPulserBase(grid)
 
     with pytest.raises(NotImplementedError) as exc_info:
-        _ = make_pulse()
-    msg_e = "the base component has no call method"
-    assert exc_info.match(msg_e)
+        make_pulse()
+    assert exc_info.match("the base component has no call method")
 
 
-# @pytest.mark.xfail(reason = "TDD, test class is not yet implemented")
 class Test_SedimentPulserAtLinks:
     def test_normal_1(self, example_nmg2):
         """only time specified, links and number parcels specified,
@@ -41,51 +42,35 @@ class Test_SedimentPulserAtLinks:
         grid = example_nmg2
         time_to_pulse = always_time_to_pulse
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=1947)
 
-        time = 11
+        time = 11.0
         links = [0]
         n_parcels_at_link = [10]
         parcels = make_pulse(
             time=time, links=links, n_parcels_at_link=n_parcels_at_link
         )
 
-        # create expected values and get values from datarecord
-        GEe = np.expand_dims(["link"] * 10, axis=1)
-        GE = parcels.dataset["grid_element"]
-        EIe = np.expand_dims(np.zeros(10).astype(int), axis=1)
-        EI = parcels.dataset["element_id"]
-        SLe = np.zeros(10).astype(int)
-        SL = parcels.dataset["starting_link"]
-        ARe = np.ones(10) * 0
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.ones(10) * 2650
-        ro = parcels.dataset["density"]
-        TAe = np.expand_dims(np.ones(10) * time, axis=1)
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.expand_dims(np.ones(10), axis=1)
-        AL = parcels.dataset["active_layer"]
-        LL = parcels.dataset["location_in_link"]
         D50 = 0.05  # default grain size parameters
         D84_D50 = 2.1
         D_sd = D50 * D84_D50 - D50
-        D = parcels.dataset["D"]
-        Ve = np.expand_dims(np.ones(10) * 0.5, axis=1)
-        V = parcels.dataset["volume"]
 
-        # test
-        assert list(GE.values) == list(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        assert (LL < 0).any() >= 0 and (LL < 0).any() <= 1  # must be between 0 and 1
+        assert np.all(parcels.dataset["grid_element"] == "link")
+        assert np.all(parcels.dataset["element_id"] == 0)
+        assert np.all(parcels.dataset["starting_link"] == 0)
+        assert np.all(parcels.dataset["abrasion_rate"] == 0)
+        assert np.all(parcels.dataset["density"] == approx(2650.0))
+        assert np.all(parcels.dataset["time_arrival_in_link"] == approx(time))
+        assert np.all(parcels.dataset["active_layer"] == approx(1.0))
+        assert np.all(parcels.dataset["volume"] == approx(0.5))
+
+        assert np.all(
+            (parcels.dataset["location_in_link"] >= 0.0)
+            & (parcels.dataset["location_in_link"] <= 1.0)
+        )
         # check mean randomly selected grain size with within 3 standard deviations
         # of specified mean
-        assert D.mean() < (D50 + 3 * D_sd) and D.mean() > (D50 - 3 * D_sd)
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.abs(parcels.dataset["D"].mean() - D50) < 3 * D_sd
 
     def test_normal_2(self, example_nmg2):
         """only D50 specified, all other parcel attributes should
@@ -94,7 +79,7 @@ class Test_SedimentPulserAtLinks:
         grid = example_nmg2
         time_to_pulse = always_time_to_pulse
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=2001)
         time = 11
         links = [2, 6]
         n_parcels_at_link = [2, 3]
@@ -103,22 +88,6 @@ class Test_SedimentPulserAtLinks:
             time=time, links=links, n_parcels_at_link=n_parcels_at_link, D50=D50
         )
 
-        # create expected values and get values from datarecord
-        GEe = np.expand_dims(["link"] * 5, axis=1)
-        GE = parcels.dataset["grid_element"]
-        EIe = np.expand_dims(np.array([2, 2, 6, 6, 6]), axis=1)
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([2, 2, 6, 6, 6])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.ones(5) * 0
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.ones(5) * 2650
-        ro = parcels.dataset["density"]
-        TAe = np.expand_dims(np.ones(5) * time, axis=1)
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.expand_dims(np.ones(5), axis=1)
-        AL = parcels.dataset["active_layer"]
-        LL = parcels.dataset["location_in_link"]
         D50_1 = D50[0]  # grain size
         D84_D50_1 = 2.1
         D_sd_1 = D50_1 * D84_D50_1 - D50_1
@@ -128,26 +97,24 @@ class Test_SedimentPulserAtLinks:
         D_sd_2 = D50_2 * D84_D50_2 - D50_2
 
         D = parcels.dataset["D"]
-        Ve = np.expand_dims(np.ones(5) * 0.5, axis=1)
-        V = parcels.dataset["volume"]
 
-        assert list(GE.values) == list(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        assert (LL < 0).any() >= 0 and (LL < 0).any() <= 1  # must be between 0 and 1
+        assert np.all(parcels.dataset["grid_element"] == "link")
+        assert np.all(parcels.dataset["element_id"] == [[2], [2], [6], [6], [6]])
+        assert np.all(parcels.dataset["starting_link"] == [2, 2, 6, 6, 6])
+        assert np.all(parcels.dataset["abrasion_rate"] == 0)
+        assert np.all(parcels.dataset["density"] == approx(2650.0))
+        assert np.all(parcels.dataset["time_arrival_in_link"] == approx(time))
+        assert np.all(parcels.dataset["active_layer"] == approx(1.0))
+        assert np.all(parcels.dataset["volume"] == approx(0.5))
+
+        assert np.all(
+            (parcels.dataset["location_in_link"] >= 0.0)
+            & (parcels.dataset["location_in_link"] <= 1.0)
+        )
         # check mean randomly selected grain size with within 3 standard deviations
         # of specified mean
-        assert D[0:2].mean() < (D50_1 + 3 * D_sd_1) and D[0:2].mean() > (
-            D50_1 - 3 * D_sd_1
-        )
-        assert D[2:].mean() < (D50_2 + 3 * D_sd_2) and D[2:].mean() > (
-            D50_2 - 3 * D_sd_2
-        )
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.abs(D[0:2].mean() - D50_1) < 3 * D_sd_1
+        assert np.abs(D[2:].mean() - D50_2) < 3 * D_sd_2
 
     def test_normal_3(self, example_nmg2):
         """two pulses. First, only time, links and number of parcels specified,
@@ -158,7 +125,7 @@ class Test_SedimentPulserAtLinks:
         grid = example_nmg2
         time_to_pulse = always_time_to_pulse
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=1776)
 
         time = 11
         links = [0]
@@ -186,18 +153,20 @@ class Test_SedimentPulserAtLinks:
             abrasion_rate=abrasion_rate,
         )
 
-        # create expected values and get values from datarecord
-        GEe = [
-            ["link", np.nan],
-            ["link", np.nan],
-            [np.nan, "link"],
-            [np.nan, "link"],
-            [np.nan, "link"],
-            [np.nan, "link"],
-            [np.nan, "link"],
-        ]
-        GE = parcels.dataset["grid_element"]
-        EIe = np.array(
+        assert_array_equal(
+            parcels.dataset["grid_element"].values.tolist(),
+            [
+                ["link", np.nan],
+                ["link", np.nan],
+                [np.nan, "link"],
+                [np.nan, "link"],
+                [np.nan, "link"],
+                [np.nan, "link"],
+                [np.nan, "link"],
+            ],
+        )
+        assert_allclose(
+            parcels.dataset["element_id"],
             [
                 [0.0, np.nan],
                 [0.0, np.nan],
@@ -206,16 +175,20 @@ class Test_SedimentPulserAtLinks:
                 [np.nan, 6.0],
                 [np.nan, 6.0],
                 [np.nan, 6.0],
-            ]
+            ],
         )
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([0.0, 0.0, 2.0, 2.0, 6.0, 6.0, 6.0])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.array([0.0, 0.0, 0.1, 0.1, 0.3, 0.3, 0.3])
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.array([2650.0, 2650.0, 2650.0, 2650.0, 2500.0, 2500.0, 2500.0])
-        ro = parcels.dataset["density"]
-        TAe = np.array(
+        assert_allclose(
+            parcels.dataset["starting_link"], [0.0, 0.0, 2.0, 2.0, 6.0, 6.0, 6.0]
+        )
+        assert_allclose(
+            parcels.dataset["abrasion_rate"], [0.0, 0.0, 0.1, 0.1, 0.3, 0.3, 0.3]
+        )
+        assert_allclose(
+            parcels.dataset["density"],
+            [2650.0, 2650.0, 2650.0, 2650.0, 2500.0, 2500.0, 2500.0],
+        )
+        assert_allclose(
+            parcels.dataset["time_arrival_in_link"],
             [
                 [11.0, np.nan],
                 [11.0, np.nan],
@@ -224,10 +197,10 @@ class Test_SedimentPulserAtLinks:
                 [np.nan, 12.0],
                 [np.nan, 12.0],
                 [np.nan, 12.0],
-            ]
+            ],
         )
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.array(
+        assert_allclose(
+            parcels.dataset["active_layer"],
             [
                 [1.0, np.nan],
                 [1.0, np.nan],
@@ -236,14 +209,10 @@ class Test_SedimentPulserAtLinks:
                 [np.nan, 1.0],
                 [np.nan, 1.0],
                 [np.nan, 1.0],
-            ]
+            ],
         )
-        AL = parcels.dataset["active_layer"]
-        LL = parcels.dataset["location_in_link"].values
-        LL = LL[~np.isnan(LL)]
-        D = parcels.dataset["D"].values
-        D[~np.isnan(D)]
-        Ve = np.array(
+        assert_allclose(
+            parcels.dataset["volume"],
             [
                 [0.5, np.nan],
                 [0.5, np.nan],
@@ -252,22 +221,17 @@ class Test_SedimentPulserAtLinks:
                 [np.nan, 0.5],
                 [np.nan, 0.5],
                 [np.nan, 0.5],
-            ]
+            ],
         )
-        V = parcels.dataset["volume"]
 
-        # test
-        assert str(GE.values.tolist()) == str(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        assert (LL < 0).any() >= 0 and (LL < 0).any() <= 1  # must be between 0 and 1
-        # grain size must be greater than 0
-        assert (D > 0).any()
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.all(
+            (
+                (parcels.dataset["location_in_link"] >= 0.0)
+                & (parcels.dataset["location_in_link"] <= 1.0)
+            )
+            | np.isnan(parcels.dataset["location_in_link"])
+        )
+        assert np.all((parcels.dataset["D"] > 0.0) | np.isnan(parcels.dataset["D"]))
 
     def test_special_1(self, example_nmg2):
         """user entered time is not a pulse time, calling instance returns
@@ -276,9 +240,8 @@ class Test_SedimentPulserAtLinks:
 
         grid = example_nmg2
         time_to_pulse = time_to_pulse_list
-        # np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse)
+        make_pulse = SedimentPulserAtLinks(grid, time_to_pulse=time_to_pulse, rng=1492)
 
         time = 11
         links = [0]
@@ -297,9 +260,8 @@ class Test_SedimentPulserEachParcel:
         defaults specified at instantiation"""
 
         grid = example_nmg2
-        # np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=1975)
 
         PulseDF = pd.DataFrame(
             {
@@ -311,48 +273,36 @@ class Test_SedimentPulserEachParcel:
         time = 7
         parcels = make_pulse(time, PulseDF)
 
-        # create expected values and get values from datarecord
-        GEe = np.expand_dims(["link"] * 7, axis=1)
-        GE = parcels.dataset["grid_element"]
-        EIe = np.expand_dims(np.array([1, 3, 3, 5, 5, 5, 2]), axis=1)
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([1, 3, 3, 5, 5, 5, 2])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.ones(7) * 0
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.ones(7) * 2650
-        ro = parcels.dataset["density"]
-        TAe = np.expand_dims(np.ones(7) * time, axis=1)
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.expand_dims(np.ones(7), axis=1)
-        AL = parcels.dataset["active_layer"]
-        LLe = np.array([[0.8], [0.7], [0.7], [0.5], [0.5], [0.5], [0.2]])
-        LL = parcels.dataset["location_in_link"]
         D50 = 0.05  # default grain size parameters
         D84_D50 = 2.1
         D_sd = D50 * D84_D50 - D50
         D = parcels.dataset["D"]
-        Ve = np.array([[0.2], [0.5], [0.5], [0.5], [0.5], [0.1], [0.5]])
-        V = parcels.dataset["volume"]
 
-        assert list(GE.values) == list(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        np.testing.assert_allclose(LL, LLe, rtol=1e-4)
-        assert D.mean() < (D50 + 3 * D_sd) and D.mean() > (D50 - 3 * D_sd)
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.all(parcels.dataset["grid_element"] == "link")
+        assert np.all(
+            parcels.dataset["element_id"] == [[1], [3], [3], [5], [5], [5], [2]]
+        )
+        assert np.all(parcels.dataset["starting_link"] == [1, 3, 3, 5, 5, 5, 2])
+        assert np.all(parcels.dataset["abrasion_rate"] == approx(0.0))
+        assert np.all(parcels.dataset["density"] == approx(2650.0))
+        assert np.all(parcels.dataset["time_arrival_in_link"] == approx(time))
+        assert np.all(parcels.dataset["active_layer"] == approx(1.0))
+        assert_allclose(
+            parcels.dataset["location_in_link"],
+            [[0.8], [0.7], [0.7], [0.5], [0.5], [0.5], [0.2]],
+        )
+        assert_allclose(
+            parcels.dataset["volume"], [[0.2], [0.5], [0.5], [0.5], [0.5], [0.1], [0.5]]
+        )
+
+        assert np.abs(D.mean() - D50) < 3 * D_sd
 
     def test_normal_2(self, example_nmg2):
         """all attributes specified in Pulse"""
 
         grid = example_nmg2
-        # np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=1066)
 
         PulseDF = pd.DataFrame(
             {
@@ -366,41 +316,36 @@ class Test_SedimentPulserEachParcel:
                 "parcel_volume": [0.1, 1, 1, 0.2],
             }
         )
-        time = 7
+        time = 7.0
         parcels = make_pulse(time, PulseDF)
 
-        # create expected values and get values from datarecord
-        GEe = np.expand_dims(["link"] * 8, axis=1)
-        GE = parcels.dataset["grid_element"]
-        EIe = np.expand_dims(np.array([1, 1, 3, 5, 5, 2, 2, 2]), axis=1)
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([1, 1, 3, 5, 5, 2, 2, 2])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.array([0.01, 0.01, 0.02, 0.005, 0.005, 0.03, 0.03, 0.03])
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.array([2650, 2650, 2300, 2750, 2750, 2100, 2100, 2100])
-        ro = parcels.dataset["density"]
-        TAe = np.expand_dims(np.ones(8) * time, axis=1)
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.expand_dims(np.ones(8), axis=1)
-        AL = parcels.dataset["active_layer"]
-        LLe = np.array([[0.8], [0.8], [0.7], [0.5], [0.5], [0.2], [0.2], [0.2]])
-        LL = parcels.dataset["location_in_link"]
-        De = np.array([[0.15], [0.15], [0.2], [0.22], [0.22], [0.1], [0.1], [0.1]])
-        D = parcels.dataset["D"]
-        Ve = np.array([[0.1], [0.1], [1], [1], [0.1], [0.2], [0.2], [0.1]])
-        V = parcels.dataset["volume"]
-
-        assert list(GE.values) == list(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        np.testing.assert_allclose(LL, LLe, rtol=1e-4)
-        np.testing.assert_allclose(D, De, rtol=1e-4)
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.all(parcels.dataset["grid_element"] == "link")
+        assert np.all(
+            parcels.dataset["element_id"] == [[1], [1], [3], [5], [5], [2], [2], [2]]
+        )
+        assert np.all(parcels.dataset["starting_link"] == [1, 1, 3, 5, 5, 2, 2, 2])
+        assert_allclose(
+            parcels.dataset["abrasion_rate"],
+            [0.01, 0.01, 0.02, 0.005, 0.005, 0.03, 0.03, 0.03],
+        )
+        assert_allclose(
+            parcels.dataset["density"],
+            [2650.0, 2650.0, 2300.0, 2750.0, 2750.0, 2100.0, 2100.0, 2100.0],
+        )
+        assert np.all(parcels.dataset["time_arrival_in_link"] == approx(time))
+        assert np.all(parcels.dataset["active_layer"] == approx(1.0))
+        assert_allclose(
+            parcels.dataset["location_in_link"],
+            [[0.8], [0.8], [0.7], [0.5], [0.5], [0.2], [0.2], [0.2]],
+        )
+        assert_allclose(
+            parcels.dataset["D"],
+            [[0.15], [0.15], [0.2], [0.22], [0.22], [0.1], [0.1], [0.1]],
+        )
+        assert_allclose(
+            parcels.dataset["volume"],
+            [[0.1], [0.1], [1], [1], [0.1], [0.2], [0.2], [0.1]],
+        )
 
     def test_normal_3(self, example_nmg2):
         """two pulses. First, only minimum attributes specified,
@@ -410,7 +355,7 @@ class Test_SedimentPulserEachParcel:
         grid = example_nmg2
         np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=1945)
 
         PulseDF = pd.DataFrame(
             {
@@ -437,19 +382,21 @@ class Test_SedimentPulserEachParcel:
         time = 8
         parcels = make_pulse(time, PulseDF)
 
-        # create expected values and get values from datarecord
-        GEe = [
-            ["link", np.nan],
-            ["link", np.nan],
-            ["link", np.nan],
-            [np.nan, "link"],
-            [np.nan, "link"],
-            [np.nan, "link"],
-            [np.nan, "link"],
-            [np.nan, "link"],
-        ]
-        GE = parcels.dataset["grid_element"]
-        EIe = np.array(
+        assert_array_equal(
+            parcels.dataset["grid_element"].values.tolist(),
+            [
+                ["link", np.nan],
+                ["link", np.nan],
+                ["link", np.nan],
+                [np.nan, "link"],
+                [np.nan, "link"],
+                [np.nan, "link"],
+                [np.nan, "link"],
+                [np.nan, "link"],
+            ],
+        )
+        assert_allclose(
+            parcels.dataset["element_id"],
             [
                 [1.0, np.nan],
                 [3.0, np.nan],
@@ -459,16 +406,16 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 2.0],
                 [np.nan, 2.0],
                 [np.nan, 2.0],
-            ]
+            ],
         )
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([1, 3, 3, 5, 5, 2, 2, 2])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.array([0.0, 0.0, 0.0, 0.005, 0.005, 0.03, 0.03, 0.03])
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.array([2650.0, 2650.0, 2650.0, 2650.0, 2650.0, 2650.0, 2650.0, 2650.0])
-        ro = parcels.dataset["density"]
-        TAe = np.array(
+        assert_array_equal(parcels.dataset["starting_link"], [1, 3, 3, 5, 5, 2, 2, 2])
+        assert_allclose(
+            parcels.dataset["abrasion_rate"],
+            [0.0, 0.0, 0.0, 0.005, 0.005, 0.03, 0.03, 0.03],
+        )
+        assert_allclose(parcels.dataset["density"], 2650.0)
+        assert_allclose(
+            parcels.dataset["time_arrival_in_link"],
             [
                 [7.0, np.nan],
                 [7.0, np.nan],
@@ -478,10 +425,10 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 8.0],
                 [np.nan, 8.0],
                 [np.nan, 8.0],
-            ]
+            ],
         )
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.array(
+        assert_allclose(
+            parcels.dataset["active_layer"],
             [
                 [1.0, np.nan],
                 [1.0, np.nan],
@@ -491,10 +438,10 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 1.0],
                 [np.nan, 1.0],
                 [np.nan, 1.0],
-            ]
+            ],
         )
-        AL = parcels.dataset["active_layer"]
-        LLe = np.array(
+        assert_allclose(
+            parcels.dataset["location_in_link"],
             [
                 [0.8, np.nan],
                 [0.7, np.nan],
@@ -504,12 +451,10 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 0.2],
                 [np.nan, 0.2],
                 [np.nan, 0.2],
-            ]
+            ],
         )
-        LL = parcels.dataset["location_in_link"]
-        D = parcels.dataset["D"].values
-        D[~np.isnan(D)]
-        Ve = np.array(
+        assert_allclose(
+            parcels.dataset["volume"],
             [
                 [0.2, np.nan],
                 [0.5, np.nan],
@@ -519,33 +464,20 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 0.2],
                 [np.nan, 0.2],
                 [np.nan, 0.1],
-            ]
+            ],
         )
-        V = parcels.dataset["volume"]
 
-        # test
-        assert str(GE.values.tolist()) == str(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        np.testing.assert_allclose(LL, LLe, rtol=1e-4)
-        # grain size must be greater than 0
-        assert (D > 0).any()
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.all((parcels.dataset["D"] > 0.0) | np.isnan(parcels.dataset["D"]))
 
     def test_normal_4(self, example_nmg2):
         """Series of pulses using both the SedimentPulserAtlinks and
         SedimentPulserEachParcel."""
 
         grid = example_nmg2
-        np.random.seed(seed=5)  # use the random seed for this test
 
         # define the initial parcels datarecord
         make_pulse_links = SedimentPulserAtLinks(
-            grid, time_to_pulse=always_time_to_pulse
+            grid, time_to_pulse=always_time_to_pulse, rng=5
         )
 
         # pulse 1
@@ -558,7 +490,9 @@ class Test_SedimentPulserEachParcel:
 
         # datarecord is input to SedimentPulserEachParcel, now both pulser
         # instances will point to the same datarecord when called
-        make_pulse_pulseDF = SedimentPulserEachParcel(parcels=parcels, grid=grid)
+        make_pulse_pulseDF = SedimentPulserEachParcel(
+            parcels=parcels, grid=grid, rng=1863
+        )
 
         # pulse 2
         PulseDF = pd.DataFrame(
@@ -595,17 +529,19 @@ class Test_SedimentPulserEachParcel:
         time = 10
         parcels = make_pulse_pulseDF(time, PulseDF)
 
-        # create expected values and get values from datarecord
-        GEe = [
-            ["link", np.nan, np.nan, np.nan],
-            ["link", np.nan, np.nan, np.nan],
-            [np.nan, "link", np.nan, np.nan],
-            [np.nan, "link", np.nan, np.nan],
-            [np.nan, np.nan, "link", np.nan],
-            [np.nan, np.nan, np.nan, "link"],
-        ]
-        GE = parcels.dataset["grid_element"]
-        EIe = np.array(
+        assert_array_equal(
+            parcels.dataset["grid_element"].values.tolist(),
+            [
+                ["link", np.nan, np.nan, np.nan],
+                ["link", np.nan, np.nan, np.nan],
+                [np.nan, "link", np.nan, np.nan],
+                [np.nan, "link", np.nan, np.nan],
+                [np.nan, np.nan, "link", np.nan],
+                [np.nan, np.nan, np.nan, "link"],
+            ],
+        )
+        assert_allclose(
+            parcels.dataset["element_id"],
             [
                 [0.0, np.nan, np.nan, np.nan],
                 [0.0, np.nan, np.nan, np.nan],
@@ -613,15 +549,15 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 5.0, np.nan, np.nan],
                 [np.nan, np.nan, 5.0, np.nan],
                 [np.nan, np.nan, np.nan, 6.0],
-            ]
+            ],
         )
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([0, 0, 5, 5, 5, 6])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.array([0.0, 0.0, 0.005, 0.005, 0.0, 0.0])
-        AR = parcels.dataset["abrasion_rate"]
-        D = parcels.dataset["density"]
-        TAe = np.array(
+        assert_array_equal(parcels.dataset["starting_link"], [0, 0, 5, 5, 5, 6])
+        assert_allclose(
+            parcels.dataset["abrasion_rate"], [0.0, 0.0, 0.005, 0.005, 0.0, 0.0]
+        )
+        assert_allclose(parcels.dataset["density"], 2650.0)
+        assert_allclose(
+            parcels.dataset["time_arrival_in_link"],
             [
                 [7.0, np.nan, np.nan, np.nan],
                 [7.0, np.nan, np.nan, np.nan],
@@ -629,10 +565,10 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 8.0, np.nan, np.nan],
                 [np.nan, np.nan, 9.0, np.nan],
                 [np.nan, np.nan, np.nan, 10.0],
-            ]
+            ],
         )
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.array(
+        assert_allclose(
+            parcels.dataset["active_layer"],
             [
                 [1.0, np.nan, np.nan, np.nan],
                 [1.0, np.nan, np.nan, np.nan],
@@ -640,23 +576,21 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 1.0, np.nan, np.nan],
                 [np.nan, np.nan, 1.0, np.nan],
                 [np.nan, np.nan, np.nan, 1.0],
-            ]
+            ],
         )
-        AL = parcels.dataset["active_layer"]
-        LLe = np.array(
+        assert_allclose(
+            parcels.dataset["location_in_link"],
             [
-                [0.20671916, np.nan, np.nan, np.nan],
-                [0.91861091, np.nan, np.nan, np.nan],
+                [0.51532556, np.nan, np.nan, np.nan],
+                [0.28580138, np.nan, np.nan, np.nan],
                 [np.nan, 0.5, np.nan, np.nan],
                 [np.nan, 0.5, np.nan, np.nan],
-                [np.nan, np.nan, 0.2968005, np.nan],
+                [np.nan, np.nan, 0.38336888, np.nan],
                 [np.nan, np.nan, np.nan, 0.2],
-            ]
+            ],
         )
-        LL = parcels.dataset["location_in_link"]
-        D = parcels.dataset["D"].values
-        D[~np.isnan(D)]
-        Ve = np.array(
+        assert_allclose(
+            parcels.dataset["volume"],
             [
                 [0.5, np.nan, np.nan, np.nan],
                 [0.5, np.nan, np.nan, np.nan],
@@ -664,21 +598,11 @@ class Test_SedimentPulserEachParcel:
                 [np.nan, 0.1, np.nan, np.nan],
                 [np.nan, np.nan, 0.5, np.nan],
                 [np.nan, np.nan, np.nan, 0.5],
-            ]
+            ],
         )
-        V = parcels.dataset["volume"]
 
-        # test
-        assert str(GE.values.tolist()) == str(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        np.testing.assert_allclose(LL, LLe, rtol=1e-4)
         # grain size must be greater than 0
-        assert (D > 0).any()
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.all((parcels.dataset["D"] > 0.0) | np.isnan(parcels.dataset["D"]))
 
     def test_bad_1(self, example_nmg2):
         """test exception raised if instance is called without specifying the
@@ -690,18 +614,16 @@ class Test_SedimentPulserEachParcel:
         time = 7
 
         with pytest.raises(ValueError) as exc_info:
-            _ = make_pulse(time, PulseDF)
-        msg_e = "PulseDF was not specified"
-        assert exc_info.match(msg_e)
+            make_pulse(time, PulseDF)
+        assert exc_info.match("PulseDF was not specified")
 
     def test_special_1(self, example_nmg2):
         """test that calling with an empty PulseDF returns the existing
         datarecord"""
 
         grid = example_nmg2
-        np.random.seed(seed=5)
 
-        make_pulse = SedimentPulserEachParcel(grid)
+        make_pulse = SedimentPulserEachParcel(grid, rng=5)
 
         PulseDF = pd.DataFrame(
             {
@@ -711,52 +633,38 @@ class Test_SedimentPulserEachParcel:
             }
         )
         # call SedimentPulserEachParcel using setup in normal_test_1
-        time1 = 7
+        time1 = 7.0
         parcels = make_pulse(time1, PulseDF)
 
         # call again, using an empty PulserDF
-        time2 = 8
+        time2 = 8.0
         parcels = make_pulse(time2, pd.DataFrame([]))
 
-        # create expected values and get values from datarecord
-        GEe = np.expand_dims(["link"] * 7, axis=1)
-        GE = parcels.dataset["grid_element"]
-        EIe = np.expand_dims(np.array([1, 3, 3, 5, 5, 5, 2]), axis=1)
-        EI = parcels.dataset["element_id"]
-        SLe = np.array([1, 3, 3, 5, 5, 5, 2])
-        SL = parcels.dataset["starting_link"]
-        ARe = np.ones(7) * 0
-        AR = parcels.dataset["abrasion_rate"]
-        roe = np.ones(7) * 2650
-        ro = parcels.dataset["density"]
-        TAe = np.expand_dims(np.ones(7) * time1, axis=1)
-        TA = parcels.dataset["time_arrival_in_link"]
-        ALe = np.expand_dims(np.ones(7), axis=1)
-        AL = parcels.dataset["active_layer"]
-        LLe = np.array([[0.8], [0.7], [0.7], [0.5], [0.5], [0.5], [0.2]])
-        LL = parcels.dataset["location_in_link"]
-        De = np.array(
-            [
-                [0.06936526],
-                [0.03911625],
-                [0.30353682],
-                [0.04147067],
-                [0.05423609],
-                [0.16176179],
-                [0.02546817],
-            ]
+        assert np.all(parcels.dataset["grid_element"] == "link")
+        assert np.all(
+            parcels.dataset["element_id"] == [[1], [3], [3], [5], [5], [5], [2]]
         )
-        D = parcels.dataset["D"]
-        Ve = np.array([[0.2], [0.5], [0.5], [0.5], [0.5], [0.1], [0.5]])
-        V = parcels.dataset["volume"]
-
-        assert list(GE.values) == list(GEe)
-        np.testing.assert_allclose(EI, EIe, rtol=1e-4)
-        np.testing.assert_allclose(SL, SLe, rtol=1e-4)
-        np.testing.assert_allclose(AR, ARe, rtol=1e-4)
-        np.testing.assert_allclose(ro, roe, rtol=1e-4)
-        np.testing.assert_allclose(TA, TAe, rtol=1e-4)
-        np.testing.assert_allclose(AL, ALe, rtol=1e-4)
-        np.testing.assert_allclose(LL, LLe, rtol=1e-4)
-        np.testing.assert_allclose(D, De, rtol=1e-4)
-        np.testing.assert_allclose(V, Ve, rtol=1e-4)
+        assert np.all(parcels.dataset["starting_link"] == [1, 3, 3, 5, 5, 5, 2])
+        assert np.all(parcels.dataset["abrasion_rate"] == approx(0.0))
+        assert np.all(parcels.dataset["time_arrival_in_link"] == approx(time1))
+        assert np.all(parcels.dataset["active_layer"] == approx(1.0))
+        assert_allclose(
+            parcels.dataset["location_in_link"],
+            [[0.8], [0.7], [0.7], [0.5], [0.5], [0.5], [0.2]],
+        )
+        assert_allclose(
+            parcels.dataset["D"],
+            [
+                [0.0275786],
+                [0.01871699],
+                [0.04158561],
+                [0.06830391],
+                [0.11615185],
+                [0.05423998],
+                [0.03318153],
+            ],
+        )
+        assert_allclose(
+            parcels.dataset["volume"],
+            np.array([[0.2], [0.5], [0.5], [0.5], [0.5], [0.1], [0.5]]),
+        )

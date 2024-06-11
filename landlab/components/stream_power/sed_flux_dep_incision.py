@@ -3,7 +3,8 @@ import warnings
 import numpy as np
 import scipy.constants
 
-from landlab import Component, MissingKeyError
+from landlab import Component
+from landlab import MissingKeyError
 from landlab.utils.decorators import make_return_array_immutable
 
 
@@ -1094,50 +1095,52 @@ class SedDepEroder(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator, SedDepEroder
-        >>> mg1 = RasterModelGrid((3,4))
+        >>> mg1 = RasterModelGrid((3, 4))
         >>> z1 = mg1.add_zeros("node", "topographic__elevation")
         >>> fa1 = FlowAccumulator(mg1)
-        >>> thresh_shields = np.arange(1, mg1.number_of_nodes+1, dtype=float)
-        >>> thresh_shields /= 100.
+        >>> thresh_shields = np.arange(1, mg1.number_of_nodes + 1, dtype=float)
+        >>> thresh_shields /= 100.0
         >>> sde1 = SedDepEroder(
         ...     mg1,
-        ...     threshold_shear_stress=100.,
-        ...     Qc='MPM',
+        ...     threshold_shear_stress=100.0,
+        ...     Qc="MPM",
         ...     Dchar=None,
         ...     set_threshold_from_Dchar=False,
         ...     set_Dchar_from_threshold=True,
         ...     threshold_Shields=thresh_shields,
-        ...     g=9.81)
-        >>> sde1.characteristic_grainsize
-        array([ 0.59962823,  0.29981412,  0.19987608,  0.14990706,  0.11992565,
-                0.09993804,  0.08566118,  0.07495353,  0.06662536,  0.05996282,
-                0.05451166,  0.04996902])
+        ...     g=9.81,
+        ... )
+        >>> sde1.characteristic_grainsize.reshape(mg1.shape)
+        array([[0.59962823, 0.29981412, 0.19987608, 0.14990706],
+               [0.11992565, 0.09993804, 0.08566118, 0.07495353],
+               [0.06662536, 0.05996282, 0.05451166, 0.04996902]])
 
-        >>> mg2 = RasterModelGrid((3,4))
+        >>> mg2 = RasterModelGrid((3, 4))
         >>> z2 = mg2.add_zeros("node", "topographic__elevation")
         >>> fa2 = FlowAccumulator(mg2)
         >>> sde2 = SedDepEroder(
         ...     mg2,
-        ...     threshold_shear_stress=100.,
-        ...     Qc='MPM',
+        ...     threshold_shear_stress=100.0,
+        ...     Qc="MPM",
         ...     Dchar=None,
         ...     set_threshold_from_Dchar=False,
         ...     set_Dchar_from_threshold=True,
         ...     threshold_Shields=None,
         ...     slope_sensitive_threshold=True,
-        ...     g=9.81)
-        >>> S = mg2['node']['topographic__steepest_slope']
+        ...     g=9.81,
+        ... )
+        >>> S = mg2.at_node["topographic__steepest_slope"]
         >>> S[:] = 0.05  # thresh = 100 Pa @ 5pc slope
-        >>> sde2.characteristic_grainsize  # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.08453729,  0.08453729,  0.08453729,  0.08453729,
-                0.08453729,  0.08453729,  0.08453729,  0.08453729,
-                0.08453729,  0.08453729,  0.08453729,  0.08453729])
+        >>> sde2.characteristic_grainsize.reshape(mg2.shape)
+        array([[0.08453729, 0.08453729, 0.08453729, 0.08453729],
+               [0.08453729, 0.08453729, 0.08453729, 0.08453729],
+               [0.08453729, 0.08453729, 0.08453729, 0.08453729]])
         """
         # Dchar is None means self._lamb_flag, Dchar is spatially variable,
         # and not calculated until the main loop
-        assert self._Qc == "MPM", (
-            "Characteristic grainsize is only " + "calculated if Qc == 'MPM'"
-        )
+        assert (
+            self._Qc == "MPM"
+        ), "Characteristic grainsize is only calculated if Qc == 'MPM'"
         if self._Dchar_in is not None:
             return self._Dchar_in
         else:

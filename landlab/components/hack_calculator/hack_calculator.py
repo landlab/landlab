@@ -1,4 +1,5 @@
 """Calculate Hack parameters."""
+
 import collections
 from itertools import chain
 
@@ -22,12 +23,8 @@ def _hacks_law(A, C, h):
     >>> from landlab.components.hack_calculator.hack_calculator import _hacks_law
     >>> _hacks_law(1, 1, 1)
     1
-    >>> np.testing.assert_array_equal(
-    ...     _hacks_law([1, 2], 1, 1),
-    ...     np.array([1, 2]))
-    >>> np.testing.assert_array_equal(
-    ...     _hacks_law([1, 2], 3, 2),
-    ...     np.array([ 3, 12]))
+    >>> np.testing.assert_array_equal(_hacks_law([1, 2], 1, 1), np.array([1, 2]))
+    >>> np.testing.assert_array_equal(_hacks_law([1, 2], 3, 2), np.array([3, 12]))
     """
     assert isinstance(C, (np.number, int, float))
     assert isinstance(h, (np.number, int, float))
@@ -47,7 +44,9 @@ def _estimate_hack_coeff(A, L):
     >>> import numpy as np
     >>> np.random.seed(42)
     >>> from landlab.components.hack_calculator.hack_calculator import (
-    ...     _estimate_hack_coeff, _hacks_law)
+    ...     _estimate_hack_coeff,
+    ...     _hacks_law,
+    ... )
     >>> C = 0.5
     >>> h = 0.75
     >>> A = np.arange(1, 1000)
@@ -67,14 +66,11 @@ def _flatten(list_):
     Examples
     --------
     >>> from landlab.components.hack_calculator.hack_calculator import _flatten
-    >>> struct = [[1, 2, 3, 4],
-    ...           [[5, 6, 7, 9],
-    ...            [9, 10, 11, 12]],
-    ...           [13, 14, 15, 16]]
+    >>> struct = [[1, 2, 3, 4], [[5, 6, 7, 9], [9, 10, 11, 12]], [13, 14, 15, 16]]
     >>> out = _flatten(struct)
     >>> np.testing.assert_array_equal(
-    ...     out,
-    ...     np.array([1, 2, 3, 4, 5, 6, 7, 9, 9, 10, 11, 12, 13, 14, 15, 16]))
+    ...     out, np.array([1, 2, 3, 4, 5, 6, 7, 9, 9, 10, 11, 12, 13, 14, 15, 16])
+    ... )
     >>> assert _flatten(None) is None
     """
     if list_ is None:
@@ -103,16 +99,13 @@ class HackCalculator(Component):
     Examples
     --------
     >>> import pandas as pd
-    >>> pd.set_option('display.max_columns', None)
+    >>> pd.set_option("display.max_columns", None)
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import (
-    ...     FlowAccumulator,
-    ...     FastscapeEroder,
-    ...     HackCalculator)
+    >>> from landlab.components import FlowAccumulator, FastscapeEroder, HackCalculator
     >>> np.random.seed(42)
     >>> mg = RasterModelGrid((50, 100), xy_spacing=100)
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("node", "topographic__elevation")
     >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
     >>> fa = FlowAccumulator(mg)
     >>> fs = FastscapeEroder(mg, K_sp=0.001)
@@ -120,34 +113,31 @@ class HackCalculator(Component):
     ...     fa.run_one_step()
     ...     fs.run_one_step(1000)
     ...     z[mg.core_nodes] += 0.01 * 1000
+    ...
     >>> hc = HackCalculator(mg)
     >>> hc.calculate_hack_parameters()
     >>> largest_outlet = mg.boundary_nodes[
-    ...     np.argsort(mg.at_node['drainage_area'][mg.boundary_nodes])[-1:]][0]
+    ...     np.argsort(mg.at_node["drainage_area"][mg.boundary_nodes])[-1:]
+    ... ][0]
     >>> largest_outlet
     4978
     >>> hc.hack_coefficient_dataframe.loc[largest_outlet, "A_max"]
     2830000.0
-    >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
-                         A_max     C     h
-    basin_outlet_id
-    4978             2830000.0  0.31  0.62
+    >>> hc.hack_coefficient_dataframe.round(2)
+    A_max     C          h     basin_outlet_id
+    4978      2830000.0  0.31  0.62
 
     >>> hc = HackCalculator(
-    ...     mg,
-    ...     number_of_watersheds=3,
-    ...     main_channel_only=False,
-    ...     save_full_df=True)
+    ...     mg, number_of_watersheds=3, main_channel_only=False, save_full_df=True
+    ... )
     >>> hc.calculate_hack_parameters()
-    >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
-                         A_max     C     h
-    basin_outlet_id
-    39               2170000.0  0.13  0.69
-    4929             2350000.0  0.13  0.68
-    4978             2830000.0  0.23  0.64
-    >>> hc.full_hack_dataframe.head().round(2) # doctest: +NORMALIZE_WHITESPACE
-            basin_outlet_id          A   L_obs    L_est
-    node_id
+    >>> hc.hack_coefficient_dataframe.round(2)
+    A_max     C          h     basin_outlet_id
+    39        2170000.0  0.13  0.69
+    4929      2350000.0  0.13  0.68
+    4978      2830000.0  0.23  0.64
+    >>> hc.full_hack_dataframe.head().round(2)
+    basin_outlet_id    A     L_obs      L_est   node_id
     39                 39.0  2170000.0  3200.0  2903.43
     139                39.0  2170000.0  3100.0  2903.43
     238                39.0    10000.0     0.0    71.61
