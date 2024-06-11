@@ -1,12 +1,10 @@
-import numpy as np
-
 cimport cython
-cimport numpy as cnp
 from cython.parallel cimport prange
+from libc.math cimport M_PI
 from libc.stdlib cimport abs
 
 
-ctypedef fused index_type:
+ctypedef fused index_t:
     cython.integral
     long long
     unsigned int
@@ -20,20 +18,22 @@ def subside_loads(
     cython.floating [:, :] w,
     const cython.floating [:, :] r,
     const cython.floating [:] loads,
-    const index_type [:] row_of_load,
-    const index_type [:] col_of_load,
+    const index_t [:] row_of_load,
+    const index_t [:] col_of_load,
     const double alpha,
     const double gamma_mantle,
 ):
     cdef long n_rows = w.shape[0]
     cdef long n_cols = w.shape[1]
     cdef long n_loads = loads.shape[0]
-    cdef long load_row, load_col
-    cdef long row, col
+    cdef long load_row
+    cdef long load_col
+    cdef long row
+    cdef long col
     cdef long d_row
     cdef long load
     cdef double c
-    cdef double inv_c = 1. / (2. * np.pi * gamma_mantle * alpha ** 2.)
+    cdef double inv_c = 1. / (2. * M_PI * gamma_mantle * alpha ** 2.)
 
     for row in prange(n_rows, nogil=True, schedule="static"):
         for load in range(n_loads):
