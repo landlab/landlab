@@ -21,17 +21,19 @@ def fill_node_at_cell(
     node_at_cell : ndarray of int
         Buffer into which to place node identifiers.
     """
-    cdef int cell
-    cdef int cell_rows = shape[0] - 2
-    cdef int cell_cols = shape[1] - 2
-    cdef int node_cols = shape[1]
-    cdef int row_offset
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long cells_per_row = shape[1] - 2
+    cdef long first_node
+    cdef long cell
     cdef int row
     cdef int col
 
-    for row in prange(cell_rows, nogil=True, schedule="static"):
-        cell = row * cell_cols
-        row_offset = (row + 1) * node_cols + 1
-        for col in range(cell_cols):
-            node_at_cell[cell] = row_offset + col
+    for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
+        cell = (row - 1) * cells_per_row
+        first_node = row * n_cols + 1
+        for col in range(cells_per_row):
+            node_at_cell[cell] = first_node + col
             cell = cell + 1
+
+    return node_at_cell
