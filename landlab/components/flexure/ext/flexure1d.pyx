@@ -1,51 +1,60 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.math cimport cos, exp, fabs, sin
-
-# from libc.stdlib cimport abs
-
-
-DTYPE = np.double
-ctypedef np.double_t DTYPE_t
+from cython.parallel cimport prange
+from libc.math cimport cos
+from libc.math cimport exp
+from libc.math cimport fabs
+from libc.math cimport sin
 
 
 @cython.boundscheck(False)
-def subside_load_1d(np.ndarray[DTYPE_t, ndim=1] x,
-                    np.ndarray[DTYPE_t, ndim=2] loads,
-                    DTYPE_t alpha,
-                    DTYPE_t rigidity,
-                    np.ndarray[DTYPE_t, ndim=2] out):
-    cdef int n_rows = loads.shape[0]
-    cdef int row
+@cython.wraparound(False)
+def subside_load_1d(
+    cython.floating [:] x,
+    cython.floating [:, :] loads,
+    double alpha,
+    double rigidity,
+    cython.floating [:, :] out,
+):
+    cdef long n_rows = loads.shape[0]
+    cdef long row
 
-    for row in range(n_rows):
-        subside_row(&x[0], len(x), &loads[row, 0], alpha, rigidity,
-                    &out[row, 0])
+    for row in prange(n_rows, nogil=True, schedule="static"):
+        _subside_row(x, loads[row], alpha, rigidity, out[row])
 
 
 @cython.cdivision(True)
-cdef double * subside_row(double * x, int n_points, double * loads,
-                          double alpha, double rigidity, double * out) nogil:
-    cdef int col
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void _subside_row(
+    cython.floating [:] x,
+    cython.floating [:] loads,
+    double alpha,
+    double rigidity,
+    cython.floating [:] out,
+) noexcept nogil:
+    cdef long n_points = len(x)
+    cdef long col
 
     for col in range(n_points):
-        subside_point_load(x, n_points, x[col], loads[col], alpha, rigidity, out)
-
-    return out
+        _subside_point_load(x, x[col], loads[col], alpha, rigidity, out)
 
 
 @cython.cdivision(True)
-cdef double * subside_point_load(double * x, int n_points, double x_at_load,
-                                 double load, double alpha, double rigidity,
-                                 double * out) nogil:
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef void _subside_point_load(
+    cython.floating [:] x,
+    double x_at_load,
+    double load,
+    double alpha,
+    double rigidity,
+    cython.floating [:] out,
+) noexcept nogil:
+    cdef long n_points = len(x)
     cdef float c = load * alpha ** 3. / (8. * rigidity)
     cdef float dx
-    cdef int col
+    cdef long col
 
     for col in range(n_points):
         dx = fabs(x[col] - x_at_load) / alpha
         out[col] += c * exp(- dx) * (cos(dx) + sin(dx))
-
-    return out
