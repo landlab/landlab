@@ -61,9 +61,9 @@ import numpy as np
 
 from landlab import Component
 
-from ._subside import subside_loads as _subside_loads
-from .cfuncs import subside_grid_in_parallel
-from .funcs import get_flexure_parameter
+from landlab.components.flexure._subside import subside_loads as _subside_loads
+from landlab.components.flexure.cfuncs import subside_grid_in_parallel
+from landlab.components.flexure.funcs import get_flexure_parameter
 
 
 class Flexure(Component):
