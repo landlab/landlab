@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components import Flexure
-from landlab.components.flexure._subside import subside_loads
+from landlab.components.flexure._ext.flexure2d import subside_loads
 
 
 @pytest.mark.benchmark(group="grid-size")

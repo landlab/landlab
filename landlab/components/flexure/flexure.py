@@ -60,8 +60,8 @@ array([[0., 0., 0., 0.],
 import numpy as np
 
 from landlab import Component
-from landlab.components.flexure._subside import subside_loads as _subside_loads
-from landlab.components.flexure.cfuncs import subside_grid_in_parallel
+from landlab.components.flexure._ext.flexure2d import subside_loads as _subside_loads
+from landlab.components.flexure._ext.flexure2d_slow import subside_grid_in_parallel
 from landlab.components.flexure.funcs import get_flexure_parameter
 
 

@@ -1,7 +1,7 @@
 cimport cython
 from cython.parallel cimport prange
 from libc.math cimport M_PI
-from libc.stdlib cimport abs
+from libc.stdlib cimport labs
 
 ctypedef fused index_t:
     cython.integral
@@ -39,6 +39,6 @@ def subside_loads(
             c = loads[load] * inv_c
             load_row = row_of_load[load]
             load_col = col_of_load[load]
-            d_row = abs(load_row - row)
+            d_row = labs(load_row - row)
             for col in range(n_cols):
                 w[row, col] = w[row, col] - c * r[d_row, abs(load_col - col)]
