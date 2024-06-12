@@ -41,7 +41,7 @@ class TriangleModelGrid(DualTriangleGraph, ModelGrid):
         exterior_y_and_x: tuple[np.ndarray, np.ndarray],
         holes=None,
         triangle_opts="pqDevjz",
-        timeout=10,
+        timeout=11,
         reorient_links=False,
         xy_of_reference=(0.0, 0.0),
         xy_axis_name=("x", "y"),
