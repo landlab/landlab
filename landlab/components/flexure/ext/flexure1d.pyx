@@ -29,11 +29,9 @@ def subside_load_1d(np.ndarray[DTYPE_t, ndim=1] x,
 cdef double * subside_row(double * x, int n_points, double * loads,
                           double alpha, double rigidity, double * out) nogil:
     cdef int col
-    cdef double load
 
     for col in range(n_points):
-        subside_point_load(x, n_points, x[col], loads[col], alpha, rigidity,
-                           out)
+        subside_point_load(x, n_points, x[col], loads[col], alpha, rigidity, out)
 
     return out
 

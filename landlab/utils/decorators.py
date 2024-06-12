@@ -289,7 +289,7 @@ class use_field_name_array_or_value:
     The array of values can be a value (float, int, etc.).
 
     >>> my_func(grid, 4.0)
-    array([ 8.,  8.,  8.,  8.,  8.,  8.])
+    array([8.,  8.,  8.,  8.,  8.,  8.])
     """
 
     def __init__(self, at_element):

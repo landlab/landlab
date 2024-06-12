@@ -566,12 +566,12 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder._rock_exposure_fraction[4:6]
-        array([ 0.,  1.])
+        array([0., 1.])
         >>> sed[4] = 1.0  # exposure frac should be 1/e ~ 0.3679
         >>> sed[5] = 2.0  # exposure frac should be 1/e^2 ~ 0.1353
         >>> eroder.calc_rock_exposure_fraction()
         >>> np.round(eroder._rock_exposure_fraction[4:6], 4)
-        array([ 0.3679,  0.1353])
+        array([0.3679, 0.1353])
         """
         self._rock_exposure_fraction[:] = np.exp(-self._sed / self._depth_decay_scale)
 
@@ -681,13 +681,13 @@ class GravelBedrockEroder(Component):
         0.3679
         >>> eroder.calc_transport_rate()
         >>> np.round(eroder._sediment_outflux[5:7], 3)
-        array([ 0.024,  0.012])
+        array([0.024, 0.012])
         >>> eroder.calc_abrasion_rate()
         >>> np.round(eroder._sed_abr_rates[0, 5:7], 9)
         array([  1.20000000e-08,   6.00000000e-09])
         >>> eroder.calc_bedrock_abrasion_rate()
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
-        array([  4.40000000e-09,   2.20000000e-09])
+        array([4.4e-09, 2.2e-09])
         """
         self._rock_abrasion_rate[:] = (
             self._sed_abr_rates[self._rock_abrasion_index]

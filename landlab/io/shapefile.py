@@ -62,13 +62,13 @@ def _infer_data_type(array, dtype=None):
     >>> _infer_data_type([1, 2, 3])
     array([1, 2, 3])
     >>> _infer_data_type([1, 2, 3], dtype=float)
-    array([ 1.,  2.,  3.])
+    array([1.,  2.,  3.])
     >>> _infer_data_type(np.array([1.0, 2.0, 3.0], dtype=object))
-    array([ 1.,  2.,  3.])
+    array([1.,  2.,  3.])
     >>> _infer_data_type([[1, 2, 3]])
     array([[1, 2, 3]])
     >>> _infer_data_type([None, 1, 2, 3])
-    array([ nan,   1.,   2.,   3.])
+    array([nan,   1.,   2.,   3.])
     """
     array = np.asarray(array, dtype=dtype)
     if dtype is None and not np.issubdtype(array.dtype, np.number):
@@ -101,10 +101,11 @@ def read_shapefile(
     """Read shapefile and create a NetworkModelGrid.
 
     There are a number of assumptions that are required about the shapefile.
-        * The shapefile must be a polyline shapefile.
-        * All polylines must be their own object (e.g. no multi-part
-          polylines).
-        * Polyline endpoints match perfectly.
+
+    * The shapefile must be a polyline shapefile.
+    * All polylines must be their own object (e.g. no multi-part
+      polylines).
+    * Polyline endpoints match perfectly.
 
     You might notice that there is no ``write_shapefile`` function. If this is
     something you need for your work, please make a GitHub issue to start this
@@ -179,7 +180,7 @@ def read_shapefile(
 
     Now create a NetworkModelGrid with read_shapefile:
 
-    >>> from landlab.io import read_shapefile
+    >>> from landlab.io.shapefile import read_shapefile
     >>> grid = read_shapefile(shp, dbf=dbf)
     >>> grid.nodes
     array([0, 1, 2, 3])

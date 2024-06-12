@@ -54,14 +54,6 @@ jobs:
           - cibw-only: "cp312-win_amd64"
             os: "windows-latest"
 
-          # Windows 32
-          - cibw-only: "cp310-win32"
-            os: "windows-latest"
-          - cibw-only: "cp311-win32"
-            os: "windows-latest"
-          - cibw-only: "cp312-win32"
-            os: "windows-latest"
-
     steps:
       - uses: actions/checkout@v4
 
@@ -82,7 +74,7 @@ jobs:
           python -m cibuildwheel --only ${{ matrix.cibw-only }} --print-build-identifiers
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.17.0
         with:
           only: ${{ matrix.cibw-only }}
 

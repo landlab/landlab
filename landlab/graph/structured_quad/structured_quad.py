@@ -659,15 +659,15 @@ class RectilinearGraph(StructuredQuadGraphExtras):
     >>> graph.number_of_nodes
     12
     >>> graph.y_of_node.reshape(graph.shape)
-    array([[ 0.,  0.,  0.],
-           [ 1.,  1.,  1.],
-           [ 2.,  2.,  2.],
-           [ 3.,  3.,  3.]])
+    array([[0., 0., 0.],
+           [1., 1., 1.],
+           [2., 2., 2.],
+           [3., 3., 3.]])
     >>> graph.x_of_node.reshape(graph.shape)
-    array([[ 1.,  4.,  8.],
-           [ 1.,  4.,  8.],
-           [ 1.,  4.,  8.],
-           [ 1.,  4.,  8.]])
+    array([[1., 4., 8.],
+           [1., 4., 8.],
+           [1., 4., 8.],
+           [1., 4., 8.]])
     """
 
     def __init__(self, nodes, sort=False):
@@ -700,10 +700,10 @@ class UniformRectilinearGraph(StructuredQuadGraphExtras):
            [ 1.,  1.,  1.],
            [ 2.,  2.,  2.]])
     >>> graph.x_of_node.reshape(graph.shape)
-    array([[ 0.,  2.,  4.],
-           [ 0.,  2.,  4.],
-           [ 0.,  2.,  4.],
-           [ 0.,  2.,  4.]])
+    array([[0.,  2.,  4.],
+           [0.,  2.,  4.],
+           [0.,  2.,  4.],
+           [0.,  2.,  4.]])
     >>> graph.links_at_node
     array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
            [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],

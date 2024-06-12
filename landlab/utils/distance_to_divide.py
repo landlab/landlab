@@ -62,11 +62,11 @@ def calculate_distance_to_divide(
     ...     clobber=True,
     ... )
     >>> mg.at_node["distance_to_divide"]
-    array([ 0.,  3.,  3.,  0.,
-            0.,  2.,  2.,  0.,
-            0.,  1.,  1.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.])
+    array([0.,  3.,  3.,  0.,
+           0.,  2.,  2.,  0.,
+           0.,  1.,  1.,  0.,
+           0.,  0.,  0.,  0.,
+           0.,  0.,  0.,  0.])
 
     Now, let's change to MFD the flow_director method, which routes flow to
     multiple nodes.
@@ -96,11 +96,11 @@ def calculate_distance_to_divide(
     ...     clobber=True,
     ... )
     >>> mg.at_node["distance_to_divide"]
-    array([ 0.,  3.,  3.,  0.,
-            0.,  2.,  2.,  0.,
-            0.,  1.,  1.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.])
+    array([0.,  3.,  3.,  0.,
+           0.,  2.,  2.,  0.,
+           0.,  1.,  1.,  0.,
+           0.,  0.,  0.,  0.,
+           0.,  0.,  0.,  0.])
 
     The distance_to_divide utility can also work on irregular grids. For the
     example we will use a Hexagonal Model Grid, a special type of Voroni Grid
@@ -126,11 +126,11 @@ def calculate_distance_to_divide(
     ...     clobber=True,
     ... )
     >>> hmg.at_node["distance_to_divide"]
-    array([ 3.,  0.,  0.,
-         0.,  2.,  1.,  0.,
-       0.,  1.,  1.,  0.,  0.,
-         0.,   0.,  0.,  0.,
-            0.,  0.,  0.])
+    array([3.,  0.,  0.,
+        0.,  2.,  1.,  0.,
+      0.,  1.,  1.,  0.,  0.,
+        0.,   0.,  0.,  0.,
+           0.,  0.,  0.])
     """
     # check that flow__receiver nodes exists
     if "flow__receiver_node" not in grid.at_node:
