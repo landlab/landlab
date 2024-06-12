@@ -311,11 +311,11 @@ class TriangleMesh:
             holes = np.insert(holes, 0, np.arange(holes.shape[0]), axis=1)
 
         with open(path, "w") as outfile:
-            np.savetxt(outfile, vertex_header, fmt="%d")
-            np.savetxt(outfile, vertices, fmt="%f")
-            np.savetxt(outfile, segment_header, fmt="%d")
-            np.savetxt(outfile, segments, fmt="%d")
-            np.savetxt(outfile, holes_header, fmt="%d")
+            np.savetxt(outfile, vertex_header, fmt="%d", newline='\r\n')
+            np.savetxt(outfile, vertices, fmt="%f", newline='\r\n')
+            np.savetxt(outfile, segment_header, fmt="%d", newline='\r\n')
+            np.savetxt(outfile, segments, fmt="%d", newline='\r\n')
+            np.savetxt(outfile, holes_header, fmt="%d", newline='\r\n')
 
             # If there are no holes, there's nothing to write here
             if holes_header[0] > 0:
@@ -396,6 +396,7 @@ class TriangleMesh:
 
             print('Debugging output 6/12/24')
             import os
+            print(self.options)
             print(result.returncode)
             print(tmp_path)
             print(os.listdir(tmp_path))
