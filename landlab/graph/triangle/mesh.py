@@ -396,8 +396,6 @@ class TriangleMesh:
 
             print('Debugging output 6/12/24')
             import os
-            print(result.stdout.decode())
-            print(result.stderr.decode())
             print(result.returncode)
             print(tmp_path)
             print(os.listdir(tmp_path))
