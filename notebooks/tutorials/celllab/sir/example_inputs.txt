@@ -1,0 +1,8 @@
+infection_rate: 8.0
+number_of_node_rows: 80
+number_of_base_node_columns: 41
+run_duration: 10.0
+report_interval: 10.0
+output_interval: 1.0
+output_file_base_name: 'sirmodel'
+seed: 0
