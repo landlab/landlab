@@ -393,14 +393,6 @@ class TriangleMesh:
             )
 
             # if result.returncode == 0:
-
-            print('Debugging output 6/12/24')
-            import os
-            print(self.options)
-            print(result.returncode)
-            print(tmp_path)
-            print(os.listdir(tmp_path))
-
             try:
                 self.delaunay, self.voronoi = self._read_mesh_files(
                     node=tmp_path / "tri.1.node",
