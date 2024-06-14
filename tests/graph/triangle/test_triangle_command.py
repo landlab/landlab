@@ -44,7 +44,7 @@ def test_triangle_example(tmpdir):
     triangle = TriangleMesh.validate_triangle()
 
     with tmpdir.as_cwd():
-        with open("box.poly", "w") as fp:
+        with open("box.poly", "w", newline="\n") as fp:
             print(box_poly, file=fp)
 
         result = subprocess.run(
