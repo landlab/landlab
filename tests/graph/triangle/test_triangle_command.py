@@ -52,7 +52,7 @@ def test_triangle_example(tmpdir):
             capture_output=True,
         )
 
-        assert result.returncode == 0
+        assert result.stderr == b""
         assert result.stdout.startswith(b"Opening box.poly.")
         assert sorted(os.listdir(".")) == [
             "box.1.ele",
@@ -60,3 +60,4 @@ def test_triangle_example(tmpdir):
             "box.1.poly",
             "box.poly",
         ]
+        assert result.returncode == 0
