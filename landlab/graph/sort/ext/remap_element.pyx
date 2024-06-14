@@ -372,7 +372,6 @@ cdef struct SparseMatrixInt:
 
 cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     DTYPE_t *rows_and_cols,
-    # id_t *rows_and_cols,
     DTYPE_t *values,
     long n_values,
     long no_val,
@@ -384,7 +383,6 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     cdef long i
     cdef SparseMatrixInt mat
     cdef DTYPE_t *offset
-    # cdef id_t *offset
 
     for i in range(0, n_values * 2, 2):
         if rows_and_cols[i] > max_row:
@@ -394,7 +392,6 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     n_rows = max_row + 1
     n_cols = max_col + 1
 
-    # offset = <id_t *>malloc((n_rows + 1) * sizeof(id_t))
     offset = <DTYPE_t *>malloc((n_rows + 1) * sizeof(DTYPE_t))
 
     _offset_to_sorted_blocks(rows_and_cols, n_values, 2, offset, n_rows + 1)
@@ -444,12 +441,7 @@ cdef long sparse_matrix_get(SparseMatrixInt mat, long row, long col):
 
     i = mat.col_start + start * mat.col_stride
     for n in range(start, stop):
-        # if i >= mat.n_values * 2:
-        #     print("error")
-
         if mat.col[i] == col:
-            # if n >= mat.n_values:
-            #     print("ERROR")
             return mat.values[n]
         i += mat.col_stride
 

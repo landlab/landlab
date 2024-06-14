@@ -9,11 +9,6 @@ from cython cimport view
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 
-# ctypedef fused id_t:
-#     cython.integral
-#     long long
-
-
 ctypedef np.int_t INT_t
 ctypedef np.float_t FLOAT_t
 
@@ -78,7 +73,6 @@ cdef void argsort_int(long * data, int n_elements, int * out) noexcept nogil:
     cdef int i
 
     try:
-        # _argsort_int(data, n_elements, sorted_struct)
         for i in range(n_elements):
             sorted_struct[i].index = i
             sorted_struct[i].value = data[i]
