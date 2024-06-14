@@ -2,16 +2,16 @@
 
 @author: G Tucker, D Litwin, K Barnhart
 """
+
 from warnings import warn
 
 import numpy as np
 
 from landlab import Component
-from landlab.grid.mappers import (
-    map_mean_of_link_nodes_to_link,
-    map_value_at_max_node_to_link,
-)
-from landlab.utils import return_array_at_link, return_array_at_node
+from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+from landlab.grid.mappers import map_value_at_max_node_to_link
+from landlab.utils import return_array_at_link
+from landlab.utils import return_array_at_node
 
 
 # regularization functions used to deal with numerical demons of seepage
@@ -93,9 +93,10 @@ class GroundwaterDupuitPercolator(Component):
 
     Run component forward.
 
-    >>> dt = 1E4
+    >>> dt = 1e4
     >>> for i in range(100):
     ...     gdp.run_one_step(dt)
+    ...
 
     When the model generates groundwater return flow, the surface water flux
     out of the domain can be calculated only after a FlowAccumulator is run.
@@ -111,28 +112,29 @@ class GroundwaterDupuitPercolator(Component):
     Make a sloping, 3 m thick aquifer, initially fully saturated
 
     >>> elev = grid.add_zeros("topographic__elevation", at="node")
-    >>> elev[:] = grid.x_of_node/100+3
+    >>> elev[:] = grid.x_of_node / 100 + 3
     >>> base = grid.add_zeros("aquifer_base__elevation", at="node")
-    >>> base[:] = grid.x_of_node/100
+    >>> base[:] = grid.x_of_node / 100
     >>> wt = grid.add_zeros("water_table__elevation", at="node")
-    >>> wt[:] = grid.x_of_node/100 + 3
+    >>> wt[:] = grid.x_of_node / 100 + 3
 
     Initialize components
 
-    >>> gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1E-7)
-    >>> fa = FlowAccumulator(grid, runoff_rate='surface_water__specific_discharge')
+    >>> gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1e-7)
+    >>> fa = FlowAccumulator(grid, runoff_rate="surface_water__specific_discharge")
 
     Advance timestep. Default units are meters and seconds, though the component
     is unit agnostic.
 
-    >>> dt = 1E3
+    >>> dt = 1e3
     >>> for i in range(1000):
     ...     gdp.run_one_step(dt)
+    ...
 
     Calculate surface water flux out of domain
 
     >>> fa.run_one_step()
-    >>> np.testing.assert_almost_equal(gdp.calc_sw_flux_out(),0.0005077)
+    >>> np.testing.assert_almost_equal(gdp.calc_sw_flux_out(), 0.0005077)
 
 
     Notes

@@ -13,22 +13,21 @@ Created on Mon Nov 17 08:01:49 2014
 @author: gtucker
 """
 
-from numpy import (
-    amax,
-    arange,
-    array,
-    cos,
-    logical_and,
-    logical_or,
-    logical_xor,
-    pi,
-    sqrt,
-    tan,
-    where,
-    zeros,
-)
+from numpy import amax
+from numpy import arange
+from numpy import array
+from numpy import cos
+from numpy import logical_and
+from numpy import logical_or
+from numpy import logical_xor
+from numpy import pi
+from numpy import sqrt
+from numpy import tan
+from numpy import where
+from numpy import zeros
 
-from landlab import HexModelGrid, LinkStatus
+from landlab import HexModelGrid
+from landlab import LinkStatus
 from landlab.core.utils import as_id_array
 
 from ..cfuncs import get_next_event_new  # , update_link_state_new
@@ -157,7 +156,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pdata = np.arange(25)
     >>> ns = np.arange(25, dtype=int)
     >>> grid = HexModelGrid(
-    ...     (5, 5), spacing=1.0, orientation='vertical', node_layout='rect'
+    ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
     ... )
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.first_fw_col
@@ -223,7 +222,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         --------
         >>> import numpy as np
         >>> from landlab import HexModelGrid
-        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import (
+        ...     LatticeNormalFault,
+        ... )
 
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
@@ -450,7 +451,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import (
+        ...     LatticeNormalFault,
+        ... )
         >>> from landlab import HexModelGrid
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
@@ -578,12 +581,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> mg = HexModelGrid(
         ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
         ... )
-        >>> nsd = {0 : 'yes', 1 : 'no'}
+        >>> nsd = {0: "yes", 1: "no"}
         >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'test'))
-        >>> xnlist.append(Transition((0,0,1), (1,1,1), 1.0, 'test'))
-        >>> xnlist.append(Transition((0,0,2), (1,1,2), 1.0, 'test'))
-        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "test"))
+        >>> xnlist.append(Transition((0, 0, 1), (1, 1, 1), 1.0, "test"))
+        >>> xnlist.append(Transition((0, 0, 2), (1, 1, 2), 1.0, "test"))
+        >>> nsg = mg.add_zeros("node", "node_state_grid")
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
@@ -625,12 +628,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> mg = HexModelGrid(
         ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
         ... )
-        >>> nsd = {0 : 'yes', 1 : 'no'}
+        >>> nsd = {0: "yes", 1: "no"}
         >>> xnlist = []
-        >>> xnlist.append(Transition((1,0,0), (1,1,0), 1.0, 'frogging'))
-        >>> xnlist.append(Transition((1,0,1), (1,1,1), 1.0, 'frogging'))
-        >>> xnlist.append(Transition((1,0,2), (1,1,2), 1.0, 'frogging'))
-        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> xnlist.append(Transition((1, 0, 0), (1, 1, 0), 1.0, "frogging"))
+        >>> xnlist.append(Transition((1, 0, 1), (1, 1, 1), 1.0, "frogging"))
+        >>> xnlist.append(Transition((1, 0, 2), (1, 1, 2), 1.0, "frogging"))
+        >>> nsg = mg.add_zeros("node", "node_state_grid")
         >>> nsg[:10] = 1
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
@@ -682,7 +685,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeNormalFault
+        >>> from landlab.ca.boundaries.hex_lattice_tectonicizer import (
+        ...     LatticeNormalFault,
+        ... )
         >>> from landlab import HexModelGrid
         >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
         >>> from landlab.ca.celllab_cts import Transition
@@ -704,9 +709,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
         >>> ns[5:] = 0
         >>> ns[:5] = 1
-        >>> nsd = {0 : 'yes', 1 : 'no'}
+        >>> nsd = {0: "yes", 1: "no"}
         >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'test'))
+        >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "test"))
         >>> ohcts = OrientedHexCTS(grid, nsd, xnlist, ns)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> ohcts.link_state[5:33]
@@ -886,9 +891,10 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> nsd = {}  # node state dict
         >>> for i in range(10):
         ...     nsd[i] = i
+        ...
         >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging'))
-        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging"))
+        >>> nsg = mg.add_zeros("node", "node_state_grid")
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
 
         >>> lu = LatticeUplifter(opt_block_layer=True)
@@ -897,15 +903,23 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 9, 9])
-        >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=2,
-        ... block_layer_dip_angle=90.0, layer_left_x=1.0)
+        >>> lu = LatticeUplifter(
+        ...     opt_block_layer=True,
+        ...     block_layer_thickness=2,
+        ...     block_layer_dip_angle=90.0,
+        ...     layer_left_x=1.0,
+        ... )
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 7, 9])
         >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
         >>> lu.node_state[:5]
         array([0, 9, 0, 7, 9])
-        >>> lu = LatticeUplifter(opt_block_layer=True, block_layer_thickness=1,
-        ... block_layer_dip_angle=45.0, y0_top=-1.0)
+        >>> lu = LatticeUplifter(
+        ...     opt_block_layer=True,
+        ...     block_layer_thickness=1,
+        ...     block_layer_dip_angle=45.0,
+        ...     y0_top=-1.0,
+        ... )
         >>> lu._get_new_base_nodes(rock_state=7)
         array([9, 7, 9])
         >>> lu.uplift_interior_nodes(ca, current_time=0.0, rock_state=7)
@@ -1042,21 +1056,22 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> nsd = {}
         >>> for i in range(26):
         ...     nsd[i] = i
+        ...
         >>> xnlist = []
-        >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'frogging', True))
-        >>> nsg = mg.add_zeros('node', 'node_state_grid')
+        >>> xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging", True))
+        >>> nsg = mg.add_zeros("node", "node_state_grid")
         >>> ca = HexCTS(mg, nsd, xnlist, nsg)
-        >>> pd = mg.add_zeros('node', 'propdata')
+        >>> pd = mg.add_zeros("node", "propdata")
         >>> lu = LatticeUplifter(propid=ca.propid, prop_data=pd)
         >>> lu.node_state[:] = np.arange(len(lu.node_state))
         >>> lu.uplift_interior_nodes(ca, rock_state=25, current_time=0.0)
-        >>> lu.node_state # doctest: +NORMALIZE_WHITESPACE
+        >>> lu.node_state
         array([ 0, 25,  2, 25, 25,
                 5,  1,  7,  3,  4,
                10,  6, 12,  8,  9,
                15, 11, 17, 13, 14,
                20, 16, 22, 18, 19])
-        >>> lu.propid # doctest: +NORMALIZE_WHITESPACE
+        >>> lu.propid
         array([ 0, 21,  2, 23, 24,
                 5,  1,  7,  3,  4,
                10,  6, 12,  8,  9,

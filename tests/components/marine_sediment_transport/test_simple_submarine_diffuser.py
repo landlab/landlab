@@ -5,7 +5,8 @@ Created on Fri Feb 12 17:12:24 2021
 @author: gtucker
 """
 
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components import SimpleSubmarineDiffuser

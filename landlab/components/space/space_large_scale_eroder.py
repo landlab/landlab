@@ -5,7 +5,8 @@ Benjamin Campforts
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
@@ -49,9 +50,7 @@ class SpaceLargeScaleEroder(Component):
     ---------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import (
-    ...     PriorityFloodFlowRouter, SpaceLargeScaleEroder
-    ... )
+    >>> from landlab.components import PriorityFloodFlowRouter, SpaceLargeScaleEroder
     >>> import matplotlib.pyplot as plt  # For plotting results; optional
     >>> from landlab import imshow_grid  # For plotting results; optional
 
@@ -66,7 +65,7 @@ class SpaceLargeScaleEroder(Component):
     >>> mg.at_node["soil__depth"][mg.core_nodes] = 2.0
     >>> _ = mg.add_zeros("bedrock__elevation", at="node")
     >>> mg.at_node["bedrock__elevation"] += (
-    ...     mg.node_y / 10. + mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.
+    ...     mg.node_y / 10.0 + mg.node_x / 10.0 + np.random.rand(len(mg.node_y)) / 10.0
     ... )
     >>> mg.at_node["bedrock__elevation"][:] = mg.at_node["topographic__elevation"]
     >>> mg.at_node["topographic__elevation"][:] += mg.at_node["soil__depth"]
@@ -77,10 +76,10 @@ class SpaceLargeScaleEroder(Component):
     ...     top_is_closed=True,
     ... )
     >>> mg.set_watershed_boundary_condition_outlet_id(
-    ...     0, mg.at_node['topographic__elevation'], -9999.0
+    ...     0, mg.at_node["topographic__elevation"], -9999.0
     ... )
 
-    >>> fr = PriorityFloodFlowRouter(mg, flow_metric='D8', suppress_out = True)
+    >>> fr = PriorityFloodFlowRouter(mg, flow_metric="D8", suppress_out=True)
     >>> sp = SpaceLargeScaleEroder(
     ...     mg,
     ...     K_sed=0.01,
@@ -105,6 +104,7 @@ class SpaceLargeScaleEroder(Component):
     ...     sed_flux[count] = mg.at_node["sediment__flux"][node_next_to_outlet]
     ...     elapsed_time += timestep
     ...     count += 1
+    ...
 
     Plot the results.
 
@@ -421,6 +421,31 @@ class SpaceLargeScaleEroder(Component):
         self._K_sed = return_array_at_node(self._grid, new_val)
 
     @property
+    def fraction_fines(self):
+        """Fraction of permanently suspendable fines in bedrock [-]."""
+        return self._F_f
+
+    @property
+    def sediment_porosity(self):
+        """Sediment porosity [-]."""
+        return self._phi
+
+    @property
+    def settling_velocity(self):
+        """Effective settling velocity for chosen grain size metric [L/T]."""
+        return self._v_s
+
+    @property
+    def drainage_area_exp(self):
+        """Drainage area exponent (units vary)."""
+        return self._m_sp
+
+    @property
+    def slope_exp(self):
+        """Slope exponent (units vary)."""
+        return self._n_sp
+
+    @property
     def Es(self):
         """Sediment erosion term."""
         return self._Es
@@ -438,7 +463,6 @@ class SpaceLargeScaleEroder(Component):
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
 
-        br = self.grid.at_node["bedrock__elevation"]
         H = self.grid.at_node["soil__depth"]
 
         # if sp_crits are zero, then this colapses to correct all the time.
@@ -471,12 +495,6 @@ class SpaceLargeScaleEroder(Component):
         self._br_erosion_term = omega_br - self._sp_crit_br * (
             1.0 - np.exp(-omega_br_over_sp_crit)
         )
-
-        # Do not allow for the formation of potholes (addition v2)
-        r = self._grid.at_node["flow__receiver_node"]
-        br_e_max = br - br[r]
-        br_e_max[br_e_max < 0] = 0
-        self._br_erosion_term = np.minimum(self._br_erosion_term, br_e_max)
 
         self._Es = self._sed_erosion_term * (1.0 - np.exp(-H / self._H_star))
         self._Er = self._br_erosion_term * np.exp(-H / self._H_star)
@@ -553,7 +571,7 @@ class SpaceLargeScaleEroder(Component):
             self._thickness_lim,
         )
 
-        V_leaving_riv = np.sum(self.sediment_influx) * dt
+        V_leaving_riv = np.sum(self.sediment_influx[self.grid.boundary_nodes]) * dt
         # Update topography
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]

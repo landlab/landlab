@@ -1,4 +1,5 @@
 """Plot drainage network."""
+
 import matplotlib.pylab as plt
 import numpy as np
 

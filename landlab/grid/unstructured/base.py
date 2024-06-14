@@ -1,7 +1,9 @@
 import numpy as np
 
 from .cells import CellGrid
-from .links import LinkGrid, _split_link_ends, find_active_links
+from .links import LinkGrid
+from .links import _split_link_ends
+from .links import find_active_links
 from .nodes import NodeGrid
 from .status import StatusGrid
 
@@ -67,8 +69,9 @@ class BaseGrid:
     True
 
     >>> tails, heads = zip(*links)
-    >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
-    ...     node_status=[0, 0, 0, 4], links=[tails, heads])
+    >>> grid = BaseGrid(
+    ...     ([0, 0, 1, 1], [0, 1, 0, 1]), node_status=[0, 0, 0, 4], links=[tails, heads]
+    ... )
     >>> grid.status_at_node
     array([0, 0, 0, 4])
     >>> len(grid.active_links_entering_at_node(0)) == 0
@@ -135,8 +138,11 @@ class BaseGrid:
         True
 
         >>> tails, heads = zip(*links)
-        >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]),
-        ...     node_status=[0, 0, 0, 4], links=[tails, heads])
+        >>> grid = BaseGrid(
+        ...     ([0, 0, 1, 1], [0, 1, 0, 1]),
+        ...     node_status=[0, 0, 0, 4],
+        ...     links=[tails, heads],
+        ... )
         >>> grid.status_at_node
         array([0, 0, 0, 4])
         >>> len(grid.active_links_entering_at_node(0)) == 0
@@ -199,8 +205,9 @@ class BaseGrid:
         >>> ngrid.axis_units
         ('-', '-')
 
-        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]),
-        ...     axis_units=['degrees_north', 'degrees_east'])
+        >>> ngrid = BaseGrid(
+        ...     ([0, 1, 0], [1, 1, 0]), axis_units=["degrees_north", "degrees_east"]
+        ... )
         >>> ngrid.axis_units
         ('degrees_north', 'degrees_east')
         """
@@ -222,7 +229,7 @@ class BaseGrid:
         >>> ngrid.axis_name
         ('y', 'x')
 
-        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]), axis_name=['lat', 'lon'])
+        >>> ngrid = BaseGrid(([0, 1, 0], [1, 1, 0]), axis_name=["lat", "lon"])
         >>> ngrid.axis_name
         ('lat', 'lon')
         """
@@ -409,12 +416,12 @@ class BaseGrid:
         --------
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 4, 4], [0, 3, 0, 3]))
-        >>> grid.point_to_node_distance((0., 0.), [1, 2, 3])
+        >>> grid.point_to_node_distance((0.0, 0.0), [1, 2, 3])
         array([ 3.,  4.,  5.])
-        >>> grid.point_to_node_distance((0., 0.))
+        >>> grid.point_to_node_distance((0.0, 0.0))
         array([ 0.,  3.,  4.,  5.])
         >>> out = np.empty(4)
-        >>> out is grid.point_to_node_distance((0., 0.), out=out)
+        >>> out is grid.point_to_node_distance((0.0, 0.0), out=out)
         True
         >>> out
         array([ 0.,  3.,  4.,  5.])
@@ -440,12 +447,12 @@ class BaseGrid:
         --------
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
-        >>> grid.point_to_node_angle((0., 0.), [1, 2, 3]) / np.pi
+        >>> grid.point_to_node_angle((0.0, 0.0), [1, 2, 3]) / np.pi
         array([ 0.  ,  0.5 ,  0.25])
-        >>> grid.point_to_node_angle((0., 0.)) / np.pi
+        >>> grid.point_to_node_angle((0.0, 0.0)) / np.pi
         array([ 0.  ,  0.  ,  0.5 ,  0.25])
         >>> out = np.empty(4)
-        >>> out is grid.point_to_node_angle((0., 0.), out=out)
+        >>> out is grid.point_to_node_angle((0.0, 0.0), out=out)
         True
         >>> out / np.pi
         array([ 0.  ,  0.  ,  0.5 ,  0.25])
@@ -471,14 +478,14 @@ class BaseGrid:
         --------
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
-        >>> grid.point_to_node_azimuth((0., 0.), [1, 2, 3])
+        >>> grid.point_to_node_azimuth((0.0, 0.0), [1, 2, 3])
         array([ 90.,   0.,  45.])
-        >>> grid.point_to_node_azimuth((0., 0.))
+        >>> grid.point_to_node_azimuth((0.0, 0.0))
         array([ 90.,  90.,   0.,  45.])
-        >>> grid.point_to_node_azimuth((0., 0.), 1)
+        >>> grid.point_to_node_azimuth((0.0, 0.0), 1)
         array([ 90.])
         >>> out = np.empty(4)
-        >>> out is grid.point_to_node_azimuth((0., 0.), out=out)
+        >>> out is grid.point_to_node_azimuth((0.0, 0.0), out=out)
         True
         >>> out
         array([ 90.,  90.,   0.,  45.])
@@ -504,17 +511,17 @@ class BaseGrid:
         --------
         >>> from landlab.grid.unstructured.base import BaseGrid
         >>> grid = BaseGrid(([0, 0, 1, 1], [0, 1, 0, 1]))
-        >>> grid.point_to_node_vector((0., 0.), [1, 2, 3])
+        >>> grid.point_to_node_vector((0.0, 0.0), [1, 2, 3])
         array([[ 0.,  1.,  1.],
                [ 1.,  0.,  1.]])
-        >>> grid.point_to_node_vector((0., 0.))
+        >>> grid.point_to_node_vector((0.0, 0.0))
         array([[ 0.,  0.,  1.,  1.],
                [ 0.,  1.,  0.,  1.]])
-        >>> grid.point_to_node_vector((0., 0.), 1)
+        >>> grid.point_to_node_vector((0.0, 0.0), 1)
         array([[ 0.],
                [ 1.]])
         >>> out = np.empty((2, 1))
-        >>> out is grid.point_to_node_vector((0., 0.), 1, out=out)
+        >>> out is grid.point_to_node_vector((0.0, 0.0), 1, out=out)
         True
         >>> out
         array([[ 0.],

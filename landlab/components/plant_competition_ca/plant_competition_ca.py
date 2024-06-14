@@ -41,15 +41,17 @@ class VegCA(Component):
     'Cellular Automata Plant Competition'
     >>> sorted(VegCA.output_var_names)
     ['plant__age', 'plant__live_index']
-    >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(VegCA.units)
     [('plant__age', 'Years'),
      ('plant__live_index', 'None'),
      ('vegetation__cumulative_water_stress', 'None'),
      ('vegetation__plant_functional_type', 'None')]
-    >>> grid['cell']['vegetation__plant_functional_type']= np.arange(
-    ...        0, grid.number_of_cells, dtype=int)
-    >>> grid['cell']['vegetation__cumulative_water_stress'] = np.ones(
-    ...        grid.number_of_cells)
+    >>> grid["cell"]["vegetation__plant_functional_type"] = np.arange(
+    ...     0, grid.number_of_cells, dtype=int
+    ... )
+    >>> grid["cell"]["vegetation__cumulative_water_stress"] = np.ones(
+    ...     grid.number_of_cells
+    ... )
     >>> ca_veg = VegCA(grid)
     >>> ca_veg.grid.number_of_cell_rows
     3
@@ -58,9 +60,9 @@ class VegCA(Component):
     >>> ca_veg.grid is grid
     True
     >>> import numpy as np
-    >>> A = np.copy(grid['cell']['plant__age'])
+    >>> A = np.copy(grid["cell"]["plant__age"])
     >>> ca_veg.update()
-    >>> np.alltrue(grid['cell']['plant__age'] == A)
+    >>> np.alltrue(grid["cell"]["plant__age"] == A)
     False
 
     References

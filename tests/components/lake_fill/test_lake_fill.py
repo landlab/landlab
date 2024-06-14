@@ -5,13 +5,13 @@ from collections import deque
 import numpy as np
 import pytest
 
-from landlab import FieldError, HexModelGrid, RasterModelGrid
-from landlab.components import (
-    FlowAccumulator,
-    FlowDirectorDINF,
-    FlowDirectorSteepest,
-    LakeMapperBarnes,
-)
+from landlab import FieldError
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import FlowDirectorDINF
+from landlab.components import FlowDirectorSteepest
+from landlab.components import LakeMapperBarnes
 from landlab.utils import StablePriorityQueue
 
 """

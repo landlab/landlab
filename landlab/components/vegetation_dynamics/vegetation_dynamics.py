@@ -29,20 +29,20 @@ class Vegetation(Component):
 
     Create a grid on which to simulate vegetation dynamics.
 
-    >>> grid = RasterModelGrid((5,4), xy_spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
 
     The grid will need some input data. To check the names of the fields
     that provide the input to this component, use the *input_var_names*
     class property.
 
-    >>> sorted(Vegetation.input_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(Vegetation.input_var_names)
     ['surface__evapotranspiration',
      'surface__potential_evapotranspiration_30day_mean',
      'surface__potential_evapotranspiration_rate',
      'vegetation__plant_functional_type',
      'vegetation__water_stress']
 
-    >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(Vegetation.units)
     [('surface__evapotranspiration', 'mm'),
      ('surface__potential_evapotranspiration_30day_mean', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
@@ -56,18 +56,19 @@ class Vegetation(Component):
 
     Provide all the input fields.
 
-    >>> grid['cell']['vegetation__plant_functional_type']= (
-    ...         np.zeros(grid.number_of_cells, dtype=int))
-    >>> grid['cell']['surface__evapotranspiration'] = (
-    ...         0.2 * np.ones(grid.number_of_cells))
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
-    ...         0.25547770, 0.25547770, 0.22110221,
-    ...         0.22110221, 0.24813062, 0.24813062])
-    >>> grid['cell']['surface__potential_evapotranspiration_30day_mean']= (
-    ...        np.array([0.25547770, 0.25547770, 0.22110221,
-    ...                  0.22110221, 0.24813062, 0.24813062]))
-    >>> grid['cell']['vegetation__water_stress'] = (
-    ...        0.01 * np.ones(grid.number_of_cells))
+    >>> grid["cell"]["vegetation__plant_functional_type"] = np.zeros(
+    ...     grid.number_of_cells, dtype=int
+    ... )
+    >>> grid["cell"]["surface__evapotranspiration"] = 0.2 * np.ones(
+    ...     grid.number_of_cells
+    ... )
+    >>> grid["cell"]["surface__potential_evapotranspiration_rate"] = np.array(
+    ...     [0.25547770, 0.25547770, 0.22110221, 0.22110221, 0.24813062, 0.24813062]
+    ... )
+    >>> grid["cell"]["surface__potential_evapotranspiration_30day_mean"] = np.array(
+    ...     [0.25547770, 0.25547770, 0.22110221, 0.22110221, 0.24813062, 0.24813062]
+    ... )
+    >>> grid["cell"]["vegetation__water_stress"] = 0.01 * np.ones(grid.number_of_cells)
 
     Instantiate the 'Vegetation' component.
 
@@ -80,19 +81,19 @@ class Vegetation(Component):
     >>> Veg.grid is grid
     True
     >>> import numpy as np
-    >>> sorted(Vegetation.output_var_names)  # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(Vegetation.output_var_names)
     ['vegetation__cover_fraction',
      'vegetation__dead_biomass',
      'vegetation__dead_leaf_area_index',
      'vegetation__live_biomass',
      'vegetation__live_leaf_area_index']
 
-    >>> np.all(grid.at_cell['vegetation__live_leaf_area_index'] == 0.)
+    >>> np.all(grid.at_cell["vegetation__live_leaf_area_index"] == 0.0)
     True
 
     >>> Veg.update()
 
-    >>> np.all(grid.at_cell['vegetation__live_leaf_area_index'] == 0.)
+    >>> np.all(grid.at_cell["vegetation__live_leaf_area_index"] == 0.0)
     False
 
     References

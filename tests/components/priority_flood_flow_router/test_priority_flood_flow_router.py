@@ -2,17 +2,19 @@
 
 @author: benjaminCampforts
 """
+
 import numpy as np
 import pytest
 from numpy import testing
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
-from landlab import FieldError, HexModelGrid, RasterModelGrid
+from landlab import FieldError
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.components import PriorityFloodFlowRouter
-from landlab.components.priority_flood_flow_router.cfuncs import (
-    _D8_FlowAcc,
-    _D8_flowDir,
-)
+from landlab.components.priority_flood_flow_router.cfuncs import _D8_FlowAcc
+from landlab.components.priority_flood_flow_router.cfuncs import _D8_flowDir
 from landlab.grid.nodestatus import NodeStatus
 
 try:
@@ -25,9 +27,7 @@ def test_check_fields():
     """Check to make sure the right fields have been created."""
     # %%
     mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    z = mg.add_field(
-        "topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node"
-    )
+    z = mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
 
     PriorityFloodFlowRouter(mg)
     assert_array_equal(z, mg.at_node["topographic__elevation"])

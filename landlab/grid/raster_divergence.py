@@ -60,7 +60,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
            [ 0.  ,  1.14,  0.22,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ]])
     >>> _ = grid.add_field("neg_grad_at_link", -grads, at="link")
-    >>> calc_flux_div_at_node(grid, 'neg_grad_at_link').reshape(grid.shape)
+    >>> calc_flux_div_at_node(grid, "neg_grad_at_link").reshape(grid.shape)
     array([[ 0.  ,  0.  ,  0.  ,  0.  ],
            [ 0.  ,  1.64,  0.94,  0.  ],
            [ 0.  ,  0.  ,  0.  ,  0.  ]])

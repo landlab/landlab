@@ -2,31 +2,32 @@ import hypothesis.extra.numpy as hynp
 import numpy as np
 import pytest
 from hypothesis import given
-from hypothesis.strategies import composite, floats, integers, lists
+from hypothesis.strategies import composite
+from hypothesis.strategies import floats
+from hypothesis.strategies import integers
+from hypothesis.strategies import lists
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.grid.create_network import (
-    AlongChannelSpacingAtLeast,
-    AtMostNodes,
-    ChannelSegment,
-    ChannelSegmentConnector,
-    JustEndNodes,
-    SegmentLinkCollector,
-    SegmentNodeCoordinateCollector,
-    SegmentNodeReindexer,
-    SpacingAtLeast,
-    _reduce_nodes,
-    _reduce_to_fewest_nodes,
-    create_network_links,
-    create_xy_of_node,
-    get_node_fields,
-    network_grid_from_raster,
-    network_grid_from_segments,
-    pairwise,
-    reindex_network_nodes,
-    spacing_from_drainage_area,
-)
+from landlab.grid.create_network import AlongChannelSpacingAtLeast
+from landlab.grid.create_network import AtMostNodes
+from landlab.grid.create_network import ChannelSegment
+from landlab.grid.create_network import ChannelSegmentConnector
+from landlab.grid.create_network import JustEndNodes
+from landlab.grid.create_network import SegmentLinkCollector
+from landlab.grid.create_network import SegmentNodeCoordinateCollector
+from landlab.grid.create_network import SegmentNodeReindexer
+from landlab.grid.create_network import SpacingAtLeast
+from landlab.grid.create_network import _reduce_nodes
+from landlab.grid.create_network import _reduce_to_fewest_nodes
+from landlab.grid.create_network import create_network_links
+from landlab.grid.create_network import create_xy_of_node
+from landlab.grid.create_network import get_node_fields
+from landlab.grid.create_network import network_grid_from_raster
+from landlab.grid.create_network import network_grid_from_segments
+from landlab.grid.create_network import pairwise
+from landlab.grid.create_network import reindex_network_nodes
+from landlab.grid.create_network import spacing_from_drainage_area
 
 
 @given(

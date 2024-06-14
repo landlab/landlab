@@ -7,7 +7,8 @@ Model bedrock incision and gravel transport and abrasion in a network of rivers.
 
 import numpy as np
 
-from landlab import Component, HexModelGrid
+from landlab import Component
+from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 _DT_MAX = 1.0e-2
@@ -98,6 +99,7 @@ class GravelBedrockEroder(Component):
     ...     elev[grid.core_nodes] += 1.0
     ...     fa.run_one_step()
     ...     eroder.run_one_step(10000.0)
+    ...
     >>> int(elev[4] * 100)
     2266
     """
@@ -401,7 +403,7 @@ class GravelBedrockEroder(Component):
         >>> chan_width = eroder.calc_implied_width()
         >>> int(chan_width[4] * 100)
         3833
-        >>> grid.at_node["surface_water__discharge"] *= 1. / (3600 * 24 * 365.25)
+        >>> grid.at_node["surface_water__discharge"] *= 1.0 / (3600 * 24 * 365.25)
         >>> chan_width = eroder.calc_implied_width(time_unit="s")
         >>> int(chan_width[4] * 100)
         3838
@@ -574,7 +576,7 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder.calc_bedrock_plucking_rate()
-        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01**(7./ 6.)/grid_res
+        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01 ** (7.0 / 6.0) / grid_res
         >>> round(predicted_plucking_rate, 9)  # Kp Q S^(7/6)
         4.64e-07
         >>> int(round(eroder._pluck_rate[4] * 1e9))

@@ -13,16 +13,12 @@ import contextlib
 import numpy as np
 import xarray as xr
 
-from landlab.io import (
-    MismatchGridDataSizeError,
-    MismatchGridXYLowerLeft,
-    MismatchGridXYSpacing,
-)
-from landlab.io.netcdf._constants import (
-    _AXIS_COORDINATE_NAMES,
-    _AXIS_DIMENSION_NAMES,
-    _COORDINATE_NAMES,
-)
+from landlab.io import MismatchGridDataSizeError
+from landlab.io import MismatchGridXYLowerLeft
+from landlab.io import MismatchGridXYSpacing
+from landlab.io.netcdf._constants import _AXIS_COORDINATE_NAMES
+from landlab.io.netcdf._constants import _AXIS_DIMENSION_NAMES
+from landlab.io.netcdf._constants import _COORDINATE_NAMES
 from landlab.io.netcdf.errors import NotRasterGridError
 from landlab.utils import add_halo
 
@@ -283,24 +279,24 @@ def read_netcdf(
     The data file also contains data defined at the nodes for the grid for
     a variable called, *surface__elevation*.
 
-    >>> grid = read_netcdf("test-netcdf4.nc") # doctest: +SKIP
-    >>> grid.shape == (4, 3) # doctest: +SKIP
+    >>> grid = read_netcdf("test-netcdf4.nc")  # doctest: +SKIP
+    >>> grid.shape == (4, 3)  # doctest: +SKIP
     True
-    >>> grid.dy, grid.dx # doctest: +SKIP
+    >>> grid.dy, grid.dx  # doctest: +SKIP
     (1.0, 1.0)
-    >>> list(grid.at_node.keys()) # doctest: +SKIP
+    >>> list(grid.at_node.keys())  # doctest: +SKIP
     ['surface__elevation']
-    >>> grid.at_node['surface__elevation'] # doctest: +SKIP
+    >>> grid.at_node["surface__elevation"]  # doctest: +SKIP
     array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
             11.])
 
     :func:`read_netcdf` will try to determine the format of the netcdf file.
     For example, the same call will also work for *netcdf3*-formatted files.
 
-    >>> grid = read_netcdf("test-netcdf3-64bit.nc") # doctest: +SKIP
-    >>> grid.shape == (4, 3) # doctest: +SKIP
+    >>> grid = read_netcdf("test-netcdf3-64bit.nc")  # doctest: +SKIP
+    >>> grid.shape == (4, 3)  # doctest: +SKIP
     True
-    >>> grid.dy, grid.dx # doctest: +SKIP
+    >>> grid.dy, grid.dx  # doctest: +SKIP
     (1.0, 1.0)
 
     A more complicated example might add data with a halo to an existing grid.
@@ -308,14 +304,14 @@ def read_netcdf(
     and the grid to align correctly.
 
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((6, 5), xy_of_lower_left=(-1., -1.)) # doctest: +SKIP
+    >>> grid = RasterModelGrid((6, 5), xy_of_lower_left=(-1.0, -1.0))  # doctest: +SKIP
     >>> grid = read_netcdf(
     ...     "test-netcdf4.nc",
     ...     grid=grid,
     ...     halo=1,
     ...     nodata_value=-1,
-    ... ) # doctest: +SKIP
-    >>> grid.at_node['surface__elevation'].reshape(grid.shape) # doctest: +SKIP
+    ... )  # doctest: +SKIP
+    >>> grid.at_node["surface__elevation"].reshape(grid.shape)  # doctest: +SKIP
     array([[ -1.,  -1.,  -1.,  -1.,  -1.],
            [ -1.,   0.,   1.,   2.,  -1.],
            [ -1.,   3.,   4.,   5.,  -1.],

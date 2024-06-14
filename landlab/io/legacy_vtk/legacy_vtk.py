@@ -110,6 +110,7 @@ def write_legacy_vtk(
     # vtk DataFile Version 2.0
     >>> for i in range(5, 13):
     ...     print(lines[i])
+    ...
     POINTS 7 float
     0.5 0.0 0.0
     1.5 0.0 1.0
@@ -120,6 +121,7 @@ def write_legacy_vtk(
     1.5 1.732051 6.0
     >>> for i in range(14, 21):
     ...     print(lines[i])
+    ...
     CELLS 6 24
     3 3 0 1
     3 3 2 0
@@ -129,6 +131,7 @@ def write_legacy_vtk(
     3 6 5 3
     >>> for i in range(22, 29):
     ...     print(lines[i])
+    ...
     CELL_TYPES 6
     5
     5
@@ -138,6 +141,7 @@ def write_legacy_vtk(
     5
     >>> for i in range(30, 49):
     ...     print(lines[i])
+    ...
     POINT_DATA 7
     SCALARS topographic__elevation float 1
     LOOKUP_TABLE default

@@ -1,22 +1,29 @@
 import contextlib
 import inspect
+import itertools
 import os
+import pathlib
+import re
 import sys
 import textwrap
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import partial
 
 import numpy as np
 import rich_click as click
 
-from landlab import (
-    FramedVoronoiGrid,
-    HexModelGrid,
-    ModelGrid,
-    RadialModelGrid,
-    RasterModelGrid,
-    VoronoiDelaunayGrid,
-)
+from landlab import FramedVoronoiGrid
+from landlab import HexModelGrid
+from landlab import ModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
+from landlab import VoronoiDelaunayGrid
+
+from .authors import AuthorList
+from .authors import AuthorsConfig
+from .authors import AuthorsSubprocessError
+from .authors import GitLog
 
 GRIDS = [
     ModelGrid,
@@ -137,6 +144,275 @@ def validate(component):
         click.Abort()
     else:
         out("💥 All good! 💥")
+
+
+@landlab.group()
+@click.option(
+    "--authors-file",
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
+    help="existing authors file",
+)
+@click.option(
+    "--credits-file",
+    default=".credits.toml",
+    type=click.Path(exists=False, file_okay=True, dir_okay=False, readable=True),
+    help="The file that contains a list of authors",
+)
+@click.pass_context
+def authors(ctx, authors_file, credits_file):
+    """Commands for working with lists of authors."""
+    verbose = ctx.parent.params["verbose"]
+    silent = ctx.parent.params["silent"]
+
+    config = AuthorsConfig(**{k: v for k, v in ctx.params.items() if v})
+
+    for k, v in config.items():
+        ctx.params[k] = v
+
+    if verbose and not silent:
+        config_str = textwrap.indent(str(config), prefix="  ")
+        out("using the following configuration:")
+        out(f"{config_str}")
+
+
+@authors.command()
+@click.option("--update-existing/--no-update-existing", default=True)
+@click.pass_context
+def create(ctx, update_existing):
+    """Create a database of contributors."""
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+    credits_file = pathlib.Path(ctx.parent.params["credits_file"])
+
+    git_log = GitLog("%an, %ae")
+    try:
+        names_and_emails = git_log()
+    except AuthorsSubprocessError as error:
+        err(error)
+        raise click.Abort() from error
+    else:
+        if verbose and not silent:
+            out(f"{git_log}")
+
+    if not silent and update_existing:
+        if not credits_file.is_file():
+            err(f"nothing to update ({credits_file})")
+        else:
+            out(f"updating existing author credits ({credits_file})")
+
+    authors = (
+        AuthorList.from_toml(credits_file)
+        if update_existing and credits_file.is_file()
+        else AuthorList()
+    )
+
+    authors.update(AuthorList.from_csv(names_and_emails))
+    lines = [author.to_toml() for author in sorted(authors, key=lambda item: item.name)]
+
+    print((2 * os.linesep).join(lines))
+
+
+@authors.command()
+@click.pass_context
+def build(ctx):
+    """Build an authors file."""
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+    exclude = ctx.parent.params["exclude"]
+    authors_file = pathlib.Path(ctx.parent.params["authors_file"])
+    author_format = ctx.parent.params["author_format"]
+    credits_file = pathlib.Path(ctx.parent.params["credits_file"])
+
+    git_log = GitLog("%aN")
+    try:
+        commit_authors = git_log()
+    except AuthorsSubprocessError as error:
+        err(error)
+        raise click.Abort() from error
+    else:
+        if verbose and not silent:
+            out(f"{git_log}")
+
+    intro = (
+        _read_until(authors_file, until=".. credits-roll start-author-list")
+        if authors_file.is_file()
+        else ""
+    )
+    if len(intro) == 0:
+        err(f"empty or missing authors file ({authors_file})")
+
+    authors = (
+        AuthorList.from_toml(credits_file) if credits_file.is_file() else AuthorList()
+    )
+
+    if len(authors) == 0:
+        err(f"missing or empty credits file ({credits_file})")
+
+    commits = defaultdict(int)
+    for author in commit_authors.splitlines():
+        canonical_name = authors.find_author(author.strip()).name
+        commits[canonical_name] += 1
+
+    lines = [intro]
+    for author in sorted(authors, key=lambda a: commits[a.name], reverse=True):
+        github = _guess_github_user(author)
+        if github is None:
+            github = "landlab"
+        author.github = github
+        if not exclude_matches_any(author.names, exclude):
+            lines.append(
+                author_format.format(
+                    name=author.name, github=author.github, email=author.email
+                )
+            )
+
+    print(os.linesep.join(lines))
+
+
+def _read_until(path_to_file, until=None):
+    """Read a file until a line starting with a given string.
+
+    Parameters
+    ----------
+    path_to_file : str or path-like
+        The file to read.
+    until : str, optional
+        Read lines until reaching a line that starts with ``until``.
+        If not provided, read the entire file.
+
+    Returns
+    -------
+    str
+        The contents of the file up to, and including, the search
+        string.
+    """
+    with open(path_to_file) as fp:
+        if until is None:
+            return fp.read()
+
+        lines = []
+        for line in fp.readlines():
+            if line.startswith(until):
+                lines.append(line)
+                break
+            lines.append(line)
+    return "".join(lines)
+
+
+def _guess_github_user(author):
+    """Guess an author's github username."""
+    github = None
+
+    try:
+        github = author.github
+    except AttributeError:
+        pass
+
+    try:
+        github = author._extras["github"]
+    except KeyError:
+        pass
+
+    if github is None:
+        for email in sorted(author.emails):
+            if email.endswith("github.com"):
+                github, _ = email.split("@")
+                if "+" in github:
+                    _, github = github.split("+")
+                break
+
+    if github is None:
+        for name in sorted(author.names):
+            if name.isalnum():
+                github = name
+                break
+
+    return github
+
+
+@authors.command()
+@click.pass_context
+def mailmap(ctx):
+    """Create a mailmap file from an author list."""
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+    credits_file = ctx.parent.params["credits_file"]
+
+    if verbose and not silent:
+        out(f"reading author list: {credits_file}")
+    print(
+        textwrap.dedent(
+            """
+            # Prevent git from showing duplicate names with commands like "git shortlog"
+            # See the manpage of git-shortlog for details.
+            # The syntax is:
+            #
+            #   Name that should be used <email that should be used> Bad name <bad email>
+            #
+            # You can skip Bad name if it is the same as the one that should be used,
+            # and is unique.
+            #
+            # This file is up-to-date if the command,
+            #
+            #   git log --format="%aN <%aE>" | sort -u
+            #
+            # gives no duplicates.
+            """
+        ).lstrip()
+    )
+    authors = AuthorList.from_toml(credits_file)
+    for author in authors:
+        good_name, good_email = author.name, author.email
+        for bad_name, bad_email in itertools.product(
+            sorted(author.names), sorted(author.emails)
+        ):
+            print(f"{good_name} <{good_email}> {bad_name} <{bad_email}>")
+
+
+@authors.command(name="list")
+@click.option(
+    "--file",
+    default="authors.toml",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
+    help="existing authors file",
+)
+@click.pass_context
+def authors_list(ctx, file):
+    verbose = ctx.parent.parent.params["verbose"]
+    silent = ctx.parent.parent.params["silent"]
+    exclude = ctx.parent.params["exclude"]
+
+    git_log = GitLog("%aN")
+    try:
+        commit_authors = git_log()
+    except AuthorsSubprocessError as error:
+        err(error)
+        raise click.Abort() from error
+    else:
+        if verbose and not silent:
+            out(f"{git_log}")
+
+    if verbose and not silent:
+        out(f"reading authors from {file}")
+    authors = AuthorList.from_toml(file)
+
+    commits = defaultdict(int)
+    for author in commit_authors.splitlines():
+        canonical_name = authors.find_author(author.strip()).name
+        commits[canonical_name] += 1
+
+    for name, n_commits in sorted(commits.items(), key=lambda x: x[1], reverse=True):
+        author = authors.find_author(name)
+        if not exclude_matches_any(author.names, exclude):
+            print(f"{author.name} <{author.email}> ({n_commits})")
+
+
+def exclude_matches_any(names: Iterable[str], exclude: str):
+    exclude_re = re.compile(exclude)
+    for name in names:
+        if exclude_re.search(name):
+            return True
+    return False
 
 
 @landlab.group(chain=True)

@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-from enum import IntEnum, unique
+from enum import IntEnum
+from enum import unique
 
 import numpy as np
 
@@ -47,7 +48,7 @@ def is_fixed_link(node_status_at_link):
     >>> is_fixed_link(
     ...     [
     ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CORE],
-    ...         [NodeStatus.CORE, NodeStatus.CORE]
+    ...         [NodeStatus.CORE, NodeStatus.CORE],
     ...     ]
     ... )
     array([ True, False], dtype=bool)
@@ -88,8 +89,12 @@ def is_inactive_link(node_status_at_link):
     >>> is_inactive_link([NodeStatus.FIXED_GRADIENT, NodeStatus.FIXED_VALUE])
     array([ True], dtype=bool)
 
-    >>> is_inactive_link([[NodeStatus.FIXED_GRADIENT, NodeStatus.CLOSED],
-    ...                   [NodeStatus.CORE, NodeStatus.CORE]])
+    >>> is_inactive_link(
+    ...     [
+    ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CLOSED],
+    ...         [NodeStatus.CORE, NodeStatus.CORE],
+    ...     ]
+    ... )
     array([ True, False], dtype=bool)
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
@@ -136,7 +141,7 @@ def is_active_link(node_status_at_link):
     >>> is_active_link(
     ...     [
     ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CORE],
-    ...         [NodeStatus.CORE, NodeStatus.CORE]
+    ...         [NodeStatus.CORE, NodeStatus.CORE],
     ...     ]
     ... )
     array([False, True], dtype=bool)

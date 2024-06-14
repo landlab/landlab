@@ -58,36 +58,41 @@ class TransportLengthHillslopeDiffuser(Component):
 
     >>> mg = RasterModelGrid((5, 5))
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
-    >>> z = np.array([0., 0., 0., 0., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 1., 1., 1., 0.,
-    ...               0., 0., 0., 0., 0.])
+    >>> z = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...     [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...     [0.0, 1.0, 1.0, 1.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ... ]
     >>> _ = mg.add_field("topographic__elevation", z, at="node")
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 
     >>> fdir = FlowDirectorSteepest(mg)
     >>> tl_diff = TransportLengthHillslopeDiffuser(
-    ...     mg,
-    ...     erodibility=0.001,
-    ...     slope_crit=0.6)
+    ...     mg, erodibility=0.001, slope_crit=0.6
+    ... )
 
     Run the components for ten short timepsteps
 
     >>> for t in range(10):
     ...     fdir.run_one_step()
-    ...     tl_diff.run_one_step(1.)
+    ...     tl_diff.run_one_step(1.0)
+    ...
 
     Check final topography
 
     >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'],
-    ...     np.array([ 0.,  0.        ,  0.        ,  0.        ,  0.,
-    ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
-    ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
-    ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
-    ...                0.,  0.        ,  0.        ,  0.        ,  0.]))
+    ...     mg.at_node["topographic__elevation"].reshape(mg.shape),
+    ...     [
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...         [0.0, 0.96175283, 0.99982519, 0.96175283, 0.0],
+    ...         [0.0, 0.96175283, 0.99982519, 0.96175283, 0.0],
+    ...         [0.0, 0.96175283, 0.99982519, 0.96175283, 0.0],
+    ...         [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     ],
+    ... )
     True
 
     References

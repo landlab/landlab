@@ -4,7 +4,8 @@ import pytest
 from matplotlib.backends.backend_pdf import PdfPages
 
 import landlab
-from landlab.plot.imshow import _guess_location_from_name, _guess_location_from_size
+from landlab.plot.imshow import _guess_location_from_name
+from landlab.plot.imshow import _guess_location_from_size
 
 
 @pytest.mark.slow

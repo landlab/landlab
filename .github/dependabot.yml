@@ -12,7 +12,7 @@ updates:
     labels: ["skip news", "dependencies"]
 
   - package-ecosystem: "pip"
-    directory: "."
+    directory: "/requirements"
     schedule:
       interval: "daily"
     target-branch: "dependencies"

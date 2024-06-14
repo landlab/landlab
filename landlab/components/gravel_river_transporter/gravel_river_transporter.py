@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from landlab import Component, HexModelGrid
+from landlab import Component
+from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 
@@ -86,6 +87,7 @@ class GravelRiverTransporter(Component):
     ...     fa.run_one_step()
     ...     elev[grid.core_nodes] += 1.0
     ...     transporter.run_one_step(10000.0)
+    ...
     >>> int(elev[4] * 100)
     2366
     """
@@ -331,7 +333,7 @@ class GravelRiverTransporter(Component):
         >>> width = transporter.calc_implied_width()
         >>> int(width[4] * 100)
         3833
-        >>> grid.at_node["surface_water__discharge"] *= 1. / (3600 * 24 * 365.25)
+        >>> grid.at_node["surface_water__discharge"] *= 1.0 / (3600 * 24 * 365.25)
         >>> width = transporter.calc_implied_width(time_unit="s")
         >>> int(width[4] * 100)
         3838

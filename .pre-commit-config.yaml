@@ -1,6 +1,20 @@
 repos:
+- repo: local
+  hooks:
+    - id: unnecessary_doctest_directives
+      name: Check for redundant doctest directives
+      description:
+        "Check for inline doctest directives that are specified globally through pyproject.toml"
+      types: [python]
+      entry: >
+        (?x)(
+          \+IGNORE_EXCEPTION_DETAIL|
+          \+NORMALIZE_WHITESPACE
+        )
+      language: pygrep
+
 - repo: https://github.com/psf/black
-  rev: 23.3.0
+  rev: 24.4.0
   hooks:
   - id: black
     name: black
@@ -22,20 +36,29 @@ repos:
     types_or: [python, pyi, jupyter]
     additional_dependencies: [".[jupyter]"]
 
+- repo: https://github.com/keewis/blackdoc
+  rev: v0.3.9
+  hooks:
+  - id: blackdoc
+    description: "Black for doctests"
+    additional_dependencies: ["black==24.4.0"]
+  - id: blackdoc-autoupdate-black
+
+
 - repo: https://github.com/pycqa/flake8
-  rev: 6.0.0
+  rev: 7.0.0
   hooks:
   - id: flake8
     additional_dependencies:
-    - flake8-bugbear
+    - flake8-bugbear!=24.4.21
     - flake8-comprehensions
     - flake8-simplify
 
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.7.0
+  rev: 1.8.5
   hooks:
     - id: nbqa-pyupgrade
-      args: ["--py39-plus"]
+      args: ["--py310-plus"]
     - id: nbqa-isort
     - id: nbqa-flake8
       args: ["--extend-ignore=E402"]
@@ -45,26 +68,31 @@ repos:
           )
 
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.6.1
+  rev: 0.7.1
   hooks:
     - id: nbstripout
       description: Strip output from jupyter notebooks
       args: [--drop-empty-cells]
 
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.3.1
+  rev: v3.15.2
   hooks:
   - id: pyupgrade
-    args: [--py39-plus]
+    args: [--py310-plus]
 
 - repo: https://github.com/PyCQA/isort
-  rev: 5.12.0
+  rev: 5.13.2
   hooks:
   - id: isort
-    files: \.py$
+    name: isort (python)
+    args: [--force-single-line-imports]
+    types: [python]
+  - id: isort
+    name: isort (cython)
+    types: [cython]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.4.0
+  rev: v4.6.0
   hooks:
     - id: check-builtin-literals
     - id: check-added-large-files

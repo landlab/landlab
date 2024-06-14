@@ -6,14 +6,14 @@ Created on Sun Jul 12 10:22:59 2020
 """
 
 import numpy as np
-from numpy.testing import (
-    assert_array_almost_equal,
-    assert_array_equal,
-    assert_equal,
-    assert_raises,
-)
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
+from numpy.testing import assert_equal
+from numpy.testing import assert_raises
 
-from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
+from landlab import HexModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
 from landlab.components import TidalFlowCalculator
 
 
@@ -177,9 +177,9 @@ def test_with_hex_grid():
     z[:] = -5.0
 
     # Close all boundary nodes except the bottom row
-    grid.status_at_node[
-        grid.status_at_node != grid.BC_NODE_IS_CORE
-    ] = grid.BC_NODE_IS_CLOSED
+    grid.status_at_node[grid.status_at_node != grid.BC_NODE_IS_CORE] = (
+        grid.BC_NODE_IS_CLOSED
+    )
     grid.status_at_node[0:3] = grid.BC_NODE_IS_FIXED_VALUE
 
     tfc = TidalFlowCalculator(grid, tidal_period=4.0e4)

@@ -4,7 +4,8 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.layers import EventLayers
-from landlab.layers.eventlayers import _BlockSlice, _valid_keywords_or_raise
+from landlab.layers.eventlayers import _BlockSlice
+from landlab.layers.eventlayers import _valid_keywords_or_raise
 
 
 def test_EventLayersMixIn():

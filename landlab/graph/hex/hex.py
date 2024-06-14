@@ -57,7 +57,8 @@ import numpy as np
 
 from ...core.utils import as_id_array
 from ...grid.linkorientation import LinkOrientation
-from ...utils.decorators import cache_result_in_object, make_return_array_immutable
+from ...utils.decorators import cache_result_in_object
+from ...utils.decorators import make_return_array_immutable
 from ..graph import Graph
 from ..voronoi.voronoi import DelaunayGraph
 
@@ -684,7 +685,7 @@ class HexGraphExtras:
         --------
         >>> import numpy as np
         >>> from landlab.graph import TriGraph
-        >>> graph = TriGraph((3, 4), node_layout='rect')
+        >>> graph = TriGraph((3, 4), node_layout="rect")
         >>> graph.nodes_at_right_edge
         array([ 3,  7, 11])
         """
@@ -702,7 +703,7 @@ class HexGraphExtras:
         --------
         >>> import numpy as np
         >>> from landlab.graph import TriGraph
-        >>> graph = TriGraph((3, 4), node_layout='rect')
+        >>> graph = TriGraph((3, 4), node_layout="rect")
         >>> graph.nodes_at_top_edge
         array([ 8,  9, 10, 11])
         """
@@ -720,7 +721,7 @@ class HexGraphExtras:
         --------
         >>> import numpy as np
         >>> from landlab.graph import TriGraph
-        >>> graph = TriGraph((3, 4), node_layout='rect')
+        >>> graph = TriGraph((3, 4), node_layout="rect")
         >>> graph.nodes_at_left_edge
         array([0, 4, 8])
         """
@@ -736,7 +737,7 @@ class HexGraphExtras:
         --------
         >>> import numpy as np
         >>> from landlab.graph import TriGraph
-        >>> graph = TriGraph((3, 4), node_layout='rect')
+        >>> graph = TriGraph((3, 4), node_layout="rect")
         >>> graph.nodes_at_bottom_edge
         array([0, 1, 2, 3])
         """
@@ -889,7 +890,6 @@ class HexGraphExtras:
 
 
 class TriGraph(HexGraphExtras, DelaunayGraph):
-
     """Graph of a structured grid of triangles.
 
     Examples
@@ -900,10 +900,9 @@ class TriGraph(HexGraphExtras, DelaunayGraph):
     >>> graph = TriGraph((3, 2))
     >>> graph.number_of_nodes == 6
     True
-    >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
-    ...     # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(graph.y_of_node * 2.0 / np.sqrt(3))
     array([ 0.,  0.,  1.,  1.,  2.,  2.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
+    >>> graph.x_of_node
     array([ 0. ,  1. ,  0.5,  1.5,  0. ,  1. ])
     """
 

@@ -3,10 +3,12 @@
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 from landlab.components.advection.flux_limiters import flux_lim_vanleer
 from landlab.field.errors import FieldError
-from landlab.utils.return_array import return_array_at_link, return_array_at_node
+from landlab.utils.return_array import return_array_at_link
+from landlab.utils.return_array import return_array_at_node
 
 
 def find_upwind_link_at_link(grid, u):
@@ -197,6 +199,7 @@ class AdvectionSolverTVD(Component):
     >>> advec = AdvectionSolverTVD(grid, fields_to_advect="advected__quantity")
     >>> for _ in range(5):
     ...     advec.update(0.2)
+    ...
     >>> np.argmax(s[7:14])
     4
     """

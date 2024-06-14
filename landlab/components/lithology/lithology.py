@@ -6,12 +6,12 @@ import xarray as xr
 from scipy.interpolate import interp1d
 
 from landlab import Component
-from landlab.layers import EventLayers, MaterialLayers
+from landlab.layers import EventLayers
+from landlab.layers import MaterialLayers
 from landlab.utils.return_array import return_array_at_node
 
 
 class Lithology(Component):
-
     """Create a Lithology object.
 
     A Lithology is a three dimentional representation of material operated on
@@ -41,10 +41,7 @@ class Lithology(Component):
 
     .. code-block:: python
 
-        attrs = {'K_sp': {1: 0.001,
-                          2: 0.0001},
-                 'D': {1: 0.01,
-                       2: 0.001}}
+        attrs = {"K_sp": {1: 0.001, 2: 0.0001}, "D": {1: 0.01, 2: 0.001}}
 
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
@@ -135,20 +132,19 @@ class Lithology(Component):
 
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         After creating a Lithology, the model grid will have an at-node grid
         field set to the surface values of 'K_sp'.
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
                 0.001])
 
         The surface values are also properties of the Lithology.
 
-        >>> lith['K_sp']
+        >>> lith["K_sp"]
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
                 0.001])
 
@@ -177,7 +173,7 @@ class Lithology(Component):
         the model grid.
 
         >>> layer_pattern = (0.5 * mg.x_of_node) + 1.0
-        >>> thicknesses = [1*layer_pattern, 2*layer_pattern, 4*layer_pattern]
+        >>> thicknesses = [1 * layer_pattern, 2 * layer_pattern, 4 * layer_pattern]
         >>> ids = [1, 2, 1]
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.thickness
@@ -359,8 +355,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.tracked_properties
         ['K_sp']
@@ -380,8 +375,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001}}
@@ -400,8 +394,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.thickness
         array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
@@ -423,8 +416,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -449,8 +441,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.z_bottom
         array([[ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.],
@@ -476,8 +467,7 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.z_top
         array([[ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
@@ -534,9 +524,7 @@ class Lithology(Component):
         We can instantiate Lithology with rock type properties we know we will
         use in the future.
 
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001,
-        ...                   3: 0.01}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001, 3: 0.01}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         Add a layer of thickness 3 and rock type 3.
@@ -545,16 +533,16 @@ class Lithology(Component):
 
         The value of `K_sp` at node is now updated to the value of rock type 3
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01])
 
         A negative value will erode. We can also pass a `(n_nodes,) long array
         to erode unevenly. If all parts of the layer erode, then no `rock_id`
         needs to be passed.
 
-        >>> erosion_amount = [-2., -2., -2., -4., -4., -4., -6., -6., -6.]
+        >>> erosion_amount = [-2.0, -2.0, -2.0, -4.0, -4.0, -4.0, -6.0, -6.0, -6.0]
         >>> lith.add_layer(erosion_amount)
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.01  ,  0.01  ,  0.01  ,  0.0001,  0.0001,  0.0001,  0.001 ,
                 0.001 ,  0.001 ])
 
@@ -618,14 +606,12 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
-        >>> lith.add_property({'D': {1: 0.03,
-        ...                        2: 0.004}})
+        >>> lith.add_property({"D": {1: 0.03, 2: 0.004}})
         >>> lith.tracked_properties
         ['D', 'K_sp']
-        >>> mg.at_node['D']
+        >>> mg.at_node["D"]
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
         """
         for at in attrs:
@@ -674,11 +660,9 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
-        >>> lith.add_rock_type({'K_sp': {4: 0.03,
-        ...                            6: 0.004}})
+        >>> lith.add_rock_type({"K_sp": {4: 0.03, 6: 0.004}})
         >>> lith.ids
         [1, 2, 4, 6]
         >>> lith.properties
@@ -734,17 +718,16 @@ class Lithology(Component):
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
                 0.001])
 
-        >>> lith.update_rock_properties('K_sp', 1, 0.03)
+        >>> lith.update_rock_properties("K_sp", 1, 0.03)
 
-        >>> mg.at_node['K_sp']
+        >>> mg.at_node["K_sp"]
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
         """
         if at not in self._properties:
@@ -850,8 +833,7 @@ class Lithology(Component):
         >>> z = mg.add_ones("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -881,7 +863,7 @@ class Lithology(Component):
 
         We can see the value of the rock type at the surface.
 
-        >>> mg.at_node['rock_type__id']
+        >>> mg.at_node["rock_type__id"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         If you deposit, a valid rock_id must be provided. If the rock type
@@ -911,10 +893,8 @@ class Lithology(Component):
         >>> z = mg.add_ones("topographic__elevation", at="node")
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
-        >>> lith = Lithology(mg, thicknesses, ids, attrs,
-        ...                  layer_type='EventLayers')
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
+        >>> lith = Lithology(mg, thicknesses, ids, attrs, layer_type="EventLayers")
         >>> lith.dz
         array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
                [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
@@ -942,7 +922,7 @@ class Lithology(Component):
         We can see the value of the rock type at the surface. As expected,
         it is just the same as if we used MaterialLayers.
 
-        >>> mg.at_node['rock_type__id']
+        >>> mg.at_node["rock_type__id"]
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
         If you deposit, a valid rock_id must be provided. Unlike

@@ -169,11 +169,11 @@ def read_shapefile(
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
     >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
-    >>> w.line([[[5,5],[10,10]]])
+    >>> w.line([[[5, 5], [10, 10]]])
     >>> w.record(37)
-    >>> w.line([[[5,0],[5,5]]])
+    >>> w.line([[[5, 0], [5, 5]]])
     >>> w.record(100)
-    >>> w.line([[[5,5],[0,10]]])
+    >>> w.line([[[5, 5], [0, 10]]])
     >>> w.record(239)
     >>> w.close()
 
@@ -203,11 +203,11 @@ def read_shapefile(
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
     >>> w.shapeType = shapefile.POLYLINE
     >>> w.field("spam", "N")
-    >>> w.line([[[5,5],[10,10]]])
+    >>> w.line([[[5, 5], [10, 10]]])
     >>> w.record(37)
-    >>> w.line([[[5,0],[5,5]]])
+    >>> w.line([[[5, 0], [5, 5]]])
     >>> w.record(100)
-    >>> w.line([[[5,5],[0,10]]])
+    >>> w.line([[[5, 5], [0, 10]]])
     >>> w.record(239)
     >>> w.close()
 

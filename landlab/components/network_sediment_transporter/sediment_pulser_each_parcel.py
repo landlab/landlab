@@ -5,13 +5,12 @@ import numpy as np
 from landlab.components.network_sediment_transporter.sediment_pulser_base import (
     SedimentPulserBase,
 )
-from landlab.data_record import DataRecord
+from landlab.data_record.data_record import DataRecord
 
 _OUT_OF_NETWORK = -2
 
 
 class SedimentPulserEachParcel(SedimentPulserBase):
-
     """Send pulses of sediment to specific point locations within the channel
     network and divide the pulses into parcels. Pulses may be any volume.
     Parcels must be less than or equal to a user specified maximum volume.
@@ -47,7 +46,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
     >>> nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
     >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
+    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, 0.01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
 
 
@@ -74,7 +73,7 @@ class SedimentPulserEachParcel(SedimentPulserBase):
 
     check element_id of each parcel
 
-    >>> print(parcels.dataset['element_id'].values)
+    >>> print(parcels.dataset["element_id"].values)
     [[1]
     [3]
     [3]
