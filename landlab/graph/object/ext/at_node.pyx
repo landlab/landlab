@@ -10,6 +10,7 @@ import numpy as np
 ctypedef fused float_or_int:
     cython.floating
     cython.integral
+    long long
     int8_t
 
 ctypedef fused id_t:
