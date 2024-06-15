@@ -95,6 +95,7 @@ repos:
     types: [python]
   - id: isort
     name: isort (cython)
+    args: [--force-single-line-imports]
     types: [cython]
 
 - repo: https://github.com/pre-commit/pre-commit-hooks

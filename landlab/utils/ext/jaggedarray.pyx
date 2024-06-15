@@ -8,8 +8,14 @@ ctypedef np.int_t INT_t
 ctypedef np.float_t FLOAT_t
 
 
-cdef _pad_jaggedarray(void * data, long * offset, size_t n_rows, size_t size,
-                      void * buff, size_t n_cols):
+cdef void _pad_jaggedarray(
+    void * data,
+    long * offset,
+    size_t n_rows,
+    size_t size,
+    void * buff,
+    size_t n_cols,
+) noexcept nogil:
     cdef int row
     cdef void * dst = buff
     cdef void * src = data
@@ -22,8 +28,12 @@ cdef _pad_jaggedarray(void * data, long * offset, size_t n_rows, size_t size,
 
 
 @cython.boundscheck(False)
-def unravel(np.ndarray data,
-            np.ndarray[long, ndim=1, mode="c"] offset,
-            np.ndarray out):
-    _pad_jaggedarray(data.data, &offset[0], len(offset) - 1,
-                     data.itemsize, out.data, out.shape[1])
+@cython.wraparound(False)
+def unravel(
+    np.ndarray data,
+    np.ndarray[long, ndim=1, mode="c"] offset,
+    np.ndarray out,
+):
+    _pad_jaggedarray(
+        data.data, &offset[0], len(offset) - 1, data.itemsize, out.data, out.shape[1]
+    )

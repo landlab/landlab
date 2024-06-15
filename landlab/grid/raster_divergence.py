@@ -89,6 +89,25 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
 
 
 def calc_net_face_flux_at_cell(grid, unit_flux_at_face, out=None):
+    """Calculate net face fluxes at cells.
+
+    Given a flux per unit width across each face in the grid, calculate the net
+    outflux (or influx, if negative) at each cell.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    unit_flux_at_faces : ndarray or field name
+        Flux per unit width associated with faces.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray (x number of cells)
+        Net flux at cells.
+    """
     if len(unit_flux_at_face) != grid.number_of_faces:
         raise ValueError("Parameter unit_flux_at_face must be num faces long")
 

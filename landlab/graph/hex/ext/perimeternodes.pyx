@@ -1,17 +1,17 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def fill_perimeter_nodes_rect_horizontal(
     shape,
-    np.ndarray[DTYPE_t, ndim=1] perimeter_nodes,
+    id_t [:] perimeter_nodes,
 ):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
@@ -42,9 +42,10 @@ def fill_perimeter_nodes_rect_horizontal(
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def fill_perimeter_nodes_rect_vertical(
     shape,
-    np.ndarray[DTYPE_t, ndim=1] perimeter_nodes,
+    id_t [:] perimeter_nodes,
 ):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
@@ -93,9 +94,10 @@ def fill_perimeter_nodes_rect_vertical(
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def fill_perimeter_nodes_hex_horizontal(
     shape,
-    np.ndarray[DTYPE_t, ndim=1] perimeter_nodes,
+    id_t [:] perimeter_nodes,
 ):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
@@ -148,9 +150,10 @@ def fill_perimeter_nodes_hex_horizontal(
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def fill_perimeter_nodes_hex_vertical(
     shape,
-    np.ndarray[DTYPE_t, ndim=1] perimeter_nodes,
+    id_t [:] perimeter_nodes,
 ):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
