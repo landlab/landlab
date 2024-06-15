@@ -1,9 +1,11 @@
 cimport cython
+cimport numpy as np
 from cython.parallel cimport parallel
 from cython.parallel cimport prange
 from libc.stdint cimport int8_t
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
+import numpy as np
 
 ctypedef fused float_or_int:
     cython.floating
@@ -91,6 +93,25 @@ def get_links_at_node(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def reorder_rows(
+    float_or_int[:, :] value_at_row,
+    const id_t[:, :] sorted_cols,
+):
+    cdef long n_rows = value_at_row.shape[0]
+    cdef long n_cols = value_at_row.shape[1]
+    cdef long row
+    cdef long col
+    cdef np.ndarray[float_or_int, ndim=2] out = np.empty_like(value_at_row)
+
+    for row in prange(n_rows, nogil=True, schedule="static"):
+        for col in range(n_cols):
+            out[row, col] = value_at_row[row, sorted_cols[row, col]]
+
+    return out
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def reorder_rows_inplace(
     float_or_int[:, :] value_at_row,
     const id_t[:, :] sorted_cols,
 ):

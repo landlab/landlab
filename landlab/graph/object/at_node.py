@@ -115,7 +115,7 @@ def sort_links_at_node_by_angle(
     >>> link_dirs_at_node
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
-    from landlab.graph.object.ext.at_node import reorder_rows
+    from landlab.graph.object.ext.at_node import reorder_rows_inplace
 
     out = (
         np.asarray(links_at_node, dtype=int),
@@ -145,7 +145,7 @@ def sort_links_at_node_by_angle(
 
     sorted_links = as_id_array(np.argsort(outward_angle))
 
-    reorder_rows(links_at_node, sorted_links)
-    reorder_rows(link_dirs_at_node, sorted_links)
+    reorder_rows_inplace(links_at_node, sorted_links)
+    reorder_rows_inplace(link_dirs_at_node, sorted_links)
 
     return links_at_node, link_dirs_at_node
