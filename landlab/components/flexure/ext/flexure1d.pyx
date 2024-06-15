@@ -2,7 +2,10 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
-from libc.math cimport cos, exp, fabs, sin
+from libc.math cimport cos
+from libc.math cimport exp
+from libc.math cimport fabs
+from libc.math cimport sin
 
 # from libc.stdlib cimport abs
 
