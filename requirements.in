@@ -2,7 +2,7 @@ bmipy
 importlib-resources; python_version < '3.12'
 matplotlib
 netcdf4
-numpy >=1.20
+numpy >=1.20,<2
 pandas
 pyshp != 2.3.0
 pyyaml
