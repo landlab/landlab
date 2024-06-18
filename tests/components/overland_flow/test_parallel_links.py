@@ -3,10 +3,8 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components.overland_flow._neighbors_at_link import (
-    fill_parallel_links_at_link,
-    sum_parallel_links,
-)
+from landlab.components.overland_flow._neighbors_at_link import sum_parallel_links
+from landlab.graph.structured_grid.ext.at_link import fill_parallel_links_at_link
 
 
 def test_sum_parallel_links_bench(benchmark):
@@ -59,7 +57,7 @@ def test_fill_parallel_links(benchmark):
 
     parallel_links_at_link = np.full((grid.number_of_links, 2), -999, dtype=int)
 
-    benchmark(fill_parallel_links_at_link, parallel_links_at_link, grid.shape)
+    benchmark(fill_parallel_links_at_link, grid.shape, parallel_links_at_link)
 
     assert not np.any(parallel_links_at_link == -999)
     assert_array_equal(
@@ -97,7 +95,7 @@ def test_fill_parallel_links_speed_c(benchmark):
 
     parallel_links_at_link = np.full((grid.number_of_links, 2), -999, dtype=int)
 
-    benchmark(fill_parallel_links_at_link, parallel_links_at_link, grid.shape)
+    benchmark(fill_parallel_links_at_link, grid.shape, parallel_links_at_link)
 
     assert not np.any(parallel_links_at_link == -999)
 
