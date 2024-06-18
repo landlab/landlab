@@ -7,16 +7,36 @@ from landlab.grid.ext.raster_mappers import map_max_of_link_nodes_to_link
 from landlab.grid.mappers import (
     map_max_of_link_nodes_to_link as map_max_of_link_nodes_to_link_slow,
 )
-from landlab.grid.raster_mappers import (
-    map_max_of_inlinks_to_node,
-    map_max_of_outlinks_to_node,
-    map_mean_of_inlinks_to_node,
-    map_mean_of_outlinks_to_node,
-    map_min_of_inlinks_to_node,
-    map_min_of_outlinks_to_node,
-    map_sum_of_inlinks_to_node,
-    map_sum_of_outlinks_to_node,
-)
+from landlab.grid.raster_mappers import map_max_of_inlinks_to_node
+from landlab.grid.raster_mappers import map_max_of_outlinks_to_node
+from landlab.grid.raster_mappers import map_mean_of_inlinks_to_node
+from landlab.grid.raster_mappers import map_mean_of_outlinks_to_node
+from landlab.grid.raster_mappers import map_min_of_inlinks_to_node
+from landlab.grid.raster_mappers import map_min_of_outlinks_to_node
+from landlab.grid.raster_mappers import map_sum_of_inlinks_to_node
+from landlab.grid.raster_mappers import map_sum_of_outlinks_to_node
+
+
+@pytest.mark.parametrize("n_rows", (3, 4, 8, 512))
+@pytest.mark.parametrize("n_cols", (3, 4, 8, 512))
+@pytest.mark.parametrize("dtype", (np.int64, np.longlong, np.float32, np.float64))
+def test_boundscheck(n_rows, n_cols, dtype):
+    """Test buffer over/under flow."""
+    buffer_size = 1024
+
+    n_nodes = n_rows * n_cols
+    n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
+
+    value_at_node = np.ones(n_nodes, dtype=dtype)
+    actual = np.full(n_links + 2 * buffer_size, -2, dtype=dtype)
+
+    map_max_of_link_nodes_to_link(
+        actual[buffer_size:-buffer_size], value_at_node, (n_rows, n_cols)
+    )
+
+    assert np.all(actual[:buffer_size] == -2)
+    assert np.all(actual[-buffer_size:] == -2)
+    assert np.all(actual[buffer_size:-buffer_size] == 1)
 
 
 def map_max_of_link_nodes_to_link_fast(grid, value_at_node, out=None):
