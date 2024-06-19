@@ -936,20 +936,24 @@ class NetworkSedimentTransporter(Component):
         # Step 2: Parcel is at rest... Now update its information.
 
         # transport dependent abrasion - update alphas for xport dependence
-        abrasion_rate_xport_dep = _calculate_transport_dep_abrasion_rate(
-            self._parcels.dataset.abrasion_rate,
-            self._k_transp_dep_abr,
-            self._parcels.dataset.density.values,
-            self._fluid_density,
-            self._parcels.dataset.D.values[:, self._time_idx],
-            self._tautaur
-        )
+        if self._k_transp_dep_abr != 0.:
+            self._abrasion_rate_xport_dep = _calculate_transport_dep_abrasion_rate(
+                self._parcels.dataset.abrasion_rate,
+                self._k_transp_dep_abr,
+                self._parcels.dataset.density.values,
+                self._fluid_density,
+                self._parcels.dataset.D.values[:, self._time_idx],
+                self._tautaur
+            )
+            abrasion_now = self._abrasion_rate_xport_dep.copy()
+        else: 
+            abrasion_now = self._parcels.dataset.abrasion_rate.copy()
 
         # reduce D and volume due to abrasion
         vol = _calculate_parcel_volume_post_abrasion(
             self._parcels.dataset.volume[active_parcel_ids, self._time_idx],
             distance_to_travel_this_timestep[active_parcel_ids],
-            abrasion_rate_xport_dep[active_parcel_ids],
+            abrasion_now[active_parcel_ids],
         )
 
         D = _calculate_parcel_grain_diameter_post_abrasion(
@@ -1204,17 +1208,18 @@ def _calculate_transport_dep_abrasion_rate(
     ...     _calculate_transport_dep_abrasion_rate(XXX 10,300,-3)
 
     """
-    abrasion_rate_xport_dep = (alpha
+    abrasion_rate_xport_dep = alpha.copy()
+    abrasion_rate_xport_dep[tautaur>3.3] = (alpha[tautaur>3.3]
                                    * ( 1
                                       + k
-                                      * ((rhos - rhow) / rhow)
-                                      * D
-                                      * (tautaur - 3.3)
+                                      * ((rhos[tautaur>3.3] - rhow) / rhow)
+                                      * D[tautaur>3.3]
+                                      * (tautaur[tautaur>3.3] - 3.3)
                                    )
     )
 
-    if np.any(alpha > abrasion_rate_xport_dep):
-        raise ValueError("NST parcel volume *increases* due to abrasion")
+    #if np.any(alpha > abrasion_rate_xport_dep):
+    #    raise ValueError("Transport dependent abrasion currently decreasing abrasion rate (should increase)")
 
     return abrasion_rate_xport_dep
 
