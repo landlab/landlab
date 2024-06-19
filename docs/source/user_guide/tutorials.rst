@@ -102,19 +102,11 @@ contains a list of requirements needed to run the notebook tutorials.
   not necessary, we **highly recommend** you install these into a separate
   :ref:`virtual environment <virtual_environments>`.
 
-Use *mamba* or *conda* to install the requirements.
+Use *conda* to install the requirements.
 
-.. tab:: mamba
+.. code-block:: bash
 
-  .. code-block:: bash
-
-     mamba install --file=requirements-notebooks.txt
-
-.. tab:: conda
-
-  .. code-block:: bash
-
-     conda install --file=requirements-notebooks.txt
+   conda install --file=requirements-notebooks.txt
 
 
 Run the tutorials

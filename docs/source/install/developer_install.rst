@@ -51,13 +51,6 @@ Install dependencies
 
 *Landlab*'s dependencies are listed in *requirements.in*.
 
-.. tab:: mamba
-
-  .. code-block:: bash
-
-     cd landlab
-     mamba install --file=requirements.in -c nodefaults -c conda-forge --override-channels
-
 .. tab:: conda
 
   .. code-block:: bash
@@ -83,14 +76,8 @@ on `compiling code on Windows <https://conda-forge.org/docs/maintainer/knowledge
 or the `Python wiki page for Windows compilers <https://wiki.python.org/moin/WindowsCompilers>`__.
 
 
-If you are using *conda*/*mamba*, set up your compilers to build libraries
+If you are using *conda*, set up your compilers to build libraries
 compatible with other installed packages,
-
-.. tab:: mamba
-
-  .. code-block:: bash
-
-     mamba install compilers -c nodefaults -c conda-forge --override-channels
 
 .. tab:: conda
 
