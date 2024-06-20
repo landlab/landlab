@@ -246,7 +246,6 @@ class OverlandFlow(Component):
     def __init__(
         self,
         grid,
-        default_fixed_links=False,
         h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
@@ -328,13 +327,6 @@ class OverlandFlow(Component):
         # reinitalize the neighbors and saves computation time.
         self._neighbor_flag = False
 
-        # When looking for neighbors, we automatically ignore inactive links
-        # by default. However, what about when we want to look at fixed links
-        # too? By default, we ignore these, but if they are important to your
-        # model and will be updated in your driver loop, they can be used by
-        # setting the flag in the initialization of  the class to 'True'
-        self._default_fixed_links = default_fixed_links
-
     @property
     def h(self):
         """The depth of water at each node."""
@@ -412,24 +404,6 @@ class OverlandFlow(Component):
         vertical_active_link_ids = links.vertical_active_link_ids(
             self._grid.shape, active_ids
         )
-
-        if self._default_fixed_links:
-            fixed_link_ids = links.fixed_link_ids(
-                self._grid.shape, self._grid.status_at_node
-            )
-            fixed_horizontal_links = links.horizontal_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
-            )
-            fixed_vertical_links = links.vertical_fixed_link_ids(
-                self._grid.shape, fixed_link_ids
-            )
-            horizontal_active_link_ids = np.maximum(
-                horizontal_active_link_ids, fixed_horizontal_links
-            )
-            vertical_active_link_ids = np.maximum(
-                vertical_active_link_ids, fixed_vertical_links
-            )
-            self._active_neighbors = find_active_neighbors_for_fixed_links(self._grid)
 
         vert_bdy_ids = active_links_at_open_bdy[
             links.is_vertical_link(self._grid.shape, active_links_at_open_bdy)
@@ -536,12 +510,6 @@ class OverlandFlow(Component):
             # And insert these values into an array of all links
             water_surface_slope[active_links] = grad_at_link[active_links]
 
-            # If the user chooses to set boundary links to the neighbor value,
-            # we set the discharge array to have the boundary links set to
-            # their neighbor value
-            if self._default_fixed_links:
-                q_at_link[self._grid.fixed_links] = q_at_link[self._active_neighbors]
-
             q_at_link[self._link_is_inactive] = 0.0
             calc_discharge_at_link(
                 self.grid.shape,
@@ -554,11 +522,6 @@ class OverlandFlow(Component):
                 dt_local
             )
             q_at_link[h_at_link <= 0] = 0.0
-
-            # Updating the discharge array to have the boundary links set to
-            # their neighbor
-            if self._default_fixed_links:
-                q_at_link[self._grid.fixed_links] = q_at_link[self._active_neighbors]
 
             if self._steep_slopes:
                 # To prevent water from draining too fast for our time steps...
