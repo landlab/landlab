@@ -131,16 +131,16 @@ class SoilGrading(Component):
 
     def __init__(self,
                  grid,
-                 grading_name = 'p2-0-100',         # Fragmentation pattern (string)
-                 n_of_grainsize_classes = 10,       # Number of size classes
+                 grading_name = 'p2-0-100',
+                 n_of_grainsize_classes = 10,
                  meansizes = None,
-                 alpha = 1,                         # Fragmentation rate
+                 alpha = 1,
                  A_factor = 0.001,
-                 soil_density = 2650,               # Soil density [kg/m3]
-                 phi = 0.4,                         # Soil porosity [-]
+                 soil_density = 2650,
+                 phi = 0.4,
                  grain_max_size = 0.02,
                  power_of = 1 / 3,
-                 initial_median_size = 0.002,       # Initial median grain size [m]
+                 initial_median_size = 0.002,
                  initial_total_soil_weight = 2650, 
                  std = None,
                  CV = 0.6,
@@ -152,21 +152,21 @@ class SoilGrading(Component):
                 ----------
                 grid : RasterModelGrid
                     A grid.
-                grading_name : string
+                grading_name : string, optional
                     The name of the fragmentation pattern.
-                n_of_grainsize_classes : int or float 
+                n_of_grainsize_classes : int or float, optional
                     The number of grain size classes in the soil.
-                meansizes : float (m)
+                meansizes : float (m), optional
                     The mean size of grain size in each clas.
-                alpha : float (-. 0-1)
+                alpha : float (-. 0-1), optional
                     The fraction of parent grain size that weathered to daughters.
-                A_factor : float (-. 0-1)
+                A_factor : float (-. 0-1), optional
                     Factor that control the fragmentation rate.
-                soil_density : float (kg/m^3)
+                soil_density : float (kg/m^3), optional
                     Density of the soil particles.
-                phi : float (-. 0-1)
+                phi : float (-. 0-1), optional
                     Soil porosity.
-                grain_max_size : float (m)
+                grain_max_size : float (m), optional
                     The maximal grain size in the distribution.
                 power_of : float, optional
                     A parameter that controls the geometry relation between the grain sizes in the soil.
