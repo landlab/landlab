@@ -90,6 +90,8 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component
+from landlab.components.overland_flow._neighbors_at_link import calc_discharge_at_link
+from landlab.grid.linkstatus import is_inactive_link
 
 from . import _links as links
 
@@ -285,7 +287,7 @@ class OverlandFlow(Component):
         if isinstance(mannings_n, str):
             self._mannings_n = self._grid.at_link[mannings_n]
         else:
-            self._mannings_n = mannings_n
+            self._mannings_n = np.broadcast_to(mannings_n, self._grid.number_of_links)
 
         self._g = g
         self._theta = theta
@@ -385,6 +387,10 @@ class OverlandFlow(Component):
         Set up arrays of neighboring horizontal and vertical links that
         are needed for the de Almeida solution.
         """
+        self._link_is_inactive = is_inactive_link(
+            self.grid.status_at_node[self.grid.nodes_at_link]
+        )
+
         # First we identify all active links
 
         active_ids = links.active_link_ids(self._grid.shape, self._grid.status_at_node)
@@ -536,38 +542,18 @@ class OverlandFlow(Component):
             if self._default_fixed_links:
                 q_at_link[self._grid.fixed_links] = q_at_link[self._active_neighbors]
 
-            # Now we can calculate discharge. To handle links with neighbors
-            # that do not exist, we will do a fancy indexing trick. Non-
-            # existent links or inactive links have an index of '-1', which in
-            # Python, looks to the end of a list or array. To accommodate these
-            # '-1' indices, we will simply insert an value of 0.0 discharge (in
-            # units of L^2/T) to the end of the discharge array.
-            q_at_link = np.append(q_at_link, [0])
-
-            q_at_neighbors[horizontal_links] = (
-                q_at_link[self._west_neighbors] + q_at_link[self._east_neighbors]
+            q_at_link[self._link_is_inactive] = 0.0
+            calc_discharge_at_link(
+                self.grid.shape,
+                q_at_link,
+                h_at_link,
+                water_surface_slope,
+                self._mannings_n,
+                self._theta,
+                self._g,
+                dt_local
             )
-            q_at_neighbors[vertical_links] = (
-                q_at_link[self._north_neighbors] + q_at_link[self._south_neighbors]
-            )
-
-            # Now to return the array to its original length (length of number
-            # of all links), we delete the extra 0.0 value from the end of the
-            # array.
-            q_at_link = np.delete(q_at_link, len(q_at_link) - 1)
-
-            numerator = (
-                self._theta * q_at_link
-                + (1.0 - self._theta) / 2.0 * q_at_neighbors
-                - self._g * h_at_link * dt_local * water_surface_slope
-            )
-            denominator = 1.0 + np.divide(
-                self._g * dt_local * self._mannings_n**2.0 * abs(q_at_link),
-                h_at_link**_SEVEN_OVER_THREE,
-                where=h_at_link > 0.0,
-            )
-
-            np.divide(numerator, denominator, where=h_at_link > 0.0, out=q_at_link)
+            q_at_link[h_at_link <= 0] = 0.0
 
             # Updating the discharge array to have the boundary links set to
             # their neighbor
