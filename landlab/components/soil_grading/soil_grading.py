@@ -6,29 +6,31 @@
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.soil_grading import SoilGrading
 
-Create a grid on which to calculate overland flow.
-
+Create a grid on which to simulate soil grading.
 >>> grid = RasterModelGrid((4, 5))
 
-The grid will need some data to provide the overland flow component. To
-check the names of the fields that provide input to the overland flow
-component use the *input_var_names* class property.
+Create topographic_elevation and bedrock__elevation fields
+>>> mg.add_zeros("topographic__elevation", at="node")
+>>> mg.add_zeros("bedrock__elevation", at="node")
 
->>> OverlandFlow.input_var_names
-('surface_water__depth', 'topographic__elevation')
+Initialise the SoilGrading component
+>>> soil_grading = SoilGrading(mg)
 
-Create fields of data for each of these input variables.
+Soil grading component created a soil layer:
+>>>  mg.at_node['soil__depth']
+>>>  array([ 1.66666667,  1.66666667,  1.66666667,  1.66666667,  1.66666667,
+        1.66666667,  1.66666667,  1.66666667,  1.66666667,  1.66666667,
+        1.66666667,  1.66666667,  1.66666667,  1.66666667,  1.66666667,
+        1.66666667,  1.66666667,  1.66666667,  1.66666667,  1.66666667])
 
->>> grid.at_node['topographic__elevation'] = np.array([
-...     0., 0., 0., 0., 0.,
-...     1., 1., 1., 1., 1.,
-...     2., 2., 2., 2., 2.,
-...     3., 3., 3., 3., 3.])
->>> grid.at_node['surface_water__depth'] = np.array([
-...     0. , 0. , 0. , 0. , 0. ,
-...     0. , 0. , 0. , 0. , 0. ,
-...     0. , 0. , 0. , 0. , 0. ,
-...     0.1, 0.1, 0.1, 0.1, 0.1])
+Run one step of soil fragmentation
+>>> soil_grading.run_one_step()
+>>> mg.at_node['median_size__weight']
+>>> array([ 0.0028249,  0.0028249,  0.0028249,  0.0028249,  0.0028249,
+        0.0028249,  0.0028249,  0.0028249,  0.0028249,  0.0028249,
+        0.0028249,  0.0028249,  0.0028249,  0.0028249,  0.0028249,
+        0.0028249,  0.0028249,  0.0028249,  0.0028249,  0.0028249])
+        
 """
 import numpy as np
 from landlab import Component
@@ -144,6 +146,45 @@ class SoilGrading(Component):
                  is_bedrock_distribution_flag = False,
                  precent_of_volume_in_spread = 10,
     ):
+        """
+                Parameters
+                ----------
+                grid : RasterModelGrid
+                    A grid.
+                grading_name : string
+                    The name of the fragmentation pattern.
+                n_of_grainsize_classes : int or float 
+                    The number of grain size classes in the soil.
+                meansizes : float (m)
+                    The mean size of grain size in each clas.
+                alpha : float (-. 0-1)
+                    The fraction of parent grain size that weathered to daughters.
+                A_factor : float (-. 0-1)
+                    Factor that control the fragmentation rate.
+                soil_density : float (kg/m^3)
+                    Density of the soil particles.
+                phi : float (-. 0-1)
+                    Soil porosity.
+                grain_max_size : float (m)
+                    The maximal grain size in the distribution.
+                power_of : float, optional
+                    A parameter that controls the geometry relation between the grain sizes in the soil.
+                initial_median_size : float (m), optional
+                    The initial median grain size in the soil.
+                initial_total_soil_weight : float (kg), optional
+                    The total initial soil weight (taking into account all grain size classes).
+                std: float, optional
+                    The standard deviation of grain size distribution.
+                CV: float, optional
+                    Coefficient of variance of the grain size distribution.
+                is_bedrock_distribution_flag: bool, optional
+                    A flag to indicate if the grain size distribution is generated for soil or bedrock layer.
+                precent_of_volume_in_spread: float, optional
+                    The precent of volume transferred from parent to daughter in case of 'spread' grading pattern
+
+
+
+                """
         super(SoilGrading, self).__init__(grid)
 
         self._grading_name = grading_name
