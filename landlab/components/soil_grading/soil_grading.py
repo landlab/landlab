@@ -1,6 +1,7 @@
 
 """Landlab component that simulates fragmentation of soil grains through time.
 
+Examples
 --------
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
@@ -241,6 +242,22 @@ class SoilGrading(Component):
         self.create_transition_mat()
         self.set_grading_classes()
         self.create_dist()
+
+    @property
+    def A(self):
+        """Transition matrix."""
+        return self._A
+
+    @property
+    def A_factor(self):
+        """Fragmentation rate"""
+        return self._A_factor
+
+    @property
+    def grading_name(self):
+        """The name of fragmentation pattern"""
+        return self._grading_name
+
 
     def create_transition_mat(self):
 
