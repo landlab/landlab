@@ -577,66 +577,42 @@ class OverlandFlow(Component):
             if self._steep_slopes:
                 # To prevent water from draining too fast for our time steps...
                 # Our Froude number.
-                Fr = 1.0
+                froude = 1.0
                 # Our two limiting factors, the froude number and courant
                 # number.
                 # Looking a calculated q to be compared to our Fr number.
-                calculated_q = (q_at_link / h_at_link) / np.sqrt(self._g * h_at_link)
+                calculated_q = q_at_link / (h_at_link ** 1.5 * np.sqrt(self._g))
 
                 # Looking at our calculated q and comparing it to Courant no.,
                 q_courant = q_at_link * dt_local / self._grid.dx
 
-                # Water depth split equally between four links..
-                water_div_4 = h_at_link / 4.0
-
-                # IDs where water discharge is positive...
-                (positive_q,) = np.where(q_at_link > 0)
-
-                # ... and negative.
-                (negative_q,) = np.where(q_at_link < 0)
-
                 # Where does our calculated q exceed the Froude number? If q
                 # does exceed the Froude number, we are getting supercritical
                 # flow and discharge needs to be reduced to maintain stability.
-                (Froude_logical,) = np.where((calculated_q) > Fr)
-                (Froude_abs_logical,) = np.where(abs(calculated_q) > Fr)
+                # (Froude_logical,) = np.where((calculated_q) > Fr)
+                # (Froude_abs_logical,) = np.where(abs(calculated_q) > Fr)
+                is_supercritical = np.abs(calculated_q) > froude
 
                 # Where does our calculated q exceed the Courant number and
                 # water depth divided amongst 4 links? If the calculated q
                 # exceeds the Courant number and is greater than the water
                 # depth divided by 4 links, we reduce discharge to maintain
                 # stability.
-                (water_logical,) = np.where(q_courant > water_div_4)
-                (water_abs_logical,) = np.where(abs(q_courant) > water_div_4)
+                is_unstable = np.abs(q_courant) > 0.25 * h_at_link
 
                 # Where are these conditions met? For positive and negative q,
                 # there are specific rules to reduce q. This step finds where
                 # the discharge values are positive or negative and where
                 # discharge exceeds the Froude or Courant number.
-                if_statement_1 = np.intersect1d(positive_q, Froude_logical)
-                if_statement_2 = np.intersect1d(negative_q, Froude_abs_logical)
-                if_statement_3 = np.intersect1d(positive_q, water_logical)
-                if_statement_4 = np.intersect1d(negative_q, water_abs_logical)
-
-                # Rules 1 and 2 reduce discharge by the Froude number.
-                q_at_link[if_statement_1] = h_at_link[if_statement_1] * (
-                    np.sqrt(self._g * h_at_link[if_statement_1]) * Fr
+                q_at_link[is_supercritical] = (
+                    np.sign(q_at_link[is_supercritical])
+                    * h_at_link[is_supercritical]
+                    * np.sqrt(self._g * h_at_link[is_supercritical])
+                    * froude
                 )
-
-                q_at_link[if_statement_2] = 0.0 - (
-                    h_at_link[if_statement_2]
-                    * np.sqrt(self._g * h_at_link[if_statement_2])
-                    * Fr
-                )
-
-                # Rules 3 and 4 reduce discharge by the Courant number.
-                q_at_link[if_statement_3] = (
-                    (h_at_link[if_statement_3] * self._grid.dx) / 5.0
+                q_at_link[is_unstable] = np.sign(q_at_link[is_unstable]) * (
+                    (h_at_link[is_unstable] * self._grid.dx) * 0.2
                 ) / dt_local
-
-                q_at_link[if_statement_4] = (
-                    0.0 - (h_at_link[if_statement_4] * self._grid.dx / 5.0) / dt_local
-                )
 
             # Once stability has been restored, we calculate the change in
             # water depths on all core nodes by finding the difference between
