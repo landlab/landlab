@@ -37,7 +37,6 @@ import numpy as np
 from landlab import Component
 import scipy.stats as stats
 import random
-import time
 from landlab.grid.nodestatus import NodeStatus
 import warnings
 
