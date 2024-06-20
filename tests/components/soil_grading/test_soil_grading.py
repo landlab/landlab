@@ -57,7 +57,6 @@ def test_outputFields_bedrock():
     soil_grading = SoilGrading(mg)
 
 
-    # instantiate the slider
     assert "bedrock__elevation" in mg.at_node
 
 def test_inputFields_topographic_elevation():
@@ -72,7 +71,6 @@ def test_inputFields_topographic_elevation():
     soil_grading = SoilGrading(mg)
 
 
-    # instantiate the slider
     assert "bedrock__elevation" in mg.at_node
 
 
