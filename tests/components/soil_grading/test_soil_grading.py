@@ -7,11 +7,9 @@ Doc tests and unit tests the SoilGrading component.
 """
 
 import warnings
-
 import numpy as np
 import pytest
 from numpy import testing
-
 from landlab import FieldError
 from landlab import RasterModelGrid
 from landlab.components.soil_grading import SoilGrading

@@ -35,12 +35,8 @@ Run one step of soil fragmentation
 
 import random
 import warnings
-
 import numpy as np
-import scipy.stats as stats
-
 from landlab import Component
-from landlab.grid.nodestatus import NodeStatus
 
 
 class SoilGrading(Component):
@@ -99,7 +95,8 @@ class SoilGrading(Component):
             "optional": False,
             "units": "kg",
             "mapping": "node",
-            "doc": "Weight of grains in each size fraction stored at node",
+            "doc": "Weight of grains in each size fraction"
+                   " stored at node",
         },
         "median_size__weight": {
             "dtype": float,
@@ -107,7 +104,8 @@ class SoilGrading(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The median grain size in each node based on grains weight distribution",
+            "doc": "The median grain size in each node "
+                   "based on grains weight distribution",
         },
         "grains_fractions__size": {
             "dtype": float,
@@ -123,7 +121,8 @@ class SoilGrading(Component):
             "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "Proportion of each grain size fraction in the bedrock layer",
+            "doc": "Proportion of each grain size fraction"
+                   "in the bedrock layer",
         },
     }
 
@@ -209,14 +208,15 @@ class SoilGrading(Component):
         self._initial_median_size = initial_median_size
         self._CV = CV
         self._initial_total_soil_weight = initial_total_soil_weight
-        if std == None:
+        if std is None:
             std = self._initial_median_size * self._CV
         self._std = std
         self._is_bedrock_distribution_flag = is_bedrock_distribution_flag
         self._precent_of_volume_in_spread = precent_of_volume_in_spread
 
         # Create out fields.
-        # Note: Landlabs' init_out_field procedure will not work for the 'grains__weight' and 'grains_fractions__size' fields
+        # Note: Landlabs' init_out_field procedure will not work
+        # for the 'grains__weight' and 'grains_fractions__size' fields
         # because the shape of these fields is: n_nodes x n_grain_sizes.
         grid.add_field(
             "median_size__weight",
@@ -386,11 +386,11 @@ class SoilGrading(Component):
         else:
 
             total_bedrock_weight = 10000  # There is no meaning for this number
-            if median_size == None:
+            if median_size is None:
                 grains_weight__distribution = self.g_state0
             else:
                 median_size = median_size
-                if std == None:
+                if std is None:
                     std = self._CV * median_size
                 else:
                     std = std
@@ -439,14 +439,14 @@ class SoilGrading(Component):
             )
 
     def _generate_normal_distribution(
-        self, median_size=None, std=None, total_soil_weight=None
+        self, median_size = None, std = None, total_soil_weight = None
     ):
 
-        if median_size == None:
+        if median_size is None:
             median_size = self._initial_median_size
-        if std == None:
+        if std is None:
             std = self._CV * median_size
-        if total_soil_weight == None:
+        if total_soil_weight is None:
             total_soil_weight = self._initial_total_soil_weight
 
         lower = np.min(self._lowerlims)
@@ -457,15 +457,15 @@ class SoilGrading(Component):
             grains_weight__distribution = np.zeros_like(self._upperlims)
             grains_weight__distribution[0] = total_soil_weight
             warnings.warn(
-                "Median size provided is smaller than the distribution lower bound"
-            )
+                "Median size provided is smaller than the distribution lower bound",
+            stacklevel=2)
 
         elif median_size > upper:
             grains_weight__distribution = np.zeros_like(self._upperlims)
             grains_weight__distribution[-1] = total_soil_weight
             warnings.warn(
-                "Median size provided is larger than the distribution upper bound"
-            )
+                "Median size provided is larger than the distribution upper bound",
+            stacklevel=2)
 
         else:
             while np.size(values) < total_soil_weight:
@@ -508,7 +508,7 @@ class SoilGrading(Component):
         # Run one step of fragmentation
         # 'update_median__size' procedure is called after
 
-        if np.any(A_factor == None):
+        if np.any(A_factor is None):
             A_factor = self._A_factor
 
         temp_g_weight = np.moveaxis(
