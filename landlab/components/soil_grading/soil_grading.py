@@ -97,7 +97,7 @@ class SoilGrading(Component):
             "optional": False,
             "units": "kg",
             "mapping": "node",
-            "doc": "Weight of grains in each size class" " stored at node",
+            "doc": "Weight of grains in each size class stored at node",
         },
         "median_size__weight": {
             "dtype": float,
@@ -105,8 +105,10 @@ class SoilGrading(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The median grain size in each node "
-            "based on soil grains weight distribution",
+            "doc": (
+                "The median grain size in each node based on soil grains"
+                " weight distribution"
+            ),
         },
         "grains_classes__size": {
             "dtype": float,
@@ -122,7 +124,7 @@ class SoilGrading(Component):
             "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "Proportional weight of each grain size class" "in bedrock",
+            "doc": "Proportional weight of each grain size class in bedrock",
         },
     }
 
