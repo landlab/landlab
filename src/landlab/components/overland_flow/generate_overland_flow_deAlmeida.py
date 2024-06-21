@@ -108,63 +108,6 @@ from landlab.components.overland_flow._neighbors_at_link import (
 from landlab.grid.linkstatus import is_inactive_link
 
 
-def _active_links_at_node(grid, *args):
-    """_active_links_at_node([node_ids]) Active links of a node.
-
-    .. note::
-
-        This function returns links that are in *clockwise* order,
-        rather than the standard *counterclockwise* ordering that
-        landlab uses everywhere else.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        A grid.
-    node_ids : int or list of ints
-        ID(s) of node(s) for which to find connected active links
-
-    Returns
-    -------
-    (4, N) ndarray
-        The ids of active links attached to grid nodes with
-        *node_ids*. If *node_ids* is not given, return links for all of the
-        nodes in the grid. Link ids are listed in clockwise order starting
-        with the south link. Diagonal links are never returned.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-
-    >>> grid = RasterModelGrid((3, 4))
-    >>> grid.links_at_node[5]
-    array([ 8, 11,  7,  4])
-    >>> _active_links_at_node(grid, (5, 6))
-    array([[ 4,  5],
-           [ 7,  8],
-           [11, 12],
-           [ 8,  9]])
-    >>> _active_links_at_node(grid)
-    array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
-           [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1],
-           [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
-           [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
-
-    :meta landlab: deprecated, info-link, info-node
-    """
-    active_links_at_node = grid.links_at_node.copy()
-    active_links_at_node[grid.active_link_dirs_at_node == 0] = -1
-    active_links_at_node = active_links_at_node[:, (3, 2, 1, 0)]
-
-    if len(args) == 0:
-        return active_links_at_node.T
-    elif len(args) == 1:
-        node_ids = np.broadcast_arrays(args[0])[0]
-        return active_links_at_node[node_ids, :].T
-    else:
-        raise ValueError("only zero or one arguments accepted")
-
-
 class OverlandFlow(Component):
     """Simulate overland flow using de Almeida approximations.
 
