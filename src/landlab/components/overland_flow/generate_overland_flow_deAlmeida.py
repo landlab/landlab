@@ -60,6 +60,7 @@ array([1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
        1.0000e-05, 2.0010e-02, 2.0010e-02, 2.0010e-02, 1.0000e-05,
        1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01])
 
+
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
 direction, only toward the bottom of the grid.
@@ -106,6 +107,7 @@ from landlab.components.overland_flow._neighbors_at_link import update_water_dep
 from landlab.components.overland_flow._neighbors_at_link import (
     weighted_mean_of_parallel_links,
 )
+from landlab.core.utils import as_id_array
 from landlab.grid.linkstatus import is_inactive_link
 
 
@@ -331,7 +333,7 @@ class OverlandFlow(Component):
             self.grid.status_at_node[self.grid.nodes_at_link]
         )
 
-        self._active_links = np.where(~self._link_is_inactive)[0]
+        self._active_links = as_id_array(np.where(~self._link_is_inactive)[0])
 
         self._active_link_flag = True
 
