@@ -35,7 +35,9 @@ Run one step of soil fragmentation
 
 import random
 import warnings
+
 import numpy as np
+
 from landlab import Component
 
 
@@ -95,8 +97,7 @@ class SoilGrading(Component):
             "optional": False,
             "units": "kg",
             "mapping": "node",
-            "doc": "Weight of grains in each size fraction"
-                   " stored at node",
+            "doc": "Weight of grains in each size fraction" " stored at node",
         },
         "median_size__weight": {
             "dtype": float,
@@ -105,7 +106,7 @@ class SoilGrading(Component):
             "units": "m",
             "mapping": "node",
             "doc": "The median grain size in each node "
-                   "based on grains weight distribution",
+            "based on grains weight distribution",
         },
         "grains_fractions__size": {
             "dtype": float,
@@ -121,8 +122,7 @@ class SoilGrading(Component):
             "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "Proportion of each grain size fraction"
-                   "in the bedrock layer",
+            "doc": "Proportion of each grain size fraction" "in the bedrock layer",
         },
     }
 
@@ -439,7 +439,7 @@ class SoilGrading(Component):
             )
 
     def _generate_normal_distribution(
-        self, median_size = None, std = None, total_soil_weight = None
+        self, median_size=None, std=None, total_soil_weight=None
     ):
 
         if median_size is None:
@@ -458,14 +458,16 @@ class SoilGrading(Component):
             grains_weight__distribution[0] = total_soil_weight
             warnings.warn(
                 "Median size provided is smaller than the distribution lower bound",
-            stacklevel=2)
+                stacklevel=2,
+            )
 
         elif median_size > upper:
             grains_weight__distribution = np.zeros_like(self._upperlims)
             grains_weight__distribution[-1] = total_soil_weight
             warnings.warn(
                 "Median size provided is larger than the distribution upper bound",
-            stacklevel=2)
+                stacklevel=2,
+            )
 
         else:
             while np.size(values) < total_soil_weight:
