@@ -4,7 +4,7 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow._neighbors_at_link import sum_parallel_links
-from landlab.graph.structured_grid.ext.at_link import fill_parallel_links_at_link
+from landlab.graph.structured_quad.ext.at_link import fill_parallel_links_at_link
 
 
 def test_sum_parallel_links_bench(benchmark):
