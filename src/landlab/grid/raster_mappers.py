@@ -190,24 +190,22 @@ def map_max_of_link_nodes_to_link(grid, value_at_node, out=None):
     ...     at="node",
     ... )
     >>> map_max_of_link_nodes_to_link(grid, "z")
-    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
-             9.,  10.,  11.,   9.,  10.,  11.])
+    array([ 1,  2,  3,  7,  6,  5,  4,  7,  6,  5,  8,  9, 10, 11,  9, 10, 11])
 
-    >>> values_at_links = grid.empty(at="link")
+    >>> values_at_links = grid.empty(at="link", dtype=grid.at_node["z"].dtype)
     >>> rtn = map_max_of_link_nodes_to_link(grid, "z", out=values_at_links)
     >>> values_at_links
-    array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
-             9.,  10.,  11.,   9.,  10.,  11.])
+    array([ 1,  2,  3,  7,  6,  5,  4,  7,  6,  5,  8,  9, 10, 11,  9, 10, 11])
     >>> rtn is values_at_links
     True
 
     :meta landlab: info-node, info-link, map
     """
-    if out is None:
-        out = grid.empty(at="link")
-
     if isinstance(value_at_node, str):
         value_at_node = grid.at_node[value_at_node]
+
+    if out is None:
+        out = grid.empty(at="link", dtype=value_at_node.dtype)
 
     _map_max_of_link_nodes_to_link(out, value_at_node, grid.shape)
 
