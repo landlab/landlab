@@ -90,12 +90,22 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component
-from landlab.components.overland_flow._neighbors_at_link import calc_discharge_at_link
+from landlab.components.overland_flow._neighbors_at_link import (
+    adjust_supercritial_discharge,
+)
+from landlab.components.overland_flow._neighbors_at_link import (
+    adjust_unstable_discharge,
+)
+from landlab.components.overland_flow._neighbors_at_link import (
+    calc_bates_flow_height_at_some_links,
+)
+from landlab.components.overland_flow._neighbors_at_link import (
+    calc_discharge_at_some_links,
+)
+from landlab.components.overland_flow._neighbors_at_link import (
+    weighted_mean_of_parallel_links,
+)
 from landlab.grid.linkstatus import is_inactive_link
-
-from . import _links as links
-
-_SEVEN_OVER_THREE = 7.0 / 3.0
 
 
 def _active_links_at_node(grid, *args):
@@ -383,6 +393,8 @@ class OverlandFlow(Component):
             self.grid.status_at_node[self.grid.nodes_at_link]
         )
 
+        self._active_links = np.where(~self._link_is_inactive)[0]
+
         # Once the neighbor arrays are set up, we change the flag to True!
         self._neighbor_flag = True
 
@@ -406,16 +418,13 @@ class OverlandFlow(Component):
         q_at_link = self._grid.at_link["surface_water__discharge"]
         h_at_link = self._grid.at_link["surface_water__depth"]
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
+        q_mean_at_link = self.grid.empty(at="link")
 
-        q_at_neighbors = np.empty_like(q_at_link)
         core_nodes = self._grid.core_nodes
         active_links = self._grid.active_links
 
         if not self._neighbor_flag:
             self.set_up_neighbor_arrays()
-
-        horizontal_links = self._grid.horizontal_links
-        vertical_links = self._grid.vertical_links
 
         time_remaining = dt
         while time_remaining > 0.0:
@@ -425,32 +434,39 @@ class OverlandFlow(Component):
             # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
             # highest bed elevation
-            zmax = self._grid.map_max_of_link_nodes_to_link(z_at_node)
-            w = h_at_node + z_at_node
-            wmax = self._grid.map_max_of_link_nodes_to_link(w)
-            hflow = wmax[active_links] - zmax[active_links]
-
-            # Insert this water depth into an array of water depths at the
-            # links.
-            h_at_link[active_links] = hflow
+            calc_bates_flow_height_at_some_links(
+                z_at_node,
+                h_at_node,
+                self.grid.nodes_at_link,
+                self._active_links,
+                h_at_link,
+            )
 
             # Now we calculate the slope of the water surface elevation at
             # active links
-            grad_at_link = self._grid.calc_grad_at_link(w)
+            grad_at_link = self._grid.calc_grad_at_link(h_at_node + z_at_node)
 
             # And insert these values into an array of all links
             water_surface_slope[active_links] = grad_at_link[active_links]
 
             q_at_link[self._link_is_inactive] = 0.0
-            calc_discharge_at_link(
+
+            weighted_mean_of_parallel_links(
                 self.grid.shape,
+                self._theta,
                 q_at_link,
+                q_mean_at_link,
+            )
+
+            calc_discharge_at_some_links(
+                q_at_link,
+                q_mean_at_link,
                 h_at_link,
                 water_surface_slope,
                 self._mannings_n,
-                self._theta,
+                self._active_links,
                 self._g,
-                dt_local
+                dt_local,
             )
             q_at_link[h_at_link <= 0] = 0.0
 
@@ -458,41 +474,33 @@ class OverlandFlow(Component):
                 # To prevent water from draining too fast for our time steps...
                 # Our Froude number.
                 froude = 1.0
-                # Our two limiting factors, the froude number and courant
-                # number.
+
+                # Our two limiting factors, the froude number and courant number.
                 # Looking a calculated q to be compared to our Fr number.
-                calculated_q = q_at_link / (h_at_link ** 1.5 * np.sqrt(self._g))
-
-                # Looking at our calculated q and comparing it to Courant no.,
-                q_courant = q_at_link * dt_local / self._grid.dx
-
                 # Where does our calculated q exceed the Froude number? If q
                 # does exceed the Froude number, we are getting supercritical
                 # flow and discharge needs to be reduced to maintain stability.
-                # (Froude_logical,) = np.where((calculated_q) > Fr)
-                # (Froude_abs_logical,) = np.where(abs(calculated_q) > Fr)
-                is_supercritical = np.abs(calculated_q) > froude
+                adjust_supercritial_discharge(
+                    q_at_link,
+                    h_at_link,
+                    self._active_links,
+                    self._g,
+                    froude,
+                )
 
+                # Looking at our calculated q and comparing it to Courant no.,
                 # Where does our calculated q exceed the Courant number and
                 # water depth divided amongst 4 links? If the calculated q
                 # exceeds the Courant number and is greater than the water
                 # depth divided by 4 links, we reduce discharge to maintain
                 # stability.
-                is_unstable = np.abs(q_courant) > 0.25 * h_at_link
-
-                # Where are these conditions met? For positive and negative q,
-                # there are specific rules to reduce q. This step finds where
-                # the discharge values are positive or negative and where
-                # discharge exceeds the Froude or Courant number.
-                q_at_link[is_supercritical] = (
-                    np.sign(q_at_link[is_supercritical])
-                    * h_at_link[is_supercritical]
-                    * np.sqrt(self._g * h_at_link[is_supercritical])
-                    * froude
+                adjust_unstable_discharge(
+                    q_at_link,
+                    h_at_link,
+                    self._active_links,
+                    self._grid.dx,
+                    dt_local,
                 )
-                q_at_link[is_unstable] = np.sign(q_at_link[is_unstable]) * (
-                    (h_at_link[is_unstable] * self._grid.dx) * 0.2
-                ) / dt_local
 
             # Once stability has been restored, we calculate the change in
             # water depths on all core nodes by finding the difference between
@@ -519,8 +527,8 @@ class OverlandFlow(Component):
 
             # And reset our field values with the newest water depth and
             # discharge.
-            self._grid.at_node["surface_water__depth"][:] = h_at_node
-            self._grid.at_link["surface_water__discharge"][:] = q_at_link
+            # self._grid.at_node["surface_water__depth"][:] = h_at_node
+            # self._grid.at_link["surface_water__discharge"][:] = q_at_link
 
     def run_one_step(self, dt=None):
         """Generate overland flow across a grid.
@@ -631,5 +639,7 @@ def find_active_neighbors_for_fixed_links(grid):
     >>> find_active_neighbors_for_fixed_links(rmg)
     array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """
+    import landlab.components.overland_flow._links as links
+
     neighbors = links.neighbors_at_link(grid.shape, grid.fixed_links).flat
     return neighbors[np.isin(neighbors, grid.active_links)]
