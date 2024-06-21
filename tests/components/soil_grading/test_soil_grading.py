@@ -6,11 +6,9 @@
 Doc tests and unit tests the SoilGrading component.
 """
 
-import warnings
 import numpy as np
 import pytest
 from numpy import testing
-from landlab import FieldError
 from landlab import RasterModelGrid
 from landlab.components.soil_grading import SoilGrading
 
@@ -25,9 +23,8 @@ def test_outputFields_soil():
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("bedrock__elevation", at="node")
-    soil_grading = SoilGrading(mg)
+    SoilGrading(mg)
 
-    # instantiate the slider
     assert "soil__depth" in mg.at_node
 
 
@@ -43,7 +40,7 @@ def test_inputFields_soil():
     mg.add_zeros("soil__depth", at="node")
 
     with pytest.raises(ValueError, match="Soil field already exists"):
-        soil_grading = SoilGrading(mg)
+        SoilGrading(mg)
 
 
 def test_outputFields_bedrock():
@@ -56,7 +53,7 @@ def test_outputFields_bedrock():
     spacing = 1
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     mg.add_zeros("topographic__elevation", at="node")
-    soil_grading = SoilGrading(mg)
+    SoilGrading(mg)
 
     assert "bedrock__elevation" in mg.at_node
 
@@ -70,7 +67,7 @@ def test_inputFields_topographic_elevation():
     n_columns = 5
     spacing = 1
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
-    soil_grading = SoilGrading(mg)
+    SoilGrading(mg)
 
     assert "bedrock__elevation" in mg.at_node
 
@@ -105,7 +102,7 @@ def test_bedrock_grains_proportions():
     n_columns = 5
     spacing = 1
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
-    soil_grading = SoilGrading(mg)
+    SoilGrading(mg)
 
     summed_proportions_at_node = np.sum(mg.at_node["bed_grains__proportions"][9])
     testing.assert_almost_equal(
@@ -125,7 +122,7 @@ def test_match_to_user_defined_median_size():
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     meansizes = [0.001, 0.01, 0.1]
     initial_median_size = 0.01
-    soil_grading = SoilGrading(
+    SoilGrading(
         mg, meansizes=meansizes, initial_median_size=initial_median_size
     )
 
@@ -149,7 +146,7 @@ def test_match_to_user_defined_meansizes():
     meansizes = [0.001, 0.01, 0.1]
     initial_median_size = 0.01
 
-    soil_grading = SoilGrading(
+    SoilGrading(
         mg, meansizes=meansizes, initial_median_size=initial_median_size
     )
 
@@ -163,7 +160,8 @@ def test_match_to_user_defined_meansizes():
 )
 def test_beyond_range_user_defined_soil_median_size_larger():
     """
-    Test if in the case that the user-defined median size in soil is larger than the size of the largest grain size fraction mean size,
+    Test if in the case that the user-defined median size in soil is larger
+    than the size of the largest grain size fraction mean size,
     all the mass will be store in the largest grain fraction
     """
 
@@ -175,7 +173,7 @@ def test_beyond_range_user_defined_soil_median_size_larger():
     initial_median_size_soil = np.inf
 
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
-    soil_grading = SoilGrading(
+    SoilGrading(
         mg, meansizes=meansizes, initial_median_size=initial_median_size_soil
     )
 
@@ -193,7 +191,8 @@ def test_beyond_range_user_defined_soil_median_size_larger():
 )
 def test_beyond_range_user_defined_bedrock_median_size_larger():
     """
-    Test if in the case that the user-defined median size in bedrock is larger than the size of the larger grain size fraction mean size,
+    Test if in the case that the user-defined median size in bedrock is larger
+    than the size of the larger grain size fraction mean size,
     all the mass will be store in the largest grain fraction
     """
 
@@ -227,7 +226,8 @@ def test_beyond_range_user_defined_bedrock_median_size_larger():
 )
 def test_beyond_range_user_defined_soil_median_size_smaller():
     """
-    Test if in the case that the user-defined median size in soil is smaller than the smallest size of grain size fraction mean size,
+    Test if in the case that the user-defined median size in soil is smaller
+    than the smallest size of grain size fraction mean size,
     all the mass will be store in the smallest grain fraction
     """
 
@@ -239,7 +239,7 @@ def test_beyond_range_user_defined_soil_median_size_smaller():
     initial_median_size_soil = -np.inf
 
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
-    soil_grading = SoilGrading(
+    SoilGrading(
         mg, meansizes=meansizes, initial_median_size=initial_median_size_soil
     )
 
@@ -256,7 +256,8 @@ def test_beyond_range_user_defined_soil_median_size_smaller():
 )
 def test_beyond_range_user_defined_bedrock_median_size_smaller():
     """
-    Test if in the case that the user-defined median size in bedrock is smaller than the size of the smallest grain size fraction mean size,
+    Test if in the case that the user-defined median size in bedrock is smaller
+    than the size of the smallest grain size fraction mean size,
     all the mass will be store in the smallest grain fraction
     """
 
