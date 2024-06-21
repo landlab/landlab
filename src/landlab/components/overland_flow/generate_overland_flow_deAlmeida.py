@@ -88,7 +88,6 @@ array([0. , 0. , 0. , 0. ,
 
 import numpy as np
 import scipy.constants
-from line_profiler import profile
 
 from landlab import Component
 from landlab.components.overland_flow._neighbors_at_link import (
@@ -336,7 +335,6 @@ class OverlandFlow(Component):
 
         self._active_link_flag = True
 
-    @profile
     def overland_flow(self, dt=None):
         """Generate overland flow across a grid.
 
