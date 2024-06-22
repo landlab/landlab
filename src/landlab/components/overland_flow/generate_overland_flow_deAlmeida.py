@@ -60,7 +60,6 @@ array([1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
        1.0000e-05, 2.0010e-02, 2.0010e-02, 2.0010e-02, 1.0000e-05,
        1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01])
 
-
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
 direction, only toward the bottom of the grid.
@@ -92,7 +91,7 @@ import scipy.constants
 
 from landlab import Component
 from landlab.components.overland_flow._neighbors_at_link import (
-    adjust_supercritial_discharge,
+    adjust_supercritical_discharge,
 )
 from landlab.components.overland_flow._neighbors_at_link import (
     adjust_unstable_discharge,
@@ -415,7 +414,7 @@ class OverlandFlow(Component):
                 # Where does our calculated q exceed the Froude number? If q
                 # does exceed the Froude number, we are getting supercritical
                 # flow and discharge needs to be reduced to maintain stability.
-                adjust_supercritial_discharge(
+                adjust_supercritical_discharge(
                     q_at_link,
                     h_at_link,
                     self._active_links,
