@@ -55,10 +55,11 @@ The `surface_water__depth` field is defined at nodes.
 >>> of.var_loc("surface_water__depth")
 'node'
 >>> grid.at_node["surface_water__depth"]
-array([1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
-       1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
-       1.0000e-05, 2.0010e-02, 2.0010e-02, 2.0010e-02, 1.0000e-05,
-       1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01])
+array([1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
+       1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
+       1.000000e-05, 1.000000e-05, 1.000000e-05, 2.001193e-02,
+       2.001193e-02, 2.001193e-02, 1.000000e-05, 1.000100e-01,
+       1.000100e-01, 1.000100e-01, 1.000100e-01, 1.000100e-01])
 
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
@@ -94,6 +95,7 @@ from landlab.components.overland_flow._calc import adjust_supercritical_discharg
 from landlab.components.overland_flow._calc import adjust_unstable_discharge
 from landlab.components.overland_flow._calc import calc_bates_flow_height_at_some_links
 from landlab.components.overland_flow._calc import calc_discharge_at_some_links
+from landlab.components.overland_flow._calc import calc_grad_at_some_links
 from landlab.components.overland_flow._calc import update_water_depths
 from landlab.components.overland_flow._calc import weighted_mean_of_parallel_links
 from landlab.core.utils import as_id_array
@@ -370,8 +372,14 @@ class OverlandFlow(Component):
                 h_at_link,
             )
 
-            # Now we calculate the slope of the water surface elevation
-            self._grid.calc_grad_at_link(h_at_node + z_at_node, out=water_surface_slope)
+            # Now we calculate the slope of the water surface elevation at active links
+            calc_grad_at_some_links(
+                h_at_node + z_at_node,
+                self.grid.nodes_at_link,
+                self.grid.length_of_link,
+                self._active_links,
+                water_surface_slope,
+            )
 
             q_at_link[self._link_is_inactive] = 0.0
 

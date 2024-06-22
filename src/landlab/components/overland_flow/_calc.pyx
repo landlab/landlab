@@ -51,6 +51,32 @@ def neighbors_at_link(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
+def calc_grad_at_some_links(
+    const cython.floating [:] value_at_node,
+    const id_t [:, :] nodes_at_link,
+    const cython.floating [:] length_of_link,
+    const id_t [:] links,
+    cython.floating [:] out_at_link,
+):
+    cdef long n_links = len(links)
+    cdef long i
+    cdef long link
+    cdef long head
+    cdef long tail
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = links[i]
+        tail = nodes_at_link[link, 0]
+        head = nodes_at_link[link, 1]
+
+        out_at_link[link] = (
+            value_at_node[head] - value_at_node[tail]
+        ) / length_of_link[link]
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
 def calc_discharge_at_link(
     shape,
     cython.floating [:] q_at_link,
