@@ -90,22 +90,12 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component
-from landlab.components.overland_flow._neighbors_at_link import (
-    adjust_supercritical_discharge,
-)
-from landlab.components.overland_flow._neighbors_at_link import (
-    adjust_unstable_discharge,
-)
-from landlab.components.overland_flow._neighbors_at_link import (
-    calc_bates_flow_height_at_some_links,
-)
-from landlab.components.overland_flow._neighbors_at_link import (
-    calc_discharge_at_some_links,
-)
-from landlab.components.overland_flow._neighbors_at_link import update_water_depths
-from landlab.components.overland_flow._neighbors_at_link import (
-    weighted_mean_of_parallel_links,
-)
+from landlab.components.overland_flow._calc import adjust_supercritical_discharge
+from landlab.components.overland_flow._calc import adjust_unstable_discharge
+from landlab.components.overland_flow._calc import calc_bates_flow_height_at_some_links
+from landlab.components.overland_flow._calc import calc_discharge_at_some_links
+from landlab.components.overland_flow._calc import update_water_depths
+from landlab.components.overland_flow._calc import weighted_mean_of_parallel_links
 from landlab.core.utils import as_id_array
 from landlab.grid.linkstatus import is_inactive_link
 

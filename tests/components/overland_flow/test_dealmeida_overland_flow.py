@@ -9,14 +9,15 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
-from landlab.components.overland_flow._links import horizontal_link_ids
+from landlab.graph.structured_quad.structured_quad import StructuredQuadGraphTopology
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def _left_edge_horizontal_ids(shape):
-    return horizontal_link_ids(shape)[:, 0]
+    layout = StructuredQuadGraphTopology(shape)
+    return layout.horizontal_links.reshape((shape[0], shape[1] - 1))[:, 0]
 
 
 def test_deAlm_name(deAlm):
