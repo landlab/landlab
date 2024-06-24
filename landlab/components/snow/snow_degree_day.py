@@ -9,13 +9,13 @@ https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base
 @author: Tian Gan June 2024
 
 """
+
 import numpy as np
 
 from landlab import Component
 
 
 class SnowDegreeDay(Component):
-
     """Simulate snowmelt process using degree-day method.
 
       The degree-day method uese c0 (degree-day coefficient),
