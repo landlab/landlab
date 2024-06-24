@@ -564,7 +564,7 @@ class ModelGrid(
         >>> _ = grid.add_full("temperature", 5.0, at="node")
 
         >>> ds = grid.as_dataset()
-        >>> sorted(ds.dims.items())
+        >>> sorted(ds.sizes.items())
         [('dim', 2), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
         ['at_link:elevation', 'at_node:elevation', 'at_node:temperature']
@@ -572,7 +572,7 @@ class ModelGrid(
         >>> grid.event_layers.add(1.0, rho=0.5)
 
         >>> ds = grid.as_dataset()
-        >>> sorted(ds.dims.items())
+        >>> sorted(ds.sizes.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
         ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',

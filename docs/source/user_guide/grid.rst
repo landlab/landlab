@@ -547,21 +547,23 @@ As noted earlier, Landlab provides several different types of grid. Available gr
 classes, with more specialized grids inheriting properties and behavior from more
 general types. The class hierarchy is given in the second column, **Inherits from**.
 
-+-------------------------+-------------------------+--------------------+-------------------+
-| Grid type               | Inherits from           | Node arrangement   | Cell geometry     |
-+=========================+=========================+====================+===================+
-| ``RasterModelGrid``     | ``ModelGrid``           | raster             | squares           |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``VoronoiDelaunayGrid`` | ``ModelGrid``           | Delaunay triangles | Voronoi polygons  |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``FramedVoronoiGrid``   | ``VoronoiDelaunayGrid`` | Delaunay triangles | Voronoi polygons  |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``HexModelGrid``        | ``VoronoiDelaunayGrid`` | triagonal          | hexagons          |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``RadialModelGrid``     | ``VoronoiDelaunayGrid`` | concentric         | Voronoi polygons  |
-+-------------------------+-------------------------+--------------------+-------------------+
-| ``NetworkModelGrid``    | ``ModelGrid``           | ad libitum         | No cells          |
-+-------------------------+-------------------------+--------------------+-------------------+
++-------------------------+-------------------------+--------------------+----------------------+
+| Grid type               | Inherits from           | Node arrangement   | Cell geometry        |
++=========================+=========================+====================+======================+
+| ``RasterModelGrid``     | ``ModelGrid``           | raster             | squares              |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``VoronoiDelaunayGrid`` | ``ModelGrid``           | Delaunay triangles | Voronoi polygons     |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``FramedVoronoiGrid``   | ``VoronoiDelaunayGrid`` | Delaunay triangles | Voronoi polygons     |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``HexModelGrid``        | ``VoronoiDelaunayGrid`` | triagonal          | hexagons             |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``RadialModelGrid``     | ``VoronoiDelaunayGrid`` | concentric         | Voronoi polygons     |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``NetworkModelGrid``    | ``ModelGrid``           | ad libitum         | No cells             |
++-------------------------+-------------------------+--------------------+----------------------+
+| ``IcosphereGlobalGrid`` | ``ModelGrid``           | spherical          | hexagons & pentagons |
++-------------------------+-------------------------+--------------------+----------------------+
 
 :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`
 gives a regular (square) grid, initialized
@@ -579,6 +581,17 @@ regular hexagons.
 In a :py:class:`landlab.grid.radial.RadialModelGrid <landlab.grid.radial.RadialModelGrid>`, nodes are created in concentric
 circles and then connected to
 form a Delaunay triangulation (again with Voronoi polygons as cells).
+:py:class:`landlab.grid.network.NetworkModelGrid` represents a branching network of nodes and links,
+without cells or patches.
+An :py:class:`landlab.grid.icosphere.IcosphereGlobalGrid` represents the surface of a sphere.
+The default configuration is a spherical grid of unit radius that
+forms the spherical version an icosahedron (20 triangular patches,
+12 nodes), with the dual complement representing a dodecahedron
+(12 hexagonal cells, 20 corners). The mesh_densification_level
+parameter allows you to densify this initial shape by subdividing
+each triangular patch into four triangles, with corresponding
+addition of nodes (as the triangle vertices), together with
+corresponding cells and corners.
 
 .. _importing_a_dem:
 

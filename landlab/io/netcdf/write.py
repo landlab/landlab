@@ -667,7 +667,7 @@ def write_netcdf(
     if append:
         with xr.open_dataset(path) as dataset:
             time_varying_names = [
-                name for name in dataset.variables if "nt" in dataset[name].dims
+                name for name in dataset.variables if "nt" in dataset[name].sizes
             ]
             for name in set(time_varying_names) & set(names):
                 values = getattr(grid, "at_" + at)[name].reshape((1,) + shape)
