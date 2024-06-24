@@ -15,7 +15,6 @@ import io
 import os
 import pathlib
 import re
-from typing import Any
 
 import numpy as np
 
@@ -73,7 +72,7 @@ def loads(s: str, at="node", name=None):
     lines = s.splitlines()
 
     header = {}
-    for lineno, line in enumerate(lines):
+    for _lineno, line in enumerate(lines):
         if re.match(r"[a-zA-Z_]+", line, re.UNICODE):
             key, value = line.split(maxsplit=1)
             header[key.lower()] = value
@@ -95,7 +94,7 @@ def loads(s: str, at="node", name=None):
     )
 
     if name:
-        data = np.loadtxt([" ".join(lines[lineno:])])
+        data = np.loadtxt([" ".join(lines[_lineno:])])
 
         if data.dtype.kind in ("i", "u"):
             header["nodata_value"] = int(header["nodata_value"])
@@ -119,7 +118,7 @@ def _validate_header(header: dict[str, str]):
             "yllcorner",
             "yllcenter",
             "nodata_value",
-        )
+        ),
     )
 
     if len(set(header) & {"xllcorner", "xllcenter"}) != 1:
