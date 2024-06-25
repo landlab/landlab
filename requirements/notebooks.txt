@@ -3,3 +3,5 @@ dask[array]==2023.10.1
 holoviews==1.18.0
 jupyter==1.0.0
 mesa==2.1.2
+bmi_era5==0.1.4
+cdsapi==0.6.1

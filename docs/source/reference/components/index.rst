@@ -70,6 +70,7 @@ Land surface hydrology
   pet
   soil_moisture
   greenampt
+  snow
 
 Groundwater hydrology
 ---------------------
@@ -243,6 +244,7 @@ Alphabetical Listing of Modules
    potentiality_flowrouting
    radiation
    sink_fill
+   snow
    soil_moisture
    space
    spatial_precip
