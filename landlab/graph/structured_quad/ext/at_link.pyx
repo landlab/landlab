@@ -139,3 +139,50 @@ def fill_nodes_at_link(
     for col in prange(horizontal_links_per_row, nogil=True, schedule="static"):
         nodes_at_link[link + col, 0] = node + col
         nodes_at_link[link + col, 1] = node + col + 1
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def fill_parallel_links_at_link(
+    shape,
+    id_t[:, :] out,
+):
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long horizontal_links_per_row = n_cols - 1
+    cdef long vertical_links_per_row = n_cols
+    cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
+    cdef long row
+    cdef long first_link
+    cdef long link
+
+    for row in prange(0, n_rows - 1, nogil=True, schedule="static"):
+        first_link = links_per_row * row
+
+        for link in range(first_link, first_link + horizontal_links_per_row):
+            out[link, 0] = link - 1
+            out[link, 1] = link + 1
+        out[first_link, 0] = -1
+        out[first_link + horizontal_links_per_row - 1, 1] = -1
+
+        first_link = first_link + horizontal_links_per_row
+        for link in range(first_link, first_link + vertical_links_per_row):
+            out[link, 0] = link - links_per_row
+            out[link, 1] = link + links_per_row
+
+    with nogil:
+        first_link = horizontal_links_per_row
+        for link in range(first_link, first_link + vertical_links_per_row):
+            out[link, 0] = -1
+
+        first_link = links_per_row * (n_rows - 1) - vertical_links_per_row
+        for link in range(first_link, first_link + vertical_links_per_row):
+            out[link, 1] = -1
+
+        # Top row
+        first_link = links_per_row * (n_rows - 1)
+        for link in range(first_link, first_link + horizontal_links_per_row):
+            out[link, 0] = link - 1
+            out[link, 1] = link + 1
+        out[first_link, 0] = -1
+        out[first_link + horizontal_links_per_row - 1, 1] = -1

@@ -8,31 +8,43 @@ ctypedef fused float_or_int:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.cdivision(True)
 def _calc_flux_div_at_node(
     shape,
     xy_spacing,
     const float_or_int[:] value_at_link,
     cython.floating[:] out,
 ):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
     cdef double dx = xy_spacing[0]
     cdef double dy = xy_spacing[1]
-    cdef int links_per_row = 2 * n_cols - 1
+    cdef long links_per_row = 2 * n_cols - 1
     cdef double inv_area_of_cell = 1.0 / (dx * dy)
-    cdef int row, col
-    cdef int node, link
+    cdef long row
+    cdef long first_node
+    cdef long link
+    cdef long node
+
+    for node in range(n_cols):
+        out[node] = 0.0
 
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
-        node = row * n_cols
+        first_node = row * n_cols
         link = row * links_per_row
 
-        for col in range(1, n_cols - 1):
-            out[node + col] = (
+        out[first_node] = 0.0
+        for node in range(first_node + 1, first_node + n_cols - 1):
+            out[node] = (
                 dy * (value_at_link[link + 1] - value_at_link[link])
                 + dx * (value_at_link[link + n_cols] - value_at_link[link - n_cols + 1])
             ) * inv_area_of_cell
             link = link + 1
+        out[first_node + n_cols - 1] = 0.0
+
+    first_node = (n_rows - 1) * n_cols
+    for node in range(first_node, first_node + n_cols):
+        out[node] = 0.0
 
 
 @cython.boundscheck(False)
