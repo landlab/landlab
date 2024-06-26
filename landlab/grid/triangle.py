@@ -12,7 +12,6 @@ from landlab.grid.base import ModelGrid
 
 
 class TriangleModelGrid(DualTriangleGraph, ModelGrid):
-
     """This inherited class implements an unstructured grid from dual
     Delaunay and Voronoi graphs. By convention, nodes, links, and patches
     compose a Delaunay triangulation, while corners, faces, and cells

@@ -13,6 +13,7 @@ and a list of command line switches that can be passed as opts are here:
 
 https://www.cs.cmu.edu/~quake/triangle.switch.html
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -311,11 +312,11 @@ class TriangleMesh:
             holes = np.insert(holes, 0, np.arange(holes.shape[0]), axis=1)
 
         with open(path, "w") as outfile:
-            np.savetxt(outfile, vertex_header, fmt="%d", newline='\r\n')
-            np.savetxt(outfile, vertices, fmt="%f", newline='\r\n')
-            np.savetxt(outfile, segment_header, fmt="%d", newline='\r\n')
-            np.savetxt(outfile, segments, fmt="%d", newline='\r\n')
-            np.savetxt(outfile, holes_header, fmt="%d", newline='\r\n')
+            np.savetxt(outfile, vertex_header, fmt="%d", newline="\r\n")
+            np.savetxt(outfile, vertices, fmt="%f", newline="\r\n")
+            np.savetxt(outfile, segment_header, fmt="%d", newline="\r\n")
+            np.savetxt(outfile, segments, fmt="%d", newline="\r\n")
+            np.savetxt(outfile, holes_header, fmt="%d", newline="\r\n")
 
             # If there are no holes, there's nothing to write here
             if holes_header[0] > 0:

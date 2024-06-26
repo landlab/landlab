@@ -4,7 +4,8 @@ from shapely.validation import explain_validity
 
 from landlab.graph.dual import DualGraph
 from landlab.graph.graph import Graph
-from landlab.graph.sort.sort import reverse_one_to_many, sort_links_at_patch
+from landlab.graph.sort.sort import reverse_one_to_many
+from landlab.graph.sort.sort import sort_links_at_patch
 from landlab.graph.triangle.mesh import TriangleMesh
 
 
