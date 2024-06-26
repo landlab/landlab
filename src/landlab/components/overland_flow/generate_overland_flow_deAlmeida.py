@@ -282,15 +282,6 @@ class OverlandFlow(Component):
             grid.add_empty("water_surface__gradient", at="link")
         grid.at_link["water_surface__gradient"].fill(0.0)
 
-        self._dt = None
-
-        # When we instantiate the class we recognize that neighbors have not
-        # been found. After the user either calls self.set_up_neighbor_array
-        # or self.overland_flow this will be set to True. This is done so
-        # that every iteration of self.overland_flow does NOT need to
-        # reinitalize the neighbors and saves computation time.
-        self._active_link_flag = False
-
     @staticmethod
     def _validate_g(g):
         if g > 0.0:
@@ -309,17 +300,6 @@ class OverlandFlow(Component):
     def h(self):
         """The depth of water at each node."""
         return self._grid.at_node["surface_water__depth"]
-
-    @property
-    def dt(self):
-        """dt: Component timestep."""
-        return self._dt
-
-    @dt.setter
-    def dt(self, dt):
-        if dt <= 0:
-            raise ValueError("timestep dt must be positive")
-        self._dt = dt
 
     @property
     def rainfall_intensity(self):
@@ -347,9 +327,7 @@ class OverlandFlow(Component):
         if max_water_depth <= 0.0:
             raise NoWaterError()
 
-        self._dt = self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
-
-        return self._dt
+        return self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
 
     def find_inactive_links(self, clear_cache=False):
         """Find inactive links.
