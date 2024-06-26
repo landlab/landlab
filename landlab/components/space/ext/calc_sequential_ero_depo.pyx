@@ -20,28 +20,30 @@ ctypedef np.uint8_t DTYPE_UINT8_t
 
 
 def _sequential_ero_depo(
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
-    np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Q_to_the_m,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] slope,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] H,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] br,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
-    DTYPE_FLOAT_t v,
-    DTYPE_FLOAT_t phi,
-    DTYPE_FLOAT_t F_f,
-    DTYPE_FLOAT_t H_star,
-    DTYPE_FLOAT_t dt,
-    DTYPE_FLOAT_t thickness_lim,
-):
+                    np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
+                    np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] Q_to_the_m,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] slope,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] H,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] br,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] ero_sed_effective,
+                    np.ndarray[DTYPE_FLOAT_t, ndim=1] depo_effective,
+                    DTYPE_FLOAT_t v,
+                    DTYPE_FLOAT_t phi,
+                    DTYPE_FLOAT_t F_f,
+                    DTYPE_FLOAT_t H_star,
+                    DTYPE_FLOAT_t dt,
+                    DTYPE_FLOAT_t thickness_lim
+                    ):
 
     """Calculate and qs and qs_in."""
     # define internal variables
@@ -117,4 +119,10 @@ def _sequential_ero_depo(
         br[node_id] += -dt * ero_bed
         vol_SSY_riv += F_f*ero_bed* cell_area[node_id]
 
+        # Update deposition rate based on adjusted fluxes
+        Hd = H_loc - H_Before
+        depo_effective[node_id] = (v*qs_out_adj/q[node_id])/(1 - phi)
+        # Deposition should be larger or equal to increase in soil depth
+        depo_effective[node_id] = max(depo_effective[node_id], Hd/dt)
+        ero_sed_effective[node_id] = depo_effective[node_id] - Hd/dt
     return vol_SSY_riv
