@@ -89,17 +89,26 @@ array([0. , 0. , 0. , 0. ,
 
 import numpy as np
 import scipy.constants
+from line_profiler import profile
 
 from landlab import Component
+from landlab import RasterModelGrid
+from landlab.components.overland_flow._calc import adjust_discharge_for_dry_links
 from landlab.components.overland_flow._calc import adjust_supercritical_discharge
 from landlab.components.overland_flow._calc import adjust_unstable_discharge
 from landlab.components.overland_flow._calc import calc_bates_flow_height_at_some_links
 from landlab.components.overland_flow._calc import calc_discharge_at_some_links
 from landlab.components.overland_flow._calc import calc_grad_at_some_links
+from landlab.components.overland_flow._calc import find_max_water_depth
+from landlab.components.overland_flow._calc import map_sum_of_influx_to_node
 from landlab.components.overland_flow._calc import update_water_depths
 from landlab.components.overland_flow._calc import weighted_mean_of_parallel_links
 from landlab.core.utils import as_id_array
 from landlab.grid.linkstatus import is_inactive_link
+
+
+class NoWaterError(Exception):
+    pass
 
 
 class OverlandFlow(Component):
@@ -208,7 +217,7 @@ class OverlandFlow(Component):
         grid : RasterModelGrid
             A landlab grid.
         h_init : float, optional
-            Thicknes of initial thin layer of water to prevent divide by zero
+            Thickness of initial thin layer of water to prevent divide by zero
             errors (m).
         alpha : float, optional
             Time step coeffcient, described in Bates et al., 2010 and
@@ -225,6 +234,14 @@ class OverlandFlow(Component):
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
         """
+        if not isinstance(grid, RasterModelGrid):
+            raise NotImplementedError(
+                "OverlandFlow only works with RasterModelGrid"
+                f" (got {grid.__class__.__name__})"
+            )
+        if not np.allclose(grid.dx, grid.dy):
+            raise ValueError("x and y grid spacing must be equal")
+
         super().__init__(grid)
 
         self._h_init = h_init
@@ -235,8 +252,8 @@ class OverlandFlow(Component):
         else:
             self._mannings_n = np.broadcast_to(mannings_n, self._grid.number_of_links)
 
-        self._g = g
-        self._theta = theta
+        self._g = self._validate_g(g)
+        self._theta = self._validate_theta(theta)
         self.rainfall_intensity = rainfall_intensity
         self._steep_slopes = steep_slopes
 
@@ -274,6 +291,20 @@ class OverlandFlow(Component):
         # reinitalize the neighbors and saves computation time.
         self._active_link_flag = False
 
+    @staticmethod
+    def _validate_g(g):
+        if g > 0.0:
+            return float(g)
+        else:
+            raise ValueError(f"g must be greater than zero ({g})")
+
+    @staticmethod
+    def _validate_theta(theta):
+        if (theta >= 0.0) and (theta <= 1.0):
+            return float(theta)
+        else:
+            raise ValueError(f"theta must be between 0.0 and 1.0 ({theta})")
+
     @property
     def h(self):
         """The depth of water at each node."""
@@ -288,7 +319,6 @@ class OverlandFlow(Component):
     def dt(self, dt):
         if dt <= 0:
             raise ValueError("timestep dt must be positive")
-
         self._dt = dt
 
     @property
@@ -311,23 +341,44 @@ class OverlandFlow(Component):
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
         al., 2012
         """
-        max_water_depth = np.amax(self._grid.at_node["surface_water__depth"])
+        max_water_depth = find_max_water_depth(
+            self._grid.at_node["surface_water__depth"], self.grid.core_nodes
+        )
         if max_water_depth <= 0.0:
-            raise RuntimeError("no water")
+            raise NoWaterError()
 
         self._dt = self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
 
         return self._dt
 
-    def set_up_active_link_arrays(self):
-        self._link_is_inactive = is_inactive_link(
-            self.grid.status_at_node[self.grid.nodes_at_link]
-        )
+    def find_inactive_links(self, clear_cache=False):
+        """Find inactive links.
 
-        self._active_links = as_id_array(np.where(~self._link_is_inactive)[0])
+        Parameters
+        ----------
+        clear_cache: bool, optional
+            Clear the currently cached values and find the inactive links again,
+            caching the new result.
 
-        self._active_link_flag = True
+        Returns
+        -------
+        array of int
+            IDs of all of the inactive links.
+        """
+        if clear_cache:
+            del self._inactive_links
 
+        try:
+            self._inactive_links
+        except AttributeError:
+            self._inactive_links = as_id_array(
+                np.where(
+                    is_inactive_link(self.grid.status_at_node[self.grid.nodes_at_link])
+                )[0]
+            )
+        return self._inactive_links
+
+    @profile
     def overland_flow(self, dt=None):
         """Generate overland flow across a grid.
 
@@ -340,8 +391,10 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
-        if dt is None:
-            dt = self.calc_time_step()
+        try:
+            dt = self.calc_time_step() if dt is None else dt
+        except NoWaterError:
+            return
 
         h_at_node = self._grid.at_node["surface_water__depth"]
         z_at_node = self._grid.at_node["topographic__elevation"]
@@ -352,13 +405,14 @@ class OverlandFlow(Component):
         q_at_node = self.grid.empty(at="node")
 
         core_nodes = self._grid.core_nodes
-
-        if not self._active_link_flag:
-            self.set_up_active_link_arrays()
+        active_links = self._grid.active_links
 
         time_remaining = dt
         while time_remaining > 0.0:
-            dt_local = min(self.calc_time_step(), time_remaining)
+            try:
+                dt_local = min(self.calc_time_step(), time_remaining)
+            except NoWaterError:
+                break
             time_remaining -= dt_local
 
             # Per Bates et al., 2010, this solution needs to find difference
@@ -368,7 +422,7 @@ class OverlandFlow(Component):
                 z_at_node,
                 h_at_node,
                 self.grid.nodes_at_link,
-                self._active_links,
+                active_links,
                 h_at_link,
             )
 
@@ -377,11 +431,11 @@ class OverlandFlow(Component):
                 h_at_node + z_at_node,
                 self.grid.nodes_at_link,
                 self.grid.length_of_link,
-                self._active_links,
+                active_links,
                 water_surface_slope,
             )
 
-            q_at_link[self._link_is_inactive] = 0.0
+            adjust_discharge_for_dry_links(h_at_link, q_at_link, active_links)
 
             weighted_mean_of_parallel_links(
                 self.grid.shape,
@@ -396,11 +450,10 @@ class OverlandFlow(Component):
                 h_at_link,
                 water_surface_slope,
                 self._mannings_n,
-                self._active_links,
+                active_links,
                 self._g,
                 dt_local,
             )
-            q_at_link[h_at_link <= 0] = 0.0
 
             if self._steep_slopes:
                 # To prevent water from draining too fast for our time steps...
@@ -415,7 +468,7 @@ class OverlandFlow(Component):
                 adjust_supercritical_discharge(
                     q_at_link,
                     h_at_link,
-                    self._active_links,
+                    active_links,
                     self._g,
                     froude,
                 )
@@ -429,7 +482,7 @@ class OverlandFlow(Component):
                 adjust_unstable_discharge(
                     q_at_link,
                     h_at_link,
-                    self._active_links,
+                    active_links,
                     self._grid.dx,
                     dt_local,
                 )
@@ -448,20 +501,6 @@ class OverlandFlow(Component):
                 dt_local,
             )
 
-            # To prevent divide by zero errors, a minimum threshold water depth
-            # must be maintained. To reduce mass imbalances, this is set to
-            # find locations where water depth is smaller than h_init (default
-            # is 0.001) and the new value is self._h_init * 10^-3. This was set
-            # as it showed the smallest amount of mass creation in the grid
-            # during testing.
-            # if self._steep_slopes:
-            #     h_at_node[h_at_node < self._h_init] = self._h_init * 1e-3
-
-            # And reset our field values with the newest water depth and
-            # discharge.
-            # self._grid.at_node["surface_water__depth"][:] = h_at_node
-            # self._grid.at_link["surface_water__discharge"][:] = q_at_link
-
     def run_one_step(self, dt=None):
         """Generate overland flow across a grid.
 
@@ -476,7 +515,7 @@ class OverlandFlow(Component):
         """
         self.overland_flow(dt=dt)
 
-    def discharge_mapper(self, input_discharge, convert_to_volume=False):
+    def discharge_mapper(self, discharge_at_link, convert_to_volume=False, out=None):
         """Maps discharge value from links onto nodes.
 
         This method takes the discharge values on links and determines the
@@ -495,23 +534,17 @@ class OverlandFlow(Component):
 
         Returns a numpy array (discharge_vals)
         """
+        if out is None:
+            out = self.grid.empty(at="node")
 
-        discharge_vals = np.zeros(self._grid.number_of_links)
-        discharge_vals[:] = input_discharge[:]
-
-        if convert_to_volume:
-            discharge_vals *= self._grid.dx
-
-        discharge_vals = (
-            discharge_vals[self._grid.links_at_node] * self._grid.link_dirs_at_node
+        map_sum_of_influx_to_node(
+            discharge_at_link,
+            self.grid.links_at_node,
+            self.grid.link_dirs_at_node,
+            out,
         )
 
-        discharge_vals = discharge_vals.flatten()
+        if convert_to_volume:
+            out *= self.grid.dx
 
-        discharge_vals[np.where(discharge_vals < 0)] = 0.0
-
-        discharge_vals = discharge_vals.reshape(self._grid.number_of_nodes, 4)
-
-        discharge_vals = discharge_vals.sum(axis=1)
-
-        return discharge_vals
+        return out
