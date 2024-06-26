@@ -2,10 +2,13 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
+cimport openmp as omp
+from cython.parallel cimport parallel
 from cython.parallel cimport prange
 from libc.math cimport fabs
 from libc.math cimport powf
 from libc.math cimport sqrt
+from libc.stdint cimport int8_t
 
 ctypedef fused id_t:
     cython.integral
@@ -46,6 +49,42 @@ def neighbors_at_link(
 
         if not is_bottom:
             out[i, 3] = link - stride
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def find_max_water_depth(
+    cython.floating [:] h_at_node,
+    const id_t [:] nodes,
+):
+    cdef long n_nodes = len(nodes)
+    cdef double max_val = 0.0
+    cdef double max_local
+    cdef double *ptr_max_val
+    cdef double *ptr_max_local
+    cdef long i
+    cdef long node
+    cdef omp.omp_lock_t mutex
+
+    ptr_max_val = &max_val
+    omp.omp_init_lock(&mutex)
+
+    with nogil, parallel():
+        max_local = 0.0
+        ptr_max_local = &max_local
+
+        for i in prange(n_nodes, schedule="static"):
+            node = nodes[i]
+            if h_at_node[node] > ptr_max_local[0]:
+                ptr_max_local[0] = h_at_node[node]
+
+        omp.omp_set_lock(&mutex)
+        ptr_max_val[0] = max(ptr_max_val[0], max_local)
+        omp.omp_unset_lock(&mutex)
+
+    omp.omp_destroy_lock(&mutex)
+
+    return max_val
 
 
 @cython.boundscheck(False)
@@ -126,17 +165,28 @@ def calc_discharge_at_some_links(
     cdef long n_links = len(links)
     cdef long link
     cdef long i
+    cdef double h_to_seven_thirds
+    cdef double numerator
+    cdef double denominator
+    cdef double g_times_dt = g * dt
+    cdef double seven_thirds = 7.0 / 3.0
 
     for i in prange(n_links, nogil=True, schedule="static"):
         link = links[i]
 
-        q_at_link[link] = (
-            q_mean_at_link[link] - g * dt * h_at_link[link] * water_slope_at_link[link]
-        ) / (
-            1.0 + g * dt * mannings_at_link[link] ** 2 * fabs(q_at_link[link]) / powf(
-                h_at_link[link], 7.0 / 3.0
+        if h_at_link[link] > 0.0:
+            h_to_seven_thirds = powf(h_at_link[link], seven_thirds)
+
+            numerator = h_to_seven_thirds * (
+                q_mean_at_link[link]
+                - g_times_dt * h_at_link[link] * water_slope_at_link[link]
             )
-        )
+
+            denominator = (
+                h_to_seven_thirds
+                + g_times_dt * mannings_at_link[link] ** 2 * fabs(q_at_link[link])
+            )
+            q_at_link[link] = numerator / denominator
 
 
 @cython.boundscheck(False)
@@ -283,7 +333,23 @@ def calc_bates_flow_height_at_some_links(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-@cython.cdivision(True)
+def adjust_discharge_for_dry_links(
+    const cython.floating [:] h_at_link,
+    cython.floating [:] q_at_link,
+    const id_t [:] links,
+):
+    cdef long n_links = len(links)
+    cdef long link
+    cdef long i
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = links[i]
+        if h_at_link[link] <= 0.0:
+            q_at_link[link] = 0.0
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def adjust_supercritical_discharge(
     cython.floating [:] q_at_link,
     const cython.floating [:] h_at_link,
@@ -362,3 +428,34 @@ def update_water_depths(
 
         if h_at_node[node] < 0.0:
             h_at_node[node] = 0.0
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def map_sum_of_influx_to_node(
+    const cython.floating [:] value_at_link,
+    const id_t [:, :] links_at_node,
+    const int8_t [:, :] link_dirs_at_node,
+    cython.floating [:] out,
+):
+    """
+    calculate the change in water depths on all core nodes by finding the
+    difference between inputs (rainfall) and the inputs/outputs (flux
+    divergence of discharge)
+    """
+    cdef long n_nodes = len(links_at_node)
+    cdef long links_per_node = links_at_node.shape[1]
+    cdef long node
+    cdef long col
+    cdef double total
+    cdef double value
+
+    for node in prange(n_nodes, nogil=True, schedule="static"):
+        total = 0.0
+        for col in range(links_per_node):
+            value = (
+                value_at_link[links_at_node[node, col]] * link_dirs_at_node[node, col]
+            )
+            if value > 0.0:
+                total = total + value
+        out[node] = total
