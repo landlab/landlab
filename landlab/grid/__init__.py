@@ -5,6 +5,7 @@ from landlab.grid.hex import HexModelGrid
 from landlab.grid.network import NetworkModelGrid
 from landlab.grid.radial import RadialModelGrid
 from landlab.grid.raster import RasterModelGrid
+from landlab.grid.triangle import TriangleModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 __all__ = [
@@ -14,6 +15,7 @@ __all__ = [
     "RasterModelGrid",
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
+    "TriangleModelGrid",
     "NetworkModelGrid",
     "create_grid",
 ]

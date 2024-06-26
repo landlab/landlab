@@ -54,6 +54,9 @@ jobs:
           conda info
           conda list
 
+      - name: Install Triangle for mesh-generation
+        run: mamba install triangle
+
       - name: Install and test richdem engine
         run: |
           conda install richdem "numpy<2" -c conda-forge

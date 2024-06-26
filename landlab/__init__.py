@@ -27,6 +27,7 @@ from landlab.grid.network import NetworkModelGrid
 from landlab.grid.nodestatus import NodeStatus
 from landlab.grid.radial import RadialModelGrid
 from landlab.grid.raster import RasterModelGrid
+from landlab.grid.triangle import TriangleModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.imshow import imshow_grid
 from landlab.plot.imshow import imshow_grid_at_node
@@ -48,6 +49,7 @@ __all__ = [
     "HexModelGrid",
     "RadialModelGrid",
     "RasterModelGrid",
+    "TriangleModelGrid",
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
