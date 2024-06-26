@@ -55,13 +55,10 @@ The `surface_water__depth` field is defined at nodes.
 >>> of.var_loc("surface_water__depth")
 'node'
 >>> grid.at_node["surface_water__depth"]
-array([  1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
-         1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
-         1.00000000e-05,   1.00000000e-05,   1.00000000e-05,
-         1.00000000e-05,   1.00000000e-05,   2.00100000e-02,
-         2.00100000e-02,   2.00100000e-02,   1.00000000e-05,
-         1.00010000e-01,   1.00010000e-01,   1.00010000e-01,
-         1.00010000e-01,   1.00010000e-01])
+array([1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
+       1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05, 1.0000e-05,
+       1.0000e-05, 2.0010e-02, 2.0010e-02, 2.0010e-02, 1.0000e-05,
+       1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01, 1.0001e-01])
 
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
@@ -80,18 +77,20 @@ The *water_surface__gradient* is also defined at links.
 >>> of.var_loc("water_surface__gradient")
 'link'
 >>> grid.at_link["water_surface__gradient"]
-array([ 0. ,  0. ,  0. ,  0. ,
-        0. ,  1. ,  1. ,  1. ,  0. ,
-        0. ,  0. ,  0. ,  0. ,
-        0. ,  1. ,  1. ,  1. ,  0. ,
-        0. ,  0. ,  0. ,  0. ,
-        0. ,  1.1,  1.1,  1.1,  0. ,
-        0. ,  0. ,  0. ,  0. ])
+array([0. , 0. , 0. , 0. ,
+       0. , 1. , 1. , 1. , 0. ,
+       0. , 0. , 0. , 0. ,
+       0. , 1. , 1. , 1. , 0. ,
+       0. , 0. , 0. , 0. ,
+       0. , 1.1, 1.1, 1.1, 0. ,
+       0. , 0. , 0. , 0. ])
 """
+
 import numpy as np
 import scipy.constants
 
-from landlab import Component, FieldError
+from landlab import Component
+from landlab import FieldError
 
 from . import _links as links
 
@@ -156,7 +155,6 @@ def _active_links_at_node(grid, *args):
 
 
 class OverlandFlow(Component):
-
     """Simulate overland flow using de Almeida approximations.
 
     Landlab component that simulates overland flow using the de Almeida
@@ -583,9 +581,9 @@ class OverlandFlow(Component):
             ]
 
             # And insert these values into an array of all links
-            self._water_surface_slope[
-                self._active_links
-            ] = self._water_surface__gradient
+            self._water_surface_slope[self._active_links] = (
+                self._water_surface__gradient
+            )
             # If the user chooses to set boundary links to the neighbor value,
             # we set the discharge array to have the boundary links set to
             # their neighbor value

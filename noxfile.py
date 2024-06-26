@@ -2,13 +2,14 @@ import json
 import os
 import pathlib
 import shutil
+import sys
 
 import nox
 from packaging.requirements import Requirement
 
 PROJECT = "landlab"
 ROOT = pathlib.Path(__file__).parent
-PYTHON_VERSION = "3.11"
+PYTHON_VERSION = "3.12"
 PATH = {
     "build": ROOT / "build",
     "docs": ROOT / "docs",
@@ -25,6 +26,10 @@ def test(session: nox.Session) -> None:
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
 
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge.")
+        session.conda_install("multidict")
+
     session.install(
         "-r",
         PATH["requirements"] / "required.txt",
@@ -32,7 +37,7 @@ def test(session: nox.Session) -> None:
         PATH["requirements"] / "testing.txt",
     )
 
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+    session.conda_install("richdem", "numpy<2", channel=["nodefaults", "conda-forge"])
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
@@ -70,6 +75,10 @@ def test_notebooks(session: nox.Session) -> None:
 
     os.environ["WITH_OPENMP"] = "1"
 
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge")
+        session.conda_install("multidict")
+
     session.install(
         "-r",
         PATH["requirements"] / "required.txt",
@@ -78,7 +87,7 @@ def test_notebooks(session: nox.Session) -> None:
         "-r",
         PATH["requirements"] / "notebooks.txt",
     )
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+    session.conda_install("richdem", "numpy<2", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
 

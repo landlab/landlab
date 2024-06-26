@@ -2,7 +2,8 @@ import re
 
 import numpy as np
 import xarray as xr
-from scipy.spatial import Delaunay, Voronoi
+from scipy.spatial import Delaunay
+from scipy.spatial import Voronoi
 
 from ...core.utils import as_id_array
 from ...utils import jaggedarray
@@ -126,27 +127,27 @@ class VoronoiDelaunay:
 
     @property
     def number_of_nodes(self):
-        return self._mesh.dims["node"]
+        return self._mesh.sizes["node"]
 
     @property
     def number_of_links(self):
-        return self._mesh.dims["link"]
+        return self._mesh.sizes["link"]
 
     @property
     def number_of_patches(self):
-        return self._mesh.dims["patch"]
+        return self._mesh.sizes["patch"]
 
     @property
     def number_of_corners(self):
-        return self._mesh.dims["corner"]
+        return self._mesh.sizes["corner"]
 
     @property
     def number_of_faces(self):
-        return self._mesh.dims["face"]
+        return self._mesh.sizes["face"]
 
     @property
     def number_of_cells(self):
-        return self._mesh.dims["cell"]
+        return self._mesh.sizes["cell"]
 
     @property
     def x_of_node(self):
@@ -275,7 +276,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         return np.unique(unbound_corners[unbound_corners >= 0])
 
     def is_bound_corner(self):
-        corners = np.full(self._mesh.dims["corner"], True)
+        corners = np.full(self._mesh.sizes["corner"], True)
         corners[self.unbound_corners()] = False
 
         return corners
@@ -324,7 +325,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def drop_element(self, ids, at="node"):
         dropped_ids = np.asarray(ids, dtype=int)
         dropped_ids.sort()
-        is_a_keeper = np.full(self._mesh.dims[at], True)
+        is_a_keeper = np.full(self._mesh.sizes[at], True)
         is_a_keeper[dropped_ids] = False
 
         at_ = {}
@@ -345,7 +346,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
         for name in self.ids_with_suffix(at):
             var = self._mesh[name]
-            at_[name] = xr.DataArray(var.values[is_a_keeper], dims=var.dims)
+            at_[name] = xr.DataArray(var.values[is_a_keeper], dims=var.sizes)
 
         self._mesh = self._mesh.drop_vars(list(at_))
         self._mesh.update(at_)

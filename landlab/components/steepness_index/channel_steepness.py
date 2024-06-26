@@ -3,7 +3,6 @@
 @author: dejh
 """
 
-
 import numpy as np
 
 from landlab import Component
@@ -41,26 +40,26 @@ class SteepnessFinder(Component):
     ...
     >>> sf.calculate_steepnesses()
     >>> mg.at_node["channel__steepness_index"].reshape((3, 10))[1, :]
-    array([  0.        ,  29.28427125,   1.        ,   1.        ,
-             1.        ,   1.        ,   1.        ,   1.        ,
-             0.99999997,   0.        ])
+    array([ 0.        , 29.28427125,  1.        ,  1.        ,
+            1.        ,  1.        ,  1.        ,  1.        ,
+            0.99999997,  0.        ])
     >>> sf.hillslope_mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
             True, False, False, False, False, False, False, False, False,
            False,  True,  True,  True,  True,  True,  True,  True,  True,
-            True,  True,  True], dtype=bool)
+            True,  True,  True])
 
     >>> sf = SteepnessFinder(mg, min_drainage_area=10000.0, discretization_length=350.0)
     >>> sf.calculate_steepnesses()
     >>> mg.at_node["channel__steepness_index"].reshape((3, 10))[1, :]
-    array([ 0.        ,  3.08232295,  3.08232295,  3.08232295,  1.        ,
-            1.        ,  1.        ,  1.        ,  0.        ,  0.        ])
+    array([0.        , 3.08232295, 3.08232295, 3.08232295, 1.        ,
+           1.        , 1.        , 1.        , 0.        , 0.        ])
 
     >>> sf = SteepnessFinder(mg, min_drainage_area=10000.0, elev_step=1.5)
     >>> sf.calculate_steepnesses()
     >>> mg.at_node["channel__steepness_index"].reshape((3, 10))[1, :]
-    array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
-            1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
+    array([0.        , 1.22673541, 1.2593727 , 1.27781936, 1.25659369,
+           1.12393156, 0.97335328, 0.79473963, 0.56196578, 0.        ])
 
     References
     ----------
@@ -377,15 +376,15 @@ class SteepnessFinder(Component):
         >>> ch_dists = sf.channel_distances_downstream(ch_nodes)
         >>> interp_pt_elevs = np.array([0.0, 30.0, 60.0, 90.0, 120.0])
         >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists, interp_pt_elevs)
-        array([ 1.67970205,  1.67970205,  1.67970205,  1.65129294,  1.62115336,
-        1.5811951 ,  1.53157521,  1.44240187,  1.36442227])
+        array([1.67970205, 1.67970205, 1.67970205, 1.65129294, 1.62115336,
+               1.5811951 , 1.53157521, 1.44240187, 1.36442227])
         >>> mg.at_node["topographic__steepest_slope"][ch_nodes]
-        array([ 1.69383001,  1.66972677,  1.64200694,  1.60928598,  1.56915472,
-        1.51678178,  1.43964028,  1.25892541,  0.        ])
+        array([1.69383001, 1.66972677, 1.64200694, 1.60928598, 1.56915472,
+               1.51678178, 1.43964028, 1.25892541, 0.        ])
         >>> mg.at_node["topographic__elevation"][:] = mg.node_x
         >>> interp_pt_elevs = np.array([0.0, 25.0, 50.0, 75.0, 80.0])
         >>> sf.interpolate_slopes_with_step(ch_nodes, ch_dists, interp_pt_elevs)
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
         """
         ch_z = self._grid.at_node["topographic__elevation"][ch_nodes]
         assert (
@@ -463,13 +462,13 @@ class SteepnessFinder(Component):
         >>> ksn_25.size == ch_dists.size - 1
         True
         >>> ksn_25
-        array([ -1.        ,  11.0668192 ,  11.0668192 ,  15.70417802,
-                15.70417802,  15.70417802,  19.3433642 ,  19.3433642 ])
+        array([-1.        , 11.0668192 , 11.0668192 , 15.70417802,
+               15.70417802, 15.70417802, 19.3433642 , 19.3433642 ])
 
         >>> ksn_10 = sf.calc_ksn_discretized(ch_dists, ch_A, ch_S, 0.5, 10.0)
         >>> ksn_10
-        array([  8.40896415,   8.40896415,  13.16074013,  13.16074013,
-                16.5487546 ,  16.5487546 ,  19.3433642 ,  19.3433642 ])
+        array([ 8.40896415,  8.40896415, 13.16074013, 13.16074013,
+               16.5487546 , 16.5487546 , 19.3433642 , 19.3433642 ])
 
         >>> ch_ksn_overdiscretized = sf.calc_ksn_discretized(
         ...     ch_dists, ch_A, ch_S, 0.5, 10.0

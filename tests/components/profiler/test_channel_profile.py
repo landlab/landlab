@@ -8,14 +8,13 @@ import matplotlib
 import numpy as np
 import pytest
 
-from landlab import FieldError, RasterModelGrid
-from landlab.components import (
-    ChannelProfiler,
-    DepressionFinderAndRouter,
-    FastscapeEroder,
-    FlowAccumulator,
-    LinearDiffuser,
-)
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.components import ChannelProfiler
+from landlab.components import DepressionFinderAndRouter
+from landlab.components import FastscapeEroder
+from landlab.components import FlowAccumulator
+from landlab.components import LinearDiffuser
 
 matplotlib.use("agg")
 

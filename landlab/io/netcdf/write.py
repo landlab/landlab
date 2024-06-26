@@ -13,11 +13,9 @@ import pathlib
 import numpy as np
 import xarray as xr
 
-from landlab.io.netcdf._constants import (
-    _AXIS_COORDINATE_NAMES,
-    _AXIS_DIMENSION_NAMES,
-    _NP_TO_NC_TYPE,
-)
+from landlab.io.netcdf._constants import _AXIS_COORDINATE_NAMES
+from landlab.io.netcdf._constants import _AXIS_DIMENSION_NAMES
+from landlab.io.netcdf._constants import _NP_TO_NC_TYPE
 
 
 def _set_netcdf_attributes(root, attrs):
@@ -149,11 +147,11 @@ def _get_cell_bounds(shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     >>> from landlab.io.netcdf.write import _get_cell_bounds
     >>> bounds = _get_cell_bounds((3, 4))
     >>> bounds["y_bnds"]
-    array([[[ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.], [ 0.,  1.,  1.,  0.]],
-           [[ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.], [ 1.,  2.,  2.,  1.]]])
+    array([[[0.,  1.,  1.,  0.], [0.,  1.,  1.,  0.], [0.,  1.,  1.,  0.]],
+           [[1.,  2.,  2.,  1.], [1.,  2.,  2.,  1.], [1.,  2.,  2.,  1.]]])
     >>> bounds["x_bnds"]
-    array([[[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]],
-           [[ 1.,  1.,  0.,  0.], [ 2.,  2.,  1.,  1.], [ 3.,  3.,  2.,  2.]]])
+    array([[[1.,  1.,  0.,  0.], [2.,  2.,  1.,  1.], [3.,  3.,  2.,  2.]],
+           [[1.,  1.,  0.,  0.], [2.,  2.,  1.,  1.], [3.,  3.,  2.,  2.]]])
     """
     rows = np.arange(shape[0]) * spacing[0] + origin[0]
     cols = np.arange(shape[1]) * spacing[1] + origin[1]
@@ -669,7 +667,7 @@ def write_netcdf(
     if append:
         with xr.open_dataset(path) as dataset:
             time_varying_names = [
-                name for name in dataset.variables if "nt" in dataset[name].dims
+                name for name in dataset.variables if "nt" in dataset[name].sizes
             ]
             for name in set(time_varying_names) & set(names):
                 values = getattr(grid, "at_" + at)[name].reshape((1,) + shape)
@@ -809,9 +807,9 @@ def write_raster_netcdf(
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
     >>> fp.variables["x"][:].astype("=f8")
-    array([ 0.,  1.,  2.])
+    array([0.,  1.,  2.])
     >>> fp.variables["y"][:].astype("=f8")
-    array([ 0.,  1.,  2.,  3.])
+    array([0.,  1.,  2.,  3.])
 
     Read now with read_netcdf
 
@@ -820,12 +818,12 @@ def write_raster_netcdf(
     >>> grid.shape
     (4, 3)
     >>> grid.x_of_node
-    array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+    array([0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
     >>> grid.y_of_node
-    array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
+    array([0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
     >>> grid.at_node["uplift_rate"]
-    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
-            22.])
+    array([ 0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+           22.])
     """
     return write_netcdf(
         path,

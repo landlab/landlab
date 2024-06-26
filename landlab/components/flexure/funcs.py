@@ -8,13 +8,24 @@ _POISSON = 0.25
 _N_PROCS = 4
 
 
-def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.0):
-    """
-    Calculate the flexure parameter based on some physical constants. *h* is
-    the Effective elastic thickness of Earth's crust (m), *E* is Young's
-    Modulus, and *n_dim* is the number of spatial dimensions for which the
-    flexure parameter is used. The number of dimension must be either 1, or
-    2.
+def get_flexure_parameter(eet, youngs, n_dim, gamma_mantle=33000.0):
+    """Calculate the flexure parameter based on some physical constants.
+
+    Parameters
+    ----------
+    eet : float
+        Effective elastic thickness of Earth's crust [m].
+    youngs : float
+        Young's modulus.
+    n_dim: int
+        Number of spatial dimensions (1 or 2).
+    gamma_mantle: float
+        Speific weight of the mantle [N/m^3].
+
+    Returns
+    -------
+    float
+        The flexure parameter.
 
     Examples
     --------
@@ -30,7 +41,7 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.0):
     >>> print("%.2f" % alpha)
     84828.72
     """
-    D = E * pow(h, 3) / 12.0 / (1.0 - pow(_POISSON, 2))
+    D = youngs * pow(eet, 3) / 12.0 / (1.0 - pow(_POISSON, 2))
 
     if n_dim not in (1, 2):
         raise ValueError("n_dim must be either 1 or 2")

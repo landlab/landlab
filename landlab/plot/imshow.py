@@ -19,7 +19,8 @@ from .event_handler import query_grid_on_button_press
 
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.collections import LineCollection, PatchCollection
+    from matplotlib.collections import LineCollection
+    from matplotlib.collections import PatchCollection
     from matplotlib.patches import Polygon
 except ImportError:
     import warnings
@@ -28,7 +29,6 @@ except ImportError:
 
 
 class ModelGridPlotterMixIn:
-
     """MixIn that provides plotting functionality.
 
     Inhert from this class to provide a ModelDataFields object with the

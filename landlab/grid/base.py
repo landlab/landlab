@@ -23,12 +23,11 @@ from ..layers.materiallayers import MaterialLayersMixIn
 from ..plot.imshow import ModelGridPlotterMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
-from .decorators import (
-    override_array_setitem_and_reset,
-    return_id_array,
-    return_readonly_id_array,
-)
-from .linkstatus import LinkStatus, set_status_at_link
+from .decorators import override_array_setitem_and_reset
+from .decorators import return_id_array
+from .decorators import return_readonly_id_array
+from .linkstatus import LinkStatus
+from .linkstatus import set_status_at_link
 from .nodestatus import NodeStatus
 
 #: Indicates an index is, in some way, *bad*.
@@ -264,7 +263,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
 class ModelGrid(
     GraphFields, EventLayersMixIn, MaterialLayersMixIn, ModelGridPlotterMixIn
 ):
-
     """Base class for 2D structured or unstructured grids for numerical models.
 
     The idea is to have at least two inherited
@@ -341,9 +339,9 @@ class ModelGrid(
         ... )
         >>> grid = RasterModelGrid.from_file(filelike)
         >>> grid.x_of_node
-        array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
+        array([0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
         >>> grid.y_of_node
-        array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
+        array([0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
         """
         params = load_params(file_like)
         return cls.from_dict(params)
@@ -363,9 +361,9 @@ class ModelGrid(
         >>> params = {"shape": (3, 4), "xy_spacing": 2}
         >>> grid = RasterModelGrid.from_dict(params)
         >>> grid.x_of_node
-        array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
+        array([0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
         >>> grid.y_of_node
-        array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
+        array([0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
         """
         return cls(**params)
 
@@ -503,7 +501,7 @@ class ModelGrid(
 
         >>> grid.as_dataarray("at_node:elevation")
         <xarray.DataArray 'at_node:elevation' (node: 12)>
-        array([ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
+        array([3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
         Dimensions without coordinates: node
 
         >>> all(
@@ -566,7 +564,7 @@ class ModelGrid(
         >>> _ = grid.add_full("temperature", 5.0, at="node")
 
         >>> ds = grid.as_dataset()
-        >>> sorted(ds.dims.items())
+        >>> sorted(ds.sizes.items())
         [('dim', 2), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
         ['at_link:elevation', 'at_node:elevation', 'at_node:temperature']
@@ -574,7 +572,7 @@ class ModelGrid(
         >>> grid.event_layers.add(1.0, rho=0.5)
 
         >>> ds = grid.as_dataset()
-        >>> sorted(ds.dims.items())
+        >>> sorted(ds.sizes.items())
         [('cell', 2), ('dim', 2), ('layer', 1), ('link', 17), ('node', 12)]
         >>> sorted([var for var in ds.data_vars if var.startswith("at_")])
         ['at_layer_cell:rho', 'at_layer_cell:thickness', 'at_link:elevation',
@@ -1428,15 +1426,15 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.node_axis_coordinates(0).reshape(grid.shape)
-        array([[ 0.,  0.,  0.,  0.,  0.],
-               [ 1.,  1.,  1.,  1.,  1.],
-               [ 2.,  2.,  2.,  2.,  2.],
-               [ 3.,  3.,  3.,  3.,  3.]])
+        array([[0.,  0.,  0.,  0.,  0.],
+               [1.,  1.,  1.,  1.,  1.],
+               [2.,  2.,  2.,  2.,  2.],
+               [3.,  3.,  3.,  3.,  3.]])
         >>> grid.node_axis_coordinates(1).reshape(grid.shape)
-        array([[ 0.,  1.,  2.,  3.,  4.],
-               [ 0.,  1.,  2.,  3.,  4.],
-               [ 0.,  1.,  2.,  3.,  4.],
-               [ 0.,  1.,  2.,  3.,  4.]])
+        array([[0.,  1.,  2.,  3.,  4.],
+               [0.,  1.,  2.,  3.,  4.],
+               [0.,  1.,  2.,  3.,  4.],
+               [0.,  1.,  2.,  3.,  4.]])
 
         :meta landlab: info-grid, info-node, quantity
         """
@@ -1564,9 +1562,9 @@ class ModelGrid(
 
         >>> grid = HexModelGrid((3, 2), node_layout="hex")
         >>> np.round(grid.angle_of_link[:3] / np.pi * 3.0)
-        array([ 0., 2.,  1.])
+        array([0., 2.,  1.])
         >>> np.round(grid.angle_of_link_about_head[:3] / np.pi * 3.0)  # 60 deg segments
-        array([ 3.,  5.,  4.])
+        array([3.,  5.,  4.])
 
         :meta landlab: info-link, quantity
         """
@@ -1646,7 +1644,7 @@ class ModelGrid(
                [False, False, False,  True],
                [False, False,  True,  True],
                [False, False,  True,  True],
-               [False, False,  True,  True]], dtype=bool)
+               [False, False,  True,  True]])
 
         :meta landlab: info-link, info-node, connectivity
         """
@@ -1728,7 +1726,7 @@ class ModelGrid(
                [ True, False, False, False],
                [ True, False, False, False],
                [ True, False, False, False],
-               [False, False, False, False]], dtype=bool)
+               [False, False, False, False]])
 
         :meta landlab: info-link, info-node, connectivity
         """
@@ -1955,7 +1953,7 @@ class ModelGrid(
                [False, False,  True, False],
                [False, False, False, False],
                [False, False, False, False],
-               [False, False, False, False]], dtype=bool)
+               [False, False, False, False]])
         >>> 1 in mg.patches_at_node * mg.patches_present_at_node
         True
         >>> 2 in mg.patches_at_node * mg.patches_present_at_node
@@ -2009,7 +2007,7 @@ class ModelGrid(
                [False, False],
                [False, False],
                [False, False],
-               [False, False]], dtype=bool)
+               [False, False]])
         >>> 1 in mg.patches_at_link * mg.patches_present_at_link
         True
         >>> 2 in mg.patches_at_link * mg.patches_present_at_link
@@ -2043,7 +2041,7 @@ class ModelGrid(
                [False, False,  True, False],
                [False, False, False, False],
                [False, False, False, False],
-               [False, False, False, False]], dtype=bool)
+               [False, False, False, False]])
         >>> mg.number_of_patches_present_at_node
         array([1, 2, 1, 1, 2, 1, 0, 0, 0])
 
@@ -2078,7 +2076,7 @@ class ModelGrid(
                [False, False],
                [False, False],
                [False, False],
-               [False, False]], dtype=bool)
+               [False, False]])
         >>> mg.number_of_patches_present_at_link
         array([1, 1, 1, 2, 1, 1, 1, 0, 0, 0, 0, 0])
 
@@ -2096,7 +2094,8 @@ class ModelGrid(
 
         Call whenever boundary conditions are updated on the grid.
         """
-        from landlab import RasterModelGrid, VoronoiDelaunayGrid
+        from landlab import RasterModelGrid
+        from landlab import VoronoiDelaunayGrid
 
         node_status_at_patch = self.status_at_node[self.nodes_at_patch]
         if isinstance(self, RasterModelGrid):
@@ -2178,10 +2177,10 @@ class ModelGrid(
         >>> mg = RasterModelGrid((5, 5), xy_spacing=1.0)
         >>> z = mg.x_of_node * np.tan(60.0 * np.pi / 180.0)
         >>> mg.calc_hillshade_at_node(elevs=z, alt=30.0, az=210.0)
-        array([ 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
-                0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
-                0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
-                0.625])
+        array([0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
+               0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
+               0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
+               0.625])
 
         :meta landlab: info-node, surface
         """
@@ -2454,7 +2453,7 @@ class ModelGrid(
         >>> len(grid.unit_vector_sum_xcomponent_at_node) == grid.number_of_nodes
         True
         >>> grid.unit_vector_sum_xcomponent_at_node
-        array([ 1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
+        array([1.,  2.,  1.,  1.,  2.,  1.,  1.,  2.,  1.])
 
         :meta landlab: info-node, quantity
         """
@@ -2471,7 +2470,7 @@ class ModelGrid(
         >>> len(grid.unit_vector_sum_ycomponent_at_node) == grid.number_of_nodes
         True
         >>> grid.unit_vector_sum_ycomponent_at_node
-        array([ 1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
+        array([1.,  1.,  1.,  2.,  2.,  2.,  1.,  1.,  1.])
 
         :meta landlab: info-node, quantity
         """
@@ -2500,9 +2499,9 @@ class ModelGrid(
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.node_is_boundary([0, 6])
-        array([ True, False], dtype=bool)
+        array([ True, False])
         >>> mg.node_is_boundary([0, 6], boundary_flag=mg.BC_NODE_IS_CLOSED)
-        array([False, False], dtype=bool)
+        array([False, False])
 
         :meta landlab: info-node, boundary-condition
         """
@@ -2583,7 +2582,7 @@ class ModelGrid(
         the grid.
 
         >>> grid.calc_distances_of_nodes_to_point((2, 1), node_subset=(2, 6, 7, 8, 12))
-        array([ 1.,  1.,  0.,  1.,  1.])
+        array([1.,  1.,  0.,  1.,  1.])
 
         Calculate distances from a point to all nodes on the grid.
 
@@ -2591,7 +2590,7 @@ class ModelGrid(
         >>> dist.shape == (grid.number_of_nodes,)
         True
         >>> dist.take((2, 6, 7, 8, 12))
-        array([ 1.,  1.,  0.,  1.,  1.])
+        array([1.,  1.,  0.,  1.,  1.])
 
         Put the distances into a buffer.
 
@@ -2600,19 +2599,19 @@ class ModelGrid(
         >>> out is dist
         True
         >>> out.take((2, 6, 7, 8, 12))
-        array([ 1.,  1.,  0.,  1.,  1.])
+        array([1.,  1.,  0.,  1.,  1.])
 
         Calculate azimuths along with distances. The azimuths are calculated
         in radians but measured clockwise from north.
 
         >>> (_, azim) = grid.calc_distances_of_nodes_to_point((2, 1), get_az="angles")
         >>> azim.take((2, 6, 7, 8, 12)) * 180.0 / np.pi
-        array([ 180.,  270.,    0.,   90.,    0.])
+        array([180.,  270.,    0.,   90.,    0.])
         >>> (_, azim) = grid.calc_distances_of_nodes_to_point(
         ...     (2, 1), get_az="angles", node_subset=(1, 3, 11, 13)
         ... )
         >>> azim * 180.0 / np.pi
-        array([ 225.,  135.,  315.,   45.])
+        array([225.,  135.,  315.,   45.])
 
         When calculating displacements, the first row contains displacements
         in x and the second displacements in y.
@@ -2721,15 +2720,15 @@ class ModelGrid(
         >>> distances.shape == (grid.number_of_nodes, grid.number_of_nodes)
         True
         >>> distances.diagonal()
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        array([0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
         The distances from the first node to all nodes in its row and all the
         nodes in its column.
 
         >>> distances[0, :4]
-        array([ 0.,  1.,  2.,  3.])
+        array([0.,  1.,  2.,  3.])
         >>> distances[0, ::4]
-        array([ 0.,  1.,  2.])
+        array([0.,  1.,  2.])
 
         :meta landlab: info-node, quantity
         """
@@ -2754,18 +2753,18 @@ class ModelGrid(
         >>> angles.shape == (grid.number_of_nodes, grid.number_of_nodes)
         True
         >>> angles.diagonal()
-        array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+        array([0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
         Angles are measured in radians and increase clockwise starting at
         north.
 
         >>> angles *= 180.0 / np.pi
         >>> angles[0, :4]
-        array([  0.,  90.,  90.,  90.])
+        array([ 0.,  90.,  90.,  90.])
         >>> angles[0, ::4]
-        array([ 0.,  0.,  0.])
+        array([0.,  0.,  0.])
         >>> angles[0, ::5]
-        array([  0.,  45.,  45.])
+        array([ 0.,  45.,  45.])
 
         :meta landlab: info-node, quantity
         """
@@ -2854,14 +2853,14 @@ class ModelGrid(
         >>> grid.node_has_boundary_neighbor()
         array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
                 True,  True, False, False,  True,  True,  True,  True,  True,
-                True,  True,  True,  True,  True,  True], dtype=bool)
+                True,  True,  True,  True,  True,  True])
 
         >>> grid.node_has_boundary_neighbor()[6]
         True
         >>> grid.node_has_boundary_neighbor()[12]
         False
         >>> grid.node_has_boundary_neighbor()[((12, 0),)]
-        array([False,  True], dtype=bool)
+        array([False,  True])
 
         :meta landlab: info-node, connectivity, boundary-condition
         """

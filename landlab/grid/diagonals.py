@@ -3,9 +3,11 @@ import contextlib
 
 import numpy as np
 
-from ..utils.decorators import cache_result_in_object, make_return_array_immutable
+from ..utils.decorators import cache_result_in_object
+from ..utils.decorators import make_return_array_immutable
 from .decorators import return_readonly_id_array
-from .linkstatus import LinkStatus, set_status_at_link
+from .linkstatus import LinkStatus
+from .linkstatus import set_status_at_link
 
 
 def create_nodes_at_diagonal(shape, out=None):
@@ -102,7 +104,6 @@ def create_diagonals_at_node(shape, out=None):
 
 
 class DiagonalsMixIn:
-
     """Add diagonals to a structured quad grid."""
 
     @property
@@ -367,13 +368,13 @@ class DiagonalsMixIn:
         >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
 
         >>> grid.length_of_link
-        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
+        array([4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
         >>> grid.length_of_d8
-        array([ 4.,  4.,  3.,  3.,  3.,
-                4.,  4.,  3.,  3.,  3.,
-                4.,  4.,  5.,  5.,  5.,
-                5.,  5.,  5.,  5.,  5.])
+        array([4.,  4.,  3.,  3.,  3.,
+               4.,  4.,  3.,  3.,  3.,
+               4.,  4.,  5.,  5.,  5.,
+               5.,  5.,  5.,  5.,  5.])
 
         :meta landlab: info-link, quantity
         """

@@ -1,8 +1,9 @@
 bmipy
 geopandas
+importlib-resources; python_version < '3.12'
 matplotlib
 netcdf4
-numpy >=1.20
+numpy >=1.20,<2
 pandas
 shapely
 pyshp != 2.3.0

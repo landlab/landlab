@@ -3,7 +3,6 @@ from collections import OrderedDict
 
 
 class GraphConvention:
-
     """Define a naming convention for graph elements."""
 
     def __init__(self, node, edge, face, nodes=None, edges=None, faces=None):
@@ -80,7 +79,6 @@ class GraphConvention:
 
 
 class ConventionConverter:
-
     """Convert between graph element naming conventions."""
 
     CONVENTION = {

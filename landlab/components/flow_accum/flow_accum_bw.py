@@ -28,11 +28,12 @@ import numpy
 
 from landlab.core.utils import as_id_array
 
-from .cfuncs import _accumulate_bw, _add_to_stack, _make_donors
+from .cfuncs import _accumulate_bw
+from .cfuncs import _add_to_stack
+from .cfuncs import _make_donors
 
 
 class _DrainageStack:
-
     """Implements Braun & Willett's add_to_stack function.
 
     The _DrainageStack() class implements Braun & Willett's add_to_stack
@@ -357,9 +358,9 @@ def find_drainage_area_and_discharge_lossy(
     >>> _ = mg.add_zeros("node", "surface_water__discharge_loss", dtype=float)
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, mg)
     >>> a
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    array([ 1.,  3.,  1.,  1., 10.,  4.,  3.,  2.,  1.,  1.])
     >>> q
-    array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
+    array([1.  , 2.  , 1.  , 1.  , 3.75, 2.  , 2.  , 1.5 , 1.  , 1.  ])
     >>> np.allclose(
     ...     mg.at_node["surface_water__discharge_loss"][nodes_wo_outlet],
     ...     0.5 * q[nodes_wo_outlet],
@@ -375,9 +376,9 @@ def find_drainage_area_and_discharge_lossy(
     ...
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc2, mg)
     >>> a
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    array([ 1.,  3.,  1.,  1., 10.,  4.,  3.,  2.,  1.,  1.])
     >>> q
-    array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
+    array([1.  , 2.  , 1.  , 1.  , 3.75, 2.  , 2.  , 1.5 , 1.  , 1.  ])
     >>> np.allclose(
     ...     mg.at_node["surface_water__discharge_loss"][nodes_wo_outlet],
     ...     lossfield[nodes_wo_outlet] * q[nodes_wo_outlet],
@@ -389,9 +390,9 @@ def find_drainage_area_and_discharge_lossy(
     ...
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc3, mg)
     >>> a
-    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    array([ 1.,  3.,  1.,  1., 10.,  4.,  3.,  2.,  1.,  1.])
     >>> q
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
     """
     # Number of points
     np = len(s)

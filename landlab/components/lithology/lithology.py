@@ -6,12 +6,12 @@ import xarray as xr
 from scipy.interpolate import interp1d
 
 from landlab import Component
-from landlab.layers import EventLayers, MaterialLayers
+from landlab.layers import EventLayers
+from landlab.layers import MaterialLayers
 from landlab.utils.return_array import return_array_at_node
 
 
 class Lithology(Component):
-
     """Create a Lithology object.
 
     A Lithology is a three dimentional representation of material operated on
@@ -139,25 +139,23 @@ class Lithology(Component):
         field set to the surface values of 'K_sp'.
 
         >>> mg.at_node["K_sp"]
-        array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
-                0.001])
+        array([0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
 
         The surface values are also properties of the Lithology.
 
         >>> lith["K_sp"]
-        array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
-                0.001])
+        array([0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
 
         We can access information about the Lithology like the total thickness
         or layer thicknesses.
 
         >>> lith.thickness
-        array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
+        array([8., 8., 8., 8., 8., 8., 8., 8., 8.])
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [4., 4., 4., 4., 4., 4., 4., 4., 4.],
+               [2., 2., 2., 2., 2., 2., 2., 2., 2.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.]])
 
         This might look confusing -- that the layers are in reverse order, but
         it is OK. The last layers in the Lithology are those that are closest
@@ -177,11 +175,11 @@ class Lithology(Component):
         >>> ids = [1, 2, 1]
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.thickness
-        array([  7. ,  10.5,  14. ,   7. ,  10.5,  14. ,   7. ,  10.5,  14. ])
+        array([ 7. , 10.5, 14. ,  7. , 10.5, 14. ,  7. , 10.5, 14. ])
         >>> lith.dz
-        array([[ 4. ,  6. ,  8. ,  4. ,  6. ,  8. ,  4. ,  6. ,  8. ],
-               [ 2. ,  3. ,  4. ,  2. ,  3. ,  4. ,  2. ,  3. ,  4. ],
-               [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])
+        array([[4. , 6. , 8. , 4. , 6. , 8. , 4. , 6. , 8. ],
+               [2. , 3. , 4. , 2. , 3. , 4. , 2. , 3. , 4. ],
+               [1. , 1.5, 2. , 1. , 1.5, 2. , 1. , 1.5, 2. ]])
         """
         super().__init__(grid)
 
@@ -397,7 +395,7 @@ class Lithology(Component):
         >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.thickness
-        array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
+        array([8., 8., 8., 8., 8., 8., 8., 8., 8.])
         """
         return self._layers.thickness
 
@@ -419,10 +417,10 @@ class Lithology(Component):
         >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [4., 4., 4., 4., 4., 4., 4., 4., 4.],
+               [2., 2., 2., 2., 2., 2., 2., 2., 2.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.]])
         """
         return self._layers.dz
 
@@ -444,10 +442,10 @@ class Lithology(Component):
         >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.z_bottom
-        array([[ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.],
-               [ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
-               [ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+        array([[8., 8., 8., 8., 8., 8., 8., 8., 8.],
+               [7., 7., 7., 7., 7., 7., 7., 7., 7.],
+               [3., 3., 3., 3., 3., 3., 3., 3., 3.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.]])
         """
         thick = np.broadcast_to(self._layers.thickness, self._layers.z.shape)
         return thick - self._layers.z + self._layers.dz
@@ -470,10 +468,10 @@ class Lithology(Component):
         >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.z_top
-        array([[ 7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.],
-               [ 3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+        array([[7., 7., 7., 7., 7., 7., 7., 7., 7.],
+               [3., 3., 3., 3., 3., 3., 3., 3., 3.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.]])
         """
         thick = np.broadcast_to(self._layers.thickness, self._layers.z.shape)
         return thick - self._layers.z
@@ -534,7 +532,7 @@ class Lithology(Component):
         The value of `K_sp` at node is now updated to the value of rock type 3
 
         >>> mg.at_node["K_sp"]
-        array([ 0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01])
+        array([0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01])
 
         A negative value will erode. We can also pass a `(n_nodes,) long array
         to erode unevenly. If all parts of the layer erode, then no `rock_id`
@@ -543,8 +541,8 @@ class Lithology(Component):
         >>> erosion_amount = [-2.0, -2.0, -2.0, -4.0, -4.0, -4.0, -6.0, -6.0, -6.0]
         >>> lith.add_layer(erosion_amount)
         >>> mg.at_node["K_sp"]
-        array([ 0.01  ,  0.01  ,  0.01  ,  0.0001,  0.0001,  0.0001,  0.001 ,
-                0.001 ,  0.001 ])
+        array([0.01  , 0.01  , 0.01  , 0.0001, 0.0001, 0.0001, 0.001 ,
+               0.001 , 0.001 ])
 
         Now different layers are exposed at the surface and the value of `K_sp`
         is spatially variable.
@@ -612,7 +610,7 @@ class Lithology(Component):
         >>> lith.tracked_properties
         ['D', 'K_sp']
         >>> mg.at_node["D"]
-        array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
+        array([0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03])
         """
         for at in attrs:
             if at in self._properties:
@@ -722,13 +720,12 @@ class Lithology(Component):
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
 
         >>> mg.at_node["K_sp"]
-        array([ 0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,  0.001,
-                0.001])
+        array([0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
 
         >>> lith.update_rock_properties("K_sp", 1, 0.03)
 
         >>> mg.at_node["K_sp"]
-        array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
+        array([0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03])
         """
         if at not in self._properties:
             raise ValueError(
@@ -836,12 +833,12 @@ class Lithology(Component):
         >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs)
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [4., 4., 4., 4., 4., 4., 4., 4., 4.],
+               [2., 2., 2., 2., 2., 2., 2., 2., 2.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.]])
         >>> lith.thickness
-        array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
+        array([8., 8., 8., 8., 8., 8., 8., 8., 8.])
 
         If we erode the surface, and then update Lithology, the thickness will
         change.
@@ -849,22 +846,22 @@ class Lithology(Component):
         >>> z -= 0.5
         >>> lith.run_one_step()
         >>> lith.thickness
-        array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
+        array([7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5])
 
         The default of Lithology is to use MaterialLayers from the Landlab
         layers submodule. This means that when we erode, we will remove a layer
         from the layers datastructure if it has no material anywhere.
 
         >>> lith.dz
-        array([[ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ],
-               [ 4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ],
-               [ 2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ],
-               [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5]])
+        array([[1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. ],
+               [4. , 4. , 4. , 4. , 4. , 4. , 4. , 4. , 4. ],
+               [2. , 2. , 2. , 2. , 2. , 2. , 2. , 2. , 2. ],
+               [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]])
 
         We can see the value of the rock type at the surface.
 
         >>> mg.at_node["rock_type__id"]
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
         If you deposit, a valid rock_id must be provided. If the rock type
         is the same as the current surface value everywhere, then the layers
@@ -875,13 +872,13 @@ class Lithology(Component):
         >>> lith.rock_id = 1
         >>> lith.run_one_step()
         >>> lith.thickness
-        array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
+        array([9., 9., 9., 9., 9., 9., 9., 9., 9.])
 
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [4., 4., 4., 4., 4., 4., 4., 4., 4.],
+               [2., 2., 2., 2., 2., 2., 2., 2., 2.],
+               [2., 2., 2., 2., 2., 2., 2., 2., 2.]])
 
         This contrasts with the behavior of Lithology if we use EventLayers.
         Next we repeat this example with EventLayers. Note that no matter which
@@ -896,12 +893,12 @@ class Lithology(Component):
         >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = Lithology(mg, thicknesses, ids, attrs, layer_type="EventLayers")
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.,  4.],
-               [ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [4., 4., 4., 4., 4., 4., 4., 4., 4.],
+               [2., 2., 2., 2., 2., 2., 2., 2., 2.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.]])
         >>> lith.thickness
-        array([ 8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.])
+        array([8., 8., 8., 8., 8., 8., 8., 8., 8.])
 
         If we erode the surface, and then update Lithology, the thickness
         will change. However, with EventLayers, the ``lith.dz`` structure
@@ -911,19 +908,19 @@ class Lithology(Component):
         >>> z -= 0.5
         >>> lith.run_one_step()
         >>> lith.thickness
-        array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
+        array([7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5, 7.5])
         >>> lith.dz
-        array([[ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ],
-               [ 4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ],
-               [ 2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ],
-               [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5],
-               [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
+        array([[1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. ],
+               [4. , 4. , 4. , 4. , 4. , 4. , 4. , 4. , 4. ],
+               [2. , 2. , 2. , 2. , 2. , 2. , 2. , 2. , 2. ],
+               [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+               [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ]])
 
         We can see the value of the rock type at the surface. As expected,
         it is just the same as if we used MaterialLayers.
 
         >>> mg.at_node["rock_type__id"]
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
         If you deposit, a valid rock_id must be provided. Unlike
         MaterialLayers, these two layers will not be combined, even if they
@@ -933,15 +930,15 @@ class Lithology(Component):
         >>> lith.rock_id = 1
         >>> lith.run_one_step()
         >>> lith.thickness
-        array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
+        array([9., 9., 9., 9., 9., 9., 9., 9., 9.])
 
         >>> lith.dz
-        array([[ 1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ,  1. ],
-               [ 4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ,  4. ],
-               [ 2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ,  2. ],
-               [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5],
-               [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-               [ 1.5,  1.5,  1.5,  1.5,  1.5,  1.5,  1.5,  1.5,  1.5]])
+        array([[1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. ],
+               [4. , 4. , 4. , 4. , 4. , 4. , 4. , 4. , 4. ],
+               [2. , 2. , 2. , 2. , 2. , 2. , 2. , 2. , 2. ],
+               [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+               [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+               [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5]])
         """
         # calculate amount of erosion
         elevation_change = self._grid["node"]["topographic__elevation"] - (

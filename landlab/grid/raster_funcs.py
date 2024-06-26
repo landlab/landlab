@@ -232,7 +232,7 @@ def _value_is_in_bounds(value, bounds):
     >>> _value_is_in_bounds(0, (0, 1))
     True
     >>> _value_is_in_bounds(np.array((0, 1)), (0, 1))
-    array([ True, False], dtype=bool)
+    array([ True, False])
     """
     dummy = value >= bounds[0]
     dummy &= value < bounds[1]
@@ -300,10 +300,10 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
     point coordinates.
 
     >>> is_coord_on_grid(grid, ([3.9, 4.1], 2.9))
-    array([ True, False], dtype=bool)
+    array([ True, False])
 
     >>> is_coord_on_grid(grid, ([3.9, 4.1], 2.9), axes=(0,))
-    array([ True,  True], dtype=bool)
+    array([ True,  True])
     """
     coords = np.broadcast_arrays(*coords)
 

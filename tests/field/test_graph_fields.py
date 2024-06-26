@@ -5,7 +5,8 @@ from hypothesis import given
 from hypothesis.strategies import text
 from numpy.testing import assert_array_equal
 
-from landlab.field import FieldError, GroupError
+from landlab.field import FieldError
+from landlab.field import GroupError
 from landlab.field.graph_field import GraphFields as ModelDataFields
 
 

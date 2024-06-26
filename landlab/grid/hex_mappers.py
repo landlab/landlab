@@ -59,23 +59,23 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    array([0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
     >>> vy
-    array([ 0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
+    array([0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
 
     >>> link_data = np.arange(grid.number_of_links)
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx
-    array([ 0. ,  0. ,  0. ,  0. ,  8.5,  9.5,  0. ,  0. ,  0. ,  0. ])
+    array([0. ,  0. ,  0. ,  0. ,  8.5,  9.5,  0. ,  0. ,  0. ,  0. ])
 
     >>> link_data = np.full(grid.number_of_links, 0.5 * 3.0**0.5)
     >>> link_data[np.isclose(grid.angle_of_link, 2.0 / 3.0 * np.pi)] = 0.0
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> np.round(vx, 3)
-    array([ 0. ,  0. ,  0. ,  0. ,  0.866,  0.866,  0. ,  0. ,  0. ,  0. ])
+    array([0. ,  0. ,  0. ,  0. ,  0.866,  0.866,  0. ,  0. ,  0. ,  0. ])
     >>> vy
-    array([ 0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
+    array([0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ])
 
     >>> grid = HexModelGrid((3, 3), orientation="vertical")
     >>> link_data = np.arange(grid.number_of_links)
@@ -89,9 +89,9 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
 
     >>> vx, vy = map_link_vector_components_to_node(grid, link_data)
     >>> vx
-    array([ 0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  0.])
+    array([0.,  0.,  0.,  1.,  0.,  0.,  1.,  0.,  0.,  0.])
     >>> vy
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    array([0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
 
     Notes
     -----

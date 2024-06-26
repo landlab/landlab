@@ -6,8 +6,12 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.field import GroupError
-from landlab.values import constant, plane, random, units
-from landlab.values.synthetic import _plane_function, _where_to_add_values
+from landlab.values import constant
+from landlab.values import plane
+from landlab.values import random
+from landlab.values import units
+from landlab.values.synthetic import _plane_function
+from landlab.values.synthetic import _where_to_add_values
 
 _NORMAL = (1, 1, 1)
 _POINT = (0, 0, 0)

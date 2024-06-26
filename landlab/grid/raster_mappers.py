@@ -558,7 +558,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field("z", np.arange(17.0), at="link")
     >>> map_min_of_outlinks_to_node(rmg, "z")
-    array([ 0.,  1.,  2.,  0.,  7.,  8.,  9.,  0.,  0.,  0.,  0.,  0.])
+    array([0.,  1.,  2.,  0.,  7.,  8.,  9.,  0.,  0.,  0.,  0.,  0.])
 
     :meta landlab: info-node, info-link, map
     """
@@ -888,9 +888,9 @@ def map_link_vector_components_to_node_raster(grid, data_at_link):
     >>> link_data = np.arange(rmg.number_of_links)
     >>> x, y = map_link_vector_components_to_node_raster(rmg, link_data)
     >>> x[5:7]
-    array([ 7.5,  8.5])
+    array([7.5,  8.5])
     >>> y[5:7]
-    array([ 7.5,  8.5])
+    array([7.5,  8.5])
     """
     x = grid.map_mean_of_horizontal_links_to_node(data_at_link)
     y = grid.map_mean_of_vertical_links_to_node(data_at_link)

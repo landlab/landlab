@@ -9,11 +9,11 @@
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 
 
 class TaylorNonLinearDiffuser(Component):
-
     """Hillslope evolution using a Taylor Series expansion of the Andrews-
     Bucknam formulation of nonlinear hillslope flux derived following following
     Ganti et al., 2012. The flux is given as::

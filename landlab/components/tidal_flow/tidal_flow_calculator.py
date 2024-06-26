@@ -6,7 +6,9 @@ Calculate cycle-averaged tidal flow field using approach of Mariotti (2018)
 import numpy as np
 from scipy.sparse.linalg import spsolve
 
-from landlab import Component, HexModelGrid, RasterModelGrid
+from landlab import Component
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
 from landlab.grid.mappers import map_min_of_link_nodes_to_link
 from landlab.utils import get_core_node_matrix
 from landlab.utils.return_array import return_array_at_link
@@ -244,10 +246,9 @@ class TidalFlowCalculator(Component):
         >>> tfc = TidalFlowCalculator(grid, tidal_period=period)
         >>> rate = tfc.calc_tidal_inundation_rate()
         >>> 0.5 * rate[5:10] * period  # depth in m
-        array([ 0.  ,  0.25,  0.5 ,  0.75,  1.  ])
+        array([0.  , 0.25, 0.5 , 0.75, 1.  ])
         >>> rate[5:10]  # rate in m/s
-        array([  0.00000000e+00,   1.25000000e-05,   2.50000000e-05,
-                  3.75000000e-05,   5.00000000e-05])
+        array([0.00e+00, 1.25e-05, 2.50e-05, 3.75e-05, 5.00e-05])
 
         Notes
         -----
@@ -275,7 +276,7 @@ class TidalFlowCalculator(Component):
         >>> tfc = TidalFlowCalculator(grid, tidal_range=3.1, min_water_depth=0.02)
         >>> tfc._calc_effective_water_depth()
         >>> tfc._water_depth[6:9]
-        array([ 0.275,  0.02 ,  2.   ])
+        array([0.275, 0.02 , 2.   ])
         """
         high_tide_depth = (self.mean_sea_level + self._tidal_half_range) - self._elev
         low_tide_depth = np.maximum(

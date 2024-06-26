@@ -6,7 +6,9 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import SpeciesEvolver
-from landlab.components.species_evolution import ZoneController, ZoneTaxon, zone as zn
+from landlab.components.species_evolution import ZoneController
+from landlab.components.species_evolution import ZoneTaxon
+from landlab.components.species_evolution import zone as zn
 
 
 @pytest.fixture()

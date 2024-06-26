@@ -57,7 +57,7 @@ def get_watershed_mask(grid, outlet_id):
            [False,  True,  True,  True,  True,  True, False],
            [False,  True,  True,  True,  True,  True, False],
            [False,  True,  True,  True,  True,  True, False],
-           [False, False, False, False, False, False, False]], dtype=bool)
+           [False, False, False, False, False, False, False]])
     """
     if "flow__receiver_node" not in grid.at_node:
         raise FieldError(

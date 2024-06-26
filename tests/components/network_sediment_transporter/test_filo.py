@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.components import FlowDirectorSteepest
+from landlab.components import NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 

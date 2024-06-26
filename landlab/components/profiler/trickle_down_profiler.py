@@ -218,9 +218,9 @@ class TrickleDownProfiler(_BaseProfiler):
     >>> profiler.data_structure[54][(40, 54)]["ids"]
     array([40, 41, 42, 43, 44, 54])
     >>> profiler.data_structure[54][(40, 54)]["distances"]
-    array([ 0.,  1.,  2.,  3.,  4.,  5.])
+    array([0., 1., 2., 3., 4., 5.])
     >>> np.round(profiler.data_structure[54][(40, 54)]["color"], decimals=2)
-    array([ 0.27,  0.  ,  0.33,  1.  ])
+    array([0.27, 0.  , 0.33, 1.  ])
 
     The rest of the ``profile_structure`` encodes information about the second
     profile which starts at node 66.
@@ -231,9 +231,9 @@ class TrickleDownProfiler(_BaseProfiler):
     >>> profiler.data_structure[66][(8, 66)]["ids"]
     array([ 8, 18, 17, 16, 26, 36, 46, 56, 66])
     >>> profiler.data_structure[66][(8, 66)]["distances"]
-    array([ 0.,  1.,  2.,  3.,  4.,  5.,  6.,  7.,  8.])
+    array([0., 1., 2., 3., 4., 5., 6., 7., 8.])
     >>> np.round(profiler.data_structure[66][(8, 66)]["color"], decimals=2)
-    array([ 0.13,  0.57,  0.55,  1.  ])
+    array([0.13, 0.57, 0.55, 1.  ])
 
 
     References
