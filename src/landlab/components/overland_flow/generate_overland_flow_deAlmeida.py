@@ -87,6 +87,8 @@ array([0. , 0. , 0. , 0. ,
        0. , 0. , 0. , 0. ])
 """
 
+import warnings
+
 import numpy as np
 import scipy.constants
 from line_profiler import profile
@@ -202,13 +204,13 @@ class OverlandFlow(Component):
     def __init__(
         self,
         grid,
-        h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
         g=scipy.constants.g,
         theta=0.8,
         rainfall_intensity=0.0,
         steep_slopes=False,
+        h_init=None,
     ):
         """Create an overland flow component.
 
@@ -216,9 +218,6 @@ class OverlandFlow(Component):
         ----------
         grid : RasterModelGrid
             A landlab grid.
-        h_init : float, optional
-            Thickness of initial thin layer of water to prevent divide by zero
-            errors (m).
         alpha : float, optional
             Time step coeffcient, described in Bates et al., 2010 and
             de Almeida et al., 2012.
@@ -233,6 +232,10 @@ class OverlandFlow(Component):
         steep_slopes : bool, optional
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
+        h_init : float, optional
+            Deprecated. Thickness of initial thin layer of water to prevent divide
+            by zero errors (m). This option is no longer needed as the component
+            now checks for locations of zero water depth.
         """
         if not isinstance(grid, RasterModelGrid):
             raise NotImplementedError(
@@ -242,9 +245,15 @@ class OverlandFlow(Component):
         if not np.allclose(grid.dx, grid.dy):
             raise ValueError("x and y grid spacing must be equal")
 
+        if h_init is not None:
+            warnings.warn(
+                "The h_init keyword is deprecated", DeprecationWarning, stacklevel=2
+            )
+        else:
+            h_init = 0.0
+
         super().__init__(grid)
 
-        self._h_init = h_init
         self._alpha = alpha
 
         if isinstance(mannings_n, str):
@@ -274,8 +283,8 @@ class OverlandFlow(Component):
                 at="link",
                 units=self._info["surface_water__depth"]["units"],
             )
-        grid.at_link["surface_water__depth"].fill(self._h_init)
-        grid.at_node["surface_water__depth"] += self._h_init
+        grid.at_link["surface_water__depth"].fill(h_init)
+        grid.at_node["surface_water__depth"] += h_init
 
         # For water surface slopes at links
         if "water_surface__gradient" not in grid.at_link:
