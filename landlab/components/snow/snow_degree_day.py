@@ -148,6 +148,8 @@ class SnowDegreeDay(Component):
         },  # change for landlab (add new variable)
     }
 
+    SECOND_PER_DAY = 86400000.0
+
     def __init__(self, grid, rho_H2O=1000, T_rain_snow=1):
         """Initialize SnowDegreeDay component"""
 
@@ -232,10 +234,10 @@ class SnowDegreeDay(Component):
 
     def _update_snowmelt_rate(self, dt):
         # melt rate based on degree-day coefficient
-        sm_c0 = (self._c0 / np.float64(8.64e7)) * (
+        sm_c0 = (self._c0 / self.SECOND_PER_DAY) * (
             self._T_air - self._T0  # convert mm -day -K to  m/s
         )
-        sm_c0 = np.maximum(sm_c0, np.float64(0))
+        sm_c0 = np.maximum(sm_c0, 0)
 
         # melt rate based on available swe (enforced max meltrate)
         sm_max = self._h_swe / dt  # original code use self._h_snow (line 526)
