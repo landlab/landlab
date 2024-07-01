@@ -18,7 +18,7 @@ from landlab import Component
 class SnowDegreeDay(Component):
     """Simulate snowmelt process using degree-day method.
 
-      The degree-day method uese c0 (degree-day coefficient),
+      The degree-day method uses c0 (degree-day coefficient),
       T0 (degree-day threshold temperature) and T_air (air temperature)
       to determine the snow melt rate.
       When T_air is larger than T0, the melt process will start.
@@ -33,16 +33,13 @@ class SnowDegreeDay(Component):
     T_rain_snow : float (default 1 deg_C)
         temperature threshold for precipitation accurs as rain and snow with
         equal frequency
-    grid_area: float (default 0 m2)
-        space area represented by a single grid cell.
-        if value is not provided, grid_area=grid.dy * grid.dx
 
     Examples
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.snow import SnowDegreeDay
-    >>> grid = RasterModelGrid((2, 2))
+    >>> grid = RasterModelGrid((2, 2), xy_spacing=(1, 1))
     >>> grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
     array([2., 2., 2., 2.])
     >>> grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
@@ -151,7 +148,7 @@ class SnowDegreeDay(Component):
         },  # change for landlab (add new variable)
     }
 
-    def __init__(self, grid, rho_H2O=1000, T_rain_snow=1, grid_area=0):
+    def __init__(self, grid, rho_H2O=1000, T_rain_snow=1):
         """Initialize SnowDegreeDay component"""
 
         super().__init__(grid)
@@ -159,12 +156,12 @@ class SnowDegreeDay(Component):
         # parameters
         self._rho_H2O = rho_H2O
         self._T_rain_snow = T_rain_snow
-        self._grid_area = grid_area if grid_area > 0 else self._grid.dy * self._grid.dx
 
         # calculated vars
         self._P_snow = None
         self._vol_SM = 0  # snowpack__domain_time_integral_of_melt_volume_flux
         self._vol_swe = 0  # snowpack__domain_integral_of_liquid-equivalent_depth
+        self._grid_area = grid.dx * grid.dy
 
         # input data fields
         self._T_air = grid.at_node["atmosphere_bottom_air__temperature"]
@@ -220,10 +217,6 @@ class SnowDegreeDay(Component):
     @T_rain_snow.setter
     def T_rain_snow(self, T_rain_snow):
         self._T_rain_snow = T_rain_snow
-
-    @property
-    def grid_area(self):
-        return self._grid_area
 
     @property
     def vol_SM(self):
