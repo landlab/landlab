@@ -1195,17 +1195,19 @@ def _calculate_transport_dep_abrasion_rate(
     D : array
         Grain diameter for each parcel
     tautaur : array
-        Ratio of the Shields stress to reference Shields stress for each pacel. 
+        Ratio of the Shields stress to reference (critical) Shields stress for each pacel. 
 
     Examples
     --------
     >>> import pytest
-    >>> _calculate_transport_dep_abrasion_rate(XXX 10,100,0.003)
-    XXX
-    >>> _calculate_transport_dep_abrasion_rate(XXX 10,300,0.1)
-    XXX
+    >>> _calculate_transport_dep_abrasion_rate(np.ones(5),55,np.ones(5),1000,np.ones(5),np.ones(5)) 
+    array([ 1.,  1.,  1.,  1.,  1.])
+    >>> _calculate_transport_dep_abrasion_rate(np.zeros(1),55,np.ones(1),1000,np.ones(1),np.ones(1))
+    array([ 0.])
+    >>> _calculate_transport_dep_abrasion_rate(np.ones(1),8,np.array([2.]),1,np.ones(1),np.array([4.3]))
+    array([ 9.])
     >>> with pytest.raises(ValueError):
-    ...     _calculate_transport_dep_abrasion_rate(XXX 10,300,-3)
+    ...     _calculate_transport_dep_abrasion_rate(np.ones(1),-8,np.array([2.]),1,np.ones(1),np.array([4.3]))
 
     """
     abrasion_rate_xport_dep = alpha.copy()
@@ -1218,8 +1220,8 @@ def _calculate_transport_dep_abrasion_rate(
                                    )
     )
 
-    #if np.any(alpha > abrasion_rate_xport_dep):
-    #    raise ValueError("Transport dependent abrasion currently decreasing abrasion rate (should increase)")
+    if np.any(alpha > abrasion_rate_xport_dep):
+        raise ValueError("Transport dependent abrasion currently decreasing abrasion rate (should increase)")
 
     return abrasion_rate_xport_dep
 
