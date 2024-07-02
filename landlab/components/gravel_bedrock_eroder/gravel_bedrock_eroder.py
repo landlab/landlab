@@ -545,7 +545,7 @@ class GravelBedrockEroder(Component):
             self._sediment_fraction[i, :] = np.divide(
                 self._thickness_by_class[i, :], self._sed, where=self._sed > 0.0
             )
-        #assert np.all(self._sed >= 0.0)  # temp test, to be removed
+        # assert np.all(self._sed >= 0.0)  # temp test, to be removed
 
     def calc_rock_exposure_fraction(self):
         """Update the bedrock exposure fraction.
