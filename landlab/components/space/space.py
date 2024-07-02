@@ -125,16 +125,16 @@ class Space(_GeneralizedErosionDeposition):
     Now we test to see if soil depth and topography are right:
 
     >>> np.around(mg.at_node["soil__depth"], decimals=3)
-    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.492,
-            0.491,  0.5  ,  0.5  ,  0.492,  0.492,  0.49 ,  0.5  ,  0.5  ,
-            0.491,  0.49 ,  0.484,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,
-            0.5  ])
+    array([0.5  , 0.5  , 0.5  , 0.5  , 0.5  , 0.5  , 0.495, 0.492,
+           0.491, 0.5  , 0.5  , 0.492, 0.492, 0.49 , 0.5  , 0.5  ,
+           0.491, 0.49 , 0.484, 0.5  , 0.5  , 0.5  , 0.5  , 0.5  ,
+           0.5  ])
 
     >>> np.around(mg.at_node["topographic__elevation"], decimals=3)
-    array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.428,
-            0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
-            0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
-            8.51 ])
+    array([0.423, 1.536, 2.573, 3.511, 4.561, 1.582, 0.424, 0.428,
+           0.438, 5.51 , 2.54 , 0.428, 0.428, 0.438, 6.526, 3.559,
+           0.438, 0.438, 0.45 , 7.553, 4.559, 5.541, 6.57 , 7.504,
+           8.51 ])
 
     References
     ----------
@@ -655,11 +655,11 @@ class Space(_GeneralizedErosionDeposition):
         >>> sp.run_one_step(dt=10.0)
 
         >>> np.round(sp.Es[5:7], 4)
-        array([ 0.0029,  0.0074])
+        array([0.0029, 0.0074])
         >>> np.round(sp.Er[5:7], 4)
-        array([ 0.0032,  0.0085])
+        array([0.0032, 0.0085])
         >>> np.round(H[5:7], 3)
-        array([ 0.088,  0.078])
+        array([0.088, 0.078])
         """
 
         # Initialize remaining_time, which records how much of the global time

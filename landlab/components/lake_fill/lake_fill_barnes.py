@@ -1749,7 +1749,7 @@ class LakeMapperBarnes(Component):
         Lake node depths are now updated in lmb:
 
         >>> np.round([lmb.lake_depths[lake] for lake in lmb.lake_dict.values()], 2)
-        array([[ 0.45,  1.45]])
+        array([[0.45, 1.45]])
 
         ...and the "topography" (i.e., water surface) at the flooded nodes
         has lowered itself as the lip of the outlet was eroded in the last

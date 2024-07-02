@@ -1,6 +1,6 @@
 import numpy as np
 
-from ...core.utils import as_id_array
+from landlab.core.utils import as_id_array
 
 
 def get_links_at_node(graph, sort=False):
@@ -22,8 +22,7 @@ def get_links_at_node(graph, sort=False):
     tuple of ndarray
         Tuple of *links_at_node* and *link_dirs_at_node*.
     """
-    # from .cfuncs import _setup_links_at_node
-    from .ext.at_node import get_links_at_node
+    from landlab.graph.object.ext.at_node import get_links_at_node
 
     node_count = np.bincount(graph.nodes_at_link.flat)
     number_of_nodes = graph.number_of_nodes
@@ -116,8 +115,7 @@ def sort_links_at_node_by_angle(
     >>> link_dirs_at_node
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
-    from .ext.at_node import reorder_link_dirs_at_node
-    from .ext.at_node import reorder_links_at_node
+    from landlab.graph.object.ext.at_node import reorder_rows_inplace
 
     out = (
         np.asarray(links_at_node, dtype=int),
@@ -147,7 +145,7 @@ def sort_links_at_node_by_angle(
 
     sorted_links = as_id_array(np.argsort(outward_angle))
 
-    reorder_links_at_node(links_at_node, sorted_links)
-    reorder_link_dirs_at_node(link_dirs_at_node, sorted_links)
+    reorder_rows_inplace(links_at_node, sorted_links)
+    reorder_rows_inplace(link_dirs_at_node, sorted_links)
 
     return links_at_node, link_dirs_at_node

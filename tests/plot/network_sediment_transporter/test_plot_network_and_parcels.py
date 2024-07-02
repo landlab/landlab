@@ -106,7 +106,7 @@ def test_with_filter(arg, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid
     parcels = nst._parcels
-    parcel_filter = np.zeros((parcels.dataset.dims["item_id"]), dtype=bool)
+    parcel_filter = np.zeros((parcels.dataset.sizes["item_id"]), dtype=bool)
     parcel_filter[::10] = True
     plot_network_and_parcels(
         grid,

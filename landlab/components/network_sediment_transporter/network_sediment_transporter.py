@@ -169,8 +169,8 @@ class NetworkSedimentTransporter(Component):
 
     We can the link location of the parcel at each timestep
 
-    >>> print(one_parcel.dataset.element_id.values)
-    [[ 0.  0.  0.  0.  0.  1.  1.  1.  1.  1.  2.]]
+    >>> one_parcel.dataset.element_id.values
+    array([[0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 2.]])
 
     References
     ----------
@@ -1175,7 +1175,7 @@ def _calculate_parcel_volume_post_abrasion(
     >>> _calculate_parcel_volume_post_abrasion(10, 100, 0.003)
     7.4081822068171785
     >>> _calculate_parcel_volume_post_abrasion(10, 300, 0.1)
-    9.3576229688401746e-13
+    9.357622968840175e-13
     >>> with pytest.raises(ValueError):
     ...     _calculate_parcel_volume_post_abrasion(10, 300, -3)
     ...

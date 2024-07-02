@@ -649,7 +649,7 @@ class PrecipitationDistribution(Component):
         --------
         >>> np.random.seed(0)
         >>> np.round(np.random.rand(3), 6)  # these are our 3 rand #s to test
-        array([ 0.548814,  0.715189,  0.602763])
+        array([0.548814, 0.715189, 0.602763])
         >>> from landlab.components import PrecipitationDistribution
         >>> pd = PrecipitationDistribution(
         ...     mean_storm_duration=1.0,

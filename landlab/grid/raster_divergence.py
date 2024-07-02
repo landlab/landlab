@@ -1,8 +1,10 @@
 #! /usr/bin/env python
 """Calculate flux divergence on a raster grid."""
-from landlab.utils.decorators import use_field_name_or_array
+import numpy as np
 
-from .ext.raster_divergence import calc_flux_div_at_node as _calc_flux_div_at_node_c
+from landlab.grid.ext.raster_divergence import _calc_flux_div_at_node
+from landlab.grid.ext.raster_divergence import _calc_net_face_flux_at_cell
+from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array("link")
@@ -47,23 +49,23 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     array([[ 0. ,  5. ,  3.6,  0. ],
            [ 0. , -5. , -3.6,  0. ]])
     >>> calc_flux_div_at_node(grid, -grads).reshape(grid.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.64,  0.94,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  ,  0.  ,  0.  ,  0.  ],
+           [0.  ,  1.64,  0.94,  0.  ],
+           [0.  ,  0.  ,  0.  ,  0.  ]])
 
     >>> grid.set_status_at_node_on_edges(right=grid.BC_NODE_IS_CLOSED)
     >>> grid.set_status_at_node_on_edges(top=grid.BC_NODE_IS_CLOSED)
     >>> unit_flux_at_links = grid.zeros(at="link")
     >>> unit_flux_at_links[grid.active_links] = -grads[grid.active_links]
     >>> calc_flux_div_at_node(grid, unit_flux_at_links).reshape(grid.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.14,  0.22,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  ,  0.  ,  0.  ,  0.  ],
+           [0.  ,  1.14,  0.22,  0.  ],
+           [0.  ,  0.  ,  0.  ,  0.  ]])
     >>> _ = grid.add_field("neg_grad_at_link", -grads, at="link")
     >>> calc_flux_div_at_node(grid, "neg_grad_at_link").reshape(grid.shape)
-    array([[ 0.  ,  0.  ,  0.  ,  0.  ],
-           [ 0.  ,  1.64,  0.94,  0.  ],
-           [ 0.  ,  0.  ,  0.  ,  0.  ]])
+    array([[0.  ,  0.  ,  0.  ,  0.  ],
+           [0.  ,  1.64,  0.94,  0.  ],
+           [0.  ,  0.  ,  0.  ,  0.  ]])
 
     Notes
     -----
@@ -81,6 +83,39 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     out.reshape(grid.shape)[:, (0, -1)] = 0.0
     out.reshape(grid.shape)[(0, -1), :] = 0.0
 
-    _calc_flux_div_at_node_c(grid.shape, (grid.dx, grid.dy), unit_flux, out)
+    _calc_flux_div_at_node(grid.shape, (grid.dx, grid.dy), unit_flux, out)
+
+    return out
+
+
+def calc_net_face_flux_at_cell(grid, unit_flux_at_face, out=None):
+    """Calculate net face fluxes at cells.
+
+    Given a flux per unit width across each face in the grid, calculate the net
+    outflux (or influx, if negative) at each cell.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    unit_flux_at_faces : ndarray or field name
+        Flux per unit width associated with faces.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray (x number of cells)
+        Net flux at cells.
+    """
+    if len(unit_flux_at_face) != grid.number_of_faces:
+        raise ValueError("Parameter unit_flux_at_face must be num faces long")
+
+    if out is None:
+        out = grid.empty(at="cell")
+
+    _calc_net_face_flux_at_cell(
+        grid.shape, (grid.dx, grid.dy), np.asarray(unit_flux_at_face), out
+    )
 
     return out
