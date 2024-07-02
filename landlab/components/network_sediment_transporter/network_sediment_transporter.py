@@ -266,7 +266,7 @@ class NetworkSedimentTransporter(Component):
         active_layer_method="WongParker",
         active_layer_d_multiplier=2,
         slope_threshold=1e-4,
-        k_transp_dep_abr = 0., 
+        k_transp_dep_abr=0.0,
     ):
         """
         Parameters
@@ -302,7 +302,8 @@ class NetworkSedimentTransporter(Component):
             Minimum channel slope at any given link. Slopes lower than this
             value will default to the threshold.
         k_transp_dep_abr: float, optional
-            Coefficient of enhanced abrasion at high bedload transport stage, as in Pfeiffer et al. (2022)
+            Coefficient of enhanced abrasion at high bedload transport stage, as in
+            Pfeiffer et al. (2022)
         """
         if not isinstance(grid, NetworkModelGrid):
             raise ValueError("grid must be NetworkModelGrid")
@@ -789,7 +790,7 @@ class NetworkSedimentTransporter(Component):
 
         taur = taursg * (Darray / D_mean_activearray) ** b
         tautaur = tau / taur
-        self._tautaur = tautaur.copy() # use below for xport dependent abrasion
+        self._tautaur = tautaur.copy()  # use below for xport dependent abrasion
         tautaur_cplx = tautaur.astype(np.complex128)
         # ^ work around needed b/c np fails with non-integer powers of negative numbers
 
@@ -936,17 +937,17 @@ class NetworkSedimentTransporter(Component):
         # Step 2: Parcel is at rest... Now update its information.
 
         # transport dependent abrasion - update alphas for xport dependence
-        if self._k_transp_dep_abr != 0.:
+        if self._k_transp_dep_abr != 0.0:
             self._abrasion_rate_xport_dep = _calculate_transport_dep_abrasion_rate(
                 self._parcels.dataset.abrasion_rate,
                 self._k_transp_dep_abr,
                 self._parcels.dataset.density.values,
                 self._fluid_density,
                 self._parcels.dataset.D.values[:, self._time_idx],
-                self._tautaur
+                self._tautaur,
             )
             abrasion_now = self._abrasion_rate_xport_dep.copy()
-        else: 
+        else:
             abrasion_now = self._parcels.dataset.abrasion_rate.copy()
 
         # reduce D and volume due to abrasion
@@ -1173,18 +1174,14 @@ def _calculate_reference_shear_stress(
     return taursg
 
 
-
-
-def _calculate_transport_dep_abrasion_rate(
-    alpha, k, rhos, rhow, D, tautaur
-):
-    """ Calculate abrasion rate for each parcel in the network, accounting for
+def _calculate_transport_dep_abrasion_rate(alpha, k, rhos, rhow, D, tautaur):
+    """Calculate abrasion rate for each parcel in the network, accounting for
     increases in abrasion due to high bedload transport rates.
 
     Parameters
     ----------
     alpha : array
-        Baseline abrasion rate for each parcel. 
+        Baseline abrasion rate for each parcel.
     k : float
         Transport-dependent coefficient. 0 = no transport-dependence. Standard
         values ~15-45.
@@ -1195,33 +1192,43 @@ def _calculate_transport_dep_abrasion_rate(
     D : array
         Grain diameter for each parcel
     tautaur : array
-        Ratio of the Shields stress to reference (critical) Shields stress for each pacel. 
+        Ratio of the Shields stress to reference (critical) Shields stress for each pacel.
 
     Examples
     --------
     >>> import pytest
-    >>> _calculate_transport_dep_abrasion_rate(np.ones(5),55,np.ones(5),1000,np.ones(5),np.ones(5)) 
+    >>> _calculate_transport_dep_abrasion_rate(
+    ...     np.ones(5), 55, np.ones(5), 1000, np.ones(5), np.ones(5)
+    ... )
     array([ 1.,  1.,  1.,  1.,  1.])
-    >>> _calculate_transport_dep_abrasion_rate(np.zeros(1),55,np.ones(1),1000,np.ones(1),np.ones(1))
+    >>> _calculate_transport_dep_abrasion_rate(
+    ...     np.zeros(1), 55, np.ones(1), 1000, np.ones(1), np.ones(1)
+    ... )
     array([ 0.])
-    >>> _calculate_transport_dep_abrasion_rate(np.ones(1),8,np.array([2.]),1,np.ones(1),np.array([4.3]))
+    >>> _calculate_transport_dep_abrasion_rate(
+    ...     np.ones(1), 8, np.array([2.0]), 1, np.ones(1), np.array([4.3])
+    ... )
     array([ 9.])
     >>> with pytest.raises(ValueError):
-    ...     _calculate_transport_dep_abrasion_rate(np.ones(1),-8,np.array([2.]),1,np.ones(1),np.array([4.3]))
+    ...     _calculate_transport_dep_abrasion_rate(
+    ...         np.ones(1), -8, np.array([2.0]), 1, np.ones(1), np.array([4.3])
+    ...     )
+    ...
 
     """
     abrasion_rate_xport_dep = alpha.copy()
-    abrasion_rate_xport_dep[tautaur>3.3] = (alpha[tautaur>3.3]
-                                   * ( 1
-                                      + k
-                                      * ((rhos[tautaur>3.3] - rhow) / rhow)
-                                      * D[tautaur>3.3]
-                                      * (tautaur[tautaur>3.3] - 3.3)
-                                   )
+    abrasion_rate_xport_dep[tautaur > 3.3] = alpha[tautaur > 3.3] * (
+        1
+        + k
+        * ((rhos[tautaur > 3.3] - rhow) / rhow)
+        * D[tautaur > 3.3]
+        * (tautaur[tautaur > 3.3] - 3.3)
     )
 
     if np.any(alpha > abrasion_rate_xport_dep):
-        raise ValueError("Transport dependent abrasion currently decreasing abrasion rate (should increase)")
+        raise ValueError(
+            "Transport dependent abrasion currently decreasing abrasion rate (should increase)"
+        )
 
     return abrasion_rate_xport_dep
 
