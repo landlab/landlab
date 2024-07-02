@@ -1,4 +1,4 @@
-from landlab import Component
+from landlab.core.model_component import Component
 from landlab.grid.network import NetworkModelGrid
 
 
