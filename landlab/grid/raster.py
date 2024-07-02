@@ -2410,6 +2410,7 @@ def _add_format_extension(path, format):
 
 add_module_functions_to_class(RasterModelGrid, "raster_mappers.py", pattern="map_*")
 add_module_functions_to_class(RasterModelGrid, "raster_gradients.py", pattern="calc_*")
+add_module_functions_to_class(RasterModelGrid, "raster_divergence.py", pattern="calc_*")
 add_module_functions_to_class(
     RasterModelGrid, "raster_set_status.py", pattern="set_status_at_node*"
 )
