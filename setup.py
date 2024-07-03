@@ -46,7 +46,6 @@ cython_files = (
     "landlab/graph/structured_quad/ext/at_patch.pyx",
     "landlab/graph/voronoi/ext/delaunay.pyx",
     "landlab/graph/voronoi/ext/voronoi.pyx",
-    "landlab/grid/cfuncs.pyx",
     "landlab/grid/ext/raster_divergence.pyx",
     "landlab/grid/ext/raster_gradient.pyx",
     "landlab/layers/ext/eventlayers.pyx",
