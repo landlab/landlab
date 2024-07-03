@@ -690,7 +690,9 @@ class GravelBedrockEroder(Component):
         array([4.4e-09, 2.2e-09])
         """
         self._rock_abrasion_rate[:] = (
-            self._sed_abr_rates[self._rock_abrasion_index]
+            self._abr_coefs[self._rock_abrasion_index]
+            * 0.5
+            * (self._sediment_outflux + self._sediment_influx)
             * self._rock_exposure_fraction
         )
 
