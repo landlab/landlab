@@ -179,10 +179,7 @@ def test_multiple_runs():
     assert sm.vol_sm == 1, f"wrong vol_SM value is {sm.vol_sm}"
 
     # check mass balance
-    in_out = (
-        sm.total_p_snow
-        - sm.total_sm
-    )
+    in_out = sm.total_p_snow - sm.total_sm
 
     store = grid.at_node["snowpack__liquid-equivalent_depth"] - init_swe
 
@@ -199,15 +196,17 @@ def test_update_p_snow():
     p_snow = sm._update_p_snow(
         p=grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
         t_air=grid.at_node["atmosphere_bottom_air__temperature"],
-        t_rain_snow=1)
+        t_rain_snow=1,
+    )
 
     assert np.all(p_snow == 1)
 
     # prec as rain
     p_snow = sm._update_p_snow(
         p=grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
-        t_air=grid.at_node["atmosphere_bottom_air__temperature"]*-1,
-        t_rain_snow=1)
+        t_air=grid.at_node["atmosphere_bottom_air__temperature"] * -1,
+        t_rain_snow=1,
+    )
 
     assert np.all(p_snow == 0)
 
@@ -226,9 +225,10 @@ def test_update_snowmelt_rate():
     assert np.all(sm_rate == 0)
 
     # snow available for melt
-    sm_rate = sm._update_snowmelt_rate(dt=8.64e4, c0=3, t0=0, t_air=t_air,
-                                       h_swe=h_swe+0.01)
-    assert np.all(sm_rate == (3/8.64e7) * 2)
+    sm_rate = sm._update_snowmelt_rate(
+        dt=8.64e4, c0=3, t0=0, t_air=t_air, h_swe=h_swe + 0.01
+    )
+    assert np.all(sm_rate == (3 / 8.64e7) * 2)
 
 
 def test_update_swe():
