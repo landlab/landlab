@@ -432,7 +432,7 @@ cpdef get_next_event(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef get_next_event_new(
-    link,
+    long link,
     long current_state,
     double current_time,
     cython.integral [:] n_trn,
