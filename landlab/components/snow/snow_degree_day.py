@@ -19,11 +19,11 @@ class SnowDegreeDay(Component):
     """Simulate snowmelt process using degree-day method.
 
       The degree-day method uses c0 (degree-day coefficient),
-      T0 (degree-day threshold temperature) and T_air (air temperature)
+      t0 (degree-day threshold temperature) and t_air (air temperature)
       to determine the snow melt rate.
-      When T_air is larger than T0, the melt process will start.
-      The melt rate is calculated as SM = (T_air -T0) * c0.
-      (units for c0 and SM could be mm day-1 K-1 and mm day-1 respectively.)
+      When t_air is larger than t0, the melt process will start.
+      The melt rate is calculated as sm = (t_air -t0) * c0.
+      (e.g., units for c0 and sm could be mm day-1 K-1 and mm day-1 respectively.)
 
     Parameters
     ----------
@@ -31,11 +31,11 @@ class SnowDegreeDay(Component):
         A Landlab model grid object
     c0: float, optional
         degree-day coefficient (units: mm day-1 K-1)
-    T0: float, optional
+    t0: float, optional
         degree-day threshold temperature (units: deg_C)
-    rho_H2O : float, optinal
+    rho_water : float, optinal
         water density (units: kg/m3)
-    T_rain_snow : float, optional
+    t_rain_snow : float, optional
         temperature threshold for precipitation accurs as rain and snow with
         equal frequency (units: deg_C)
 
@@ -77,7 +77,7 @@ class SnowDegreeDay(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "atmosphere bottom air temperature",
-        },  # T_air
+        },  # t_air
         "atmosphere_water__precipitation_leq-volume_flux": {
             "dtype": float,
             "intent": "in",
@@ -85,7 +85,7 @@ class SnowDegreeDay(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "precipitation rate (in water equivalent)",
-        },  # P
+        },  # p
         "snowpack__liquid-equivalent_depth": {
             "dtype": float,
             "intent": "inout",
@@ -119,34 +119,34 @@ class SnowDegreeDay(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "snow melt volume flux",
-        },  # SM
+        },  # sm
     }
 
     SECOND_PER_DAY = 86400000.0
 
-    def __init__(self, grid, c0=2, T0=0, rho_H2O=1000, T_rain_snow=1):
+    def __init__(self, grid, c0=2, t0=0, rho_water=1000, t_rain_snow=1):
         """Initialize SnowDegreeDay component"""
 
         super().__init__(grid)
 
         # parameters
         self.c0 = c0
-        self._T0 = T0
-        self._rho_H2O = rho_H2O
-        self._T_rain_snow = T_rain_snow
+        self._t0 = t0
+        self._rho_water = rho_water
+        self._t_rain_snow = t_rain_snow
 
         # calculated vars
         self._grid_area = grid.dx * grid.dy
-        self._vol_SM = 0  # snowpack__domain_time_integral_of_melt_volume_flux
+        self._vol_sm = 0  # snowpack__domain_time_integral_of_melt_volume_flux
         self._vol_swe = 0  # snowpack__domain_integral_of_liquid-equivalent_depth
-        self._P_snow = np.zeros(grid.number_of_nodes)
+        self._p_snow = np.zeros(grid.number_of_nodes)
         # change for landlab
-        self._total_P_snow = np.zeros(grid.number_of_nodes)  # add new variable
-        self._total_SM = np.zeros(grid.number_of_nodes)  # add new variable
+        self._total_p_snow = np.zeros(grid.number_of_nodes)  # add new variable
+        self._total_sm = np.zeros(grid.number_of_nodes)  # add new variable
 
         # input data fields
-        self._T_air = grid.at_node["atmosphere_bottom_air__temperature"]
-        self._P = grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
+        self._t_air = grid.at_node["atmosphere_bottom_air__temperature"]
+        self._p = grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
 
         if "snowpack__liquid-equivalent_depth" in grid.at_node:
             self._h_swe = grid.at_node["snowpack__liquid-equivalent_depth"]
@@ -165,7 +165,7 @@ class SnowDegreeDay(Component):
         super().initialize_output_fields()
         self._h_snow = grid.at_node["snowpack__depth"]
         self._h_snow[:] = self._h_swe[:] * self.density_ratio
-        self._SM = grid.at_node["snowpack__melt_volume_flux"]
+        self._sm = grid.at_node["snowpack__melt_volume_flux"]
 
     @property
     def c0(self):
@@ -176,46 +176,53 @@ class SnowDegreeDay(Component):
         self._c0 = c0
 
     @property
-    def T0(self):
-        return self._T0
+    def t0(self):
+        return self._t0
 
-    @T0.setter
-    def T0(self, T0):
-        self._T0 = T0
-
-    @property
-    def rho_H2O(self):
-        return self._rho_H2O
-
-    @rho_H2O.setter
-    def rho_H2O(self, rho_H2O):
-        assert rho_H2O > 0, "assign rho_H2O with positive value"
-        self._rho_H2O = rho_H2O
+    @t0.setter
+    def t0(self, t0):
+        self._t0 = t0
 
     @property
-    def T_rain_snow(self):
-        return self._T_rain_snow
+    def rho_water(self):
+        return self._rho_water
 
-    @T_rain_snow.setter
-    def T_rain_snow(self, T_rain_snow):
-        self._T_rain_snow = T_rain_snow
-
-    @property
-    def total_P_snow(self):
-        """ total precipitation as snow (in water equivalent) over the
-        model time (units: m). """
-        return self._total_P_snow
+    @rho_water.setter
+    def rho_water(self, rho_water):
+        assert rho_water > 0, "assign rho_water with positive value"
+        self._rho_water = rho_water
 
     @property
-    def total_SM(self):
-        """ Total snow melt (in water equivalent) over the model time (units: m). """
-        return self._total_SM
+    def t_rain_snow(self):
+        return self._t_rain_snow
+
+    @t_rain_snow.setter
+    def t_rain_snow(self, t_rain_snow):
+        self._t_rain_snow = t_rain_snow
 
     @property
-    def vol_SM(self):
+    def p_snow(self):
+        """ precipitation as snow (in water equivalent) at current time step
+        (units: m). """
+        return self.p_snow
+
+    @property
+    def total_p_snow(self):
+        """ accumulative precipitation as snow (in water equivalent) over the
+        model time (units: m)."""
+        return self._total_p_snow
+
+    @property
+    def total_sm(self):
+        """ accumulative snow melt (in water equivalent) over the
+        model time (units: m)."""
+        return self._total_sm
+
+    @property
+    def vol_sm(self):
         """Total volume of snow melt (in water equivalent) for the domain and
         over the model time (units: m^3). """
-        return self._vol_SM
+        return self._vol_sm
 
     @property
     def vol_swe(self):
@@ -226,12 +233,12 @@ class SnowDegreeDay(Component):
     @property
     def density_ratio(self):
         """ Ratio of the densities between water and snow. """
-        return self._rho_H2O / self._rho_snow
+        return self._rho_water / self._rho_snow
 
     def _update_snowmelt_rate(self, dt):
         # melt rate based on degree-day coefficient
         sm_c0 = (self._c0 / self.SECOND_PER_DAY) * (
-            self._T_air - self._T0  # convert mm -day -K to  m/s
+            self._t_air - self._t0  # convert mm -day -K to  m/s
         )
         sm_c0 = np.maximum(sm_c0, 0)
 
@@ -240,18 +247,18 @@ class SnowDegreeDay(Component):
 
         # actual meltrate
         sm_act = np.minimum(sm_c0, sm_max)
-        self._SM[:] = sm_act[:]
+        self._sm[:] = sm_act[:]
 
     def _update_prec_snow(self):
-        self._P_snow = self._P * (self._T_air <= self._T_rain_snow)
+        self._p_snow = self._p * (self._t_air <= self._t_rain_snow)
 
     def _update_swe(self, dt):
         # increase due to precipitation as snow
-        swe_in = self._P_snow * dt
+        swe_in = self._p_snow * dt
         self._h_swe += swe_in
 
         # decrease due to melt
-        swe_out = self._SM * dt
+        swe_out = self._sm * dt
         self._h_swe -= swe_out
         self._h_swe[self._h_swe < 0] = 0
 
@@ -259,13 +266,13 @@ class SnowDegreeDay(Component):
         self._h_snow[:] = self._h_swe[:] * self.density_ratio
 
     def _update_total_prec_snow(self, dt):  # add for landlab (new method)
-        self._total_P_snow += self._P_snow * dt
+        self._total_p_snow += self._p_snow * dt
 
     def _update_total_snowmelt(self, dt):  # add for landlab (new method)
-        self._total_SM += self._SM[:] * dt
+        self._total_sm += self._sm[:] * dt
 
-    def _update_SM_integral(self):
-        self._vol_SM = np.sum(self._total_SM * self._grid_area)
+    def _update_sm_integral(self):
+        self._vol_sm = np.sum(self._total_sm * self._grid_area)
 
     def _update_total_snowpack_water_volume(self):
         volume = self._h_swe * self._grid_area
@@ -273,8 +280,8 @@ class SnowDegreeDay(Component):
 
     def run_one_step(self, dt):
         # update input fields in case there is new input
-        self._T_air = self._grid.at_node["atmosphere_bottom_air__temperature"]
-        self._P = self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
+        self._t_air = self._grid.at_node["atmosphere_bottom_air__temperature"]
+        self._p = self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
 
         # update state variables
         self._update_prec_snow()
@@ -285,5 +292,5 @@ class SnowDegreeDay(Component):
         self._update_total_prec_snow(dt)  # add for landlab (new method)
         self._update_total_snowmelt(dt)  # add for landlab (new method)
 
-        self._update_SM_integral()  # after update_total_snowmelt()
+        self._update_sm_integral()  # after update_total_snowmelt()
         self._update_total_snowpack_water_volume()  # after update_swe()
