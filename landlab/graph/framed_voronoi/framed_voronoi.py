@@ -355,14 +355,16 @@ class FramedVoronoiGraph(DelaunayGraph):
         self._seed = seed
 
         try:
-            xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
+            xy_spacing = np.asarray(np.broadcast_to(xy_spacing, 2), dtype=float)
         except TypeError as exc:
             raise TypeError("spacing must be a float or a tuple of floats") from exc
         else:
             self._xy_spacing = xy_spacing[0], xy_spacing[1]
 
         try:
-            xy_of_lower_left = np.asfarray(np.broadcast_to(xy_of_lower_left, 2))
+            xy_of_lower_left = np.asarray(
+                np.broadcast_to(xy_of_lower_left, 2), dtype=float
+            )
         except TypeError as exc:
             raise TypeError(
                 "xy of lower left must be a float or a tuple of floats"
@@ -379,7 +381,7 @@ class FramedVoronoiGraph(DelaunayGraph):
         layout = layouts["_".join([orientation, node_layout])]
 
         try:
-            xy_min_spacing = np.asfarray(np.broadcast_to(xy_min_spacing, 2))
+            xy_min_spacing = np.asarray(np.broadcast_to(xy_min_spacing, 2), dtype=float)
         except TypeError as exc:
             raise TypeError(
                 "minimal spacing must be a float or a tuple of floats"

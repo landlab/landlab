@@ -97,7 +97,7 @@ def _deposit_or_erode(layers, n_layers, dz):
     except (AttributeError, ValueError):
         dz = np.broadcast_to(dz, (layers.shape[1],))
     finally:
-        dz = np.asfarray(dz)
+        dz = np.asarray(dz, dtype=float)
 
     deposit_or_erode(layers, n_layers, dz)
 
