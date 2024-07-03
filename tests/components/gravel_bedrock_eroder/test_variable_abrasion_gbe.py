@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_almost_equal
+from numpy.testing import assert_almost_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
@@ -40,6 +42,7 @@ def test_value_error():
             grid, number_of_sediment_classes=3, abrasion_coefficients=[0, 0]
         )
 
+
 def stats(er):
     print("z", er._elev)
     print("dzdt", er._grid.at_node["topographic__steepest_slope"])
@@ -55,6 +58,7 @@ def stats(er):
     print("ref", er._rock_exposure_fraction)
     print("rlr", er._rock_lowering_rate)
 
+
 def test_response_with_one_vs_two_classes():
     """Compare changes in one step for a single class vs two identical classes."""
     grid1 = RasterModelGrid((3, 3), xy_spacing=1000.0)
@@ -69,10 +73,11 @@ def test_response_with_one_vs_two_classes():
     fa1 = FlowAccumulator(grid1, runoff_rate=10.0)
     fa1.run_one_step()
     eroder1 = GravelBedrockEroder(
-        grid1, sediment_porosity=0.0,
+        grid1,
+        sediment_porosity=0.0,
         number_of_sediment_classes=1,
         abrasion_coefficients=[0.0005],
-        coarse_fractions_from_plucking=[1.0]
+        coarse_fractions_from_plucking=[1.0],
     )
     eroder1.run_one_step(1000.0)
 
@@ -88,11 +93,12 @@ def test_response_with_one_vs_two_classes():
     fa2 = FlowAccumulator(grid2, runoff_rate=10.0)
     fa2.run_one_step()
     eroder2 = GravelBedrockEroder(
-        grid2, sediment_porosity=0.0,
+        grid2,
+        sediment_porosity=0.0,
         number_of_sediment_classes=2,
         abrasion_coefficients=[0.0005, 0.0005],
         init_fraction_per_class=[0.5, 0.5],
-        coarse_fractions_from_plucking=[0.5, 0.5]
+        coarse_fractions_from_plucking=[0.5, 0.5],
     )
     eroder2.run_one_step(1000.0)
 
@@ -102,6 +108,7 @@ def test_response_with_one_vs_two_classes():
     assert_array_equal(eroder1._dHdt, eroder2._dHdt)
     assert_array_equal(eroder1._dHdt, np.sum(eroder2._dHdt_by_class, axis=0))
     assert_array_equal(eroder1._rock_lowering_rate, eroder2._rock_lowering_rate)
+
 
 def test_equilibrium_with_two_identical_classes():
     """
@@ -118,11 +125,12 @@ def test_equilibrium_with_two_identical_classes():
     fa = FlowAccumulator(grid, runoff_rate=10.0)
     fa.run_one_step()
     eroder = GravelBedrockEroder(
-        grid, sediment_porosity=0.0,
+        grid,
+        sediment_porosity=0.0,
         number_of_sediment_classes=2,
         abrasion_coefficients=[0.0005, 0.0005],
         init_fraction_per_class=[0.5, 0.5],
-        coarse_fractions_from_plucking=[0.5, 0.5]
+        coarse_fractions_from_plucking=[0.5, 0.5],
     )
     rock_elev = grid.at_node["bedrock__elevation"]
     fa.run_one_step()
