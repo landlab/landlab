@@ -681,7 +681,9 @@ class CellLabCTSModel:
             tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
             new_link_state = int(
-                int(orientation) * self.num_node_states_sq + fns * self.num_node_states + tns
+                int(orientation) * self.num_node_states_sq
+                + fns * self.num_node_states
+                + tns
             )
 
         self.link_state[link] = new_link_state
