@@ -4,9 +4,6 @@ cimport cython
 cimport numpy as np
 from libc.string cimport memcpy
 
-ctypedef np.int_t INT_t
-ctypedef np.float_t FLOAT_t
-
 
 cdef void _pad_jaggedarray(
     void * data,

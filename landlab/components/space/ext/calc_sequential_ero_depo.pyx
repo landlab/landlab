@@ -1,46 +1,31 @@
-import numpy as np
-
-cimport numpy as np
-
-
-cdef extern from "math.h":
-    double exp(double x) nogil
-
+cimport cython
 from libc.math cimport exp
+from libc.math cimport isinf
 from libc.math cimport log
-
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_UINT8 = np.uint8
-ctypedef np.uint8_t DTYPE_UINT8_t
 
 
 def _sequential_ero_depo(
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
-    np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Q_to_the_m,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] slope,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] H,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] br,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
-    DTYPE_FLOAT_t v,
-    DTYPE_FLOAT_t phi,
-    DTYPE_FLOAT_t F_f,
-    DTYPE_FLOAT_t H_star,
-    DTYPE_FLOAT_t dt,
-    DTYPE_FLOAT_t thickness_lim,
+    cython.integral [:] stack_flip_ud_sel,
+    cython.integral [:] flow_receivers,
+    const cython.floating [:] cell_area,
+    cython.floating [:] q,
+    cython.floating [:] qs,
+    cython.floating [:] qs_in,
+    cython.floating [:] Es,
+    cython.floating [:] Er,
+    cython.floating [:] Q_to_the_m,
+    cython.floating [:] slope,
+    cython.floating [:] H,
+    cython.floating [:] br,
+    cython.floating [:] sed_erosion_term,
+    cython.floating [:] bed_erosion_term,
+    cython.floating [:] K_sed,
+    double v,
+    double phi,
+    double F_f,
+    double H_star,
+    double dt,
+    double thickness_lim,
 ):
 
     """Calculate and qs and qs_in."""
@@ -75,7 +60,7 @@ def _sequential_ero_depo(
                 )
             # No blowup
             else:
-                H_loc = H_star * np.log(
+                H_loc = H_star * log(
                     (1 / ((depo_rate / (1 - phi)) / (sed_erosion_loc / (1 - phi)) - 1))
                     * (
                         exp(
@@ -94,7 +79,8 @@ def _sequential_ero_depo(
                     )
                 )
             # In case soil depth evolves to infinity, fall back to no entrainment
-            if H_loc == np.inf:
+            # if H_loc == np.inf:
+            if isinf(H_loc):
                 H_loc = (
                     H[node_id]
                     + (depo_rate / (1 - phi) - sed_erosion_loc/ (1 - phi)) * dt

@@ -1,22 +1,13 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
 
 
 @cython.boundscheck(False)
 cpdef _add_to_stack(
-    DTYPE_INT_t l,
-    DTYPE_INT_t j,
-    np.ndarray[DTYPE_INT_t, ndim=1] s,
-    np.ndarray[DTYPE_INT_t, ndim=1] delta,
-    np.ndarray[DTYPE_INT_t, ndim=1] donors,
+    long l,
+    long j,
+    cython.integral [:] s,
+    cython.integral [:] delta,
+    cython.integral [:] donors,
 ):
     """
     Adds node l to the stack and increments the current index (j).
@@ -38,13 +29,13 @@ cpdef _add_to_stack(
 
 @cython.boundscheck(False)
 cpdef _accumulate_to_n(
-    DTYPE_INT_t size,
-    DTYPE_INT_t q,
-    np.ndarray[DTYPE_INT_t, ndim=1] s,
-    np.ndarray[DTYPE_INT_t, ndim=2] r,
-    np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge,
+    long size,
+    long q,
+    cython.integral [:] s,
+    cython.integral [:, :] r,
+    cython.floating [:, :] p,
+    cython.floating [:] drainage_area,
+    cython.floating [:] discharge,
 ):
     """
     Accumulates drainage area and discharge, permitting transmission losses.
@@ -70,11 +61,11 @@ cpdef _accumulate_to_n(
 
 @cython.boundscheck(False)
 cpdef _accumulate_bw(
-    DTYPE_INT_t size,
-    np.ndarray[DTYPE_INT_t, ndim=1] s,
-    np.ndarray[DTYPE_INT_t, ndim=1] r,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge,
+    long size,
+    cython.integral [:] s,
+    cython.integral [:] r,
+    cython.floating [:] drainage_area,
+    cython.floating [:] discharge,
 ):
     """
     Accumulates drainage area and discharge, permitting transmission losses.
@@ -97,11 +88,11 @@ cpdef _accumulate_bw(
 
 @cython.boundscheck(False)
 cpdef _make_donors(
-    DTYPE_INT_t size,
-    np.ndarray[DTYPE_INT_t, ndim=1] w,
-    np.ndarray[DTYPE_INT_t, ndim=1] D,
-    np.ndarray[DTYPE_INT_t, ndim=1] delta,
-    np.ndarray[DTYPE_INT_t, ndim=1] r,
+    long size,
+    cython.integral [:] w,
+    cython.integral [:] D,
+    cython.integral [:] delta,
+    cython.integral [:] r,
 ):
     """Determines number of donors"""
     cdef int ri, i
@@ -113,13 +104,13 @@ cpdef _make_donors(
 
 @cython.boundscheck(False)
 cpdef _make_donors_to_n(
-    DTYPE_INT_t size,
-    DTYPE_INT_t q,
-    np.ndarray[DTYPE_INT_t, ndim=1] w,
-    np.ndarray[DTYPE_INT_t, ndim=1] D,
-    np.ndarray[DTYPE_INT_t, ndim=1] delta,
-    np.ndarray[DTYPE_INT_t, ndim=2] r,
-    np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
+    long size,
+    long q,
+    cython.integral [:] w,
+    cython.integral [:] D,
+    cython.integral [:] delta,
+    cython.integral [:, :] r,
+    cython.floating [:, :] p,
 ):
     """Determines number of donors for route to n"""
     cdef int ri, i, v, ind

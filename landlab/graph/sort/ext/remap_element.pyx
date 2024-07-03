@@ -14,8 +14,7 @@ cdef extern from "math.h":
 
 from .spoke_sort import sort_spokes_at_wheel
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+ctypedef np.int64_t DTYPE_t
 ctypedef np.uint8_t uint8
 
 ctypedef fused id_t:

@@ -1,17 +1,11 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-
-DTYPE = int
-ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
 def neighbors_at_link(
-    np.ndarray[DTYPE_t, ndim=1] links,
+    const cython.integral [:] links,
     shape,
-    np.ndarray[DTYPE_t, ndim=2] out,
+    cython.integral [:, :] out,
 ):
     cdef int stride
     cdef int n_links

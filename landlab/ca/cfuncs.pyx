@@ -135,13 +135,13 @@ cdef class Event:
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cdef int current_link_state(
-    link_id,
-    cython.integral [:] node_state,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
-    int8_t [:]  link_orientation,
-    num_node_states,
-    num_node_states_sq,
+    const long link_id,
+    const cython.integral [:] node_state,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
+    const int8_t [:]  link_orientation,
+    const long num_node_states,
+    const long num_node_states_sq,
 ):
     """Get the current state of a link.
 
@@ -173,7 +173,8 @@ cdef int current_link_state(
     int
         New link state code
     """
-    cdef int tail_node_state, head_node_state
+    cdef long tail_node_state
+    cdef long head_node_state
     cdef char orientation
 
     # Find out the states of the two nodes, and the orientation
@@ -189,11 +190,11 @@ cdef int current_link_state(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef update_link_states_and_transitions(
-    cython.integral [:] active_links,
-    cython.integral [:] node_state,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
-    int8_t [:] link_orientation,
+    const cython.integral [:] active_links,
+    const cython.integral [:] node_state,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
+    const int8_t [:] link_orientation,
     int8_t [:] bnd_lnk,
     cython.integral [:] link_state,
     cython.integral [:] n_xn,
@@ -201,11 +202,11 @@ cpdef update_link_states_and_transitions(
     cython.floating [:] next_update,
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
-    num_node_states,
-    num_node_states_sq,
+    long num_node_states,
+    long num_node_states_sq,
     double current_time,
     int8_t [:, :] xn_propswap,
-    xn_prop_update_fn,
+    np.ndarray[object, ndim=2] xn_prop_update_fn,
 ):
     """
     Following an "external" change to the node state grid, updates link
@@ -260,21 +261,21 @@ cpdef update_link_states_and_transitions(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef update_link_states_and_transitions_new(
-    cython.integral [:] active_links,
-    cython.integral [:] node_state,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
-    int8_t [:] link_orientation,
+    const cython.integral [:] active_links,
+    const cython.integral [:] node_state,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
+    const int8_t [:] link_orientation,
     int8_t [:] bnd_lnk,
     cython.integral [:] link_state,
     cython.integral [:] n_trn,
-    priority_queue,
+    PriorityQueue priority_queue,
     cython.floating [:] next_update,
     cython.integral [:] next_trn_id,
     cython.integral [:, :] trn_id,
     cython.floating [:] trn_rate,
-    num_node_states,
-    num_node_states_sq,
+    long num_node_states,
+    long num_node_states_sq,
     double current_time,
 ):
     """
@@ -331,9 +332,9 @@ cpdef update_link_states_and_transitions_new(
 @cython.cdivision(True)
 cpdef update_node_states(
     cython.integral [:] node_state,
-    uint8_t [:] status_at_node,
-    tail_node,
-    head_node,
+    const uint8_t [:] status_at_node,
+    long tail_node,
+    long head_node,
     new_link_state,
     num_states,
 ):
@@ -354,7 +355,7 @@ cpdef update_node_states(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef get_next_event(
-    link,
+    long link,
     long current_state,
     double current_time,
     cython.integral [:] n_xn,
@@ -492,8 +493,8 @@ cpdef get_next_event_new(
 
 
 cpdef push_transitions_to_event_queue(
-    int number_of_active_links,
-    cython.integral [:] active_links,
+    long number_of_active_links,
+    const cython.integral [:] active_links,
     cython.integral [:] n_trn,
     cython.integral [:] link_state,
     cython.integral [:, :] trn_id,
@@ -526,18 +527,19 @@ cpdef push_transitions_to_event_queue(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void update_link_state(
-    link,
+    long link,
     long new_link_state,
     double current_time,
     int8_t [:] bnd_lnk,
-    cython.integral [:] node_state,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
-    int8_t [:] link_orientation,
-    num_node_states,
-    num_node_states_sq,
+    const cython.integral [:] node_state,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
+    const int8_t [:] link_orientation,
+    long num_node_states,
+    long num_node_states_sq,
     cython.integral [:] link_state,
-    cython.integral [:] n_xn, event_queue,
+    cython.integral [:] n_xn,
+    event_queue,
     cython.floating [:] next_update,
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -593,16 +595,16 @@ cdef void update_link_state(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void update_link_state_new(
-    link,
+    long link,
     long new_link_state,
     double current_time,
     int8_t [:] bnd_lnk,
-    cython.integral [:] node_state,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
-    int8_t [:] link_orientation,
-    num_node_states,
-    num_node_states_sq,
+    const cython.integral [:] node_state,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
+    const int8_t [:] link_orientation,
+    long num_node_states,
+    long num_node_states_sq,
     cython.integral [:] link_state,
     cython.integral [:] n_trn,
     PriorityQueue priority_queue,
@@ -674,12 +676,13 @@ cdef void do_transition(
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
     cython.integral [:, :] links_at_node,
-    int8_t [:, :] active_link_dirs_at_node,
-    num_node_states,
-    num_node_states_sq,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
     prop_reset_value,
     int8_t [:, :] xn_propswap,
-    xn_prop_update_fn,
+    # xn_prop_update_fn,
+    np.ndarray[object, ndim=2] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
     event_queue,
     this_cts_model,
@@ -872,26 +875,26 @@ cdef void do_transition(
 # @cython.boundscheck(False)
 # @cython.wraparound(False)
 cpdef void do_transition_new(
-    event_link,
+    long event_link,
     double event_time,
     PriorityQueue priority_queue,
     cython.floating [:] next_update,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
     cython.integral [:] node_state,
     cython.integral [:] next_trn_id,
     cython.integral [:] trn_to,
     uint8_t [:] status_at_node,
-    num_node_states,
-    num_node_states_sq,
+    long num_node_states,
+    long num_node_states_sq,
     int8_t [:] bnd_lnk,
-    int8_t [:] link_orientation,
+    const int8_t [:] link_orientation,
     cython.integral [:] link_state,
     cython.integral [:] n_trn,
     cython.integral [:, :] trn_id,
     cython.floating [:] trn_rate,
-    cython.integral [:, :] links_at_node,
-    int8_t [:, :] active_link_dirs_at_node,
+    const cython.integral [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
     int8_t [:] trn_propswap,
     cython.integral [:] propid,
     object prop_data,
@@ -1124,22 +1127,22 @@ cpdef double run_cts_new(
     double current_time,
     PriorityQueue priority_queue,
     cython.floating [:] next_update,
-    cython.integral [:] node_at_link_tail,
-    cython.integral [:] node_at_link_head,
+    const cython.integral [:] node_at_link_tail,
+    const cython.integral [:] node_at_link_head,
     cython.integral [:] node_state,
     cython.integral [:] next_trn_id,
     cython.integral [:] trn_to,
     uint8_t [:] status_at_node,
-    num_node_states,
-    num_node_states_sq,
+    long num_node_states,
+    long num_node_states_sq,
     int8_t [:] bnd_lnk,
-    int8_t [:] link_orientation,
+    const int8_t [:] link_orientation,
     cython.integral [:] link_state,
     cython.integral [:] n_trn,
     cython.integral [:, :] trn_id,
     cython.floating [:] trn_rate,
-    cython.integral [:, :] links_at_node,
-    int8_t [:, :] active_link_dirs_at_node,
+    const cython.integral [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
     int8_t [:] trn_propswap,
     cython.integral [:] propid,
     object prop_data,
@@ -1241,12 +1244,13 @@ cpdef double run_cts(
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
     cython.integral [:, :] links_at_node,
-    int8_t [:, :] active_link_dirs_at_node,
-    num_node_states,
-    num_node_states_sq,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
     prop_reset_value,
     int8_t [:, :] xn_propswap,
-    xn_prop_update_fn,
+    # xn_prop_update_fn,
+    np.ndarray[object, ndim=2] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
     this_cts_model,
 ):
@@ -1318,8 +1322,8 @@ cpdef double run_cts(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef get_next_event_lean(
-    link,
-    current_state,
+    long link,
+    long current_state,
     double current_time,
     cython.integral [:] n_xn,
     cython.integral [:, :] xn_to,
@@ -1388,18 +1392,19 @@ cpdef get_next_event_lean(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef void update_link_state_lean(
-    link,
-    new_link_state,
+    long link,
+    long new_link_state,
     double current_time,
     int8_t [:] bnd_lnk,
     cython.integral [:] node_state,
     cython.integral [:] node_at_link_tail,
     cython.integral [:] node_at_link_head,
     int8_t [:] link_orientation,
-    num_node_states,
-    num_node_states_sq,
+    long num_node_states,
+    long num_node_states_sq,
     cython.integral [:] link_state,
-    cython.integral [:] n_xn, event_queue,
+    cython.integral [:] n_xn,
+    event_queue,
     cython.floating [:] next_update,
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -1458,9 +1463,9 @@ cdef void do_transition_lean(
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
     cython.integral [:, :] links_at_node,
-    int8_t [:, :] active_link_dirs_at_node,
-    num_node_states,
-    num_node_states_sq,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
     int8_t [:] bnd_lnk,
     object event_queue,
 ):
@@ -1634,9 +1639,9 @@ cpdef double run_cts_lean(
     cython.integral [:, :] xn_to,
     cython.floating [:, :] xn_rate,
     cython.integral [:, :] links_at_node,
-    int8_t [:, :] active_link_dirs_at_node,
-    num_node_states,
-    num_node_states_sq,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
     int8_t [:] bnd_lnk,
 ):
     """Run the model forward for a specified period of time. This "lean"

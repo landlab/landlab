@@ -1,25 +1,17 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
-
-DTYPE_INT = int
-# ctypedef np.longlong_t DTYPE_INT_t
-ctypedef np.int_t DTYPE_INT_t
 
 
 @cython.boundscheck(False)
-def adjust_flow_receivers(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-                          np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-                          np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
-                          np.ndarray[DTYPE_FLOAT_t, ndim=1] link_slope,
-                          np.ndarray[DTYPE_INT_t, ndim=1] active_links,
-                          np.ndarray[DTYPE_INT_t, ndim=1] receiver,
-                          np.ndarray[DTYPE_INT_t, ndim=1] receiver_link,
-                          np.ndarray[DTYPE_FLOAT_t, ndim=1] steepest_slope):
+def adjust_flow_receivers(
+    const cython.integral [:] src_nodes,
+    const cython.integral [:] dst_nodes,
+    const cython.floating [:] z,
+    const cython.floating [:] link_slope,
+    const cython.integral [:] active_links,
+    cython.integral [:] receiver,
+    cython.integral [:] receiver_link,
+    cython.floating [:] steepest_slope,
+):
     """Adjust flow receivers based on link slopes and steepest gradients.
 
     Parameters
