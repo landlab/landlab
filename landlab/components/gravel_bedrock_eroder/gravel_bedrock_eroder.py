@@ -646,7 +646,7 @@ class GravelBedrockEroder(Component):
         >>> eroder.calc_transport_rate()
         >>> eroder.calc_abrasion_rate()
         >>> eroder._sed_abr_rates[:, 4]
-        array([ 6.34350474e-07, 6.34350474e-08, 6.34350474e-09])
+        array([6.34350474e-07, 6.34350474e-08, 6.34350474e-09])
         """
         cores = self._grid.core_nodes
         for i in range(self._num_sed_classes):
@@ -684,7 +684,7 @@ class GravelBedrockEroder(Component):
         array([0.024, 0.012])
         >>> eroder.calc_abrasion_rate()
         >>> np.round(eroder._sed_abr_rates[0, 5:7], 9)
-        array([  1.20000000e-08,   6.00000000e-09])
+        array([1.2e-08, 6.0e-09])
         >>> eroder.calc_bedrock_abrasion_rate()
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
         array([4.4e-09, 2.2e-09])
@@ -822,11 +822,11 @@ class GravelBedrockEroder(Component):
         >>> eroder.calc_sediment_influx()
         >>> eroder.calc_sediment_rate_of_change()
         >>> np.round(eroder._sed_outfluxes[0, 4:7], 3)
-        array([ 0.   ,  0.038,  0.019])
+        array([0.   , 0.038, 0.019])
         >>> np.round(eroder._sed_influxes[0, 4:7], 3)
-        array([ 0.038,  0.019,  0.   ])
+        array([0.038, 0.019, 0.   ])
         >>> np.round(eroder._dHdt_by_class[0, 5:7], 8)
-        array([ -2.93000000e-06,  -2.93000000e-06])
+        array([-2.93e-06, -2.93e-06])
         """
         if use_cfuncs:
             _calc_sediment_rate_of_change(
