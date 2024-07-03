@@ -121,8 +121,6 @@ class SnowDegreeDay(Component):
         },  # sm
     }
 
-    SECOND_PER_DAY = 86400000.0
-
     def __init__(self, grid, c0=2, t0=0, rho_water=1000, t_rain_snow=1):
         """Initialize SnowDegreeDay component"""
 
