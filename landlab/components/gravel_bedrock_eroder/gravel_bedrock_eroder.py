@@ -694,6 +694,7 @@ class GravelBedrockEroder(Component):
             * 0.5
             * (self._sediment_outflux + self._sediment_influx)
             * self._rock_exposure_fraction
+            * self._flow_link_length_over_cell_area
         )
 
     def calc_bedrock_plucking_rate(self):
@@ -980,26 +981,26 @@ class GravelBedrockEroder(Component):
         ...     coarse_fractions_from_plucking=[0.25],
         ... )
         >>> eroder._bedrock__elevation[5:7]
-        array([ 0.30685,  1.30685])
+        array([0.30685, 1.30685])
         >>> eroder.run_one_step(1000.0)
         >>> np.round(eroder._sed_outfluxes[0, 5:7], 3)
-        array([ 0.019,  0.01 ])
+        array([0.019, 0.01 ])
         >>> np.round(eroder._sed_influxes[0, 4:7], 3)
-        array([ 0.019,  0.01 ,  0.   ])
+        array([0.019, 0.01 , 0.   ])
         >>> np.round(eroder._pluck_rate[5:7], 10)
-        array([  4.64200000e-07,   2.32100000e-07])
+        array([4.642e-07, 2.321e-07])
         >>> np.round(eroder._sed_abr_rates[0, 5:7], 9)
-        array([  1.43000000e-07,   4.80000000e-08])
+        array([1.43e-07, 4.80e-08])
         >>> np.round(eroder._dHdt_by_class[0, 5:7], 8)
-        array([ -1.50000000e-06,  -1.45000000e-06])
+        array([-1.50e-06, -1.45e-06])
         >>> np.round(eroder._dHdt[5:7], 8)
-        array([ -1.50000000e-06,  -1.45000000e-06])
+        array([-1.50e-06, -1.45e-06])
         >>> np.round(sed[5:7], 4)
-        array([ 0.6916,  0.6917])
+        array([0.6916, 0.6917])
         >>> np.round(eroder._bedrock__elevation[5:7], 5)
-        array([ 0.30631,  1.30659])
-        >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.998 ,  1.9983])
+        array([0.30631, 1.30659])
+        >>> np.abs(np.round(elev[4:7], 4))
+        array([0.    , 0.998 , 1.9983])
         """
         self._update_slopes()
         self.calc_rock_exposure_fraction()
