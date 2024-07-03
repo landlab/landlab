@@ -1044,6 +1044,8 @@ class GravelBedrockEroder(Component):
             elevbefore = self._elev.copy()
             print("Sed, rock, elev before", sedbefore, rockbefore, elevbefore)
         self._sed[cores] += self._dHdt[cores] * dt
+        if self._num_sed_classes > 1:
+            self._thickness_by_class[:,cores] += self._dHdt_by_class[:,cores] * dt
         self._bedrock__elevation[cores] -= self._rock_lowering_rate[cores] * dt
         self._elev[cores] = self._bedrock__elevation[cores] + self._sed[cores]
         if dt==1.0:

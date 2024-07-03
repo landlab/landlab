@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from landlab.components import VariableAbrasionGBE
+from landlab.components import GravelBedrockEroder
 
 
 def test_sediment_thickness():
@@ -16,22 +16,30 @@ def test_sediment_thickness():
     fa = FlowAccumulator(grid)
     fa.run_one_step()
 
-    eroder = VariableAbrasionGBE(grid, abrasion_coefficients=[0.002, 0.0002, 0.00002])
+    eroder = GravelBedrockEroder(
+        grid,
+        number_of_sediment_classes=3,
+        abrasion_coefficients=[0.002, 0.0002, 0.00002],
+    )
 
     sum_of_classes = np.sum(eroder._thickness_by_class, axis=0)
 
     assert_array_equal(sum_of_classes, sed)
 
-    eroder.run_one_step(1.0)
+    eroder.run_one_step(100.0)
 
     sum_of_classes = np.sum(eroder._thickness_by_class, axis=0)
 
-    assert_array_equal(sum_of_classes, sed)
+    assert_array_almost_equal(sum_of_classes, sed)
 
 
 def test_value_error():
     grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
     with pytest.raises(ValueError):
-        VariableAbrasionGBE(
+        GravelBedrockEroder(
             grid, number_of_sediment_classes=3, abrasion_coefficients=[0, 0]
         )
+
+
+if __name__ == "__main__":
+    test_sediment_thickness()
