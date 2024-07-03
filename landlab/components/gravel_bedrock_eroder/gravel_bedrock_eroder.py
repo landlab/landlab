@@ -304,21 +304,23 @@ class GravelBedrockEroder(Component):
         depth_decay_scale=1.0,
         plucking_coefficient=1.0e-4,
         number_of_sediment_classes=1,
-        init_thickness_per_class=None,
+        init_fraction_per_class=None,
         abrasion_coefficients=0.0,
         coarse_fractions_from_plucking=1.0,
         rock_abrasion_index=0,
     ):
         """Initialize GravelBedrockEroder."""
 
-        if init_thickness_per_class is None:
-            init_thickness_per_class = 1.0 / number_of_sediment_classes
+        if init_fraction_per_class is None:
+            init_fraction_per_class = 1.0 / number_of_sediment_classes
         abrasion_coefficients = np.broadcast_to(
             abrasion_coefficients, number_of_sediment_classes
         )
-        init_thickness_per_class = np.broadcast_to(
-            init_thickness_per_class, number_of_sediment_classes
+        init_fraction_per_class = np.broadcast_to(
+            init_fraction_per_class, number_of_sediment_classes
         )
+        if np.amax(init_fraction_per_class) > 1.0 or np.amin(init_fraction_per_class) < 0.0:
+            raise(ValueError, "init_fraction_per_class must be in [0, 1]")
         coarse_fractions_from_plucking = np.broadcast_to(
             coarse_fractions_from_plucking, number_of_sediment_classes
         )
@@ -400,7 +402,7 @@ class GravelBedrockEroder(Component):
             (number_of_sediment_classes, grid.number_of_nodes)
         )
         for i in range(number_of_sediment_classes):
-            self._thickness_by_class[i, :] = init_thickness_per_class[i] * self._sed
+            self._thickness_by_class[i, :] = init_fraction_per_class[i] * self._sed
 
         self._sed_influxes = np.zeros(
             (number_of_sediment_classes, grid.number_of_nodes)
