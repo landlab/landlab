@@ -111,11 +111,27 @@ class GravelBedrockEroder(Component):
 
     U A = kq I Q S^(7/6) + 0.5 b Qs dx
 
-    S = (U A / (kq I Q (1 + 0.5 b dx))) ^ 6/7 ~ 0.0342
+    S = (U A / (kq I Q (1 + 0.5 b dx))) ^ 6/7 
+    
+    S = (1.0e-4 1e6 / (0.041 0.01 10.0 1e6 (1 + 0.5 0.0005 1000.0)))^(6 / 7)
+    
+    ~ 0.0342
 
-    Elevation of the single core node = 0.0342 x 1,000 m ~ 34 m.
+    The sediment abrasion rate should be, in volume per time, as follows:
+
+    Qsout + abrasion loss rate = generation rate
+
+    Qsout + 0.5 Qsout b dx = U dx^2
+
+    Qsout = U dx^2 / (1 + 0.5 b dx)
+
+    Qsout = 0.0001 1e6 / (1 + 0.5 0.0005 1e3)
+
+    Qsout = 1e2 / 1.25 = 80
+
+    Elevation of the single core node = 0.0342 x 1,000 m ~ 34.2 m.
     However, because of VERY long time steps, the post-erosion elevation is 1 m
-    lower, at 33 m (it will be uplifted by a meter at the start of each step).
+    lower, at 33.2 m (it will be uplifted by a meter at the start of each step).
 
     Examples
     --------
@@ -123,6 +139,7 @@ class GravelBedrockEroder(Component):
     >>> from landlab.components import FlowAccumulator
     >>> grid = RasterModelGrid((3, 3), xy_spacing=1000.0)
     >>> elev = grid.add_zeros("topographic__elevation", at="node")
+    >>> elev[4] = 1.0
     >>> sed = grid.add_zeros("soil__depth", at="node")
     >>> sed[4] = 1.0e6
     >>> grid.status_at_node[grid.perimeter_nodes] = grid.BC_NODE_IS_CLOSED
@@ -133,12 +150,12 @@ class GravelBedrockEroder(Component):
     ...     grid, sediment_porosity=0.0, abrasion_coefficients=[0.0005]
     ... )
     >>> rock_elev = grid.at_node["bedrock__elevation"]
-    >>> for _ in range(150):
-    ...     rock_elev[grid.core_nodes] += 1.0
-    ...     elev[grid.core_nodes] += 1.0
-    ...     fa.run_one_step()
-    ...     eroder.run_one_step(10000.0)
-    ...
+    >>> fa.run_one_step()
+    >>> dt = 10000.0
+    >>> for _ in range(200):
+    ...     rock_elev[grid.core_nodes] += 1.0e-4 * dt
+    ...     elev[grid.core_nodes] += 1.0e-4 * dt
+    ...     eroder.run_one_step(dt)
     >>> int(elev[4])
     33
     """
@@ -1020,9 +1037,20 @@ class GravelBedrockEroder(Component):
         """Update rock elevation, sediment thickness, and elevation
         using current rates of change extrapolated forward by time dt.
         """
-        self._sed += self._dHdt * dt
-        self._bedrock__elevation -= self._rock_lowering_rate * dt
-        self._elev[:] = self._bedrock__elevation + self._sed
+        cores = self._grid.core_nodes
+        if dt==1.0:
+            sedbefore = self._sed.copy()
+            rockbefore = self._bedrock__elevation.copy()
+            elevbefore = self._elev.copy()
+            print("Sed, rock, elev before", sedbefore, rockbefore, elevbefore)
+        self._sed[cores] += self._dHdt[cores] * dt
+        self._bedrock__elevation[cores] -= self._rock_lowering_rate[cores] * dt
+        self._elev[cores] = self._bedrock__elevation[cores] + self._sed[cores]
+        if dt==1.0:
+            print("Sed, rock, elev after", self._sed, self._bedrock__elevation, self._elev)
+            print("Sed change", sedbefore - self._sed)
+            print("Rock change", rockbefore - self._bedrock__elevation)
+            print("Elev change", elevbefore - self._elev)
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
         """
