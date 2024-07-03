@@ -172,6 +172,7 @@ class SnowDegreeDay(Component):
 
     @c0.setter
     def c0(self, c0):
+        assert np.any(c0 > 0), "assign c0 with positive value"
         self._c0 = c0
 
     @property
@@ -241,9 +242,9 @@ class SnowDegreeDay(Component):
         return update_p_snow
 
     @staticmethod
-    def _update_snowmelt_rate(dt, c0, t0, t_air, h_swe, second_per_day=86400000.0):
+    def _update_snowmelt_rate(dt, c0, t0, t_air, h_swe, units_convert=86400000.0):
         # melt rate based on degree-day coefficient
-        sm_c0 = (c0 / second_per_day) * (t_air - t0)  # convert mm -day -K to  m/s
+        sm_c0 = (c0 / units_convert) * (t_air - t0)  # convert mm -day -K to  m/s
         sm_c0 = np.maximum(sm_c0, 0)
 
         # melt rate based on available swe (enforced max meltrate)
