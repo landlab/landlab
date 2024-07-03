@@ -271,7 +271,7 @@ class SnowDegreeDay(Component):
 
     @staticmethod
     def _update_snow_depth(h_swe, density_ratio):
-        update_h_snow = h_swe[:] * density_ratio
+        update_h_snow = h_swe * density_ratio
 
         return update_h_snow
 
