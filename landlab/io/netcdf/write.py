@@ -620,8 +620,8 @@ def write_netcdf(
 
     Read the file back in and check its contents.
 
-    >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> from scipy.io import netcdf_file
+    >>> fp = netcdf_file("test.nc", "r")
     >>> "uplift_rate" in fp.variables
     True
     >>> "topographic__elevation" in fp.variables
@@ -797,8 +797,8 @@ def write_raster_netcdf(
 
     Read the file back in and check its contents.
 
-    >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> from scipy.io import netcdf_file
+    >>> fp = netcdf_file("test.nc", "r")
     >>> "uplift_rate" in fp.variables
     True
     >>> "topographic__elevation" in fp.variables
