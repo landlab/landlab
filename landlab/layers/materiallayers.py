@@ -285,13 +285,15 @@ class MaterialLayers(EventLayers):
         where_deposition = dz > 0.0
 
         if np.any(where_deposition):
+            if not_tracked := set(kwds) - set(self):
+                raise ValueError(
+                    "Error adding layer."
+                    f" {', '.join(sorted(repr(t) for t in not_tracked))}"
+                    " is not being tracked. Currently tracking:"
+                    f" {', '.join(sorted(repr(t) for t in set(self)))}"
+                )
             for name in kwds:
-                try:
-                    is_compatible = self[name][self.surface_index] == kwds[name]
-                except KeyError as exc:
-                    raise ValueError(
-                        f"{name!r} is not being tracked. Error in adding."
-                    ) from exc
+                is_compatible = self[name][self.surface_index] == kwds[name]
 
                 if not np.all(is_compatible[where_deposition]):
                     return False
