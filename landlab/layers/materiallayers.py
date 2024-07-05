@@ -282,8 +282,9 @@ class MaterialLayers(EventLayers):
         bool
             ``True`` if the new layer is compatible, otherwise ``False``.
         """
-        where_deposition = np.where(dz > 0.0)[0]
-        if len(where_deposition) > 0:
+        where_deposition = dz > 0.0
+
+        if np.any(where_deposition):
             for name in kwds:
                 try:
                     is_compatible = self[name][self.surface_index] == kwds[name]
