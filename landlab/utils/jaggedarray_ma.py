@@ -45,7 +45,7 @@ array([ 6.,  7.,  8.,  9.,  10.,  11.,  7.,  10.,  11.])
 Note: `np.ptp` doesn't work on masked arrays but since `max` and `min` seem
 to, you can create a new `ptp` that returns the expected values.
 
->>> ptp = lambda x, axis=None : np.max(x, axis=axis) - np.min(x, axis=axis)
+>>> ptp = lambda x, axis=None: np.max(x, axis=axis) - np.min(x, axis=axis)
 >>> values_at_node.foreach_row(ptp)
 array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 
