@@ -79,7 +79,7 @@ def test_netcdf_write_as_netcdf3_64bit(tmpdir):
 
 def test_netcdf_write_as_netcdf3_classic(tmpdir):
     """Test write_netcdf with output format classic netcdf3."""
-    from scipy.io import netcdf
+    from scipy.io import netcdf_file
 
     field = RasterModelGrid((4, 3))
     field.add_field("topographic__elevation", np.arange(12.0), at="node")
