@@ -1104,7 +1104,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             existing_links = np.array([])
         else:
             unrepeated_node_entries = np.logical_not(
-                np.in1d(
+                np.isin(
                     self.looped_node_properties["boundary_node_IDs"], these_linked_nodes
                 )
             )

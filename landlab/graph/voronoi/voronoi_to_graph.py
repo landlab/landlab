@@ -354,7 +354,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         for name in self.ids_with_prefix(at):
             var = self._mesh[name]
             array = var.values.reshape((-1,))
-            array[np.in1d(array, dropped_ids)] = -1
+            array[np.isin(array, dropped_ids)] = -1
             for id_ in dropped_ids[::-1]:
                 array[array > id_] -= 1
 
