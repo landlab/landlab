@@ -1,15 +1,20 @@
 cimport cython
 
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
+
 @cython.boundscheck(False)
 def adjust_flow_receivers(
-    const cython.integral [:] src_nodes,
-    const cython.integral [:] dst_nodes,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
     const cython.floating [:] z,
     const cython.floating [:] link_slope,
-    const cython.integral [:] active_links,
-    cython.integral [:] receiver,
-    cython.integral [:] receiver_link,
+    const id_t [:] active_links,
+    id_t [:] receiver,
+    id_t [:] receiver_link,
     cython.floating [:] steepest_slope,
 ):
     """Adjust flow receivers based on link slopes and steepest gradients.
