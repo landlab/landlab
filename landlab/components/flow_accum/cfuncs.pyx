@@ -1,13 +1,17 @@
 cimport cython
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 cpdef _add_to_stack(
     long l,
     long j,
-    cython.integral [:] s,
-    cython.integral [:] delta,
-    cython.integral [:] donors,
+    id_t [:] s,
+    id_t [:] delta,
+    id_t [:] donors,
 ):
     """
     Adds node l to the stack and increments the current index (j).
@@ -31,8 +35,8 @@ cpdef _add_to_stack(
 cpdef _accumulate_to_n(
     long size,
     long q,
-    cython.integral [:] s,
-    cython.integral [:, :] r,
+    id_t [:] s,
+    id_t [:, :] r,
     cython.floating [:, :] p,
     cython.floating [:] drainage_area,
     cython.floating [:] discharge,
@@ -62,8 +66,8 @@ cpdef _accumulate_to_n(
 @cython.boundscheck(False)
 cpdef _accumulate_bw(
     long size,
-    cython.integral [:] s,
-    cython.integral [:] r,
+    id_t [:] s,
+    id_t [:] r,
     cython.floating [:] drainage_area,
     cython.floating [:] discharge,
 ):
@@ -89,10 +93,10 @@ cpdef _accumulate_bw(
 @cython.boundscheck(False)
 cpdef _make_donors(
     long size,
-    cython.integral [:] w,
-    cython.integral [:] D,
-    cython.integral [:] delta,
-    cython.integral [:] r,
+    id_t [:] w,
+    id_t [:] D,
+    id_t [:] delta,
+    id_t [:] r,
 ):
     """Determines number of donors"""
     cdef int ri, i
@@ -106,10 +110,10 @@ cpdef _make_donors(
 cpdef _make_donors_to_n(
     long size,
     long q,
-    cython.integral [:] w,
-    cython.integral [:] D,
-    cython.integral [:] delta,
-    cython.integral [:, :] r,
+    id_t [:] w,
+    id_t [:] D,
+    id_t [:] delta,
+    id_t [:, :] r,
     cython.floating [:, :] p,
 ):
     """Determines number of donors for route to n"""
