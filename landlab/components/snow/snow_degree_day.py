@@ -51,17 +51,21 @@ class SnowDegreeDay(Component):
     array([0.,  0.,  0.,  0.])
     >>> grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
     array([0.005,  0.005,  0.005,  0.005])
-    >>> grid.add_full("snowpack__degree-day_coefficient", 3)  # mm -day -K
-    array([3.,  3.,  3.,  3.])
-    >>> sm = SnowDegreeDay(grid)
+    >>> sm = SnowDegreeDay(grid, c0=3)
     >>> sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
     >>> grid.at_node["snowpack__melt_volume_flux"]
     array([5.78703704e-08,   5.78703704e-08,   5.78703704e-08,
          5.78703704e-08])
-    >>> grid.at_node["snowpack__time_integral_melt_volume_flux"]
-    array([0.005,  0.005,  0.005,  0.005])
     >>> grid.at_node["snowpack__liquid-equivalent_depth"]
     array([0.,  0.,  0.,  0.])
+    >>> sm.vol_sm
+    0.02
+    >>> sm.vol_swe
+    0.0
+    >>> sm.total_p_snow
+    array([0.,  0.,  0.,  0.])
+    >>> sm.total_sm
+    array([0.005,  0.005,  0.005,  0.005])
     """
 
     _name = "SnowDegreeDay"
