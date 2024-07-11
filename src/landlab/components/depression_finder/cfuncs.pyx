@@ -94,9 +94,9 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     cdef long neighbor
 
     with nogil:
-        pit = 0
+        i = 0
         while i < n_pit_nodes:
-            node = nodes_in_pit[current_iter]
+            node = nodes_in_pit[i]
             for neighbor in range(n_neighbors):
                 neighbor_node = neighbor_nodes_at_node[node, neighbor]
                 if neighbor_node != -1:
@@ -105,7 +105,7 @@ cpdef find_lowest_node_on_lake_perimeter_c(
                             lowest_node = neighbor_node
                             lowest_value = value_at_node[neighbor_node]
                     elif (
-                        flood_status_node[neighbor_node] == _PIT
+                        flood_status_at_node[neighbor_node] == _PIT
                         or flood_status_at_node[neighbor_node] == _FLOODED
                     ):
                         nodes_in_pit[n_pit_nodes] = neighbor_node

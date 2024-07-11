@@ -1986,18 +1986,17 @@ def test_find_lowest_node_on_lake_perimeter_c():
     node_nbrs = df._node_nbrs
     flood_status = df.flood_status
     elev = df._elev
-    BIG_ELEV = df._BIG_ELEV
-    nodes_this_depression = mg.zeros(at="node", dtype=int)
+    nodes_this_depression = mg.zeros("node", dtype=int)
     nodes_this_depression[0] = 16
     pit_count = 1
 
     assert find_lowest_node_on_lake_perimeter_c(
-        node_nbrs, flood_status, elev, nodes_this_depression, pit_count, BIG_ELEV
+        node_nbrs, flood_status, elev, nodes_this_depression, pit_count
     ) == (23, 1)
     nodes_this_depression[1] = 8
     pit_count = 2
     assert find_lowest_node_on_lake_perimeter_c(
-        node_nbrs, flood_status, elev, nodes_this_depression, pit_count, BIG_ELEV
+        node_nbrs, flood_status, elev, nodes_this_depression, pit_count
     ) == (0, 2)
 
 
