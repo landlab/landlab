@@ -2010,7 +2010,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         if remove_disconnected:
             self.set_open_nodes_disconnected_from_watershed_to_closed(
                 node_data=node_data,
-                outlet_id=as_id_array(np.array([outlet_loc])),
+                outlet_id=outlet_loc,
                 nodata_value=nodata_value,
                 adjacency_method=adjacency_method,
             )
