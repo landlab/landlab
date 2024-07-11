@@ -170,6 +170,9 @@ def calc_discharge_at_some_links(
     cdef double denominator
     cdef double g_times_dt = g * dt
     cdef double seven_thirds = 7.0 / 3.0
+    cdef double q_manning
+    cdef double t
+    cdef double w
 
     for i in prange(n_links, nogil=True, schedule="static"):
         link = links[i]
@@ -177,16 +180,28 @@ def calc_discharge_at_some_links(
         if h_at_link[link] > 0.0:
             h_to_seven_thirds = powf(h_at_link[link], seven_thirds)
 
-            numerator = h_to_seven_thirds * (
+            t = h_to_seven_thirds / (g * mannings_at_link[link]**2 * q_at_link[link])
+            w = t / (t + dt)
+
+            q_manning =  (
+                1.0
+                / mannings_at_link[link]
+                * powf(h_at_link[link], 5.0 / 3.0)
+                * powf(water_slope_at_link[link], 0.5)
+            )
+
+            numerator = (
                 q_mean_at_link[link]
                 - g_times_dt * h_at_link[link] * water_slope_at_link[link]
             )
 
             denominator = (
-                h_to_seven_thirds
+                1.0
                 + g_times_dt * mannings_at_link[link] ** 2 * fabs(q_at_link[link])
+                / h_to_seven_thirds
             )
-            q_at_link[link] = numerator / denominator
+
+            q_at_link[link] = numerator / denominator * w + (1.0 - w) * q_manning
 
 
 @cython.boundscheck(False)
