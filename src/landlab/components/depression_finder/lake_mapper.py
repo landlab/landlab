@@ -4,8 +4,6 @@
 """
 
 # Routing by DEJH, Oct 15.
-
-
 import numpy as np
 
 from ...core.model_component import Component
@@ -266,10 +264,6 @@ class DepressionFinderAndRouter(Component):
             "depression__outlet_node", at="node", dtype=int, clobber=True
         )
         self._depression_outlet_map += self._grid.BAD_INDEX
-
-        # Later on, we'll need a number that's guaranteed to be larger than the
-        # highest elevation in the grid.
-        self._BIG_ELEV = 1.0e99
 
         self.updated_boundary_conditions()
 
@@ -771,8 +765,19 @@ class DepressionFinderAndRouter(Component):
                 self._elev,
                 nodes_this_depression,
                 pit_count,
-                self._BIG_ELEV,
             )
+
+            if lowest_node_on_perimeter == nodes_this_depression[0]:
+                raise RuntimeError(
+                    "Unable to find a drainage outlet for a lake."
+                    " This may be because you have disconnected open nodes, which"
+                    " sometimes occurs during raster clipping. Consider running"
+                    " `set_open_nodes_disconnected_from_watershed_to_closed`,"
+                    " which will remove any isolated open nodes."
+                    f" Began searching for an outlet at node {pit_node} and have"
+                    f" found {pit_count} node{'s' if pit_count > 1 else ''} in"
+                    " the current lake."
+                )
 
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all self._grid.BAD_INDEX
