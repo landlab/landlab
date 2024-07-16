@@ -16,7 +16,6 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     const cython.floating [:] value_at_node,
     id_t [:] nodes_in_pit,
     long n_pit_nodes,
-    # const double BIG_ELEV,
 ):
     """Locate the lowest node on the margin of the "lake".
 
@@ -41,7 +40,7 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     Returns
     -------
     (int, int)
-        (Lowest node on the perimeter of a depression, updated n_pit_nodes)
+        Lowest node on the perimeter of a depression, updated n_pit_nodes
 
     Examples
     --------
@@ -51,9 +50,9 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     ...     find_lowest_node_on_lake_perimeter_c
     ... )
     >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
-    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     >>> z += 0.01 * mg.node_y
-    >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
+    >>> mg.at_node["topographic__elevation"].reshape(mg.shape)[2:5, 2:5] *= 0.1
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fr.run_one_step()  # the flow "gets stuck" in the hole
     >>> df = DepressionFinderAndRouter(mg)
