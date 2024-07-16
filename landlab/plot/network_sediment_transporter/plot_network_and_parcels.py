@@ -336,7 +336,7 @@ def plot_network_and_parcels(
         # plan to support only continuous values. Can be extended to strs as
         # categorical.
         if parcel_color_attribute in parcels.dataset:
-            if "time" in parcels.dataset[parcel_color_attribute].dims:
+            if "time" in parcels.dataset[parcel_color_attribute].sizes:
                 parcel_color = parcels.dataset[parcel_color_attribute].values[
                     :, parcel_time_index
                 ]
@@ -357,7 +357,7 @@ def plot_network_and_parcels(
         # plan to support only continuous values. Can be extended to strs as
         # categorical.
         if parcel_size_attribute in parcels.dataset:
-            if "time" in parcels.dataset[parcel_size_attribute].dims:
+            if "time" in parcels.dataset[parcel_size_attribute].sizes:
                 parcel_size_values = parcels.dataset[parcel_size_attribute].values[
                     :, parcel_time_index
                 ]

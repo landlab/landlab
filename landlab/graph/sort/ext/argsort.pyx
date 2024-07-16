@@ -2,15 +2,12 @@ import numpy as np
 
 cimport cython
 cimport numpy as np
-from cython cimport view
 
 from cython.parallel import prange
 
-from libc.stdlib cimport free, malloc
-
-ctypedef fused element_id_type:
-    cython.integral
-
+from cython cimport view
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 ctypedef np.int_t INT_t
 ctypedef np.float_t FLOAT_t
@@ -51,7 +48,9 @@ cdef int _compare_int(const_void *a, const_void *b) noexcept:
         return 0
 
 
-cdef void argsort_flt(double * data, int n_elements, int * out) nogil:
+cdef void argsort_flt(
+    cython.floating * data, int n_elements, id_t * out
+) noexcept nogil:
     cdef Sorter *sorted_struct = <Sorter*>malloc(n_elements * sizeof(Sorter))
     cdef int i
 
@@ -69,12 +68,11 @@ cdef void argsort_flt(double * data, int n_elements, int * out) nogil:
         free(sorted_struct)
 
 
-cdef void argsort_int(long * data, int n_elements, int * out) nogil:
+cdef void argsort_int(long * data, int n_elements, int * out) noexcept nogil:
     cdef IntSorter *sorted_struct = <IntSorter*>malloc(n_elements * sizeof(IntSorter))
     cdef int i
 
     try:
-        # _argsort_int(data, n_elements, sorted_struct)
         for i in range(n_elements):
             sorted_struct[i].index = i
             sorted_struct[i].value = data[i]
@@ -113,9 +111,9 @@ cdef int unique_int(long * data, int n_elements, int * out):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef sort_children_at_parent(
-    element_id_type [:, :] children_at_parent,
+    id_t [:, :] children_at_parent,
     cython.floating [:] value_at_child,
-    element_id_type [:, :] out,
+    id_t [:, :] out,
 ):
     """Sort the children of parents based on child values.
 
@@ -177,9 +175,9 @@ cpdef sort_children_at_parent(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef sort_id_array(
-    const element_id_type [:, :] id_array,
+    const id_t [:, :] id_array,
     const cython.floating [:, :] data,
-    element_id_type [:, :] out,
+    id_t [:, :] out,
 ):
     """Sort rows of an id-array matrix.
 
@@ -205,10 +203,10 @@ cpdef sort_id_array(
         format="i",
         allocate_buffer=True,
     )
-    cdef element_id_type * temp
+    cdef id_t * temp
 
     for row in prange(n_rows, nogil=True, schedule="static"):
-        temp = <element_id_type*>malloc(sizeof(element_id_type) * n_cols)
+        temp = <id_t*>malloc(sizeof(id_t) * n_cols)
         try:
             for col in range(n_cols):
                 temp[col] = id_array[row, col]
@@ -227,9 +225,9 @@ cpdef sort_id_array(
 @cython.wraparound(False)
 cpdef void argsort_id_array(
     const cython.floating [:] data,
-    const element_id_type [:] id_array,
+    const id_t [:] id_array,
     cython.integral [:] out,
-) nogil:
+) noexcept nogil:
     cdef int n_elements = len(data)
     cdef int i
     cdef int count = 0

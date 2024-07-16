@@ -6,7 +6,8 @@ cimport numpy as np
 cdef extern from "math.h":
     double exp(double x) nogil
 
-from libc.math cimport exp, log
+from libc.math cimport exp
+from libc.math cimport log
 
 DTYPE_FLOAT = np.double
 ctypedef np.double_t DTYPE_FLOAT_t

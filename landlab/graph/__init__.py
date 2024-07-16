@@ -1,22 +1,24 @@
-from .dual import DualGraph
-from .framed_voronoi import DualFramedVoronoiGraph
-from .framed_voronoi import FramedVoronoiGraph
-from .graph import Graph
-from .graph import NetworkGraph
-from .graph_convention import ConventionConverter
-from .graph_convention import GraphConvention
-from .hex import DualHexGraph
-from .hex import TriGraph
-from .radial import DualRadialGraph
-from .radial import RadialGraph
-from .structured_quad import DualRectilinearGraph
-from .structured_quad import DualStructuredQuadGraph
-from .structured_quad import DualUniformRectilinearGraph
-from .structured_quad import RectilinearGraph
-from .structured_quad import StructuredQuadGraph
-from .structured_quad import UniformRectilinearGraph
-from .voronoi import DelaunayGraph
-from .voronoi import DualVoronoiGraph
+from landlab.graph.dual import DualGraph
+from landlab.graph.framed_voronoi.dual_framed_voronoi import DualFramedVoronoiGraph
+from landlab.graph.framed_voronoi.framed_voronoi import FramedVoronoiGraph
+from landlab.graph.graph import Graph
+from landlab.graph.graph import NetworkGraph
+from landlab.graph.graph_convention import ConventionConverter
+from landlab.graph.graph_convention import GraphConvention
+from landlab.graph.hex.dual_hex import DualHexGraph
+from landlab.graph.hex.hex import TriGraph
+from landlab.graph.radial.dual_radial import DualRadialGraph
+from landlab.graph.radial.radial import RadialGraph
+from landlab.graph.structured_quad.dual_structured_quad import DualRectilinearGraph
+from landlab.graph.structured_quad.dual_structured_quad import DualStructuredQuadGraph
+from landlab.graph.structured_quad.dual_structured_quad import (
+    DualUniformRectilinearGraph,
+)
+from landlab.graph.structured_quad.structured_quad import RectilinearGraph
+from landlab.graph.structured_quad.structured_quad import StructuredQuadGraph
+from landlab.graph.structured_quad.structured_quad import UniformRectilinearGraph
+from landlab.graph.voronoi.dual_voronoi import DualVoronoiGraph
+from landlab.graph.voronoi.voronoi import DelaunayGraph
 
 __all__ = [
     "Graph",
