@@ -12,6 +12,7 @@ from ...field import FieldError
 from ...grid import RasterModelGrid
 from ..flow_accum import flow_accum_bw
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
+from .errors import NoOutletError
 from .floodstatus import FloodStatus
 
 _UNFLOODED = FloodStatus._UNFLOODED
@@ -768,16 +769,7 @@ class DepressionFinderAndRouter(Component):
             )
 
             if lowest_node_on_perimeter == nodes_this_depression[0]:
-                raise RuntimeError(
-                    "Unable to find a drainage outlet for a lake."
-                    " This may be because you have disconnected open nodes, which"
-                    " sometimes occurs during raster clipping. Consider running"
-                    " `set_open_nodes_disconnected_from_watershed_to_closed`,"
-                    " which will remove any isolated open nodes."
-                    f" Began searching for an outlet at node {pit_node} and have"
-                    f" found {pit_count} node{'s' if pit_count > 1 else ''} in"
-                    " the current lake."
-                )
+                raise NoOutletError(pit_node, pit_count)
 
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all self._grid.BAD_INDEX
