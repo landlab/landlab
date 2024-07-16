@@ -6,9 +6,9 @@ Benjamin Campforts
 import numpy as np
 
 from landlab import Component
+from landlab.components.depression_finder.floodstatus import FloodStatus
 from landlab.grid.nodestatus import NodeStatus
 
-from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import _landslide_runout
 
 MAX_HEIGHT_SLOPE = 100  # in m
@@ -425,7 +425,7 @@ class BedrockLandslider(Component):
 
         # Identify flooded nodes
         flood_status = self.grid.at_node["flood_status_code"]
-        flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        flooded_nodes = np.nonzero(flood_status == FloodStatus.FLOODED)[0]
 
         # In the following section the location of critical nodes where
         # landsldies are initatated is calcualted, unless these critical nodes

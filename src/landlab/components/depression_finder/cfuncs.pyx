@@ -82,10 +82,10 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     cdef long i
 
     # Codes for depression status
-    cdef int _UNFLOODED = 0
-    cdef int _PIT = 1
-    cdef int _CURRENT_LAKE = 2
-    cdef int _FLOODED = 3
+    cdef int UNFLOODED = 0
+    cdef int PIT = 1
+    cdef int CURRENT_LAKE = 2
+    cdef int FLOODED = 3
 
     cdef int n_neighbors = neighbor_nodes_at_node.shape[1]
     cdef long node
@@ -99,16 +99,16 @@ cpdef find_lowest_node_on_lake_perimeter_c(
             for neighbor in range(n_neighbors):
                 neighbor_node = neighbor_nodes_at_node[node, neighbor]
                 if neighbor_node != -1:
-                    if flood_status_at_node[neighbor_node] == _UNFLOODED:
+                    if flood_status_at_node[neighbor_node] == UNFLOODED:
                         if value_at_node[neighbor_node] < lowest_value:
                             lowest_node = neighbor_node
                             lowest_value = value_at_node[neighbor_node]
                     elif (
-                        flood_status_at_node[neighbor_node] == _PIT
-                        or flood_status_at_node[neighbor_node] == _FLOODED
+                        flood_status_at_node[neighbor_node] == PIT
+                        or flood_status_at_node[neighbor_node] == FLOODED
                     ):
                         nodes_in_pit[n_pit_nodes] = neighbor_node
-                        flood_status_at_node[neighbor_node] = _CURRENT_LAKE
+                        flood_status_at_node[neighbor_node] = CURRENT_LAKE
                         n_pit_nodes += 1
             i += 1
 

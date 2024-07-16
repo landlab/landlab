@@ -10,9 +10,9 @@ import numpy as np
 
 from landlab import Component
 from landlab import RasterModelGrid
+from landlab.components.depression_finder.floodstatus import FloodStatus
 from landlab.utils.return_array import return_array_at_node
 
-from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import brent_method_erode_fixed_threshold
 from .cfuncs import brent_method_erode_variable_threshold
 
@@ -291,7 +291,7 @@ class FastscapeEroder(Component):
         """
         if not self._erode_flooded_nodes:
             flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+            flooded_nodes = np.nonzero(flood_status == FloodStatus.FLOODED)[0]
         else:
             flooded_nodes = []
 

@@ -7,7 +7,7 @@ import numpy as np
 
 from landlab import Component
 from landlab import RasterModelGrid
-from landlab.components.depression_finder.lake_mapper import _FLOODED
+from landlab.components.depression_finder.floodstatus import FloodStatus
 from landlab.components.space.ext.calc_sequential_ero_depo import _sequential_ero_depo
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
@@ -547,7 +547,7 @@ class SpaceLargeScaleEroder(Component):
 
         if "flood_status_code" in self.grid.at_node:
             flood_status = self.grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+            flooded_nodes = np.nonzero(flood_status == FloodStatus.FLOODED)[0]
         else:
             flooded_nodes = np.nonzero([slope < 0])[1]
 

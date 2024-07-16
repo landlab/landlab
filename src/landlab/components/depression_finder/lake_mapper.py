@@ -15,13 +15,6 @@ from .cfuncs import find_lowest_node_on_lake_perimeter_c
 from .errors import NoOutletError
 from .floodstatus import FloodStatus
 
-_UNFLOODED = FloodStatus._UNFLOODED
-_CURRENT_LAKE = FloodStatus._CURRENT_LAKE
-_FLOODED = FloodStatus._FLOODED
-_PIT = FloodStatus._PIT
-
-use_cfuncs = True
-
 
 class DepressionFinderAndRouter(Component):
     """Find depressions on a topographic surface.
@@ -554,7 +547,7 @@ class DepressionFinderAndRouter(Component):
             #     lower than our outlet node;
             #   * not be a closed boundary
             if (
-                self._flood_status[nbr] != _CURRENT_LAKE
+                self._flood_status[nbr] != FloodStatus.CURRENT_LAKE
                 and (
                     (self._elev[nbr] + self._depression_depth[nbr])
                     < self._elev[receiver]
@@ -579,7 +572,7 @@ class DepressionFinderAndRouter(Component):
                 #     lower than our outlet node;
                 #   * not be a closed boundary
                 if (
-                    self._flood_status[nbr] != _CURRENT_LAKE
+                    self._flood_status[nbr] != FloodStatus.CURRENT_LAKE
                     and (
                         (self._elev[nbr] + self._depression_depth[nbr])
                         < self._elev[receiver]
@@ -622,8 +615,10 @@ class DepressionFinderAndRouter(Component):
         nbrs = self._node_nbrs[the_node]
         not_bad = nbrs != self._grid.BAD_INDEX
         not_too_high = self._elev[nbrs] < self._elev[the_node]
-        not_current_lake = np.not_equal(self._flood_status[nbrs], _CURRENT_LAKE)
-        not_flooded = np.not_equal(self._flood_status[nbrs], _FLOODED)
+        not_current_lake = np.not_equal(
+            self._flood_status[nbrs], FloodStatus.CURRENT_LAKE
+        )
+        not_flooded = np.not_equal(self._flood_status[nbrs], FloodStatus.FLOODED)
 
         # The following logic block handles the case when a neighbor is
         # flooded but its outlet is LOWER than the_node, so the_node could
@@ -704,7 +699,7 @@ class DepressionFinderAndRouter(Component):
         # total of unique vals in lake_map.
         fresh_nodes = np.equal(self._lake_map[n], self._grid.BAD_INDEX)
         if np.all(fresh_nodes):  # a new lake
-            self._flood_status[n] = _FLOODED
+            self._flood_status[n] = FloodStatus.FLOODED
             self._depression_depth[n] = self._elev[outlet_id] - self._elev[n]
             self._depression_outlet_map[n] = outlet_id
             self._lake_map[n] = pit_node
@@ -712,7 +707,7 @@ class DepressionFinderAndRouter(Component):
             pit_node_where = np.searchsorted(self._pit_node_ids, pit_node)
             self._unique_pits[pit_node_where] = True
         elif np.any(fresh_nodes):  # lake is bigger than one or more existing
-            self._flood_status[n] = _FLOODED
+            self._flood_status[n] = FloodStatus.FLOODED
             depth_this_lake = self._elev[outlet_id] - self._elev[n]
             self._depression_depth[n] = depth_this_lake
             self._depression_outlet_map[n] = outlet_id
@@ -729,8 +724,8 @@ class DepressionFinderAndRouter(Component):
             self._lake_map[n] = pit_node
         else:  # lake is subsumed within an existing lake
             print(" eaten lake")
-            assert np.all(np.equal(self._flood_status[n], _CURRENT_LAKE))
-            self._flood_status[n] = _FLOODED
+            assert np.all(np.equal(self._flood_status[n], FloodStatus.CURRENT_LAKE))
+            self._flood_status[n] = FloodStatus.FLOODED
 
     def find_depression_from_pit(self, pit_node, reroute_flow=True):
         """Find the extent of the nodes that form a pit.
@@ -745,7 +740,7 @@ class DepressionFinderAndRouter(Component):
         """
         # Flag the pit as being _CURRENT_LAKE (it's the first node in the
         # current lake)
-        self._flood_status[pit_node] = _CURRENT_LAKE
+        self._flood_status[pit_node] = FloodStatus.CURRENT_LAKE
 
         # This flag keeps track of when we're done with this depression
         found_outlet = False
@@ -780,7 +775,7 @@ class DepressionFinderAndRouter(Component):
             # and flag it as being part of the current lake/depression
             if not found_outlet:
                 nodes_this_depression[pit_count] = lowest_node_on_perimeter
-                self._flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
+                self._flood_status[lowest_node_on_perimeter] = FloodStatus.CURRENT_LAKE
                 pit_count += 1
 
             # If we HAVE found an outlet, and we are re-routing flow, then
@@ -825,7 +820,7 @@ class DepressionFinderAndRouter(Component):
         self._unique_pits = np.zeros_like(self._pit_node_ids, dtype=bool)
         # debug_count = 0
         for pit_node in self._pit_node_ids:
-            if self._flood_status[pit_node] != _PIT:
+            if self._flood_status[pit_node] != FloodStatus.PIT:
                 self._depression_outlets.append(self._grid.BAD_INDEX)
             else:
                 self.find_depression_from_pit(pit_node, reroute_flow)
@@ -917,8 +912,8 @@ class DepressionFinderAndRouter(Component):
             self._is_pit.fill(False)
             self._is_pit[self._pit_node_ids] = True
         # Set up "lake code" array
-        self._flood_status.fill(_UNFLOODED)
-        self._flood_status[self._pit_node_ids] = _PIT
+        self._flood_status.fill(FloodStatus.UNFLOODED)
+        self._flood_status[self._pit_node_ids] = FloodStatus.PIT
 
         self._identify_depressions_and_outlets(self._reroute_flow)
 
@@ -1236,7 +1231,7 @@ class DepressionFinderAndRouter(Component):
         # Find the outlet nodes (just for display purposes)
         is_outlet = np.zeros(self._grid.number_of_nodes, dtype=bool)
         for i in self._grid.core_nodes:
-            if self._flood_status[i] == _FLOODED:
+            if self._flood_status[i] == FloodStatus.FLOODED:
                 is_outlet[self._depression_outlet_map[i]] = True
 
         n = 0
@@ -1244,7 +1239,7 @@ class DepressionFinderAndRouter(Component):
             for _ in range(self._grid.number_of_node_columns):
                 if is_outlet[n]:
                     print("o", end=" ")
-                elif self._flood_status[n] == _UNFLOODED:
+                elif self._flood_status[n] == FloodStatus.UNFLOODED:
                     print(".", end=" ")
                 else:
                     print("~", end=" ")

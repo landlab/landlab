@@ -26,8 +26,6 @@ from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.floodstatus import FloodStatus
 
-_UNFLOODED = FloodStatus._UNFLOODED
-
 
 class FlowAccumulator(Component):
     """Component to accumulate flow and calculate drainage area.
@@ -1117,7 +1115,9 @@ class FlowAccumulator(Component):
     def flooded_nodes_present(self):
         # flooded node status may not exist if no depression finder was used.
         if "flood_status_code" in self._grid.at_node:
-            return np.all(self._grid.at_node["flood_status_code"] == _UNFLOODED)
+            return np.all(
+                self._grid.at_node["flood_status_code"] == FloodStatus.UNFLOODED
+            )
         else:
             return False
 
