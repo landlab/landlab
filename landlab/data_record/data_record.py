@@ -168,7 +168,7 @@ class DataRecord:
         time
         0.0              100
         >>> dr1.dataset.time.values
-        array([ 0.])
+        array([0.])
         >>> dr1.variable_names
         ['mean_elevation']
         >>> dr1.dataset["mean_elevation"].values
@@ -473,10 +473,10 @@ class DataRecord:
         ...     new_record={"item_size": (["item_id", "time"], np.array([[0.2]]))},
         ... )
         >>> dr3.dataset["element_id"].values
-        array([[  1.,   6.],
-               [  3.,  nan]])
+        array([[ 1.,  6.],
+               [ 3., nan]])
         >>> dr3.get_data([2.0], [0], "item_size")
-        array([ 0.2])
+        array([0.2])
 
         The 'add_record' method can also be used to add a non item-related
         record:
@@ -693,7 +693,7 @@ class DataRecord:
         pre-existing items:
 
         >>> dr3.dataset["size"][:, 1].values
-        array([ nan,  nan,  10.,   5.])
+        array([nan, nan, 10.,  5.])
 
         The previous line calls the values of the variable 'size', for all
         items, at time=1; the first two items don't have a value for the
@@ -834,7 +834,7 @@ class DataRecord:
         >>> dr4.get_data([50.0], [2], "element_id")
         array([3])
         >>> dr4.get_data(time=[50.0], data_variable="item_size")
-        array([  0.3,  0.4,  0.8,  0.4])
+        array([0.3, 0.4, 0.8, 0.4])
         >>> dr4.get_data(item_id=[1, 2], data_variable="grid_element")
         array([['node'],
                ['node']], dtype=object)
@@ -951,16 +951,16 @@ class DataRecord:
         ... }
         >>> dr4 = DataRecord(grid, time=[50.0], items=my_items4, data_vars=my_data4)
         >>> dr4.dataset["item_size"].values
-        array([[ 0.3],
-               [ 0.4],
-               [ 0.8],
-               [ 0.4]])
+        array([[0.3],
+               [0.4],
+               [0.8],
+               [0.4]])
         >>> dr4.set_data([50.0], [2], "item_size", [0.5])
         >>> dr4.dataset["item_size"].values
-        array([[ 0.3],
-               [ 0.4],
-               [ 0.5],
-               [ 0.4]])
+        array([[0.3],
+               [0.4],
+               [0.5],
+               [0.4]])
         """
         if data_variable not in self.variable_names:
             raise KeyError(
@@ -1089,7 +1089,7 @@ class DataRecord:
         ... )
         >>> s = dr.calc_aggregate_value(func=xr.Dataset.sum, data_variable="ages")
         >>> s
-        array([ 46.,  14.,  15.,  16.,   8.,  10.,  nan,  nan,  nan])
+        array([46., 14., 15., 16.,  8., 10., nan, nan, nan])
         >>> len(s) == grid.number_of_nodes
         True
 
@@ -1106,7 +1106,7 @@ class DataRecord:
         ...     func=xr.Dataset.sum, data_variable="volumes", filter_array=f
         ... )
         >>> v_f
-        array([  8.,   3.,   4.,   5.,  nan,  nan,  nan,  nan,  nan])
+        array([ 8.,  3.,  4.,  5., nan, nan, nan, nan, nan])
 
         If we wanted the value for elements with no volume to be zero instead
         of np.nan we could use the keyword argument ``fill_value``.
@@ -1119,7 +1119,7 @@ class DataRecord:
         ...     fill_value=0.0,
         ... )
         >>> v_f
-        array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
+        array([8., 3., 4., 5., 0., 0., 0., 0., 0.])
 
         An array of ``fill_value`` is returned when ``filter_array`` is all
         ``False`` (np.nan is the default value).
@@ -1129,7 +1129,7 @@ class DataRecord:
         ...     func=xr.Dataset.sum, data_variable="volumes", filter_array=f
         ... )
         >>> v_f
-        array([  nan,   nan,   nan,   nan,  nan,  nan,  nan,  nan,  nan])
+        array([nan, nan, nan, nan, nan, nan, nan, nan, nan])
 
         Other values can be specified for ``fill_value``.
 
@@ -1141,7 +1141,7 @@ class DataRecord:
         ...     fill_value=0.0,
         ... )
         >>> v_f
-        array([  0.,   0.,   0.,   0.,  0.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 0., 0., 0., 0., 0.])
         """
         filter_at = self._dataset["grid_element"] == at
 
@@ -1214,8 +1214,8 @@ class DataRecord:
         array([['node', nan, nan],
                ['link', nan, nan]], dtype=object)
         >>> dr3.dataset["element_id"].values
-        array([[  1.,  nan,  nan],
-               [  3.,  nan,  nan]])
+        array([[ 1., nan, nan],
+               [ 3., nan, nan]])
 
         To fill these values with the last valid value, use the method
         ffill_grid_element_and_id:
@@ -1225,8 +1225,8 @@ class DataRecord:
         array([['node', 'node', 'node'],
                ['link', 'link', 'link']], dtype=object)
         >>> dr3.dataset["element_id"].values
-        array([[ 1.,  1.,  1.],
-               [ 3.,  3.,  3.]])
+        array([[1., 1., 1.],
+               [3., 3., 3.]])
 
         In some applications, there may be no prior valid value. Under these
         circumstances, those values will stay as NaN. That is, this only
@@ -1262,10 +1262,10 @@ class DataRecord:
         >>> dr3.time_coordinates
         [0.0, 1.0]
         >>> dr3.dataset["element_id"].values
-        array([[  1.,  nan],
-               [  3.,  nan],
-               [ nan,   4.],
-               [ nan,   4.]])
+        array([[ 1., nan],
+               [ 3., nan],
+               [nan,  4.],
+               [nan,  4.]])
         >>> dr3.dataset["grid_element"].values
         array([['node', nan],
                ['link', nan],
@@ -1277,10 +1277,10 @@ class DataRecord:
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["element_id"].values
-        array([[  1.,   1.],
-               [  3.,   3.],
-               [ nan,   4.],
-               [ nan,   4.]])
+        array([[ 1.,  1.],
+               [ 3.,  3.],
+               [nan,  4.],
+               [nan,  4.]])
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node'],
                ['link', 'link'],
@@ -1292,10 +1292,10 @@ class DataRecord:
 
         >>> dr3.add_record(time=[2])
         >>> dr3.dataset["element_id"].values
-        array([[  1.,   1.,  nan],
-               [  3.,   3.,  nan],
-               [ nan,   4.,  nan],
-               [ nan,   4.,  nan]])
+        array([[ 1.,  1., nan],
+               [ 3.,  3., nan],
+               [nan,  4., nan],
+               [nan,  4., nan]])
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node', nan],
                ['link', 'link', nan],
@@ -1306,10 +1306,10 @@ class DataRecord:
 
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset["element_id"].values
-        array([[  1.,   1.,   1.],
-               [  3.,   3.,   3.],
-               [ nan,   4.,   4.],
-               [ nan,   4.,   4.]])
+        array([[ 1.,  1.,  1.],
+               [ 3.,  3.,  3.],
+               [nan,  4.,  4.],
+               [nan,  4.,  4.]])
 
         >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],

@@ -90,8 +90,8 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         25
 
         >>> np.round(omg.radius_at_node)
-        array([ 2.,  2.,  2.,  2.,  2.,  1.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,
-                1.,  2.,  1.,  1.,  2.,  2.,  1.,  2.,  2.,  2.,  2.,  2.])
+        array([2.,  2.,  2.,  2.,  2.,  1.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,
+               1.,  2.,  1.,  1.,  2.,  2.,  1.,  2.,  2.,  2.,  2.,  2.])
         """
         xy_of_center = tuple(xy_of_center)
 

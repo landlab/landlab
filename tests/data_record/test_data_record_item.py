@@ -33,7 +33,7 @@ def test_permitted_locations(dr_item):
 
 
 def test_coordinates(dr_item):
-    assert len(dr_item.dataset.dims) == 1
+    assert len(dr_item.dataset.sizes) == 1
     assert list(dr_item.dataset.item_id.values) == [0, 1]
     assert list(dr_item.item_coordinates) == [0, 1]
     assert dr_item.number_of_items == len(my_items2["element_id"])

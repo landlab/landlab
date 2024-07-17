@@ -368,13 +368,13 @@ class DiagonalsMixIn:
         >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
 
         >>> grid.length_of_link
-        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
+        array([4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
         >>> grid.length_of_d8
-        array([ 4.,  4.,  3.,  3.,  3.,
-                4.,  4.,  3.,  3.,  3.,
-                4.,  4.,  5.,  5.,  5.,
-                5.,  5.,  5.,  5.,  5.])
+        array([4.,  4.,  3.,  3.,  3.,
+               4.,  4.,  3.,  3.,  3.,
+               4.,  4.,  5.,  5.,  5.,
+               5.,  5.,  5.,  5.,  5.])
 
         :meta landlab: info-link, quantity
         """

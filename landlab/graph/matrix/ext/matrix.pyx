@@ -1,15 +1,17 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdlib cimport free, malloc
-from libc.string cimport memcpy, memmove
+from cython.parallel cimport prange
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
+from libc.string cimport memcpy
+from libc.string cimport memmove
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
 
-
-cdef roll(void * values, size_t n_values, size_t size, long shift):
+cdef void roll(
+    void * values,
+    size_t n_values,
+    size_t size,
+    long shift,
+) noexcept nogil:
     cdef size_t offset
     cdef void * src = values
     cdef void * dst
@@ -35,16 +37,20 @@ cdef roll(void * values, size_t n_values, size_t size, long shift):
 
 
 @cython.boundscheck(False)
-def roll_id_matrix_rows(np.ndarray[DTYPE_t, ndim=2] matrix,
-                        np.ndarray[DTYPE_t, ndim=1] shift):
+@cython.wraparound(False)
+def roll_id_matrix_rows(
+    cython.integral [:, :] matrix,
+    cython.integral [:] shift,
+):
     cdef int n_rows = matrix.shape[0]
     cdef int n_cols = matrix.shape[1]
+    cdef int itemsize = matrix.itemsize
     cdef int row
     cdef int n
 
-    for row in range(n_rows):
+    for row in prange(n_rows, nogil=True, schedule="static"):
         n = 0
         while n < n_cols and matrix[row, n] != -1:
-            n += 1
+            n = n + 1
 
-        roll(&matrix[row, 0], n, matrix.itemsize, shift[row])
+        roll(&matrix[row, 0], n, itemsize, shift[row])

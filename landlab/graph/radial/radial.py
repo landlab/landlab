@@ -224,8 +224,8 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
         >>> from landlab.graph import RadialGraph
         >>> graph = RadialGraph((2, 6), sort=True)
         >>> np.round(graph.radius_at_node, 3)
-        array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,  1.,  2.,  1.,
-                1.,  2.,  2.,  2.,  2.,  2.])
+        array([2., 2., 2., 2., 2., 1., 1., 2., 1., 0., 1., 2., 1.,
+               1., 2., 2., 2., 2., 2.])
 
         :meta landlab: info-node, quantity
         """

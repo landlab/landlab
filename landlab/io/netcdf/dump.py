@@ -103,13 +103,13 @@ def to_netcdf(
 
     if mode == "a":
         with xr.open_dataset(path) as that_dataset:
-            if "time" not in that_dataset.dims:
+            if "time" not in that_dataset.sizes:
                 _add_time_dimension_to_dataset(that_dataset, time=np.nan)
 
             new_vars = set(this_dataset.variables) - set(that_dataset.variables)
             for var in new_vars:
                 that_dataset[var] = (
-                    this_dataset[var].dims,
+                    this_dataset[var].sizes,
                     np.full_like(this_dataset[var].values, np.nan),
                 )
 
@@ -136,5 +136,8 @@ def _add_time_dimension_to_dataset(dataset, time=0.0):
     }
 
     for name in names:
-        dataset[name] = (("time",) + dataset[name].dims, dataset[name].values[None])
+        dataset[name] = (
+            ("time",) + tuple(dataset[name].sizes),
+            dataset[name].values[None],
+        )
     dataset["time"] = (("time",), [time])

@@ -54,7 +54,7 @@ class SimpleSubmarineDiffuser(LinearDiffuser):
     >>> ssd = SimpleSubmarineDiffuser(grid, tidal_range=0.0)
     >>> ssd.run_one_step(dt=5.0)
     >>> topo[8:13]
-    array([ -9.5,   0. ,   9.5,  10. ,   5. ])
+    array([-9.5,  0. ,  9.5, 10. ,  5. ])
     >>> grid.at_node["sediment_deposit__thickness"][8:13]
     array([ 0.5,  0. , -0.5,  0. ,  0. ])
     """
