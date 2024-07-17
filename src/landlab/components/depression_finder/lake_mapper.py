@@ -4,6 +4,8 @@
 """
 
 # Routing by DEJH, Oct 15.
+import warnings
+
 import numpy as np
 
 from ...core.model_component import Component
@@ -53,6 +55,7 @@ class DepressionFinderAndRouter(Component):
     >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node["topographic__elevation"].reshape(mg.shape)[2:5, 2:5] *= 0.1
+
     >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> fr.run_one_step()  # the flow "gets stuck" in the hole
     >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
@@ -162,7 +165,7 @@ class DepressionFinderAndRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED).",
+            "doc": "Map of flood status (PIT, CURRENT_LAKE, UNFLOODED, or FLOODED).",
         },
         "is_pit": {
             "dtype": bool,
@@ -182,7 +185,7 @@ class DepressionFinderAndRouter(Component):
         },
     }
 
-    def __init__(self, grid, routing="D8", pits="flow__sink_flag", reroute_flow=True):
+    def __init__(self, grid, routing=None, pits="flow__sink_flag", reroute_flow=True):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -192,7 +195,7 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        routing : str
+        routing : {'D4', 'D8'}, optional
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
@@ -216,32 +219,35 @@ class DepressionFinderAndRouter(Component):
         self._user_supplied_pits = pits
         self._reroute_flow = reroute_flow
 
-        if routing != "D8":
-            assert routing == "D4"
-        self._routing = routing
+        if routing in {"D4", "D8"} and not isinstance(grid, RasterModelGrid):
+            warnings.warn(
+                f"ignoring supplied routing method {routing!r}, not a raster grid",
+                stacklevel=2,
+            )
+        self._routing = self._validate_routing(routing) if routing else "D8"
 
-        if isinstance(grid, RasterModelGrid) and (routing == "D8"):
+        if isinstance(grid, RasterModelGrid) and self._routing == "D8":
             self._D8 = True
             self._num_nbrs = 8
             self._diag_link_length = np.sqrt(grid.dx**2 + grid.dy**2)
         else:
-            self._D8 = False  # useful shorthand for thia test we do a lot
+            self._D8 = False  # useful shorthand for this test we do a lot
             if isinstance(grid, RasterModelGrid):
                 self._num_nbrs = 4
             else:
                 self._num_nbrs = self._grid.links_at_node.shape[1]
 
-        if "flow__receiver_node" in self._grid.at_node and self._grid.at_node[
+        if "flow__receiver_node" in grid.at_node and grid.at_node[
             "flow__receiver_node"
-        ].size != self._grid.size("node"):
+        ].size != grid.size("node"):
             raise NotImplementedError(
-                "A route-to-multiple flow director has been "
-                "run on this grid. The depression finder is "
-                "not compatible with the grid anymore. Use "
-                "DepressionFinderAndRouter with reroute_flow=True "
-                "only with route-to-one methods. If using this "
-                "component with such a flow directing method is desired "
-                "please open a GitHub Issue/"
+                "A route-to-multiple flow director has been"
+                " run on this grid. The depression finder is"
+                " not compatible with the grid anymore. Use"
+                " DepressionFinderAndRouter with reroute_flow=True"
+                " only with route-to-one methods. If using this"
+                " component with such a flow directing method is desired,"
+                " please open a GitHub Issue"
             )
 
         # Make sure the grid includes elevation data.
@@ -272,6 +278,15 @@ class DepressionFinderAndRouter(Component):
         )
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(self._grid.BAD_INDEX)
+
+    @staticmethod
+    def _validate_routing(routing):
+        if routing not in {"D4", "D8"}:
+            raise ValueError(
+                f"routing method not understood ({routing} not one of"
+                f" {', '.join(repr(s) for s in ('D4', 'D8'))})."
+            )
+        return routing
 
     def updated_boundary_conditions(self):
         """Call this if boundary conditions on the grid are updated after the
@@ -324,8 +339,7 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def flood_status(self):
-        """Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or
-        _FLOODED)."""
+        """Map of flood status (PIT, CURRENT_LAKE, UNFLOODED, or FLOODED)."""
         return self._flood_status
 
     @property
@@ -738,7 +752,7 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-        # Flag the pit as being _CURRENT_LAKE (it's the first node in the
+        # Flag the pit as being CURRENT_LAKE (it's the first node in the
         # current lake)
         self._flood_status[pit_node] = FloodStatus.CURRENT_LAKE
 
