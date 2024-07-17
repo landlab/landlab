@@ -227,13 +227,7 @@ class DepressionFinderAndRouter(Component):
         self._routing = self._validate_routing(routing) if routing else "D8"
 
         if isinstance(grid, RasterModelGrid) and self._routing == "D8":
-            self._num_nbrs = 8
             self._diag_link_length = np.sqrt(grid.dx**2 + grid.dy**2)
-        else:
-            if isinstance(grid, RasterModelGrid):
-                self._num_nbrs = 4
-            else:
-                self._num_nbrs = self._grid.links_at_node.shape[1]
 
         if "flow__receiver_node" in grid.at_node and grid.at_node[
             "flow__receiver_node"
