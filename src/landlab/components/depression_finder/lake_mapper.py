@@ -227,11 +227,9 @@ class DepressionFinderAndRouter(Component):
         self._routing = self._validate_routing(routing) if routing else "D8"
 
         if isinstance(grid, RasterModelGrid) and self._routing == "D8":
-            self._D8 = True
             self._num_nbrs = 8
             self._diag_link_length = np.sqrt(grid.dx**2 + grid.dy**2)
         else:
-            self._D8 = False  # useful shorthand for this test we do a lot
             if isinstance(grid, RasterModelGrid):
                 self._num_nbrs = 4
             else:
@@ -288,6 +286,11 @@ class DepressionFinderAndRouter(Component):
             )
         return routing
 
+    @property
+    def routing(self):
+        """Routing method used when finding depressions."""
+        return self._routing
+
     def updated_boundary_conditions(self):
         """Call this if boundary conditions on the grid are updated after the
         component is instantiated."""
@@ -300,7 +303,7 @@ class DepressionFinderAndRouter(Component):
         # TODO: presently, this grid method seems to only exist for Raster
         # grids. We need it for *all* grids!
         self._node_nbrs = self._grid.active_adjacent_nodes_at_node
-        if self._D8:
+        if self.routing == "D8":
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
             diag_nbrs[
@@ -416,7 +419,7 @@ class DepressionFinderAndRouter(Component):
         # (At the moment, their data structure is a bit different)
         # TODO: update the diagonal link data structures
         # DEJH doesn't understand why this can't be vectorized as above...
-        if self._D8:
+        if self.routing == "D8":
             for h, t in self._grid.nodes_at_diagonal[self._grid.active_diagonals]:
                 if self._elev[h] > self._elev[t]:
                     self._is_pit[h] = False
@@ -471,7 +474,7 @@ class DepressionFinderAndRouter(Component):
         # Get the neighboring links (and, if applicable, the diagonals)
         links = self._grid.links_at_node[the_node]
         nbrs = self._grid.adjacent_nodes_at_node[the_node]
-        if self._D8:
+        if self.routing == "D8":
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node[the_node]
         else:
             diag_nbrs = None
@@ -578,7 +581,7 @@ class DepressionFinderAndRouter(Component):
                     receiver = nbr
 
         # If we're on a D8 raster, iterate over all diagonal neighbors
-        if self._D8:
+        if self.routing == "D8":
             for nbr in diag_nbrs:
                 # Again, to pass this first hurdle, the neighbor must:
                 #   * not be part of the current lake
@@ -1084,7 +1087,7 @@ class DepressionFinderAndRouter(Component):
 
             # If we're working with a raster that has diagonals, do the same
             # for the diagonal neighbors
-            if self._D8:
+            if self.routing == "D8":
                 # Get unresolved "regular" neighbors of the current nodes
                 for cn in nodes_being_processed:
                     (nbrs, diags) = self._find_unresolved_neighbors_new(
@@ -1140,7 +1143,7 @@ class DepressionFinderAndRouter(Component):
 
                 # reset_link for new outlet
                 outlet_receiver = self._receivers[outlet_node]
-                if self._D8:
+                if self.routing == "D8":
                     adjacent_links_and_diags = np.hstack(
                         (
                             self._grid.adjacent_nodes_at_node[outlet_node, :],
@@ -1210,7 +1213,7 @@ class DepressionFinderAndRouter(Component):
             The nodes that are contained within the lake.
         """
         if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
-            if self._D8:
+            if self.routing == "D8":
                 outlet_neighbors = np.hstack(
                     (
                         self._grid.active_adjacent_nodes_at_node[outlet_node],
