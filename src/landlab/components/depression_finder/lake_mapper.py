@@ -226,9 +226,6 @@ class DepressionFinderAndRouter(Component):
             )
         self._routing = self._validate_routing(routing) if routing else "D8"
 
-        if isinstance(grid, RasterModelGrid) and self._routing == "D8":
-            self._diag_link_length = np.sqrt(grid.dx**2 + grid.dy**2)
-
         if "flow__receiver_node" in grid.at_node and grid.at_node[
             "flow__receiver_node"
         ].size != grid.size("node"):
@@ -592,7 +589,9 @@ class DepressionFinderAndRouter(Component):
                 ):
                     # Next test: is it the steepest downhill grad so far?
                     # If so, we've found a candidate.
-                    grad = (node_elev - self._elev[nbr]) / self._diag_link_length
+                    grad = (node_elev - self._elev[nbr]) / np.sqrt(
+                        self.grid.dx**2 + self.grid.dy**2
+                    )
                     if grad > max_downhill_grad:
                         # Update the receiver and max grad: this is now the one
                         # to beat.
@@ -1094,9 +1093,9 @@ class DepressionFinderAndRouter(Component):
                         self._receivers[nbrs] = cn
                         if "flow__link_to_receiver_node" in self._grid.at_node:
                             self._links[nbrs] = diags
-                            slopes = (
-                                self._elev[nbrs] - self._elev[cn]
-                            ) / self._diag_link_length
+                            slopes = (self._elev[nbrs] - self._elev[cn]) / np.sqrt(
+                                self.grid.dx**2 + self.grid.dy**2
+                            )
                             self._grads[nbrs] = np.maximum(slopes, 0.0)
 
                     # Place them on the list of nodes to process next
