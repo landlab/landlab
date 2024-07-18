@@ -8,6 +8,8 @@ import warnings
 
 import numpy as np
 
+from landlab.grid.nodestatus import NodeStatus
+
 from ...core.model_component import Component
 from ...core.utils import as_id_array
 from ...field import FieldError
@@ -219,12 +221,14 @@ class DepressionFinderAndRouter(Component):
         self._user_supplied_pits = pits
         self._reroute_flow = reroute_flow
 
-        if routing in {"D4", "D8"} and not isinstance(grid, RasterModelGrid):
+        self._routing = None
+        if isinstance(grid, RasterModelGrid):
+            self._routing = self._validate_routing(routing) if routing else "D8"
+        elif routing in {"D4", "D8"}:
             warnings.warn(
                 f"ignoring supplied routing method {routing!r}, not a raster grid",
                 stacklevel=2,
             )
-        self._routing = self._validate_routing(routing) if routing else "D8"
 
         if "flow__receiver_node" in grid.at_node and grid.at_node[
             "flow__receiver_node"
@@ -285,36 +289,12 @@ class DepressionFinderAndRouter(Component):
     def updated_boundary_conditions(self):
         """Call this if boundary conditions on the grid are updated after the
         component is instantiated."""
-        try:
-            dx = self._grid.dx
-            dy = self._grid.dy
-        except AttributeError:
-            pass
-        # We'll also need a handy copy of the node neighbor lists
-        # TODO: presently, this grid method seems to only exist for Raster
-        # grids. We need it for *all* grids!
-        self._node_nbrs = self._grid.active_adjacent_nodes_at_node
         if self.routing == "D8":
-            diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
-            # remove the inactive nodes:
-            diag_nbrs[
-                self._grid.status_at_node[diag_nbrs] == self._grid.BC_NODE_IS_CLOSED
-            ] = -1
-            self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
-            self._link_lengths = np.empty(8, dtype=float)
-            self._link_lengths[0] = dx
-            self._link_lengths[2] = dx
-            self._link_lengths[1] = dy
-            self._link_lengths[3] = dy
-            self._link_lengths[4:].fill(np.sqrt(dx * dx + dy * dy))
-        elif isinstance(self._grid, RasterModelGrid) and (self._routing == "D4"):
-            self._link_lengths = np.empty(4, dtype=float)
-            self._link_lengths[0] = dx
-            self._link_lengths[2] = dx
-            self._link_lengths[1] = dy
-            self._link_lengths[3] = dy
+            neighbors = self.grid.d8_adjacent_nodes_at_node.copy()
         else:
-            self._link_lengths = self._grid.length_of_link
+            neighbors = self.grid.adjacent_nodes_at_node.copy()
+        neighbors[self.grid.status_at_node[neighbors] == NodeStatus.CLOSED] = -1
+        self._neighbor_nodes_at_node = neighbors
 
     @property
     def is_pit(self):
@@ -622,7 +602,7 @@ class DepressionFinderAndRouter(Component):
         boolean
             ``True`` if the node can drain. Otherwise, ``False``.
         """
-        nbrs = self._node_nbrs[the_node]
+        nbrs = self._neighbor_nodes_at_node[the_node]
         not_bad = nbrs != self._grid.BAD_INDEX
         not_too_high = self._elev[nbrs] < self._elev[the_node]
         not_current_lake = np.not_equal(
@@ -766,7 +746,7 @@ class DepressionFinderAndRouter(Component):
 
         while not found_outlet:
             lowest_node_on_perimeter, pit_count = find_lowest_node_on_lake_perimeter_c(
-                self._node_nbrs,
+                self._neighbor_nodes_at_node,
                 self.flood_status,
                 self._elev,
                 nodes_this_depression,
@@ -1189,52 +1169,6 @@ class DepressionFinderAndRouter(Component):
         self._grid.at_node["drainage_area"][:] = self._a
         self._grid.at_node["surface_water__discharge"][:] = q
         self._grid.at_node["flow__upstream_node_order"][:] = s
-
-    def _handle_outlet_node(self, outlet_node, nodes_in_lake):
-        """Ensure the outlet node drains to the grid edge.
-
-        Makes sure the outlet node is drains to the grid edge, not back
-        into the depression.
-        This exists because if the slope into the lake is steeper than the
-        slope out from the (rim lowest) outlet node, the lake won't drain.
-
-        Parameters
-        ----------
-        outlet_node : int
-            The outlet node.
-        nodes_in_lake : array_like of int
-            The nodes that are contained within the lake.
-        """
-        if self._grid.status_at_node[outlet_node] == 0:  # it's not a BC
-            if self.routing == "D8":
-                outlet_neighbors = np.hstack(
-                    (
-                        self._grid.active_adjacent_nodes_at_node[outlet_node],
-                        self._grid.diagonal_adjacent_nodes_at_node[outlet_node],
-                    )
-                )
-            else:
-                outlet_neighbors = self._grid.active_adjacent_nodes_at_node[
-                    outlet_node
-                ].copy()
-            inlake = np.isin(outlet_neighbors.flat, nodes_in_lake)
-            assert inlake.size > 0
-            outlet_neighbors[inlake] = -1
-            unique_outs, unique_indxs = np.unique(outlet_neighbors, return_index=True)
-            out_draining = unique_outs[1:]
-            if isinstance(self._grid, RasterModelGrid):
-                link_l = self._link_lengths
-            else:  # Voronoi
-                link_l = self._link_lengths[self._grid.links_at_node[outlet_node, :]]
-            eff_slopes = (self._elev[outlet_node] - self._elev[out_draining]) / link_l[
-                unique_indxs[1:]
-            ]
-            lowest = np.argmax(eff_slopes)
-            lowest_node = out_draining[lowest]
-            # route the flow
-            self._receivers[outlet_node] = lowest_node
-        else:
-            self._receivers[outlet_node] = outlet_node
 
     def display_depression_map(self):
         """Print a simple character-based map of depressions/lakes."""

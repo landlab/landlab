@@ -1983,7 +1983,7 @@ def test_find_lowest_node_on_lake_perimeter_c():
     fr.run_one_step()  # the flow "gets stuck" in the hole
     df = DepressionFinderAndRouter(mg)
 
-    node_nbrs = df._node_nbrs
+    node_nbrs = df._neighbor_nodes_at_node
     flood_status = df.flood_status
     elev = df._elev
     nodes_this_depression = mg.zeros("node", dtype=int)
