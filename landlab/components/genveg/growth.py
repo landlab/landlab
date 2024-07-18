@@ -177,10 +177,62 @@ class PlantGrowth(Species):
 
         event_flags = self.set_event_flags(_current_jday)
         _in_growing_season = event_flags.pop("_in_growing_season")
-        self.plants = kwargs.get(
-            "plant_array",
-            self._init_plants_from_grid(_in_growing_season, kwargs["species_cover"]),
+        max_plants_per_cell = (
+            np.round(
+                self._grid.number_of_cells
+                * self.species_morph_params["max_plant_density"]
+                * self._grid.area_of_cell
+            )
+            .astype(int)
+            .item()
         )
+
+        self.plants = np.empty(
+            max_plants_per_cell,
+            dtype=[
+                ("species", "U10"),
+                ("pid", int),
+                ("cell_index", int),
+                ("x_loc", float),
+                ("y_loc", float),
+                (("root", "root_biomass"), float),
+                (("leaf", "leaf_biomass"), float),
+                (("stem", "stem_biomass"), float),
+                (("reproductive", "repro_biomass"), float),
+                ("dead_root", float),
+                ("dead_leaf", float),
+                ("dead_stem", float),
+                ("dead_reproductive", float),
+                ("dead_root_age", float),
+                ("dead_leaf_age", float),
+                ("dead_stem_age", float),
+                ("dead_reproductive_age", float),
+                ("shoot_sys_width", float),
+                ("root_sys_width", float),
+                ("shoot_sys_height", float),
+                ("root_sys_depth", float),
+                ("total_leaf_area", float),
+                ("live_leaf_area", float),
+                ("plant_age", float),
+                ("n_stems", int),
+                ("pup_x_loc", float),
+                ("pup_y_loc", float),
+                ("pup_cost", float),
+                ("item_id", int),
+            ],
+        )
+        try:
+            init_plants = kwargs.get(
+                "plant_array",
+                self._init_plants_from_grid(
+                    _in_growing_season, kwargs["species_cover"]
+                ),
+            )
+        except KeyError:
+            msg = "GenVeg requires a pre-populated plant array or a species cover."
+            raise ValueError(msg)
+        (self.n_plants,) = init_plants.shape
+        self.plants[: self.n_plants] = init_plants
         self.call = []
 
         # Create empty Datarecord to store plant data
@@ -300,7 +352,12 @@ class PlantGrowth(Species):
         pids = np.arange(last_pid + 1, last_pid + new_plants_list.size + 1)
         new_plants_list["pid"] = pids
         new_plants_list["item_id"] = pids
-        np.concatenate((old_plants, new_plants_list), axis=0)
+        n_new_plants = new_plants_list.shape
+        # np.concatenate((old_plants, new_plants_list), axis=0)
+        old_plants[(self.n_plants + 1) : (n_new_plants + self.n_plants + 1)] = (
+            new_plants_list
+        )
+        self.n_plants += n_new_plants
         self.plants = old_plants
         return self.plants
 
