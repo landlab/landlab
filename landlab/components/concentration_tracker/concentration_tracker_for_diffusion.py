@@ -328,6 +328,13 @@ class ConcentrationTrackerForDiffusion(Component):
             raise ValueError("Concentration cannot be negative")
         self._conc_w = new_val
 
+    def copy_old_soil_depth(self):
+        """Store a copy of soil depth. This is used as the old soil depth when 
+        calculating changes in concentration. 
+        """
+        
+        self._soil__depth_old = self._soil__depth.copy()
+
     def calc_concentration(self, dt):
         """Calculate change in concentration for a time period 'dt'.
 
@@ -380,8 +387,19 @@ class ConcentrationTrackerForDiffusion(Component):
         # Update old soil depth to new value
         self._soil__depth_old = self._soil__depth.copy()
 
-    def run_one_step(self, dt):
-        """Run for a time step.
+    def start_tracking(self):
+        """Stores values necessary for calculating changes in concentration.
+        This method must be called prior to running the sediment flux component
+        that changes physical properties of bedrock, soil, and/or topography.
+        """
+
+        self.copy_old_soil_depth()
+        
+    def stop_tracking(self, dt):
+        """Calculate changes in concentration that have occurred in the timestep
+        since tracking was started. This method must be called after running the
+        sediment flux component that changes physical properties of bedrock, 
+        soil, and/or topography.
 
         Parameters
         ----------
@@ -390,3 +408,7 @@ class ConcentrationTrackerForDiffusion(Component):
         """
 
         self.calc_concentration(dt)
+        
+    def run_one_step(self):
+        """run_one_step is not implemented for this component."""
+        raise NotImplementedError("run_one_step()")
