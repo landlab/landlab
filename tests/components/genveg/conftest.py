@@ -161,7 +161,10 @@ def example_plant():
         ("dead_stem", float),
         ("dead_leaf", float),
         ("dead_reproductive", float),
-        ("dead_age", float),
+        ("dead_root_age", float),
+        ("dead_leaf_age", float),
+        ("dead_stem_age", float),
+        ("dead_reproductive_age", float),
         ("shoot_sys_width", float),
         ("root_sys_width", float),
         ("shoot_sys_height", float),
@@ -175,7 +178,7 @@ def example_plant():
         ("pup_cost", float),
         ("item_id", int),
     ]
-    plants = np.empty((0, 26), dtype=dtypes)
+    plants = np.empty(1, dtype=dtypes)
     plantlist = []
     plant = "Corn"
     pidval = 0
@@ -188,6 +191,9 @@ def example_plant():
                 plant,
                 pidval,
                 cell_index,
+                0.0,
+                0.0,
+                0.0,
                 0.0,
                 0.0,
                 0.0,
@@ -244,7 +250,10 @@ def example_plant_array():
         ("dead_stem", float),
         ("dead_leaf", float),
         ("dead_reproductive", float),
-        ("dead_age", float),
+        ("dead_root_age", float),
+        ("dead_leaf_age", float),
+        ("dead_stem_age", float),
+        ("dead_reproductive_age", float),
         ("shoot_sys_width", float),
         ("root_sys_width", float),
         ("shoot_sys_height", float),
@@ -258,7 +267,7 @@ def example_plant_array():
         ("pup_cost", float),
         ("item_id", int),
     ]
-    plants = np.empty((0, 26), dtype=dtypes)
+    plants = np.empty(100, dtype=dtypes)
     plantlist = []
     plant = "Corn"
     pidval = 0
@@ -289,6 +298,9 @@ def example_plant_array():
                 0.0,
                 0.0,
                 0.0,
+                0.0,
+                0.0,
+                0.0,
                 0,
                 np.nan,
                 np.nan,
@@ -296,7 +308,6 @@ def example_plant_array():
                 i,
             )
         )
-    #
     plants = np.array(plantlist, dtype=dtypes)
     plants["root"] = np.array([0.05, 0.05, 0.05, 0.05, 7.00, 7.00, 7.00, 7.00])
     plants["stem"] = np.array([0.05, 7.00, 0.05, 7.00, 0.05, 7.00, 0.05, 7.00])
@@ -305,7 +316,10 @@ def example_plant_array():
     plants["dead_root"] = plants["root"] * 0.25
     plants["dead_stem"] = plants["stem"] * 0.25
     plants["dead_leaf"] = plants["leaf"] * 0.25
-    plants["dead_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_root_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_leaf_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_stem_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_reproductive_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
     plants["dead_reproductive"] = plants["reproductive"] * 0.25
     plants["shoot_sys_width"] = rng.uniform(low=0.1, high=3, size=plants.size)
     plants["root_sys_width"] = rng.uniform(low=0.1, high=1, size=plants.size)
@@ -318,13 +332,14 @@ def example_plant_array():
     plants["pup_x_loc"][plants["reproductive"] > 0.1] = 0.0
     plants["pup_y_loc"][plants["reproductive"] > 0.1] = 0.0
     plants["pup_cost"][plants["reproductive"] > 0.1] = 0.75
+    plants["item_id"] = np.array([1, 2, 3, 4, 5, 6, 7, 8])
     return plants
 
 
 @pytest.fixture
 def one_cell_grid():
     # Create grid with one cell containing min max temp, par, location, species
-    grid = RasterModelGrid((1, 1), 2, xy_of_reference=(-74.08, 39.79))
+    grid = RasterModelGrid((3, 3), 2, xy_of_reference=(-74.08, 39.79))
     grid.axis_units = ("m", "m")
     maxtemp = np.array([15.53])
     mintemp = np.array([8.62])
@@ -354,3 +369,4 @@ def one_cell_grid():
         np.full(grid.number_of_cells, "Corn"),
         at="cell",
     )
+    return grid

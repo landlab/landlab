@@ -187,8 +187,9 @@ class PlantGrowth(Species):
             .item()
         )
 
-        self.plants = np.empty(
+        self.plants = np.full(
             max_plants_per_cell,
+            np.nan,
             dtype=[
                 ("species", "U10"),
                 ("pid", int),
@@ -221,6 +222,7 @@ class PlantGrowth(Species):
                 ("item_id", int),
             ],
         )
+
         try:
             init_plants = kwargs.get(
                 "plant_array",
@@ -237,79 +239,103 @@ class PlantGrowth(Species):
 
         # Create empty Datarecord to store plant data
         # Instantiate data record
+        filter = np.nonzero(~np.isnan(self.plants["pid"]))
         self.record_plants = DataRecord(
             self._grid,
             time=[rel_time],
             items={
-                "grid_element": np.repeat(["cell"], self.plants["pid"].size).reshape(
-                    self.plants["pid"].size, 1
-                ),
+                "grid_element": np.repeat(
+                    ["cell"], self.plants["pid"][filter].size
+                ).reshape(self.plants["pid"][filter].size, 1),
                 "element_id": np.reshape(
-                    self.plants["cell_index"], (self.plants["pid"].size, 1)
+                    self.plants["cell_index"][filter],
+                    (self.plants["pid"][filter].size, 1),
                 ),
             },
             data_vars={
                 "vegetation__species": (
                     ["item_id", "time"],
-                    np.reshape(self.plants["species"], (self.plants["pid"].size, 1)),
+                    np.reshape(
+                        self.plants["species"][filter],
+                        (self.plants["pid"][filter].size, 1),
+                    ),
                 ),
                 "vegetation__root_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["root_biomass"], (self.plants["pid"].size, 1)
+                        self.plants["root_biomass"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__leaf_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["leaf_biomass"], (self.plants["pid"].size, 1)
+                        self.plants["leaf_biomass"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__stem_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["stem_biomass"], (self.plants["pid"].size, 1)
+                        self.plants["stem_biomass"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__repro_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["repro_biomass"], (self.plants["pid"].size, 1)
+                        self.plants["repro_biomass"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__dead_root_biomass": (
                     ["item_id", "time"],
-                    np.reshape(self.plants["dead_root"], (self.plants["pid"].size, 1)),
+                    np.reshape(
+                        self.plants["dead_root"][filter],
+                        (self.plants["pid"][filter].size, 1),
+                    ),
                 ),
                 "vegetation__dead_leaf_biomass": (
                     ["item_id", "time"],
-                    np.reshape(self.plants["dead_leaf"], (self.plants["pid"].size, 1)),
+                    np.reshape(
+                        self.plants["dead_leaf"][filter],
+                        (self.plants["pid"][filter].size, 1),
+                    ),
                 ),
                 "vegetation__dead_stem_biomass": (
                     ["item_id", "time"],
-                    np.reshape(self.plants["dead_stem"], (self.plants["pid"].size, 1)),
+                    np.reshape(
+                        self.plants["dead_stem"][filter],
+                        (self.plants["pid"][filter].size, 1),
+                    ),
                 ),
                 "vegetation__dead_repro_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["dead_reproductive"], (self.plants["pid"].size, 1)
+                        self.plants["dead_reproductive"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__shoot_sys_width": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["shoot_sys_width"], (self.plants["pid"].size, 1)
+                        self.plants["shoot_sys_width"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__total_leaf_area": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["total_leaf_area"], (self.plants["pid"].size, 1)
+                        self.plants["total_leaf_area"][filter],
+                        (self.plants["pid"][filter].size, 1),
                     ),
                 ),
                 "vegetation__plant_age": (
                     ["item_id", "time"],
-                    np.reshape(self.plants["plant_age"], (self.plants["pid"].size, 1)),
+                    np.reshape(
+                        self.plants["plant_age"][filter],
+                        (self.plants["pid"][filter].size, 1),
+                    ),
                 ),
             },
             attrs={
@@ -352,7 +378,7 @@ class PlantGrowth(Species):
         pids = np.arange(last_pid + 1, last_pid + new_plants_list.size + 1)
         new_plants_list["pid"] = pids
         new_plants_list["item_id"] = pids
-        n_new_plants = new_plants_list.shape
+        (n_new_plants,) = new_plants_list.shape
         # np.concatenate((old_plants, new_plants_list), axis=0)
         old_plants[(self.n_plants + 1) : (n_new_plants + self.n_plants + 1)] = (
             new_plants_list
@@ -714,7 +740,9 @@ class PlantGrowth(Species):
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
+        n_remove_plants = remove_plants.size
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
+        self.n_plants -= n_remove_plants
         return _new_biomass
 
     def save_plant_output(self, rel_time, save_params):

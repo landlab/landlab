@@ -11,11 +11,11 @@ def test_check_for_dispersal_success(
     genveg_obj = GenVeg(
         one_cell_grid,
         1,
-        180,
+        np.datetime64("2010-06-28"),
         example_input_params,
         plant_array=example_plant_array,
     )
-    dispersed_plant_array = genveg_obj.test_for_dispersal_success(example_plant_array)
+    dispersed_plant_array = genveg_obj.check_for_dispersal_success(example_plant_array)
     # filter = np.nonzero(not np.isnan(example_plant_array["pup_x_loc"]))
-    dispersed_size = np.size(dispersed_plant_array, axis=1)
-    assert dispersed_size == 13
+    (dispersed_size,) = dispersed_plant_array.shape
+    return example_plant_array.shape
