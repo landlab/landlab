@@ -268,7 +268,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
-        self._soil__depth_old = self._soil__depth.copy()
+        #self._soil__depth_old = self._soil__depth.copy()
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         self._flux = self._grid.at_link["soil__flux"]
 
