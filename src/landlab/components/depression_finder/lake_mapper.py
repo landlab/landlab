@@ -16,6 +16,7 @@ from ...field import FieldError
 from ...grid import RasterModelGrid
 from ..flow_accum import flow_accum_bw
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
+from .cfuncs import find_pits
 from .errors import NoOutletError
 from .floodstatus import FloodStatus
 
@@ -187,7 +188,7 @@ class DepressionFinderAndRouter(Component):
         },
     }
 
-    def __init__(self, grid, routing=None, pits="flow__sink_flag", reroute_flow=True):
+    def __init__(self, grid, routing=None, pits=None, reroute_flow=True):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -201,9 +202,9 @@ class DepressionFinderAndRouter(Component):
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
-        pits : array or str or None, optional
+        pits : array-like or str, optional
             If a field name, the boolean field containing True where pits.
-            If an array, either a boolean array of nodes of the pits, or an
+            If array-like, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
             boundary nodes are flagged as pits; they are never treated as such.
             Default is 'flow__sink_flag', the pit field output from the
@@ -218,7 +219,10 @@ class DepressionFinderAndRouter(Component):
 
         self._bc_set_code = self._grid.bc_set_code
 
-        self._user_supplied_pits = pits
+        if pits is None or isinstance(pits, str):
+            self._user_supplied_pits = pits
+        else:
+            self._user_supplied_pits = np.asarray(pits)
         self._reroute_flow = reroute_flow
 
         self._routing = None
@@ -335,23 +339,30 @@ class DepressionFinderAndRouter(Component):
         """At node array indicating the node-id of the depression outlet."""
         return self._depression_outlet_map
 
-    def _find_pits(self):
-        """Locate local depressions ("pits") in a gridded elevation field.
+    @staticmethod
+    def find_pit_nodes(grid, value_at_node, routing=None):
+        """Locate local depressions in a gridded elevation field.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab grid.
+        value_at_node : array-like
+            Array of values overwhich to look for pits.
+        routing : {'D4', 'D8'}, optional
+            The routing method to use. For raster grids, 'D8' will
+            consider all of a nodes neighbors (including the diagonals).
+            Otherwise, only neighboring nodes connected by links are
+            considered.
+
+        Returns
+        -------
+        ndarray of bool
+            A boolean array that indicates if a value in the input array
+            is a pit.
 
         Notes
         -----
-        **Uses**:
-
-        * ``self._elev``
-        * ``self._grid``
-
-        **Creates**:
-
-        * ``is_pit`` (node array of booleans): Flag indicating whether
-          the node is a pit.
-        * ``number_of_pits`` (int): Number of pits found.
-        * ``pit_node_ids`` (node array of ints): IDs of the nodes that
-          are pits
 
         A node is defined as being a pit if and only if:
 
@@ -365,52 +376,111 @@ class DepressionFinderAndRouter(Component):
         elevations. If one is an open boundary, then the other must be a core
         node, and we declare the latter not to be a pit (via rule 2 above).
         """
-        # Create the is_pit array, with all core nodes initialized to True and
-        # all boundary nodes initialized to False.
-        self._is_pit.fill(True)
-        self._is_pit[self._grid.boundary_nodes] = False
+        value_at_node = np.asarray(value_at_node).reshape(-1)
+        if len(value_at_node) != grid.number_of_nodes:
+            raise ValueError(
+                f"array length mismatch (expected {grid.number_of_nodes}"
+                f" but got {len(value_at_node)})"
+            )
 
-        # Loop over all active links: if one of a link's two nodes is higher
-        # than the other, the higher one is not a pit. Also, if they have
-        # equal elevations and one is an open boundary, the other is not a pit.
-        act_links = self._grid.active_links
-        h_orth = self._grid.node_at_link_head[act_links]
-        t_orth = self._grid.node_at_link_tail[act_links]
+        if routing is not None:
+            routing = DepressionFinderAndRouter._validate_routing(routing)
 
-        # These two lines assign the False flag to any node that is higher
-        # than its partner on the other end of its link
-        self._is_pit[h_orth[np.where(self._elev[h_orth] > self._elev[t_orth])[0]]] = (
-            False
-        )
-        self._is_pit[t_orth[np.where(self._elev[t_orth] > self._elev[h_orth])[0]]] = (
-            False
-        )
+        if isinstance(grid, RasterModelGrid):
+            routing = routing if routing else "D8"
+        else:
+            warnings.warn(
+                f"ignoring supplied routing method {routing!r}, not a raster grid",
+                stacklevel=2,
+            )
 
-        # If we have a raster grid, handle the diagonal active links too
-        # (At the moment, their data structure is a bit different)
-        # TODO: update the diagonal link data structures
-        # DEJH doesn't understand why this can't be vectorized as above...
-        if self.routing == "D8":
-            for h, t in self._grid.nodes_at_diagonal[self._grid.active_diagonals]:
-                if self._elev[h] > self._elev[t]:
-                    self._is_pit[h] = False
-                elif self._elev[t] > self._elev[h]:
-                    self._is_pit[t] = False
-                elif self._elev[h] == self._elev[t]:
-                    if (
-                        self._grid.status_at_node[h]
-                        == self._grid.BC_NODE_IS_FIXED_VALUE
-                    ):
-                        self._is_pit[t] = False
-                    elif (
-                        self._grid.status_at_node[t]
-                        == self._grid.BC_NODE_IS_FIXED_VALUE
-                    ):
-                        self._is_pit[h] = False
+        is_pit = np.full(grid.number_of_nodes, False)
+        is_pit[grid.status_at_node == NodeStatus.CORE] = True
 
-        # Record the number of pits and the IDs of pit nodes.
-        self._number_of_pits = np.count_nonzero(self._is_pit)
-        self._pit_node_ids = as_id_array(np.where(self._is_pit)[0])
+        is_open_node = np.full(grid.number_of_nodes, False)
+        is_open_node[grid.status_at_node == NodeStatus.FIXED_VALUE] = True
+
+        if routing == "D8":
+            links = grid.active_d8
+            nodes_at_link = grid.nodes_at_d8
+        else:
+            links = grid.active_links
+            nodes_at_link = grid.nodes_at_link
+
+        find_pits(value_at_node, nodes_at_link, links, is_open_node, is_pit)
+
+        return is_pit
+
+    @staticmethod
+    def _user_pits_to_array(grid, pits):
+        """Convert pits to an n-node long boolean array.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A landlab grid.
+        pits : str or array-like
+            If a string, the name of an *at-nodes* field. Otherwise, *pits*
+            is interpreted as either a boolean array of nodes of the pits, or an
+            array of pit node IDs.
+
+        Returns
+        -------
+        ndarray of bool
+            An n-nodes long array of booleans identifying pit nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.depression_finder import DepressionFinderAndRouter
+        >>> grid = RasterModelGrid((3, 4))
+        >>> pits = [
+        ...     [False, False, False, False],
+        ...     [False, True, False, False],
+        ...     [False, False, False, False],
+        ... ]
+
+        >>> DepressionFinderAndRouter._user_pits_to_array(grid, pits).reshape(
+        ...     grid.shape
+        ... )
+        array([[False, False, False, False],
+               [False,  True, False, False],
+               [False, False, False, False]])
+
+        >>> grid.at_node["pits"] = pits
+        >>> DepressionFinderAndRouter._user_pits_to_array(grid, "pits").reshape(
+        ...     grid.shape
+        ... )
+        array([[False, False, False, False],
+               [False,  True, False, False],
+               [False, False, False, False]])
+
+        >>> DepressionFinderAndRouter._user_pits_to_array(grid, [5]).reshape(grid.shape)
+        array([[False, False, False, False],
+               [False,  True, False, False],
+               [False, False, False, False]])
+        """
+        assert pits is not None
+
+        if isinstance(pits, str):
+            try:
+                is_pit = grid.at_node[pits].copy()
+            except FieldError as err:
+                raise ValueError(
+                    f"grid is missing the provided at-node field ({pits!r} not one of"
+                    f" {', '.join(repr(s) for s in grid.at_node)})."
+                ) from err
+        else:
+            pits = np.asarray(pits).reshape(-1)
+            if pits.size != grid.number_of_nodes:
+                is_pit = np.full(grid.number_of_nodes, False)
+                is_pit[pits] = True
+            else:
+                is_pit = pits.copy()
+
+        is_pit[grid.status_at_node != NodeStatus.CORE] = False
+
+        return is_pit
 
     def _links_and_nbrs_at_node(self, the_node):
         """Compile and return arrays with IDs of neighbor links and nodes.
@@ -873,34 +943,20 @@ class DepressionFinderAndRouter(Component):
         self._depression_outlet_map.fill(self._grid.BAD_INDEX)
         self._depression_depth.fill(0.0)
         self._depression_outlets = []  # reset these
+
         # Locate nodes with pits
-        if isinstance(self._user_supplied_pits, str):
-            try:
-                pits = self._grid.at_node[self._user_supplied_pits]
-                supplied_pits = np.where(pits)[0]
-                self._pit_node_ids = as_id_array(
-                    np.setdiff1d(supplied_pits, self._grid.boundary_nodes)
-                )
-                self._number_of_pits = self._pit_node_ids.size
-                self._is_pit.fill(False)
-                self._is_pit[self._pit_node_ids] = True
-            except FieldError:
-                self._find_pits()
-        elif self._user_supplied_pits is None:
-            self._find_pits()
-        else:  # hopefully an array or other sensible iterable
-            if len(self._user_supplied_pits) == self._grid.number_of_nodes:
-                supplied_pits = np.where(self._user_supplied_pits)[0]
-            else:  # it's an array of node ids
-                supplied_pits = self._user_supplied_pits
-            # remove any boundary nodes from the supplied pit list
-            self._pit_node_ids = as_id_array(
-                np.setdiff1d(supplied_pits, self._grid.boundary_nodes)
+        if self._user_supplied_pits is None:
+            self._is_pit = DepressionFinderAndRouter.find_pit_nodes(
+                self.grid, self._elev, routing=self.routing
+            )
+        else:
+            self._is_pit = DepressionFinderAndRouter._user_pits_to_array(
+                self.grid, self._user_supplied_pits
             )
 
-            self._number_of_pits = self._pit_node_ids.size
-            self._is_pit.fill(False)
-            self._is_pit[self._pit_node_ids] = True
+        self._number_of_pits = np.count_nonzero(self._is_pit)
+        self._pit_node_ids = as_id_array(np.where(self._is_pit)[0])
+
         # Set up "lake code" array
         self._flood_status.fill(FloodStatus.UNFLOODED)
         self._flood_status[self._pit_node_ids] = FloodStatus.PIT

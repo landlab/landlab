@@ -1,5 +1,9 @@
 cimport cython
+
+from cython.parallel import prange
+
 from libc.math cimport INFINITY
+from libc.stdint cimport uint8_t
 
 from landlab.core.messages import warning_message
 
@@ -10,6 +14,7 @@ ctypedef fused id_t:
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef find_lowest_node_on_lake_perimeter_c(
     const id_t [:, :] neighbor_nodes_at_node,
     id_t [:] flood_status_at_node,
@@ -113,3 +118,48 @@ cpdef find_lowest_node_on_lake_perimeter_c(
             i += 1
 
     return lowest_node, n_pit_nodes
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def find_pits(
+    const cython.floating [:] value_at_node,
+    const cython.integral [:, :] nodes_at_link,
+    const cython.integral [:] links,
+    const uint8_t [:] is_open_node,
+    uint8_t [:] is_pit_node,
+):
+    """
+    A node is defined as being a pit if and only if:
+
+    1. All neighboring core nodes have equal or greater elevation, and
+    2. Any neighboring open boundary nodes have a greater elevation.
+
+    The algorithm starts off assuming that all core nodes are pits. We then
+    loop through all active links. For each link, if one node is higher
+    than the other, the higher one cannot be a pit, so we flag it False.
+    We also look at cases in which an active link's nodes have equal
+    elevations. If one is an open boundary, then the other must be a core
+    node, and we declare the latter not to be a pit (via rule 2 above).
+    """
+    cdef long i
+    cdef long link
+    cdef long node_at_head
+    cdef long node_at_tail
+    cdef long n_links = len(links)
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = links[i]
+
+        node_at_head = nodes_at_link[link, 0]
+        node_at_tail = nodes_at_link[link, 1]
+
+        if value_at_node[node_at_head] > value_at_node[node_at_tail]:
+            is_pit_node[node_at_head] = False
+        elif value_at_node[node_at_tail] > value_at_node[node_at_head]:
+            is_pit_node[node_at_tail] = False
+        else:
+            if is_open_node[node_at_head]:
+                is_pit_node[node_at_tail] = False
+            if is_open_node[node_at_tail]:
+                is_pit_node[node_at_head] = False
