@@ -162,22 +162,6 @@ class DepressionFinderAndRouter(Component):
                 "otherwise grid.BAD_INDEX"
             ),
         },
-        "flood_status_code": {
-            "dtype": int,
-            "intent": "out",
-            "optional": False,
-            "units": "-",
-            "mapping": "node",
-            "doc": "Map of flood status (PIT, CURRENT_LAKE, UNFLOODED, or FLOODED).",
-        },
-        "is_pit": {
-            "dtype": bool,
-            "intent": "out",
-            "optional": False,
-            "units": "-",
-            "mapping": "node",
-            "doc": "Boolean flag indicating whether a node is a pit.",
-        },
         "topographic__elevation": {
             "dtype": float,
             "intent": "in",
@@ -267,12 +251,8 @@ class DepressionFinderAndRouter(Component):
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
-        self._is_pit = self._grid.add_ones(
-            "is_pit", at="node", dtype=bool, clobber=True
-        )
-        self._flood_status = self._grid.add_zeros(
-            "flood_status_code", at="node", dtype=int, clobber=True
-        )
+        self._flood_status = np.zeros(self.grid.number_of_nodes, dtype=int)
+
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(self._grid.BAD_INDEX)
 
@@ -299,11 +279,6 @@ class DepressionFinderAndRouter(Component):
             neighbors = self.grid.adjacent_nodes_at_node.copy()
         neighbors[self.grid.status_at_node[neighbors] == NodeStatus.CLOSED] = -1
         self._neighbor_nodes_at_node = neighbors
-
-    @property
-    def is_pit(self):
-        """At node array indicating whether the node is a pit or not."""
-        return self._is_pit
 
     @property
     def number_of_pits(self):
@@ -946,16 +921,16 @@ class DepressionFinderAndRouter(Component):
 
         # Locate nodes with pits
         if self._user_supplied_pits is None:
-            self._is_pit = DepressionFinderAndRouter.find_pit_nodes(
+            is_pit = DepressionFinderAndRouter.find_pit_nodes(
                 self.grid, self._elev, routing=self.routing
             )
         else:
-            self._is_pit = DepressionFinderAndRouter._user_pits_to_array(
+            is_pit = DepressionFinderAndRouter._user_pits_to_array(
                 self.grid, self._user_supplied_pits
             )
 
-        self._number_of_pits = np.count_nonzero(self._is_pit)
-        self._pit_node_ids = as_id_array(np.where(self._is_pit)[0])
+        self._number_of_pits = np.count_nonzero(is_pit)
+        self._pit_node_ids = as_id_array(np.where(is_pit)[0])
 
         # Set up "lake code" array
         self._flood_status.fill(FloodStatus.UNFLOODED)
