@@ -148,7 +148,6 @@ class SnowDegreeDay(Component):
         self._total_sm = np.zeros(grid.number_of_nodes)  # add new variable
 
         # input data fields
-        self._t_air = grid.at_node["atmosphere_bottom_air__temperature"]
         self._p = grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
 
         if "snowpack__liquid-equivalent_depth" in grid.at_node:
@@ -308,13 +307,13 @@ class SnowDegreeDay(Component):
 
     def run_one_step(self, dt):
         # update input fields in case there is new input
-        self._t_air = self._grid.at_node["atmosphere_bottom_air__temperature"]
+        air_temp = self._grid.at_node["atmosphere_bottom_air__temperature"]
         self._p = self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
 
         # update state variables
-        self._p_snow = self._update_p_snow(self._p, self._t_air, self._t_rain_snow)
+        self._p_snow = self._update_p_snow(self._p, air_temp, self._t_rain_snow)
         self._sm[:] = self._update_snowmelt_rate(
-            dt, self._c0, self._t0, self._t_air, self._h_swe
+            dt, self._c0, self._t0, air_temp, self._h_swe
         )
         self._h_swe[:] = self._update_swe(dt, self._p_snow, self._h_swe, self._sm)
         self._h_snow[:] = self._update_snow_depth(self._h_swe, self.density_ratio)
