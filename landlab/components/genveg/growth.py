@@ -209,6 +209,7 @@ class PlantGrowth(Species):
                 ("dead_stem_age", float),
                 ("dead_reproductive_age", float),
                 ("shoot_sys_width", float),
+                ("basal_width", float),
                 ("root_sys_width", float),
                 ("shoot_sys_height", float),
                 ("root_sys_depth", float),
@@ -236,105 +237,103 @@ class PlantGrowth(Species):
         (self.n_plants,) = init_plants.shape
         self.plants[: self.n_plants] = init_plants
         self.call = []
-
         # Create empty Datarecord to store plant data
         # Instantiate data record
-        filter = np.nonzero(~np.isnan(self.plants["pid"]))
         self.record_plants = DataRecord(
             self._grid,
             time=[rel_time],
             items={
-                "grid_element": np.repeat(
-                    ["cell"], self.plants["pid"][filter].size
-                ).reshape(self.plants["pid"][filter].size, 1),
+                "grid_element": np.repeat(["cell"], self.n_plants).reshape(
+                    self.n_plants, 1
+                ),
                 "element_id": np.reshape(
-                    self.plants["cell_index"][filter],
-                    (self.plants["pid"][filter].size, 1),
+                    self.plants["cell_index"][: self.n_plants],
+                    (self.n_plants, 1),
                 ),
             },
             data_vars={
                 "vegetation__species": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["species"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["species"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__root_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["root_biomass"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["root_biomass"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__leaf_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["leaf_biomass"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["leaf_biomass"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__stem_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["stem_biomass"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["stem_biomass"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__repro_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["repro_biomass"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["repro_biomass"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__dead_root_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["dead_root"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["dead_root"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__dead_leaf_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["dead_leaf"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["dead_leaf"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__dead_stem_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["dead_stem"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["dead_stem"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__dead_repro_biomass": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["dead_reproductive"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["dead_reproductive"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__shoot_sys_width": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["shoot_sys_width"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["shoot_sys_width"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__total_leaf_area": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["total_leaf_area"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["total_leaf_area"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
                 "vegetation__plant_age": (
                     ["item_id", "time"],
                     np.reshape(
-                        self.plants["plant_age"][filter],
-                        (self.plants["pid"][filter].size, 1),
+                        self.plants["plant_age"][: self.n_plants],
+                        (self.n_plants, 1),
                     ),
                 ),
             },
@@ -353,7 +352,7 @@ class PlantGrowth(Species):
                 "vegetation__plant_age": "days",
             },
         )
-        self.plants["item_id"] = self.record_plants.item_coordinates
+        self.plants["item_id"][: self.n_plants] = self.record_plants.item_coordinates
         # Set constants for PAR formula
         self._wgaus = [0.2778, 0.4444, 0.2778]
         self._xgaus = [0.1127, 0.5, 0.8873]
@@ -494,6 +493,7 @@ class PlantGrowth(Species):
             ("dead_stem_age", float),
             ("dead_reproductive_age", float),
             ("shoot_sys_width", float),
+            ("basal_width", float),
             ("root_sys_width", float),
             ("shoot_sys_height", float),
             ("root_sys_depth", float),
@@ -528,7 +528,14 @@ class PlantGrowth(Species):
                             high=self.species_morph_params["max_shoot_sys_width"],
                             size=1,
                         )
-                        cover_area -= np.pi / 4 * plant_width**2
+                        plant_basal_width = plant_width * rng.uniform(
+                            low=self.species_morph_params["min_basal_ratio"],
+                            high=self.species_morph_params["max_basal_ratio"],
+                            size=1,
+                        )
+                        cover_area -= (
+                            np.pi / 4 * np.sqrt(plant_width * plant_basal_width) ** 2
+                        )
                         if cover_area > 0:
                             plant_shoot_widths.append(plant_width)
                         else:

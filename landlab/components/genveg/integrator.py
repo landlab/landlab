@@ -131,7 +131,9 @@ class GenVeg(Component, PlantGrowth):
             for species in vegparams:
                 plant_array = plant_array[plant_array["species"] == species]
                 species_dict = vegparams[species]
-                species_abg_area = np.pi / 4 * plant_array["shoot_sys_width"] ** 2
+                species_canopy_area = np.pi / 4 * plant_array["shoot_sys_width"] ** 2
+                species_basal_area = np.pi / 4 * plant_array["basal_width"] ** 2
+                species_abg_area = np.sqrt(species_basal_area * species_canopy_area)
                 species_cover = (
                     self.calculate_grid_vars(
                         plant_array["cell_index"], species_abg_area
@@ -242,9 +244,14 @@ class GenVeg(Component, PlantGrowth):
                 )
 
     def calculate_grid_vars(self, indices, grid_var=None):
+        obs = ~np.isnan(indices)
+        if grid_var is None:
+            weight_var = grid_var
+        else:
+            weight_var = grid_var[obs]
         var_out = np.bincount(
-            indices,
-            weights=grid_var,
+            indices[obs],
+            weights=weight_var,
             minlength=self._grid.number_of_cells,
         )
         return var_out
@@ -429,7 +436,8 @@ class GenVeg(Component, PlantGrowth):
         all_plants = []
         for species_obj in self.plant_species:
             array_out = species_obj.species_plants()
-            all_plants.append(np.ravel(array_out))
+            plant_entries = array_out[: species_obj.n_plants]
+            all_plants.append(np.ravel(plant_entries))
 
         all_plants_array = all_plants[0]
         for i in range(1, len(all_plants)):

@@ -174,7 +174,14 @@ class Species(object):
             species_params["morph_params"]["max_height"]
             / species_params["morph_params"]["max_shoot_sys_width"]
         )
-
+        species_params["morph_params"]["min_basal_ratio"] = (
+            species_params["morph_params"]["min_shoot_sys_width"]
+            / species_params["morph_params"]["min_basal_dia"]
+        )
+        species_params["morph_params"]["max_basal_ratio"] = (
+            species_params["morph_params"]["max_shoot_sys_width"]
+            / species_params["morph_params"]["max_basal_dia"]
+        )
         sum_vars = [
             ["max_total_biomass", "plant_part_max", self.all_parts],
             ["max_growth_biomass", "plant_part_max", self.growth_parts],
