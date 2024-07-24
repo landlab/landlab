@@ -27,9 +27,8 @@ class GenVeg(Component, PlantGrowth):
         author = {
             Piercy, C.D.;
             Swannack, T.M.;
-            Carrillo, C.C.;
             Russ, E.R.;
-            Charbonneau, B. M.
+            Catlett, A.R.
     }
     """
     # Add all variables to be saved or chosen as outputs here
@@ -44,7 +43,9 @@ class GenVeg(Component, PlantGrowth):
         },
     }
 
-    def __init__(self, grid, dt, current_day, vegparams):
+    def __init__(
+        self, grid, dt, current_day, vegparams, plant_array=np.empty((0, 19), dtype=[])
+    ):
         # save grid object to class
         super().__init__(grid)
         # Check to see if there are plants on the grid
@@ -88,46 +89,67 @@ class GenVeg(Component, PlantGrowth):
         self.nodes = self._grid.node_at_cell
         _current_jday = self._calc_current_jday()
         rel_time = self._calc_rel_time()
-
-        # Need to modify to allow user to input plant array for hotstarting
-        # Instantiate a PlantGrowth object and
-        # summarize number of plants and biomass per cell
         # Create empty array to store PlantGrowth objects
         plantspecies = []
         _ = self._grid.add_zeros("vegetation__total_biomass", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__n_plants", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__plant_height", at="cell", clobber=True)
         _ = self._grid.add_zeros("vegetation__cell_lai", at="cell", clobber=True)
-        self.species_cover_allocation = []
+        # Instantiate a PlantGrowth object and
+        # summarize number of plants and biomass per cell
+        if plant_array is None:
+            cover_allocation = {}
+            for cell_index in range(self._grid.number_of_cells):
+                species_list = self._grid.at_cell["vegetation__plant_species"][
+                    cell_index
+                ]
+                cell_cover = self._grid.at_cell["vegetation__percent_cover"][cell_index]
+                number_of_species = len(species_list)
+                cover_species = rng.uniform(low=0.5, high=1.0, size=number_of_species)
+                cover_species[species_list == "null"] = 0.0
+                cover_sum = sum(cover_species)
+                species_cover_allocation = cover_species / cover_sum
+                cover_allocation.append(
+                    dict(zip(species_list, (species_cover_allocation * cell_cover)))
+                )
 
-        for cell_index in range(self._grid.number_of_cells):
-            species_list = self._grid.at_cell["vegetation__plant_species"][cell_index]
-            cell_cover = self._grid.at_cell["vegetation__percent_cover"][cell_index]
-            number_of_species = len(species_list)
-            cover_species = rng.uniform(low=0.5, high=1.0, size=number_of_species)
-            cover_species[species_list == "null"] = 0.0
-            cover_sum = sum(cover_species)
-            species_cover_allocation = cover_species / cover_sum
-
-            self.species_cover_allocation.append(
-                dict(zip(species_list, (species_cover_allocation * cell_cover)))
-            )
-
-        # for each species in the parameters file
-        for species in vegparams:
-            if species == "null":
-                continue
-            species_dict = vegparams[species]
-            species_obj = PlantGrowth(
-                self._grid,
-                self.dt,
-                _current_jday,
-                rel_time,
-                species_dict,
-                species_cover=self.species_cover_allocation,
-            )
-            plantspecies.append(species_obj)
-
+            # for each species in the parameters file
+            for species in vegparams:
+                if species == "null":
+                    continue
+                species_dict = vegparams[species]
+                species_obj = PlantGrowth(
+                    self._grid,
+                    self.dt,
+                    _current_jday,
+                    rel_time,
+                    species_dict,
+                    species_cover=cover_allocation[species],
+                )
+                plantspecies.append(species_obj)
+        else:
+            for species in vegparams:
+                plant_array = plant_array[plant_array["species"] == species]
+                species_dict = vegparams[species]
+                species_canopy_area = np.pi / 4 * plant_array["shoot_sys_width"] ** 2
+                species_basal_area = np.pi / 4 * plant_array["basal_width"] ** 2
+                species_abg_area = np.sqrt(species_basal_area * species_canopy_area)
+                species_cover = (
+                    self.calculate_grid_vars(
+                        plant_array["cell_index"], species_abg_area
+                    )
+                    / self._grid.area_of_cell
+                )
+                species_obj = PlantGrowth(
+                    self._grid,
+                    self.dt,
+                    _current_jday,
+                    rel_time,
+                    species_dict,
+                    species_cover=species_cover,
+                    plant_array=plant_array,
+                )
+                plantspecies.append(species_obj)
         self.plant_species = plantspecies
 
         # Summarize biomass and number of plants across grid
@@ -138,34 +160,28 @@ class GenVeg(Component, PlantGrowth):
             + all_plants["stem_biomass"]
         )
         abg_area = np.pi / 4 * all_plants["shoot_sys_width"] ** 2
-        cell_biomass = np.bincount(
-            all_plants["cell_index"],
-            weights=tot_bio_species,
-            minlength=self._grid.number_of_cells,
+        cell_biomass = self.calculate_grid_vars(
+            plant_array["cell_index"], tot_bio_species
         )
-        cell_plant_count = np.bincount(
-            all_plants["cell_index"], minlength=self._grid.number_of_cells
-        )
+        cell_plant_count = self.calculate_grid_vars(all_plants["cell_index"])
+
         frac_cover = (
-            np.bincount(
+            self.calculate_grid_vars(
                 all_plants["cell_index"],
-                weights=abg_area,
-                minlength=self._grid.number_of_cells,
+                abg_area,
             )
             / self._grid.area_of_cell
         )
-        cell_leaf_area = np.bincount(
+        cell_leaf_area = self.calculate_grid_vars(
             all_plants["cell_index"],
-            weights=all_plants["total_leaf_area"],
-            minlength=self._grid.number_of_cells,
+            all_plants["total_leaf_area"],
         )
         plant_height = np.zeros_like(frac_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.where(n_of_plants > 0.0)
-        sum_plant_height = np.bincount(
+        sum_plant_height = self.calculate_grid_vars(
             all_plants["cell_index"],
-            weights=all_plants["shoot_sys_height"],
-            minlength=self._grid.number_of_cells,
+            all_plants["shoot_sys_height"],
         )
         plant_height[cells_with_plants] = (
             sum_plant_height[cells_with_plants] / n_of_plants[cells_with_plants]
@@ -226,6 +242,19 @@ class GenVeg(Component, PlantGrowth):
                         )
                     ),
                 )
+
+    def calculate_grid_vars(self, indices, grid_var=None):
+        obs = ~np.isnan(indices)
+        if grid_var is None:
+            weight_var = grid_var
+        else:
+            weight_var = grid_var[obs]
+        var_out = np.bincount(
+            indices[obs],
+            weights=weight_var,
+            minlength=self._grid.number_of_cells,
+        )
+        return var_out
 
     def get_int_output(self):
         print(self.species_cover_allocation)
@@ -407,7 +436,8 @@ class GenVeg(Component, PlantGrowth):
         all_plants = []
         for species_obj in self.plant_species:
             array_out = species_obj.species_plants()
-            all_plants.append(np.ravel(array_out))
+            plant_entries = array_out[: species_obj.n_plants]
+            all_plants.append(np.ravel(plant_entries))
 
         all_plants_array = all_plants[0]
         for i in range(1, len(all_plants)):

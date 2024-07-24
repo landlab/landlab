@@ -1,5 +1,9 @@
 import pytest
 import numpy as np
+from landlab import RasterModelGrid
+from landlab.components import GenVeg
+
+rng = np.random.default_rng()
 
 
 # Test parameter dictionary
@@ -87,10 +91,12 @@ def example_input_params():
                 "max_root_sys_depth": 0.33,
                 "max_root_sys_width": 0.35,
                 "max_shoot_sys_width": 0.3,
+                "max_basal_dia": 0.1,
                 "min_height": 0.075,
                 "min_root_sys_depth": 0.02,
                 "min_root_sys_width": 0.01,
-                "min_shoot_sys_width": 0.005423267786434878,
+                "min_shoot_sys_width": 0.01,
+                "min_basal_dia": 0.005423267786434878,
                 "sp_leaf_area": 0.0074,
             },
             "mortality_params": {
@@ -157,8 +163,12 @@ def example_plant():
         ("dead_stem", float),
         ("dead_leaf", float),
         ("dead_reproductive", float),
-        ("dead_age", float),
+        ("dead_root_age", float),
+        ("dead_leaf_age", float),
+        ("dead_stem_age", float),
+        ("dead_reproductive_age", float),
         ("shoot_sys_width", float),
+        ("basal_width", float),
         ("root_sys_width", float),
         ("shoot_sys_height", float),
         ("root_sys_depth", float),
@@ -171,7 +181,7 @@ def example_plant():
         ("pup_cost", float),
         ("item_id", int),
     ]
-    plants = np.empty((0, 26), dtype=dtypes)
+    plants = np.empty(1, dtype=dtypes)
     plantlist = []
     plant = "Corn"
     pidval = 0
@@ -184,6 +194,10 @@ def example_plant():
                 plant,
                 pidval,
                 cell_index,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
                 0.0,
                 0.0,
                 0.0,
@@ -222,3 +236,143 @@ def example_plant():
     plants["plant_age"] = np.array([90])
     plants["n_stems"] = np.array([1.0])
     return plants
+
+
+@pytest.fixture
+def example_plant_array():
+    dtypes = [
+        ("species", "U10"),
+        ("pid", int),
+        ("cell_index", int),
+        ("x_loc", float),
+        ("y_loc", float),
+        (("root", "root_biomass"), float),
+        (("leaf", "leaf_biomass"), float),
+        (("stem", "stem_biomass"), float),
+        (("reproductive", "repro_biomass"), float),
+        ("dead_root", float),
+        ("dead_stem", float),
+        ("dead_leaf", float),
+        ("dead_reproductive", float),
+        ("dead_root_age", float),
+        ("dead_leaf_age", float),
+        ("dead_stem_age", float),
+        ("dead_reproductive_age", float),
+        ("shoot_sys_width", float),
+        ("basal_width", float),
+        ("root_sys_width", float),
+        ("shoot_sys_height", float),
+        ("root_sys_depth", float),
+        ("total_leaf_area", float),
+        ("live_leaf_area", float),
+        ("plant_age", float),
+        ("n_stems", int),
+        ("pup_x_loc", float),
+        ("pup_y_loc", float),
+        ("pup_cost", float),
+        ("item_id", int),
+    ]
+    plants = np.empty(100, dtype=dtypes)
+    plantlist = []
+    plant = "Corn"
+    pidval = 0
+    cell_index = 0
+    for i in range(8):
+        pidval = i
+        cell_index = i + 1
+        plantlist.append(
+            (
+                plant,
+                pidval,
+                cell_index,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0,
+                np.nan,
+                np.nan,
+                np.nan,
+                i,
+            )
+        )
+    plants = np.array(plantlist, dtype=dtypes)
+    plants["root"] = np.array([0.05, 0.05, 0.05, 0.05, 7.00, 7.00, 7.00, 7.00])
+    plants["stem"] = np.array([0.05, 7.00, 0.05, 7.00, 0.05, 7.00, 0.05, 7.00])
+    plants["leaf"] = np.array([0.05, 0.05, 7.00, 7.00, 0.05, 0.05, 7.00, 7.00])
+    plants["reproductive"] = np.array([3.5, 3.5, 3.5, 3.5, 3.5, 0.05, 0.05, 0.05])
+    plants["dead_root"] = plants["root"] * 0.25
+    plants["dead_stem"] = plants["stem"] * 0.25
+    plants["dead_leaf"] = plants["leaf"] * 0.25
+    plants["dead_root_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_leaf_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_stem_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_reproductive_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
+    plants["dead_reproductive"] = plants["reproductive"] * 0.25
+    plants["shoot_sys_width"] = rng.uniform(low=0.1, high=3, size=plants.size)
+    plants["root_sys_width"] = rng.uniform(low=0.1, high=1, size=plants.size)
+    plants["shoot_sys_height"] = rng.uniform(low=0.2, high=4, size=plants.size)
+    plants["root_sys_depth"] = rng.uniform(low=0.0, high=2, size=plants.size)
+    plants["total_leaf_area"] = rng.uniform(low=0.1, high=3, size=plants.size)
+    plants["live_leaf_area"] = rng.uniform(low=0.1, high=1, size=plants.size)
+    plants["plant_age"] = rng.uniform(low=1 / 365, high=5, size=plants.size)
+    plants["n_stems"] = rng.integers(1, 6, size=plants.size)
+    plants["pup_x_loc"][plants["reproductive"] > 0.1] = 0.0
+    plants["pup_y_loc"][plants["reproductive"] > 0.1] = 0.0
+    plants["pup_cost"][plants["reproductive"] > 0.1] = 0.75
+    plants["item_id"] = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+    return plants
+
+
+@pytest.fixture
+def one_cell_grid():
+    # Create grid with one cell containing min max temp, par, location, species
+    grid = RasterModelGrid((3, 3), 2, xy_of_reference=(-74.08, 39.79))
+    grid.axis_units = ("m", "m")
+    maxtemp = np.array([15.53])
+    mintemp = np.array([8.62])
+    NJ_avg_par = np.array([118.11])
+
+    # Initialize with a dummy data sets
+    _ = grid.add_field(
+        "air__max_temperature_C",
+        maxtemp * np.ones(grid.number_of_cells),
+        at="cell",
+        units="C",
+    )
+    _ = grid.add_field(
+        "air__min_temperature_C",
+        mintemp * np.ones(grid.number_of_cells),
+        at="cell",
+        units="C",
+    )
+    _ = grid.add_field(
+        "radiation__par_tot",
+        NJ_avg_par * np.ones(grid.number_of_cells),
+        at="cell",
+        units="W/m^2",
+    )
+    _ = grid.add_field(
+        "vegetation__plant_species",
+        np.full(grid.number_of_cells, "Corn"),
+        at="cell",
+    )
+    return grid
