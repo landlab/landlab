@@ -142,7 +142,6 @@ class SnowDegreeDay(Component):
         self._grid_area = grid.dx * grid.dy
         self._vol_sm = 0  # snowpack__domain_time_integral_of_melt_volume_flux
         self._vol_swe = 0  # snowpack__domain_integral_of_liquid-equivalent_depth
-        self._p_snow = np.zeros(grid.number_of_nodes)
         # change for landlab
         self._total_p_snow = np.zeros(grid.number_of_nodes)  # add new variable
         self._total_sm = np.zeros(grid.number_of_nodes)  # add new variable
@@ -238,10 +237,20 @@ class SnowDegreeDay(Component):
         return self._rho_water / self._rho_snow
 
     @staticmethod
-    def _update_p_snow(p, t_air, t_rain_snow):
-        update_p_snow = p * (t_air <= t_rain_snow)
+    def calc_precip_snow(precip_rate, air_temp, t_rain_snow):
+        """Calculate snow precipitation.
 
-        return update_p_snow
+        Parameters
+        ----------
+        p : array-like
+            Precipitation rate [m/s].
+        air_temp : array-like
+            Air temperature [degC].
+        t_rain_snow : float
+            Temperature threshold below which precipitation falls as
+            snow [degC].
+        """
+        return np.asarray(precip_rate) * (np.asarray(air_temp) <= t_rain_snow)
 
     @staticmethod
     def _update_snowmelt_rate(dt, c0, t0, t_air, h_swe, units_convert=86400000.0):
@@ -305,18 +314,21 @@ class SnowDegreeDay(Component):
     def run_one_step(self, dt):
         # update input fields in case there is new input
         air_temp = self._grid.at_node["atmosphere_bottom_air__temperature"]
-        precip_rate = self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
 
         # update state variables
-        self._p_snow = self._update_p_snow(precip_rate, air_temp, self._t_rain_snow)
+        precip_snow = SnowDegreeDay.calc_precip_snow(
+            self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
+            air_temp,
+            self._t_rain_snow,
+        )
         self._sm[:] = self._update_snowmelt_rate(
             dt, self._c0, self._t0, air_temp, self._h_swe
         )
-        self._h_swe[:] = self._update_swe(dt, self._p_snow, self._h_swe, self._sm)
+        self._h_swe[:] = self._update_swe(dt, precip_snow, self._h_swe, self._sm)
         self._h_snow[:] = self._update_snow_depth(self._h_swe, self.density_ratio)
         # add for landlab (new method)
         self._total_p_snow[:] = self._update_total_p_snow(
-            dt, self._p_snow, self._total_p_snow
+            dt, precip_snow, self._total_p_snow
         )
         # add for landlab (new method)
         self._total_sm[:] = self._update_total_snowmelt(dt, self._sm, self._total_sm)
