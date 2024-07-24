@@ -186,29 +186,12 @@ def test_multiple_runs():
     assert_almost_equal(in_out, store, err_msg="Error for mass balance", decimal=11)
 
 
-def test_update_p_snow():
-    grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", -3, at="node")
-    grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 1, at="node")
-    sm = SnowDegreeDay(grid)
-
-    # prec as snow
-    p_snow = sm._update_p_snow(
-        p=grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
-        t_air=grid.at_node["atmosphere_bottom_air__temperature"],
-        t_rain_snow=1,
-    )
-
-    assert np.all(p_snow == 1)
-
-    # prec as rain
-    p_snow = sm._update_p_snow(
-        p=grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
-        t_air=grid.at_node["atmosphere_bottom_air__temperature"] * -1,
-        t_rain_snow=1,
-    )
-
-    assert np.all(p_snow == 0)
+@pytest.mark.parametrize(
+    "precip", (1.0, [2.0], [1.0, 2.0, 3.0], [[1.0, 2.0], [4.0, 5.0]])
+)
+def test_calc_p_snow(precip):
+    assert_almost_equal(SnowDegreeDay.calc_precip_snow(precip, -3.0, 1.0), precip)
+    assert_almost_equal(SnowDegreeDay.calc_precip_snow(precip, 3.0, 1.0), 0.0)
 
 
 def test_update_snowmelt_rate():
