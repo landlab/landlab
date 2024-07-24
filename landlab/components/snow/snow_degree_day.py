@@ -3,11 +3,11 @@
 This component simulates snowmelt process using the degree-day method.
 The code is implemented based on the TopoFlow snow component (by Scott D. Packham)
 with some adjustments.
-https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_degree_day.py
-https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base.py
+
+* https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_degree_day.py
+* https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base.py
 
 @author: Tian Gan June 2024
-
 """
 
 import numpy as np
@@ -18,41 +18,43 @@ from landlab import Component
 class SnowDegreeDay(Component):
     """Simulate snowmelt process using degree-day method.
 
-      The degree-day method uses c0 (degree-day coefficient),
-      t0 (degree-day threshold temperature) and t_air (air temperature)
-      to determine the snow melt rate.
-      When t_air is larger than t0, the melt process will start.
-      The melt rate is calculated as sm = (t_air -t0) * c0.
-      (e.g., units for c0 and sm could be mm day-1 K-1 and mm day-1 respectively.)
+    The degree-day method uses c0 (degree-day coefficient),
+    t0 (degree-day threshold temperature) and t_air (air temperature)
+    to determine the snow melt rate.
+    When t_air is larger than t0, the melt process will start.
+    The melt rate is calculated as sm = (t_air -t0) * c0.
+    (e.g., units for c0 and sm could be mm day-1 K-1 and mm day-1 respectively.)
 
     Parameters
     ----------
     grid : ModelGrid
         A Landlab model grid object
     c0: float, optional
-        degree-day coefficient (units: mm day-1 K-1)
+        Degree-day coefficient [mm / day / K].
     t0: float, optional
-        degree-day threshold temperature (units: deg_C)
+        Degree-day threshold temperature [deg_C].
     rho_water : float, optinal
-        water density (units: kg/m3)
+        Water density [kg / m3].
     t_rain_snow : float, optional
-        temperature threshold for precipitation accurs as rain and snow with
-        equal frequency (units: deg_C)
+        Temperature threshold for precipitation accurs as rain and snow with
+        equal frequency [deg_C].
 
     Examples
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.snow import SnowDegreeDay
-    >>> grid = RasterModelGrid((2, 2), xy_spacing=(1, 1))
+
+    >>> grid = RasterModelGrid((2, 2))
     >>> grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
     array([2., 2., 2., 2.])
     >>> grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
     array([0.,  0.,  0.,  0.])
     >>> grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
     array([0.005,  0.005,  0.005,  0.005])
+
     >>> sm = SnowDegreeDay(grid, c0=3)
-    >>> sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    >>> sm.run_one_step(8.64e4)  # 1 day in sec
     >>> grid.at_node["snowpack__melt_volume_flux"]
     array([5.78703704e-08,   5.78703704e-08,   5.78703704e-08,
          5.78703704e-08])
