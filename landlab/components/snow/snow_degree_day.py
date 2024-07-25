@@ -144,18 +144,16 @@ class SnowDegreeDay(Component):
         # calculated vars
         self._grid_area = grid.dx * grid.dy
         self._vol_sm = 0  # snowpack__domain_time_integral_of_melt_volume_flux
-        self._vol_swe = 0  # snowpack__domain_integral_of_liquid-equivalent_depth
         # change for landlab
         self._total_p_snow = np.zeros(grid.number_of_nodes)  # add new variable
         self._total_sm = np.zeros(grid.number_of_nodes)  # add new variable
 
         if "snowpack__liquid-equivalent_depth" in grid.at_node:
             self._h_swe = grid.at_node["snowpack__liquid-equivalent_depth"]
-            self._vol_swe = self._update_total_snowpack_water_volume(
-                self._h_swe, self._grid_area
-            )
+            self._vol_swe = np.sum(self._h_swe * self._grid_area)
         else:
             self._h_swe = grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
+            self._vol_swe = 0.0  # snowpack__domain_integral_of_liquid-equivalent_depth
 
         if "snowpack__z_mean_of_mass-per-volume_density" in grid.at_node:
             self._rho_snow = grid.at_node["snowpack__z_mean_of_mass-per-volume_density"]
@@ -322,31 +320,6 @@ class SnowDegreeDay(Component):
         """
         return np.multiply(h_swe, density_ratio, out=out)
 
-    @staticmethod
-    def _update_total_p_snow(dt, p_snow, total_p_snow):  # add for landlab (new method)
-        update_total_p_snow = total_p_snow + p_snow * dt
-
-        return update_total_p_snow
-
-    @staticmethod
-    def _update_total_snowmelt(dt, sm, total_sm):  # add for landlab (new method)
-        update_total_sm = total_sm + sm * dt
-
-        return update_total_sm
-
-    @staticmethod
-    def _update_sm_integral(total_sm, grid_area):
-        update_vol_sm = np.sum(total_sm * grid_area)
-
-        return update_vol_sm
-
-    @staticmethod
-    def _update_total_snowpack_water_volume(h_swe, grid_area):
-        volume = h_swe * grid_area
-        update_vol_swe = np.sum(volume)
-
-        return update_vol_swe
-
     def run_one_step(self, dt):
         """Run component for a time step.
 
@@ -355,18 +328,15 @@ class SnowDegreeDay(Component):
         dt : float
             Duration to run the component for [s].
         """
-        # update input fields in case there is new input
-        air_temp = self._grid.at_node["atmosphere_bottom_air__temperature"]
-
         # update state variables
         precip_snow = SnowDegreeDay.calc_precip_snow(
             self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
-            air_temp,
+            self._grid.at_node["atmosphere_bottom_air__temperature"],
             self._t_rain_snow,
         )
 
         SnowDegreeDay.calc_snow_melt_rate(
-            air_temp,
+            self._grid.at_node["atmosphere_bottom_air__temperature"],
             self._c0,
             self._t0,
             out=self.grid.at_node["snowpack__melt_volume_flux"],
@@ -387,15 +357,7 @@ class SnowDegreeDay(Component):
         )
         SnowDegreeDay.calc_snow_depth(self._h_swe, self.density_ratio, out=self._h_snow)
 
-        # add for landlab (new method)
-        self._total_p_snow[:] = self._update_total_p_snow(
-            dt, precip_snow, self._total_p_snow
-        )
-        # add for landlab (new method)
-        self._total_sm[:] = self._update_total_snowmelt(dt, self._sm, self._total_sm)
-        # after update_total_snowmelt()
-        self._vol_sm = self._update_sm_integral(self._total_sm, self._grid_area)
-        # after update_swe()
-        self._vol_swe = self._update_total_snowpack_water_volume(
-            self._h_swe, self._grid_area
-        )
+        self._total_p_snow += precip_snow * dt
+        self._total_sm += self.grid.at_node["snowpack__melt_volume_flux"] * dt
+        self._vol_sm = np.sum(self._total_sm * self._grid_area)
+        self._vol_swe = np.sum(self._h_swe * self._grid_area)
