@@ -136,16 +136,11 @@ class SnowDegreeDay(Component):
         super().__init__(grid)
 
         self.c0 = c0
-        self._t0 = t0
-        self._rho_water = rho_water
-        self._t_rain_snow = t_rain_snow
+        self.t0 = t0
+        self.rho_water = rho_water
+        self.t_rain_snow = t_rain_snow
 
-        # calculated vars
         self._grid_area = grid.dx * grid.dy
-        self._vol_sm = 0  # snowpack__domain_time_integral_of_melt_volume_flux
-        # change for landlab
-        self._total_p_snow = np.zeros(grid.number_of_nodes)  # add new variable
-        self._total_sm = np.zeros(grid.number_of_nodes)  # add new variable
 
         if "snowpack__z_mean_of_mass-per-volume_density" not in grid.at_node:
             grid.add_full(
@@ -155,11 +150,13 @@ class SnowDegreeDay(Component):
         if "snowpack__liquid-equivalent_depth" not in grid.at_node:
             grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
 
-        self._vol_swe = np.sum(
-            grid.at_node["snowpack__liquid-equivalent_depth"] * self._grid_area
+        self._vol_swe = (
+            np.sum(grid.at_node["snowpack__liquid-equivalent_depth"]) * self._grid_area
         )
+        self._vol_sm = 0  # snowpack__domain_time_integral_of_melt_volume_flux
+        self._total_p_snow = grid.zeros(at="node")
+        self._total_sm = grid.zeros(at="node")
 
-        # output data fields
         super().initialize_output_fields()
 
         SnowDegreeDay.calc_snow_depth(
