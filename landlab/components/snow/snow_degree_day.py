@@ -299,14 +299,28 @@ class SnowDegreeDay(Component):
         array-like
             New snow water equivalent [m].
         """
-        out = np.add(swe, (precip_rate - melt_rate) * dt, out=out)
+        out = np.add(
+            swe, (np.asarray(precip_rate) - np.asarray(melt_rate)) * dt, out=out
+        )
         return out.clip(min=0.0, max=None, out=out)
 
     @staticmethod
-    def _update_snow_depth(h_swe, density_ratio):
-        update_h_snow = h_swe * density_ratio
+    def calc_snow_depth(h_swe, density_ratio, out=None):
+        """Calculate snow depth from snow water equivalent.
 
-        return update_h_snow
+        Parameters
+        ----------
+        h_swe : array-like
+            Snow water equivalent [m].
+        density_ratio : array-like
+            Density ratio of water to snow [-].
+
+        Returns
+        -------
+        array-like
+            Snow depth [m].
+        """
+        return np.multiply(h_swe, density_ratio, out=out)
 
     @staticmethod
     def _update_total_p_snow(dt, p_snow, total_p_snow):  # add for landlab (new method)
@@ -371,8 +385,8 @@ class SnowDegreeDay(Component):
             dt=dt,
             out=self._h_swe,
         )
+        SnowDegreeDay.calc_snow_depth(self._h_swe, self.density_ratio, out=self._h_snow)
 
-        self._h_snow[:] = self._update_snow_depth(self._h_swe, self.density_ratio)
         # add for landlab (new method)
         self._total_p_snow[:] = self._update_total_p_snow(
             dt, precip_snow, self._total_p_snow

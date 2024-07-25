@@ -209,33 +209,15 @@ def test_calc_snow_melt_rate(c0):
 
 
 def test_update_swe():
-    grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
-    grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 1, at="node")
-    sm = SnowDegreeDay(grid)
+    h_swe = np.full(4, 0.01)
+    sm_rate = np.full(4, 0.001)
+    p_snow = np.full(4, 0.003)
 
-    h_swe = np.full(grid.number_of_nodes, 0.01)
-    sm_rate = np.full(grid.number_of_nodes, 0.001)
-    p_snow = np.full(grid.number_of_nodes, 0.003)
-
-    SnowDegreeDay.calc_swe(
-        p_snow,
-        sm_rate,
-        h_swe,
-        dt=5.0,
-        out=h_swe,
-    )
+    SnowDegreeDay.calc_swe(p_snow, sm_rate, h_swe, dt=5.0, out=h_swe)
 
     assert np.all(h_swe == 0.02)
 
 
 def test_update_snow_depth():
-    grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
-    grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 1, at="node")
-    sm = SnowDegreeDay(grid)
-
-    h_swe = np.full(grid.number_of_nodes, 0.01)
-
-    h_snow = sm._update_snow_depth(h_swe=h_swe, density_ratio=2)
+    h_snow = SnowDegreeDay.calc_snow_depth([0.01, 0.01, 0.01], 2.0)
     assert np.all(h_snow == 0.02)
