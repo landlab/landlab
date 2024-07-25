@@ -1,8 +1,8 @@
 """Landlab component that simulates snowpack dynamics.
 
 This component simulates snowmelt process using the degree-day method.
-The code is implemented based on the TopoFlow snow component (by Scott D. Packham)
-with some adjustments.
+The code is implemented based on the TopoFlow snow component (by Scott
+D. Packham) with some adjustments.
 
 * https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_degree_day.py
 * https://github.com/peckhams/topoflow36/blob/master/topoflow/components/snow_base.py
@@ -14,31 +14,35 @@ import numpy as np
 
 from landlab import Component
 
-SECONDS_PER_DAY = 86400.0
-MM_PER_M = 1000.0
+_SECONDS_PER_DAY = 86400.0
+_MM_PER_M = 1000.0
 
 
 class SnowDegreeDay(Component):
-    """Simulate snowmelt process using degree-day method.
+    """Simulate snowmelt using the degree-day method.
 
-    The degree-day method uses c0 (degree-day coefficient),
-    t0 (degree-day threshold temperature) and t_air (air temperature)
-    to determine the snow melt rate.
-    When t_air is larger than t0, the melt process will start.
-    The melt rate is calculated as sm = (t_air - t0) * c0.
-    (e.g., units for c0 and sm could be mm day-1 K-1 and mm day-1 respectively.)
+    The degree-day method uses the degree-day coefficient, `c0`,
+    the degree-day threshold temperature, `threshold_temp`, and
+    air temperature, to determine the snow melt rate. When the
+    air temperature is larger than the threshold temperature,
+    the melt process will start. Melt rate calculated as::
+
+        melt_rate = (air_temp - threshold_temp) * c0.
+
+    Units of `c0` are **L / θ / T** (typically, **mm / deg_C / day**),
+    so melt rate has units of **L / T**.
 
     Parameters
     ----------
     grid : ModelGrid
         A Landlab model grid object
     c0: float, optional
-        Degree-day coefficient [mm / day / K].
-    t0: float, optional
+        Degree-day coefficient [mm / day / deg_C].
+    threshold_temp : float, optional
         Degree-day threshold temperature [deg_C].
     rho_water : float, optinal
         Water density [kg / m3].
-    t_rain_snow : float, optional
+    rain_snow_temp : float, optional
         Temperature threshold for precipitation accurs as rain and snow with
         equal frequency [deg_C].
 
@@ -49,28 +53,24 @@ class SnowDegreeDay(Component):
     >>> from landlab.components.snow import SnowDegreeDay
 
     >>> grid = RasterModelGrid((2, 2))
-    >>> grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
-    array([2., 2., 2., 2.])
-    >>> grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
-    array([0.,  0.,  0.,  0.])
-    >>> grid.add_full("snowpack__liquid-equivalent_depth", 0.005)  # m
-    array([0.005,  0.005,  0.005,  0.005])
 
-    >>> sm = SnowDegreeDay(grid, c0=3)
+    >>> grid.add_zeros("atmosphere_water__precipitation_leq-volume_flux", at="node")
+    array([0., 0., 0., 0.])
+    >>> grid.at_node["atmosphere_bottom_air__temperature"] = [2.0, 2.0, 1.0, -1.0]
+    >>> grid.at_node["snowpack__liquid-equivalent_depth"] = [0.005, 0.01, 0.005, 0.005]
+
+    >>> sm = SnowDegreeDay(grid, c0=3.0, threshold_temp=0.0)
     >>> sm.run_one_step(8.64e4)  # 1 day in sec
-    >>> grid.at_node["snowpack__melt_volume_flux"]
-    array([5.78703704e-08,   5.78703704e-08,   5.78703704e-08,
-         5.78703704e-08])
+
+    >>> grid.at_node["snowpack__melt_volume_flux"] * 86400.0
+    array([0.006, 0.006, 0.003, 0.   ])
     >>> grid.at_node["snowpack__liquid-equivalent_depth"]
-    array([0.,  0.,  0.,  0.])
-    >>> sm.vol_sm
-    0.02
-    >>> sm.vol_swe
-    0.0
+    array([0.   , 0.004, 0.002, 0.005])
+
     >>> sm.total_p_snow
-    array([0.,  0.,  0.,  0.])
-    >>> sm.total_sm
-    array([0.005,  0.005,  0.005,  0.005])
+    array([0., 0., 0., 0.])
+    >>> sm.total_snow_melt_at_node
+    array([0.005, 0.006, 0.003, 0.   ])
     """
 
     _name = "SnowDegreeDay"
@@ -130,15 +130,17 @@ class SnowDegreeDay(Component):
         },  # sm
     }
 
-    def __init__(self, grid, c0=2, t0=0, rho_water=1000, t_rain_snow=1):
+    def __init__(
+        self, grid, c0=2, threshold_temp=0.0, rho_water=1000.0, rain_snow_temp=1.0
+    ):
         """Initialize SnowDegreeDay component."""
 
         super().__init__(grid)
 
         self.c0 = c0
-        self.t0 = t0
+        self.t0 = threshold_temp
         self.rho_water = rho_water
-        self.t_rain_snow = t_rain_snow
+        self.t_rain_snow = rain_snow_temp
 
         self._grid_area = grid.dx * grid.dy
 
@@ -150,10 +152,6 @@ class SnowDegreeDay(Component):
         if "snowpack__liquid-equivalent_depth" not in grid.at_node:
             grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
 
-        self._vol_swe = (
-            np.sum(grid.at_node["snowpack__liquid-equivalent_depth"]) * self._grid_area
-        )
-        self._vol_sm = 0  # snowpack__domain_time_integral_of_melt_volume_flux
         self._total_p_snow = grid.zeros(at="node")
         self._total_sm = grid.zeros(at="node")
 
@@ -173,7 +171,7 @@ class SnowDegreeDay(Component):
     def c0(self, c0):
         if np.any(c0 < 0):
             raise ValueError("degree-day coefficent must be positive")
-        self._c0 = c0 / (SECONDS_PER_DAY * MM_PER_M)
+        self._c0 = c0 / (_SECONDS_PER_DAY * _MM_PER_M)
 
     @property
     def t0(self):
@@ -214,22 +212,12 @@ class SnowDegreeDay(Component):
         return self._total_p_snow
 
     @property
-    def total_sm(self):
-        """accumulative snow melt (in water equivalent) over the
-        model time (units: m)."""
+    def total_snow_melt_at_node(self):
+        """Accumulated snow melt over the model time.
+
+        Snow melt is given in water equivalent [m].
+        """
         return self._total_sm
-
-    @property
-    def vol_sm(self):
-        """Total volume of snow melt (in water equivalent) for the domain and
-        over the model time (units: m^3)."""
-        return self._vol_sm
-
-    @property
-    def vol_swe(self):
-        """Total volume of snow water equivalent for the domain and
-        over the model time (units: m^3)."""
-        return self._vol_swe
 
     @property
     def density_ratio(self):
@@ -240,20 +228,20 @@ class SnowDegreeDay(Component):
         )
 
     @staticmethod
-    def calc_precip_snow(precip_rate, air_temp, t_rain_snow):
+    def calc_precip_snow(precip_rate, air_temp, rain_snow_temp):
         """Calculate snow precipitation.
 
         Parameters
         ----------
-        p : array-like
+        p : array_like
             Precipitation rate [m/s].
-        air_temp : array-like
-            Air temperature [degC].
-        t_rain_snow : float
+        air_temp : array_like
+            Air temperature [deg_C].
+        rain_snow_temp : float
             Temperature threshold below which precipitation falls as
-            snow [degC].
+            snow [deg_C].
         """
-        return np.asarray(precip_rate) * (np.asarray(air_temp) <= t_rain_snow)
+        return np.asarray(precip_rate) * (np.asarray(air_temp) <= rain_snow_temp)
 
     @staticmethod
     def calc_snow_melt_rate(air_temp, c0, threshold_temp, out=None):
@@ -261,16 +249,16 @@ class SnowDegreeDay(Component):
 
         Parameters
         ----------
-        air_temp : array-like
-            Air temperature [degC].
+        air_temp : array_like
+            Air temperature [deg_C].
         c0 : float
-            Degree-day coefficient [m / s / degC].
+            Degree-day coefficient [m / s / deg_C].
         threshold_temp : float
-            Threshold temperatue above which melt occures [degC].
+            Threshold temperatue above which melt occures [deg_C].
 
         Returns
         -------
-        array-like
+        array_like
             Melt rate [m / s]
         """
         c0 = np.asarray(c0)
@@ -284,18 +272,18 @@ class SnowDegreeDay(Component):
 
         Parameters
         ----------
-        precip_rate : array-like
+        precip_rate : array_like
             Precipitation rate [m/s].
-        melt_rate : array-like
+        melt_rate : array_like
             Melt rate [m/s].
-        swe : array-like
+        swe : array_like
             Snow water equivalent [m].
         dt : float, optional
             Time step [s].
 
         Returns
         -------
-        array-like
+        array_like
             New snow water equivalent [m].
         """
         out = np.add(
@@ -309,14 +297,14 @@ class SnowDegreeDay(Component):
 
         Parameters
         ----------
-        h_swe : array-like
+        h_swe : array_like
             Snow water equivalent [m].
-        density_ratio : array-like
+        density_ratio : array_like
             Density ratio of water to snow [-].
 
         Returns
         -------
-        array-like
+        array_like
             Snow depth [m].
         """
         return np.multiply(h_swe, density_ratio, out=out)
@@ -329,8 +317,10 @@ class SnowDegreeDay(Component):
         dt : float
             Duration to run the component for [s].
         """
+        initial_swe = self.grid.at_node["snowpack__liquid-equivalent_depth"].copy()
+
         # update state variables
-        precip_snow = SnowDegreeDay.calc_precip_snow(
+        precip_rate = SnowDegreeDay.calc_precip_snow(
             self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
             self._grid.at_node["atmosphere_bottom_air__temperature"],
             self._t_rain_snow,
@@ -342,15 +332,9 @@ class SnowDegreeDay(Component):
             self._t0,
             out=self.grid.at_node["snowpack__melt_volume_flux"],
         )
-        np.clip(
-            self.grid.at_node["snowpack__melt_volume_flux"],
-            a_min=None,
-            a_max=self.grid.at_node["snowpack__liquid-equivalent_depth"] / dt,
-            out=self.grid.at_node["snowpack__melt_volume_flux"],
-        )
 
         SnowDegreeDay.calc_swe(
-            precip_snow,
+            precip_rate,
             self.grid.at_node["snowpack__melt_volume_flux"],
             self.grid.at_node["snowpack__liquid-equivalent_depth"],
             dt=dt,
@@ -362,9 +346,8 @@ class SnowDegreeDay(Component):
             out=self.grid.at_node["snowpack__depth"],
         )
 
-        self._total_p_snow += precip_snow * dt
-        self._total_sm += self.grid.at_node["snowpack__melt_volume_flux"] * dt
-        self._vol_sm = np.sum(self._total_sm * self._grid_area)
-        self._vol_swe = np.sum(
-            self.grid.at_node["snowpack__liquid-equivalent_depth"] * self._grid_area
+        self._total_p_snow += precip_rate * dt
+        self._total_sm += np.minimum(
+            self.grid.at_node["snowpack__melt_volume_flux"] * dt,
+            initial_swe + precip_rate * dt,
         )
