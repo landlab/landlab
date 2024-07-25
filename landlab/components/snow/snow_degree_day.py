@@ -280,18 +280,27 @@ class SnowDegreeDay(Component):
         return np.clip(c0 * (air_temp - threshold_temp), a_min=0.0, a_max=None, out=out)
 
     @staticmethod
-    def _update_swe(dt, p_snow, h_swe, sm):
-        # increase due to precipitation as snow
-        swe_in = p_snow * dt
+    def calc_swe(precip_rate, melt_rate, swe, dt=1.0, out=None):
+        """Calculate snow water equivalent.
 
-        # decrease due to melt
-        swe_out = sm * dt
+        Parameters
+        ----------
+        precip_rate : array-like
+            Precipitation rate [m/s].
+        melt_rate : array-like
+            Melt rate [m/s].
+        swe : array-like
+            Snow water equivalent [m].
+        dt : float, optional
+            Time step [s].
 
-        # get update h_swe
-        update_h_swe = h_swe - swe_out + swe_in
-        update_h_swe[update_h_swe < 0] = 0
-
-        return update_h_swe
+        Returns
+        -------
+        array-like
+            New snow water equivalent [m].
+        """
+        out = np.add(swe, (precip_rate - melt_rate) * dt, out=out)
+        return out.clip(min=0.0, max=None, out=out)
 
     @staticmethod
     def _update_snow_depth(h_swe, density_ratio):
@@ -355,7 +364,14 @@ class SnowDegreeDay(Component):
             out=self.grid.at_node["snowpack__melt_volume_flux"],
         )
 
-        self._h_swe[:] = self._update_swe(dt, precip_snow, self._h_swe, self._sm)
+        SnowDegreeDay.calc_swe(
+            precip_snow,
+            self.grid.at_node["snowpack__melt_volume_flux"],
+            self._h_swe,
+            dt=dt,
+            out=self._h_swe,
+        )
+
         self._h_snow[:] = self._update_snow_depth(self._h_swe, self.density_ratio)
         # add for landlab (new method)
         self._total_p_snow[:] = self._update_total_p_snow(
