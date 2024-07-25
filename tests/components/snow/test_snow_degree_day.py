@@ -12,6 +12,9 @@ from landlab import RasterModelGrid
 from landlab.components.snow import SnowDegreeDay
 
 
+SECONDS_PER_DAY = 86400.0
+
+
 def test_create_fields():
     """check to make sure the right fields are created"""
 
@@ -37,7 +40,7 @@ def test_assign_parameters():
     assert sm.rho_water == 1001, "wrong rho_water value"
     assert sm.t_rain_snow == 1.1, "wrong t_rain_snow value"
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         sm.c0 = -1
     with pytest.raises(AssertionError):
         sm.rho_water = -1
@@ -60,7 +63,7 @@ def test_snow_accumulation():
     assert sm.vol_sm == 0, f"wrong vol_SM value is {sm.vol_sm}"
     assert sm.vol_swe == 0.4, f"wrong vol_swe value is {sm.vol_swe}"
 
-    sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    sm.run_one_step(SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.01)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
     assert_almost_equal(sm.total_p_snow, 0.001)
@@ -79,12 +82,12 @@ def test_snow_melt():
     grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
 
     sm = SnowDegreeDay(grid, c0=3)
-    sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    sm.run_one_step(dt=SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0)
     assert_almost_equal(grid.at_node["snowpack__depth"], 0)
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"],
-        0.005 / np.float64(8.64e4),
+        0.005 / SECONDS_PER_DAY,
         decimal=11,
     )
     assert_almost_equal(sm.total_p_snow, 0)
@@ -134,12 +137,12 @@ def test_multiple_runs():
     init_swe = grid.at_node["snowpack__liquid-equivalent_depth"].copy()
     sm = SnowDegreeDay(grid)
 
-    sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    sm.run_one_step(SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.003)
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.015)
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"],
-        0.002 / np.float64(8.64e4),
+        0.002 / SECONDS_PER_DAY,
         decimal=11,
     )
     assert_almost_equal(sm.total_p_snow, 0)
@@ -148,11 +151,11 @@ def test_multiple_runs():
     # step2: change t_air and p for snow accumulation
     grid.at_node["atmosphere_bottom_air__temperature"].fill(-3)
     grid.at_node["atmosphere_water__precipitation_leq-volume_flux"].fill(
-        0.002 / np.float64(8.64e4)
+        0.002 / SECONDS_PER_DAY
     )
     grid.at_node["snowpack__z_mean_of_mass-per-volume_density"].fill(500)
 
-    sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    sm.run_one_step(SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.005)
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.01)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
@@ -164,12 +167,12 @@ def test_multiple_runs():
     sm.c0 = 1
     sm.t0 = 0.5
 
-    sm.run_one_step(np.float64(8.64e4))  # 1 day in sec
+    sm.run_one_step(SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.0065)
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.013)
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"],
-        (0.5 / 1000) / np.float64(8.64e4),
+        (0.5 / 1000) / SECONDS_PER_DAY,
         decimal=11,
     )
     assert_almost_equal(sm.total_p_snow, 0.004)
@@ -194,24 +197,15 @@ def test_calc_p_snow(precip):
     assert_almost_equal(SnowDegreeDay.calc_precip_snow(precip, 3.0, 1.0), 0.0)
 
 
-def test_update_snowmelt_rate():
-    grid = RasterModelGrid((2, 2))
-    grid.add_full("atmosphere_bottom_air__temperature", 2, at="node")
-    grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 1, at="node")
-    sm = SnowDegreeDay(grid)
+@pytest.mark.parametrize(
+    "c0", (3.0, [3.0], [3.0, 3.0, 3.0], [[3.0, 3.0], [3.0, 3.0]])
+)
+def test_calc_snow_melt_rate(c0):
+    snow_melt_rate = SnowDegreeDay.calc_snow_melt_rate(2.0, c0, 0.0)
+    assert np.allclose(snow_melt_rate, 6.0)
 
-    h_swe = np.full(grid.number_of_nodes, 0)
-    t_air = grid.at_node["atmosphere_bottom_air__temperature"]
-
-    # no snow
-    sm_rate = sm._update_snowmelt_rate(dt=8.64e4, c0=3, t0=0, t_air=t_air, h_swe=h_swe)
-    assert np.all(sm_rate == 0)
-
-    # snow available for melt
-    sm_rate = sm._update_snowmelt_rate(
-        dt=8.64e4, c0=3, t0=0, t_air=t_air, h_swe=h_swe + 0.01
-    )
-    assert np.all(sm_rate == (3 / 8.64e7) * 2)
+    snow_melt_rate = SnowDegreeDay.calc_snow_melt_rate(-2.0, c0, 0.0)
+    assert np.allclose(snow_melt_rate, 0.0)
 
 
 def test_update_swe():

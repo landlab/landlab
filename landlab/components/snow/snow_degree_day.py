@@ -15,6 +15,10 @@ import numpy as np
 from landlab import Component
 
 
+SECONDS_PER_DAY = 86400.0
+MM_PER_M = 1000.0
+
+
 class SnowDegreeDay(Component):
     """Simulate snowmelt process using degree-day method.
 
@@ -22,7 +26,7 @@ class SnowDegreeDay(Component):
     t0 (degree-day threshold temperature) and t_air (air temperature)
     to determine the snow melt rate.
     When t_air is larger than t0, the melt process will start.
-    The melt rate is calculated as sm = (t_air -t0) * c0.
+    The melt rate is calculated as sm = (t_air - t0) * c0.
     (e.g., units for c0 and sm could be mm day-1 K-1 and mm day-1 respectively.)
 
     Parameters
@@ -128,11 +132,10 @@ class SnowDegreeDay(Component):
     }
 
     def __init__(self, grid, c0=2, t0=0, rho_water=1000, t_rain_snow=1):
-        """Initialize SnowDegreeDay component"""
+        """Initialize SnowDegreeDay component."""
 
         super().__init__(grid)
 
-        # parameters
         self.c0 = c0
         self._t0 = t0
         self._rho_water = rho_water
@@ -173,8 +176,9 @@ class SnowDegreeDay(Component):
 
     @c0.setter
     def c0(self, c0):
-        assert np.any(c0 > 0), "assign c0 with positive value"
-        self._c0 = c0
+        if np.any(c0 < 0):
+            raise ValueError("degree-day coefficent must be positive")
+        self._c0 = c0 / (SECONDS_PER_DAY * MM_PER_M)
 
     @property
     def t0(self):
@@ -253,18 +257,27 @@ class SnowDegreeDay(Component):
         return np.asarray(precip_rate) * (np.asarray(air_temp) <= t_rain_snow)
 
     @staticmethod
-    def _update_snowmelt_rate(dt, c0, t0, t_air, h_swe, units_convert=86400000.0):
-        # melt rate based on degree-day coefficient
-        sm_c0 = (c0 / units_convert) * (t_air - t0)  # convert mm -day -K to  m/s
-        sm_c0 = np.maximum(sm_c0, 0)
+    def calc_snow_melt_rate(air_temp, c0, threshold_temp, out=None):
+        """Calculate snow melt rate.
 
-        # melt rate based on available swe (enforced max meltrate)
-        sm_max = h_swe / dt  # original code use self._h_snow (line 526)
+        Parameters
+        ----------
+        air_temp : array-like
+            Air temperature [degC].
+        c0 : float
+            Degree-day coefficient [m / s / degC].
+        threshold_temp : float
+            Threshold temperatue above which melt occures [degC].
 
-        # actual meltrate
-        update_sm = np.minimum(sm_c0, sm_max)
+        Returns
+        -------
+        array-like
+            Melt rate [m / s]
+        """
+        c0 = np.asarray(c0)
+        air_temp = np.asarray(air_temp)
 
-        return update_sm
+        return np.clip(c0 * (air_temp - threshold_temp), a_min=0.0, a_max=None, out=out)
 
     @staticmethod
     def _update_swe(dt, p_snow, h_swe, sm):
@@ -312,6 +325,13 @@ class SnowDegreeDay(Component):
         return update_vol_swe
 
     def run_one_step(self, dt):
+        """Run component for a time step.
+
+        Parameters
+        ----------
+        dt : float
+            Duration to run the component for [s].
+        """
         # update input fields in case there is new input
         air_temp = self._grid.at_node["atmosphere_bottom_air__temperature"]
 
@@ -321,9 +341,20 @@ class SnowDegreeDay(Component):
             air_temp,
             self._t_rain_snow,
         )
-        self._sm[:] = self._update_snowmelt_rate(
-            dt, self._c0, self._t0, air_temp, self._h_swe
+
+        SnowDegreeDay.calc_snow_melt_rate(
+            air_temp,
+            self._c0,
+            self._t0,
+            out=self.grid.at_node["snowpack__melt_volume_flux"],
         )
+        np.clip(
+            self.grid.at_node["snowpack__melt_volume_flux"],
+            a_min=None,
+            a_max=self._h_swe / dt,
+            out=self.grid.at_node["snowpack__melt_volume_flux"],
+        )
+
         self._h_swe[:] = self._update_swe(dt, precip_snow, self._h_swe, self._sm)
         self._h_snow[:] = self._update_snow_depth(self._h_swe, self.density_ratio)
         # add for landlab (new method)
