@@ -121,8 +121,8 @@ def test_snow_melt_accumulation():
     assert_almost_equal(sm.total_p_snow, 2 / 1000)
     assert_almost_equal(sm.total_sm, 1.5 / 1000)
 
-    assert sm.vol_swe == 2.2, f"wrong vol_swe value is {sm.vol_swe}"
-    assert sm.vol_sm == 0.6, f"wrong vol_SM value is {sm.vol_sm}"
+    assert_almost_equal(sm.vol_swe, 2.2)
+    assert_almost_equal(sm.vol_sm, 0.6)
 
 
 def test_multiple_runs():
@@ -218,7 +218,13 @@ def test_update_swe():
     sm_rate = np.full(grid.number_of_nodes, 0.001)
     p_snow = np.full(grid.number_of_nodes, 0.003)
 
-    h_swe = sm._update_swe(dt=5, p_snow=p_snow, h_swe=h_swe, sm=sm_rate)
+    SnowDegreeDay.calc_swe(
+        p_snow,
+        sm_rate,
+        h_swe,
+        dt=5.0,
+        out=h_swe,
+    )
 
     assert np.all(h_swe == 0.02)
 
