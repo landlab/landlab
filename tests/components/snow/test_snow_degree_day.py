@@ -41,7 +41,7 @@ def test_assign_parameters():
 
     with pytest.raises(ValueError):
         sm.c0 = -1
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         sm.rho_water = -1
 
 

@@ -192,7 +192,8 @@ class SnowDegreeDay(Component):
 
     @rho_water.setter
     def rho_water(self, rho_water):
-        assert rho_water > 0, "assign rho_water with positive value"
+        if rho_water <= 0.0:
+            raise ValueError("water density must be positive")
         self._rho_water = rho_water
 
     @property
@@ -368,6 +369,5 @@ class SnowDegreeDay(Component):
         self._total_sm += self.grid.at_node["snowpack__melt_volume_flux"] * dt
         self._vol_sm = np.sum(self._total_sm * self._grid_area)
         self._vol_swe = np.sum(
-            self.grid.at_node["snowpack__liquid-equivalent_depth"]
-            * self._grid_area
+            self.grid.at_node["snowpack__liquid-equivalent_depth"] * self._grid_area
         )
