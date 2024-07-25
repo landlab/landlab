@@ -14,7 +14,6 @@ import numpy as np
 
 from landlab import Component
 
-
 SECONDS_PER_DAY = 86400.0
 MM_PER_M = 1000.0
 
@@ -148,25 +147,26 @@ class SnowDegreeDay(Component):
         self._total_p_snow = np.zeros(grid.number_of_nodes)  # add new variable
         self._total_sm = np.zeros(grid.number_of_nodes)  # add new variable
 
-        if "snowpack__liquid-equivalent_depth" in grid.at_node:
-            self._h_swe = grid.at_node["snowpack__liquid-equivalent_depth"]
-            self._vol_swe = np.sum(self._h_swe * self._grid_area)
-        else:
-            self._h_swe = grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
-            self._vol_swe = 0.0  # snowpack__domain_integral_of_liquid-equivalent_depth
-
-        if "snowpack__z_mean_of_mass-per-volume_density" in grid.at_node:
-            self._rho_snow = grid.at_node["snowpack__z_mean_of_mass-per-volume_density"]
-        else:
-            self._rho_snow = grid.add_full(
-                "snowpack__z_mean_of_mass-per-volume_density", 300
+        if "snowpack__z_mean_of_mass-per-volume_density" not in grid.at_node:
+            grid.add_full(
+                "snowpack__z_mean_of_mass-per-volume_density", 300.0, at="node"
             )
+
+        if "snowpack__liquid-equivalent_depth" not in grid.at_node:
+            grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
+
+        self._vol_swe = np.sum(
+            grid.at_node["snowpack__liquid-equivalent_depth"] * self._grid_area
+        )
 
         # output data fields
         super().initialize_output_fields()
-        self._h_snow = grid.at_node["snowpack__depth"]
-        self._h_snow[:] = self._h_swe[:] * self.density_ratio
-        self._sm = grid.at_node["snowpack__melt_volume_flux"]
+
+        SnowDegreeDay.calc_snow_depth(
+            grid.at_node["snowpack__liquid-equivalent_depth"],
+            self.density_ratio,
+            out=grid.at_node["snowpack__depth"],
+        )
 
     @property
     def c0(self):
@@ -236,7 +236,10 @@ class SnowDegreeDay(Component):
     @property
     def density_ratio(self):
         """Ratio of the densities between water and snow."""
-        return self._rho_water / self._rho_snow
+        return (
+            self._rho_water
+            / self.grid.at_node["snowpack__z_mean_of_mass-per-volume_density"]
+        )
 
     @staticmethod
     def calc_precip_snow(precip_rate, air_temp, t_rain_snow):
@@ -344,20 +347,27 @@ class SnowDegreeDay(Component):
         np.clip(
             self.grid.at_node["snowpack__melt_volume_flux"],
             a_min=None,
-            a_max=self._h_swe / dt,
+            a_max=self.grid.at_node["snowpack__liquid-equivalent_depth"] / dt,
             out=self.grid.at_node["snowpack__melt_volume_flux"],
         )
 
         SnowDegreeDay.calc_swe(
             precip_snow,
             self.grid.at_node["snowpack__melt_volume_flux"],
-            self._h_swe,
+            self.grid.at_node["snowpack__liquid-equivalent_depth"],
             dt=dt,
-            out=self._h_swe,
+            out=self.grid.at_node["snowpack__liquid-equivalent_depth"],
         )
-        SnowDegreeDay.calc_snow_depth(self._h_swe, self.density_ratio, out=self._h_snow)
+        SnowDegreeDay.calc_snow_depth(
+            self.grid.at_node["snowpack__liquid-equivalent_depth"],
+            self.density_ratio,
+            out=self.grid.at_node["snowpack__depth"],
+        )
 
         self._total_p_snow += precip_snow * dt
         self._total_sm += self.grid.at_node["snowpack__melt_volume_flux"] * dt
         self._vol_sm = np.sum(self._total_sm * self._grid_area)
-        self._vol_swe = np.sum(self._h_swe * self._grid_area)
+        self._vol_swe = np.sum(
+            self.grid.at_node["snowpack__liquid-equivalent_depth"]
+            * self._grid_area
+        )
