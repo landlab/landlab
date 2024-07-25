@@ -11,7 +11,6 @@ from numpy.testing import assert_almost_equal
 from landlab import RasterModelGrid
 from landlab.components.snow import SnowDegreeDay
 
-
 SECONDS_PER_DAY = 86400.0
 
 
@@ -197,9 +196,7 @@ def test_calc_p_snow(precip):
     assert_almost_equal(SnowDegreeDay.calc_precip_snow(precip, 3.0, 1.0), 0.0)
 
 
-@pytest.mark.parametrize(
-    "c0", (3.0, [3.0], [3.0, 3.0, 3.0], [[3.0, 3.0], [3.0, 3.0]])
-)
+@pytest.mark.parametrize("c0", (3.0, [3.0], [3.0, 3.0, 3.0], [[3.0, 3.0], [3.0, 3.0]]))
 def test_calc_snow_melt_rate(c0):
     snow_melt_rate = SnowDegreeDay.calc_snow_melt_rate(2.0, c0, 0.0)
     assert np.allclose(snow_melt_rate, 6.0)
