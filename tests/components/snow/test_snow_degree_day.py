@@ -167,10 +167,10 @@ def test_multiple_runs():
     assert_almost_equal(sm.total_snow_precip_at_node, 0.002)
     assert_almost_equal(sm.total_snow_melt_at_node, 0.002)
 
-    # step3: change c0 and t0 for snow melt
+    # step3: change c0 and threshold_temp for snow melt
     grid.at_node["atmosphere_bottom_air__temperature"].fill(1)
     sm.c0 = 1
-    sm.t0 = 0.5
+    sm.threshold_temp = 0.5
 
     sm.run_one_step(SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.0065)
