@@ -69,7 +69,7 @@ def test_snow_accumulation():
     sm.run_one_step(SECONDS_PER_DAY)  # 1 day in sec
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.01)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
-    assert_almost_equal(sm.total_p_snow, 0.001)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0.001)
     assert_almost_equal(sm.total_snow_melt_at_node, 0)
 
     assert np.sum(
@@ -94,7 +94,7 @@ def test_snow_melt():
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"] * SECONDS_PER_DAY, 0.006
     )
-    assert_almost_equal(sm.total_p_snow, 0)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0)
     assert_almost_equal(sm.total_snow_melt_at_node, 0.005)
 
     assert np.sum(
@@ -123,7 +123,7 @@ def test_snow_melt_accumulation():
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"] * SECONDS_PER_DAY, 0.0015
     )
-    assert_almost_equal(sm.total_p_snow, 0.002)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0.002)
     assert_almost_equal(sm.total_snow_melt_at_node, 0.0015)
 
     assert np.sum(
@@ -150,7 +150,7 @@ def test_multiple_runs():
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"] * SECONDS_PER_DAY, 0.002
     )
-    assert_almost_equal(sm.total_p_snow, 0)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0)
     assert_almost_equal(sm.total_snow_melt_at_node, 0.002)
 
     # step2: change t_air and p for snow accumulation
@@ -164,7 +164,7 @@ def test_multiple_runs():
     assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.005)
     assert_almost_equal(grid.at_node["snowpack__depth"], 0.01)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
-    assert_almost_equal(sm.total_p_snow, 0.002)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0.002)
     assert_almost_equal(sm.total_snow_melt_at_node, 0.002)
 
     # step3: change c0 and t0 for snow melt
@@ -178,7 +178,7 @@ def test_multiple_runs():
     assert_almost_equal(
         grid.at_node["snowpack__melt_volume_flux"] * SECONDS_PER_DAY, 0.0005
     )
-    assert_almost_equal(sm.total_p_snow, 0.004)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0.004)
     assert_almost_equal(sm.total_snow_melt_at_node, 0.0025)
 
     assert np.sum(
@@ -187,7 +187,7 @@ def test_multiple_runs():
     assert np.sum(sm.total_snow_melt_at_node * grid.dx * grid.dy) == pytest.approx(1.0)
 
     # check mass balance
-    in_out = sm.total_p_snow - sm.total_snow_melt_at_node
+    in_out = sm.total_snow_precip_at_node - sm.total_snow_melt_at_node
 
     store = grid.at_node["snowpack__liquid-equivalent_depth"] - init_swe
 

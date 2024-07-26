@@ -77,7 +77,7 @@ class SnowDegreeDay(Component):
     >>> grid.at_node["snowpack__liquid-equivalent_depth"]
     array([0.   , 0.004, 0.002, 0.005])
 
-    >>> sm.total_p_snow
+    >>> sm.total_snow_precip_at_node
     array([0., 0., 0., 0.])
     >>> sm.total_snow_melt_at_node
     array([0.005, 0.006, 0.003, 0.   ])
@@ -210,15 +210,11 @@ class SnowDegreeDay(Component):
         self._t_rain_snow = t_rain_snow
 
     @property
-    def p_snow(self):
-        """precipitation as snow (in water equivalent) at current time step
-        (units: m)."""
-        return self.p_snow
+    def total_snow_precip_at_node(self):
+        """Accumulated precipitation as snow over the model time.
 
-    @property
-    def total_p_snow(self):
-        """accumulative precipitation as snow (in water equivalent) over the
-        model time (units: m)."""
+        Snow precipitation is given in water equivalent [m].
+        """
         return self._total_p_snow
 
     @property
