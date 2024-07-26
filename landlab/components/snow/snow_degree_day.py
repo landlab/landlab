@@ -150,7 +150,7 @@ class SnowDegreeDay(Component):
         self.c0 = c0
         self.threshold_temp = threshold_temp
         self.rho_water = rho_water
-        self.t_rain_snow = rain_snow_temp
+        self.rain_snow_temp = rain_snow_temp
         self._total_p_snow = grid.zeros(at="node")
         self._total_sm = grid.zeros(at="node")
 
@@ -204,11 +204,11 @@ class SnowDegreeDay(Component):
         self._rho_water = rho_water
 
     @property
-    def t_rain_snow(self):
+    def rain_snow_temp(self):
         return self._t_rain_snow
 
-    @t_rain_snow.setter
-    def t_rain_snow(self, t_rain_snow):
+    @rain_snow_temp.setter
+    def rain_snow_temp(self, t_rain_snow):
         self._t_rain_snow = t_rain_snow
 
     @property
@@ -331,7 +331,7 @@ class SnowDegreeDay(Component):
         precip_rate = SnowDegreeDay.calc_precip_snow(
             self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
             self._grid.at_node["atmosphere_bottom_air__temperature"],
-            self._t_rain_snow,
+            self.rain_snow_temp,
         )
 
         SnowDegreeDay.calc_snow_melt_rate(

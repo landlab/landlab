@@ -38,8 +38,8 @@ def test_assign_parameters():
         grid, c0=1.4, threshold_temp=2, rho_water=1001, rain_snow_temp=1.1
     )
 
-    assert sm.rho_water == 1001, "wrong rho_water value"
-    assert sm.t_rain_snow == 1.1, "wrong t_rain_snow value"
+    assert sm.rho_water == 1001
+    assert sm.rain_snow_temp == 1.1
 
     with pytest.raises(ValueError):
         sm.c0 = -1
