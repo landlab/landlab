@@ -148,10 +148,11 @@ class SnowDegreeDay(Component):
         super().__init__(grid)
 
         self.c0 = c0
-        self.t0 = threshold_temp
+        self.threshold_temp = threshold_temp
         self.rho_water = rho_water
         self.t_rain_snow = rain_snow_temp
-        self._grid_area = grid.dx * grid.dy
+        self._total_p_snow = grid.zeros(at="node")
+        self._total_sm = grid.zeros(at="node")
 
         if "snowpack__z_mean_of_mass-per-volume_density" not in grid.at_node:
             grid.add_full(
@@ -160,9 +161,6 @@ class SnowDegreeDay(Component):
 
         if "snowpack__liquid-equivalent_depth" not in grid.at_node:
             grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
-
-        self._total_p_snow = grid.zeros(at="node")
-        self._total_sm = grid.zeros(at="node")
 
         if "snowpack__melt_volume_flux" not in grid.at_node:
             grid.add_empty("snowpack__melt_volume_flux", at="node")
@@ -188,11 +186,11 @@ class SnowDegreeDay(Component):
         self._c0 = c0 / (_SECONDS_PER_DAY * _MM_PER_M)
 
     @property
-    def t0(self):
+    def threshold_temp(self):
         return self._t0
 
-    @t0.setter
-    def t0(self, t0):
+    @threshold_temp.setter
+    def threshold_temp(self, t0):
         self._t0 = t0
 
     @property
@@ -339,7 +337,7 @@ class SnowDegreeDay(Component):
         SnowDegreeDay.calc_snow_melt_rate(
             self._grid.at_node["atmosphere_bottom_air__temperature"],
             self._c0,
-            self._t0,
+            self.threshold_temp,
             out=self.grid.at_node["snowpack__melt_volume_flux"],
         )
 
