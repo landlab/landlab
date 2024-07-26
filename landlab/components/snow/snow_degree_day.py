@@ -96,7 +96,7 @@ class SnowDegreeDay(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "atmosphere bottom air temperature",
-        },  # t_air
+        },
         "atmosphere_water__precipitation_leq-volume_flux": {
             "dtype": float,
             "intent": "in",
@@ -104,7 +104,7 @@ class SnowDegreeDay(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "precipitation rate (in water equivalent)",
-        },  # p
+        },
         "snowpack__liquid-equivalent_depth": {
             "dtype": float,
             "intent": "inout",
@@ -112,7 +112,7 @@ class SnowDegreeDay(Component):
             "units": "m",
             "mapping": "node",
             "doc": "snow water equivalent depth",
-        },  # h_swe
+        },
         "snowpack__z_mean_of_mass-per-volume_density": {
             "dtype": float,
             "intent": "in",
@@ -120,7 +120,7 @@ class SnowDegreeDay(Component):
             "units": "kg m-3",
             "mapping": "node",
             "doc": "snow density",
-        },  # rho_snow
+        },
         # output fields
         "snowpack__depth": {
             "dtype": float,
@@ -129,7 +129,7 @@ class SnowDegreeDay(Component):
             "units": "m",
             "mapping": "node",
             "doc": "snow depth",
-        },  # h_snow
+        },
         "snowpack__melt_volume_flux": {
             "dtype": float,
             "intent": "out",
@@ -137,7 +137,7 @@ class SnowDegreeDay(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "snow melt volume flux",
-        },  # sm
+        },
     }
 
     def __init__(
@@ -151,7 +151,6 @@ class SnowDegreeDay(Component):
         self.t0 = threshold_temp
         self.rho_water = rho_water
         self.t_rain_snow = rain_snow_temp
-
         self._grid_area = grid.dx * grid.dy
 
         if "snowpack__z_mean_of_mass-per-volume_density" not in grid.at_node:
@@ -165,7 +164,12 @@ class SnowDegreeDay(Component):
         self._total_p_snow = grid.zeros(at="node")
         self._total_sm = grid.zeros(at="node")
 
-        super().initialize_output_fields()
+        if "snowpack__melt_volume_flux" not in grid.at_node:
+            grid.add_empty("snowpack__melt_volume_flux", at="node")
+        grid.at_node["snowpack__melt_volume_flux"].fill(0.0)
+
+        if "snowpack__depth" not in grid.at_node:
+            grid.add_empty("snowpack__depth", at="node")
 
         SnowDegreeDay.calc_snow_depth(
             grid.at_node["snowpack__liquid-equivalent_depth"],
