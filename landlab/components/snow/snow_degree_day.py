@@ -46,6 +46,16 @@ class SnowDegreeDay(Component):
         Temperature threshold for precipitation accurs as rain and snow with
         equal frequency [deg_C].
 
+    Notes
+    -----
+
+    The *snowpack__melt_volume_flux* field represents the melt rate as
+    calculated by the degree-day equation and is not limited by the
+    amount of snow that is available to melt. That is, this melt rate
+    may be non-zero even in locations that don't have any snow.
+    The ``total_snow_melt_at_node`` attribute keeps track of the actual
+    amount of snow that was melted at each node.
+
     Examples
     --------
     >>> import numpy as np
