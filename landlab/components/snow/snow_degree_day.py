@@ -262,7 +262,7 @@ class SnowDegreeDay(Component):
         c0 : float
             Degree-day coefficient [m / s / deg_C].
         threshold_temp : float
-            Threshold temperature above which melt occures [deg_C].
+            Threshold temperature above which melt occurs [deg_C].
 
         Returns
         -------
