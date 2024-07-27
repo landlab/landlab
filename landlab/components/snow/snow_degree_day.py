@@ -187,11 +187,11 @@ class SnowDegreeDay(Component):
 
     @property
     def threshold_temp(self):
-        return self._t0
+        return self._threshold_temp
 
     @threshold_temp.setter
-    def threshold_temp(self, t0):
-        self._t0 = t0
+    def threshold_temp(self, threshold_temp):
+        self._threshold_temp = threshold_temp
 
     @property
     def rho_water(self):
@@ -205,11 +205,11 @@ class SnowDegreeDay(Component):
 
     @property
     def rain_snow_temp(self):
-        return self._t_rain_snow
+        return self._rain_snow_temp
 
     @rain_snow_temp.setter
-    def rain_snow_temp(self, t_rain_snow):
-        self._t_rain_snow = t_rain_snow
+    def rain_snow_temp(self, rain_snow_temp):
+        self._rain_snow_temp = rain_snow_temp
 
     @property
     def total_snow_precip_at_node(self):
@@ -241,7 +241,7 @@ class SnowDegreeDay(Component):
 
         Parameters
         ----------
-        p : array_like
+        precip_rate : array_like
             Precipitation rate [m/s].
         air_temp : array_like
             Air temperature [deg_C].
@@ -262,7 +262,7 @@ class SnowDegreeDay(Component):
         c0 : float
             Degree-day coefficient [m / s / deg_C].
         threshold_temp : float
-            Threshold temperatue above which melt occures [deg_C].
+            Threshold temperature above which melt occures [deg_C].
 
         Returns
         -------
