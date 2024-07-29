@@ -935,32 +935,6 @@ class DepressionFinderAndRouter(Component):
             self._route_flow()
             self._reaccumulate_flow()
 
-    def _find_unresolved_neighbors(self, nbrs, receivers):
-        """Make and return list of neighbors of node with unresolved flow dir.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab.components import DepressionFinderAndRouter
-        >>> from landlab import RasterModelGrid
-        >>> rg = RasterModelGrid((7, 8))
-        >>> z = rg.add_zeros("topographic__elevation", at="node")
-        >>> df = DepressionFinderAndRouter(rg)
-        >>> rcvr = np.arange(56)
-        >>> rcvr[13] = -1
-        >>> rcvr[21] = -1
-        >>> rcvr[29] = -1
-        >>> rcvr[30] = -1
-        >>> nbrs = np.array([23, 30, 21, 14], dtype=int)
-        >>> df._find_unresolved_neighbors(nbrs, rcvr)
-        array([30, 21])
-        """
-        # unresolved = np.where(receivers[nbrs] == -1)[0]
-        # ur_nbrs = nbrs[unresolved]
-        # ur_links = self._grid.links_at_node[unresolved]
-        # return (ur_nbrs, ur_links)
-        return nbrs[np.where(receivers[nbrs] == -1)[0]]
-
     def _find_unresolved_neighbors_new(self, nbrs, nbr_links, receivers):
         """Make and return list of neighbors of node with unresolved flow dir.
 
