@@ -1045,6 +1045,17 @@ class DepressionFinderAndRouter(Component):
         nodes_being_processed = [outlet]
         nodes_to_proc_next = []
 
+        if not isinstance(self.grid, RasterModelGrid) or self.routing == "D4":
+            adjacent_nodes_at_node = self.grid.adjacent_nodes_at_node
+            links_at_node = self.grid.links_at_node
+            length_of_link = self.grid.length_of_link
+            n_regular_neighbors = adjacent_nodes_at_node.shape[1]
+        else:
+            adjacent_nodes_at_node = self.grid.d8_adjacent_nodes_at_node
+            links_at_node = self.grid.d8s_at_node
+            length_of_link = self.grid.length_of_d8
+            n_regular_neighbors = 4
+
         # We must now iterate until we've taken care of all the nodes in the
         # lake. In each iteration, we:
         #  1 - find the unresolved neighbors of nodes being processed
@@ -1054,59 +1065,59 @@ class DepressionFinderAndRouter(Component):
         #    Note that the nested looping will be slow, but could be sped up
         # by translating to cython.
         counter = 0  # counts # of times thru loop as fail-safe
-        done = False
-        while not done:
+        while nodes_being_processed:
             # Get unresolved "regular" neighbors of the current nodes
-            for cn in nodes_being_processed:
-                # Get active and unresolved neighbors of cn
-                (nbrs, lnks) = self._find_unresolved_neighbors_new(
-                    self._grid.adjacent_nodes_at_node[cn],
-                    self._grid.links_at_node[cn],
-                    self._receivers,
+            for node in nodes_being_processed:
+                # Get active and unresolved neighbors of node
+                (unresolved_nodes, unresolved_links) = (
+                    self._find_unresolved_neighbors_new(
+                        adjacent_nodes_at_node[node, :n_regular_neighbors],
+                        links_at_node[node, :n_regular_neighbors],
+                        self._receivers,
+                    )
                 )
-                # They will now flow to cn
-                if nbrs.size > 0:
-                    self._receivers[nbrs] = cn
+
+                # They will now flow to node
+                if len(unresolved_nodes):
+                    self._receivers[unresolved_nodes] = node
                     if "flow__link_to_receiver_node" in self._grid.at_node:
-                        self._links[nbrs] = lnks
+                        self._links[unresolved_nodes] = unresolved_links
                         slopes = (
-                            self._elev[nbrs] - self._elev[cn]
-                        ) / self._grid.length_of_link[lnks]
-                        self._grads[nbrs] = np.maximum(slopes, 0.0)
+                            self._elev[unresolved_nodes] - self._elev[node]
+                        ) / length_of_link[unresolved_links]
+                        self._grads[unresolved_nodes] = np.maximum(slopes, 0.0)
 
                 # Place them on the list of nodes to process next
-                for n in nbrs:
-                    nodes_to_proc_next.append(n)
+                nodes_to_proc_next.extend(unresolved_nodes)
 
             # If we're working with a raster that has diagonals, do the same
             # for the diagonal neighbors
             if self.routing == "D8":
                 # Get unresolved "regular" neighbors of the current nodes
-                for cn in nodes_being_processed:
-                    (nbrs, diags) = self._find_unresolved_neighbors_new(
-                        self._grid.diagonal_adjacent_nodes_at_node[cn],
-                        self._grid.d8s_at_node[cn, 4:],
-                        self._receivers,
+                for node in nodes_being_processed:
+                    (unresolved_nodes, unresolved_links) = (
+                        self._find_unresolved_neighbors_new(
+                            adjacent_nodes_at_node[node, n_regular_neighbors:],
+                            links_at_node[node, n_regular_neighbors:],
+                            self._receivers,
+                        )
                     )
-                    # They will now flow to cn
-                    if nbrs.size > 0:
-                        self._receivers[nbrs] = cn
+                    # They will now flow to node
+                    if len(unresolved_nodes):
+                        self._receivers[unresolved_nodes] = node
                         if "flow__link_to_receiver_node" in self._grid.at_node:
-                            self._links[nbrs] = diags
-                            slopes = (self._elev[nbrs] - self._elev[cn]) / np.sqrt(
-                                self.grid.dx**2 + self.grid.dy**2
-                            )
-                            self._grads[nbrs] = np.maximum(slopes, 0.0)
+                            self._links[unresolved_nodes] = unresolved_links
+                            slopes = (
+                                self._elev[unresolved_nodes] - self._elev[node]
+                            ) / length_of_link[unresolved_links]
+                            self._grads[unresolved_nodes] = np.maximum(slopes, 0.0)
 
                     # Place them on the list of nodes to process next
-                    for n in nbrs:
-                        nodes_to_proc_next.append(n)
+                    nodes_to_proc_next.extend(unresolved_nodes)
 
             # Move to the next set of nodes
             nodes_being_processed = nodes_to_proc_next
             nodes_to_proc_next = []
-            if not nodes_being_processed:
-                done = True
 
             # Just in case
             counter += 1
