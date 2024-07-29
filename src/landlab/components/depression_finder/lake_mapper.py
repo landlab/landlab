@@ -935,7 +935,7 @@ class DepressionFinderAndRouter(Component):
             self._route_flow()
             self._reaccumulate_flow()
 
-    def _find_unresolved_neighbors_new(self, nbrs, nbr_links, receivers):
+    def _find_unresolved_neighbors(self, nbrs, nbr_links, receivers):
         """Make and return list of neighbors of node with unresolved flow dir.
 
         Examples
@@ -953,11 +953,11 @@ class DepressionFinderAndRouter(Component):
         >>> rcvr[30] = -1
         >>> nbrs = rg.adjacent_nodes_at_node[22]
         >>> nbr_links = rg.links_at_node[22]
-        >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
+        >>> df._find_unresolved_neighbors(nbrs, nbr_links, rcvr)
         (array([30, 21]), array([43, 35]))
         >>> nbrs = rg.diagonal_adjacent_nodes_at_node[22]
         >>> nbr_links = rg.d8s_at_node[22, 4:]
-        >>> df._find_unresolved_neighbors_new(nbrs, nbr_links, rcvr)
+        >>> df._find_unresolved_neighbors(nbrs, nbr_links, rcvr)
         (array([29, 13]), array([136, 121]))
         """
         unresolved = np.where(receivers[nbrs] == -1)[0]
@@ -1043,12 +1043,10 @@ class DepressionFinderAndRouter(Component):
             # Get unresolved "regular" neighbors of the current nodes
             for node in nodes_being_processed:
                 # Get active and unresolved neighbors of node
-                (unresolved_nodes, unresolved_links) = (
-                    self._find_unresolved_neighbors_new(
-                        adjacent_nodes_at_node[node, :n_regular_neighbors],
-                        links_at_node[node, :n_regular_neighbors],
-                        self._receivers,
-                    )
+                (unresolved_nodes, unresolved_links) = self._find_unresolved_neighbors(
+                    adjacent_nodes_at_node[node, :n_regular_neighbors],
+                    links_at_node[node, :n_regular_neighbors],
+                    self._receivers,
                 )
 
                 # They will now flow to node
@@ -1070,7 +1068,7 @@ class DepressionFinderAndRouter(Component):
                 # Get unresolved "regular" neighbors of the current nodes
                 for node in nodes_being_processed:
                     (unresolved_nodes, unresolved_links) = (
-                        self._find_unresolved_neighbors_new(
+                        self._find_unresolved_neighbors(
                             adjacent_nodes_at_node[node, n_regular_neighbors:],
                             links_at_node[node, n_regular_neighbors:],
                             self._receivers,
