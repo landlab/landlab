@@ -172,7 +172,7 @@ class DepressionFinderAndRouter(Component):
         },
     }
 
-    def __init__(self, grid, routing=None, pits=None, reroute_flow=True):
+    def __init__(self, grid, routing=None, pits="flow__sink_flag", reroute_flow=True):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -186,7 +186,7 @@ class DepressionFinderAndRouter(Component):
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
-        pits : array-like or str, optional
+        pits : array_like or str, optional
             If a field name, the boolean field containing True where pits.
             If array-like, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
@@ -204,9 +204,9 @@ class DepressionFinderAndRouter(Component):
         self._bc_set_code = self._grid.bc_set_code
 
         if pits is None or isinstance(pits, str):
-            self._user_supplied_pits = pits
+            self._pits = pits
         else:
-            self._user_supplied_pits = np.asarray(pits)
+            self._pits = np.asarray(pits)
         self._reroute_flow = reroute_flow
 
         self._routing = None
@@ -281,11 +281,6 @@ class DepressionFinderAndRouter(Component):
         self._neighbor_nodes_at_node = neighbors
 
     @property
-    def number_of_pits(self):
-        """The number of pits on the grid."""
-        return self._number_of_pits
-
-    @property
     def pit_node_ids(self):
         """Node IDs of grid nodes identified as pits."""
         return self._pit_node_ids
@@ -322,7 +317,7 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : ModelGrid
             A Landlab grid.
-        value_at_node : array-like
+        value_at_node : array_like
             Array of values overwhich to look for pits.
         routing : {'D4', 'D8'}, optional
             The routing method to use. For raster grids, 'D8' will
@@ -394,7 +389,7 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : ModelGrid
             A landlab grid.
-        pits : str or array-like
+        pits : str or array_like
             If a string, the name of an *at-nodes* field. Otherwise, *pits*
             is interpreted as either a boolean array of nodes of the pits, or an
             array of pit node IDs.
@@ -891,7 +886,7 @@ class DepressionFinderAndRouter(Component):
         ...     [90.0, 95.0, 100.0, 100.0, 100.0],
         ... ]
 
-        >>> df = DepressionFinderAndRouter(rg, reroute_flow=False)
+        >>> df = DepressionFinderAndRouter(rg, reroute_flow=False, pits=None)
         >>> df.map_depressions()
         >>> df.display_depression_map()
         . . . . .
@@ -919,18 +914,16 @@ class DepressionFinderAndRouter(Component):
         self._depression_depth.fill(0.0)
         self._depression_outlets = []  # reset these
 
-        # Locate nodes with pits
-        if self._user_supplied_pits is None:
+        if self._pits is None:
             is_pit = DepressionFinderAndRouter.find_pit_nodes(
                 self.grid, self._elev, routing=self.routing
             )
         else:
             is_pit = DepressionFinderAndRouter._user_pits_to_array(
-                self.grid, self._user_supplied_pits
+                self.grid, self._pits
             )
 
-        self._number_of_pits = np.count_nonzero(is_pit)
-        self._pit_node_ids = as_id_array(np.where(is_pit)[0])
+        self._pit_node_ids = as_id_array(np.nonzero(is_pit)[0])
 
         # Set up "lake code" array
         self._flood_status.fill(FloodStatus.UNFLOODED)

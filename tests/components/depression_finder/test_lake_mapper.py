@@ -46,7 +46,7 @@ def test_lake_mapper():
     # Set 3 sides of the grid to be closed boundaries
     rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
-    lm = DepressionFinderAndRouter(rmg)
+    lm = DepressionFinderAndRouter(rmg, pits=None)
 
     lm.map_depressions()
 
@@ -190,7 +190,7 @@ def test_filling_alone(dans_grid3):
     using its _find_pits method.
     """
     lf = DepressionFinderAndRouter(dans_grid3.mg, reroute_flow=False, pits=None)
-    assert lf._user_supplied_pits is None
+    assert lf._pits is None
 
     lf.map_depressions()
     assert_array_equal(
