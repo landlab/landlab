@@ -821,7 +821,11 @@ class DepressionFinderAndRouter(Component):
                     self.assign_outlet_receiver(lowest_node_on_perimeter)
 
             # Safety check, in case a bug (ha!) puts us in an infinite loop
-            assert count < max_count, "too many iterations in lake filler!"
+            if count >= max_count:
+                raise RuntimeError(
+                    "DepressionFinderAndRouter reached maximum number of iterations"
+                    " when finding depressions"
+                )
             count += 1
 
         self._depression_outlets.append(lowest_node_on_perimeter)
@@ -1093,7 +1097,11 @@ class DepressionFinderAndRouter(Component):
 
             # Just in case
             counter += 1
-            assert counter < self._grid.number_of_nodes, "inf loop in lake"
+            if counter >= self._grid.number_of_nodes:
+                raise RuntimeError(
+                    "DepressionFinderAndRouter reached maximum number of iterations"
+                    " when routing flow"
+                )
 
     def _route_flow(self):
         """Route flow across lake flats.
