@@ -55,7 +55,7 @@ def test_lake_mapper():
     assert "depression__outlet_node" in rmg.at_node
 
     is_pit = np.full(rmg.number_of_nodes, False)
-    is_pit[lm.pit_node_ids] = True
+    is_pit[lm._pit_nodes] = True
     assert_array_equal(
         is_pit.reshape(rmg.shape),
         [

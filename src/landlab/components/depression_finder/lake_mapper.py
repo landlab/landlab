@@ -252,6 +252,7 @@ class DepressionFinderAndRouter(Component):
         # ^note this is nlakes-long
 
         self._flood_status = np.zeros(self.grid.number_of_nodes, dtype=int)
+        self._pit_nodes = None
 
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(self._grid.BAD_INDEX)
@@ -279,11 +280,6 @@ class DepressionFinderAndRouter(Component):
             neighbors = self.grid.adjacent_nodes_at_node.copy()
         neighbors[self.grid.status_at_node[neighbors] == NodeStatus.CLOSED] = -1
         self._neighbor_nodes_at_node = neighbors
-
-    @property
-    def pit_node_ids(self):
-        """Node IDs of grid nodes identified as pits."""
-        return self._pit_node_ids
 
     @property
     def flood_status(self):
@@ -734,7 +730,7 @@ class DepressionFinderAndRouter(Component):
             self._depression_outlet_map[n] = outlet_id
             self._lake_map[n] = pit_node
             self._pits_flooded += 1
-            pit_node_where = np.searchsorted(self._pit_node_ids, pit_node)
+            pit_node_where = np.searchsorted(self._pit_nodes, pit_node)
             self._unique_pits[pit_node_where] = True
         elif np.any(fresh_nodes):  # lake is bigger than one or more existing
             self._flood_status[n] = FloodStatus.FLOODED
@@ -744,8 +740,8 @@ class DepressionFinderAndRouter(Component):
             # ^these two will just get stamped over as needed
             subsumed_lakes = np.unique(self._lake_map[n])  # IDed by pit_node
             # the final entry is self._grid.BAD_INDEX
-            subs_lakes_where = np.searchsorted(self._pit_node_ids, subsumed_lakes[1:])
-            pit_node_where = np.searchsorted(self._pit_node_ids, pit_node)
+            subs_lakes_where = np.searchsorted(self._pit_nodes, subsumed_lakes[1:])
+            pit_node_where = np.searchsorted(self._pit_nodes, pit_node)
             self._unique_pits[subs_lakes_where] = False
             self._unique_pits[pit_node_where] = True
             self._pits_flooded -= subsumed_lakes.size - 2
@@ -847,9 +843,9 @@ class DepressionFinderAndRouter(Component):
         surface.
         """
         self._pits_flooded = 0
-        self._unique_pits = np.zeros_like(self._pit_node_ids, dtype=bool)
+        self._unique_pits = np.zeros_like(self._pit_nodes, dtype=bool)
         # debug_count = 0
-        for pit_node in self._pit_node_ids:
+        for pit_node in self._pit_nodes:
             if self._flood_status[pit_node] != FloodStatus.PIT:
                 self._depression_outlets.append(self._grid.BAD_INDEX)
             else:
@@ -923,11 +919,11 @@ class DepressionFinderAndRouter(Component):
                 self.grid, self._pits
             )
 
-        self._pit_node_ids = as_id_array(np.nonzero(is_pit)[0])
+        self._pit_nodes = as_id_array(np.nonzero(is_pit)[0])
 
         # Set up "lake code" array
         self._flood_status.fill(FloodStatus.UNFLOODED)
-        self._flood_status[self._pit_node_ids] = FloodStatus.PIT
+        self._flood_status[self._pit_nodes] = FloodStatus.PIT
 
         self._identify_depressions_and_outlets(self._reroute_flow)
 
@@ -1172,7 +1168,7 @@ class DepressionFinderAndRouter(Component):
                 # Route flow
                 self._route_flow_for_one_lake(outlet_node, nodes_in_lake)
 
-        self._sinks[self._pit_node_ids] = False
+        self._sinks[self._pit_nodes] = False
 
     def _reaccumulate_flow(self):
         """Update drainage area, discharge, upstream order, and flow link.
@@ -1227,7 +1223,7 @@ class DepressionFinderAndRouter(Component):
         These are the values used to map the lakes in the property
         "lake_map".
         """
-        return self._pit_node_ids[self._unique_pits]
+        return self._pit_nodes[self._unique_pits]
 
     @property
     def number_of_lakes(self):
