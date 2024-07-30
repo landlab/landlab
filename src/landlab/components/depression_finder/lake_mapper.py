@@ -25,28 +25,27 @@ class DepressionFinderAndRouter(Component):
     """Find depressions on a topographic surface.
 
     This component identifies depressions in a topographic surface, finds an
-    outlet for each depression.  If directed to do so (default True), and the
-    component is able to find existing routing fields output from the
+    outlet for each depression.  If directed to do so (the default), and the
+    component is able to find existing routing fields created by the
     'route_flow_dn' component, it will then modify the drainage directions and
     accumulations already stored in the grid to route flow across these
     depressions.
 
-    Note that in general properties of this class named "depression" identify
+    Note that, in general, properties of this class named *"depression"* identify
     each individual pit in the topography, including those that will merge
-    once the fill is performed. Those named "lake" return the unique lakes
+    once the fill is performed. Those named *"lake"* return the unique lakes
     created by the fill, and are probably the properties most users will
     want.
 
     Note also that the structure of drainage within the lakes is not
     guaranteed, and in particular, may not be symmetrical even if your
-    boundary conditions are.
-    However, the outputs from the lake will all still be correct.
+    boundary conditions are. However, the outputs from the lake will all
+    still be correct.
 
     Note the routing part of this component may not yet be fully compatible with
     irregular grids.
 
-    The prinary method of this class is
-    *map_depressions()*.
+    The prinary method of this class is `map_depressions`.
 
     Examples
     --------
@@ -54,14 +53,24 @@ class DepressionFinderAndRouter(Component):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, DepressionFinderAndRouter
-    >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
-    >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
-    >>> z += 0.01 * mg.node_y
-    >>> mg.at_node["topographic__elevation"].reshape(mg.shape)[2:5, 2:5] *= 0.1
+    >>> from landlab.components.flow_director.flow_director_d8 import neighbor_to_arrow
 
-    >>> fr = FlowAccumulator(mg, flow_director="D8")
-    >>> fr.run_one_step()  # the flow "gets stuck" in the hole
-    >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
+    >>> grid = RasterModelGrid((7, 7), xy_spacing=1.0)
+    >>> z = (grid.x_of_node * 100.0 + grid.y_of_node).reshape(grid.shape)
+    >>> z[2:-2, 2:-2] *= 0.1
+    >>> z
+    array([[  0. , 100. , 200. , 300. , 400. , 500. , 600. ],
+           [  1. , 101. , 201. , 301. , 401. , 501. , 601. ],
+           [  2. , 102. ,  20.2,  30.2,  40.2, 502. , 602. ],
+           [  3. , 103. ,  20.3,  30.3,  40.3, 503. , 603. ],
+           [  4. , 104. ,  20.4,  30.4,  40.4, 504. , 604. ],
+           [  5. , 105. , 205. , 305. , 405. , 505. , 605. ],
+           [  6. , 106. , 206. , 306. , 406. , 506. , 606. ]])
+    >>> grid.at_node["topographic__elevation"] = z
+
+    >>> fr = FlowAccumulator(grid, flow_director="D8")
+    >>> fr.run_one_step()
+    >>> grid.at_node["flow__receiver_node"].reshape(grid.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
            [ 7,  7, 16, 17, 18, 18, 13],
            [14, 14, 16, 16, 17, 18, 20],
@@ -69,41 +78,70 @@ class DepressionFinderAndRouter(Component):
            [28, 28, 23, 30, 31, 32, 34],
            [35, 35, 30, 31, 32, 32, 41],
            [42, 43, 44, 45, 46, 47, 48]])
-    >>> mg.at_node["drainage_area"].reshape(mg.shape)
-    array([[0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ],
-           [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
-           [0.25, 0.25, 5.  , 1.5 , 1.  , 0.25, 0.  ],
-           [0.25, 0.25, 3.  , 0.75, 0.5 , 0.25, 0.  ],
-           [0.25, 0.25, 2.  , 1.5 , 1.  , 0.25, 0.  ],
-           [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
-           [0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ]])
-    >>> df = DepressionFinderAndRouter(mg)
-    >>> df.map_depressions()  # reroute_flow defaults to True
-    >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
-    array([[ 0,  1,  2,  3,  4,  5,  6],
-           [ 7,  7, 16, 17, 18, 18, 13],
-           [14, 14,  8, 16, 17, 18, 20],
-           [21, 21, 16, 16, 24, 25, 27],
-           [28, 28, 23, 24, 24, 32, 34],
-           [35, 35, 30, 31, 32, 32, 41],
-           [42, 43, 44, 45, 46, 47, 48]])
-    >>> mg.at_node["drainage_area"].reshape(mg.shape)
-    array([[0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ],
-           [5.25, 5.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
-           [0.25, 0.25, 5.  , 1.5 , 1.  , 0.25, 0.  ],
-           [0.25, 0.25, 0.75, 2.25, 0.5 , 0.25, 0.  ],
-           [0.25, 0.25, 0.5 , 0.5 , 1.  , 0.25, 0.  ],
-           [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.  ],
-           [0.  , 0.  , 0.  , 0.  , 0.  , 0.  , 0.  ]])
-    >>> df.lake_at_node.reshape(mg.shape)
-    array([[False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False,  True,  True,  True, False, False],
-           [False, False, False, False, False, False, False],
-           [False, False, False, False, False, False, False]])
-    >>> df.lake_map.reshape(mg.shape)
+
+    The flow gets stuck in a depression at (2, 2).
+
+    >>> neighbor_to_arrow(grid.at_node["flow__receiver_node"].reshape(grid.shape))
+    array([['○', '○', '○', '○', '○', '○', '○'],
+           ['○', '←', '↓', '↓', '↓', '↙', '○'],
+           ['○', '←', '○', '←', '←', '←', '○'],
+           ['○', '←', '↑', '←', '←', '←', '○'],
+           ['○', '←', '↑', '←', '←', '←', '○'],
+           ['○', '←', '↑', '↑', '↑', '↖', '○'],
+           ['○', '○', '○', '○', '○', '○', '○']], dtype='<U1')
+
+    >>> grid.at_node["drainage_area"].reshape(grid.shape)
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [ 1.,  1.,  1.,  1.,  1.,  1.,  0.],
+           [ 1.,  1., 20.,  6.,  4.,  1.,  0.],
+           [ 1.,  1., 12.,  3.,  2.,  1.,  0.],
+           [ 1.,  1.,  8.,  6.,  4.,  1.,  0.],
+           [ 1.,  1.,  1.,  1.,  1.,  1.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+
+    >>> df = DepressionFinderAndRouter(grid, routing="D8", reroute_flow=True)
+    >>> df.map_depressions()
+
+    The flow now is no longer stuck and the lake now drains to node 8.
+
+    >>> df.lake_outlets
+    array([8])
+    >>> neighbor_to_arrow(grid.at_node["flow__receiver_node"].reshape(grid.shape))
+    array([['○', '○', '○', '○', '○', '○', '○'],
+           ['○', '←', '↓', '↓', '↓', '↙', '○'],
+           ['○', '←', '↖', '←', '←', '←', '○'],
+           ['○', '←', '↑', '↖', '←', '←', '○'],
+           ['○', '←', '↑', '↑', '↖', '←', '○'],
+           ['○', '←', '↑', '↑', '↑', '↖', '○'],
+           ['○', '○', '○', '○', '○', '○', '○']], dtype='<U1')
+
+
+    The area of each lake in lake.
+
+    >>> df.lake_areas
+    array([9.])
+    >>> df.lake_at_node.reshape(grid.shape).view(dtype=np.uint8)
+    array([[0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 1, 1, 1, 0, 0],
+           [0, 0, 1, 1, 1, 0, 0],
+           [0, 0, 1, 1, 1, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0],
+           [0, 0, 0, 0, 0, 0, 0]], dtype=uint8)
+    >>> grid.at_node["drainage_area"].reshape(grid.shape)
+    array([[ 0.,  0.,  0.,  0.,  0.,  0.,  0.],
+           [21., 21.,  1.,  1.,  1.,  1.,  0.],
+           [ 1.,  1., 20.,  6.,  4.,  1.,  0.],
+           [ 1.,  1.,  3.,  9.,  2.,  1.,  0.],
+           [ 1.,  1.,  2.,  2.,  4.,  1.,  0.],
+           [ 1.,  1.,  1.,  1.,  1.,  1.,  0.],
+           [ 0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+
+    A unique code for each lake present on the grid.
+
+    >>> df.lake_codes
+    array([16])
+    >>> df.lake_map.reshape(grid.shape)
     array([[-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, 16, 16, 16, -1, -1],
@@ -111,14 +149,8 @@ class DepressionFinderAndRouter(Component):
            [-1, -1, 16, 16, 16, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1]])
-    >>> df.lake_codes  # a unique code for each lake present on the grid
-    array([16])
-    >>> df.lake_outlets  # the outlet node of each lake in lake_codes
-    array([8])
-    >>> df.lake_areas  # the area of each lake in lake_codes
-    array([2.25])
 
-    Because ``rereoute_flow`` defaults to ``True``, the flow connectivity fields
+    Because `reroute_flow` was set to ``True``, the flow connectivity fields
     created by the :py:class:`~landlab.components.flow_accum.FlowAccumulator`
     will have now been modified to route flow over the depressions in the
     surface. The topogrphy itself is not modified.
@@ -131,10 +163,10 @@ class DepressionFinderAndRouter(Component):
 
     **Additional References**
 
-    Tucker, G. E., Lancaster, S. T., Gasparini, N. M., and Bras, R. L.: The
-    Channel-Hillslope Integrated Landscape Development Model (CHILD), in:
-    Landscape Erosion and Evolution Modeling, Springer US, Boston, MA, USA,
-    349–388, 2001.
+    .. [1] Tucker, G. E., Lancaster, S. T., Gasparini, N. M., and Bras, R. L.: The
+       Channel-Hillslope Integrated Landscape Development Model (CHILD), in:
+       Landscape Erosion and Evolution Modeling, Springer US, Boston, MA, USA,
+       349–388, 2001.
 
     """
 
@@ -272,8 +304,7 @@ class DepressionFinderAndRouter(Component):
         return self._routing
 
     def updated_boundary_conditions(self):
-        """Call this if boundary conditions on the grid are updated after the
-        component is instantiated."""
+        """Update neighbor nodes for changed boundary conditions."""
         if self.routing == "D8":
             neighbors = self.grid.d8_adjacent_nodes_at_node.copy()
         else:
@@ -288,7 +319,7 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def receivers(self):
-        """At node array indicating which node receives flow."""
+        """Return array indicating which node receives flow."""
         return self._receivers
 
     @receivers.setter
@@ -297,12 +328,12 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def depression_depth(self):
-        """At node array of depression depths."""
+        """Return array of depression depths."""
         return self._depression_depth
 
     @property
     def depression_outlet_map(self):
-        """At node array indicating the node-id of the depression outlet."""
+        """Return array indicating the node-id of the depression outlet."""
         return self._depression_outlet_map
 
     @staticmethod
@@ -489,8 +520,12 @@ class DepressionFinderAndRouter(Component):
         return links, nbrs, diag_nbrs
 
     def assign_outlet_receiver(self, outlet_node):
-        """Find drainage direction for outlet_node that does not flow into its
-        own lake.
+        """Find drainage direction for an outlet that does not flow into its own lake.
+
+        Parameters
+        ----------
+        outlet_node : int
+            An outlet node.
 
         Examples
         --------
@@ -1203,16 +1238,18 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def lake_outlets(self):
-        """Returns the *unique* outlets for each lake, in same order as the
-        return from lake_codes."""
+        """Return the *unique* outlets for each lake.
+
+        Outlets are returned in same order as given from `lake_codes`.
+        """
         return np.array(self._depression_outlets)[self._unique_pits]
 
     @property
     def lake_codes(self):
-        """Returns the *unique* code assigned to each unique lake.
+        """Return the *unique* code assigned to each unique lake.
 
         These are the values used to map the lakes in the property
-        "lake_map".
+        `lake_map`.
         """
         return self._pit_nodes[self._unique_pits]
 
@@ -1223,25 +1260,30 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def lake_map(self):
-        """Return an array of ints, where each node within a lake is labelled
+        """Return unique codes for each lake.
+
+        Return an array of ints, where each node within a lake is labelled
         with a unique (non-consecutive) code corresponding to each unique lake.
 
-        The codes used can be obtained with *lake_codes*. Nodes not in a
-        lake are labelled with self._grid.BAD_INDEX
+        The codes used can be obtained with `lake_codes`. Nodes not in a
+        lake are labelled with `ModelGrid.BAD_INDEX`.
         """
         return self._lake_map
 
     @property
     def lake_at_node(self):
-        """Return a boolean array, True if the node is flooded, False
-        otherwise."""
+        """Return an array that indicates if a node is flooded.
+
+        Return a ``bool`` array, ``True`` if the node is flooded, ``False``
+        otherwise.
+        """
         return self._lake_map != self._grid.BAD_INDEX
 
     @property
     def lake_areas(self):
-        """A nlakes-long array of the area of each lake.
+        """Return an array of the area of each lake.
 
-        The order is the same as that returned by *lake_codes*.
+        The order is the same as that returned by `lake_codes`.
         """
         lake_areas = np.empty(self.number_of_lakes)
         for lake_counter, lake_code in enumerate(self.lake_codes):
@@ -1253,9 +1295,9 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def lake_volumes(self):
-        """A nlakes-long array of the volume of each lake.
+        """Return an array of the volume of each lake.
 
-        The order is the same as that returned by *lake_codes*.
+        The order is the same as that returned by `lake_codes`.
         """
         lake_vols = np.empty(self.number_of_lakes)
         col_vols = self._grid.cell_area_at_node * self._depression_depth
