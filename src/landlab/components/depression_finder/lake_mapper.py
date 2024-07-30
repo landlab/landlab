@@ -26,9 +26,9 @@ class DepressionFinderAndRouter(Component):
     """Find depressions on a topographic surface.
 
     This component identifies depressions in a topographic surface, finds an
-    outlet for each depression.  If directed to do so (the default), and the
+    outlet for each depression [1]_.  If directed to do so (the default), and the
     component is able to find existing routing fields created by the
-    'route_flow_dn' component, it will then modify the drainage directions and
+    `route_flow_dn` component, it will then modify the drainage directions and
     accumulations already stored in the grid to route flow across these
     depressions.
 
