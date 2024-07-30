@@ -5,6 +5,7 @@
 
 # Routing by DEJH, Oct 15.
 import warnings
+from io import StringIO
 
 import numpy as np
 
@@ -923,7 +924,7 @@ class DepressionFinderAndRouter(Component):
 
         >>> df = DepressionFinderAndRouter(rg, reroute_flow=False, pits=None)
         >>> df.map_depressions()
-        >>> df.display_depression_map()
+        >>> print(df.display_depression_map())
         . . . . .
         . . . ~ .
         . . ~ . .
@@ -1219,22 +1220,27 @@ class DepressionFinderAndRouter(Component):
     def display_depression_map(self):
         """Print a simple character-based map of depressions/lakes."""
         # Find the outlet nodes (just for display purposes)
-        is_outlet = np.zeros(self._grid.number_of_nodes, dtype=bool)
-        for i in self._grid.core_nodes:
-            if self._flood_status[i] == FloodStatus.FLOODED:
-                is_outlet[self._depression_outlet_map[i]] = True
+        is_outlet = np.full(self.grid.number_of_nodes, False)
+        is_flooded = (self._flood_status == FloodStatus.FLOODED) & (
+            self.grid.status_at_node == NodeStatus.CORE
+        )
+        is_outlet[self._depression_outlet_map[is_flooded]] = True
 
-        n = 0
-        for _ in range(self._grid.number_of_node_rows):
-            for _ in range(self._grid.number_of_node_columns):
-                if is_outlet[n]:
-                    print("o", end=" ")
-                elif self._flood_status[n] == FloodStatus.UNFLOODED:
-                    print(".", end=" ")
-                else:
-                    print("~", end=" ")
-                n += 1
-            print()
+        def get_symbol(n):
+            if is_outlet[n]:
+                return "o"
+            elif self._flood_status[n] == FloodStatus.UNFLOODED:
+                return "."
+            else:
+                return "~"
+
+        symbol_array = np.vectorize(get_symbol)(
+            range(self.grid.number_of_nodes)
+        ).reshape(self.grid.shape)
+
+        stream = StringIO()
+        np.savetxt(stream, symbol_array, fmt="%c")
+        return stream.getvalue()
 
     @property
     def lake_outlets(self):
