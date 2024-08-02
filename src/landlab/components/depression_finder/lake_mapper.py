@@ -54,7 +54,7 @@ class DepressionFinderAndRouter(Component):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, DepressionFinderAndRouter
-    >>> from landlab.components.flow_director.flow_director_d8 import neighbor_to_arrow
+    >>> from landlab.grid.raster_funcs import neighbor_to_arrow
 
     >>> grid = RasterModelGrid((7, 7), xy_spacing=1.0)
     >>> z = (grid.x_of_node * 100.0 + grid.y_of_node).reshape(grid.shape)

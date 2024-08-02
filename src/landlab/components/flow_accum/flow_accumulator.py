@@ -120,6 +120,8 @@ class FlowAccumulator(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
+    >>> from landlab.grid.raster_funcs import neighbor_to_arrow
+
     >>> mg = RasterModelGrid((3, 3))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
@@ -191,6 +193,12 @@ class FlowAccumulator(Component):
     ...     mg, "topographic__elevation", flow_director=FlowDirectorSteepest
     ... )
     >>> fa.run_one_step()
+    >>> neighbor_to_arrow(mg.at_node["flow__receiver_node"].reshape(mg.shape))
+    array([['○', '○', '○', '○'],
+           ['○', '↑', '↑', '○'],
+           ['○', '→', '↑', '○'],
+           ['○', '→', '↑', '○'],
+           ['○', '○', '○', '○']], dtype='<U1')
     >>> mg.at_node["flow__receiver_node"].reshape(mg.shape)
     array([[ 0,  1,  2,  3],
            [ 4,  1,  2,  7],
