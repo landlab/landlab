@@ -21,20 +21,18 @@ def test_tracker_open_close():
     tracker.close()
 
     assert tracker.tracking is None
+    assert tuple(tracker) == names
 
     assert names == ("at_node:z",)
 
-    actual = dict(tracker.fields)
     expected = {
         "at_node:z": (
             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
             [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
         )
     }
-    assert actual.keys() == expected.keys()
-    assert len(actual["at_node:z"]) == len(expected["at_node:z"])
-    assert_array_equal(actual["at_node:z"][0], expected["at_node:z"][0])
-    assert_array_equal(actual["at_node:z"][1], expected["at_node:z"][1])
+    assert tracker.keys() == expected.keys()
+    assert_array_equal(tracker["at_node:z"], expected["at_node:z"])
 
 
 def test_tracker_open_context():
@@ -46,17 +44,14 @@ def test_tracker_open_context():
         grid.at_node["z"] += 4.0
     assert tracker.tracking is None
 
-    actual = dict(tracker.fields)
     expected = {
         "at_node:z": (
             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
             [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
         )
     }
-    assert actual.keys() == expected.keys()
-    assert len(actual["at_node:z"]) == len(expected["at_node:z"])
-    assert_array_equal(actual["at_node:z"][0], expected["at_node:z"][0])
-    assert_array_equal(actual["at_node:z"][1], expected["at_node:z"][1])
+    assert tracker.keys() == expected.keys()
+    assert_array_equal(tracker["at_node:z"], expected["at_node:z"])
 
 
 def test_tracker_checkpoint():
@@ -68,7 +63,6 @@ def test_tracker_checkpoint():
         tracker.checkpoint()
         grid.at_node["z"] += 2.0
 
-    actual = dict(tracker.fields)
     expected = {
         "at_node:z": (
             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
@@ -76,11 +70,8 @@ def test_tracker_checkpoint():
             [7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0],
         )
     }
-    assert actual.keys() == expected.keys()
-    assert len(actual["at_node:z"]) == len(expected["at_node:z"])
-    assert_array_equal(actual["at_node:z"][0], expected["at_node:z"][0])
-    assert_array_equal(actual["at_node:z"][1], expected["at_node:z"][1])
-    assert_array_equal(actual["at_node:z"][2], expected["at_node:z"][2])
+    assert tracker.keys() == expected.keys()
+    assert_array_equal(tracker["at_node:z"], expected["at_node:z"])
 
 
 def test_nothing_to_track_error():
@@ -136,6 +127,17 @@ def test_missing_field_error():
     with pytest.raises(MissingTrackedFieldError):
         tracker.close()
     assert tracker.tracking is None
+
+
+def test_key_error():
+    grid = RasterModelGrid((3, 4))
+    tracker = FieldTracker(grid)
+
+    grid.add_ones("z", at="node")
+    with open_tracker(grid) as tracker:
+        pass
+    with pytest.raises(KeyError):
+        tracker["not-a-key"]
 
 
 def test_reduce():
