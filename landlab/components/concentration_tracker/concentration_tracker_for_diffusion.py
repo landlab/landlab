@@ -30,12 +30,14 @@ class ConcentrationTrackerForDiffusion(Component):
     .. note::
 
         This component requires a soil flux field calculated by a hillslope diffusion
-        component and must be run after every diffusion step. Currently, this component
-        WILL ONLY WORK IF COUPLED with the :class:`~.DepthDependentDiffuser` or the
-        :class:`~.DepthDependentTaylorDiffuser` (without the dynamic timestep option).
-
-        In-situ production and decay of the material property are handled by
-        the ConcentrationTrackerProductionDecay component.
+        component. This component is implemented by applying a start_tracking() method
+        immediately before every diffusion step and a stop_tracking(dt) method 
+        immediately after every diffusion step. These methods are applied instead of 
+        the typical run_one_step(dt) method. See the docstring examples below.
+        
+        Currently, this component will only work if coupled with the 
+        :class:`~.DepthDependentDiffuser` or the :class:`~.DepthDependentTaylorDiffuser`
+        (without the dynamic timestep option).
 
     Examples
     --------
