@@ -13,7 +13,6 @@ from landlab import NodeStatus
 from landlab import RasterModelGrid
 from landlab.components import ConcentrationTrackerForDiffusion
 
-
 class TestInputParameters:
     """Test input field errors"""
 
@@ -220,7 +219,8 @@ class TestAnalytical:
         # Flux of -1 in the middle row should shift all C_sed values left by one node.
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         expected = np.asarray(
             [
@@ -263,8 +263,9 @@ class TestAnalytical:
         # Node 7: C_sed remains 1 because parent bedrock had conc_br of 1.
         # Node 8: C_sed is halved from 1 to 0.5 because parent bedrock had conc_br = 0.
 
-        ct.run_one_step(1)
-
+        ct.start_tracking()
+        ct.stop_tracking(1)
+        
         # Node 7 should have the same concentration as before.
         # Node 8 should have half its previous concentration.
         expected = np.asarray(
@@ -311,7 +312,8 @@ class TestAnalytical:
         # Node 7: C_sed is halved from 1 to 0.5 despite parent bedrock with conc_br = 1.
         # Node 8: C_sed is halved from 1 to 0.5 because conc_w = 0.
 
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         # Node 7 should have half its previous concentration.
         # Node 8 should have half its previous concentration.
@@ -373,7 +375,8 @@ class TestMassBalance:
         )
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         total_mass_after = np.sum(
             self.mg.at_node["sediment_property__concentration"]
@@ -397,7 +400,8 @@ class TestMassBalance:
         )
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
-        ct.run_one_step(1)
+        ct.start_tracking()
+        ct.stop_tracking(1)
 
         total_mass_leaving = 1
         total_mass_after = np.sum(
@@ -407,3 +411,14 @@ class TestMassBalance:
         )
 
         assert_allclose(total_mass_before, total_mass_after + total_mass_leaving)
+        
+# %%
+def test_not_implemented():
+    """Test that private run_one_step is not implemented"""
+
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
+
+    ct = ConcentrationTrackerForDiffusion(mg)
+    with pytest.raises(NotImplementedError):
+        ct.run_one_step()
