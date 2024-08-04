@@ -75,8 +75,9 @@ class ConcentrationTrackerForDiffusion(Component):
 
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
+    >>> ct.start_tracking()
     >>> ddd.run_one_step(1.0)
-    >>> ct.run_one_step(1.0)
+    >>> ct.stop_tracking(1.0)
 
     >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
     array([[ 0. ,  4.        ,  8.        , 12.        , 16. ],
@@ -104,8 +105,9 @@ class ConcentrationTrackerForDiffusion(Component):
 
     >>> ddd = DepthDependentDiffuser(mg)
     >>> ct = ConcentrationTrackerForDiffusion(mg)
+    >>> ct.start_tracking()
     >>> ddd.run_one_step(1.0)
-    >>> ct.run_one_step(1.0)
+    >>> ct.stop_tracking(1.0)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
     array([[6. ,        7.13533528, 6. ],
@@ -118,8 +120,9 @@ class ConcentrationTrackerForDiffusion(Component):
 
     And running one more step.
 
+    >>> ct.start_tracking()
     >>> ddd.run_one_step(1.0)
-    >>> ct.run_one_step(1.0)
+    >>> ct.stop_tracking(1.0)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
     array([[5.52060315, 6.62473963, 5.52060315],
@@ -154,8 +157,9 @@ class ConcentrationTrackerForDiffusion(Component):
 
     >>> ddtd = DepthDependentTaylorDiffuser(mg, if_unstable="warn")
     >>> ct = ConcentrationTrackerForDiffusion(mg)
-    >>> ddtd.run_one_step(0.4)
-    >>> ct.run_one_step(0.4)
+    >>> ct.start_tracking()
+    >>> ddd.run_one_step(0.4)
+    >>> ct.stop_tracking(0.4)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
     array([[6.        , 7.30826823, 6.        ],
