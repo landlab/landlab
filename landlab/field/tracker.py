@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import Mapping
 from contextlib import contextmanager
 
 import numpy as np
@@ -49,8 +50,8 @@ def open_tracker(
     ...     grid.at_cell["discharge"] += 4.0
     ...
 
-    >>> tracker.fields
-    (('at_cell:discharge', [array([1., 1.]), array([5., 5.])]),)
+    >>> tuple(tracker.items())
+    (('at_cell:discharge', (array([1., 1.]), array([5., 5.]))),)
     """
     tracker = FieldTracker(grid)
     tracker.open(include=include, exclude=exclude)
@@ -60,7 +61,7 @@ def open_tracker(
         tracker.close()
 
 
-class FieldTracker:
+class FieldTracker(Mapping):
     """Track a grid's fields.
 
     Parameters
@@ -84,10 +85,10 @@ class FieldTracker:
     >>> with open_tracker(grid, "at_node*") as tracker:
     ...     grid.at_node["z"] += 2.0
     ...
-    >>> tracker.fields
+    >>> tuple(tracker.items())
     (('at_node:z',
-      [array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
-       array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])]),)
+      (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+       array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]))),)
 
     If you prefer, you can also use the ``open`` and ``close`` methods
     for tracking.
@@ -97,10 +98,31 @@ class FieldTracker:
     ('at_node:z',)
     >>> grid.at_node["z"] += 6.0
     >>> tracker.close()
-    >>> tracker.fields
+    >>> tuple(tracker.items())
     (('at_node:z',
-      [array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]),
-       array([9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9.])]),)
+      (array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]),
+       array([9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9.]))),)
+
+    The ``FieldTracker`` provides a read-only mapping interface for looking at
+    the tracked data. For example,
+
+    >>> tracker["at_node:z"]
+    (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+     array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]))
+    >>> tracker.get("at_node:z")
+    (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+     array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]))
+    >>> [name for name in tracker]
+    ['at_node:z']
+    >>> len(tracker)
+    1
+    >>> "at_node:z" in tracker
+    True
+    >>> tuple(tracker.keys())
+    ('at_node:z',)
+    >>> tuple(tracker.values())
+    ((array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+      array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])),)
 
     Use the ``checkpoint`` method if you would like to save some intermediate
     values.
@@ -112,11 +134,11 @@ class FieldTracker:
     ...     grid.at_node["temperature"] += 1.0
     ...
 
-    >>> tracker.fields
+    >>> tuple(tracker.items())
     (('at_node:temperature',
-      [array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+      (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
        array([5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5.]),
-       array([6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6.])]),)
+       array([6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6.]))),)
 
     You can reduce the tracked fields to a single array using the ``reduce``
     method. The `op` keyword is a function that accepts two array parameters
@@ -124,22 +146,32 @@ class FieldTracker:
 
     >>> tracker.reduce(op=np.subtract)
     (('at_node:temperature', array([5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5.])),)
+
+    If you wanted to calculate, for example, the mean of a tracked field, you
+    could do the following,
+
+    >>> np.mean(tracker["at_node:temperature"], axis=0)
+    array([4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4., 4.])
     """
 
     def __init__(self, grid: ModelGrid) -> None:
         self._grid = grid
-        self._fields: dict[str, list[NDArray]] = defaultdict(list)
+        self._data: dict[str, tuple[NDArray, ...]] = {}
         self._tracking: tuple[str, ...] | None = None
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __getitem__(self, key) -> tuple[NDArray, ...]:
+        return self._data[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return (key for key in self._data)
 
     @property
     def tracking(self) -> tuple[str, ...] | None:
         """Return the name of the fields being tracked."""
         return self._tracking
-
-    @property
-    def fields(self) -> tuple[tuple[str, list[NDArray]], ...]:
-        """Return the tracked field values."""
-        return tuple(sorted(self._fields.items()))
 
     def open(
         self,
@@ -173,18 +205,17 @@ class FieldTracker:
         >>> tracker = FieldTracker(grid)
         >>> tracker.open(include=("at_link*", "at_node*"), exclude="*temperature*")
         ('at_link:discharge', 'at_node:elevation')
-        >>> tracker.fields
+        >>> tuple(sorted(tracker.items()))
         (('at_link:discharge',
-          [array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])]),
+          (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),)),
          ('at_node:elevation',
-          [array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])]))
+          (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),)))
         """
         names = self._grid.fields(include=include, exclude=exclude)
         if not names:
             raise NothingToTrackError()
 
-        self._fields.clear()
-
+        self._data.clear()
         self._tracking = tuple(sorted(names))
         self.checkpoint()
 
@@ -218,15 +249,16 @@ class FieldTracker:
         ...     grid.at_node["elevation"] += 3.0
         ...     grid.at_link["discharge"] += 4.0
         ...
-        >>> tracker.fields
+
+        >>> tuple(sorted(tracker.items()))
         (('at_link:discharge',
-          [array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+          (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
            array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
-           array([5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5.])]),
+           array([5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5., 5.]))),
          ('at_node:elevation',
-          [array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
+          (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
            array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]),
-           array([6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6.])]))
+           array([6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6., 6.]))))
         """
         if self.tracking is None:
             raise BadOperationError(
@@ -235,8 +267,11 @@ class FieldTracker:
 
         fields = FieldTracker._copy_fields(self._grid, self.tracking)
 
-        for name, values in fields:
-            self._fields[name].append(values)
+        for name, values in sorted(fields):
+            try:
+                self._data[name] += (values,)
+            except KeyError:
+                self._data[name] = (values,)
 
     def reduce(
         self, op: Callable[[NDArray, NDArray], NDArray] | None = None
@@ -280,13 +315,14 @@ class FieldTracker:
         >>> def foo(x, y):
         ...     return (y - x) ** 2
         ...
+
         >>> tracker.reduce(foo)
         (('at_cell:discharge',
           array([16., 16.])),
          ('at_node:elevation',
           array([25., 25., 25., 25., 25., 25., 25., 25., 25., 25., 25., 25.])))
         """
-        return FieldTracker._reduce_fields(self._fields, op=op)
+        return tuple(sorted(FieldTracker._reduce_fields(self._data, op=op)))
 
     @staticmethod
     def _copy_fields(grid, names: Iterable[str]) -> list[tuple[str, NDArray]]:
@@ -303,12 +339,11 @@ class FieldTracker:
 
     @staticmethod
     def _reduce_fields(
-        fields: dict[str, list[NDArray]],
+        fields: dict[str, tuple[NDArray, ...]],
         op: Callable[[NDArray, NDArray], NDArray] | None = None,
-    ):
+    ) -> tuple[tuple[str, NDArray], ...]:
         """Reduce field values to a single array."""
         op = np.subtract if op is None else op
-        reduced_values = []
-        for name, values in fields.items():
-            reduced_values.append((name, op(values[-1], values[0])))
-        return tuple(sorted(reduced_values))
+        return tuple(
+            (name, op(values[-1], values[0])) for name, values in fields.items()
+        )
