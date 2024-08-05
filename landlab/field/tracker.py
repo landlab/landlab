@@ -107,11 +107,11 @@ class FieldTracker(Mapping):
     the tracked data. For example,
 
     >>> tracker["at_node:z"]
-    (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
-     array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]))
+    (array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]),
+     array([9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9.]))
     >>> tracker.get("at_node:z")
-    (array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
-     array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]))
+    (array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]),
+     array([9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9.]))
     >>> [name for name in tracker]
     ['at_node:z']
     >>> len(tracker)
@@ -121,8 +121,8 @@ class FieldTracker(Mapping):
     >>> tuple(tracker.keys())
     ('at_node:z',)
     >>> tuple(tracker.values())
-    ((array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]),
-      array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])),)
+    ((array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.]),
+     array([9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9., 9.])),)
 
     Use the ``checkpoint`` method if you would like to save some intermediate
     values.
