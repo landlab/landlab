@@ -140,6 +140,20 @@ def test_key_error():
         tracker["not-a-key"]
 
 
+def test_is_immutable():
+    grid = RasterModelGrid((3, 4))
+    tracker = FieldTracker(grid)
+
+    grid.add_ones("z", at="node")
+    with open_tracker(grid) as tracker:
+        with pytest.raises(TypeError):
+            tracker["at_node:z"] = 1.0
+        with pytest.raises(TypeError):
+            tracker["at_node:x"] = tracker["at_node:z"]
+        with pytest.raises(AttributeError):
+            tracker.pop("at_node:z")
+
+
 def test_reduce():
     grid = RasterModelGrid((3, 4))
     grid.add_ones("z", at="node")
