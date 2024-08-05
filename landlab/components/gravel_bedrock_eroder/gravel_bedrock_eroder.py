@@ -1046,21 +1046,11 @@ class GravelBedrockEroder(Component):
         using current rates of change extrapolated forward by time dt.
         """
         cores = self._grid.core_nodes
-        # if dt == 1.0:
-        # sedbefore = self._sed.copy()
-        # rockbefore = self._bedrock__elevation.copy()
-        # elevbefore = self._elev.copy()
-        # print("Sed, rock, elev before", sedbefore, rockbefore, elevbefore)
         self._sed[cores] += self._dHdt[cores] * dt
         if self._num_sed_classes > 1:
             self._thickness_by_class[:, cores] += self._dHdt_by_class[:, cores] * dt
         self._bedrock__elevation[cores] -= self._rock_lowering_rate[cores] * dt
         self._elev[cores] = self._bedrock__elevation[cores] + self._sed[cores]
-        # if dt==1.0:
-        # print("Sed, rock, elev after", self._sed, self._bedrock__elevation, self._elev)
-        # print("Sed change", sedbefore - self._sed)
-        # print("Rock change", rockbefore - self._bedrock__elevation)
-        # print("Elev change", elevbefore - self._elev)
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
         """
