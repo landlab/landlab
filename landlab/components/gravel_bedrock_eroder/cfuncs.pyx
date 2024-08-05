@@ -68,7 +68,7 @@ def _calc_sediment_rate_of_change(
     DTYPE_t porosity_factor,
     DTYPE_t area_of_cell,
     np.ndarray[DTYPE_INT_t, ndim=1] core_nodes,
-    np.ndarray[DTYPE_t, ndim=1] pluck_coarse_frac,
+    np.ndarray[DTYPE_t, ndim=2] pluck_coarse_frac,
     np.ndarray[DTYPE_t, ndim=1] dHdt,
     np.ndarray[DTYPE_t, ndim=1] pluck_rate,
     np.ndarray[DTYPE_t, ndim=2] dHdt_by_class,
@@ -85,7 +85,7 @@ def _calc_sediment_rate_of_change(
             dHdt_by_class[i, c] = porosity_factor * (
                 (sed_influxes[i, c] - sed_outfluxes[i, c])
                 / area_of_cell
-                + (pluck_rate[c] * pluck_coarse_frac[i])
+                + (pluck_rate[c] * pluck_coarse_frac[i, c])
                 - sed_abr_rates[i, c]
             )
             dHdt[c] += dHdt_by_class[i, c]

@@ -111,10 +111,10 @@ class GravelBedrockEroder(Component):
 
     U A = kq I Q S^(7/6) + 0.5 b Qs dx
 
-    S = (U A / (kq I Q (1 + 0.5 b dx))) ^ 6/7 
-    
+    S = (U A / (kq I Q (1 + 0.5 b dx))) ^ 6/7
+
     S = (1.0e-4 1e6 / (0.041 0.01 10.0 1e6 (1 + 0.5 0.0005 1000.0)))^(6 / 7)
-    
+
     ~ 0.0342
 
     The sediment abrasion rate should be, in volume per time, as follows:
@@ -156,6 +156,7 @@ class GravelBedrockEroder(Component):
     ...     rock_elev[grid.core_nodes] += 1.0e-4 * dt
     ...     elev[grid.core_nodes] += 1.0e-4 * dt
     ...     eroder.run_one_step(dt)
+    ...
     >>> int(elev[4])
     33
     """
@@ -319,11 +320,17 @@ class GravelBedrockEroder(Component):
         init_fraction_per_class = np.broadcast_to(
             init_fraction_per_class, number_of_sediment_classes
         )
-        if np.amax(init_fraction_per_class) > 1.0 or np.amin(init_fraction_per_class) < 0.0:
-            raise(ValueError, "init_fraction_per_class must be in [0, 1]")
-        coarse_fractions_from_plucking = np.broadcast_to(
-            coarse_fractions_from_plucking, number_of_sediment_classes
+        if (
+            np.amax(init_fraction_per_class) > 1.0
+            or np.amin(init_fraction_per_class) < 0.0
+        ):
+            raise (ValueError, "init_fraction_per_class must be in [0, 1]")
+
+        self._pluck_coarse_frac = np.zeros(
+            (number_of_sediment_classes, grid.number_of_nodes)
         )
+        for i in range(number_of_sediment_classes):
+            self._pluck_coarse_frac[i, :] = coarse_fractions_from_plucking[i]
 
         super().__init__(grid)
 
@@ -431,7 +438,6 @@ class GravelBedrockEroder(Component):
 
         self._num_sed_classes = number_of_sediment_classes
         self._abr_coefs = np.array(abrasion_coefficients)
-        self._pluck_coarse_frac = coarse_fractions_from_plucking
 
     def _setup_length_of_flow_link(self):
         """Set up a float or array containing length of the flow link from
@@ -1040,21 +1046,21 @@ class GravelBedrockEroder(Component):
         using current rates of change extrapolated forward by time dt.
         """
         cores = self._grid.core_nodes
-        if dt==1.0:
-            sedbefore = self._sed.copy()
-            rockbefore = self._bedrock__elevation.copy()
-            elevbefore = self._elev.copy()
-            print("Sed, rock, elev before", sedbefore, rockbefore, elevbefore)
+        # if dt == 1.0:
+        # sedbefore = self._sed.copy()
+        # rockbefore = self._bedrock__elevation.copy()
+        # elevbefore = self._elev.copy()
+        # print("Sed, rock, elev before", sedbefore, rockbefore, elevbefore)
         self._sed[cores] += self._dHdt[cores] * dt
         if self._num_sed_classes > 1:
-            self._thickness_by_class[:,cores] += self._dHdt_by_class[:,cores] * dt
+            self._thickness_by_class[:, cores] += self._dHdt_by_class[:, cores] * dt
         self._bedrock__elevation[cores] -= self._rock_lowering_rate[cores] * dt
         self._elev[cores] = self._bedrock__elevation[cores] + self._sed[cores]
-        if dt==1.0:
-            print("Sed, rock, elev after", self._sed, self._bedrock__elevation, self._elev)
-            print("Sed change", sedbefore - self._sed)
-            print("Rock change", rockbefore - self._bedrock__elevation)
-            print("Elev change", elevbefore - self._elev)
+        # if dt==1.0:
+        # print("Sed, rock, elev after", self._sed, self._bedrock__elevation, self._elev)
+        # print("Sed change", sedbefore - self._sed)
+        # print("Rock change", rockbefore - self._bedrock__elevation)
+        # print("Elev change", elevbefore - self._elev)
 
     def _estimate_max_time_step_size(self, upper_limit_dt=1.0e6):
         """
