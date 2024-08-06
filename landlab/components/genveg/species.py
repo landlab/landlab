@@ -246,7 +246,7 @@ class Species(object):
 
     def calculate_lai(self, leaf_area, shoot_sys_width):
         crown_area = self.shape.calc_crown_area_from_shoot_width(shoot_sys_width)
-        if leaf_area[leaf_area < 0]:
+        if leaf_area[leaf_area < 0].size > 0:
             raise ValueError('A negative value was found in leaf_area')
         lai = np.divide(
             leaf_area,
