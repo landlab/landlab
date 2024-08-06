@@ -13,6 +13,7 @@ from landlab import NodeStatus
 from landlab import RasterModelGrid
 from landlab.components import ConcentrationTrackerForDiffusion
 
+
 class TestInputParameters:
     """Test input field errors"""
 
@@ -265,7 +266,7 @@ class TestAnalytical:
 
         ct.start_tracking()
         ct.stop_tracking(1)
-        
+
         # Node 7 should have the same concentration as before.
         # Node 8 should have half its previous concentration.
         expected = np.asarray(
@@ -411,8 +412,10 @@ class TestMassBalance:
         )
 
         assert_allclose(total_mass_before, total_mass_after + total_mass_leaving)
-        
+
+
 # %%
+
 
 class TestFieldCopy:
     """Test that copied field is a copy, but not a reference."""
@@ -423,23 +426,23 @@ class TestFieldCopy:
 
     def test_copy_is_equal(self):
         """Test that copied values are equal to copied field."""
-    
+
         ct = ConcentrationTrackerForDiffusion(self.mg)
         ct.copy_old_soil_depth()
-               
+
         assert ct._soil__depth_old == self.mg.at_node["soil__depth"]
 
     def test_copy_is_not_reference(self):
         """Test that copy not a reference."""
-    
+
         ct = ConcentrationTrackerForDiffusion(self.mg)
         ct.copy_old_soil_depth()
-        
+
         self.mg.at_node["soil__depth"] += 1
-        
+
         assert ct._soil__depth_old != self.mg.at_node["soil__depth"]
-        
-        
+
+
 def test_not_implemented(self):
     """Test that private run_one_step is not implemented"""
 
