@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 
-from numpy.testing import assert_allclose, assert_raises
+from numpy.testing import assert_allclose
 from landlab.components.genveg.species import Species
 
 
@@ -38,10 +39,8 @@ def test_get_daily_nsc_concentration(example_input_params):
 
 def test_calculate_lai_error_message_raise(example_input_params):
     species_object = create_species_object(example_input_params)
-    assert_raises(
-       ValueError,
-       species_object.calculate_lai(
-           np.array([0.01, -0.45, 0.16]),
-           np.random.default_rng().uniform(low=0.0, high=3, size=3)
-       )
-    )
+    with pytest.raises(ValueError):
+        species_object.calculate_lai(
+            np.array([0.01, -0.45, 0.16]),
+            np.random.default_rng().uniform(low=0.0, high=3, size=3)
+        )
