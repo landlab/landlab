@@ -413,12 +413,39 @@ class TestMassBalance:
         assert_allclose(total_mass_before, total_mass_after + total_mass_leaving)
         
 # %%
-def test_not_implemented():
+
+class TestFieldCopy:
+    """Test that copied field is a copy, but not a reference."""
+
+    def setup_method(self):
+        self.mg = RasterModelGrid((3, 5))
+        self.mg.add_zeros("soil__depth", at="node")
+
+    def test_copy_is_equal(self):
+        """Test that copied values are equal to copied field."""
+    
+        ct = ConcentrationTrackerForDiffusion(self.mg)
+        ct.copy_old_soil_depth()
+               
+        assert ct._soil__depth_old == self.mg.at_node["soil__depth"]
+
+    def test_copy_is_not_reference(self):
+        """Test that copy not a reference."""
+    
+        ct = ConcentrationTrackerForDiffusion(self.mg)
+        ct.copy_old_soil_depth()
+        
+        self.mg.at_node["soil__depth"] += 1
+        
+        assert ct._soil__depth_old != self.mg.at_node["soil__depth"]
+        
+        
+def test_not_implemented(self):
     """Test that private run_one_step is not implemented"""
 
-    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-    mg.add_field("topographic__elevation", mg.node_x**2 + mg.node_y**2, at="node")
+    self.mg = RasterModelGrid((3, 5))
+    self.mg.add_zeros("topographic__elevation", at="node")
 
-    ct = ConcentrationTrackerForDiffusion(mg)
+    ct = ConcentrationTrackerForDiffusion(self.mg)
     with pytest.raises(NotImplementedError):
         ct.run_one_step()
