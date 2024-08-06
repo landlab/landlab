@@ -4,32 +4,35 @@ import numpy as np
 
 
 class PlantShape(object):
-    def __init__(self, morph_params, grow_params):
-        self.morph_params = morph_params
-        self.grow_params = grow_params
-        self.min_crown_area = self.calc_crown_area_from_shoot_width(
-            self.morph_params["min_shoot_sys_width"]
-        )
-        self.max_crown_area = self.calc_crown_area_from_shoot_width(
-            self.morph_params["max_shoot_sys_width"]
-        )
-        # Calculate log10 linear equation to calculate relationship between
-        # aboveground biomass and aspect ratio
-        # This is not working as expected
-        width_x0 = self.abg_biomass_transform(self.grow_params["min_abg_biomass"])
-        width_x1 = self.abg_biomass_transform(self.grow_params["max_abg_biomass"])
-        width_y0 = np.log10(self.min_crown_area)
-        width_y1 = np.log10(self.max_crown_area)
-        width_m = (width_y1 - width_y0) / (width_x1 - width_x0)
-        width_b = width_y0 - (width_m * width_x0)
-        self.crown_area_coeffs = {"m": width_m, "b": width_b}
-        height_x0 = width_x0
-        height_x1 = width_x1
-        height_y0 = np.log10(self.morph_params["min_height"])
-        height_y1 = np.log10(self.morph_params["max_height"])
-        height_m = (height_y1 - height_y0) / (height_x1 - height_x0)
-        height_b = height_y0 - height_m * height_x0
-        self.height_coeffs = {"m": height_m, "b": height_b}
+    def __init__(self, morph_params=None, grow_params=None):
+        # morph_params and grow_params should be given when running,
+        # this was added for unit testing
+        if morph_params and grow_params:
+            self.morph_params = morph_params
+            self.grow_params = grow_params
+            self.min_crown_area = self.calc_crown_area_from_shoot_width(
+                self.morph_params["min_shoot_sys_width"]
+            )
+            self.max_crown_area = self.calc_crown_area_from_shoot_width(
+                self.morph_params["max_shoot_sys_width"]
+            )
+            # Calculate log10 linear equation to calculate relationship between
+            # aboveground biomass and aspect ratio
+            # This is not working as expected
+            width_x0 = self.abg_biomass_transform(self.grow_params["min_abg_biomass"])
+            width_x1 = self.abg_biomass_transform(self.grow_params["max_abg_biomass"])
+            width_y0 = np.log10(self.min_crown_area)
+            width_y1 = np.log10(self.max_crown_area)
+            width_m = (width_y1 - width_y0) / (width_x1 - width_x0)
+            width_b = width_y0 - (width_m * width_x0)
+            self.crown_area_coeffs = {"m": width_m, "b": width_b}
+            height_x0 = width_x0
+            height_x1 = width_x1
+            height_y0 = np.log10(self.morph_params["min_height"])
+            height_y1 = np.log10(self.morph_params["max_height"])
+            height_m = (height_y1 - height_y0) / (height_x1 - height_x0)
+            height_b = height_y0 - height_m * height_x0
+            self.height_coeffs = {"m": height_m, "b": height_b}
 
     def calc_root_sys_width(self, shoot_sys_width, shoot_sys_height=1):
         volume = self.calc_crown_volume(shoot_sys_width, shoot_sys_height)
@@ -43,6 +46,13 @@ class PlantShape(object):
         return root_sys_width
 
     def calc_crown_area_from_shoot_width(self, shoot_sys_width):
+        # checks to make sure values are all positive
+        if isinstance(shoot_sys_width, np.ndarray):
+            if shoot_sys_width[shoot_sys_width < 0].size > 0:
+                raise ValueError('A negative value was found in shoot_sys_width array')
+        else:
+            if shoot_sys_width < 0:
+                raise ValueError('shoot_sys_width is negative')
         crown_area = 0.25 * np.pi * shoot_sys_width**2
         return crown_area
 
