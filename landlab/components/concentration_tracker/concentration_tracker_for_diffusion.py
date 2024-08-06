@@ -31,11 +31,11 @@ class ConcentrationTrackerForDiffusion(Component):
 
         This component requires a soil flux field calculated by a hillslope diffusion
         component. This component is implemented by applying a start_tracking() method
-        immediately before every diffusion step and a stop_tracking(dt) method 
-        immediately after every diffusion step. These methods are applied instead of 
+        immediately before every diffusion step and a stop_tracking(dt) method
+        immediately after every diffusion step. These methods are applied instead of
         the typical run_one_step(dt) method. See the docstring examples below.
-        
-        Currently, this component will only work if coupled with the 
+
+        Currently, this component will only work if coupled with the
         :class:`~.DepthDependentDiffuser` or the :class:`~.DepthDependentTaylorDiffuser`
         (without the dynamic timestep option).
 
@@ -274,7 +274,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
-        #self._soil__depth_old = self._soil__depth.copy()
+        # self._soil__depth_old = self._soil__depth.copy()
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         self._flux = self._grid.at_link["soil__flux"]
 
@@ -335,10 +335,10 @@ class ConcentrationTrackerForDiffusion(Component):
         self._conc_w = new_val
 
     def copy_old_soil_depth(self):
-        """Store a copy of soil depth. This is used as the old soil depth when 
-        calculating changes in concentration. 
+        """Store a copy of soil depth. This is used as the old soil depth when
+        calculating changes in concentration.
         """
-        
+
         self._soil__depth_old = self._soil__depth.copy()
 
     def calc_concentration(self, dt):
@@ -400,11 +400,11 @@ class ConcentrationTrackerForDiffusion(Component):
         """
 
         self.copy_old_soil_depth()
-        
+
     def stop_tracking(self, dt):
         """Calculate changes in concentration that have occurred in the timestep
         since tracking was started. This method must be called after running the
-        sediment flux component that changes physical properties of bedrock, 
+        sediment flux component that changes physical properties of bedrock,
         soil, and/or topography.
 
         Parameters
@@ -414,7 +414,7 @@ class ConcentrationTrackerForDiffusion(Component):
         """
 
         self.calc_concentration(dt)
-        
+
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError("run_one_step()")
