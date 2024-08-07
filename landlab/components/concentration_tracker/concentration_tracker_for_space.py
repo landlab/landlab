@@ -86,8 +86,9 @@ class ConcentrationTrackerForSpace(Component):
     
     >>> for i in range(40):
     >>>     fr.run_one_step()
+    >>>     ct.start_tracking()
     >>>     sp.run_one_step(10.)
-    >>>     ct.run_one_step(10.)
+    >>>     ct.stop_tracking(10.)
 
     Erosion has lowered the topography and reduced channel bed sediment depth.
     >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
@@ -188,8 +189,9 @@ class ConcentrationTrackerForSpace(Component):
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
     >>>     fr.run_one_step()
+    >>>     ct.start_tracking()
     >>>     sp.run_one_step(1.)
-    >>>     ct.run_one_step(1.)
+    >>>     ct.stop_tracking(1.)
     
     >>> mpl.pyplot.figure()
     >>> mpl.pyplot.plot(c_22)
@@ -441,7 +443,29 @@ class ConcentrationTrackerForSpace(Component):
                                             )
                 
             self._concentration[~is_soil] = 0.0      
+    
+    def start_tracking(self):
+        """
+
+        Parameters
+        ----------
+        dt: float (time)
+            The imposed timestep.
+        """
+
+        self.calc_concentration_watercolumn_and_bed()
         
+    def stop_tracking(self, dt):
+        """
+
+        Parameters
+        ----------
+        dt: float (time)
+            The imposed timestep.
+        """
+
+        self.calc_concentration_watercolumn_and_bed(dt)
+    
     def run_one_step(self, dt):
         """
 
