@@ -160,7 +160,7 @@ class ConcentrationTrackerForDiffusion(Component):
     >>> ddtd = DepthDependentTaylorDiffuser(mg, if_unstable="warn")
     >>> ct = ConcentrationTrackerForDiffusion(mg)
     >>> ct.start_tracking()
-    >>> ddd.run_one_step(0.4)
+    >>> ddtd.run_one_step(0.4)
     >>> ct.stop_tracking(0.4)
 
     >>> mg.at_node["topographic__elevation"][mg.core_nodes].reshape((3, 3))
