@@ -145,43 +145,58 @@ class Species(object):
             msg = "Start of senescence must be within the growing season"
             raise ValueError(msg)
 
+    def calc_area_of_circle(diameter):
+        return np.pi / 4 * diameter ** 2
+    
+    def calc_param_ratio(numerator, denominator):
+        return numerator / denominator
+
+
     def calculate_derived_params(self, species_params):
-        species_params["morph_params"]["max_crown_area"] = (
-            np.pi / 4 * species_params["morph_params"]["max_shoot_sys_width"] ** 2
+        morph_params = species_params["morph_params"]
+        grow_params = species_params["grow_params"]
+        # Area of circle calcuations
+        species_params["morph_params"]["max_crown_area"] = self.calc_area_of_circle(
+            diameter=morph_params["max_shoot_sys_width"]
         )
-        species_params["morph_params"]["min_crown_area"] = (
-            np.pi / 4 * species_params["morph_params"]["min_shoot_sys_width"] ** 2
+        species_params["morph_params"]["min_crown_area"] = self.calc_area_of_circle(
+            diameter=morph_params["min_shoot_sys_width"]
         )
-        species_params["morph_params"]["max_root_area"] = (
-            np.pi / 4 * species_params["morph_params"]["max_root_sys_width"] ** 2
+        species_params["morph_params"]["max_root_area"] = self.calc_area_of_circle(
+            diameter=morph_params["max_root_sys_width"]
         )
-        species_params["morph_params"]["min_root_area"] = (
-            np.pi / 4 * species_params["morph_params"]["min_root_sys_width"] ** 2
+        species_params["morph_params"]["min_root_area"] = self.calc_area_of_circle(
+            diameter=morph_params["min_root_sys_width"]
         )
+        
+        # volume of a cylinder 
         species_params["morph_params"]["max_vital_volume"] = (
             species_params["morph_params"]["max_crown_area"]
             * species_params["morph_params"]["max_height"]
         )
-        species_params["morph_params"]["area_per_stem"] = (
-            species_params["morph_params"]["max_crown_area"]
-            / species_params["morph_params"]["max_n_stems"]
+
+        # ratio calculations
+        species_params["morph_params"]["area_per_stem"] = self.calc_param_ratio(
+            morph_params["max_crown_area"],
+            morph_params["max_n_stems"]
         )
-        species_params["morph_params"]["min_abg_aspect_ratio"] = (
-            species_params["morph_params"]["max_height"]
-            / species_params["morph_params"]["min_shoot_sys_width"]
+        species_params["morph_params"]["min_abg_aspect_ratio"] = self.calc_param_ratio(
+            morph_params["max_height"],
+            morph_params["min_shoot_sys_width"]
         )
-        species_params["morph_params"]["max_abg_aspect_ratio"] = (
-            species_params["morph_params"]["max_height"]
-            / species_params["morph_params"]["max_shoot_sys_width"]
+        species_params["morph_params"]["max_abg_aspect_ratio"] = self.calc_param_ratio(
+            morph_params["max_height"],
+            morph_params["max_shoot_sys_width"]
         )
-        species_params["morph_params"]["min_basal_ratio"] = (
-            species_params["morph_params"]["min_shoot_sys_width"]
-            / species_params["morph_params"]["min_basal_dia"]
+        species_params["morph_params"]["min_basal_ratio"] = self.calc_param_ratio(
+            morph_params["min_shoot_sys_width"],
+            morph_params["min_basal_dia"]
         )
-        species_params["morph_params"]["max_basal_ratio"] = (
-            species_params["morph_params"]["max_shoot_sys_width"]
-            / species_params["morph_params"]["max_basal_dia"]
+        species_params["morph_params"]["max_basal_ratio"] = self.calc_param_ratio(
+            morph_params["max_shoot_sys_width"],
+            morph_params["max_basal_dia"]
         )
+        
         sum_vars = [
             ["max_total_biomass", "plant_part_max", self.all_parts],
             ["max_growth_biomass", "plant_part_max", self.growth_parts],
@@ -202,10 +217,11 @@ class Species(object):
                     "grow_params"
                 ][sum_var[1]][part]
 
-        species_params["morph_params"]["biomass_packing"] = (
-            species_params["grow_params"]["max_growth_biomass"]
-            / species_params["morph_params"]["max_vital_volume"]
+        species_params["morph_params"]["biomass_packing"] = self.calc_param_ratio(
+            species_params["grow_params"]["max_growth_biomass"],
+            morph_params["max_vital_volume"]
         )
+        
 
         species_params["duration_params"]["senesce_rate"] = 0.9 / (
             species_params["duration_params"]["growing_season_end"]
