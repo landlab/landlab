@@ -199,10 +199,10 @@ class TestAnalytical:
         # Forced soil flux and production rate fields
         self.mg.add_zeros("soil_production__rate", at="node")
         self.mg.add_zeros("soil__flux", at="link")
-        
+
     def test_not_implemented(self):
         """Test that private run_one_step is not implemented"""
-    
+
         ct = ConcentrationTrackerForDiffusion(self.mg)
         with pytest.raises(NotImplementedError):
             ct.run_one_step()
@@ -444,6 +444,10 @@ class TestFieldCopy:
 
         self.mg.at_node["soil__depth"] += 1
 
+<<<<<<< HEAD
         assert not np.allclose(ct._soil__depth_old, self.mg.at_node["soil__depth"])
 
 
+=======
+        assert ct._soil__depth_old != self.mg.at_node["soil__depth"]
+>>>>>>> 4e2e0418f29f9373eb40aee5a9a9b444c6339ebe
