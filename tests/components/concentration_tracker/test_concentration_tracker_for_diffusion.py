@@ -433,8 +433,8 @@ class TestFieldCopy:
 
         ct = ConcentrationTrackerForDiffusion(self.mg)
         ct.copy_old_soil_depth()
-
-        assert ct._soil__depth_old == self.mg.at_node["soil__depth"]
+        
+        assert np.allclose(ct._soil__depth_old, self.mg.at_node["soil__depth"])
 
     def test_copy_is_not_reference(self):
         """Test that copy not a reference."""
@@ -444,5 +444,6 @@ class TestFieldCopy:
 
         self.mg.at_node["soil__depth"] += 1
 
-        assert ct._soil__depth_old != self.mg.at_node["soil__depth"]
+        assert not np.allclose(ct._soil__depth_old, self.mg.at_node["soil__depth"])
+
 
