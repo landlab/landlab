@@ -9,6 +9,9 @@ from libc.math cimport fabs
 from libc.math cimport powf
 from libc.math cimport sqrt
 from libc.stdint cimport int8_t
+from libc.stdint cimport uint8_t
+
+# from libc.stdio cimport printf
 
 ctypedef fused id_t:
     cython.integral
@@ -170,9 +173,9 @@ def calc_discharge_at_some_links(
     cdef double denominator
     cdef double g_times_dt = g * dt
     cdef double seven_thirds = 7.0 / 3.0
-    cdef double q_manning
-    cdef double t
-    cdef double w
+    # cdef double q_manning
+    # cdef double t
+    # cdef double w
 
     for i in prange(n_links, nogil=True, schedule="static"):
         link = links[i]
@@ -180,15 +183,19 @@ def calc_discharge_at_some_links(
         if h_at_link[link] > 0.0:
             h_to_seven_thirds = powf(h_at_link[link], seven_thirds)
 
-            t = h_to_seven_thirds / (g * mannings_at_link[link]**2 * q_at_link[link])
-            w = t / (t + dt)
+            # t = h_to_seven_thirds / (g * mannings_at_link[link]**2 * q_at_link[link])
+            # w = t / (t + dt)
+            # w = h_to_seven_thirds / (
+            #     h_to_seven_thirds
+            #     + dt * g * mannings_at_link[link]**2 * fabs(q_at_link[link])
+            # )
 
-            q_manning =  (
-                1.0
-                / mannings_at_link[link]
-                * powf(h_at_link[link], 5.0 / 3.0)
-                * powf(water_slope_at_link[link], 0.5)
-            )
+            # q_manning =  (
+            #     1.0
+            #     / mannings_at_link[link]
+            #     * powf(h_at_link[link], 5.0 / 3.0)
+            #     * powf(fabs(water_slope_at_link[link]), 0.5)
+            # )
 
             numerator = (
                 q_mean_at_link[link]
@@ -201,7 +208,13 @@ def calc_discharge_at_some_links(
                 / h_to_seven_thirds
             )
 
-            q_at_link[link] = numerator / denominator * w + (1.0 - w) * q_manning
+            # q_at_link[link] = numerator / denominator * w + (1.0 - w) * q_manning
+            q_at_link[link] = numerator / denominator
+
+            # if water_slope_at_link[link] > 0.0:
+            #     q_at_link[link] = w * numerator / denominator + (1.0 - w) * q_manning
+            # else:
+            #     q_at_link[link] = w * numerator / denominator - (1.0 - w) * q_manning
 
 
 @cython.boundscheck(False)
@@ -235,6 +248,40 @@ def sum_parallel_links(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+def calc_mean_of_parallel_links_at_some_links(
+    const cython.floating[:] value_at_link,
+    const id_t[:, :] parallel_links_at_link,
+    const uint8_t[:] status_at_link,
+    const id_t[:] links,
+    const double theta,
+    cython.floating[:] out,
+):
+    cdef long n_links = len(links)
+    cdef long link
+    cdef long left
+    cdef long right
+    cdef long i
+
+    for i in prange(n_links, nogil=True, schedule="static"):
+        link = links[i]
+        left = parallel_links_at_link[link, 0]
+        right = parallel_links_at_link[link, 1]
+
+        if (
+            left == -1
+            or right == -1
+            or status_at_link[left] == 4
+            or status_at_link[right] == 4
+        ):
+            out[link] = value_at_link[link]
+        else:
+            out[link] = theta * value_at_link[link] + (1.0 - theta) * 0.5 * (
+                value_at_link[left] + value_at_link[right]
+            )
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def weighted_mean_of_parallel_links(
     shape,
     const double weight,
@@ -258,7 +305,8 @@ def weighted_mean_of_parallel_links(
             0.0,
             value_at_link[link],
             value_at_link[link + 1],
-            weight,
+            1.0,
+            # weight,
         )
         for link in range(first_link + 1, first_link + horizontal_links_per_row - 1):
             out[link] = _calc_weighted_mean(
@@ -272,7 +320,8 @@ def weighted_mean_of_parallel_links(
             value_at_link[link - 1],
             value_at_link[link],
             0.0,
-            weight,
+            1.0,
+            # weight,
         )
 
     with nogil:
@@ -282,7 +331,8 @@ def weighted_mean_of_parallel_links(
                 0.0,
                 value_at_link[link],
                 value_at_link[link + links_per_row],
-                weight,
+                1.0,
+                # weight,
             )
     for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
         first_link = links_per_row * row + horizontal_links_per_row
@@ -299,8 +349,10 @@ def weighted_mean_of_parallel_links(
             out[link] = _calc_weighted_mean(
                 value_at_link[link - links_per_row],
                 value_at_link[link],
+                # value_at_link[link - links_per_row],
                 0.0,
-                weight,
+                1.0,
+                # weight,
             )
 
 
@@ -375,13 +427,13 @@ def adjust_supercritical_discharge(
     cdef long n_links = len(links)
     cdef long i
     cdef long link
-    cdef double root_g = np.sqrt(g)
+    cdef double root_g = sqrt(g)
     cdef double c
 
     for i in prange(n_links, nogil=True, schedule="static"):
         link = links[i]
 
-        c = h_at_link[link] * sqrt(h_at_link[link]) * root_g
+        c = powf(h_at_link[link], 1.5) * root_g
 
         if fabs(q_at_link[link]) > froude * c:
             if q_at_link[link] < 0.0:
