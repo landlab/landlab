@@ -12,7 +12,7 @@ from landlab.utils.return_array import return_array_at_node
 
 
 class ConcentrationTrackerForSpace(Component):
-
+                
     """This component tracks the concentration of any user-defined property of
     sediment using a mass balance approach in which concentration :math:`C_s`
     is calculated as:
@@ -29,15 +29,14 @@ class ConcentrationTrackerForSpace(Component):
     
     .. note::
     
-        This component requires the sediment__influx and sediment__outflux 
-        fields calculated by either the :class:`~.Space` or 
-        :class:`~.SpaceLargeScaleEroder` component. This component must be run
-        after every :class:`~.Space` or :class:`~.SpaceLargeScaleEroder` step
-        and before any other flux component. For hillslope sediment tracking,
-        see :class:`~.ConcentrationTrackerForDiffusion`.
-        
-        In-situ production and decay of the material property are handled by
-        the ConcentrationTrackerProductionDecay component.
+        This component requires the "sediment__influx", "sediment__outflux",
+        "sediment__erosion_flux", and "sediment__deposition_flux" fields
+        calculated by the :class:`~.SpaceLargeScaleEroder` component. This 
+        component does not use the typical run_one_step(dt) method. Instead,
+        a start_tracking() method is implemented immediately before every 
+        :class:`~.SpaceLargeScaleEroder` step and a stop_tracking(dt) method 
+        immediately after every :class:`~.SpaceLargeScaleEroder` step.
+        See the docstring examples below.
 
     Examples
     --------
@@ -256,6 +255,22 @@ class ConcentrationTrackerForSpace(Component):
             "mapping": "node",
             "doc": "flux of sediment out of node",
         },
+        "sediment__erosion_flux": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "erosional flux of sediment from bed to water column",
+        },
+        "sediment__deposition_flux": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "depositional flux of sediment from water column to bed",
+        },
         "topographic__elevation": {
             "dtype": float,
             "intent": "in",
@@ -353,7 +368,13 @@ class ConcentrationTrackerForSpace(Component):
         if np.any(new_val < 0.0):
             raise ValueError("Concentration in bedrock cannot be negative")
         self._C_br = return_array_at_node(self._grid, new_val)
+        
+    def copy_old_soil_depth(self):
+        """Store a copy of soil depth. This is used as the old soil depth when
+        calculating changes in concentration.
+        """
 
+        self._soil__depth_old = self._soil__depth.copy()
 
     def calc_concentration_watercolumn_and_bed(self, dt):
         """Calculate change in concentration within sediment transported in
@@ -371,15 +392,10 @@ class ConcentrationTrackerForSpace(Component):
         phi = self._sp._phi   # USE VALUES INSTEAD OF SPACE INSTANCE
         F_f = self._sp._F_f   # USE VALUES INSTEAD OF SPACE INSTANCE
         v_s = self._sp._v_s   # USE VALUES INSTEAD OF SPACE INSTANCE
-        Es = self._sp.Es   # USE VALUES INSTEAD OF SPACE INSTANCE
         Er = self._sp.Er   # USE VALUES INSTEAD OF SPACE INSTANCE
-        D_sw = np.zeros(np.shape(q))
-        D_sw[q!=0] = v_s*self._Qs_out[q!=0]/q[q!=0]
+        Es = self._grid.at_node["sediment__erosion_flux"]
+        D_sw = self._grid.at_node["sediment__deposition_flux"]
         
-        # Back-calculate soil depth from prior to running SPACE component
-        #(REPLACE WITH AN OLD SOIL DEPTH FROM SPACE COMPONENT IF IT HAS ONE)
-        self._soil__depth_old = self._soil__depth.copy() + ((Es - D_sw)/(1-phi))*dt
-                
         # Calculate portions of equation that have soil depth as denominator
         is_soil = self._soil__depth > 0.0
         
@@ -444,30 +460,20 @@ class ConcentrationTrackerForSpace(Component):
                 
             self._concentration[~is_soil] = 0.0      
     
-    def start_tracking(self):
-        """
-
-        Parameters
-        ----------
-        dt: float (time)
-            The imposed timestep.
-        """
-
-        self.calc_concentration_watercolumn_and_bed()
-        
-    def stop_tracking(self, dt):
-        """
-
-        Parameters
-        ----------
-        dt: float (time)
-            The imposed timestep.
-        """
-
-        self.calc_concentration_watercolumn_and_bed(dt)
     
-    def run_one_step(self, dt):
+    def start_tracking(self):
+        """Stores values necessary for calculating changes in concentration.
+        This method must be called prior to running the sediment flux component
+        that changes physical properties of bedrock, soil, and/or topography.
         """
+
+        self.copy_old_soil_depth()
+
+    def stop_tracking(self, dt):
+        """Calculate changes in concentration that have occurred in the timestep
+        since tracking was started. This method must be called after running the
+        sediment flux component that changes physical properties of bedrock,
+        soil, and/or topography.
 
         Parameters
         ----------
@@ -476,3 +482,9 @@ class ConcentrationTrackerForSpace(Component):
         """
 
         self.calc_concentration_watercolumn_and_bed(dt)
+
+    def run_one_step(self):
+        """run_one_step is not implemented for this component."""
+        raise NotImplementedError("run_one_step()")
+    
+    
