@@ -147,14 +147,13 @@ class Species(object):
 
     def calc_area_of_circle(diameter):
         return np.pi / 4 * diameter ** 2
-    
+
     def calc_param_ratio(numerator, denominator):
         return numerator / denominator
 
-
     def calculate_derived_params(self, species_params):
         morph_params = species_params["morph_params"]
-        grow_params = species_params["grow_params"]
+        # grow_params = species_params["grow_params"]
         # Area of circle calcuations
         species_params["morph_params"]["max_crown_area"] = self.calc_area_of_circle(
             diameter=morph_params["max_shoot_sys_width"]
@@ -168,8 +167,8 @@ class Species(object):
         species_params["morph_params"]["min_root_area"] = self.calc_area_of_circle(
             diameter=morph_params["min_root_sys_width"]
         )
-        
-        # volume of a cylinder 
+
+        # volume of a cylinder
         species_params["morph_params"]["max_vital_volume"] = (
             species_params["morph_params"]["max_crown_area"]
             * species_params["morph_params"]["max_height"]
@@ -196,7 +195,7 @@ class Species(object):
             morph_params["max_shoot_sys_width"],
             morph_params["max_basal_dia"]
         )
-        
+
         sum_vars = [
             ["max_total_biomass", "plant_part_max", self.all_parts],
             ["max_growth_biomass", "plant_part_max", self.growth_parts],
@@ -221,7 +220,6 @@ class Species(object):
             species_params["grow_params"]["max_growth_biomass"],
             morph_params["max_vital_volume"]
         )
-        
 
         species_params["duration_params"]["senesce_rate"] = 0.9 / (
             species_params["duration_params"]["growing_season_end"]
