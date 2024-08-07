@@ -54,12 +54,16 @@ The `surface_water__depth` field is defined at nodes.
 
 >>> of.var_loc("surface_water__depth")
 'node'
->>> grid.at_node["surface_water__depth"]
-array([1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
-       1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
-       1.000000e-05, 1.000000e-05, 1.000000e-05, 2.001193e-02,
-       2.001193e-02, 2.001193e-02, 1.000000e-05, 1.000100e-01,
-       1.000100e-01, 1.000100e-01, 1.000100e-01, 1.000100e-01])
+>>> grid.at_node["surface_water__depth"].reshape(grid.shape)
+array([[0.  , 0.  , 0.  , 0.  , 0.  ],
+       [0.  , 0.  , 0.  , 0.  , 0.  ],
+       [0.  , 0.07, 0.07, 0.07, 0.  ],
+       [0.1 , 0.1 , 0.1 , 0.1 , 0.1 ]])
+
+array([1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
+       1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05, 1.000000e-05,
+       1.000000e-05, 2.001193e-02, 2.001193e-02, 2.001193e-02, 1.000000e-05,
+       1.000100e-01, 1.000100e-01, 1.000100e-01, 1.000100e-01, 1.000100e-01])
 
 The `surface_water__discharge` field is defined at links. Because our initial
 topography was a dipping plane, there is no water discharge in the horizontal
@@ -94,18 +98,24 @@ import scipy.constants
 
 from landlab import Component
 from landlab import RasterModelGrid
+
+# from landlab.components.overland_flow._calc import adjust_unstable_discharge
 from landlab.components.overland_flow._calc import adjust_discharge_for_dry_links
 from landlab.components.overland_flow._calc import adjust_supercritical_discharge
-from landlab.components.overland_flow._calc import adjust_unstable_discharge
 from landlab.components.overland_flow._calc import calc_bates_flow_height_at_some_links
 from landlab.components.overland_flow._calc import calc_discharge_at_some_links
 from landlab.components.overland_flow._calc import calc_grad_at_some_links
+from landlab.components.overland_flow._calc import (
+    calc_mean_of_parallel_links_at_some_links,
+)
 from landlab.components.overland_flow._calc import find_max_water_depth
 from landlab.components.overland_flow._calc import map_sum_of_influx_to_node
 from landlab.components.overland_flow._calc import update_water_depths
-from landlab.components.overland_flow._calc import weighted_mean_of_parallel_links
+
+# from landlab.components.overland_flow._calc import weighted_mean_of_parallel_links
 from landlab.core.utils import as_id_array
 from landlab.grid.linkstatus import is_inactive_link
+from landlab.grid.nodestatus import NodeStatus
 
 
 class NoWaterError(Exception):
@@ -330,8 +340,17 @@ class OverlandFlow(Component):
         al., 2012
         """
         max_water_depth = find_max_water_depth(
-            self._grid.at_node["surface_water__depth"], self.grid.core_nodes
+            self._grid.at_node["surface_water__depth"],
+            self.grid.nodes.flatten(),  # self.grid.core_nodes
         )
+        if max_water_depth <= 0.0:
+            raise NoWaterError()
+
+        return self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
+
+    def _calc_time_step(self, h_at_node):
+        max_water_depth = np.max(h_at_node)
+
         if max_water_depth <= 0.0:
             raise NoWaterError()
 
@@ -376,16 +395,19 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
-        try:
-            dt = self.calc_time_step() if dt is None else dt
-        except NoWaterError:
-            return
-
         h_at_node = self._grid.at_node["surface_water__depth"]
         z_at_node = self._grid.at_node["topographic__elevation"]
         q_at_link = self._grid.at_link["surface_water__discharge"]
         h_at_link = self._grid.at_link["surface_water__depth"]
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
+
+        is_active_node = np.any(self.grid.link_status_at_node == NodeStatus.CORE)
+        try:
+            dt = self._calc_time_step(h_at_node[is_active_node]) if dt is None else dt
+            # dt = self.calc_time_step() if dt is None else dt
+        except NoWaterError:
+            return
+
         q_mean_at_link = self.grid.empty(at="link")
         q_at_node = self.grid.empty(at="node")
 
@@ -395,7 +417,10 @@ class OverlandFlow(Component):
         time_remaining = dt
         while time_remaining > 0.0:
             try:
-                dt_local = min(self.calc_time_step(), time_remaining)
+                dt_local = min(
+                    self._calc_time_step(h_at_node[is_active_node]), time_remaining
+                )
+                # dt_local = min(self.calc_time_step(), time_remaining)
             except NoWaterError:
                 break
             time_remaining -= dt_local
@@ -422,10 +447,21 @@ class OverlandFlow(Component):
 
             adjust_discharge_for_dry_links(h_at_link, q_at_link, active_links)
 
-            weighted_mean_of_parallel_links(
-                self.grid.shape,
-                self._theta,
+            # weighted_mean_of_parallel_links(
+            #     self.grid.shape,
+            #     self._theta,
+            #     q_at_link,
+            #     q_mean_at_link,
+            # )
+
+            q_mean_at_link.fill(0.0)
+
+            calc_mean_of_parallel_links_at_some_links(
                 q_at_link,
+                self.grid.parallel_links_at_link,
+                self.grid.status_at_link,
+                active_links,
+                self._theta,
                 q_mean_at_link,
             )
 
@@ -464,13 +500,13 @@ class OverlandFlow(Component):
                 # exceeds the Courant number and is greater than the water
                 # depth divided by 4 links, we reduce discharge to maintain
                 # stability.
-                adjust_unstable_discharge(
-                    q_at_link,
-                    h_at_link,
-                    active_links,
-                    self._grid.dx,
-                    dt_local,
-                )
+                # adjust_unstable_discharge(
+                #     q_at_link,
+                #     h_at_link,
+                #     active_links,
+                #     self._grid.dx,
+                #     dt_local,
+                # )
 
             # Once stability has been restored, we calculate the change in
             # water depths on all core nodes by finding the difference between
