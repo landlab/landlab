@@ -1322,9 +1322,7 @@ def test_MassBalance():
         fa.run_one_step()
         soil_B = cp.deepcopy(H)
         bed_B = cp.deepcopy(br)
-        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective = sp.run_one_step(
-            dt=dt
-        )
+        vol_SSY_riv, V_leaving_riv = sp.run_one_step(dt=dt)
         diff_MB = (
             np.sum((bed_B[cores] - br[cores]) * area[cores])
             + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
@@ -1349,13 +1347,15 @@ def test_MassBalance():
             1e-8 * mg.number_of_nodes,
             err_msg=(
                 "Mass balance error SpaceLargeScaleEroder! Try to resolve by "
-                "becreasing timestep"
+                "decreasing timestep"
             ),
             verbose=True,
         )
 
         # Check mass balance on effective erosion and deposition values
-        soil_new_calc = soil_B + (depo_effective - ero_sed_effective) * dt
+        soil_new_calc = soil_B + (mg.at_node["sediment__deposition_flux"] 
+                                  - mg.at_node["sediment__erosion_flux"]
+                                  ) * dt
         np.testing.assert_almost_equal(
             H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
         )
@@ -1432,9 +1432,7 @@ def test_MassBalance_lower_pore_density():
         fa.run_one_step()
         soil_B = cp.deepcopy(H)
         bed_B = cp.deepcopy(br)
-        vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective = sp.run_one_step(
-            dt=dt
-        )
+        vol_SSY_riv, V_leaving_riv = sp.run_one_step(dt=dt)
         diff_MB = (
             np.sum((bed_B[cores] - br[cores]) * area[cores])
             + np.sum((soil_B[cores] - H[cores]) * area[cores]) * (1 - sp._phi)
@@ -1465,7 +1463,9 @@ def test_MassBalance_lower_pore_density():
         )
 
         # Check mass balance on effective erosion and deposition values
-        soil_new_calc = soil_B + (depo_effective - ero_sed_effective) * dt
+        soil_new_calc = soil_B + (mg.at_node["sediment__deposition_flux"] 
+                                  - mg.at_node["sediment__erosion_flux"]
+                                  ) * dt
         np.testing.assert_almost_equal(
             H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
         )
