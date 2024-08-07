@@ -274,7 +274,7 @@ class ConcentrationTrackerForDiffusion(Component):
 
         # get reference to inputs
         self._soil__depth = self._grid.at_node["soil__depth"]
-        # self._soil__depth_old = self._soil__depth.copy()
+        self._soil__depth_old = self._soil__depth.copy()
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         self._flux = self._grid.at_link["soil__flux"]
 
@@ -354,7 +354,6 @@ class ConcentrationTrackerForDiffusion(Component):
         conc_old = self._concentration.copy()
 
         # Map concentration from nodes to links (following soil flux direction)
-        # Does this overwrite fixed-value/gradient links?
         self._conc_at_links = map_value_at_max_node_to_link(
             self._grid, "topographic__elevation", "sediment_property__concentration"
         )
@@ -389,9 +388,6 @@ class ConcentrationTrackerForDiffusion(Component):
         )
 
         self._concentration[~is_soil] = 0.0
-
-        # Update old soil depth to new value
-        self._soil__depth_old = self._soil__depth.copy()
 
     def start_tracking(self):
         """Stores values necessary for calculating changes in concentration.
