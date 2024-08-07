@@ -213,6 +213,14 @@ class SpaceLargeScaleEroder(Component):
             "mapping": "node",
             "doc": "Sediment deposition flux from water column to bed (depth deposited per unit time)",
         },
+        "bedrock__erosion_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "Bedrock erosion flux from bedrock to water column (depth eroded per unit time)",
+        },
         "soil__depth": {
             "dtype": float,
             "intent": "inout",
@@ -599,6 +607,7 @@ class SpaceLargeScaleEroder(Component):
         
         self.grid.at_node["sediment__erosion_flux"][:] = ero_sed_effective
         self.grid.at_node["sediment__deposition_flux"][:] = depo_effective
+        self.grid.at_node["bedrock__erosion_flux"][:] = self._Er
 
         return vol_SSY_riv, V_leaving_riv
 
