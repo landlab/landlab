@@ -197,6 +197,22 @@ class SpaceLargeScaleEroder(Component):
             "mapping": "node",
             "doc": "Sediment flux (volume per unit time of sediment leaving each node)",
         },
+        "sediment__erosion_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "Sediment erosion flux from bed to water column (depth eroded per unit time)",
+        },
+        "sediment__deposition_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "Sediment deposition flux from water column to bed (depth deposited per unit time)",
+        },
         "soil__depth": {
             "dtype": float,
             "intent": "inout",
@@ -580,22 +596,18 @@ class SpaceLargeScaleEroder(Component):
         # Update topography
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]
+        
+        self.grid.at_node["sediment__erosion_flux"][:] = ero_sed_effective
+        self.grid.at_node["sediment__deposition_flux"][:] = depo_effective
 
-        return vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective
+        return vol_SSY_riv, V_leaving_riv
 
     def run_one_step(self, dt):
         """
         Returns:
         - vol_SSY_riv (float): Suspended sediment yield leaving the domain as wash load
         - V_leaving_riv (float): Volume of bedload sediment leaving the domain.
-        - ero_sed_effective (float): Effective erosion of sediment [L/T].
-        - depo_effective (float): Effective deposition [L/T].
         """
 
-        (
-            vol_SSY_riv,
-            V_leaving_riv,
-            ero_sed_effective,
-            depo_effective,
-        ) = self.run_one_step_basic(dt)
-        return vol_SSY_riv, V_leaving_riv, ero_sed_effective, depo_effective
+        (vol_SSY_riv, V_leaving_riv) = self.run_one_step_basic(dt)
+        return vol_SSY_riv, V_leaving_riv
