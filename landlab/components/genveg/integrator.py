@@ -97,8 +97,8 @@ class GenVeg(Component, PlantGrowth):
         _ = self._grid.add_zeros("vegetation__cell_lai", at="cell", clobber=True)
         # Instantiate a PlantGrowth object and
         # summarize number of plants and biomass per cell
-        if plant_array is None:
-            cover_allocation = {}
+        if plant_array.size == 0:
+            cover_allocation = []
             for cell_index in range(self._grid.number_of_cells):
                 species_list = self._grid.at_cell["vegetation__plant_species"][
                     cell_index
@@ -111,7 +111,7 @@ class GenVeg(Component, PlantGrowth):
                 species_cover_allocation = cover_species / cover_sum
                 cover_allocation.append(
                     dict(zip(species_list, (species_cover_allocation * cell_cover)))
-                )
+                )  # This is a list with elements representing each cell - change this to a dict of species holding an array
 
             # for each species in the parameters file
             for species in vegparams:
@@ -124,7 +124,7 @@ class GenVeg(Component, PlantGrowth):
                     _current_jday,
                     rel_time,
                     species_dict,
-                    species_cover=cover_allocation[species],
+                    species_cover=cover_allocation,
                 )
                 plantspecies.append(species_obj)
         else:
@@ -134,12 +134,22 @@ class GenVeg(Component, PlantGrowth):
                 species_canopy_area = np.pi / 4 * plant_array["shoot_sys_width"] ** 2
                 species_basal_area = np.pi / 4 * plant_array["basal_width"] ** 2
                 species_abg_area = np.sqrt(species_basal_area * species_canopy_area)
-                species_cover = (
+                species_percent_cover = (
                     self.calculate_grid_vars(
                         plant_array["cell_index"], species_abg_area
                     )
                     / self._grid.area_of_cell
                 )
+                species_cover = [
+                    dict(
+                        zip(
+                            [self._grid.at_cell["vegetation__plant_species"][i]],
+                            [species_percent_cover[i]],
+                        )
+                    )
+                    for i in range(self._grid.number_of_cells)
+                ]
+
                 species_obj = PlantGrowth(
                     self._grid,
                     self.dt,
@@ -209,7 +219,7 @@ class GenVeg(Component, PlantGrowth):
             # Check if point falls in cell
             for idx, plant in enumerate(cell_plants):
                 unoccupied_center = False
-                radius = plant["shoot_sys_width"] / 2
+                radius = plant["basal_width"] / 2
                 while unoccupied_center is False:
                     x = rng.uniform(low=min_x + radius, high=max_x - radius, size=1)
                     y_lims = self.get_cell_boundary_points(corner_vertices, x)
@@ -227,6 +237,7 @@ class GenVeg(Component, PlantGrowth):
                             break
 
             for species_obj in self.plant_species:
+                # what are we updating the shoot width and height to? We need to update the morphology estimator
                 species = species_obj.species_plant_factors["species"]
                 update_plants = cell_plants[cell_plants["species"] == species]
                 update_plants = species_obj.update_morphology(update_plants)

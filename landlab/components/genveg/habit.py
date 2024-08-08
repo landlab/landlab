@@ -1,24 +1,39 @@
-from .duration import Annual, Evergreen, Deciduous, rng
+from .duration import Annual, Evergreen, Deciduous
+import numpy as np
+
+rng = np.random.default_rng()
 
 
 # Growth habit classes and selection method
 # Growth habit uses duration properties to assign dormancy and emergence methods
 class Habit(object):
-    def __init__(self, species_grow_params, durationdict, duration_val, green_parts):
-        self.duration = self.select_duration_class(
-            species_grow_params,
-            duration_val,
+    def __init__(self, params, green_parts):
+        grow_params = params["grow_params"]
+        duration_params = params["duration_params"]
+        self.duration = self._select_duration_class(
+            grow_params,
+            params["plant_factors"]["duration"],
             green_parts,
-            durationdict["senesce_rate"],
+            duration_params,
         )
+        self.morph_params = self._calc_derived_morph_params(params)
 
-    def select_duration_class(
+    def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
+        canopy_area = 0.25 * np.pi * shoot_sys_width**2
+        return canopy_area
+
+    def _calc_shoot_width_from_canopy_area(self, canopy_area):
+        shoot_width = np.sqrt(4 * canopy_area / np.pi)
+        return shoot_width
+
+    def _select_duration_class(
         self,
         species_grow_params,
         duration_val,
         green_parts=("root", "leaf", "stem", "reproductive"),
-        senesce_rate=0.0,
+        duration_params={"senesce_rate": 0.0},
     ):
+        senesce_rate = duration_params["senesce_rate"]
         duration = {
             "annual": Annual(species_grow_params, senesce_rate),
             "perennial deciduous": Deciduous(
@@ -27,6 +42,35 @@ class Habit(object):
             "perennial evergreen": Evergreen(species_grow_params),
         }
         return duration[duration_val]
+
+    def _calc_derived_morph_params(self, params):
+        # Calculate growth habit specific parameters depending on morphology
+        # allometry method and save them as a dictionary to the habit class
+        params["morph_params"]["max_canopy_area"] = (
+            np.pi / 4 * params["morph_params"]["max_shoot_sys_width"] ** 2
+        )
+        params["morph_params"]["min_canopy_area"] = (
+            np.pi / 4 * params["morph_params"]["min_shoot_sys_width"] ** 2
+        )
+        params["morph_params"]["max_root_area"] = (
+            np.pi / 4 * params["morph_params"]["max_root_sys_width"] ** 2
+        )
+        params["morph_params"]["min_root_area"] = (
+            np.pi / 4 * params["morph_params"]["min_root_sys_width"] ** 2
+        )
+        return params["morph_params"]
+
+    def calc_abg_dims_from_biomass(self, abg_biomass):
+        # These dimensions are empirically derived allometric relationships.
+        # Using ones for placeholder right now
+        log_basal_width = basal_width = log_height = height = log_canopy_area = (
+            canopy_area
+        ) = np.ones_like(abg_biomass)
+        basal_width = np.exp(log_basal_width)
+        height = np.exp(log_height)
+        canopy_area = np.exp(log_canopy_area)
+        shoot_sys_width = self._calc_shoot_width_from_canopy_area(canopy_area)
+        return basal_width, shoot_sys_width, height
 
     def emerge(self, plants):
         plants = self.duration.emerge(plants)
@@ -46,34 +90,158 @@ class Habit(object):
 
 
 class Forbherb(Habit):
-    def __init__(self, species_grow_params, durationdict, duration_val):
+    def __init__(self, params):
         green_parts = ("leaf", "stem")
-        super().__init__(species_grow_params, durationdict, duration_val, green_parts)
+        super().__init__(params, green_parts)
 
 
 class Graminoid(Habit):
-    def __init__(self, species_grow_params, durationdict, duration_val):
+    def __init__(
+        self,
+        params,
+        empirical_coeffs={
+            "perennial": {
+                "C3": {
+                    "basal_coeffs": {"a": 0.20, "b": 1.17},
+                    "height_coeffs": {"a": np.log(0.232995), "b": 0.619077},
+                    "canopy_coeffs": {"a": np.log(0.0597478), "b": 1.31244},
+                },
+                "C4": {
+                    "basal_coeffs": {"a": 0.20, "b": 1.17},
+                    "height_coeffs": {"a": np.log(0.2776634), "b": 0.4176197},
+                    "canopy_coeffs": {"a": np.log(0.0516016), "b": 1.38799},
+                },
+            },
+            "annual": {
+                "C3": {
+                    "basal_coeffs": {"a": 0.20, "b": 1.17},
+                    "height_coeffs": {"a": np.log(0.8548639), "b": 0.9187837},
+                    "canopy_coeffs": {"a": np.log(0.030101), "b": 1.24346249},
+                },
+                "C4": {
+                    "basal_coeffs": {"a": 0.20, "b": 1.17},
+                    "height_coeffs": {"a": np.log(0.2776634), "b": 0.4176197},
+                    "canopy_coeffs": {"a": np.log(0.157143), "b": 1.3828},
+                },
+            },
+        },
+    ):
         green_parts = ("leaf", "stem")
-        super().__init__(species_grow_params, durationdict, duration_val, green_parts)
+        duration_val = params["plant_factors"]["duration"]
+        photo_val = params["plant_factors"]["p_type"]
 
-    def set_initial_height(self, max_height, min_height, arr_size):
-        height = min_height + rng.rayleigh(scale=0.5, size=arr_size) * max_height
-        return height
+        if params["morph_params"]["allometry_method"] == "min-max":
+            max_basal_dia_cm = params["morph_params"]["max_basal_dia"] * 100
+            min_basal_dia_cm = params["morph_params"]["min_basal_dia"] * 100
+            (
+                params["morph_params"]["basal_coeffs"]["a"],
+                params["morph_params"]["basal_coeffs"]["b"],
+            ) = self._calc2_allometry_coeffs(
+                min_basal_dia_cm,
+                max_basal_dia_cm,
+                params["grow_params"]["min_abg_biomass"],
+                params["grow_params"]["max_abg_biomass"],
+            )
+            (
+                params["morph_params"]["height_coeffs"]["a"],
+                params["morph_params"]["height_coeffs"]["b"],
+            ) = self._calc2_allometry_coeffs(
+                min_basal_dia_cm,
+                max_basal_dia_cm,
+                params["morph_params"]["min_height"],
+                params["morph_params"]["max_height"],
+            )
+            min_canopy_area = self._calc_canopy_area_from_shoot_width(
+                params["morph_params"]["min_shoot_sys_width"]
+            )
+            max_canopy_area = self._calc_canopy_area_from_shoot_width(
+                params["morph_params"]["max_shoot_sys_width"]
+            )
+            (
+                params["morph_params"]["canopy_coeffs"]["a"],
+                params["morph_params"]["canopy_coeffs"]["b"],
+            ) = self._calc2_allometry_coeffs(
+                min_basal_dia_cm,
+                max_basal_dia_cm,
+                min_canopy_area,
+                max_canopy_area,
+            )
+
+        else:
+            if params["morph_params"]["allometry_method"] == "default":
+                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][
+                    photo_val
+                ]["basal_coeffs"]
+                params["morph_params"]["height_coeffs"] = empirical_coeffs[
+                    duration_val
+                ][photo_val]["height_coeffs"]
+                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[
+                    duration_val
+                ][photo_val]["canopy_coeffs"]
+
+            (
+                params["morph_params"]["min_basal_dia"],
+                params["morph_params"]["min_shoot_sys_width"],
+                params["morph_params"]["min_shoot_sys_height"],
+            ) = self.calc_abg_dims_from_biomass(
+                params["grow_params"]["min_abg_biomass"]
+            )
+            (
+                params["morph_params"]["max_basal_dia"],
+                params["morph_params"]["max_shoot_sys_width"],
+                params["morph_params"]["max_shoot_sys_height"],
+            ) = self._calc_abg_dims_from_biomass(
+                params["grow_params"]["max_abg_biomass"]
+            )
+            params["morph_params"]["min_basal_dia"]
+
+        super().__init__(params, green_parts)
+
+    def _calc2_allometry_coeffs(self, x_min, x_max, y_min, y_max):
+        ln_x_min = np.log(x_min)
+        ln_x_max = np.log(x_max)
+        ln_y_min = np.log(y_min)
+        ln_y_max = np.log(y_max)
+        b = (ln_y_max - ln_y_min) / (ln_x_max - ln_x_min)
+        a = ln_y_max - b * ln_x_max
+        return (a, b)
+
+    def calc_abg_dims_from_biomass(self, abg_biomass):
+        # These dimensions are empirically derived allometric relationships for grasses.
+        log_basal_width_cm = log_height = height = log_canopy_area = canopy_area = (
+            np.zeros_like(abg_biomass)
+        )
+        filter = np.nonzero(abg_biomass > self.grow_params["min_abg_biomass"])
+        log_basal_width_cm[filter] = (
+            np.log(abg_biomass[filter]) - self.basal_coeffs["a"]
+        ) / self.basal_coeffs["b"]
+        basal_width_cm = np.exp(log_basal_width_cm)
+        log_height[filter] = (
+            self.height_coeffs["a"] - log_basal_width_cm[filter]
+        ) / self.height_coeffs["b"]
+        height = np.exp(log_height)
+        log_canopy_area[filter] = (
+            log_basal_width_cm - self.canopy_coeffs["a"]
+        ) / self.canopy_coeffs["b"]
+        canopy_area = np.exp(log_canopy_area)
+        shoot_sys_width = self._calc_shoot_width_from_canopy_area(canopy_area)
+        basal_width = basal_width_cm * 100
+        return basal_width, shoot_sys_width, height
 
 
 class Shrub(Habit):
-    def __init__(self, species_grow_params, durationdict, duration_val):
+    def __init__(self, params):
         green_parts = "leaf"
-        super().__init__(species_grow_params, durationdict, duration_val, green_parts)
+        super().__init__(params, green_parts)
 
 
 class Tree(Habit):
-    def __init__(self, species_grow_params, durationdict, duration_val):
+    def __init__(self, params):
         green_parts = "leaf"
-        super().__init__(species_grow_params, durationdict, duration_val, green_parts)
+        super().__init__(params, green_parts)
 
 
 class Vine(Habit):
-    def __init__(self, species_grow_params, durationdict, duration_val):
+    def __init__(self, params):
         green_parts = "leaf"
-        super().__init__(species_grow_params, durationdict, duration_val, green_parts)
+        super().__init__(params, green_parts)

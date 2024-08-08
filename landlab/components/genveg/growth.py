@@ -177,19 +177,48 @@ class PlantGrowth(Species):
 
         event_flags = self.set_event_flags(_current_jday)
         _in_growing_season = event_flags.pop("_in_growing_season")
-        max_plants_per_cell = (
-            np.round(
-                self._grid.number_of_cells
-                * self.species_morph_params["max_plant_density"]
-                * self._grid.area_of_cell
-            )
-            .astype(int)
-            .item()
-        )
-
-        self.plants = np.full(
-            max_plants_per_cell,
+        max_plants = np.round(
+            self._grid.number_of_cells
+            * self.species_morph_params["max_plant_density"]
+            * self._grid.area_of_cell
+        ).astype(int)
+        scalar = (
+            "na",
+            -9999,
+            -9999,
             np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            -9999,
+            np.nan,
+            np.nan,
+            np.nan,
+            -9999,
+        )
+        empty_list = []
+        for i in range(max_plants[0]):
+            empty_list.append(scalar)
+        self.plants = np.array(
+            empty_list,
             dtype=[
                 ("species", "U10"),
                 ("pid", int),
@@ -521,16 +550,16 @@ class PlantGrowth(Species):
                     )
                     plant_shoot_widths = []
                     while cover_area > (
-                        1.2 * self.species_morph_params["min_crown_area"]
+                        1.2 * self.species_morph_params["min_canopy_area"]
                     ):
                         plant_width = rng.uniform(
                             low=self.species_morph_params["min_shoot_sys_width"],
                             high=self.species_morph_params["max_shoot_sys_width"],
                             size=1,
                         )
-                        plant_basal_width = plant_width * rng.uniform(
-                            low=self.species_morph_params["min_basal_ratio"],
-                            high=self.species_morph_params["max_basal_ratio"],
+                        plant_basal_width = rng.uniform(
+                            low=self.species_morph_params["min_basal_dia"],
+                            high=self.species_morph_params["max_basal_dia"],
                             size=1,
                         )
                         cover_area -= (

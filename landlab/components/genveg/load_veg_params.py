@@ -429,13 +429,13 @@ class VegParams:
                 "Assuming zero mortality."
             )
             print(msg)
-            S = [0, 0]
+            S = np.array([0, 0])
         # Direct solve for coefficients if only two
         # points provided to prevent solver errors
         elif len(uni_xs) == 2:
             # Solve for constant (see function below)
             guess = self._a_b_func(uni_xs, uni_ys)
-            S = [guess["a"], guess["b"]]
+            S = np.array([guess["a"], guess["b"]])
         # Use scipy solver to estimate sigmoid coefficients
         else:
             S = self._get_general_s_curve(uni_xs, uni_ys, fit_method=fit_method)

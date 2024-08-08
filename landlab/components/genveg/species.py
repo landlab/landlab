@@ -16,18 +16,6 @@ from .form import (
     Stoloniferous,
     Thicketforming,
 )
-from .shape import (
-    Climbing,
-    Conical,
-    Decumbent,
-    Erect,
-    Irregular,
-    Oval,
-    Prostrate,
-    Rounded,
-    Semierect,
-    Vase,
-)
 from .photosynthesis import C3, C4, Cam
 import numpy as np
 from sympy import symbols, diff, lambdify, log
@@ -54,26 +42,21 @@ class Species(object):
         self.dead_abg_parts = self.dead_parts.copy()
         self.dead_abg_parts.remove("dead_root")
         self.dead_abg_parts.remove("dead_reproductive")
-
         self.validate_plant_factors(species_params["plant_factors"])
         self.validate_duration_params(species_params["duration_params"])
-
         species_params = self.calculate_derived_params(species_params)
-
+        self.habit = self.select_habit_class(species_params)
+        self.form = self.select_form_class(species_params)
+        self.photosynthesis = self.select_photosythesis_type(species_params, latitude)
+        # check these below to see if we need to save the composition dictionary not the original
         self.species_plant_factors = species_params["plant_factors"]
         self.species_duration_params = species_params["duration_params"]
         self.species_grow_params = species_params["grow_params"]
         self.species_photo_params = species_params["photo_params"]
         self.species_dispersal_params = species_params["dispersal_params"]
         self.species_mort_params = species_params["mortality_params"]
-        self.species_morph_params = species_params["morph_params"]
-
+        self.species_morph_params = self.habit.morph_params
         self.populate_biomass_allocation_array()
-
-        self.habit = self.select_habit_class()
-        self.form = self.select_form_class()
-        self.shape = self.select_shape_class()
-        self.photosynthesis = self.select_photosythesis_type(latitude)
 
     def validate_plant_factors(self, plant_factors):
         plant_factor_options = {
@@ -91,19 +74,6 @@ class Species(object):
                 "single_stem",
                 "stoloniferous",
                 "thicket_forming",
-            ],
-            "shape": [
-                "climbing",
-                "columnar",
-                "conical",
-                "decumbent",
-                "erect",
-                "irregular",
-                "oval",
-                "prostrate",
-                "rounded",
-                "semi_erect",
-                "vase",
             ],
             "p_type": ["C3", "C4"],
         }
@@ -146,42 +116,6 @@ class Species(object):
             raise ValueError(msg)
 
     def calculate_derived_params(self, species_params):
-        species_params["morph_params"]["max_crown_area"] = (
-            np.pi / 4 * species_params["morph_params"]["max_shoot_sys_width"] ** 2
-        )
-        species_params["morph_params"]["min_crown_area"] = (
-            np.pi / 4 * species_params["morph_params"]["min_shoot_sys_width"] ** 2
-        )
-        species_params["morph_params"]["max_root_area"] = (
-            np.pi / 4 * species_params["morph_params"]["max_root_sys_width"] ** 2
-        )
-        species_params["morph_params"]["min_root_area"] = (
-            np.pi / 4 * species_params["morph_params"]["min_root_sys_width"] ** 2
-        )
-        species_params["morph_params"]["max_vital_volume"] = (
-            species_params["morph_params"]["max_crown_area"]
-            * species_params["morph_params"]["max_height"]
-        )
-        species_params["morph_params"]["area_per_stem"] = (
-            species_params["morph_params"]["max_crown_area"]
-            / species_params["morph_params"]["max_n_stems"]
-        )
-        species_params["morph_params"]["min_abg_aspect_ratio"] = (
-            species_params["morph_params"]["max_height"]
-            / species_params["morph_params"]["min_shoot_sys_width"]
-        )
-        species_params["morph_params"]["max_abg_aspect_ratio"] = (
-            species_params["morph_params"]["max_height"]
-            / species_params["morph_params"]["max_shoot_sys_width"]
-        )
-        species_params["morph_params"]["min_basal_ratio"] = (
-            species_params["morph_params"]["min_shoot_sys_width"]
-            / species_params["morph_params"]["min_basal_dia"]
-        )
-        species_params["morph_params"]["max_basal_ratio"] = (
-            species_params["morph_params"]["max_shoot_sys_width"]
-            / species_params["morph_params"]["max_basal_dia"]
-        )
         sum_vars = [
             ["max_total_biomass", "plant_part_max", self.all_parts],
             ["max_growth_biomass", "plant_part_max", self.growth_parts],
@@ -201,11 +135,6 @@ class Species(object):
                 species_params["grow_params"][sum_var[0]] += species_params[
                     "grow_params"
                 ][sum_var[1]][part]
-
-        species_params["morph_params"]["biomass_packing"] = (
-            species_params["grow_params"]["max_growth_biomass"]
-            / species_params["morph_params"]["max_vital_volume"]
-        )
 
         species_params["duration_params"]["senesce_rate"] = 0.9 / (
             species_params["duration_params"]["growing_season_end"]
@@ -245,7 +174,7 @@ class Species(object):
         return species_params
 
     def calculate_lai(self, leaf_area, shoot_sys_width):
-        crown_area = self.shape.calc_crown_area_from_shoot_width(shoot_sys_width)
+        crown_area = self.habit.calc_crown_area_from_shoot_width(shoot_sys_width)
         lai = np.divide(
             leaf_area,
             crown_area,
@@ -254,13 +183,15 @@ class Species(object):
         )
         return lai
 
-    def select_photosythesis_type(self, latitude):
+    def select_photosythesis_type(self, species_params, latitude):
+        p_type = species_params["plant_factors"]["p_type"]
         photosynthesis_options = {"C3": C3, "C4": C4, "cam": Cam}
-        return photosynthesis_options[self.species_plant_factors["p_type"]](
-            latitude, photo_params=self.species_photo_params
+        return photosynthesis_options[p_type](
+            latitude, photo_params=species_params["photo_params"]
         )
 
-    def select_habit_class(self):
+    def select_habit_class(self, species_params):
+        habit_type = species_params["plant_factors"]["growth_habit"]
         habit = {
             "forb_herb": Forbherb,
             "graminoid": Graminoid,
@@ -268,57 +199,26 @@ class Species(object):
             "tree": Tree,
             "vine": Vine,
         }
-        return habit[self.species_plant_factors["growth_habit"]](
-            self.species_grow_params,
-            self.species_duration_params,
-            self.species_plant_factors["duration"],
-        )
+        return habit[habit_type](species_params)
 
-    def select_form_class(self):
+    def select_form_class(self, species_params):
+        form_type = species_params["plant_factors"]["growth_form"]
         form = {
-            "bunch": Bunch(self.species_dispersal_params, self.species_grow_params),
-            "colonizing": Colonizing(
-                self.species_dispersal_params, self.species_grow_params
-            ),
-            "multiple_stems": Multiplestems(
-                self.species_dispersal_params, self.species_grow_params
-            ),
-            "rhizomatous": Rhizomatous(
-                self.species_dispersal_params, self.species_grow_params
-            ),
-            "single_crown": Singlecrown(
-                self.species_dispersal_params, self.species_grow_params
-            ),
-            "single_stem": Singlestem(
-                self.species_dispersal_params, self.species_grow_params
-            ),
-            "stoloniferous": Stoloniferous(
-                self.species_dispersal_params, self.species_grow_params
-            ),
-            "thicket_forming": Thicketforming(
-                self.species_dispersal_params, self.species_grow_params
-            ),
+            "bunch": Bunch,
+            "colonizing": Colonizing,
+            "multiple_stems": Multiplestems,
+            "rhizomatous": Rhizomatous,
+            "single_crown": Singlecrown,
+            "single_stem": Singlestem,
+            "stoloniferous": Stoloniferous,
+            "thicket_forming": Thicketforming,
         }
-        return form[self.species_plant_factors["growth_form"]]
-
-    def select_shape_class(self):
-        shape = {
-            "climbing": Climbing(self.species_morph_params, self.species_grow_params),
-            "conical": Conical(self.species_morph_params, self.species_grow_params),
-            "decumbent": Decumbent(self.species_morph_params, self.species_grow_params),
-            "erect": Erect(self.species_morph_params, self.species_grow_params),
-            "irregular": Irregular(self.species_morph_params, self.species_grow_params),
-            "oval": Oval(self.species_morph_params, self.species_grow_params),
-            "prostrate": Prostrate(self.species_morph_params, self.species_grow_params),
-            "rounded": Rounded(self.species_morph_params, self.species_grow_params),
-            "semi_erect": Semierect(
-                self.species_morph_params, self.species_grow_params
-            ),
-            "vase": Vase(self.species_morph_params, self.species_grow_params),
-        }
-        return shape[self.species_plant_factors["shape"]]
+        return form[form_type](species_params)
 
     def populate_biomass_allocation_array(self):
+        # This method precalculates the biomass allocation array based on plant
+        # type (angiosperm/gymnosperm, monocot/dicot) or based on user-defined
+        # coefficients
         root2leaf = self.species_grow_params["root_to_leaf"]
         root2stem = self.species_grow_params["root_to_stem"]
         prior_root_biomass = np.arange(
@@ -711,16 +611,13 @@ class Species(object):
             + rng.rayleigh(scale=0.2, size=plants.size)
             * growdict["plant_part_max"]["reproductive"]
         )
-        crown_area = self.shape.calc_crown_area_from_shoot_width(
+        # Can we back-calculate from plant cover to abg biomass or do we need
+        # to redo how we initialize and place each plant, assign dimensions then
+        # add fractional cover? This will be habit specific.
+        canopy_area = self.habit.calc_canopy_area_from_shoot_width(
             plants["shoot_sys_width"]
         )
-        plants["shoot_sys_height"] = self.habit.set_initial_height(
-            morphdict["min_height"], morphdict["max_height"], crown_area.size
-        )
-        log_vital_volume = np.log10(crown_area * plants["shoot_sys_height"])
-        log_abg_biomass_ideal = (
-            log_vital_volume / np.log10(morphdict["max_vital_volume"])
-        ) * np.log10(growdict["max_abg_biomass"] / 1000)
+
         total_biomass = np.interp(
             ((10**log_abg_biomass_ideal) * 1000),
             self.biomass_allocation_array["abg_biomass"],
@@ -731,7 +628,7 @@ class Species(object):
             plants["leaf_biomass"],
             plants["stem_biomass"],
         ) = self.habit.duration._solve_biomass_allocation(total_biomass)
-        plants["root_sys_width"] = self.shape.calc_root_sys_width(
+        plants["root_sys_width"] = self.habit.calc_root_sys_width(
             plants["shoot_sys_width"], plants["shoot_sys_height"]
         )
         plants["n_stems"] = self.form.set_initial_branches(
@@ -748,10 +645,10 @@ class Species(object):
         abg_biomass = self.sum_plant_parts(plants, parts="aboveground")
         dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
         total_abg_biomass = abg_biomass + dead_abg_biomass
-        dims = self.shape.calc_abg_dims_from_biomass(total_abg_biomass)
+        dims = self.habit.calc_abg_dims_from_biomass(total_abg_biomass)
         plants["shoot_sys_width"] = dims[0]
         plants["shoot_sys_height"] = dims[1]
-        plants["root_sys_width"] = self.shape.calc_root_sys_width(
+        plants["root_sys_width"] = self.habit.calc_root_sys_width(
             plants["shoot_sys_width"]
         )
         dead_leaf_area = plants["total_leaf_area"] - plants["live_leaf_area"]
