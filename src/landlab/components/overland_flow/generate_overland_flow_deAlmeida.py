@@ -41,7 +41,7 @@ Create fields of data for each of these input variables.
 Instantiate the `OverlandFlow` component to work on this grid, and run it.
 
 >>> of = OverlandFlow(grid, steep_slopes=True)
->>> of.run_one_step()
+>>> dt = of.run_one_step()
 
 After calculating the overland flow, new fields have been added to the
 grid. Use the *output_var_names* property to see the names of the fields that
@@ -98,8 +98,6 @@ import scipy.constants
 
 from landlab import Component
 from landlab import RasterModelGrid
-
-# from landlab.components.overland_flow._calc import adjust_unstable_discharge
 from landlab.components.overland_flow._calc import adjust_discharge_for_dry_links
 from landlab.components.overland_flow._calc import adjust_supercritical_discharge
 from landlab.components.overland_flow._calc import calc_bates_flow_height_at_some_links
@@ -108,13 +106,8 @@ from landlab.components.overland_flow._calc import calc_grad_at_some_links
 from landlab.components.overland_flow._calc import (
     calc_mean_of_parallel_links_at_some_links,
 )
-from landlab.components.overland_flow._calc import find_max_water_depth
 from landlab.components.overland_flow._calc import map_sum_of_influx_to_node
 from landlab.components.overland_flow._calc import update_water_depths
-
-# from landlab.components.overland_flow._calc import weighted_mean_of_parallel_links
-from landlab.core.utils import as_id_array
-from landlab.grid.linkstatus import is_inactive_link
 from landlab.grid.nodestatus import NodeStatus
 
 
@@ -339,49 +332,49 @@ class OverlandFlow(Component):
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
         al., 2012
         """
-        max_water_depth = find_max_water_depth(
-            self._grid.at_node["surface_water__depth"],
-            self.grid.nodes.flatten(),  # self.grid.core_nodes
+        is_active_node = self.update_active_nodes()
+        max_water_depth = np.max(
+            self._grid.at_node["surface_water__depth"][is_active_node]
         )
-        if max_water_depth <= 0.0:
-            raise NoWaterError()
-
-        return self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
-
-    def _calc_time_step(self, h_at_node):
-        max_water_depth = np.max(h_at_node)
 
         if max_water_depth <= 0.0:
-            raise NoWaterError()
+            raise NoWaterError(
+                "Unable to determine time step. There is no water on the landscape."
+            )
 
-        return self._alpha * self._grid.dx / np.sqrt(self._g * max_water_depth)
+        return (
+            self._alpha
+            * min(self._grid.dx, self._grid.dy)
+            / np.sqrt(self._g * max_water_depth)
+        )
 
-    def find_inactive_links(self, clear_cache=False):
-        """Find inactive links.
+    def update_active_nodes(self, clear_cache=False):
+        """Update which nodes are active.
+
+        An active node is one with at least one link that is active.
 
         Parameters
         ----------
         clear_cache: bool, optional
-            Clear the currently cached values and find the inactive links again,
+            Clear the currently cached values and find the active nodes again,
             caching the new result.
 
         Returns
         -------
-        array of int
-            IDs of all of the inactive links.
+        array of bool
+            Nodes that are active.
         """
         if clear_cache:
-            del self._inactive_links
+            del self._is_active_node
 
         try:
-            self._inactive_links
+            self._is_active_node
         except AttributeError:
-            self._inactive_links = as_id_array(
-                np.where(
-                    is_inactive_link(self.grid.status_at_node[self.grid.nodes_at_link])
-                )[0]
+            self._is_active_node = np.any(
+                self.grid.link_status_at_node == NodeStatus.CORE
             )
-        return self._inactive_links
+
+        return self._is_active_node
 
     def overland_flow(self, dt=None):
         """Generate overland flow across a grid.
@@ -401,12 +394,17 @@ class OverlandFlow(Component):
         h_at_link = self._grid.at_link["surface_water__depth"]
         water_surface_slope = self._grid.at_link["water_surface__gradient"]
 
-        is_active_node = np.any(self.grid.link_status_at_node == NodeStatus.CORE)
-        try:
-            dt = self._calc_time_step(h_at_node[is_active_node]) if dt is None else dt
-            # dt = self.calc_time_step() if dt is None else dt
-        except NoWaterError:
-            return
+        # is_active_node = self.update_active_nodes()
+
+        if dt is None:
+            try:
+                duration = self.calc_time_step()
+            except NoWaterError as error:
+                raise ValueError(
+                    "dt not provided and unable to determine time step"
+                ) from error
+        else:
+            duration = dt
 
         q_mean_at_link = self.grid.empty(at="link")
         q_at_node = self.grid.empty(at="node")
@@ -414,16 +412,14 @@ class OverlandFlow(Component):
         core_nodes = self._grid.core_nodes
         active_links = self._grid.active_links
 
-        time_remaining = dt
+        time_remaining = duration
         while time_remaining > 0.0:
             try:
-                dt_local = min(
-                    self._calc_time_step(h_at_node[is_active_node]), time_remaining
-                )
-                # dt_local = min(self.calc_time_step(), time_remaining)
+                dt_local = min(self.calc_time_step(), time_remaining)
             except NoWaterError:
-                break
-            time_remaining -= dt_local
+                dt_local = time_remaining
+            finally:
+                time_remaining -= dt_local
 
             # Per Bates et al., 2010, this solution needs to find difference
             # between the highest water surface in the two cells and the
@@ -522,6 +518,8 @@ class OverlandFlow(Component):
                 dt_local,
             )
 
+        return duration
+
     def run_one_step(self, dt=None):
         """Generate overland flow across a grid.
 
@@ -534,7 +532,7 @@ class OverlandFlow(Component):
         Outputs water depth, discharge and shear stress values through time at
         every point in the input grid.
         """
-        self.overland_flow(dt=dt)
+        return self.overland_flow(dt=dt)
 
     def discharge_mapper(self, discharge_at_link, convert_to_volume=False, out=None):
         """Maps discharge value from links onto nodes.
