@@ -9,3 +9,4 @@ sphinx-jinja==2.0.2
 sphinx==7.2.6
 sphinxcontrib-towncrier==0.3.2a0
 tomli==2.0.1
+towncrier==23.11.0
