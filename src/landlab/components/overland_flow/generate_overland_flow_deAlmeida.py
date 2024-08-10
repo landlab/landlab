@@ -91,10 +91,14 @@ array([0. , 0. , 0. , 0. ,
        0. , 0. , 0. , 0. ])
 """
 
+from __future__ import annotations
+
 import warnings
 
 import numpy as np
-import scipy.constants
+import scipy.constants  # type: ignore
+from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 
 from landlab import Component
 from landlab import RasterModelGrid
@@ -148,9 +152,9 @@ class OverlandFlow(Component):
 
     """
 
-    _name = "OverlandFlow"
+    _name: str = "OverlandFlow"
 
-    _unit_agnostic = False
+    _unit_agnostic: bool = False
 
     _cite_as = """@article{adams2017landlab,
         title={The Landlab v1. 0 OverlandFlow component: a Python
@@ -168,7 +172,7 @@ class OverlandFlow(Component):
         }
     """
 
-    _info = {
+    _info: dict[str, dict[str, type | str | bool]] = {
         "surface_water__depth": {
             "dtype": float,
             "intent": "inout",
@@ -205,35 +209,38 @@ class OverlandFlow(Component):
 
     def __init__(
         self,
-        grid,
-        alpha=0.7,
-        mannings_n=0.03,
-        g=scipy.constants.g,
-        theta=0.8,
-        rainfall_intensity=0.0,
-        steep_slopes=False,
-        h_init=None,
-    ):
+        grid: RasterModelGrid,
+        alpha: float = 0.7,
+        mannings_n: ArrayLike | str = 0.03,
+        g: float = scipy.constants.g,
+        theta: float = 0.8,
+        rainfall_intensity: ArrayLike = 0.0,
+        steep_slopes: bool = False,
+        h_init: float | None = None,
+    ) -> None:
         """Create an overland flow component.
 
         Parameters
         ----------
         grid : RasterModelGrid
             A landlab grid.
-        alpha : float, optional
-            Time step coeffcient, described in Bates et al., 2010 and
-            de Almeida et al., 2012.
         mannings_n : float, optional
             Manning's roughness coefficient.
-        g : float, optional
-            Acceleration due to gravity (m/s^2).
-        theta : float, optional
-            Weighting factor from de Almeida et al., 2012.
         rainfall_intensity : float or array of float, optional
             Rainfall intensity. Default is zero.
         steep_slopes : bool, optional
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
+
+        Other Parameters
+        ----------------
+        alpha : float, optional
+            Time step coeffcient, described in Bates et al., 2010 and
+            de Almeida et al., 2012.
+        theta : float, optional
+            Weighting factor from de Almeida et al., 2012.
+        g : float, optional
+            Acceleration due to gravity (m/s^2).
         h_init : float, optional
             Deprecated. Thickness of initial thin layer of water to prevent divide
             by zero errors (m). This option is no longer needed as the component
@@ -294,26 +301,26 @@ class OverlandFlow(Component):
         grid.at_link["water_surface__gradient"].fill(0.0)
 
     @staticmethod
-    def _validate_g(g):
+    def _validate_g(g: float) -> float:
         if g > 0.0:
             return float(g)
         else:
             raise ValueError(f"g must be greater than zero ({g})")
 
     @staticmethod
-    def _validate_theta(theta):
+    def _validate_theta(theta: float) -> float:
         if (theta >= 0.0) and (theta <= 1.0):
             return float(theta)
         else:
             raise ValueError(f"theta must be between 0.0 and 1.0 ({theta})")
 
     @property
-    def h(self):
+    def h(self) -> NDArray[np.floating]:
         """The depth of water at each node."""
         return self._grid.at_node["surface_water__depth"]
 
     @property
-    def rainfall_intensity(self):
+    def rainfall_intensity(self) -> NDArray[np.floating] | ArrayLike:
         """rainfall_intensity: the rainfall rate [m/s]
 
         Must be positive.
@@ -321,19 +328,19 @@ class OverlandFlow(Component):
         return self._rainfall_intensity
 
     @rainfall_intensity.setter
-    def rainfall_intensity(self, new_val):
-        if np.any(new_val < 0.0):
+    def rainfall_intensity(self, new_val: ArrayLike) -> None:
+        if np.any(np.asarray(new_val) < 0.0):
             raise ValueError("Rainfall intensity must be positive")
         self._rainfall_intensity = np.broadcast_to(new_val, self.grid.number_of_nodes)
 
-    def calc_time_step(self):
+    def calc_time_step(self) -> float:
         """Calculate time step.
 
         Adaptive time stepper from Bates et al., 2010 and de Almeida et
         al., 2012
         """
         is_active_node = self.update_active_nodes()
-        max_water_depth = np.max(
+        max_water_depth: float = np.max(
             self._grid.at_node["surface_water__depth"][is_active_node]
         )
 
@@ -348,7 +355,7 @@ class OverlandFlow(Component):
             / np.sqrt(self._g * max_water_depth)
         )
 
-    def update_active_nodes(self, clear_cache=False):
+    def update_active_nodes(self, clear_cache: bool = False) -> NDArray[np.bool_]:
         """Update which nodes are active.
 
         An active node is one with at least one link that is active.
@@ -370,13 +377,13 @@ class OverlandFlow(Component):
         try:
             self._is_active_node
         except AttributeError:
-            self._is_active_node = np.any(
-                self.grid.link_status_at_node == NodeStatus.CORE
+            self._is_active_node: NDArray[np.bool_] = np.any(
+                self.grid.link_status_at_node == NodeStatus.CORE, axis=1
             )
 
         return self._is_active_node
 
-    def overland_flow(self, dt=None):
+    def overland_flow(self, dt: float | None = None) -> float:
         """Generate overland flow across a grid.
 
         For one time step, this generates 'overland flow' across a given grid
@@ -520,7 +527,7 @@ class OverlandFlow(Component):
 
         return duration
 
-    def run_one_step(self, dt=None):
+    def run_one_step(self, dt: float | None = None) -> float:
         """Generate overland flow across a grid.
 
         For one time step, this generates 'overland flow' across a given grid
@@ -534,7 +541,12 @@ class OverlandFlow(Component):
         """
         return self.overland_flow(dt=dt)
 
-    def discharge_mapper(self, discharge_at_link, convert_to_volume=False, out=None):
+    def discharge_mapper(
+        self,
+        discharge_at_link: NDArray[np.floating],
+        convert_to_volume: bool = False,
+        out: NDArray[np.floating] | None = None,
+    ) -> NDArray[np.floating]:
         """Maps discharge value from links onto nodes.
 
         This method takes the discharge values on links and determines the
@@ -554,16 +566,18 @@ class OverlandFlow(Component):
         Returns a numpy array (discharge_vals)
         """
         if out is None:
-            out = self.grid.empty(at="node")
+            _out: NDArray[np.floating] = self.grid.empty(at="node")
+        else:
+            _out = out
 
         map_sum_of_influx_to_node(
             discharge_at_link,
             self.grid.links_at_node,
             self.grid.link_dirs_at_node,
-            out,
+            _out,
         )
 
         if convert_to_volume:
-            out *= self.grid.dx
+            _out *= self.grid.dx
 
-        return out
+        return _out
