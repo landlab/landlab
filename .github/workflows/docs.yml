@@ -2,6 +2,10 @@ name: Documentation
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
     build:
         name: Build documentation
