@@ -1,0 +1,3 @@
+
+Added better warning/error message to the DepressionFinder when it
+encounters disconnected nodes.

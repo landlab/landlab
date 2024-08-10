@@ -17,7 +17,8 @@ Created on Sat Nov 26 08:36:49 2016
 
 import numpy as np
 
-from ..depression_finder.lake_mapper import _FLOODED
+from landlab.components.depression_finder.floodstatus import FloodStatus
+
 from .cfuncs import smooth_stream_power_eroder_solver
 from .fastscape_stream_power import FastscapeEroder
 
@@ -276,7 +277,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         """
         if not self._erode_flooded_nodes:
             flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+            flooded_nodes = np.nonzero(flood_status == FloodStatus.FLOODED)[0]
         else:
             flooded_nodes = []
 

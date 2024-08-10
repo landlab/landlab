@@ -22,6 +22,7 @@ import numpy.matlib as npm
 from landlab import Component
 from landlab import FieldError
 from landlab import RasterModelGrid
+from landlab.components.depression_finder.floodstatus import FloodStatus
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
@@ -29,11 +30,6 @@ from ...utils.suppress_output import suppress_output
 from .cfuncs import _D8_FlowAcc
 from .cfuncs import _D8_flowDir
 
-# Codes for depression status
-_UNFLOODED = 0
-_PIT = 1
-_CURRENT_LAKE = 2
-_FLOODED = 3
 # Flow metrics resulting in single flow
 PSINGLE_FMs = ["D8", "D4", "Rho8", "Rho4"]
 # Flow metrics resulting in multiple flow
@@ -41,14 +37,14 @@ PMULTIPLE_FMs = ["Quinn", "Freeman", "Holmgren", "Dinf"]
 
 
 class PriorityFloodFlowRouter(Component):
-    """Component to accumulate flow and calculate drainage area based RICHDEM software package.
+    """Accumulate flow and calculate drainage area using the RICHDEM software package.
 
     See also: https://richdem.readthedocs.io/en/latest/
 
 
     .. note::
 
-        The perimeter nodes  NEVER contribute to the accumulating flux, even
+        The perimeter nodes NEVER contribute to the accumulating flux, even
         if the  gradients from them point inwards to the main body of the grid.
         This is because under Landlab definitions, perimeter nodes lack cells, so
         cannot accumulate any discharge.
@@ -56,10 +52,12 @@ class PriorityFloodFlowRouter(Component):
     *FlowAccumulatorPf* stores as *ModelGrid* fields:
 
     - *'drainage_area'*: Node array of drainage areas
-    - *'flood_status_code'*: Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED).
+    - *'flood_status_code'*: Map of flood status (PIT, CURRENT_LAKE, UNFLOODED, or
+      FLOODED).
     - *'surface_water__discharge'*: Node array of discharges.
     - *'Distance to receiver'*: Distance to receiver
-    - *'water__unit_flux_in'*: External volume water per area per time input to each node.
+    - *'water__unit_flux_in'*: External volume water per area per time input to each
+      node.
     - *'flow__upstream_node_order'*: Node array containing downstream-to-upstream ordered
       list of node IDs.
     - *'flow__receiver_node'*: Node array of receivers (nodes that receive flow),
@@ -72,7 +70,8 @@ class PriorityFloodFlowRouter(Component):
       This array is 2D for *RouteToMany* methods and has the shape
       *(n-nodes x max number of receivers)*.
     - *'flow__link_to_receiver_node'*: Node array of links carrying flow.
-    - *'flow__receiver_proportion's*: Node array of proportion of flow sent to each receiver.
+    - *'flow__receiver_proportion's*: Node array of proportion of flow sent to each
+      receiver.
     - *'depression_free_elevation'*: Depression free land surface topographic
       elevation, at closed borders, value equals -1.
 
@@ -207,7 +206,7 @@ class PriorityFloodFlowRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED).",
+            "doc": "Map of flood status (PIT, CURRENT_LAKE, UNFLOODED, or FLOODED).",
         },
         "flow__upstream_node_order": {
             "dtype": int,
@@ -848,8 +847,8 @@ class PriorityFloodFlowRouter(Component):
         self.grid.at_node["flood_status_code"] = np.where(
             self.grid.at_node["depression_free_elevation"]
             == self.grid.at_node["topographic__elevation"],
-            0,
-            3,
+            FloodStatus.UNFLOODED,
+            FloodStatus.FLOODED,
         )
 
     def _accumulate_flow_RD(self, props_Pf, hill_flow=False):
