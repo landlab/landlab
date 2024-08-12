@@ -215,4 +215,10 @@ class Deciduous(Perennial):
         if not in_growing_season:
             for part in self.green_parts:
                 plants[part] = np.zeros_like(plants[part])
+        else: 
+            plants["repro_biomass"] = (
+            growdict["plant_part_min"]["reproductive"]
+            + rng.rayleigh(scale=0.2, size=plants.size)
+            * growdict["plant_part_max"]["reproductive"]
+        )
         return plants

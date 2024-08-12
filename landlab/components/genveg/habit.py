@@ -8,10 +8,10 @@ rng = np.random.default_rng()
 # Growth habit uses duration properties to assign dormancy and emergence methods
 class Habit(object):
     def __init__(self, params, green_parts):
-        grow_params = params["grow_params"]
+        self.grow_params = params["grow_params"]
         duration_params = params["duration_params"]
         self.duration = self._select_duration_class(
-            grow_params,
+            self.grow_params,
             params["plant_factors"]["duration"],
             green_parts,
             duration_params,
@@ -21,6 +21,29 @@ class Habit(object):
     def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
         canopy_area = 0.25 * np.pi * shoot_sys_width**2
         return canopy_area
+
+    def _calc_crown_volume(self, shoot_width, basal_width, shoot_height):
+        shoot_rad = shoot_width / 2
+        basal_rad = basal_width / 2
+        volume = (
+            1
+            / 3
+            * np.pi
+            * shoot_height
+            * (shoot_rad**2 + shoot_rad * basal_rad + basal_rad**2)
+        )
+        return volume
+
+    def calc_root_sys_width(self, shoot_sys_width, basal_width, shoot_sys_height=1):
+        volume = self._calc_crown_volume(shoot_sys_width, basal_width, shoot_sys_height)
+        root_sys_width = 0.08 + 0.24 * volume
+        root_sys_width[root_sys_width > self.morph_params["max_root_sys_width"]] = (
+            self.morph_params["max_root_sys_width"]
+        )
+        root_sys_width[root_sys_width < self.morph_params["min_root_sys_width"]] = (
+            self.morph_params["max_root_sys_width"]
+        )
+        return root_sys_width
 
     def _calc_shoot_width_from_canopy_area(self, canopy_area):
         shoot_width = np.sqrt(4 * canopy_area / np.pi)
@@ -75,6 +98,24 @@ class Habit(object):
     def emerge(self, plants):
         plants = self.duration.emerge(plants)
         return plants
+
+    def estimate_abg_biomass_from_morphology(self, plants):
+        # Edit this to a common form
+        log_basal_width_cm = np.log(
+            (plants["basal_width"] * 100),
+            out=np.zeros_like(plants["basal_width"], dtype=np.float64),
+            where=(plants["basal_width"] > 0.0),
+        )
+        log_abg_biomass = (
+            self.morph_params["basal_coeffs"]["a"]
+            + self.morph_params["basal_coeffs"]["b"] * log_basal_width_cm
+        )
+        est_abg_biomass = np.exp(
+            log_abg_biomass,
+            out=np.zeros_like(log_abg_biomass, dtype=np.float64),
+            where=(plants["basal_width"] > 0.0),
+        )
+        return est_abg_biomass
 
     def senesce(self, plants, ns_green_mass, persistent_mass):
         plants = self.duration.senesce(plants, ns_green_mass, persistent_mass)
@@ -208,25 +249,49 @@ class Graminoid(Habit):
 
     def calc_abg_dims_from_biomass(self, abg_biomass):
         # These dimensions are empirically derived allometric relationships for grasses.
-        log_basal_width_cm = log_height = height = log_canopy_area = canopy_area = (
-            np.zeros_like(abg_biomass)
+        log_basal_width_cm = log_height = height = canopy_area = np.zeros_like(
+            abg_biomass
         )
         filter = np.nonzero(abg_biomass > self.grow_params["min_abg_biomass"])
         log_basal_width_cm[filter] = (
-            np.log(abg_biomass[filter]) - self.basal_coeffs["a"]
-        ) / self.basal_coeffs["b"]
+            np.log(abg_biomass[filter]) - self.morph_params["basal_coeffs"]["a"]
+        ) / self.morph_params["basal_coeffs"]["b"]
         basal_width_cm = np.exp(log_basal_width_cm)
-        log_height[filter] = (
-            self.height_coeffs["a"] - log_basal_width_cm[filter]
-        ) / self.height_coeffs["b"]
-        height = np.exp(log_height)
-        log_canopy_area[filter] = (
-            log_basal_width_cm - self.canopy_coeffs["a"]
-        ) / self.canopy_coeffs["b"]
-        canopy_area = np.exp(log_canopy_area)
-        shoot_sys_width = self._calc_shoot_width_from_canopy_area(canopy_area)
         basal_width = basal_width_cm * 100
+        canopy_area = self._calc_canopy_area(basal_width)
+        log_height[filter] = (
+            self.morph_params["height_coeffs"]["a"] - log_basal_width_cm[filter]
+        ) / self.morph_params["height_coeffs"]["b"]
+        height = np.exp(log_height)
+        shoot_sys_width = self._calc_shoot_width_from_canopy_area(canopy_area)
         return basal_width, shoot_sys_width, height
+
+    def _calc_canopy_area(self, basal_width):
+        filter = np.nonzero(basal_width >= 0.0)
+        log_canopy_area = log_basal_width_cm = np.zeros_like(basal_width)
+        log_basal_width_cm[filter] = np.log(basal_width[filter] * 100)
+        log_canopy_area[filter] = (
+            log_basal_width_cm - self.morph_params["canopy_coeffs"]["a"]
+        ) / self.morph_params["canopy_coeffs"]["b"]
+        canopy_area = np.exp(log_canopy_area)
+        return canopy_area
+
+    def estimate_abg_biomass_from_morphology(self, plants):
+        log_basal_width_cm = np.log(
+            (plants["basal_width"] * 100),
+            out=np.zeros_like(plants["basal_width"], dtype=np.float64),
+            where=(plants["basal_width"] > 0.0),
+        )
+        log_abg_biomass = (
+            self.morph_params["basal_coeffs"]["a"]
+            + self.morph_params["basal_coeffs"]["b"] * log_basal_width_cm
+        )
+        est_abg_biomass = np.exp(
+            log_abg_biomass,
+            out=np.zeros_like(log_abg_biomass, dtype=np.float64),
+            where=(plants["basal_width"] > 0.0),
+        )
+        return est_abg_biomass
 
 
 class Shrub(Habit):

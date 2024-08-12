@@ -171,7 +171,7 @@ class GenVeg(Component, PlantGrowth):
         )
         abg_area = np.pi / 4 * all_plants["shoot_sys_width"] ** 2
         cell_biomass = self.calculate_grid_vars(
-            plant_array["cell_index"], tot_bio_species
+            all_plants["cell_index"], tot_bio_species
         )
         cell_plant_count = self.calculate_grid_vars(all_plants["cell_index"])
 

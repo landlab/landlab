@@ -604,22 +604,14 @@ class Species(object):
         return plants
 
     def set_initial_biomass(self, plants, in_growing_season):
-        growdict = self.species_grow_params
-        morphdict = self.species_morph_params
-        plants["repro_biomass"] = (
-            growdict["plant_part_min"]["reproductive"]
-            + rng.rayleigh(scale=0.2, size=plants.size)
-            * growdict["plant_part_max"]["reproductive"]
+        est_abg_biomass = self.habit.estimate_abg_biomass_from_morphology(plants)
+        log_abg_biomass = np.log(
+            est_abg_biomass,
+            out=np.zeros_like(est_abg_biomass, dtype=np.float64),
+            where=(est_abg_biomass > 0.0),
         )
-        # Can we back-calculate from plant cover to abg biomass or do we need
-        # to redo how we initialize and place each plant, assign dimensions then
-        # add fractional cover? This will be habit specific.
-        canopy_area = self.habit.calc_canopy_area_from_shoot_width(
-            plants["shoot_sys_width"]
-        )
-
         total_biomass = np.interp(
-            ((10**log_abg_biomass_ideal) * 1000),
+            (10 ** (log_abg_biomass)),
             self.biomass_allocation_array["abg_biomass"],
             self.biomass_allocation_array["total_biomass"],
         )
@@ -630,9 +622,6 @@ class Species(object):
         ) = self.habit.duration._solve_biomass_allocation(total_biomass)
         plants["root_sys_width"] = self.habit.calc_root_sys_width(
             plants["shoot_sys_width"], plants["shoot_sys_height"]
-        )
-        plants["n_stems"] = self.form.set_initial_branches(
-            morphdict["max_n_stems"], crown_area.size
         )
         plants = self.habit.duration.set_initial_biomass(plants, in_growing_season)
         return plants
@@ -645,11 +634,11 @@ class Species(object):
         abg_biomass = self.sum_plant_parts(plants, parts="aboveground")
         dead_abg_biomass = self.sum_plant_parts(plants, parts="dead_aboveground")
         total_abg_biomass = abg_biomass + dead_abg_biomass
-        dims = self.habit.calc_abg_dims_from_biomass(total_abg_biomass)
-        plants["shoot_sys_width"] = dims[0]
-        plants["shoot_sys_height"] = dims[1]
+        plants["basal_width"], plants["shoot_sys_width"], plants["shoot_sys_height"] = (
+            self.habit.calc_abg_dims_from_biomass(total_abg_biomass)
+        )
         plants["root_sys_width"] = self.habit.calc_root_sys_width(
-            plants["shoot_sys_width"]
+            plants["shoot_sys_width"], plants["basal_width"], plants["shoot_sys_height"]
         )
         dead_leaf_area = plants["total_leaf_area"] - plants["live_leaf_area"]
         dead_leaf_area[dead_leaf_area < 0] = 0.0
@@ -660,7 +649,7 @@ class Species(object):
 
         cohort_dead_leaf_area = np.zeros_like(dead_leaf_area)
         cohort_dead_leaf_area[filter] = dead_leaf_area[filter] / np.exp(
-            -self.species_morph_params["biomass_decay_rate"]
+            -self.species_morph_params["biomass_decay_rate"]["leaf"]
             * plants["dead_leaf_age"][filter]
         )
         dead_leaf_area_ratio = np.ones_like(plants["live_leaf_area"])
