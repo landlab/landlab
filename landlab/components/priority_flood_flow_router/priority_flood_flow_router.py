@@ -754,7 +754,6 @@ class PriorityFloodFlowRouter(Component):
                 adj_link,
                 recvr_link,
             )
-            raise TypeError()
         except TypeError:
             raise RuntimeError(
                 (

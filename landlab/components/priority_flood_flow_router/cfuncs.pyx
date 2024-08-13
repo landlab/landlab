@@ -18,7 +18,7 @@ cpdef _D8_flowDir(
     id_t [:] ngb,
     id_t [:] activeCores,
     id_t [:] activeCells,
-    id_t [:] el_d,
+    cython.floating [:] el_d,
     long c,
     double dx,
     id_t [:, :] adj_link,
