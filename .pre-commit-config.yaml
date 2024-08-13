@@ -118,7 +118,7 @@ repos:
   - id: pyroma
     args: ["-d", "--min=10", "."]
     additional_dependencies:
-    - numpy
+    - "numpy<2"
     - cython
 
 # - repo: https://github.com/mgedmin/check-manifest
