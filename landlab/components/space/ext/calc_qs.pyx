@@ -1,13 +1,18 @@
 cimport cython
 
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
+
 cdef extern from "math.h":
     double exp(double x) nogil
 
 
 def calculate_qs_in(
-    cython.integral [:] stack_flip_ud,
-    cython.integral [:] flow_receivers,
+    const id_t [:] stack_flip_ud,
+    const id_t [:] flow_receivers,
     const cython.floating [:] cell_area_at_node,
     cython.floating [:] q,
     cython.floating [:] qs,
