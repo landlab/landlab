@@ -3,10 +3,14 @@ from libc.math cimport exp
 from libc.math cimport isinf
 from libc.math cimport log
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 def _sequential_ero_depo(
-    const cython.integral [:] stack_flip_ud_sel,
-    const cython.integral [:] flow_receivers,
+    const id_t [:] stack_flip_ud_sel,
+    const id_t [:] flow_receivers,
     const cython.floating [:] cell_area,
     const cython.floating [:] q,
     cython.floating [:] qs,

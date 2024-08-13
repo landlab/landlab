@@ -3,22 +3,26 @@ import numpy as np
 
 cimport numpy as np
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 cpdef _D8_flowDir(
-    cython.integral [:] receivers,
+    id_t [:] receivers,
     cython.floating [:] distance_receiver,
     cython.floating [:] steepest_slope,
     cython.floating [:] el_dep_free,
     cython.floating [:] el_ori,
     cython.floating [:] dist,
-    cython.integral [:] ngb,
-    cython.integral [:] activeCores,
-    cython.integral [:] activeCells,
-    cython.floating [:] el_d,
+    id_t [:] ngb,
+    id_t [:] activeCores,
+    id_t [:] activeCells,
+    id_t [:] el_d,
     long c,
     double dx,
-    cython.integral [:, :] adj_link,
-    cython.integral [:] rec_link,
+    id_t [:, :] adj_link,
+    id_t [:] rec_link,
 ):
     """
     Calcualte D8 flow dirs
