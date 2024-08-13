@@ -598,7 +598,6 @@ class SpaceLargeScaleEroder(Component):
                 )
             ) from None
 
-
         V_leaving_riv = np.sum(self.sediment_influx[self.grid.boundary_nodes]) * dt
         # Update topography
         cores = self._grid.core_nodes
