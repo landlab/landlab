@@ -1,11 +1,15 @@
 cimport cython
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 def neighbors_at_link(
-    const cython.integral [:] links,
+    const id_t [:] links,
     shape,
-    cython.integral [:, :] out,
+    id_t [:, :] out,
 ):
     cdef int stride
     cdef int n_links

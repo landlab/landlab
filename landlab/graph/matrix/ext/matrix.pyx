@@ -5,6 +5,10 @@ from libc.stdlib cimport malloc
 from libc.string cimport memcpy
 from libc.string cimport memmove
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 cdef void roll(
     void * values,
@@ -39,8 +43,8 @@ cdef void roll(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def roll_id_matrix_rows(
-    cython.integral [:, :] matrix,
-    cython.integral [:] shift,
+    id_t [:, :] matrix,
+    id_t [:] shift,
 ):
     cdef int n_rows = matrix.shape[0]
     cdef int n_cols = matrix.shape[1]
