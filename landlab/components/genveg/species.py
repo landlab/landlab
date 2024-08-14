@@ -174,12 +174,12 @@ class Species(object):
         return species_params
 
     def calculate_lai(self, leaf_area, shoot_sys_width):
-        crown_area = self.habit.calc_crown_area_from_shoot_width(shoot_sys_width)
+        canopy_area = self.habit._calc_canopy_area_from_shoot_width(shoot_sys_width)
         lai = np.divide(
             leaf_area,
-            crown_area,
+            canopy_area,
             out=np.zeros_like(leaf_area),
-            where=~np.isclose(crown_area, np.zeros_like(shoot_sys_width)),
+            where=~np.isclose(canopy_area, np.zeros_like(shoot_sys_width)),
         )
         return lai
 
@@ -467,10 +467,11 @@ class Species(object):
             filter = np.nonzero(_new_biomass[part] > 0.0)
             part_init_mass = np.zeros_like(_new_biomass[part])
             part_init_mass[filter] = _new_biomass[part][filter] / np.exp(
-                -decay_rate * _new_biomass[str(part) + "_age"][filter]
+                -decay_rate[part] * _new_biomass[str(part) + "_age"][filter]
             )
             _new_biomass[part] = part_init_mass * np.exp(
-                -decay_rate * (_new_biomass[str(part) + "_age"] + self.dt.astype(float))
+                -decay_rate[part]
+                * (_new_biomass[str(part) + "_age"] + self.dt.astype(float))
             )
             _new_biomass[str(part) + "_age"] += self.dt.astype(float) * np.ones_like(
                 _new_biomass[part]
@@ -649,7 +650,7 @@ class Species(object):
 
         cohort_dead_leaf_area = np.zeros_like(dead_leaf_area)
         cohort_dead_leaf_area[filter] = dead_leaf_area[filter] / np.exp(
-            -self.species_morph_params["biomass_decay_rate"]["leaf"]
+            -self.species_morph_params["biomass_decay_rate"]["dead_leaf"]
             * plants["dead_leaf_age"][filter]
         )
         dead_leaf_area_ratio = np.ones_like(plants["live_leaf_area"])

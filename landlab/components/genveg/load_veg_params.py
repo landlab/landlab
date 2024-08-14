@@ -377,7 +377,20 @@ class VegParams:
                                 == -9999
                             ):
                                 nested_dict["grow_params"][var] = df_fill[var]
-
+                        descriptor_wout_data = []
+                        for descriptor in nested_dict["mortality_params"][
+                            "mort_variable_name"
+                        ]:
+                            var_name = nested_dict["mortality_params"][
+                                "mort_variable_name"
+                            ][descriptor]
+                            if var_name == -9999:
+                                descriptor_wout_data.append(descriptor)
+                        for var_dict_name in nested_dict["mortality_params"]:
+                            for descriptor in descriptor_wout_data:
+                                del nested_dict["mortality_params"][var_dict_name][
+                                    descriptor
+                                ]
                         # Calculate sigmoid mortality curves
                         sigmoid_coeffs = {}
                         for descriptor in nested_dict["mortality_params"]["response"]:

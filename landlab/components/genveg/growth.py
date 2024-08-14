@@ -402,15 +402,18 @@ class PlantGrowth(Species):
 
     def add_new_plants(self, new_plants_list):
         old_plants = self.plants
+        print("number of plants versus index max")
+        print(self.n_plants)
+        print(old_plants.shape)
         last_pid = self.plants["pid"][-1]
         pids = np.arange(last_pid + 1, last_pid + new_plants_list.size + 1)
         new_plants_list["pid"] = pids
         new_plants_list["item_id"] = pids
         (n_new_plants,) = new_plants_list.shape
         # np.concatenate((old_plants, new_plants_list), axis=0)
-        old_plants[(self.n_plants + 1) : (n_new_plants + self.n_plants + 1)] = (
-            new_plants_list
-        )
+        start_index = self.n_plants + 1
+        end_index = n_new_plants + self.n_plants + 1
+        old_plants[start_index:end_index] = new_plants_list
         self.n_plants += n_new_plants
         self.plants = old_plants
         return self.plants
@@ -422,7 +425,7 @@ class PlantGrowth(Species):
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
-        _last_biomass = self.plants
+        _last_biomass = self.plants[self.plants["pid"] >= 0]
         _new_biomass = _last_biomass.copy()
 
         # Decide what processes happen today
@@ -785,7 +788,7 @@ class PlantGrowth(Species):
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
-        n_remove_plants = remove_plants.size
+        n_remove_plants = np.count_nonzero(remove_plants)
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
         self.n_plants -= n_remove_plants
         return _new_biomass

@@ -255,7 +255,8 @@ class GenVeg(Component, PlantGrowth):
                 )
 
     def calculate_grid_vars(self, indices, grid_var=None):
-        obs = ~np.isnan(indices)
+        # somewhere in here we are changing float arrays to int arrays under certain conditions
+        obs = np.nonzero(indices >= 0.0)
         if grid_var is None:
             weight_var = grid_var
         else:
@@ -265,7 +266,7 @@ class GenVeg(Component, PlantGrowth):
             weights=weight_var,
             minlength=self._grid.number_of_cells,
         )
-        return var_out
+        return var_out.astype(np.float64)
 
     def get_int_output(self):
         print(self.species_cover_allocation)
@@ -287,37 +288,34 @@ class GenVeg(Component, PlantGrowth):
             + all_plants["leaf_biomass"]
             + all_plants["stem_biomass"]
         )
-        abg_area = np.pi / 4 * all_plants["shoot_sys_width"] ** 2
-        cell_biomass = np.bincount(
-            all_plants["cell_index"],
-            weights=tot_bio_species,
-            minlength=self._grid.number_of_cells,
+        abg_area = (
+            np.pi
+            / 4
+            * (np.sqrt(all_plants["shoot_sys_width"] * all_plants["basal_width"])) ** 2
         )
-        cell_plant_count = np.bincount(
-            all_plants["cell_index"], minlength=self._grid.number_of_cells
+        cell_biomass = self.calculate_grid_vars(
+            all_plants["cell_index"], tot_bio_species
         )
+        cell_plant_count = self.calculate_grid_vars(all_plants["cell_index"])
         cell_percent_cover = (
-            np.bincount(
+            self.calculate_grid_vars(
                 all_plants["cell_index"],
-                weights=abg_area,
-                minlength=self._grid.number_of_cells,
+                abg_area,
             )
             / self._grid.area_of_cell
         )
-        cell_leaf_area = np.bincount(
+        cell_leaf_area = self.calculate_grid_vars(
             all_plants["cell_index"],
-            weights=all_plants["total_leaf_area"],
-            minlength=self._grid.number_of_cells,
+            all_plants["total_leaf_area"],
         )
-        cell_leaf_area[cell_leaf_area < 0] = 0
-        cell_leaf_area[np.isnan(cell_leaf_area)] = 0
+        cell_leaf_area[cell_leaf_area < 0] = 0.0
+        cell_leaf_area[np.isnan(cell_leaf_area)] = 0.0
         plant_height = np.zeros_like(cell_percent_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.nonzero(n_of_plants > 0.0)
-        sum_plant_height = np.bincount(
+        sum_plant_height = self.calculate_grid_vars(
             all_plants["cell_index"],
-            weights=all_plants["shoot_sys_height"],
-            minlength=self._grid.number_of_cells,
+            all_plants["shoot_sys_height"],
         )
         plant_height[cells_with_plants] = (
             sum_plant_height[cells_with_plants] / n_of_plants[cells_with_plants]
@@ -400,7 +398,9 @@ class GenVeg(Component, PlantGrowth):
 
         for species_obj in self.plant_species:
             species = species_obj.species_name
-            species_new_pups = new_pups[new_pups["species"] == species]
+            species_new_pups = new_pups[
+                new_pups["species"] == species
+            ]  # This is a slice
             species_plants = all_plants[all_plants["species"] == species]
             if species_new_pups.size != 0:
                 species_parents = species_new_pups.copy()
