@@ -177,19 +177,48 @@ class PlantGrowth(Species):
 
         event_flags = self.set_event_flags(_current_jday)
         _in_growing_season = event_flags.pop("_in_growing_season")
-        max_plants_per_cell = (
-            np.round(
-                self._grid.number_of_cells
-                * self.species_morph_params["max_plant_density"]
-                * self._grid.area_of_cell
-            )
-            .astype(int)
-            .item()
-        )
-
-        self.plants = np.full(
-            max_plants_per_cell,
+        max_plants = np.round(
+            self._grid.number_of_cells
+            * self.species_morph_params["max_plant_density"]
+            * self._grid.area_of_cell
+        ).astype(int)
+        scalar = (
+            "na",
+            -9999,
+            -9999,
             np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            -9999,
+            np.nan,
+            np.nan,
+            np.nan,
+            -9999,
+        )
+        empty_list = []
+        for i in range(max_plants[0]):
+            empty_list.append(scalar)
+        self.plants = np.array(
+            empty_list,
             dtype=[
                 ("species", "U10"),
                 ("pid", int),
@@ -373,15 +402,18 @@ class PlantGrowth(Species):
 
     def add_new_plants(self, new_plants_list):
         old_plants = self.plants
+        print("number of plants versus index max")
+        print(self.n_plants)
+        print(old_plants.shape)
         last_pid = self.plants["pid"][-1]
         pids = np.arange(last_pid + 1, last_pid + new_plants_list.size + 1)
         new_plants_list["pid"] = pids
         new_plants_list["item_id"] = pids
         (n_new_plants,) = new_plants_list.shape
         # np.concatenate((old_plants, new_plants_list), axis=0)
-        old_plants[(self.n_plants + 1) : (n_new_plants + self.n_plants + 1)] = (
-            new_plants_list
-        )
+        start_index = self.n_plants + 1
+        end_index = n_new_plants + self.n_plants + 1
+        old_plants[start_index:end_index] = new_plants_list
         self.n_plants += n_new_plants
         self.plants = old_plants
         return self.plants
@@ -393,7 +425,7 @@ class PlantGrowth(Species):
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
-        _last_biomass = self.plants
+        _last_biomass = self.plants[self.plants["pid"] >= 0]
         _new_biomass = _last_biomass.copy()
 
         # Decide what processes happen today
@@ -506,6 +538,7 @@ class PlantGrowth(Species):
             ("pup_cost", float),
             ("item_id", int),
         ]
+        # move plantlist development to species?
         pidval = 0
         plantlist = []
         # Loop through grid cells
@@ -520,27 +553,34 @@ class PlantGrowth(Species):
                         plant_cover * self._grid.area_of_cell[cell_index] * 0.907
                     )
                     plant_shoot_widths = []
+                    plant_basal_widths = []
                     while cover_area > (
-                        1.2 * self.species_morph_params["min_crown_area"]
+                        1.2 * self.species_morph_params["min_canopy_area"]
                     ):
-                        plant_width = rng.uniform(
-                            low=self.species_morph_params["min_shoot_sys_width"],
-                            high=self.species_morph_params["max_shoot_sys_width"],
+                        plant_basal_width = rng.uniform(
+                            low=self.species_morph_params["min_basal_dia"],
+                            high=self.species_morph_params["max_basal_dia"],
                             size=1,
                         )
-                        plant_basal_width = plant_width * rng.uniform(
-                            low=self.species_morph_params["min_basal_ratio"],
-                            high=self.species_morph_params["max_basal_ratio"],
-                            size=1,
+                        plant_canopy_area = self.habit._calc_canopy_area(
+                            plant_basal_width
+                        )
+                        plant_shoot_width = (
+                            self.habit._calc_shoot_width_from_canopy_area(
+                                plant_canopy_area
+                            )
                         )
                         cover_area -= (
-                            np.pi / 4 * np.sqrt(plant_width * plant_basal_width) ** 2
+                            np.pi
+                            / 4
+                            * np.sqrt(plant_shoot_width * plant_basal_width) ** 2
                         )
                         if cover_area > 0:
-                            plant_shoot_widths.append(plant_width)
+                            plant_basal_widths.append(plant_basal_width)
+                            plant_shoot_widths.append(plant_shoot_width)
                         else:
                             breakpoint
-                    for new_plant_width in plant_shoot_widths:
+                    for index, new_plant_width in enumerate(plant_shoot_widths):
                         plantlist.append(
                             (
                                 plant,
@@ -561,6 +601,7 @@ class PlantGrowth(Species):
                                 0.0,
                                 0.0,
                                 new_plant_width,
+                                plant_basal_widths[index],
                                 0.0,
                                 0.0,
                                 0.0,
@@ -747,7 +788,7 @@ class PlantGrowth(Species):
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
-        n_remove_plants = remove_plants.size
+        n_remove_plants = np.count_nonzero(remove_plants)
         _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
         self.n_plants -= n_remove_plants
         return _new_biomass
