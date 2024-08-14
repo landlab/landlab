@@ -88,8 +88,8 @@ cpdef _D8_flowDir(
 cpdef _D8_FlowAcc(
     cython.floating [:] a,
     cython.floating [:] q,
-    cython.integral [:] stack_flip,
-    cython.integral [:] receivers,
+    id_t [:] stack_flip,
+    id_t [:] receivers,
 ):
     """
     Accumulates drainage area and discharge, permitting transmission losses.

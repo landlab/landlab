@@ -2,13 +2,17 @@ cimport cython
 
 from landlab.core.messages import warning_message
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 cpdef find_lowest_node_on_lake_perimeter_c(
-    const cython.integral [:, :] node_nbrs,
-    cython.integral [:] flood_status,
+    const id_t [:, :] node_nbrs,
+    id_t [:] flood_status,
     cython.floating [:] elev,
-    cython.integral [:] nodes_this_depression,
+    id_t [:] nodes_this_depression,
     long pit_count,
     double BIG_ELEV,
 ):
