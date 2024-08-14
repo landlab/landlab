@@ -386,17 +386,32 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
-        calculate_qs_in(
-            np.flipud(self._stack),
-            self._flow_receivers,
-            self._cell_area_at_node,
-            self._q,
-            self._qs,
-            self.sediment_influx,
-            self._erosion_term,
-            self._v_s,
-            self._F_f,
-        )
+        try:
+            calculate_qs_in(
+                np.flipud(self._stack),
+                self._flow_receivers,
+                self._cell_area_at_node,
+                self._q,
+                self._qs,
+                self.sediment_influx,
+                self._erosion_term,
+                self._v_s,
+                self._F_f,
+            )
+        except TypeError:
+            raise RuntimeError(
+                (
+                    np.flipud(self._stack).dtype,
+                    self._flow_receivers.dtype,
+                    self._cell_area_at_node.dtype,
+                    self._q.dtype,
+                    self._qs.dtype,
+                    self.sediment_influx.dtype,
+                    self._erosion_term.dtype,
+                    type(self._v_s),
+                    type(self._F_f),
+                )
+            ) from None
 
         self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
             self._v_s / self._q[self._q > 0]
