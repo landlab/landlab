@@ -765,14 +765,28 @@ class DepressionFinderAndRouter(Component):
         pit_count = 1
 
         while not found_outlet:
-            lowest_node_on_perimeter, pit_count = find_lowest_node_on_lake_perimeter_c(
-                self._node_nbrs,
-                self.flood_status,
-                self._elev,
-                nodes_this_depression,
-                pit_count,
-                self._BIG_ELEV,
-            )
+            try:
+                lowest_node_on_perimeter, pit_count = (
+                    find_lowest_node_on_lake_perimeter_c(
+                        self._node_nbrs,
+                        self.flood_status,
+                        self._elev,
+                        nodes_this_depression,
+                        pit_count,
+                        self._BIG_ELEV,
+                    )
+                )
+            except TypeError:
+                raise RuntimeError(
+                    (
+                        self._node_nbrs.dtype,
+                        self.flood_status.dtype,
+                        self._elev.dtype,
+                        nodes_this_depression.dtype,
+                        type(pit_count),
+                        type(self._BIG_ELEV),
+                    )
+                ) from None
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all self._grid.BAD_INDEX
             # I BELIEVE THE IS_VALID_OUTLET FN SHOULD ASSIGN FLOW DIR
