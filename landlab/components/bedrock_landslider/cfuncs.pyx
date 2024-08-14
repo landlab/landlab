@@ -1,13 +1,17 @@
 cimport cython
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 cpdef _landslide_runout(
     double dx,
     double phi,
     double min_deposition_slope,
-    cython.integral [:] stack_rev_sel,
-    cython.integral [:, :] receivers,
+    id_t [:] stack_rev_sel,
+    id_t [:, :] receivers,
     cython.floating [:, :] fract,
     cython.floating [:] Qs_in,
     cython.floating [:] L_Hill,

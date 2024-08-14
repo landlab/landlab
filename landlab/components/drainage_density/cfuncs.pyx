@@ -1,14 +1,18 @@
 cimport cython
 from libc.stdint cimport uint8_t
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 def _calc_dists_to_channel(
     uint8_t [:] ch_network,
-    cython.integral [:] flow_receivers,
-    cython.integral [:] upstream_order,
+    id_t [:] flow_receivers,
+    id_t [:] upstream_order,
     const cython.floating [:] link_lengths,
-    cython.integral [:] stack_links,
+    id_t [:] stack_links,
     cython.floating [:] dist_to_ch,
     long num_nodes,
 ):
