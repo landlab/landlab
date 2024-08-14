@@ -8,10 +8,14 @@ from scipy.optimize import newton
 # method for using the brentq method in cython.
 from scipy.optimize._zeros import _brentq as brentq
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 def brent_method_erode_variable_threshold(
-    const cython.integral [:] src_nodes,
-    const cython.integral [:] dst_nodes,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
     const cython.floating [:] threshsxdt,
     const cython.floating [:] alpha,
     const double n,
@@ -142,8 +146,8 @@ def brent_method_erode_variable_threshold(
 
 
 def brent_method_erode_fixed_threshold(
-    const cython.integral [:] src_nodes,
-    const cython.integral [:] dst_nodes,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
     const double threshsxdt,
     const cython.floating [:] alpha,
     const double n,
@@ -367,8 +371,8 @@ def erode_fn(
 
 
 def smooth_stream_power_eroder_solver(
-    const cython.integral [:] src_nodes,
-    const cython.integral [:] dst_nodes,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
     cython.floating [:] z,
     const cython.floating [:] alpha,
     const cython.floating [:] gamma,

@@ -3,6 +3,7 @@ from cython.parallel cimport prange
 
 ctypedef fused float_or_int:
     cython.integral
+    long long
     cython.floating
 
 

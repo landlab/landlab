@@ -1,10 +1,14 @@
 cimport cython
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 cpdef _thresholder(
-    const cython.integral [:] stack,
-    const cython.integral [:] link_to_rcvr,
-    const cython.integral [:] receivers,
+    const id_t [:] stack,
+    const id_t [:] link_to_rcvr,
+    const id_t [:] receivers,
     const cython.floating [:] linkLengths,
     cython.floating [:] el,
     const double slope_thres,

@@ -166,7 +166,7 @@ cpdef max_of_children_at_parent(
 @cython.wraparound(False)
 cpdef count_of_children_at_parent(
     const id_t [:, :] children_at_parent,
-    cython.integral [:] out,
+    id_t [:] out,
 ):
     """Count the number of children for each parent.
 
