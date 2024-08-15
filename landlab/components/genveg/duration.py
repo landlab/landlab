@@ -27,7 +27,7 @@ class Duration(object):
         print("I kill green parts at end of growing season")
         for part in self.green_parts:
             plants["dead_" + str(part)] += plants[part]
-            plants[part] = np.zeros_like(plants[part])
+            plants[part] = np.zeros_like(plants[part], dtype=np.float64)
         return plants
 
     def senesce(self, plants, ns_green_mass=None, persistent_mass=None):
@@ -215,4 +215,10 @@ class Deciduous(Perennial):
         if not in_growing_season:
             for part in self.green_parts:
                 plants[part] = np.zeros_like(plants[part])
+        else:
+            plants["repro_biomass"] = (
+                growdict["plant_part_min"]["reproductive"]
+                + rng.rayleigh(scale=0.2, size=plants.size)
+                * growdict["plant_part_max"]["reproductive"]
+            )
         return plants

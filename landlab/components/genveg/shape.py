@@ -4,35 +4,15 @@ import numpy as np
 
 
 class PlantShape(object):
-    def __init__(self, morph_params=None, grow_params=None):
-        # morph_params and grow_params should be given when running,
-        # this was added for unit testing
-        if morph_params and grow_params:
-            self.morph_params = morph_params
-            self.grow_params = grow_params
-            self.min_crown_area = self.calc_crown_area_from_shoot_width(
-                self.morph_params["min_shoot_sys_width"]
-            )
-            self.max_crown_area = self.calc_crown_area_from_shoot_width(
-                self.morph_params["max_shoot_sys_width"]
-            )
-            # Calculate log10 linear equation to calculate relationship between
-            # aboveground biomass and aspect ratio
-            # This is not working as expected
-            width_x0 = self.abg_biomass_transform(self.grow_params["min_abg_biomass"])
-            width_x1 = self.abg_biomass_transform(self.grow_params["max_abg_biomass"])
-            width_y0 = np.log10(self.min_crown_area)
-            width_y1 = np.log10(self.max_crown_area)
-            width_m = (width_y1 - width_y0) / (width_x1 - width_x0)
-            width_b = width_y0 - (width_m * width_x0)
-            self.crown_area_coeffs = {"m": width_m, "b": width_b}
-            height_x0 = width_x0
-            height_x1 = width_x1
-            height_y0 = np.log10(self.morph_params["min_height"])
-            height_y1 = np.log10(self.morph_params["max_height"])
-            height_m = (height_y1 - height_y0) / (height_x1 - height_x0)
-            height_b = height_y0 - height_m * height_x0
-            self.height_coeffs = {"m": height_m, "b": height_b}
+    def __init__(self, morph_params, grow_params):
+        self.morph_params = morph_params
+        self.grow_params = grow_params
+        self.min_crown_area = self.calc_crown_area_from_shoot_width(
+            self.morph_params["min_shoot_sys_width"]
+        )
+        self.max_crown_area = self.calc_crown_area_from_shoot_width(
+            self.morph_params["max_shoot_sys_width"]
+        )
 
     def calc_root_sys_width(self, shoot_sys_width, shoot_sys_height=1):
         volume = self.calc_crown_volume(shoot_sys_width, shoot_sys_height)
@@ -56,41 +36,29 @@ class PlantShape(object):
         crown_area = 0.25 * np.pi * shoot_sys_width**2
         return crown_area
 
-    def calc_vital_volume_from_biomass(self, abg_biomass):
-        log_vital_volume = (
-            np.log10(abg_biomass / 1000)
-            / np.log10(self.grow_params["max_abg_biomass"] / 1000)
-        ) * np.log10(self.morph_params["max_vital_volume"])
-        return 10**log_vital_volume
-
-    def abg_biomass_transform(self, abg_biomass):
-        return np.log10(abg_biomass / 1000)
 
     def calc_crown_volume(self, shoot_sys_width, shoot_sys_height):
         volume = np.pi / 4 * shoot_sys_width**2 * shoot_sys_height
         return volume
 
     def calc_abg_dims_from_biomass(self, abg_biomass):
-        # interpolation function not working as expected
-        # shoot sys width(t) should be dependent on shoot_sys_width (t-1)
-        log_crown_area = vital_volume = log_plant_height = crown_area = plant_height = (
-            np.zeros_like(abg_biomass)
+        # These dimensions are empirically derived allometric relationships for grasses. This should be moved into habit and the shape classes deleted.
+        log_basal_width = crown_area = basal_width = plant_height = np.zeros_like(
+            abg_biomass
         )
         filter = np.nonzero(abg_biomass > self.grow_params["min_abg_biomass"])
-        # log_aspect_ratio[filter]=self.aspect_ratio_interp_func(np.log10(abg_biomass[filter]/1000))
-        log_crown_area[filter] = self.crown_area_coeffs["b"] + (
-            self.crown_area_coeffs["m"]
-            * self.abg_biomass_transform(abg_biomass[filter])
+        log_basal_width[filter] = (
+            np.log(abg_biomass[filter]) - self.basal_width_coeffs["a"]
+        ) / self.basal_width_coeffs["b"]
+        basal_width = np.exp(log_basal_width)
+        height = self.height_coeffs["a"] * basal_width ** self.height_coeffs["b"]
+        crown_area[filter] = (
+            self.crown_coeffs["a"]
+            * basal_width ** self.crown_coeffs["b"]
+            * height ** self.crown_coeffs["c"]
         )
-        crown_area[filter] = 10 ** log_crown_area[filter]
         shoot_sys_width = (4 * crown_area / np.pi) ** 0.5
-        vital_volume[filter] = self.calc_vital_volume_from_biomass(abg_biomass[filter])
-        # shoot_sys_width = ((4 * vital_volume) / (np.pi * aspect_ratio)) ** (1 / 3)
-        log_plant_height[filter] = self.height_coeffs["b"] + self.height_coeffs[
-            "m"
-        ] * self.abg_biomass_transform(abg_biomass[filter])
-        plant_height[filter] = 10 ** log_plant_height[filter]
-        return shoot_sys_width, plant_height
+        return basal_width, shoot_sys_width, plant_height
 
 
 class Climbing(PlantShape):
