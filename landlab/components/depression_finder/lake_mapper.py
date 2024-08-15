@@ -765,15 +765,13 @@ class DepressionFinderAndRouter(Component):
         pit_count = 1
 
         while not found_outlet:
-            lowest_node_on_perimeter, pit_count = (
-                find_lowest_node_on_lake_perimeter_c(
-                    self._node_nbrs,
-                    self.flood_status,
-                    self._elev,
-                    nodes_this_depression,
-                    pit_count,
-                    self._BIG_ELEV,
-                )
+            lowest_node_on_perimeter, pit_count = find_lowest_node_on_lake_perimeter_c(
+                self._node_nbrs,
+                self.flood_status,
+                self._elev,
+                nodes_this_depression,
+                pit_count,
+                self._BIG_ELEV,
             )
 
             # note this can return the supplied node, if - somehow - the

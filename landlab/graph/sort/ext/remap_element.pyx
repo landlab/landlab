@@ -4,17 +4,17 @@ import numpy as np
 from cython.parallel import prange
 
 cimport numpy as np
-from libc.stdlib cimport free
-from libc.stdlib cimport malloc
 from libc.stdint cimport int64_t
 from libc.stdint cimport uint8_t
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
+
 
 cdef extern from "math.h":
     double atan2(double y, double x) nogil
 
 
 from .spoke_sort import sort_spokes_at_wheel
-
 
 ctypedef fused id_t:
     cython.integral
