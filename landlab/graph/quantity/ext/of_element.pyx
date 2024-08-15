@@ -5,6 +5,10 @@ ctypedef fused id_t:
     cython.integral
     long long
 
+ctypedef fused integral_out_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -166,7 +170,7 @@ cpdef max_of_children_at_parent(
 @cython.wraparound(False)
 cpdef count_of_children_at_parent(
     const id_t [:, :] children_at_parent,
-    id_t [:] out,
+    integral_out_t [:] out,
 ):
     """Count the number of children for each parent.
 

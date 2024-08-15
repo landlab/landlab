@@ -81,7 +81,7 @@ def map_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
     pairs = np.asarray(pairs)
 
     if out is None:
-        out = np.empty(len(pairs), dtype=int)
+        out = np.empty(len(pairs), dtype=values.dtype)
 
     if not sorted and sorter is None:
         sorter = np.argsort(keys[:, 0])
