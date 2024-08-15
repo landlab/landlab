@@ -83,7 +83,6 @@ def _sequential_ero_depo(
                     )
                 )
             # In case soil depth evolves to infinity, fall back to no entrainment
-            # if H_loc == np.inf:
             if isinf(H_loc):
                 H_loc = (
                     H[node_id]

@@ -103,20 +103,6 @@ def flow_directions(
     # NOTE: MAKE SURE WE ARE ONLY LOOKING AT ACTIVE LINKS
     # THIS REMAINS A PROBLEM AS OF DEJH'S EFFORTS, MID MARCH 14.
     # overridden as part of fastscape_stream_power
-
-    types = {
-        tail_node.dtype,
-        head_node.dtype,
-        active_links.dtype,
-        receiver.dtype,
-        receiver_link.dtype,
-    }
-    if len(types) > 1:
-        print(f"incompatible types: {', '.join(types)}")
-    types = {elev.dtype, link_slope.dtype, steepest_slope.dtype}
-    if len(types) > 1:
-        print(f"incompatible types: {', '.join(types)}")
-
     adjust_flow_receivers(
         tail_node,
         head_node,

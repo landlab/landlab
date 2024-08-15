@@ -547,56 +547,29 @@ class SpaceLargeScaleEroder(Component):
 
         K_sed_vector = np.broadcast_to(self._K_sed, self._q.shape)
 
-        try:
-            vol_SSY_riv = _sequential_ero_depo(
-                stack_flip_ud_sel,
-                r,
-                area,
-                self._q,
-                self._qs,
-                self.sediment_influx,
-                self._Es,
-                self._Er,
-                self._Q_to_the_m,
-                slope,
-                H,
-                br,
-                self._sed_erosion_term,
-                self._br_erosion_term,
-                K_sed_vector,
-                self._v_s,
-                self._phi,
-                self._F_f,
-                self._H_star,
-                dt,
-                self._thickness_lim,
-            )
-        except TypeError:
-            raise RuntimeError(
-                (
-                    stack_flip_ud_sel.dtype,
-                    r.dtype,
-                    area.dtype,
-                    self._q.dtype,
-                    self._qs.dtype,
-                    self.sediment_influx.dtype,
-                    self._Es.dtype,
-                    self._Er.dtype,
-                    self._Q_to_the_m.dtype,
-                    slope.dtype,
-                    H.dtype,
-                    br.dtype,
-                    self._sed_erosion_term.dtype,
-                    self._br_erosion_term.dtype,
-                    K_sed_vector.dtype,
-                    self._v_s.dtype,
-                    self._phi.dtype,
-                    self._F_f.dtype,
-                    type(self._H_star),
-                    type(dt),
-                    type(self._thickness_lim),
-                )
-            ) from None
+        vol_SSY_riv = _sequential_ero_depo(
+            stack_flip_ud_sel,
+            r,
+            area,
+            self._q,
+            self._qs,
+            self.sediment_influx,
+            self._Es,
+            self._Er,
+            self._Q_to_the_m,
+            slope,
+            H,
+            br,
+            self._sed_erosion_term,
+            self._br_erosion_term,
+            K_sed_vector,
+            self._v_s,
+            self._phi,
+            self._F_f,
+            self._H_star,
+            dt,
+            self._thickness_lim,
+        )
 
         V_leaving_riv = np.sum(self.sediment_influx[self.grid.boundary_nodes]) * dt
         # Update topography

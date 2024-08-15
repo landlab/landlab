@@ -737,42 +737,22 @@ class PriorityFloodFlowRouter(Component):
         adj_link = np.array(self._grid.d8s_at_node, dtype=int)
         recvr_link = np.zeros((receivers.shape), dtype=int) - 1
 
-        try:
-            _D8_flowDir(
-                receivers,
-                distance_receiver,
-                steepest_slope,
-                np.array(el_dep_free),
-                el_ori,
-                dist,
-                ngb,
-                activeCores,
-                activeCells,
-                el_d,
-                c,
-                dx,
-                adj_link,
-                recvr_link,
-            )
-        except TypeError:
-            raise RuntimeError(
-                (
-                    receivers.dtype,
-                    distance_receiver.dtype,
-                    steepest_slope.dtype,
-                    np.array(el_dep_free.dtype).dtype,
-                    el_ori.dtype,
-                    dist.dtype,
-                    ngb.dtype,
-                    activeCores.dtype,
-                    activeCells.dtype,
-                    el_d.dtype,
-                    type(c),
-                    type(dx),
-                    adj_link.dtype,
-                    recvr_link.dtype,
-                )
-            ) from None
+        _D8_flowDir(
+            receivers,
+            distance_receiver,
+            steepest_slope,
+            np.array(el_dep_free),
+            el_ori,
+            dist,
+            ngb,
+            activeCores,
+            activeCells,
+            el_d,
+            c,
+            dx,
+            adj_link,
+            recvr_link,
+        )
 
         # Calcualte flow acc
         do_FA = False

@@ -11,8 +11,6 @@ import numpy as np
 
 cimport numpy as np
 
-import sys  # for debug
-
 from _heapq import heappop
 from _heapq import heappush
 
@@ -24,21 +22,7 @@ ctypedef fused id_t:
 
 
 cdef double _NEVER = 1.0e50
-
 cdef int _CORE = NodeStatus.CORE
-
-# DTYPE = np.double
-# ctypedef np.double_t DTYPE_t
-
-# DTYPE_INT = int
-# ctypedef np.int_t DTYPE_INT_t
-
-# DTYPE_INT8 = np.int8
-# ctypedef np.int8_t DTYPE_INT8_t
-
-# DTYPE_UINT8 = np.uint8
-# ctypedef np.uint8_t DTYPE_UINT8_t
-
 cdef char _DEBUG = 0
 
 
@@ -876,8 +860,8 @@ cdef void do_transition(
                 event.prop_update_fn(this_cts_model, tail_node, head_node, event.time)
 
 
-# @cython.boundscheck(False)
-# @cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef void do_transition_new(
     long event_link,
     double event_time,
@@ -1170,7 +1154,6 @@ cpdef double run_cts_new(
         Needed if caller wants to plot after every transition
     (see celllab_cts.py for other parameters)
     """
-    import sys
     cdef double ev_time
     cdef int _ev_idx
     cdef int ev_link
@@ -1253,7 +1236,6 @@ cpdef double run_cts(
     long num_node_states_sq,
     prop_reset_value,
     int8_t [:, :] xn_propswap,
-    # xn_prop_update_fn,
     np.ndarray[object, ndim=2] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
     this_cts_model,

@@ -460,31 +460,18 @@ class Space(_GeneralizedErosionDeposition):
 
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
-        try:
-            calculate_qs_in(
-                np.flipud(self._stack),
-                self._flow_receivers,
-                self._cell_area_at_node,
-                self._q,
-                self._qs,
-                self.sediment_influx,
-                self._Es,
-                self._Er,
-                self._v_s,
-                self._F_f,
-            )
-        except TypeError as error:
-            print(np.flipud(self._stack).dtype)
-            print(self._flow_receivers.dtype)
-            print(self._cell_area_at_node.dtype)
-            print(self._q.dtype)
-            print(self._qs.dtype)
-            print(self.sediment_influx.dtype)
-            print(self._Es.dtype)
-            print(self._Er.dtype)
-            print(type(self._v_s))
-            print(type(self._F_f))
-            raise error
+        calculate_qs_in(
+            np.flipud(self._stack),
+            self._flow_receivers,
+            self._cell_area_at_node,
+            self._q,
+            self._qs,
+            self.sediment_influx,
+            self._Es,
+            self._Er,
+            self._v_s,
+            self._F_f,
+        )
 
         self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
             self._v_s / self._q[self._q > 0]

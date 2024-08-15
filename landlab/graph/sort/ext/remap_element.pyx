@@ -6,7 +6,8 @@ from cython.parallel import prange
 cimport numpy as np
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
-
+from libc.stdint cimport int64_t
+from libc.stdint cimport uint8_t
 
 cdef extern from "math.h":
     double atan2(double y, double x) nogil
@@ -14,8 +15,6 @@ cdef extern from "math.h":
 
 from .spoke_sort import sort_spokes_at_wheel
 
-ctypedef np.int64_t DTYPE_t
-ctypedef np.uint8_t uint8
 
 ctypedef fused id_t:
     cython.integral
@@ -87,7 +86,7 @@ def remap_graph_element(
     cdef int n_elements = elements.shape[0]
     cdef int i
 
-    for i in range(n_elements):
+    for i in prange(n_elements, nogil=True, schedule="static"):
         elements[i] = old_to_new[elements[i]]
 
 
@@ -233,12 +232,9 @@ def reverse_element_order(
 
 cdef void _offset_to_sorted_blocks(
     const id_t [:] array,
-    # id_t *array,
     long len,
     long stride,
     integral_out_t [:] offset,
-    # long long [:] offset,
-    # id_t *offset,
     long n_values,
 ) noexcept:
     cdef long i
@@ -270,15 +266,11 @@ cdef void _offset_to_sorted_blocks(
 def offset_to_sorted_block(
     id_t [:, :] sorted_ids,
     integral_out_t [:] offset_to_block,
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] sorted_ids not None,
-    # np.ndarray[DTYPE_t, ndim=1, mode="c"] offset_to_block not None,
 ):
     cdef long n_ids = sorted_ids.shape[0]
     cdef long n_blocks = offset_to_block.shape[0]
-    # cdef id_t [:] sorted_ids_flat = sorted_ids
-    # cdef id_t [:] sorted_ids_flat = sorted_ids.reshape((-1,))
     cdef id_t *ptr = &sorted_ids[0, 0]
-    cdef id_t [:] sorted_ids_flat= <id_t[:sorted_ids.size]>ptr
+    cdef id_t [:] sorted_ids_flat = <id_t[:sorted_ids.size]>ptr
 
     _offset_to_sorted_blocks(
         sorted_ids_flat,
@@ -292,51 +284,35 @@ def offset_to_sorted_block(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def pair_isin(
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] src_pairs not None,
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] pairs not None,
-    # # np.ndarray[uint8, ndim=1, mode="c"] out not None,
-    # np.ndarray[uint8, ndim=1, mode="c", cast=True] out not None,
-
     const id_t [:, :] src_pairs,
     const id_t [:, :] pairs,
-    uint8 [:] out,
+    uint8_t [:] out,
 ):
-    # cdef long n
     cdef long pair
     cdef long n_pairs = pairs.shape[0]
     cdef long n_values = src_pairs.shape[0]
-    # cdef long *data = <long *>malloc(n_values * sizeof(long))
-    cdef long *data_p
-    cdef long [:] data
-    # cdef int64_t [:] data = np.full(n_values, 1, dtype="int64")
-    # cdef const id_t [:] src_pairs_flat = src_pairs.reshape((-1,))
+    cdef long * data_ptr = <long *>malloc(n_values * sizeof(long))
+    cdef long [:] data_array = <long [:n_values]>data_ptr
     cdef const id_t *ptr = &src_pairs[0, 0]
     cdef const id_t [:] src_pairs_flat = <const id_t[:src_pairs.size]>ptr
     cdef SparseMatrixInt mat
 
-    data_p = <long *>malloc(n_values * sizeof(long))
-    data = <long [:n_values]>data_p
-
     for n in range(n_values):
-        data[n] = 1
+        data_array[n] = 1
+
     try:
-        # mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], data, n_values, 0)
-        mat = sparse_matrix_alloc_with_tuple(src_pairs_flat, data, n_values, 0)
+        mat = sparse_matrix_alloc_with_tuple(src_pairs_flat, data_array, n_values, 0)
         for pair in range(n_pairs):
             out[pair] = sparse_matrix_get_or_transpose(
                 mat, pairs[pair, 0], pairs[pair, 1]
             )
     finally:
-        free(data_p)
+        free(data_ptr)
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def map_pairs_to_values(
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] src_pairs not None,
-    # np.ndarray[DTYPE_t, ndim=1, mode="c"] data not None,
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] pairs not None,
-    # np.ndarray[DTYPE_t, ndim=1, mode="c"] out not None,
     const id_t [:, :] src_pairs,
     const integral_out_t [:] data,
     const id_t [:, :] pairs,
@@ -345,12 +321,10 @@ def map_pairs_to_values(
     cdef long pair
     cdef long n_pairs = out.shape[0]
     cdef long n_values = data.shape[0]
-    # cdef const id_t [:] src_pairs_flat = src_pairs.reshape((-1,))
     cdef const id_t *ptr = &src_pairs[0, 0]
     cdef const id_t [:] src_pairs_flat = <const id_t[:src_pairs.size]>ptr
     cdef SparseMatrixInt mat
 
-    # mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], &data[0], n_values, -1)
     mat = sparse_matrix_alloc_with_tuple(src_pairs_flat, data, n_values, -1)
 
     for pair in range(n_pairs):
@@ -360,11 +334,6 @@ def map_pairs_to_values(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def map_rolling_pairs_to_values(
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] src_pairs not None,
-    # np.ndarray[DTYPE_t, ndim=1, mode="c"] data not None,
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] pairs not None,
-    # np.ndarray[DTYPE_t, ndim=1, mode="c"] size_of_row not None,
-    # np.ndarray[DTYPE_t, ndim=2, mode="c"] out not None,
     const id_t [:, :] src_pairs,
     const integral_out_t [:] data,
     const id_t [:, :] pairs,
@@ -374,12 +343,10 @@ def map_rolling_pairs_to_values(
     cdef long n_values = data.shape[0]
     cdef long n_pairs = pairs.shape[0]
     cdef long pair
-    # cdef const id_t [:] src_pairs_flat = src_pairs.ravel()
     cdef const id_t *ptr = &src_pairs[0, 0]
     cdef const id_t [:] src_pairs_flat = <const id_t[:2 * len(src_pairs)]>ptr
     cdef SparseMatrixInt mat
 
-    # mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], &data[0], n_values, -1)
     mat = sparse_matrix_alloc_with_tuple(src_pairs_flat, data, n_values, -1)
 
     for pair in range(n_pairs):
@@ -403,10 +370,10 @@ cdef _map_rolling_pairs(
 
 
 cdef struct SparseMatrixInt:
-    long long *values
+    long *values
     long n_values
-    long long *offset_to_row
-    long long *col
+    long *offset_to_row
+    long *col
     long col_start
     long col_stride
     long n_rows
@@ -415,10 +382,6 @@ cdef struct SparseMatrixInt:
 
 
 cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
-    # DTYPE_t *rows_and_cols,
-    # DTYPE_t *values,
-    # long n_values,
-    # long no_val,
     const id_t [:] rows_and_cols,
     const integral_out_t [:] values,
     long n_values,
@@ -430,15 +393,10 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     cdef long max_col = 0
     cdef long i
     cdef SparseMatrixInt mat
-    # cdef long long *offset
-    # cdef long long [:] _col
-    # cdef long long [:] _values
-    cdef long long * _col
-    cdef long long * _values
-    # cdef long long * offset = <long long *>malloc((n_rows + 1) * sizeof(long long))
-    # cdef long long [:] offset_view = offset
-    cdef long long * offset
-    cdef long long [:] mv
+    cdef long * col_ptr
+    cdef long * values_ptr
+    cdef long * offset_ptr
+    cdef long [:] offset_array
 
     for i in range(0, n_values * 2, 2):
         if rows_and_cols[i] > max_row:
@@ -448,30 +406,22 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     n_rows = max_row + 1
     n_cols = max_col + 1
 
-    # offset = np.empty(n_rows + 1, dtype=long)
-    # _col = np.array(rows_and_cols, dtype=long)
-    # _values = np.array(values, dtype=long)
-    offset = <long long *>malloc((n_rows + 1) * sizeof(long long))
+    offset_ptr = <long *>malloc((n_rows + 1) * sizeof(long))
+    offset_array = <long [:n_rows + 1]>offset_ptr
 
-    mv = <long long [:n_rows + 1]>offset
-
-    _col = <long long *>malloc((2 * n_values) * sizeof(long long))
-    _values = <long long *>malloc(n_values * sizeof(long long))
+    col_ptr = <long *>malloc((2 * n_values) * sizeof(long))
+    values_ptr = <long *>malloc(n_values * sizeof(long))
     for i in range(2 * n_values):
-        _col[i] = rows_and_cols[i]
+        col_ptr[i] = rows_and_cols[i]
     for i in range(n_values):
-        _values[i] = values[i]
+        values_ptr[i] = values[i]
 
-    _offset_to_sorted_blocks(rows_and_cols, n_values, 2, mv, n_rows + 1)
+    _offset_to_sorted_blocks(rows_and_cols, n_values, 2, offset_array, n_rows + 1)
 
-    # mat.values = &_values[0]
-    mat.values = _values
+    mat.values = values_ptr
     mat.n_values = n_values
-    # mat.offset_to_row = &offset[0]
-    mat.offset_to_row = offset
-    # mat.col = rows_and_cols
-    # mat.col = &_col[0]
-    mat.col = _col
+    mat.offset_to_row = offset_ptr
+    mat.col = col_ptr
     mat.col_start = 1
     mat.col_stride = 2
     mat.n_rows = n_rows
