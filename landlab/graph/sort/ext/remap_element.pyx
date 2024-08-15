@@ -96,7 +96,7 @@ def remap_graph_element(
 def remap_graph_element_ignore(
     id_t [:] elements,
     const id_t [:] old_to_new,
-    int bad_val,
+    long bad_val,
 ):
     """Remap elements in an array in place, ignoring bad values.
 
@@ -109,10 +109,10 @@ def remap_graph_element_ignore(
     bad_val : int
         Ignore values in the input array when remapping.
     """
-    cdef int n_elements = elements.shape[0]
-    cdef int i
+    cdef long n_elements = elements.shape[0]
+    cdef long i
 
-    for i in range(n_elements):
+    for i in prange(n_elements, nogil=True, schedule="static"):
         if elements[i] != bad_val:
             elements[i] = old_to_new[elements[i]]
 
@@ -306,7 +306,7 @@ def pair_isin(
     cdef long n_pairs = pairs.shape[0]
     cdef long n_values = src_pairs.shape[0]
     # cdef long *data = <long *>malloc(n_values * sizeof(long))
-    cdef long [:] data = np.full(n_values, 1, dtype=long)
+    cdef long [:] data = np.full(n_values, 1, dtype=int)
     # cdef const id_t [:] src_pairs_flat = src_pairs.reshape((-1,))
     cdef const id_t *ptr = &src_pairs[0, 0]
     cdef const id_t [:] src_pairs_flat = <const id_t[:src_pairs.size]>ptr
@@ -427,11 +427,14 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     cdef long i
     cdef SparseMatrixInt mat
     # cdef long long *offset
-    cdef long long [:] _col
-    cdef long long [:] _values
+    # cdef long long [:] _col
+    # cdef long long [:] _values
+    cdef long long * _col
+    cdef long long * _values
     # cdef long long * offset = <long long *>malloc((n_rows + 1) * sizeof(long long))
     # cdef long long [:] offset_view = offset
-    cdef long long [:] offset
+    cdef long long * offset
+    cdef long long [:] mv
 
     for i in range(0, n_values * 2, 2):
         if rows_and_cols[i] > max_row:
@@ -441,20 +444,30 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     n_rows = max_row + 1
     n_cols = max_col + 1
 
-    offset = np.empty(n_rows + 1, dtype=long)
-    _col = np.array(rows_and_cols, dtype=long)
-    _values = np.array(values, dtype=long)
-    # offset = <long long *>malloc((n_rows + 1) * sizeof(long long))
-    # col = <long long *>malloc((2 * n_values) * sizeof(long long))
-    # values = <long long *>malloc(n_values * sizeof(long long))
+    # offset = np.empty(n_rows + 1, dtype=long)
+    # _col = np.array(rows_and_cols, dtype=long)
+    # _values = np.array(values, dtype=long)
+    offset = <long long *>malloc((n_rows + 1) * sizeof(long long))
 
-    _offset_to_sorted_blocks(rows_and_cols, n_values, 2, offset, n_rows + 1)
+    mv = <long long [:n_rows + 1]>offset
 
-    mat.values = &_values[0]
+    _col = <long long *>malloc((2 * n_values) * sizeof(long long))
+    _values = <long long *>malloc(n_values * sizeof(long long))
+    for i in range(2 * n_values):
+        _col[i] = rows_and_cols[i]
+    for i in range(n_values):
+        _values[i] = values[i]
+
+    _offset_to_sorted_blocks(rows_and_cols, n_values, 2, mv, n_rows + 1)
+
+    # mat.values = &_values[0]
+    mat.values = _values
     mat.n_values = n_values
-    mat.offset_to_row = &offset[0]
+    # mat.offset_to_row = &offset[0]
+    mat.offset_to_row = offset
     # mat.col = rows_and_cols
-    mat.col = &_col[0]
+    # mat.col = &_col[0]
+    mat.col = _col
     mat.col_start = 1
     mat.col_stride = 2
     mat.n_rows = n_rows
