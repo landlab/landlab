@@ -306,14 +306,19 @@ def pair_isin(
     cdef long n_pairs = pairs.shape[0]
     cdef long n_values = src_pairs.shape[0]
     # cdef long *data = <long *>malloc(n_values * sizeof(long))
-    cdef long [:] data = np.full(n_values, 1, dtype=int)
+    cdef long *data_p
+    cdef long [:] data
+    # cdef int64_t [:] data = np.full(n_values, 1, dtype="int64")
     # cdef const id_t [:] src_pairs_flat = src_pairs.reshape((-1,))
     cdef const id_t *ptr = &src_pairs[0, 0]
     cdef const id_t [:] src_pairs_flat = <const id_t[:src_pairs.size]>ptr
     cdef SparseMatrixInt mat
 
-    # for n in range(n_values):
-    #     data[n] = 1
+    data_p = <long *>malloc(n_values * sizeof(long))
+    data = <long [:n_values]>data_p
+
+    for n in range(n_values):
+        data[n] = 1
     try:
         # mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], data, n_values, 0)
         mat = sparse_matrix_alloc_with_tuple(src_pairs_flat, data, n_values, 0)
@@ -322,8 +327,7 @@ def pair_isin(
                 mat, pairs[pair, 0], pairs[pair, 1]
             )
     finally:
-        pass
-        # free(data)
+        free(data_p)
 
 
 @cython.boundscheck(False)
