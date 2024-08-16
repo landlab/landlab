@@ -97,8 +97,8 @@ class GenVeg(Component, PlantGrowth):
         _ = self._grid.add_zeros("vegetation__cell_lai", at="cell", clobber=True)
         # Instantiate a PlantGrowth object and
         # summarize number of plants and biomass per cell
-        if plant_array is None:
-            cover_allocation = {}
+        if plant_array.size == 0:
+            cover_allocation = []
             for cell_index in range(self._grid.number_of_cells):
                 species_list = self._grid.at_cell["vegetation__plant_species"][
                     cell_index
@@ -111,7 +111,7 @@ class GenVeg(Component, PlantGrowth):
                 species_cover_allocation = cover_species / cover_sum
                 cover_allocation.append(
                     dict(zip(species_list, (species_cover_allocation * cell_cover)))
-                )
+                )  # This is a list with elements representing each cell - change this to a dict of species holding an array
 
             # for each species in the parameters file
             for species in vegparams:
@@ -124,7 +124,7 @@ class GenVeg(Component, PlantGrowth):
                     _current_jday,
                     rel_time,
                     species_dict,
-                    species_cover=cover_allocation[species],
+                    species_cover=cover_allocation,
                 )
                 plantspecies.append(species_obj)
         else:
@@ -134,12 +134,22 @@ class GenVeg(Component, PlantGrowth):
                 species_canopy_area = np.pi / 4 * plant_array["shoot_sys_width"] ** 2
                 species_basal_area = np.pi / 4 * plant_array["basal_width"] ** 2
                 species_abg_area = np.sqrt(species_basal_area * species_canopy_area)
-                species_cover = (
+                species_percent_cover = (
                     self.calculate_grid_vars(
                         plant_array["cell_index"], species_abg_area
                     )
                     / self._grid.area_of_cell
                 )
+                species_cover = [
+                    dict(
+                        zip(
+                            [self._grid.at_cell["vegetation__plant_species"][i]],
+                            [species_percent_cover[i]],
+                        )
+                    )
+                    for i in range(self._grid.number_of_cells)
+                ]
+
                 species_obj = PlantGrowth(
                     self._grid,
                     self.dt,
@@ -161,7 +171,7 @@ class GenVeg(Component, PlantGrowth):
         )
         abg_area = np.pi / 4 * all_plants["shoot_sys_width"] ** 2
         cell_biomass = self.calculate_grid_vars(
-            plant_array["cell_index"], tot_bio_species
+            all_plants["cell_index"], tot_bio_species
         )
         cell_plant_count = self.calculate_grid_vars(all_plants["cell_index"])
 
@@ -209,7 +219,7 @@ class GenVeg(Component, PlantGrowth):
             # Check if point falls in cell
             for idx, plant in enumerate(cell_plants):
                 unoccupied_center = False
-                radius = plant["shoot_sys_width"] / 2
+                radius = plant["basal_width"] / 2
                 while unoccupied_center is False:
                     x = rng.uniform(low=min_x + radius, high=max_x - radius, size=1)
                     y_lims = self.get_cell_boundary_points(corner_vertices, x)
@@ -227,6 +237,7 @@ class GenVeg(Component, PlantGrowth):
                             break
 
             for species_obj in self.plant_species:
+                # what are we updating the shoot width and height to? We need to update the morphology estimator
                 species = species_obj.species_plant_factors["species"]
                 update_plants = cell_plants[cell_plants["species"] == species]
                 update_plants = species_obj.update_morphology(update_plants)
@@ -244,7 +255,8 @@ class GenVeg(Component, PlantGrowth):
                 )
 
     def calculate_grid_vars(self, indices, grid_var=None):
-        obs = ~np.isnan(indices)
+        # somewhere in here we are changing float arrays to int arrays under certain conditions
+        obs = np.nonzero(indices >= 0.0)
         if grid_var is None:
             weight_var = grid_var
         else:
@@ -254,7 +266,7 @@ class GenVeg(Component, PlantGrowth):
             weights=weight_var,
             minlength=self._grid.number_of_cells,
         )
-        return var_out
+        return var_out.astype(np.float64)
 
     def get_int_output(self):
         print(self.species_cover_allocation)
@@ -276,37 +288,34 @@ class GenVeg(Component, PlantGrowth):
             + all_plants["leaf_biomass"]
             + all_plants["stem_biomass"]
         )
-        abg_area = np.pi / 4 * all_plants["shoot_sys_width"] ** 2
-        cell_biomass = np.bincount(
-            all_plants["cell_index"],
-            weights=tot_bio_species,
-            minlength=self._grid.number_of_cells,
+        abg_area = (
+            np.pi
+            / 4
+            * (np.sqrt(all_plants["shoot_sys_width"] * all_plants["basal_width"])) ** 2
         )
-        cell_plant_count = np.bincount(
-            all_plants["cell_index"], minlength=self._grid.number_of_cells
+        cell_biomass = self.calculate_grid_vars(
+            all_plants["cell_index"], tot_bio_species
         )
+        cell_plant_count = self.calculate_grid_vars(all_plants["cell_index"])
         cell_percent_cover = (
-            np.bincount(
+            self.calculate_grid_vars(
                 all_plants["cell_index"],
-                weights=abg_area,
-                minlength=self._grid.number_of_cells,
+                abg_area,
             )
             / self._grid.area_of_cell
         )
-        cell_leaf_area = np.bincount(
+        cell_leaf_area = self.calculate_grid_vars(
             all_plants["cell_index"],
-            weights=all_plants["total_leaf_area"],
-            minlength=self._grid.number_of_cells,
+            all_plants["total_leaf_area"],
         )
-        cell_leaf_area[cell_leaf_area < 0] = 0
-        cell_leaf_area[np.isnan(cell_leaf_area)] = 0
+        cell_leaf_area[cell_leaf_area < 0] = 0.0
+        cell_leaf_area[np.isnan(cell_leaf_area)] = 0.0
         plant_height = np.zeros_like(cell_percent_cover)
         n_of_plants = cell_plant_count.astype(np.float64)
         cells_with_plants = np.nonzero(n_of_plants > 0.0)
-        sum_plant_height = np.bincount(
+        sum_plant_height = self.calculate_grid_vars(
             all_plants["cell_index"],
-            weights=all_plants["shoot_sys_height"],
-            minlength=self._grid.number_of_cells,
+            all_plants["shoot_sys_height"],
         )
         plant_height[cells_with_plants] = (
             sum_plant_height[cells_with_plants] / n_of_plants[cells_with_plants]
@@ -389,7 +398,9 @@ class GenVeg(Component, PlantGrowth):
 
         for species_obj in self.plant_species:
             species = species_obj.species_name
-            species_new_pups = new_pups[new_pups["species"] == species]
+            species_new_pups = new_pups[
+                new_pups["species"] == species
+            ]  # This is a slice
             species_plants = all_plants[all_plants["species"] == species]
             if species_new_pups.size != 0:
                 species_parents = species_new_pups.copy()
@@ -410,12 +421,18 @@ class GenVeg(Component, PlantGrowth):
                     + species_new_pups["stem"]
                     + species_parents["pup_cost"]
                 )
+                print("number of plants before adding plants")
+                print(species_obj.n_plants)
                 species_obj.update_plants(
                     ["reproductive"],
                     species_parents["pid"],
                     species_parents["reproductive"],
                 )
+                print("number of new plants")
+                print(species_new_pups.shape)
                 species_obj.add_new_plants(species_new_pups)
+                print("number of plants after adding plants")
+                print(species_obj.n_plants)
                 print("Successful dispersal occurred")
 
             species_obj.update_plants(
