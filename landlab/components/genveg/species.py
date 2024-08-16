@@ -17,6 +17,7 @@ from .form import (
     Thicketforming,
 )
 from .photosynthesis import C3, C4, Cam
+from .check_objects import UnitTestChecks
 import numpy as np
 from sympy import symbols, diff, lambdify, log
 
@@ -175,9 +176,9 @@ class Species(object):
 
     def calculate_lai(self, leaf_area, shoot_sys_width):
         canopy_area = self.habit._calc_canopy_area_from_shoot_width(shoot_sys_width)
-        crown_area = self.shape.calc_crown_area_from_shoot_width(shoot_sys_width)
-        if leaf_area[leaf_area < 0].size > 0:
-            raise ValueError('A negative value was found in leaf_area')
+        # value check for leaf_area
+        UnitTestChecks().is_negative_present(leaf_area, 'leaf_area')
+
         lai = np.divide(
             leaf_area,
             canopy_area,

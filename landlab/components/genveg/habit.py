@@ -1,4 +1,5 @@
 from .duration import Annual, Evergreen, Deciduous
+from .check_objects import UnitTestChecks
 import numpy as np
 
 rng = np.random.default_rng()
@@ -19,7 +20,7 @@ class Habit(object):
         self.morph_params = self._calc_derived_morph_params(params)
 
     def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
-        self.is_negative_present(shoot_sys_width, 'shoot_sys_width')
+        UnitTestChecks().is_negative_present(shoot_sys_width, 'shoot_sys_width')
         canopy_area = 0.25 * np.pi * shoot_sys_width**2
         return canopy_area
 
@@ -130,15 +131,6 @@ class Habit(object):
         plants = self.duration.enter_dormancy(plants)
         return plants
 
-    # Unit tests methods
-    def is_negative_present(self, test_value, print_variable):
-        if isinstance(test_value, np.ndarray):
-            if test_value[test_value < 0].size > 0:
-                raise ValueError(f'A negative value was found in {print_variable} array')
-        else:
-            if test_value < 0:
-                raise ValueError(f'{print_variable} is negative')
-
 
 class Forbherb(Habit):
     def __init__(self, params):
@@ -218,33 +210,26 @@ class Graminoid(Habit):
                 max_canopy_area,
             )
 
-        else:
-            if params["morph_params"]["allometry_method"] == "default":
-                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][
-                    photo_val
-                ]["basal_coeffs"]
-                params["morph_params"]["height_coeffs"] = empirical_coeffs[
-                    duration_val
-                ][photo_val]["height_coeffs"]
-                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[
-                    duration_val
-                ][photo_val]["canopy_coeffs"]
+        elif params["morph_params"]["allometry_method"] == "default":
+            params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][photo_val]["basal_coeffs"]
+            params["morph_params"]["height_coeffs"] = empirical_coeffs[duration_val][photo_val]["height_coeffs"]
+            params["morph_params"]["canopy_coeffs"] = empirical_coeffs[duration_val][photo_val]["canopy_coeffs"]
 
-            (
-                params["morph_params"]["min_basal_dia"],
-                params["morph_params"]["min_shoot_sys_width"],
-                params["morph_params"]["min_shoot_sys_height"],
-            ) = self.calc_abg_dims_from_biomass(
-                params["grow_params"]["min_abg_biomass"]
-            )
-            (
-                params["morph_params"]["max_basal_dia"],
-                params["morph_params"]["max_shoot_sys_width"],
-                params["morph_params"]["max_shoot_sys_height"],
-            ) = self._calc_abg_dims_from_biomass(
-                params["grow_params"]["max_abg_biomass"]
-            )
-            params["morph_params"]["min_basal_dia"]
+        (
+            params["morph_params"]["min_basal_dia"],
+            params["morph_params"]["min_shoot_sys_width"],
+            params["morph_params"]["min_shoot_sys_height"],
+        ) = self.calc_abg_dims_from_biomass(
+            params["grow_params"]["min_abg_biomass"]
+        )
+        (
+            params["morph_params"]["max_basal_dia"],
+            params["morph_params"]["max_shoot_sys_width"],
+            params["morph_params"]["max_shoot_sys_height"],
+        ) = self._calc_abg_dims_from_biomass(
+            params["grow_params"]["max_abg_biomass"]
+        )
+        params["morph_params"]["min_basal_dia"]
 
         super().__init__(params, green_parts)
 
