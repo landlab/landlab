@@ -6,7 +6,7 @@ rng = np.random.default_rng()
 
 # Growth form classes and selection method
 class Bunch(Seed):
-    def __init__(self, disperse_params, grow_params):
+    def __init__(self, params):
         pass
 
     def branch(self):
@@ -17,7 +17,7 @@ class Bunch(Seed):
 
 
 class Colonizing(Random):
-    def __init__(self, disperse_params, grow_params):
+    def __init__(self, params):
         pass
 
     def branch(self):
@@ -28,7 +28,7 @@ class Colonizing(Random):
 
 
 class Multiplestems(Seed):
-    def __init__(self, disperse_params, grow_params):
+    def __init__(self, params):
         pass
 
     def branch(self):
@@ -39,8 +39,8 @@ class Multiplestems(Seed):
 
 
 class Rhizomatous(Clonal):
-    def __init__(self, disperse_params, grow_params):
-        super().__init__(disperse_params, grow_params)
+    def __init__(self, params):
+        super().__init__(params)
 
     def set_initial_branches(self, max_branches, arr_size):
         n_branches = np.ceil(rng.rayleigh(scale=0.26, size=arr_size) * max_branches)
@@ -51,7 +51,7 @@ class Rhizomatous(Clonal):
 
 
 class Singlecrown(Seed):
-    def __init__(self, disperse_params, grow_params):
+    def __init__(self, params):
         pass
 
     def branch(self):
@@ -62,7 +62,7 @@ class Singlecrown(Seed):
 
 
 class Singlestem(Seed):
-    def __init__(self, disperse_params, grow_params):
+    def __init__(self, params):
         pass
 
     def branch(self):
@@ -73,15 +73,15 @@ class Singlestem(Seed):
 
 
 class Stoloniferous(Clonal):
-    def __init__(sel, disperse_params, grow_params):
-        super().__init__(disperse_params, grow_params)
+    def __init__(self, params):
+        super().__init__(params)
 
     def branch(self):
         print("Branches via stolons")
 
 
 class Thicketforming(Seed):
-    def __init__(self, disperse_params, grow_params):
+    def __init__(self, params):
         pass
 
     def branch(self):
