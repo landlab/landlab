@@ -10,11 +10,11 @@ Create a grid on which to simulate soil grading.
 >>> mg = RasterModelGrid((4, 5))
 
 Create topographic_elevation and bedrock__elevation fields
->>> mg.add_zeros("topographic__elevation", at="node")
->>> mg.add_zeros("bedrock__elevation", at="node")
+>>> _ = grid.add_zeros("topographic__elevation", at="node")
+>>> _ = grid.add_zeros("bedrock__elevation", at="node")
 
 Initialise the SoilGrading component
->>> soil_grading = SoilGrading(mg)
+>>> soil_grading = SoilGrading(grid)
 
 Soil grading component created a soil layer:
 >>> mg.at_node["soil__depth"][mg.core_nodes]
@@ -24,7 +24,6 @@ Run one step of soil fragmentation
 >>> soil_grading.run_one_step()
 >>> mg.at_node["median_size__weight"][mg.core_nodes]
 array([0.0028249, 0.0028249, 0.0028249, 0.0028249, 0.0028249, 0.0028249])
-
 """
 
 import random
@@ -36,22 +35,23 @@ from landlab import Component
 
 
 class SoilGrading(Component):
-    """Simulate fragmentation of soil grains through time .
+    """Simulate fragmentation of soil grains through time.
 
     Landlab component that simulates grading of soil particles through time
     based on mARM (Cohen et al., 2009, 2010) approach.
 
-    The fragmentation process is controlled by weathering transition matrix which defines
-    the relative mass change in each soil grain size class (grading class) as a result of
-    the fracturing of particles in the weathering mechanism.
+    The fragmentation process is controlled by a weathering transition matrix which
+    defines the relative mass change in each soil grain size class (grading class)
+    as a result of the fracturing of particles in the weathering mechanism.
 
     The primary method of this class is :func:`run_one_step`.
 
     References
     ----------
     Cohen, S., Willgoose, G., & Hancock, G. (2009). The mARM spatially distributed soil
-    evolution model: A computationally efficient modeling framework and analysis of hillslope
-    soil surface organization. Journal of Geophysical Research: Earth Surface, 114(F3).
+    evolution model: A computationally efficient modeling framework and analysis of
+    hillslope soil surface organization. Journal of Geophysical Research: Earth Surface,
+    114(F3).
 
     Cohen, S., Willgoose, G., & Hancock, G. (2010). The mARM3D spatially distributed
     soil evolution model: Three‐dimensional model framework and analysis of hillslope
@@ -310,10 +310,7 @@ class SoilGrading(Component):
                     cnt += 1
                     cnti -= 1
 
-    def set_grading_limits(
-        self,
-    ):
-
+    def set_grading_limits(self):
         if not self._input_sizes_flag:
             self.calc_mean_sizes()
 
