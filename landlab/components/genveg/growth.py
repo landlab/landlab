@@ -405,17 +405,17 @@ class PlantGrowth(Species):
         print("number of plants versus index max")
         print(self.n_plants)
         print(old_plants.shape)
-        last_pid = self.plants["pid"][-1]
-        pids = np.arange(last_pid + 1, last_pid + new_plants_list.size + 1)
+        last_pid = self.plants["pid"][self.n_plants]
+        pids = np.arange(last_pid + 1, last_pid + 1 + new_plants_list.size)
         new_plants_list["pid"] = pids
         new_plants_list["item_id"] = pids
         (n_new_plants,) = new_plants_list.shape
         # np.concatenate((old_plants, new_plants_list), axis=0)
-        start_index = self.n_plants + 1
-        end_index = n_new_plants + self.n_plants + 1
+        start_index = self.n_plants
+        end_index = n_new_plants + self.n_plants
         old_plants[start_index:end_index] = new_plants_list
         self.n_plants += n_new_plants
-        self.plants = old_plants
+        self.plants[: self.n_plants] = old_plants
         return self.plants
 
     def _grow(self, _current_jday):
@@ -425,7 +425,7 @@ class PlantGrowth(Species):
         # them in order to update the plant array.
 
         # set up shorthand aliases and reset
-        _last_biomass = self.plants[self.plants["pid"] >= 0]
+        _last_biomass = self.plants[: self.n_plants]
         _new_biomass = _last_biomass.copy()
 
         # Decide what processes happen today
@@ -495,8 +495,8 @@ class PlantGrowth(Species):
         _new_biomass[filter] = _new_live_biomass
         _new_biomass = self.update_morphology(_new_biomass)
         _new_biomass = self.update_dead_biomass(_new_biomass, _last_biomass)
-        _new_biomass = self.remove_plants(_new_biomass)
-        self.plants = _new_biomass
+        self.plants[: self.n_plants] = _new_biomass
+        self.plants, self.n_plants = self.remove_plants()
 
     def _init_plants_from_grid(self, in_growing_season, species_cover):
         # This method initializes the plants in the PlantGrowth class
@@ -778,20 +778,22 @@ class PlantGrowth(Species):
             _new_biomass[part][_new_biomass[part] < 0] = 0.0
         return _new_biomass
 
-    def remove_plants(self, _new_biomass):
+    def remove_plants(self):
         # Plants that have too little dead biomass remaining to track
         # are removed from the plant array and no longer tracked.
+        _old_n_plants = self.n_plants
+        _old_plants = self.plants[:_old_n_plants]
         min_size_dead = 0.1
         min_size_live = self.species_grow_params["min_growth_biomass"]
-        total_live_biomass = self.sum_plant_parts(_new_biomass, parts="growth")
-        total_dead_biomass = self.sum_plant_parts(_new_biomass, parts="dead")
+        total_live_biomass = self.sum_plant_parts(_old_plants, parts="growth")
+        total_dead_biomass = self.sum_plant_parts(_old_plants, parts="dead")
         remove_plants = np.nonzero(
             (total_live_biomass < min_size_live) & (total_dead_biomass < min_size_dead)
         )
         n_remove_plants = np.count_nonzero(remove_plants)
-        _new_biomass = np.delete(_new_biomass, remove_plants, axis=None)
+        self.plants = np.delete(_old_plants, remove_plants, axis=None)
         self.n_plants -= n_remove_plants
-        return _new_biomass
+        return self.plants, self.n_plants
 
     def save_plant_output(self, rel_time, save_params):
         # This method saves plant properties at the required time step

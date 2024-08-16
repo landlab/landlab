@@ -421,12 +421,18 @@ class GenVeg(Component, PlantGrowth):
                     + species_new_pups["stem"]
                     + species_parents["pup_cost"]
                 )
+                print("number of plants before adding plants")
+                print(species_obj.n_plants)
                 species_obj.update_plants(
                     ["reproductive"],
                     species_parents["pid"],
                     species_parents["reproductive"],
                 )
+                print("number of new plants")
+                print(species_new_pups.shape)
                 species_obj.add_new_plants(species_new_pups)
+                print("number of plants after adding plants")
+                print(species_obj.n_plants)
                 print("Successful dispersal occurred")
 
             species_obj.update_plants(
