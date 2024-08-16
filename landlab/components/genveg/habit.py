@@ -19,6 +19,7 @@ class Habit(object):
         self.morph_params = self._calc_derived_morph_params(params)
 
     def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
+        self.is_negative_present(shoot_sys_width, 'shoot_sys_width')
         canopy_area = 0.25 * np.pi * shoot_sys_width**2
         return canopy_area
 
@@ -128,6 +129,15 @@ class Habit(object):
     def enter_dormancy(self, plants):
         plants = self.duration.enter_dormancy(plants)
         return plants
+
+    # Unit tests methods
+    def is_negative_present(self, test_value, print_variable):
+        if isinstance(test_value, np.ndarray):
+            if test_value[test_value < 0].size > 0:
+                raise ValueError(f'A negative value was found in {print_variable} array')
+        else:
+            if test_value < 0:
+                raise ValueError(f'{print_variable} is negative')
 
 
 class Forbherb(Habit):
