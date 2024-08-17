@@ -10,20 +10,31 @@ ESRI ASCII functions
     ~landlab.io.esri_ascii.read_esri_ascii
     ~landlab.io.esri_ascii.write_esri_ascii
 """
+from __future__ import annotations
+
 import contextlib
 import io
 import os
 import pathlib
 import re
+from collections.abc import Generator
+from collections.abc import Iterable
+from typing import TextIO
 
 import numpy as np
+from numpy.typing import NDArray
 
 from landlab.grid.raster import RasterModelGrid
 from landlab.layers.eventlayers import _valid_keywords_or_raise
-from landlab.utils import add_halo
+from landlab.utils.add_halo import add_halo
 
 
-def dump(grid, stream=None, at="node", name=None):
+def dump(
+    grid: RasterModelGrid,
+    stream: TextIO | None = None,
+    at: str = "node",
+    name: str | None = None,
+) -> str | None:
     """Dump a grid field to ESRII ASCII format.
 
     Parameters
@@ -62,24 +73,33 @@ CELLSIZE {grid.dx}"""
         return content
     else:
         stream.write(content)
+        return None
 
 
-def load(stream, at="node", name=None):
+def load(
+    stream: TextIO,
+    at: str = "node",
+    name: str | None = None,
+) -> RasterModelGrid:
     return loads(stream.read(), at=at, name=name)
 
 
-def loads(s: str, at="node", name=None):
+def loads(
+    s: str,
+    at: str = "node",
+    name: str | None = None,
+) -> RasterModelGrid:
     lines = s.splitlines()
 
-    header = {}
+    _header: dict[str, str] = {}
     for _lineno, line in enumerate(lines):
         if re.match(r"[a-zA-Z_]+", line, re.UNICODE):
             key, value = line.split(maxsplit=1)
-            header[key.lower()] = value
+            _header[key.lower()] = value
         else:
             break
 
-    header = _validate_header(header)
+    header = _validate_header(_header)
 
     shape = np.asarray((header["nrows"], header["ncols"]))
     if at in ("corner", "patch"):
@@ -102,13 +122,13 @@ def loads(s: str, at="node", name=None):
             header["nodata_value"] = float(header["nodata_value"])
 
         getattr(grid, f"at_{at}")[name] = np.flipud(
-            data.reshape((header["nrows"], header["ncols"]))
+            data.reshape((int(header["nrows"]), int(header["ncols"])))
         )
 
     return grid
 
 
-def _validate_header(header: dict[str, str]):
+def _validate_header(header: dict[str, str]) -> dict[str, int | float]:
     _valid_keywords_or_raise(
         header,
         required=("ncols", "nrows", "cellsize"),
@@ -128,25 +148,26 @@ def _validate_header(header: dict[str, str]):
 
     n_rows = int(header["nrows"])
     n_cols = int(header["ncols"])
+    cellsize = float(header.get("cellsize", 1.0))
+
+    if n_rows <= 0:
+        raise ValueError(f"n_rows must be positive ({n_rows})")
+    if n_cols <= 0:
+        raise ValueError(f"n_cols must be positive ({n_cols})")
+    if cellsize <= 0:
+        raise ValueError(f"cellsize must be positive ({cellsize})")
 
     validated = {
         "nrows": n_rows,
         "ncols": n_cols,
-        "cellsize": float(header.get("cellsize", 1.0)),
+        "cellsize": cellsize,
         "xllcenter": float(header.get("xllcenter", header.get("xllcorner", 0.0))),
         "yllcenter": float(header.get("yllcenter", header.get("yllcorner", 0.0))),
-        "nodata_value": header.get("nodata_value", -9999),
+        "nodata_value": float(header.get("nodata_value", -9999)),
     }
 
     with contextlib.suppress(KeyError):
-        validated["nodata_value"] = header["nodata_value"]
-
-    if validated["nrows"] <= 0:
-        raise ValueError()
-    if validated["ncols"] <= 0:
-        raise ValueError()
-    if validated["cellsize"] <= 0:
-        raise ValueError()
+        validated["nodata_value"] = float(header["nodata_value"])
 
     return validated
 
@@ -184,101 +205,94 @@ class Error(Exception):
 class BadHeaderLineError(Error):
     """Raise this error for a bad header is line."""
 
-    def __init__(self, line):
+    def __init__(self, line: str) -> None:
         self._line = line
 
-    def __str__(self):
-        return self._line  # this line not yet tested
+    def __str__(self) -> str:
+        return self._line
 
 
 class MissingRequiredKeyError(Error):
     """Raise this error when a header is missing a required key."""
 
-    def __init__(self, key):
+    def __init__(self, key: str) -> None:
         self._key = key
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._key
 
 
 class KeyTypeError(Error):
     """Raise this error when a header's key value is of the wrong type."""
 
-    def __init__(self, key, expected_type):
+    def __init__(self, key: str, expected_type: type | str):
         self._key = key
         self._type = str(expected_type)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Unable to convert {self._key} to {self._type}"
 
 
 class KeyValueError(Error):
     """Raise this error when a header's key value has a bad value."""
 
-    def __init__(self, key, message):
+    def __init__(self, key: str, message: str) -> None:
         self._key = key
         self._msg = message
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self._key}: {self._msg}"  # this line not yet tested
 
 
 class DataSizeError(Error):
     """Raise this error if the size of data does not match the header."""
 
-    def __init__(self, size, expected_size):
+    def __init__(self, size: int, expected_size: int) -> None:
         self._actual = size
         self._expected = expected_size
 
-    def __str__(self):
-        return "{} != {}".format(
-            self._actual, self._expected
-        )  # this line not yet tested
+    def __str__(self) -> str:
+        return f"{self._actual} != {self._expected}"
 
 
 class MismatchGridDataSizeError(Error):
     """Raise this error if the data size does not match the grid size."""
 
-    def __init__(self, size, expected_size):
+    def __init__(self, size: int, expected_size: int) -> None:
         self._actual = size
         self._expected = expected_size
 
-    def __str__(self):
-        return "(data size) {} != {} (grid size)".format(
-            self._actual,
-            self._expected,
-        )  # this line not yet tested
+    def __str__(self) -> str:
+        return f"(data size) {self._actual} != {self._expected} (grid size)"
 
 
 class MismatchGridXYSpacing(Error):
     """Raise this error if the file cell size does not match the grid dx."""
 
-    def __init__(self, dx, expected_dx):
+    def __init__(
+        self, dx: tuple[float, float], expected_dx: tuple[float, float]
+    ) -> None:
         self._actual = dx
         self._expected = expected_dx
 
     def __str__(self):
-        return "(data dx) {} != {} (grid dx)".format(
-            self._actual,
-            self._expected,
-        )  # this line not yet tested
+        return f"(data dx) {self._actual} != {self._expected} (grid dx)"
 
 
 class MismatchGridXYLowerLeft(Error):
     """Raise this error if the file lower left does not match the grid."""
 
-    def __init__(self, llc, expected_llc):
+    def __init__(
+        self, llc: tuple[float, float], expected_llc: tuple[float, float]
+    ) -> None:
         self._actual = llc
         self._expected = expected_llc
 
-    def __str__(self):
-        return "(data lower-left) {} != {} (grid lower-left)".format(
-            self._actual,
-            self._expected,
-        )  # this line not yet tested
+    def __str__(self) -> str:
+        return f"(data lower-left) {self._actual} != {self._expected} (grid lower-left)"
 
 
-def _parse_header_key_value(line):
+def _parse_header_key_value(line: str) -> tuple[str, str] | None:
     """Parse a header line into a key-value pair.
 
     Parameters
@@ -294,7 +308,7 @@ def _parse_header_key_value(line):
     Raises
     ------
     BadHeaderLineError
-        The is something wrong with the header line.
+        There is something wrong with the header line.
     """
     match = _HEADER_KEY_REGEX_PATTERN.match(line)
     if match is None:
@@ -313,7 +327,7 @@ def _parse_header_key_value(line):
         raise BadHeaderLineError(line)
 
 
-def _header_lines(asc_file):
+def _header_lines(asc_file: TextIO) -> Generator[tuple[str, str], None, None]:
     """Iterate over header lines for a ESRI ASCII file.
 
     Parameters
@@ -340,7 +354,7 @@ def _header_lines(asc_file):
         line = asc_file.readline()
 
 
-def _header_is_valid(header):
+def _header_is_valid(header: dict[str, str]) -> dict[str, int | float]:
     """Check if the ESRI ASCII header is valid.
 
     Parameters
@@ -365,6 +379,7 @@ def _header_is_valid(header):
         if len(set(keys) & header_keys) != 1:
             raise MissingRequiredKeyError("|".join(keys))
 
+    validated_header = {}
     for key, requires in _HEADER_VALUE_TESTS.items():
         to_type, is_valid = requires
 
@@ -372,17 +387,17 @@ def _header_is_valid(header):
             continue
 
         try:
-            header[key] = to_type(header[key])
+            validated_header[key] = to_type(header[key])
         except ValueError as exc:
             raise KeyTypeError(key, to_type) from exc
 
         if not is_valid(header[key]):
             raise KeyValueError(key, "Bad value")
 
-    return True
+    return validated_header
 
 
-def read_asc_header(asc_file):
+def read_asc_header(asc_file: TextIO) -> dict[str, int | float]:
     """Read header information from an ESRI ASCII raster file.
 
     The header contains the following variables,
@@ -465,12 +480,10 @@ def read_asc_header(asc_file):
     for key, value in _header_lines(asc_file):
         header[key] = value
 
-    _header_is_valid(header)
-
-    return header
+    return _header_is_valid(header)
 
 
-def _read_asc_data(asc_file):
+def _read_asc_data(asc_file: TextIO) -> NDArray:
     """Read gridded data from an ESRI ASCII data file.
 
     Parameters
@@ -485,7 +498,13 @@ def _read_asc_data(asc_file):
     return np.loadtxt(asc_file)
 
 
-def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
+def read_esri_ascii(
+    asc_file: str | TextIO,
+    grid: RasterModelGrid | None = None,
+    reshape: bool = False,
+    name: str | None = None,
+    halo: int = 0,
+) -> tuple[RasterModelGrid, NDArray]:
     """Read :py:class:`~.RasterModelGrid` from an ESRI ASCII file.
 
     Read data from *asc_file*, an `ESRI ASCII file`_, into a
@@ -597,7 +616,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
 
-    shape = (header["nrows"] + 2 * halo, header["ncols"] + 2 * halo)
+    shape = (int(header["nrows"]) + 2 * halo, int(header["ncols"]) + 2 * halo)
     nodata_value = header.get("nodata_value", -9999.0)
     if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
         raise DataSizeError(shape[0] * shape[1], data.size)
@@ -612,7 +631,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
 
     if halo > 0:
         data = add_halo(
-            data.reshape(header["nrows"], header["ncols"]),
+            data.reshape((int(header["nrows"]), int(header["ncols"]))),
             halo=halo,
             halo_value=nodata_value,
         ).reshape((-1,))
@@ -644,7 +663,12 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     return (grid, data)
 
 
-def write_esri_ascii(path, fields, names=None, clobber=False):
+def write_esri_ascii(
+    path: str,
+    fields: RasterModelGrid,
+    names: Iterable[str] | None = None,
+    clobber: bool = False,
+) -> list[str]:
     """Write landlab fields to ESRI ASCII.
 
     Write the data and grid information for *fields* to *path* in the ESRI
@@ -688,7 +712,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     if isinstance(names, (str, pathlib.Path)):
         names = [names]
 
-    names = names or fields.at_node.keys()
+    names = tuple(names or fields.at_node)
 
     if len(names) == 1:
         paths = [path]
