@@ -134,7 +134,7 @@ class DepthDependentTaylorDiffuser(Component):
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
     elevation, and soil depth. Consider using a smaller time step or dynamic
     timestepping. The Courant condition recommends a timestep of
-    0.0953407607307 or smaller.
+    0.09534076073069653 or smaller.
 
     Alternatively you can specify if_unstable='raise', and a Runtime Error will
     be raised if this condition is not met.

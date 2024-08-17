@@ -403,7 +403,7 @@ def is_active_link(shape, node_status):
            False, True, False,
            False, False,
            False, False, False,
-           False, False], dtype=bool)
+           False, False])
     """
     from ...grid.linkstatus import is_active_link
 
@@ -602,7 +602,7 @@ def is_vertical_link(shape, links):
     >>> is_vertical_link(shape, links)
     array([False, False, False,  True,  True,  True,  True,
            False, False, False,  True,  True,  True,  True,
-           False, False, False], dtype=bool)
+           False, False, False])
     """
     return ((links % (2 * shape[1] - 1)) >= shape[1] - 1) & (
         links < _number_of_links(shape)
@@ -779,7 +779,7 @@ def is_horizontal_link(shape, links):
     >>> is_horizontal_link(shape, links)
     array([ True,  True,  True, False, False, False, False,
             True,  True,  True, False, False, False, False,
-            True,  True,  True], dtype=bool)
+            True,  True,  True])
     """
     return (~is_vertical_link(shape, links)) & (links < _number_of_links(shape))
 

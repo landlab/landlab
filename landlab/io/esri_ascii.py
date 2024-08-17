@@ -441,12 +441,12 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     >>> grid
     RasterModelGrid((6, 5), xy_spacing=(10.0, 10.0), xy_of_lower_left=(-9.0, -8.0))
     >>> data.reshape(grid.shape)
-    array([[ -1.,  -1.,  -1.,  -1.,  -1.],
-           [ -1.,   9.,  10.,  11.,  -1.],
-           [ -1.,   6.,   7.,   8.,  -1.],
-           [ -1.,   3.,   4.,   5.,  -1.],
-           [ -1.,   0.,   1.,   2.,  -1.],
-           [ -1.,  -1.,  -1.,  -1.,  -1.]])
+    array([[-1.,  -1.,  -1.,  -1.,  -1.],
+           [-1.,   9.,  10.,  11.,  -1.],
+           [-1.,   6.,   7.,   8.,  -1.],
+           [-1.,   3.,   4.,   5.,  -1.],
+           [-1.,   0.,   1.,   2.,  -1.],
+           [-1.,  -1.,  -1.,  -1.,  -1.]])
     """  # noqa: B950
     from ..grid import RasterModelGrid
 

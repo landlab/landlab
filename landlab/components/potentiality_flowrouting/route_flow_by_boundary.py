@@ -68,8 +68,8 @@ class PotentialityFlowRouter(Component):
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
     >>> mg.at_node["surface_water__discharge"][mg.core_nodes]
-    array([ 11.70706863,  11.5709712 ,  10.41329927,   9.24959728,
-             6.65448576,   6.39262702,   5.71410162,   5.04743495])
+    array([11.70706863, 11.5709712 , 10.41329927,  9.24959728,
+            6.65448576,  6.39262702,  5.71410162,  5.04743495])
 
     References
     ----------

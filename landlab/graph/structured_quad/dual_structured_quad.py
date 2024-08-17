@@ -20,7 +20,7 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     >>> graph.y_of_corner
     array([-1.25, -0.75,  0.75,  1.25])
     >>> graph.x_of_corner
-    array([ 2.  ,  0.75,  0.75,  2.  ])
+    array([2.  , 0.75, 0.75, 2.  ])
     >>> graph.node_at_cell
     array([4])
     """
@@ -116,8 +116,8 @@ class DualRectilinearGraph(DualGraph, RectilinearGraph):
     array([[  2.5,  10. ,  22.5],
            [  2.5,  10. ,  22.5]])
     >>> graph.y_of_corner.reshape((2, 3))
-    array([[ 0.5,  0.5,  0.5],
-           [ 2. ,  2. ,  2. ]])
+    array([[0.5, 0.5, 0.5],
+           [2. , 2. , 2. ]])
     >>> graph.number_of_cells == 2
     True
     >>> graph.faces_at_cell
@@ -157,13 +157,13 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
     >>> from landlab.graph import DualUniformRectilinearGraph
     >>> graph = DualUniformRectilinearGraph((4, 3))
     >>> graph.x_of_corner.reshape((3, 2))
-    array([[ 0.5,  1.5],
-           [ 0.5,  1.5],
-           [ 0.5,  1.5]])
+    array([[0.5, 1.5],
+           [0.5, 1.5],
+           [0.5, 1.5]])
     >>> graph.y_of_corner.reshape((3, 2))
-    array([[ 0.5,  0.5],
-           [ 1.5,  1.5],
-           [ 2.5,  2.5]])
+    array([[0.5, 0.5],
+           [1.5, 1.5],
+           [2.5, 2.5]])
     >>> graph.number_of_cells == 2
     True
     >>> graph.faces_at_cell
