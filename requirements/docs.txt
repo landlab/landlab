@@ -1,7 +1,7 @@
 furo==2024.1.29
 ipython==8.25.0
 myst-parser==2.0.0
-nbsphinx==0.9.3
+nbsphinx==0.9.5
 pandoc==2.3
 sphinx-copybutton==0.5.2
 sphinx-inline-tabs==2023.4.21
