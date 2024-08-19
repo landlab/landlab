@@ -12,7 +12,6 @@ ESRI ASCII functions
 """
 from __future__ import annotations
 
-import contextlib
 import io
 import os
 import pathlib
@@ -42,6 +41,11 @@ def dump(
     at : {"node", "patch", "corner", "cell"}, optional
         Where the field to be written is located on the grid.
     """
+    if not isinstance(grid, RasterModelGrid):
+        raise ValueError()
+    if grid.dx != grid.dy:
+        raise ValueError()
+
     shape = np.asarray(grid.shape)
     if at in ("corner", "patch"):
         shape -= 1
@@ -50,23 +54,23 @@ def dump(
 
     xy_of_point = getattr(grid, f"xy_of_{at}")
 
-    header = f"""\
-NCOLS {shape[1]}
-NROWS {shape[0]}
-XLLCENTER {xy_of_point[0, 0]}
-YLLCENTER {xy_of_point[0, 1]}
-CELLSIZE {grid.dx}"""
-
-    lines = [header]
+    header = _Header(
+        nrows=shape[0],
+        ncols=shape[1],
+        xllcenter=xy_of_point[0, 0],
+        yllcenter=xy_of_point[0, 1],
+        cellsize=grid.dx,
+    )
+    lines = list(header)
 
     if name:
         data = getattr(grid, f"at_{at}")[name]
-        fp = io.StringIO()
         kwds = {"comments": ""}
         if data.dtype.kind in ("i", "u"):
             kwds["fmt"] = "%d"
-        np.savetxt(fp, np.flipud(data.reshape(shape)), **kwds)
-        lines.append(fp.getvalue())
+        with io.StringIO() as fp:
+            np.savetxt(fp, np.flipud(data.reshape(shape)), **kwds)
+            lines.append(fp.getvalue())
 
     content = "\n".join(lines)
     if stream is None:
@@ -91,17 +95,10 @@ def loads(
 ) -> RasterModelGrid:
     lines = s.splitlines()
 
-    _header: dict[str, str] = {}
-    for _lineno, line in enumerate(lines):
-        if re.match(r"[a-zA-Z_]+", line, re.UNICODE):
-            key, value = line.split(maxsplit=1)
-            _header[key.lower()] = value
-        else:
-            break
+    header = _Header.from_iter(lines)
 
-    header = _validate_header(_header)
-
-    shape = np.asarray((header["nrows"], header["ncols"]))
+    # shape = np.asarray((header["nrows"], header["ncols"]))
+    shape = np.asarray(header.shape)
     if at in ("corner", "patch"):
         shape += 1
     elif at == "cell":
@@ -109,67 +106,163 @@ def loads(
 
     grid = RasterModelGrid(
         shape,
-        xy_spacing=header["cellsize"],
-        xy_of_lower_left=(header["xllcenter"], header["yllcenter"]),
+        xy_spacing=header.cell_size,
+        xy_of_lower_left=header.lower_left,
+        # xy_of_lower_left=(header["xllcenter"], header["yllcenter"]),
     )
 
     if name:
-        data = np.loadtxt([" ".join(lines[_lineno:])])
+        header_lines = 0
+        for line in lines:
+            if _Header.is_header_line(line):
+                header_lines += 1
+            else:
+                break
+        data = np.loadtxt([" ".join(lines[header_lines:])])
 
-        if data.dtype.kind in ("i", "u"):
-            header["nodata_value"] = int(header["nodata_value"])
-        else:
-            header["nodata_value"] = float(header["nodata_value"])
+        # if data.dtype.kind in ("i", "u"):
+        #     header["nodata_value"] = int(header["nodata_value"])
+        # else:
+        #     header["nodata_value"] = float(header["nodata_value"])
 
-        getattr(grid, f"at_{at}")[name] = np.flipud(
-            data.reshape((int(header["nrows"]), int(header["ncols"])))
-        )
+        getattr(grid, f"at_{at}")[name] = np.flipud(data.reshape(header.shape))
 
     return grid
 
 
-def _validate_header(header: dict[str, str]) -> dict[str, int | float]:
-    _valid_keywords_or_raise(
-        header,
-        required=("ncols", "nrows", "cellsize"),
-        optional=(
-            "xllcorner",
-            "xllcenter",
-            "yllcorner",
-            "yllcenter",
-            "nodata_value",
-        ),
+class _Header:
+    header_line_pattern = re.compile(
+        r"""
+        ^\s*
+        (
+            NROWS|
+            NCOLS|
+            CELLSIZE|
+            XLLCORNER|
+            yLLCORNER|
+            XLLCENTER|
+            yLLCENTER|
+            NODATA_VALUE|
+        )
+        \s+
+        """,
+        re.IGNORECASE | re.VERBOSE,
+    )
+    required_keys = frozenset(("ncols", "nrows", "cellsize"))
+    optional_keys = frozenset(
+        ("xllcorner", "xllcenter", "yllcorner", "yllcenter", "nodata_value")
     )
 
-    if len(set(header) & {"xllcorner", "xllcenter"}) != 1:
-        raise ValueError()
-    if len(set(header) & {"yllcorner", "yllcenter"}) != 1:
-        raise ValueError()
+    def __init__(self, **kwds):
+        _valid_keywords_or_raise(
+            kwds, required=_Header.required_keys, optional=_Header.optional_keys
+        )
 
-    n_rows = int(header["nrows"])
-    n_cols = int(header["ncols"])
-    cellsize = float(header.get("cellsize", 1.0))
+        self._shape = self._validate_shape(kwds["nrows"], kwds["ncols"])
+        self._cell_size = self._validate_cell_size(kwds["cellsize"])
+        self._nodata_value = kwds.get("nodata_value", -9999)
 
-    if n_rows <= 0:
-        raise ValueError(f"n_rows must be positive ({n_rows})")
-    if n_cols <= 0:
-        raise ValueError(f"n_cols must be positive ({n_cols})")
-    if cellsize <= 0:
-        raise ValueError(f"cellsize must be positive ({cellsize})")
+        lower_left = {
+            k: kwds[k]
+            for k in ("xllcorner", "xllcenter", "yllcorner", "yllcenter")
+            if k in kwds
+        }
 
-    validated = {
-        "nrows": n_rows,
-        "ncols": n_cols,
-        "cellsize": cellsize,
-        "xllcenter": float(header.get("xllcenter", header.get("xllcorner", 0.0))),
-        "yllcenter": float(header.get("yllcenter", header.get("yllcorner", 0.0))),
-        "nodata_value": float(header.get("nodata_value", -9999)),
-    }
+        self._lower_left = self._validate_lower_left(
+            cell_size=self._cell_size, **lower_left
+        )
 
-    with contextlib.suppress(KeyError):
-        validated["nodata_value"] = float(header["nodata_value"])
+    @classmethod
+    def from_iter(cls, iter_: Iterable[str]) -> _Header:
+        _header: dict[str, int | float] = {}
+        for line in iter_:
+            if _Header.is_header_line(line):
+                key, value = line.split(maxsplit=1)
+                if (key := key.lower()) in {"nrows", "ncols"}:
+                    _header[key] = int(value)
+                else:
+                    _header[key] = float(value)
+            else:
+                break
 
-    return validated
+        return cls(**_header)
+
+    @staticmethod
+    def is_header_line(line: str) -> bool:
+        return bool(_Header.header_line_pattern.match(line))
+
+    @property
+    def shape(self) -> tuple[int, int]:
+        return self._shape
+
+    @staticmethod
+    def _validate_shape(n_rows: int, n_cols: int) -> tuple[int, int]:
+        if not isinstance(n_rows, int) or n_rows <= 0:
+            raise ValueError()
+        if not isinstance(n_rows, int) or n_rows <= 0:
+            raise ValueError()
+
+        return n_rows, n_cols
+
+    @property
+    def lower_left(self) -> tuple[float, float]:
+        return self._lower_left
+
+    @staticmethod
+    def _validate_lower_left(cell_size=0.0, **kwds) -> tuple[float, float]:
+        if set(kwds) == {"xllcorner", "yllcorner"}:
+            lower_left = (
+                kwds["xllcorner"] + cell_size * 0.5,
+                kwds["yllcorner"] + cell_size * 0.5,
+            )
+        elif set(kwds) == {"xllcenter", "yllcenter"}:
+            lower_left = kwds["xllcenter"], kwds["yllcenter"]
+        else:
+            raise ValueError(
+                "header must contain one, and only one, of the pairs"
+                " ('xllcenter', 'yllcenter') or ('xllcorner', 'yllcorner')"
+                f" (got {', '.join(repr(k) for k in sorted(set(kwds)))})"
+            )
+        return lower_left
+
+    @property
+    def cell_size(self) -> float:
+        return self._cell_size
+
+    @staticmethod
+    def _validate_cell_size(cell_size: float) -> float:
+        if cell_size <= 0.0:
+            raise ValueError()
+        return float(cell_size)
+
+    @property
+    def nodata(self) -> int | float:
+        return self._nodata_value
+
+    def __iter__(self) -> Generator[str, None, None]:
+        lines = (
+            f"NROWS {self.shape[0]}",
+            f"NCOLS {self.shape[1]}",
+            f"XLLCENTER {self.lower_left[0]}",
+            f"YLLCENTER {self.lower_left[1]}",
+            f"CELLSIZE {self.cell_size}",
+            f"NODATA_VALUE {self.nodata}",
+        )
+        yield from lines
+
+    def __str__(self) -> str:
+        return "\n".join(sorted(self))
+
+    def __repr__(self) -> str:
+        kwds = {
+            "nrows": self.shape[0],
+            "ncols": self.shape[1],
+            "cellsize": self.cell_size,
+            "xllcenter": self.lower_left[0],
+            "yllcenter": self.lower_left[1],
+        }
+        args = [f"{k}={v!r}" for k, v in kwds.items()]
+        return f"_Header({', '.join(sorted(args))})"
 
 
 _VALID_HEADER_KEYS = (
@@ -391,7 +484,7 @@ def _header_is_valid(header: dict[str, str]) -> dict[str, int | float]:
         except ValueError as exc:
             raise KeyTypeError(key, to_type) from exc
 
-        if not is_valid(header[key]):
+        if not is_valid(validated_header[key]):
             raise KeyValueError(key, "Bad value")
 
     return validated_header
