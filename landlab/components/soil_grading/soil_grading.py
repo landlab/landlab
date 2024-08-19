@@ -7,7 +7,7 @@ Examples
 >>> from landlab.components.soil_grading import SoilGrading
 
 Create a grid on which to simulate soil grading.
->>> grid = RasterModelGrid((4, 5))
+>>> mg = RasterModelGrid((4, 5))
 
 Create topographic_elevation and bedrock__elevation fields
 >>> mg.add_zeros("topographic__elevation", at="node")
@@ -18,14 +18,13 @@ Initialise the SoilGrading component
 
 Soil grading component created a soil layer:
 >>> mg.at_node["soil__depth"][mg.core_nodes]
-array([1.66666667, 1.66666667, 1.66666667, 1.66666667, 1.66666667,
-       1.66666667, 1.66666667, 1.66666667, 1.66666667])
+array([2., 2., 2., 2., 2., 2.])
        
 Run one step of soil fragmentation
 >>> soil_grading.run_one_step()
 >>> mg.at_node["median_size__weight"][mg.core_nodes]
-array([0.00224213, 0.00224213, 0.00224213, 0.00224213, 0.00224213,
-       0.00224213, 0.00224213, 0.00224213, 0.00224213])
+array([0.0028249, 0.0028249, 0.0028249, 0.0028249, 0.0028249, 0.0028249])
+
 """
 
 import random
@@ -132,7 +131,7 @@ class SoilGrading(Component):
         alpha=1,
         A_factor=0.001,
         soil_density=2650,
-        phi=0.4,
+        phi=0.5,
         grain_max_size=0.02,
         power_of=1 / 3,
         initial_median_size=0.002,
