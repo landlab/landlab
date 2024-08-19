@@ -83,7 +83,26 @@ def example_input_params():
                 "total_min_biomass": 0.06222222222222222,
             },
             "morph_params": {
-                "biomass_decay_rate": 0.07,
+                "allometry_method": "min-max",
+                "basal_coeffs": {
+                    "a": -9999,
+                    "b": -9999,
+                },
+                "biomass_decay_rate": {
+                    "dead_leaf": 0.07,
+                    "dead_reproductive": 0.07,
+                    "dead_root": 0.07,
+                    "dead_stem": 0.07,
+                },
+                "canopy_coeffs": {
+                    "a": -9999,
+                    "b": -9999,
+                    "c": -9999,
+                },
+                "height_coeffs": {
+                    "a": -9999,
+                    "b": -9999,
+                },
                 "lai_cr": 4,
                 "max_height": 0.75,
                 "max_n_stems": 10,
@@ -328,6 +347,7 @@ def example_plant_array():
     plants["dead_reproductive_age"] = rng.uniform(low=0, high=365 * 4, size=plants.size)
     plants["dead_reproductive"] = plants["reproductive"] * 0.25
     plants["shoot_sys_width"] = rng.uniform(low=0.1, high=3, size=plants.size)
+    plants["basal_width"] = rng.uniform(low=0.05, high=1, size=plants.size)
     plants["root_sys_width"] = rng.uniform(low=0.1, high=1, size=plants.size)
     plants["shoot_sys_height"] = rng.uniform(low=0.2, high=4, size=plants.size)
     plants["root_sys_depth"] = rng.uniform(low=0.0, high=2, size=plants.size)
