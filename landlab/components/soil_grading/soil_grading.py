@@ -140,7 +140,7 @@ class SoilGrading(Component):
         CV=0.6,
         is_bedrock_distribution_flag=False,
         precent_of_volume_in_spread=10,
-        seed = 2024,
+        seed=2024,
     ):
         """
         Parameters
@@ -179,7 +179,7 @@ class SoilGrading(Component):
         precent_of_volume_in_spread: float, optional
             The precent of volume transferred from parent to daughter in case of 'spread'
              grading pattern
-         seed: float, optional
+        seed: float, optional
             Provide seed to set grain size distribution.
             If not provided, seed is set to 2024.
         """
@@ -244,15 +244,12 @@ class SoilGrading(Component):
             dtype=float,
         )
 
-        try:
-            grid.add_field(
-                "soil__depth",
-                np.zeros(int(grid.shape[0] * grid.shape[1])),
-                at="node",
-                dtype=float,
+        if grid.has_field("soil__depth"):
+            warnings.warn(
+                "Soil depth is rewrite due to inconsistent with grains__weight",
+                stacklevel=2,
             )
-        except KeyError as exc:
-            raise ValueError("Soil field already exists") from exc
+        grid.add_zeros("soil__depth", at="node", clobber=True)
 
         if "topographic__elevation" not in grid.at_node:
             grid.add_field(
