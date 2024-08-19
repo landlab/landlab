@@ -31,7 +31,8 @@ def test_outputFields_soil():
 
 def test_inputFields_soil():
     """
-    SoilGrading should raise an error if soil__depth field is already exists in the grid
+    SoilGrading should raise a warning if soil__depth field is already exists in the grid.
+    The pre-existed soil__depth field will rewrite.
     """
     n_rows = 5
     n_columns = 5
@@ -39,8 +40,7 @@ def test_inputFields_soil():
     mg = RasterModelGrid((n_rows, n_columns), xy_spacing=spacing)
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("soil__depth", at="node")
-
-    with pytest.raises(ValueError, match="Soil field already exists"):
+    with testing.assert_warns(UserWarning):
         SoilGrading(mg)
 
 
