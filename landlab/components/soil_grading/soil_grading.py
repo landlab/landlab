@@ -140,6 +140,7 @@ class SoilGrading(Component):
         CV=0.6,
         is_bedrock_distribution_flag=False,
         precent_of_volume_in_spread=10,
+        seed = 2024,
     ):
         """
         Parameters
@@ -178,6 +179,9 @@ class SoilGrading(Component):
         precent_of_volume_in_spread: float, optional
             The precent of volume transferred from parent to daughter in case of 'spread'
              grading pattern
+         seed: float, optional
+            Provide seed to set grain size distribution.
+            If not provided, seed is set to 2024.
         """
 
         super().__init__(grid)
@@ -209,6 +213,8 @@ class SoilGrading(Component):
         self._std = std
         self._is_bedrock_distribution_flag = is_bedrock_distribution_flag
         self._precent_of_volume_in_spread = precent_of_volume_in_spread
+        self._seed = seed
+        random.seed(seed)
 
         # Note: Landlabs' init_out_field procedure will not work
         # for the 'grains__weight' and 'grains_classes__size' fields
