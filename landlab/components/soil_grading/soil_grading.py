@@ -390,7 +390,10 @@ class SoilGrading(Component):
             )
 
         else:
-            total_bedrock_weight = 10000  # There is no meaning for this number
+            total_bedrock_weight = 10000  # SoilGrading assumes that bedrock thickness is unlimited
+                                          # and only the bedrock elevation is tracked.
+                                          # The variable total_bedrock_weight is set to a large enough number just for
+                                          # generate grain size distribution without relation to bedrock thickness.
             if median_size is None:
                 grains_weight__distribution = self.g_state0
             else:
