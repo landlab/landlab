@@ -16,6 +16,7 @@ import io
 import os
 import pathlib
 import re
+from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 from typing import TextIO
@@ -26,6 +27,18 @@ from numpy.typing import NDArray
 from landlab.grid.raster import RasterModelGrid
 from landlab.layers.eventlayers import _valid_keywords_or_raise
 from landlab.utils.add_halo import add_halo
+
+
+class EsriAsciiError(Exception):
+    pass
+
+
+class BadHeaderError(EsriAsciiError):
+    def __init__(self, msg: str) -> None:
+        self._msg = msg
+
+    def __str__(self) -> str:
+        return self._msg
 
 
 def dump(
@@ -42,9 +55,12 @@ def dump(
         Where the field to be written is located on the grid.
     """
     if not isinstance(grid, RasterModelGrid):
-        raise ValueError()
+        raise EsriAsciiError(
+            "Not a RasterModelGrid. Only RasterModelGrids can be written to"
+            " ESRI ASCII format"
+        )
     if grid.dx != grid.dy:
-        raise ValueError()
+        raise EsriAsciiError(f"x and y spacing must be equal ({grid.dx} != {grid.dy})")
 
     shape = np.asarray(grid.shape)
     if at in ("corner", "patch"):
@@ -52,13 +68,13 @@ def dump(
     elif at == "cell":
         shape -= 2
 
-    xy_of_point = getattr(grid, f"xy_of_{at}")
+    shift = _get_lower_left_shift(at=at, ref="center")
 
     header = _Header(
         nrows=shape[0],
         ncols=shape[1],
-        xllcenter=xy_of_point[0, 0],
-        yllcenter=xy_of_point[0, 1],
+        xllcenter=grid.xy_of_lower_left[0] - grid.dx * shift,
+        yllcenter=grid.xy_of_lower_left[1] - grid.dx * shift,
         cellsize=grid.dx,
     )
     lines = list(header)
@@ -72,7 +88,7 @@ def dump(
             np.savetxt(fp, np.flipud(data.reshape(shape)), **kwds)
             lines.append(fp.getvalue())
 
-    content = "\n".join(lines)
+    content = "".join(lines)
     if stream is None:
         return content
     else:
@@ -85,6 +101,25 @@ def load(
     at: str = "node",
     name: str | None = None,
 ) -> RasterModelGrid:
+    """Parse a RasterModelGrid from a ESRI ASCII format stream.
+
+    Parameters
+    ----------
+    stream : file_like
+        A text stream in ESRI ASCII format.
+    at : {'node', 'patch', 'corner', 'cell'}, optional
+        Location on the grid where data are placed.
+    name : str, optional
+        Name of the newly-created field. If `name` is
+        not provided, the grid will be created but the
+        data not added as a field.
+
+    Returns
+    -------
+    RasterModelGrid
+        A newly-created ``RasterModelGrid`` with, optionaly, the data added
+        as a field (if `name` was provided).
+    """
     return loads(stream.read(), at=at, name=name)
 
 
@@ -97,18 +132,18 @@ def loads(
 
     header = _Header.from_iter(lines)
 
-    # shape = np.asarray((header["nrows"], header["ncols"]))
     shape = np.asarray(header.shape)
     if at in ("corner", "patch"):
         shape += 1
     elif at == "cell":
         shape += 2
 
+    shift = header.cell_size * _get_lower_left_shift(at=at, ref=header.lower_left_ref)
+
     grid = RasterModelGrid(
         shape,
         xy_spacing=header.cell_size,
-        xy_of_lower_left=header.lower_left,
-        # xy_of_lower_left=(header["xllcenter"], header["yllcenter"]),
+        xy_of_lower_left=np.asarray(header.lower_left) + shift,
     )
 
     if name:
@@ -120,34 +155,27 @@ def loads(
                 break
         data = np.loadtxt([" ".join(lines[header_lines:])])
 
-        # if data.dtype.kind in ("i", "u"):
-        #     header["nodata_value"] = int(header["nodata_value"])
-        # else:
-        #     header["nodata_value"] = float(header["nodata_value"])
-
         getattr(grid, f"at_{at}")[name] = np.flipud(data.reshape(header.shape))
 
     return grid
 
 
+def _get_lower_left_shift(at="node", ref="center"):
+    if at == "node" or (at == "patch" and ref == "corner"):
+        return 0.0
+    elif (
+        at == "corner"
+        or (at == "patch" and ref == "center")
+        or (at == "cell" and ref == "corner")
+    ):
+        return -0.5
+    elif at == "cell" and ref == "center":
+        return -1.0
+
+    raise RuntimeError(f"unreachable code ({at!r}, {ref!r}")
+
+
 class _Header:
-    header_line_pattern = re.compile(
-        r"""
-        ^\s*
-        (
-            NROWS|
-            NCOLS|
-            CELLSIZE|
-            XLLCORNER|
-            yLLCORNER|
-            XLLCENTER|
-            yLLCENTER|
-            NODATA_VALUE|
-        )
-        \s+
-        """,
-        re.IGNORECASE | re.VERBOSE,
-    )
     required_keys = frozenset(("ncols", "nrows", "cellsize"))
     optional_keys = frozenset(
         ("xllcorner", "xllcenter", "yllcorner", "yllcenter", "nodata_value")
@@ -168,28 +196,48 @@ class _Header:
             if k in kwds
         }
 
-        self._lower_left = self._validate_lower_left(
-            cell_size=self._cell_size, **lower_left
-        )
+        self._lower_left, self._lower_left_ref = self._validate_lower_left(**lower_left)
 
     @classmethod
     def from_iter(cls, iter_: Iterable[str]) -> _Header:
-        _header: dict[str, int | float] = {}
+        header: dict[str, int | float] = {}
         for line in iter_:
             if _Header.is_header_line(line):
-                key, value = line.split(maxsplit=1)
-                if (key := key.lower()) in {"nrows", "ncols"}:
-                    _header[key] = int(value)
-                else:
-                    _header[key] = float(value)
+                key, value = _Header._parse_header_line(line)
+                header[key] = value
             else:
                 break
 
-        return cls(**_header)
+        return cls(**header)
+
+    @staticmethod
+    def _parse_header_line(line: str) -> tuple[str, int | float]:
+        try:
+            key, value = line.split(maxsplit=1)
+        except ValueError:
+            raise BadHeaderError(
+                f"header line must contain a key/value pair ({line})"
+            ) from None
+        else:
+            key = key.lower()
+
+        convert: dict[str, Callable[[str], int | float]] = {"nrows": int, "ncols": int}
+
+        try:
+            return key, convert.get(key, float)(value)
+        except ValueError:
+            raise BadHeaderError(
+                f"unable to convert header value to a number ({key})"
+            ) from None
 
     @staticmethod
     def is_header_line(line: str) -> bool:
-        return bool(_Header.header_line_pattern.match(line))
+        try:
+            key, value = line.split(maxsplit=1)
+        except ValueError:
+            return False
+        else:
+            return key.lower() in (_Header.required_keys | _Header.optional_keys)
 
     @property
     def shape(self) -> tuple[int, int]:
@@ -197,10 +245,10 @@ class _Header:
 
     @staticmethod
     def _validate_shape(n_rows: int, n_cols: int) -> tuple[int, int]:
-        if not isinstance(n_rows, int) or n_rows <= 0:
-            raise ValueError()
-        if not isinstance(n_rows, int) or n_rows <= 0:
-            raise ValueError()
+        if not isinstance(n_rows, (int, np.integer)) or n_rows <= 0:
+            raise BadHeaderError(f"n_rows must be a positive integer ({n_rows!r})")
+        if not isinstance(n_cols, (int, np.integer)) or n_cols <= 0:
+            raise BadHeaderError(f"n_cols must be a positive integer ({n_cols!r})")
 
         return n_rows, n_cols
 
@@ -208,22 +256,25 @@ class _Header:
     def lower_left(self) -> tuple[float, float]:
         return self._lower_left
 
+    @property
+    def lower_left_ref(self) -> str:
+        return self._lower_left_ref
+
     @staticmethod
-    def _validate_lower_left(cell_size=0.0, **kwds) -> tuple[float, float]:
+    def _validate_lower_left(cell_size=0.0, **kwds) -> tuple[tuple[float, float], str]:
         if set(kwds) == {"xllcorner", "yllcorner"}:
-            lower_left = (
-                kwds["xllcorner"] + cell_size * 0.5,
-                kwds["yllcorner"] + cell_size * 0.5,
-            )
+            lower_left = kwds["xllcorner"], kwds["yllcorner"]
+            ref = "corner"
         elif set(kwds) == {"xllcenter", "yllcenter"}:
             lower_left = kwds["xllcenter"], kwds["yllcenter"]
+            ref = "center"
         else:
-            raise ValueError(
+            raise BadHeaderError(
                 "header must contain one, and only one, of the pairs"
                 " ('xllcenter', 'yllcenter') or ('xllcorner', 'yllcorner')"
                 f" (got {', '.join(repr(k) for k in sorted(set(kwds)))})"
             )
-        return lower_left
+        return lower_left, ref
 
     @property
     def cell_size(self) -> float:
@@ -232,7 +283,7 @@ class _Header:
     @staticmethod
     def _validate_cell_size(cell_size: float) -> float:
         if cell_size <= 0.0:
-            raise ValueError()
+            raise BadHeaderError(f"cell size must be greater than zero ({cell_size})")
         return float(cell_size)
 
     @property
@@ -241,12 +292,12 @@ class _Header:
 
     def __iter__(self) -> Generator[str, None, None]:
         lines = (
-            f"NROWS {self.shape[0]}",
-            f"NCOLS {self.shape[1]}",
-            f"XLLCENTER {self.lower_left[0]}",
-            f"YLLCENTER {self.lower_left[1]}",
-            f"CELLSIZE {self.cell_size}",
-            f"NODATA_VALUE {self.nodata}",
+            f"NROWS {self.shape[0]}\n",
+            f"NCOLS {self.shape[1]}\n",
+            f"XLLCENTER {self.lower_left[0]}\n",
+            f"YLLCENTER {self.lower_left[1]}\n",
+            f"CELLSIZE {self.cell_size}\n",
+            f"NODATA_VALUE {self.nodata}\n",
         )
         yield from lines
 
