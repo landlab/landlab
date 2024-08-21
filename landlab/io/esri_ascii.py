@@ -51,8 +51,44 @@ def dump(
 
     Parameters
     ----------
+    grid : RasterModelGrid
+        A Landlab grid.
+    stream : file_like or None, optional
+        A ``file_like`` object to write to. If ``None``, return
+        a string containing the serialized grid.
     at : {"node", "patch", "corner", "cell"}, optional
         Where the field to be written is located on the grid.
+    name : str or None, optional
+        The name of the file to be written. If ``None``, only the header
+        information will be written.
+
+    Returns
+    -------
+    str or None
+        The grid field in ESRI ASCII format or ``None`` if a ``file_like``
+        object was provided.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.io.esri_ascii import dump
+
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=2.0)
+    >>> print(dump(grid, at="node"))
+    NROWS 3
+    NCOLS 4
+    XLLCENTER 0.0
+    YLLCENTER 0.0
+    CELLSIZE 2.0
+    NODATA_VALUE -9999
+
+    >>> print(dump(grid, at="cell"))
+    NROWS 1
+    NCOLS 2
+    XLLCENTER 2.0
+    YLLCENTER 2.0
+    CELLSIZE 2.0
+    NODATA_VALUE -9999
     """
     if not isinstance(grid, RasterModelGrid):
         raise EsriAsciiError(
@@ -128,6 +164,64 @@ def loads(
     at: str = "node",
     name: str | None = None,
 ) -> RasterModelGrid:
+    """Parse a RasterModelGrid from a ESRI ASCII formatted string.
+
+    Parameters
+    ----------
+    s : str
+        A string in ESRI ASCII format.
+    at : {'node', 'patch', 'corner', 'cell'}, optional
+        Location on the grid where data are placed.
+    name : str, optional
+        Name of the newly-created field. If `name` is
+        not provided, the grid will be created but the
+        data not added as a field.
+
+    Returns
+    -------
+    RasterModelGrid
+        A newly-created ``RasterModelGrid`` with, optionaly, the data added
+        as a field (if `name` was provided).
+
+    Examples
+    --------
+    >>> from landlab.io.esri_ascii import loads
+
+    >>> contents = '''
+    ... NROWS 1
+    ... NCOLS 2
+    ... XLLCORNER -2.0
+    ... YLLCORNER 4.0
+    ... CELLSIZE 2.0
+    ... NODATA_VALUE -9999
+    ... '''.lstrip()
+    >>> grid = loads(contents, at="cell")
+    >>> grid.shape
+    (3, 4)
+    >>> grid.xy_of_lower_left
+    (-3.0, 3.0)
+    >>> grid.spacing
+    (2.0, 2.0)
+
+    >>> contents = '''
+    ... NROWS 1
+    ... NCOLS 2
+    ... XLLCENTER -2.0
+    ... YLLCENTER 4.0
+    ... CELLSIZE 2.0
+    ... NODATA_VALUE -9999
+    ... 10 11
+    ... '''.lstrip()
+    >>> grid = loads(contents, at="cell", name="foo")
+    >>> grid.shape
+    (3, 4)
+    >>> grid.xy_of_lower_left
+    (-4.0, 2.0)
+    >>> grid.spacing
+    (2.0, 2.0)
+    >>> grid.at_cell["foo"]
+    array([10., 11.])
+    """
     lines = s.splitlines()
 
     header = _Header.from_iter(lines)
@@ -161,6 +255,21 @@ def loads(
 
 
 def _get_lower_left_shift(at="node", ref="center"):
+    """Calculate the shift from the lower left of a grid to ESRI ASCII.
+
+    Parameters
+    ----------
+    at : {'node', 'patch', 'corner', 'cell'}, optional
+        Grid location where data are placed.
+    ref : {'center', 'corner'}, optional
+        Reference location with respect to the ESRI ASCII cell.
+
+    Returns
+    -------
+    float
+        The unit shift between the lower left of an ESRI ASCII field
+        and a ``RasterModelGrid``.
+    """
     if at == "node" or (at == "patch" and ref == "corner"):
         return 0.0
     elif (
