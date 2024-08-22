@@ -16,12 +16,16 @@ import io
 import os
 import pathlib
 import re
+from collections import OrderedDict
 from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
+from typing import Literal
 from typing import TextIO
+from typing import overload
 
 import numpy as np
+from numpy.typing import ArrayLike
 from numpy.typing import NDArray
 
 from landlab.grid.raster import RasterModelGrid
@@ -77,26 +81,20 @@ def dump(
     >>> print(dump(grid, at="node"))
     NROWS 3
     NCOLS 4
+    CELLSIZE 2.0
     XLLCENTER 0.0
     YLLCENTER 0.0
-    CELLSIZE 2.0
     NODATA_VALUE -9999
 
     >>> print(dump(grid, at="cell"))
     NROWS 1
     NCOLS 2
+    CELLSIZE 2.0
     XLLCENTER 2.0
     YLLCENTER 2.0
-    CELLSIZE 2.0
     NODATA_VALUE -9999
     """
-    if not isinstance(grid, RasterModelGrid):
-        raise EsriAsciiError(
-            "Not a RasterModelGrid. Only RasterModelGrids can be written to"
-            " ESRI ASCII format"
-        )
-    if grid.dx != grid.dy:
-        raise EsriAsciiError(f"x and y spacing must be equal ({grid.dx} != {grid.dy})")
+    grid = validate_grid(grid)
 
     shape = np.asarray(grid.shape)
     if at in ("corner", "patch"):
@@ -113,7 +111,7 @@ def dump(
         yllcenter=grid.xy_of_lower_left[1] - grid.dx * shift,
         cellsize=grid.dx,
     )
-    lines = list(header)
+    lines = [str(header)]
 
     if name:
         data = getattr(grid, f"at_{at}")[name]
@@ -163,6 +161,7 @@ def loads(
     s: str,
     at: str = "node",
     name: str | None = None,
+    out: RasterModelGrid | None = None,
 ) -> RasterModelGrid:
     """Parse a RasterModelGrid from a ESRI ASCII formatted string.
 
@@ -175,7 +174,10 @@ def loads(
     name : str, optional
         Name of the newly-created field. If `name` is
         not provided, the grid will be created but the
-        data not added as a field.
+        data not added to the grid as a field.
+    out : RasterModelGrid, optional
+        Place the data from the file onto an existing grid. If not
+        provided, create a new grid.
 
     Returns
     -------
@@ -221,10 +223,41 @@ def loads(
     (2.0, 2.0)
     >>> grid.at_cell["foo"]
     array([10., 11.])
-    """
-    lines = s.splitlines()
 
-    header = _Header.from_iter(lines)
+    >>> contents = '''
+    ... NROWS 3
+    ... NCOLS 4
+    ... XLLCENTER 0.0
+    ... YLLCENTER 0.0
+    ... CELLSIZE 1.0
+    ... NODATA_VALUE -9999
+    ... 1 2 3 4
+    ... 5 6 7 8
+    ... 9 10 11 12
+    ... '''.lstrip()
+    >>> grid = loads(contents, at="node", name="foo")
+    >>> contents = '''
+    ... NROWS 1
+    ... NCOLS 2
+    ... XLLCENTER 1.0
+    ... YLLCENTER 1.0
+    ... CELLSIZE 1.0
+    ... NODATA_VALUE -9999
+    ... 10 20
+    ... '''.lstrip()
+    >>> grid = loads(contents, at="cell", name="foo", out=grid)
+    >>> grid.at_node["foo"].reshape(grid.shape)
+    array([[ 9., 10., 11., 12.],
+           [ 5.,  6.,  7.,  8.],
+           [ 1.,  2.,  3.,  4.]])
+    >>> grid.at_cell["foo"]
+    array([10., 20.])
+    """
+    if name is None:
+        info = parse(s, with_data=False)
+    else:
+        info, data = parse(s, with_data=True)
+    header = _Header(**info)
 
     shape = np.asarray(header.shape)
     if at in ("corner", "patch"):
@@ -233,23 +266,125 @@ def loads(
         shape += 2
 
     shift = header.cell_size * _get_lower_left_shift(at=at, ref=header.lower_left_ref)
+    xy_of_lower_left = np.asarray(header.lower_left) + shift
 
-    grid = RasterModelGrid(
-        shape,
-        xy_spacing=header.cell_size,
-        xy_of_lower_left=np.asarray(header.lower_left) + shift,
-    )
+    if out is None:
+        grid = RasterModelGrid(
+            shape, xy_spacing=header.cell_size, xy_of_lower_left=xy_of_lower_left
+        )
+    else:
+        grid = validate_grid(
+            out, shape, xy_spacing=header.cell_size, xy_of_lower_left=xy_of_lower_left
+        )
 
-    if name:
-        header_lines = 0
-        for line in lines:
-            if _Header.is_header_line(line):
-                header_lines += 1
-            else:
-                break
-        data = np.loadtxt([" ".join(lines[header_lines:])])
-
+    if name is not None:
         getattr(grid, f"at_{at}")[name] = np.flipud(data.reshape(header.shape))
+
+    return grid
+
+
+@overload
+def parse(s: str, with_data: Literal[False] = ...) -> dict[str, int | float]: ...
+
+
+@overload
+def parse(
+    s: str, with_data: Literal[True] = ...
+) -> tuple[dict[str, int | float], NDArray]: ...
+
+
+def parse(
+    s: str, with_data: bool = False
+) -> dict[str, int | float] | tuple[dict[str, int | float], NDArray]:
+    """Parse a ESRI ASCII formatted string.
+
+    Parameters
+    ----------
+    s : str
+        String to parse.
+    with_data : bool, optional
+        Return the data as a numpy array, otherwise, just
+        return the header.
+
+    Returns
+    -------
+    dict or tuple of (dict, ndarray)
+        The header metadata and, optionally, the data.
+
+    Examples
+    --------
+    >>> from landlab.io.esri_ascii import parse
+
+    >>> contents = '''
+    ... NROWS 2
+    ... NCOLS 3
+    ... XLLCORNER -2.0
+    ... YLLCORNER 4.0
+    ... CELLSIZE 2.0
+    ... NODATA_VALUE -9999
+    ... 10 20 30
+    ... 40 50 60
+    ... '''.lstrip()
+    >>> parse(contents)
+    OrderedDict({'nrows': 2,
+                 'ncols': 3,
+                 'xllcorner': -2.0,
+                 'yllcorner': 4.0,
+                 'cellsize': 2.0,
+                 'nodata_value': -9999.0})
+    >>> info, data = parse(contents, with_data=True)
+    >>> data
+    array([10., 20., 30., 40., 50., 60.])
+    """
+    lines = s.splitlines()
+
+    start_of_data: int | None = 0
+    for lineno, line in enumerate(lines):
+        if not _Header.is_header_line(line):
+            start_of_data = lineno
+            break
+    else:
+        start_of_data = None
+
+    if start_of_data is None:
+        header, body = lines, []
+    else:
+        header = lines[:start_of_data]
+        body = lines[start_of_data:]
+
+    info = OrderedDict(_Header.parse_header_line(line) for line in header)
+
+    if with_data:
+        data = np.loadtxt([" ".join(body)]) if body else np.asarray([])
+        return info, data
+    else:
+        return info
+
+
+def validate_grid(
+    grid: RasterModelGrid,
+    shape: ArrayLike | None = None,
+    xy_spacing: float | None = None,
+    xy_of_lower_left: tuple[float, float] | None = None,
+) -> RasterModelGrid:
+    if not isinstance(grid, RasterModelGrid):
+        raise EsriAsciiError(
+            "Not a RasterModelGrid. Only RasterModelGrids can be expressed in"
+            " ESRI ASCII format."
+        )
+    if grid.dx != grid.dy:
+        raise EsriAsciiError(f"x and y spacing must be equal ({grid.dx} != {grid.dy}).")
+
+    if shape is not None and not np.all(np.equal(grid.shape, shape)):
+        raise EsriAsciiError(f"Grid shape mismatch ({grid.shape} != {shape}).")
+    if xy_spacing is not None and not np.all(np.equal(grid.spacing, xy_spacing)):
+        raise EsriAsciiError(f"Grid spacing mismatch ({grid.dx} != {xy_spacing}).")
+    if xy_of_lower_left is not None and not np.all(
+        np.equal(grid.xy_of_lower_left, xy_of_lower_left)
+    ):
+        raise EsriAsciiError(
+            f"Grid lower-left mismatch ({grid.xy_of_lower_left} != {xy_of_lower_left})."
+        )
 
     return grid
 
@@ -307,25 +442,14 @@ class _Header:
 
         self._lower_left, self._lower_left_ref = self._validate_lower_left(**lower_left)
 
-    @classmethod
-    def from_iter(cls, iter_: Iterable[str]) -> _Header:
-        header: dict[str, int | float] = {}
-        for line in iter_:
-            if _Header.is_header_line(line):
-                key, value = _Header._parse_header_line(line)
-                header[key] = value
-            else:
-                break
-
-        return cls(**header)
-
     @staticmethod
-    def _parse_header_line(line: str) -> tuple[str, int | float]:
+    def parse_header_line(line: str) -> tuple[str, int | float]:
+        """Parse a header line into a key/value pair."""
         try:
             key, value = line.split(maxsplit=1)
         except ValueError:
             raise BadHeaderError(
-                f"header line must contain a key/value pair ({line})"
+                f"header line must contain a key/value pair ({line!r})"
             ) from None
         else:
             key = key.lower()
@@ -336,11 +460,12 @@ class _Header:
             return key, convert.get(key, float)(value)
         except ValueError:
             raise BadHeaderError(
-                f"unable to convert header value to a number ({key})"
+                f"unable to convert header value to a number ({line!r})"
             ) from None
 
     @staticmethod
     def is_header_line(line: str) -> bool:
+        """Check if a string is a possible header line."""
         try:
             key, value = line.split(maxsplit=1)
         except ValueError:
@@ -399,30 +524,28 @@ class _Header:
     def nodata(self) -> int | float:
         return self._nodata_value
 
-    def __iter__(self) -> Generator[str, None, None]:
-        lines = (
-            f"NROWS {self.shape[0]}\n",
-            f"NCOLS {self.shape[1]}\n",
-            f"XLLCENTER {self.lower_left[0]}\n",
-            f"YLLCENTER {self.lower_left[1]}\n",
-            f"CELLSIZE {self.cell_size}\n",
-            f"NODATA_VALUE {self.nodata}\n",
-        )
-        yield from lines
-
     def __str__(self) -> str:
-        return "\n".join(sorted(self))
+        lines = (
+            f"NROWS {self.shape[0]}",
+            f"NCOLS {self.shape[1]}",
+            f"CELLSIZE {self.cell_size}",
+            f"XLL{self.lower_left_ref.upper()} {self.lower_left[0]}",
+            f"YLL{self.lower_left_ref.upper()} {self.lower_left[1]}",
+            f"NODATA_VALUE {self.nodata}",
+        )
+        return "\n".join(lines) + "\n"
 
     def __repr__(self) -> str:
         kwds = {
             "nrows": self.shape[0],
             "ncols": self.shape[1],
             "cellsize": self.cell_size,
-            "xllcenter": self.lower_left[0],
-            "yllcenter": self.lower_left[1],
+            f"xll{self.lower_left_ref}": self.lower_left[0],
+            f"yll{self.lower_left_ref}": self.lower_left[1],
+            "nodata_value": self.nodata,
         }
         args = [f"{k}={v!r}" for k, v in kwds.items()]
-        return f"_Header({', '.join(sorted(args))})"
+        return f"_Header({', '.join(args)})"
 
 
 _VALID_HEADER_KEYS = (
