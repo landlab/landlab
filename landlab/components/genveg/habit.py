@@ -210,26 +210,27 @@ class Graminoid(Habit):
                 max_canopy_area,
             )
 
-        elif params["morph_params"]["allometry_method"] == "default":
-            params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][photo_val]["basal_coeffs"]
-            params["morph_params"]["height_coeffs"] = empirical_coeffs[duration_val][photo_val]["height_coeffs"]
-            params["morph_params"]["canopy_coeffs"] = empirical_coeffs[duration_val][photo_val]["canopy_coeffs"]
+        else:
+            if params["morph_params"]["allometry_method"] == "default":
+                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][photo_val]["basal_coeffs"]
+                params["morph_params"]["height_coeffs"] = empirical_coeffs[duration_val][photo_val]["height_coeffs"]
+                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[duration_val][photo_val]["canopy_coeffs"]
 
-        (
-            params["morph_params"]["min_basal_dia"],
-            params["morph_params"]["min_shoot_sys_width"],
-            params["morph_params"]["min_shoot_sys_height"],
-        ) = self.calc_abg_dims_from_biomass(
-            params["grow_params"]["min_abg_biomass"]
-        )
-        (
-            params["morph_params"]["max_basal_dia"],
-            params["morph_params"]["max_shoot_sys_width"],
-            params["morph_params"]["max_shoot_sys_height"],
-        ) = self._calc_abg_dims_from_biomass(
-            params["grow_params"]["max_abg_biomass"]
-        )
-        params["morph_params"]["min_basal_dia"]
+            (
+                params["morph_params"]["min_basal_dia"],
+                params["morph_params"]["min_shoot_sys_width"],
+                params["morph_params"]["min_shoot_sys_height"],
+            ) = self.calc_abg_dims_from_biomass(
+                params["grow_params"]["min_abg_biomass"]
+            )
+            (
+                params["morph_params"]["max_basal_dia"],
+                params["morph_params"]["max_shoot_sys_width"],
+                params["morph_params"]["max_shoot_sys_height"],
+            ) = self._calc_abg_dims_from_biomass(
+                params["grow_params"]["max_abg_biomass"]
+            )
+            params["morph_params"]["min_basal_dia"]
 
         super().__init__(params, green_parts)
 
