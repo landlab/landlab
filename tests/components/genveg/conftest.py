@@ -117,7 +117,6 @@ def example_input_params():
                 "min_shoot_sys_width": 0.01,
                 "min_basal_dia": 0.005423267786434878,
                 "sp_leaf_area": 0.0074,
-                "allometry_method": 'min-max'
             },
             "mortality_params": {
                 "coeffs": {
