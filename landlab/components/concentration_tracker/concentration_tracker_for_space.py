@@ -44,7 +44,7 @@ class ConcentrationTrackerForSpace(Component):
     A 1-D stream channel:
         
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid
+    >>> from landlab import NodeStatus, RasterModelGrid
     >>> from landlab.components import PriorityFloodFlowRouter
     >>> from landlab.components import SpaceLargeScaleEroder
     >>> from landlab.components import ConcentrationTrackerForSpace
@@ -80,8 +80,12 @@ class ConcentrationTrackerForSpace(Component):
     
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> fr.run_one_step()
-    >>> sp = SpaceLargeScaleEroder(mg,phi=0)
-    >>> ct = ConcentrationTrackerForSpace(mg,sp)
+    >>> sp = SpaceLargeScaleEroder(mg, phi=0, F_f=0, v_s=1)
+    >>> ct = ConcentrationTrackerForSpace(mg,
+                                          phi=0,
+                                          fraction_fines=0,
+                                          settling_velocity=1,
+                                          )
     
     >>> for i in range(40):
     >>>     fr.run_one_step()
@@ -100,7 +104,7 @@ class ConcentrationTrackerForSpace(Component):
     Some high-concentration sediment has been transported from upstream to be
     deposited on the channel bed further downstream.
     >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.04965464, 0.09972316, 0.99991512]))
+    ...             np.array([0.0496547, 0.0997232, 0.9999151]))
     True
     
         
@@ -142,49 +146,41 @@ class ConcentrationTrackerForSpace(Component):
     ...     [0.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     ... ]
         
-    # Add slope and noise to the bedrock to create some topographic structure.
+    # Add noise to the bedrock to create some topographic structure.
     >>> np.random.seed(5)
-    >>> mg.at_node["bedrock__elevation"] = (mg.node_x + mg.node_y) / 1000
+    >>> mg.add_zeros("bedrock__elevation", at='node')
     >>> mg.at_node["bedrock__elevation"] += np.random.rand(mg.number_of_nodes) / 100
     >>> mg.at_node["bedrock__elevation"][0] = 0
     
     >>> mg.at_node["topographic__elevation"] = (
     ...     mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
-    >>> imshow_grid(mg,"topographic__elevation", cmap=mpl.cm.get_cmap("terrain").copy())
     
     # Instantiate components.
     >>> fr = PriorityFloodFlowRouter(mg)
     >>> fr.run_one_step()
-    >>> sp = SpaceLargeScaleEroder(mg,phi=0)
-    >>> ct = ConcentrationTrackerForSpace(mg,sp)
+    >>> sp = SpaceLargeScaleEroder(mg, phi=0, F_f=0, v_s=1)
+    >>> ct = ConcentrationTrackerForSpace(mg,
+                                          phi=0,
+                                          fraction_fines=0,
+                                          settling_velocity=1,
+                                          )
     
-    >>> imshow_grid(mg,"drainage_area")
-
     # Run SPACE for 1,000 years to generate a fluvial network.
     >>> for i in range(1000):
     >>>     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
-    >>>     mg.at_node["topographic__elevation"] = (
+    >>>     mg.at_node["topographic__elevation"][:] = (
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
     >>>     fr.run_one_step()
     >>>     sp.run_one_step(1.)
-    >>>     if np.mod(i,100) == 0:
-    >>>         mpl.pyplot.figure()
-    >>>         imshow_grid(mg,"topographic__elevation", cmap=mpl.cm.get_cmap("terrain").copy())
-    
-    >>> mpl.pyplot.figure()
-    >>> imshow_grid(mg,"drainage_area")
 
     # Set high concentration at a headwater node to trace sediment downstream.
     >>> mg.at_node["sediment_property__concentration"][22] += 1    
-    
-    >>> c_22 = np.zeros(100)
-    
+       
     >>> for i in range(100):
-    >>>     c_22[i] = mg.at_node["sediment_property__concentration"][22]
     >>>     mg.at_node["bedrock__elevation"][mg.core_nodes] += 0.001
-    >>>     mg.at_node["topographic__elevation"] = (
+    >>>     mg.at_node["topographic__elevation"][:] = (
     ...         mg.at_node["soil__depth"] + mg.at_node["bedrock__elevation"]
     ...     )
     >>>     fr.run_one_step()
@@ -192,26 +188,15 @@ class ConcentrationTrackerForSpace(Component):
     >>>     sp.run_one_step(1.)
     >>>     ct.stop_tracking(1.)
     
-    >>> mpl.pyplot.figure()
-    >>> mpl.pyplot.plot(c_22)
-
-    WHY DOES CONCENTRATION SKYROCKET ON THE FIRST TIMESTEP???
-    WHY DOES CONCENTRATION INCREASE ABOVE THE ORIGINAL INPUT VALUE????
-    IT MUST BE SOMETHING TO DO WITH NOT HAVING A PREVIOUS TIMESTEP VALUE FOR
-    ONE OF EROSION, DEPOSITION, Qs, ETC......
-
-    >>> mpl.pyplot.figure()
-    >>> imshow_grid(mg,"soil__depth")
-    
-    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes],
-    ...             np.array([6.        ,  7.13533528,  6.        ,
-    ...                       7.13533528,  8.27067057,  7.13533528,
-    ...                       6.        ,  7.13533528,  6.         ]))
-    True
+    Some high-concentration sediment has been transported from the headwaters
+    to be deposited on the channel bed further downstream. We can trace this 
+    sediment and see where the channel lies within the landscape.
     >>> np.allclose(mg.at_node["sediment_property__concentration"][mg.core_nodes],
-    ...             np.array([0.        ,  0.38079708,  0.        ,
-    ...                       0.38079708,  1.        ,  0.38079708,
-    ...                       0.        ,  0.38079708,  0.         ]))
+    ...             np.array([0.0288311, 0.0447778, 0.       , 0.       ,
+    ...                       0.       , 0.       , 0.0598574, 0.       ,
+    ...                       0.       , 0.       , 0.       , 0.9548471,
+    ...                       0.       , 0.       , 0.       , 0.       ,
+    ...                       ]))
     True
     
     References
