@@ -604,7 +604,7 @@ class SpaceLargeScaleEroder(Component):
         # Update topography
         cores = self._grid.core_nodes
         z[cores] = br[cores] + H[cores]
-        
+
         self.grid.at_node["sediment__erosion_flux"][:] = ero_sed_effective
         self.grid.at_node["sediment__deposition_flux"][:] = depo_effective
         self.grid.at_node["bedrock__erosion_flux"][:] = self._Er

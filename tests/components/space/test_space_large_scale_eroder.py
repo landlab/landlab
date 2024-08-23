@@ -1353,9 +1353,14 @@ def test_MassBalance():
         )
 
         # Check mass balance on effective erosion and deposition values
-        soil_new_calc = soil_B + (mg.at_node["sediment__deposition_flux"] 
-                                  - mg.at_node["sediment__erosion_flux"]
-                                  ) * dt
+        soil_new_calc = (
+            soil_B
+            + (
+                mg.at_node["sediment__deposition_flux"]
+                - mg.at_node["sediment__erosion_flux"]
+            )
+            * dt
+        )
         np.testing.assert_almost_equal(
             H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
         )
@@ -1463,9 +1468,14 @@ def test_MassBalance_lower_pore_density():
         )
 
         # Check mass balance on effective erosion and deposition values
-        soil_new_calc = soil_B + (mg.at_node["sediment__deposition_flux"] 
-                                  - mg.at_node["sediment__erosion_flux"]
-                                  ) * dt
+        soil_new_calc = (
+            soil_B
+            + (
+                mg.at_node["sediment__deposition_flux"]
+                - mg.at_node["sediment__erosion_flux"]
+            )
+            * dt
+        )
         np.testing.assert_almost_equal(
             H[mg.core_nodes], soil_new_calc[mg.core_nodes], decimal=8
         )
