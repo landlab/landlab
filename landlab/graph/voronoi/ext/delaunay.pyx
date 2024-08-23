@@ -1,17 +1,17 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def remove_patches(
-    np.ndarray[DTYPE_t, ndim=2] links_at_patch,
-    np.ndarray[DTYPE_t, ndim=1] patches_to_remove,
+    id_t [:, :] links_at_patch,
+    id_t [:] patches_to_remove,
 ):
     cdef int n_patches = links_at_patch.shape[0]
     cdef int max_links = links_at_patch.shape[1]
@@ -29,10 +29,11 @@ def remove_patches(
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def remove_tris(
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_tri,
-    np.ndarray[DTYPE_t, ndim=2] neighbors_at_tri,
-    np.ndarray[DTYPE_t, ndim=1] bad_tris,
+    id_t [:, :] nodes_at_tri,
+    id_t [:, :] neighbors_at_tri,
+    const id_t [:] bad_tris,
 ):
     cdef int n_tris = nodes_at_tri.shape[0]
     cdef int tri
@@ -65,11 +66,12 @@ def remove_tris(
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def _setup_links_at_patch(
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_patch,
-    np.ndarray[DTYPE_t, ndim=2] tri_neighbors,
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-    np.ndarray[DTYPE_t, ndim=2] links_at_patch,
+    id_t [:, :] nodes_at_patch,
+    id_t [:, :] tri_neighbors,
+    id_t [:, :] nodes_at_link,
+    id_t [:, :] links_at_patch,
 ):
     cdef int i
     cdef int link

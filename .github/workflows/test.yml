@@ -56,7 +56,7 @@ jobs:
 
       - name: Install and test richdem engine
         run: |
-          conda install richdem -c conda-forge
+          conda install richdem "numpy<2" -c conda-forge
           python -c 'import _richdem'
 
       - name: Test

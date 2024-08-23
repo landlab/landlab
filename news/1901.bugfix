@@ -1,2 +1,0 @@
-
-Fixed a bug where SpaceLargeScaleEroder deviates from analytical solution for mixed bedrock-alluvial river in a portion of the parameter space.

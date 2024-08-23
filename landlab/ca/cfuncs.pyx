@@ -11,7 +11,8 @@ cimport numpy as np
 
 import sys  # for debug
 
-from _heapq import heappop, heappush
+from _heapq import heappop
+from _heapq import heappush
 
 from landlab.grid.nodestatus import NodeStatus
 

@@ -65,8 +65,7 @@ import contextlib
 import numpy as np
 
 from landlab import Component
-
-from .ext import subside_load_1d
+from landlab.components.flexure._ext.flexure1d import subside_load_1d
 
 
 class Flexure1D(Component):

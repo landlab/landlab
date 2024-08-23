@@ -60,8 +60,9 @@ array([[0., 0., 0., 0.],
 import numpy as np
 
 from landlab import Component
-
-from .funcs import get_flexure_parameter
+from landlab.components.flexure._ext.flexure2d import subside_loads as _subside_loads
+from landlab.components.flexure._ext.flexure2d_slow import subside_grid_in_parallel
+from landlab.components.flexure.funcs import get_flexure_parameter
 
 
 class Flexure(Component):
@@ -289,7 +290,7 @@ class Flexure(Component):
         else:
             self.subside_loads(new_load, out=deflection)
 
-    def subside_loads(self, loads, out=None):
+    def subside_loads_slow(self, loads, out=None):
         """Subside surface due to multiple loads.
 
         Parameters
@@ -309,8 +310,6 @@ class Flexure(Component):
         dz = out.reshape(self._grid.shape)
         load = loads.reshape(self._grid.shape)
 
-        from .cfuncs import subside_grid_in_parallel
-
         subside_grid_in_parallel(
             dz,
             load * self._grid.dx * self._grid.dy,
@@ -321,3 +320,58 @@ class Flexure(Component):
         )
 
         return out
+
+    def subside_loads(self, loads, row_col_of_load=None, out=None):
+        """Subside surface due to multiple loads.
+
+        Parameters
+        ----------
+        loads : ndarray of float
+            Loads applied to grid node. ``loads`` can be either an array
+            of size ``n_nodes``, in which case the load values are applied
+            at their corresponding nodes, or an array of arbitray length,
+            in which case loads are applied at locations supplied through
+            the ``row_col_of_load`` keyword.
+        row_col_of_load: tuple of ndarray of int, optional
+            If provided, the row and column indices where loads are applied.
+            The first element of the tuple is an array of rows while the
+            seconds element is an array of columns.
+        out : ndarray of float, optional
+            Buffer to place resulting deflection values. If not provided,
+            deflections will be placed into a newly-allocated array.
+
+        Returns
+        -------
+        ndarray of float
+            Deflections caused by the loading.
+        """
+        loads = np.asarray(loads)
+        if out is None:
+            out = self.grid.zeros(at="node")
+        dz = out.reshape(self.grid.shape)
+
+        if row_col_of_load is None:
+            loads, row_col_of_load = self._handle_no_row_col(loads)
+        row_of_load, col_of_load = row_col_of_load
+
+        _subside_loads(
+            dz,
+            self._r.reshape(self.grid.shape),
+            loads * self.grid.dx * self.grid.dy,
+            np.asarray(row_of_load),
+            np.asarray(col_of_load),
+            self.alpha,
+            self.gamma_mantle,
+        )
+
+        return out
+
+    def _handle_no_row_col(self, loads, tol=1e-6):
+        """Handle the case where the row_col_of_load keyword is not provided."""
+        loads = loads.reshape(self.grid.shape)
+        row_col_of_load = np.unravel_index(
+            np.flatnonzero(np.abs(loads) > tol), self.grid.shape
+        )
+        loads = loads[row_col_of_load]
+
+        return loads, row_col_of_load
