@@ -17,6 +17,7 @@ from .form import (
     Thicketforming,
 )
 from .photosynthesis import C3, C4, Cam
+from .check_objects import UnitTestChecks
 import numpy as np
 from sympy import symbols, diff, lambdify, log
 
@@ -115,16 +116,20 @@ class Species(object):
             msg = "Start of senescence must be within the growing season"
             raise ValueError(msg)
 
-    def calc_area_of_circle(diameter):
+    def calc_area_of_circle(self, diameter):
         return np.pi / 4 * diameter ** 2
 
-    def calc_param_ratio(numerator, denominator):
+    def calc_param_ratio(self, numerator, denominator):
         return numerator / denominator
 
     def calculate_derived_params(self, species_params):
         morph_params = species_params["morph_params"]
+        print(f'morph_params {morph_params}')
         # grow_params = species_params["grow_params"]
         # Area of circle calcuations
+        # check for negative values
+        for m_params in ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]:
+            UnitTestChecks().is_negative_present(morph_params[m_params], m_params)
         species_params["morph_params"]["max_crown_area"] = self.calc_area_of_circle(
             diameter=morph_params["max_shoot_sys_width"]
         )

@@ -1,3 +1,6 @@
+import numpy as np
+import pytest
+
 from numpy.testing import assert_allclose
 from landlab.components.genveg.species import Species
 
@@ -32,3 +35,12 @@ def test_get_daily_nsc_concentration(example_input_params):
         assert_allclose(
             nsc_content_spring195_actual[part], nsc_content_195[part], rtol=0.0001
         )
+
+
+def test_caulate_dervied_params_error_message_raise(example_input_params):
+    species_object = create_species_object(example_input_params)
+    example_input_params["BTS"]["morph_params"]["max_shoot_sys_width"] = np.negative(
+        example_input_params["BTS"]["morph_params"]["max_shoot_sys_width"]
+    )
+    with pytest.raises(ValueError):
+        species_object.calc_area_of_circle(example_input_params["BTS"])
