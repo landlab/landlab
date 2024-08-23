@@ -3,9 +3,14 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_equal, assert_allclose
 
 from landlab.components.genveg.habit import Habit
+from landlab.components.genveg.species import Species
 
 
 def test_calc_canopy_area_from_shoot_width(example_input_params):
+    Species(
+        species_params=example_input_params["BTS"],
+        latitude=0.9074
+    )
     h = Habit(
         params=example_input_params['BTS'],
         green_parts=('leaf', 'stem')
@@ -28,6 +33,10 @@ def test_calc_canopy_area_from_shoot_width(example_input_params):
 
 
 def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
+    Species(
+        species_params=example_input_params["BTS"],
+        latitude=0.9074
+    )
     h = Habit(
         params=example_input_params['BTS'],
         green_parts=('leaf', 'stem')

@@ -24,7 +24,6 @@ def example_input_params():
                 "reproduction_end": 250,
                 "reproduction_start": 180,
                 "senescence_start": 273,
-                "senesce_rate": 0.028125
             },
             "grow_params": {
                 "glucose_requirement": {
