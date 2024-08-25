@@ -13,15 +13,12 @@ from landlab.io.esri_ascii import loads
 from landlab.io.esri_ascii import parse
 
 
-def test_parse_no_head():
+@pytest.mark.parametrize("with_data", (True, False))
+def test_parse_no_head(with_data):
     """Check if the file doesn't contain a header."""
     contents = "10 20 30"
-    header = parse(contents)
-    assert header == {}
-
-    header, data = parse(contents, with_data=True)
-    assert header == {}
-    assert_array_equal(data, [10, 20, 30])
+    with pytest.raises(EsriAsciiError):
+        parse(contents, with_data=with_data)
 
 
 def test_parse_no_body():
@@ -44,12 +41,11 @@ NODATA_VALUE -9999
         ("nodata_value", -9999),
     ]
 
-    header = parse(contents)
+    header = parse(contents, with_data=False)
     assert list(header.items()) == expected
 
-    header, data = parse(contents, with_data=True)
-    assert list(header.items()) == expected
-    assert_array_equal(data, [])
+    with pytest.raises(EsriAsciiError):
+        parse(contents, with_data=True)
 
 
 @pytest.mark.parametrize(
@@ -88,7 +84,7 @@ NODATA_VALUE -9999
 
     header, data = parse(contents, with_data=True)
     assert list(header.items()) == expected
-    assert_array_equal(data, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    assert_array_equal(data, [10, 11, 12, 7, 8, 9, 4, 5, 6, 1, 2, 3])
 
 
 @pytest.mark.parametrize(

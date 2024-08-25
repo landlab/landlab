@@ -21,6 +21,7 @@ from collections.abc import Callable
 from collections.abc import Generator
 from collections.abc import Iterable
 from typing import Literal
+from typing import NamedTuple
 from typing import TextIO
 from typing import overload
 
@@ -63,7 +64,7 @@ def dump(
     at : {"node", "patch", "corner", "cell"}, optional
         Where the field to be written is located on the grid.
     name : str or None, optional
-        The name of the file to be written. If ``None``, only the header
+        The name of the field to be written. If ``None``, only the header
         information will be written.
 
     Returns
@@ -134,6 +135,7 @@ def load(
     stream: TextIO,
     at: str = "node",
     name: str | None = None,
+    out: RasterModelGrid | None = None,
 ) -> RasterModelGrid:
     """Parse a RasterModelGrid from a ESRI ASCII format stream.
 
@@ -147,6 +149,9 @@ def load(
         Name of the newly-created field. If `name` is
         not provided, the grid will be created but the
         data not added as a field.
+    out : RasterModelGrid, optional
+        Place the data from the file onto an existing grid. If not
+        provided, create a new grid.
 
     Returns
     -------
@@ -154,7 +159,7 @@ def load(
         A newly-created ``RasterModelGrid`` with, optionaly, the data added
         as a field (if `name` was provided).
     """
-    return loads(stream.read(), at=at, name=name)
+    return loads(stream.read(), at=at, name=name, out=out)
 
 
 def loads(
@@ -278,9 +283,172 @@ def loads(
         )
 
     if name is not None:
-        getattr(grid, f"at_{at}")[name] = np.flipud(data.reshape(header.shape))
+        getattr(grid, f"at_{at}")[name] = data
 
     return grid
+
+
+def _header_to_grid_args(info: dict[str, int | float], at: str):
+    header = _Header(**info)
+
+    shape = np.asarray(header.shape)
+    if at in ("corner", "patch"):
+        shape += 1
+    elif at == "cell":
+        shape += 2
+
+    shift = header.cell_size * _get_lower_left_shift(at=at, ref=header.lower_left_ref)
+    # xy_of_lower_left = np.asarray(header.lower_left) + shift
+
+    return {
+        "shape": tuple(shape),
+        "xy_spacing": (header.cell_size, header.cell_size),
+        "xy_of_lower_left": tuple(np.asarray(header.lower_left) + shift),
+    }
+
+
+class RasterGridArgs(NamedTuple):
+    shape: tuple[int, int]
+    xy_spacing: tuple[float, float]
+    xy_of_lower_left: tuple[float, float]
+
+
+@overload
+def lazy_load(stream: TextIO, at: str = "node", name: None = ...) -> RasterGridArgs: ...
+
+
+@overload
+def lazy_load(
+    stream: TextIO, at: str = "node", name: str = ...
+) -> tuple[RasterGridArgs, NDArray]: ...
+
+
+def lazy_load(
+    stream: TextIO,
+    at: str = "node",
+    name: str | None = None,
+) -> RasterGridArgs | tuple[RasterGridArgs, NDArray]:
+    """Parse a RasterModelGrid from a ESRI ASCII format stream.
+
+    Parameters
+    ----------
+    stream : file_like
+        A text stream in ESRI ASCII format.
+    at : {'node', 'patch', 'corner', 'cell'}, optional
+        Location on the grid where data are placed.
+    name : str, optional
+        Name of the newly-created field. If `name` is
+        not provided, the grid will be created but the
+        data not added as a field.
+
+    Returns
+    -------
+    RasterGridArgs
+        The header metadata
+    NDArray, optional
+        The data as a numpy array.
+    """
+    return lazy_loads(stream.read(), at=at, name=name)
+
+
+@overload
+def lazy_loads(s: str, at: str = "node", name: None = ...) -> RasterGridArgs: ...
+
+
+@overload
+def lazy_loads(
+    s: str, at: str = "node", name: str = ...
+) -> tuple[RasterGridArgs, NDArray]: ...
+
+
+def lazy_loads(
+    s: str,
+    at: str = "node",
+    name: str | None = None,
+    out: RasterModelGrid | None = None,
+) -> RasterGridArgs | tuple[RasterGridArgs, NDArray]:
+    """Parse a ESRI ASCII formatted string.
+
+    Parameters
+    ----------
+    s : str
+        A string in ESRI ASCII format.
+    at : {'node', 'patch', 'corner', 'cell'}, optional
+        Location on the grid where data are placed.
+    name : str, optional
+        Name of the newly-created field. If `name` is
+        not provided, the grid will be created but the
+        data not added to the grid as a field.
+    out : RasterModelGrid, optional
+        Place the data from the file onto an existing grid. If not
+        provided, create a new grid.
+
+    Returns
+    -------
+    RasterGridArgs
+        The header metadata
+    NDArray, optional
+        The data as a numpy array.
+
+    Examples
+    --------
+    >>> from landlab.io.esri_ascii import lazy_loads
+    >>> from landlab import RasterModelGrid
+
+    >>> contents = '''
+    ... NROWS 1
+    ... NCOLS 2
+    ... XLLCORNER -2.0
+    ... YLLCORNER 4.0
+    ... CELLSIZE 2.0
+    ... NODATA_VALUE -9999
+    ... 10 20
+    ... '''.lstrip()
+    >>> args, data = lazy_loads(contents, at="cell", name="foo")
+    >>> args
+    RasterGridArgs(shape=(3, 4), xy_spacing=(2.0, 2.0), xy_of_lower_left=(-3.0, 3.0))
+    >>> data
+    array([10., 20.])
+
+    >>> grid = RasterModelGrid(*args)
+    >>> grid.at_cell["foo"] = data
+
+    >>> contents = '''
+    ... NROWS 3
+    ... NCOLS 4
+    ... XLLCORNER -3.0
+    ... YLLCORNER 3.0
+    ... CELLSIZE 2.0
+    ... NODATA_VALUE -9999
+    ... 1 2 3 4
+    ... 5 6 7 8
+    ... 9 10 11 12
+    ... '''.lstrip()
+    >>> args, data = lazy_loads(contents, at="node", name="foo", out=grid)
+    >>> args
+    RasterGridArgs(shape=(3, 4), xy_spacing=(2.0, 2.0), xy_of_lower_left=(-3.0, 3.0))
+    >>> data
+    array([ 9., 10., 11., 12.,  5.,  6.,  7.,  8.,  1.,  2.,  3.,  4.])
+
+    >>> grid.at_cell["foo"]
+    array([10., 20.])
+    >>> grid.at_node["foo"]
+    array([ 9., 10., 11., 12.,  5.,  6.,  7.,  8.,  1.,  2.,  3.,  4.])
+    """
+    if name is None:
+        info = parse(s, with_data=False)
+    else:
+        info, data = parse(s, with_data=True)
+
+    args = RasterGridArgs(**_header_to_grid_args(info, at=at))
+
+    if name is not None:
+        if out is not None:
+            grid = validate_grid(out, *args)
+            getattr(grid, f"at_{at}")[name] = data
+        return args, data
+    else:
+        return args
 
 
 @overload
@@ -334,7 +502,7 @@ def parse(
                  'nodata_value': -9999.0})
     >>> info, data = parse(contents, with_data=True)
     >>> data
-    array([10., 20., 30., 40., 50., 60.])
+    array([40., 50., 60., 10., 20., 30.])
     """
     lines = s.splitlines()
 
@@ -349,14 +517,21 @@ def parse(
     if start_of_data is None:
         header, body = lines, []
     else:
-        header = lines[:start_of_data]
-        body = lines[start_of_data:]
+        header, body = lines[:start_of_data], lines[start_of_data:]
+
+    if not header:
+        raise EsriAsciiError("missing header")
+    if with_data and not body:
+        raise EsriAsciiError("missing data")
 
     info = OrderedDict(_Header.parse_header_line(line) for line in header)
 
+    validated_info = _Header(**info)
+
     if with_data:
-        data = np.loadtxt([" ".join(body)]) if body else np.asarray([])
-        return info, data
+        data = np.loadtxt([" ".join(body)]).reshape(validated_info.shape)
+
+        return info, np.flipud(data).reshape((-1,))
     else:
         return info
 
@@ -364,7 +539,7 @@ def parse(
 def validate_grid(
     grid: RasterModelGrid,
     shape: ArrayLike | None = None,
-    xy_spacing: float | None = None,
+    xy_spacing: float | tuple[float, float] | None = None,
     xy_of_lower_left: tuple[float, float] | None = None,
 ) -> RasterModelGrid:
     if not isinstance(grid, RasterModelGrid):
