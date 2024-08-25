@@ -493,13 +493,14 @@ def parse(
     ... 10 20 30
     ... 40 50 60
     ... '''.lstrip()
-    >>> parse(contents)
-    OrderedDict({'nrows': 2,
-                 'ncols': 3,
-                 'xllcorner': -2.0,
-                 'yllcorner': 4.0,
-                 'cellsize': 2.0,
-                 'nodata_value': -9999.0})
+    >>> list(parse(contents).items())
+    [('nrows', 2),
+     ('ncols', 3),
+     ('xllcorner', -2.0),
+     ('yllcorner', 4.0),
+     ('cellsize', 2.0),
+     ('nodata_value', -9999.0)]
+
     >>> info, data = parse(contents, with_data=True)
     >>> data
     array([40., 50., 60., 10., 20., 30.])
