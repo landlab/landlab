@@ -186,7 +186,7 @@ cpdef update_link_states_and_transitions(
     int8_t [:] bnd_lnk,
     id_t [:] link_state,
     id_t [:] n_xn,
-    event_queue,
+    Event [:] event_queue,
     cython.floating [:] next_update,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -194,7 +194,7 @@ cpdef update_link_states_and_transitions(
     long num_node_states_sq,
     double current_time,
     int8_t [:, :] xn_propswap,
-    np.ndarray[object, ndim=2] xn_prop_update_fn,
+    object [:, :] xn_prop_update_fn,
 ):
     """
     Following an "external" change to the node state grid, updates link
@@ -350,7 +350,7 @@ cpdef get_next_event(
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
     int8_t [:, :] xn_propswap,
-    xn_prop_update_fn,
+    object [:, :] xn_prop_update_fn,
 ):
     """Get the next event for a link.
 
@@ -527,12 +527,12 @@ cdef void update_link_state(
     long num_node_states_sq,
     id_t [:] link_state,
     id_t [:] n_xn,
-    event_queue,
+    Event [:] event_queue,
     cython.floating [:] next_update,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
     int8_t [:, :] xn_propswap,
-    np.ndarray[object, ndim=2] xn_prop_update_fn,
+    object [:, :] xn_prop_update_fn,
 ):
     """
     Implements a link transition by updating the current state of the link
@@ -659,7 +659,7 @@ cdef void do_transition(
     uint8_t [:] status_at_node,
     int8_t [:] link_orientation,
     id_t [:] propid,
-    object prop_data,
+    cython.integral [:] prop_data,
     id_t [:] n_xn,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -667,12 +667,11 @@ cdef void do_transition(
     const int8_t [:, :] active_link_dirs_at_node,
     long num_node_states,
     long num_node_states_sq,
-    prop_reset_value,
+    long prop_reset_value,
     int8_t [:, :] xn_propswap,
-    # xn_prop_update_fn,
-    np.ndarray[object, ndim=2] xn_prop_update_fn,
+    object [:, :] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
-    event_queue,
+    Event [:] event_queue,
     this_cts_model,
     plot_each_transition=False,
     plotter=None,
@@ -885,9 +884,9 @@ cpdef void do_transition_new(
     const int8_t [:, :] active_link_dirs_at_node,
     int8_t [:] trn_propswap,
     id_t [:] propid,
-    object prop_data,
-    prop_reset_value,
-    object trn_prop_update_fn,
+    cython.integral [:] prop_data,
+    long prop_reset_value,
+    object [:] trn_prop_update_fn,
     object this_cts_model,
     plot_each_transition=False,
     plotter=None,
@@ -1133,9 +1132,9 @@ cpdef double run_cts_new(
     const int8_t [:, :] active_link_dirs_at_node,
     int8_t [:] trn_propswap,
     id_t [:] propid,
-    object prop_data,
-    prop_reset_value,
-    trn_prop_update_fn,
+    cython.integral [:] prop_data,
+    long prop_reset_value,
+    object [:] trn_prop_update_fn,
     this_cts_model,
     char plot_each_transition,
     object plotter,
@@ -1217,7 +1216,7 @@ cpdef double run_cts(
     double current_time,
     char plot_each_transition,
     object plotter,
-    object event_queue,
+    Event [:] event_queue,
     cython.floating [:] next_update,
     id_t [:] node_at_link_tail,
     id_t [:] node_at_link_head,
@@ -1226,7 +1225,7 @@ cpdef double run_cts(
     uint8_t [:] status_at_node,
     int8_t [:] link_orientation,
     id_t [:] propid,
-    object prop_data,
+    cython.integral [:] prop_data,
     id_t [:] n_xn,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -1234,9 +1233,9 @@ cpdef double run_cts(
     const int8_t [:, :] active_link_dirs_at_node,
     long num_node_states,
     long num_node_states_sq,
-    prop_reset_value,
+    long prop_reset_value,
     int8_t [:, :] xn_propswap,
-    np.ndarray[object, ndim=2] xn_prop_update_fn,
+    object [:, :] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
     this_cts_model,
 ):
@@ -1257,7 +1256,7 @@ cpdef double run_cts(
     cdef Event ev
 
     # Continue until we've run out of either time or events
-    while current_time < run_to and event_queue:
+    while current_time < run_to and len(event_queue) > 0:
 
         # Is there an event scheduled to occur within this run?
         if event_queue[0].time <= run_to:
@@ -1390,7 +1389,7 @@ cdef void update_link_state_lean(
     long num_node_states_sq,
     id_t [:] link_state,
     id_t [:] n_xn,
-    event_queue,
+    Event [:] event_queue,
     cython.floating [:] next_update,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -1453,7 +1452,7 @@ cdef void do_transition_lean(
     long num_node_states,
     long num_node_states_sq,
     int8_t [:] bnd_lnk,
-    object event_queue,
+    Event [:] event_queue,
 ):
     """Transition state.
 
@@ -1613,7 +1612,7 @@ cdef void do_transition_lean(
 cpdef double run_cts_lean(
     double run_to,
     double current_time,
-    object event_queue,
+    Event [:] event_queue,
     cython.floating [:] next_update,
     id_t [:] node_at_link_tail,
     id_t [:] node_at_link_head,
@@ -1642,7 +1641,7 @@ cpdef double run_cts_lean(
     cdef Event ev
 
     # Continue until we've run out of either time or events
-    while current_time < run_to and event_queue:
+    while current_time < run_to and len(event_queue) > 0:
 
         # Is there an event scheduled to occur within this run?
         if event_queue[0].time <= run_to:
