@@ -471,8 +471,8 @@ class CellLabCTSModel:
         # are tracked.
         self.propid = np.arange(self.grid.number_of_nodes)
         if prop_data is None:
-            self.prop_data = np.zeros(self.grid.number_of_nodes)
-            self.prop_reset_value = 0.0
+            self.prop_data = np.zeros(self.grid.number_of_nodes, dtype=int)
+            self.prop_reset_value = 0
         else:
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
