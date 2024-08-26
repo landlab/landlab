@@ -21,6 +21,12 @@ ctypedef fused id_t:
     long long
 
 
+ctypedef fused int_or_float_t:
+    cython.floating
+    cython.integral
+    long long
+
+
 cdef double _NEVER = 1.0e50
 cdef int _CORE = NodeStatus.CORE
 cdef char _DEBUG = 0
@@ -659,7 +665,7 @@ cdef void do_transition(
     uint8_t [:] status_at_node,
     int8_t [:] link_orientation,
     id_t [:] propid,
-    cython.integral [:] prop_data,
+    int_or_float_t [:] prop_data,
     id_t [:] n_xn,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -667,7 +673,7 @@ cdef void do_transition(
     const int8_t [:, :] active_link_dirs_at_node,
     long num_node_states,
     long num_node_states_sq,
-    long prop_reset_value,
+    int_or_float_t prop_reset_value,
     int8_t [:, :] xn_propswap,
     object [:, :] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
@@ -884,8 +890,8 @@ cpdef void do_transition_new(
     const int8_t [:, :] active_link_dirs_at_node,
     int8_t [:] trn_propswap,
     id_t [:] propid,
-    cython.integral [:] prop_data,
-    long prop_reset_value,
+    int_or_float_t [:] prop_data,
+    int_or_float_t prop_reset_value,
     object [:] trn_prop_update_fn,
     object this_cts_model,
     plot_each_transition=False,
@@ -1132,8 +1138,8 @@ cpdef double run_cts_new(
     const int8_t [:, :] active_link_dirs_at_node,
     int8_t [:] trn_propswap,
     id_t [:] propid,
-    cython.integral [:] prop_data,
-    long prop_reset_value,
+    int_or_float_t [:] prop_data,
+    int_or_float_t prop_reset_value,
     object [:] trn_prop_update_fn,
     this_cts_model,
     char plot_each_transition,
@@ -1225,7 +1231,7 @@ cpdef double run_cts(
     uint8_t [:] status_at_node,
     int8_t [:] link_orientation,
     id_t [:] propid,
-    cython.integral [:] prop_data,
+    int_or_float_t [:] prop_data,
     id_t [:] n_xn,
     id_t [:, :] xn_to,
     cython.floating [:, :] xn_rate,
@@ -1233,7 +1239,7 @@ cpdef double run_cts(
     const int8_t [:, :] active_link_dirs_at_node,
     long num_node_states,
     long num_node_states_sq,
-    long prop_reset_value,
+    int_or_float_t prop_reset_value,
     int8_t [:, :] xn_propswap,
     object [:, :] xn_prop_update_fn,
     int8_t [:] bnd_lnk,
