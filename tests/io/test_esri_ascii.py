@@ -5,20 +5,15 @@ from numpy.testing import assert_array_equal
 from landlab import HexModelGrid
 from landlab import RasterModelGrid
 from landlab.field.errors import FieldError
-from landlab.io.esri_ascii import BadHeaderError
-from landlab.io.esri_ascii import EsriAsciiError
-from landlab.io.esri_ascii import dump
-from landlab.io.esri_ascii import load
-from landlab.io.esri_ascii import loads
-from landlab.io.esri_ascii import parse
+from landlab.io import esri_ascii
 
 
 @pytest.mark.parametrize("with_data", (True, False))
 def test_parse_no_head(with_data):
     """Check if the file doesn't contain a header."""
     contents = "10 20 30"
-    with pytest.raises(EsriAsciiError):
-        parse(contents, with_data=with_data)
+    with pytest.raises(esri_ascii.EsriAsciiError):
+        esri_ascii.parse(contents, with_data=with_data)
 
 
 def test_parse_no_body():
@@ -41,11 +36,11 @@ NODATA_VALUE -9999
         ("nodata_value", -9999),
     ]
 
-    header = parse(contents, with_data=False)
+    header = esri_ascii.parse(contents, with_data=False)
     assert list(header.items()) == expected
 
-    with pytest.raises(EsriAsciiError):
-        parse(contents, with_data=True)
+    with pytest.raises(esri_ascii.EsriAsciiError):
+        esri_ascii.parse(contents, with_data=True)
 
 
 @pytest.mark.parametrize(
@@ -79,10 +74,10 @@ NODATA_VALUE -9999
         ("nodata_value", -9999),
     ]
 
-    header = parse(contents, with_data=False)
+    header = esri_ascii.parse(contents, with_data=False)
     assert list(header.items()) == expected
 
-    header, data = parse(contents, with_data=True)
+    header, data = esri_ascii.parse(contents, with_data=True)
     assert list(header.items()) == expected
     assert_array_equal(data, [10, 11, 12, 7, 8, 9, 4, 5, 6, 1, 2, 3])
 
@@ -121,13 +116,13 @@ nrows {nrows}
 {yll} 2.0
 cellsize {cellsize}
 """
-    with pytest.raises(BadHeaderError):
-        loads(contents.format(**header))
+    with pytest.raises(esri_ascii.BadHeaderError):
+        esri_ascii.loads(contents.format(**header))
 
 
 def test_dump_to_string_no_data():
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
-    actual = dump(grid)
+    actual = esri_ascii.dump(grid)
 
     assert (
         actual
@@ -155,7 +150,7 @@ NODATA_VALUE -9999
 """
     with tmpdir.as_cwd():
         with open("foo.asc", "w") as fp:
-            assert dump(grid, stream=fp) is None
+            assert esri_ascii.dump(grid, stream=fp) is None
         with open("foo.asc") as fp:
             actual = fp.read()
         assert actual == expected
@@ -164,7 +159,7 @@ NODATA_VALUE -9999
 def test_dump_to_string_data_at_node():
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
     grid.at_node["foo"] = np.arange(12, dtype=int)
-    actual = dump(grid, at="node", name="foo")
+    actual = esri_ascii.dump(grid, at="node", name="foo")
 
     assert (
         actual
@@ -186,7 +181,7 @@ NODATA_VALUE -9999
 def test_dump_to_string_data_at_cell():
     grid = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(1.0, 2.0))
     grid.at_cell["foo"] = np.arange(2, dtype=int)
-    actual = dump(grid, at="cell", name="foo")
+    actual = esri_ascii.dump(grid, at="cell", name="foo")
 
     assert (
         actual
@@ -210,7 +205,9 @@ def test_dump_round_trip(at):
         grid.number_of_elements(at), dtype=float
     )
 
-    actual = loads(dump(grid, at=at, name="foo"), at=at, name="foo")
+    actual = esri_ascii.loads(
+        esri_ascii.dump(grid, at=at, name="foo"), at=at, name="foo"
+    )
 
     assert actual.shape == grid.shape
     assert actual.spacing == grid.spacing
@@ -239,7 +236,7 @@ cellsize 10.
             print(contents, file=fp)
 
         with open("foo.asc") as fp:
-            grid = load(fp, at=at, name=name)
+            grid = esri_ascii.load(fp, at=at, name=name)
 
     if name:
         assert name in getattr(grid, f"at_{at}")
@@ -264,7 +261,7 @@ cellsize 10.
 6. 7. 8.
 9. 10. 11.
 """
-    grid = loads(contents, at=at)
+    grid = esri_ascii.loads(contents, at=at)
 
     assert grid.number_of_elements(at) == 3 * 4
     assert grid.dx == 10.0
@@ -291,7 +288,7 @@ ncols 3
 nrows 4
 cellsize 10.0
 """
-    grid = loads(contents + lower_left, at=at)
+    grid = esri_ascii.loads(contents + lower_left, at=at)
     assert grid.xy_of_lower_left == (1.0, 2.0)
 
 
@@ -301,18 +298,18 @@ def test_dump_missing_field(at):
     grid.add_ones("foo", at=at)
 
     with pytest.raises(FieldError):
-        dump(grid, at=at, name="bar")
+        esri_ascii.dump(grid, at=at, name="bar")
 
 
 def test_dump_not_raster():
     grid = HexModelGrid((3, 4))
 
-    with pytest.raises(EsriAsciiError):
-        dump(grid)
+    with pytest.raises(esri_ascii.EsriAsciiError):
+        esri_ascii.dump(grid)
 
 
 def test_dump_unequal_spacing():
     grid = RasterModelGrid((4, 6), xy_spacing=(3, 4))
 
-    with pytest.raises(EsriAsciiError):
-        dump(grid)
+    with pytest.raises(esri_ascii.EsriAsciiError):
+        esri_ascii.dump(grid)

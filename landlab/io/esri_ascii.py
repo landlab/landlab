@@ -76,10 +76,10 @@ def dump(
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.io.esri_ascii import dump
+    >>> from landlab.io import esri_ascii
 
     >>> grid = RasterModelGrid((3, 4), xy_spacing=2.0)
-    >>> print(dump(grid, at="node"))
+    >>> print(esri_ascii.dump(grid, at="node"))
     NROWS 3
     NCOLS 4
     CELLSIZE 2.0
@@ -87,7 +87,7 @@ def dump(
     YLLCENTER 0.0
     NODATA_VALUE -9999
 
-    >>> print(dump(grid, at="cell"))
+    >>> print(esri_ascii.dump(grid, at="cell"))
     NROWS 1
     NCOLS 2
     CELLSIZE 2.0
@@ -192,7 +192,7 @@ def loads(
 
     Examples
     --------
-    >>> from landlab.io.esri_ascii import loads
+    >>> from landlab.io import esri_ascii
 
     >>> contents = '''
     ... NROWS 1
@@ -202,7 +202,7 @@ def loads(
     ... CELLSIZE 2.0
     ... NODATA_VALUE -9999
     ... '''.lstrip()
-    >>> grid = loads(contents, at="cell")
+    >>> grid = esri_ascii.loads(contents, at="cell")
     >>> grid.shape
     (3, 4)
     >>> grid.xy_of_lower_left
@@ -219,7 +219,7 @@ def loads(
     ... NODATA_VALUE -9999
     ... 10 11
     ... '''.lstrip()
-    >>> grid = loads(contents, at="cell", name="foo")
+    >>> grid = esri_ascii.loads(contents, at="cell", name="foo")
     >>> grid.shape
     (3, 4)
     >>> grid.xy_of_lower_left
@@ -240,7 +240,7 @@ def loads(
     ... 5 6 7 8
     ... 9 10 11 12
     ... '''.lstrip()
-    >>> grid = loads(contents, at="node", name="foo")
+    >>> grid = esri_ascii.loads(contents, at="node", name="foo")
     >>> contents = '''
     ... NROWS 1
     ... NCOLS 2
@@ -250,7 +250,7 @@ def loads(
     ... NODATA_VALUE -9999
     ... 10 20
     ... '''.lstrip()
-    >>> grid = loads(contents, at="cell", name="foo", out=grid)
+    >>> grid = esri_ascii.loads(contents, at="cell", name="foo", out=grid)
     >>> grid.at_node["foo"].reshape(grid.shape)
     array([[ 9., 10., 11., 12.],
            [ 5.,  6.,  7.,  8.],
@@ -392,8 +392,8 @@ def lazy_loads(
 
     Examples
     --------
-    >>> from landlab.io.esri_ascii import lazy_loads
     >>> from landlab import RasterModelGrid
+    >>> from landlab.io import esri_ascii
 
     >>> contents = '''
     ... NROWS 1
@@ -404,7 +404,7 @@ def lazy_loads(
     ... NODATA_VALUE -9999
     ... 10 20
     ... '''.lstrip()
-    >>> args, data = lazy_loads(contents, at="cell", name="foo")
+    >>> args, data = esri_ascii.lazy_loads(contents, at="cell", name="foo")
     >>> args
     RasterGridArgs(shape=(3, 4), xy_spacing=(2.0, 2.0), xy_of_lower_left=(-3.0, 3.0))
     >>> data
@@ -424,7 +424,7 @@ def lazy_loads(
     ... 5 6 7 8
     ... 9 10 11 12
     ... '''.lstrip()
-    >>> args, data = lazy_loads(contents, at="node", name="foo", out=grid)
+    >>> args, data = esri_ascii.lazy_loads(contents, at="node", name="foo", out=grid)
     >>> args
     RasterGridArgs(shape=(3, 4), xy_spacing=(2.0, 2.0), xy_of_lower_left=(-3.0, 3.0))
     >>> data
@@ -481,7 +481,7 @@ def parse(
 
     Examples
     --------
-    >>> from landlab.io.esri_ascii import parse
+    >>> from landlab.io import esri_ascii
 
     >>> contents = '''
     ... NROWS 2
@@ -493,7 +493,7 @@ def parse(
     ... 10 20 30
     ... 40 50 60
     ... '''.lstrip()
-    >>> list(parse(contents).items())
+    >>> list(esri_ascii.parse(contents).items())
     [('nrows', 2),
      ('ncols', 3),
      ('xllcorner', -2.0),
@@ -501,7 +501,7 @@ def parse(
      ('cellsize', 2.0),
      ('nodata_value', -9999.0)]
 
-    >>> info, data = parse(contents, with_data=True)
+    >>> info, data = esri_ascii.parse(contents, with_data=True)
     >>> data
     array([40., 50., 60., 10., 20., 30.])
     """
