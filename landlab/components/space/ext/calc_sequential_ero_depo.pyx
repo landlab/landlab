@@ -3,6 +3,7 @@ from libc.math cimport exp
 from libc.math cimport isinf
 from libc.math cimport log
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
     long long

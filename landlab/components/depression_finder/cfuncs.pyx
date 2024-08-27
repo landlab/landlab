@@ -2,6 +2,7 @@ cimport cython
 
 from landlab.core.messages import warning_message
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
     long long

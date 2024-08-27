@@ -8,6 +8,7 @@ from scipy.optimize import newton
 # method for using the brentq method in cython.
 from scipy.optimize._zeros import _brentq as brentq
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
     long long

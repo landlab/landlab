@@ -15,6 +15,7 @@ cdef extern from "math.h":
 
 from .spoke_sort import sort_spokes_at_wheel
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
     long long
