@@ -1,14 +1,17 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
+from cython.parallel cimport prange
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
-def fill_node_at_cell(shape, np.ndarray[DTYPE_t, ndim=1] node_at_cell):
+@cython.wraparound(False)
+def fill_node_at_cell(
+    shape,
+    id_t[:] node_at_cell,
+):
     """Get node contained in a cell.
 
     Parameters
@@ -18,18 +21,19 @@ def fill_node_at_cell(shape, np.ndarray[DTYPE_t, ndim=1] node_at_cell):
     node_at_cell : ndarray of int
         Buffer into which to place node identifiers.
     """
-    cdef int cell
-    cdef int cell_rows = shape[0] - 2
-    cdef int cell_cols = shape[1] - 2
-    cdef int node_cols = shape[1]
-    cdef int row_offset
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long cells_per_row = shape[1] - 2
+    cdef long first_node
+    cdef long cell
     cdef int row
     cdef int col
 
-    cell = 0
-    row_offset = shape[1] + 1
-    for row in range(cell_rows):
-        for col in range(cell_cols):
-            node_at_cell[cell] = row_offset + col
-            cell += 1
-        row_offset += node_cols
+    for row in prange(1, n_rows - 1, nogil=True, schedule="static"):
+        cell = (row - 1) * cells_per_row
+        first_node = row * n_cols + 1
+        for col in range(cells_per_row):
+            node_at_cell[cell] = first_node + col
+            cell = cell + 1
+
+    return node_at_cell

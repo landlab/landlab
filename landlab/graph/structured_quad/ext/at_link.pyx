@@ -1,124 +1,141 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
+from cython.parallel cimport prange
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
-
-
-@cython.boundscheck(False)
-def fill_horizontal_links(shape, np.ndarray[DTYPE_t, ndim=1] horizontal_links):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
-    cdef int link_stride = 2 * n_cols - 1
-    cdef int i, n, link
-
-    i = 0
-    for link in range(0, n_links, link_stride):
-        for n in range(n_cols - 1):
-            horizontal_links[i] = link + n
-            i += 1
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
-def fill_vertical_links(shape, np.ndarray[DTYPE_t, ndim=1] vertical_links):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int link_stride = 2 * n_cols - 1
-    cdef int n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
-    cdef int i, n, link
+@cython.wraparound(False)
+def fill_horizontal_links(
+    shape,
+    id_t [:] horizontal_links,
+):
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long horizontal_links_per_row = n_cols - 1
+    cdef long vertical_links_per_row = n_cols
+    cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
+    cdef long horizontal_link
+    cdef long link
+    cdef long row
+    cdef long col
 
-    i = 0
-    for link in range(n_cols - 1, n_links, link_stride):
-        for n in range(n_cols):
-            vertical_links[i] = link + n
-            i += 1
+    for row in prange(n_rows, nogil=True, schedule="static"):
+        link = row * links_per_row
+        horizontal_link = row * horizontal_links_per_row
+
+        for col in range(horizontal_links_per_row):
+            horizontal_links[horizontal_link + col] = link + col
 
 
+@cython.wraparound(False)
 @cython.boundscheck(False)
-def fill_patches_at_link(shape, np.ndarray[DTYPE_t, ndim=2] patches_at_link):
-    cdef int link
-    cdef int patch
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int patches_per_row = n_cols - 1
-    cdef int n_links = (2 * n_cols - 1) * n_rows - n_cols
+def fill_vertical_links(
+    shape,
+    id_t [:] vertical_links,
+):
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long horizontal_links_per_row = n_cols - 1
+    cdef long vertical_links_per_row = n_cols
+    cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
+    cdef long link
+    cdef long vertical_link
+    cdef long row
+    cdef long col
 
-    # Interior horizontal links
-    for row in range(1, n_rows - 1):
-        patch = patches_per_row * (row - 1)
-        link = (2 * n_cols - 1) * row
-        for link in range(link, link + n_cols - 1):
-            patches_at_link[link, 0] = patch
-            patches_at_link[link, 1] = patch + patches_per_row
-            patch += 1
+    for row in prange(n_rows - 1, nogil=True, schedule="static"):
+        link = row * links_per_row + horizontal_links_per_row
+        vertical_link = row * vertical_links_per_row
 
-    # Interior vertical links
-    for row in range(0, n_rows - 1):
-        patch = patches_per_row * row
-        link = n_cols + (2 * n_cols - 1) * row
-        for link in range(link, link + n_cols - 2):
-            patches_at_link[link, 0] = patch + 1
+        for col in range(n_cols):
+            vertical_links[vertical_link + col] = link + col
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def fill_patches_at_link(
+    shape,
+    id_t [:, :] patches_at_link,
+):
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long patches_per_row = n_cols - 1
+    cdef long horizontal_links_per_row = n_cols - 1
+    cdef long vertical_links_per_row = n_cols
+    cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
+    cdef long link
+    cdef long patch
+    cdef long row
+    cdef long col
+    cdef long first_link
+
+    for row in prange(n_rows - 1, nogil=True, schedule="static"):
+        first_link = row * links_per_row
+        patch = row * patches_per_row
+        for link in range(first_link, first_link + horizontal_links_per_row):
+            patches_at_link[link, 0] = patch - patches_per_row
             patches_at_link[link, 1] = patch
-            patch += 1
+            patch = patch + 1
 
-    # Left edge
-    patch = 0
-    for link in range(n_cols - 1, n_links, 2 * n_cols - 1):
-        patches_at_link[link, 0] = patch
-        patches_at_link[link, 1] = - 1
-        patch += patches_per_row
+        first_link = row * links_per_row + horizontal_links_per_row
+        patch = row * patches_per_row
+        for link in range(first_link, first_link + vertical_links_per_row):
+            patches_at_link[link, 0] = patch
+            patches_at_link[link, 1] = patch - 1
+            patch = patch + 1
+        patches_at_link[first_link, 1] = - 1
+        patches_at_link[first_link + vertical_links_per_row - 1, 0] = - 1
 
-    # Right edge
-    patch = patches_per_row - 1
-    for link in range(2 * n_cols - 2, n_links, 2 * n_cols - 1):
-        patches_at_link[link, 0] = - 1
-        patches_at_link[link, 1] = patch
-        patch += patches_per_row
+    # Bottom row
+    for link in prange(horizontal_links_per_row, nogil=True, schedule="static"):
+        patches_at_link[link, 0] = -1
 
-    # Bottom edge
-    patch = 0
-    for link in range(n_cols - 1):
-        patches_at_link[link, 0] = - 1
-        patches_at_link[link, 1] = patch
-        patch += 1
-
-    # Top edge
-    patch = patches_per_row * (n_rows - 2)
-    for link in range(n_links - (n_cols - 1), n_links):
-        patches_at_link[link, 0] = patch
-        patches_at_link[link, 1] = - 1
-        patch += 1
+    # Top row
+    first_link = (n_rows - 1) * links_per_row
+    patch = (n_rows - 2) * patches_per_row
+    for col in prange(horizontal_links_per_row, nogil=True, schedule="static"):
+        patches_at_link[first_link + col, 0] = patch + col
+        patches_at_link[first_link + col, 1] = -1
 
 
+@cython.wraparound(False)
 @cython.boundscheck(False)
-def fill_nodes_at_link(shape, np.ndarray[DTYPE_t, ndim=2] nodes_at_link):
-    cdef int row, col
-    cdef int link
-    cdef int node
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int n_links = (2 * n_cols - 1) * n_rows - n_cols
-    cdef int links_per_row = 2 * n_cols - 1
+def fill_nodes_at_link(
+    shape,
+    id_t [:, :] nodes_at_link,
+):
+    cdef long row
+    cdef long col
+    cdef long link
+    cdef long node
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long horizontal_links_per_row = n_cols - 1
+    cdef long vertical_links_per_row = n_cols
+    cdef long links_per_row = horizontal_links_per_row + vertical_links_per_row
 
-    # Horizontal links
-    for row in range(n_rows):
+    for row in prange(n_rows - 1, nogil=True, schedule="static"):
         node = row * n_cols
         link = row * links_per_row
-        for col in range(n_cols - 1):
+
+        for col in range(horizontal_links_per_row):
             nodes_at_link[link, 0] = node
             nodes_at_link[link, 1] = node + 1
-            node += 1
-            link += 1
+            node = node + 1
+            link = link + 1
 
-    # Vertical links
-    for row in range(0, n_rows - 1):
         node = row * n_cols
-        link = row * links_per_row + n_cols - 1
-        for col in range(n_cols):
+        for col in range(vertical_links_per_row):
             nodes_at_link[link, 0] = node
             nodes_at_link[link, 1] = node + n_cols
-            node += 1
-            link += 1
+            node = node + 1
+            link = link + 1
+
+    node = (n_rows - 1) * n_cols
+    link = (n_rows - 1) * links_per_row
+    for col in prange(horizontal_links_per_row, nogil=True, schedule="static"):
+        nodes_at_link[link + col, 0] = node + col
+        nodes_at_link[link + col, 1] = node + col + 1

@@ -52,11 +52,11 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     >>> mg.at_node["flow__distance"]
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  1.        ,  0.        ,  0.        ,
-            0.        ,  1.41421356,  1.        ,  0.        ,
-            0.        ,  2.41421356,  2.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ])
+    array([0.        ,  0.        ,  0.        ,  0.        ,
+           0.        ,  1.        ,  0.        ,  0.        ,
+           0.        ,  1.41421356,  1.        ,  0.        ,
+           0.        ,  2.41421356,  2.        ,  0.        ,
+           0.        ,  0.        ,  0.        ,  0.        ])
 
     Now, let's change to D4 the flow_director method, which does not
     consider diagonal links bewtween nodes.
@@ -82,11 +82,11 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     >>> mg.at_node["flow__distance"]
-    array([ 0.,  0.,  0.,  0.,
-            0.,  1.,  0.,  0.,
-            0.,  2.,  1.,  0.,
-            0.,  3.,  2.,  0.,
-            0.,  0.,  0.,  0.])
+    array([0.,  0.,  0.,  0.,
+           0.,  1.,  0.,  0.,
+           0.,  2.,  1.,  0.,
+           0.,  3.,  2.,  0.,
+           0.,  0.,  0.,  0.])
 
     The flow__distance utility can also work on irregular grids. For the example we
     will use a Hexagonal Model Grid, a special type of Voroni Grid that has
@@ -108,11 +108,11 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(hmg, add_to_grid=True, clobber=True)
     >>> hmg.at_node["flow__distance"]
-    array([ 0.,  0.,  0.,
-            0.,  1.,  2.,  0.,
-            0.,  2.,  2.,  3.,  0.,
-            0.,  3.,  3.,  0.,
-            0.,  0.,  0.])
+    array([0.,  0.,  0.,
+           0.,  1.,  2.,  0.,
+           0.,  2.,  2.,  3.,  0.,
+           0.,  3.,  3.,  0.,
+           0.,  0.,  0.])
     """
     # check that flow__receiver nodes exists
     if "flow__receiver_node" not in grid.at_node:

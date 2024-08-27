@@ -1,16 +1,18 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
+from cython.parallel cimport prange
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
-def fill_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                        np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                        np.ndarray[DTYPE_t, ndim=2] out):
+@cython.wraparound(False)
+def fill_links_at_patch(
+    const id_t [:] links_at_patch,
+    const id_t [:] offset_to_patch,
+    id_t [:, :] out,
+):
     cdef int i
     cdef int link
     cdef int patch
@@ -18,11 +20,11 @@ def fill_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
     cdef int n_links
     cdef int n_patches = len(offset_to_patch) - 1
 
-    for patch in range(n_patches):
+    for patch in prange(n_patches, nogil=True, schedule="static"):
         offset = offset_to_patch[patch]
         n_links = offset_to_patch[patch + 1] - offset
 
         link = 0
         for i in range(offset, offset + n_links):
-          out[patch, link] = links_at_patch[i]
-          link += 1
+            out[patch, link] = links_at_patch[i]
+            link = link + 1

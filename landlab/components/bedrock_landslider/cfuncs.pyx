@@ -9,6 +9,7 @@ ctypedef np.int_t DTYPE_INT_t
 DTYPE_FLOAT = np.float64
 ctypedef np.float64_t DTYPE_FLOAT_t
 
+
 @cython.boundscheck(False)
 cpdef _landslide_runout(
     DTYPE_FLOAT_t dx,
@@ -27,14 +28,15 @@ cpdef _landslide_runout(
 ):
     """
     Calculate landslide runout using a non-local deposition algorithm, see:
-        * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
-          (2020) HyLands 1.0: a hybrid landscape evolution model to simulate
-          the impact of landslides and landslide-derived sediment on landscape
-          evolution. Geosci Model Dev: 13(9):3863–86.
+
+    * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
+      (2020) HyLands 1.0: a hybrid landscape evolution model to simulate
+      the impact of landslides and landslide-derived sediment on landscape
+      evolution. Geosci Model Dev: 13(9):3863–86.
     """
     # define internal variables
     cdef int donor, rcvr, r
-    cdef double accum, proportion, dH
+    cdef double proportion, dH
 
     # Iterate backward through the stack, which means we work from upstream to
     # downstream.
@@ -52,8 +54,14 @@ cpdef _landslide_runout(
         for r in range(receivers.shape[1]):
             rcvr = receivers[donor, r]
 
-            max_D_angle = H_i_temp[donor] - min_deposition_slope*length_adjacent_cells[r] - H_i_temp[rcvr]
-            max_D[rcvr] = min(max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr]),max_D_angle)
+            max_D_angle = (
+                H_i_temp[donor]
+                - min_deposition_slope * length_adjacent_cells[r]
+                - H_i_temp[rcvr]
+            )
+            max_D[rcvr] = min(
+                max(max_D[rcvr], H_i_temp[donor] - H_i_temp[rcvr]), max_D_angle
+            )
 
             proportion = fract[donor, r]
             if proportion > 0. and donor != rcvr:

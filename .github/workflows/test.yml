@@ -2,15 +2,9 @@ name: Test
 
 on: [push, pull_request]
 
-# on:
-#   push:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
-#   pull_request:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -56,7 +50,7 @@ jobs:
 
       - name: Install and test richdem engine
         run: |
-          conda install richdem -c conda-forge
+          conda install richdem "numpy<2" -c conda-forge
           python -c 'import _richdem'
 
       - name: Test

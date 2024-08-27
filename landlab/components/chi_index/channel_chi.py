@@ -40,7 +40,7 @@ class ChiFinder(Component):
     >>> fr.run_one_step()
     >>> cf.calculate_chi()
     >>> mg.at_node["channel__chi_index"].reshape(mg.shape)[1, :]
-    array([ 0.5,  1. ,  2. ,  0. ])
+    array([0.5, 1. , 2. , 0. ])
 
     >>> mg2 = RasterModelGrid((5, 5), xy_spacing=100.0)
     >>> for nodes in (
@@ -68,11 +68,11 @@ class ChiFinder(Component):
     >>> fr2.run_one_step()
     >>> cf2.calculate_chi()
     >>> mg2.at_node["channel__chi_index"].reshape(mg2.shape)
-    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ],
-           [ 0.77219416,  1.54438833,  2.63643578,  2.61419437,  0.        ],
-           [ 1.09204746,  2.18409492,  1.52214691,  2.61419437,  0.        ],
-           [ 0.44582651,  0.89165302,  1.66384718,  2.75589464,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
+    array([[0.        , 0.        , 0.        , 0.        , 0.        ],
+           [0.77219416, 1.54438833, 2.63643578, 2.61419437, 0.        ],
+           [1.09204746, 2.18409492, 1.52214691, 2.61419437, 0.        ],
+           [0.44582651, 0.89165302, 1.66384718, 2.75589464, 0.        ],
+           [0.        , 0.        , 0.        , 0.        , 0.        ]])
 
     >>> cf3 = ChiFinder(
     ...     mg2,
@@ -84,17 +84,17 @@ class ChiFinder(Component):
     ... )
     >>> cf3.calculate_chi()
     >>> cf3.chi_indices.reshape(mg2.shape)
-    array([[   0. ,   0.        ,   0.        ,   0. ,   0. ],
-           [   0. , 173.20508076,   0.        ,   0. ,   0. ],
-           [   0. ,   0.        , 270.71067812,   0. ,   0. ],
-           [   0. , 100.        , 236.60254038,   0. ,   0. ],
-           [   0. ,   0.        ,   0.        ,   0. ,   0. ]])
+    array([[  0. ,   0.        ,   0.        ,   0. ,  0. ],
+           [  0. , 173.20508076,   0.        ,   0. ,  0. ],
+           [  0. ,   0.        , 270.71067812,   0. ,  0. ],
+           [  0. , 100.        , 236.60254038,   0. ,  0. ],
+           [  0. ,   0.        ,   0.        ,   0. ,  0. ]])
     >>> cf3.hillslope_mask.reshape(mg2.shape)
     array([[ True,  True,  True,  True,  True],
            [False, False,  True,  True,  True],
            [ True,  True, False,  True,  True],
            [False, False, False,  True,  True],
-           [ True,  True,  True,  True,  True]], dtype=bool)
+           [ True,  True,  True,  True,  True]])
 
     References
     ----------
@@ -323,11 +323,11 @@ class ChiFinder(Component):
         >>> chi_array = np.zeros(mg.number_of_nodes, dtype=float)
         >>> cf.integrate_chi_avg_dx(ch_nodes, ch_integrand, chi_array, 0.5)
         >>> chi_array.reshape(mg.shape)
-        array([[ 0. ,  0. ,  0. ,  0. ],
-               [ 1.5,  3. ,  4.5,  0. ],
-               [ 1.5,  3. ,  4.5,  0. ],
-               [ 1.5,  3. ,  4.5,  0. ],
-               [ 0. ,  0. ,  0. ,  0. ]])
+        array([[0. , 0. , 0. , 0. ],
+               [1.5, 3. , 4.5, 0. ],
+               [1.5, 3. , 4.5, 0. ],
+               [1.5, 3. , 4.5, 0. ],
+               [0. , 0. , 0. , 0. ]])
         """
         receivers = self._grid.at_node["flow__receiver_node"]
         # because chi_array is all zeros, BC cases where node is receiver
@@ -381,11 +381,11 @@ class ChiFinder(Component):
         >>> chi_array = np.zeros(mg.number_of_nodes, dtype=float)
         >>> cf.integrate_chi_each_dx(ch_nodes, ch_integrand, chi_array)
         >>> chi_array.reshape(mg.shape)
-        array([[  0.        ,   0.        ,   0.        ,   0.        ],
-               [  0.        ,   6.        ,  14.48528137,   0.        ],
-               [  0.        ,   6.        ,  12.        ,   0.        ],
-               [  0.        ,   6.        ,  14.48528137,   0.        ],
-               [  0.        ,   0.        ,   0.        ,   0.        ]])
+        array([[ 0.        ,  0.        ,  0.        ,  0.        ],
+               [ 0.        ,  6.        , 14.48528137,  0.        ],
+               [ 0.        ,  6.        , 12.        ,  0.        ],
+               [ 0.        ,  6.        , 14.48528137,  0.        ],
+               [ 0.        ,  0.        ,  0.        ,  0.        ]])
         >>> from landlab.components import FastscapeEroder
         >>> mg2 = RasterModelGrid((5, 5), xy_spacing=100.0)
         >>> for nodes in (
@@ -420,11 +420,11 @@ class ChiFinder(Component):
         ...     output_array,
         ... )
         >>> output_array.reshape(mg2.shape)
-        array([[   0. ,    0. ,    0.        ,    0.        ,    0. ],
-               [   0. ,  100. ,  200.        ,  382.84271247,    0. ],
-               [   0. ,  100. ,  241.42135624,  341.42135624,    0. ],
-               [   0. ,  100. ,  200.        ,  300.        ,    0. ],
-               [   0. ,    0. ,    0.        ,    0.        ,    0. ]])
+        array([[  0. ,   0. ,   0.        ,   0.        ,   0. ],
+               [  0. , 100. , 200.        , 382.84271247,   0. ],
+               [  0. , 100. , 241.42135624, 341.42135624,   0. ],
+               [  0. , 100. , 200.        , 300.        ,   0. ],
+               [  0. ,   0. ,   0.        ,   0.        ,   0. ]])
         """
         receivers = self._grid.at_node["flow__receiver_node"]
         links = self._grid.at_node["flow__link_to_receiver_node"]
@@ -534,7 +534,7 @@ class ChiFinder(Component):
         >>> fr.run_one_step()
         >>> cf.calculate_chi()
         >>> mg.at_node["channel__chi_index"].reshape(mg.shape)[1, :]
-        array([ 0.5,  1. ,  2. ,  0. ])
+        array([0.5, 1. , 2. , 0. ])
         >>> coeffs = cf.best_fit_chi_elevation_gradient_and_intercept()
         >>> np.allclose(np.array([1.0, 0.0]), coeffs)
         True

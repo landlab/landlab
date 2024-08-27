@@ -83,9 +83,9 @@ class SpeciesEvolver(Component):
     >>> mg = RasterModelGrid((3, 7), 1000)
     >>> z = mg.add_ones("topographic__elevation", at="node")
     >>> z.reshape(mg.shape)
-    array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+    array([[1., 1., 1., 1., 1., 1., 1.],
+           [1., 1., 1., 1., 1., 1., 1.],
+           [1., 1., 1., 1., 1., 1., 1.]])
 
     Instantiate the component with the grid as the first parameter.
 
@@ -122,7 +122,7 @@ class SpeciesEvolver(Component):
     >>> zc.zones[0].mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True,  True,  True,  True,  True,  True,  True,
-            True,  True,  True], dtype=bool)
+            True,  True,  True])
 
     Populate a taxon to the zone.
 
@@ -150,9 +150,9 @@ class SpeciesEvolver(Component):
 
     >>> z[[3, 10, 17]] = 200
     >>> z.reshape(mg.shape)
-    array([[   1.,    1.,    1.,  200.,    1.,    1.,    1.],
-           [   1.,    1.,    1.,  200.,    1.,    1.,    1.],
-           [   1.,    1.,    1.,  200.,    1.,    1.,    1.]])
+    array([[  1.,   1.,   1., 200.,   1.,   1.,   1.],
+           [  1.,   1.,   1., 200.,   1.,   1.,   1.],
+           [  1.,   1.,   1., 200.,   1.,   1.,   1.]])
 
     The current elevation, the elevation following uplift, is represented here.
     ::

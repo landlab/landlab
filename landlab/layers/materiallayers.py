@@ -52,7 +52,7 @@ class MaterialLayers(EventLayers):
     >>> layers.number_of_layers
     1
     >>> layers.dz
-    array([[ 1.5,  1.5,  1.5,  1.5,  1.5]])
+    array([[1.5,  1.5,  1.5,  1.5,  1.5]])
 
     MaterialLayers will combine layers if they have the same attributes.
     Adding a second layer with uneven thickness. Will increment the
@@ -62,7 +62,7 @@ class MaterialLayers(EventLayers):
 
     >>> layers.add([1.0, 2.0, 3.0, 5.0, 0.0])
     >>> layers.dz
-    array([[ 2.5,  3.5,  4.5,  6.5,  1.5]])
+    array([[2.5,  3.5,  4.5,  6.5,  1.5]])
 
     Adding a layer with negative thickness will remove
     material from the layers. Unlike EventLayers, it will not add a
@@ -70,7 +70,7 @@ class MaterialLayers(EventLayers):
 
     >>> layers.add(-1)
     >>> layers.dz
-    array([[ 1.5,  2.5,  3.5,  5.5,  0.5]])
+    array([[1.5,  2.5,  3.5,  5.5,  0.5]])
 
     Get the index value of the layer within each stack
     at the topographic surface.
@@ -106,13 +106,13 @@ class MaterialLayers(EventLayers):
         >>> layers.number_of_layers
         1
         >>> layers.dz
-        array([[ 1.5,  1.5,  1.5]])
+        array([[1.5,  1.5,  1.5]])
 
         Add a second layer with uneven thickness.
 
         >>> layers.add([1.0, 2.0, 0.5])
         >>> layers.dz
-        array([[ 2.5,  3.5,  2. ]])
+        array([[2.5,  3.5,  2. ]])
 
         Because the attributes of this layer and the previous layer
         are the same (e.g. they don't exist), MaterialLayer will combine
@@ -124,7 +124,7 @@ class MaterialLayers(EventLayers):
 
         >>> layers.add(-1)
         >>> layers.dz
-        array([[ 1.5,  2.5,  1. ]])
+        array([[1.5,  2.5,  1. ]])
         >>> layers.number_of_layers
         1
 
@@ -136,9 +136,9 @@ class MaterialLayers(EventLayers):
         >>> layers = MaterialLayers(3)
         >>> layers.add(1.0, type=3.0, size="sand")
         >>> layers.dz
-        array([[ 1.,  1.,  1.]])
+        array([[1.,  1.,  1.]])
         >>> layers["type"]
-        array([[ 3.,  3.,  3.]])
+        array([[3.,  3.,  3.]])
 
         As you can see, there is no rule that says you can't use a string as
         the value of an attribute.
@@ -149,18 +149,18 @@ class MaterialLayers(EventLayers):
         >>> layers.add(1.0, type=3.0, size="sand")
         >>> layers.add([2, -1, 0], type=3.0, size="sand")
         >>> layers.dz
-        array([[ 4.,  1.,  2.]])
+        array([[4.,  1.,  2.]])
 
         Adding material with different attributes results in the creation of
         a new layer.
 
         >>> layers.add(2.0, type=6.0, size="sand")
         >>> layers.dz
-        array([[ 4.,  1.,  2.],
-               [ 2.,  2.,  2.]])
+        array([[4.,  1.,  2.],
+               [2.,  2.,  2.]])
         >>> layers["type"]
-        array([[ 3.,  3.,  3.],
-               [ 6.,  6.,  6.]])
+        array([[3.,  3.,  3.],
+               [6.,  6.,  6.]])
         >>> np.all(
         ...     layers["size"] == [["sand", "sand", "sand"], ["sand", "sand", "sand"]]
         ... )
@@ -171,18 +171,18 @@ class MaterialLayers(EventLayers):
 
         >>> layers.add([-2, -1, 1], type=8.0, size="gravel")
         >>> layers.dz
-        array([[ 4.,  1.,  2.],
-               [ 0.,  1.,  2.],
-               [ 0.,  0.,  1.]])
+        array([[4.,  1.,  2.],
+               [0.,  1.,  2.],
+               [0.,  0.,  1.]])
         >>> layers["type"]
-        array([[ 3.,  3.,  3.],
-               [ 6.,  6.,  6.],
-               [ 8.,  8.,  8.]])
+        array([[3.,  3.,  3.],
+               [6.,  6.,  6.],
+               [8.,  8.,  8.]])
 
         To get the values at the surface of the layer stack:
 
         >>> layers.get_surface_values("type")
-        array([ 3.,  6.,  8.])
+        array([3.,  6.,  8.])
 
         Removing enough material such that an entire layer's
         thickness is no longer present, results in that layer
@@ -191,11 +191,11 @@ class MaterialLayers(EventLayers):
 
         >>> layers.add([0.0, 0.0, -1.0])
         >>> layers.dz
-        array([[ 4.,  1.,  2.],
-               [ 0.,  1.,  2.]])
+        array([[4.,  1.,  2.],
+               [0.,  1.,  2.]])
         >>> layers["type"]
-        array([[ 3.,  3.,  3.],
-               [ 6.,  6.,  6.]])
+        array([[3.,  3.,  3.],
+               [6.,  6.,  6.]])
         >>> np.all(
         ...     layers["size"] == [["sand", "sand", "sand"], ["sand", "sand", "sand"]]
         ... )
@@ -208,7 +208,7 @@ class MaterialLayers(EventLayers):
         same across the entire layer. Right now, the surface values vary.
 
         >>> layers.get_surface_values("type")
-        array([ 3.,  6.,  6.])
+        array([3.,  6.,  6.])
         >>> np.all(layers.get_surface_values("size") == ["sand", "sand", "sand"])
         True
 
@@ -217,13 +217,13 @@ class MaterialLayers(EventLayers):
 
         >>> layers.add(3.0, type=6.0, size="sand")
         >>> layers.dz
-        array([[ 4.,  1.,  2.],
-               [ 0.,  1.,  2.],
-               [ 3.,  3.,  3.]])
+        array([[4.,  1.,  2.],
+               [0.,  1.,  2.],
+               [3.,  3.,  3.]])
         >>> layers["type"]
-        array([[ 3.,  3.,  3.],
-               [ 6.,  6.,  6.],
-               [ 6.,  6.,  6.]])
+        array([[3.,  3.,  3.],
+               [6.,  6.,  6.],
+               [6.,  6.,  6.]])
         >>> layers.number_of_layers
         3
 
@@ -233,13 +233,13 @@ class MaterialLayers(EventLayers):
 
         >>> layers.add([-3.5, 0.0, 2.0], type=6.0, size="sand")
         >>> layers.dz
-        array([[ 3.5,  1. ,  2. ],
-               [ 0. ,  1. ,  2. ],
-               [ 0. ,  3. ,  5. ]])
+        array([[3.5,  1. ,  2. ],
+               [0. ,  1. ,  2. ],
+               [0. ,  3. ,  5. ]])
         >>> layers["type"]
-        array([[ 3.,  3.,  3.],
-               [ 6.,  6.,  6.],
-               [ 6.,  6.,  6.]])
+        array([[3.,  3.,  3.],
+               [6.,  6.,  6.],
+               [6.,  6.,  6.]])
         >>> layers.number_of_layers
         3
         """

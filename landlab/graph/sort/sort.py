@@ -352,9 +352,9 @@ def sort_graph(nodes, links=None, patches=None):
 
     >>> _ = sort_graph((y, x))
     >>> y
-    array([ 0.,  0.,  0.,  1.,  1.,  1.])
+    array([0., 0., 0., 1., 1., 1.])
     >>> x
-    array([ 0.,  1.,  2.,  0.,  1.,  2.])
+    array([0., 1., 2., 0., 1., 2.])
 
     Sort the points and links of a graph.
 
@@ -445,9 +445,9 @@ def sort_nodes(nodes):
     >>> sort_nodes((y, x))
     array([1, 0, 2])
     >>> x
-    array([ 1.,  0.,  2.])
+    array([1., 0., 2.])
     >>> y
-    array([ 0. ,  0.5,  1. ])
+    array([0. , 0.5, 1. ])
     """
     sorted_nodes = argsort_points_by_x_then_y((nodes[1], nodes[0]))
     nodes[0][:] = nodes[0][sorted_nodes]

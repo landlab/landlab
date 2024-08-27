@@ -141,11 +141,11 @@ def calculate_window_statistic(
            18.,  19.,  20.,  21.,  22.,  23.,
            24.,  25.,  26.,  27.,  28.,  29.])
     >>> relief
-    array([ nan,  nan,  nan,  nan,  nan,  nan,
-             7.,   8.,   8.,   8.,   8.,   7.,
-            13.,  14.,  14.,  14.,  14.,  13.,
-             7.,   8.,   8.,   8.,   8.,   7.,
-            nan,  nan,  nan,  nan,  nan,  nan])
+    array([nan,  nan,  nan,  nan,  nan,  nan,
+            7.,   8.,   8.,   8.,   8.,   7.,
+           13.,  14.,  14.,  14.,  14.,  13.,
+            7.,   8.,   8.,   8.,   8.,   7.,
+           nan,  nan,  nan,  nan,  nan,  nan])
 
     Calculate 90th percentile using ``np.percentile`` function and ``kwargs``.
 
@@ -192,11 +192,11 @@ def calculate_window_statistic(
            18.,  19.,  20.,  21.,  22.,  23.,
            24.,  25.,  26.,  27.,  28.,  29.])
     >>> rel_above_90th_perc
-    array([ nan,  nan,  nan,  nan,  nan,  nan,
-            0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
-            0.5,  0.8,  0.8,  0.8,  0.8,  0.5,
-            0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
-            nan,  nan,  nan,  nan,  nan,  nan])
+    array([nan,  nan,  nan,  nan,  nan,  nan,
+           0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
+           0.5,  0.8,  0.8,  0.8,  0.8,  0.5,
+           0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
+           nan,  nan,  nan,  nan,  nan,  nan])
     """
     if field not in grid.at_node:
         raise FieldError(f"A {field} field is required at the nodes of the input grid.")

@@ -33,9 +33,9 @@ def smooth_heaviside(x, width=0.5, out=None):
     --------
     >>> import numpy as np
     >>> np.round(smooth_heaviside(np.array([-1, 0, 1])), 3)
-    array([ 0.018,  0.5  ,  0.982])
+    array([0.018, 0.5  , 0.982])
     >>> smooth_heaviside(np.array([-1, 0, 1]), width=0.0)
-    array([ 0. ,  0.5,  1. ])
+    array([0. , 0.5, 1. ])
     """
     if width > 0.0:
         with set_numpy_err(over="ignore"):
