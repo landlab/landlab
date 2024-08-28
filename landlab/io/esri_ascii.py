@@ -879,7 +879,7 @@ def _parse_header_key_value(line: str) -> tuple[str, str] | None:
         raise BadHeaderLineError(line)
 
 
-def _header_lines(asc_file: TextIO) -> Generator[tuple[str, str], None, None]:
+def _header_lines(asc_file: TextIO) -> Generator[tuple[str, str]]:
     """Iterate over header lines for a ESRI ASCII file.
 
     Parameters
