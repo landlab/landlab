@@ -18,7 +18,6 @@ _LATENT_HEAT_OF_FUSION = 334000  # latent heat of fusion [J/kg] (to liquid)
 
 
 class SnowEnergyBalance(Component):
-
     """Simulate snowmelt process using snow energy balance method.
 
     Snow energy balance method accounts for various energy fluxes that interact with
@@ -84,9 +83,9 @@ class SnowEnergyBalance(Component):
 
     >>> grid.add_zeros("atmosphere_water__precipitation_leq-volume_flux", at="node")
     array([0., 0., 0., 0.])
-    >>> grid.at_node["atmosphere_bottom_air__temperature"]=[2.0, 2.0, 1.0, -1.0]
+    >>> grid.at_node["atmosphere_bottom_air__temperature"] = [2.0, 2.0, 1.0, -1.0]
     >>> grid.at_node["snowpack__liquid-equivalent_depth"] = [0.005, 0.01, 0.005, 0.005]
-    >>> grid.at_node["land_surface__temperature"] = [0., -1, 1, -1]
+    >>> grid.at_node["land_surface__temperature"] = [0.0, -1, 1, -1]
     >>> grid.add_full("land_surface_net-total-energy__energy_flux", 334, at="node")
     array([334., 334., 334., 334.])
     >>> grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
@@ -186,7 +185,7 @@ class SnowEnergyBalance(Component):
             "units": "J m-2",
             "mapping": "node",
             "doc": "snowpack cold content",
-        }
+        },
     }
 
     def __init__(
@@ -230,7 +229,7 @@ class SnowEnergyBalance(Component):
         SnowEnergyBalance.calc_snow_depth(
             grid.at_node["snowpack__liquid-equivalent_depth"],
             self.density_ratio,
-            out=grid.at_node["snowpack__depth"]
+            out=grid.at_node["snowpack__depth"],
         )
 
         if "snowpack__energy-per-area_cold_content" not in grid.at_node:
@@ -240,9 +239,9 @@ class SnowEnergyBalance(Component):
             grid.at_node["snowpack__z_mean_of_mass-per-volume_density"],
             grid.at_node["snowpack__depth"],
             grid.at_node["land_surface__temperature"],
-            2090, #self.cp_snow,
-            0, #self.melting_point,
-            out=grid.at_node["snowpack__energy-per-area_cold_content"]
+            2090,  # self.cp_snow,
+            0,  # self.melting_point,
+            out=grid.at_node["snowpack__energy-per-area_cold_content"],
         )
 
     @property
@@ -326,8 +325,9 @@ class SnowEnergyBalance(Component):
         return self._total_sm
 
     @staticmethod
-    def initialize_cold_content(rho_snow, h_snow, surf_temp, cp_snow, melting_point,
-                                out=None):
+    def initialize_cold_content(
+        rho_snow, h_snow, surf_temp, cp_snow, melting_point, out=None
+    ):
         """Initialize cold content
 
         Parameters
@@ -349,7 +349,12 @@ class SnowEnergyBalance(Component):
         array_like
             Snowpack cold content [J / m^2].
         """
-        cold_content = np.asarray(rho_snow) * cp_snow * (melting_point - np.asarray(surf_temp)) * np.asarray(h_snow)
+        cold_content = (
+            np.asarray(rho_snow)
+            * cp_snow
+            * (melting_point - np.asarray(surf_temp))
+            * np.asarray(h_snow)
+        )
 
         return np.clip(cold_content, a_min=0, a_max=None, out=out)
 
@@ -440,7 +445,7 @@ class SnowEnergyBalance(Component):
 
     @staticmethod
     def calc_cold_content(q_sum, cold_content, dt, out=None):
-        """ Calculate snowpack cold content
+        """Calculate snowpack cold content
 
         Parameters
         ----------
@@ -503,7 +508,7 @@ class SnowEnergyBalance(Component):
             self._grid.at_node["land_surface_net-total-energy__energy_flux"],
             self._grid.at_node["snowpack__energy-per-area_cold_content"],
             dt=dt,
-            out=self._grid.at_node["snowpack__energy-per-area_cold_content"]
+            out=self._grid.at_node["snowpack__energy-per-area_cold_content"],
         )
 
         self._total_p_snow += precip_rate * dt
