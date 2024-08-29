@@ -53,7 +53,7 @@ def dump(
     References
     ----------
 
-    .. [1] https://en.wikipedia.org/wiki/Wavefront_.obj_file
+    .. [1] https://www.loc.gov/preservation/digital/formats/fdd/fdd000507.shtml
 
     Examples
     --------
