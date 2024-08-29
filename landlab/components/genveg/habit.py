@@ -1,4 +1,5 @@
 from .duration import Annual, Evergreen, Deciduous
+from .check_objects import UnitTestChecks
 import numpy as np
 
 rng = np.random.default_rng()
@@ -19,6 +20,7 @@ class Habit(object):
         self.morph_params = self._calc_derived_morph_params(params)
 
     def _calc_canopy_area_from_shoot_width(self, shoot_sys_width):
+        UnitTestChecks().is_negative_present(shoot_sys_width, 'shoot_sys_width')
         canopy_area = 0.25 * np.pi * shoot_sys_width**2
         return canopy_area
 
@@ -210,15 +212,9 @@ class Graminoid(Habit):
 
         else:
             if params["morph_params"]["allometry_method"] == "default":
-                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][
-                    photo_val
-                ]["basal_coeffs"]
-                params["morph_params"]["height_coeffs"] = empirical_coeffs[
-                    duration_val
-                ][photo_val]["height_coeffs"]
-                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[
-                    duration_val
-                ][photo_val]["canopy_coeffs"]
+                params["morph_params"]["basal_coeffs"] = empirical_coeffs[duration_val][photo_val]["basal_coeffs"]
+                params["morph_params"]["height_coeffs"] = empirical_coeffs[duration_val][photo_val]["height_coeffs"]
+                params["morph_params"]["canopy_coeffs"] = empirical_coeffs[duration_val][photo_val]["canopy_coeffs"]
 
             (
                 params["morph_params"]["min_basal_dia"],
