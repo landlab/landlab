@@ -124,8 +124,6 @@ class Species(object):
 
     def calculate_derived_params(self, species_params):
         morph_params = species_params["morph_params"]
-        print(f'morph_params {morph_params}')
-        # grow_params = species_params["grow_params"]
         # Area of circle calcuations
         # check for negative values
         for m_params in ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]:

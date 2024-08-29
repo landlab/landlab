@@ -43,4 +43,5 @@ def test_caulate_dervied_params_error_message_raise(example_input_params):
         example_input_params["BTS"]["morph_params"]["max_shoot_sys_width"]
     )
     with pytest.raises(ValueError):
-        species_object.calc_area_of_circle(example_input_params["BTS"])
+        species_object.calculate_derived_params(example_input_params["BTS"])
+
