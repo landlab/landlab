@@ -36,13 +36,14 @@ class SnowEnergyBalance(Component):
     q_sum can be estimated using the meterology comopnent in landlab or
     provided as known input data.
 
-    cold_content is calculated as:
-    cold_content = rho_snow * cp_snow * (air_temp - snow_temp) * h_snow
+    cold_content can be estimated as:
+    cold_content = rho_snow * cp_snow * (melting_point - snow_temp) * h_snow
     - rho_snow: snow density
     - cp_snow: snow heat capacity
-    - air_temp: air temperature
+    - melting_point: snow melting point temperature
     - snow_temp: snowpack average temperature
     - h_snow: snow depth
+
     * This component uses land surface temperature (surf_temp) as an approximation to
       represent snowpack average temperature (snow_temp).
 
