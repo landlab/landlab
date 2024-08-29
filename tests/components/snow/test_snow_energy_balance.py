@@ -5,6 +5,7 @@ Unit tests for landlab.components.snow.snow_energy_balance
 """
 
 import pytest
+import numpy as np
 from numpy.testing import assert_almost_equal
 
 from landlab import RasterModelGrid
@@ -25,20 +26,13 @@ def test_create_fields():
     assert_almost_equal(
         grid.at_node["snowpack__z_mean_of_mass-per-volume_density"], 300
     )
-    assert_almost_equal(
-        grid.at_node["snowpack__z_mean_of_mass-specific_isobaric_heat_capacity"], 2090.0
-    )
     assert_almost_equal(grid.at_node["snowpack__depth"], 10 / 3)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2090000)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 0
-    )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 0)
 
 
 def test_assign_parameters():
-    """Test when parameters are updated"""
+    """Test when parameters are not default value"""
 
     grid = RasterModelGrid((2, 2))
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 1, at="node")
@@ -48,208 +42,226 @@ def test_assign_parameters():
 
     sm = SnowEnergyBalance(
         grid,
-        rho_H2O=1003,
+        rho_water=1001,
         rho_air=1.2,
-        Cp_air=1004,
-        T_rain_snow=1.2,
-        T0_cc=0.1,
-        grid_area=1000,
+        cp_air=1005,
+        cp_snow=2080.0,
+        rain_snow_temp=1.5,
+        melting_point=0.1,
+
     )
 
-    # constants
-    assert sm.Lv == 2500000, "wrong Lv value"
-    assert sm.Lf == 334000, "wrong Lf value"
-
     # parameters
-    assert sm.rho_H2O == 1003, "wrong rho_snow value"
-    assert sm.rho_air == 1.2, "wrong rho_H2O value"
-    assert sm.Cp_air == 1004, "wrong Cp_air value"
-    assert sm.T_rain_snow == 1.2, "wrong T_rain_snow value"
-    assert sm.T0_cc == 0.1, "wrong T0_cc value"
-    assert sm.grid_area == 1000, "wrong grid_area value"
+    assert sm.rho_water == 1001
+    assert sm.rho_air == 1.2
+    assert sm.cp_air == 1005
+    assert sm.cp_snow == 2080.0
+    assert sm.rain_snow_temp == 1.5
+    assert sm.melting_point == 0.1
 
-    with pytest.raises(AssertionError):
-        sm.rho_H2O = -1
+    with pytest.raises(ValueError):
+        sm.rho_water = -1
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         sm.rho_air = -1
 
-    with pytest.raises(AssertionError):
-        sm.Cp_air = -1
+    with pytest.raises(ValueError):
+        sm.cp_air = -1
+
+    with pytest.raises(ValueError):
+        sm.cp_snow = -1
 
 
 def test_snow_accumulation():
     """Test when there is only snow accumulation"""
 
-    grid = RasterModelGrid((2, 2))
+    grid = RasterModelGrid((2, 2), xy_spacing=(10, 10))
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0.001, at="node")
     grid.add_full("atmosphere_bottom_air__temperature", -1, at="node")
     grid.add_full("land_surface__temperature", -1, at="node")
     grid.add_full("land_surface_net-total-energy__energy_flux", 0, at="node")
     grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
     grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
-    grid.add_full(
-        "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2000, at="node"
-    )
 
-    sm = SnowEnergyBalance(grid, grid_area=100)
-    assert sm.vol_SM == 0, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 400, f"wrong vol_swe value is {sm.vol_swe}"
-    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
+    sm = SnowEnergyBalance(grid)
+    assert np.sum(sm.total_snow_melt_at_node * grid.dx * grid.dy) == pytest.approx(0.0)
+    assert np.sum(
+        grid.at_node["snowpack__liquid-equivalent_depth"] * grid.dx * grid.dy
+    ) == pytest.approx(400)
 
-    sm.run_one_step(1000)  # dt = 1000 sec
+    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2090000)
+    assert_almost_equal(grid.at_node["snowpack__depth"], 5)
+
+    sm.run_one_step(1000)
     assert_almost_equal(grid.at_node["snowpack__depth"], 10)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
-    # TODO: may need to change Ecc using new code for update_code_content
-    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 1
-    )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 0)
-
-    assert sm.vol_SM == 0, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 800, f"wrong vol_swe value is {sm.vol_swe}"
+    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2090000)
+    assert np.sum(sm.total_snow_melt_at_node * grid.dx * grid.dy) == pytest.approx(0.0)
+    assert np.sum(
+        grid.at_node["snowpack__liquid-equivalent_depth"] * grid.dx * grid.dy
+    ) == pytest.approx(800)
 
 
 def test_snow_melt():
     """Test when there is only snow melt"""
 
-    grid = RasterModelGrid((2, 2))
+    grid = RasterModelGrid((2, 2), xy_spacing=(10, 10))
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
     grid.add_full("atmosphere_bottom_air__temperature", 14, at="node")
-    grid.add_full("land_surface__temperature", 0.009, at="node")
+    grid.add_full("land_surface__temperature", 1, at="node")
+    grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
     grid.add_full(
-        "land_surface_net-total-energy__energy_flux", 156, at="node"
-    )  # 334000 energy to melt 0.001 m/s
-    grid.add_full("snowpack__liquid-equivalent_depth", 0.20, at="node")
+        "land_surface_net-total-energy__energy_flux", 334000, at="node"
+    )  # energy used to melt 1m with 1000s, cold content=0
+    grid.add_full("snowpack__liquid-equivalent_depth", 2, at="node")
 
-    sm = SnowEnergyBalance(grid, grid_area=100)
+    sm = SnowEnergyBalance(grid)
+    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
+    assert_almost_equal(grid.at_node["snowpack__depth"], 10)
+
+    sm.run_one_step(1000)
+    assert_almost_equal(grid.at_node["snowpack__depth"], 5)
+    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0.001)
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
 
-    sm.run_one_step(1000)  # dt = 1000 sec
-    assert_almost_equal(grid.at_node["snowpack__depth"], 0.66510978043912183)
-    assert_almost_equal(
-        grid.at_node["snowpack__melt_volume_flux"], 4.6706586826347305e-07
-    )
-    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 0
-    )
-    assert_almost_equal(
-        grid.at_node["snowpack__time_integral_melt_volume_flux"], 4.6706586826347305e-04
-    )
-
-    assert sm.vol_SM == 0.18682634730538922, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 79.813173652694616, f"wrong vol_swe value is {sm.vol_swe}"
+    assert np.sum(sm.total_snow_melt_at_node * grid.dx * grid.dy) == pytest.approx(400)
+    assert np.sum(
+        grid.at_node["snowpack__liquid-equivalent_depth"] * grid.dx * grid.dy
+    ) == pytest.approx(400)
 
 
 def test_snow_melt_accumulation():
     """Test when there is both snow melt and accumulation"""
 
-    grid = RasterModelGrid((2, 2))
+    grid = RasterModelGrid((2, 2), xy_spacing=(10, 10))
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0.002, at="node")
     grid.add_full("atmosphere_bottom_air__temperature", 0.5, at="node")
     grid.add_full("land_surface__temperature", -1, at="node")
     grid.add_full(
-        "land_surface_net-total-energy__energy_flux", 2e3 + 334, at="node"
-    )  # 334000 energy to melt 0.001 m/s
+        "land_surface_net-total-energy__energy_flux", 334000 + 2090, at="node"
+    )  # energy to melt 1m in 1000 sec (consider existing cold content)
     grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
     grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
-    grid.add_full(
-        "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2000, at="node"
-    )
 
-    sm = SnowEnergyBalance(grid, grid_area=100)
-    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
+    sm = SnowEnergyBalance(grid)
+    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2090000)
 
-    sm.run_one_step(1000)  # dt = 1000 sec
-    assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 2.999)
-    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 1e-6)
-    # TODO may need to update Ecc > 0 swe !=0 using new code for update_code_content
+    sm.run_one_step(1000)
+    assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 2)
+    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0.001)
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 2
-    )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 1e-3)
 
-    assert sm.vol_SM == 0.4, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 1199.6000000000001, f"wrong vol_swe value is {sm.vol_swe}"
+    assert np.sum(sm.total_snow_melt_at_node * grid.dx * grid.dy) == pytest.approx(400)
+    assert np.sum(
+        grid.at_node["snowpack__liquid-equivalent_depth"] * grid.dx * grid.dy
+    ) == pytest.approx(800)
 
 
 def test_multiple_steps():
     """Test multiple runs with changing inputs at each time step"""
 
     # step1: snow melt
-    grid = RasterModelGrid((2, 2))
+    grid = RasterModelGrid((2, 2), xy_spacing=(10, 10))
     grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
     grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
     grid.add_full("land_surface__temperature", -1, at="node")
     grid.add_full(
-        "land_surface_net-total-energy__energy_flux", 2e3 + 334, at="node"
-    )  # 334000*1000 energy to melt 1 m/s
+        "land_surface_net-total-energy__energy_flux", 2090 + 33400, at="node"
+    )  # energy to melt 0.1m in 1000sec
     grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
-    init_swe = grid.at_node["snowpack__liquid-equivalent_depth"].copy()
     grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
-    grid.add_full(
-        "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2000, at="node"
-    )
+    init_swe = grid.at_node["snowpack__liquid-equivalent_depth"].copy()
 
-    sm = SnowEnergyBalance(grid, grid_area=100)
-    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2e6)
+    sm = SnowEnergyBalance(grid)
+    assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 2090000)
 
-    sm.run_one_step(1000)  # dt = 1000 sec
-    assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.999)
-    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 1e-6)
+    sm.run_one_step(1000)
+    assert_almost_equal(grid.at_node["snowpack__liquid-equivalent_depth"], 0.9)
+    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0.0001)
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 0
-    )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 1e-3)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0)
+    assert_almost_equal(sm.total_snow_melt_at_node, 0.1)
 
-    assert sm.vol_SM == 0.4, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 399.6, f"wrong vol_swe value is {sm.vol_swe}"
-
-    # step2: change P, T_air, Q_sum for snow accumulation
+    # step2: change prec_rate, air_temp, q_sum for snow accumulation
     grid.at_node["atmosphere_bottom_air__temperature"].fill(-1)
-    grid.at_node["atmosphere_water__precipitation_leq-volume_flux"].fill(0.003)
+    grid.at_node["atmosphere_water__precipitation_leq-volume_flux"].fill(0.0001)
     grid.at_node["land_surface_net-total-energy__energy_flux"].fill(0)
 
     sm.run_one_step(1000)
-    assert_almost_equal(grid.at_node["snowpack__depth"], 19.995)
+    assert_almost_equal(grid.at_node["snowpack__depth"], 5)
     assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0)
-    # TODO: may need to change Ecc because swe != 0 using new code
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 3
-    )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 1e-3)
+    assert_almost_equal(sm.total_snow_precip_at_node, 0.1)
+    assert_almost_equal(sm.total_snow_melt_at_node, 0.1)
 
-    assert sm.vol_SM == 0.4, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 1599.6000000000001, f"wrong vol_swe value is {sm.vol_swe}"
-    #
-    # step3: change T_air and Q_sum for snow melt & accumulation
-    grid.at_node["atmosphere_bottom_air__temperature"].fill(1)
-    grid.at_node["atmosphere_water__precipitation_leq-volume_flux"].fill(0.003)
-    # TODO: may need to change Q_sum to account for Ecc>0 for step2 using new code
-    grid.at_node["land_surface_net-total-energy__energy_flux"].fill(334)
+    # step3: change air_temp and q_sum for snow melt & accumulation
+    grid.at_node["atmosphere_bottom_air__temperature"].fill(0.5)
+    grid.at_node["atmosphere_water__precipitation_leq-volume_flux"].fill(0.002)
+    grid.at_node["land_surface_net-total-energy__energy_flux"].fill(334000)
 
     sm.run_one_step(1000)
-    assert_almost_equal(grid.at_node["snowpack__depth"], 34.99)
-    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 1e-6)
-    # TODO: may need to change Ecc>0 because swe != 0 using new code
+    assert_almost_equal(grid.at_node["snowpack__depth"], 10)
+    assert_almost_equal(grid.at_node["snowpack__melt_volume_flux"], 0.001)
     assert_almost_equal(grid.at_node["snowpack__energy-per-area_cold_content"], 0)
-    assert_almost_equal(
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"], 6
-    )
-    assert_almost_equal(grid.at_node["snowpack__time_integral_melt_volume_flux"], 2e-3)
-
-    assert sm.vol_SM == 0.8, f"wrong vol_SM value is {sm.vol_SM}"
-    assert sm.vol_swe == 2799.2000000000003, f"wrong vol_swe value is {sm.vol_swe}"
+    assert_almost_equal(sm.total_snow_precip_at_node, 2.1)
+    assert_almost_equal(sm.total_snow_melt_at_node, 1.1)
 
     # mass balance check
-    in_out = (
-        grid.at_node["atmosphere_water__time_integral_snowfall_leq-volume_flux"]
-        - grid.at_node["snowpack__time_integral_melt_volume_flux"]
-    )
+    in_out = sm.total_snow_precip_at_node - sm.total_snow_melt_at_node
+
     store = grid.at_node["snowpack__liquid-equivalent_depth"] - init_swe
+
     assert_almost_equal(in_out, store, err_msg="Error for mass balance", decimal=11)
+
+
+@pytest.mark.parametrize(
+    "precip", (1.0, [2.0], [1.0, 2.0, 3.0], [[1.0, 2.0], [4.0, 5.0]])
+)
+def test_calc_p_snow(precip):
+    assert_almost_equal(SnowEnergyBalance.calc_precip_snow(precip, -3.0, 1.0), precip)
+    assert_almost_equal(SnowEnergyBalance.calc_precip_snow(precip, 3.0, 1.0), 0.0)
+
+
+def test_calc_snow_melt_rate():
+    q_sum = np.full(4, 334000)
+    cold_content = np.full(4, 0)
+    rho_water = 1000
+    dt = 1000
+    snow_melt_rate = SnowEnergyBalance.calc_snow_melt_rate(
+        q_sum, cold_content, rho_water, dt
+    )
+    assert np.allclose(snow_melt_rate, 0.001)
+
+
+def test_update_swe():
+    h_swe = np.full(4, 0.01)
+    sm_rate = np.full(4, 0.001)
+    p_snow = np.full(4, 0.003)
+
+    SnowEnergyBalance.calc_swe(p_snow, sm_rate, h_swe, dt=5.0, out=h_swe)
+
+    assert np.all(h_swe == 0.02)
+
+
+def test_update_snow_depth():
+    h_snow = SnowEnergyBalance.calc_snow_depth([0.01, 0.01, 0.01], 2.0)
+    assert np.all(h_snow == 0.02)
+
+
+def test_initialize_cold_content():
+    rho_snow = np.full(4, 300)
+    h_snow = np.full(4, 1)
+    surf_temp = np.full(4, -1)
+    cold_content = SnowEnergyBalance.initialize_cold_content(
+        rho_snow, h_snow, surf_temp, 2090, 0)
+    assert np.all(cold_content == 627000.0)
+
+
+def test_update_cold_content():
+    q_sum = np.full(4, 1000)
+    cold_content = np.array([1000, 2000, 3000, 4000])
+
+    SnowEnergyBalance.calc_cold_content(
+        q_sum, cold_content, 2, out=cold_content
+    )
+    assert np.allclose(cold_content, np.array([0, 0, 1000, 2000]))
