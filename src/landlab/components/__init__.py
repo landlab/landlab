@@ -73,7 +73,8 @@ from .profiler import TrickleDownProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller
 from .sink_fill import SinkFillerBarnes
-from .snow import SnowDegreeDay, SnowEnergyBalance
+from .snow import SnowDegreeDay
+from .snow import SnowEnergyBalance
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
 from .space import Space

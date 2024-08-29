@@ -4,8 +4,8 @@ Unit tests for landlab.components.snow.snow_energy_balance
 @author Tian Gan  Sept 2023
 """
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal
 
 from landlab import RasterModelGrid
@@ -48,7 +48,6 @@ def test_assign_parameters():
         cp_snow=2080.0,
         rain_snow_temp=1.5,
         melting_point=0.1,
-
     )
 
     # parameters
@@ -253,7 +252,8 @@ def test_initialize_cold_content():
     h_snow = np.full(4, 1)
     surf_temp = np.full(4, -1)
     cold_content = SnowEnergyBalance.initialize_cold_content(
-        rho_snow, h_snow, surf_temp, 2090, 0)
+        rho_snow, h_snow, surf_temp, 2090, 0
+    )
     assert np.all(cold_content == 627000.0)
 
 
@@ -261,7 +261,5 @@ def test_update_cold_content():
     q_sum = np.full(4, 1000)
     cold_content = np.array([1000, 2000, 3000, 4000])
 
-    SnowEnergyBalance.calc_cold_content(
-        q_sum, cold_content, 2, out=cold_content
-    )
+    SnowEnergyBalance.calc_cold_content(q_sum, cold_content, 2, out=cold_content)
     assert np.allclose(cold_content, np.array([0, 0, 1000, 2000]))
