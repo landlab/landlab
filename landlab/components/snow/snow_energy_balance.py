@@ -14,90 +14,98 @@ import numpy as np
 
 from landlab import Component
 
+_LATENT_HEAT_OF_FUSION = 334000  # latent heat of fusion [J/kg] (to liquid)
+
 
 class SnowEnergyBalance(Component):
 
     """Simulate snowmelt process using snow energy balance method.
 
-    This component accounts for energy fluxes to simulate snowpack dynamics
-    (e.g., solar radiation, long wave radiation, sensible heat, latent heat).
-    It uses the net total energy flux (Q_sum) and the snowpack cold content (Ecc)
-    to determine the snow melt rate (SM):
-    - If the net total energy (Q_sum * dt) is larger than Ecc, the melt process starts
-    using the remaining energy (Q_sum*dt - Ecc).
-    - If the net total energy is positive but less than Ecc, the snowpack is warming
-    and the Ecc decrease.
-    - If the total energy is negative, the snow is cooling and the Ecc increase.
+    Snow energy balance method accounts for various energy fluxes that interact with
+    the snow layer to simulate snowpack dynamics.
+    This component uses the net total energy flux (q_sum) and the snowpack cold content
+    (cold_content) to determine the snow melt rate:
+    - If the net total energy (q_sum * time) is larger than cold content, the melt process
+    starts using the remaining energy (q_sum * time - cold_content).
+    - If the net total energy is positive but less than cold content, the snowpack is
+    warming and the cold content decreases.
+    - If the total energy is negative, the snow is cooling and the cold content
+    increases.
 
-    Q_sum = Qn_SW + Qn_LW + Qh + Qe + Qa + Qc
-    - Qn_SW: net short wave energy flux
-    - Qn_LW: net long wave energy flux
-    - Qh: sensible heat energy flux
-    - Qe: latent heat energy flux
-    - Qa: net energy flux advected by moving water
-    - Qc: net energy flux via conduction from snow to soil
+    q_sum is the sum of the various net energy fluxes from net short
+    wave radiation, long wave radition, sensible heat, and latent heat, etc.
+    q_sum can be estimated using the meterology comopnent in landlab or
+    provided as known input data.
 
-    Ecc = rho_snow * Cp_snow * (T_air - T_surf) * h_snow
+    cold_content is calculated as:
+    cold_content = rho_snow * cp_snow * (air_temp - snow_temp) * h_snow
     - rho_snow: snow density
-    - Cp_snow: snow heat capacity
-    - T_air: air temperature
-    - T_surf: land surface temperature (~ snow surface temperature)
+    - cp_snow: snow heat capacity
+    - air_temp: air temperature
+    - snow_temp: snowpack average temperature
     - h_snow: snow depth
+    * This component uses land surface temperature (surf_temp) as an approximation to
+      represent snowpack average temperature (snow_temp).
 
     Parameters
     ----------
     grid : ModelGrid
         A Landlab model grid object
-    rho_H2O : float (default 1000 kg/m3)
-        water density
-    rho_air : float (default 1.2614 kg/m3)
-        air density
-    Cp_air  : float (default 1005.7 J kg-1 K-1)
-        air heat capacity
-    T_rain_snow : float (default 1 deg_C)
-        temperature threshold for precipitation accurs as rain and snow with
-        equal frequency
-    T0_cc : float (default 0 deg_C)
-        melting-point temperature
-    grid_area: float (default 0 m2)
-        space area represented by a single grid cell.
-        if value = 0, grid_area=grid.dy * grid.dx
+    rho_water : float, optional
+        water density [kg / m3].
+    rho_air : float, optional
+        air density [kg / m3].
+    cp_air  : float, optional
+        air heat capacity [J / kg / K]
+    cp_snow: float, optional
+        snow heat capacity [J / kg / K]
+    rain_snow_temp : float, optional
+        Temperature threshold for precipitation accurs as rain and snow with
+        equal frequency [deg_C].
+    melting_point : float, optional
+        snow melting-point temperature [deg_C].
+
+    Notes
+    -----
+
+    The *snowpack__melt_volume_flux* field represents the melt rate as
+    calculated by the snow energy balance equation and is not limited by the
+    amount of snow that is available to melt. That is, this melt rate
+    may be non-zero even in locations that don't have any snow.
+    The ``total_snow_melt_at_node`` attribute keeps track of the actual
+    amount of snow that was melted at each node.
 
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.snow import SnowEnergyBalance
+
     >>> grid = RasterModelGrid((2, 2))
-    >>> grid.add_full("atmosphere_water__precipitation_leq-volume_flux", 0, at="node")
-    array([ 0.,  0.,  0.,  0.])
-    >>> grid.add_full("atmosphere_bottom_air__temperature", 1, at="node")
-    array([ 1.,  1.,  1.,  1.])
-    >>> grid.add_full("land_surface__temperature", -1, at="node")
-    array([-1., -1., -1., -1.])
-    >>> grid.add_full(
-    ...     "land_surface_net-total-energy__energy_flux", 2e3 + 334, at="node"
-    ... )
-    array([ 2334.,  2334.,  2334.,  2334.])
-    >>> grid.add_full("snowpack__liquid-equivalent_depth", 1, at="node")
-    array([ 1.,  1.,  1.,  1.])
+
+    >>> grid.add_zeros("atmosphere_water__precipitation_leq-volume_flux", at="node")
+    array([0., 0., 0., 0.])
+    >>> grid.at_node["atmosphere_bottom_air__temperature"]=[2.0, 2.0, 1.0, -1.0]
+    >>> grid.at_node["snowpack__liquid-equivalent_depth"] = [0.005, 0.01, 0.005, 0.005]
+    >>> grid.at_node["land_surface__temperature"] = [0., -1, 1, -1]
+    >>> grid.add_full("land_surface_net-total-energy__energy_flux", 334, at="node")
+    array([334., 334., 334., 334.])
     >>> grid.add_full("snowpack__z_mean_of_mass-per-volume_density", 200, at="node")
-    array([ 200.,  200.,  200.,  200.])
-    >>> grid.add_full(
-    ...     "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2000, at="node"
-    ... )
-    array([ 2000.,  2000.,  2000.,  2000.])
-    >>> sm = SnowEnergyBalance(grid, grid_area=100)
-    >>> grid.at_node["snowpack__depth"]
-    array([ 5.,  5.,  5.,  5.])
-    >>> grid.at_node["snowpack__energy-per-area_cold_content"]
-    array([ 2000000.,  2000000.,  2000000.,  2000000.])
+    array([200., 200., 200., 200.])
+
+    >>> sm = SnowEnergyBalance(grid)
     >>> sm.run_one_step(1000)
+
     >>> grid.at_node["snowpack__melt_volume_flux"]
-    array([  1.00000000e-06,   1.00000000e-06,   1.00000000e-06,   1.00000000e-06])
+    array([1.00000000e-06, 9.37425150e-07, 1.00000000e-06, 9.68712575e-07])
     >>> grid.at_node["snowpack__liquid-equivalent_depth"]
-    array([ 0.999,  0.999,  0.999,  0.999])
+    array([0.004     , 0.00906257, 0.004     , 0.00403129])
     >>> grid.at_node["snowpack__energy-per-area_cold_content"]
-    array([ 0.,  0.,  0.,  0.])
+    array([0., 0., 0., 0.])
+
+    >>> sm.total_snow_precip_at_node
+    array([0., 0., 0., 0.])
+    >>> sm.total_snow_melt_at_node
+    array([0.001     , 0.00093743, 0.001     , 0.00096871])
     """
 
     _name = "SnowEnergyBalance"
@@ -105,7 +113,7 @@ class SnowEnergyBalance(Component):
     _unit_agnostic = False
 
     _info = {
-        # input fields (4 req + 3 opt)
+        # input fields
         "atmosphere_water__precipitation_leq-volume_flux": {
             "dtype": float,
             "intent": "in",
@@ -113,7 +121,7 @@ class SnowEnergyBalance(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "precipitation rate (in water equivalent)",
-        },  # P
+        },
         "atmosphere_bottom_air__temperature": {
             "dtype": float,
             "intent": "in",
@@ -121,7 +129,7 @@ class SnowEnergyBalance(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "atmosphere bottom air temperature",
-        },  # T_air
+        },
         "land_surface__temperature": {
             "dtype": float,
             "intent": "in",
@@ -129,8 +137,7 @@ class SnowEnergyBalance(Component):
             "units": "deg_C",
             "mapping": "node",
             "doc": "land surface temperature",
-        },  # T_surf (this model uses snow surface temp/land surface temp
-            # to represent snowpack average temp)
+        },
         "land_surface_net-total-energy__energy_flux": {
             "dtype": float,
             "intent": "in",
@@ -138,7 +145,7 @@ class SnowEnergyBalance(Component):
             "units": "W m-2",
             "mapping": "node",
             "doc": "net total energy flux",
-        },  # Q_sum
+        },
         "snowpack__liquid-equivalent_depth": {
             "dtype": float,
             "intent": "inout",
@@ -146,7 +153,7 @@ class SnowEnergyBalance(Component):
             "units": "m",
             "mapping": "node",
             "doc": "snow water equivalent depth",
-        },  # h_swe
+        },
         "snowpack__z_mean_of_mass-per-volume_density": {
             "dtype": float,
             "intent": "in",
@@ -154,16 +161,8 @@ class SnowEnergyBalance(Component):
             "units": "kg m-3",
             "mapping": "node",
             "doc": "snow density",
-        },  # rho_snow
-        "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity": {
-            "dtype": float,
-            "intent": "in",
-            "optional": True,
-            "units": "J kg-1 K-1",
-            "mapping": "node",
-            "doc": "snow heat capacity",
-        },  # Cp_snow
-        # output fields (5 var)
+        },
+        # output fields
         "snowpack__depth": {
             "dtype": float,
             "intent": "out",
@@ -171,7 +170,7 @@ class SnowEnergyBalance(Component):
             "units": "m",
             "mapping": "node",
             "doc": "snow depth",
-        },  # h_snow
+        },
         "snowpack__melt_volume_flux": {
             "dtype": float,
             "intent": "out",
@@ -179,7 +178,7 @@ class SnowEnergyBalance(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "snow melt volume flux",
-        },  # SM
+        },
         "snowpack__energy-per-area_cold_content": {
             "dtype": float,
             "intent": "out",
@@ -187,108 +186,74 @@ class SnowEnergyBalance(Component):
             "units": "J m-2",
             "mapping": "node",
             "doc": "snowpack cold content",
-        },  # Ecc
-        "atmosphere_water__time_integral_snowfall_leq-volume_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m",
-            "mapping": "node",
-            "doc": "total precipitation as snow (in water equivalent) during model time",
-        },  # change for landlab (add new variable)
-        "snowpack__time_integral_melt_volume_flux": {
-            "dtype": float,
-            "intent": "out",
-            "optional": False,
-            "units": "m",
-            "mapping": "node",
-            "doc": "total snow melt (in water equivalent) during model time",
-        },  # change for landlab (add new variable)
+        }
     }
 
     def __init__(
         self,
         grid,
-        rho_H2O=1000,
+        rho_water=1000,
         rho_air=1.2614,
-        Cp_air=1005.7,
-        T_rain_snow=1,
-        T0_cc=0,
-        grid_area=0,
+        cp_air=1005.7,
+        cp_snow=2090.0,
+        rain_snow_temp=1,
+        melting_point=0,
     ):
         """Initialize SnowEnergyBalance component"""
 
         super().__init__(grid)
 
-        # parameters
-        self._rho_H2O = rho_H2O  # kg m-3
-        self._rho_air = rho_air  # kg m-3
-        self._Cp_air = Cp_air  # J kg-1 K-1
-        self._T_rain_snow = T_rain_snow  # deg_C
-        self._T0_cc = T0_cc  # deg_C
-        self._grid_area = grid_area if grid_area > 0 else self._grid.dy * self._grid.dx
+        self.rho_water = rho_water
+        self.rho_air = rho_air
+        self.cp_air = cp_air
+        self.cp_snow = cp_snow
+        self.rain_snow_temp = rain_snow_temp
+        self.melting_point = melting_point
+        self._total_p_snow = grid.zeros(at="node")
+        self._total_sm = grid.zeros(at="node")
 
-        # constant
-        self.Lv = np.float64(
-            2500000
-        )  # latent heat of vaporization [J/kg] (to gas) TODO may not be used
-        self.Lf = np.float64(334000)  # latent heat of fusion [J/kg] (to liquid)
-
-        # calculated vars
-        self._P_snow = None  # precipitation as snow (m/s)
-        self._vol_SM = 0  # snowpack__domain_time_integral_of_melt_volume_flux (m3)
-        self._vol_swe = 0  # snowpack__domain_integral_of_liquid-equivalent_depth (m3)
-
-        # input fields
-        self._P = grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
-        self._T_air = grid.at_node["atmosphere_bottom_air__temperature"]
-        self._T_surf = grid.at_node["land_surface__temperature"]
-        self._Q_sum = grid.at_node["land_surface_net-total-energy__energy_flux"]
-
-        if "snowpack__liquid-equivalent_depth" in grid.at_node:
-            self._h_swe = grid.at_node["snowpack__liquid-equivalent_depth"]
-            self._update_total_snowpack_water_volume()
-        else:
-            self._h_swe = grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
-
-        if "snowpack__z_mean_of_mass-per-volume_density" in grid.at_node:
-            self._rho_snow = grid.at_node["snowpack__z_mean_of_mass-per-volume_density"]
-        else:
-            self._rho_snow = grid.add_full(
-                "snowpack__z_mean_of_mass-per-volume_density", 300
+        if "snowpack__z_mean_of_mass-per-volume_density" not in grid.at_node:
+            grid.add_full(
+                "snowpack__z_mean_of_mass-per-volume_density", 300.0, at="node"
             )
 
-        if "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity" in grid.at_node:
-            self._Cp_snow = grid.at_node[
-                "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity"
-            ]
-        else:
-            self._Cp_snow = grid.add_full(
-                "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity", 2090.0
-            )
+        if "snowpack__liquid-equivalent_depth" not in grid.at_node:
+            grid.add_zeros("snowpack__liquid-equivalent_depth", at="node")
 
-        # output fields
-        super().initialize_output_fields()
-        self._h_snow = grid.at_node["snowpack__depth"]
-        self._h_snow[:] = self._h_swe[:] * self.density_ratio
-        self._SM = grid.at_node["snowpack__melt_volume_flux"]
-        self._Ecc = grid.at_node["snowpack__energy-per-area_cold_content"]
-        self._initialize_cold_content()
-        self._total_P_snow = grid.at_node[
-            "atmosphere_water__time_integral_snowfall_leq-volume_flux"
-        ]  # defined by me
-        self._total_SM = grid.at_node[
-            "snowpack__time_integral_melt_volume_flux"
-        ]  # defined by me
+        if "snowpack__melt_volume_flux" not in grid.at_node:
+            grid.add_empty("snowpack__melt_volume_flux", at="node")
+        grid.at_node["snowpack__melt_volume_flux"].fill(0.0)
+
+        if "snowpack__depth" not in grid.at_node:
+            grid.add_empty("snowpack__depth", at="node")
+
+        SnowEnergyBalance.calc_snow_depth(
+            grid.at_node["snowpack__liquid-equivalent_depth"],
+            self.density_ratio,
+            out=grid.at_node["snowpack__depth"]
+        )
+
+        if "snowpack__energy-per-area_cold_content" not in grid.at_node:
+            grid.add_empty("snowpack__energy-per-area_cold_content", at="node")
+
+        SnowEnergyBalance.initialize_cold_content(
+            grid.at_node["snowpack__z_mean_of_mass-per-volume_density"],
+            grid.at_node["snowpack__depth"],
+            grid.at_node["land_surface__temperature"],
+            2090, #self.cp_snow,
+            0, #self.melting_point,
+            out=grid.at_node["snowpack__energy-per-area_cold_content"]
+        )
 
     @property
-    def rho_H2O(self):
-        return self._rho_H2O
+    def rho_water(self):
+        return self._rho_water
 
-    @rho_H2O.setter
-    def rho_H2O(self, rho_H2O):
-        assert rho_H2O > 0, "assign rho_H2O with positive value"
-        self._rho_H2O = rho_H2O
+    @rho_water.setter
+    def rho_water(self, rho_water):
+        if rho_water <= 0.0:
+            raise ValueError("water density must be positive")
+        self._rho_water = rho_water
 
     @property
     def rho_air(self):
@@ -296,126 +261,253 @@ class SnowEnergyBalance(Component):
 
     @rho_air.setter
     def rho_air(self, rho_air):
-        assert rho_air > 0, "assign rho_air with positive value"
+        if rho_air <= 0:
+            raise ValueError("air temperature density must be positive")
         self._rho_air = rho_air
 
     @property
-    def Cp_air(self):
-        return self._Cp_air
+    def cp_air(self):
+        return self._cp_air
 
-    @Cp_air.setter
-    def Cp_air(self, Cp_air):
-        assert Cp_air > 0, "assign Cp_air with positive value"
-        self._Cp_air = Cp_air
-
-    @property
-    def T_rain_snow(self):
-        return self._T_rain_snow
-
-    @T_rain_snow.setter
-    def T_rain_snow(self, T_rain_snow):
-        self._T_rain_snow = T_rain_snow
+    @cp_air.setter
+    def cp_air(self, cp_air):
+        if cp_air <= 0:
+            raise ValueError("air heat capacity must be positive")
+        self._cp_air = cp_air
 
     @property
-    def T0_cc(self):
-        return self._T0_cc
+    def cp_snow(self):
+        return self._cp_snow
 
-    @T0_cc.setter
-    def T0_cc(self, T0_cc):
-        self._T0_cc = T0_cc
-
-    @property
-    def grid_area(self):
-        return self._grid_area
+    @cp_snow.setter
+    def cp_snow(self, cp_snow):
+        if cp_snow <= 0:
+            raise ValueError("snow heat capacity must be positive")
+        self._cp_snow = cp_snow
 
     @property
-    def vol_SM(self):
-        return self._vol_SM
+    def rain_snow_temp(self):
+        return self._rain_snow_temp
+
+    @rain_snow_temp.setter
+    def rain_snow_temp(self, rain_snow_temp):
+        self._rain_snow_temp = rain_snow_temp
 
     @property
-    def vol_swe(self):
-        return self._vol_swe
+    def melting_point(self):
+        return self._melting_point
+
+    @melting_point.setter
+    def melting_point(self, melting_point):
+        self._melting_point = melting_point
 
     @property
     def density_ratio(self):
-        return self._rho_H2O / self._rho_snow
+        """Ratio of the densities between water and snow."""
+        return (
+            self._rho_water
+            / self.grid.at_node["snowpack__z_mean_of_mass-per-volume_density"]
+        )
 
-    def _initialize_cold_content(self):
-        del_T = self._T0_cc - self._T_surf
-        self._Ecc[:] = self._rho_snow * self._Cp_snow * del_T * self._h_snow
-        np.maximum(self._Ecc, np.float64(0), out=self._Ecc)
+    @property
+    def total_snow_precip_at_node(self):
+        """Accumulated precipitation as snow over the model time.
 
-    def _update_cold_content(self, dt):
-        # This model estimates Ecc mainly based on the net energy input
-        # if Ecc is positive, there is no melt
-        E_in = self._Q_sum * dt
-        Ecc = np.maximum(self._Ecc - E_in, np.float64(0))
-        self._Ecc[:] = Ecc[:]
+        Snow precipitation is given in water equivalent [m].
+        """
+        return self._total_p_snow
 
-    def _update_snowmelt_rate(self, dt):
-        # melt rate based on available energy
-        E_in = self._Q_sum * dt
-        E_rem = np.maximum(E_in - self._Ecc, np.float64(0))
-        Qm = E_rem / dt  # energy flux for melting W m-2
-        sm_en = Qm / (self._rho_H2O * self.Lf)
+    @property
+    def total_snow_melt_at_node(self):
+        """Accumulated snow melt over the model time.
 
-        # melt rate based on available swe (enforced max meltrate)
-        sm_max = self._h_swe / dt
+        Snow melt is given in water equivalent [m].
+        """
+        return self._total_sm
 
-        # actual melt rate
-        sm_act = np.minimum(sm_en, sm_max)
-        self._SM[:] = sm_act[:]
+    @staticmethod
+    def initialize_cold_content(rho_snow, h_snow, surf_temp, cp_snow, melting_point,
+                                out=None):
+        """Initialize cold content
 
-    def _update_prec_snow(self):
-        self._P_snow = self._P * (self._T_air <= self._T_rain_snow)
+        Parameters
+        ----------
 
-    def _update_swe(self, dt):
-        # increase due to precipitation as snow
-        swe_in = self._P_snow * dt
-        self._h_swe += swe_in
+        rho_snow: array_like
+            Snow density [kg / m3].
+        h_snow : array_like
+            Snow depth [m].
+        surf_temp : array_like
+            Land surface temperature [deg_C].
+        cp_snow: float
+            Snow heat capacity [J / kg / K].
+        melting_point: float
+            Snow melting-point temperature [deg_C].
 
-        # decrease due to melt
-        swe_out = self._SM * dt
-        self._h_swe -= swe_out
-        self._h_swe[self._h_swe < 0] = 0
+        Returns
+        -------
+        array_like
+            Snowpack cold content [J / m^2].
+        """
+        cold_content = np.asarray(rho_snow) * cp_snow * (melting_point - np.asarray(surf_temp)) * np.asarray(h_snow)
 
-    def _update_snow_depth(self):
-        self._h_snow[:] = self._h_swe * self.density_ratio
+        return np.clip(cold_content, a_min=0, a_max=None, out=out)
 
-    def _update_total_prec_snow(self, dt):  # defined by me
-        self._total_P_snow += self._P_snow * dt
+    @staticmethod
+    def calc_precip_snow(precip_rate, air_temp, rain_snow_temp):
+        """Calculate snow precipitation.
 
-    def _update_total_snowmelt(self, dt):  # defined by me
-        self._total_SM += self._SM[:] * dt
+        Parameters
+        ----------
+        precip_rate : array_like
+            Precipitation rate [m/s].
+        air_temp : array_like
+            Air temperature [deg_C].
+        rain_snow_temp : float
+            Temperature threshold below which precipitation falls as
+            snow [deg_C].
+        """
+        return np.asarray(precip_rate) * (np.asarray(air_temp) <= rain_snow_temp)
 
-    def _update_SM_integral(self):
-        self._vol_SM = np.sum(self._total_SM * self._grid_area)
+    @staticmethod
+    def calc_snow_melt_rate(q_sum, cold_content, rho_water, dt, out=None):
+        """Calculate snow melt rate.
 
-    def _update_total_snowpack_water_volume(self):
-        volume = self._h_swe * self._grid_area
-        self._vol_swe = np.sum(volume)
+        Parameters
+        ----------
+
+        q_sum: array_like
+            net total energy flux [W / m2].
+        cold_content: array_like
+            snowpack cold content [J / m2].
+        rho_water: float
+            water density [kg / m3].
+        dt : float
+            Duration to run the component for [s].
+
+        Returns
+        -------
+        array_like
+            Melt rate [m / s]
+        """
+        q_rem = (np.asarray(q_sum) * dt - np.asarray(cold_content)) / dt
+        melt_rate = q_rem / (rho_water * _LATENT_HEAT_OF_FUSION)
+
+        return np.clip(melt_rate, a_min=0.0, a_max=None, out=out)
+
+    @staticmethod
+    def calc_swe(precip_rate, melt_rate, swe, dt=1.0, out=None):
+        """Calculate snow water equivalent.
+
+        Parameters
+        ----------
+        precip_rate : array_like
+            Precipitation rate [m/s].
+        melt_rate : array_like
+            Melt rate [m/s].
+        swe : array_like
+            Snow water equivalent [m].
+        dt : float, optional
+            Time step [s].
+
+        Returns
+        -------
+        array_like
+            New snow water equivalent [m].
+        """
+        out = np.add(
+            swe, (np.asarray(precip_rate) - np.asarray(melt_rate)) * dt, out=out
+        )
+        return out.clip(min=0.0, max=None, out=out)
+
+    @staticmethod
+    def calc_snow_depth(h_swe, density_ratio, out=None):
+        """Calculate snow depth from snow water equivalent.
+
+        Parameters
+        ----------
+        h_swe : array_like
+            Snow water equivalent [m].
+        density_ratio : array_like
+            Density ratio of water to snow [-].
+
+        Returns
+        -------
+        array_like
+            Snow depth [m].
+        """
+        return np.multiply(h_swe, density_ratio, out=out)
+
+    @staticmethod
+    def calc_cold_content(q_sum, cold_content, dt, out=None):
+        """ Calculate snowpack cold content
+
+        Parameters
+        ----------
+        q_sum: array_like
+            net total energy flux [W / m2].
+        cold_content: array_like
+            snowpack cold content [J / m2].
+        dt : float, optional
+            Time step [s].
+
+        Returns
+        -------
+        array_like
+            New snowpack cold content [J / m2].
+        """
+        out = np.subtract(cold_content, q_sum * dt, out)
+
+        return out.clip(min=0, max=None, out=out)
 
     def run_one_step(self, dt):
-        # update input fields in case there is new input
-        self._P = self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"]
-        self._T_air = self._grid.at_node["atmosphere_bottom_air__temperature"]
-        self._Q_sum = self._grid.at_node["land_surface_net-total-energy__energy_flux"]
-        self._rho_snow = self._grid.at_node[
-            "snowpack__z_mean_of_mass-per-volume_density"
-        ]
-        self._Cp_snow = self._grid.at_node[
-            "snowpack__z_mean_of_mass-specific_isobaric_heat_capacity"
-        ]
+        """Run component for a time step.
+
+        Parameters
+        ----------
+        dt : float
+            Duration to run the component for [s].
+        """
+        initial_swe = self.grid.at_node["snowpack__liquid-equivalent_depth"].copy()
 
         # update state variables
-        self._update_prec_snow()
-        self._update_snowmelt_rate(dt)
-        self._update_swe(dt)
-        self._update_snow_depth()  # after update_swe()
-        self._update_cold_content(dt)  # after update_snow_depth()
+        precip_rate = SnowEnergyBalance.calc_precip_snow(
+            self._grid.at_node["atmosphere_water__precipitation_leq-volume_flux"],
+            self._grid.at_node["atmosphere_bottom_air__temperature"],
+            self.rain_snow_temp,
+        )
 
-        self._update_total_prec_snow(dt)  # change for landlab (new method)
-        self._update_total_snowmelt(dt)  # change for landlab (new method)
+        SnowEnergyBalance.calc_snow_melt_rate(
+            self._grid.at_node["land_surface_net-total-energy__energy_flux"],
+            self._grid.at_node["snowpack__energy-per-area_cold_content"],
+            self.rho_water,
+            dt=dt,
+            out=self.grid.at_node["snowpack__melt_volume_flux"],
+        )
 
-        self._update_SM_integral()  # after update_total_snowmelt()
-        self._update_total_snowpack_water_volume()  # after update_swe()
+        SnowEnergyBalance.calc_swe(
+            precip_rate,
+            self.grid.at_node["snowpack__melt_volume_flux"],
+            self.grid.at_node["snowpack__liquid-equivalent_depth"],
+            dt=dt,
+            out=self.grid.at_node["snowpack__liquid-equivalent_depth"],
+        )
+
+        SnowEnergyBalance.calc_snow_depth(
+            self.grid.at_node["snowpack__liquid-equivalent_depth"],
+            self.density_ratio,
+            out=self.grid.at_node["snowpack__depth"],
+        )
+
+        SnowEnergyBalance.calc_cold_content(
+            self._grid.at_node["land_surface_net-total-energy__energy_flux"],
+            self._grid.at_node["snowpack__energy-per-area_cold_content"],
+            dt=dt,
+            out=self._grid.at_node["snowpack__energy-per-area_cold_content"]
+        )
+
+        self._total_p_snow += precip_rate * dt
+        self._total_sm += np.minimum(
+            self.grid.at_node["snowpack__melt_volume_flux"] * dt,
+            initial_swe + precip_rate * dt,
+        )
