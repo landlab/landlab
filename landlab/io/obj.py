@@ -24,10 +24,12 @@ from landlab.grid.base import ModelGrid
 def dump(
     grid: ModelGrid,
     stream: TextIO | None = None,
-    name: str | ArrayLike = 0.0,
+    values: str | ArrayLike = 0.0,
     at: str = "node",
 ) -> str | None:
     """Format a grid in Wavefront OBJ format.
+
+    Write grid data Wavefront OBJ format [1]_.
 
     Parameters
     ----------
@@ -36,7 +38,7 @@ def dump(
     stream : file_like, optional
         File-like object to write the formatted output. If not provided,
         return the formatted grid as a string.
-    name : array_like or str, optional
+    values : array_like or str, optional
         If the grid does not have a *z* coordinate, use this value. If
         a ``str``, use the corresponding field.
     at : 'node' or 'corner', optional
@@ -47,6 +49,11 @@ def dump(
     str or ``None``
         The grid formatted as OBJ or ``None`` if an output stream
         was provided.
+
+    References
+    ----------
+
+    .. [1] https://en.wikipedia.org/wiki/Wavefront_.obj_file
 
     Examples
     --------
@@ -65,7 +72,7 @@ def dump(
 
     Format using the grid's *nodes*/*patches*.
 
-    >>> print(obj.dump(grid, at="node", name="topographic__elevation"))
+    >>> print(obj.dump(grid, at="node", values="topographic__elevation"))
     # landlabgrid
     #
     g landlabgrid
@@ -85,7 +92,7 @@ def dump(
 
     Format using the grid's *nodes*/*cells*.
 
-    >>> print(obj.dump(grid, at="corner", name="topographic__elevation"))
+    >>> print(obj.dump(grid, at="corner", values="topographic__elevation"))
     # landlabgrid
     #
     g landlabgrid
@@ -100,10 +107,10 @@ def dump(
     if at not in ("node", "corner"):
         raise ValueError(f"`at` keyword must be one of 'node' or 'corner' ({at!r})")
 
-    if isinstance(name, str):
-        z_at_vertex = getattr(grid, f"at_{at}")[name]
+    if isinstance(values, str):
+        z_at_vertex = getattr(grid, f"at_{at}")[values]
     else:
-        z_at_vertex = name
+        z_at_vertex = values
 
     content = _format_as_obj(grid, z_coord=z_at_vertex, at=at)
 

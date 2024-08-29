@@ -60,7 +60,7 @@ def test_dump_to_string(at):
     grid = HexModelGrid((4, 5))
     grid.add_ones("foo", at=at)
 
-    actual = obj.dump(grid, at=at, name="foo")
+    actual = obj.dump(grid, at=at, values="foo")
 
     assert actual is not None
 
@@ -79,11 +79,11 @@ def test_dump_to_stream(tmpdir, at):
     grid = HexModelGrid((4, 5))
     grid.add_ones("foo", at=at)
 
-    expected = obj.dump(grid, at=at, name="foo")
+    expected = obj.dump(grid, at=at, values="foo")
 
     with tmpdir.as_cwd():
         with open("foo.obj", "w") as fp:
-            assert obj.dump(grid, fp, at=at, name="foo") is None
+            assert obj.dump(grid, fp, at=at, values="foo") is None
         with open("foo.obj") as fp:
             actual = fp.read()
 
@@ -91,16 +91,16 @@ def test_dump_to_stream(tmpdir, at):
 
 
 @pytest.mark.parametrize("at", ("node", "corner"))
-def test_dump_with_name(at):
+def test_dump_with_values(at):
     grid = RasterModelGrid((4, 5))
     values = np.full(grid.number_of_elements(at), 10.0)
 
-    expected = obj.dump(grid, at=at, name=values)
+    expected = obj.dump(grid, at=at, values=values)
 
-    assert obj.dump(grid, at=at, name=10.0) == expected
+    assert obj.dump(grid, at=at, values=10.0) == expected
 
     grid.add_field("foo", values, at=at)
-    assert obj.dump(grid, at=at, name="foo") == expected
+    assert obj.dump(grid, at=at, values="foo") == expected
 
 
 @pytest.mark.parametrize("at", ("face", "patch", "link", "cell", "foo"))
@@ -108,7 +108,7 @@ def test_dump_with_bad_at_keyword(at):
     grid = HexModelGrid((4, 5))
 
     with pytest.raises(ValueError):
-        obj.dump(grid, at=at, name="foo")
+        obj.dump(grid, at=at, values="foo")
 
 
 def test_write_to_filelike(tmpdir):
