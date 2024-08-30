@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal
 from landlab.components.genveg.species import Species
 
 
@@ -37,11 +37,27 @@ def test_get_daily_nsc_concentration(example_input_params):
         )
 
 
-def test_caulate_dervied_params_error_message_raise(example_input_params):
-    species_object = create_species_object(example_input_params)
-    example_input_params["BTS"]["morph_params"]["max_shoot_sys_width"] = np.negative(
-        example_input_params["BTS"]["morph_params"]["max_shoot_sys_width"]
-    )
-    with pytest.raises(ValueError):
-        species_object.calculate_derived_params(example_input_params["BTS"])
+def test_calculate_dervied_params_error_message_raise(example_input_params):
+    # note that calculate_derived_params is called in the __init__ of the Species class, therefore intializing the class
+    # will run hit the negative values
+    # morph params
+    for m_params in ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]:
+        example_input_params["BTS"]["morph_params"][m_params] = np.negative(example_input_params["BTS"]["morph_params"][m_params])
+        with pytest.raises(ValueError):
+            create_species_object(example_input_params)
+        example_input_params["BTS"]["morph_params"][m_params] = np.positive(example_input_params["BTS"]["morph_params"][m_params])
+    # 
+    
 
+
+def test_calc_area_of_circle(example_input_params):
+    species_object = create_species_object(example_input_params)
+    morph_params = example_input_params["BTS"]["morph_params"]
+    m_params = ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]
+    # values from excel sheet
+    area_values = np.array([0.070685835, 0.0000785398, 0.096211275, 0.0000785398])
+    for m_param, a_value in zip(m_params, area_values):
+        assert_almost_equal(
+            species_object.calc_area_of_circle(morph_params[m_param]),
+            a_value
+        )

@@ -142,6 +142,8 @@ class Species(object):
         )
 
         # volume of a cylinder
+        # check for negative values
+        UnitTestChecks().is_negative_present(species_params["morph_params"]["max_height"], "max_height")
         species_params["morph_params"]["max_vital_volume"] = (
             species_params["morph_params"]["max_crown_area"]
             * species_params["morph_params"]["max_height"]
