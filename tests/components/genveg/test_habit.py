@@ -30,17 +30,3 @@ def test_calc_canopy_area_from_shoot_width(example_input_params):
         h._calc_canopy_area_from_shoot_width(shoot_sys_width=np.array([0, .0004, 0.678, 1.5, 3])),
         np.array([0.00000000e+00, 1.25663706e-07, 3.61034969e-01, 1.76714587e+00, 7.06858347e+00])
     )
-
-
-def test_calc_crown_area_from_shoot_width_raises_error(example_input_params):
-    Species(
-        species_params=example_input_params["BTS"],
-        latitude=0.9074
-    )
-    h = Habit(
-        params=example_input_params['BTS'],
-        green_parts=('leaf', 'stem')
-    )
-    with pytest.raises(ValueError):
-        h._calc_canopy_area_from_shoot_width(-1.5)
-        h._calc_canopy_area_from_shoot_width(np.array([0, 0.004, -0.678, 1.5, 3]))

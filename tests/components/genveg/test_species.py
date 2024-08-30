@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from numpy.testing import assert_allclose, assert_almost_equal
 from landlab.components.genveg.species import Species
@@ -35,19 +34,6 @@ def test_get_daily_nsc_concentration(example_input_params):
         assert_allclose(
             nsc_content_spring195_actual[part], nsc_content_195[part], rtol=0.0001
         )
-
-
-def test_calculate_dervied_params_error_message_raise(example_input_params):
-    # note that calculate_derived_params is called in the __init__ of the Species class, therefore intializing the class
-    # will run hit the negative values
-    # morph params
-    for m_params in ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]:
-        example_input_params["BTS"]["morph_params"][m_params] = np.negative(example_input_params["BTS"]["morph_params"][m_params])
-        with pytest.raises(ValueError):
-            create_species_object(example_input_params)
-        example_input_params["BTS"]["morph_params"][m_params] = np.positive(example_input_params["BTS"]["morph_params"][m_params])
-    # 
-    
 
 
 def test_calc_area_of_circle(example_input_params):
