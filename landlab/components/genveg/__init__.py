@@ -4,7 +4,7 @@ from .integrator import GenVeg
 
 
 __all__ = [
-    "VegParams", 
-    "PlantGrowth", 
+    "VegParams",
+    "PlantGrowth",
     "GenVeg",
 ]

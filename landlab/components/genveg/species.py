@@ -235,6 +235,9 @@ class Species(object):
 
     def calculate_lai(self, leaf_area, shoot_sys_width):
         canopy_area = self.habit._calc_canopy_area_from_shoot_width(shoot_sys_width)
+        # value check for leaf_area
+        UnitTestChecks().is_negative_present(leaf_area, 'leaf_area')
+
         lai = np.divide(
             leaf_area,
             canopy_area,
@@ -591,7 +594,10 @@ class Species(object):
         return plants
 
     def calculate_shaded_leaf_mortality(self, plants):
-        # Based on Teh code equation 7.18 and 7.20 (pg. 154)
+        # Teh, Christopher BS. Introduction to mathematical modeling of
+        # crop growth: How the equations are derived and assembled into
+        # a computer model. Dissertation. com, 2006 based on equation
+        # 7.18 and 7.20 (pg. 154)
         lai = self.calculate_lai(plants["total_leaf_area"], plants["shoot_sys_width"])
 
         excess_lai = (

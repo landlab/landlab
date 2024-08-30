@@ -1,7 +1,6 @@
 import pytest
 import numpy as np
 from landlab import RasterModelGrid
-from landlab.components import GenVeg
 
 rng = np.random.default_rng()
 
