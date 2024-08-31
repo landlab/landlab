@@ -1,10 +1,45 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab.graph.sort.ext.remap_element import offset_to_sorted_block
+from landlab.graph.sort.ext._deprecated_sparse import offset_to_sorted_block
+from landlab.graph.sort.ext.intpair import fill_offsets_to_sorted_blocks
 from landlab.graph.sort.intpair import map_pairs_to_values
 from landlab.graph.sort.intpair import map_rolling_pairs_to_values
 from landlab.graph.sort.intpair import pair_isin
+
+
+def test_fill_offsets():
+
+    array = [0, 2, 6, 7]
+    offsets = np.full(10, -2)
+
+    fill_offsets_to_sorted_blocks(np.asarray(array), offsets)
+
+    assert_array_equal(offsets, [0, 1, 1, 2, 2, 2, 2, 3, 4, 4])
+
+    array = [0, 2, 2, 2, 6, 7, 7]
+    offsets = np.full(10, -2)
+    fill_offsets_to_sorted_blocks(np.asarray(array), offsets)
+
+    assert_array_equal(offsets, [0, 1, 1, 4, 4, 4, 4, 5, 7, 7])
+
+    actual = []
+    for i in range(len(offsets) - 1):
+        actual += [i] * (offsets[i + 1] - offsets[i])
+
+    assert actual == array
+
+    array = [0, 2, 6, 7]
+    offsets = np.full(5, -2)
+    fill_offsets_to_sorted_blocks(np.asarray(array), offsets)
+
+    assert_array_equal(offsets, [0, 1, 1, 2, 2])
+
+    actual = []
+    for i in range(len(offsets) - 1):
+        actual += [i] * (offsets[i + 1] - offsets[i])
+
+    assert actual == [0, 2]
 
 
 def test_pair_isin_one_pair():
