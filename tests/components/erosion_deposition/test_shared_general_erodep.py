@@ -3,8 +3,8 @@ import pytest
 from numpy import testing
 
 from landlab import RasterModelGrid
-from landlab.components import SharedStreamPower
 from landlab.components import FlowAccumulator
+from landlab.components import SharedStreamPower
 
 
 def test_Ff_too_high_vals():
@@ -44,7 +44,7 @@ def test_Ff_too_high_vals():
             mg,
             K_d=0.01,
             F_f=2.0,
-            K_t=0.01/0.001,
+            K_t=0.01 / 0.001,
             m_sp=0.5,
             n_sp=1.0,
             sp_crit=0.0,
@@ -89,7 +89,7 @@ def test_Ff_too_low_vals():
             mg,
             K_d=0.01,
             F_f=-0.5,
-            K_t=0.01/0.001,
+            K_t=0.01 / 0.001,
             m_sp=0.5,
             n_sp=1.0,
             sp_crit=0.0,
@@ -135,7 +135,7 @@ def test_q_as_field():
         mg,
         K_d=0.01,
         F_f=0.0,
-        K_t=0.01/0.001,
+        K_t=0.01 / 0.001,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,
@@ -190,7 +190,7 @@ def test_q_as_array():
         mg,
         K_d=0.01,
         F_f=0.0,
-        K_t=0.01/0.001,
+        K_t=0.01 / 0.001,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,
@@ -245,7 +245,7 @@ def test_sediment__outflux_already_created():
         mg,
         K_d=0.01,
         F_f=0.0,
-        K_t=0.01/0.001,
+        K_t=0.01 / 0.001,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,

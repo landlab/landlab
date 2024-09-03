@@ -9,8 +9,8 @@ import numpy as np
 from numpy.testing import assert_equal
 
 from landlab import RasterModelGrid
-from landlab.components import SharedStreamPower
 from landlab.components import FlowAccumulator
+from landlab.components import SharedStreamPower
 
 
 def test_erodep_slope_area_small_vs():
@@ -31,7 +31,7 @@ def test_erodep_slope_area_small_vs():
     dt = 10.0
 
     # Create the SharedStreamPower component...
-    ed = SharedStreamPower(rg, K_d=K, K_t=K/vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
+    ed = SharedStreamPower(rg, K_d=K, K_t=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
     for _ in range(1000):
@@ -69,7 +69,7 @@ def test_erodep_slope_area_big_vs():
     dt = 10.0
 
     # Create the SharedStreamPower component...
-    ed = SharedStreamPower(rg, K_d=K, K_t=K/vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
+    ed = SharedStreamPower(rg, K_d=K, K_t=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
     for _ in range(1000):
@@ -106,7 +106,7 @@ def test_erodep_slope_area_with_vs_unity():
     dt = 10.0
 
     # Create the SharedStreamPower component...
-    ed = SharedStreamPower(rg, K_d=K, K_t=K/vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
+    ed = SharedStreamPower(rg, K_d=K, K_t=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
 
     # ... and run it to steady state.
     for _ in range(1000):
@@ -145,7 +145,9 @@ def test_erodep_slope_area_shear_stress_scaling():
     m_sp = 0.33
     n_sp = 0.67
     # Create the SharedStreamPower component...
-    ed = SharedStreamPower(rg, K_d=K, K_t=K/vs, m_sp=m_sp, n_sp=n_sp, solver="adaptive")
+    ed = SharedStreamPower(
+        rg, K_d=K, K_t=K / vs, m_sp=m_sp, n_sp=n_sp, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for _ in range(1500):
@@ -184,7 +186,7 @@ def test_erodep_slope_area_with_threshold():
 
     # Create the SharedStreamPower component...
     ed = SharedStreamPower(
-        rg, K_d=K, K_t=K/vs, m_sp=0.5, n_sp=1.0, sp_crit=wc, solver="adaptive"
+        rg, K_d=K, K_t=K / vs, m_sp=0.5, n_sp=1.0, sp_crit=wc, solver="adaptive"
     )
 
     # ... and run it to steady state.
