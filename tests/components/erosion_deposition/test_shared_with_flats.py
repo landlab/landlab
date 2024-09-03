@@ -9,8 +9,9 @@ from numpy.testing import assert_array_almost_equal
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.components import SharedStreamPower
 from landlab.components import FlowAccumulator
+from landlab.components import SharedStreamPower
+
 
 def test_without_depression_handling():
     grid = RasterModelGrid((3, 5), xy_spacing=10.0)

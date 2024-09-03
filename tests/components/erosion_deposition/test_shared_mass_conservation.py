@@ -2,8 +2,8 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
-from landlab.components import SharedStreamPower
 from landlab.components import FlowAccumulator
+from landlab.components import SharedStreamPower
 from landlab.components import Space
 
 
@@ -36,7 +36,7 @@ def test_mass_conserve_all_closed_SharedStreamPower(grid, solver, v_s, K, dt):
     fa = FlowAccumulator(grid)
     fa.run_one_step()
 
-    ed = SharedStreamPower(grid, solver=solver, K_d=K, K_t=K/v_s)
+    ed = SharedStreamPower(grid, solver=solver, K_d=K, K_t=K / v_s)
     ed.run_one_step(dt)
 
     dz = z_init - grid.at_node["topographic__elevation"]
@@ -113,7 +113,7 @@ def test_mass_conserve_with_depression_finder_SharedStreamPower(
         fa = FlowAccumulator(grid2, depression_finder=depression_finder, routing="D4")
     fa.run_one_step()
 
-    ed = SharedStreamPower(grid2, solver=solver, K_d = K, K_t = K/v_s)
+    ed = SharedStreamPower(grid2, solver=solver, K_d=K, K_t=K / v_s)
     ed.run_one_step(dt)
 
     dz = grid2.at_node["topographic__elevation"] - z_init
