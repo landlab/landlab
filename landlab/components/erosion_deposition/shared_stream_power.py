@@ -1,5 +1,3 @@
-import numpy as np
-
 from landlab.components.erosion_deposition.erosion_deposition import ErosionDeposition
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
@@ -16,9 +14,9 @@ class SharedStreamPower(ErosionDeposition):
     river incision and sediment transport in order to seamlessly
     transition between detachment limited to transport limited erosion.
     Mathematically equivalent to the linear decline model from Davy and Lague (2009),
-    which is used by the base class, ErosionDeposition. In addition, this component is designed to work with
-    varying runoff rates, and can update the discharge and other parameters effected by discharge
-    with each timestep.
+    which is used by the base class, ErosionDeposition. In addition, this component is
+    designed to work with varying runoff rates, and can update the discharge
+    and other parameters effected by discharge with each timestep.
 
     Here is the equation for erosion without a threshold:
 
@@ -45,9 +43,10 @@ class SharedStreamPower(ErosionDeposition):
         K = K_d / r^m_sp
         v_s = K_d/K_t
 
-    It is important to note that the second two equations were derived only for calibrating the model,
-    and do not necessarily correlate to landscape evolution in nature. Channel width, w is not a parameter
-    in this component, and we assume that w = 1.0 so that Q = q.
+    It is important to note that the second two equations were derived only
+    for calibrating the model,and do not necessarily correlate to landscape evolution
+    in nature. Channel width, w is not a parameter in this component, and we
+    assume that w = 1.0 so that Q = q.
 
     To write the final equation we define the incision term as omega:
 
