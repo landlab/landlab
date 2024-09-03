@@ -9,34 +9,29 @@
 :URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
-import contextlib
-
-from numpy import set_printoptions
-
-from ._registry import registry
-from ._version import __version__
-from .core.errors import MissingKeyError, ParameterValueError
-from .core.model_component import Component
-from .core.model_parameter_loader import load_params
-from .core.utils import ExampleData
-from .field import FieldError
-from .grid import (
-    FramedVoronoiGrid,
-    HexModelGrid,
-    ModelGrid,
-    NetworkModelGrid,
-    RadialModelGrid,
-    RasterModelGrid,
-    VoronoiDelaunayGrid,
-    create_grid,
-)
-from .grid.linkstatus import LinkStatus
-from .grid.nodestatus import NodeStatus
-from .plot import imshow_grid, imshow_grid_at_node, imshowhs_grid, imshowhs_grid_at_node
-
-with contextlib.suppress(TypeError):
-    set_printoptions(legacy="1.13")
-del set_printoptions
+from landlab._registry import registry
+from landlab._version import __version__
+from landlab.core.errors import MissingKeyError
+from landlab.core.errors import ParameterValueError
+from landlab.core.model_component import Component
+from landlab.core.model_parameter_loader import load_params
+from landlab.core.utils import ExampleData
+from landlab.field.errors import FieldError
+from landlab.grid.base import ModelGrid
+from landlab.grid.create import create_grid
+from landlab.grid.framed_voronoi import FramedVoronoiGrid
+from landlab.grid.hex import HexModelGrid
+from landlab.grid.icosphere import IcosphereGlobalGrid
+from landlab.grid.linkstatus import LinkStatus
+from landlab.grid.network import NetworkModelGrid
+from landlab.grid.nodestatus import NodeStatus
+from landlab.grid.radial import RadialModelGrid
+from landlab.grid.raster import RasterModelGrid
+from landlab.grid.voronoi import VoronoiDelaunayGrid
+from landlab.plot.imshow import imshow_grid
+from landlab.plot.imshow import imshow_grid_at_node
+from landlab.plot.imshowhs import imshowhs_grid
+from landlab.plot.imshowhs import imshowhs_grid_at_node
 
 cite_as = registry.format_citations
 
@@ -56,6 +51,7 @@ __all__ = [
     "FramedVoronoiGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
+    "IcosphereGlobalGrid",
     "LinkStatus",
     "NodeStatus",
     "create_grid",

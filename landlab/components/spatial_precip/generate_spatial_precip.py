@@ -1,9 +1,11 @@
 import contextlib
 
 import numpy as np
-from scipy.stats import fisk, genextreme
+from scipy.stats import fisk
+from scipy.stats import genextreme
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 
 class SpatialPrecipitationDistribution(Component):
@@ -134,7 +136,7 @@ class SpatialPrecipitationDistribution(Component):
 
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, VoronoiDelaunayGrid
-    >>> mg = RasterModelGrid((10, 10), xy_spacing=1000.)
+    >>> mg = RasterModelGrid((10, 10), xy_spacing=1000.0)
     >>> rain = SpatialPrecipitationDistribution(mg)
 
     Calling yield_storms will produce storm-interstorm duration (hr) pairs
@@ -142,39 +144,47 @@ class SpatialPrecipitationDistribution(Component):
 
     >>> np.random.seed(1)
     >>> total_t_each_step = [
-    ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms()]
+    ...     (storm + interstorm) for (storm, interstorm) in rain.yield_storms()
+    ... ]
     >>> len(total_t_each_step)
     41
-    >>> np.isclose(sum(total_t_each_step)/24., 365.)
+    >>> np.isclose(sum(total_t_each_step) / 24.0, 365.0)
     True
 
     The actual rainfall intensities during that interval are accessible in the
     'rainfall__flux' field (mm/hr). The storm centre does not have to be over
     the grid, but in this case, it was for the last simulated storm:
 
-    >>> mg.at_node['rainfall__flux'].argmax()
+    >>> mg.at_node["rainfall__flux"].argmax()
     80
 
     We can also run the component for only one season (i.e., only using one
     of the pdf sets describing the storm properties):
 
-    >>> for field in ('rainfall__flux', 'rainfall__total_depth_per_year'):
+    >>> for field in ("rainfall__flux", "rainfall__total_depth_per_year"):
     ...     _ = mg.at_node.pop(field)  # clear out the existing fields
+    ...
     >>> rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
     >>> np.random.seed(5)
     >>> total_t_each_step = [
-    ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms(
-    ...         style='monsoonal', monsoon_fraction_of_year=0.35)]
-    >>> np.isclose(sum(total_t_each_step)/24./365./2., 0.35)
+    ...     (storm + interstorm)
+    ...     for (storm, interstorm) in rain.yield_storms(
+    ...         style="monsoonal", monsoon_fraction_of_year=0.35
+    ...     )
+    ... ]
+    >>> np.isclose(sum(total_t_each_step) / 24.0 / 365.0 / 2.0, 0.35)
     True
 
     Note this behaviour can be stopped by upping monsoon_fraction_of_year:
 
     >>> np.random.seed(5)
     >>> total_t_each_step = [
-    ...     (storm+interstorm) for (storm, interstorm) in rain.yield_storms(
-    ...         style='monsoonal', monsoon_fraction_of_year=1.)]
-    >>> np.isclose(round(sum(total_t_each_step)/24./365./2., 2), 1.)
+    ...     (storm + interstorm)
+    ...     for (storm, interstorm) in rain.yield_storms(
+    ...         style="monsoonal", monsoon_fraction_of_year=1.0
+    ...     )
+    ... ]
+    >>> np.isclose(round(sum(total_t_each_step) / 24.0 / 365.0 / 2.0, 2), 1.0)
     True
 
     yield_years yields the number of storms in the last whole year.
@@ -182,18 +192,22 @@ class SpatialPrecipitationDistribution(Component):
     last fully elapsed year, or equivalently, the total_rainfall_last_year
     property. Note the component seamlessly handles non-raster grid types:
 
-    >>> vdg = VoronoiDelaunayGrid(np.random.rand(100)*1000.,
-    ...                           np.random.rand(100)*1000.)
+    >>> vdg = VoronoiDelaunayGrid(
+    ...     np.random.rand(100) * 1000.0, np.random.rand(100) * 1000.0
+    ... )
     >>> np.random.seed(3)
     >>> rain = SpatialPrecipitationDistribution(vdg, number_of_years=3)
     >>> storms_each_year = []
-    >>> for total_storms in rain.yield_years(style='monsoonal',
-    ...                                      total_rf_trend=0.05,
-    ...                                      storminess_trend=-0.02):
+    >>> for total_storms in rain.yield_years(
+    ...     style="monsoonal", total_rf_trend=0.05, storminess_trend=-0.02
+    ... ):
     ...     storms_each_year.append(total_storms)
-    ...     assert(np.all(np.equal(
-    ...         vdg.at_node['rainfall__total_depth_per_year'],
-    ...         rain.total_rainfall_last_year)))
+    ...     assert np.all(
+    ...         np.equal(
+    ...             vdg.at_node["rainfall__total_depth_per_year"],
+    ...             rain.total_rainfall_last_year,
+    ...         )
+    ...     )
     >>> sum(storms_each_year)
     11
 
@@ -203,8 +217,9 @@ class SpatialPrecipitationDistribution(Component):
     supplied total_rf_gaussians if we set limit to 'total__rainfall' rather
     than 'total_time' (at the cost of exactly matching the season length):
 
-    >>> for field in ('rainfall__flux', 'rainfall__total_depth_per_year'):
+    >>> for field in ("rainfall__flux", "rainfall__total_depth_per_year"):
     ...     _ = mg.at_node.pop(field)  # clear out the existing fields
+    ...
     >>> rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
     >>> np.random.seed(5)
     >>> season_list = []
@@ -213,35 +228,37 @@ class SpatialPrecipitationDistribution(Component):
     >>> median_rf_last_year = []
     >>> mean_rf_season = []
     >>> mean_rf_last_year = []
-    >>> for storm_number in rain.yield_seasons(limit='total_rainfall'):
+    >>> for storm_number in rain.yield_seasons(limit="total_rainfall"):
     ...     season_list.append(rain.current_season)
     ...     theoretical_median_rf_season.append(
-    ...         rain.target_median_total_rainfall_this_season)
+    ...         rain.target_median_total_rainfall_this_season
+    ...     )
     ...     median_rf_season.append(rain.median_total_rainfall_this_season)
     ...     median_rf_last_year.append(rain.median_total_rainfall_last_year)
     ...     mean_rf_season.append(rain.total_rainfall_this_season.mean())
     ...     mean_rf_last_year.append(rain.total_rainfall_last_year.mean())
-    >>> season_list == ['M', 'W', 'M', 'W']
+    ...
+    >>> season_list == ["M", "W", "M", "W"]
     True
-    >>> [meas > sim for (meas, sim) in zip(
-    ...     median_rf_season, theoretical_median_rf_season)]  # must exceed
+    >>> [
+    ...     meas > sim
+    ...     for (meas, sim) in zip(median_rf_season, theoretical_median_rf_season)
+    ... ]  # must exceed
     [True, True, True, True]
-    >>> np.isclose(median_rf_last_year[0], 0.)
+    >>> np.isclose(median_rf_last_year[0], 0.0)
     True
     >>> for season in (0, 2):  # this property must be the same in both seasons
-    ...     np.isclose(median_rf_last_year[season],
-    ...                median_rf_last_year[season + 1])
+    ...     np.isclose(median_rf_last_year[season], median_rf_last_year[season + 1])
+    ...
     True
     True
 
     Note that because we work here with medians, the seasonal medians don't sum
     to the year median, but the means do:
 
-    >>> np.isclose(median_rf_last_year[2],
-    ...            median_rf_season[0] + median_rf_season[1])
+    >>> np.isclose(median_rf_last_year[2], median_rf_season[0] + median_rf_season[1])
     False
-    >>> np.isclose(mean_rf_last_year[2],
-    ...            mean_rf_season[0] + mean_rf_season[1])
+    >>> np.isclose(mean_rf_last_year[2], mean_rf_season[0] + mean_rf_season[1])
     True
 
     References
@@ -1370,9 +1387,9 @@ class SpatialPrecipitationDistribution(Component):
                     Storm_total_local_seas[storm, :] = (
                         self._rain_int_gauge[opennodes] * duration_val / 60.0
                     )
-                    Storm_total_local_year[
-                        (storm + storms_yr_so_far), :
-                    ] = Storm_total_local_seas[storm, :]
+                    Storm_total_local_year[(storm + storms_yr_so_far), :] = (
+                        Storm_total_local_seas[storm, :]
+                    )
                     self._max_storm_depth = Storm_total_local_seas[storm, :].max()
 
                     self._Storm_total_local_seas = Storm_total_local_seas
@@ -1407,9 +1424,9 @@ class SpatialPrecipitationDistribution(Component):
                         raise ValueError("_max_numstorms set too low for this run")
                 storms_yr_so_far = seas_storm_count
                 self._storm_running_sum_of_seasons += Storm_running_sum_seas[0, :]
-                self._total_rainfall_last_season[
-                    self._opennodes
-                ] = Storm_running_sum_seas[0, :]
+                self._total_rainfall_last_season[self._opennodes] = (
+                    Storm_running_sum_seas[0, :]
+                )
                 self._storm_running_sum_1st_seas += Storm_running_sum_seas[0, :]
                 if yield_seasons:
                     yield seas_storm_count
@@ -1444,17 +1461,19 @@ class SpatialPrecipitationDistribution(Component):
 
         Examples
         --------
-        >>> mg = RasterModelGrid((10, 10), xy_spacing=500.)
+        >>> mg = RasterModelGrid((10, 10), xy_spacing=500.0)
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> rain = SpatialPrecipitationDistribution(mg)
         >>> mytotals = []
         >>> for yr in range(5):
-        ...     mytotals.append(rain.calc_annual_rainfall(style='whole_year'))
+        ...     mytotals.append(rain.calc_annual_rainfall(style="whole_year"))
+        ...
         >>> [len(x) == 2 for x in mytotals]
         [True, True, True, True, True]
         >>> mytotals = []
         >>> for yr in range(3):
-        ...     mytotals.append(rain.calc_annual_rainfall(style='monsoonal'))
+        ...     mytotals.append(rain.calc_annual_rainfall(style="monsoonal"))
+        ...
         >>> [len(x) == 1 for x in mytotals]
         [True, True, True]
         """
@@ -1576,9 +1595,9 @@ class SpatialPrecipitationDistribution(Component):
     def total_rainfall_this_season(self):
         """Get the accumulated, spatially resolved total rainfall over the grid
         for the season so far (mm)."""
-        self._running_total_rainfall_this_season[
-            self._opennodes
-        ] = self._Storm_running_sum_seas
+        self._running_total_rainfall_this_season[self._opennodes] = (
+            self._Storm_running_sum_seas
+        )
         return self._running_total_rainfall_this_season
 
     @property

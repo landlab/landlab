@@ -1,13 +1,22 @@
+import json
 import os
 import pathlib
 import shutil
-import tempfile
+import sys
 
 import nox
+from packaging.requirements import Requirement
 
 PROJECT = "landlab"
 ROOT = pathlib.Path(__file__).parent
-PYTHON_VERSION = "3.11"
+PYTHON_VERSION = "3.12"
+PATH = {
+    "build": ROOT / "build",
+    "docs": ROOT / "docs",
+    "nox": pathlib.Path(".nox"),
+    "requirements": ROOT / "requirements",
+    "root": ROOT,
+}
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
@@ -15,12 +24,23 @@ def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
 
-    # session.conda_install("c-compiler", "cxx-compiler")
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-    session.conda_install("--file", "requirements.in")
-    session.conda_install("--file", "requirements-testing.in")
-    session.conda_install("richdem")
+
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge.")
+        session.conda_install("multidict")
+
+    session.install(
+        "-r",
+        PATH["requirements"] / "required.txt",
+        "-r",
+        PATH["requirements"] / "testing.txt",
+    )
+
+    session.conda_install("richdem", "numpy<2", channel=["nodefaults", "conda-forge"])
     session.install("-e", ".", "--no-deps")
+
+    check_package_versions(session, files=["required.txt", "testing.txt"])
 
     args = [
         "-n",
@@ -55,21 +75,25 @@ def test_notebooks(session: nox.Session) -> None:
 
     os.environ["WITH_OPENMP"] = "1"
 
-    # session.conda_install("c-compiler", "cxx-compiler")
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.conda_install(
-        "pytest",
-        "pytest-xdist",
-        "--file",
-        "notebooks/requirements.in",
-        "--file",
-        "requirements-testing.in",
-        "--file",
-        "requirements.in",
-        channel=["nodefaults", "conda-forge"],
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge")
+        session.conda_install("multidict")
+
+    session.install(
+        "-r",
+        PATH["requirements"] / "required.txt",
+        "-r",
+        PATH["requirements"] / "testing.txt",
+        "-r",
+        PATH["requirements"] / "notebooks.txt",
     )
+    session.conda_install("richdem", "numpy<2", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
+
+    check_package_versions(
+        session, files=["required.txt", "testing.txt", "notebooks.txt"]
+    )
 
     session.run(*args)
 
@@ -127,23 +151,65 @@ def build_index(session: nox.Session) -> None:
 @nox.session(name="build-docs")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
-    build_dir = ROOT / "build"
-    docs_dir = ROOT / "docs"
 
-    session.install("-r", docs_dir / "requirements.in")
-    session.install("-e", ".")
+    session.install(
+        "-r",
+        PATH["requirements"] / "docs.txt",
+        "-r",
+        PATH["requirements"] / "required.txt",
+    )
+    session.install("-e", ".", "--no-deps")
 
-    build_dir.mkdir(exist_ok=True)
+    check_package_versions(session, files=["required.txt", "docs.txt"])
+
+    PATH["build"].mkdir(exist_ok=True)
     session.run(
         "sphinx-build",
         "-b",
         "html",
         "-W",
         "--keep-going",
-        docs_dir / "source",
-        build_dir / "html",
+        PATH["docs"] / "source",
+        PATH["build"] / "html",
     )
-    session.log(f"generated docs at {build_dir / 'html'!s}")
+    session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+
+
+@nox.session(name="check-versions")
+def check_package_versions(session, files=("required.txt",)):
+    output_lines = session.run("pip", "list", "--format=json", silent=True).splitlines()
+
+    installed_version = {
+        p["name"].lower(): p["version"] for p in json.loads(output_lines[0])
+    }
+
+    for file_ in files:
+        required_version = {}
+        with (PATH["requirements"] / file_).open() as fp:
+            for line in fp.readlines():
+                requirement = Requirement(line)
+                required_version[requirement.name.lower()] = requirement.specifier
+
+        mismatch = set()
+        for name, version in required_version.items():
+            if name not in installed_version or not version.contains(
+                installed_version[name]
+            ):
+                mismatch.add(name)
+
+        session.log(f"Checking installed package versions for {file_}")
+        for name in sorted(required_version):
+            print(f"[{name}]")
+            print(f"requested = {str(required_version[name])!r}")
+            if name in installed_version:
+                print(f"installed = {installed_version[name]!r}")
+            else:
+                print("installed = false")
+
+        if mismatch:
+            session.warn(
+                f"There were package version mismatches for packages required in {file_}"
+            )
 
 
 @nox.session
@@ -255,14 +321,12 @@ def clean_checkpoints(session):
 @nox.session(python=False, name="clean-docs")
 def clean_docs(session: nox.Session) -> None:
     """Clean up the docs folder."""
-    build_dir = ROOT / "build"
-
-    if (build_dir / "html").is_dir():
-        with session.chdir(build_dir):
+    if (PATH["build"] / "html").is_dir():
+        with session.chdir(PATH["build"]):
             shutil.rmtree("html")
 
-    if (ROOT / "build").is_dir():
-        session.chdir(ROOT / "build")
+    if PATH["build"].is_dir():
+        session.chdir(PATH["build"])
         if os.path.exists("html"):
             shutil.rmtree("html")
 
@@ -310,16 +374,13 @@ def _get_wheels(session):
 
     wheels = []
     for platform in platforms:
-        with tempfile.TemporaryFile("w+") as fp:
-            session.run(
-                "cibuildwheel",
-                "--print-build-identifiers",
-                "--platform",
-                platform,
-                stdout=fp,
-            )
-            fp.seek(0)
-            wheels += fp.read().splitlines()
+        wheels += session.run(
+            "cibuildwheel",
+            "--print-build-identifiers",
+            "--platform",
+            platform,
+            silent=True,
+        ).splitlines()
     return wheels
 
 
@@ -328,12 +389,41 @@ def _args_to_folders(args):
 
 
 def _clean_rglob(pattern):
-    nox_dir = pathlib.Path(".nox")
-
     for p in pathlib.Path(".").rglob(pattern):
-        if nox_dir in p.parents:
+        if PATH["nox"] in p.parents:
             continue
         if p.is_dir():
             p.rmdir()
         else:
             p.unlink()
+
+
+@nox.session
+def credits(session):
+    """Update the various authors files."""
+    from landlab.cmd.authors import AuthorsConfig
+
+    config = AuthorsConfig()
+
+    with open(".mailmap", "wb") as fp:
+        session.run(
+            "landlab", "--silent", "authors", "mailmap", stdout=fp, external=True
+        )
+
+    contents = session.run(
+        "landlab",
+        "--silent",
+        "authors",
+        "create",
+        "--update-existing",
+        external=True,
+        silent=True,
+    )
+    with open(config["credits_file"], "w") as fp:
+        print(contents, file=fp, end="")
+
+    contents = session.run(
+        "landlab", "--silent", "authors", "build", silent=True, external=True
+    )
+    with open(config["authors_file"], "w") as fp:
+        print(contents, file=fp, end="")

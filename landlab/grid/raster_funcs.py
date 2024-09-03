@@ -144,19 +144,19 @@ def find_nearest_node(rmg, coords, mode="raise"):
 
     >>> find_nearest_node(rmg, (0.2, 0.6))
     5
-    >>> find_nearest_node(rmg, (np.array([1.6, 3.6]), np.array([2.3, .7])))
+    >>> find_nearest_node(rmg, (np.array([1.6, 3.6]), np.array([2.3, 0.7])))
     array([12,  9])
 
     The *mode* keyword indicates what to do if a point is outside of the
     grid.
 
-    >>> find_nearest_node(rmg, (-0.6, 0.6), mode='raise')
+    >>> find_nearest_node(rmg, (-0.6, 0.6), mode="raise")
     Traceback (most recent call last):
         ...
     ValueError: invalid entry in coordinates array
-    >>> find_nearest_node(rmg, (-0.6, 0.6), mode='clip')
+    >>> find_nearest_node(rmg, (-0.6, 0.6), mode="clip")
     5
-    >>> find_nearest_node(rmg, (-0.6, 0.6), mode='wrap')
+    >>> find_nearest_node(rmg, (-0.6, 0.6), mode="wrap")
     9
     """
     if isinstance(coords[0], np.ndarray):
@@ -191,9 +191,9 @@ def _find_nearest_node_ndarray(rmg, coords, mode="raise"):
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
     >>> grid = RasterModelGrid((4, 5))
-    >>> _find_nearest_node_ndarray(grid, (.25, 1.25))
+    >>> _find_nearest_node_ndarray(grid, (0.25, 1.25))
     5
-    >>> _find_nearest_node_ndarray(grid, (.75, 2.25))
+    >>> _find_nearest_node_ndarray(grid, (0.75, 2.25))
     11
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 4))
@@ -225,14 +225,14 @@ def _value_is_in_bounds(value, bounds):
     --------
     >>> from landlab.grid.raster_funcs import _value_is_in_bounds
     >>> import numpy as np
-    >>> _value_is_in_bounds(.5, (0, 1))
+    >>> _value_is_in_bounds(0.5, (0, 1))
     True
     >>> _value_is_in_bounds(1, (0, 1))
     False
     >>> _value_is_in_bounds(0, (0, 1))
     True
     >>> _value_is_in_bounds(np.array((0, 1)), (0, 1))
-    array([ True, False], dtype=bool)
+    array([ True, False])
     """
     dummy = value >= bounds[0]
     dummy &= value < bounds[1]
@@ -300,10 +300,10 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
     point coordinates.
 
     >>> is_coord_on_grid(grid, ([3.9, 4.1], 2.9))
-    array([ True, False], dtype=bool)
+    array([ True, False])
 
-    >>> is_coord_on_grid(grid, ([3.9, 4.1], 2.9), axes=(0, ))
-    array([ True,  True], dtype=bool)
+    >>> is_coord_on_grid(grid, ([3.9, 4.1], 2.9), axes=(0,))
+    array([ True,  True])
     """
     coords = np.broadcast_arrays(*coords)
 

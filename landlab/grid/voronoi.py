@@ -37,7 +37,7 @@ def simple_poly_area(x, y):
     --------
     >>> import numpy as np
     >>> from landlab.grid.voronoi import simple_poly_area
-    >>> x = np.array([3., 1., 1., 3.])
+    >>> x = np.array([3.0, 1.0, 1.0, 3.0])
     >>> y = np.array([1.5, 1.5, 0.5, 0.5])
     >>> simple_poly_area(x, y)
     2.0
@@ -46,12 +46,10 @@ def simple_poly_area(x, y):
     Note that when used in this mode, all polygons must have the same
     number of vertices, and polygon vertices are listed column-by-column.
 
-    >>> x = np.array([[ 3.,  1.,  1.,  3.],
-    ...               [-2., -2., -1., -1.]]).T
-    >>> y = np.array([[1.5, 1.5, 0.5, 0.5],
-    ...               [ 0.,  1.,  2.,  0.]]).T
+    >>> x = np.array([[3.0, 1.0, 1.0, 3.0], [-2.0, -2.0, -1.0, -1.0]]).T
+    >>> y = np.array([[1.5, 1.5, 0.5, 0.5], [0.0, 1.0, 2.0, 0.0]]).T
     >>> simple_poly_area(x, y)
-    array([ 2. ,  1.5])
+    array([2. ,  1.5])
     """
     # For short arrays (less than about 100 elements) it seems that the
     # Python sum is faster than the numpy sum. Likewise for the Python
@@ -60,7 +58,6 @@ def simple_poly_area(x, y):
 
 
 class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
-
     """This inherited class implements an unstructured grid in which cells are
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
@@ -75,31 +72,41 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from numpy.random import rand
     >>> from landlab.grid import VoronoiDelaunayGrid
+
     >>> x, y = rand(25), rand(25)
     >>> vmg = VoronoiDelaunayGrid(x, y)  # node_x_coords, node_y_coords
     >>> vmg.number_of_nodes
     25
 
-    >>> import numpy as np
-    >>> x = [0, 0.1, 0.2, 0.3,
-    ...      1, 1.1, 1.2, 1.3,
-    ...      2, 2.1, 2.2, 2.3,]
-    >>> y = [0, 1, 2, 3,
-    ...      0, 1, 2, 3,
-    ...      0, 1, 2, 3]
+    >>> x = np.array(
+    ...     [
+    ...         [0, 0.1, 0.2, 0.3],
+    ...         [1, 1.1, 1.2, 1.3],
+    ...         [2, 2.1, 2.2, 2.3],
+    ...     ]
+    ... ).flatten()
+    >>> y = np.array(
+    ...     [
+    ...         [0.0, 1.0, 2.0, 3.0],
+    ...         [0.0, 1.0, 2.0, 3.0],
+    ...         [0.0, 1.0, 2.0, 3.0],
+    ...     ]
+    ... ).flatten()
+
     >>> vmg = VoronoiDelaunayGrid(x, y)
-    >>> vmg.node_x # doctest: +NORMALIZE_WHITESPACE
-    array([ 0. ,  1. ,  2. ,
-            0.1,  1.1,  2.1,
-            0.2,  1.2,  2.2,
-            0.3,  1.3,  2.3])
-    >>> vmg.node_y # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  0.,  0.,
-            1.,  1.,  1.,
-            2.,  2.,  2.,
-            3.,  3.,  3.])
+    >>> vmg.node_x
+    array([0. ,  1. ,  2. ,
+           0.1,  1.1,  2.1,
+           0.2,  1.2,  2.2,
+           0.3,  1.3,  2.3])
+    >>> vmg.node_y
+    array([0.,  0.,  0.,
+           1.,  1.,  1.,
+           2.,  2.,  2.,
+           3.,  3.,  3.])
     >>> vmg.adjacent_nodes_at_node
     array([[ 1,  3, -1, -1, -1, -1],
            [ 2,  4,  3,  0, -1, -1],

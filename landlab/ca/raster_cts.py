@@ -46,10 +46,10 @@ class RasterCTS(CellLabCTSModel):
     >>> from landlab.ca.raster_cts import RasterCTS
 
     >>> mg = RasterModelGrid((3, 4))
-    >>> nsd = {0 : 'yes', 1 : 'no'}
+    >>> nsd = {0: "yes", 1: "no"}
     >>> xnlist = []
-    >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
-    >>> nsg = mg.add_zeros('node', 'node_state_grid')
+    >>> xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "frogging"))
+    >>> nsg = mg.add_zeros("node", "node_state_grid")
     >>> rcts = RasterCTS(mg, nsd, xnlist, nsg)
     """
 

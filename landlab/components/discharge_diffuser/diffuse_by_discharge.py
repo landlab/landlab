@@ -8,7 +8,8 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 
 class DischargeDiffuser(Component):
@@ -309,14 +310,14 @@ class DischargeDiffuser(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4), xy_spacing=(1., 0.5))
+        >>> mg = RasterModelGrid((3, 4), xy_spacing=(1.0, 0.5))
         >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> z = mg.add_zeros("water__discharge_in", at="node")
         >>> z = mg.add_zeros("sediment__discharge_in", at="node")
         >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
-        >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')
+        >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), "edge")
         >>> dd = DischargeDiffuser(mg, 0.25)
-        >>> dd._grad_on_link(zpad, 'W')
+        >>> dd._grad_on_link(zpad, "W")
         """
         core = (slice(1, -1, 1), slice(1, -1, 1))
         if direction == "W":

@@ -1,3 +1,5 @@
+include .credits.toml
+include .mailmap
 include AUTHORS.rst
 include CHANGES.rst
 include FUNDING.rst
@@ -13,6 +15,7 @@ recursive-include docs *.txt
 recursive-include landlab *.pyx *.pxd *.hpp
 recursive-include landlab README.md
 recursive-include landlab/data *
+recursive-include requirements *.md *.txt
 recursive-include tests *py
 recursive-include tests *.asc
 recursive-include tests *.dbf

@@ -1,33 +1,45 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdlib cimport free, malloc
+from cython.parallel cimport prange
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
-def calc_area_at_patch(np.ndarray[long, ndim=2] nodes_at_patch,
-                       np.ndarray[np.float_t, ndim=1] x_of_node,
-                       np.ndarray[np.float_t, ndim=1] y_of_node,
-                       np.ndarray[np.float_t, ndim=1] out):
+@cython.wraparound(False)
+def calc_area_at_patch(
+    const id_t [:, :] nodes_at_patch,
+    const cython.floating [:] x_of_node,
+    const cython.floating [:] y_of_node,
+    cython.floating [:] out,
+):
     cdef long n_patches = nodes_at_patch.shape[0]
     cdef long n_vertices = nodes_at_patch.shape[1]
     cdef long n
 
-    for n in range(n_patches):
-      out[n] = calc_area_of_patch(&nodes_at_patch[n, 0], n_vertices,
-                                  &x_of_node[0], &y_of_node[0])
+    for n in prange(n_patches, nogil=True, schedule="static"):
+        out[n] = calc_area_of_patch(
+            &nodes_at_patch[n, 0], n_vertices, &x_of_node[0], &y_of_node[0]
+        )
 
 
-cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
-                        double * x_of_node, double * y_of_node):
+cdef cython.floating calc_area_of_patch(
+    const id_t * nodes_at_patch,
+    const long n_vertices,
+    const cython.floating * x_of_node,
+    const cython.floating * y_of_node,
+) noexcept nogil:
     cdef int n
     cdef int node
-    cdef double * x_of_vertex = <double *>malloc(n_vertices * sizeof(double))
-    cdef double * y_of_vertex = <double *>malloc(n_vertices * sizeof(double))
+    cdef cython.floating * x_of_vertex = <cython.floating *>malloc(
+        n_vertices * sizeof(cython.floating)
+    )
+    cdef cython.floating * y_of_vertex = <cython.floating *>malloc(
+        n_vertices * sizeof(cython.floating)
+    )
 
     try:
         for n in range(n_vertices):
@@ -45,26 +57,38 @@ cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
 
 
 @cython.boundscheck(False)
-def calc_centroid_at_patch(np.ndarray[long, ndim=2] nodes_at_patch,
-                           np.ndarray[np.float_t, ndim=1] x_of_node,
-                           np.ndarray[np.float_t, ndim=1] y_of_node,
-                           np.ndarray[np.float_t, ndim=2] out):
+@cython.wraparound(False)
+def calc_centroid_at_patch(
+    const id_t [:, :] nodes_at_patch,
+    const cython.floating [:] x_of_node,
+    const cython.floating [:] y_of_node,
+    cython.floating [:, :] out,
+):
     cdef long n_patches = nodes_at_patch.shape[0]
     cdef long n_vertices = nodes_at_patch.shape[1]
     cdef long n
 
-    for n in range(n_patches):
-        calc_centroid_of_patch(&nodes_at_patch[n, 0], n_vertices,
-                               &x_of_node[0], &y_of_node[0],
-                               &out[n, 0])
+    for n in prange(n_patches, nogil=True, schedule="static"):
+        calc_centroid_of_patch(
+            &nodes_at_patch[n, 0], n_vertices, &x_of_node[0], &y_of_node[0], &out[n, 0]
+        )
 
 
-cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
-                            double * x_of_node, double * y_of_node, double * out):
+cdef void calc_centroid_of_patch(
+    const id_t * nodes_at_patch,
+    const long n_vertices,
+    const cython.floating * x_of_node,
+    const cython.floating * y_of_node,
+    cython.floating * out,
+) noexcept nogil:
     cdef int n
     cdef int node
-    cdef double * x = <double *>malloc(n_vertices * sizeof(double))
-    cdef double * y = <double *>malloc(n_vertices * sizeof(double))
+    cdef cython.floating * x = <cython.floating *>malloc(
+        n_vertices * sizeof(cython.floating)
+    )
+    cdef cython.floating * y = <cython.floating *>malloc(
+        n_vertices * sizeof(cython.floating)
+    )
 
     try:
         for n in range(n_vertices):
@@ -80,8 +104,12 @@ cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
         free(x)
 
 
-cdef calc_centroid_of_polygon(double * x, double * y, long n_vertices,
-                              double * out):
+cdef void calc_centroid_of_polygon(
+    const cython.floating * x,
+    const cython.floating * y,
+    const long n_vertices,
+    cython.floating * out,
+) noexcept nogil:
     cdef double x_of_centroid = 0.
     cdef double y_of_centroid = 0.
     cdef double area = calc_area_of_polygon(x, y, n_vertices)
@@ -108,7 +136,11 @@ cdef calc_centroid_of_polygon(double * x, double * y, long n_vertices,
     out[1] = y_of_centroid
 
 
-cdef calc_area_of_polygon(double * x, double * y, long n_vertices):
+cdef cython.floating calc_area_of_polygon(
+    const cython.floating * x,
+    const cython.floating * y,
+    const long n_vertices,
+) noexcept nogil:
     cdef double area = 0.
     cdef int n
 
@@ -117,6 +149,6 @@ cdef calc_area_of_polygon(double * x, double * y, long n_vertices):
         area -= x[n + 1] * y[n]
     area += x[n_vertices - 1] * y[0]
     area -= x[0] * y[n_vertices - 1]
-    area /= 2.
+    area *= 0.5
 
     return area

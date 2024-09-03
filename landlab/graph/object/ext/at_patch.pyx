@@ -1,17 +1,24 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
-from libc.stdlib cimport free, malloc, qsort
+from cython.parallel cimport prange
+from libc.stdint cimport int8_t
 
-from ...sort.ext.argsort cimport unique_int
+ctypedef fused float_or_int:
+    cython.floating
+    cython.integral
+    int8_t
+
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
-@cython.boundscheck(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def get_rightmost_edge_at_patch(
-    np.ndarray[long, ndim=2, mode="c"] links_at_patch,
-    np.ndarray[double, ndim=2, mode="c"] xy_of_link,
-    np.ndarray[long, ndim=1, mode="c"] edge):
+    const id_t [:, :] links_at_patch,
+    const cython.floating [:, :] xy_of_link,
+    id_t [:] edge,
+):
     cdef int n_patches = links_at_patch.shape[0]
     cdef int n_cols = links_at_patch.shape[1]
     cdef int patch
@@ -20,7 +27,7 @@ def get_rightmost_edge_at_patch(
     cdef int max_n
     cdef double max_x
 
-    for patch in range(n_patches):
+    for patch in prange(n_patches, nogil=True, schedule="static"):
         link = links_at_patch[patch, 0]
         max_x, max_n = xy_of_link[link][0], 0
 
@@ -33,17 +40,24 @@ def get_rightmost_edge_at_patch(
         edge[patch] = max_n
 
 
-cdef find_common_node(long * link_a, long * link_b):
+cdef id_t find_common_node(
+    const id_t * link_a,
+    const id_t * link_b,
+) noexcept nogil:
     if link_a[0] == link_b[0] or link_a[0] == link_b[1]:
         return link_a[0]
     elif link_a[1] == link_b[0] or link_a[1] == link_b[1]:
         return link_a[1]
     else:
-        raise ValueError('links are not connected')
+        raise ValueError("links are not connected")
 
 
-cdef all_nodes_at_patch(long * links_at_patch, long max_links,
-                        long * nodes_at_link, long * out):
+cdef long all_nodes_at_patch(
+    const id_t * links_at_patch,
+    long max_links,
+    const id_t * nodes_at_link,
+    long * out,
+) noexcept nogil:
     cdef long n_links = max_links
     cdef long link
     cdef long i
@@ -63,8 +77,11 @@ cdef all_nodes_at_patch(long * links_at_patch, long max_links,
     return n_links
 
 
-cdef order_nodes_at_patch(long * all_nodes_at_patch, long * out,
-                          long n_vertices):
+cdef void order_nodes_at_patch(
+    const id_t * all_nodes_at_patch,
+    id_t * out,
+    const long n_vertices,
+):
     cdef long i
     cdef long vertex
 
@@ -79,32 +96,34 @@ cdef order_nodes_at_patch(long * all_nodes_at_patch, long * out,
             out[vertex + 1] = all_nodes_at_patch[i - 1]
 
 
-@cython.boundscheck(True)
-def get_nodes_at_patch(np.ndarray[long, ndim=2, mode="c"] links_at_patch,
-                       np.ndarray[long, ndim=2, mode="c"] nodes_at_link,
-                       np.ndarray[long, ndim=2, mode="c"] nodes_at_patch):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def get_nodes_at_patch(
+    const id_t [:, :] links_at_patch,
+    const id_t [:, :] nodes_at_link,
+    id_t [:, :] nodes_at_patch,
+):
     cdef int n_patches = links_at_patch.shape[0]
     cdef int max_links_at_patch = links_at_patch.shape[1]
     cdef int patch
-    cdef int link
-    cdef int i
-    cdef int n_links
-    cdef int n_unique
-    cdef long * all_nodes = <long *>malloc(2 * links_at_patch.shape[1] * sizeof(long))
 
-    try:
-        for patch in range(n_patches):
-            n_links = _nodes_at_patch(
-                &links_at_patch[patch, 0], max_links_at_patch,
-                &nodes_at_link[0, 0], &nodes_at_patch[patch, 0])
-    finally:
-        free(all_nodes)
+    for patch in prange(n_patches, nogil=True, schedule="static"):
+        _nodes_at_patch(
+            &links_at_patch[patch, 0],
+            max_links_at_patch,
+            &nodes_at_link[0, 0],
+            &nodes_at_patch[patch, 0],
+        )
 
 
-cdef _nodes_at_patch(long * links_at_patch, long max_links,
-                     long * nodes_at_link, long * out):
+cdef long _nodes_at_patch(
+    const id_t * links_at_patch,
+    const long max_links,
+    const id_t * nodes_at_link,
+    id_t * out,
+) noexcept nogil:
     cdef long n_links = max_links
-    cdef long link, next_link, prev_link
+    cdef long link, next_link
     cdef long i
 
     while links_at_patch[n_links - 1] == -1:
@@ -114,11 +133,13 @@ cdef _nodes_at_patch(long * links_at_patch, long max_links,
     for i in range(0, n_links - 1):
         link, next_link = next_link, links_at_patch[i + 1]
 
-        out[i] = find_common_node(&nodes_at_link[link * 2],
-                                  &nodes_at_link[next_link * 2])
+        out[i] = find_common_node(
+            &nodes_at_link[link * 2], &nodes_at_link[next_link * 2]
+        )
 
     link, next_link = links_at_patch[n_links - 1], links_at_patch[0]
-    out[n_links - 1] = find_common_node(&nodes_at_link[link * 2],
-                                        &nodes_at_link[next_link * 2])
+    out[n_links - 1] = find_common_node(
+        &nodes_at_link[link * 2], &nodes_at_link[next_link * 2]
+    )
 
     return n_links

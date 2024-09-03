@@ -5,7 +5,8 @@ ALangston
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 from landlab.components.flow_accum import FlowAccumulator
 
 from .node_finder import node_finder
@@ -49,23 +50,17 @@ class LateralEroder(Component):
     ...     bottom=mg.BC_NODE_IS_CLOSED,
     ... )
     >>> mg.status_at_node[1] = mg.BC_NODE_IS_FIXED_VALUE
-    >>> mg.add_zeros("topographic__elevation", at="node")
-    array([ 0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.])
-    >>> rand_noise=np.array(
+    >>> rand_noise = np.array(
     ...     [
-    ...         0.00436992,  0.03225985,  0.03107455,  0.00461312,
-    ...         0.03771756,  0.02491226,  0.09613959,  0.07792969,
-    ...         0.08707156,  0.03080568,  0.01242658,  0.08827382,
-    ...         0.04475065,  0.07391732,  0.08221057,  0.02909259,
-    ...         0.03499337,  0.09423741,  0.01883171,  0.09967794,
+    ...         [0.00436992, 0.03225985, 0.03107455, 0.00461312],
+    ...         [0.03771756, 0.02491226, 0.09613959, 0.07792969],
+    ...         [0.08707156, 0.03080568, 0.01242658, 0.08827382],
+    ...         [0.04475065, 0.07391732, 0.08221057, 0.02909259],
+    ...         [0.03499337, 0.09423741, 0.01883171, 0.09967794],
     ...     ]
-    ... )
-    >>> mg.at_node["topographic__elevation"] += (
-    ...     mg.node_y / 10. + mg.node_x / 10. + rand_noise
+    ... ).flatten()
+    >>> mg.at_node["topographic__elevation"] = (
+    ...     mg.node_y / 10.0 + mg.node_x / 10.0 + rand_noise
     ... )
     >>> U = 0.001
     >>> dt = 100
@@ -99,26 +94,27 @@ class LateralEroder(Component):
     ...     newlatvol = mg.at_node["volume__lateral_erosion"]
     ...     newelev = mg.at_node["topographic__elevation"]
     ...     mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
+    ...
 
     Before lateral erosion occurs, *volume__lateral_erosion* has values at
     nodes 6 and 10.
 
     >>> np.around(oldlatvol, decimals=0)
-    array([  0.,   0.,   0.,   0.,
-             0.,   0.,  79.,   0.,
-             0.,   0.,  24.,   0.,
-             0.,   0.,   0.,   0.,
-             0.,   0.,   0.,   0.])
+    array([ 0.,  0., 0., 0.,
+            0.,  0., 79., 0.,
+            0.,  0., 24., 0.,
+            0.,  0., 0., 0.,
+            0.,  0., 0., 0.])
 
 
     After lateral erosion occurs at node 6, *volume__lateral_erosion* is reset to 0
 
     >>> np.around(newlatvol, decimals=0)
-    array([  0.,   0.,   0.,   0.,
-             0.,   0.,   0.,   0.,
-             0.,   0.,  24.,   0.,
-             0.,   0.,   0.,   0.,
-             0.,   0.,   0.,   0.])
+    array([ 0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,
+            0.,  0., 24.,  0.,
+            0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.])
 
 
     After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
@@ -126,18 +122,18 @@ class LateralEroder(Component):
     at-node grid field *lateral_erosion__depth_increment*.
 
     >>> np.around(oldelev, decimals=2)
-    array([ 0.  ,  1.03,  2.03,  3.  ,
-            1.04,  1.77,  2.45,  4.08,
-            2.09,  2.65,  3.18,  5.09,
-            3.04,  3.65,  4.07,  6.03,
-            4.03,  5.09,  6.02,  7.1 ])
+    array([0.  , 1.03, 2.03, 3.  ,
+           1.04, 1.77, 2.45, 4.08,
+           2.09, 2.65, 3.18, 5.09,
+           3.04, 3.65, 4.07, 6.03,
+           4.03, 5.09, 6.02, 7.1 ])
 
     >>> np.around(newelev, decimals=2)
-    array([ 0.  ,  1.03,  2.03,  3.  ,
-            1.04,  1.77,  1.03,  4.08,
-            2.09,  2.65,  3.18,  5.09,
-            3.04,  3.65,  4.07,  6.03,
-            4.03,  5.09,  6.02,  7.1 ])
+    array([0.  , 1.03, 2.03, 3.  ,
+           1.04, 1.77, 1.03, 4.08,
+           2.09, 2.65, 3.18, 5.09,
+           3.04, 3.65, 4.07, 6.03,
+           4.03, 5.09, 6.02, 7.1 ])
 
     >>> np.around(dzlat, decimals=2)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,

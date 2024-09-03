@@ -5,7 +5,6 @@ Created on Fri May 27 14:26:13 2016
 @author: gtucker
 """
 
-
 import numpy as np
 
 from landlab import Component
@@ -61,7 +60,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 3))
-    >>> _ = grid.add_zeros('topographic__elevation', at='node')
+    >>> _ = grid.add_zeros("topographic__elevation", at="node")
     >>> olf = LinearDiffusionOverlandFlowRouter(grid, roughness=0.1)
     >>> round(olf.vel_coef)
     100
@@ -69,7 +68,7 @@ class LinearDiffusionOverlandFlowRouter(Component):
     1e-05
     >>> olf.rain_rate = 1.0e-4
     >>> olf.run_one_step(dt=10.0)
-    >>> grid.at_node['surface_water__depth'][4]
+    >>> grid.at_node["surface_water__depth"][4]
     0.001
 
     References

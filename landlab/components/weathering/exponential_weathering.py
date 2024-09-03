@@ -10,7 +10,6 @@ from landlab import Component
 
 
 class ExponentialWeatherer(Component):
-
     """Calculate exponential weathering of bedrock on hillslopes.
 
     Uses exponential soil production function in the style of Ahnert (1976).
@@ -38,7 +37,7 @@ class ExponentialWeatherer(Component):
     >>> soilrate = mg.add_ones("soil_production__rate", at="node")
     >>> expw = ExponentialWeatherer(mg)
     >>> expw.calc_soil_prod_rate()
-    >>> np.allclose(mg.at_node['soil_production__rate'], 1.)
+    >>> np.allclose(mg.at_node["soil_production__rate"], 1.0)
     True
 
     References

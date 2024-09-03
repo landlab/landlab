@@ -1,13 +1,12 @@
 import numpy as np
 
-from landlab import Component, MissingKeyError
+from landlab import Component
+from landlab import MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
-from .cfuncs import (
-    brent_method_erode_fixed_threshold,
-    brent_method_erode_variable_threshold,
-)
+from .cfuncs import brent_method_erode_fixed_threshold
+from .cfuncs import brent_method_erode_variable_threshold
 
 
 class StreamPowerEroder(Component):
@@ -42,47 +41,45 @@ class StreamPowerEroder(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, StreamPowerEroder
 
-    >>> mg = RasterModelGrid((5, 5), xy_spacing=10.)
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=10.0)
     >>> z = np.array(
     ...     [
-    ...         [7.,  7.,  7.,  7.,  7.],
-    ...         [7.,  5., 3.2,  6.,  7.],
-    ...         [7.,  2.,  3.,  5.,  7.],
-    ...         [7.,  1., 1.9,  4.,  7.],
-    ...         [7.,  0.,  7.,  7.,  7.],
+    ...         [7.0, 7.0, 7.0, 7.0, 7.0],
+    ...         [7.0, 5.0, 3.2, 6.0, 7.0],
+    ...         [7.0, 2.0, 3.0, 5.0, 7.0],
+    ...         [7.0, 1.0, 1.9, 4.0, 7.0],
+    ...         [7.0, 0.0, 7.0, 7.0, 7.0],
     ...     ]
     ... )
     >>> z = mg.add_field("topographic__elevation", z, at="node")
     >>> fr = FlowAccumulator(mg, flow_director="D8")
-    >>> sp = StreamPowerEroder(mg, K_sp=1.)
+    >>> sp = StreamPowerEroder(mg, K_sp=1.0)
     >>> fr.run_one_step()
-    >>> sp.run_one_step(dt=1.)
+    >>> sp.run_one_step(dt=1.0)
     >>> z
-    array([ 7.        ,  7.        ,  7.        ,  7.        ,  7.        ,
-            7.        ,  2.92996598,  2.02996598,  4.01498299,  7.        ,
-            7.        ,  0.85993197,  1.87743897,  3.28268321,  7.        ,
-            7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
-            7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
+    array([7.        , 7.        , 7.        , 7.        , 7.        ,
+           7.        , 2.92996598, 2.02996598, 4.01498299, 7.        ,
+           7.        , 0.85993197, 1.87743897, 3.28268321, 7.        ,
+           7.        , 0.28989795, 0.85403051, 2.42701526, 7.        ,
+           7.        , 0.        , 7.        , 7.        , 7.        ])
 
     >>> mg2 = RasterModelGrid((3, 7))
-    >>> z = np.array(mg2.node_x**2.)
+    >>> z = np.array(mg2.node_x**2.0)
     >>> z = mg2.add_field("topographic__elevation", z, at="node")
     >>> mg2.status_at_node[mg2.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
     >>> mg2.status_at_node[mg2.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg2.status_at_node[mg2.nodes_at_right_edge] = mg2.BC_NODE_IS_CLOSED
-    >>> fr2 = FlowAccumulator(mg2, flow_director='D8')
-    >>> sp2 = StreamPowerEroder(
-    ...     mg2, K_sp=0.1, m_sp=0., n_sp=2., threshold_sp=2.
-    ... )
+    >>> fr2 = FlowAccumulator(mg2, flow_director="D8")
+    >>> sp2 = StreamPowerEroder(mg2, K_sp=0.1, m_sp=0.0, n_sp=2.0, threshold_sp=2.0)
     >>> fr2.run_one_step()
-    >>> sp2.run_one_step(dt=10.)
+    >>> sp2.run_one_step(dt=10.0)
     >>> z.reshape((3, 7))[1, :]
-    array([  0.        ,   1.        ,   4.        ,   8.52493781,
-            13.29039716,  18.44367965,  36.        ])
+    array([ 0.        ,  1.        ,  4.        ,  8.52493781,
+           13.29039716, 18.44367965, 36.        ])
 
-    >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.)
-    >>> z = mg.node_x / 100.
+    >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.0)
+    >>> z = mg.node_x / 100.0
     >>> z = mg3.add_field("topographic__elevation", z, at="node")
     >>> mg3.status_at_node[mg3.nodes_at_left_edge] = mg3.BC_NODE_IS_FIXED_VALUE
     >>> mg3.status_at_node[mg3.nodes_at_top_edge] = mg3.BC_NODE_IS_CLOSED
@@ -92,20 +89,21 @@ class StreamPowerEroder(Component):
     >>> fr3 = FlowAccumulator(mg3, flow_director="D8")
     >>> sp3 = StreamPowerEroder(
     ...     mg3,
-    ...     K_sp=1.,
+    ...     K_sp=1.0,
     ...     sp_type="Unit",
-    ...     a_sp=1.,
+    ...     a_sp=1.0,
     ...     b_sp=0.5,
-    ...     c_sp=1.,
-    ...     discharge_field="surface_water__discharge")
+    ...     c_sp=1.0,
+    ...     discharge_field="surface_water__discharge",
+    ... )
     >>> fr3.run_one_step()
-    >>> sp3.run_one_step(1.)
+    >>> sp3.run_one_step(1.0)
     >>> z
-    array([ 0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ,
-            0.        ,  0.02898979,  0.0859932 ,  0.17463772,  0.4       ,
-            0.        ,  0.02240092,  0.06879049,  0.14586033,  0.4       ,
-            0.        ,  0.01907436,  0.05960337,  0.12929386,  0.4       ,
-            0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ])
+    array([0.        , 0.1       , 0.2       , 0.3       , 0.4       ,
+           0.        , 0.02898979, 0.0859932 , 0.17463772, 0.4       ,
+           0.        , 0.02240092, 0.06879049, 0.14586033, 0.4       ,
+           0.        , 0.01907436, 0.05960337, 0.12929386, 0.4       ,
+           0.        , 0.1       , 0.2       , 0.3       , 0.4       ])
 
     References
     ----------

@@ -7,7 +7,8 @@ Model bedrock incision and gravel transport and abrasion in a network of rivers.
 
 import numpy as np
 
-from landlab import Component, HexModelGrid
+from landlab import Component
+from landlab import HexModelGrid
 from landlab.grid.diagonals import DiagonalsMixIn
 
 _DT_MAX = 1.0e-2
@@ -98,6 +99,7 @@ class GravelBedrockEroder(Component):
     ...     elev[grid.core_nodes] += 1.0
     ...     fa.run_one_step()
     ...     eroder.run_one_step(10000.0)
+    ...
     >>> int(elev[4] * 100)
     2266
     """
@@ -401,7 +403,7 @@ class GravelBedrockEroder(Component):
         >>> chan_width = eroder.calc_implied_width()
         >>> int(chan_width[4] * 100)
         3833
-        >>> grid.at_node["surface_water__discharge"] *= 1. / (3600 * 24 * 365.25)
+        >>> grid.at_node["surface_water__discharge"] *= 1.0 / (3600 * 24 * 365.25)
         >>> chan_width = eroder.calc_implied_width(time_unit="s")
         >>> int(chan_width[4] * 100)
         3838
@@ -437,12 +439,12 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder._rock_exposure_fraction[4:6]
-        array([ 0.,  1.])
+        array([0., 1.])
         >>> sed[4] = 1.0  # exposure frac should be 1/e ~ 0.3679
         >>> sed[5] = 2.0  # exposure frac should be 1/e^2 ~ 0.1353
         >>> eroder.calc_rock_exposure_fraction()
         >>> np.round(eroder._rock_exposure_fraction[4:6], 4)
-        array([ 0.3679,  0.1353])
+        array([0.3679, 0.1353])
         """
         self._rock_exposure_fraction[:] = np.exp(-self._sed / self._depth_decay_scale)
 
@@ -541,13 +543,13 @@ class GravelBedrockEroder(Component):
         0.3679
         >>> eroder.calc_transport_rate()
         >>> np.round(eroder._sediment_outflux[5:7], 3)
-        array([ 0.024,  0.012])
+        array([0.024, 0.012])
         >>> eroder.calc_abrasion_rate()
         >>> np.round(eroder._abrasion[5:7], 9)
-        array([  1.20000000e-08,   6.00000000e-09])
+        array([1.2e-08, 6.0e-09])
         >>> eroder.calc_bedrock_abrasion_rate()
         >>> np.round(eroder._rock_abrasion_rate[5:7], 10)
-        array([  4.40000000e-09,   2.20000000e-09])
+        array([4.4e-09, 2.2e-09])
         """
         self._rock_abrasion_rate = self._abrasion * self._rock_exposure_fraction
 
@@ -574,7 +576,7 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.calc_rock_exposure_fraction()
         >>> eroder.calc_bedrock_plucking_rate()
-        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01**(7./ 6.)/grid_res
+        >>> predicted_plucking_rate = 1.0e-6 * 1.0e4 * 0.01 ** (7.0 / 6.0) / grid_res
         >>> round(predicted_plucking_rate, 9)  # Kp Q S^(7/6)
         4.64e-07
         >>> int(round(eroder._pluck_rate[4] * 1e9))
@@ -623,11 +625,11 @@ class GravelBedrockEroder(Component):
         >>> eroder.calc_sediment_influx()
         >>> eroder.calc_sediment_rate_of_change()
         >>> np.round(eroder._sediment_outflux[4:7], 3)
-        array([ 0.   ,  0.038,  0.019])
+        array([0.   , 0.038, 0.019])
         >>> np.round(eroder._sediment_influx[4:7], 3)
-        array([ 0.038,  0.019,  0.   ])
+        array([0.038, 0.019, 0.   ])
         >>> np.round(eroder._dHdt[5:7], 8)
-        array([ -2.93000000e-06,  -2.93000000e-06])
+        array([-2.93e-06, -2.93e-06])
         """
         cores = self.grid.core_nodes
         self._dHdt[cores] = self._porosity_factor * (
@@ -680,7 +682,7 @@ class GravelBedrockEroder(Component):
         >>> eroder = GravelBedrockEroder(grid)
         >>> eroder.run_one_step(1000.0)
         >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.9971,  1.9971])
+        array([0.    , 0.9971, 1.9971])
         """
         self._update_slopes()
         self.calc_rock_exposure_fraction()

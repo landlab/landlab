@@ -2,12 +2,16 @@
 
 @author: dejh
 """
+
 import contextlib
 
 import numpy as np
 
-from landlab import Component, FieldError, RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator
+from landlab import Component
+from landlab import FieldError
+from landlab import RasterModelGrid
+from landlab.components import DepressionFinderAndRouter
+from landlab.components import FlowAccumulator
 
 # TODO: this should probably follow Barnes et al., 2014 for max efficiency
 
@@ -39,7 +43,7 @@ class SinkFiller(Component):
     >>> z = np.ones(100, dtype=float)
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
-    >>> z[lake] = 0.
+    >>> z[lake] = 0.0
     >>> field = mg.add_field(
     ...     "topographic__elevation",
     ...     z,
@@ -47,15 +51,15 @@ class SinkFiller(Component):
     ...     units="-",
     ...     copy=True,
     ... )
-    >>> fr = FlowAccumulator(mg, flow_director='D8')
+    >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> fr.run_one_step()
-    >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
+    >>> mg.at_node["flow__sink_flag"][mg.core_nodes].sum()
     14
     >>> hf = SinkFiller(mg, apply_slope=False)
     >>> hf.run_one_step()
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake1], 4.)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake1], 4.0)
     True
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake2], 7.)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake2], 7.0)
     True
 
     Now reset and demonstrate the adding of an inclined surface:
@@ -63,16 +67,28 @@ class SinkFiller(Component):
     >>> field[:] = z
     >>> hf = SinkFiller(mg, apply_slope=True)
     >>> hf.run_one_step()
-    >>> hole1 = np.array([4.00007692, 4.00015385, 4.00023077, 4.00030769,
-    ...                   4.00038462, 4.00046154, 4.00053846, 4.00061538,
-    ...                   4.00069231, 4.00076923, 4.00084615])
+    >>> hole1 = np.array(
+    ...     [
+    ...         4.00007692,
+    ...         4.00015385,
+    ...         4.00023077,
+    ...         4.00030769,
+    ...         4.00038462,
+    ...         4.00046154,
+    ...         4.00053846,
+    ...         4.00061538,
+    ...         4.00069231,
+    ...         4.00076923,
+    ...         4.00084615,
+    ...     ]
+    ... )
     >>> hole2 = np.array([7.4, 7.2, 7.6])
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake1], hole1)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake1], hole1)
     True
-    >>> np.allclose(mg.at_node['topographic__elevation'][lake2], hole2)
+    >>> np.allclose(mg.at_node["topographic__elevation"][lake2], hole2)
     True
     >>> fr.run_one_step()
-    >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
+    >>> mg.at_node["flow__sink_flag"][mg.core_nodes].sum()
     0
 
     References

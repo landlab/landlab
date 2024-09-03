@@ -124,7 +124,6 @@ from .core.messages import indent_and_wrap
 
 
 class ComponentRegistry:
-
     """A registry for instantiated landlab components."""
 
     def __init__(self, objs=None):
@@ -162,7 +161,8 @@ class ComponentRegistry:
         >>> registry.registered
         ()
         >>> class FooBar(object):
-        ...    pass
+        ...     pass
+        ...
         >>> registry.add(FooBar)
         >>> registry.registered
         ('FooBar',)
@@ -190,6 +190,7 @@ class ComponentRegistry:
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
         ...     pass
+        ...
         >>> print(registry.format_citation(DoNothingComponent))
         ## DoNothingComponent
             None
@@ -203,6 +204,7 @@ class ComponentRegistry:
         ... year={1998},
         ... publisher={Pearson Education}
         ... }'''
+        ...
         >>> print(registry.format_citation(SorterAndSearcher))
         ## SorterAndSearcher
             @book{knuth1998art,
@@ -233,14 +235,17 @@ class ComponentRegistry:
         >>> from landlab._registry import ComponentRegistry
         >>> class MontyPython(object):
         ...     name = "Eric Idle"
+        ...
         >>> ComponentRegistry.get_name(MontyPython)
         'Eric Idle'
         >>> class MontyPython(object):
         ...     _name = "Graham Chapman"
+        ...
         >>> ComponentRegistry.get_name(MontyPython)
         'Graham Chapman'
         >>> class MontyPython(object):
         ...     pass
+        ...
         >>> ComponentRegistry.get_name(MontyPython)
         'MontyPython'
 
@@ -284,8 +289,9 @@ class ComponentRegistry:
         >>> registry = ComponentRegistry()
 
         >>> class HolyGrailFinder(object):
-        ...     _name = 'Monty Python'
-        ...     _cite_as = ['''@book{python2000holy,
+        ...     _name = "Monty Python"
+        ...     _cite_as = [
+        ...         '''@book{python2000holy,
         ...         title={the Holy Grail},
         ...         author={Python, Monty and Chapman, Graham and Cleese, John and Gilliam, Terry and Jones, Terry and Idle, Eric and Palin, Michael},
         ...         year={2000},
@@ -297,7 +303,9 @@ class ComponentRegistry:
         ...         volume={1},
         ...         year={1989},
         ...         publisher={Pantheon}
-        ...         }''']
+        ...         }''',
+        ...     ]
+        ...
         >>> class Evolution(object):
         ...     _cite_as = '''
         ...         @book{darwin1859origin,
@@ -306,6 +314,7 @@ class ComponentRegistry:
         ...         year={1859},
         ...         publisher={Lulu. com}
         ...         }'''
+        ...
         >>> registry.add(HolyGrailFinder)
         >>> registry.add(Evolution)
         >>> print(registry.format_citations())

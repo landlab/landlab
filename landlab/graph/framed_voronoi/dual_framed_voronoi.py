@@ -10,7 +10,6 @@ from .framed_voronoi import FramedVoronoiGraph
 
 
 class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
-
     """Graph of a unstructured grid of Voronoi Delaunay cells and
     irregular patches. It is a special type of VoronoiDelaunay graph in which
     the initial set of points is arranged in a fixed lattice (e.g. like a rectangular
@@ -25,12 +24,12 @@ class DualFramedVoronoiGraph(DualGraph, FramedVoronoiGraph):
     >>> graph.number_of_nodes
     9
 
-    >>> graph.x_of_node[2:4]    # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.,  0.])
-    >>> graph.y_of_node[2:4]    # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.   ,  0.749])
-    >>> graph.y_of_node[5]    # doctest: +NORMALIZE_WHITESPACE
-    1.2509999999999999
+    >>> graph.x_of_node[2:4]
+    array([2., 0.])
+    >>> graph.y_of_node[2:4]
+    array([0.   , 0.749])
+    >>> graph.y_of_node[5]
+    1.251
     """
 
     def __init__(

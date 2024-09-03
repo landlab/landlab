@@ -15,7 +15,6 @@ from landlab.components.flow_director.flow_director_to_many import _FlowDirector
 
 
 class FlowDirectorDINF(_FlowDirectorToMany):
-
     """Flow direction on a raster grid by the D infinity method.
 
     Directs flow by the D infinity method (Tarboton, 1997). Each node is
@@ -53,7 +52,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorDINF
-    >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
+    >>> mg = RasterModelGrid((4, 4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
@@ -63,19 +62,19 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     The DINF flow director can be uses for raster grids only.
 
-    >>> fd = FlowDirectorDINF(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorDINF(mg, "topographic__elevation")
     >>> fd.surface_values.reshape(mg.shape)
-    array([[  0.,   1.,   4.,   9.],
-           [  1.,   2.,   5.,  10.],
-           [  4.,   5.,   8.,  13.],
-           [  9.,  10.,  13.,  18.]])
+    array([[ 0.,  1.,   4.,  9.],
+           [ 1.,  2.,   5., 10.],
+           [ 4.,  5.,   8., 13.],
+           [ 9., 10., 13., 18.]])
     >>> fd.run_one_step()
 
     Unlike flow directors that only direct flow to one node or to all
     downstream nodes, FlowDirectorDINF directs flow two nodes only. It stores
     the receiver information is a (number of nodes x 2) shape field at nodes.
 
-    >>> mg.at_node['flow__receiver_node']
+    >>> mg.at_node["flow__receiver_node"]
     array([[ 0, -1],
            [ 1, -1],
            [ 2, -1],
@@ -96,24 +95,24 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     It also stores the proportions of flow going to each receiver, the link on
     which the flow moves in at node arrays, and the slope of each link.
 
-    >>> mg.at_node['flow__receiver_proportions'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 0.59033447,  0.40966553],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_node']
+    >>> mg.at_node["flow__receiver_proportions"]
+    array([[1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [0.59033447, 0.40966553],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ]])
+    >>> mg.at_node["flow__link_to_receiver_node"]
     array([[-1, -1],
            [-1, -1],
            [-1, -1],
@@ -130,33 +129,33 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [18, 39],
            [19, 38],
            [20, 40]])
-    >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ -1.00000000e+00,  -1.41421356e+00],
-           [  1.00000000e+00,  -7.12763635e+02],
-           [  3.00000000e+00,   1.41421356e+00],
-           [  5.00000000e+00,   2.82842712e+00],
-           [  1.00900000e+03,   7.12763635e+02],
-           [  1.41421356e+00,   1.00000000e+00],
-           [  3.00000000e+00,   2.82842712e+00],
-           [  1.00400000e+03,   7.10642315e+02],
-           [  1.00400000e+03,   7.12056529e+02],
-           [  3.00000000e+00,   0.00000000e+00],
-           [  4.24264069e+00,   3.00000000e+00],
-           [  1.00100000e+03,   7.09935208e+02],
-           [ -0.00000000e+00,   7.09935208e+02],
-           [  1.00400000e+03,   7.07813888e+02],
-           [  1.00100000e+03,   7.09935208e+02],
-           [  0.00000000e+00,   7.07813888e+02]])
+    >>> mg.at_node["topographic__steepest_slope"]
+    array([[-1.00000000e+00, -1.41421356e+00],
+           [ 1.00000000e+00, -7.12763635e+02],
+           [ 3.00000000e+00,  1.41421356e+00],
+           [ 5.00000000e+00,  2.82842712e+00],
+           [ 1.00900000e+03,  7.12763635e+02],
+           [ 1.41421356e+00,  1.00000000e+00],
+           [ 3.00000000e+00,  2.82842712e+00],
+           [ 1.00400000e+03,  7.10642315e+02],
+           [ 1.00400000e+03,  7.12056529e+02],
+           [ 3.00000000e+00,  0.00000000e+00],
+           [ 4.24264069e+00,  3.00000000e+00],
+           [ 1.00100000e+03,  7.09935208e+02],
+           [-0.00000000e+00,  7.09935208e+02],
+           [ 1.00400000e+03,  7.07813888e+02],
+           [ 1.00100000e+03,  7.09935208e+02],
+           [ 0.00000000e+00,  7.07813888e+02]])
 
     Finally, FlowDirectorDINF identifies sinks, or local lows.
 
-    >>> mg.at_node['flow__sink_flag'].astype(int)
+    >>> mg.at_node["flow__sink_flag"].astype(int)
     array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1])
 
     The flow directors also have the ability to return the flow receiver nodes
     through a function called direct_flow()
 
-    >>> fd = FlowDirectorDINF(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorDINF(mg, "topographic__elevation")
     >>> fd.run_one_step()
     >>> receivers, proportions = fd.direct_flow()
     >>> receivers
@@ -176,30 +175,29 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [13, -1],
            [14, -1],
            [15, -1]])
-    >>> proportions # doctest: +NORMALIZE_WHITESPACE
-    array([[ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 0.59033447,  0.40966553],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  0.        ]])
+    >>> proportions
+    array([[1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [0.59033447, 0.40966553],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ],
+           [1.        , 0.        ]])
 
     For each donor node (represented by each row) the proportions should sum to
     one.
 
     >>> proportions.sum(axis=1)
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-            1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
     References
     ----------

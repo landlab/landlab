@@ -7,7 +7,6 @@ from landlab.components.lithology.lithology import Lithology
 
 
 class LithoLayers(Lithology):
-
     """Create LithoLayers component.
 
     A LithoLayers is a three dimentional representation of material operated on
@@ -29,10 +28,7 @@ class LithoLayers(Lithology):
 
     .. code-block:: python
 
-        attrs = {'K_sp': {1: 0.001,
-                          2: 0.0001},
-                 'D': {1: 0.01,
-                       2: 0.001}}
+        attrs = {"K_sp": {1: 0.001, 2: 0.0001}, "D": {1: 0.01, 2: 0.001}}
 
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
@@ -122,48 +118,46 @@ class LithoLayers(Lithology):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LithoLayers
         >>> mg = RasterModelGrid((3, 3))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("node", "topographic__elevation")
 
         Create a LithoLayers with flatlying layers that altrnate between
         layers of type 1 and type 2 rock.
 
         >>> z0s = [-4, -3, -2, -1, 0, 1, 2, 3, 4]
         >>> ids = [1, 2, 1, 2, 1, 2, 1, 2, 1]
-        >>> attrs = {'K_sp': {1: 0.001,
-        ...                   2: 0.0001}}
+        >>> attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
         >>> lith = LithoLayers(mg, z0s, ids, attrs)
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.]])
 
         Now create a set of layers that dip. Our anchor point will be the
         default value of (x0, y0) = (0, 0)
 
-        >>> lith = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x+y)
+        >>> lith = LithoLayers(mg, z0s, ids, attrs, function=lambda x, y: x + y)
         >>> lith.dz
-        array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 0.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.],
-               [ 0.,  0.,  1.,  0.,  1.,  1.,  1.,  1.,  1.],
-               [ 0.,  0.,  0.,  0.,  0.,  1.,  0.,  1.,  1.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]])
+        array([[1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [1., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [0., 1., 1., 1., 1., 1., 1., 1., 1.],
+               [0., 0., 1., 0., 1., 1., 1., 1., 1.],
+               [0., 0., 0., 0., 0., 1., 0., 1., 1.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 1.],
+               [0., 0., 0., 0., 0., 0., 0., 0., 0.]])
 
         We can get the surface values, and as we'd expect, they alternate as
         the dipping layers are exposed at the surface.
 
-        >>> lith['K_sp']
-        array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
-                0.001 ,  0.0001])
+        >>> lith["K_sp"]
+        array([0.0001, 0.001 , 0.0001, 0.001 , 0.0001, 0.001 , 0.0001, 0.001 , 0.0001])
         """
 
         function_args = function.__code__.co_varnames

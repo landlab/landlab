@@ -1,8 +1,11 @@
-import numpy as np
-
 cimport cython
+
+import numpy as np
+from cython.parallel import prange
+
 cimport numpy as np
-from libc.stdlib cimport free, malloc
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 
 cdef extern from "math.h":
@@ -11,29 +14,37 @@ cdef extern from "math.h":
 
 from .spoke_sort import sort_spokes_at_wheel
 
-from .argsort cimport argsort_int
-
 DTYPE = int
 ctypedef np.int_t DTYPE_t
 ctypedef np.uint8_t uint8
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
 
 @cython.boundscheck(False)
-def reverse_one_to_one(np.ndarray[DTYPE_t, ndim=1] mapping,
-                       np.ndarray[DTYPE_t, ndim=1] out):
+@cython.wraparound(False)
+def reverse_one_to_one(
+    const id_t [:] mapping,
+    id_t [:] out,
+):
     cdef int n_elements = mapping.shape[0]
     cdef int index
     cdef int id_
 
-    for index in range(n_elements):
+    for index in prange(n_elements, nogil=True, schedule="static"):
         id_ = mapping[index]
         if id_ >= 0:
-          out[id_] = index
+            out[id_] = index
 
 
 @cython.boundscheck(False)
-def reverse_one_to_many(np.ndarray[DTYPE_t, ndim=2] mapping,
-                        np.ndarray[DTYPE_t, ndim=2] out):
+@cython.wraparound(False)
+def reverse_one_to_many(
+    const id_t [:, :] mapping,
+    id_t [:, :] out,
+):
     cdef int n_elements = mapping.shape[0]
     cdef int n_cols = mapping.shape[1]
     cdef int out_rows = out.shape[0]
@@ -56,8 +67,11 @@ def reverse_one_to_many(np.ndarray[DTYPE_t, ndim=2] mapping,
 
 
 @cython.boundscheck(False)
-def remap_graph_element(np.ndarray[DTYPE_t, ndim=1] elements,
-                        np.ndarray[DTYPE_t, ndim=1] old_to_new):
+@cython.wraparound(False)
+def remap_graph_element(
+    id_t [:] elements,
+    const id_t [:] old_to_new,
+):
     """Remap elements in an array in place.
 
     Parameters
@@ -71,13 +85,16 @@ def remap_graph_element(np.ndarray[DTYPE_t, ndim=1] elements,
     cdef int i
 
     for i in range(n_elements):
-      elements[i] = old_to_new[elements[i]]
+        elements[i] = old_to_new[elements[i]]
 
 
 @cython.boundscheck(False)
-def remap_graph_element_ignore(np.ndarray[DTYPE_t, ndim=1] elements,
-                               np.ndarray[DTYPE_t, ndim=1] old_to_new,
-                               DTYPE_t bad_val):
+@cython.wraparound(False)
+def remap_graph_element_ignore(
+    id_t [:] elements,
+    id_t [:] old_to_new,
+    int bad_val,
+):
     """Remap elements in an array in place, ignoring bad values.
 
     Parameters
@@ -98,9 +115,12 @@ def remap_graph_element_ignore(np.ndarray[DTYPE_t, ndim=1] elements,
 
 
 @cython.boundscheck(False)
-def reorder_patches(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                    np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                    np.ndarray[DTYPE_t, ndim=1] sorted_patches):
+@cython.wraparound(False)
+def reorder_patches(
+    id_t [:] links_at_patch,
+    id_t [:] offset_to_patch,
+    const id_t [:] sorted_patches,
+):
     cdef int i
     cdef int patch
     cdef int offset
@@ -129,10 +149,13 @@ def reorder_patches(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
-def calc_center_of_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                         np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                         np.ndarray[np.float_t, ndim=2] xy_at_link,
-                         np.ndarray[np.float_t, ndim=2] xy_at_patch):
+@cython.wraparound(False)
+def calc_center_of_patch(
+    id_t [:] links_at_patch,
+    id_t [:] offset_to_patch,
+    cython.floating [:, :] xy_at_link,
+    cython.floating [:, :] xy_at_patch,
+):
     cdef int patch
     cdef int link
     cdef int i
@@ -156,66 +179,24 @@ def calc_center_of_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
 
 
 @cython.boundscheck(False)
-def reorder_links_at_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
-                           np.ndarray[DTYPE_t, ndim=1] offset_to_patch,
-                           np.ndarray[np.float_t, ndim=2] xy_of_link):
+@cython.wraparound(False)
+def reorder_links_at_patch(
+    id_t [:] links_at_patch,
+    id_t [:] offset_to_patch,
+    cython.floating [:, :] xy_of_link,
+):
     cdef int n_patches = len(offset_to_patch) - 1
 
     xy_of_patch = np.empty((n_patches, 2), dtype=float)
-    calc_center_of_patch(links_at_patch, offset_to_patch, xy_of_link,
-                         xy_of_patch)
-    sort_spokes_at_wheel(links_at_patch, offset_to_patch, xy_of_patch,
-                         xy_of_link)
+    calc_center_of_patch(
+        links_at_patch, offset_to_patch, xy_of_link, xy_of_patch
+    )
+    sort_spokes_at_wheel(
+        links_at_patch, offset_to_patch, xy_of_patch, xy_of_link
+    )
 
 
-cdef _argsort_links(long * links, int n_links, long * nodes, long * ordered):
-    cdef int n_nodes = 2 * n_links
-    cdef int * index = <int *>malloc(n_nodes * sizeof(int))
-    cdef int i
-
-    try:
-        argsort_int(nodes, n_nodes, index)
-
-        i = 0
-        for link in range(n_links):
-            ordered[i // 2] = index[i] // 2
-            i += 2
-    finally:
-        free(index)
-
-
-@cython.boundscheck(False)
-def connect_links(np.ndarray[long, ndim=1, mode="c"] links,
-                  np.ndarray[long, ndim=2] nodes_at_link):
-    cdef long n_links = links.shape[0]
-    cdef long * nodes = <long *>malloc(2 * n_links * sizeof(long))
-    cdef long * ordered = <long *>malloc(n_links * sizeof(long))
-    cdef long * buff = <long *>malloc(n_links * sizeof(long))
-    cdef long node
-    cdef long link
-
-    try:
-        node = 0
-        for link in range(n_links):
-            nodes[node] = nodes_at_link[link, 0]
-            nodes[node + 1] = nodes_at_link[link, 1]
-            node += 2
-
-        _argsort_links(&links[0], n_links, nodes, ordered)
-
-        for link in range(n_links):
-            buff[link] = links[ordered[link]]
-
-        for link in range(n_links):
-            links[link] = buff[link]
-
-    finally:
-        free(buff)
-        free(ordered)
-        free(nodes)
-
-
-cdef reverse_order(long * array, long size):
+cdef void reverse_order(id_t * array, long size) noexcept nogil:
     cdef long i
     cdef long temp
 
@@ -226,9 +207,10 @@ cdef reverse_order(long * array, long size):
 
 
 @cython.boundscheck(False)
+@cython.wraparound(False)
 def reverse_element_order(
-    np.ndarray[long, ndim=2] links_at_patch,
-    np.ndarray[long, ndim=1] patches
+    id_t [:, :] links_at_patch,
+    id_t [:] patches,
 ):
     cdef long n_patches = patches.shape[0]
     cdef long max_links = links_at_patch.shape[1]
@@ -236,100 +218,25 @@ def reverse_element_order(
     cdef long n
     cdef long i
 
-    for i in range(n_patches):
+    for i in prange(n_patches, nogil=True, schedule="static"):
         patch = patches[i]
         n = 1
         while n < max_links:
             if links_at_patch[patch, n] == -1:
                 break
-            n += 1
+            n = n + 1
         reverse_order(&links_at_patch[patch, 1], n - 1)
 
 
-@cython.boundscheck(False)
-def get_angle_of_link(
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-    np.ndarray[np.float_t, ndim=2] xy_of_node,
-    np.ndarray[np.float_t, ndim=1] angle_of_link
-):
-    cdef int link
-    cdef double link_tail_x
-    cdef double link_tail_y
-    cdef double link_head_x
-    cdef double link_head_y
-    cdef int n_links = nodes_at_link.shape[0]
-
-    for link in range(n_links):
-        link_tail_x = xy_of_node[nodes_at_link[link][0]][0]
-        link_tail_y = xy_of_node[nodes_at_link[link][0]][1]
-        link_head_x = xy_of_node[nodes_at_link[link][1]][0]
-        link_head_y = xy_of_node[nodes_at_link[link][1]][1]
-
-        angle_of_link[link] = atan2(
-            link_head_y - link_tail_y, link_head_x - link_head_y
-        )
-
-
-@cython.boundscheck(False)
-def reorient_links(
-    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-    np.ndarray[DTYPE_t, ndim=1] xy_of_node
-):
-    """Reorient links to point up and to the right.
-
-    Parameters
-    ----------
-    nodes_at_link : ndarray of int, shape `(n_nodes, 2)`
-        Identifier for node at link tail and head.
-    xy_of_node : ndarray of float, shape `(n_nodes, 2)`
-        Coordinate of node as `(x, y)`.
-    """
-    cdef int link
-    cdef int temp
-    cdef double angle
-    cdef int n_links = nodes_at_link.shape[0]
-    cdef double minus_45 = - np.pi * .25
-    cdef double plus_135 = np.pi * .75
-
-    angle_of_link = np.empty(n_links, dtype=n_links)
-    get_angle_of_link(nodes_at_link, xy_of_node, angle_of_link)
-
-    for link in range(n_links):
-        angle = angle_of_link[link]
-        if angle < minus_45 or angle > plus_135:
-            temp = nodes_at_link[link, 0]
-            nodes_at_link[link, 0] = nodes_at_link[link, 1]
-            nodes_at_link[link, 1] = temp
-
-
-cdef _count_sorted_blocks(
+cdef void _offset_to_sorted_blocks(
     DTYPE_t *array,
-    long len,
-    long stride,
-    DTYPE_t *count,
-    long n_values,
-):
-    cdef long i
-    cdef long value
-    cdef long max_i = len * stride
-
-    i = 0
-    for value in range(n_values):
-        count[value] = 0
-        while value == array[i]:
-            count[value] += 1
-            i += stride
-            if i >= max_i:
-                break
-
-
-cdef _offset_to_sorted_blocks(
-    DTYPE_t *array,
+    # id_t *array,
     long len,
     long stride,
     DTYPE_t *offset,
+    # id_t *offset,
     long n_values,
-):
+) noexcept:
     cdef long i
     cdef long value
     cdef long first_non_negative
@@ -357,6 +264,8 @@ cdef _offset_to_sorted_blocks(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def offset_to_sorted_block(
+    # id_t [:, :] sorted_ids,
+    # id_t [:] offset_to_block,
     np.ndarray[DTYPE_t, ndim=2, mode="c"] sorted_ids not None,
     np.ndarray[DTYPE_t, ndim=1, mode="c"] offset_to_block not None,
 ):
@@ -410,7 +319,6 @@ def map_pairs_to_values(
     cdef long pair
     cdef long n_pairs = out.shape[0]
     cdef long n_values = data.shape[0]
-    cdef long val
     cdef SparseMatrixInt mat
 
     mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], &data[0], n_values, -1)
@@ -441,7 +349,6 @@ def map_rolling_pairs_to_values(
 
 cdef _map_rolling_pairs(SparseMatrixInt mat, DTYPE_t *pairs, DTYPE_t *out, long size):
     cdef long n
-    cdef long val
 
     if size > 0:
         for n in range(size - 1):
@@ -534,12 +441,7 @@ cdef long sparse_matrix_get(SparseMatrixInt mat, long row, long col):
 
     i = mat.col_start + start * mat.col_stride
     for n in range(start, stop):
-        # if i >= mat.n_values * 2:
-        #     print("error")
-
         if mat.col[i] == col:
-            # if n >= mat.n_values:
-            #     print("ERROR")
             return mat.values[n]
         i += mat.col_stride
 

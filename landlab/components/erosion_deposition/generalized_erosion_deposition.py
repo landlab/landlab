@@ -1,6 +1,7 @@
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
@@ -173,18 +174,17 @@ class _GeneralizedErosionDeposition(Component):
         >>> from landlab.components import FlowAccumulator
 
         >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("node", "topographic__elevation")
         >>> z[:] = rg.x_of_node + rg.y_of_node
-        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+        >>> fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
         >>> fa.run_one_step()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 1.41421356,  1.41421356])
-        >>> sp = _GeneralizedErosionDeposition(rg, v_s=0.001,
-        ...                                    m_sp=0.5, n_sp=1.0, F_f=0)
+        >>> rg.at_node["topographic__steepest_slope"][5:7]
+        array([1.41421356, 1.41421356])
+        >>> sp = _GeneralizedErosionDeposition(rg, v_s=0.001, m_sp=0.5, n_sp=1.0, F_f=0)
         >>> z *= 0.1
         >>> sp._update_flow_link_slopes()
-        >>> rg.at_node['topographic__steepest_slope'][5:7]
-        array([ 0.14142136,  0.14142136])
+        >>> rg.at_node["topographic__steepest_slope"][5:7]
+        array([0.14142136, 0.14142136])
         """
         self._slope[:] = (
             self._topographic__elevation

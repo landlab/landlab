@@ -32,22 +32,22 @@ def get_watershed_mask(grid, outlet_id):
     >>> from landlab.utils import get_watershed_mask
 
     >>> rmg = RasterModelGrid((7, 7))
-    >>> z = np.array([
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-    ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-    ...     -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-    ...     -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-    ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-    ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
-    >>> rmg.at_node['topographic__elevation'] = z
+    >>> rmg.at_node["topographic__elevation"] = [
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ...     [-9999.0, 26.0, 0.0, 30.0, 32.0, 34.0, -9999.0],
+    ...     [-9999.0, 28.0, 1.0, 25.0, 28.0, 32.0, -9999.0],
+    ...     [-9999.0, 30.0, 3.0, 3.0, 11.0, 34.0, -9999.0],
+    ...     [-9999.0, 32.0, 11.0, 25.0, 18.0, 38.0, -9999.0],
+    ...     [-9999.0, 34.0, 32.0, 34.0, 36.0, 40.0, -9999.0],
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ... ]
 
     Only the bottom boundary is set to open.
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> rmg.set_fixed_value_boundaries_at_grid_edges(False, False, False, True)
 
     Route flow.
-    >>> fr = FlowAccumulator(rmg, flow_director='D8')
+    >>> fr = FlowAccumulator(rmg, flow_director="D8")
     >>> fr.run_one_step()
 
     >>> get_watershed_mask(rmg, 2).reshape(rmg.shape)
@@ -57,7 +57,7 @@ def get_watershed_mask(grid, outlet_id):
            [False,  True,  True,  True,  True,  True, False],
            [False,  True,  True,  True,  True,  True, False],
            [False,  True,  True,  True,  True,  True, False],
-           [False, False, False, False, False, False, False]], dtype=bool)
+           [False, False, False, False, False, False, False]])
     """
     if "flow__receiver_node" not in grid.at_node:
         raise FieldError(
@@ -122,21 +122,22 @@ def get_watershed_nodes(grid, outlet_id):
     >>> from landlab.utils import get_watershed_nodes
 
     >>> rmg = RasterModelGrid((7, 7))
-    >>> z = np.array([
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-    ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-    ...     -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-    ...     -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-    ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-    ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
 
-    >>> rmg.at_node['topographic__elevation'] = z
-    >>> rmg.set_watershed_boundary_condition_outlet_id(2, z,
-    ...                                                nodata_value=-9999.)
+    >>> rmg.at_node["topographic__elevation"] = [
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ...     [-9999.0, 26.0, 0.0, 30.0, 32.0, 34.0, -9999.0],
+    ...     [-9999.0, 28.0, 1.0, 25.0, 28.0, 32.0, -9999.0],
+    ...     [-9999.0, 30.0, 3.0, 3.0, 11.0, 34.0, -9999.0],
+    ...     [-9999.0, 32.0, 11.0, 25.0, 18.0, 38.0, -9999.0],
+    ...     [-9999.0, 34.0, 32.0, 34.0, 36.0, 40.0, -9999.0],
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ... ]
+    >>> rmg.set_watershed_boundary_condition_outlet_id(
+    ...     2, rmg.at_node["topographic__elevation"], nodata_value=-9999.0
+    ... )
 
     Route flow.
-    >>> fr = FlowAccumulator(rmg, flow_director='D8')
+    >>> fr = FlowAccumulator(rmg, flow_director="D8")
     >>> fr.run_one_step()
 
     Get the nodes of two watersheds.
@@ -179,20 +180,20 @@ def get_watershed_masks(grid):
 
     Create a grid with a node spacing of 200 meter.
     >>> rmg = RasterModelGrid((7, 7), xy_spacing=200)
-    >>> z = np.array([
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-    ...     -9999.,    26.,     0.,    26.,    30.,    34., -9999.,
-    ...     -9999.,    28.,     1.,    28.,     5.,    32., -9999.,
-    ...     -9999.,    30.,     3.,    30.,    10.,    34., -9999.,
-    ...     -9999.,    32.,    11.,    32.,    15.,    38., -9999.,
-    ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
-    >>> rmg.at_node['topographic__elevation'] = z
+    >>> rmg.at_node["topographic__elevation"] = [
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ...     [-9999.0, 26.0, 0.0, 26.0, 30.0, 34.0, -9999.0],
+    ...     [-9999.0, 28.0, 1.0, 28.0, 5.0, 32.0, -9999.0],
+    ...     [-9999.0, 30.0, 3.0, 30.0, 10.0, 34.0, -9999.0],
+    ...     [-9999.0, 32.0, 11.0, 32.0, 15.0, 38.0, -9999.0],
+    ...     [-9999.0, 34.0, 32.0, 34.0, 36.0, 40.0, -9999.0],
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ... ]
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     Route flow.
 
-    >>> fr = FlowAccumulator(rmg, flow_director='D8')
+    >>> fr = FlowAccumulator(rmg, flow_director="D8")
     >>> fr.run_one_step()
 
     Assign mask.
@@ -245,20 +246,20 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
     Create a grid with a node spacing of 200 meter.
 
     >>> rmg = RasterModelGrid((7, 7), xy_spacing=200)
-    >>> z = np.array([
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-    ...     -9999.,    26.,     0.,    26.,    30.,    34., -9999.,
-    ...     -9999.,    28.,     1.,    28.,     5.,    32., -9999.,
-    ...     -9999.,    30.,     3.,    30.,    10.,    34., -9999.,
-    ...     -9999.,    32.,    11.,    32.,    15.,    38., -9999.,
-    ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
-    >>> rmg.at_node['topographic__elevation'] = z
+    >>> rmg.at_node["topographic__elevation"] = [
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ...     [-9999.0, 26.0, 0.0, 26.0, 30.0, 34.0, -9999.0],
+    ...     [-9999.0, 28.0, 1.0, 28.0, 5.0, 32.0, -9999.0],
+    ...     [-9999.0, 30.0, 3.0, 30.0, 10.0, 34.0, -9999.0],
+    ...     [-9999.0, 32.0, 11.0, 32.0, 15.0, 38.0, -9999.0],
+    ...     [-9999.0, 34.0, 32.0, 34.0, 36.0, 40.0, -9999.0],
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ... ]
     >>> rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     Route flow.
 
-    >>> fr = FlowAccumulator(rmg, flow_director='D8')
+    >>> fr = FlowAccumulator(rmg, flow_director="D8")
     >>> fr.run_one_step()
 
     Get the masks of watersheds greater than or equal to 80,000 square-meters.
@@ -269,7 +270,7 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
     Verify that all mask null nodes have a drainage area below critical area.
 
     >>> null_nodes = np.where(mask == -1)[0]
-    >>> A = rmg.at_node['drainage_area'][null_nodes]
+    >>> A = rmg.at_node["drainage_area"][null_nodes]
     >>> below_critical_area_nodes = A < critical_area
     >>> np.all(below_critical_area_nodes)
     True
@@ -310,22 +311,23 @@ def get_watershed_outlet(grid, source_node_id):
     >>> from landlab.utils import get_watershed_outlet
 
     >>> rmg = RasterModelGrid((7, 7))
-    >>> z = np.array([
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-    ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-    ...     -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-    ...     -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-    ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-    ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-    ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
 
-    >>> rmg.at_node['topographic__elevation'] = z
+    >>> rmg.at_node["topographic__elevation"] = [
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ...     [-9999.0, 26.0, 0.0, 30.0, 32.0, 34.0, -9999.0],
+    ...     [-9999.0, 28.0, 1.0, 25.0, 28.0, 32.0, -9999.0],
+    ...     [-9999.0, 30.0, 3.0, 3.0, 11.0, 34.0, -9999.0],
+    ...     [-9999.0, 32.0, 11.0, 25.0, 18.0, 38.0, -9999.0],
+    ...     [-9999.0, 34.0, 32.0, 34.0, 36.0, 40.0, -9999.0],
+    ...     [-9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0, -9999.0],
+    ... ]
     >>> imposed_outlet = 2
-    >>> rmg.set_watershed_boundary_condition_outlet_id(imposed_outlet, z,
-    ...                                                nodata_value=-9999.)
+    >>> rmg.set_watershed_boundary_condition_outlet_id(
+    ...     imposed_outlet, rmg.at_node["topographic__elevation"], nodata_value=-9999.0
+    ... )
 
     Route flow.
-    >>> fr = FlowAccumulator(rmg, flow_director='D8')
+    >>> fr = FlowAccumulator(rmg, flow_director="D8")
     >>> fr.run_one_step()
 
     Get the grid watershed outlet.

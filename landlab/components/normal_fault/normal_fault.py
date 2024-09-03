@@ -8,7 +8,8 @@ laterally.
 
 import numpy as np
 
-from landlab import Component, FieldError
+from landlab import Component
+from landlab import FieldError
 
 TWO_PI = 2.0 * np.pi
 
@@ -111,10 +112,7 @@ class NormalFault(Component):
 
             .. code-block:: python
 
-                fault_trace = {'x1': float,
-                               'y1': float,
-                               'x2': float,
-                               'y2': float}
+                fault_trace = {"x1": float, "y1": float, "x2": float, "y2": float}
 
             where the vector from `(x1, y1)` to `(x2, y2)` defines the
             strike of the fault trace. The orientation of the fault dip relative
@@ -139,15 +137,16 @@ class NormalFault(Component):
 
         Set the parameter values for the NormalFault component.
 
-        >>> param_dict = {'faulted_surface': 'topographic__elevation',
-        ...               'fault_dip_angle': 90.0,
-        ...               'fault_throw_rate_through_time': {'time': [0, 9, 10],
-        ...                                                 'rate': [0, 0, 0.05]},
-        ...               'fault_trace': {'y1': 0,
-        ...                                    'x1': 0,
-        ...                                    'y2': 30,
-        ...                                    'x2': 60},
-        ...              'include_boundaries': False}
+        >>> param_dict = {
+        ...     "faulted_surface": "topographic__elevation",
+        ...     "fault_dip_angle": 90.0,
+        ...     "fault_throw_rate_through_time": {
+        ...         "time": [0, 9, 10],
+        ...         "rate": [0, 0, 0.05],
+        ...     },
+        ...     "fault_trace": {"y1": 0, "x1": 0, "y2": 30, "x2": 60},
+        ...     "include_boundaries": False,
+        ... }
 
         Instantiate a NormalFault component.
 
@@ -158,7 +157,7 @@ class NormalFault(Component):
                [False,  True,  True,  True, False, False],
                [False,  True,  True,  True,  True, False],
                [False,  True,  True,  True,  True, False],
-               [False, False, False, False, False, False]], dtype=bool)
+               [False, False, False, False, False, False]])
 
         As we can see, only a subset of the nodes have been identified as
         *faulted nodes*. Because we have set include_boundaries' to False none
@@ -169,13 +168,14 @@ class NormalFault(Component):
         >>> dt = 1.0
         >>> for i in range(30):
         ...     nf.run_one_step(dt)
+        ...
         >>> z.reshape(grid.shape)
-        array([[ 0.,  0.,  0.,  0.,  0.,  0.],
-               [ 0.,  1.,  0.,  0.,  0.,  0.],
-               [ 0.,  1.,  1.,  1.,  0.,  0.],
-               [ 0.,  1.,  1.,  1.,  1.,  0.],
-               [ 0.,  1.,  1.,  1.,  1.,  0.],
-               [ 0.,  0.,  0.,  0.,  0.,  0.]])
+        array([[0., 0., 0., 0., 0., 0.],
+               [0., 1., 0., 0., 0., 0.],
+               [0., 1., 1., 1., 0., 0.],
+               [0., 1., 1., 1., 1., 0.],
+               [0., 1., 1., 1., 1., 0.],
+               [0., 0., 0., 0., 0., 0.]])
 
         This results in uplift of the faulted nodes, as we would expect.
 
@@ -185,12 +185,12 @@ class NormalFault(Component):
 
         >>> nf.run_one_earthquake(dz=100)
         >>> z.reshape(grid.shape)
-        array([[   0.,    0.,    0.,    0.,    0.,    0.],
-               [   0.,  101.,    0.,    0.,    0.,    0.],
-               [   0.,  101.,  101.,  101.,    0.,    0.],
-               [   0.,  101.,  101.,  101.,  101.,    0.],
-               [   0.,  101.,  101.,  101.,  101.,    0.],
-               [   0.,    0.,    0.,    0.,    0.,    0.]])
+        array([[  0.,   0.,   0.,   0.,   0.,   0.],
+               [  0., 101.,   0.,   0.,   0.,   0.],
+               [  0., 101., 101., 101.,   0.,   0.],
+               [  0., 101., 101., 101., 101.,   0.],
+               [  0., 101., 101., 101., 101.,   0.],
+               [  0.,   0.,   0.,   0.,   0.,   0.]])
 
         Next, we make a very simple landscape model. We need a few components
         and we will set include_boundaries to True.
@@ -198,15 +198,16 @@ class NormalFault(Component):
         >>> from landlab.components import FastscapeEroder, FlowAccumulator
         >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros("topographic__elevation", at="node")
-        >>> param_dict = {'faulted_surface': 'topographic__elevation',
-        ...               'fault_dip_angle': 90.0,
-        ...               'fault_throw_rate_through_time': {'time': [0, 900, 1000],
-        ...                                                 'rate': [0, 0, 0.05]},
-        ...               'fault_trace': {'y1': 0,
-        ...                                    'x1': 0,
-        ...                                    'y2': 30,
-        ...                                    'x2': 60},
-        ...              'include_boundaries': True}
+        >>> param_dict = {
+        ...     "faulted_surface": "topographic__elevation",
+        ...     "fault_dip_angle": 90.0,
+        ...     "fault_throw_rate_through_time": {
+        ...         "time": [0, 900, 1000],
+        ...         "rate": [0, 0, 0.05],
+        ...     },
+        ...     "fault_trace": {"y1": 0, "x1": 0, "y2": 30, "x2": 60},
+        ...     "include_boundaries": True,
+        ... }
 
         >>> nf = NormalFault(grid, **param_dict)
         >>> fr = FlowAccumulator(grid)
@@ -219,13 +220,14 @@ class NormalFault(Component):
         ...     nf.run_one_step(dt)
         ...     fr.run_one_step()
         ...     fs.run_one_step(dt)
+        ...
         >>> z.reshape(grid.shape).round(decimals=2)
-        array([[  0.  ,   0.  ,   0.  ,   0.  ,   0.  ,   0.  ],
-               [  5.  ,   5.  ,   0.  ,   0.  ,   0.  ,   0.  ],
-               [  7.39,   7.38,   2.38,   2.89,   0.  ,   0.  ],
-               [  9.36,  11.43,   5.51,   6.42,   3.54,   3.54],
-               [ 15.06,  15.75,  10.6 ,  11.42,   8.54,   8.54],
-               [ 15.06,  15.06,  10.7 ,  11.42,   8.54,   8.54]])
+        array([[ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+               [ 5.  ,  5.  ,  0.  ,  0.  ,  0.  ,  0.  ],
+               [ 7.39,  7.38,  2.38,  2.89,  0.  ,  0.  ],
+               [ 9.36, 11.43,  5.51,  6.42,  3.54,  3.54],
+               [15.06, 15.75, 10.6 , 11.42,  8.54,  8.54],
+               [15.06, 15.06, 10.7 , 11.42,  8.54,  8.54]])
 
         The faulted nodes have been uplifted and eroded! Note that here the
         boundary nodes are also uplifted.
@@ -243,11 +245,12 @@ class NormalFault(Component):
         >>> model_time = 0.0
         >>> dt = 100.0
         >>> for i in range(300):
-        ...     if i%10 == 0:
-        ...         nf.run_one_step(dt*10)
+        ...     if i % 10 == 0:
+        ...         nf.run_one_step(dt * 10)
         ...     fr.run_one_step()
         ...     fs.run_one_step(dt)
         ...     model_time += dt
+        ...
         >>> model_time
         30000.0
         >>> nf.current_time
@@ -403,9 +406,9 @@ class NormalFault(Component):
                     elevations_to_average = surfs_before_uplift[surf_name][
                         self._grid.adjacent_nodes_at_node
                     ]
-                    elevations_to_average[
-                        self._grid.adjacent_nodes_at_node == -1
-                    ] = np.nan
+                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = (
+                        np.nan
+                    )
                     elevations_to_average[~neighbor_for_averaging] = np.nan
                     self._surfaces[surf_name][averaged_nodes] = np.nanmean(
                         elevations_to_average[averaged_nodes], axis=1
@@ -424,9 +427,9 @@ class NormalFault(Component):
                     elevations_to_average = self._surfaces[surf_name][
                         self._grid.adjacent_nodes_at_node
                     ]
-                    elevations_to_average[
-                        self._grid.adjacent_nodes_at_node == -1
-                    ] = np.nan
+                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = (
+                        np.nan
+                    )
                     elevations_to_average[~neighbor_is_faulted] = np.nan
                     self._surfaces[surf_name][un_averaged_nodes] = np.nanmean(
                         elevations_to_average[un_averaged_nodes], axis=1

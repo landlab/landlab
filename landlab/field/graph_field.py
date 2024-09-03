@@ -1,10 +1,12 @@
 """Define collections of fields that are attached to a *Landlab*
 :class:`~landlab.graph.graph.Graph`.
 """
+
 import numpy as np
 import xarray as xr
 
-from .errors import FieldError, GroupError
+from .errors import FieldError
+from .errors import GroupError
 
 
 def reshape_for_storage(array, field_size=None):
@@ -86,16 +88,16 @@ def shape_for_storage(array, field_size=None):
     True
     >>> shape_for_storage(data, 2) == (2, 3)
     True
-    >>> shape_for_storage(data, 6) == (6, )
+    >>> shape_for_storage(data, 6) == (6,)
     True
 
     If a field size is not given, the array will be stored as a
     flattened array.
 
-    >>> shape_for_storage(data) == (6, )
+    >>> shape_for_storage(data) == (6,)
     True
     >>> data = np.arange(6).reshape((3, 2))
-    >>> shape_for_storage(data) == (6, )
+    >>> shape_for_storage(data) == (6,)
     True
 
     For field sizes of 1, the array is always flattened.
@@ -105,22 +107,22 @@ def shape_for_storage(array, field_size=None):
 
     For scalar arrays, the field size must be 1.
 
-    >>> data = np.array(1.)
-    >>> shape_for_storage(data) == (1, )
+    >>> data = np.array(1.0)
+    >>> shape_for_storage(data) == (1,)
     True
-    >>> shape_for_storage(data, field_size=1) == (1, )
+    >>> shape_for_storage(data, field_size=1) == (1,)
     True
 
     If the array cannot be shaped into a storage shape, a ``ValueError``
     is raised.
 
-    >>> data = np.array(1.)
-    >>> shape_for_storage(data, field_size=4) # DOCTEST: +IGNORE_EXCEPTION_DETAIL
+    >>> data = np.array(1.0)
+    >>> shape_for_storage(data, field_size=4)
     Traceback (most recent call last):
     ...
     ValueError: unable to reshape array to field size
-    >>> data = np.arange(6.)
-    >>> shape_for_storage(data, field_size=4) # DOCTEST: +IGNORE_EXCEPTION_DETAIL
+    >>> data = np.arange(6.0)
+    >>> shape_for_storage(data, field_size=4)
     Traceback (most recent call last):
     ...
     ValueError: unable to reshape array to field size
@@ -164,7 +166,7 @@ class FieldDataset(dict):
     True
     >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0, 1.0])
     >>> ds["air_temperature"]
-    array([ 1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1.])
     >>> ds.size
     4
     >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0])
@@ -181,7 +183,7 @@ class FieldDataset(dict):
     >>> ds.size
     2
     >>> ds["air_temperature"]
-    array([ 0.,  0.])
+    array([0., 0.])
     """
 
     def __init__(self, name, size=None, fixed_size=True):
@@ -219,7 +221,7 @@ class FieldDataset(dict):
         >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0])
         >>> ds.set_value("ground_temperature", [0.0, 0.0])
         >>> ds["ground_temperature"]
-        array([[ 0.,  0.]])
+        array([[0.,  0.]])
 
         >>> ds = FieldDataset("grid", size=1)
         >>> ds.set_value("air_temperature", 0.1)
@@ -253,7 +255,7 @@ class FieldDataset(dict):
         >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0, 1.0])
         >>> ds.set_value("air_temperature", [0.0, 0.0])
         >>> ds["air_temperature"]
-        array([ 0.,  0.])
+        array([0.,  0.])
 
         >>> ds.fixed_size = True
         >>> ds.size
@@ -268,7 +270,7 @@ class FieldDataset(dict):
     def fixed_size(self, fixed_size):
         self._fixed_size = bool(fixed_size)
         if self._fixed_size:
-            self.size = self._ds.dims[self._name]
+            self.size = self._ds.sizes[self._name]
 
     @property
     def units(self):
@@ -428,23 +430,23 @@ class GraphFields:
     Create some new value arrays for each of the data fields.
 
     >>> fields.ones("node")
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
     >>> fields.zeros("cell")
-    array([ 0.,  0.])
+    array([0., 0.])
 
     Create new value arrays and add them to the data fields. Because the data
     fields are in different groups (node and cell), they can have the same
     name.
 
     >>> fields.add_ones("topographic__elevation", at="node")
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
     >>> fields.at_node["topographic__elevation"]
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
     >>> fields.add_ones("topographic__elevation", at="cell")
-    array([ 1.,  1.])
+    array([1., 1.])
     >>> fields.at_cell["topographic__elevation"]
-    array([ 1.,  1.])
+    array([1., 1.])
 
     Each group acts as a :class:`dict` so, for instance, to get the variables names
     in a group use the :meth:`keys` method,
@@ -461,9 +463,9 @@ class GraphFields:
     >>> fields.at_grid["g"] = 9.81
     >>> fields.at_grid["g"]
     array(9.81)
-    >>> fields.at_grid["w"] = (3., 4.)
+    >>> fields.at_grid["w"] = (3.0, 4.0)
     >>> fields.at_grid["w"]
-    array([ 3.,  4.])
+    array([3., 4.])
 
     The dimensions of groups can also be specified when the object is
     instantiated. In this case, group sizes are specified as a dictionary
@@ -604,10 +606,10 @@ class GraphFields:
 
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 12)
-        >>> fields.has_group('node')
+        >>> fields.new_field_location("node", 12)
+        >>> fields.has_group("node")
         True
-        >>> fields.has_group('cell')
+        >>> fields.has_group("cell")
         False
 
         :meta landlab: info-field
@@ -764,20 +766,20 @@ class GraphFields:
 
         >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.field_values("topographic__elevation", at="node")
-        array([ 1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1.])
 
         Raise FieldError if *field* does not exist in *group*.
 
         >>> fields.field_values("planet_surface__temperature", at="node")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         FieldError: planet_surface__temperature
 
         If *group* does not exists, raise :class:`~landlab.field.errors.GroupError`.
 
         >>> fields.field_values("topographic__elevation", at="cell")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         GroupError: cell
 
         :meta landlab: field-io
@@ -840,7 +842,7 @@ class GraphFields:
         >>> import numpy as np
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 4)
+        >>> fields.new_field_location("node", 4)
 
         Add a field, initialized to ones, called *topographic__elevation*
         to the *node* group. The *field_values* method returns a reference
@@ -848,35 +850,35 @@ class GraphFields:
 
         >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.field_values("topographic__elevation", at="node")
-        array([ 1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1.])
 
         Alternatively, if the second argument is an array, its size is
         checked and returned if correct.
 
-        >>> vals = np.array([4., 5., 7., 3.])
+        >>> vals = np.array([4.0, 5.0, 7.0, 3.0])
         >>> fields.return_array_or_field_values(vals, at="node")
-        array([ 4.,  5.,  7.,  3.])
+        array([4., 5., 7., 3.])
 
         Raise FieldError if *field* does not exist in *group*.
 
         >>> fields.return_array_or_field_values("surface__temperature", at="node")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         FieldError: surface__temperature
 
         If *group* does not exists, Raise GroupError.
 
         >>> fields.return_array_or_field_values("topographic__elevation", at="cell")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         GroupError: cell
 
         And if the array of values provided is incorrect, raise a :class:`ValueError`.
 
-        >>> vals = np.array([3., 2., 1.])
+        >>> vals = np.array([3.0, 2.0, 1.0])
         >>> fields.return_array_or_field_values(vals, at="node")
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
+        ...
         ValueError: Array has incorrect size.
 
         :meta landlab: field-io
@@ -964,7 +966,7 @@ class GraphFields:
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
         >>> field.new_field_location("node", 4)
-        >>> field.empty("node") # doctest: +SKIP
+        >>> field.empty("node")  # doctest: +SKIP
         array([  2.31584178e+077,  -2.68156175e+154,   9.88131292e-324,
         ... 2.78134232e-309]) # Uninitialized memory
 
@@ -1018,7 +1020,7 @@ class GraphFields:
         >>> field = GraphFields()
         >>> field.new_field_location("node", 4)
         >>> field.ones("node")
-        array([ 1.,  1.,  1.,  1.])
+        array([1., 1., 1., 1.])
         >>> field.ones("node", dtype=int)
         array([1, 1, 1, 1])
 
@@ -1058,7 +1060,7 @@ class GraphFields:
         >>> field = GraphFields()
         >>> field.new_field_location("node", 4)
         >>> field.zeros("node")
-        array([ 0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0.])
 
         Note that a new field is *not* added to the collection of fields.
 
@@ -1139,10 +1141,9 @@ class GraphFields:
         array([1, 1, 1, 1])
         >>> field.at_node["topographic__elevation"] is values
         False
-        >>> field.add_field(
-        ...     "topographic__elevation", values, at="node", clobber=False
-        ... ) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field("topographic__elevation", values, at="node", clobber=False)
         Traceback (most recent call last):
+        ...
         FieldError: topographic__elevation
 
         :meta landlab: field-add
@@ -1308,15 +1309,15 @@ class GraphFields:
 
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
-        >>> field.new_field_location('node', 4)
+        >>> field.new_field_location("node", 4)
         >>> field.add_ones("topographic__elevation", at="node")
-        array([ 1.,  1.,  1.,  1.])
-        >>> list(field.keys('node'))
+        array([1., 1., 1., 1.])
+        >>> list(field.keys("node"))
         ['topographic__elevation']
-        >>> field['node']['topographic__elevation']
-        array([ 1.,  1.,  1.,  1.])
-        >>> field.at_node['topographic__elevation']
-        array([ 1.,  1.,  1.,  1.])
+        >>> field["node"]["topographic__elevation"]
+        array([1., 1., 1., 1.])
+        >>> field.at_node["topographic__elevation"]
+        array([1., 1., 1., 1.])
 
         :meta landlab: field-add
         """

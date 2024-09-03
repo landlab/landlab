@@ -93,17 +93,18 @@ def lattice_grain_transition_list(g=0.0, f=0.0, motion=1.0, swap=False, callback
     Examples
     --------
     >>> xnl = lattice_grain_transition_list()
-    >>> len(xnl) # 6 motion plus 117 elastic
+    >>> len(xnl)  # 6 motion plus 117 elastic
     123
     >>> def fn():
-    ...     return 'test'
+    ...     return "test"
+    ...
     >>> xnl = lattice_grain_transition_list(f=1.0, callback=fn)
-    >>> len(xnl) # 6 motion plus 87 frictional
+    >>> len(xnl)  # 6 motion plus 87 frictional
     93
     >>> xnl[0].prop_update_fn()
     'test'
     >>> xnl = lattice_grain_transition_list(g=1.0, f=1.0, swap=True)
-    >>> len(xnl) # 6 motion plus 87 frictional plus 48 gravitational
+    >>> len(xnl)  # 6 motion plus 87 frictional plus 48 gravitational
     141
     >>> xnl[5].swap_properties
     True

@@ -32,8 +32,7 @@ def interior_node_count(shape):
     Return the count of the number of interior nodes of a structured grid
     of dimensions, *shape*.
 
-    >>> from landlab.utils.structured_grid import (node_count,
-    ...                                            interior_node_count)
+    >>> from landlab.utils.structured_grid import node_count, interior_node_count
     >>> node_count((2, 4))
     8
     >>> interior_node_count((2, 4))
@@ -117,7 +116,7 @@ def link_count(shape):
     the total of the two.
 
     >>> from landlab.utils.structured_grid import link_count
-    >>> link_count((3,2))
+    >>> link_count((3, 2))
     7
     """
     assert len(shape) == 2
@@ -364,9 +363,9 @@ def node_coords(shape, *args):
     >>> from landlab.utils.structured_grid import node_coords
     >>> (cols, rows) = node_coords((3, 2))
     >>> rows
-    array([ 0.,  0.,  1.,  1.,  2.,  2.])
+    array([0.,  0.,  1.,  1.,  2.,  2.])
     >>> cols
-    array([ 0.,  1.,  0.,  1.,  0.,  1.])
+    array([0.,  1.,  0.,  1.,  0.,  1.])
     """
     try:
         spacing = args[0]
@@ -460,7 +459,7 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     --------
     >>> from landlab.utils.structured_grid import face_at_link
     >>> faces = face_at_link((3, 4), inactive_link_index=-1)
-    >>> faces # doctest: +NORMALIZE_WHITESPACE
+    >>> faces
     array([-1,  0,  1, -1, -1,  2,  3,
            -1, -1, -1, -1,  4,  5,  6, -1, -1, -1])
     """
@@ -604,7 +603,7 @@ def active_inlinks2(shape, node_status=None):
     Examples
     --------
     >>> from landlab.utils.structured_grid import active_inlinks2
-    >>> active_inlinks2((3,4))
+    >>> active_inlinks2((3, 4))
     array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
            [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1]])
 
@@ -655,7 +654,7 @@ def active_outlinks2(shape, node_status=None):
     Examples
     --------
     >>> from landlab.utils.structured_grid import active_outlinks2
-    >>> active_outlinks2((3,4))
+    >>> active_outlinks2((3, 4))
     array([[-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
 
@@ -747,17 +746,17 @@ def vertical_inactive_link_mask(shape, node_status):
     >>> import numpy as np
     >>> from landlab.utils.structured_grid import vertical_inactive_link_mask
     >>> ns = np.ones(12, dtype=bool)  # case of no closed boundary nodes
-    >>> vertical_inactive_link_mask((3,4), ns)
+    >>> vertical_inactive_link_mask((3, 4), ns)
     array([[False, False],
-           [False, False]], dtype=bool)
-    >>> ns[2] = False    # node 2 is a closed boundary
-    >>> vertical_inactive_link_mask((3,4), ns)
+           [False, False]])
+    >>> ns[2] = False  # node 2 is a closed boundary
+    >>> vertical_inactive_link_mask((3, 4), ns)
     array([[False,  True],
-           [False, False]], dtype=bool)
-    >>> ns[9] = False    # node 9 is also a closed boundary
-    >>> vertical_inactive_link_mask((3,4), ns)
+           [False, False]])
+    >>> ns[9] = False  # node 9 is also a closed boundary
+    >>> vertical_inactive_link_mask((3, 4), ns)
     array([[False,  True],
-           [ True, False]], dtype=bool)
+           [ True, False]])
     """
     # Create a 2D boolean matrix indicating whether NODES are closed boundaries
     # GT thinks this should be False, not 0
@@ -828,13 +827,13 @@ def vertical_active_link_ids2(shape, node_status=None):
     Examples
     --------
     >>> from landlab.utils.structured_grid import vertical_active_link_ids2
-    >>> vertical_active_link_ids2((3,4))
+    >>> vertical_active_link_ids2((3, 4))
     array([[ 4,  5],
            [11, 12]])
     >>> ns = np.ones(12, dtype=bool)
     >>> ns[1] = False
     >>> ns[10] = False
-    >>> vertical_active_link_ids2((3,4), ns)
+    >>> vertical_active_link_ids2((3, 4), ns)
     array([[-1,  5],
            [11, -1]])
 
@@ -902,12 +901,12 @@ def horizontal_active_link_ids2(shape, node_status=None):
     Examples
     --------
     >>> from landlab.utils.structured_grid import horizontal_active_link_ids2
-    >>> horizontal_active_link_ids2((3,4))
+    >>> horizontal_active_link_ids2((3, 4))
     array([[7, 8, 9]])
     >>> ns = np.ones(12, dtype=bool)
     >>> ns[4] = False
     >>> ns[7] = False
-    >>> horizontal_active_link_ids2((3,4), ns)
+    >>> horizontal_active_link_ids2((3, 4), ns)
     array([[-1,  8, -1]])
 
     Notes
@@ -1570,7 +1569,7 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     array([[-1, -1, -1, -1]])
 
     >>> neighbors = neighbor_cell_array((5, 4), out_of_bounds=-1)
-    >>> neighbors # doctest: +NORMALIZE_WHITESPACE
+    >>> neighbors
     array([[ 1,  2, -1, -1], [-1,  3,  0, -1],
            [ 3,  4, -1,  0], [-1,  5,  2,  1],
            [ 5, -1, -1,  2], [-1, -1,  4,  3]])
@@ -1616,10 +1615,10 @@ def diagonal_node_array(
            [-1, -1, -1,  1],
            [-1, -1,  0,  2],
            [-1, -1,  1, -1]])
-    >>> diags.flags['C_CONTIGUOUS']
+    >>> diags.flags["C_CONTIGUOUS"]
     True
     >>> diags = diagonal_node_array((2, 3), out_of_bounds=-1, contiguous=False)
-    >>> diags.flags['C_CONTIGUOUS']
+    >>> diags.flags["C_CONTIGUOUS"]
     False
     """
     # NG didn't touch this, but she thinks this should be nodes, not cells.
@@ -1668,12 +1667,12 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
     array([[-1, -1, -1, -1]])
 
     >>> diags = diagonal_cell_array((4, 4), out_of_bounds=-1)
-    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    >>> diags
     array([[ 3, -1, -1, -1], [-1,  2, -1, -1],
            [-1, -1, -1,  1], [-1, -1,  0, -1]])
 
     >>> diags = diagonal_cell_array((4, 5), out_of_bounds=-1)
-    >>> diags # doctest: +NORMALIZE_WHITESPACE
+    >>> diags
     array([[ 4, -1, -1, -1], [ 5,  3, -1, -1], [-1,  4, -1, -1],
            [-1, -1, -1,  1], [-1, -1,  0,  2], [-1, -1,  1, -1]])
     """
@@ -1714,7 +1713,7 @@ def reshape_array(shape, array, flip_vertically=False, copy=False):
     Examples
     --------
     >>> from landlab.utils.structured_grid import reshape_array
-    >>> x = np.arange(12.)
+    >>> x = np.arange(12.0)
     >>> y = reshape_array((3, 4), x)
     >>> y.shape == (3, 4)
     True
@@ -1722,19 +1721,19 @@ def reshape_array(shape, array, flip_vertically=False, copy=False):
     array([[  0.,   1.,   2.,   3.],
            [  4.,   5.,   6.,   7.],
            [  8.,   9.,  10.,  11.]])
-    >>> y.flags['C_CONTIGUOUS']
+    >>> y.flags["C_CONTIGUOUS"]
     True
     >>> x[0] = -1
     >>> y[0, 0]
     -1.0
 
-    >>> x = np.arange(12.)
+    >>> x = np.arange(12.0)
     >>> y = reshape_array((3, 4), x, flip_vertically=True)
     >>> y
     array([[  8.,   9.,  10.,  11.],
            [  4.,   5.,   6.,   7.],
            [  0.,   1.,   2.,   3.]])
-    >>> y.flags['C_CONTIGUOUS']
+    >>> y.flags["C_CONTIGUOUS"]
     False
     >>> x[0] = -1
     >>> y[-1, 0]
@@ -1768,12 +1767,11 @@ def nodes_around_points_on_unit_grid(shape, coords, mode="raise"):
 
     Examples
     --------
-    >>> from landlab.utils.structured_grid import (
-    ...     nodes_around_points_on_unit_grid)
-    >>> nodes_around_points_on_unit_grid((3, 3), (.1, .1))
+    >>> from landlab.utils.structured_grid import nodes_around_points_on_unit_grid
+    >>> nodes_around_points_on_unit_grid((3, 3), (0.1, 0.1))
     array([0, 3, 4, 1])
 
-    >>> nodes_around_points_on_unit_grid((3, 3), (1., 1.))
+    >>> nodes_around_points_on_unit_grid((3, 3), (1.0, 1.0))
     array([4, 7, 8, 5])
     """
     if isinstance(coords[0], np.ndarray):
@@ -1799,13 +1797,13 @@ def nodes_around_points(shape, coords, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     Examples
     --------
     >>> from landlab.utils.structured_grid import nodes_around_points
-    >>> x = np.array([.9, 1.])
-    >>> y = np.array([.1, 1.])
+    >>> x = np.array([0.9, 1.0])
+    >>> y = np.array([0.1, 1.0])
     >>> nodes_around_points((3, 3), (y, x))
     array([[0, 3, 4, 1],
            [4, 7, 8, 5]])
 
-    >>> nodes_around_points((3, 3), (2., 1.))
+    >>> nodes_around_points((3, 3), (2.0, 1.0))
     Traceback (most recent call last):
         ...
     ValueError: invalid entry in coordinates array

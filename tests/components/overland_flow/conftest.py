@@ -1,11 +1,9 @@
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.components.overland_flow import (
-    KinwaveOverlandFlowModel,
-    OverlandFlow,
-    OverlandFlowBates,
-)
+from landlab.components.overland_flow import KinwaveOverlandFlowModel
+from landlab.components.overland_flow import OverlandFlow
+from landlab.components.overland_flow import OverlandFlowBates
 
 
 @pytest.fixture

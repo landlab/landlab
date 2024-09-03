@@ -130,7 +130,8 @@ def calculate_window_statistic(
     >>> relief = calculate_window_statistic(
     ...     grid,
     ...     "topographic__elevation",
-    ...     np.ptp,search_radius=15,
+    ...     np.ptp,
+    ...     search_radius=15,
     ...     calc_on_closed_nodes=False,
     ... )
     >>> grid.at_node["topographic__elevation"]
@@ -140,20 +141,21 @@ def calculate_window_statistic(
            18.,  19.,  20.,  21.,  22.,  23.,
            24.,  25.,  26.,  27.,  28.,  29.])
     >>> relief
-    array([ nan,  nan,  nan,  nan,  nan,  nan,
-             7.,   8.,   8.,   8.,   8.,   7.,
-            13.,  14.,  14.,  14.,  14.,  13.,
-             7.,   8.,   8.,   8.,   8.,   7.,
-            nan,  nan,  nan,  nan,  nan,  nan])
+    array([nan,  nan,  nan,  nan,  nan,  nan,
+            7.,   8.,   8.,   8.,   8.,   7.,
+           13.,  14.,  14.,  14.,  14.,  13.,
+            7.,   8.,   8.,   8.,   8.,   7.,
+           nan,  nan,  nan,  nan,  nan,  nan])
 
     Calculate 90th percentile using ``np.percentile`` function and ``kwargs``.
 
     >>> perc_90 = calculate_window_statistic(
     ...     grid,
     ...     "topographic__elevation",
-    ...     np.percentile,search_radius=15,
+    ...     np.percentile,
+    ...     search_radius=15,
     ...     calc_on_closed_nodes=False,
-    ...     q=90
+    ...     q=90,
     ... )
     >>> grid.at_node["topographic__elevation"]
     array([ 0.,   1.,   2.,   3.,   4.,   5.,
@@ -174,6 +176,7 @@ def calculate_window_statistic(
     >>> def max_minus_percentile(elev, q):
     ...     output = np.max(elev) - np.percentile(elev, q)
     ...     return output
+    ...
     >>> rel_above_90th_perc = calculate_window_statistic(
     ...     grid,
     ...     "topographic__elevation",
@@ -189,11 +192,11 @@ def calculate_window_statistic(
            18.,  19.,  20.,  21.,  22.,  23.,
            24.,  25.,  26.,  27.,  28.,  29.])
     >>> rel_above_90th_perc
-    array([ nan,  nan,  nan,  nan,  nan,  nan,
-            0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
-            0.5,  0.8,  0.8,  0.8,  0.8,  0.5,
-            0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
-            nan,  nan,  nan,  nan,  nan,  nan])
+    array([nan,  nan,  nan,  nan,  nan,  nan,
+           0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
+           0.5,  0.8,  0.8,  0.8,  0.8,  0.5,
+           0.3,  0.5,  0.5,  0.5,  0.5,  0.3,
+           nan,  nan,  nan,  nan,  nan,  nan])
     """
     if field not in grid.at_node:
         raise FieldError(f"A {field} field is required at the nodes of the input grid.")

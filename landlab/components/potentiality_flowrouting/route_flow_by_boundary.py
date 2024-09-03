@@ -11,7 +11,9 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import Component, LinkStatus, RasterModelGrid
+from landlab import Component
+from landlab import LinkStatus
+from landlab import RasterModelGrid
 
 
 class PotentialityFlowRouter(Component):
@@ -58,18 +60,16 @@ class PotentialityFlowRouter(Component):
     >>> from landlab import HexModelGrid
     >>> import numpy as np
     >>> mg = HexModelGrid(
-    ...     (4, 6),
-    ...     spacing=2.,
-    ...     node_layout="rect",
-    ...     orientation="vertical")
+    ...     (4, 6), spacing=2.0, node_layout="rect", orientation="vertical"
+    ... )
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> Q_in = mg.add_ones("water__unit_flux_in", at="node")
     >>> z += mg.node_y.copy()
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
-    >>> mg.at_node['surface_water__discharge'][mg.core_nodes]
-    array([ 11.70706863,  11.5709712 ,  10.41329927,   9.24959728,
-             6.65448576,   6.39262702,   5.71410162,   5.04743495])
+    >>> mg.at_node["surface_water__discharge"][mg.core_nodes]
+    array([11.70706863, 11.5709712 , 10.41329927,  9.24959728,
+            6.65448576,  6.39262702,  5.71410162,  5.04743495])
 
     References
     ----------

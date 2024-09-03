@@ -2,6 +2,10 @@ name: Documentation
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
     build:
         name: Build documentation
@@ -19,7 +23,7 @@ jobs:
             shell: bash -l {0}
 
         steps:
-          - uses: actions/checkout@v3
+          - uses: actions/checkout@v4
           - name: Set up Python 3.11
             uses: actions/setup-python@v4
             with:
