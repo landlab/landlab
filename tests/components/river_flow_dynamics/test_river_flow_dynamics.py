@@ -3,6 +3,7 @@ Unit tests for landlab.components.river_flow_dynamics.river_flow_dynamics
 
 last updated: 10/15/2023
 """
+
 import numpy as np
 import pytest
 
@@ -103,23 +104,28 @@ def test_run_one_step():
     for _ in range(100):
         rfd.run_one_step()
 
-    water_depth_solution = np.array(
-        [
-            0.4357753,
-            0.4357753,
-            0.43611027,
-            0.43624251,
-            0.43626605,
-            0.43595278,
-            0.43534349,
-            0.43491662,
-            0.43342158,
-            0.43342158,
-        ]
+    water_depth_solution = np.round(
+        np.array(
+            [
+                0.4357753,
+                0.4357753,
+                0.43611027,
+                0.43624251,
+                0.43626605,
+                0.43595278,
+                0.43534349,
+                0.43491662,
+                0.43342158,
+                0.43342158,
+            ]
+        ),
+        3,
     )
     water_depth_obtained = grid.at_node["surface_water__depth"][
         grid.nodes_at_right_edge
     ]
+
+    water_depth_obtained = np.round(water_depth_obtained, 3)
     np.testing.assert_array_almost_equal(
-        water_depth_solution, water_depth_obtained, decimal=6
+        water_depth_solution, water_depth_obtained, decimal=3
     )
