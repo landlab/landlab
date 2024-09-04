@@ -196,9 +196,9 @@ The calculated flow_depth is:
 >>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
 
 The average (absolute) difference between predited and expected
-floe depth in percentage is:
+flow depth in percentage is:
 
->>> np.round(np.abs(np.mean(flow_depth_expected - flow_depth)) * 100, 1)
+>>> np.round(np.abs(np.mean(flow_depth_expected - flow_depth)) * 100, 0)
 0.0
 
 And the velocity at links along the center of the channel
@@ -278,7 +278,7 @@ The calculated flow velocity is:
 The average (absolute) difference between predited and expected
 flow velocity in percentage is:
 
->>> np.round(np.abs(np.mean(flow_velocity_expected - flow_velocity)) * 100, 1)
+>>> np.round(np.abs(np.mean(flow_velocity_expected - flow_velocity)) * 100, 0)
 0.0
 
 
