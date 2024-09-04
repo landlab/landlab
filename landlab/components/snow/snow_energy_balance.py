@@ -53,10 +53,6 @@ class SnowEnergyBalance(Component):
         A Landlab model grid object
     rho_water : float, optional
         water density [kg / m3].
-    rho_air : float, optional
-        air density [kg / m3].
-    cp_air  : float, optional
-        air heat capacity [J / kg / K]
     cp_snow: float, optional
         snow heat capacity [J / kg / K]
     rain_snow_temp : float, optional
@@ -193,8 +189,6 @@ class SnowEnergyBalance(Component):
         self,
         grid,
         rho_water=1000,
-        rho_air=1.2614,
-        cp_air=1005.7,
         cp_snow=2090.0,
         rain_snow_temp=1,
         melting_point=0,
@@ -204,8 +198,6 @@ class SnowEnergyBalance(Component):
         super().__init__(grid)
 
         self.rho_water = rho_water
-        self.rho_air = rho_air
-        self.cp_air = cp_air
         self.cp_snow = cp_snow
         self.rain_snow_temp = rain_snow_temp
         self.melting_point = melting_point
@@ -254,26 +246,6 @@ class SnowEnergyBalance(Component):
         if rho_water <= 0.0:
             raise ValueError("water density must be positive")
         self._rho_water = rho_water
-
-    @property
-    def rho_air(self):
-        return self._rho_air
-
-    @rho_air.setter
-    def rho_air(self, rho_air):
-        if rho_air <= 0:
-            raise ValueError("air temperature density must be positive")
-        self._rho_air = rho_air
-
-    @property
-    def cp_air(self):
-        return self._cp_air
-
-    @cp_air.setter
-    def cp_air(self, cp_air):
-        if cp_air <= 0:
-            raise ValueError("air heat capacity must be positive")
-        self._cp_air = cp_air
 
     @property
     def cp_snow(self):
