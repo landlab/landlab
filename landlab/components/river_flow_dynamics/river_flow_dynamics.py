@@ -189,7 +189,7 @@ The expected flow depth is:
 ...     ]
 ... )
 
-For compatibility issues, we present this as a difference and not a direct 
+For compatibility issues, we present this as a difference and not a direct
 comparison.
 The calculated flow_depth is:
 
