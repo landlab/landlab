@@ -1091,7 +1091,7 @@ class LakeMapperBarnes(Component):
         >>> lake_dict = {8: deque([7]), 16: deque([15, 9, 14, 22])}
         >>> fd.run_one_step()  # fill the director fields
         >>> fa.run_one_step()  # get a drainage_area
-        >>> np.alltrue(mg.at_node["flow__sink_flag"][[7, 15, 22]])  # sinks
+        >>> np.all(mg.at_node["flow__sink_flag"][[7, 15, 22]])  # sinks
         True
         >>> nodes_in_lakes = np.array([7, 8, 9, 14, 15, 16, 22])
         >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)

@@ -75,11 +75,6 @@ class override_array_setitem_and_reset:
                     if obj is None:
                         return
 
-                def itemset(self, ind, value):
-                    """Set value of array, then call reset function."""
-                    np.ndarray.itemset(self, ind, value)
-                    getattr(self.grid, reset)()
-
                 def __setitem__(self, ind, value):
                     """Set value of array, then call reset function."""
                     np.ndarray.__setitem__(self, ind, value)
