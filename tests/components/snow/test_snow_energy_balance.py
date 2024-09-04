@@ -43,8 +43,6 @@ def test_assign_parameters():
     sm = SnowEnergyBalance(
         grid,
         rho_water=1001,
-        rho_air=1.2,
-        cp_air=1005,
         cp_snow=2080.0,
         rain_snow_temp=1.5,
         melting_point=0.1,
@@ -52,20 +50,12 @@ def test_assign_parameters():
 
     # parameters
     assert sm.rho_water == 1001
-    assert sm.rho_air == 1.2
-    assert sm.cp_air == 1005
     assert sm.cp_snow == 2080.0
     assert sm.rain_snow_temp == 1.5
     assert sm.melting_point == 0.1
 
     with pytest.raises(ValueError):
         sm.rho_water = -1
-
-    with pytest.raises(ValueError):
-        sm.rho_air = -1
-
-    with pytest.raises(ValueError):
-        sm.cp_air = -1
 
     with pytest.raises(ValueError):
         sm.cp_snow = -1
