@@ -189,13 +189,13 @@ The expected flow depth is:
 ...     ]
 ... )
 
-For compatibility issues, we present this as a difference and not a direct 
+For compatibility issues, we present this as a difference and not a direct
 comparison.
 The calculated flow_depth is:
 
 >>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
 
-The average (absolute) difference between predited and expected 
+The average (absolute) difference between predited and expected
 floe depth in percentage is:
 
 >>> np.round(np.abs(np.mean(flow_depth_expected - flow_depth)) * 100, 1)
@@ -270,12 +270,12 @@ The expected flow velocity is:
 ... )
 
 The calculated flow velocity is:
-    
+
 >>> linksAtCenter = grid.links_at_node[np.array(np.arange(600, 660))][:-1, 0]
 >>> flow_velocity = grid["link"]["surface_water__velocity"][linksAtCenter]
 >>> flow_velocity = np.round(flow_velocity, 3)
 
-The average (absolute) difference between predited and expected 
+The average (absolute) difference between predited and expected
 flow velocity in percentage is:
 
 >>> np.round(np.abs(np.mean(flow_velocity_expected - flow_velocity)) * 100, 1)
