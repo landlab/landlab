@@ -30,13 +30,13 @@ and cell size.
 >>> nRows = 20
 >>> nCols = 60
 >>> cellSize = 0.1
->>> grid = RasterModelGrid((nRows,nCols), xy_spacing=(cellSize,cellSize))
+>>> grid = RasterModelGrid((nRows, nCols), xy_spacing=(cellSize, cellSize))
 
 Defining the Topography: Set up the initial topographic elevation for the grid,
 creating a basic rectangular channel with a slope of 0.01.
 
 >>> te = grid.add_zeros("topographic__elevation", at="node")
->>> te += 0.059 - 0.01*grid.x_of_node
+>>> te += 0.059 - 0.01 * grid.x_of_node
 >>> te[grid.y_of_node > 1.5] = 1.0
 >>> te[grid.y_of_node < 0.5] = 1.0
 
@@ -44,8 +44,8 @@ We could visualize the elevation profile using 'imshow_grid'.
 imshow_grid(grid, "topographic__elevation")
 Explore the grid's middle longitudinal section.
 
->>> middleBedProfile = np.reshape(te,(nRows,nCols))[10,:]
->>> np.round(middleBedProfile,3)
+>>> middleBedProfile = np.reshape(te, (nRows, nCols))[10, :]
+>>> np.round(middleBedProfile, 3)
 array([ 0.059,  0.058,  0.057,  0.056,  0.055,  0.054,  0.053,  0.052,
         0.051,  0.05 ,  0.049,  0.048,  0.047,  0.046,  0.045,  0.044,
         0.043,  0.042,  0.041,  0.04 ,  0.039,  0.038,  0.037,  0.036,
@@ -93,32 +93,38 @@ These will serve as the inlet boundary conditions for water depth and velocity.
 In this case, water flows from left to right at a depth of 0.5 meters with a velocity
 of 0.45 m/s.
 
->>> fixed_entry_nodes = np.arange(300,910,60)
->>> fixed_entry_links = grid.links_at_node[fixed_entry_nodes][:,0]
+>>> fixed_entry_nodes = np.arange(300, 910, 60)
+>>> fixed_entry_links = grid.links_at_node[fixed_entry_nodes][:, 0]
 
 Set the fixed values for these entry nodes/links.
 
->>> entry_nodes_h_values   = np.full(11, 0.5)
+>>> entry_nodes_h_values = np.full(11, 0.5)
 >>> entry_links_vel_values = np.full(11, 0.45)
 
 Instantiate 'river_flow_dynamics' with the previously defined arguments.
 
->>> rfd = river_flow_dynamics(grid, dt=0.1, mannings_n=0.012,
+>>> rfd = river_flow_dynamics(
+...     grid,
+...     dt=0.1,
+...     mannings_n=0.012,
 ...     fixed_entry_nodes=fixed_entry_nodes,
-...     fixed_entry_links=fixed_entry_links,entry_nodes_h_values=entry_nodes_h_values,
-...     entry_links_vel_values=entry_links_vel_values)
+...     fixed_entry_links=fixed_entry_links,
+...     entry_nodes_h_values=entry_nodes_h_values,
+...     entry_links_vel_values=entry_links_vel_values,
+... )
 
 Run the simulation for 100 timesteps (equivalent to 10 seconds).
 
 >>> n_timesteps = 100
 >>> for timestep in range(n_timesteps):
 ...     rfd.run_one_step()
+...
 
 Examine the flow depth at the center of the channel after 10 seconds.
 
->>> flow_depth = np.reshape(grid['node']["surface_water__depth"],(nRows,nCols))[10,:]
+>>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
 
->>> np.round(flow_depth,3)
+>>> np.round(flow_depth, 3)
 array([0.5  , 0.491, 0.48 , 0.473, 0.467, 0.464, 0.46 , 0.458, 0.455,
        0.454, 0.452, 0.45 , 0.449, 0.448, 0.446, 0.445, 0.443, 0.442,
        0.441, 0.439, 0.438, 0.437, 0.435, 0.434, 0.433, 0.431, 0.43 ,
@@ -129,9 +135,9 @@ array([0.5  , 0.491, 0.48 , 0.473, 0.467, 0.464, 0.46 , 0.458, 0.455,
 
 And the velocity at links along the center of the channel
 
->>> linksAtCenter = grid.links_at_node[np.array(np.arange(600,660))][:-1,0]
->>> flow_velocity = grid['link']["surface_water__velocity"][linksAtCenter]
->>> np.round(flow_velocity,3)
+>>> linksAtCenter = grid.links_at_node[np.array(np.arange(600, 660))][:-1, 0]
+>>> flow_velocity = grid["link"]["surface_water__velocity"][linksAtCenter]
+>>> np.round(flow_velocity, 3)
 array([0.45 , 0.595, 0.694, 0.754, 0.795, 0.821, 0.838, 0.848, 0.855,
        0.858, 0.86 , 0.86 , 0.858, 0.857, 0.858, 0.86 , 0.864, 0.866,
        0.866, 0.866, 0.866, 0.867, 0.869, 0.872, 0.874, 0.875, 0.876,
@@ -145,7 +151,8 @@ array([0.45 , 0.595, 0.694, 0.754, 0.795, 0.821, 0.838, 0.848, 0.855,
 import numpy as np
 import scipy as sp
 
-from landlab import Component, FieldError
+from landlab import Component
+from landlab import FieldError
 
 
 class river_flow_dynamics(Component):
@@ -1617,7 +1624,7 @@ class river_flow_dynamics(Component):
             left_hand_side,
             right_hand_side,
             M=Mi,
-            #rtol=self._pcg_tolerance,
+            # rtol=self._pcg_tolerance,
             maxiter=self._pcg_max_iterations,
             atol=0,
         )

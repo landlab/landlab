@@ -76,7 +76,7 @@ from .sink_fill import SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt
 from .soil_moisture import SoilMoisture
 from .space import Space
-from .space import SpaceLargeScaleEroder											
+from .space import SpaceLargeScaleEroder
 from .spatial_precip import SpatialPrecipitationDistribution
 from .species_evolution import SpeciesEvolver
 from .steepness_index import SteepnessFinder
@@ -153,7 +153,7 @@ COMPONENTS = [
     PrecipitationDistribution,
     Profiler,
     Radiation,
-    river_flow_dynamics,					
+    river_flow_dynamics,
     SedDepEroder,
     SedimentPulserAtLinks,
     SedimentPulserEachParcel,
