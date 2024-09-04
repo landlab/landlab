@@ -1,6 +1,7 @@
 from collections.abc import Collection
 from collections.abc import Iterable
 from collections.abc import Mapping
+from pprint import pformat
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -17,7 +18,39 @@ from .ext._deprecated_sparse import (
 from .ext._deprecated_sparse import pair_isin as _pair_isin
 
 
-class IntPairs(Collection):
+class IntPairCollection(Collection):
+    """Collection of pairs of int, that ignores ordering of pairs.
+
+
+    Examples
+    --------
+    >>> from landlab.graph.sort.intpair import IntPairCollection
+    >>> pairs = IntPairCollection([(0, 1), (2, 3), (1, 2), (4, 5)])
+    >>> (0, 1) in pairs
+    True
+    >>> (1, 0) in pairs
+    True
+    >>> (2, 4) in pairs
+    False
+
+    >>> pairs.contains_pairs([(1, 0), (5, 4), (4, 5), (3, 200)])
+    array([ True, True, True, False])
+
+    >>> pairs.contains_pairs([(1, 0, 2), (5, 4, -1), (-1, 4, 5), (3, 2, 1)])
+    array([[ True, False],
+           [ True, False],
+           [False, False],
+           [ True,  True]])
+
+    >>> pairs.contains_pairs(
+    ...     [(1, 0, 2), (5, 4, -1), (-1, 4, 5), (3, 2, 1)], wraparound=True
+    ... )
+    array([[ True, False,  True],
+           [ True,  True, False],
+           [False, False, False],
+           [ True,  True, False]])
+    """
+
     def __init__(
         self,
         pairs: ArrayLike,
@@ -36,6 +69,13 @@ class IntPairs(Collection):
         self._offsets = np.empty(pairs.max() + 2, dtype=int)
 
         fill_offsets_to_sorted_blocks(self._data[:, 0], self._offsets)
+
+        self._assert_is_sorted(self._data)
+
+    @staticmethod
+    def _assert_is_sorted(data):
+        if np.any(np.diff(data[:, 0]) < 0):
+            raise ValueError("array is not sorted")
 
     def __contains__(self, pair) -> bool:
         pairs = np.atleast_2d(pair)
@@ -59,19 +99,59 @@ class IntPairs(Collection):
             shape = (pairs.shape[0], pairs.shape[1])
         else:
             shape = (pairs.shape[0], pairs.shape[1] - 1)
-        result = np.full(shape, -1, dtype=int)
-
-        # find_pairs(self._data, self._offsets, pairs, result)
+        result = np.full(shape, -2, dtype=int)
 
         find_rolling_pairs_2d(self._data, self._offsets, pairs, result, int(wraparound))
 
         return result
 
-    def contains_keys(self, pairs, wraparound=False):
-        return self._find_pairs(pairs, wraparound=wraparound) >= 0
+    def contains_pairs(self, pairs, wraparound=False):
+        return np.squeeze(self._find_pairs(pairs, wraparound=wraparound) >= 0)
+
+    def __repr__(self) -> str:
+        if len(self._data) > 6:
+            s = (
+                f"[{' '.join([repr(tuple(p)) + ',' for p in self._data[:3]])}"
+                " ... "
+                f"{', '.join([repr(tuple(p)) for p in self._data[-3:]])}]"
+            )
+        else:
+            s = f"{pformat([tuple(pair) for pair in self._data], compact=True)}"
+        return f"IntPairCollection({s})"
 
 
-class IntPairMapping(Mapping, IntPairs):
+class IntPairMapping(Mapping, IntPairCollection):
+    """Mapping of pairs of int, that ignores ordering of pairs.
+
+
+    Examples
+    --------
+    >>> from landlab.graph.sort.intpair import IntPairMapping
+    >>> pairs = IntPairMapping([(0, 1), (2, 3), (1, 2), (4, 5)], values=[1, 2, 3, 4])
+    >>> pairs[(1, 0)]
+    1
+    >>> pairs[(0, 1)]
+    1
+    >>> pairs[(2, 4)]
+    Traceback (most recent call last):
+    KeyError: (2, 4)
+
+    >>> pairs.get_items([(1, 0), (5, 4), (4, 5), (3, 200)])
+    array([ 1, 4, 4, -1])
+
+    >>> pairs.get_items([(1, 0, 2), (5, 4, -1), (-1, 4, 5), (3, 2, 1)])
+    array([[ 1, -1],
+           [ 4, -1],
+           [-1, -1],
+           [ 2,  3]])
+
+    >>> pairs.get_items([(1, 0, 2), (5, 4, -1), (-1, 4, 5), (3, 2, 1)], wraparound=True)
+    array([[ 1, -1,  3],
+           [ 4,  4, -1],
+           [-1, -1, -1],
+           [ 2,  3, -1]])
+    """
+
     def __init__(
         self,
         pairs: ArrayLike,
@@ -80,6 +160,7 @@ class IntPairMapping(Mapping, IntPairs):
         sorted: bool = False,
     ) -> None:
         pairs = np.atleast_2d(pairs)
+        values = np.asarray(values)
 
         if sorter is None and not sorted:
             sorter = np.argsort(pairs[:, 0])
@@ -127,7 +208,24 @@ class IntPairMapping(Mapping, IntPairs):
         out[:] = self._values[result]
         out[result == -1] = -1
 
-        return out
+        return np.squeeze(out)
+
+    def __repr__(self) -> str:
+        if len(self._data) > 6:
+            s = (
+                f"[{' '.join([repr(tuple(p)) + ',' for p in self._data[:3]])}"
+                " ... "
+                f"{', '.join([repr(tuple(p)) for p in self._data[-3:]])}]"
+            )
+            v = (
+                f"[{' '.join([repr(v) + ',' for v in self._values[:3]])}"
+                " ... "
+                f"{', '.join([repr(v) for v in self._values[-3:]])}]"
+            )
+        else:
+            s = f"{pformat([tuple(pair) for pair in self._data], compact=True)}"
+            v = f"{pformat(list(self._values), compact=True)}"
+        return f"IntPairCollection({s}, values={v})"
 
 
 def pair_isin(src, pairs, out=None, sorter=None, sorted=False):
