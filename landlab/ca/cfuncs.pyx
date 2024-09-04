@@ -3,36 +3,33 @@ Created on Thu Jun 30 12:40:39 2016
 
 @author: gtucker
 """
+cimport cython
+from libc.stdint cimport int8_t
+from libc.stdint cimport uint8_t
 
 import numpy as np
 
-cimport cython
 cimport numpy as np
-
-import sys  # for debug
 
 from _heapq import heappop
 from _heapq import heappush
 
 from landlab.grid.nodestatus import NodeStatus
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
+
+
+ctypedef fused int_or_float_t:
+    cython.floating
+    cython.integral
+    long long
+
 
 cdef double _NEVER = 1.0e50
-
 cdef int _CORE = NodeStatus.CORE
-
-DTYPE = np.double
-ctypedef np.double_t DTYPE_t
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_INT8 = np.int8
-ctypedef np.int8_t DTYPE_INT8_t
-
-DTYPE_UINT8 = np.uint8
-ctypedef np.uint8_t DTYPE_UINT8_t
-
 cdef char _DEBUG = 0
 
 
@@ -133,13 +130,13 @@ cdef class Event:
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cdef int current_link_state(
-    DTYPE_INT_t link_id,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
+    const long link_id,
+    const id_t [:] node_state,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    const int8_t [:]  link_orientation,
+    const long num_node_states,
+    const long num_node_states_sq,
 ):
     """Get the current state of a link.
 
@@ -171,7 +168,8 @@ cdef int current_link_state(
     int
         New link state code
     """
-    cdef int tail_node_state, head_node_state
+    cdef long tail_node_state
+    cdef long head_node_state
     cdef char orientation
 
     # Find out the states of the two nodes, and the orientation
@@ -187,23 +185,23 @@ cdef int current_link_state(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef update_link_states_and_transitions(
-    np.ndarray[DTYPE_INT_t, ndim=1] active_links,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    event_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-    xn_prop_update_fn,
+    const id_t [:] active_links,
+    const id_t [:] node_state,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    const int8_t [:] link_orientation,
+    int8_t [:] bnd_lnk,
+    id_t [:] link_state,
+    id_t [:] n_xn,
+    Event [:] event_queue,
+    cython.floating [:] next_update,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    long num_node_states,
+    long num_node_states_sq,
+    double current_time,
+    int8_t [:, :] xn_propswap,
+    object [:, :] xn_prop_update_fn,
 ):
     """
     Following an "external" change to the node state grid, updates link
@@ -258,22 +256,22 @@ cpdef update_link_states_and_transitions(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef update_link_states_and_transitions_new(
-    np.ndarray[DTYPE_INT_t, ndim=1] active_links,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-    priority_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
-    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-    np.ndarray[DTYPE_t, ndim=1] trn_rate,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    DTYPE_t current_time,
+    const id_t [:] active_links,
+    const id_t [:] node_state,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    const int8_t [:] link_orientation,
+    int8_t [:] bnd_lnk,
+    id_t [:] link_state,
+    id_t [:] n_trn,
+    PriorityQueue priority_queue,
+    cython.floating [:] next_update,
+    id_t [:] next_trn_id,
+    id_t [:, :] trn_id,
+    cython.floating [:] trn_rate,
+    long num_node_states,
+    long num_node_states_sq,
+    double current_time,
 ):
     """
     Following an "external" change to the node state grid, updates link
@@ -328,12 +326,12 @@ cpdef update_link_states_and_transitions_new(
 @cython.wraparound(False)
 @cython.cdivision(True)
 cpdef update_node_states(
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    DTYPE_INT_t tail_node,
-    DTYPE_INT_t head_node,
-    DTYPE_INT_t new_link_state,
-    DTYPE_INT_t num_states,
+    id_t [:] node_state,
+    const uint8_t [:] status_at_node,
+    long tail_node,
+    long head_node,
+    new_link_state,
+    num_states,
 ):
     """Update the states of 2 nodes that underwent a transition."""
     if _DEBUG:
@@ -352,13 +350,14 @@ cpdef update_node_states(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef get_next_event(
-    DTYPE_INT_t link, DTYPE_INT_t current_state,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-    xn_prop_update_fn,
+    long link,
+    long current_state,
+    double current_time,
+    id_t [:] n_xn,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    int8_t [:, :] xn_propswap,
+    object [:, :] xn_prop_update_fn,
 ):
     """Get the next event for a link.
 
@@ -428,11 +427,12 @@ cpdef get_next_event(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cpdef get_next_event_new(
-    DTYPE_INT_t link, DTYPE_INT_t current_state,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-    np.ndarray[DTYPE_t, ndim=1] trn_rate,
+    long link,
+    long current_state,
+    double current_time,
+    id_t [:] n_trn,
+    id_t [:, :] trn_id,
+    cython.floating [:] trn_rate,
 ):
     """Get the next event for a link.
 
@@ -488,14 +488,14 @@ cpdef get_next_event_new(
 
 
 cpdef push_transitions_to_event_queue(
-    int number_of_active_links,
-    np.ndarray[DTYPE_INT_t, ndim=1] active_links,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-    np.ndarray[DTYPE_t, ndim=1] trn_rate,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
+    long number_of_active_links,
+    const id_t [:] active_links,
+    id_t [:] n_trn,
+    id_t [:] link_state,
+    id_t [:, :] trn_id,
+    cython.floating [:] trn_rate,
+    cython.floating [:] next_update,
+    id_t [:] next_trn_id,
     PriorityQueue priority_queue,
 ):
     """
@@ -522,22 +522,24 @@ cpdef push_transitions_to_event_queue(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void update_link_state(
-    DTYPE_INT_t link, DTYPE_INT_t new_link_state,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn, event_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-    np.ndarray[object, ndim=2] xn_prop_update_fn,
+    long link,
+    long new_link_state,
+    double current_time,
+    int8_t [:] bnd_lnk,
+    const id_t [:] node_state,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    const int8_t [:] link_orientation,
+    long num_node_states,
+    long num_node_states_sq,
+    id_t [:] link_state,
+    id_t [:] n_xn,
+    Event [:] event_queue,
+    cython.floating [:] next_update,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    int8_t [:, :] xn_propswap,
+    object [:, :] xn_prop_update_fn,
 ):
     """
     Implements a link transition by updating the current state of the link
@@ -588,22 +590,23 @@ cdef void update_link_state(
 @cython.boundscheck(True)
 @cython.wraparound(False)
 cdef void update_link_state_new(
-    DTYPE_INT_t link, DTYPE_INT_t new_link_state,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+    long link,
+    long new_link_state,
+    double current_time,
+    int8_t [:] bnd_lnk,
+    const id_t [:] node_state,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    const int8_t [:] link_orientation,
+    long num_node_states,
+    long num_node_states_sq,
+    id_t [:] link_state,
+    id_t [:] n_trn,
     PriorityQueue priority_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
-    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-    np.ndarray[DTYPE_t, ndim=1] trn_rate,
+    cython.floating [:] next_update,
+    id_t [:] next_trn_id,
+    id_t [:, :] trn_id,
+    cython.floating [:] trn_rate,
 ):
     """
     Implements a link transition by updating the current state of the link
@@ -655,27 +658,27 @@ cdef void update_link_state_new(
 @cython.wraparound(False)
 cdef void do_transition(
     Event event,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT_t, ndim=1] propid,
-    object prop_data,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    DTYPE_INT_t prop_reset_value,
-    np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-    xn_prop_update_fn,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    event_queue,
+    cython.floating [:] next_update,
+    id_t [:] node_at_link_tail,
+    id_t [:] node_at_link_head,
+    id_t [:] node_state,
+    id_t [:] link_state,
+    uint8_t [:] status_at_node,
+    int8_t [:] link_orientation,
+    id_t [:] propid,
+    int_or_float_t [:] prop_data,
+    id_t [:] n_xn,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    id_t [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
+    int_or_float_t prop_reset_value,
+    int8_t [:, :] xn_propswap,
+    object [:, :] xn_prop_update_fn,
+    int8_t [:] bnd_lnk,
+    Event [:] event_queue,
     this_cts_model,
     plot_each_transition=False,
     plotter=None,
@@ -863,34 +866,34 @@ cdef void do_transition(
                 event.prop_update_fn(this_cts_model, tail_node, head_node, event.time)
 
 
-# @cython.boundscheck(False)
-# @cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cpdef void do_transition_new(
-    DTYPE_INT_t event_link,
-    DTYPE_t event_time,
+    long event_link,
+    double event_time,
     PriorityQueue priority_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
-    np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-    np.ndarray[DTYPE_t, ndim=1] trn_rate,
-    np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=1] trn_propswap,
-    np.ndarray[DTYPE_INT_t, ndim=1] propid,
-    object prop_data,
-    DTYPE_INT_t prop_reset_value,
-    object trn_prop_update_fn,
+    cython.floating [:] next_update,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    id_t [:] node_state,
+    id_t [:] next_trn_id,
+    id_t [:] trn_to,
+    uint8_t [:] status_at_node,
+    long num_node_states,
+    long num_node_states_sq,
+    int8_t [:] bnd_lnk,
+    const int8_t [:] link_orientation,
+    id_t [:] link_state,
+    id_t [:] n_trn,
+    id_t [:, :] trn_id,
+    cython.floating [:] trn_rate,
+    const id_t [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
+    int8_t [:] trn_propswap,
+    id_t [:] propid,
+    int_or_float_t [:] prop_data,
+    int_or_float_t prop_reset_value,
+    object [:] trn_prop_update_fn,
     object this_cts_model,
     plot_each_transition=False,
     plotter=None,
@@ -1117,28 +1120,28 @@ cpdef double run_cts_new(
     double run_to,
     double current_time,
     PriorityQueue priority_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
-    np.ndarray[DTYPE_INT_t, ndim=1] trn_to,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-    np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-    np.ndarray[DTYPE_t, ndim=1] trn_rate,
-    np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=1] trn_propswap,
-    np.ndarray[DTYPE_INT_t, ndim=1] propid,
-    object prop_data,
-    DTYPE_INT_t prop_reset_value,
-    trn_prop_update_fn,
+    cython.floating [:] next_update,
+    const id_t [:] node_at_link_tail,
+    const id_t [:] node_at_link_head,
+    id_t [:] node_state,
+    id_t [:] next_trn_id,
+    id_t [:] trn_to,
+    uint8_t [:] status_at_node,
+    long num_node_states,
+    long num_node_states_sq,
+    int8_t [:] bnd_lnk,
+    const int8_t [:] link_orientation,
+    id_t [:] link_state,
+    id_t [:] n_trn,
+    id_t [:, :] trn_id,
+    cython.floating [:] trn_rate,
+    const id_t [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
+    int8_t [:] trn_propswap,
+    id_t [:] propid,
+    int_or_float_t [:] prop_data,
+    int_or_float_t prop_reset_value,
+    object [:] trn_prop_update_fn,
     this_cts_model,
     char plot_each_transition,
     object plotter,
@@ -1157,7 +1160,6 @@ cpdef double run_cts_new(
         Needed if caller wants to plot after every transition
     (see celllab_cts.py for other parameters)
     """
-    import sys
     cdef double ev_time
     cdef int _ev_idx
     cdef int ev_link
@@ -1221,27 +1223,27 @@ cpdef double run_cts(
     double current_time,
     char plot_each_transition,
     object plotter,
-    object event_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT_t, ndim=1] propid,
-    object prop_data,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    DTYPE_INT_t prop_reset_value,
-    np.ndarray[DTYPE_INT8_t, ndim=2] xn_propswap,
-    xn_prop_update_fn,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+    Event [:] event_queue,
+    cython.floating [:] next_update,
+    id_t [:] node_at_link_tail,
+    id_t [:] node_at_link_head,
+    id_t [:] node_state,
+    id_t [:] link_state,
+    uint8_t [:] status_at_node,
+    int8_t [:] link_orientation,
+    id_t [:] propid,
+    int_or_float_t [:] prop_data,
+    id_t [:] n_xn,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    id_t [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
+    int_or_float_t prop_reset_value,
+    int8_t [:, :] xn_propswap,
+    object [:, :] xn_prop_update_fn,
+    int8_t [:] bnd_lnk,
     this_cts_model,
 ):
     """Run the model forward for a specified period of time.
@@ -1261,7 +1263,7 @@ cpdef double run_cts(
     cdef Event ev
 
     # Continue until we've run out of either time or events
-    while current_time < run_to and event_queue:
+    while current_time < run_to and len(event_queue) > 0:
 
         # Is there an event scheduled to occur within this run?
         if event_queue[0].time <= run_to:
@@ -1312,12 +1314,12 @@ cpdef double run_cts(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef get_next_event_lean(
-    DTYPE_INT_t link,
-    DTYPE_INT_t current_state,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
+    long link,
+    long current_state,
+    double current_time,
+    id_t [:] n_xn,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
 ):
     """Get the next event for a link.
 
@@ -1382,21 +1384,22 @@ cpdef get_next_event_lean(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef void update_link_state_lean(
-    DTYPE_INT_t link,
-    DTYPE_INT_t new_link_state,
-    DTYPE_t current_time,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn, event_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
+    long link,
+    long new_link_state,
+    double current_time,
+    int8_t [:] bnd_lnk,
+    id_t [:] node_state,
+    id_t [:] node_at_link_tail,
+    id_t [:] node_at_link_head,
+    int8_t [:] link_orientation,
+    long num_node_states,
+    long num_node_states_sq,
+    id_t [:] link_state,
+    id_t [:] n_xn,
+    Event [:] event_queue,
+    cython.floating [:] next_update,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
 ):
     """
     Implements a link transition by updating the current state of the link
@@ -1441,22 +1444,22 @@ cdef void update_link_state_lean(
 @cython.wraparound(False)
 cdef void do_transition_lean(
     Event event,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
-    object event_queue,
+    cython.floating [:] next_update,
+    id_t [:] node_at_link_tail,
+    id_t [:] node_at_link_head,
+    id_t [:] node_state,
+    id_t [:] link_state,
+    uint8_t [:] status_at_node,
+    int8_t [:] link_orientation,
+    id_t [:] n_xn,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    id_t [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
+    int8_t [:] bnd_lnk,
+    Event [:] event_queue,
 ):
     """Transition state.
 
@@ -1616,22 +1619,22 @@ cdef void do_transition_lean(
 cpdef double run_cts_lean(
     double run_to,
     double current_time,
-    object event_queue,
-    np.ndarray[DTYPE_t, ndim=1] next_update,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_tail,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_at_link_head,
-    np.ndarray[DTYPE_INT_t, ndim=1] node_state,
-    np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-    np.ndarray[DTYPE_UINT8_t, ndim=1] status_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=1] link_orientation,
-    np.ndarray[DTYPE_INT_t, ndim=1] n_xn,
-    np.ndarray[DTYPE_INT_t, ndim=2] xn_to,
-    np.ndarray[DTYPE_t, ndim=2] xn_rate,
-    np.ndarray[DTYPE_INT_t, ndim=2] links_at_node,
-    np.ndarray[DTYPE_INT8_t, ndim=2] active_link_dirs_at_node,
-    DTYPE_INT_t num_node_states,
-    DTYPE_INT_t num_node_states_sq,
-    np.ndarray[DTYPE_INT8_t, ndim=1] bnd_lnk,
+    Event [:] event_queue,
+    cython.floating [:] next_update,
+    id_t [:] node_at_link_tail,
+    id_t [:] node_at_link_head,
+    id_t [:] node_state,
+    id_t [:] link_state,
+    uint8_t [:] status_at_node,
+    int8_t [:] link_orientation,
+    id_t [:] n_xn,
+    id_t [:, :] xn_to,
+    cython.floating [:, :] xn_rate,
+    id_t [:, :] links_at_node,
+    const int8_t [:, :] active_link_dirs_at_node,
+    long num_node_states,
+    long num_node_states_sq,
+    int8_t [:] bnd_lnk,
 ):
     """Run the model forward for a specified period of time. This "lean"
     version omits parameters related to property exchange and callback fn.
@@ -1645,7 +1648,7 @@ cpdef double run_cts_lean(
     cdef Event ev
 
     # Continue until we've run out of either time or events
-    while current_time < run_to and event_queue:
+    while current_time < run_to and len(event_queue) > 0:
 
         # Is there an event scheduled to occur within this run?
         if event_queue[0].time <= run_to:

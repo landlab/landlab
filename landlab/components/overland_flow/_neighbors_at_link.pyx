@@ -1,17 +1,16 @@
-import numpy as np
-
 cimport cython
-cimport numpy as np
 
-DTYPE = int
-ctypedef np.int_t DTYPE_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
 def neighbors_at_link(
-    np.ndarray[DTYPE_t, ndim=1] links,
+    const id_t [:] links,
     shape,
-    np.ndarray[DTYPE_t, ndim=2] out,
+    id_t [:, :] out,
 ):
     cdef int stride
     cdef int n_links

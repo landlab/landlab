@@ -1523,7 +1523,7 @@ def _set_open_boundary_neighbors(neighbors, open_boundary_nodes, value):
 def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
     """Array of booleans that indicate if a neighbor is an open boundary."""
     open_boundary_neighbors = neighbors[:, open_boundary_nodes]
-    is_open_boundary_neighbor = np.in1d(open_boundary_neighbors, open_boundary_nodes)
+    is_open_boundary_neighbor = np.isin(open_boundary_neighbors, open_boundary_nodes)
     is_open_boundary_neighbor.shape = (neighbors.shape[0], len(open_boundary_nodes))
     return is_open_boundary_neighbor
 
