@@ -189,7 +189,8 @@ The expected flow depth is:
 ...     ]
 ... )
 
-For compability issues, we present this as a difference and not direct comparison.
+For compatibility issues, we present this as a difference and not a direct 
+comparison.
 The calculated flow_depth is:
 
 >>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
