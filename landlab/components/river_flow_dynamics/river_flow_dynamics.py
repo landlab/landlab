@@ -116,36 +116,29 @@ Run the simulation for 100 timesteps (equivalent to 10 seconds).
 
 Examine the flow depth at the center of the channel after 10 seconds.
 
->>> np.reshape(grid['node']["surface_water__depth"],(nRows,nCols))[10,:]
-array([ 0.5       ,  0.49119496,  0.48070117,  0.47309464,  0.46764464,
-        0.46370528,  0.46076177,  0.45840315,  0.45619896,  0.45419369,
-        0.45250159,  0.45106348,  0.44972981,  0.4484113 ,  0.44702824,
-        0.445566  ,  0.44414898,  0.44279566,  0.44144646,  0.44007219,
-        0.43868299,  0.43726816,  0.43582451,  0.4344022 ,  0.43300387,
-        0.43159008,  0.43012984,  0.42867334,  0.42723278,  0.42577057,
-        0.42426757,  0.42277662,  0.42127323,  0.41977445,  0.41825745,
-        0.41674194,  0.41522539,  0.41368181,  0.41214349,  0.41060916,
-        0.40905859,  0.40748906,  0.40591859,  0.40435914,  0.40275767,
-        0.40113684,  0.39954249,  0.39795401,  0.39635525,  0.39474439,
-        0.39313631,  0.39155279,  0.38993334,  0.38828883,  0.38664499,
-        0.3849828 ,  0.38333126,  0.381655  ,  0.37977436,  0.37881807])
+>>> flow_depth = np.reshape(grid['node']["surface_water__depth"],(nRows,nCols))[10,:]
+
+>>> np.round(flow_depth,2)
+array([0.5  , 0.491, 0.48 , 0.473, 0.467, 0.464, 0.46 , 0.458, 0.455,
+       0.454, 0.452, 0.45 , 0.449, 0.448, 0.446, 0.445, 0.443, 0.442,
+       0.441, 0.439, 0.438, 0.437, 0.435, 0.434, 0.433, 0.431, 0.43 ,
+       0.428, 0.427, 0.425, 0.424, 0.422, 0.421, 0.419, 0.418, 0.416,
+       0.415, 0.413, 0.412, 0.41 , 0.409, 0.407, 0.405, 0.404, 0.402,
+       0.401, 0.399, 0.397, 0.396, 0.394, 0.393, 0.391, 0.389, 0.388,
+       0.386, 0.384, 0.383, 0.381, 0.379, 0.378])
 
 And the velocity at links along the center of the channel
 
 >>> linksAtCenter = grid.links_at_node[np.array(np.arange(600,660))][:-1,0]
->>> grid['link']["surface_water__velocity"][linksAtCenter]
-array([ 0.45      ,  0.59396861,  0.69574417,  0.75731793,  0.79261482,
-        0.8123394 ,  0.82700801,  0.84314289,  0.85567049,  0.85979031,
-        0.85838515,  0.85658338,  0.85716582,  0.85944389,  0.86308335,
-        0.86497462,  0.86463743,  0.86367451,  0.86314567,  0.86565779,
-        0.86981418,  0.8726041 ,  0.87338014,  0.87403681,  0.87494614,
-        0.87549414,  0.87571505,  0.87786193,  0.87953196,  0.8794075 ,
-        0.88030366,  0.88296806,  0.88376619,  0.88519116,  0.88610576,
-        0.88744898,  0.88909536,  0.8898242 ,  0.89135825,  0.89318975,
-        0.89358086,  0.89405077,  0.89630327,  0.89764043,  0.8976985 ,
-        0.89895516,  0.90065785,  0.90219923,  0.90227029,  0.90168375,
-        0.90460332,  0.90538973,  0.9036968 ,  0.90546049,  0.90666316,
-        0.90682276,  0.90754984,  0.90761995,  0.91305765])
+>>> flow_velocity = grid['link']["surface_water__velocity"][linksAtCenter]
+>>> np.round(flow_velocity,3)
+array([0.45 , 0.595, 0.694, 0.754, 0.795, 0.821, 0.838, 0.848, 0.855,
+       0.858, 0.86 , 0.86 , 0.858, 0.857, 0.858, 0.86 , 0.864, 0.866,
+       0.866, 0.866, 0.866, 0.867, 0.869, 0.872, 0.874, 0.875, 0.876,
+       0.878, 0.88 , 0.881, 0.882, 0.884, 0.885, 0.886, 0.888, 0.889,
+       0.89 , 0.892, 0.893, 0.894, 0.896, 0.898, 0.898, 0.901, 0.901,
+       0.9  , 0.904, 0.906, 0.902, 0.904, 0.91 , 0.907, 0.904, 0.911,
+       0.911, 0.907, 0.909, 0.913, 0.914])
 
 """
 
@@ -437,18 +430,18 @@ class river_flow_dynamics(Component):
 
         # Open boundary conditions
         # water can leave the domain at everywhere, only limited by topography
-        self._grid.status_at_node[
-            self._nodes_at_left_edge
-        ] = self._grid.BC_NODE_IS_FIXED_VALUE
-        self._grid.status_at_node[
-            self._nodes_at_right_edge
-        ] = self._grid.BC_NODE_IS_FIXED_VALUE
-        self._grid.status_at_node[
-            self._nodes_at_bottom_edge
-        ] = self._grid.BC_NODE_IS_FIXED_VALUE
-        self._grid.status_at_node[
-            self._nodes_at_top_edge
-        ] = self._grid.BC_NODE_IS_FIXED_VALUE
+        self._grid.status_at_node[self._nodes_at_left_edge] = (
+            self._grid.BC_NODE_IS_FIXED_VALUE
+        )
+        self._grid.status_at_node[self._nodes_at_right_edge] = (
+            self._grid.BC_NODE_IS_FIXED_VALUE
+        )
+        self._grid.status_at_node[self._nodes_at_bottom_edge] = (
+            self._grid.BC_NODE_IS_FIXED_VALUE
+        )
+        self._grid.status_at_node[self._nodes_at_top_edge] = (
+            self._grid.BC_NODE_IS_FIXED_VALUE
+        )
 
         # Identifying node and link ids for later use.
         self._core_nodes = self._grid.core_nodes
@@ -1075,10 +1068,7 @@ class river_flow_dynamics(Component):
             self._h_at_N_at_links[self._horizontal_links]
             + self._g
             * self._dt
-            * (
-                self._vel_at_N[self._horizontal_links] ** 2
-                + self._v_vel_at_u_links**2
-            )
+            * (self._vel_at_N[self._horizontal_links] ** 2 + self._v_vel_at_u_links**2)
             ** (1 / 2)
             / tempCalc1[self._horizontal_links]
         )
