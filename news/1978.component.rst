@@ -1,0 +1,5 @@
+
+Adds a new 2D flow solver to Landlab. RiverFlowDynamics implements a semi-implicit,
+semi-Lagrangian finite-volume approximation of the depth-averaged shallow water
+equations, originally proposed by Casulli and Cheng in 1992, along with
+subsequent related work.
