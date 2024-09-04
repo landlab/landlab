@@ -189,7 +189,7 @@ The expected flow depth is:
 ...     ]
 ... )
 
-For compatibility issues, we present this as a difference and not a direct
+For compatibility issues, we present this as a difference and not a direct 
 comparison.
 The calculated flow_depth is:
 
@@ -206,13 +206,68 @@ And the velocity at links along the center of the channel
 The expected flow velocity is:
 
 >>> flow_velocity_expected = np.array(
-...    [0.45 , 0.595, 0.694, 0.754, 0.795, 0.821, 0.838, 0.848, 0.855,
-...    0.858, 0.86 , 0.86 , 0.858, 0.857, 0.858, 0.86 , 0.864, 0.866,
-...    0.866, 0.866, 0.866, 0.867, 0.869, 0.872, 0.874, 0.875, 0.876,
-...    0.878, 0.88 , 0.881, 0.882, 0.884, 0.885, 0.886, 0.888, 0.889,
-...    0.89 , 0.892, 0.893, 0.894, 0.896, 0.898, 0.898, 0.901, 0.901,
-...    0.9  , 0.904, 0.906, 0.902, 0.904, 0.91 , 0.907, 0.904, 0.911,
-...    0.911, 0.907, 0.909, 0.913, 0.914])
+...     [
+...         0.45,
+...         0.595,
+...         0.694,
+...         0.754,
+...         0.795,
+...         0.821,
+...         0.838,
+...         0.848,
+...         0.855,
+...         0.858,
+...         0.86,
+...         0.86,
+...         0.858,
+...         0.857,
+...         0.858,
+...         0.86,
+...         0.864,
+...         0.866,
+...         0.866,
+...         0.866,
+...         0.866,
+...         0.867,
+...         0.869,
+...         0.872,
+...         0.874,
+...         0.875,
+...         0.876,
+...         0.878,
+...         0.88,
+...         0.881,
+...         0.882,
+...         0.884,
+...         0.885,
+...         0.886,
+...         0.888,
+...         0.889,
+...         0.89,
+...         0.892,
+...         0.893,
+...         0.894,
+...         0.896,
+...         0.898,
+...         0.898,
+...         0.901,
+...         0.901,
+...         0.9,
+...         0.904,
+...         0.906,
+...         0.902,
+...         0.904,
+...         0.91,
+...         0.907,
+...         0.904,
+...         0.911,
+...         0.911,
+...         0.907,
+...         0.909,
+...         0.913,
+...         0.914,
+...     ]
+... )
 
 The calculated flow velocity is:
     
@@ -223,7 +278,7 @@ The calculated flow velocity is:
 The average (absolute) difference between predited and expected 
 flow velocity in percentage is:
 
->>> np.round(np.abs(np.mean(flow_depth_expected - flow_depth)) * 100, 1)
+>>> np.round(np.abs(np.mean(flow_velocity_expected - flow_velocity)) * 100, 1)
 0.0
 
 
