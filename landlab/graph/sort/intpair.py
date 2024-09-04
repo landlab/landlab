@@ -193,7 +193,9 @@ class IntPairMapping(Mapping, IntPairCollection):
             shape = (keys.shape[0], keys.shape[1] - 1)
 
         if out is None:
-            out = np.empty(shape, dtype=self._values.dtype)
+            _out = np.empty(shape, dtype=self._values.dtype)
+        else:
+            _out = out.reshape(shape)
 
         result = np.full(shape, -1, dtype=int)
 
@@ -205,10 +207,13 @@ class IntPairMapping(Mapping, IntPairCollection):
             int(wraparound),
         )
 
-        out[:] = self._values[result]
-        out[result == -1] = -1
+        _out[:] = self._values[result]
+        _out[result == -1] = -1
 
-        return np.squeeze(out)
+        if out is None:
+            return np.squeeze(_out)
+        else:
+            return out
 
     def __repr__(self) -> str:
         if len(self._data) > 6:
@@ -319,30 +324,17 @@ def map_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
     >>> map_pairs_to_values((keys, values), pairs)
     array([10, 30])
     """
-    keys, values = np.asarray(mapping[0]), np.asarray(mapping[1])
-    pairs = np.asarray(pairs)
+    keys, values = mapping
 
-    if out is None:
-        out = np.empty(len(pairs), dtype=values.dtype)
+    if sorted and sorter is not None:
+        sorter = None
 
     if not sorted and sorter is None:
+        keys = np.atleast_2d(keys)
         sorter = np.argsort(keys[:, 0])
 
-    if sorter is not None:
-        keys = keys[sorter]
-        values = values[sorter]
-
-    offsets = np.empty(pairs.max() + 2, dtype=int)
-    fill_offsets_to_sorted_blocks(keys[:, 0], offsets)
-
-    result = np.empty(len(pairs), dtype=int)
-
-    find_pairs(keys, offsets, pairs, result)
-
-    out[:] = values[result]
-    out[result == -1] = -1
-
-    return out
+    mapping = IntPairMapping(keys, values=values, sorter=sorter)
+    return mapping.get_items(pairs, out=out)
 
 
 def __map_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
