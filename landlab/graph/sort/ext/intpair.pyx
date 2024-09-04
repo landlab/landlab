@@ -74,7 +74,7 @@ cpdef void find_rolling_pairs(
     const id_t [:, :] array,
     const integral_out_t [:] offsets,
     const id_t [:] pairs,
-    id_t [:] where,
+    integral_out_t [:] where,
     const int wraparound,
 ) noexcept nogil:
     cdef long n_pairs = len(pairs)
@@ -110,7 +110,7 @@ cpdef void find_rolling_pairs_2d(
     const id_t [:, :] array,
     const integral_out_t [:] offsets,
     const id_t [:, :] pairs,
-    id_t [:, :] where,
+    integral_out_t [:, :] where,
     const int wraparound,
 ) noexcept nogil:
     cdef long n_rows = len(pairs)
