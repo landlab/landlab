@@ -12,7 +12,6 @@
 
 import os
 import pathlib
-import sys
 from datetime import date
 
 import tomli
@@ -24,9 +23,8 @@ import landlab
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 #                                                 os.pardir)))
-sys.path.insert(0, os.path.abspath("../.."))
-docs_dir = os.path.dirname(__file__)
-
+# sys.path.insert(0, os.path.abspath("../.."))
+docs_dir = pathlib.Path(__file__).parent
 
 # -- General configuration -----------------------------------------------------
 
@@ -36,6 +34,8 @@ docs_dir = os.path.dirname(__file__)
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    "nbsphinx",
+    "myst_parser",
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
@@ -384,7 +384,7 @@ napoleon_include_special_with_doc = True
 
 towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
 towncrier_draft_include_empty = True
-towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
+towncrier_draft_working_directory = docs_dir.parent.parent
 
 # -- Options for intersphinx extension ---------------------------------------
 
@@ -403,3 +403,26 @@ cats["grids"].pop("ModelGrid")
 jinja_contexts = {"llcats": cats}
 
 autodoc_mock_imports = ["richdem"]
+
+nbsphinx_execute = "never"
+nbsphinx_thumbnails = {
+    "teaching/**/*": "_static/favicon.ico",
+    "teaching/*": "_static/favicon.ico",
+    "tutorials/**/*": "_static/favicon.ico",
+    "tutorials/*": "_static/favicon.ico",
+}
+# This is processed by Jinja2 and inserted before each notebook
+nbsphinx_prolog = r"""
+{% set docname = 'notebooks/' + env.doc2path(env.docname, base=None) %}
+
+.. raw:: html
+
+    <div class="admonition note">
+      This page was generated from
+      <a class="reference external"
+        href="https://github.com/landlab/landlab/blob/{{ env.config.release|e }}/{{ docname|e }}">{{ docname|e }}
+      </a>.
+    </div>
+"""  # noqa: B950
+
+myst_enable_extensions = ["colon_fence", "deflist"]

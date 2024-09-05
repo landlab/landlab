@@ -72,7 +72,7 @@ test-results.xml
 *.png
 !docs/**/*.png
 !joss/**/*.png
-
+docs/source/generated/
 *.aux
 
 *.synctex.gz

@@ -1,8 +1,10 @@
+import glob
 import json
 import os
 import pathlib
 import shutil
 import sys
+from collections import defaultdict
 
 import nox
 from packaging.requirements import Requirement
@@ -46,7 +48,7 @@ def test(session: nox.Session) -> None:
         "-n",
         "auto",
         "--cov",
-        PROJECT,
+        f"src/{PROJECT}",
         "-vvv",
         # "--dist", "worksteal",  # this is not available quite yet
     ] + session.posargs
@@ -148,31 +150,145 @@ def build_index(session: nox.Session) -> None:
     session.log(f"generated index at {index_file!s}")
 
 
-@nox.session(name="build-docs")
+@nox.session(name="build-gallery-index")
+def build_notebook_index(session: nox.Session) -> None:
+    docs_dir = PATH["docs"] / "source"
+
+    for gallery in ["tutorials", "teaching"]:
+        index = collect_notebooks(docs_dir / gallery)
+
+        for subdir, entries in sorted(index.items()):
+            title = pathlib.Path(subdir).stem.replace("_", " ").title()
+
+            path_to_notebooks = pathlib.Path(gallery) / subdir
+
+            lines = [
+                f"{title}",
+                f"{'-' * len(title)}",
+                "",
+                ".. nbgallery::",
+                "    :glob:",
+                "",
+            ] + [f"    /{path_to_notebooks / v!s}" for v in entries]
+
+            generated_dir = docs_dir / "generated" / path_to_notebooks
+            generated_file = generated_dir / "_index.rst"
+
+            generated_dir.mkdir(parents=True, exist_ok=True)
+            with open(generated_file, "w") as fp:
+                print(os.linesep.join(lines), file=fp)
+            session.log(generated_file)
+
+
+def collect_notebooks(path_to_notebooks):
+    paths = pathlib.Path(path_to_notebooks)
+
+    index = defaultdict(list)
+
+    for p in (p for p in paths.iterdir() if p.is_dir()):
+        subdir = p.relative_to(path_to_notebooks)
+
+        if glob.glob(str(p / "*.ipynb")) + glob.glob(str(p / "*.md")):
+            index[subdir] += ["*"]
+        if glob.glob(str(p / "**/*.ipynb")) + glob.glob(str(p / "**/*.md")):
+            index[subdir] += ["**"]
+
+    return index
+
+
+@nox.session(name="summarize-linkcheck")
+def summarize_linkcheck_output(session: nox.Session) -> None:
+    path_to_file = ROOT / "build" / "linkcheck" / "output.json"
+
+    broken = _summarize_broken_links(path_to_file)
+
+    if broken:
+        print(broken)
+    else:
+        session.log("Nothing to summarize, there were no broken links")
+
+
+def _summarize_broken_links(path_to_file) -> str:
+    with open(path_to_file) as fp:
+        entries = [json.loads(line) for line in fp.readlines()]
+
+    broken = defaultdict(list)
+    for entry in entries:
+        if entry["status"] == "broken":
+            broken[entry["filename"]] += [entry["uri"]]
+
+    tables = []
+    for filename in sorted(broken):
+        tables.append(
+            os.linesep.join(
+                [
+                    f"[{filename!r}]",
+                    "broken = [",
+                ]
+                + [f"  {uri!r}," for uri in sorted(broken[filename])]
+                + ["]"]
+            )
+        )
+    return (2 * os.linesep).join(tables)
+
+
+@nox.session(name="check-links", python="3.11", venv_backend="mamba")
+def check_links(session: nox.Session) -> None:
+    """Check for broken links in the docs."""
+    builder = "linkcheck"
+
+    build_dir = _build_docs(session, builders=[builder], success_codes=(0, 1))
+
+    log_file = build_dir / builder / "output.json"
+
+    broken = summarize_linkcheck_output(log_file)
+
+    session.log(f"{log_file!s}")
+    if broken:
+        print(broken)
+        session.error("Broken links were found")
+
+
+@nox.session(name="build-docs", python=PYTHON_VERSION, venv_backend="mamba")
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
+    builder = "html"
 
+    build_dir = _build_docs(session, builders=[builder])
+
+    session.log(f"generated docs at {build_dir / builder !s}")
+
+
+def _build_docs(session, builders=("html",), success_codes=(0,)):
+    build_notebook_index(session)
+
+    session.conda_install("pandoc", channel=["nodefaults", "conda-forge"])
     session.install(
-        "-r",
-        PATH["requirements"] / "docs.txt",
-        "-r",
-        PATH["requirements"] / "required.txt",
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "docs.txt"),
     )
+    # session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
 
     PATH["build"].mkdir(exist_ok=True)
-    session.run(
-        "sphinx-build",
-        "-b",
-        "html",
-        "-W",
-        "--keep-going",
-        PATH["docs"] / "source",
-        PATH["build"] / "html",
-    )
-    session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+    for builder in builders:
+        session.run(
+            "sphinx-build",
+            "-b",
+            builder,
+            "-W",
+            "--keep-going",
+            "--jobs",
+            "auto",
+            PATH["docs"] / "source",
+            PATH["build"] / builder,
+            success_codes=success_codes,
+        )
+        session.log(f"generated docs at {PATH['build'] / builder !s}")
+
+    return PATH["build"]
 
 
 @nox.session(name="check-versions")
@@ -301,7 +417,7 @@ def clean(session):
         with session.chdir(folder):
             shutil.rmtree("build", ignore_errors=True)
             shutil.rmtree("build/wheelhouse", ignore_errors=True)
-            shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
+            shutil.rmtree(f"src/{PROJECT}.egg-info", ignore_errors=True)
             shutil.rmtree(".pytest_cache", ignore_errors=True)
             shutil.rmtree(".venv", ignore_errors=True)
 
@@ -337,6 +453,7 @@ def clean_ext(session: nox.Session) -> None:
     for folder in _args_to_folders(session.posargs):
         with session.chdir(folder):
             _clean_rglob("*.so")
+            _clean_rglob("*.c")
 
 
 @nox.session(python=False)

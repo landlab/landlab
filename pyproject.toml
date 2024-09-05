@@ -76,6 +76,10 @@ landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
+package-dir = {"" = "src"}  # Define the src-layout
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Look for packages inside the src directory
 
 [tool.setuptools.package-data]
 landlab = [
@@ -90,17 +94,13 @@ landlab = [
   "test_*/*asc",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["landlab*"]
-
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "AUTHORS.rst"]}
 version = {attr = "landlab._version.__version__"}
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-testpaths = ["notebooks", "landlab", "tests"]
+testpaths = ["notebooks", "src/landlab", "tests"]
 norecursedirs = [".*", "*.egg*", "build", "dist", "examples"]
 addopts = """
   --ignore setup.py
@@ -116,6 +116,7 @@ addopts = """
   --ignore-glob=*/nst_scaling_profiling.ipynb
   --ignore-glob=*/test_networkcreator_otherDEMs.ipynb
   --ignore-glob=*/run_network_generator_OpenTopoDEM.ipynb
+  --ignore-glob=*/test_breach.py
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",

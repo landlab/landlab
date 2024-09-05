@@ -70,7 +70,7 @@ repos:
       args: ["--extend-ignore=E402"]
       exclude: |
           (?x)^(
-              notebooks/tutorials/making_components/making_components.ipynb
+              docs/source/tutorials/making_components/making_components.ipynb
           )
 
 - repo: https://github.com/kynan/nbstripout

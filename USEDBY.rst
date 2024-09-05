@@ -58,7 +58,7 @@ Campforts, B., Shobe, C.M., Overeem, I., and Tucker, G.E. (2022) **The art of la
 Cardenas, B. T., Lamb, M. P., & Grotzinger, J. P. (2022). **Martian landscapes of fluvial ridges carved from ancient sedimentary basin fill.** *Nature Geoscience,* 1-7. `https://www.nature.com/articles/s41561-022-01058-2 <https://www.nature.com/articles/s41561-022-01058-2>`__.
 
 Cullen, C., Anders, A. M., Lai, J., & Druhan, J. L. (2022). **Numerical modeling of groundwater‐driven stream network evolution in low‐relief post‐glacial landscapes.** *Earth Surface Processes and Landforms,* 47(2), 658-671, `https://doi.org/10.1002/esp.5278 <https://doi.org/10.1002/esp.5278>`__.
->
+
 Gray, H. J., DuRoss, C. B., Nicovich, S. R., & Gold, R. D. (2022). **A geomorphic-process-based cellular automata model of colluvial wedge morphology and stratigraphy.** *Earth Surface Dynamics,* 10(2), 329-348, `https://doi.org/10.5194/esurf-10-329-2022 <https://doi.org/10.5194/esurf-10-329-2022>`__.
 
 Kwang, J. S., Thaler, E. A., Quirk, B. J., Quarrier, C. L., & Larsen, I. J. (2022). **A Landscape Evolution Modeling Approach for Predicting Three‐Dimensional Soil Organic Carbon Redistribution in Agricultural Landscapes.** *Journal of Geophysical Research: Biogeosciences,* 127(2), e2021JG006616, `https://doi.org/10.1029/2021JG006616 <https://doi.org/10.1029/2021JG006616>`__.
@@ -80,7 +80,7 @@ Zhao, H., Lin, Y., Zhou, J., Delang, C. O., & He, H. (2022). **Simulation of Hol
 2021
 ----
 
-Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi‐Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post‐Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245.`https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
+Barnhart, K. R., Jones, R. P., George, D. L., McArdell, B. W., Rengers, F. K., Staley, D. M., & Kean, J. W. (2021). **Multi-Model Comparison of Computed Debris Flow Runout for the 9 January 2018 Montecito, California Post-Wildfire Event.** *Journal of Geophysical Research: Earth Surface,* 126(12), e2021JF006245. `https://doi.org/10.1029/2021JF006245 <https://doi.org/10.1029/2021JF006245>`__.
 
 Chen, H., Wang, X., Lu, H., & Van Balen, R. (2021). **Anthropogenic impacts on Holocene fluvial dynamics in the Chinese Loess Plateau, an evaluation based on landscape evolution modelling.** *Geomorphology,* 392, 107935, `https://doi.org/10.1016/j.geomorph.2021.107935 <https://doi.org/10.1016/j.geomorph.2021.107935>`__.
 
@@ -179,7 +179,7 @@ Lai J., and Anders, A. (2018) **Modeled Postglacial Landscape Evolution
 at the Southern Margin of the Laurentide Ice Sheet: Hydrological
 Connection of Uplands Controls the Pace and Style of Fluvial Network
 Expansion.** *Journal of Geophysical Research: Earth Surface*, v. 123, no. 5,
-p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
+p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
 
 Langston, A.L., and Tucker, G. E. (2018) **Developing and exploring a
 theory for the lateral erosion of bedrock channels for use in landscape
@@ -293,15 +293,40 @@ Benjamin Morris, *New Wave: Tulane News*. November 11, 2016.
 Theses, Dissertations, and Reports
 ----------------------------------
 
+2023
+----
+
+Hafiz, A. (2023). **2-Dimensional Transport and Production Limited Analysis of Fault Scarps: Landlab Implementation and Examples from Western US** (Doctoral dissertation, Arizona State University).
+
+2022
+----
+
+Amare, S. D. (2022). **Understanding the process of valley bottom gully formation and development to reduce reservoir sedimentation in the highlands of North-western Ethiopia** (Doctoral dissertation, Wageningen University and Research).
+
+Ariagno, C. (2022). **Suivi et modélisation de l'altération physique des marnes de Draix et de son impact sur l'érosion** (Doctoral dissertation, Université Grenoble Alpes).
+
+Lipp, A. G. (2022). **Predictive and invertible models of sediment geochemistry from catchment to continental scales.**
+
+2021
+----
+
+Walker, S. J. (2021). **Using high-resolution topography for spatial prioritisation of gully erosion management across catchments of the Great Barrier Reef, Australia** (Doctoral dissertation, The Australian National University (Australia)).
+
 2020
 ----
 
 Lai, J. (2020). **Constraining tectonic and climatic controls on glacial/postglacial landscape evolution using numerical modeling** (Doctoral dissertation, University of Illinois at Urbana-Champaign).
 
+Phillips, Z. R. (2020). **Holocene Postglacial Fluvial Processes and Landforms in Low Relief Landscapes** (Doctoral dissertation, North Dakota State University).
+
+Reitman, N. G. (2020). **Strain Across Scales: Exploring Geologic and Geomorphic Records of Past Earthquakes** (Doctoral dissertation, University of Colorado at Boulder).
+
 2018
 ----
 
 Mahmoudi, M. (2018). **Comparing model predictions of hillslope sediment size distribution with field measurements** (Doctoral dissertation, San Francisco State University).
+
+Rivera, S. J. (2018). **Guiding green stormwater infrastructure planning through socio-ecological vulnerability: An integrated and spatially scalable prioritization framework.**
 
 
 -------------
@@ -426,7 +451,7 @@ N.M., Adams, J.M. (2017) Reproducible Earth-surface modeling with
 Landlab on HydroShare, EarthCube All-Hands Meeting 2017, Seattle,
 Washington, June, 2017
 `abstract <https://www.hydroshare.org/resource/38002ee4bf594901a29055bdf20b13da>`__
-:download:`poster <user_guide/images/Bandaragoda_ECAHM2017_HydroShare_Landlab_Poster.pdf>`
+:download:`poster </_static/presentations/Bandaragoda_ECAHM2017_HydroShare_Landlab_Poster.pdf>`
 
 Bandaragoda, C.J., Castronova, A., Phuong, J., Strauch, R.,
 Istanbulluoglu, E., Nudurupati*, S.S., Barnhart**, K., Gasparini, N.M.,
@@ -571,8 +596,8 @@ Lai, J., and Anders, A.M. (2016) Numerical modeling of the evolution of
 fluvial networks on glaciated landscapes. Poster presented at AGU Fall
 Meeting, San Francisco, California, December 2016.
 `abstract <https://agu.confex.com/agu/fm16/meetingapp.cgi/Paper/168276>`__
-:download:`poster <user_guide/images/JingtaoLai_AGU_2016.jpg>`
-:download:`dowload poster PDF <user_guide/images/JingtaoLai_AGU_2016.pdf>`
+:download:`poster </_static/presentations/JingtaoLai_AGU_2016.jpg>`
+:download:`dowload poster PDF </_static/presentations/JingtaoLai_AGU_2016.pdf>`
 
 Lynch, B., Yanites, B., Shen, H., and Poulsen, C.J. (2016) Modeling
 Landscape Evolution and Climate: How Erosion and Precipitation are
@@ -611,8 +636,8 @@ Shrub Encroachment explored in Southwestern United States using Landlab
 Ecohydrology. Poster presented at CSDMS Annual Meeting: Capturing
 Climate Change, Boulder, Colorado, May 2016.
 `abstract <https://csdms.colorado.edu/wiki/CSDMS_2016_annual_meeting_poster_SaiSiddharthaNudurupati>`__
-:download:`poster <user_guide/images/SaiNudurupati_CSDMS_2016.jpg>`
-:download:`dowload poster PDF <user_guide/images/SaiNudurupati_CSDMS_2016.pdf>`
+:download:`poster </_static/presentations/SaiNudurupati_CSDMS_2016.jpg>`
+:download:`dowload poster PDF </_static/presentations/SaiNudurupati_CSDMS_2016.pdf>`
 
 Nudurupati, S.S. (2016) Are All Forest Fires Evil? Lightning talk
 presented at the Puget Sound Programming Python (PuPPy) monthly meetup,
@@ -624,8 +649,8 @@ new, open-source, modular, Python-based tool for modeling Earth surface
 dynamics. Poster presented at EGU General Assembly Meeting, Vienna,
 Austria, April 2016.
 `abstract <https://meetingorganizer.copernicus.org/EGU2016/EGU2016-9981.pdf>`__
-:download:`poster <user_guide/images/EGU_poster_2016.jpg>`
-:download:`pdf download <user_guide/images/EGU_poster_2016.pdf>`
+:download:`poster </_static/presentations/EGU_poster_2016.jpg>`
+:download:`pdf download </_static/presentations/EGU_poster_2016.pdf>`
 
 Hobley, D., Gasparini, N.M., and Tucker, G.E. (2016) Tools-and-cover
 effects in transiently responding mountain rivers: hallmarks and
@@ -639,15 +664,15 @@ modeling framework for evolving Earth surfaces from mountains to the
 coast. Paper presented at the Ocean Sciences Meeting, New Orleans, LA,
 Feb 2016.
 `abstract <https://agu.confex.com/agu/os16/meetingapp.cgi/Paper/87020>`__
-:download:`poster <user_guide/images/Landlab_OceanSciences2016.jpg>`
+:download:`poster </_static/presentations/Landlab_OceanSciences2016.jpg>`
 
 Tucker, G.E., Hobley, D.E.J., Gasparini, N.M., Adams, J.M., Nudurupati,
 S.S., Istanbulluoglu, E., Hutton, E.W.H., and Knuth, J.S. (2016)
 Landlab: A Python library for building and coupling 2D numerical models.
 Paper presented at the SI2 Principal Investigators Meeting, Arlington,
 VA, Feb 2016.
-:download:`poster <user_guide/images/si2pi_landlab_poster_tucker.jpg>`
-:download:`download poster <user_guide/images/si2pi_landlab_poster_tucker.pdf>`
+:download:`poster </_static/presentations/si2pi_landlab_poster_tucker.jpg>`
+:download:`download poster </_static/presentations/si2pi_landlab_poster_tucker.pdf>`
 
 2015
 ----
@@ -658,7 +683,7 @@ flow-driven erosion across a watershed DEM using the Landlab modeling
 framework. Paper presented at American Geophysical Union fall meeting,
 San Francisco, CA, Dec 2015.
 `abstract <https://agu.confex.com/agu/fm15/meetingapp.cgi/Paper/75514>`__
-:download:`poster <user_guide/images/Adams_2015_AGUPoster_H13C-1542.jpg>`
+:download:`poster </_static/presentations/Adams_2015_AGUPoster_H13C-1542.jpg>`
 `video <https://www.youtube.com/watch?v=4Ltr6HRUrQI>`__
 
 Nudurupati, S.S., Istanbulluoglu, E., Adams, J.M., Hobley, D.,
@@ -667,7 +692,7 @@ Control on Vegetation Organization in a Semiarid Ecosystem in Central
 New Mexico. Paper presented at American Geophysical Union fall meeting,
 San Francisco, CA, Dec 2015.
 `abstract <https://agu.confex.com/agu/fm15/meetingapp.cgi/Paper/80794>`__
-:download:`poster <user_guide/images/Sai_AGU_2015.jpg>`
+:download:`poster </_static/presentations/Sai_AGU_2015.jpg>`
 
 Strauch, R., Istanbulluoglu, E., and Nudurupati, S.S. (2015) Landslide
 Hazard from Coupled Inherent and Dynamic Probabilities. Paper presented
@@ -683,7 +708,7 @@ Hydrologic Response in Central Colorado Using Field Observations and the
 Landlab Modeling Framework. Paper presented at American Geophysical
 Union Fall Meeting, San Francisco, Dec 2014.
 `abstract <https://abstractsearch.agu.org/meetings/2014/FM/EP51E-3562.html>`__
-:download:`poster <user_guide/images/Adams_AGU_2014_Poster_small.jpg>`
+:download:`poster </_static/presentations/Adams_AGU_2014_Poster_small.jpg>`
 
 Gasparini, N.M., Hobley, D.E.J., Tucker, G.E., Istanbulluoglu, E.,
 Adams, J.M., Nudurupati, S.S., and Hutton, E. (2014) A Comparison of the
@@ -898,7 +923,7 @@ Tucker, G.E., Hobley, D., Nudurupati, S.S., Adams, J.M., Hutton, E.,
 Gasparini, N.M., and Istanbulluoglu, E. (2016) Modeling Earth-Surface
 Dynamics with Landlab. Clinic presented at CSDMS Annual Meeting:
 Capturing Climate Change, Boulder, Colorado, May 2016.
-:download:`download the clinic slides <user_guide/images/landlab_clinic_csdms_may2016.pdf>`
+:download:`download the clinic slides </_static/presentations/landlab_clinic_csdms_may2016.pdf>`
 
 **CUAHSI Biennial Meeting, July 2016: Modeling landscape response using big data with Landlab**
 Istanbulluoglu E., Nudurupati S.S., Strauch R., and Bandaragoda C.
@@ -911,7 +936,7 @@ Shepherdstown, WV.
 Gasparini, N.M. and Adams, J.M. (2016) Modeling Earth-Surface Dynamics
 with Landlab. Clinic presented at the University of Houston, Department
 of Earth and Atmospheric Sciences, Houston, Texas, September 2016.
-:download:`download the clinic slides <user_guide/images/landlab_clinic_houston_sep2016.pdf>`
+:download:`download the clinic slides </_static/presentations/landlab_clinic_houston_sep2016.pdf>`
 
 2015
 ----

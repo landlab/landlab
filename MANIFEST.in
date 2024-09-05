@@ -12,9 +12,9 @@ include noxfile.py
 include notebooks.py
 
 recursive-include docs *.txt
-recursive-include landlab *.pyx *.pxd *.hpp
-recursive-include landlab README.md
-recursive-include landlab/data *
+recursive-include src/landlab *.pyx *.pxd *.hpp
+recursive-include src/landlab README.md
+recursive-include src/landlab/data *
 recursive-include requirements *.md *.txt
 recursive-include tests *py
 recursive-include tests *.asc
@@ -38,7 +38,7 @@ recursive-exclude news *
 recursive-exclude notebooks *
 recursive-exclude scripts *py
 recursive-exclude scripts *sh
-recursive-exclude landlab *.c *.cpp
+recursive-exclude src/landlab *.c *.cpp
 recursive-exclude tests *.c *.cpp
 
 prune */__pycache__

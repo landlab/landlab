@@ -29,8 +29,14 @@ jobs:
             with:
               python-version: 3.11
 
-          - name: Install dependencies
-            run: pip install nox
+          - uses: mamba-org/setup-micromamba@v1
+            with:
+              micromamba-version: latest
+              environment-name: testing
+              create-args: >-
+                python=3.11
+                mamba
+                nox
 
           - name: Build documentation
-            run: nox -s build-docs
+            run: nox -s build-docs --force-pythons=3.11
