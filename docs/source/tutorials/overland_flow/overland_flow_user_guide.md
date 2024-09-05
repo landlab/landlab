@@ -63,8 +63,7 @@ Written by Jordan Adams, August 2016"""
 from landlab.components import OverlandFlow, SinkFiller # SinkFiller is optional
 
 ## Landlab utilities
-from landlab.io import read_esri_ascii # OR from landlab import RasterModelGrid
-from landlab.plot import imshow_grid  # plotter functions are optional
+from landlab.io import esri_ascii
 
 ## Additional Python packages
 import numpy as np
@@ -246,7 +245,6 @@ The key part of any Landlab model driver is the time loop, where components reca
 
 ```python
 while elapsed_time < model_run_time:
-
     of.dt = of.calc_time_step()     # Adaptive time step
 
     if elapsed_time < storm_duration:

@@ -73,5 +73,4 @@ ext_modules = cythonize(
 setup(
     include_dirs=[np.get_include()],
     ext_modules=ext_modules,
-    # package_dir={"": "src"},
 )
