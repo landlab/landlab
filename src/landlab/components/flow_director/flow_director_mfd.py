@@ -11,13 +11,13 @@ use FlowDirectorD8.
 
 import numpy
 
-from landlab import NodeStatus, VoronoiDelaunayGrid
+from landlab import NodeStatus
+from landlab import VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_mfd
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorMFD(_FlowDirectorToMany):
-
     """Multiple-path flow direction with or without out diagonals.
 
     Directs flow by the multiple flow direction method. Each node is assigned
@@ -57,7 +57,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorMFD
-    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> mg = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
@@ -69,16 +69,16 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     raster grids, use of diagonal links is specified with the keyword
     *diagonals* (default is False).
 
-    >>> fd = FlowDirectorMFD(mg, 'topographic__elevation', diagonals = True)
+    >>> fd = FlowDirectorMFD(mg, "topographic__elevation", diagonals=True)
     >>> fd.surface_values
-    array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
+    array([0., 1., 2., 1., 2., 3., 2., 3., 4.])
     >>> fd.run_one_step()
 
     Unlike flow directors that only direct flow to one node, FlowDirectorMFD
     directs flow to all downstream nodes. It stores the receiver information
     is a (number of nodes x maximum number or receivers) shape field at nodes.
 
-    >>> mg.at_node['flow__receiver_node']
+    >>> mg.at_node["flow__receiver_node"]
     array([[ 0, -1, -1, -1, -1, -1, -1, -1],
            [ 1, -1, -1, -1, -1, -1, -1, -1],
            [ 2, -1, -1, -1, -1, -1, -1, -1],
@@ -92,26 +92,17 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     It also stores the proportions of flow going to each receiver, the link on
     which the flow moves in at node arrays, and the slope of each link.
 
-    >>> mg.at_node['flow__receiver_proportions'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.41421356,  0.        ,
-             0.        ,  0.58578644,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_node']
+    >>> mg.at_node["flow__receiver_proportions"]
+    array([[1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0.41421356, 0. , 0. ,  0.58578644, 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ]])
+    >>> mg.at_node["flow__link_to_receiver_node"]
     array([[-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1],
@@ -121,43 +112,34 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  1.        ,  0.        ,
-             0.        ,  1.41421356,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ,  0.        ,  0.        ]])
+    >>> mg.at_node["topographic__steepest_slope"]
+    array([[0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 1. , 0. , 0. , 1.41421356, 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ]])
 
     Finally, FlowDirectorMFD identifies sinks, or local lows.
 
-    >>> mg.at_node['flow__sink_flag'].astype(int)
+    >>> mg.at_node["flow__sink_flag"].astype(int)
     array([1, 1, 1, 1, 0, 1, 1, 1, 1])
 
     The flow directors also have the ability to return the flow receiver nodes.
     For this example, we will turn the diagonals off. This is the default
     value.
 
-    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> mg = RasterModelGrid((3, 3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
     ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
     ...     at="node",
     ... )
-    >>> fd = FlowDirectorMFD(mg, 'topographic__elevation')
+    >>> fd = FlowDirectorMFD(mg, "topographic__elevation")
     >>> fd.run_one_step()
     >>> receivers, proportions = fd.direct_flow()
     >>> receivers
@@ -170,22 +152,22 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [ 6, -1, -1, -1],
            [ 7, -1, -1, -1],
            [ 8, -1, -1, -1]])
-    >>> proportions # doctest: +NORMALIZE_WHITESPACE
-    array([[ 1.,  0.,  0.,  0.],
-           [ 1.,  0.,  0.,  0.],
-           [ 1.,  0.,  0.,  0.],
-           [ 1.,  0.,  0.,  0.],
-           [ 0.,  0.,  0.,  1.],
-           [ 1.,  0.,  0.,  0.],
-           [ 1.,  0.,  0.,  0.],
-           [ 1.,  0.,  0.,  0.],
-           [ 1.,  0.,  0.,  0.]])
+    >>> proportions
+    array([[1., 0., 0., 0.],
+           [1., 0., 0., 0.],
+           [1., 0., 0., 0.],
+           [1., 0., 0., 0.],
+           [0., 0., 0., 1.],
+           [1., 0., 0., 0.],
+           [1., 0., 0., 0.],
+           [1., 0., 0., 0.],
+           [1., 0., 0., 0.]])
 
     For each donor node (represented by each row) the proportions should sum to
     one.
 
     >>> proportions.sum(axis=1)
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
     For the second example we will use a Hexagonal Model Grid, a special type
     of Voroni Grid that has regularly spaced hexagonal cells. FlowDirectorMFD
@@ -202,18 +184,16 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     ...     at="node",
     ... )
     >>> fd = FlowDirectorMFD(
-    ...      mg,
-    ...      'topographic__elevation',
-    ...      partition_method='square_root_of_slope'
-    ...      )
-    >>> fd.surface_values # doctest: +NORMALIZE_WHITESPACE
-    array([ 1. ,  2. ,  3. ,
-            1.5,  2.5,  3.5,  4.5,
-            2. ,  3. ,  4. ,  5. ,  6. ,
-            3.5,  4.5,  5.5,  6.5,
-            4. ,  5. ,  6. ])
+    ...     mg, "topographic__elevation", partition_method="square_root_of_slope"
+    ... )
+    >>> fd.surface_values
+    array([1. , 2. , 3. ,
+           1.5, 2.5, 3.5, 4.5,
+           2. , 3. , 4. , 5. , 6. ,
+           3.5, 4.5, 5.5, 6.5,
+           4. , 5. , 6. ])
     >>> fd.run_one_step()
-    >>> mg.at_node['flow__receiver_node']
+    >>> mg.at_node["flow__receiver_node"]
     array([[ 0, -1, -1, -1, -1, -1],
            [ 1, -1, -1, -1, -1, -1],
            [ 2, -1, -1, -1, -1, -1],
@@ -233,46 +213,27 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [16, -1, -1, -1, -1, -1],
            [17, -1, -1, -1, -1, -1],
            [18, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['flow__receiver_proportions'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
-             0.24118095],
-           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
-             0.24118095],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
-             0.24118095],
-           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
-             0.24118095],
-           [ 0.        ,  0.        ,  0.        ,  0.34108138,  0.41773767,
-             0.24118095],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 0.        ,  0.        ,  0.19431571,  0.27480391,  0.33656468,
-             0.19431571],
-           [ 0.        ,  0.        ,  0.19431571,  0.27480391,  0.33656468,
-             0.19431571],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ],
-           [ 1.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-             0.        ]])
-    >>> mg.at_node['flow__link_to_receiver_node']
+    >>> mg.at_node["flow__receiver_proportions"]
+    array([[1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0.34108138,  0.41773767, 0.24118095],
+           [0. , 0. , 0. , 0.34108138,  0.41773767, 0.24118095],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0.34108138,  0.41773767, 0.24118095],
+           [0. , 0. , 0. , 0.34108138,  0.41773767, 0.24118095],
+           [0. , 0. , 0. , 0.34108138,  0.41773767, 0.24118095],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0.19431571,  0.27480391,  0.33656468, 0.19431571],
+           [0. , 0. , 0.19431571,  0.27480391,  0.33656468, 0.19431571],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ],
+           [1. , 0. , 0. , 0. , 0. , 0. ]])
+    >>> mg.at_node["flow__link_to_receiver_node"]
     array([[-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
@@ -292,27 +253,27 @@ class FlowDirectorMFD(_FlowDirectorToMany):
            [-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1],
            [-1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
-           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
-           [ 0. ,  0. ,  1. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
-           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
-           [ 0. ,  0. ,  0. ,  1. ,  1.5,  0.5],
-           [ 0. ,  1. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0.5,  0. ,  0. ],
-           [ 0. ,  0. ,  0.5,  1. ,  1.5,  0.5],
-           [ 0. ,  0. ,  0.5,  1. ,  1.5,  0.5],
-           [ 0. ,  1. ,  1.5,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0.5,  0. ,  0. ,  0. ],
-           [ 0. ,  0.5,  0. ,  0. ,  0. ,  0. ]])
-    >>> mg.at_node['flow__sink_flag'].astype(int)
+    >>> mg.at_node["topographic__steepest_slope"]
+    array([[0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 1. , 1.5, 0.5],
+           [0. , 0. , 0. , 1. , 1.5, 0.5],
+           [0. , 0. , 1. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 1. , 1.5, 0.5],
+           [0. , 0. , 0. , 1. , 1.5, 0.5],
+           [0. , 0. , 0. , 1. , 1.5, 0.5],
+           [0. , 1. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0.5, 0. , 0. ],
+           [0. , 0. , 0.5, 1. , 1.5, 0.5],
+           [0. , 0. , 0.5, 1. , 1.5, 0.5],
+           [0. , 1. , 1.5, 0. , 0. , 0. ],
+           [0. , 0. , 0. , 0. , 0. , 0. ],
+           [0. , 0. , 0.5, 0. , 0. , 0. ],
+           [0. , 0.5, 0. , 0. , 0. , 0. ]])
+    >>> mg.at_node["flow__sink_flag"].astype(int)
     array([1, 1, 1,
            1, 0, 0, 1,
            1, 0, 0, 0, 1,

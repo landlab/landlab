@@ -55,11 +55,11 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4))
     >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("node", "topographic__elevation")
     >>> z[5] = 2.0
     >>> z[6] = 1.0
     >>> from landlab.components import FlowAccumulator
-    >>> fr = FlowAccumulator(rg, flow_director='D4')
+    >>> fr = FlowAccumulator(rg, flow_director="D4")
     >>> fr.run_one_step()
     >>> from landlab.components import StreamPowerSmoothThresholdEroder
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
@@ -68,7 +68,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> sp.run_one_step(dt=1.0)
     >>> import numpy as np
     >>> np.round(z[5:7], 3)
-    array([ 1.646,  0.667])
+    array([1.646, 0.667])
     >>> z[5] = 2.0
     >>> z[6] = 1.0
     >>> import numpy as np
@@ -77,7 +77,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0, discharge_field=q)
     >>> sp.run_one_step(dt=1.0)
     >>> np.round(z[5:7], 3)
-    array([ 1.754,  0.164])
+    array([1.754, 0.164])
 
     References
     ----------
@@ -259,20 +259,20 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((3, 3))
         >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("node", "topographic__elevation")
         >>> z[4] = 1.0
         >>> from landlab.components import FlowAccumulator
-        >>> fr = FlowAccumulator(rg, flow_director='D4')
+        >>> fr = FlowAccumulator(rg, flow_director="D4")
         >>> fr.run_one_step()
         >>> from landlab.components import StreamPowerSmoothThresholdEroder
         >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0)
         >>> sp.run_one_step(dt=1.0)
         >>> sp.alpha
-        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
         >>> sp.gamma
-        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
         >>> sp.delta
-        array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
+        array([0., 0., 0., 0., 1., 0., 0., 0., 0.])
         """
         if not self._erode_flooded_nodes:
             flood_status = self._grid.at_node["flood_status_code"]

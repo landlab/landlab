@@ -11,23 +11,23 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
->>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+>>> grid = RasterModelGrid((5, 4), xy_spacing=(1.0e4, 1.0e4))
 >>> lith_press = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
 
 Check the fields that are used as input to the flexure component.
 
->>> Flexure.input_var_names # doctest: +NORMALIZE_WHITESPACE
+>>> Flexure.input_var_names
 ('lithosphere__overlying_pressure_increment',)
 
 Check the units for the fields.
 
->>> Flexure.var_units('lithosphere__overlying_pressure_increment')
+>>> Flexure.var_units("lithosphere__overlying_pressure_increment")
 'Pa'
 
 If you are not sure about one of the input or output variables, you can
 get help for specific variables.
 
->>> Flexure.var_help('lithosphere__overlying_pressure_increment')
+>>> Flexure.var_help("lithosphere__overlying_pressure_increment")
 name: lithosphere__overlying_pressure_increment
 description:
   Applied pressure to the lithosphere over a time step
@@ -41,7 +41,7 @@ intent: in
 In creating the component, a field (initialized with zeros) was added to the
 grid. Reset the interior nodes for the loading.
 
->>> dh = grid.at_node['lithosphere__overlying_pressure_increment']
+>>> dh = grid.at_node["lithosphere__overlying_pressure_increment"]
 >>> dh = dh.reshape(grid.shape)
 >>> dh[1:-1, 1:-1] = flex.gamma_mantle
 
@@ -49,24 +49,23 @@ grid. Reset the interior nodes for the loading.
 
 >>> flex.output_var_names
 ('lithosphere_surface__elevation_increment',)
->>> flex.grid.at_node['lithosphere_surface__elevation_increment']
-...     # doctest: +NORMALIZE_WHITESPACE
-array([ 0., 0., 0., 0.,
-        0., 1., 1., 0.,
-        0., 1., 1., 0.,
-        0., 1., 1., 0.,
-        0., 0., 0., 0.])
+>>> flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape(grid.shape)
+array([[0., 0., 0., 0.],
+       [0., 1., 1., 0.],
+       [0., 1., 1., 0.],
+       [0., 1., 1., 0.],
+       [0., 0., 0., 0.]])
 """
 
 import numpy as np
 
 from landlab import Component
-
-from .funcs import get_flexure_parameter
+from landlab.components.flexure._ext.flexure2d import subside_loads as _subside_loads
+from landlab.components.flexure._ext.flexure2d_slow import subside_grid_in_parallel
+from landlab.components.flexure.funcs import get_flexure_parameter
 
 
 class Flexure(Component):
-
     """Deform the lithosphere with 1D or 2D flexure.
 
     Landlab component that implements a 1 and 2D lithospheric flexure
@@ -77,7 +76,7 @@ class Flexure(Component):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
-    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.0e4, 1.0e4))
     >>> lith_press = grid.add_zeros(
     ...     "lithosphere__overlying_pressure_increment", at="node"
     ... )
@@ -89,7 +88,7 @@ class Flexure(Component):
     ('lithosphere__overlying_pressure_increment',)
     >>> flex.output_var_names
     ('lithosphere_surface__elevation_increment',)
-    >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(flex.units)
     [('lithosphere__overlying_pressure_increment', 'Pa'),
      ('lithosphere_surface__elevation_increment', 'm')]
 
@@ -100,23 +99,23 @@ class Flexure(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__elevation_increment"] == 0.0)
     True
 
-    >>> np.all(grid.at_node['lithosphere__overlying_pressure_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere__overlying_pressure_increment"] == 0.0)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__elevation_increment"] == 0.0)
     True
 
-    >>> load = grid.at_node['lithosphere__overlying_pressure_increment']
+    >>> load = grid.at_node["lithosphere__overlying_pressure_increment"]
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere_surface__elevation_increment']
-    >>> np.all(dz == 0.)
+    >>> dz = grid.at_node["lithosphere_surface__elevation_increment"]
+    >>> np.all(dz == 0.0)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node["lithosphere_surface__elevation_increment"] == 0.0)
     False
 
     References
@@ -291,7 +290,7 @@ class Flexure(Component):
         else:
             self.subside_loads(new_load, out=deflection)
 
-    def subside_loads(self, loads, out=None):
+    def subside_loads_slow(self, loads, out=None):
         """Subside surface due to multiple loads.
 
         Parameters
@@ -311,8 +310,6 @@ class Flexure(Component):
         dz = out.reshape(self._grid.shape)
         load = loads.reshape(self._grid.shape)
 
-        from .cfuncs import subside_grid_in_parallel
-
         subside_grid_in_parallel(
             dz,
             load * self._grid.dx * self._grid.dy,
@@ -323,3 +320,58 @@ class Flexure(Component):
         )
 
         return out
+
+    def subside_loads(self, loads, row_col_of_load=None, out=None):
+        """Subside surface due to multiple loads.
+
+        Parameters
+        ----------
+        loads : ndarray of float
+            Loads applied to grid node. ``loads`` can be either an array
+            of size ``n_nodes``, in which case the load values are applied
+            at their corresponding nodes, or an array of arbitray length,
+            in which case loads are applied at locations supplied through
+            the ``row_col_of_load`` keyword.
+        row_col_of_load: tuple of ndarray of int, optional
+            If provided, the row and column indices where loads are applied.
+            The first element of the tuple is an array of rows while the
+            seconds element is an array of columns.
+        out : ndarray of float, optional
+            Buffer to place resulting deflection values. If not provided,
+            deflections will be placed into a newly-allocated array.
+
+        Returns
+        -------
+        ndarray of float
+            Deflections caused by the loading.
+        """
+        loads = np.asarray(loads)
+        if out is None:
+            out = self.grid.zeros(at="node")
+        dz = out.reshape(self.grid.shape)
+
+        if row_col_of_load is None:
+            loads, row_col_of_load = self._handle_no_row_col(loads)
+        row_of_load, col_of_load = row_col_of_load
+
+        _subside_loads(
+            dz,
+            self._r.reshape(self.grid.shape),
+            loads * self.grid.dx * self.grid.dy,
+            np.asarray(row_of_load),
+            np.asarray(col_of_load),
+            self.alpha,
+            self.gamma_mantle,
+        )
+
+        return out
+
+    def _handle_no_row_col(self, loads, tol=1e-6):
+        """Handle the case where the row_col_of_load keyword is not provided."""
+        loads = loads.reshape(self.grid.shape)
+        row_col_of_load = np.unravel_index(
+            np.flatnonzero(np.abs(loads) > tol), self.grid.shape
+        )
+        loads = loads[row_col_of_load]
+
+        return loads, row_col_of_load

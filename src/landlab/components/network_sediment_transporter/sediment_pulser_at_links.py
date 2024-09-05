@@ -43,7 +43,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
     >>> nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
     >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
+    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, 0.01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
 
     Define a function that contains which times a pulse is allowed to occur.
@@ -51,6 +51,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
     >>> def time_to_pulse(time):
     ...     return True
+    ...
 
     Instantiate :class:`~.SedimentPulserAtLinks`
 
@@ -68,7 +69,7 @@ class SedimentPulserAtLinks(SedimentPulserBase):
 
     Check the element_id of each parcel
 
-    >>> print(parcels.dataset['element_id'].values)
+    >>> print(parcels.dataset["element_id"].values)
     [[2]
      [2]
      [6]

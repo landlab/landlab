@@ -18,11 +18,12 @@ Created on Thu Feb 19 18:47:11 2015
 ...following AW's run_in_script_2D.py.
 """
 
-
 import numpy as np
 import scipy.constants
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component
+from landlab import FieldError
+from landlab import RasterModelGrid
 
 try:
     import gflex
@@ -64,23 +65,24 @@ class gFlex(Component):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import gFlex
-    >>> mg = RasterModelGrid((10, 10), xy_spacing=25000.)
-    >>> z = mg.add_zeros('topographic__elevation', at='node', dtype=float)
-    >>> stress = mg.add_zeros('surface_load__stress', at='node', dtype=float)
-    >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.e6
-    >>> gf = gFlex(mg, BC_E='0Moment0Shear', BC_N='Periodic',
-    ...            BC_S='Periodic') # doctest: +SKIP
-    >>> gf.run_one_step() # doctest: +SKIP
+    >>> mg = RasterModelGrid((10, 10), xy_spacing=25000.0)
+    >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
+    >>> stress = mg.add_zeros("surface_load__stress", at="node", dtype=float)
+    >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.0e6
+    >>> gf = gFlex(
+    ...     mg, BC_E="0Moment0Shear", BC_N="Periodic", BC_S="Periodic"
+    ... )  # doctest: +SKIP
+    >>> gf.run_one_step()  # doctest: +SKIP
 
     N-S profile across flexed plate:
 
-    >>> z.reshape(mg.shape)[:, 5] # doctest: +SKIP
+    >>> z.reshape(mg.shape)[:, 5]  # doctest: +SKIP
     array([-4.54872677, -4.6484927 , -4.82638669, -5.03001546, -5.15351385,
            -5.15351385, -5.03001546, -4.82638669, -4.6484927 , -4.54872677])
 
     W-E profile, noting the free BC to the east side:
 
-    >>> z.reshape(mg.shape)[5, :] # doctest: +SKIP
+    >>> z.reshape(mg.shape)[5, :]  # doctest: +SKIP
     array([-0.43536739, -1.19197738, -2.164915  , -3.2388464 , -4.2607558 ,
            -5.15351385, -5.89373366, -6.50676947, -7.07880156, -7.63302576])
 

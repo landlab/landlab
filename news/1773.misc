@@ -1,3 +1,0 @@
-
-Updated *dependabot* to only manage *Landlab* direct dependencies and changed
-our CI to ensure we are running with those pinned dependencies.

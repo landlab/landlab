@@ -45,6 +45,7 @@ class AreaSlopeTransporter(Component):
     ...     fa.run_one_step()
     ...     elev[grid.core_nodes] += 1.0
     ...     transporter.run_one_step(10000.0)
+    ...
     >>> int(round(elev[4] * 100))
     1068
     """
@@ -199,11 +200,11 @@ class AreaSlopeTransporter(Component):
         >>> transporter = AreaSlopeTransporter(grid)
         >>> transporter.calc_sediment_rate_of_change()
         >>> np.round(transporter._sediment_outflux[4:7], 3)
-        array([ 0.   ,  0.365,  0.138])
+        array([0.   , 0.365, 0.138])
         >>> np.round(transporter._sediment_influx[4:7], 3)
-        array([ 0.365,  0.138,  0.   ])
+        array([0.365, 0.138, 0.   ])
         >>> np.round(transporter._dzdt[5:7], 8)
-        array([ -2.26400000e-05,  -1.38200000e-05])
+        array([-2.264e-05, -1.382e-05])
         """
         self.calc_transport_capacity()
         cores = self.grid.core_nodes
@@ -233,7 +234,7 @@ class AreaSlopeTransporter(Component):
         >>> transporter = AreaSlopeTransporter(grid)
         >>> transporter.run_one_step(10000.0)
         >>> np.round(elev[4:7], 4)
-        array([ 0.    ,  0.7736,  1.8618])
+        array([0.    , 0.7736, 1.8618])
         """
         self.calc_sediment_rate_of_change()
         self._elev += self._dzdt * dt

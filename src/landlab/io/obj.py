@@ -98,7 +98,7 @@ def write_obj(path, grid, field_for_z="topographic__elevation", clobber=False):
     >>> from landlab import HexModelGrid, RasterModelGrid
     >>> from landlab.io.obj import write_obj
 
-    >>> grid = HexModelGrid((3, 2), spacing=2.)
+    >>> grid = HexModelGrid((3, 2), spacing=2.0)
     >>> z = grid.add_zeros("topographic__elevation", at="node")
     >>> z[3] = 1.0
 

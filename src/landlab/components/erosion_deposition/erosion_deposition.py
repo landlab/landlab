@@ -2,6 +2,8 @@ import numpy as np
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
+)
+from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     _GeneralizedErosionDeposition,
 )
 from landlab.utils.return_array import return_array_at_node
@@ -228,7 +230,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         >>> from landlab.components import DepressionFinderAndRouter
         >>> from landlab.components import ErosionDeposition
         >>> from landlab.components import FastscapeEroder
-        >>> np.random.seed(seed = 5000)
+        >>> np.random.seed(seed=5000)
 
         Define grid and initial topography:
             -5x5 grid with baselevel in the lower left corner
@@ -239,71 +241,72 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         >>> nc = 5
         >>> dx = 10
         >>> mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
-        >>> _ = mg.add_zeros('node', 'topographic__elevation')
-        >>> mg['node']['topographic__elevation'] += (mg.node_y/10 +
-        ...        mg.node_x/10 + np.random.rand(len(mg.node_y)) / 10)
-        >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-        ...                                               left_is_closed=True,
-        ...                                               right_is_closed=True,
-        ...                                               top_is_closed=True)
-        >>> mg.set_watershed_boundary_condition_outlet_id(0,\
-                mg['node']['topographic__elevation'], -9999.)
-        >>> fsc_dt = 100.
-        >>> ed_dt = 1.
+        >>> _ = mg.add_zeros("node", "topographic__elevation")
+        >>> mg.at_node["topographic__elevation"] += (
+        ...     mg.node_y / 10 + mg.node_x / 10 + np.random.rand(len(mg.node_y)) / 10
+        ... )
+        >>> mg.set_closed_boundaries_at_grid_edges(
+        ...     bottom_is_closed=True,
+        ...     left_is_closed=True,
+        ...     right_is_closed=True,
+        ...     top_is_closed=True,
+        ... )
+        >>> mg.set_watershed_boundary_condition_outlet_id(
+        ...     0, mg.at_node["topographic__elevation"], -9999.0
+        ... )
+        >>> fsc_dt = 100.0
+        >>> ed_dt = 1.0
 
         Check initial topography
 
-        >>> mg.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.02290479,  1.03606698,  2.0727653 ,  3.01126678,  4.06077707,
-            1.08157495,  2.09812694,  3.00637448,  4.07999597,  5.00969486,
-            2.04008677,  3.06621577,  4.09655859,  5.04809001,  6.02641123,
-            3.05874171,  4.00585786,  5.0595697 ,  6.04425233,  7.05334077,
-            4.05922478,  5.0409473 ,  6.07035008,  7.0038935 ,  8.01034357])
+        >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
+        array([[0.02290479, 1.03606698, 2.0727653 , 3.01126678, 4.06077707],
+               [1.08157495, 2.09812694, 3.00637448, 4.07999597, 5.00969486],
+               [2.04008677, 3.06621577, 4.09655859, 5.04809001, 6.02641123],
+               [3.05874171, 4.00585786, 5.0595697 , 6.04425233, 7.05334077],
+               [4.05922478, 5.0409473 , 6.07035008, 7.0038935 , 8.01034357]])
 
         Instantiate Fastscape eroder, flow router, and depression finder
 
-        >>> fr = FlowAccumulator(mg, flow_director='D8')
+        >>> fr = FlowAccumulator(mg, flow_director="D8")
         >>> df = DepressionFinderAndRouter(mg)
-        >>> fsc = FastscapeEroder(
-        ...     mg,
-        ...     K_sp=.001,
-        ...     m_sp=.5,
-        ...     n_sp=1)
+        >>> fsc = FastscapeEroder(mg, K_sp=0.001, m_sp=0.5, n_sp=1)
 
         Burn in an initial drainage network using the Fastscape eroder:
 
         >>> for x in range(100):
         ...     fr.run_one_step()
         ...     df.map_depressions()
-        ...     flooded = np.where(df.flood_status==3)[0]
-        ...     fsc.run_one_step(dt = fsc_dt)
-        ...     mg.at_node['topographic__elevation'][0] -= 0.001 #uplift
+        ...     flooded = np.where(df.flood_status == 3)[0]
+        ...     fsc.run_one_step(dt=fsc_dt)
+        ...     mg.at_node["topographic__elevation"][0] -= 0.001  # uplift
+        ...
 
         Instantiate the E/D component:
 
         >>> ed = ErosionDeposition(
-        ...     mg,
-        ...     K=0.00001,
-        ...     v_s=0.001,
-        ...     m_sp=0.5,
-        ...     n_sp = 1.0,
-        ...     sp_crit=0)
+        ...     mg, K=0.00001, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0
+        ... )
 
         Now run the E/D component for 2000 short timesteps:
 
-        >>> for x in range(2000): #E/D component loop
+        >>> for x in range(2000):  # E/D component loop
         ...     fr.run_one_step()
         ...     df.map_depressions()
-        ...     ed.run_one_step(dt = ed_dt)
-        ...     mg.at_node['topographic__elevation'][0] -= 2e-4 * ed_dt
+        ...     ed.run_one_step(dt=ed_dt)
+        ...     mg.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
+        ...
 
         Now we test to see if topography is right:
 
-        >>> np.around(mg.at_node["topographic__elevation"], decimals=3)
-        array([-0.477,  1.036,  2.073,  3.011,  4.061,  1.082, -0.08 , -0.065,
-           -0.054,  5.01 ,  2.04 , -0.065, -0.065, -0.053,  6.026,  3.059,
-           -0.054, -0.053, -0.035,  7.053,  4.059,  5.041,  6.07 ,  7.004,
-            8.01 ])
+        >>> np.around(mg.at_node["topographic__elevation"], decimals=3).reshape(
+        ...     mg.shape
+        ... )
+        array([[-0.477,  1.036,  2.073,  3.011,  4.061],
+               [ 1.082, -0.08 , -0.065, -0.054,  5.01 ],
+               [ 2.04 , -0.065, -0.065, -0.053,  6.026],
+               [ 3.059, -0.054, -0.053, -0.035,  7.053],
+               [ 4.059,  5.041,  6.07 ,  7.004,  8.01 ]])
         """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             raise NotImplementedError(

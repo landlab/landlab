@@ -19,16 +19,16 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None, bottom=No
     >>> from landlab import RasterModelGrid
 
     >>> grid = RasterModelGrid((3, 4))
-    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([1, 1, 1, 1,
-           1, 0, 0, 1,
-           1, 1, 1, 1], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[1, 1, 1, 1],
+           [1, 0, 0, 1],
+           [1, 1, 1, 1]], dtype=uint8)
 
     >>> grid.set_status_at_node_on_edges(right=grid.BC_NODE_IS_CLOSED)
-    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([1, 1, 1, 4,
-           1, 0, 0, 4,
-           1, 1, 1, 4], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[1, 1, 1, 4],
+           [1, 0, 0, 4],
+           [1, 1, 1, 4]], dtype=uint8)
 
     >>> grid = RasterModelGrid((3, 4))
 
@@ -36,12 +36,13 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None, bottom=No
     if setting the status for the top and right edges, the upper-right corner
     has the status of the right edge.
 
-    >>> grid.set_status_at_node_on_edges(top=grid.BC_NODE_IS_CLOSED,
-    ...     right=grid.BC_NODE_IS_FIXED_GRADIENT)
-    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([1, 1, 1, 2,
-           1, 0, 0, 2,
-           4, 4, 4, 2], dtype=uint8)
+    >>> grid.set_status_at_node_on_edges(
+    ...     top=grid.BC_NODE_IS_CLOSED, right=grid.BC_NODE_IS_FIXED_GRADIENT
+    ... )
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[1, 1, 1, 2],
+           [1, 0, 0, 2],
+           [4, 4, 4, 2]], dtype=uint8)
 
     In the above example, if you wanted the corner to have the status of the
     top edge, you need to make two calls to `set_status_at_node_on_edges`,
@@ -49,18 +50,18 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None, bottom=No
     >>> grid = RasterModelGrid((3, 4))
     >>> grid.set_status_at_node_on_edges(right=grid.BC_NODE_IS_FIXED_GRADIENT)
     >>> grid.set_status_at_node_on_edges(top=grid.BC_NODE_IS_CLOSED)
-    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([1, 1, 1, 2,
-           1, 0, 0, 2,
-           4, 4, 4, 4], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[1, 1, 1, 2],
+           [1, 0, 0, 2],
+           [4, 4, 4, 4]], dtype=uint8)
 
     An example that sets all of the edges shows how corners are set.
 
     >>> grid.set_status_at_node_on_edges(right=1, top=2, left=3, bottom=4)
-    >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
-    array([3, 4, 4, 4,
-           3, 0, 0, 1,
-           2, 2, 2, 1], dtype=uint8)
+    >>> grid.status_at_node.reshape(grid.shape)
+    array([[3, 4, 4, 4],
+           [3, 0, 0, 1],
+           [2, 2, 2, 1]], dtype=uint8)
 
     :meta landlab: boundary-condition
     """

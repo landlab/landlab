@@ -3,7 +3,6 @@ from landlab.grid.network import NetworkModelGrid
 
 
 class SedimentPulserBase(Component):
-
     """Base class of :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachParcel`.
 
     :class:`~.SedimentPulserAtLinks` and :class:`~.SedimentPulserEachParcel` run the
@@ -42,7 +41,7 @@ class SedimentPulserBase(Component):
     >>> nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
     >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
     >>> grid.at_link["channel_width"] = np.full(grid.number_of_links, 1.0)  # m
-    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, .01)  # m / m
+    >>> grid.at_link["channel_slope"] = np.full(grid.number_of_links, 0.01)  # m / m
     >>> grid.at_link["reach_length"] = np.full(grid.number_of_links, 100.0)  # m
     >>> make_pulse_base = SedimentPulserBase(grid)
     >>> make_pulse_base._parcels

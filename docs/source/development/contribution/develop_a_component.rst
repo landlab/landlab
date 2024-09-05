@@ -55,8 +55,11 @@ For your new component, you should create a folder in
 
   .. code-block:: python
 
-     from .my_component_name import MyComponent
-     __all__ = ['MyComponent', ]
+      from .my_component_name import MyComponent
+
+      __all__ = [
+          "MyComponent",
+      ]
 
   Where
 

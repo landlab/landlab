@@ -81,11 +81,11 @@ class SpeciesEvolver(Component):
     equally low throughout the grid at model onset.
 
     >>> mg = RasterModelGrid((3, 7), 1000)
-    >>> z = mg.add_ones('topographic__elevation', at='node')
+    >>> z = mg.add_ones("topographic__elevation", at="node")
     >>> z.reshape(mg.shape)
-    array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
-           [ 1.,  1.,  1.,  1.,  1.,  1.,  1.]])
+    array([[1., 1., 1., 1., 1., 1., 1.],
+           [1., 1., 1., 1., 1., 1., 1.],
+           [1., 1., 1., 1., 1., 1., 1.]])
 
     Instantiate the component with the grid as the first parameter.
 
@@ -99,7 +99,8 @@ class SpeciesEvolver(Component):
     taxa of this model can inhabit.
 
     >>> def zone_func(grid):
-    ...     return grid.at_node['topographic__elevation'] < 100
+    ...     return grid.at_node["topographic__elevation"] < 100
+    ...
 
     Instantiate ZoneController with the grid and zone function. The initial
     zones are created at controller instantiation. In this example, one zone is
@@ -121,7 +122,7 @@ class SpeciesEvolver(Component):
     >>> zc.zones[0].mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True,  True,  True,  True,  True,  True,  True,
-            True,  True,  True], dtype=bool)
+            True,  True,  True])
 
     Populate a taxon to the zone.
 
@@ -132,9 +133,8 @@ class SpeciesEvolver(Component):
     because we populated each zone with one taxon, and only the one zone
     exists.
 
-    >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
-          pid       type  t_first  t_final
-    tid
+    >>> se.taxa_data_frame
+    pid  type    t_first  t_final      tid
     0    <NA>  ZoneTaxon        0     <NA>
 
     The identifier of the taxon, ``tid`` is 0. The identifier of the taxon's
@@ -150,9 +150,9 @@ class SpeciesEvolver(Component):
 
     >>> z[[3, 10, 17]] = 200
     >>> z.reshape(mg.shape)
-    array([[   1.,    1.,    1.,  200.,    1.,    1.,    1.],
-           [   1.,    1.,    1.,  200.,    1.,    1.,    1.],
-           [   1.,    1.,    1.,  200.,    1.,    1.,    1.]])
+    array([[  1.,   1.,   1., 200.,   1.,   1.,   1.],
+           [  1.,   1.,   1., 200.,   1.,   1.,   1.],
+           [  1.,   1.,   1., 200.,   1.,   1.,   1.]])
 
     The current elevation, the elevation following uplift, is represented here.
     ::
@@ -189,9 +189,8 @@ class SpeciesEvolver(Component):
 
     The split of the initial zone triggered speciation of taxon 1 by taxon 0.
 
-    >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
-          pid       type  t_first  t_final
-    tid
+    >>> se.taxa_data_frame
+    pid  type    t_first  t_final      tid
     0    <NA>  ZoneTaxon        0     <NA>
     1       0  ZoneTaxon     1000     <NA>
 
@@ -412,7 +411,7 @@ class SpeciesEvolver(Component):
         Create a model grid with flat topography.
 
         >>> mg = RasterModelGrid((3, 7), 1000)
-        >>> z = mg.add_ones('topographic__elevation', at='node')
+        >>> z = mg.add_ones("topographic__elevation", at="node")
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
         latter with a function that masks the low elevation zone extent. Only
@@ -420,7 +419,8 @@ class SpeciesEvolver(Component):
 
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
-        ...     return grid.at_node['topographic__elevation'] < 100
+        ...     return grid.at_node["topographic__elevation"] < 100
+        ...
         >>> zc = ZoneController(mg, zone_func)
         >>> len(zc.zones) == 1
         True
@@ -433,9 +433,8 @@ class SpeciesEvolver(Component):
         The one taxon is now tracked by SpeciesEvolver as indicated by the taxa
         DataFrame.
 
-        >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
-              pid       type  t_first  t_final
-        tid
+        >>> se.taxa_data_frame
+        pid  type    t_first  t_final      tid
         0    <NA>  ZoneTaxon        0     <NA>
         """
         if not isinstance(taxa, list):
@@ -546,7 +545,7 @@ class SpeciesEvolver(Component):
         Create a model grid.
 
         >>> mg = RasterModelGrid((3, 7), 1000)
-        >>> z = mg.add_ones('topographic__elevation', at='node')
+        >>> z = mg.add_ones("topographic__elevation", at="node")
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the latter
         with a function that masks the low elevation zone extent. Only one zone
@@ -554,7 +553,8 @@ class SpeciesEvolver(Component):
 
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
-        ...     return grid.at_node['topographic__elevation'] < 100
+        ...     return grid.at_node["topographic__elevation"] < 100
+        ...
         >>> zc = ZoneController(mg, zone_func)
         >>> len(zc.zones) == 1
         True
@@ -576,9 +576,8 @@ class SpeciesEvolver(Component):
 
         Display taxa metadata.
 
-        >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
-              pid       type  t_first  t_final
-        tid
+        >>> se.taxa_data_frame
+        pid  type  t_first    t_final      tid
         0    <NA>  ZoneTaxon        0     <NA>
         1    <NA>  ZoneTaxon        0     <NA>
         2       0  ZoneTaxon     1000     <NA>
@@ -589,7 +588,7 @@ class SpeciesEvolver(Component):
         Objects of all extant taxon are returned when no parameters are
         inputted.
 
-        >>> se.get_extant_taxon_objects() # doctest: +NORMALIZE_WHITESPACE
+        >>> se.get_extant_taxon_objects()
         [<ZoneTaxon, tid=0>,
          <ZoneTaxon, tid=1>,
          <ZoneTaxon, tid=2>,
@@ -611,7 +610,7 @@ class SpeciesEvolver(Component):
 
         Taxa can be limited to those that were extant ``time``.
 
-        >>> se.get_extant_taxon_objects(time=1000) # doctest: +NORMALIZE_WHITESPACE
+        >>> se.get_extant_taxon_objects(time=1000)
         [<ZoneTaxon, tid=0>,
          <ZoneTaxon, tid=1>,
          <ZoneTaxon, tid=2>,

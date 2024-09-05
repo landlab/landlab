@@ -170,7 +170,7 @@ class BedParcelInitializerDischarge(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerDischarge
+    ...     BedParcelInitializerDischarge,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -293,7 +293,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerDepth
+    ...     BedParcelInitializerDepth,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -306,9 +306,7 @@ class BedParcelInitializerDepth(BedParcelInitializerBase):
 
 
     >>> depth = np.full(grid.number_of_links, 1.0)  # m
-    >>> initialize_parcels = BedParcelInitializerDepth(
-    ...     grid, flow_depth_at_link=depth
-    ... )
+    >>> initialize_parcels = BedParcelInitializerDepth(grid, flow_depth_at_link=depth)
     >>> parcels = initialize_parcels()
     """
 
@@ -402,7 +400,7 @@ class BedParcelInitializerArea(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerArea
+    ...     BedParcelInitializerArea,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -533,7 +531,7 @@ class BedParcelInitializerUserD50(BedParcelInitializerBase):
     --------
     >>> from landlab import NetworkModelGrid
     >>> from landlab.components.network_sediment_transporter import (
-    ...     BedParcelInitializerUserD50
+    ...     BedParcelInitializerUserD50,
     ... )
 
     >>> y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -776,7 +774,7 @@ def calc_d50_depth(
     >>> print(np.round(expected_value, decimals=3))
     0.1
     >>> assert_almost_equal(
-    ...    calc_d50_depth(.01, 1, 1, 1000, 3000, 0.05), expected_value
+    ...     calc_d50_depth(0.01, 1, 1, 1000, 3000, 0.05), expected_value
     ... )
     """
 
@@ -803,7 +801,7 @@ def calc_d50_dArea_scaling(drainage_area, a, n):
     >>> drainage_area_exponent = -0.1
 
     >>> expected_value = drainage_area_coefficient * (
-    ...     drainage_area ** drainage_area_exponent
+    ...     drainage_area**drainage_area_exponent
     ... )
     >>> print(np.round(expected_value, decimals=3))
     0.794

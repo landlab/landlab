@@ -25,9 +25,14 @@ import os
 import pathlib
 import re
 import shutil
+import sys
 
 import numpy as np
-import pkg_resources
+
+if sys.version_info >= (3, 12):  # pragma: no cover (PY12+)
+    import importlib.resources as importlib_resources
+else:  # pragma: no cover (<PY312)
+    import importlib_resources
 
 SIZEOF_INT = np.dtype(int).itemsize
 
@@ -38,9 +43,7 @@ class ExampleData:
         self._case = case
 
         self._base = pathlib.Path(
-            pkg_resources.resource_filename(
-                "landlab", str(pathlib.Path("data").joinpath(example, case))
-            )
+            importlib_resources.files("landlab") / "data" / example / case
         )
 
     @property
@@ -114,12 +117,13 @@ def degrees_to_radians(degrees):
 
     >>> degrees_to_radians(90.0)
     0.0
-    >>> degrees_to_radians(0.0) == np.pi / 2.
+    >>> degrees_to_radians(0.0) == np.pi / 2.0
     True
-    >>> degrees_to_radians(-180.0) == 3. * np.pi / 2.
+    >>> degrees_to_radians(-180.0) == 3.0 * np.pi / 2.0
     True
-    >>> np.testing.assert_array_almost_equal([ np.pi, np.pi],
-    ...                                       degrees_to_radians([ -90.,  270.]))
+    >>> np.testing.assert_array_almost_equal(
+    ...     [np.pi, np.pi], degrees_to_radians([-90.0, 270.0])
+    ... )
     """
     rads = np.pi * np.array(degrees) / 180.0
 
@@ -147,14 +151,14 @@ def radians_to_degrees(rads):
     >>> import numpy as np
     >>> from landlab.core.utils import radians_to_degrees
 
-    >>> radians_to_degrees(0.)
+    >>> radians_to_degrees(0.0)
     90.0
-    >>> radians_to_degrees(np.pi / 2.)
+    >>> radians_to_degrees(np.pi / 2.0)
     0.0
-    >>> radians_to_degrees(- 3 * np.pi / 2.)
+    >>> radians_to_degrees(-3 * np.pi / 2.0)
     0.0
-    >>> radians_to_degrees(np.array([- np.pi, np.pi]))
-    array([ 270.,  270.])
+    >>> radians_to_degrees(np.array([-np.pi, np.pi]))
+    array([270., 270.])
     """
     degrees = (5.0 * np.pi / 2.0 - rads) % (2.0 * np.pi)
     return 180.0 / np.pi * degrees
@@ -366,6 +370,7 @@ def strip_grid_from_method_docstring(funcs):
     ...         An argument.
     ...     '''
     ...     pass
+    ...
     >>> funcs = {"dummy_func_to_demonstrate_docstring_modification": dummy_func}
     >>> print(dummy_func.__doc__)
     A dummy function.
@@ -434,17 +439,13 @@ def argsort_points_by_x_then_y(points):
     >>> from landlab.core.utils import argsort_points_by_x_then_y
 
     >>> points = np.zeros((10, 2))
-    >>> points[:, 0] = np.array([0., 0., 0.,  1.,  1.,  1.,  1.,  2., 2., 2.])
-    >>> points[:, 1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
+    >>> points[:, 0] = np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0])
+    >>> points[:, 1] = np.array([0.0, 1.0, 2.0, -0.5, 0.5, 1.5, 2.5, 0.0, 1.0, 2.0])
     >>> argsort_points_by_x_then_y(points)
     array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
 
-    >>> x = [0., 0., 0.,
-    ...      1., 1., 1., 1.,
-    ...      2., 2., 2.]
-    >>> y = [ 0. , 1. , 2. ,
-    ...      -0.5, 0.5, 1.5, 2.5,
-    ...       0. , 1. , 2.]
+    >>> x = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0]
+    >>> y = [0.0, 1.0, 2.0, -0.5, 0.5, 1.5, 2.5, 0.0, 1.0, 2.0]
     >>> indices = argsort_points_by_x_then_y((x, y))
     >>> indices
     array([3, 0, 7, 4, 1, 8, 5, 2, 9, 6])
@@ -484,8 +485,8 @@ def sort_points_by_x_then_y(pts):
     >>> import numpy as np
     >>> from landlab.core.utils import sort_points_by_x_then_y
     >>> pts = np.zeros((10, 2))
-    >>> pts[:,0] = np.array([0., 0., 0., 1., 1., 1., 1., 2., 2., 2.])
-    >>> pts[:,1] = np.array([0., 1., 2., -0.5, 0.5, 1.5, 2.5, 0., 1., 2.])
+    >>> pts[:, 0] = np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0])
+    >>> pts[:, 1] = np.array([0.0, 1.0, 2.0, -0.5, 0.5, 1.5, 2.5, 0.0, 1.0, 2.0])
     >>> pts = sort_points_by_x_then_y(pts)
     >>> pts
     array([[ 1. , -0.5],
@@ -528,8 +529,8 @@ def anticlockwise_argsort_points(pts, midpt=None):
     >>> import numpy as np
     >>> from landlab.core.utils import anticlockwise_argsort_points
     >>> pts = np.zeros((4, 2))
-    >>> pts[:,0] = np.array([-3., -1., -1., -3.])
-    >>> pts[:,1] = np.array([-1., -3., -1., -3.])
+    >>> pts[:, 0] = np.array([-3.0, -1.0, -1.0, -3.0])
+    >>> pts[:, 1] = np.array([-1.0, -3.0, -1.0, -3.0])
     >>> sortorder = anticlockwise_argsort_points(pts)
     >>> np.all(sortorder == np.array([2, 0, 3, 1]))
     True
@@ -569,10 +570,9 @@ def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
     >>> import numpy as np
     >>> from landlab.core.utils import anticlockwise_argsort_points_multiline
     >>> pts = np.array([[1, 3, 0, 2], [2, 0, 3, 1]])
-    >>> pts_x = np.array([[-3., -1., -1., -3.], [-3., -1., -1., -3.]])
-    >>> pts_y = np.array([[-1., -3., -1., -3.], [-3., -1., -3., -1.]])
-    >>> sortorder = anticlockwise_argsort_points_multiline(
-    ...     pts_x, pts_y, out=pts)
+    >>> pts_x = np.array([[-3.0, -1.0, -1.0, -3.0], [-3.0, -1.0, -1.0, -3.0]])
+    >>> pts_y = np.array([[-1.0, -3.0, -1.0, -3.0], [-3.0, -1.0, -3.0, -1.0]])
+    >>> sortorder = anticlockwise_argsort_points_multiline(pts_x, pts_y, out=pts)
     >>> np.all(sortorder == np.array([[2, 0, 3, 1], [1, 3, 0, 2]]))
     True
     >>> np.all(pts == np.array([[0, 1, 2, 3], [0, 1, 2, 3]]))
@@ -647,15 +647,13 @@ def get_categories_from_grid_methods(grid_type):
     import re
     from copy import copy
 
-    from landlab import (
-        FramedVoronoiGrid,
-        HexModelGrid,
-        ModelGrid,
-        NetworkModelGrid,
-        RadialModelGrid,
-        RasterModelGrid,
-        VoronoiDelaunayGrid,
-    )
+    from landlab import FramedVoronoiGrid
+    from landlab import HexModelGrid
+    from landlab import ModelGrid
+    from landlab import NetworkModelGrid
+    from landlab import RadialModelGrid
+    from landlab import RasterModelGrid
+    from landlab import VoronoiDelaunayGrid
 
     grid_str_to_grid = {
         "ModelGrid": ModelGrid,

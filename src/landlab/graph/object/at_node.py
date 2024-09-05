@@ -1,6 +1,6 @@
 import numpy as np
 
-from ...core.utils import as_id_array
+from landlab.core.utils import as_id_array
 
 
 def get_links_at_node(graph, sort=False):
@@ -22,8 +22,7 @@ def get_links_at_node(graph, sort=False):
     tuple of ndarray
         Tuple of *links_at_node* and *link_dirs_at_node*.
     """
-    # from .cfuncs import _setup_links_at_node
-    from .ext.at_node import get_links_at_node
+    from landlab.graph.object.ext.at_node import get_links_at_node
 
     node_count = np.bincount(graph.nodes_at_link.flat)
     number_of_nodes = graph.number_of_nodes
@@ -79,20 +78,21 @@ def sort_links_at_node_by_angle(
 
     >>> links_at_node = [[2, 0], [1, 2], [3, 0], [3, 1]]
     >>> link_dirs_at_node = [[1, -1], [-1, -1], [-1, 1], [1, 1]]
-    >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
+    >>> angle_of_link = np.array([0.0, 0.0, -90.0, 90.0]) * np.pi / 180.0
 
-    >>> out = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-    ...     angle_of_link)
+    >>> out = sort_links_at_node_by_angle(
+    ...     links_at_node, link_dirs_at_node, angle_of_link
+    ... )
 
     The first item of the returned tuple is links at each node sorted
     counterclockwise by angle.
 
-    >>> out[0] # doctest: +NORMALIZE_WHITESPACE
+    >>> out[0]
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
 
     The second item is the direction of the link (entering or leaving).
 
-    >>> out[1] # doctest: +NORMALIZE_WHITESPACE
+    >>> out[1]
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
 
     Because the input arrays are lists, not numpy arrays, the sort is not
@@ -102,17 +102,20 @@ def sort_links_at_node_by_angle(
     True
 
     >>> links_at_node = np.asarray([[2, 0], [1, 2], [3, 0], [3, 1]], dtype=int)
-    >>> link_dirs_at_node = np.asarray([[1, -1], [-1, -1], [-1, 1], [1, 1]], dtype=np.int8)
-    >>> angle_of_link = np.array([0., 0., -90., 90.]) * np.pi / 180.
+    >>> link_dirs_at_node = np.asarray(
+    ...     [[1, -1], [-1, -1], [-1, 1], [1, 1]], dtype=np.int8
+    ... )
+    >>> angle_of_link = np.array([0.0, 0.0, -90.0, 90.0]) * np.pi / 180.0
 
-    >>> _ = sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-    ...     angle_of_link, inplace=True)
-    >>> links_at_node # doctest: +NORMALIZE_WHITESPACE
+    >>> _ = sort_links_at_node_by_angle(
+    ...     links_at_node, link_dirs_at_node, angle_of_link, inplace=True
+    ... )
+    >>> links_at_node
     array([[0, 2], [2, 1], [3, 0],  [1, 3]])
-    >>> link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+    >>> link_dirs_at_node
     array([[-1,  1], [-1, -1], [-1,  1], [ 1,  1]], dtype=int8)
     """
-    from .ext.at_node import reorder_link_dirs_at_node, reorder_links_at_node
+    from landlab.graph.object.ext.at_node import reorder_rows_inplace
 
     out = (
         np.asarray(links_at_node, dtype=int),
@@ -142,7 +145,7 @@ def sort_links_at_node_by_angle(
 
     sorted_links = as_id_array(np.argsort(outward_angle))
 
-    reorder_links_at_node(links_at_node, sorted_links)
-    reorder_link_dirs_at_node(link_dirs_at_node, sorted_links)
+    reorder_rows_inplace(links_at_node, sorted_links)
+    reorder_rows_inplace(link_dirs_at_node, sorted_links)
 
     return links_at_node, link_dirs_at_node

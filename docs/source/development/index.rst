@@ -21,10 +21,10 @@ The most important things to remember are to:
 
 Supported Python Versions
 -------------------------
-Python 3.9, 3.10, and 3.11
+Python 3.10, 3.11, and 3.12
 
 If you need to introduce a new dependency, that dependency must be compatible
-with Python 3.9+ and be available on Linux, Mac, and Windows.
+with Python 3.10+ and be available on Linux, Mac, and Windows.
 
 .. toctree::
    :maxdepth: 2

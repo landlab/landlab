@@ -9,16 +9,19 @@ Create a MaskedJaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
 
 >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
->>> links_at_node = MaskedJaggedArray([
-...     [0, 6],
-...     [1, 7, 0],
-...     [8, 1],
-...     [2, 9, 6],
-...     [3, 10, 2, 7],
-...     [11, 3, 8],
-...     [4, 7],
-...     [5, 10, 4],
-...     [5, 11]])
+>>> links_at_node = MaskedJaggedArray(
+...     [
+...         [0, 6],
+...         [1, 7, 0],
+...         [8, 1],
+...         [2, 9, 6],
+...         [3, 10, 2, 7],
+...         [11, 3, 8],
+...         [4, 7],
+...         [5, 10, 4],
+...         [5, 11],
+...     ]
+... )
 
 Make up some data that provides values at each of the links.
 
@@ -33,17 +36,29 @@ attached to nodes of the grid.
 Now operate on the link values for each node.
 
 >>> values_at_node.foreach_row(np.sum)
-array([  6.,   8.,   9.,  17.,  22.,  22.,  11.,  19.,  16.])
+array([ 6.,   8.,   9.,  17.,  22.,  22.,  11.,  19.,  16.])
 >>> values_at_node.foreach_row(np.min)
-array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
->>> values_at_node.foreach_row(np.ptp)
-array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
+array([0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
+>>> values_at_node.foreach_row(np.max)
+array([ 6.,  7.,  8.,  9.,  10.,  11.,  7.,  10.,  11.])
+
+Note: `np.ptp` doesn't work on masked arrays but since `max` and `min` seem
+to, you can create a new `ptp` that returns the expected values.
+
+>>> ptp = lambda x, axis=None: np.max(x, axis=axis) - np.min(x, axis=axis)
+>>> values_at_node.foreach_row(ptp)
+array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
+
+Or access the underlying masked array directly,
+
+>>> values_at_node.masked_array.ptp(axis=1).data
+array([6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
+
 import numpy as np
 
 
 class MaskedJaggedArray:
-
     """A container for an array of variable-length arrays.
 
     MaskedJaggedArray([row0, row1, ...])
@@ -318,7 +333,9 @@ class MaskedJaggedArray:
         --------
         >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
         >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
-        >>> for row in x: row
+        >>> for row in x:
+        ...     row
+        ...
         array([0, 1, 2])
         array([3, 4])
         """

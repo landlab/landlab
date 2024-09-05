@@ -5,8 +5,10 @@ import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
-from landlab import HexModelGrid, RasterModelGrid
-from landlab.io.netcdf import from_netcdf, to_netcdf
+from landlab import HexModelGrid
+from landlab import RasterModelGrid
+from landlab.io.netcdf import from_netcdf
+from landlab.io.netcdf import to_netcdf
 
 
 def test_netcdf_write_int64(tmpdir, format):
@@ -130,16 +132,16 @@ def test_with_and_without_time(tmpdir, format, mode):
     with tmpdir.as_cwd():
         to_netcdf(grid, "test-without-time.nc", format=format, mode=mode)
         with xr.open_dataset("test-without-time.nc") as actual:
-            assert "time" not in actual.dims
+            assert "time" not in actual.sizes
             assert "time" not in actual.variables
-            assert actual["at_node:elevation"].dims == ("node",)
+            assert tuple(actual["at_node:elevation"].sizes) == ("node",)
 
         to_netcdf(grid, "test-with-time.nc", format=format, time=10.0, mode=mode)
         with xr.open_dataset("test-with-time.nc") as actual:
-            assert "time" in actual.dims
+            assert "time" in actual.sizes
             assert "time" in actual.variables
             assert actual["time"] == [10.0]
-            assert actual["at_node:elevation"].dims == ("time", "node")
+            assert tuple(actual["at_node:elevation"].sizes) == ("time", "node")
 
 
 @pytest.mark.parametrize("mode", ("w", "a"))
@@ -155,7 +157,7 @@ def test_append_with_and_without_time(tmpdir, format, mode, time0, time1):
         time0 = np.nan if time0 is None else time0
 
         with xr.open_dataset("test.nc") as actual:
-            assert "time" in actual.dims
+            assert "time" in actual.sizes
             assert "time" in actual.variables
             assert_array_equal(
                 actual["time"],

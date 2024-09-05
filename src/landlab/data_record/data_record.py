@@ -92,8 +92,7 @@ class DataRecord:
 
             .. code-block:: python
 
-                {'grid_element' : [grid_element],
-                 'element_id' : [element_id]}
+                {"grid_element": [grid_element], "element_id": [element_id]}
 
             where:
 
@@ -109,16 +108,20 @@ class DataRecord:
 
             .. code-block:: python
 
-                {'grid_element' : numpy.array(['node'], ['node'], ['link']),
-                 'element_id' :   numpy.array([1],      [5],      [1]     )}
+                {
+                    "grid_element": numpy.array(["node"], ["node"], ["link"]),
+                    "element_id": numpy.array([1], [5], [1]),
+                }
 
         data_vars : dict (optional)
             Dictionary of the data variables to be recorded. The structure is:
 
             .. code-block:: python
 
-                {'variable_name_1' : (['dimensions'], variable_data_1),
-                 'variable_name_2' : (['dimensions'], variable_data_2)}
+                {
+                    "variable_name_1": (["dimensions"], variable_data_1),
+                    "variable_name_2": (["dimensions"], variable_data_2),
+                }
 
             where:
 
@@ -136,14 +139,16 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.data_record import DataRecord
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
 
         Example of a DataRecord with time as the only dimension:
 
-        >>> dr1 = DataRecord(grid, time=[0.],
-        ...                  data_vars={'mean_elevation' : (['time'],
-        ...                                                 np.array([100]))},
-        ...                  attrs={'time_units' : 'y'})
+        >>> dr1 = DataRecord(
+        ...     grid,
+        ...     time=[0.0],
+        ...     data_vars={"mean_elevation": (["time"], np.array([100]))},
+        ...     attrs={"time_units": "y"},
+        ... )
 
         DataRecord builds off of xarray Dataset, a multi-dimensional, in
         memory, array  database. Dataset implements the mapping interface with
@@ -163,10 +168,10 @@ class DataRecord:
         time
         0.0              100
         >>> dr1.dataset.time.values
-        array([ 0.])
+        array([0.])
         >>> dr1.variable_names
         ['mean_elevation']
-        >>> dr1.dataset['mean_elevation'].values
+        >>> dr1.dataset["mean_elevation"].values
         array([100])
         >>> list(dr1.dataset.attrs.items())
         [('time_units', 'y')]
@@ -177,15 +182,15 @@ class DataRecord:
         Example of a DataRecord with item_id as the only dimension:
 
         >>> my_items2 = {
-        ...     'grid_element': np.array(('node', 'link'), dtype=str),
-        ...     'element_id': np.array([1, 3]),
+        ...     "grid_element": np.array(("node", "link"), dtype=str),
+        ...     "element_id": np.array([1, 3]),
         ... }
         >>> dr2 = DataRecord(grid, items=my_items2)
 
         Note that both arrays (grid_element and element_id) have 1 dimension
         as they only vary along the dimension 'item_id'.
 
-        >>> dr2.dataset.to_dataframe()[['grid_element', 'element_id']]
+        >>> dr2.dataset.to_dataframe()[["grid_element", "element_id"]]
                 grid_element  element_id
         item_id
         0               node           1
@@ -193,14 +198,16 @@ class DataRecord:
 
         Example of a DataRecord with dimensions time and item_id:
 
-        >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1], [3]])}
-        >>> dr3 = DataRecord(grid, time=[0.], items=my_items3)
+        >>> my_items3 = {
+        ...     "grid_element": np.array([["node"], ["link"]]),
+        ...     "element_id": np.array([[1], [3]]),
+        ... }
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3.dataset.to_dataframe()[['grid_element', 'element_id']]
+        >>> dr3.dataset.to_dataframe()[["grid_element", "element_id"]]
                      grid_element  element_id
         item_id time
         0       0.0          node           1
@@ -419,8 +426,7 @@ class DataRecord:
 
             .. code-block:: python
 
-                {'grid_element' : [grid_element],
-                 'element_id' : [element_id]}
+                {"grid_element": [grid_element], "element_id": [element_id]}
 
             Both must be provided even if only one is being changed.
 
@@ -440,19 +446,19 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.data_record import DataRecord
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
 
         Example of a DataRecord with dimensions time and item_id:
 
         >>> my_items3 = {
         ...     "grid_element": np.array([["node"], ["link"]]),
-        ...     "element_id": np.array([[1],[3]]),
+        ...     "element_id": np.array([[1], [3]]),
         ... }
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3 = DataRecord(grid, time=[0.], items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
@@ -461,24 +467,22 @@ class DataRecord:
         ...     time=[2.0],
         ...     item_id=[0],
         ...     new_item_loc={
-        ...         'grid_element' : np.array([['node']]),
-        ...         'element_id' : np.array([[6]])
+        ...         "grid_element": np.array([["node"]]),
+        ...         "element_id": np.array([[6]]),
         ...     },
-        ...     new_record={
-        ...         'item_size':(['item_id', 'time'], np.array([[0.2]]))
-        ...     }
+        ...     new_record={"item_size": (["item_id", "time"], np.array([[0.2]]))},
         ... )
-        >>> dr3.dataset['element_id'].values
-        array([[  1.,   6.],
-               [  3.,  nan]])
-        >>> dr3.get_data([2.0],[0],'item_size')
-        array([ 0.2])
+        >>> dr3.dataset["element_id"].values
+        array([[ 1.,  6.],
+               [ 3., nan]])
+        >>> dr3.get_data([2.0], [0], "item_size")
+        array([0.2])
 
         The 'add_record' method can also be used to add a non item-related
         record:
 
-        >>> dr3.add_record(time=[50.0], new_record={'mean_elev': (['time'], [110])})
-        >>> dr3.dataset['mean_elev'].to_dataframe()
+        >>> dr3.add_record(time=[50.0], new_record={"mean_elev": (["time"], [110])})
+        >>> dr3.dataset["mean_elev"].to_dataframe()
               mean_elev
         time
         0.0         NaN
@@ -608,8 +612,7 @@ class DataRecord:
 
             .. code-block:: python
 
-                {'grid_element' : [grid_element],
-                 'element_id' : [element_id]}
+                {"grid_element": [grid_element], "element_id": [element_id]}
 
             where:
 
@@ -625,8 +628,10 @@ class DataRecord:
 
             .. code-block:: python
 
-                {'grid_element' : numpy.array([['node'], ['node'], ['link']]),
-                 'element_id' :   numpy.array([[1],      [5],      [1]     ])}
+                {
+                    "grid_element": numpy.array([["node"], ["node"], ["link"]]),
+                    "element_id": numpy.array([[1], [5], [1]]),
+                }
 
         new_item_spec : dict (optional)
             Dictionary containing any data variables (other than
@@ -635,7 +640,7 @@ class DataRecord:
 
             .. code-block:: python
 
-                {'variable_name_1' : (['dimensions'], variable_data_1)}
+                {"variable_name_1": (["dimensions"], variable_data_1)}
 
             where:
 
@@ -650,29 +655,31 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.data_record import DataRecord
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
 
         Example of a DataRecord with dimensions time and item_id:
 
-        >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1],[3]])}
+        >>> my_items3 = {
+        ...     "grid_element": np.array([["node"], ["link"]]),
+        ...     "element_id": np.array([[1], [3]]),
+        ... }
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3 = DataRecord(grid,
-        ...                  time=[0.],
-        ...                  items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
 
         Items can be added to a DataRecord that already holds similar items,
         using the method 'add_item':
 
-        >>> dr3.add_item(time=[1.0],
-        ...              new_item={'grid_element' : np.array(
-        ...                                              [['node'], ['node']]),
-        ...                        'element_id' : np.array([[4],[4]])},
-        ...              new_item_spec={'size': (
-        ...                              ['item_id', 'time'], [[10],[5]])})
+        >>> dr3.add_item(
+        ...     time=[1.0],
+        ...     new_item={
+        ...         "grid_element": np.array([["node"], ["node"]]),
+        ...         "element_id": np.array([[4], [4]]),
+        ...     },
+        ...     new_item_spec={"size": (["item_id", "time"], [[10], [5]])},
+        ... )
 
         Two items have been added at a new timestep 1.0:
 
@@ -685,8 +692,8 @@ class DataRecord:
         example), the values for this variable are filled with 'nan' for the
         pre-existing items:
 
-        >>> dr3.dataset['size'][:,1].values
-        array([ nan,  nan,  10.,   5.])
+        >>> dr3.dataset["size"][:, 1].values
+        array([nan, nan, 10.,  5.])
 
         The previous line calls the values of the variable 'size', for all
         items, at time=1; the first two items don't have a value for the
@@ -805,27 +812,30 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.data_record import DataRecord
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
 
         Example of a DataRecord with dimensions time and item_id:
 
-        >>> my_items4 = {'grid_element' : 'node',
-        ...              'element_id': np.array([[1],[3],[3],[7]])}
+        >>> my_items4 = {
+        ...     "grid_element": "node",
+        ...     "element_id": np.array([[1], [3], [3], [7]]),
+        ... }
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> my_data4 = {'item_size': (['item_id', 'time'], np.array(
-        ...                                 [[0.3],[0.4],[0.8],[0.4]]))}
-        >>> dr4=DataRecord(grid,
-        ...                time=[50.],
-        ...                items=my_items4,
-        ...                data_vars=my_data4)
-        >>> dr4.get_data([50.],[2],'element_id')
+        >>> my_data4 = {
+        ...     "item_size": (
+        ...         ["item_id", "time"],
+        ...         np.array([[0.3], [0.4], [0.8], [0.4]]),
+        ...     )
+        ... }
+        >>> dr4 = DataRecord(grid, time=[50.0], items=my_items4, data_vars=my_data4)
+        >>> dr4.get_data([50.0], [2], "element_id")
         array([3])
-        >>> dr4.get_data(time=[50.],data_variable='item_size')
-        array([  0.3,  0.4,  0.8,  0.4])
-        >>> dr4.get_data(item_id=[1,2], data_variable='grid_element')
+        >>> dr4.get_data(time=[50.0], data_variable="item_size")
+        array([0.3, 0.4, 0.8, 0.4])
+        >>> dr4.get_data(item_id=[1, 2], data_variable="grid_element")
         array([['node'],
                ['node']], dtype=object)
         """
@@ -921,33 +931,36 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.data_record import DataRecord
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
 
         Example of a DataRecord with dimensions time and item_id:
 
-        >>> my_items4 = {'grid_element' : 'node',
-        ...              'element_id': np.array([[1],[3],[3],[7]])}
+        >>> my_items4 = {
+        ...     "grid_element": "node",
+        ...     "element_id": np.array([[1], [3], [3], [7]]),
+        ... }
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> my_data4 = {'item_size': (['item_id', 'time'], np.array(
-        ...                                 [[0.3],[0.4],[0.8],[0.4]]))}
-        >>> dr4 = DataRecord(grid,
-        ...                  time=[50.],
-        ...                  items=my_items4,
-        ...                  data_vars=my_data4)
-        >>> dr4.dataset['item_size'].values
-        array([[ 0.3],
-               [ 0.4],
-               [ 0.8],
-               [ 0.4]])
-        >>> dr4.set_data([50.],[2],'item_size', [0.5])
-        >>> dr4.dataset['item_size'].values
-        array([[ 0.3],
-               [ 0.4],
-               [ 0.5],
-               [ 0.4]])
+        >>> my_data4 = {
+        ...     "item_size": (
+        ...         ["item_id", "time"],
+        ...         np.array([[0.3], [0.4], [0.8], [0.4]]),
+        ...     )
+        ... }
+        >>> dr4 = DataRecord(grid, time=[50.0], items=my_items4, data_vars=my_data4)
+        >>> dr4.dataset["item_size"].values
+        array([[0.3],
+               [0.4],
+               [0.8],
+               [0.4]])
+        >>> dr4.set_data([50.0], [2], "item_size", [0.5])
+        >>> dr4.dataset["item_size"].values
+        array([[0.3],
+               [0.4],
+               [0.5],
+               [0.4]])
         """
         if data_variable not in self.variable_names:
             raise KeyError(
@@ -1059,23 +1072,24 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab.data_record import DataRecord
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
         >>> element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5, 9999]
         >>> volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7, 1234]
         >>> ages = [10, 11, 12, 13, 14, 15, 16, 8, 10, 3456]
-        >>> grid_element = 'node'
-        >>> data = {'ages': ages,
-        ...         'volumes': volumes}
-        >>> dr = DataRecord(grid,
-        ...                 dummy_elements={"node": [9999]},
-        ...                 items={'grid_element' : 'node',
-        ...                           'element_id' : np.array(element_id)},
-        ...                 data_vars={'ages' : (['item_id'], np.array(ages)),
-        ...                             'volumes' : (
-        ...                                 ['item_id'], np.array(volumes))})
+        >>> grid_element = "node"
+        >>> data = {"ages": ages, "volumes": volumes}
+        >>> dr = DataRecord(
+        ...     grid,
+        ...     dummy_elements={"node": [9999]},
+        ...     items={"grid_element": "node", "element_id": np.array(element_id)},
+        ...     data_vars={
+        ...         "ages": (["item_id"], np.array(ages)),
+        ...         "volumes": (["item_id"], np.array(volumes)),
+        ...     },
+        ... )
         >>> s = dr.calc_aggregate_value(func=xr.Dataset.sum, data_variable="ages")
         >>> s
-        array([ 46.,  14.,  15.,  16.,   8.,  10.,  nan,  nan,  nan])
+        array([46., 14., 15., 16.,  8., 10., nan, nan, nan])
         >>> len(s) == grid.number_of_nodes
         True
 
@@ -1087,47 +1101,47 @@ class DataRecord:
         For example, if we wanted to aggregate volume for items with an age
         greater than 10 we would to the following:
 
-        >>> f = dr.dataset['ages'] > 10.
-        >>> v_f = dr.calc_aggregate_value(
-        ...     func=xr.Dataset.sum, data_variable='volumes', filter_array=f
-        ... )
-        >>> v_f
-        array([  8.,   3.,   4.,   5.,  nan,  nan,  nan,  nan,  nan])
-
-        If we wanted the value for elements with no volume to be zero instead
-        of np.nan we could use the keyword argument ``fill_value``.
-
-        >>> f = dr.dataset['ages'] > 10.
-        >>> v_f = dr.calc_aggregate_value(
-        ...     func=xr.Dataset.sum,
-        ...     data_variable="volumes",
-        ...     filter_array=f,
-        ...     fill_value=0.,
-        ... )
-        >>> v_f
-        array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
-
-        An array of ``fill_value`` is returned when ``filter_array`` is all
-        ``False`` (np.nan is the default value).
-
-        >>> f = dr.dataset['ages'] > 4000.
+        >>> f = dr.dataset["ages"] > 10.0
         >>> v_f = dr.calc_aggregate_value(
         ...     func=xr.Dataset.sum, data_variable="volumes", filter_array=f
         ... )
         >>> v_f
-        array([  nan,   nan,   nan,   nan,  nan,  nan,  nan,  nan,  nan])
+        array([ 8.,  3.,  4.,  5., nan, nan, nan, nan, nan])
 
-        Other values can be specified for ``fill_value``.
+        If we wanted the value for elements with no volume to be zero instead
+        of np.nan we could use the keyword argument ``fill_value``.
 
-        >>> f = dr.dataset['ages'] > 4000.
+        >>> f = dr.dataset["ages"] > 10.0
         >>> v_f = dr.calc_aggregate_value(
         ...     func=xr.Dataset.sum,
         ...     data_variable="volumes",
         ...     filter_array=f,
-        ...     fill_value=0.,
+        ...     fill_value=0.0,
         ... )
         >>> v_f
-        array([  0.,   0.,   0.,   0.,  0.,  0.,  0.,  0.,  0.])
+        array([8., 3., 4., 5., 0., 0., 0., 0., 0.])
+
+        An array of ``fill_value`` is returned when ``filter_array`` is all
+        ``False`` (np.nan is the default value).
+
+        >>> f = dr.dataset["ages"] > 4000.0
+        >>> v_f = dr.calc_aggregate_value(
+        ...     func=xr.Dataset.sum, data_variable="volumes", filter_array=f
+        ... )
+        >>> v_f
+        array([nan, nan, nan, nan, nan, nan, nan, nan, nan])
+
+        Other values can be specified for ``fill_value``.
+
+        >>> f = dr.dataset["ages"] > 4000.0
+        >>> v_f = dr.calc_aggregate_value(
+        ...     func=xr.Dataset.sum,
+        ...     data_variable="volumes",
+        ...     filter_array=f,
+        ...     fill_value=0.0,
+        ... )
+        >>> v_f
+        array([0., 0., 0., 0., 0., 0., 0., 0., 0.])
         """
         filter_at = self._dataset["grid_element"] == at
 
@@ -1170,73 +1184,76 @@ class DataRecord:
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.data_record import DataRecord
-        >>> grid = RasterModelGrid((3,3))
+        >>> grid = RasterModelGrid((3, 3))
 
         Example of a DataRecord with dimensions time and item_id:
 
-        >>> my_items3 = {'grid_element': np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1],[3]])}
+        >>> my_items3 = {
+        ...     "grid_element": np.array([["node"], ["link"]]),
+        ...     "element_id": np.array([[1], [3]]),
+        ... }
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
 
-        >>> dr3 = DataRecord(grid,
-        ...                  time=[0.],
-        ...                  items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
 
         Records relating to pre-existing items can be added to the DataRecord
         using the method 'add_record':
 
-        >>> dr3.add_record(time=[2.0, 3.0],
-        ...                new_record={'mean_elevation':(
-        ...                           ['time'], np.array([200., 250.]))})
+        >>> dr3.add_record(
+        ...     time=[2.0, 3.0],
+        ...     new_record={"mean_elevation": (["time"], np.array([200.0, 250.0]))},
+        ... )
 
         Adding this data record created two new time coordinates. The
         grid_element and element_id of the items has been filled with 'nan'
         for these time coordinates.
 
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["grid_element"].values
         array([['node', nan, nan],
                ['link', nan, nan]], dtype=object)
-        >>> dr3.dataset['element_id'].values
-        array([[  1.,  nan,  nan],
-               [  3.,  nan,  nan]])
+        >>> dr3.dataset["element_id"].values
+        array([[ 1., nan, nan],
+               [ 3., nan, nan]])
 
         To fill these values with the last valid value, use the method
         ffill_grid_element_and_id:
 
         >>> dr3.ffill_grid_element_and_id()
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],
                ['link', 'link', 'link']], dtype=object)
-        >>> dr3.dataset['element_id'].values
-        array([[ 1.,  1.,  1.],
-               [ 3.,  3.,  3.]])
+        >>> dr3.dataset["element_id"].values
+        array([[1., 1., 1.],
+               [3., 3., 3.]])
 
         In some applications, there may be no prior valid value. Under these
         circumstances, those values will stay as NaN. That is, this only
         forward fills, and does not backfill.
 
-        >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
-        ...              'element_id': np.array([[1],[3]])}
-        >>> dr3 = DataRecord(grid,
-        ...                  time=[0.],
-        ...                  items=my_items3)
-        >>> dr3.dataset['element_id'].values
+        >>> my_items3 = {
+        ...     "grid_element": np.array([["node"], ["link"]]),
+        ...     "element_id": np.array([[1], [3]]),
+        ... }
+        >>> dr3 = DataRecord(grid, time=[0.0], items=my_items3)
+        >>> dr3.dataset["element_id"].values
         array([[1], [3]])
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["grid_element"].values
         array([['node'],
                ['link']],
               dtype='<U4')
 
         Next add some new items at a new time.
 
-        >>> dr3.add_item(time=[1.0],
-        ...              new_item={'grid_element' : np.array(
-        ...                                              [['node'], ['node']]),
-        ...                        'element_id' : np.array([[4],[4]])},
-        ...              new_item_spec={'size': (
-        ...                              ['item_id', 'time'], [[10],[5]])})
+        >>> dr3.add_item(
+        ...     time=[1.0],
+        ...     new_item={
+        ...         "grid_element": np.array([["node"], ["node"]]),
+        ...         "element_id": np.array([[4], [4]]),
+        ...     },
+        ...     new_item_spec={"size": (["item_id", "time"], [[10], [5]])},
+        ... )
 
         Two items have been added at a new timestep 1.0:
 
@@ -1244,12 +1261,12 @@ class DataRecord:
         4
         >>> dr3.time_coordinates
         [0.0, 1.0]
-        >>> dr3.dataset['element_id'].values
-        array([[  1.,  nan],
-               [  3.,  nan],
-               [ nan,   4.],
-               [ nan,   4.]])
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["element_id"].values
+        array([[ 1., nan],
+               [ 3., nan],
+               [nan,  4.],
+               [nan,  4.]])
+        >>> dr3.dataset["grid_element"].values
         array([['node', nan],
                ['link', nan],
                [nan, 'node'],
@@ -1259,12 +1276,12 @@ class DataRecord:
         do.
 
         >>> dr3.ffill_grid_element_and_id()
-        >>> dr3.dataset['element_id'].values
-        array([[  1.,   1.],
-               [  3.,   3.],
-               [ nan,   4.],
-               [ nan,   4.]])
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["element_id"].values
+        array([[ 1.,  1.],
+               [ 3.,  3.],
+               [nan,  4.],
+               [nan,  4.]])
+        >>> dr3.dataset["grid_element"].values
         array([['node', 'node'],
                ['link', 'link'],
                [nan, 'node'],
@@ -1274,12 +1291,12 @@ class DataRecord:
         full time column.
 
         >>> dr3.add_record(time=[2])
-        >>> dr3.dataset['element_id'].values
-        array([[  1.,   1.,  nan],
-               [  3.,   3.,  nan],
-               [ nan,   4.,  nan],
-               [ nan,   4.,  nan]])
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["element_id"].values
+        array([[ 1.,  1., nan],
+               [ 3.,  3., nan],
+               [nan,  4., nan],
+               [nan,  4., nan]])
+        >>> dr3.dataset["grid_element"].values
         array([['node', 'node', nan],
                ['link', 'link', nan],
                [nan, 'node', nan],
@@ -1288,13 +1305,13 @@ class DataRecord:
         And that forward filling fills everything as expected.
 
         >>> dr3.ffill_grid_element_and_id()
-        >>> dr3.dataset['element_id'].values
-        array([[  1.,   1.,   1.],
-               [  3.,   3.,   3.],
-               [ nan,   4.,   4.],
-               [ nan,   4.,   4.]])
+        >>> dr3.dataset["element_id"].values
+        array([[ 1.,  1.,  1.],
+               [ 3.,  3.,  3.],
+               [nan,  4.,  4.],
+               [nan,  4.,  4.]])
 
-        >>> dr3.dataset['grid_element'].values
+        >>> dr3.dataset["grid_element"].values
         array([['node', 'node', 'node'],
                ['link', 'link', 'link'],
                [nan, 'node', 'node'],

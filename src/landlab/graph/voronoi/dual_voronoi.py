@@ -20,24 +20,20 @@ class DualVoronoiGraph(DualGraph, DelaunayGraph):
         Examples
         --------
         >>> from landlab.graph import DualVoronoiGraph
-        >>> node_x = [0, 1, 2, 3,
-        ...           0.2, 1.2, 2.2, 3.2,
-        ...           0.4, 1.4, 2.4, 3.4]
-        >>> node_y = [0, 0, 0, 0,
-        ...           1, 1, 1, 1,
-        ...           2, 2, 2, 2]
+        >>> node_x = [0, 1, 2, 3, 0.2, 1.2, 2.2, 3.2, 0.4, 1.4, 2.4, 3.4]
+        >>> node_y = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
         >>> graph = DualVoronoiGraph((node_y, node_x), sort=True)
         >>> graph.x_of_corner
-        array([ 0.5,  1.5,  2.5,  0.7,  1.7,  2.7,  0.7,  1.7,  2.7,  0.9,  1.9,
-                2.9])
-        >>> graph.y_of_corner # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.42,  0.42,  0.42,  0.58,  0.58,  0.58,  1.42,  1.42,  1.42,
-                1.58,  1.58,  1.58])
-        >>> graph.corners_at_face # doctest: +NORMALIZE_WHITESPACE
+        array([0.5,  1.5,  2.5,  0.7,  1.7,  2.7,  0.7,  1.7,  2.7,  0.9,  1.9,
+               2.9])
+        >>> graph.y_of_corner
+        array([0.42,  0.42,  0.42,  0.58,  0.58,  0.58,  1.42,  1.42,  1.42,
+               1.58,  1.58,  1.58])
+        >>> graph.corners_at_face
         array([[ 0,  3], [ 3,  1], [ 1,  4], [ 4,  2], [ 2,  5],
                [ 3,  6], [ 4,  7], [ 5,  8],
                [ 6,  9], [ 9,  7], [ 7, 10], [10,  8], [ 8, 11]])
-        >>> graph.faces_at_corner # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.faces_at_corner
         array([[ 0, -1, -1], [ 2,  1, -1], [ 4,  3, -1],
                [ 5,  0,  1], [ 6,  2,  3], [ 7,  4, -1],
                [ 8,  5, -1], [10,  9,  6], [12, 11,  7],

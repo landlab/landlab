@@ -3,6 +3,8 @@ from scipy.integrate import quad
 
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
+)
+from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     _GeneralizedErosionDeposition,
 )
 from landlab.utils.return_array import return_array_at_node
@@ -69,7 +71,7 @@ class Space(_GeneralizedErosionDeposition):
     ...     top_is_closed=True,
     ... )
     >>> mg.set_watershed_boundary_condition_outlet_id(
-    ...     0, mg.at_node['topographic__elevation'], -9999.0
+    ...     0, mg.at_node["topographic__elevation"], -9999.0
     ... )
     >>> fsc_dt = 100.0
     >>> space_dt = 100.0
@@ -78,7 +80,7 @@ class Space(_GeneralizedErosionDeposition):
 
     >>> fr = FlowAccumulator(mg, flow_director="D8")
     >>> df = DepressionFinderAndRouter(mg)
-    >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
+    >>> fsc = FastscapeEroder(mg, K_sp=0.001, m_sp=0.5, n_sp=1)
 
     Burn in an initial drainage network using the Fastscape eroder:
 
@@ -86,7 +88,8 @@ class Space(_GeneralizedErosionDeposition):
     ...     fr.run_one_step()
     ...     df.map_depressions()
     ...     fsc.run_one_step(dt=fsc_dt)
-    ...     mg.at_node["topographic__elevation"][0] -= 0.001 # Uplift
+    ...     mg.at_node["topographic__elevation"][0] -= 0.001  # Uplift
+    ...
 
     Add some soil to the drainage network:
 
@@ -102,10 +105,10 @@ class Space(_GeneralizedErosionDeposition):
     ...     K_br=0.00000000001,
     ...     F_f=0.5,
     ...     phi=0.1,
-    ...     H_star=1.,
+    ...     H_star=1.0,
     ...     v_s=0.001,
     ...     m_sp=0.5,
-    ...     n_sp = 1.0,
+    ...     n_sp=1.0,
     ...     sp_crit_sed=0,
     ...     sp_crit_br=0,
     ... )
@@ -117,20 +120,21 @@ class Space(_GeneralizedErosionDeposition):
     ...     df.map_depressions()
     ...     ha.run_one_step(dt=space_dt)
     ...     mg.at_node["bedrock__elevation"][0] -= 2e-6 * space_dt
+    ...
 
     Now we test to see if soil depth and topography are right:
 
     >>> np.around(mg.at_node["soil__depth"], decimals=3)
-    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.492,
-            0.491,  0.5  ,  0.5  ,  0.492,  0.492,  0.49 ,  0.5  ,  0.5  ,
-            0.491,  0.49 ,  0.484,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,
-            0.5  ])
+    array([0.5  , 0.5  , 0.5  , 0.5  , 0.5  , 0.5  , 0.495, 0.492,
+           0.491, 0.5  , 0.5  , 0.492, 0.492, 0.49 , 0.5  , 0.5  ,
+           0.491, 0.49 , 0.484, 0.5  , 0.5  , 0.5  , 0.5  , 0.5  ,
+           0.5  ])
 
     >>> np.around(mg.at_node["topographic__elevation"], decimals=3)
-    array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.428,
-            0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
-            0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
-            8.51 ])
+    array([0.423, 1.536, 2.573, 3.511, 4.561, 1.582, 0.424, 0.428,
+           0.438, 5.51 , 2.54 , 0.428, 0.428, 0.438, 6.526, 3.559,
+           0.438, 0.438, 0.45 , 7.553, 4.559, 5.541, 6.57 , 7.504,
+           8.51 ])
 
     References
     ----------
@@ -625,27 +629,37 @@ class Space(_GeneralizedErosionDeposition):
         >>> import numpy as np
 
         >>> rg = RasterModelGrid((3, 4))
-        >>> z = rg.add_zeros('topographic__elevation', at='node')
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> z[:] = 0.1 * rg.x_of_node
-        >>> H = rg.add_zeros('soil__depth', at='node')
+        >>> H = rg.add_zeros("soil__depth", at="node")
         >>> H += 0.1
-        >>> br = rg.add_zeros('bedrock__elevation', at='node')
+        >>> br = rg.add_zeros("bedrock__elevation", at="node")
         >>> br[:] = z - H
 
-        >>> fa = FlowAccumulator(rg, flow_director='FlowDirectorSteepest')
+        >>> fa = FlowAccumulator(rg, flow_director="FlowDirectorSteepest")
         >>> fa.run_one_step()
-        >>> sp = Space(rg, K_sed=1.0, K_br=0.1,
-        ...            F_f=0.5, phi=0.0, H_star=1., v_s=1.0,
-        ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
-        ...            sp_crit_br=0, solver='adaptive')
+        >>> sp = Space(
+        ...     rg,
+        ...     K_sed=1.0,
+        ...     K_br=0.1,
+        ...     F_f=0.5,
+        ...     phi=0.0,
+        ...     H_star=1.0,
+        ...     v_s=1.0,
+        ...     m_sp=0.5,
+        ...     n_sp=1.0,
+        ...     sp_crit_sed=0,
+        ...     sp_crit_br=0,
+        ...     solver="adaptive",
+        ... )
         >>> sp.run_one_step(dt=10.0)
 
         >>> np.round(sp.Es[5:7], 4)
-        array([ 0.0029,  0.0074])
+        array([0.0029, 0.0074])
         >>> np.round(sp.Er[5:7], 4)
-        array([ 0.0032,  0.0085])
+        array([0.0032, 0.0085])
         >>> np.round(H[5:7], 3)
-        array([ 0.088,  0.078])
+        array([0.088, 0.078])
         """
 
         # Initialize remaining_time, which records how much of the global time

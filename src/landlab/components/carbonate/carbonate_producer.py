@@ -33,9 +33,9 @@ def smooth_heaviside(x, width=0.5, out=None):
     --------
     >>> import numpy as np
     >>> np.round(smooth_heaviside(np.array([-1, 0, 1])), 3)
-    array([ 0.018,  0.5  ,  0.982])
+    array([0.018, 0.5  , 0.982])
     >>> smooth_heaviside(np.array([-1, 0, 1]), width=0.0)
-    array([ 0. ,  0.5,  1. ])
+    array([0. , 0.5, 1. ])
     """
     if width > 0.0:
         with set_numpy_err(over="ignore"):
@@ -70,8 +70,8 @@ class CarbonateProducer(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import CarbonateProducer
     >>> grid = RasterModelGrid((3, 3))
-    >>> elev = grid.add_zeros('topographic__elevation', at='node')
-    >>> sealevel = grid.add_field('sea_level__elevation', 0.0, at='grid')
+    >>> elev = grid.add_zeros("topographic__elevation", at="node")
+    >>> sealevel = grid.add_field("sea_level__elevation", 0.0, at="grid")
     >>> elev[:] = -1.0
     >>> cp = CarbonateProducer(grid)
     >>> np.round(cp.calc_carbonate_production_rate()[4], 2)
@@ -83,9 +83,9 @@ class CarbonateProducer(Component):
     >>> np.round(cp.calc_carbonate_production_rate()[4], 2)
     0.01
     >>> thickness = cp.produce_carbonate(10.0)
-    >>> np.round(10 * grid.at_node['carbonate_thickness'][4])
+    >>> np.round(10 * grid.at_node["carbonate_thickness"][4])
     1.0
-    >>> thickness is grid.at_node['carbonate_thickness']
+    >>> thickness is grid.at_node["carbonate_thickness"]
     True
     >>> cp.run_one_step(10.0)
     >>> np.round(10 * thickness[4])
@@ -263,12 +263,15 @@ class CarbonateProducer(Component):
         """
         self._depth[:] = self.sea_level - self._grid.at_node["topographic__elevation"]
         self._depth.clip(min=-2.0 * self._tidal_range - _EPSILON, out=self._depth)
-        self._carb_prod_rate[
-            self.grid.core_nodes
-        ] = self._max_carbonate_production_rate * np.tanh(
-            self.surface_light
-            * np.exp(-self.extinction_coefficient * self._depth[self.grid.core_nodes])
-            / self.saturating_light
+        self._carb_prod_rate[self.grid.core_nodes] = (
+            self._max_carbonate_production_rate
+            * np.tanh(
+                self.surface_light
+                * np.exp(
+                    -self.extinction_coefficient * self._depth[self.grid.core_nodes]
+                )
+                / self.saturating_light
+            )
         )
         self._carb_prod_rate *= smooth_heaviside(self._depth, width=self.tidal_range)
         return self._carb_prod_rate

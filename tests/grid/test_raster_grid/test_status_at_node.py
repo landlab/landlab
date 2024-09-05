@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import NodeStatus, RasterModelGrid
+from landlab import NodeStatus
+from landlab import RasterModelGrid
 
 CB = NodeStatus.CLOSED
 FV = NodeStatus.FIXED_VALUE
@@ -50,16 +51,6 @@ def test_set_status_with_array_bool():
     assert_array_equal(
         grid.status_at_node,
         [FV, FV, FV, FV, FV, FV, 2, 2, 0, FV, FV, 0, 0, 2, FV, FV, FV, FV, FV, FV],
-    )
-
-
-def test_set_with_itemset():
-    grid = RasterModelGrid((4, 5))
-    grid.status_at_node.itemset(7, 2)
-
-    assert_array_equal(
-        grid.status_at_node,
-        [FV, FV, FV, FV, FV, FV, 0, 2, 0, FV, FV, 0, 0, 0, FV, FV, FV, FV, FV, FV],
     )
 
 

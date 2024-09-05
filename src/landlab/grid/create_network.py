@@ -3,13 +3,15 @@ Created on Tue Feb  2 17:50:09 2021
 
 @author: sahrendt
 """
+
 from dataclasses import dataclass
 from itertools import tee
 
 import numpy as np
 import numpy.typing as npt
 
-from ..components import ChannelProfiler, FlowAccumulator
+from ..components import ChannelProfiler
+from ..components import FlowAccumulator
 from .network import NetworkModelGrid
 
 try:
@@ -307,7 +309,7 @@ def _reduce_nodes(distance_along_segment, spacing=1.0):
     The end nodes are always retained.
 
     >>> distance = [0.0, 1.0, 2.0, 3.0, 4.0]
-    >>> _reduce_nodes(distance, spacing=100.)
+    >>> _reduce_nodes(distance, spacing=100.0)
     [0, 4]
 
     """
@@ -379,7 +381,7 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
     The end nodes are always retained.
 
     >>> xy_of_node = [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0]]
-    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.)
+    >>> _reduce_to_fewest_nodes(xy_of_node, spacing=100.0)
     [0, 4]
     """
     xy_of_node = np.asarray(xy_of_node)
@@ -409,7 +411,6 @@ def _reduce_to_fewest_nodes(xy_of_node, spacing=1.0):
 
 
 class SegmentLinkCollector:
-
     """Collect links between nodes of segments."""
 
     def __init__(self, links=None):
@@ -435,7 +436,6 @@ class SegmentLinkCollector:
 
 
 class ChannelSegment:
-
     """A channel segment.
 
     Parameters
@@ -528,14 +528,12 @@ class ChannelSegment:
 
 
 class DisconnectedSegmentError(Exception):
-
     """Raise this exception if a channel segment cannot be connected to a network."""
 
     pass
 
 
 class ChannelSegmentConnector:
-
     """Connect channel segments to form a network."""
 
     def __init__(self, *args):
@@ -623,7 +621,6 @@ def create_xy_of_node(network, grid):
 
 
 class SegmentNodeCoordinateCollector:
-
     """Collect xy coordinates for each node along segments."""
 
     def __init__(self, grid):
@@ -688,7 +685,6 @@ def get_node_fields(network, grid, include="*", exclude=None):
 
 
 class SegmentFieldCollector:
-
     """Collect field values for each node along segments."""
 
     def __init__(self, field):
@@ -719,7 +715,6 @@ def reindex_network_nodes(network):
 
 
 class SegmentNodeReindexer:
-
     """Reindex nodes along segments."""
 
     def __init__(self, nodes=None):

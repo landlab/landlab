@@ -1,13 +1,13 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.grid.gradients import (
-    calc_diff_at_link as calc_diff_at_link_slow,
-    calc_grad_at_link as calc_grad_at_link_slow,
-)
-from landlab.grid.raster_gradients import calc_diff_at_link, calc_grad_at_link
+from landlab.grid.gradients import calc_diff_at_link as calc_diff_at_link_slow
+from landlab.grid.gradients import calc_grad_at_link as calc_grad_at_link_slow
+from landlab.grid.raster_gradients import calc_diff_at_link
+from landlab.grid.raster_gradients import calc_grad_at_link
 
 
 @pytest.mark.benchmark(group="calc_diff_at_link")

@@ -4,7 +4,11 @@
 from ..core import load_params
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
-from ..values import constant, plane, random, sine, units
+from ..values import constant
+from ..values import plane
+from ..values import random
+from ..values import sine
+from ..values import units
 from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
@@ -29,14 +33,12 @@ _SYNTHETIC_FIELD_CONSTRUCTORS = {
 
 
 class Error(Exception):
-
     """Base class for exceptions from this module."""
 
     pass
 
 
 class BadGridTypeError(Error):
-
     """Raise this error for a bad grid type."""
 
     def __init__(self, grid_type):
@@ -324,20 +326,31 @@ def create_grid(file_like, section=None):
     ...                 "fields": {
     ...                     "node": {
     ...                         "spam": {
-    ...                             "plane": [{"point": (1, 1, 1), "normal": (-2, -1, 1)}],
+    ...                             "plane": [
+    ...                                 {"point": (1, 1, 1), "normal": (-2, -1, 1)}
+    ...                             ],
     ...                             "random": [
     ...                                 {"distribution": "uniform", "low": 1, "high": 4}
     ...                             ],
     ...                         }
     ...                     },
     ...                     "link": {
-    ...                         "eggs": {"constant": [{"where": "ACTIVE_LINK", "value": 12}]}
+    ...                         "eggs": {
+    ...                             "constant": [{"where": "ACTIVE_LINK", "value": 12}]
+    ...                         }
     ...                     },
     ...                 }
     ...             },
     ...             {
     ...                 "boundary_conditions": [
-    ...                     {"set_closed_boundaries_at_grid_edges": [True, True, True, True]}
+    ...                     {
+    ...                         "set_closed_boundaries_at_grid_edges": [
+    ...                             True,
+    ...                             True,
+    ...                             True,
+    ...                             True,
+    ...                         ]
+    ...                     }
     ...                 ]
     ...             },
     ...         ]
@@ -360,11 +373,11 @@ def create_grid(file_like, section=None):
            4, 0, 0, 0, 4,
            4, 0, 0, 0, 4,
            4, 4, 4, 4, 4], dtype=uint8)
-    >>> np.round(mg.at_node['spam'].reshape(mg.shape), decimals=2)
-    array([[  0.12,   7.85,  13.2 ,  18.8 ,  23.47],
-           [  3.47,   9.17,  17.6 ,  22.8 ,  29.12],
-           [  7.06,  15.91,  21.5 ,  25.64,  31.55],
-           [ 11.55,  17.91,  24.57,  30.3 ,  35.87]])
+    >>> np.round(mg.at_node["spam"].reshape(mg.shape), decimals=2)
+    array([[ 0.12,   7.85,  13.2 ,  18.8 ,  23.47],
+           [ 3.47,   9.17,  17.6 ,  22.8 ,  29.12],
+           [ 7.06,  15.91,  21.5 ,  25.64,  31.55],
+           [11.55,  17.91,  24.57,  30.3 ,  35.87]])
     """
     if isinstance(file_like, dict):
         params = file_like
@@ -402,9 +415,7 @@ def norm_grid_description(grid_desc):
     --------
     >>> from landlab.grid.create import norm_grid_description
 
-    >>> grid_desc = [
-    ...     (3, 4), {"xy_spacing": 4.0, "xy_of_lower_left": (1.0, 2.0)}
-    ... ]
+    >>> grid_desc = [(3, 4), {"xy_spacing": 4.0, "xy_of_lower_left": (1.0, 2.0)}]
     >>> normed_items = list(norm_grid_description(grid_desc).items())
     >>> normed_items.sort()
     >>> normed_items

@@ -10,16 +10,15 @@ hours (hr) and depth units in millimeters (mm)
 Written by Jordan Adams, 2013, updated May 2016
 """
 
-
 import random
 
 import numpy as np
 
-from landlab import Component, ModelGrid
+from landlab import Component
+from landlab import ModelGrid
 
 
 class PrecipitationDistribution(Component):
-
     """Generate precipitation events.
 
     This component can generate a random storm duration, interstorm
@@ -36,11 +35,16 @@ class PrecipitationDistribution(Component):
     model run time and delta t...  Say we use 1.5 for mean storm, 15 for mean
     interstorm, 0.5 for mean depth, 100 for model run time and 1 for delta t...
 
-    >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
-    ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-    ...     total_t=100.0, delta_t=1.)
-    >>> for (dt, rate) in precip.yield_storm_interstorm_duration_intensity():
+    >>> precip = PrecipitationDistribution(
+    ...     mean_storm_duration=1.5,
+    ...     mean_interstorm_duration=15.0,
+    ...     mean_storm_depth=0.5,
+    ...     total_t=100.0,
+    ...     delta_t=1.0,
+    ... )
+    >>> for dt, rate in precip.yield_storm_interstorm_duration_intensity():
     ...     pass  # and so on
+    ...
 
     Alternatively, we can pass a grid to the component, and call yield_storms()
     to generate storm-interstorm float pairs while the intensity data is stored
@@ -48,37 +52,46 @@ class PrecipitationDistribution(Component):
 
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((4, 5))
-    >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
-    ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-    ...     total_t=46.)
+    >>> precip = PrecipitationDistribution(
+    ...     mg,
+    ...     mean_storm_duration=1.5,
+    ...     mean_interstorm_duration=15.0,
+    ...     mean_storm_depth=0.5,
+    ...     total_t=46.0,
+    ... )
     >>> storm_dts = []
     >>> interstorm_dts = []
     >>> intensities = []
     >>> precip.seed_generator(seedval=1)
-    >>> for (storm_dt, interstorm_dt) in precip.yield_storms():
+    >>> for storm_dt, interstorm_dt in precip.yield_storms():
     ...     storm_dts.append(storm_dt)
     ...     interstorm_dts.append(interstorm_dt)
-    ...     intensities.append(mg.at_grid['rainfall__flux'])
+    ...     intensities.append(mg.at_grid["rainfall__flux"])
+    ...
     >>> len(storm_dts) == 4  # 4 storms in the simulation
     True
     >>> len(interstorm_dts) == len(storm_dts)
     True
-    >>> rf_intensities_to_test = np.array([0.8138257984406472,
-    ...                                    0.15929112025199238,
-    ...                                    0.17254519305000884,
-    ...                                    0.09817611240558813])
+    >>> rf_intensities_to_test = np.array(
+    ...     [
+    ...         0.8138257984406472,
+    ...         0.15929112025199238,
+    ...         0.17254519305000884,
+    ...         0.09817611240558813,
+    ...     ]
+    ... )
     >>> np.allclose(intensities, rf_intensities_to_test)
     True
-    >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # test total_t
+    >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.0)  # test total_t
     True
-    >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated as necessary
+    >>> np.isclose(interstorm_dts[-1], 0.0)  # sequence truncated as necessary
     True
 
     We can also turn the generator straight into a list, like this:
 
     >>> precip.seed_generator(seedval=1)
     >>> steps = [(dt + istorm_dt) for (dt, istorm_dt) in precip.yield_storms()]
-    >>> np.isclose(sum(steps), 46.)
+    >>> np.isclose(sum(steps), 46.0)
     True
 
     References
@@ -223,9 +236,13 @@ class PrecipitationDistribution(Component):
         Examples
         --------
         >>> from landlab.components import PrecipitationDistribution
-        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
-        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-        ...     total_t=100.0, delta_t=1)
+        >>> precip = PrecipitationDistribution(
+        ...     mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0,
+        ...     mean_storm_depth=0.5,
+        ...     total_t=100.0,
+        ...     delta_t=1,
+        ... )
 
         Additionally, if we wanted to update several times, a loop could be
         utilized to accomplish this. Say we want 5 storm_durations; this
@@ -237,19 +254,25 @@ class PrecipitationDistribution(Component):
         ...     storm_duration_list.append(precip.storm_duration)
         ...     precip.update()
         ...     i += 1
+        ...
 
         Note though that alternatively we could also do this, avoiding the
         method entirely...
 
 
         >>> # ^^this lets you "manually" get the next item from the iterator
-        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
-        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-        ...     total_t=46.)
+        >>> precip = PrecipitationDistribution(
+        ...     mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0,
+        ...     mean_storm_depth=0.5,
+        ...     total_t=46.0,
+        ... )
         >>> storm_duration_list = []
         >>> for i in range(5):
-        ...     storm_duration_list.append(next(
-        ...         precip.yield_storm_interstorm_duration_intensity())[0])
+        ...     storm_duration_list.append(
+        ...         next(precip.yield_storm_interstorm_duration_intensity())[0]
+        ...     )
+        ...
 
         Notice that doing this will *not* automatically stop the iteration,
         however - it will continue ad infinitum.
@@ -518,48 +541,58 @@ class PrecipitationDistribution(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
-        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-        ...     total_t=46.)
-        >>> storm_dts = []
-        >>> interstorm_dts = []
-        >>> intensities = []
-        >>> precip.seed_generator(seedval=1)
-        >>> for (storm_dt, interstorm_dt) in precip.yield_storms():
-        ...     storm_dts.append(storm_dt)
-        ...     interstorm_dts.append(interstorm_dt)
-        ...     intensities.append(mg.at_grid['rainfall__flux'])
-        >>> len(storm_dts) == 4  # 4 storms in the simulation
-        True
-        >>> len(interstorm_dts) == len(storm_dts)
-        True
-        >>> rf_intensities_to_test = np.array([0.8138257984406472,
-        ...                                    0.15929112025199238,
-        ...                                    0.17254519305000884,
-        ...                                    0.09817611240558813])
-        >>> np.allclose(intensities, rf_intensities_to_test)
-        True
-        >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.)  # total_t
-        True
-        >>> np.isclose(interstorm_dts[-1], 0.)  # sequence truncated
-        True
-
-        An alternative way to use the generator might be:
-
-        >>> # ^^this lets you "manually" get the next item from the iterator
-        >>> flux = mg.at_grid.pop('rainfall__flux')  # remove the existing field
         >>> precip = PrecipitationDistribution(
         ...     mg,
         ...     mean_storm_duration=1.5,
         ...     mean_interstorm_duration=15.0,
         ...     mean_storm_depth=0.5,
-        ...     total_t=46.,
+        ...     total_t=46.0,
+        ... )
+        >>> storm_dts = []
+        >>> interstorm_dts = []
+        >>> intensities = []
+        >>> precip.seed_generator(seedval=1)
+        >>> for storm_dt, interstorm_dt in precip.yield_storms():
+        ...     storm_dts.append(storm_dt)
+        ...     interstorm_dts.append(interstorm_dt)
+        ...     intensities.append(mg.at_grid["rainfall__flux"])
+        ...
+        >>> len(storm_dts) == 4  # 4 storms in the simulation
+        True
+        >>> len(interstorm_dts) == len(storm_dts)
+        True
+        >>> rf_intensities_to_test = np.array(
+        ...     [
+        ...         0.8138257984406472,
+        ...         0.15929112025199238,
+        ...         0.17254519305000884,
+        ...         0.09817611240558813,
+        ...     ]
+        ... )
+        >>> np.allclose(intensities, rf_intensities_to_test)
+        True
+        >>> np.isclose(sum(storm_dts) + sum(interstorm_dts), 46.0)  # total_t
+        True
+        >>> np.isclose(interstorm_dts[-1], 0.0)  # sequence truncated
+        True
+
+        An alternative way to use the generator might be:
+
+        >>> # ^^this lets you "manually" get the next item from the iterator
+        >>> flux = mg.at_grid.pop("rainfall__flux")  # remove the existing field
+        >>> precip = PrecipitationDistribution(
+        ...     mg,
+        ...     mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0,
+        ...     mean_storm_depth=0.5,
+        ...     total_t=46.0,
         ... )
         >>> precip.seed_generator(seedval=1)
         >>> mystorm_generator = precip.yield_storms()
         >>> my_list_of_storms = []
         >>> for i in range(4):
         ...     my_list_of_storms.append(next(mystorm_generator))
+        ...
 
         Note that an exception is thrown if you go too far:
 
@@ -574,8 +607,9 @@ class PrecipitationDistribution(Component):
         >>> allmytimes = []
         >>> for i in range(20):  # this will run just fine
         ...     allmytimes.append(next(precip.yield_storms()))
+        ...
         >>> total_t = sum([sum(storm) for storm in allmytimes])
-        >>> total_t > 46.
+        >>> total_t > 46.0
         True
         """
         # we must have instantiated with a grid, so check:
@@ -615,11 +649,13 @@ class PrecipitationDistribution(Component):
         --------
         >>> np.random.seed(0)
         >>> np.round(np.random.rand(3), 6)  # these are our 3 rand #s to test
-        array([ 0.548814,  0.715189,  0.602763])
+        array([0.548814, 0.715189, 0.602763])
         >>> from landlab.components import PrecipitationDistribution
-        >>> pd = PrecipitationDistribution(mean_storm_duration=1.0,
-        ...                                mean_interstorm_duration=1.0,
-        ...                                mean_storm_depth=1.0)
+        >>> pd = PrecipitationDistribution(
+        ...     mean_storm_duration=1.0,
+        ...     mean_interstorm_duration=1.0,
+        ...     mean_storm_depth=1.0,
+        ... )
         >>> np.random.seed(0)  # re-set seed so we get the same 3 #s
         >>> np.round(1000 * pd.generate_from_stretched_exponential(2.0, 0.5))
         720.0
@@ -642,9 +678,13 @@ class PrecipitationDistribution(Component):
 
         Examples
         --------
-        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
-        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-        ...     total_t=100.0, delta_t=1.)
+        >>> precip = PrecipitationDistribution(
+        ...     mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0,
+        ...     mean_storm_depth=0.5,
+        ...     total_t=100.0,
+        ...     delta_t=1.0,
+        ... )
         >>> round(precip.storm_duration, 2)
         2.79
         >>> round(precip.interstorm_duration, 2)
@@ -653,7 +693,7 @@ class PrecipitationDistribution(Component):
         2.45
         >>> round(precip.intensity, 2)
         0.88
-        >>> precip.seed_generator() # re-seed and get same sequence again
+        >>> precip.seed_generator()  # re-seed and get same sequence again
         >>> round(precip.get_precipitation_event_duration(), 2)
         2.79
         >>> round(precip.get_interstorm_event_duration(), 2)
@@ -662,10 +702,15 @@ class PrecipitationDistribution(Component):
         2.45
         >>> round(precip.get_storm_intensity(), 2)
         0.88
-        >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
-        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-        ...     total_t=100.0, delta_t=1., random_seed=1)
-        >>> round(precip.storm_duration, 2) # diff't vals with diff't seed
+        >>> precip = PrecipitationDistribution(
+        ...     mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0,
+        ...     mean_storm_depth=0.5,
+        ...     total_t=100.0,
+        ...     delta_t=1.0,
+        ...     random_seed=1,
+        ... )
+        >>> round(precip.storm_duration, 2)  # diff't vals with diff't seed
         0.22
         >>> round(precip.interstorm_duration, 2)
         28.2

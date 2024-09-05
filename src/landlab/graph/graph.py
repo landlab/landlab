@@ -11,19 +11,28 @@ Examples
 >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
 >>> graph = NetworkGraph((node_y, node_x), sort=True)
 >>> graph.x_of_node
-array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+array([0., 1., 2., 0., 1., 2., 0., 1., 2.])
 >>> graph.y_of_node
-array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
+array([0., 0., 0., 1., 1., 1., 2., 2., 2.])
 >>> graph.ndim
 2
 
->>> links = ((0, 1), (1, 2),
-...          (0, 3), (1, 4), (2, 5),
-...          (3, 4), (4, 5),
-...          (3, 6), (4, 7), (5, 8),
-...          (6, 7), (7, 8))
+>>> links = [
+...     (0, 1),
+...     (1, 2),
+...     (0, 3),
+...     (1, 4),
+...     (2, 5),
+...     (3, 4),
+...     (4, 5),
+...     (3, 6),
+...     (4, 7),
+...     (5, 8),
+...     (6, 7),
+...     (7, 8),
+... ]
 >>> graph = Graph((node_y, node_x), links=links, sort=True)
->>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
+>>> graph.nodes_at_link
 array([[0, 1], [1, 2],
        [0, 3], [1, 4], [2, 5],
        [3, 4], [4, 5],
@@ -34,12 +43,12 @@ array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
 >>> graph.node_at_link_tail
 array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
 
->>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
+>>> graph.links_at_node
 array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
        [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
        [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
 
->>> graph.link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
+>>> graph.link_dirs_at_node
 array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
        [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
        [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]],
@@ -58,6 +67,7 @@ array([[4, 3, 0, 1],
        [7, 6, 3, 4],
        [8, 7, 4, 5]])
 """
+
 import json
 from functools import cached_property
 
@@ -68,14 +78,15 @@ from ..core.utils import as_id_array
 from ..utils.decorators import read_only_array
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
-from .quantity.of_link import (
-    get_angle_of_link,
-    get_length_of_link,
-    get_midpoint_of_link,
-)
-from .quantity.of_patch import get_area_of_patch, get_centroid_of_patch
+from .quantity.of_link import get_angle_of_link
+from .quantity.of_link import get_length_of_link
+from .quantity.of_link import get_midpoint_of_link
+from .quantity.of_patch import get_area_of_patch
+from .quantity.of_patch import get_centroid_of_patch
 from .sort import reindex_by_xy
-from .sort.sort import reorient_link_dirs, reverse_one_to_many, sort_spokes_at_hub
+from .sort.sort import reorient_link_dirs
+from .sort.sort import reverse_one_to_many
+from .sort.sort import sort_spokes_at_hub
 from .ugrid import ugrid_from_unstructured
 
 
@@ -304,9 +315,9 @@ class NetworkGraph:
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.xy_of_node[:, 0]
-        array([ 0.,  1.,  2.,  0.,  1.,  2.])
+        array([0., 1., 2., 0., 1., 2.])
         >>> graph.xy_of_node[:, 1]
-        array([ 0.,  0.,  0.,  1.,  1.,  1.])
+        array([0., 0., 0., 1., 1., 1.])
 
         :meta landlab: info-node
         """
@@ -322,7 +333,7 @@ class NetworkGraph:
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.x_of_node
-        array([ 0.,  1.,  2.,  0.,  1.,  2.])
+        array([0., 1., 2., 0., 1., 2.])
 
         :meta landlab: info-node
         """
@@ -338,7 +349,7 @@ class NetworkGraph:
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.y_of_node
-        array([ 0.,  0.,  0.,  1.,  1.,  1.])
+        array([0., 0., 0., 1., 1., 1.])
 
         :meta landlab: info-node
         """
@@ -400,7 +411,7 @@ class NetworkGraph:
 
         :meta landlab: info-node
         """
-        return self.ds.dims["node"]
+        return self.ds.sizes["node"]
 
     @property
     def nodes_at_link(self):
@@ -410,13 +421,22 @@ class NetworkGraph:
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.nodes_at_link
         array([[0, 1], [1, 2],
                [0, 3], [1, 4], [2, 5],
                [3, 4], [4, 5],
@@ -435,11 +455,20 @@ class NetworkGraph:
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.node_at_link_tail
         array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
@@ -456,11 +485,20 @@ class NetworkGraph:
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.node_at_link_head
         array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
@@ -477,17 +515,26 @@ class NetworkGraph:
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.number_of_links == 12
         True
         """
         try:
-            return self.ds.dims["link"]
+            return self.ds.sizes["link"]
         except KeyError:
             return 0
 
@@ -501,13 +548,22 @@ class NetworkGraph:
         >>> from landlab.graph import Graph
         >>> node_x = [0, 1, 2, 0, 1, 2, 0, 1, 2]
         >>> node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.links_at_node # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.links_at_node
         array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
                [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
                [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
@@ -545,11 +601,20 @@ class NetworkGraph:
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.link_dirs_at_node
         array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
@@ -576,14 +641,11 @@ class NetworkGraph:
         >>> import numpy as np
         >>> from landlab.graph import Graph
 
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5))
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1])
+        >>> links = ((0, 1), (1, 2), (0, 3), (1, 4), (2, 5), (3, 4), (4, 5))
         >>> graph = Graph((node_y, node_x), links=links)
-        >>> graph.angle_of_link * 180. / np.pi
-        array([  0.,   0.,  90.,  90.,  90.,   0.,   0.])
+        >>> graph.angle_of_link * 180.0 / np.pi
+        array([ 0.,  0., 90., 90., 90.,  0.,  0.])
 
         :meta landlab: info-link
         """
@@ -601,7 +663,7 @@ class NetworkGraph:
 
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
         >>> graph.length_of_link
-        array([ 2.,  2.,  1.,  1.,  1.,  2.,  2.])
+        array([2., 2., 1., 1., 1., 2., 2.])
 
         :meta landlab: info-link
         """
@@ -618,10 +680,10 @@ class NetworkGraph:
         >>> from landlab.graph import UniformRectilinearGraph
 
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
-        >>> graph.midpoint_of_link # doctest: +NORMALIZE_WHITESPACE
-        array([[ 1. ,  0. ], [ 3. ,  0. ],
-               [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
-               [ 1. ,  1. ], [ 3. ,  1. ]])
+        >>> graph.midpoint_of_link
+        array([[1. , 0. ], [3. , 0. ],
+               [0. , 0.5], [2. , 0.5], [4. , 0.5],
+               [1. , 1. ], [3. , 1. ]])
 
         :meta landlab: info-link
         """
@@ -644,11 +706,20 @@ class NetworkGraph:
         First, a simple example with no diagonals.
 
         >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links, sort=True)
         >>> graph.adjacent_nodes_at_node
         array([[ 1,  3, -1, -1],
@@ -664,12 +735,21 @@ class NetworkGraph:
         Next, we add the diagonal from node 0 to node 4.
 
         >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8),
-        ...          (0, 4))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ...     (0, 4),
+        ... )
         >>> graph = Graph((node_y, node_x), links=links, sort=True)
         >>> graph.adjacent_nodes_at_node
         array([[ 1,  4,  3, -1, -1],
@@ -729,8 +809,8 @@ class NetworkGraph:
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
                 1. ])
         >>> np.round(graph.unit_vector_at_link[:, 1], decimals=5)
-        array([ 0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ,
-                0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ])
+        array([0.     , 0.86603, 0.86603, 0.86603, 0.86603, 0.     ,
+               0.     , 0.86603, 0.86603, 0.86603, 0.86603, 0.     ])
         """
         u = np.diff(self.xy_of_node[self.nodes_at_link], axis=1).reshape((-1, 2))
         return u / np.linalg.norm(u, axis=1).reshape((-1, 1))
@@ -745,31 +825,30 @@ class NetworkGraph:
         >>> from landlab.graph import UniformRectilinearGraph
         >>> graph = UniformRectilinearGraph((3, 3))
         >>> graph.unit_vector_at_node
-        array([[ 1.,  1.],
-               [ 2.,  1.],
-               [ 1.,  1.],
-               [ 1.,  2.],
-               [ 2.,  2.],
-               [ 1.,  2.],
-               [ 1.,  1.],
-               [ 2.,  1.],
-               [ 1.,  1.]])
+        array([[1., 1.],
+               [2., 1.],
+               [1., 1.],
+               [1., 2.],
+               [2., 2.],
+               [1., 2.],
+               [1., 1.],
+               [2., 1.],
+               [1., 1.]])
 
         >>> from landlab.graph import TriGraph
         >>> graph = TriGraph((3, 2), spacing=2.0, node_layout="hex", sort=True)
 
         >>> unit_vector_at_node = np.round(graph.unit_vector_at_node, decimals=5)
         >>> unit_vector_at_node[:, 0]
-        array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
+        array([2., 2., 2., 4., 2., 2., 2.])
         >>> unit_vector_at_node[:, 1]
-        array([ 1.73205,  1.73205,  1.73205,  3.4641 ,  1.73205,  1.73205,  1.73205])
+        array([1.73205, 1.73205, 1.73205, 3.4641 , 1.73205, 1.73205, 1.73205])
         """
         unit_vector_at_link = np.vstack((self.unit_vector_at_link, [0.0, 0.0]))
         return np.abs(unit_vector_at_link[self.links_at_node]).sum(axis=1)
 
 
 class Graph(NetworkGraph):
-
     """Define the connectivity of a graph of nodes, links, and patches."""
 
     def __init__(self, node_y_and_x, links=None, patches=None, sort=False):
@@ -817,16 +896,25 @@ class Graph(NetworkGraph):
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.xy_of_patch
-        array([[ 0.5,  0.5],
-              [ 1.5,  0.5]])
+        array([[0.5, 0.5],
+               [1.5, 0.5]])
 
         :meta landlab: info-patch
         """
@@ -841,15 +929,24 @@ class Graph(NetworkGraph):
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.area_of_patch
-        array([ 1.,  1.])
+        array([1.,  1.])
 
         :meta landlab: info-patch
         """
@@ -863,11 +960,20 @@ class Graph(NetworkGraph):
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.number_of_patches == 2
@@ -876,7 +982,7 @@ class Graph(NetworkGraph):
         :meta landlab: info-patch
         """
         try:
-            return self.ds.dims["patch"]
+            return self.ds.sizes["patch"]
         except KeyError:
             return 0
 
@@ -888,11 +994,20 @@ class Graph(NetworkGraph):
         --------
         >>> from landlab.graph import Graph
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
         >>> graph.links_at_patch
@@ -911,13 +1026,21 @@ class Graph(NetworkGraph):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1, 2, 2, 2])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2])
+        >>> links = (
+        ...     (0, 1),
+        ...     (1, 2),
+        ...     (0, 3),
+        ...     (1, 4),
+        ...     (2, 5),
+        ...     (3, 4),
+        ...     (4, 5),
+        ...     (3, 6),
+        ...     (4, 7),
+        ...     (5, 8),
+        ...     (6, 7),
+        ...     (7, 8),
+        ... )
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
         >>> graph.nodes_at_patch
@@ -940,14 +1063,11 @@ class Graph(NetworkGraph):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5))
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1])
+        >>> links = ((0, 1), (1, 2), (0, 3), (1, 4), (2, 5), (3, 4), (4, 5))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
-        >>> graph.patches_at_node # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.patches_at_node
         array([[ 0, -1], [ 1,  0], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
 
@@ -967,14 +1087,11 @@ class Graph(NetworkGraph):
         Examples
         --------
         >>> from landlab.graph import Graph
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5))
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1])
+        >>> links = ((0, 1), (1, 2), (0, 3), (1, 4), (2, 5), (3, 4), (4, 5))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.patches_at_link # doctest: +NORMALIZE_WHITESPACE
+        >>> graph.patches_at_link
         array([[ 0, -1], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])

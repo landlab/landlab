@@ -3,6 +3,7 @@ Unit tests for landlab.components.overland_flow.OverlandFlow
 
 last updated: 3/14/16
 """
+
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -146,3 +147,28 @@ def test_deAlm_analytical_imposed_dt_long():
     hdeAlm = hdeAlm[1][1:]
     hdeAlm = np.append(hdeAlm, [0])
     np.testing.assert_almost_equal(h_analytical, hdeAlm, decimal=1)
+
+
+def test_deAlm_rainfall_array():
+    """
+    Make sure that rainfall_intensity can be set with an array, and confirm
+    that this returns the same result as setting with a float of the same magnitude.
+    """
+
+    mg1 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg1.add_zeros("surface_water__depth", at="node")
+    mg1.add_zeros("topographic__elevation", at="node")
+    mg1.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r1 = 1e-6
+    deAlm1 = OverlandFlow(mg1, mannings_n=0.01, h_init=0.001, rainfall_intensity=r1)
+
+    mg2 = RasterModelGrid((10, 10), xy_spacing=25)
+    mg2.add_zeros("surface_water__depth", at="node")
+    mg2.add_zeros("topographic__elevation", at="node")
+    mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    r2 = 1e-6 * np.ones(100)
+    deAlm2 = OverlandFlow(mg2, mannings_n=0.01, h_init=0.001, rainfall_intensity=r2)
+
+    deAlm1.run_one_step(100)
+    deAlm2.run_one_step(100)
+    np.testing.assert_equal(deAlm1.h, deAlm2.h)

@@ -97,23 +97,23 @@ There are two ways to implement a RasterModelGrid that work with Landlab: readin
 Landlab can easily interact with DEM data output by ESRI's ArcGIS software. In this example, the DEM 'Square_TestBasin.asc' represents a single watershed. Reading in the data takes two lines of code, outlined here:
 
 ```python
-watershed_dem = 'Square_TestBasin.asc'
-(rmg, z) = read_esri_ascii(watershed_dem, name='topographic__elevation')
+with open("Square_TestBasin.asc") as fp:
+    grid = esri_ascii.load(fp, name="topographic__elevation", at="node")
 ```
 
-In this example, the watershed DEM is read in by the `read_esri_ascii()` method, and the elevation data from the DEM is automatically assigned to the Landlab data field `topographic__elevation`, for use by the components.
+In this example, the watershed DEM is read in by the `esri_ascii.load` method, and the elevation data from the DEM is automatically assigned to the Landlab data field `topographic__elevation`, for use by the components.
 
 #### Setting up a generic RasterModelGrid
 
 The alternative to reading in a watershed DEM is to set the RasterModelGrid instance manually:
 
 ```python
-      rmg = RasterModelGrid((number_of_node_rows, number_of_node_columns), dx)
-z = user_defined_elevation_data        # length of number_of_nodes
-rmg['node']['topographic__elevation'] = z
+grid = RasterModelGrid((number_of_node_rows, number_of_node_columns), dx)
+z = user_defined_elevation_data  # length of number_of_nodes
+grid.at_node["topographic__elevation"] = z
 ```
 
-This example assumes that the model users knows the following information: the number of grid rows (`number_of_grid_rows`), the number of grid columns (`number_of_grid_columns`), the grid resolution (`dx`) and some elevation data for each node. Here, the user must manually set the elevation data. When passing elevation data to the  `topographic__elevation` field, the length of `user_defined_elevation_data` **must** be equal to the number of nodes in the grid (which can be found using a command such as: `rmg.number_of_nodes`.
+This example assumes that the model users knows the following information: the number of grid rows (`number_of_grid_rows`), the number of grid columns (`number_of_grid_columns`), the grid resolution (`dx`) and some elevation data for each node. Here, the user must manually set the elevation data. When passing elevation data to the  `topographic__elevation` field, the length of `user_defined_elevation_data` **must** be equal to the number of nodes in the grid (which can be found using a command such as: `grid.number_of_nodes`.
 
 ### Step 3. Setting the boundary conditions
 
@@ -125,7 +125,7 @@ utility within Landlab that can handle the specific boundary conditions needed
 to control flow:
 
 ```python
-rmg.set_watershed_boundary_condition(z, nodata_values=-9999.)
+grid.set_watershed_boundary_condition(z, nodata_values=-9999.)
 ```
 
 By definition, a watershed has only one outlet, or open boundary location,
@@ -157,8 +157,8 @@ within the model domain to a fixed gradient nodes) are set to `FIXED_LINK`
 status. Then, boundary links can be updated with some input discharge value:
 
 ```python
-rmg.set_nodata_nodes_to_fixed_gradient(z)
-rmg.fixed_links = input_discharge_value
+grid.set_nodata_nodes_to_fixed_gradient(z)
+grid.fixed_links = input_discharge_value
 ```
 
 This boundary condition can be useful because of how the underlying algorithm in OverlandFlow (de Almeida et al., 2012) updates discharge at each time step. In this model, discharge is calculated as a function of the neighboring discharge values:
@@ -190,7 +190,7 @@ However, in Landlab version 1.0.0., the OverlandFlow component is limited to the
 To address this discrepancy, the SinkFiller component in Landlab has been developed to accommodate both 'D8' or 'D4' pit-filling on a DEM. Running this component can take some time, particularly on large grids, so it is *optional* to run the OverlandFlow component. This component can be applied to our DEM in two lines of code, initializing the SinkFiller component and running the `fill_pits()` method:
 
 ```python
-sf = SinkFiller(rmg, routing='D4', apply_slope=True, fill_slope=1.e-5)
+sf = SinkFiller(grid, routing='D4', apply_slope=True, fill_slope=1.e-5)
 sf.fill_pits()
 ```
 
@@ -201,7 +201,7 @@ sf.fill_pits()
 Most Landlab components are structured as a Python class. These classes are imported (as seen in **Step 1**) and then the user must create an instance of the class:
 
 ```python
-of = OverlandFlow(rmg, mannings_n=0.03, steep_slopes=True)
+of = OverlandFlow(grid, mannings_n=0.03, steep_slopes=True)
 ```
 
 When the instance of the class is created, parameters are passed as keywords to the class. All Landlab components take a grid as their first argument. All subsequent keywords are parameters used to control model behavior. Each Landlab component has documentation which lists the parameters. The OverlandFlow documentation is linked in the **Model description** section above. The example script shown here includes  parameters *Manning's n*, which takes a numerical value, and the stability criterion `steep_slopes` flag, which is passed a Boolean (`True` or `False`) value. Details about the stability criterion are provided in the next subsection.
@@ -223,7 +223,7 @@ This is the simplest method, and is used when a constant precipitation intensity
 ```python
 elapsed_time = 0.0
 model_run_time = 86400.
-of = OverlandFlow(rmg, steep_slopes=True, rainfall_intensity=1.38889 * (10**-6)) # m/s
+of = OverlandFlow(grid, steep_slopes=True, rainfall_intensity=1.38889 * (10**-6)) # m/s
 ```
 
 #### Single storm event
@@ -232,10 +232,10 @@ Alternatively, a user may decide to route an event where rainfall stops, and wat
 
 ```python
 elapsed_time = 0.0
-model_run_time = 86400.
+model_run_time = 86400.0
 
 storm_duration = 7200.0
-rainfall_mmhr = 5.
+rainfall_mmhr = 5.0
 ```
 
 In this example, storm characteristics (duration and intensity) are set separately from the OverlandFlow component  initialization. These characteristics are used in a time loop within the model driver (seen in **Step 7**). While elapsed_time in a model is less than storm duration, the precipitation intensity is input across all nodes in the model domain. When the storm event ends, the precipitation intensity is reset to 0 \[m s{sup}`-1`\], allowing the water remaining in the system to drain out.
@@ -245,18 +245,18 @@ In this example, storm characteristics (duration and intensity) are set separate
 The key part of any Landlab model driver is the time loop, where components recalculate the processes, and update their necessary data values. In the OverlandFlow component, during a time loop, at each time step, surface water discharge and surface water depth are recalculated. A simple example of an OverlandFlow time loop is presented here:
 
 ```python
-    while elapsed_time < model_run_time:
+while elapsed_time < model_run_time:
 
     of.dt = of.calc_time_step()     # Adaptive time step
 
-    if elapsed_time < (storm_duration):
-            of.rainfall_intensity =  rainfall_mmhr * (2.777778 * 10**-7)
+    if elapsed_time < storm_duration:
+        of.rainfall_intensity =  rainfall_mmhr * (2.777778 * 10**-7)
     else:
-of.rainfall_intensity = 0.0
+        of.rainfall_intensity = 0.0
 
     of.overland_flow()
 
-    rmg.at_node['surface_water__discharge'] = of.discharge_mapper(of.q, convert_to_volume=True)
+    grid.at_node["surface_water__discharge"] = of.discharge_mapper(of.q, convert_to_volume=True)
 
     elapsed_time += of.dt
 ```
@@ -302,7 +302,7 @@ The OverlandFlow component calculates discharge in units of \[m{sup}`2` s{sup}`-
 
 ```python
 hydrograph_time.append(elapsed_time / 3600.) # convert seconds to hours
-discharge_at_outlet.append(np.abs(of.q[outlet_link]) * rmg.dx) # append discharge in m^3/s
+discharge_at_outlet.append(np.abs(of.q[outlet_link]) * grid.dx) # append discharge in m^3/s
 ```
 
 #### After model run:
@@ -328,8 +328,14 @@ plt.title('Outlet Hydrograph, Rainfall: 5 mm/hr in 2 hr')
 The Landlab plotting library includes a utility `imshow__grid` which can easily take a grid instance and plot data values from the grid in map view. This method also allows for customization of the plots. An example plotting water depth is shown here:
 
 ```python
-imshow_grid(rmg, 'surface_water__depth', plot_name='Water depth at time = 2 hr',
-        var_name='Water Depth', var_units='m', grid_units=('m', 'm'), cmap='Blues')
+grid.imshow(
+    "surface_water__depth",
+    plot_name="Water depth at time = 2 hr",
+    var_name="Water Depth",
+    var_units="m",
+    grid_units=("m", "m"),
+    cmap="Blues",
+)
 ```
 
 ```{image} images/OverlandFlow_Manual_WaterDepth.png

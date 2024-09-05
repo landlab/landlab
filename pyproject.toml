@@ -21,7 +21,6 @@ keywords = [
   "model coupling",
   "numerical modeling",
 ]
-license = {file = "LICENSE.rst"}
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -29,15 +28,16 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Cython",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Topic :: Scientific/Engineering :: Physics",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "bmipy",
+  "importlib-resources; python_version < '3.12'",
   "matplotlib",
   "netcdf4",
   "numpy >=1.20",
@@ -50,6 +50,9 @@ dependencies = [
   "xarray >= 0.16",
 ]
 dynamic = ["readme", "version"]
+
+[project.license]
+text = "MIT"
 
 [project.urls]
 homepage = "https://github.com/landlab"
@@ -73,6 +76,10 @@ landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
+package-dir = {"" = "src"}  # Define the src-layout
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Look for packages inside the src directory
 
 [tool.setuptools.package-data]
 landlab = [
@@ -113,8 +120,7 @@ addopts = """
 """
 doctest_optionflags = [
   "NORMALIZE_WHITESPACE",
-  "IGNORE_EXCEPTION_DETAIL",
-  "ALLOW_UNICODE"
+  "IGNORE_EXCEPTION_DETAIL"
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -130,9 +136,33 @@ profile = "black"
 ignore = [".nox", "build"]
 
 [tool.cibuildwheel]
-build = "cp39-* cp310-* cp311-*"
-skip = "*-musllinux_*"
-archs = "x86_64,i686,aarch64,arm64,AMD64,x86"
+build = "cp310-* cp311-* cp312-*"
+skip = "*-musllinux_* *-win32*"
+archs = "x86_64,aarch64,arm64,AMD64,x86"
+test-command = "python -c \"import landlab; print(landlab.__version__)\""
+
+[tool.cibuildwheel.macos]
+before-all = "brew install libomp"
+# before-all = "brew install llvm libomp"
+
+[tool.cibuildwheel.macos.environment]
+LANDLAB_WITHOUT_OPENMP = "1"
+LDFLAGS = "-Wl,-rpath,/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/libomp/lib -L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++ -lomp"
+CPPFLAGS = "-Xpreprocessor -fopenmp -I/opt/homebrew/opt/libomp/include"
+CFLAGS = "-Wno-implicit-function-declaration -I/opt/homebrew/opt/libomp/include"
+CXXFLAGS = "-I/opt/homebrew/opt/libomp/include"
+# PATH = "/opt/homebrew/opt/llvm/bin:$PATH"
+
+[[tool.cibuildwheel.overrides]]
+select = "*x86_64*"
+environment = {"LANDLAB_WITHOUT_OPENMP"="1"}
+
+[tool.cibuildwheel.windows.environment]
+LANDLAB_WITHOUT_OPENMP = "1"
+
+[tool.cython-lint]
+max-line-length = 88
+exclude = "tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx"
 
 [tool.conda-lock]
 channels = ["conda-forge", "defaults"]
@@ -146,7 +176,6 @@ single_file = true
 underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"
 title_format = "{version} ({project_date})"
-
 type = [
   {name="New Components", directory="component", showcontent=true},
   {name="New Tutorial Notebooks", directory="notebook", showcontent=true},
@@ -155,3 +184,14 @@ type = [
   {name="Documentation Enhancements", directory="docs", showcontent=true},
   {name="Other Changes and Additions", directory="misc", showcontent=true},
 ]
+
+[tool.landlab.credits]
+exclude = '''
+(?x)^(
+  \(no\ author\)|
+  root|
+  .*\[bot\]  # ignore all bots
+)
+'''
+authors_file = "AUTHORS.rst"
+author_format = "* `{name} <https://github.com/{github}>`_"

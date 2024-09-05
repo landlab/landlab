@@ -2,17 +2,14 @@ import numpy as np
 
 from ..dual import DualGraph
 from ..voronoi.dual_voronoi import DualVoronoiGraph
-from .hex import (
-    HorizontalHexTriGraph,
-    HorizontalRectTriGraph,
-    TriGraph,
-    VerticalHexTriGraph,
-    VerticalRectTriGraph,
-)
+from .hex import HorizontalHexTriGraph
+from .hex import HorizontalRectTriGraph
+from .hex import TriGraph
+from .hex import VerticalHexTriGraph
+from .hex import VerticalRectTriGraph
 
 
 class DualHexGraph(DualGraph, TriGraph):
-
     """Graph of a structured grid of triangles.
 
     Examples
@@ -20,17 +17,16 @@ class DualHexGraph(DualGraph, TriGraph):
     >>> import numpy as np
     >>> from landlab.graph import DualHexGraph
 
-    >>> graph = DualHexGraph((3, 2), node_layout='hex')
+    >>> graph = DualHexGraph((3, 2), node_layout="hex")
     >>> graph.number_of_nodes
     7
     >>> graph.number_of_corners
     6
 
-    >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
+    >>> np.round(graph.y_of_node * 2.0 / np.sqrt(3))
+    array([0., 0., 1., 1., 1., 2., 2.])
+    >>> graph.x_of_node
+    array([0.5, 1.5, 0. , 1. , 2. , 0.5, 1.5])
     """
 
     def __init__(

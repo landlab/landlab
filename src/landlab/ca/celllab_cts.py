@@ -123,12 +123,10 @@ import numpy as np
 import pylab as plt
 
 import landlab
-from landlab.ca.cfuncs import (
-    PriorityQueue,
-    get_next_event_new,
-    push_transitions_to_event_queue,
-    run_cts_new,
-)
+from landlab.ca.cfuncs import PriorityQueue
+from landlab.ca.cfuncs import get_next_event_new
+from landlab.ca.cfuncs import push_transitions_to_event_queue
+from landlab.ca.cfuncs import run_cts_new
 from landlab.grid.nodestatus import NodeStatus
 
 _NEVER = 1e50
@@ -139,7 +137,6 @@ _CORE = NodeStatus.CORE
 
 
 class Transition:
-
     """A transition from one state to another.
 
     Represents a transition from one state ("from_state") to another
@@ -206,7 +203,6 @@ class Transition:
 
 
 class CAPlotter:
-
     """Handle display of a CellLab-CTS grid.
 
     CAPlotter() constructor keeps a reference to the CA model, and
@@ -226,7 +222,7 @@ class CAPlotter:
     >>> from landlab.ca.raster_cts import RasterCTS
     >>> import numpy as np
     >>> grid = RasterModelGrid((3, 5))
-    >>> nsd = {0 : 'zero', 1 : 'one'}
+    >>> nsd = {0: "zero", 1: "one"}
     >>> trn_list = []
     >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
     >>> ins = np.arange(15) % 2
@@ -302,7 +298,6 @@ class CAPlotter:
 
 
 class CellLabCTSModel:
-
     """Link-type (or doublet-type) cellular automaton model.
 
     A CellLabCTSModel implements a link-type (or doublet-type) cellular
@@ -446,7 +441,7 @@ class CellLabCTSModel:
         # This is the new part that allows Transition from_ and to_ types
         # to be specified either as ints, or as tuples.
         transition_list_as_ID = transition_list[:]
-        if type(transition_list[0].from_state) == tuple:
+        if isinstance(transition_list[0].from_state, tuple):
             # (then they all are..., because of the assertions in __init__)
             for i in range(len(transition_list)):
                 transition_list_as_ID[i].from_state = self.link_state_dict[
@@ -476,8 +471,8 @@ class CellLabCTSModel:
         # are tracked.
         self.propid = np.arange(self.grid.number_of_nodes)
         if prop_data is None:
-            self.prop_data = np.zeros(self.grid.number_of_nodes)
-            self.prop_reset_value = 0.0
+            self.prop_data = np.zeros(self.grid.number_of_nodes, dtype=int)
+            self.prop_reset_value = 0
         else:
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
@@ -629,7 +624,7 @@ class CellLabCTSModel:
         >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
         >>> import numpy as np
         >>> grid = RasterModelGrid((3, 5))
-        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> nsd = {0: "zero", 1: "one"}
         >>> trn_list = []
         >>> trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
         >>> trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
@@ -686,7 +681,9 @@ class CellLabCTSModel:
             tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
             new_link_state = int(
-                orientation * self.num_node_states_sq + fns * self.num_node_states + tns
+                int(orientation) * self.num_node_states_sq
+                + fns * self.num_node_states
+                + tns
             )
 
         self.link_state[link] = new_link_state
@@ -727,7 +724,7 @@ class CellLabCTSModel:
         >>> from landlab.ca.raster_cts import RasterCTS
         >>> import numpy as np
         >>> grid = RasterModelGrid((3, 5))
-        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> nsd = {0: "zero", 1: "one"}
         >>> trn_list = []
         >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
         >>> ins = np.zeros(15, dtype=int)
@@ -738,7 +735,7 @@ class CellLabCTSModel:
         [0, 0, 0, 0]
         >>> len(ca.priority_queue._queue)  # there are no transitions
         0
-        >>> nns = np.arange(15) % 2        # make a new node-state grid...
+        >>> nns = np.arange(15) % 2  # make a new node-state grid...
         >>> ca.update_component_data(nns)  # ...and assign it
         >>> list(ca.node_state[6:9])
         [0, 1, 0]
@@ -775,7 +772,7 @@ class CellLabCTSModel:
         >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
         >>> import numpy as np
         >>> grid = RasterModelGrid((3, 5))
-        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> nsd = {0: "zero", 1: "one"}
         >>> trn_list = []
         >>> trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
         >>> trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))

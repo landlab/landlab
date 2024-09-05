@@ -5,11 +5,11 @@
 
 import numpy as np
 
-from landlab import Component, LinkStatus
+from landlab import Component
+from landlab import LinkStatus
 
 
 class DepthDependentDiffuser(Component):
-
     """This component implements a depth and slope dependent linear diffusion
     rule in the style of Johnstone and Hilley (2014).
 
@@ -39,14 +39,14 @@ class DepthDependentDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
-    >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
+    >>> np.allclose(mg.at_node["soil_production__rate"][mg.core_nodes], 1.0)
     True
-    >>> DDdiff.run_one_step(2.)
-    >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
+    >>> DDdiff.run_one_step(2.0)
+    >>> np.allclose(mg.at_node["topographic__elevation"][mg.core_nodes], 0.0)
     True
-    >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
+    >>> np.allclose(mg.at_node["bedrock__elevation"][mg.core_nodes], -2.0)
     True
-    >>> np.allclose(mg.at_node['soil__depth'][mg.core_nodes], 2.)
+    >>> np.allclose(mg.at_node["soil__depth"][mg.core_nodes], 2.0)
     True
 
     Now with a slope:
@@ -56,24 +56,28 @@ class DepthDependentDiffuser(Component):
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy()
-    >>> BRz += mg.node_x/2.
+    >>> BRz += mg.node_x / 2.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
     >>> np.allclose(
-    ...     mg.at_node['soil_production__rate'][mg.core_nodes],
-    ...     np.array([ 0.60653066,  0.36787944,  0.22313016]))
+    ...     mg.at_node["soil_production__rate"][mg.core_nodes],
+    ...     np.array([0.60653066, 0.36787944, 0.22313016]),
+    ... )
     True
-    >>> DDdiff.run_one_step(2.)
+    >>> DDdiff.run_one_step(2.0)
     >>> np.allclose(
-    ...     mg.at_node['topographic__elevation'][mg.core_nodes],
-    ...     np.array([ 1.47730244,  2.28949856,  3.17558975]))
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes],
+    ...     np.array([1.47730244, 2.28949856, 3.17558975]),
+    ... )
     True
-    >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes],
-    ...     np.array([-0.71306132,  0.26424112,  1.05373968]))
+    >>> np.allclose(
+    ...     mg.at_node["bedrock__elevation"][mg.core_nodes],
+    ...     np.array([-0.71306132, 0.26424112, 1.05373968]),
+    ... )
     True
-    >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
+    >>> np.allclose(mg.at_node["soil__depth"], z - BRz)
     True
 
     Now, we'll test that changing the transport decay depth behaves as expected.
@@ -82,20 +86,20 @@ class DepthDependentDiffuser(Component):
     >>> soilTh = mg.add_zeros("soil__depth", at="node")
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
-    >>> z += mg.node_x.copy()**0.5
+    >>> z += mg.node_x.copy() ** 0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
-    >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 0.1)
+    >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth=0.1)
     >>> DDdiff.run_one_step(1)
-    >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> soil_decay_depth_point1 = mg.at_node["topographic__elevation"][mg.core_nodes]
     >>> z[:] = 0
-    >>> z += mg.node_x.copy()**0.5
+    >>> z += mg.node_x.copy() ** 0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
-    >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 1.0)
+    >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth=1.0)
     >>> DDdiff.run_one_step(1)
-    >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> soil_decay_depth_1 = mg.at_node["topographic__elevation"][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
 

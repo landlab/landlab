@@ -1,11 +1,10 @@
-import numpy as np
-
 cimport cython
-cimport numpy as cnp
 from cython.parallel cimport prange
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused float_or_int:
     cython.integral
+    long long
     cython.floating
 
 
@@ -75,7 +74,9 @@ def calc_grad_at_link(
         # Vertical links
         node = row * n_cols
         for col in range(n_cols - 1, links_per_row):
-            out[link + col] = (value_at_node[node + n_cols] - value_at_node[node]) * inv_dy
+            out[link + col] = inv_dy * (
+                value_at_node[node + n_cols] - value_at_node[node]
+            )
             node = node + 1
 
     # The last row of horizontal links

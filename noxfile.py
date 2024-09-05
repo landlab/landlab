@@ -3,7 +3,7 @@ import json
 import os
 import pathlib
 import shutil
-import tempfile
+import sys
 from collections import defaultdict
 
 import nox
@@ -11,7 +11,7 @@ from packaging.requirements import Requirement
 
 PROJECT = "landlab"
 ROOT = pathlib.Path(__file__).parent
-PYTHON_VERSION = "3.11"
+PYTHON_VERSION = "3.12"
 PATH = {
     "build": ROOT / "build",
     "docs": ROOT / "docs",
@@ -21,12 +21,16 @@ PATH = {
 }
 
 
-@nox.session(python=PYTHON_VERSION, venv_backend="mamba")
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
+
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge.")
+        session.conda_install("multidict")
 
     session.install(
         "-r",
@@ -35,7 +39,7 @@ def test(session: nox.Session) -> None:
         PATH["requirements"] / "testing.txt",
     )
 
-    session.conda_install("richdem")
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
@@ -57,7 +61,7 @@ def test(session: nox.Session) -> None:
         session.run("coverage", "report", "--ignore-errors", "--show-missing")
 
 
-@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="mamba")
+@nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
     args = [
@@ -72,6 +76,10 @@ def test_notebooks(session: nox.Session) -> None:
     ] + session.posargs
 
     os.environ["WITH_OPENMP"] = "1"
+
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge")
+        session.conda_install("multidict")
 
     session.install(
         "-r",
@@ -156,7 +164,7 @@ def build_notebook_index(session: nox.Session) -> None:
 
             lines = [
                 f"{title}",
-                f"{'-'*len(title)}",
+                f"{'-' * len(title)}",
                 "",
                 ".. nbgallery::",
                 "    :glob:",
@@ -256,10 +264,8 @@ def _build_docs(session, builders=("html",), success_codes=(0,)):
 
     session.conda_install("pandoc", channel=["nodefaults", "conda-forge"])
     session.install(
-        "-r",
-        PATH["requirements"] / "required.txt",
-        "-r",
-        PATH["requirements"] / "docs.txt",
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "docs.txt"),
     )
     # session.install("-r", docs_dir / "requirements.in")
     session.install("-e", ".", "--no-deps")
@@ -447,6 +453,7 @@ def clean_ext(session: nox.Session) -> None:
     for folder in _args_to_folders(session.posargs):
         with session.chdir(folder):
             _clean_rglob("*.so")
+            _clean_rglob("*.c")
 
 
 @nox.session(python=False)
@@ -484,16 +491,13 @@ def _get_wheels(session):
 
     wheels = []
     for platform in platforms:
-        with tempfile.TemporaryFile("w+") as fp:
-            session.run(
-                "cibuildwheel",
-                "--print-build-identifiers",
-                "--platform",
-                platform,
-                stdout=fp,
-            )
-            fp.seek(0)
-            wheels += fp.read().splitlines()
+        wheels += session.run(
+            "cibuildwheel",
+            "--print-build-identifiers",
+            "--platform",
+            platform,
+            silent=True,
+        ).splitlines()
     return wheels
 
 
@@ -509,3 +513,34 @@ def _clean_rglob(pattern):
             p.rmdir()
         else:
             p.unlink()
+
+
+@nox.session
+def credits(session):
+    """Update the various authors files."""
+    from landlab.cmd.authors import AuthorsConfig
+
+    config = AuthorsConfig()
+
+    with open(".mailmap", "wb") as fp:
+        session.run(
+            "landlab", "--silent", "authors", "mailmap", stdout=fp, external=True
+        )
+
+    contents = session.run(
+        "landlab",
+        "--silent",
+        "authors",
+        "create",
+        "--update-existing",
+        external=True,
+        silent=True,
+    )
+    with open(config["credits_file"], "w") as fp:
+        print(contents, file=fp, end="")
+
+    contents = session.run(
+        "landlab", "--silent", "authors", "build", silent=True, external=True
+    )
+    with open(config["authors_file"], "w") as fp:
+        print(contents, file=fp, end="")

@@ -12,6 +12,7 @@ The `wrap_as_bmi` function wraps a landlab component class so that it
 exposes a Basic Modelling Interface.
 
 """
+
 import inspect
 
 import numpy as np
@@ -20,7 +21,8 @@ from bmipy import Bmi
 from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
-from ..grid import HexModelGrid, RasterModelGrid
+from ..grid import HexModelGrid
+from ..grid import RasterModelGrid
 from ..grid.create import create_grid
 
 BMI_LOCATION = {
@@ -45,7 +47,6 @@ BMI_GRID = {
 
 
 class TimeStepper:
-
     """Step through time.
 
     Parameters
@@ -69,10 +70,12 @@ class TimeStepper:
     1.0
     >>> time_stepper.time
     0.0
-    >>> for _ in range(10): time_stepper.advance()
+    >>> for _ in range(10):
+    ...     time_stepper.advance()
+    ...
     >>> time_stepper.time
     10.0
-    >>> time_stepper = TimeStepper(1., 13., 2.)
+    >>> time_stepper = TimeStepper(1.0, 13.0, 2.0)
     >>> [time for time in time_stepper]
     [1.0, 3.0, 5.0, 7.0, 9.0, 11.0]
     """
@@ -198,7 +201,7 @@ def wrap_as_bmi(cls):
     >>> flexure.get_var_units("lithosphere__overlying_pressure_increment")
     'Pa'
 
-    >>> config = \"\"\"
+    >>> config = '''
     ... flexure:
     ...     eet: 10.e+3
     ...     method: flexure
@@ -215,18 +218,18 @@ def wrap_as_bmi(cls):
     ...          lithosphere__overlying_pressure_increment:
     ...            constant:
     ...              - value: 0.0
-    ... \"\"\"
+    ... '''
     >>> flexure.initialize(config)
     >>> sorted(flexure.get_output_var_names())
     ['boundary_condition_flag', 'lithosphere_surface__elevation_increment']
-    >>> flexure.get_var_grid('lithosphere_surface__elevation_increment')
+    >>> flexure.get_var_grid("lithosphere_surface__elevation_increment")
     0
     >>> flexure.get_grid_shape(0, np.empty(flexure.get_grid_rank(0), dtype=int))
     array([20, 40])
     >>> dz = np.empty(flexure.get_grid_size(0))
-    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
+    >>> _ = flexure.get_value("lithosphere_surface__elevation_increment", dz)
 
-    >>> np.all(dz == 0.)
+    >>> np.all(dz == 0.0)
     True
     >>> flexure.get_current_time()
     0.0
@@ -234,13 +237,13 @@ def wrap_as_bmi(cls):
     >>> sorted(flexure.get_input_var_names())
     ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
     >>> load = np.zeros((20, 40), dtype=float)
-    >>> load[0, 0] = 1.
-    >>> flexure.set_value('lithosphere__overlying_pressure_increment', load)
+    >>> load[0, 0] = 1.0
+    >>> flexure.set_value("lithosphere__overlying_pressure_increment", load)
     >>> flexure.update()
     >>> flexure.get_current_time()
     2.0
-    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
-    >>> np.all(dz == 0.)
+    >>> _ = flexure.get_value("lithosphere_surface__elevation_increment", dz)
+    >>> np.all(dz == 0.0)
     False
     """
     if not issubclass(cls, Component):
@@ -356,9 +359,9 @@ def wrap_as_bmi(cls):
             self._clock = TimeStepper(**clock_params)
 
             self._base = self._cls(grid, **params.pop(snake_case(cls.__name__), {}))
-            self._base.grid.at_node[
-                "boundary_condition_flag"
-            ] = self._base.grid.status_at_node
+            self._base.grid.at_node["boundary_condition_flag"] = (
+                self._base.grid.status_at_node
+            )
 
         def update(self):
             """Update the component one time step."""
