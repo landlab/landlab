@@ -1,29 +1,29 @@
+cimport cython
 import numpy as np
 
 cimport numpy as np
 
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 cpdef _D8_flowDir(
-    np.ndarray[DTYPE_INT_t, ndim=1] receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] distance_receiver,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] steepest_slope,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] el_dep_free,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] el_ori,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] dist,
-    np.ndarray[DTYPE_INT_t, ndim=1] ngb,
-    np.ndarray[DTYPE_INT_t, ndim=1] activeCores,
-    np.ndarray[DTYPE_INT_t, ndim=1] activeCells,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] el_d,
-    DTYPE_INT_t c,
-    DTYPE_FLOAT_t dx,
-    np.ndarray[DTYPE_INT_t, ndim=2] adj_link ,
-    np.ndarray[DTYPE_INT_t, ndim=1] rec_link,
+    id_t [:] receivers,
+    cython.floating [:] distance_receiver,
+    cython.floating [:] steepest_slope,
+    cython.floating [:] el_dep_free,
+    cython.floating [:] el_ori,
+    cython.floating [:] dist,
+    id_t [:] ngb,
+    id_t [:] activeCores,
+    id_t [:] activeCells,
+    cython.floating [:] el_d,
+    long c,
+    double dx,
+    id_t [:, :] adj_link,
+    id_t [:] rec_link,
 ):
     """
     Calcualte D8 flow dirs
@@ -87,10 +87,10 @@ cpdef _D8_flowDir(
             steepest_slope[i] = 0
 
 cpdef _D8_FlowAcc(
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] a,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_flip,
-    np.ndarray[DTYPE_INT_t, ndim=1] receivers,
+    cython.floating [:] a,
+    cython.floating [:] q,
+    id_t [:] stack_flip,
+    id_t [:] receivers,
 ):
     """
     Accumulates drainage area and discharge, permitting transmission losses.

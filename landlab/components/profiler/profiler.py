@@ -216,7 +216,7 @@ class Profiler(_BaseProfiler):
 
                 pt = self._project_point_onto_line(sample_xy, start_xy, end_xy)
                 d = grid.calc_distances_of_nodes_to_point(pt, node_subset=start_node)
-                sample_distances[i_sample] = d
+                sample_distances[i_sample] = d[0]
 
             # Store the segment data.
 

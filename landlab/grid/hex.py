@@ -102,7 +102,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> hmg.number_of_nodes
         7
         """
-        self._xy_of_lower_left = tuple(numpy.asfarray(xy_of_lower_left))
+        self._xy_of_lower_left = tuple(numpy.asarray(xy_of_lower_left, dtype=float))
 
         DualHexGraph.__init__(
             self,

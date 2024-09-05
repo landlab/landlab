@@ -442,14 +442,14 @@ class GrainHill(CTSModel):
         >>> ns[[8, 13, 11, 16, 14]] = 7
         >>> gh = GrainHill((3, 7), show_plots=False)  # grid size arbitrary here
         >>> (elev, thickness) = gh.get_profile_and_soil_thickness(hg, ns)
-        >>> list(elev)
-        [0.0, 2.5, 3.0, 2.5, 0.0]
-        >>> list(thickness)
-        [0.0, 2.0, 2.0, 1.0, 0.0]
+        >>> elev
+        array([0. , 2.5, 3. , 2.5, 0. ])
+        >>> thickness
+        array([0., 2., 2., 1., 0.])
         """
         nc = grid.number_of_node_columns
-        elev = zeros(nc)
-        soil = zeros(nc)
+        elev = zeros(nc, dtype=float)
+        soil = zeros(nc, dtype=float)
         for col in range(nc):
             base_id = (col // 2) + (col % 2) * ((nc + 1) // 2)
             node_ids = arange(base_id, grid.number_of_nodes, nc)

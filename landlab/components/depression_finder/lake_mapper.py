@@ -773,6 +773,7 @@ class DepressionFinderAndRouter(Component):
                 pit_count,
                 self._BIG_ELEV,
             )
+
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all self._grid.BAD_INDEX
             # I BELIEVE THE IS_VALID_OUTLET FN SHOULD ASSIGN FLOW DIR
@@ -1154,7 +1155,8 @@ class DepressionFinderAndRouter(Component):
                 if np.min(new_link) == np.max(new_link) and np.min(new_link) == -1:
                     self._links[outlet_node] = -1
                 else:
-                    self._links[outlet_node] = new_link
+                    assert len(new_link) == 1
+                    self._links[outlet_node] = new_link[0]
 
                 # make a check
                 assert (
@@ -1213,7 +1215,7 @@ class DepressionFinderAndRouter(Component):
                 outlet_neighbors = self._grid.active_adjacent_nodes_at_node[
                     outlet_node
                 ].copy()
-            inlake = np.in1d(outlet_neighbors.flat, nodes_in_lake)
+            inlake = np.isin(outlet_neighbors.flat, nodes_in_lake)
             assert inlake.size > 0
             outlet_neighbors[inlake] = -1
             unique_outs, unique_indxs = np.unique(outlet_neighbors, return_index=True)
