@@ -417,7 +417,7 @@ class SnowEnergyBalance(Component):
         return np.multiply(h_swe, density_ratio, out=out)
 
     @staticmethod
-    def calc_cold_content(q_sum, cold_content, dt, out=None):
+    def calc_cold_content(q_sum, cold_content, h_swe, dt, out=None):
         """Calculate snowpack cold content
 
         Parameters
@@ -426,6 +426,8 @@ class SnowEnergyBalance(Component):
             net total energy flux [W / m2].
         cold_content: array_like
             snowpack cold content [J / m2].
+        h_swe : array_like
+            Snow water equivalent [m].
         dt : float, optional
             Time step [s].
 
@@ -435,6 +437,7 @@ class SnowEnergyBalance(Component):
             New snowpack cold content [J / m2].
         """
         out = np.subtract(cold_content, q_sum * dt, out)
+        out[h_swe <= 0] = 0
 
         return out.clip(min=0, max=None, out=out)
 
@@ -480,6 +483,7 @@ class SnowEnergyBalance(Component):
         SnowEnergyBalance.calc_cold_content(
             self._grid.at_node["land_surface_net-total-energy__energy_flux"],
             self._grid.at_node["snowpack__energy-per-area_cold_content"],
+            self.grid.at_node["snowpack__liquid-equivalent_depth"],
             dt=dt,
             out=self._grid.at_node["snowpack__energy-per-area_cold_content"],
         )
