@@ -67,8 +67,8 @@ def to_netcdf(
 
     Read the file back in and check its contents.
 
-    >>> from scipy.io import netcdf
-    >>> fp = netcdf.netcdf_file("test.nc", "r")
+    >>> from scipy.io import netcdf_file
+    >>> fp = netcdf_file("test.nc", "r")
     >>> "at_node:uplift_rate" in fp.variables
     True
     >>> "at_node:topographic__elevation" in fp.variables

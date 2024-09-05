@@ -1,30 +1,26 @@
 cimport cython
-cimport numpy as np
 
-import numpy as np
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_FLOAT = np.float64
-ctypedef np.float64_t DTYPE_FLOAT_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 @cython.boundscheck(False)
 cpdef _landslide_runout(
-    DTYPE_FLOAT_t dx,
-    DTYPE_FLOAT_t phi,
-    DTYPE_FLOAT_t min_deposition_slope,
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_rev_sel,
-    np.ndarray[DTYPE_INT_t, ndim=2] receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=2] fract,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_in,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] L_Hill,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_out,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] length_adjacent_cells,
+    double dx,
+    double phi,
+    double min_deposition_slope,
+    id_t [:] stack_rev_sel,
+    id_t [:, :] receivers,
+    cython.floating [:, :] fract,
+    cython.floating [:] Qs_in,
+    cython.floating [:] L_Hill,
+    cython.floating [:] Qs_out,
+    cython.floating [:] dH_Hill,
+    cython.floating [:] H_i_temp,
+    cython.floating [:] max_D,
+    cython.floating [:] length_adjacent_cells,
 ):
     """
     Calculate landslide runout using a non-local deposition algorithm, see:

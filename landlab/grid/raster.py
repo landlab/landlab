@@ -195,8 +195,8 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         or set it up such that one can create a zero-node grid.
         """
         shape = tuple(shape)
-        xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
-        self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
+        xy_spacing = np.asarray(np.broadcast_to(xy_spacing, 2), dtype=float)
+        self._xy_of_lower_left = tuple(np.asarray(xy_of_lower_left, dtype=float))
 
         if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
@@ -363,7 +363,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
         with self.thawed():
             self.x_of_node[:] -= dx
             self.y_of_node[:] -= dy
-        self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
+        self._xy_of_lower_left = tuple(np.asarray(xy_of_lower_left, dtype=float))
 
     @property
     def cell_grid_shape(self):
@@ -1104,7 +1104,7 @@ class RasterModelGrid(DiagonalsMixIn, DualUniformRectilinearGraph, ModelGrid):
             existing_links = np.array([])
         else:
             unrepeated_node_entries = np.logical_not(
-                np.in1d(
+                np.isin(
                     self.looped_node_properties["boundary_node_IDs"], these_linked_nodes
                 )
             )
