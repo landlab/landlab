@@ -14,16 +14,8 @@ def test_name(pet):
     assert pet.name == "PotentialEvapotranspiration"
 
 
-def test_input_var_names(pet):
-    assert pet.input_var_names == ("radiation__ratio_to_flat_surface",)
-
-
 def test_output_var_names(pet):
     assert sorted(pet.output_var_names) == [
-        "radiation__incoming_shortwave_flux",
-        "radiation__net_flux",
-        "radiation__net_longwave_flux",
-        "radiation__net_shortwave_flux",
         "surface__potential_evapotranspiration_rate",
     ]
 
@@ -33,11 +25,6 @@ def test_var_units(pet):
         dict(pet.units).keys()
     )
 
-    assert pet.var_units("radiation__incoming_shortwave_flux") == "W/m^2"
-    assert pet.var_units("radiation__net_flux") == "W/m^2"
-    assert pet.var_units("radiation__net_longwave_flux") == "W/m^2"
-    assert pet.var_units("radiation__net_shortwave_flux") == "W/m^2"
-    assert pet.var_units("radiation__ratio_to_flat_surface") == "None"
     assert pet.var_units("surface__potential_evapotranspiration_rate") == "mm"
 
 

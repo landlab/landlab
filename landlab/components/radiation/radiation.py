@@ -225,11 +225,6 @@ class Radiation(Component):
         self._n = clearsky_turbidity
         self._m = opt_airmass
 
-        # For computations requiring temperature
-        self._Tmin, self._Tmax = self._validate_temperature_range(
-            min_daily_temp, max_daily_temp
-        )
-
         _assert_method_is_valid(self._method)
 
         self.initialize_output_fields()
@@ -264,6 +259,13 @@ class Radiation(Component):
             self._cellular_status == self._gridCopy.BC_NODE_IS_CLOSED
         )
 
+        # For computations requiring temperature
+        # Invoked after gridCopy created, since gridCopy is necessary
+        # for node to cell mapping operations
+        self._Tmin, self._Tmax = self._validate_temperature_range(
+            min_daily_temp, max_daily_temp
+        )
+
     def run_one_step(self, dt=None):
         if dt is None:
             dt = 1.0 / 365.0
@@ -280,11 +282,33 @@ class Radiation(Component):
             raise ValueError("albedo must be between 0 and 1")
         return albedo
 
+    def _process_field(self, field, field_name):
+        if isinstance(field, np.ndarray) and np.shape(field) == np.shape(
+            self._grid.at_node["topographic__elevation"]
+        ):
+            self._gridCopy.add_field(field_name, field, at="node")
+            return map_node_to_cell(self._gridCopy, field_name)
+
+        return field
+
+    # Function used to validate valid min and max temperatures,
+    # and map them to cell dimensions if provided as a node field
+    # and not a cell-based field.
     def _validate_temperature_range(self, min_temp, max_temp):
-        if min_temp > max_temp:
-            raise ValueError(
-                f"minimum temperature ({min_temp}) must be less than maximum ({max_temp})"
-            )
+        # Simple validation first
+        if np.any(min_temp is None) or np.any(max_temp is None):
+            raise ValueError("Tmin and Tmax are required fields")
+        if np.any(min_temp > max_temp):
+            raise ValueError("Tmin must be less than Tmax")
+
+        # If min T is not a constant, see if its passed as node values, and change it to
+        # cell values instead, if so.
+        min_temp = self._process_field(min_temp, "min_temperature")
+
+        # If max T is not a constant, see if its passed as node values, and change it to
+        # cell values instead, if so.
+        max_temp = self._process_field(max_temp, "max_temperature")
+
         return min_temp, max_temp
 
     @property
@@ -309,6 +333,13 @@ class Radiation(Component):
         This method looks to the properties ``current_time`` and
         ``hour`` and uses their values in updating fields.
         """
+
+        # The user could change factors like temperature and pressure to be spatially
+        # distributed (as opposed to being constant upon instantiation), so run this
+        # validator at the start of every update cycle to catch exceptions and avoid
+        # errors with dimensions.
+        self._validate_existing_parameters()
+
         self._t = self._hour
 
         # Julian Day - ASCE-EWRI Task Committee Report, Jan-2005 - Eqn 25, (52)
@@ -544,3 +575,9 @@ class Radiation(Component):
 
         # Closed nodes will be omitted from spatially distributed ratio calculations
         self._radf[self._closed_elevations] = 0.0
+
+    def _validate_existing_parameters(self):
+        # For computations requiring temperature
+        self._Tmin, self._Tmax = self._validate_temperature_range(
+            self._Tmin, self._Tmax
+        )
