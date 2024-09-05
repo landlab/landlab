@@ -119,6 +119,9 @@ class Species(object):
     def calc_area_of_circle(self, diameter):
         return np.pi / 4 * diameter ** 2
 
+    def calc_volume_cylinder(self, area, height):
+        return area * height
+
     def calc_param_ratio(self, numerator, denominator):
         return numerator / denominator
 
@@ -143,13 +146,17 @@ class Species(object):
 
         # volume of a cylinder
         # check for negative values
-        UnitTestChecks().is_negative_present(species_params["morph_params"]["max_height"], "max_height")
-        species_params["morph_params"]["max_vital_volume"] = (
-            species_params["morph_params"]["max_crown_area"]
-            * species_params["morph_params"]["max_height"]
+        UnitTestChecks().is_negative_present(morph_params["max_height"], "max_height")
+        UnitTestChecks().is_negative_present(species_params["morph_params"]["max_crown_area"], "max_crown_area")
+        species_params["morph_params"]["max_vital_volume"] = self.calc_volume_cylinder(
+            area=species_params["morph_params"]["max_crown_area"],
+            height=species_params["morph_params"]["max_height"]
         )
 
         # ratio calculations
+        # check if zero
+        for denominator in ["max_n_stems", "min_shoot_sys_width", "max_shoot_sys_width", "min_basal_dia", "max_basal_dia"]:
+            UnitTestChecks().is_zero(morph_params[denominator], denominator)
         species_params["morph_params"]["area_per_stem"] = self.calc_param_ratio(
             morph_params["max_crown_area"],
             morph_params["max_n_stems"]
@@ -187,18 +194,22 @@ class Species(object):
         for sum_var in sum_vars:
             species_params["grow_params"][sum_var[0]] = 0
             for part in sum_var[2]:
-                species_params["grow_params"][sum_var[0]] += species_params[
-                    "grow_params"
-                ][sum_var[1]][part]
+                species_params["grow_params"][sum_var[0]] += species_params["grow_params"][sum_var[1]][part]
 
         species_params["morph_params"]["biomass_packing"] = self.calc_param_ratio(
             species_params["grow_params"]["max_growth_biomass"],
             morph_params["max_vital_volume"]
         )
 
-        species_params["duration_params"]["senesce_rate"] = 0.9 / (
-            species_params["duration_params"]["growing_season_end"]
-            - species_params["duration_params"]["senescence_start"]
+        # check to make sure the growing_season_end is not equal to senescence_start
+        UnitTestChecks().is_zero(
+            (species_params["duration_params"]["growing_season_end"] - species_params["duration_params"]["senescence_start"]),
+            "growing_season_end - senescence_start"
+        )
+        species_params["duration_params"]["senesce_rate"] = self.calc_param_ratio(
+            0.9,
+            (species_params["duration_params"]["growing_season_end"] - species_params["duration_params"]["senescence_start"]),
+
         )
 
         seasonal_nsc_assim_rates = [
@@ -223,13 +234,15 @@ class Species(object):
             else:
                 season_length = end_date - start_date
             for part in self.all_parts:
+                UnitTestChecks().is_zero(
+                    season_length,
+                    f'season length for {season}'
+                )
                 rate_change_nsc = (
                     species_params["grow_params"]["incremental_nsc"][part][idx]
                     - species_params["grow_params"]["incremental_nsc"][part][idx - 1]
                 ) / season_length  # figure out how to loop this
-                species_params["duration_params"]["nsc_rate_change"][season][
-                    part
-                ] = rate_change_nsc
+                species_params["duration_params"]["nsc_rate_change"][season][part] = rate_change_nsc
 
         return species_params
 

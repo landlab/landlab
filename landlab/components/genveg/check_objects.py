@@ -9,3 +9,7 @@ class UnitTestChecks(object):
         else:
             if test_value < 0:
                 raise ValueError(f'{print_variable} is negative')
+
+    def is_zero(self, test_value, print_variable):
+        if test_value == 0:
+            raise ValueError(f'{print_variable} is zero, cannot divide by zero')
