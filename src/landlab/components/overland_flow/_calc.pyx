@@ -18,6 +18,12 @@ ctypedef fused id_t:
     long long
 
 
+ctypedef fused float_or_int_t:
+    cython.integral
+    cython.floating
+    long long
+
+
 @cython.boundscheck(False)
 def neighbors_at_link(
     id_t [:] links,
@@ -220,8 +226,8 @@ def calc_discharge_at_some_links(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def sum_parallel_links(
-    cython.numeric[:] out,
-    const cython.numeric[:] value_at_link,
+    float_or_int_t [:] out,
+    const float_or_int_t [:] value_at_link,
     shape,
 ):
     cdef int n_rows = shape[0]
