@@ -122,8 +122,8 @@ Run the simulation for 100 timesteps (equivalent to 10 seconds).
 
 Examine the flow depth at the center of the channel after 10 seconds.
 
->>> flow_depth = np.reshape(grid['node']["surface_water__depth"],(nRows,nCols))[10,:]
->>> np.round(flow_depth,3)
+>>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
+>>> np.round(flow_depth, 3)
 array([0.5  , 0.491, 0.48 , 0.473, 0.467, 0.464, 0.46 , 0.458, 0.455,
        0.454, 0.452, 0.45 , 0.449, 0.448, 0.446, 0.445, 0.443, 0.442,
        0.441, 0.439, 0.438, 0.437, 0.435, 0.434, 0.433, 0.431, 0.43 ,
