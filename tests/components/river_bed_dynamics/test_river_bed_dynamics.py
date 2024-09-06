@@ -3,10 +3,12 @@ Unit tests for landlab.components.RiverBedDynamics.RiverBedDynamics
 
 last updated: 10/12/2023
 """
+
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components import OverlandFlow, RiverBedDynamics
+from landlab.components import OverlandFlow
+from landlab.components import RiverBedDynamics
 from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
 (_SHAPE, _SPACING, _ORIGIN) = ((5, 5), (100, 100), (0.0, 0.0))
@@ -116,9 +118,9 @@ def test_rbd_approximate_solution():
         rainfall_intensity=0.0,
     )
     of._rainfall_intensity = np.zeros_like(z, dtype=float)
-    of._rainfall_intensity[
-        node_inlet
-    ] = 0.02  # Boundary conditions of discharge and flow depth
+    of._rainfall_intensity[node_inlet] = (
+        0.02  # Boundary conditions of discharge and flow depth
+    )
 
     # Creates fields and instantiate the RiverbedDynamics component
     grid.add_zeros("surface_water__velocity", at="node")

@@ -6,6 +6,7 @@ grain size distribution related fields
 .. codecoauthors: Sam Anderson, Nicole Gasparini, Elowyn Yager
 
 """
+
 import numpy as np
 
 
@@ -220,7 +221,7 @@ def map_initial_bed_properties_to_nodes(gsd, gsd_loc_node):
 
     >>> np.around(gs_D_freq[12], 2)
     array([0.4 , 0.3 , 0.28, 0.01])
-    
+
     Another example, where the 2 mm fraction is not originally present and only sizes larger
     than 2 mm are present
 
@@ -251,7 +252,7 @@ def map_initial_bed_properties_to_nodes(gsd, gsd_loc_node):
 
     >>> np.around(gs_D_freq[8], 2)
     array([0.5, 0.5])
-    
+
     >>> np.around(gs_D_freq[12], 2)
     array([0.4, 0.6])
 

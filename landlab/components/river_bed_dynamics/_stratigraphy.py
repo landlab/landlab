@@ -6,6 +6,7 @@ tracking algorithm
 .. codecoauthors: Sam Anderson, Nicole Gasparini, Elowyn Yager
 
 """
+
 import csv
 
 import numpy as np

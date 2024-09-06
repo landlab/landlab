@@ -495,16 +495,14 @@ import scipy.constants
 
 from landlab import Component
 
-from . import (
-    _bedload_eq_MPM_style as MPM_style,
-    _bedload_eq_Parker_1990 as Parker1990,
-    _bedload_eq_Wilcock_Crowe_2003 as WilcockAndCrowe2003,
-    _initialize_fields as initialize,
-    _initialize_gsd as initialize_gsd,
-    _nodes_and_links_info as info,
-    _stratigraphy as stratigraphy,
-    _utilities as utilities,
-)
+from . import _bedload_eq_MPM_style as MPM_style
+from . import _bedload_eq_Parker_1990 as Parker1990
+from . import _bedload_eq_Wilcock_Crowe_2003 as WilcockAndCrowe2003
+from . import _initialize_fields as initialize
+from . import _initialize_gsd as initialize_gsd
+from . import _nodes_and_links_info as info
+from . import _stratigraphy as stratigraphy
+from . import _utilities as utilities
 
 
 class RiverBedDynamics(Component):

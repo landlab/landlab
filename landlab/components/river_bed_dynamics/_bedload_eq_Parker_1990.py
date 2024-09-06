@@ -140,20 +140,20 @@ def strain_functions(phi_sgo):
 
     >>> phi_sgo = np.array([0.7639, 1, 100, 231.1])
     >>> (omega0, sigma0) = Parker1990.strain_functions(phi_sgo)
-    >>> np.round(omega0,3)
+    >>> np.round(omega0, 3)
     array([1.011, 1.   , 0.456, 0.454])
 
-    >>> np.round(sigma0,3)
+    >>> np.round(sigma0, 3)
     array([0.816, 0.844, 1.498, 1.499])
 
     range 3: phi_sgo >= 231.2
 
     >>> phi_sgo = np.array([231.1, 1000, 2000, 2320])
     >>> (omega0, sigma0) = Parker1990.strain_functions(phi_sgo)
-    >>> np.round(omega0,3)
+    >>> np.round(omega0, 3)
     array([0.454, 0.454, 0.453, 0.453])
 
-    >>> np.round(sigma0,3)
+    >>> np.round(sigma0, 3)
     array([1.499, 1.499, 1.5  , 1.5  ])
 
     """
