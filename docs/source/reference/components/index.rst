@@ -58,6 +58,7 @@ Shallow water hydrodynamics
    :maxdepth: 2
 
    overland_flow
+   river_flow_dynamics
    tidal_flow
 
 Land surface hydrology
@@ -242,6 +243,7 @@ Alphabetical Listing of Modules
    plant_competition_ca
    potentiality_flowrouting
    radiation
+   river_flow_dynamics
    sink_fill
    soil_moisture
    space
