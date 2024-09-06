@@ -116,7 +116,68 @@ class Species(object):
             msg = "Start of senescence must be within the growing season"
             raise ValueError(msg)
 
+    def calc_area_of_circle(self, diameter):
+        return np.pi / 4 * diameter ** 2
+
+    def calc_volume_cylinder(self, area, height):
+        return area * height
+
+    def calc_param_ratio(self, numerator, denominator):
+        return numerator / denominator
+
     def calculate_derived_params(self, species_params):
+        morph_params = species_params["morph_params"]
+        # Area of circle calcuations
+        # check for negative values
+        for m_params in ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]:
+            UnitTestChecks().is_negative_present(morph_params[m_params], m_params)
+        species_params["morph_params"]["max_crown_area"] = self.calc_area_of_circle(
+            diameter=morph_params["max_shoot_sys_width"]
+        )
+        species_params["morph_params"]["min_crown_area"] = self.calc_area_of_circle(
+            diameter=morph_params["min_shoot_sys_width"]
+        )
+        species_params["morph_params"]["max_root_area"] = self.calc_area_of_circle(
+            diameter=morph_params["max_root_sys_width"]
+        )
+        species_params["morph_params"]["min_root_area"] = self.calc_area_of_circle(
+            diameter=morph_params["min_root_sys_width"]
+        )
+
+        # volume of a cylinder
+        # check for negative values
+        UnitTestChecks().is_negative_present(morph_params["max_height"], "max_height")
+        UnitTestChecks().is_negative_present(species_params["morph_params"]["max_crown_area"], "max_crown_area")
+        species_params["morph_params"]["max_vital_volume"] = self.calc_volume_cylinder(
+            area=species_params["morph_params"]["max_crown_area"],
+            height=species_params["morph_params"]["max_height"]
+        )
+
+        # ratio calculations
+        # check if zero
+        for denominator in ["max_n_stems", "min_shoot_sys_width", "max_shoot_sys_width", "min_basal_dia", "max_basal_dia"]:
+            UnitTestChecks().is_zero(morph_params[denominator], denominator)
+        species_params["morph_params"]["area_per_stem"] = self.calc_param_ratio(
+            morph_params["max_crown_area"],
+            morph_params["max_n_stems"]
+        )
+        species_params["morph_params"]["min_abg_aspect_ratio"] = self.calc_param_ratio(
+            morph_params["max_height"],
+            morph_params["min_shoot_sys_width"]
+        )
+        species_params["morph_params"]["max_abg_aspect_ratio"] = self.calc_param_ratio(
+            morph_params["max_height"],
+            morph_params["max_shoot_sys_width"]
+        )
+        species_params["morph_params"]["min_basal_ratio"] = self.calc_param_ratio(
+            morph_params["min_shoot_sys_width"],
+            morph_params["min_basal_dia"]
+        )
+        species_params["morph_params"]["max_basal_ratio"] = self.calc_param_ratio(
+            morph_params["max_shoot_sys_width"],
+            morph_params["max_basal_dia"]
+        )
+
         sum_vars = [
             ["max_total_biomass", "plant_part_max", self.all_parts],
             ["max_growth_biomass", "plant_part_max", self.growth_parts],
@@ -133,13 +194,22 @@ class Species(object):
         for sum_var in sum_vars:
             species_params["grow_params"][sum_var[0]] = 0
             for part in sum_var[2]:
-                species_params["grow_params"][sum_var[0]] += species_params[
-                    "grow_params"
-                ][sum_var[1]][part]
+                species_params["grow_params"][sum_var[0]] += species_params["grow_params"][sum_var[1]][part]
 
-        species_params["duration_params"]["senesce_rate"] = 0.9 / (
-            species_params["duration_params"]["growing_season_end"]
-            - species_params["duration_params"]["senescence_start"]
+        species_params["morph_params"]["biomass_packing"] = self.calc_param_ratio(
+            species_params["grow_params"]["max_growth_biomass"],
+            morph_params["max_vital_volume"]
+        )
+
+        # check to make sure the growing_season_end is not equal to senescence_start
+        UnitTestChecks().is_zero(
+            (species_params["duration_params"]["growing_season_end"] - species_params["duration_params"]["senescence_start"]),
+            "growing_season_end - senescence_start"
+        )
+        species_params["duration_params"]["senesce_rate"] = self.calc_param_ratio(
+            0.9,
+            (species_params["duration_params"]["growing_season_end"] - species_params["duration_params"]["senescence_start"]),
+
         )
 
         seasonal_nsc_assim_rates = [
@@ -164,13 +234,15 @@ class Species(object):
             else:
                 season_length = end_date - start_date
             for part in self.all_parts:
+                UnitTestChecks().is_zero(
+                    season_length,
+                    f'season length for {season}'
+                )
                 rate_change_nsc = (
                     species_params["grow_params"]["incremental_nsc"][part][idx]
                     - species_params["grow_params"]["incremental_nsc"][part][idx - 1]
                 ) / season_length  # figure out how to loop this
-                species_params["duration_params"]["nsc_rate_change"][season][
-                    part
-                ] = rate_change_nsc
+                species_params["duration_params"]["nsc_rate_change"][season][part] = rate_change_nsc
 
         return species_params
 

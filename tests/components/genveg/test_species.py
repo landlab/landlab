@@ -1,7 +1,7 @@
 import numpy as np
-import pytest
 
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_almost_equal
+
 from landlab.components.genveg.species import Species
 
 
@@ -37,10 +37,196 @@ def test_get_daily_nsc_concentration(example_input_params):
         )
 
 
-def test_calculate_lai_error_message_raise(example_input_params):
+def test_calc_area_of_circle(example_input_params):
     species_object = create_species_object(example_input_params)
-    with pytest.raises(ValueError):
-        species_object.calculate_lai(
-            np.array([0.01, -0.45, 0.16]),
-            np.random.default_rng().uniform(low=0.0, high=3, size=3)
+    morph_params = example_input_params["BTS"]["morph_params"]
+    m_params = ["max_shoot_sys_width", "min_shoot_sys_width", "max_root_sys_width", "min_root_sys_width"]
+    # values from excel sheet
+    area_values = np.array([0.070685835, 0.0000785398, 0.096211275, 0.0000785398])
+    for m_param, a_value in zip(m_params, area_values):
+        assert_almost_equal(
+            species_object.calc_area_of_circle(morph_params[m_param]),
+            a_value
         )
+
+
+# Test calculate_derived_params functions
+def test_max_vitial_volume(example_input_params):
+    assert_almost_equal(
+        create_species_object(example_input_params).calc_volume_cylinder(
+            area=0.070685835,
+            height=example_input_params["BTS"]["morph_params"]["max_height"]
+        ),
+        0.053014376
+    )
+
+
+def test_ratio_calculations(example_input_params):
+    species_object = create_species_object(example_input_params)
+    morph_param = example_input_params["BTS"]["morph_params"]
+    # area_per_stem
+    assert_almost_equal(
+        species_object.calc_param_ratio(0.070685835, morph_param["max_n_stems"]),
+        0.007068583
+    )
+    # min_abg_aspect_ratio
+    assert_almost_equal(
+        species_object.calc_param_ratio(morph_param["max_height"], morph_param["min_shoot_sys_width"]),
+        75
+    )
+    # max_abg_aspect_ratio
+    assert_almost_equal(
+        species_object.calc_param_ratio(morph_param["max_height"], morph_param["max_shoot_sys_width"]),
+        2.5
+    )
+    # min_basal_ratio
+    assert_almost_equal(
+        species_object.calc_param_ratio(morph_param["min_shoot_sys_width"], morph_param["min_basal_dia"]),
+        1.843906736
+    )
+    # max_basal_ratio
+    assert_almost_equal(
+        species_object.calc_param_ratio(morph_param["max_shoot_sys_width"], morph_param["max_basal_dia"]),
+        3
+    )
+    # biomass_packing
+    assert_almost_equal(
+        species_object.calc_param_ratio(17.9, 0.053014376),
+        337.6442646
+    )
+    # senesce_rate
+    assert_almost_equal(
+        species_object.calc_param_ratio(0.9, 32),
+        0.028125
+    )
+
+
+def test_sum_vars_in_calculate_derived_params(example_input_params):
+    species_object = create_species_object(example_input_params)
+    species_param = species_object.calculate_derived_params(example_input_params["BTS"])
+    # Checked via excel
+    # Max total Biomass
+    assert_almost_equal(
+        species_param["grow_params"]["max_total_biomass"],
+        17.9
+    )
+    # max_growth_biomass
+    assert_almost_equal(
+        species_param["grow_params"]["max_growth_biomass"],
+        13.9
+    )
+    # max_abg_biomass
+    assert_almost_equal(
+        species_param["grow_params"]["max_abg_biomass"],
+        9.6
+    )
+    # min_total_biomass
+    assert_almost_equal(
+        species_param["grow_params"]["min_total_biomass"],
+        0.062222222
+    )
+    # min_growth_biomass
+    assert_almost_equal(
+        species_param["grow_params"]["min_growth_biomass"],
+        0.062222222
+    )
+    # min_abg_biomass
+    assert_almost_equal(
+        species_param["grow_params"]["min_abg_biomass"],
+        0.052222222
+    )
+    # min_nsc_biomass
+    assert_almost_equal(
+        species_param["grow_params"]["min_nsc_biomass"],
+        0.03369
+    )
+
+
+def test_nsc_rate_change_per_season_and_part(example_input_params):
+    species_object = create_species_object(example_input_params)
+    species_param = species_object.calculate_derived_params(example_input_params["BTS"])
+    ncs_rate_change = species_param["duration_params"]["nsc_rate_change"]
+    # winter_nsc_rate
+    # - leaf
+    assert_almost_equal(
+        ncs_rate_change["winter_nsc_rate"]["leaf"],
+        0.003676471
+    )
+    # - reproductive
+    assert_almost_equal(
+        ncs_rate_change["winter_nsc_rate"]["reproductive"],
+        -0.004595588
+    )
+    # - root
+    assert_almost_equal(
+        ncs_rate_change["winter_nsc_rate"]["root"],
+        -0.003676471
+    )
+    # - stem
+    assert_almost_equal(
+        ncs_rate_change["winter_nsc_rate"]["stem"],
+        -0.00245098
+    )
+    # spring_nsc_rate
+    # - leaf
+    assert_almost_equal(
+        ncs_rate_change["spring_nsc_rate"]["leaf"],
+        -0.015060241
+    )
+    # - reproductive
+    assert_almost_equal(
+        ncs_rate_change["spring_nsc_rate"]["reproductive"],
+        -0.041415663
+    )
+    # - root
+    assert_almost_equal(
+        ncs_rate_change["spring_nsc_rate"]["root"],
+        -0.045180723
+    )
+    # - stem
+    assert_almost_equal(
+        ncs_rate_change["spring_nsc_rate"]["stem"],
+        -0.006024096
+    )
+    # summer_nsc_rate
+    # - leaf
+    assert_almost_equal(
+        ncs_rate_change["summer_nsc_rate"]["leaf"],
+        -0.02173913
+    )
+    # - reproductive
+    assert_almost_equal(
+        ncs_rate_change["summer_nsc_rate"]["reproductive"],
+        0.042119565
+    )
+    # - root
+    assert_almost_equal(
+        ncs_rate_change["summer_nsc_rate"]["root"],
+        0.054347826
+    )
+    # - stem
+    assert_almost_equal(
+        ncs_rate_change["summer_nsc_rate"]["stem"],
+        0.010869565
+    )
+    # fall_nsc_rate
+    # - leaf
+    assert_almost_equal(
+        ncs_rate_change["fall_nsc_rate"]["leaf"],
+        0.046875
+    )
+    # - reproductive
+    assert_almost_equal(
+        ncs_rate_change["fall_nsc_rate"]["reproductive"],
+        0.076171875
+    )
+    # - root
+    assert_almost_equal(
+        ncs_rate_change["fall_nsc_rate"]["root"],
+        0.0625
+    )
+    # - stem
+    assert_almost_equal(
+        ncs_rate_change["fall_nsc_rate"]["stem"],
+        0.015625
+    )
