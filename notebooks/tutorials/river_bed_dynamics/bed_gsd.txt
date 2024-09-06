@@ -1,0 +1,9 @@
+# Format in this file is:
+# Column 0 contains grain sizes
+# Column 1 contains cumulative percentage finer for the grain size at site 0
+# Column 2 contains cumulative percentage finer for the grain size at site 1
+# Column 3 contains cumulative percentage finer for the grain size at site 2
+# and so on. For one site, two columns are required, like in this example.
+51	100
+50	50
+49	0
