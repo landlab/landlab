@@ -38,10 +38,10 @@ def adds_2mm_to_gsd(gsd):
     >>> gsd = [[32, 100, 100], [16, 25, 50], [1, 0, 0]]
     >>> gsd = initialize_gsd.adds_2mm_to_gsd(gsd)
     >>> gsd
-    array([[  32.  ,  100.  ,  100.  ],
-           [  16.  ,   25.  ,   50.  ],
-           [   2.  ,    6.25,   12.5 ],
-           [   1.  ,    0.  ,    0.  ]])
+    array([[ 32.  , 100.  , 100.  ],
+           [ 16.  ,  25.  ,  50.  ],
+           [  2.  ,   6.25,  12.5 ],
+           [  1.  ,   0.  ,   0.  ]])
 
     """
     gsd = np.array(gsd)
@@ -178,22 +178,22 @@ def map_initial_bed_properties_to_nodes(gsd, gsd_loc_node):
 
     >>> gsd = initialize_gsd.adds_2mm_to_gsd(gsd)
     >>> gsd
-    array([[  32. ,  100. ,  100. ,  100. ],
-           [  16. ,   25. ,   50. ,   60. ],
-           [   8. ,   10. ,   20. ,   30. ],
-           [   4. ,    5. ,    4. ,    2. ],
-           [   2. ,    2.5,    2. ,    1. ],
-           [   1. ,    0. ,    0. ,    0. ]])
+    array([[ 32. , 100. , 100. , 100. ],
+           [ 16. ,  25. ,  50. ,  60. ],
+           [  8. ,  10. ,  20. ,  30. ],
+           [  4. ,   5. ,   4. ,   2. ],
+           [  2. ,   2.5,   2. ,   1. ],
+           [  1. ,   0. ,   0. ,   0. ]])
 
     Second, remove sand (only when using Parker 1990)
 
     >>> gsd = initialize_gsd.remove_sand_from_gsd(gsd, "Parker1990")
     >>> np.around(gsd, 2)
-    array([[  32.  ,  100.  ,  100.  ,  100.  ],
-           [  16.  ,   23.08,   48.98,   59.6 ],
-           [   8.  ,    7.69,   18.37,   29.29],
-           [   4.  ,    2.56,    2.04,    1.01],
-           [   2.  ,    0.  ,    0.  ,    0.  ]])
+    array([[ 32.  , 100.  , 100.  , 100.  ],
+           [ 16.  ,  23.08,  48.98,  59.6 ],
+           [  8.  ,   7.69,  18.37,  29.29],
+           [  4.  ,   2.56,   2.04,   1.01],
+           [  2.  ,   0.  ,   0.  ,   0.  ]])
 
     And now we can map to nodes
 
@@ -206,21 +206,21 @@ def map_initial_bed_properties_to_nodes(gsd, gsd_loc_node):
     Sand fraction should be zero everywhere because we removed it by using Parker
 
     >>> sand_fract
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+           0., 0., 0., 0., 0., 0., 0., 0.])
 
     Let's check some of the gsd for selected nodes, representative of locations 1, 2, and 3.
     These nodes are: 5, 8, and 12, respectively
 
     >>> np.around(gs_D_freq[5], 2)
-    array([ 0.77,  0.15,  0.05,  0.03])
+    array([0.77, 0.15, 0.05, 0.03])
 
     >>> np.around(gs_D_freq[8], 2)
-    array([ 0.51,  0.31,  0.16,  0.02])
+    array([0.51, 0.31, 0.16, 0.02])
 
     >>> np.around(gs_D_freq[12], 2)
-    array([ 0.4 ,  0.3 ,  0.28,  0.01])
-
+    array([0.4 , 0.3 , 0.28, 0.01])
+    
     Another example, where the 2 mm fraction is not originally present and only sizes larger
     than 2 mm are present
 
@@ -240,20 +240,20 @@ def map_initial_bed_properties_to_nodes(gsd, gsd_loc_node):
     Sand fraction should be zero everywhere because there was none in the gsd
 
     >>> sand_fract
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-            0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+           0., 0., 0., 0., 0., 0., 0., 0.])
 
     Let's check some of the gsd for selected nodes, representative of locations 1, 2, and 3.
     These nodes are: 5, 8, and 12, respectively
 
     >>> np.around(gs_D_freq[5], 2)
-    array([ 0.75,  0.25])
+    array([0.75, 0.25])
 
     >>> np.around(gs_D_freq[8], 2)
-    array([ 0.5,  0.5])
-
+    array([0.5, 0.5])
+    
     >>> np.around(gs_D_freq[12], 2)
-    array([ 0.4,  0.6])
+    array([0.4, 0.6])
 
     """
     gsd = np.array(gsd)

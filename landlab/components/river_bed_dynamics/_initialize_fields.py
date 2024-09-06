@@ -56,9 +56,9 @@ Case2a: Using default values
 ...     grid, sed_transp__bedload_rate_fix_link
 ... )
 >>> sed_transp__bedload_rate_fix_link
-array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0.])
 
 Case2b: Setting sed_transp__bedload_gsd_fix_link as 6.7 at link 3, 6, and 10
 
@@ -68,10 +68,10 @@ Case2b: Setting sed_transp__bedload_gsd_fix_link as 6.7 at link 3, 6, and 10
 ...     grid, sed_transp__bedload_rate_fix_link
 ... )
 >>> sed_transp__bedload_rate_fix_link
-array([ 0. ,  0. ,  0. ,  6.7,  0. ,  0. ,  6.7,  0. ,  0. ,  0. ,  6.7,
-        0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
-        0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,
-        0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ])
+array([0. , 0. , 0. , 6.7, 0. , 0. , 6.7, 0. , 0. , 0. , 6.7, 0. , 0. ,
+       0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ,
+       0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ,
+       0. ])
 
 Case2c: Setting sed_transp__bedload_gsd_fix_link with wrong size
 
@@ -80,9 +80,9 @@ Case2c: Setting sed_transp__bedload_gsd_fix_link with wrong size
 ...     grid, sed_transp__bedload_rate_fix_link
 ... )
 >>> sed_transp__bedload_rate_fix_link
-array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0.])
 
 Case3a: Using default values
 
@@ -96,11 +96,11 @@ For displaying purposes we only show the first 5 links, which are all zeros as
 we did not specified any imposed gsd
 
 >>> sed_transp__bedload_gsd_fix_link[:5, :]
-array([[ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.]])
+array([[0., 0.],
+       [0., 0.],
+       [0., 0.],
+       [0., 0.],
+       [0., 0.]])
 
 Case3b: Setting sed_transp__bedload_gsd_fix_link at links 2 and 4 as
 gsd = np.array([[32, 100], [16, 50], [8, 0]])
@@ -118,11 +118,11 @@ If we want to specify an imposed gsd to a link we can do this:
 For displaying purposes we only show the first 5 links.
 
 >>> sed_transp__bedload_gsd_fix_link[:5, :]
-array([[ 0. ,  0. ],
-       [ 0.5,  0.5],
-       [ 0. ,  0. ],
-       [ 0.5,  0.5],
-       [ 0. ,  0. ]])
+array([[0. , 0. ],
+       [0.5, 0.5],
+       [0. , 0. ],
+       [0.5, 0.5],
+       [0. , 0. ]])
 
 The rest of elements are [0., 0.] because they are not imposed. The importance
 of this step is that in the component. It will know what links must preserve its gsd.
@@ -138,11 +138,11 @@ For displaying purposes we only show the first 5 links, which are all zeros beca
 there was an error while trying to specify sed_transp__bedload_gsd_fix_link
 
 >>> sed_transp__bedload_gsd_fix_link[:5, :]
-array([[ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.]])
+array([[0., 0.],
+       [0., 0.],
+       [0., 0.],
+       [0., 0.],
+       [0., 0.]])
 
 Case4a: Using default values
 
@@ -153,11 +153,10 @@ Case4a: Using default values
 ...     grid, surface_water__velocity_prev_time_link
 ... )
 >>> surface_water__velocity_prev_time_link
-array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25])
+array([0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
 
 Case4b: Setting surface_water__velocity_prev_time_link with link 4 as 1.2 m/s
 >>> surface_water__velocity_prev_time_link = np.full(grid.number_of_links, 0.50)
@@ -167,10 +166,10 @@ Case4b: Setting surface_water__velocity_prev_time_link with link 4 as 1.2 m/s
 ...     grid, surface_water__velocity_prev_time_link
 ... )
 >>> surface_water__velocity_prev_time_link
-array([ 0.5,  0.5,  0.5,  0.5,  1.2,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,
-        0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,
-        0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,
-        0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5])
+array([0.5, 0.5, 0.5, 0.5, 1.2, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+       0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
+       0.5])
 
 Case4c: Setting surface_water__velocity_prev_time_link with wrong size
 
@@ -179,11 +178,10 @@ Case4c: Setting surface_water__velocity_prev_time_link with wrong size
 ...     grid, surface_water__velocity_prev_time_link
 ... )
 >>> surface_water__velocity_prev_time_link
-array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25])
+array([0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
 
 """
 

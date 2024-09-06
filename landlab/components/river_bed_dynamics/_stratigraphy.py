@@ -128,10 +128,10 @@ def checks_erosion_or_deposition(self):
             self._bed_surf__thick_new_layer_link > self._bed_surf_new_layer_thick
         )
         update_deposited_link_id = update_deposited_link_id[
-            np.in1d(update_deposited_link_id, self._grid.active_links)
+            np.isin(update_deposited_link_id, self._grid.active_links)
         ]
         self._update_deposited_link_id = update_deposited_link_id[
-            ~np.in1d(update_deposited_link_id, self._bed_surf__elev_fix_link_id)
+            ~np.isin(update_deposited_link_id, self._bed_surf__elev_fix_link_id)
         ]
 
         if self._update_deposited_link_id.shape[0] > 0:
@@ -147,10 +147,10 @@ def checks_erosion_or_deposition(self):
             self._bed_surf__thick_new_layer_link < -self._bed_surf_new_layer_thick
         )
         update_eroded_link_id = update_eroded_link_id[
-            np.in1d(update_eroded_link_id, self._grid.active_links)
+            np.isin(update_eroded_link_id, self._grid.active_links)
         ]
         self._update_eroded_link_id = update_eroded_link_id[
-            ~np.in1d(update_eroded_link_id, self._bed_surf__elev_fix_link_id)
+            ~np.isin(update_eroded_link_id, self._bed_surf__elev_fix_link_id)
         ]
 
         if self._update_eroded_link_id.shape[0] > 0:
@@ -242,16 +242,16 @@ def evolve(self):
     num_cycles_to_process_strat=2
 
     >>> rbd._link_stratigraphy_temp[23][0][0, 4:6]
-    array([ 0.1,  0.9])
+    array([0.1, 0.9])
 
     >>> rbd._link_stratigraphy_temp[23][13][0, 4:6]
-    array([ 0.1052982,  0.8947018])
+    array([0.1052982, 0.8947018])
 
     >>> rbd._link_stratigraphy_temp[23][58][0, 4:6]
-    array([ 0.12428022,  0.87571978])
+    array([0.12428022, 0.87571978])
 
     >>> rbd._link_stratigraphy_temp[23][649][0, 4:6]
-    array([ 0.3631502,  0.6368498])
+    array([0.3631502, 0.6368498])
 
     The list rbd._link_stratigraphy_temp[23] has 650 elements, this means that
     it's evolution was recorded every 2 seconds
@@ -315,16 +315,16 @@ def evolve(self):
     this list was deleted previously, when deposition occurred
 
     >>> rbd._link_stratigraphy_temp[23][0][0, 4:6]
-    array([ 0.2368653,  0.7631347])
+    array([0.2368653, 0.7631347])
 
     >>> rbd._link_stratigraphy_temp[23][14][0, 4:6]
-    array([ 0.23001637,  0.76998363])
+    array([0.23001637, 0.76998363])
 
     >>> rbd._link_stratigraphy_temp[23][59][0, 4:6]
-    array([ 0.21015594,  0.78984406])
+    array([0.21015594, 0.78984406])
 
     >>> rbd._link_stratigraphy_temp[23][1299][0, 4:6]
-    array([ 0.09472506,  0.90527494])
+    array([0.09472506, 0.90527494])
 
     The list rbd._link_stratigraphy_temp[23] has 1300 elements, this means that
     it's evolution was recorded every 2 seconds

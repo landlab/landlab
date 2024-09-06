@@ -195,7 +195,7 @@ The GSD at this place is:
 
 >>> qb_gsd_l15 = rbd._sed_transp__bedload_gsd_link[15]
 >>> np.round(qb_gsd_l15, decimals=3)
-array([ 0.475,  0.525])
+array([0.475, 0.525])
 
 Which in cummulative percentage is equivalent to
 
@@ -212,46 +212,46 @@ We can also check the bed load grain size distribution in all links
 
 >>> qb_gsd_l = rbd._sed_transp__bedload_gsd_link
 >>> np.round(qb_gsd_l, decimals=3)
-array([[ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.475,  0.525],
-       [ 0.475,  0.525],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.282,  0.718],
-       [ 0.475,  0.525],
-       [ 0.282,  0.718],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.282,  0.718],
-       [ 0.282,  0.718],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.282,  0.718],
-       [ 0.282,  0.718],
-       [ 0.282,  0.718],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.282,  0.718],
-       [ 0.282,  0.718],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ],
-       [ 0.   ,  0.   ]])
+array([[0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.475, 0.525],
+       [0.475, 0.525],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.282, 0.718],
+       [0.475, 0.525],
+       [0.282, 0.718],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.282, 0.718],
+       [0.282, 0.718],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.282, 0.718],
+       [0.282, 0.718],
+       [0.282, 0.718],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.282, 0.718],
+       [0.282, 0.718],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ],
+       [0.   , 0.   ]])
 
 Zeros indicate that there is no sediment transport of that grain size
 at that location.
@@ -261,11 +261,11 @@ the new topographic elevation field
 
 >>> z = grid.at_node["topographic__elevation"].reshape(grid.shape)
 >>> np.round(z, decimals=3)
-array([[ 1.07 ,  1.06 ,  1.007,  1.06 ,  1.07 ],
-       [ 1.08 ,  1.068,  1.037,  1.068,  1.08 ],
-       [ 1.09 ,  1.08 ,  1.068,  1.08 ,  1.09 ],
-       [ 1.09 ,  1.09 ,  1.08 ,  1.09 ,  1.09 ],
-       [ 1.09 ,  1.09 ,  1.09 ,  1.09 ,  1.09 ]])
+array([[1.07 , 1.06 , 1.007, 1.06 , 1.07 ],
+       [1.08 , 1.068, 1.037, 1.068, 1.08 ],
+       [1.09 , 1.08 , 1.068, 1.08 , 1.09 ],
+       [1.09 , 1.09 , 1.08 , 1.09 , 1.09 ],
+       [1.09 , 1.09 , 1.09 , 1.09 , 1.09 ]])
 
 Let's take a look at bed load transport rate when we use the different bedload equations.
 First, let's recover the original topography.
@@ -372,9 +372,9 @@ nodes and links
 >>> qb_imposed = np.array([1, 2])
 >>> rbd = RiverBedDynamics(grid, sed_transp__bedload_rate_fix_link=qb_imposed)
 >>> rbd._sed_transp__bedload_rate_fix_link
-array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+       0., 0., 0., 0., 0., 0.])
 
 >>> gsd_loc = np.array([1, 2])
 >>> rbd = RiverBedDynamics(grid, bed_surf__gsd_loc_node=gsd_loc)
@@ -406,11 +406,10 @@ array([[0, 0, 0, 0, 0],
 >>> vel_n_1 = np.array([1, 2])
 >>> rbd = RiverBedDynamics(grid, surface_water__velocity_prev_time_link=vel_n_1)
 >>> rbd._surface_water__velocity_prev_time_link
-array([ 0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,  0.25,
-        0.25,  0.25,  0.25,  0.25])
+array([0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+       0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25])
 
 For sed_transp__bedload_gsd_fix_link, for simplicity, we only show
 links 0, 5, and 10
@@ -418,9 +417,9 @@ links 0, 5, and 10
 >>> qb_gsd_imposed = np.array([1, 2])
 >>> rbd = RiverBedDynamics(grid, sed_transp__bedload_gsd_fix_link=qb_gsd_imposed)
 >>> rbd._sed_transp__bedload_gsd_fix_link[[0, 5, 10], :]
-array([[ 0.,  0.],
-       [ 0.,  0.],
-       [ 0.,  0.]])
+array([[0., 0.],
+       [0., 0.],
+       [0., 0.]])
 
 In summary, in all these cases the wrong given value is override by default values.
 But, if the size of the array is correct the specified condition is used.
@@ -429,7 +428,7 @@ For simplicity, we only show links 0, 5, and 10
 >>> qb_imposed = np.full(grid.number_of_links, 1)
 >>> rbd = RiverBedDynamics(grid, sed_transp__bedload_rate_fix_link=qb_imposed)
 >>> rbd._sed_transp__bedload_rate_fix_link[[0, 5, 10]]
-array([ 1.,  1.,  1.])
+array([1., 1., 1.])
 
 >>> gsd_loc = np.full(grid.number_of_nodes, 1)
 >>> rbd = RiverBedDynamics(grid, bed_surf__gsd_loc_node=gsd_loc)
@@ -461,14 +460,14 @@ array([[1, 1, 1, 1, 1],
 >>> vel_n_1 = np.full(grid.number_of_links, 1)
 >>> rbd = RiverBedDynamics(grid, surface_water__velocity_prev_time_link=vel_n_1)
 >>> rbd._surface_water__velocity_prev_time_link[[0, 5, 10]]
-array([ 1.,  1.,  1.])
+array([1., 1., 1.])
 
 >>> qb_gsd_imposed = np.ones((grid.number_of_links, 2))  # 2 comes from gsd.shape[0]-1
 >>> rbd = RiverBedDynamics(grid, sed_transp__bedload_gsd_fix_link=qb_gsd_imposed)
 >>> rbd._sed_transp__bedload_gsd_fix_link[[0, 5, 10]]
-array([[ 1.,  1.],
-       [ 1.,  1.],
-       [ 1.,  1.]])
+array([[1., 1.],
+       [1., 1.],
+       [1., 1.]])
 
 Using the hydraulics radius is also possible. Let's compare the shear stress with and
 without that option. First, without including the hydraulics radius.
@@ -490,6 +489,7 @@ Now, we will consider the hydraulics radius
 So, there is an important difference between the two ways of calculating it.
 
 """
+
 import numpy as np
 import scipy.constants
 
@@ -508,7 +508,6 @@ from . import (
 
 
 class RiverBedDynamics(Component):
-
     """Predicts the evolution of a river bed.
 
     Landlab component that predicts the evolution of a river bed
@@ -830,10 +829,10 @@ class RiverBedDynamics(Component):
         self._num_cycles_to_process_strat = num_cycles_to_process_strat
 
         # Makes a copy of the original bed surface elevation and maps into links
-        self._grid["link"][
-            "topographic__elevation"
-        ] = self._grid.map_mean_of_link_nodes_to_link(
-            self._grid["node"]["topographic__elevation"]
+        self._grid["link"]["topographic__elevation"] = (
+            self._grid.map_mean_of_link_nodes_to_link(
+                self._grid["node"]["topographic__elevation"]
+            )
         )
         self._topogr__elev_orig_node = self._grid["node"][
             "topographic__elevation"
@@ -1175,9 +1174,9 @@ class RiverBedDynamics(Component):
         z[self._out_id] = z0[self._out_id] + dz_outlet
 
         # Now we map data into links to update Bed GSD
-        self._grid["link"][
-            "topographic__elevation"
-        ] = self._grid.map_mean_of_link_nodes_to_link(z)
+        self._grid["link"]["topographic__elevation"] = (
+            self._grid.map_mean_of_link_nodes_to_link(z)
+        )
         self._grid["node"]["topographic__elevation"] = z
 
     def update_bed_surf_gsd(self):
