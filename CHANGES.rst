@@ -6,6 +6,74 @@ Release Notes
 
 .. towncrier release notes start
 
+2.8.0 (2024-05-12)
+------------------
+
+New Components
+``````````````
+
+- Added new component :class:`~.ConcentrationTrackerForDiffusion`
+  for tracking hillslope sediment properties. (`#1662 <https://github.com/landlab/landlab/issues/1662>`_)
+- Added new component :class:`~.MassWastingRunout`
+  for predicting the hazard extent, sediment transport and topographic change associated with the runout of a landslide. (`#1830 <https://github.com/landlab/landlab/issues/1830>`_)
+
+
+New Features
+````````````
+
+- Fixed the Radiation component by computing fields with ASCE standard formulas, added
+  increased test coverage for both field computations and standard unit testing.
+  Min, max, and avg daily temp are also three optional, newly added
+  user-defined arguments for the component. (`#1755 <https://github.com/landlab/landlab/issues/1755>`_)
+- Added a new grid type, :class:`~.IcosphereGlobalGrid` (plus underlying graph
+  machinery, etc.). (`#1808 <https://github.com/landlab/landlab/issues/1808>`_)
+- Added a new function, calc_net_face_flux_at_cell, that computes the
+  net flux of a quantity into each of a RasterModelGrid's cells. This
+  function uses openmp to parallelize its calculations. (`#1900 <https://github.com/landlab/landlab/issues/1900>`_)
+- Added a new *vtk* writer, ``landlab.io.legacy_vtk.dump`` that is
+  able to write *Landlab* grids that have three spatial coordinates.
+  This function is also able to write both the main grid (*nodes* and
+  *patches*) as well as the dual grid (*corners* and *cells*). (`#1932 <https://github.com/landlab/landlab/issues/1932>`_)
+
+
+Bug Fixes
+`````````
+
+- Fixed a bug when ordering links at patches with patches composed of varying
+  numbers of links. (`#1807 <https://github.com/landlab/landlab/issues/1807>`_)
+- Fixed a bug where SpaceLargeScaleEroder deviates from analytical solution for mixed bedrock-alluvial river in a portion of the parameter space. (`#1901 <https://github.com/landlab/landlab/issues/1901>`_)
+- Fixed a bug that caused a ``ModuleNotFoundError`` for *pkg_config* on
+  Python 3.12. (`#1927 <https://github.com/landlab/landlab/issues/1927>`_)
+
+
+Documentation Enhancements
+``````````````````````````
+
+- Update list of publications in USEDBY.rst. (`#1928 <https://github.com/landlab/landlab/issues/1928>`_)
+
+
+Other Changes and Additions
+```````````````````````````
+
+- Removed the broken ``map_link_vector_to_nodes`` method from
+  ``ModelGrid``. As a replacement, use
+  :func:`~.map_link_vector_components_to_node_raster` for raster grids, and
+  :func:`~.map_link_vector_components_to_node_hex` for hex grids. (`#1786 <https://github.com/landlab/landlab/issues/1786>`_)
+- Fixed the path to the requirements file needed by *readthedocs*. (`#1797 <https://github.com/landlab/landlab/issues/1797>`_)
+- Fixed an issue that caused with the CI to fail when building *multidict* on
+  Mac and Python 3.12. (`#1850 <https://github.com/landlab/landlab/issues/1850>`_)
+- Fixed warnings caused by using xarray.Dataset.dims rather than
+  xarray.Dataset.sizes. (`#1910 <https://github.com/landlab/landlab/issues/1910>`_)
+- Added a list of Landlab's extensions to setup.py that must be
+  maintained manually. This replaces the old, and somewhat buggy,
+  method of conducting a recursive glob for pyx files. (`#1915 <https://github.com/landlab/landlab/issues/1915>`_)
+- Added a new linter, *cython-lint*, that checks for lint in cython
+  files. (`#1924 <https://github.com/landlab/landlab/issues/1924>`_)
+- Changed the *numpy* printing options from the legacy 1.13 format
+  to the latest, default, version. (`#1929 <https://github.com/landlab/landlab/issues/1929>`_)
+- Removed duplicate shapefile modules. (`#1933 <https://github.com/landlab/landlab/issues/1933>`_)
+
+
 2.7.0 (2023-11-04)
 ------------------
 

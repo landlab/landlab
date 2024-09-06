@@ -2,10 +2,15 @@
 """
 Unit tests for landlab.components.gravel_river_transporter.gravel_river_transporter
 """
-from numpy.testing import assert_allclose, assert_equal, assert_raises
+from numpy.testing import assert_allclose
+from numpy.testing import assert_equal
+from numpy.testing import assert_raises
 
-from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
-from landlab.components import FlowAccumulator, GravelRiverTransporter
+from landlab import HexModelGrid
+from landlab import RadialModelGrid
+from landlab import RasterModelGrid
+from landlab.components import FlowAccumulator
+from landlab.components import GravelRiverTransporter
 
 
 def test_analytical_solution_one_cell_basic_solver():

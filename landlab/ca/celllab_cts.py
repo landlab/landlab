@@ -123,12 +123,10 @@ import numpy as np
 import pylab as plt
 
 import landlab
-from landlab.ca.cfuncs import (
-    PriorityQueue,
-    get_next_event_new,
-    push_transitions_to_event_queue,
-    run_cts_new,
-)
+from landlab.ca.cfuncs import PriorityQueue
+from landlab.ca.cfuncs import get_next_event_new
+from landlab.ca.cfuncs import push_transitions_to_event_queue
+from landlab.ca.cfuncs import run_cts_new
 from landlab.grid.nodestatus import NodeStatus
 
 _NEVER = 1e50
@@ -139,7 +137,6 @@ _CORE = NodeStatus.CORE
 
 
 class Transition:
-
     """A transition from one state to another.
 
     Represents a transition from one state ("from_state") to another
@@ -206,7 +203,6 @@ class Transition:
 
 
 class CAPlotter:
-
     """Handle display of a CellLab-CTS grid.
 
     CAPlotter() constructor keeps a reference to the CA model, and
@@ -302,7 +298,6 @@ class CAPlotter:
 
 
 class CellLabCTSModel:
-
     """Link-type (or doublet-type) cellular automaton model.
 
     A CellLabCTSModel implements a link-type (or doublet-type) cellular
@@ -476,8 +471,8 @@ class CellLabCTSModel:
         # are tracked.
         self.propid = np.arange(self.grid.number_of_nodes)
         if prop_data is None:
-            self.prop_data = np.zeros(self.grid.number_of_nodes)
-            self.prop_reset_value = 0.0
+            self.prop_data = np.zeros(self.grid.number_of_nodes, dtype=int)
+            self.prop_reset_value = 0
         else:
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
@@ -686,7 +681,9 @@ class CellLabCTSModel:
             tns = self.node_state[self.grid.node_at_link_head[link]]
             orientation = self.link_orientation[link]
             new_link_state = int(
-                orientation * self.num_node_states_sq + fns * self.num_node_states + tns
+                int(orientation) * self.num_node_states_sq
+                + fns * self.num_node_states
+                + tns
             )
 
         self.link_state[link] = new_link_state

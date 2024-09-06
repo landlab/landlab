@@ -1,40 +1,38 @@
 cimport cython
-cimport numpy as np
 
-import numpy as np
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_FLOAT = np.float64
-ctypedef np.float64_t DTYPE_FLOAT_t
 
 @cython.boundscheck(False)
 cpdef _landslide_runout(
-    DTYPE_FLOAT_t dx,
-    DTYPE_FLOAT_t phi,
-    DTYPE_FLOAT_t min_deposition_slope,
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_rev_sel,
-    np.ndarray[DTYPE_INT_t, ndim=2] receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=2] fract,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_in,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] L_Hill,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Qs_out,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] dH_Hill,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] H_i_temp,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] max_D,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] length_adjacent_cells,
+    double dx,
+    double phi,
+    double min_deposition_slope,
+    id_t [:] stack_rev_sel,
+    id_t [:, :] receivers,
+    cython.floating [:, :] fract,
+    cython.floating [:] Qs_in,
+    cython.floating [:] L_Hill,
+    cython.floating [:] Qs_out,
+    cython.floating [:] dH_Hill,
+    cython.floating [:] H_i_temp,
+    cython.floating [:] max_D,
+    cython.floating [:] length_adjacent_cells,
 ):
     """
     Calculate landslide runout using a non-local deposition algorithm, see:
-        * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
-          (2020) HyLands 1.0: a hybrid landscape evolution model to simulate
-          the impact of landslides and landslide-derived sediment on landscape
-          evolution. Geosci Model Dev: 13(9):3863–86.
+
+    * Campforts B., Shobe C.M., Steer P., Vanmaercke M., Lague D., Braun J.
+      (2020) HyLands 1.0: a hybrid landscape evolution model to simulate
+      the impact of landslides and landslide-derived sediment on landscape
+      evolution. Geosci Model Dev: 13(9):3863–86.
     """
     # define internal variables
     cdef int donor, rcvr, r
-    cdef double accum, proportion, dH
+    cdef double proportion, dH
 
     # Iterate backward through the stack, which means we work from upstream to
     # downstream.
@@ -52,8 +50,14 @@ cpdef _landslide_runout(
         for r in range(receivers.shape[1]):
             rcvr = receivers[donor, r]
 
-            max_D_angle = H_i_temp[donor] - min_deposition_slope*length_adjacent_cells[r] - H_i_temp[rcvr]
-            max_D[rcvr] = min(max(max_D[rcvr] , H_i_temp[donor] - H_i_temp[rcvr]),max_D_angle)
+            max_D_angle = (
+                H_i_temp[donor]
+                - min_deposition_slope * length_adjacent_cells[r]
+                - H_i_temp[rcvr]
+            )
+            max_D[rcvr] = min(
+                max(max_D[rcvr], H_i_temp[donor] - H_i_temp[rcvr]), max_D_angle
+            )
 
             proportion = fract[donor, r]
             if proportion > 0. and donor != rcvr:

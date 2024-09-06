@@ -8,7 +8,8 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 
 class DischargeDiffuser(Component):

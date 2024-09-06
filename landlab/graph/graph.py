@@ -11,9 +11,9 @@ Examples
 >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
 >>> graph = NetworkGraph((node_y, node_x), sort=True)
 >>> graph.x_of_node
-array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
+array([0., 1., 2., 0., 1., 2., 0., 1., 2.])
 >>> graph.y_of_node
-array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
+array([0., 0., 0., 1., 1., 1., 2., 2., 2.])
 >>> graph.ndim
 2
 
@@ -67,6 +67,7 @@ array([[4, 3, 0, 1],
        [7, 6, 3, 4],
        [8, 7, 4, 5]])
 """
+
 import json
 from functools import cached_property
 
@@ -77,14 +78,15 @@ from ..core.utils import as_id_array
 from ..utils.decorators import read_only_array
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
-from .quantity.of_link import (
-    get_angle_of_link,
-    get_length_of_link,
-    get_midpoint_of_link,
-)
-from .quantity.of_patch import get_area_of_patch, get_centroid_of_patch
+from .quantity.of_link import get_angle_of_link
+from .quantity.of_link import get_length_of_link
+from .quantity.of_link import get_midpoint_of_link
+from .quantity.of_patch import get_area_of_patch
+from .quantity.of_patch import get_centroid_of_patch
 from .sort import reindex_by_xy
-from .sort.sort import reorient_link_dirs, reverse_one_to_many, sort_spokes_at_hub
+from .sort.sort import reorient_link_dirs
+from .sort.sort import reverse_one_to_many
+from .sort.sort import sort_spokes_at_hub
 from .ugrid import ugrid_from_unstructured
 
 
@@ -313,9 +315,9 @@ class NetworkGraph:
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.xy_of_node[:, 0]
-        array([ 0.,  1.,  2.,  0.,  1.,  2.])
+        array([0., 1., 2., 0., 1., 2.])
         >>> graph.xy_of_node[:, 1]
-        array([ 0.,  0.,  0.,  1.,  1.,  1.])
+        array([0., 0., 0., 1., 1., 1.])
 
         :meta landlab: info-node
         """
@@ -331,7 +333,7 @@ class NetworkGraph:
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.x_of_node
-        array([ 0.,  1.,  2.,  0.,  1.,  2.])
+        array([0., 1., 2., 0., 1., 2.])
 
         :meta landlab: info-node
         """
@@ -347,7 +349,7 @@ class NetworkGraph:
         >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
         >>> graph = Graph((node_y, node_x))
         >>> graph.y_of_node
-        array([ 0.,  0.,  0.,  1.,  1.,  1.])
+        array([0., 0., 0., 1., 1., 1.])
 
         :meta landlab: info-node
         """
@@ -409,7 +411,7 @@ class NetworkGraph:
 
         :meta landlab: info-node
         """
-        return self.ds.dims["node"]
+        return self.ds.sizes["node"]
 
     @property
     def nodes_at_link(self):
@@ -532,7 +534,7 @@ class NetworkGraph:
         True
         """
         try:
-            return self.ds.dims["link"]
+            return self.ds.sizes["link"]
         except KeyError:
             return 0
 
@@ -643,7 +645,7 @@ class NetworkGraph:
         >>> links = ((0, 1), (1, 2), (0, 3), (1, 4), (2, 5), (3, 4), (4, 5))
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.angle_of_link * 180.0 / np.pi
-        array([  0.,   0.,  90.,  90.,  90.,   0.,   0.])
+        array([ 0.,  0., 90., 90., 90.,  0.,  0.])
 
         :meta landlab: info-link
         """
@@ -661,7 +663,7 @@ class NetworkGraph:
 
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
         >>> graph.length_of_link
-        array([ 2.,  2.,  1.,  1.,  1.,  2.,  2.])
+        array([2., 2., 1., 1., 1., 2., 2.])
 
         :meta landlab: info-link
         """
@@ -679,9 +681,9 @@ class NetworkGraph:
 
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
         >>> graph.midpoint_of_link
-        array([[ 1. ,  0. ], [ 3. ,  0. ],
-               [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
-               [ 1. ,  1. ], [ 3. ,  1. ]])
+        array([[1. , 0. ], [3. , 0. ],
+               [0. , 0.5], [2. , 0.5], [4. , 0.5],
+               [1. , 1. ], [3. , 1. ]])
 
         :meta landlab: info-link
         """
@@ -807,8 +809,8 @@ class NetworkGraph:
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
                 1. ])
         >>> np.round(graph.unit_vector_at_link[:, 1], decimals=5)
-        array([ 0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ,
-                0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ])
+        array([0.     , 0.86603, 0.86603, 0.86603, 0.86603, 0.     ,
+               0.     , 0.86603, 0.86603, 0.86603, 0.86603, 0.     ])
         """
         u = np.diff(self.xy_of_node[self.nodes_at_link], axis=1).reshape((-1, 2))
         return u / np.linalg.norm(u, axis=1).reshape((-1, 1))
@@ -823,31 +825,30 @@ class NetworkGraph:
         >>> from landlab.graph import UniformRectilinearGraph
         >>> graph = UniformRectilinearGraph((3, 3))
         >>> graph.unit_vector_at_node
-        array([[ 1.,  1.],
-               [ 2.,  1.],
-               [ 1.,  1.],
-               [ 1.,  2.],
-               [ 2.,  2.],
-               [ 1.,  2.],
-               [ 1.,  1.],
-               [ 2.,  1.],
-               [ 1.,  1.]])
+        array([[1., 1.],
+               [2., 1.],
+               [1., 1.],
+               [1., 2.],
+               [2., 2.],
+               [1., 2.],
+               [1., 1.],
+               [2., 1.],
+               [1., 1.]])
 
         >>> from landlab.graph import TriGraph
         >>> graph = TriGraph((3, 2), spacing=2.0, node_layout="hex", sort=True)
 
         >>> unit_vector_at_node = np.round(graph.unit_vector_at_node, decimals=5)
         >>> unit_vector_at_node[:, 0]
-        array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
+        array([2., 2., 2., 4., 2., 2., 2.])
         >>> unit_vector_at_node[:, 1]
-        array([ 1.73205,  1.73205,  1.73205,  3.4641 ,  1.73205,  1.73205,  1.73205])
+        array([1.73205, 1.73205, 1.73205, 3.4641 , 1.73205, 1.73205, 1.73205])
         """
         unit_vector_at_link = np.vstack((self.unit_vector_at_link, [0.0, 0.0]))
         return np.abs(unit_vector_at_link[self.links_at_node]).sum(axis=1)
 
 
 class Graph(NetworkGraph):
-
     """Define the connectivity of a graph of nodes, links, and patches."""
 
     def __init__(self, node_y_and_x, links=None, patches=None, sort=False):
@@ -912,8 +913,8 @@ class Graph(NetworkGraph):
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.xy_of_patch
-        array([[ 0.5,  0.5],
-              [ 1.5,  0.5]])
+        array([[0.5, 0.5],
+               [1.5, 0.5]])
 
         :meta landlab: info-patch
         """
@@ -945,7 +946,7 @@ class Graph(NetworkGraph):
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.area_of_patch
-        array([ 1.,  1.])
+        array([1.,  1.])
 
         :meta landlab: info-patch
         """
@@ -981,7 +982,7 @@ class Graph(NetworkGraph):
         :meta landlab: info-patch
         """
         try:
-            return self.ds.dims["patch"]
+            return self.ds.sizes["patch"]
         except KeyError:
             return 0
 

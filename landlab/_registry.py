@@ -124,7 +124,6 @@ from .core.messages import indent_and_wrap
 
 
 class ComponentRegistry:
-
     """A registry for instantiated landlab components."""
 
     def __init__(self, objs=None):

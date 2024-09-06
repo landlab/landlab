@@ -105,7 +105,7 @@ class DepthSlopeProductErosion(Component):
     ...     * grid.active_link_dirs_at_node
     ... ).max(axis=1)
     >>> grid.at_node["water_surface__slope"][grid.core_nodes]
-    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    array([1., 1., 1., 1., 1., 1., 1., 1., 1.])
 
 
     Instantiate the `DepthSlopeProductErosion` component to work on this grid, and
@@ -133,11 +133,11 @@ class DepthSlopeProductErosion(Component):
     Now, our updated topography...
 
     >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
-    array([[ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ],
-           [ 10.    ,   8.038 ,   8.038 ,   8.038 ,  10.    ],
-           [ 10.    ,   8.5285,   8.5285,   8.5285,  10.    ],
-           [ 10.    ,   9.019 ,   9.019 ,   9.019 ,  10.    ],
-           [ 10.    ,  10.    ,  10.    ,  10.    ,  10.    ]])
+    array([[10.    ,  7.5475,  7.5475,  7.5475, 10.    ],
+           [10.    ,  8.038 ,  8.038 ,  8.038 , 10.    ],
+           [10.    ,  8.5285,  8.5285,  8.5285, 10.    ],
+           [10.    ,  9.019 ,  9.019 ,  9.019 , 10.    ],
+           [10.    , 10.    , 10.    , 10.    , 10.    ]])
     """
 
     _name = "DepthSlopeProductErosion"

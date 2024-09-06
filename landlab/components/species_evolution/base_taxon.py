@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Base Taxon of SpeciesEvolver."""
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 
 
 class Taxon(ABC):

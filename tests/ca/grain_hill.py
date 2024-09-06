@@ -7,13 +7,19 @@ import sys
 import time
 
 from matplotlib.pyplot import axis
-from numpy import amax, arange, count_nonzero, logical_and, where, zeros
+from numpy import amax
+from numpy import arange
+from numpy import count_nonzero
+from numpy import logical_and
+from numpy import where
+from numpy import zeros
 
 from landlab.ca.boundaries.hex_lattice_tectonicizer import LatticeUplifter
 from landlab.ca.celllab_cts import Transition
 
 from .cts_model import CTSModel
-from .lattice_grain import lattice_grain_node_states, lattice_grain_transition_list
+from .lattice_grain import lattice_grain_node_states
+from .lattice_grain import lattice_grain_transition_list
 
 _DEBUG = False
 
@@ -436,14 +442,14 @@ class GrainHill(CTSModel):
         >>> ns[[8, 13, 11, 16, 14]] = 7
         >>> gh = GrainHill((3, 7), show_plots=False)  # grid size arbitrary here
         >>> (elev, thickness) = gh.get_profile_and_soil_thickness(hg, ns)
-        >>> list(elev)
-        [0.0, 2.5, 3.0, 2.5, 0.0]
-        >>> list(thickness)
-        [0.0, 2.0, 2.0, 1.0, 0.0]
+        >>> elev
+        array([0. , 2.5, 3. , 2.5, 0. ])
+        >>> thickness
+        array([0., 2., 2., 1., 0.])
         """
         nc = grid.number_of_node_columns
-        elev = zeros(nc)
-        soil = zeros(nc)
+        elev = zeros(nc, dtype=float)
+        soil = zeros(nc, dtype=float)
         for col in range(nc):
             base_id = (col // 2) + (col % 2) * ((nc + 1) // 2)
             node_ids = arange(base_id, grid.number_of_nodes, nc)

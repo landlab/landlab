@@ -3,13 +3,13 @@
 
 @author: benjamincampforts
 """
-from landlab import Component, RasterModelGrid
+from landlab import Component
+from landlab import RasterModelGrid
 
 from .cfuncs import _thresholder
 
 
 class ThresholdEroder(Component):
-
     """Threshold eroder.
 
     Threshold eroder that cuts off slopes at a given threshold slope (Sc) and

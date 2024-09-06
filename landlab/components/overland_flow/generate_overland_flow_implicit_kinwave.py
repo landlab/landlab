@@ -6,7 +6,6 @@ Created on Fri May 27 14:26:13 2016
 @author: gtucker
 """
 
-
 import numpy as np
 from scipy.optimize import newton
 
@@ -144,7 +143,7 @@ class KinwaveImplicitOverlandFlow(Component):
     >>> kw.vel_coef  # default value
     100.0
     >>> rg.at_node["surface_water__depth"][6:9]
-    array([ 0.,  0.,  0.])
+    array([0., 0., 0.])
 
     References
     ----------

@@ -363,9 +363,9 @@ def node_coords(shape, *args):
     >>> from landlab.utils.structured_grid import node_coords
     >>> (cols, rows) = node_coords((3, 2))
     >>> rows
-    array([ 0.,  0.,  1.,  1.,  2.,  2.])
+    array([0.,  0.,  1.,  1.,  2.,  2.])
     >>> cols
-    array([ 0.,  1.,  0.,  1.,  0.,  1.])
+    array([0.,  1.,  0.,  1.,  0.,  1.])
     """
     try:
         spacing = args[0]
@@ -748,15 +748,15 @@ def vertical_inactive_link_mask(shape, node_status):
     >>> ns = np.ones(12, dtype=bool)  # case of no closed boundary nodes
     >>> vertical_inactive_link_mask((3, 4), ns)
     array([[False, False],
-           [False, False]], dtype=bool)
+           [False, False]])
     >>> ns[2] = False  # node 2 is a closed boundary
     >>> vertical_inactive_link_mask((3, 4), ns)
     array([[False,  True],
-           [False, False]], dtype=bool)
+           [False, False]])
     >>> ns[9] = False  # node 9 is also a closed boundary
     >>> vertical_inactive_link_mask((3, 4), ns)
     array([[False,  True],
-           [ True, False]], dtype=bool)
+           [ True, False]])
     """
     # Create a 2D boolean matrix indicating whether NODES are closed boundaries
     # GT thinks this should be False, not 0
@@ -1523,7 +1523,7 @@ def _set_open_boundary_neighbors(neighbors, open_boundary_nodes, value):
 def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
     """Array of booleans that indicate if a neighbor is an open boundary."""
     open_boundary_neighbors = neighbors[:, open_boundary_nodes]
-    is_open_boundary_neighbor = np.in1d(open_boundary_neighbors, open_boundary_nodes)
+    is_open_boundary_neighbor = np.isin(open_boundary_neighbors, open_boundary_nodes)
     is_open_boundary_neighbor.shape = (neighbors.shape[0], len(open_boundary_nodes))
     return is_open_boundary_neighbor
 

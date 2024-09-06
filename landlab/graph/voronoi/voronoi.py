@@ -5,7 +5,6 @@ from .voronoi_to_graph import VoronoiDelaunayToGraph
 
 
 class DelaunayGraph(Graph):
-
     """Graph of a voronoi grid.
 
     Examples
@@ -30,9 +29,9 @@ class DelaunayGraph(Graph):
         >>> node_y = [0, 0, 0, 2, 2, 2]
         >>> graph = DelaunayGraph((node_y, node_x), sort=True)
         >>> graph.x_of_node
-        array([ 0. ,  1. ,  2. ,  0.9,  1.9,  2.9])
+        array([0. ,  1. ,  2. ,  0.9,  1.9,  2.9])
         >>> graph.y_of_node
-        array([ 0.,  0.,  0.,  2.,  2.,  2.])
+        array([0.,  0.,  0.,  2.,  2.,  2.])
         >>> graph.nodes_at_link
         array([[0, 1], [1, 2],
                [0, 3], [1, 3], [1, 4], [2, 4], [2, 5],

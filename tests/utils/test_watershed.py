@@ -4,12 +4,10 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
-from landlab.utils import (
-    get_watershed_mask,
-    get_watershed_masks_with_area_threshold,
-    get_watershed_nodes,
-    get_watershed_outlet,
-)
+from landlab.utils import get_watershed_mask
+from landlab.utils import get_watershed_masks_with_area_threshold
+from landlab.utils import get_watershed_nodes
+from landlab.utils import get_watershed_outlet
 
 
 def test_get_watershed_nodes():

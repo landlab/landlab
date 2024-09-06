@@ -11,7 +11,6 @@ _OUT_OF_NETWORK = -2
 
 
 class SedimentPulserEachParcel(SedimentPulserBase):
-
     """Send pulses of sediment to specific point locations within the channel
     network and divide the pulses into parcels. Pulses may be any volume.
     Parcels must be less than or equal to a user specified maximum volume.

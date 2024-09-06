@@ -18,11 +18,12 @@ Created on Thu Feb 19 18:47:11 2015
 ...following AW's run_in_script_2D.py.
 """
 
-
 import numpy as np
 import scipy.constants
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component
+from landlab import FieldError
+from landlab import RasterModelGrid
 
 try:
     import gflex

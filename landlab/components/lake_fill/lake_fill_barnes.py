@@ -13,7 +13,9 @@ from collections import deque
 
 import numpy as np
 
-from landlab import Component, NodeStatus, RasterModelGrid
+from landlab import Component
+from landlab import NodeStatus
+from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 from landlab.utils import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node
@@ -1089,7 +1091,7 @@ class LakeMapperBarnes(Component):
         >>> lake_dict = {8: deque([7]), 16: deque([15, 9, 14, 22])}
         >>> fd.run_one_step()  # fill the director fields
         >>> fa.run_one_step()  # get a drainage_area
-        >>> np.alltrue(mg.at_node["flow__sink_flag"][[7, 15, 22]])  # sinks
+        >>> np.all(mg.at_node["flow__sink_flag"][[7, 15, 22]])  # sinks
         True
         >>> nodes_in_lakes = np.array([7, 8, 9, 14, 15, 16, 22])
         >>> nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
@@ -1747,7 +1749,7 @@ class LakeMapperBarnes(Component):
         Lake node depths are now updated in lmb:
 
         >>> np.round([lmb.lake_depths[lake] for lake in lmb.lake_dict.values()], 2)
-        array([[ 0.45,  1.45]])
+        array([[0.45, 1.45]])
 
         ...and the "topography" (i.e., water surface) at the flooded nodes
         has lowered itself as the lip of the outlet was eroded in the last

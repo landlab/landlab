@@ -31,14 +31,14 @@ existing field. This can be accessed either through the *grid*
 attribute in the same way as other landlab fields,
 
 >>> flex.grid.at_node["lithosphere__increment_of_overlying_pressure"]
-array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.])
+array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
 
 or through the `load_at_node` attribute of `Flexure1D`,
 
 >>> flex.load_at_node
-array([[ 0.,  0.,  0.,  0.],
-       [ 0.,  0.,  0.,  0.],
-       [ 0.,  0.,  0.,  0.]])
+array([[0., 0., 0., 0.],
+       [0., 0., 0., 0.],
+       [0., 0., 0., 0.]])
 
 Notice that `load_at_node` returns a reshaped view of the array
 whereas the field returns a flattened array. Change values in this
@@ -51,26 +51,24 @@ The output deflections can be retrieved either using landlab fields
 as,
 
 >>> flex.grid.at_node["lithosphere_surface__increment_of_elevation"]
-array([ 0.,  0.,  0.,  0.,  0.,  0.,  1.,  1.,  0.,  0.,  0.,  0.])
+array([0., 0., 0., 0., 0., 0., 1., 1., 0., 0., 0., 0.])
 
 or through the `dz_at_node` attribute,
 
 >>> flex.dz_at_node
-array([[ 0.,  0.,  0.,  0.],
-       [ 0.,  0.,  1.,  1.],
-       [ 0.,  0.,  0.,  0.]])
+array([[0., 0., 0., 0.],
+       [0., 0., 1., 1.],
+       [0., 0., 0., 0.]])
 """
 import contextlib
 
 import numpy as np
 
 from landlab import Component
-
-from .ext import subside_load_1d
+from landlab.components.flexure._ext.flexure1d import subside_load_1d
 
 
 class Flexure1D(Component):
-
     """Deform the lithosphere with 1D flexure.
 
     Landlab component that implements a 1D lithospheric flexure model.

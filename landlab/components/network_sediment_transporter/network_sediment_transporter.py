@@ -164,8 +164,8 @@ class NetworkSedimentTransporter(Component):
 
     We can the link location of the parcel at each timestep
 
-    >>> print(one_parcel.dataset.element_id.values)
-    [[ 0.  0.  0.  0.  0.  1.  1.  1.  1.  1.  2.]]
+    >>> one_parcel.dataset.element_id.values
+    array([[0., 0., 0., 0., 0., 1., 1., 1., 1., 1., 2.]])
 
     References
     ----------
@@ -416,9 +416,9 @@ class NetworkSedimentTransporter(Component):
 
             # copy parcel attributes forward in time.
             for at in self._time_variable_parcel_attributes:
-                self._parcels.dataset[at].values[
-                    :, self._time_idx
-                ] = self._parcels.dataset[at].values[:, self._time_idx - 1]
+                self._parcels.dataset[at].values[:, self._time_idx] = (
+                    self._parcels.dataset[at].values[:, self._time_idx - 1]
+                )
 
         self._this_timesteps_parcels = np.zeros_like(
             self._parcels.dataset.element_id, dtype=bool
@@ -943,13 +943,13 @@ class NetworkSedimentTransporter(Component):
         ] = self._time_idx
 
         # location in link
-        self._parcels.dataset.location_in_link[
-            active_parcel_ids, self._time_idx
-        ] = location_in_link[active_parcel_ids]
+        self._parcels.dataset.location_in_link[active_parcel_ids, self._time_idx] = (
+            location_in_link[active_parcel_ids]
+        )
 
-        self._parcels.dataset.element_id[
-            active_parcel_ids, self._time_idx
-        ] = current_link[active_parcel_ids]
+        self._parcels.dataset.element_id[active_parcel_ids, self._time_idx] = (
+            current_link[active_parcel_ids]
+        )
         #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
         # ^ reset to 1 (active) to be recomputed/determined at next timestep
         self._parcels.dataset.D[active_parcel_ids, self._time_idx] = D
@@ -1167,7 +1167,7 @@ def _calculate_parcel_volume_post_abrasion(
     >>> _calculate_parcel_volume_post_abrasion(10, 100, 0.003)
     7.4081822068171785
     >>> _calculate_parcel_volume_post_abrasion(10, 300, 0.1)
-    9.3576229688401746e-13
+    9.357622968840175e-13
     >>> with pytest.raises(ValueError):
     ...     _calculate_parcel_volume_post_abrasion(10, 300, -3)
     ...

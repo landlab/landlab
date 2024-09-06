@@ -1,13 +1,12 @@
-import multiprocessing
-
 cimport cython
-from cpython.mem cimport PyMem_Free, PyMem_Malloc
-
 from cython.parallel import prange
 
-from cython cimport view
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
-ctypedef fused element_id_type:
+ctypedef fused integral_out_t:
     cython.integral
     long long
 
@@ -15,7 +14,7 @@ ctypedef fused element_id_type:
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef diff_of_children_at_parent(
-    const element_id_type [:, :] children_at_parent,
+    const id_t [:, :] children_at_parent,
     const cython.floating [:] value_at_parent,
     const cython.floating [:] value_at_child,
     cython.floating [:, :] out,
@@ -48,7 +47,7 @@ cpdef diff_of_children_at_parent(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef mean_of_children_at_parent(
-    element_id_type [:, :] children_at_parent,
+    id_t [:, :] children_at_parent,
     cython.floating [:] value_at_child,
     cython.floating [:] out,
 ):
@@ -85,7 +84,7 @@ cpdef mean_of_children_at_parent(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef min_of_children_at_parent(
-    element_id_type [:, :] children_at_parent,
+    id_t [:, :] children_at_parent,
     cython.floating [:] value_at_child,
     cython.floating [:] out,
 ):
@@ -128,7 +127,7 @@ cpdef min_of_children_at_parent(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef max_of_children_at_parent(
-    element_id_type [:, :] children_at_parent,
+    id_t [:, :] children_at_parent,
     cython.floating [:] value_at_child,
     cython.floating [:] out,
 ):
@@ -171,8 +170,8 @@ cpdef max_of_children_at_parent(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cpdef count_of_children_at_parent(
-    const element_id_type [:, :] children_at_parent,
-    cython.integral [:] out,
+    const id_t [:, :] children_at_parent,
+    integral_out_t [:] out,
 ):
     """Count the number of children for each parent.
 

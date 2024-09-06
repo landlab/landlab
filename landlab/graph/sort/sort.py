@@ -6,7 +6,8 @@ structure.
 
 import numpy as np
 
-from ...core.utils import argsort_points_by_x_then_y, as_id_array
+from ...core.utils import argsort_points_by_x_then_y
+from ...core.utils import as_id_array
 from ...utils.jaggedarray import flatten_jagged_array
 from ..quantity.ext.of_element import mean_of_children_at_parent
 from .ext.argsort import sort_id_array
@@ -351,9 +352,9 @@ def sort_graph(nodes, links=None, patches=None):
 
     >>> _ = sort_graph((y, x))
     >>> y
-    array([ 0.,  0.,  0.,  1.,  1.,  1.])
+    array([0., 0., 0., 1., 1., 1.])
     >>> x
-    array([ 0.,  1.,  2.,  0.,  1.,  2.])
+    array([0., 1., 2., 0., 1., 2.])
 
     Sort the points and links of a graph.
 
@@ -444,9 +445,9 @@ def sort_nodes(nodes):
     >>> sort_nodes((y, x))
     array([1, 0, 2])
     >>> x
-    array([ 1.,  0.,  2.])
+    array([1., 0., 2.])
     >>> y
-    array([ 0. ,  0.5,  1. ])
+    array([0. , 0.5, 1. ])
     """
     sorted_nodes = argsort_points_by_x_then_y((nodes[1], nodes[0]))
     nodes[0][:] = nodes[0][sorted_nodes]
@@ -491,7 +492,8 @@ def sort_links(nodes_at_link, nodes, midpoint_of_link=None):
     """
     from ..quantity.ext.of_link import calc_midpoint_of_link
 
-    y_of_node, x_of_node = np.asfarray(nodes[0]), np.asfarray(nodes[1])
+    y_of_node = np.asarray(nodes[0], dtype=float)
+    x_of_node = np.asarray(nodes[1], dtype=float)
 
     if midpoint_of_link is None:
         midpoint_of_link = np.empty((len(nodes_at_link), 2), dtype=float)
@@ -533,7 +535,8 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     >>> offset_to_patch
     array([0, 3, 6])
     """
-    from .ext.remap_element import calc_center_of_patch, reorder_patches
+    from .ext.remap_element import calc_center_of_patch
+    from .ext.remap_element import reorder_patches
 
     n_patches = len(offset_to_patch) - 1
     xy_at_patch = np.empty((n_patches, 2), dtype=float)

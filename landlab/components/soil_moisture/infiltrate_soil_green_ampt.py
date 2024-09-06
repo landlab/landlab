@@ -6,7 +6,6 @@ from landlab import Component
 
 
 class SoilInfiltrationGreenAmpt(Component):
-
     """Infiltrate surface water into a soil following the Green-Ampt method.
 
     This component calculates the infiltation of surface water into the soil,
@@ -33,14 +32,14 @@ class SoilInfiltrationGreenAmpt(Component):
     ...     SI.run_one_step(10.0)
     ...
     >>> mg.at_node["surface_water__depth"]
-    array([  1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
-             1.00000000e-08,   1.00000000e-08,   1.00000000e-08,
-             9.88530416e-03,   9.88530416e-03,   9.88530416e-03,
-             9.88530416e-03,   9.88530416e-03,   9.88530416e-03])
+    array([1.00000000e-08, 1.00000000e-08, 1.00000000e-08,
+           1.00000000e-08, 1.00000000e-08, 1.00000000e-08,
+           9.88530416e-03, 9.88530416e-03, 9.88530416e-03,
+           9.88530416e-03, 9.88530416e-03, 9.88530416e-03])
     >>> mg.at_node["soil_water_infiltration__depth"]
-    array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
-            0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
-            0.2001147 ,  0.2001147 ])
+    array([0.20999999, 0.20999999, 0.20999999, 0.20999999, 0.20999999,
+           0.20999999, 0.2001147 , 0.2001147 , 0.2001147 , 0.2001147 ,
+           0.2001147 , 0.2001147 ])
 
     Notes
     -----

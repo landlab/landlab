@@ -49,7 +49,7 @@ def simple_poly_area(x, y):
     >>> x = np.array([[3.0, 1.0, 1.0, 3.0], [-2.0, -2.0, -1.0, -1.0]]).T
     >>> y = np.array([[1.5, 1.5, 0.5, 0.5], [0.0, 1.0, 2.0, 0.0]]).T
     >>> simple_poly_area(x, y)
-    array([ 2. ,  1.5])
+    array([2. ,  1.5])
     """
     # For short arrays (less than about 100 elements) it seems that the
     # Python sum is faster than the numpy sum. Likewise for the Python
@@ -58,7 +58,6 @@ def simple_poly_area(x, y):
 
 
 class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
-
     """This inherited class implements an unstructured grid in which cells are
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
@@ -99,15 +98,15 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
     >>> vmg = VoronoiDelaunayGrid(x, y)
     >>> vmg.node_x
-    array([ 0. ,  1. ,  2. ,
-            0.1,  1.1,  2.1,
-            0.2,  1.2,  2.2,
-            0.3,  1.3,  2.3])
+    array([0. ,  1. ,  2. ,
+           0.1,  1.1,  2.1,
+           0.2,  1.2,  2.2,
+           0.3,  1.3,  2.3])
     >>> vmg.node_y
-    array([ 0.,  0.,  0.,
-            1.,  1.,  1.,
-            2.,  2.,  2.,
-            3.,  3.,  3.])
+    array([0.,  0.,  0.,
+           1.,  1.,  1.,
+           2.,  2.,  2.,
+           3.,  3.,  3.])
     >>> vmg.adjacent_nodes_at_node
     array([[ 1,  3, -1, -1, -1, -1],
            [ 2,  4,  3,  0, -1, -1],

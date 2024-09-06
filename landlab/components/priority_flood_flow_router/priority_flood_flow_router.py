@@ -17,14 +17,16 @@ import copy as cp
 from functools import partial
 
 import numpy as np
-import numpy.matlib as npm
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component
+from landlab import FieldError
+from landlab import RasterModelGrid
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
 from ...utils.suppress_output import suppress_output
-from .cfuncs import _D8_FlowAcc, _D8_flowDir
+from .cfuncs import _D8_FlowAcc
+from .cfuncs import _D8_flowDir
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -38,7 +40,6 @@ PMULTIPLE_FMs = ["Quinn", "Freeman", "Holmgren", "Dinf"]
 
 
 class PriorityFloodFlowRouter(Component):
-
     """Component to accumulate flow and calculate drainage area based RICHDEM software package.
 
     See also: https://richdem.readthedocs.io/en/latest/
@@ -660,8 +661,8 @@ class PriorityFloodFlowRouter(Component):
                 props_Pf = props_Pf.astype(np.float64)  # should be float64
                 # Now, make sure sum is 1 in 64 bits
                 props_Pf[props_Pf == -1] = 0
-                proportion_matrix = npm.repmat(
-                    np.reshape(props_Pf.sum(axis=1), [props_Pf.shape[0], 1]), 1, 8
+                proportion_matrix = np.tile(
+                    np.reshape(props_Pf.sum(axis=1), [props_Pf.shape[0], 1]), (1, 8)
                 )
                 rc64_temp = np.where(
                     proportion_matrix == 0, props_Pf, props_Pf / proportion_matrix

@@ -113,9 +113,9 @@ def test_active_neighbor_list_boundary():
     rmg = RasterModelGrid((5, 4))
     import landlab.utils.structured_grid as sgrid
 
-    rmg.status_at_node[
-        (0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19),
-    ] = rmg.BC_NODE_IS_CLOSED
+    rmg.status_at_node[(0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19),] = (
+        rmg.BC_NODE_IS_CLOSED
+    )
 
     for node_id in sgrid.perimeter_iter(rmg.shape):
         assert_array_equal(
