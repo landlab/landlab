@@ -248,8 +248,9 @@ def test_initialize_cold_content():
 
 
 def test_update_cold_content():
-    q_sum = np.full(4, 1000)
-    cold_content = np.array([1000, 2000, 3000, 4000])
+    q_sum = np.array([-1000, 1000, -1000, 1000])
+    cold_content = np.array([500, 2000, 0, 4000])
+    h_swe = np.array([1, 2, 0, 1])
 
-    SnowEnergyBalance.calc_cold_content(q_sum, cold_content, 2, out=cold_content)
-    assert np.allclose(cold_content, np.array([0, 0, 1000, 2000]))
+    SnowEnergyBalance.calc_cold_content(q_sum, cold_content, h_swe, 2, out=cold_content)
+    assert np.allclose(cold_content, np.array([2500, 0, 0, 2000]))
