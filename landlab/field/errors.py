@@ -39,3 +39,32 @@ class GroupSizeError(Error, KeyError):
                 group=self._group, was=self._old_size, now=self._new_size
             )
         )
+
+
+class FieldTrackerError(Exception):
+    pass
+
+
+class BadOperationError(FieldTrackerError):
+    def __init__(self, op: str, reason: str | None = None) -> None:
+        self._op = op
+        self.reason = (" " + reason) if reason else ""
+
+    def __str__(self) -> str:
+        return f"Unable to perform operation ({self._op!r})." + self.reason
+
+
+class NothingToTrackError(FieldTrackerError):
+    def __str__(self) -> str:
+        return "The applied filters do not match any fields."
+
+
+class MissingTrackedFieldError(FieldTrackerError):
+    def __init__(self, field: str) -> None:
+        self._field = field
+
+    def __str__(self) -> str:
+        return (
+            "A field existed when the tracker was started but is now"
+            f" missing ({self._field!r})"
+        )
