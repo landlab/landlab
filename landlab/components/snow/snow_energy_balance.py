@@ -232,8 +232,8 @@ class SnowEnergyBalance(Component):
             grid.at_node["snowpack__z_mean_of_mass-per-volume_density"],
             grid.at_node["snowpack__depth"],
             grid.at_node["land_surface__temperature"],
-            2090,  # self.cp_snow,
-            0,  # self.melting_point,
+            self.cp_snow,
+            self.melting_point,
             out=grid.at_node["snowpack__energy-per-area_cold_content"],
         )
 
