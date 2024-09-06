@@ -1,6 +1,7 @@
 import numpy as np
 
 from numpy.testing import assert_allclose, assert_almost_equal
+
 from landlab.components.genveg.species import Species
 
 
