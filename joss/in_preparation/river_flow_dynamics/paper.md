@@ -10,7 +10,7 @@ tags:
 
 authors:
   - name: Sebastian Bernal
-    orcid: 0000-0000-0000-0000
+    orcid: 0009-0006-7758-3648
     equal-contrib: true
     affiliation: 1
   - name: Angel Monsalve
