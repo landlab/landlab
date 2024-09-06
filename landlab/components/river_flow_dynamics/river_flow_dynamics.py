@@ -123,7 +123,7 @@ Run the simulation for 100 timesteps (equivalent to 10 seconds).
 Examine the flow depth at the center of the channel after 10 seconds.
 
 The expected flow depth is:
-    
+
 >>> flow_depth_expected = np.array(
 ...     [
 ...         0.5,
@@ -190,13 +190,13 @@ The expected flow depth is:
 ... )
 
 The calculated flow_depth is:
-    
+
 >>> flow_depth = np.reshape(grid["node"]["surface_water__depth"], (nRows, nCols))[10, :]
 
 The average (absolute) difference between predited and expected in percentage is:
-    
+
 >>> np.round(np.abs(np.mean(flow_depth_expected - flow_depth)) * 100, 0)
-0.0    
+0.0
 
 And the velocity at links along the center of the channel.
 

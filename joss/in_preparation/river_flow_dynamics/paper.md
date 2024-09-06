@@ -17,7 +17,7 @@ authors:
     orcid: 0000-0002-7369-1602
     equal-contrib: true
     affiliation: 1
-    corresponding: true 
+    corresponding: true
   - name: Oscar Link
     orcid: 0000-0002-2188-6504
     equal-contrib: true
