@@ -1,46 +1,36 @@
-import numpy as np
-
-cimport numpy as np
-
-
-cdef extern from "math.h":
-    double exp(double x) nogil
-
+cimport cython
 from libc.math cimport exp
+from libc.math cimport isinf
 from libc.math cimport log
 
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-DTYPE_UINT8 = np.uint8
-ctypedef np.uint8_t DTYPE_UINT8_t
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 def _sequential_ero_depo(
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud_sel,
-    np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Q_to_the_m,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] slope,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] H,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] br,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] sed_erosion_term,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] bed_erosion_term,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] K_sed,
-    DTYPE_FLOAT_t v,
-    DTYPE_FLOAT_t phi,
-    DTYPE_FLOAT_t F_f,
-    DTYPE_FLOAT_t H_star,
-    DTYPE_FLOAT_t dt,
-    DTYPE_FLOAT_t thickness_lim,
+    const id_t [:] stack_flip_ud_sel,
+    const id_t [:] flow_receivers,
+    const cython.floating [:] cell_area,
+    const cython.floating [:] q,
+    cython.floating [:] qs,
+    cython.floating [:] qs_in,
+    const cython.floating [:] Es,
+    const cython.floating [:] Er,
+    const cython.floating [:] Q_to_the_m,
+    const cython.floating [:] slope,
+    cython.floating [:] H,
+    cython.floating [:] br,
+    const cython.floating [:] sed_erosion_term,
+    const cython.floating [:] bed_erosion_term,
+    const cython.floating [:] K_sed,
+    double v,
+    double phi,
+    double F_f,
+    double H_star,
+    double dt,
+    double thickness_lim,
 ):
 
     """Calculate and qs and qs_in."""
@@ -75,7 +65,7 @@ def _sequential_ero_depo(
                 )
             # No blowup
             else:
-                H_loc = H_star * np.log(
+                H_loc = H_star * log(
                     (1 / ((depo_rate / (1 - phi)) / (sed_erosion_loc / (1 - phi)) - 1))
                     * (
                         exp(
@@ -94,7 +84,7 @@ def _sequential_ero_depo(
                     )
                 )
             # In case soil depth evolves to infinity, fall back to no entrainment
-            if H_loc == np.inf:
+            if isinf(H_loc):
                 H_loc = (
                     H[node_id]
                     + (depo_rate / (1 - phi) - sed_erosion_loc/ (1 - phi)) * dt

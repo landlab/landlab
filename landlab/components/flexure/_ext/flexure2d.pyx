@@ -3,6 +3,7 @@ from cython.parallel cimport prange
 from libc.math cimport M_PI
 from libc.stdlib cimport labs
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused index_t:
     cython.integral
     long long

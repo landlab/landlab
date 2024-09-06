@@ -17,7 +17,6 @@ import copy as cp
 from functools import partial
 
 import numpy as np
-import numpy.matlib as npm
 
 from landlab import Component
 from landlab import FieldError
@@ -662,8 +661,8 @@ class PriorityFloodFlowRouter(Component):
                 props_Pf = props_Pf.astype(np.float64)  # should be float64
                 # Now, make sure sum is 1 in 64 bits
                 props_Pf[props_Pf == -1] = 0
-                proportion_matrix = npm.repmat(
-                    np.reshape(props_Pf.sum(axis=1), [props_Pf.shape[0], 1]), 1, 8
+                proportion_matrix = np.tile(
+                    np.reshape(props_Pf.sum(axis=1), [props_Pf.shape[0], 1]), (1, 8)
                 )
                 rc64_temp = np.where(
                     proportion_matrix == 0, props_Pf, props_Pf / proportion_matrix

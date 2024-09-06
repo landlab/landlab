@@ -261,7 +261,7 @@ class SpaceLargeScaleEroder(Component):
         sp_crit_br=0.0,
         discharge_field="surface_water__discharge",
         erode_flooded_nodes=False,
-        thickness_lim=100,
+        thickness_lim=100.0,
     ):
         """Initialize the SpaceLargeScaleEroder model.
 
@@ -340,7 +340,7 @@ class SpaceLargeScaleEroder(Component):
         )
 
         # specific inits
-        self._thickness_lim = thickness_lim
+        self._thickness_lim = float(thickness_lim)
         self._H_star = H_star
 
         self._sed_erosion_term = np.zeros(grid.number_of_nodes)
