@@ -1,7 +1,4 @@
-import numpy as np
-
 cimport cython
-cimport numpy as cnp
 from cython.parallel cimport prange
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
@@ -71,7 +68,9 @@ def aggregate_items_as_mean(
     const float_or_int_weights [:] weight_of_item,
 ):
     cdef int item, element
-    cdef double * total_weight_at_element = <double *>malloc(number_of_elements * sizeof(double))
+    cdef double * total_weight_at_element = <double *>malloc(
+        number_of_elements * sizeof(double)
+    )
 
     try:
         for element in prange(number_of_elements, nogil=True, schedule="static"):
@@ -82,7 +81,9 @@ def aggregate_items_as_mean(
             element = element_of_item[item]
             if element >= 0:
                 out[element] = out[element] + value_of_item[item] * weight_of_item[item]
-                total_weight_at_element[element] = total_weight_at_element[element] + weight_of_item[item]
+                total_weight_at_element[element] = (
+                    total_weight_at_element[element] + weight_of_item[item]
+                )
 
         for element in range(number_of_elements):
             if total_weight_at_element[element] > 0:
