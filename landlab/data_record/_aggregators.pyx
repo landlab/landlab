@@ -6,6 +6,11 @@ from cython.parallel cimport prange
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 
+ctypedef fused id_t:
+    cython.integral
+    long long
+
+
 ctypedef fused float_or_int:
     cython.integral
     cython.floating
@@ -21,7 +26,7 @@ ctypedef fused float_or_int_weights:
 def aggregate_items_as_count(
     cython.integral [:] out,
     const long number_of_elements,
-    const cython.integral [:] element_of_item,
+    const id_t [:] element_of_item,
     const long number_of_items,
 ):
     cdef int item, element
@@ -40,7 +45,7 @@ def aggregate_items_as_count(
 def aggregate_items_as_sum(
     cython.floating [:] out,
     const long number_of_elements,
-    const cython.integral [:] element_of_item,
+    const id_t [:] element_of_item,
     const long number_of_items,
     const float_or_int [:] value_of_item,
 ):
@@ -60,7 +65,7 @@ def aggregate_items_as_sum(
 def aggregate_items_as_mean(
     cython.floating [:] out,
     const long number_of_elements,
-    const cython.integral [:] element_of_item,
+    const id_t [:] element_of_item,
     const long number_of_items,
     const float_or_int [:] value_of_item,
     const float_or_int_weights [:] weight_of_item,
