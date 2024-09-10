@@ -7,6 +7,7 @@ from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 import numpy as np
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused float_or_int:
     cython.floating
     cython.integral

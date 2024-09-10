@@ -1,7 +1,12 @@
 cimport cython
 from cython.parallel import prange
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
+    cython.integral
+    long long
+
+ctypedef fused integral_out_t:
     cython.integral
     long long
 
@@ -166,7 +171,7 @@ cpdef max_of_children_at_parent(
 @cython.wraparound(False)
 cpdef count_of_children_at_parent(
     const id_t [:, :] children_at_parent,
-    cython.integral [:] out,
+    integral_out_t [:] out,
 ):
     """Count the number of children for each parent.
 

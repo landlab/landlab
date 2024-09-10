@@ -1,6 +1,6 @@
-import numpy as np
-
-cimport numpy as np
+cimport cython
+from libc.math cimport exp
+from libc.math cimport powf
 
 from scipy.optimize import newton
 
@@ -8,28 +8,19 @@ from scipy.optimize import newton
 # method for using the brentq method in cython.
 from scipy.optimize._zeros import _brentq as brentq
 
-# from libc.math cimport fabs
-
-
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
-
-cdef extern from "math.h":
-    double fabs(double x) nogil
-    double pow(double x, double y) nogil
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 def brent_method_erode_variable_threshold(
-    np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] threshsxdt,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-    DTYPE_FLOAT_t n,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
+    const cython.floating [:] threshsxdt,
+    const cython.floating [:] alpha,
+    const double n,
+    cython.floating [:] z,
 ):
     """Erode node elevations using Brent's method for stability.
 
@@ -98,7 +89,7 @@ def brent_method_erode_variable_threshold(
             # using z_diff_old, calculate the alpha paramter of Braun and
             # Willet by calculating alpha times z
 
-            alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
+            alpha_param = alpha[src_id] * powf(z_diff_old, n-1.0)
 
             # Calculate the beta parameter that accounts for the possible
             # presence of a threshold.
@@ -156,12 +147,12 @@ def brent_method_erode_variable_threshold(
 
 
 def brent_method_erode_fixed_threshold(
-    np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-    DTYPE_FLOAT_t threshsxdt,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-    DTYPE_FLOAT_t n,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
+    const double threshsxdt,
+    const cython.floating [:] alpha,
+    const double n,
+    cython.floating [:] z,
 ):
     """Erode node elevations.
 
@@ -231,7 +222,7 @@ def brent_method_erode_fixed_threshold(
             # using z_diff_old, calculate the alpha paramter of Braun and
             # Willet by calculating alpha times z
 
-            alpha_param = alpha[src_id] * pow(z_diff_old, n-1.0)
+            alpha_param = alpha[src_id] * powf(z_diff_old, n-1.0)
 
             # Calculate the beta parameter that accounts for the possible
             # presence of a threshold.
@@ -288,10 +279,10 @@ def brent_method_erode_fixed_threshold(
 
 
 def erode_fn(
-    DTYPE_FLOAT_t x,
-    DTYPE_FLOAT_t alpha,
-    DTYPE_FLOAT_t beta,
-    DTYPE_FLOAT_t n,
+    const double x,
+    const double alpha,
+    const double beta,
+    const double n,
 ):
     """Evaluates the solution to the water-depth equation.
 
@@ -375,18 +366,18 @@ def erode_fn(
     """
     cdef double f
 
-    f = x - 1.0 + (alpha * pow(x, n)) - beta
+    f = x - 1.0 + (alpha * powf(x, n)) - beta
 
     return f
 
 
 def smooth_stream_power_eroder_solver(
-    np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
-    np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] z,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] alpha,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] gamma,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] delta,
+    const id_t [:] src_nodes,
+    const id_t [:] dst_nodes,
+    cython.floating [:] z,
+    const cython.floating [:] alpha,
+    const cython.floating [:] gamma,
+    const cython.floating [:] delta,
 ):
     """Erode node elevations using Newtons Method for smoothed Stream Power. "
 
@@ -444,12 +435,12 @@ def smooth_stream_power_eroder_solver(
 
 
 def new_elev(
-    DTYPE_FLOAT_t x,
-    DTYPE_FLOAT_t a,
-    DTYPE_FLOAT_t b,
-    DTYPE_FLOAT_t c,
-    DTYPE_FLOAT_t d,
-    DTYPE_FLOAT_t e,
+    const double x,
+    const double a,
+    const double b,
+    const double c,
+    const double d,
+    const double e,
 ):
     """Equation for elevation of a node at timestep t+1.
 
@@ -470,18 +461,18 @@ def new_elev(
     """
     cdef double f
 
-    f = x * (1.0 + a) + c * np.exp(-d * (x - b)) - e
+    f = x * (1.0 + a) + c * exp(-d * (x - b)) - e
 
     return f
 
 
 def new_elev_prime(
-    DTYPE_FLOAT_t x,
-    DTYPE_FLOAT_t a,
-    DTYPE_FLOAT_t b,
-    DTYPE_FLOAT_t c,
-    DTYPE_FLOAT_t d,
-    DTYPE_FLOAT_t e,
+    const double x,
+    const double a,
+    const double b,
+    const double c,
+    const double d,
+    const double e,
 ):
     """Equation for elevation of a node at timestep t+1.
 
@@ -502,6 +493,6 @@ def new_elev_prime(
     """
     cdef double f
 
-    f = (1.0 + a) - c * d * np.exp(-d * (x - b))
+    f = (1.0 + a) - c * d * exp(-d * (x - b))
 
     return f

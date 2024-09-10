@@ -500,8 +500,8 @@ class ModelGrid(
         >>> _ = grid.add_full("elevation", 3.0, at="node")
 
         >>> grid.as_dataarray("at_node:elevation")
-        <xarray.DataArray 'at_node:elevation' (node: 12)>
-        array([3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.,  3.])
+        <xarray.DataArray 'at_node:elevation' (node: 12)> Size: 96B
+        array([3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.])
         Dimensions without coordinates: node
 
         >>> all(

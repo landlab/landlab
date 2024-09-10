@@ -1015,7 +1015,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
             tns = self.node_state[self.grid.node_at_link_head[lk]]
             orientation = ca.link_orientation[lk]
             new_link_state = (
-                orientation * ca.num_node_states_sq + fns * ca.num_node_states + tns
+                int(orientation) * ca.num_node_states_sq
+                + fns * ca.num_node_states
+                + tns
             )
 
             # Schedule a new transition, if applicable

@@ -2,15 +2,9 @@ name: Test
 
 on: [push, pull_request]
 
-# on:
-#   push:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
-#   pull_request:
-#       paths:
-#           - "landlab/**"
-#           - "tests/**"
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:

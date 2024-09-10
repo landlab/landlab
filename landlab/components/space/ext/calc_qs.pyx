@@ -1,29 +1,26 @@
-import numpy as np
+cimport cython
 
-cimport numpy as np
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
+ctypedef fused id_t:
+    cython.integral
+    long long
 
 
 cdef extern from "math.h":
     double exp(double x) nogil
 
-DTYPE_FLOAT = np.double
-ctypedef np.double_t DTYPE_FLOAT_t
-
-DTYPE_INT = int
-ctypedef np.int_t DTYPE_INT_t
-
 
 def calculate_qs_in(
-    np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
-    np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_area_at_node,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] q,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
-    np.ndarray[DTYPE_FLOAT_t, ndim=1] Er,
-    DTYPE_FLOAT_t v_s,
-    DTYPE_FLOAT_t F_f,
+    const id_t [:] stack_flip_ud,
+    const id_t [:] flow_receivers,
+    const cython.floating [:] cell_area_at_node,
+    cython.floating [:] q,
+    cython.floating [:] qs,
+    cython.floating [:] qs_in,
+    cython.floating [:] Es,
+    cython.floating [:] Er,
+    double v_s,
+    double F_f,
 ):
     """Calculate and qs and qs_in."""
     # define internal variables
