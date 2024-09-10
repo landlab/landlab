@@ -35,7 +35,7 @@ class SharedStreamPower(ErosionDeposition):
         E = K * q^m_sp * S^n_sp - v_s * Qs / q
 
     Where K is sediment erodibility, v_s is the settling velocity for sediment, and q is the
-    water discharge per unit width (q = Q/w).
+    water discharge.
 
     To translate the shared stream power input for ErosionDeposition, we use the equations:
 
@@ -45,8 +45,7 @@ class SharedStreamPower(ErosionDeposition):
 
     It is important to note that the second two equations were derived only
     for calibrating the model,and do not necessarily correlate to landscape evolution
-    in nature. Channel width, w is not a parameter in this component, and we
-    assume that w = 1.0 so that Q = q.
+    in nature.
 
     To write the final equation we define the incision term as omega:
 
