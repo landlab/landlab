@@ -8,6 +8,11 @@ ctypedef fused id_t:
     long long
 
 
+ctypedef fused integral_out_t:
+    cython.integral
+    long long
+
+
 ctypedef fused float_or_int:
     cython.integral
     cython.floating
@@ -21,7 +26,7 @@ ctypedef fused float_or_int_weights:
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def aggregate_items_as_count(
-    cython.integral [:] out,
+    integral_out_t [:] out,
     const long number_of_elements,
     const id_t [:] element_of_item,
     const long number_of_items,
