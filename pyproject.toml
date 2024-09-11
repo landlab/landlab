@@ -76,6 +76,8 @@ landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
+packages = ["find:"]
+package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
 landlab = [
@@ -91,8 +93,7 @@ landlab = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["landlab*"]
+where = ["src"]
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "AUTHORS.rst"]}
