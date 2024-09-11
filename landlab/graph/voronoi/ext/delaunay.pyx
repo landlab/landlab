@@ -2,6 +2,7 @@ cimport cython
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused id_t:
     cython.integral
     long long

@@ -37,7 +37,9 @@ cython_files = (
     "landlab/graph/quantity/ext/of_element.pyx",
     "landlab/graph/quantity/ext/of_link.pyx",
     "landlab/graph/quantity/ext/of_patch.pyx",
+    "landlab/graph/sort/ext/_deprecated_sparse.pyx",
     "landlab/graph/sort/ext/argsort.pyx",
+    "landlab/graph/sort/ext/intpair.pyx",
     "landlab/graph/sort/ext/remap_element.pyx",
     "landlab/graph/sort/ext/spoke_sort.pyx",
     "landlab/graph/structured_quad/ext/at_cell.pyx",
@@ -47,7 +49,6 @@ cython_files = (
     "landlab/graph/structured_quad/ext/at_patch.pyx",
     "landlab/graph/voronoi/ext/delaunay.pyx",
     "landlab/graph/voronoi/ext/voronoi.pyx",
-    "landlab/grid/cfuncs.pyx",
     "landlab/grid/ext/raster_divergence.pyx",
     "landlab/grid/ext/raster_gradient.pyx",
     "landlab/layers/ext/eventlayers.pyx",
@@ -63,6 +64,7 @@ ext_modules = cythonize(
             [path],
             extra_compile_args=compile_args,
             extra_link_args=compile_args,
+            define_macros=[("NPY_NO_DEPRECATED_API", "1")],
         )
         for path in cython_files
     ],

@@ -27,7 +27,8 @@ def aggregate_items_as_sum(
 
     # assert len(values) >= len(out)
 
-    _aggregate_items_as_sum(out, len(out), ids, len(ids), values)
+    # _aggregate_items_as_sum(out, len(out), ids, len(ids), values)
+    _aggregate_items_as_sum(out, ids, values)
 
     return out
 
@@ -52,7 +53,8 @@ def aggregate_items_as_mean(
     assert len(values) == len(weights)
     # assert len(values) >= len(out)
 
-    _aggregate_items_as_mean(out, len(out), ids, len(ids), values, weights)
+    # _aggregate_items_as_mean(out, len(out), ids, len(ids), values, weights)
+    _aggregate_items_as_mean(out, ids, values, weights)
 
     return out
 
@@ -66,7 +68,8 @@ def aggregate_items_as_count(
 
     out = np.empty(size, dtype=int)
 
-    _aggregate_items_as_count(out, len(out), ids, len(ids))
+    # _aggregate_items_as_count(out, len(out), ids, len(ids))
+    _aggregate_items_as_count(out, ids)
 
     return out
 

@@ -215,7 +215,7 @@ def calculate_window_statistic(
         closed_nodes = grid.status_at_node == grid.BC_NODE_IS_CLOSED
         nodes_in_loop = nodes_in_loop[~closed_nodes]
         nodes_to_include[closed_nodes] = False
-        output[closed_nodes] = np.NaN
+        output[closed_nodes] = np.nan
 
     # Calculate "dist to point" then local value at nodes within window.
     for node in nodes_in_loop:

@@ -62,7 +62,7 @@ class VegCA(Component):
     >>> import numpy as np
     >>> A = np.copy(grid["cell"]["plant__age"])
     >>> ca_veg.update()
-    >>> np.alltrue(grid["cell"]["plant__age"] == A)
+    >>> np.all(grid["cell"]["plant__age"] == A)
     False
 
     References

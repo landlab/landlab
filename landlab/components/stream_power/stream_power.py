@@ -75,8 +75,8 @@ class StreamPowerEroder(Component):
     >>> fr2.run_one_step()
     >>> sp2.run_one_step(dt=10.0)
     >>> z.reshape((3, 7))[1, :]
-    array([ 0.        ,  1.        ,  4.        ,  8.52493781,
-           13.29039716, 18.44367965, 36.        ])
+    array([ 0.        ,  1.        ,  4.        ,  8.52493772, 13.29039699,
+           18.44367949, 36.        ])
 
     >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.0)
     >>> z = mg.node_x / 100.0
