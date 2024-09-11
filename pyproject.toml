@@ -76,7 +76,6 @@ landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
-packages = ["find:"]
 package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
