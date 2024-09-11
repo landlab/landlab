@@ -1,8 +1,10 @@
 cimport cython
 from cython.parallel cimport prange
 
+# https://cython.readthedocs.io/en/stable/src/userguide/fusedtypes.html
 ctypedef fused float_or_int:
     cython.integral
+    long long
     cython.floating
 
 
