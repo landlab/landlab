@@ -20,6 +20,7 @@ cython_files = (
     "src/landlab/components/flexure/_ext/flexure2d_slow.pyx",
     "src/landlab/components/flow_accum/cfuncs.pyx",
     "src/landlab/components/flow_director/cfuncs.pyx",
+    "src/landlab/components/flow_router/ext/single_flow/priority_routing/_test_breach_c.pyx",
     "src/landlab/components/flow_router/ext/single_flow/priority_routing/breach.pyx",
     "src/landlab/components/overland_flow/_neighbors_at_link.pyx",
     "src/landlab/components/priority_flood_flow_router/cfuncs.pyx",
@@ -53,7 +54,6 @@ cython_files = (
     "src/landlab/layers/ext/eventlayers.pyx",
     "src/landlab/utils/_matrix.pyx",
     "src/landlab/utils/ext/jaggedarray.pyx",
-    # "tests/components/flow_router/ext/single_flow/priority_routing/test_breach_c.pyx",
 )
 
 ext_modules = cythonize(
