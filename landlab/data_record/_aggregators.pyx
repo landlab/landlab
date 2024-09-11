@@ -29,10 +29,10 @@ ctypedef fused float_or_int_weights:
 @cython.wraparound(False)
 def aggregate_items_as_count(
     integral_out_t [:] out,
-    const long number_of_elements,
     const id_t [:] element_of_item,
-    const long number_of_items,
 ):
+    cdef long number_of_elements = len(out)
+    cdef long number_of_items = len(element_of_item)
     cdef int item, element
 
     for element in prange(number_of_elements, nogil=True, schedule="static"):
@@ -48,11 +48,11 @@ def aggregate_items_as_count(
 @cython.wraparound(False)
 def aggregate_items_as_sum(
     cython.floating [:] out,
-    const long number_of_elements,
     const id_t [:] element_of_item,
-    const long number_of_items,
     const float_or_int [:] value_of_item,
 ):
+    cdef long number_of_elements = len(out)
+    cdef long number_of_items = len(element_of_item)
     cdef int item, element
 
     for element in prange(number_of_elements, nogil=True, schedule="static"):
@@ -68,12 +68,12 @@ def aggregate_items_as_sum(
 @cython.wraparound(False)
 def aggregate_items_as_mean(
     cython.floating [:] out,
-    const long number_of_elements,
     const id_t [:] element_of_item,
-    const long number_of_items,
     const float_or_int [:] value_of_item,
     const float_or_int_weights [:] weight_of_item,
 ):
+    cdef long number_of_elements = len(out)
+    cdef long number_of_items = len(element_of_item)
     cdef int item, element
     cdef double * total_weight_at_element = <double *>malloc(
         number_of_elements * sizeof(double)
