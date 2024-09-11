@@ -353,7 +353,7 @@ class LinearDiffuser(Component):
         )[0]
         heads = self._grid.node_at_link_head[self._grid.fixed_links]
         tails = self._grid.node_at_link_tail[self._grid.fixed_links]
-        head_is_fixed = np.in1d(heads, fixed_grad_nodes)
+        head_is_fixed = np.isin(heads, fixed_grad_nodes)
         self._fixed_grad_nodes = np.where(head_is_fixed, heads, tails)
         self._fixed_grad_anchors = np.where(head_is_fixed, tails, heads)
         vals = self._grid.at_node[self._values_to_diffuse]

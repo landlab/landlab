@@ -54,16 +54,6 @@ def test_set_status_with_array_bool():
     )
 
 
-def test_set_with_itemset():
-    grid = RasterModelGrid((4, 5))
-    grid.status_at_node.itemset(7, 2)
-
-    assert_array_equal(
-        grid.status_at_node,
-        [FV, FV, FV, FV, FV, FV, 0, 2, 0, FV, FV, 0, 0, 0, FV, FV, FV, FV, FV, FV],
-    )
-
-
 def test_set_status_with_array():
     """Test that active links are reset after changing the node status."""
     grid = RasterModelGrid((4, 5))
