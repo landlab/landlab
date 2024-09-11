@@ -27,10 +27,10 @@ ctypedef fused float_or_int_weights:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def aggregate_items_as_count(
+cpdef void aggregate_items_as_count(
     integral_out_t [:] out,
     const id_t [:] element_of_item,
-):
+) noexcept nogil:
     cdef long number_of_elements = len(out)
     cdef long number_of_items = len(element_of_item)
     cdef int item, element
@@ -46,11 +46,11 @@ def aggregate_items_as_count(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def aggregate_items_as_sum(
+cpdef void aggregate_items_as_sum(
     cython.floating [:] out,
     const id_t [:] element_of_item,
     const float_or_int [:] value_of_item,
-):
+) noexcept nogil:
     cdef long number_of_elements = len(out)
     cdef long number_of_items = len(element_of_item)
     cdef int item, element
@@ -66,12 +66,12 @@ def aggregate_items_as_sum(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def aggregate_items_as_mean(
+cpdef void aggregate_items_as_mean(
     cython.floating [:] out,
     const id_t [:] element_of_item,
     const float_or_int [:] value_of_item,
     const float_or_int_weights [:] weight_of_item,
-):
+) noexcept nogil:
     cdef long number_of_elements = len(out)
     cdef long number_of_items = len(element_of_item)
     cdef int item, element
