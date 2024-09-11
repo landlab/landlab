@@ -266,7 +266,7 @@ class NetworkSedimentTransporter(Component):
         active_layer_method="WongParker",
         active_layer_d_multiplier=2,
         slope_threshold=1e-4,
-        k_transp_dep_abr=0.0,
+        k_transp_dep_abr=None,
     ):
         """
         Parameters
@@ -351,7 +351,6 @@ class NetworkSedimentTransporter(Component):
         self._time = 0.0
         self._distance_traveled_cumulative = np.zeros(self._num_parcels)
         self._slope_threshold = slope_threshold
-        self._k_transp_dep_abr = k_transp_dep_abr
 
         # check the transport method is valid.
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
@@ -937,10 +936,10 @@ class NetworkSedimentTransporter(Component):
         # Step 2: Parcel is at rest... Now update its information.
 
         # transport dependent abrasion - update alphas for xport dependence
-        if self._k_transp_dep_abr != 0.0:
+        if k_transp_dep_abr is not None:
             self._abrasion_rate_xport_dep = _calculate_transport_dep_abrasion_rate(
                 self._parcels.dataset.abrasion_rate,
-                self._k_transp_dep_abr,
+                k_transp_dep_abr,
                 self._parcels.dataset.density.values,
                 self._fluid_density,
                 self._parcels.dataset.D.values[:, self._time_idx],
