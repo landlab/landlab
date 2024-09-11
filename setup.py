@@ -59,7 +59,7 @@ cython_files = (
 ext_modules = cythonize(
     [
         Extension(
-            path[:-4].replace("/", "."),
+            path[4:-4].replace("/", "."),
             [path],
             extra_compile_args=compile_args,
             extra_link_args=compile_args,
