@@ -15,11 +15,13 @@ ctypedef fused integral_out_t:
 
 ctypedef fused float_or_int:
     cython.integral
+    long long
     cython.floating
 
 
 ctypedef fused float_or_int_weights:
     cython.integral
+    long long
     cython.floating
 
 
