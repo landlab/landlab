@@ -8,7 +8,8 @@ TIME_STEP_FACTOR = 0.5
 
 
 class SharedStreamPower(ErosionDeposition):
-    r"""
+    """Shared Stream Power Model in the style of Hergarten (2021).
+
     Implements the Shared Stream Power Model in the style of Hergarten (2021).
     Designed to simultaneously model
     river incision and sediment transport in order to seamlessly
@@ -20,40 +21,43 @@ class SharedStreamPower(ErosionDeposition):
 
     Here is the equation for erosion without a threshold:
 
-        E = K_d * A^m_sp * S^n_sp - K_d/K_t * Qs / A
+        E = K_d * A**m_sp * S**n_sp - K_d / K_t * Qs / A
 
-    where Q is water discharge, Qs is sediment flux, S is slope, m_sp and n_sp are scaling
-    exponents, coefficient K_d is the erodibility of the bedrock and coefficient K_t is the
-    ability to transport sediment.
+    where ``Q`` is water discharge, ``Qs`` is sediment flux, ``S`` is slope, ``m_sp``
+    and ``n_sp`` are scaling exponents, coefficient ``K_d`` is the erodibility of
+    the bedrock and coefficient ``K_t`` is the ability to transport sediment.
 
-    The first term, K_d * A ** m_sp * S ** n_sp, is the incision term, and the second term,
-    K_d/K_t * Qs / A, is the transport term. Note that K_d/K_t determines the relative amount of
-    incision and sediment transport. K_d modifies the incision term.
+    The first term, ``K_d * A**m_sp * S**n_sp``, is the incision term, and the
+    second term, ``K_d / K_t * Qs / A``, is the transport term. Note that
+    ``K_d / K_t`` determines the relative amount of incision and sediment transport.
+    ``K_d`` modifies the incision term.
 
     The equivalent equation used by ErosionDeposition from Davy & Lague (2009) is:
 
-        E = K * q^m_sp * S^n_sp - v_s * Qs / q
+        E = K * q**m_sp * S**n_sp - v_s * Qs / q
 
-    Where K is sediment erodibility, v_s is the settling velocity for sediment, and q is the
-    water discharge.
+    where ``K`` is sediment erodibility, ``v_s`` is the settling velocity for sediment,
+    and ``q`` is the water discharge.
 
-    To translate the shared stream power input for ErosionDeposition, we use the equations:
+    To translate the shared stream power input for ErosionDeposition, we use the
+    equations::
 
         q = Ar
-        K = K_d / r^m_sp
-        v_s = K_d/K_t
+        K = K_d / r**m_sp
+        v_s = K_d / K_t
 
     It is important to note that the second two equations were derived only
-    for calibrating the model,and do not necessarily correlate to landscape evolution
+    for calibrating the model, and do not necessarily correlate to landscape evolution
     in nature.
 
     To write the final equation we define the incision term as omega:
 
-        omega = K_d * A ** m_{sp} * S ** {n_sp}
+        omega = K_d * A**m_sp * S**n_sp
 
-    And incorporate sp_crit, the critical stream power needed to erode bedrock, giving:
+    and incorporate ``sp_crit``, the critical stream power needed to erode bedrock,
+    giving:
 
-        E = omega(1 - exp(omega / sp_crit) ) - K_d/K_t * Qs / A
+        E = omega * (1 - exp(omega / sp_crit) ) - K_d / K_t * Qs / A
 
 
     Written by A. Thompson.
@@ -76,7 +80,6 @@ class SharedStreamPower(ErosionDeposition):
     Davy, P., Lague, D. (2009). Fluvial erosion/transport equation of landscape
     evolution models revisited Journal of Geophysical Research  114(F3),
     F03007. https://dx.doi.org/10.1029/2008jf001146
-
     """
 
     _name = "SharedStreamPower"
@@ -103,9 +106,9 @@ class SharedStreamPower(ErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_d : float, field name, or array
+        K_d : float, str, or array_like
             Erodibility for bedrock (units vary).
-        K_t : float, field name, or array
+        K_t : float, str, or array_like
             Ability to transport sediment (units vary).
         r : float
             Runoff rate. Scales Q = Ar. Default is 1.0 [m/yr]
@@ -113,24 +116,25 @@ class SharedStreamPower(ErosionDeposition):
             Discharge exponent (units vary). Default is 0.5.
         n_sp : float
             Slope exponent (units vary). Default is 1.0.
-        sp_crit : float, field name, or array
+        sp_crit : float, str, or array_like
             Critical stream power to erode substrate [E/(TL^2)]
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
-        discharge_field : float, field name, or array
+        discharge_field : float, str, or array_like
             Discharge [L^2/T]. The default is to use the grid field
-            'surface_water__discharge', which is simply drainage area
+            ``"surface_water__discharge"``, which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom
             spatially/temporally varying rainfall, use 'water__unit_flux_in'
             to specify water input to the FlowAccumulator.
-        solver : string
+        solver : {"basic", "adaptive"}
             Solver to use. Options at present include:
-                (1) 'basic' (default): explicit forward-time extrapolation.
-                    Simple but will become unstable if time step is too large.
-                (2) 'adaptive': adaptive time-step solver that estimates a
-                    stable step size based on the shortest time to "flattening"
-                    among all upstream-downstream node pairs.
+
+            1. ``"basic"`` (default): explicit forward-time extrapolation.
+                Simple but will become unstable if time step is too large.
+            2. ``"adaptive"``: adaptive time-step solver that estimates a
+                stable step size based on the shortest time to "flattening"
+                among all upstream-downstream node pairs.
 
         Examples
         ---------
@@ -143,9 +147,10 @@ class SharedStreamPower(ErosionDeposition):
         >>> np.random.seed(seed=5000)
 
         Define grid and initial topography:
-            -5x5 grid with baselevel in the lower left corner
-            -all other boundary nodes closed
-            -Initial topography is plane tilted up to the upper right + noise
+
+        * 5x5 grid with baselevel in the lower left corner
+        * All other boundary nodes closed
+        * Initial topography is plane tilted up to the upper right + noise
 
         >>> nr = 5
         >>> nc = 5
@@ -225,9 +230,12 @@ class SharedStreamPower(ErosionDeposition):
         self.K_t = K_t
         self.m_sp = m_sp
 
+        kd_at_node = return_array_at_node(self._grid, self.K_d)
+        kt_at_node = return_array_at_node(self._grid, self.K_t)
+
         # convert shared stream power inputs to erosion deposition inputs
-        vs_ = self.K_d * self.r / self.K_t
-        K_s = self.K_d / self.r**self.m_sp
+        vs_ = kd_at_node * self.r / kt_at_node
+        K_s = kd_at_node / self.r**self.m_sp
 
         # instantiate ErosionDeposition
         super().__init__(
@@ -245,25 +253,29 @@ class SharedStreamPower(ErosionDeposition):
         )
 
     def update_runoff(self, new_r=1.0):
-        """
-        Updates r, K, v_s, and "water__unit_flux_in" for a new runoff rate. Works only if
-        discharge field is set to "water__unit_flux_in."
+        """Update runoff variables.
+
+        Updates ``r``, ``K``, ``v_s``, and ``"water__unit_flux_in"`` for a new
+        runoff rate. Works only if discharge field is set to ``"water__unit_flux_in"``.
 
         Parameters
         ----------
         new_r : float, field name, or array
             Updated runoff rate. Default is 1.0.
-
         """
-        if not self.discharge_field == "water__unit_flux_in":
+        if self.discharge_field != "water__unit_flux_in":
             ValueError(
                 "The SharedStreamPower's update_runoff method can only be used"
-                "when discharge field is set to water__unit_flux_in"
+                "when discharge field is set to water__unit_flux_in (got"
+                f" {self.discharge_field})"
             )
 
+        kd_at_node = return_array_at_node(self._grid, self.K_d)
+        kt_at_node = return_array_at_node(self._grid, self.K_t)
+
         self.r = new_r
-        self.K = self.K_d / self.r**self.m_sp
-        self.v_s = self.K_d * self.r / self.K_t
+        self.K = kd_at_node / self.r**self.m_sp
+        self.v_s = kd_at_node * self.r / kt_at_node
         self._grid.at_node["water__unit_flux_in"] = (
             self.r * self._grid.at_node["drainage_area"]
         )
