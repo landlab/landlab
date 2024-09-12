@@ -459,9 +459,6 @@ class NetworkSedimentTransporter(Component):
 
     def _calculate_mean_D_and_rho(self):
         """Calculate mean grain size and density on each link"""
-        # self._d_mean_active = self._grid.zeros(at="link")
-        # self._rhos_mean_active = self._grid.zeros(at="link")
-
         self._rhos_mean_active = aggregate_items_as_mean(
             self._parcels.dataset["element_id"].values[:, -1].astype(int),
             self._parcels.dataset["density"].values.reshape(-1),
@@ -475,36 +472,11 @@ class NetworkSedimentTransporter(Component):
             size=self._grid.number_of_links,
         )
 
-        # aggregate_items_as_mean(
-        #     self._rhos_mean_active,
-        #     self.grid.number_of_links,
-        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
-        #     len(self._parcels.dataset.element_id.values[:, -1]),
-        #     self._parcels.dataset.density.values.reshape(-1),
-        #     self._parcels.dataset.volume.values[:, -1],
-        # )
-        # aggregate_items_as_mean(
-        #     self._d_mean_active,
-        #     self.grid.number_of_links,
-        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
-        #     len(self._parcels.dataset.element_id.values[:, -1]),
-        #     self._parcels.dataset.D.values.reshape(-1),
-        #     self._parcels.dataset.volume.values[:, -1],
-        # )
-
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep, then updates node
         elevations.
         """
-        # self._vol_tot = self.grid.zeros(at="link")
-        # aggregate_items_as_sum(
-        #     self._vol_tot,
-        #     self.grid.number_of_links,
-        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
-        #     len(self._parcels.dataset.volume.values[:, -1]),
-        #     self._parcels.dataset.volume.values[:, -1],
-        # )
         self._vol_tot = aggregate_items_as_sum(
             self._parcels.dataset["element_id"].values[:, -1].astype(int),
             self._parcels.dataset["volume"].values[:, -1],
@@ -528,11 +500,6 @@ class NetworkSedimentTransporter(Component):
             )
 
             # calcuate taustar
-            # taustar = tau / (
-            #     (self._rhos_mean_active - self._fluid_density)
-            #     * self._g
-            #     * self._d_mean_active
-            # )
             taustar = np.zeros_like(tau)
             np.divide(
                 tau,
@@ -543,12 +510,12 @@ class NetworkSedimentTransporter(Component):
                 out=taustar,
             )
 
-            # calculate active layer thickness
+            # calculate active layer thickness (in units of m)
             self._active_layer_thickness = (
                 0.515
                 * self._d_mean_active
                 * (3.09 * (taustar - 0.0549).clip(0.0, None) ** 0.56)
-            )  # in units of m
+            )
 
         elif self._active_layer_method == "GrainSizeDependent":
             # Set all active layers to a multiple of the lnk mean grain size
@@ -584,9 +551,8 @@ class NetworkSedimentTransporter(Component):
         volumes = self._parcels.dataset.volume.values[:, -1]
 
         for i in range(self._grid.number_of_links):
-            if (
-                self._vol_tot[i] > 0
-            ):  # only do this check capacity if parcels are in link
+            if self._vol_tot[i] > 0:
+                # only do this check capacity if parcels are in link
                 # First In Last Out.
 
                 # Find parcels on this link.
@@ -658,9 +624,8 @@ class NetworkSedimentTransporter(Component):
                     real_upstream_links
                 ]
 
-                if (
-                    downstream_link_id[n] == self._grid.BAD_INDEX
-                ):  # I'm sure there's a better way to do this, but...
+                if downstream_link_id[n] == self._grid.BAD_INDEX:
+                    # I'm sure there's a better way to do this, but...
                     length_of_downstream_link = 0
                     width_of_downstream_link = 0
                 else:
@@ -700,9 +665,8 @@ class NetworkSedimentTransporter(Component):
         Activearray = self._parcels.dataset.active_layer[:, self._time_idx].values
         Rhoarray = self._parcels.dataset.density.values
         Volarray = self._parcels.dataset.volume[:, self._time_idx].values
-        Linkarray = self._parcels.dataset.element_id[
-            :, self._time_idx
-        ].values  # link that the parcel is currently in
+        # link that the parcel is currently in
+        Linkarray = self._parcels.dataset.element_id[:, self._time_idx].values
 
         R = (Rhoarray - self._fluid_density) / self._fluid_density
 
@@ -726,14 +690,6 @@ class NetworkSedimentTransporter(Component):
         parcel_volumes = self._parcels.dataset.volume.values[:, -1].copy()
         parcel_volumes[~findactivesand[:, -1].astype(bool)] = 0.0
 
-        # vol_act_sand = self.grid.zeros(at="link")
-        # aggregate_items_as_sum(
-        #     vol_act_sand,
-        #     self.grid.number_of_links,
-        #     self._parcels.dataset.element_id.values[:, -1].astype(int),
-        #     len(self._parcels.dataset.volume.values[:, -1]),
-        #     parcel_volumes,
-        # )
         vol_act_sand = aggregate_items_as_sum(
             self._parcels.dataset["element_id"].values[:, -1].astype(int),
             parcel_volumes,
@@ -816,7 +772,8 @@ class NetworkSedimentTransporter(Component):
 
         if np.max(self._pvelocity) > 1:
             warnings.warn(
-                "NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s",
+                "NetworkSedimentTransporter: Maximum parcel virtual velocity"
+                f" exceeds 1 m/s ({np.max(self._pvelocity)})",
                 stacklevel=2,
             )
 
@@ -1192,7 +1149,8 @@ def _calculate_transport_dep_abrasion_rate(alpha, k, rhos, rhow, D, tautaur):
     D : array
         Grain diameter for each parcel
     tautaur : array
-        Ratio of the Shields stress to reference (critical) Shields stress for each pacel.
+        Ratio of the Shields stress to reference (critical) Shields stress for
+        each pacel.
 
     Examples
     --------
@@ -1214,7 +1172,6 @@ def _calculate_transport_dep_abrasion_rate(alpha, k, rhos, rhow, D, tautaur):
     ...         np.ones(1), -8, np.array([2.0]), 1, np.ones(1), np.array([4.3])
     ...     )
     ...
-
     """
     abrasion_rate_xport_dep = alpha.copy()
     abrasion_rate_xport_dep[tautaur > 3.3] = alpha[tautaur > 3.3] * (

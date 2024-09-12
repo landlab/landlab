@@ -21,7 +21,6 @@ def test_count_bench_cython(benchmark):
     out = np.empty(n_links, dtype=int)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
-    # benchmark(_aggregate_items_as_count, out, n_links, link_of_parcel, n_parcels)
     benchmark(_aggregate_items_as_count, out, link_of_parcel)
 
     assert_array_equal(out[0], 100000)
@@ -46,14 +45,7 @@ def test_sum_bench_cython(benchmark):
     value_of_parcel = np.ones(n_parcels, dtype=float)
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
-    benchmark(
-        _aggregate_items_as_sum,
-        out,
-        # n_links,
-        link_of_parcel,
-        # n_parcels,
-        value_of_parcel,
-    )
+    benchmark(_aggregate_items_as_sum, out, link_of_parcel, value_of_parcel)
 
     assert_array_equal(out[0], 100000.0)
     assert_array_equal(out[1:], 0.0)
@@ -82,13 +74,7 @@ def test_mean_bench_cython(benchmark):
     link_of_parcel = np.zeros(n_parcels, dtype=int)
 
     benchmark(
-        _aggregate_items_as_mean,
-        out,
-        # n_links,
-        link_of_parcel,
-        # n_parcels,
-        value_of_parcel,
-        weight_of_parcel,
+        _aggregate_items_as_mean, out, link_of_parcel, value_of_parcel, weight_of_parcel
     )
 
     assert_array_equal(out[0], 1.0)
