@@ -340,7 +340,7 @@ class NetworkSedimentTransporter(Component):
         self._fd = flow_director
 
         # verify and save the bed porosity.
-        if not 0 <= bed_porosity < 1:
+        if bed_porosity < 0.0 or bed_porosity > 1:
             raise ValueError(f"bed_porosity must be between 0 and 1 ({bed_porosity})")
         self._bed_porosity = bed_porosity
 
@@ -351,6 +351,7 @@ class NetworkSedimentTransporter(Component):
         self._time = 0.0
         self._distance_traveled_cumulative = np.zeros(self._num_parcels)
         self._slope_threshold = slope_threshold
+        self._k_transp_dep_abr = k_transp_dep_abr
 
         # check the transport method is valid.
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
@@ -936,10 +937,10 @@ class NetworkSedimentTransporter(Component):
         # Step 2: Parcel is at rest... Now update its information.
 
         # transport dependent abrasion - update alphas for xport dependence
-        if k_transp_dep_abr is not None:
+        if self._k_transp_dep_abr is not None:
             self._abrasion_rate_xport_dep = _calculate_transport_dep_abrasion_rate(
                 self._parcels.dataset.abrasion_rate,
-                k_transp_dep_abr,
+                self._k_transp_dep_abr,
                 self._parcels.dataset.density.values,
                 self._fluid_density,
                 self._parcels.dataset.D.values[:, self._time_idx],
@@ -1226,7 +1227,8 @@ def _calculate_transport_dep_abrasion_rate(alpha, k, rhos, rhow, D, tautaur):
 
     if np.any(alpha > abrasion_rate_xport_dep):
         raise ValueError(
-            "Transport dependent abrasion currently decreasing abrasion rate (should increase)"
+            "Transport dependent abrasion currently decreasing abrasion rate"
+            " (should increase)"
         )
 
     return abrasion_rate_xport_dep
