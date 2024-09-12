@@ -230,8 +230,8 @@ class SharedStreamPower(ErosionDeposition):
         self.K_t = K_t
         self.m_sp = m_sp
 
-        kd_at_node = return_array_at_node(self._grid, self.K_d)
-        kt_at_node = return_array_at_node(self._grid, self.K_t)
+        kd_at_node = return_array_at_node(grid, self.K_d)
+        kt_at_node = return_array_at_node(grid, self.K_t)
 
         # convert shared stream power inputs to erosion deposition inputs
         vs_ = kd_at_node * self.r / kt_at_node
