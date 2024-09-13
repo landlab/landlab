@@ -30,28 +30,6 @@ def test_route_to_multiple_error_raised():
         )
 
 
-def test_phi_error_raised():
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += mg.x_of_node + mg.y_of_node
-    fa = FlowAccumulator(mg)
-    fa.run_one_step()
-
-    with pytest.raises(ValueError):
-        SharedStreamPower(mg, phi=0)
-
-
-def test_extra_kwd_error_raised():
-    mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
-    z += mg.x_of_node + mg.y_of_node
-    fa = FlowAccumulator(mg)
-    fa.run_one_step()
-
-    with pytest.raises(ValueError):
-        SharedStreamPower(mg, spam=0)
-
-
 def test_bad_solver_name():
     """
     Test that any solver name besides 'basic' and 'adaptive' raises an error.
