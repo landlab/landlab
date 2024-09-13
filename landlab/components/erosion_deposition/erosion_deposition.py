@@ -13,7 +13,8 @@ TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
 
 
 class ErosionDeposition(_GeneralizedErosionDeposition):
-    r"""
+    """Erosion-Deposition model in the style of Davy and Lague (2009).
+
     Erosion-Deposition model in the style of Davy and Lague (2009). It uses a
     mass balance approach across the total sediment mass both in the bed and
     in transport coupled with explicit representation of the sediment
@@ -23,33 +24,29 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     This implementation is close to the Davy & Lague scheme, with a few
     deviations:
 
-        - A fraction of the eroded sediment is permitted to enter the wash load,
-          and lost to the mass balance (`F_f`).
+    * A fraction of the eroded sediment is permitted to enter the wash load,
+      and lost to the mass balance (``F_f``).
+    * Here an incision threshold ``omega`` is permitted, where it was not by Davy &
+      Lague. It is implemented with an exponentially smoothed form to prevent
+      discontinuities in the parameter space. See the
+      :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder`
+      for more documentation.
+    * This component uses an "effective" settling velocity, ``v_s``, as one of its
+      inputs. This parameter is simply equal to Davy & Lague's ``d_star * V``
+      dimensionless number.
 
-        - Here an incision threshold :math:`\omega` is permitted, where it was not by Davy &
-          Lague. It is implemented with an exponentially smoothed form to prevent
-          discontinuities in the parameter space. See the
-          :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder`
-          for more documentation.
+    Erosion of the bed follows a stream power formulation, i.e.::
 
-        - This component uses an "effective" settling velocity, v_s, as one of its
-          inputs. This parameter is simply equal to Davy & Lague's `d_star * V`
-          dimensionless number.
-
-    Erosion of the bed follows a stream power formulation, i.e.,
-
-    .. math:
-
-        E = K * q ** m_{sp} * S ** {n_sp} - \omega
+        E = K * q**m_sp * S**n_sp - omega
 
     Note that the transition between transport-limited and detachment-limited
-    behavior is controlled by the dimensionless ratio (v_s/r) where r is the
-    runoff ratio (Q=Ar). r can be changed in the flow accumulation component
-    but is not changed within ErosionDeposition. Because the runoff ratio r
-    is not changed within the ErosionDeposition component,  v_s becomes the
-    parameter that fundamentally controls response style. Very small v_s will
-    lead to a detachment-limited response style, very large v_s will lead to a
-    transport-limited response style. v_s == 1 means equal contributions from
+    behavior is controlled by the dimensionless ratio (``v_s / r``) where ``r`` is the
+    runoff ratio (``Q=Ar``). ``r`` can be changed in the flow accumulation component
+    but is not changed within ErosionDeposition. Because the runoff ratio ``r``
+    is not changed within the ErosionDeposition component, ``v_s`` becomes the
+    parameter that fundamentally controls response style. Very small ``v_s`` will
+    lead to a detachment-limited response style, very large ``v_s`` will lead to a
+    transport-limited response style. ``v_s == 1`` means equal contributions from
     transport and erosion, and a hybrid response as described by Davy & Lague.
 
     Unlike other some other fluvial erosion componets in Landlab, in this
@@ -57,16 +54,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     in depressions or in areas with adverse slopes. There is no ability to
     pass a keyword argument ``erode_flooded_nodes``.
 
-    If a depressions are handled (as indicated by the presence of the field
-    "flood_status_code" at nodes), then deposition occurs throughout the
+    If depressions are handled (as indicated by the presence of the field
+    ``"flood_status_code"`` at nodes), then deposition occurs throughout the
     depression and sediment is passed out of the depression. Where pits are
     encountered, then all sediment is deposited at that node only.
-
-    A note about sediment porosity: Prior to Landlab v2.0 this component took a
-    porositiy keyworkd argument ``phi``. For an explaination of why it no
-    longer does (including a mathematical derivation), see
-    `Pull Request 1186 <https://github.com/landlab/landlab/pull/1186>`_.
-    If ``phi`` is passed to this component a value error will be raised.
 
     Component written by C. Shobe, K. Barnhart, and G. Tucker.
 
@@ -84,7 +75,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     Davy, P., Lague, D. (2009). Fluvial erosion/transport equation of landscape
     evolution models revisited Journal of Geophysical Research  114(F3),
     F03007. https://dx.doi.org/10.1029/2008jf001146
-
     """
 
     _name = "ErosionDeposition"
@@ -193,32 +183,33 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K : array_like or str
+        K : str or array_like, optional
             Erodibility for substrate (units vary).
-        v_s : array_like or str
+        v_s : str or array_like, optional
             Effective settling velocity for chosen grain size metric [L/T].
-        m_sp : float
+        m_sp : float, optional
             Discharge exponent (units vary)
-        n_sp : float
+        n_sp : float, optional
             Slope exponent (units vary)
-        sp_crit : array_like or str
+        sp_crit : str or array_like, optional
             Critical stream power to erode substrate [E/(TL^2)]
-        F_f : float
+        F_f : float, optional
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
-        discharge_field : float, field name, or array
+        discharge_field : str or array_like, optional
             Discharge [L^2/T]. The default is to use the grid field
             'surface_water__discharge', which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom
             spatially/temporally varying rainfall, use 'water__unit_flux_in'
             to specify water input to the FlowAccumulator.
-        solver : string
+        solver : {"basic", "adaptive"}, optional
             Solver to use. Options at present include:
-                (1) 'basic' (default): explicit forward-time extrapolation.
-                    Simple but will become unstable if time step is too large.
-                (2) 'adaptive': adaptive time-step solver that estimates a
-                    stable step size based on the shortest time to "flattening"
-                    among all upstream-downstream node pairs.
+
+            1. "basic" (default): explicit forward-time extrapolation.
+               Simple but will become unstable if time step is too large.
+            2. "adaptive": adaptive time-step solver that estimates a
+               stable step size based on the shortest time to "flattening"
+               among all upstream-downstream node pairs.
 
         Examples
         ---------
@@ -231,33 +222,35 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         >>> np.random.seed(seed=5000)
 
         Define grid and initial topography:
-            -5x5 grid with baselevel in the lower left corner
-            -all other boundary nodes closed
-            -Initial topography is plane tilted up to the upper right + noise
+
+        * 5x5 grid with baselevel in the lower left corner
+        * All other boundary nodes closed
+        * Initial topography is plane tilted up to the upper right + noise
 
         >>> nr = 5
         >>> nc = 5
         >>> dx = 10
-        >>> mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
-        >>> _ = mg.add_zeros("node", "topographic__elevation")
-        >>> mg.at_node["topographic__elevation"] += (
-        ...     mg.node_y / 10 + mg.node_x / 10 + np.random.rand(len(mg.node_y)) / 10
+        >>> grid = RasterModelGrid((nr, nc), xy_spacing=10.0)
+        >>> grid.at_node["topographic__elevation"] = (
+        ...     grid.node_y / 10
+        ...     + grid.node_x / 10
+        ...     + np.random.rand(grid.number_of_nodes) / 10
         ... )
-        >>> mg.set_closed_boundaries_at_grid_edges(
+        >>> grid.set_closed_boundaries_at_grid_edges(
         ...     bottom_is_closed=True,
         ...     left_is_closed=True,
         ...     right_is_closed=True,
         ...     top_is_closed=True,
         ... )
-        >>> mg.set_watershed_boundary_condition_outlet_id(
-        ...     0, mg.at_node["topographic__elevation"], -9999.0
+        >>> grid.set_watershed_boundary_condition_outlet_id(
+        ...     0, grid.at_node["topographic__elevation"], -9999.0
         ... )
         >>> fsc_dt = 100.0
         >>> ed_dt = 1.0
 
         Check initial topography
 
-        >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
+        >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
         array([[0.02290479, 1.03606698, 2.0727653 , 3.01126678, 4.06077707],
                [1.08157495, 2.09812694, 3.00637448, 4.07999597, 5.00969486],
                [2.04008677, 3.06621577, 4.09655859, 5.04809001, 6.02641123],
@@ -266,39 +259,39 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         Instantiate Fastscape eroder, flow router, and depression finder
 
-        >>> fr = FlowAccumulator(mg, flow_director="D8")
-        >>> df = DepressionFinderAndRouter(mg)
-        >>> fsc = FastscapeEroder(mg, K_sp=0.001, m_sp=0.5, n_sp=1)
+        >>> fr = FlowAccumulator(grid, flow_director="D8")
+        >>> df = DepressionFinderAndRouter(grid)
+        >>> fsc = FastscapeEroder(grid, K_sp=0.001, m_sp=0.5, n_sp=1)
 
         Burn in an initial drainage network using the Fastscape eroder:
 
-        >>> for x in range(100):
+        >>> for _ in range(100):
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     flooded = np.where(df.flood_status == 3)[0]
         ...     fsc.run_one_step(dt=fsc_dt)
-        ...     mg.at_node["topographic__elevation"][0] -= 0.001  # uplift
+        ...     grid.at_node["topographic__elevation"][0] -= 0.001  # uplift
         ...
 
         Instantiate the E/D component:
 
         >>> ed = ErosionDeposition(
-        ...     mg, K=0.00001, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0
+        ...     grid, K=0.00001, v_s=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0
         ... )
 
         Now run the E/D component for 2000 short timesteps:
 
-        >>> for x in range(2000):  # E/D component loop
+        >>> for _ in range(2000):  # E/D component loop
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     ed.run_one_step(dt=ed_dt)
-        ...     mg.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
+        ...     grid.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
         ...
 
         Now we test to see if topography is right:
 
-        >>> np.around(mg.at_node["topographic__elevation"], decimals=3).reshape(
-        ...     mg.shape
+        >>> np.around(grid.at_node["topographic__elevation"], decimals=3).reshape(
+        ...     grid.shape
         ... )
         array([[-0.477,  1.036,  2.073,  3.011,  4.061],
                [ 1.082, -0.08 , -0.065, -0.054,  5.01 ],
@@ -308,11 +301,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         """
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             raise NotImplementedError(
-                "A route-to-multiple flow director has been "
-                "run on this grid. The landlab development team has not "
-                "verified that ErosionDeposition is compatible with "
-                "route-to-multiple methods. Please open a GitHub Issue "
-                "to start this process."
+                "A route-to-multiple flow director has been"
+                " run on this grid. The landlab development team has not"
+                " verified that ErosionDeposition is compatible with"
+                " route-to-multiple methods. Please open a GitHub Issue"
+                " to start this process."
             )
 
         if "phi" in kwds:
@@ -436,9 +429,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._topographic__elevation[cores] += dzdt[cores] * dt
 
     def run_with_adaptive_time_step_solver(self, dt=1.0):
-        """CHILD-like solver that adjusts time steps to prevent slope
-        flattening.
-
+        """CHILD-like solver that adjusts time steps to prevent slope flattening.
 
         Parameters
         ----------
