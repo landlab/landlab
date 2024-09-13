@@ -275,7 +275,7 @@ class SharedStreamPower(ErosionDeposition):
 
         self.r = new_r
         self.K = kd_at_node / self.r**self.m_sp
-        self.v_s = kd_at_node * self.r / kt_at_node
+        self._v_s = kd_at_node * self.r / kt_at_node
         self._grid.at_node["water__unit_flux_in"] = (
             self.r * self._grid.at_node["drainage_area"]
         )

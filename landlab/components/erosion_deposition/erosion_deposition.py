@@ -1,14 +1,13 @@
 import numpy as np
 
+from landlab.components.erosion_deposition.cfuncs import calculate_qs_in
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
 )
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     _GeneralizedErosionDeposition,
 )
-from landlab.utils.return_array import return_array_at_node
 
-from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
@@ -195,15 +194,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K : float, field name, or array
+        K : array_like or str
             Erodibility for substrate (units vary).
-        v_s : float
+        v_s : array_like or str
             Effective settling velocity for chosen grain size metric [L/T].
         m_sp : float
             Discharge exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
-        sp_crit : float, field name, or array
+        sp_crit : array_like or str
             Critical stream power to erode substrate [E/(TL^2)]
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
@@ -319,15 +318,17 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         if "phi" in kwds:
             raise ValueError(
-                "As of Landlab v2 ErosionDeposition no longer takes the keyword "
-                "argument phi. The sediment flux is considered to represent bulk "
-                "deposit volume rather than mineral volume, and therefore porosity "
-                "does not impact the dynamics. The following pull request explains "
-                "the math behind this: https://github.com/landlab/landlab/pull/1186."
+                "As of Landlab v2 ErosionDeposition no longer takes the keyword"
+                " argument phi. The sediment flux is considered to represent bulk"
+                " deposit volume rather than mineral volume, and therefore porosity"
+                " does not impact the dynamics. The following pull request explains"
+                " the math behind this: https://github.com/landlab/landlab/pull/1186."
             )
         elif len(kwds) > 0:
-            kwdstr = " ".join(list(kwds.keys()))
-            raise ValueError(f"Extra kwds passed to ErosionDeposition:{kwdstr}")
+            raise ValueError(
+                f"Extra kwds passed to ErosionDeposition: {', '.join(kwds)}"
+            )
+
         super().__init__(
             grid,
             m_sp=m_sp,
@@ -343,7 +344,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # K's and critical values can be floats, grid fields, or arrays
         # use setter for K defined below
         self.K = K
-        self._sp_crit = return_array_at_node(grid, sp_crit)
+        self._sp_crit = sp_crit
 
         # Handle option for solver
         if solver == "basic":
@@ -352,27 +353,35 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
         else:
-            raise ValueError(
-                "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
-            )
+            raise ValueError("Parameter 'solver' must be one of: 'basic', 'adaptive'")
 
     @property
     def K(self):
         """Erodibility (units depend on m_sp)."""
-        return self._K
+        if isinstance(self._K, str):
+            return self.grid.at_node[self._K]
+        else:
+            return self._K
 
     @K.setter
     def K(self, new_val):
-        self._K = return_array_at_node(self._grid, new_val)
+        self._K = new_val
+
+    @property
+    def sp_crit(self):
+        if isinstance(self._sp_crit, str):
+            return self.grid.at_node[self._sp_crit]
+        else:
+            return self._sp_crit
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""
-        omega = self._K * self._Q_to_the_m * np.power(self._slope, self._n_sp)
+        omega = self.K * self._Q_to_the_m * np.power(self._slope, self._n_sp)
         omega_over_sp_crit = np.divide(
-            omega, self._sp_crit, out=np.zeros_like(omega), where=self._sp_crit != 0
+            omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
         )
 
-        self._erosion_term = omega - self._sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
+        self._erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
     def _calc_qs_in_and_depo_rate(self):
         self._calc_hydrology()
@@ -384,6 +393,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self.sediment_influx[:] = 0.0
         self._depo_rate[:] = 0.0
 
+        v_s = np.broadcast_to(self.v_s, self._q.shape)
+
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
         calculate_qs_in(
@@ -394,12 +405,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._qs,
             self.sediment_influx,
             self._erosion_term,
-            self._v_s,
+            v_s,
             self._F_f,
         )
 
-        self._depo_rate[self._q > 0] = self._qs[self._q > 0] * (
-            self._v_s / self._q[self._q > 0]
+        positive_q = self._q > 0.0
+
+        self._depo_rate[positive_q] = self._qs[positive_q] * (
+            v_s[positive_q] / self._q[positive_q]
         )
         if not self._depressions_are_handled():  # all sed dropped here
             self._depo_rate[is_flooded_core_node] = (
