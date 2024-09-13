@@ -1,0 +1,2 @@
+Fixed a bug in :class:`~.NetworkSedimentTransporter` where porosity was
+corrected for twice in calculated topographic change at nodes.
