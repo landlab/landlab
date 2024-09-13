@@ -274,7 +274,7 @@ def _format_as_vtk(grid, include="*", exclude=None, z_coord=0.0, at="node"):
         except ValueError as e:
             e.add_note(
                 f"The grid has {len(coords_of_point)} {at}s but the provided value"
-                f" value for z_coord has size {np.shape(np.atleast_1d(z_coord))}."
+                f" for `z_coord` has size {np.shape(np.atleast_1d(z_coord))}."
             )
             raise
 

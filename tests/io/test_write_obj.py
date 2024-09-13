@@ -2,14 +2,18 @@
 
 """unit tests for landlab.io.obj module"""
 import pathlib
+from collections import Counter
 
+import numpy as np
 import pytest
 
 from landlab import HexModelGrid
 from landlab import RasterModelGrid
+from landlab.io import obj
 from landlab.io import write_obj
 
-LITTLE_HEX_OBJ = """# landlabgrid
+LITTLE_HEX_OBJ = """\
+# landlabgrid
 #
 g landlabgrid
 v 1.0 0.0 0.0
@@ -27,7 +31,8 @@ f 7// 4// 5//
 f 7// 6// 4//
 """
 
-LITTLE_RAST_OBJ = """# landlabgrid
+LITTLE_RAST_OBJ = """\
+# landlabgrid
 #
 g landlabgrid
 v 0.0 0.0 0.0
@@ -48,6 +53,62 @@ f 4// 5// 8//
 f 9// 8// 5//
 f 5// 6// 9//
 """
+
+
+@pytest.mark.parametrize("at", ("node", "corner"))
+def test_dump_to_string(at):
+    grid = HexModelGrid((4, 5))
+    grid.add_ones("foo", at=at)
+
+    actual = obj.dump(grid, at=at, values="foo")
+
+    assert actual is not None
+
+    count = Counter()
+    for line in actual.splitlines():
+        if line:
+            count[line[0]] += 1
+
+    assert count["g"] == 1
+    assert count["v"] == grid.number_of_elements(at)
+    assert count["f"] == grid.number_of_elements("patch" if at == "node" else "cell")
+
+
+@pytest.mark.parametrize("at", ("node", "corner"))
+def test_dump_to_stream(tmpdir, at):
+    grid = HexModelGrid((4, 5))
+    grid.add_ones("foo", at=at)
+
+    expected = obj.dump(grid, at=at, values="foo")
+
+    with tmpdir.as_cwd():
+        with open("foo.obj", "w") as fp:
+            assert obj.dump(grid, fp, at=at, values="foo") is None
+        with open("foo.obj") as fp:
+            actual = fp.read()
+
+    assert actual == expected
+
+
+@pytest.mark.parametrize("at", ("node", "corner"))
+def test_dump_with_values(at):
+    grid = RasterModelGrid((4, 5))
+    values = np.full(grid.number_of_elements(at), 10.0)
+
+    expected = obj.dump(grid, at=at, values=values)
+
+    assert obj.dump(grid, at=at, values=10.0) == expected
+
+    grid.add_field("foo", values, at=at)
+    assert obj.dump(grid, at=at, values="foo") == expected
+
+
+@pytest.mark.parametrize("at", ("face", "patch", "link", "cell", "foo"))
+def test_dump_with_bad_at_keyword(at):
+    grid = HexModelGrid((4, 5))
+
+    with pytest.raises(ValueError):
+        obj.dump(grid, at=at, values="foo")
 
 
 def test_write_to_filelike(tmpdir):
