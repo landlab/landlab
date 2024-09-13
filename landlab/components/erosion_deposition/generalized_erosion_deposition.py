@@ -118,6 +118,9 @@ class _GeneralizedErosionDeposition(Component):
             adaptive solver will use when subdividing unstable timesteps.
             Default values is 0.001. [T].
         """
+        if F_f > 1.0 or F_f < 0.0:
+            raise ValueError(f"fraction of fines must be between 0.0 and 1.0 ({F_f})")
+
         super().__init__(grid)
 
         self._flow_receivers = grid.at_node["flow__receiver_node"]
@@ -150,12 +153,6 @@ class _GeneralizedErosionDeposition(Component):
         self._v_s = v_s
         self._dt_min = dt_min
         self._F_f = float(F_f)
-
-        if F_f > 1.0:
-            raise ValueError("Fraction of fines must be <= 1.0")
-
-        if F_f < 0.0:
-            raise ValueError("Fraction of fines must be > 0.0")
 
     @property
     def v_s(self):

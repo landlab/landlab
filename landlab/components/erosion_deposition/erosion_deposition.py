@@ -298,14 +298,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                stable step size based on the shortest time to "flattening"
                among all upstream-downstream node pairs.
         """
-        if grid.at_node["flow__receiver_node"].size != grid.size("node"):
-            raise NotImplementedError(
-                "A route-to-multiple flow director has been"
-                " run on this grid. The landlab development team has not"
-                " verified that ErosionDeposition is compatible with"
-                " route-to-multiple methods. Please open a GitHub Issue"
-                " to start this process."
-            )
+        if solver not in {"basic", "adaptive"}:
+            raise ValueError(f"unknown solver ({solver} not one of 'basic', 'adaptive'")
 
         super().__init__(
             grid,
@@ -316,6 +310,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             dt_min=dt_min,
             discharge_field=discharge_field,
         )
+
+        if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+            raise NotImplementedError(
+                "A route-to-multiple flow director has been"
+                " run on this grid. The landlab development team has not"
+                " verified that ErosionDeposition is compatible with"
+                " route-to-multiple methods. Please open a GitHub Issue"
+                " to start this process."
+            )
 
         # E/D specific inits.
 
@@ -330,8 +333,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         elif solver == "adaptive":
             self.run_one_step = self.run_with_adaptive_time_step_solver
             self._time_to_flat = np.zeros(grid.number_of_nodes)
-        else:
-            raise ValueError("Parameter 'solver' must be one of: 'basic', 'adaptive'")
 
     @property
     def K(self):
