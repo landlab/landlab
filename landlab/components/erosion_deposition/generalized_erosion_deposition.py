@@ -159,6 +159,7 @@ class _GeneralizedErosionDeposition(Component):
 
     @property
     def v_s(self):
+        """Effective settling velocity for chosen grain size metric [L/T]."""
         if isinstance(self._v_s, str):
             return self.grid.at_node[self._v_s]
         else:
@@ -168,6 +169,16 @@ class _GeneralizedErosionDeposition(Component):
     def sediment_influx(self):
         """Volumetric sediment influx to each node."""
         return self.grid.at_node["sediment__influx"]
+
+    @property
+    def m_sp(self):
+        """Discharge exponent (units vary)."""
+        return self._m_sp
+
+    @property
+    def n_sp(self):
+        """Slope exponent (units vary)."""
+        return self._n_sp
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.
