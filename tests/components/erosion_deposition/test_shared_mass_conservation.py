@@ -11,9 +11,10 @@ from landlab.components import Space
 def grid():
     grid = RasterModelGrid((10, 10), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    z = grid.add_zeros("node", "topographic__elevation")
-    grid.add_zeros("node", "soil__depth")
-    z += grid.x_of_node.copy() + grid.y_of_node.copy()
+    grid.add_zeros("soil__depth", at="node")
+    grid.at_node["topographic__elevation"] = grid.x_of_node + grid.y_of_node
+
+    z = grid.at_node["topographic__elevation"]
     z[25] -= 40
     z[35] -= 40
     z[26] -= 40
@@ -56,7 +57,7 @@ def test_mass_conserve_all_closed_SharedStreamPower(grid, solver, v_s, K, dt):
 @pytest.mark.parametrize("H_star", [0.1])
 @pytest.mark.parametrize("dt", [2])
 def test_mass_conserve_all_closed_Space(grid, H, solver, phi, K, v_s, H_star, dt):
-    grid.at_node["soil__depth"][:] = H
+    grid.at_node["soil__depth"].fill(H)
 
     z_init = grid.at_node["topographic__elevation"].copy()
 
@@ -68,7 +69,7 @@ def test_mass_conserve_all_closed_Space(grid, H, solver, phi, K, v_s, H_star, dt
 
     # in space, everything is either bedrock or sediment. check for
     # conservation.
-    dH = grid.at_node["soil__depth"][:] - H
+    dH = grid.at_node["soil__depth"] - H
 
     # sediment is defined as having a porosity so all changes (up or down )
     # must be adjusted to mass.
@@ -151,7 +152,7 @@ def test_mass_conserve_with_depression_finder_Space(
     ed.run_one_step(dt)
 
     # see above test for notes.
-    dH = grid2.at_node["soil__depth"][:] - H
+    dH = grid2.at_node["soil__depth"] - H
     dH *= 1 - phi
     dBr = grid2.at_node["bedrock__elevation"] - (z_init - H)
     mass_change = dH + dBr

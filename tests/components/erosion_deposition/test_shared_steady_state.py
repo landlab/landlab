@@ -4,215 +4,82 @@ Created on Thu Jul 27 14:23:25 2017
 
 @author: gtucker
 """
-
-import numpy as np
-from numpy.testing import assert_equal
+import pytest
+from numpy.testing import assert_array_almost_equal
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 from landlab.components import SharedStreamPower
 
 
-def test_erodep_slope_area_small_vs():
-    """Test steady state run with Vs << 1."""
+@pytest.mark.parametrize(
+    "k_bedrock,v_s", [(0.002, 1.0), (1.0, 1000.0), (0.001, 0.0001), (0.002, 0.002)]
+)
+@pytest.mark.parametrize("m_sp,n_sp", [(0.5, 1.0), (1.0 / 3.0, 2.0 / 3.0)])
+def test_shared_stram_power_steady_state(k_bedrock, v_s, m_sp, n_sp):
+    """Test steady state run."""
+    grid = RasterModelGrid((5, 5))
+    grid.at_node["topographic__elevation"] = 0.01 * grid.x_of_node
 
-    # Set up a 5x5 grid with open boundaries and low initial elevations.
-    rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("topographic__elevation", at="node")
-    z[:] = 0.01 * rg.x_of_node
+    fa = FlowAccumulator(grid, flow_director="FlowDirectorD8")
 
-    # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
-
-    # Parameter values for test 1
-    K = 0.001
-    vs = 0.0001
-    U = 0.001
-    dt = 10.0
-
-    # Create the SharedStreamPower component...
     ed = SharedStreamPower(
-        rg, k_bedrock=K, k_transport=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+        grid,
+        k_bedrock=k_bedrock,
+        k_transport=k_bedrock / v_s,
+        m_sp=m_sp,
+        n_sp=n_sp,
+        solver="adaptive",
     )
 
-    # ... and run it to steady state.
-    for _ in range(1000):
+    # run it to steady state.
+    uplift = 0.001
+    dt = 10.0
+    for _ in range(3000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
-        z[rg.core_nodes] += U * dt
+        grid.at_node["topographic__elevation"][grid.core_nodes] += uplift * dt
 
-    # Test the results
-    s = rg.at_node["topographic__steepest_slope"]
-    sa_factor = (1.0 + vs) * U / K
-    a11 = 2.0
-    a12 = 1.0
-    s = rg.at_node["topographic__steepest_slope"]
-    s11 = sa_factor * (a11**-0.5)
-    s12 = sa_factor * (a12**-0.5)
-    assert_equal(np.round(s[11], 3), np.round(s11, 3))
-    assert_equal(np.round(s[12], 3), np.round(s12, 3))
+    sa_factor = ((1.0 + ed.v_s) * uplift / ed.K) ** (1.0 / ed.n_sp)
 
-
-def test_erodep_slope_area_big_vs():
-    """Test steady state run with Vs >> 1."""
-
-    # Set up a 5x5 grid with open boundaries and low initial elevations.
-    rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("topographic__elevation", at="node")
-    z[:] = 0.01 * rg.x_of_node
-
-    # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
-
-    # Next test: big Vs
-    K = 1.0
-    vs = 1000.0
-    U = 0.001
-    dt = 10.0
-
-    # Create the SharedStreamPower component...
-    ed = SharedStreamPower(
-        rg, k_bedrock=K, k_transport=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+    actual = grid.at_node["topographic__steepest_slope"][grid.core_nodes]
+    expected = sa_factor * grid.at_node["drainage_area"][grid.core_nodes] ** -(
+        ed.m_sp / ed.n_sp
     )
 
-    # ... and run it to steady state.
-    for _ in range(1000):
-        fa.run_one_step()
-        ed.run_one_step(dt=dt)
-        z[rg.core_nodes] += U * dt
-
-    # Test the results
-    s = rg.at_node["topographic__steepest_slope"]
-    sa_factor = (1.0 + vs) * U / K
-    a11 = 2.0
-    a12 = 1.0
-    s11 = sa_factor * (a11**-0.5)
-    s12 = sa_factor * (a12**-0.5)
-    assert_equal(np.round(s[11], 2), np.round(s11, 2))
-    assert_equal(np.round(s[12], 2), np.round(s12, 2))
-
-
-def test_erodep_slope_area_with_vs_unity():
-    """Test steady state run with Vs = 1."""
-
-    # Set up a 5x5 grid with open boundaries and low initial elevations.
-    rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("topographic__elevation", at="node")
-    z[:] = 0.01 * rg.x_of_node
-
-    # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
-
-    # test: Vs = 1
-    K = 0.002
-    vs = 1.0
-    U = 0.001
-    dt = 10.0
-
-    # Create the SharedStreamPower component...
-    ed = SharedStreamPower(
-        rg, k_bedrock=K, k_transport=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
-    )
-
-    # ... and run it to steady state.
-    for _ in range(1000):
-        fa.run_one_step()
-        ed.run_one_step(dt=dt)
-        z[rg.core_nodes] += U * dt
-
-    # Test the results
-    s = rg.at_node["topographic__steepest_slope"]
-    sa_factor = (1.0 + vs) * U / K
-    a11 = 2.0
-    a12 = 1.0
-    s11 = sa_factor * (a11**-0.5)
-    s12 = sa_factor * (a12**-0.5)
-    assert_equal(np.round(s[11], 2), np.round(s11, 2))
-    assert_equal(np.round(s[12], 2), np.round(s12, 2))
-
-
-def test_erodep_slope_area_shear_stress_scaling():
-    """Test steady state run with m_sp = 0.33, n_sp=0.67, Vs = 1."""
-
-    # Set up a 5x5 grid with open boundaries and low initial elevations.
-    rg = RasterModelGrid((5, 5))
-    rg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    z = rg.add_zeros("topographic__elevation", at="node")
-    z[:] = 0.01 * rg.x_of_node
-
-    # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
-
-    # test: Vs = 1
-    K = 0.002
-    vs = 1.0
-    U = 0.001
-    dt = 10.0
-    m_sp = 0.33
-    n_sp = 0.67
-    # Create the SharedStreamPower component...
-    ed = SharedStreamPower(
-        rg, k_bedrock=K, k_transport=K / vs, m_sp=m_sp, n_sp=n_sp, solver="adaptive"
-    )
-
-    # ... and run it to steady state.
-    for _ in range(1500):
-        fa.run_one_step()
-        ed.run_one_step(dt=dt)
-        z[rg.core_nodes] += U * dt
-
-    # Test the results
-    s = rg.at_node["topographic__steepest_slope"]
-    sa_factor = ((1.0 + vs) * U / K) ** (1.0 / n_sp)
-    a6 = rg.at_node["drainage_area"][6]
-    a8 = rg.at_node["drainage_area"][8]
-    s6 = sa_factor * (a6 ** -(m_sp / n_sp))
-    s8 = sa_factor * (a8 ** -(m_sp / n_sp))
-    assert_equal(np.round(s[6], 2), np.round(s6, 2))
-    assert_equal(np.round(s[8], 2), np.round(s8, 2))
+    assert_array_almost_equal(actual, expected)
 
 
 def test_erodep_slope_area_with_threshold():
     """Test steady state run with Vs = 1 and wc = 0.00001."""
+    grid = RasterModelGrid((5, 5))
+    grid.at_node["topographic__elevation"] = 0.01 * grid.x_of_node
 
-    # Set up a 5x5 grid with open boundaries and low initial elevations.
-    rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("topographic__elevation", at="node")
-    z[:] = 0.01 * rg.x_of_node
+    fa = FlowAccumulator(grid, flow_director="FlowDirectorD8")
 
-    # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
-
-    # test: Vs = 1
-    K = 0.002
-    vs = 1.0
-    U = 0.001
-    dt = 10.0
-    wc = 0.0001
-
-    # Create the SharedStreamPower component...
     ed = SharedStreamPower(
-        rg,
-        k_bedrock=K,
-        k_transport=K / vs,
+        grid,
+        k_bedrock=0.002,
+        k_transport=0.002 / 1.0,
         m_sp=0.5,
         n_sp=1.0,
-        sp_crit=wc,
+        sp_crit=0.0001,
         solver="adaptive",
     )
 
-    # ... and run it to steady state.
-    for _ in range(1000):
+    # run it to steady state.
+    uplift = 0.001
+    dt = 10.0
+    for _ in range(3000):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
-        z[rg.core_nodes] += U * dt
+        grid.at_node["topographic__elevation"][grid.core_nodes] += uplift * dt
 
-    # Test the results
-    s = rg.at_node["topographic__steepest_slope"]
-    sa_factor = ((1.0 + vs) * U + wc) / K  # approximate sol'n
-    a11 = 2.0
-    a12 = 1.0
-    s11 = sa_factor * (a11**-0.5)
-    s12 = sa_factor * (a12**-0.5)
-    assert_equal(np.round(s[11], 2), np.round(s11, 2))
-    assert_equal(np.round(s[12], 2), np.round(s12, 2))
+    sa_factor = ((1.0 + ed.v_s) * uplift + ed.sp_crit) / ed.K
+
+    actual = grid.at_node["topographic__steepest_slope"][grid.core_nodes]
+    expected = sa_factor * grid.at_node["drainage_area"][grid.core_nodes] ** -(
+        ed.m_sp / ed.n_sp
+    )
+
+    assert_array_almost_equal(actual, expected)
