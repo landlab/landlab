@@ -20,7 +20,7 @@ def test_without_depression_handling():
     z[grid.x_of_node < 15.0] = 10.0
 
     fa = FlowAccumulator(grid)
-    ed = SharedStreamPower(grid, K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
@@ -72,7 +72,7 @@ def test_with_depression_handling():
     fa = FlowAccumulator(
         grid, routing="D4", depression_finder="DepressionFinderAndRouter"
     )
-    ed = SharedStreamPower(grid, K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
@@ -170,7 +170,7 @@ def test_adaptive_solver_without_depression_handling():
     z[grid.x_of_node < 15.0] = 10.0
 
     fa = FlowAccumulator(grid)
-    ed = SharedStreamPower(grid, solver="adaptive", K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, solver="adaptive", k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
@@ -222,7 +222,7 @@ def test_adaptive_solver_with_depression_handling():
     fa = FlowAccumulator(
         grid, routing="D4", depression_finder="DepressionFinderAndRouter"
     )
-    ed = SharedStreamPower(grid, solver="adaptive", K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, solver="adaptive", k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)

@@ -23,16 +23,16 @@ class SharedStreamPower(ErosionDeposition):
 
     Here is the equation for erosion without a threshold::
 
-        E = K_d * A**m_sp * S**n_sp - K_d / K_t * Qs / A
+        E = k_bedrock * A**m_sp * S**n_sp - k_bedrock / k_transport * Qs / A
 
     where ``Q`` is water discharge, ``Qs`` is sediment flux, ``S`` is slope, ``m_sp``
-    and ``n_sp`` are scaling exponents, coefficient ``K_d`` is the erodibility of
-    the bedrock and coefficient ``K_t`` is the ability to transport sediment.
+    and ``n_sp`` are scaling exponents, coefficient ``k_bedrock`` is the erodibility of
+    the bedrock and coefficient ``k_transport`` is the ability to transport sediment.
 
-    The first term, ``K_d * A**m_sp * S**n_sp``, is the incision term, and the
-    second term, ``K_d / K_t * Qs / A``, is the transport term. Note that
-    ``K_d / K_t`` determines the relative amount of incision and sediment transport.
-    ``K_d`` modifies the incision term.
+    The first term, ``k_bedrock * A**m_sp * S**n_sp``, is the incision term, and the
+    second term, ``k_bedrock / k_transport * Qs / A``, is the transport term. Note that
+    ``k_bedrock / k_transport`` determines the relative amount of incision and
+    sediment transport. ``k_bedrock`` modifies the incision term.
 
     The equivalent equation used by ErosionDeposition from Davy & Lague (2009) is::
 
@@ -45,8 +45,8 @@ class SharedStreamPower(ErosionDeposition):
     equations::
 
         q = Ar
-        K = K_d / r**m_sp
-        v_s = K_d / K_t
+        K = k_bedrock / r**m_sp
+        v_s = k_bedrock / k_transport
 
     It is important to note that the second two equations were derived only
     for calibrating the model, and do not necessarily correlate to landscape evolution
@@ -54,12 +54,12 @@ class SharedStreamPower(ErosionDeposition):
 
     To write the final equation we define the incision term as omega::
 
-        omega = K_d * A**m_sp * S**n_sp
+        omega = k_bedrock * A**m_sp * S**n_sp
 
     and incorporate ``sp_crit``, the critical stream power needed to erode bedrock,
     giving::
 
-        E = omega * (1 - exp(omega / sp_crit) ) - K_d / K_t * Qs / A
+        E = omega * (1 - exp(omega / sp_crit) ) - k_bedrock / k_transport * Qs / A
 
 
     Written by A. Thompson.
@@ -91,8 +91,8 @@ class SharedStreamPower(ErosionDeposition):
     def __init__(
         self,
         grid,
-        K_d=0.001,
-        K_t=0.001,
+        k_bedrock=0.001,
+        k_transport=0.001,
         runoff_rate=1.0,
         m_sp=0.5,
         n_sp=1.0,
@@ -108,9 +108,9 @@ class SharedStreamPower(ErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_d : str, or array_like, optional
+        k_bedrock : str, or array_like, optional
             Erodibility for bedrock (units vary).
-        K_t : str, or array_like, optional
+        k_transport : str, or array_like, optional
             Ability to transport sediment (units vary).
         runoff_rate : float, optional
             Runoff rate. Scales Q = Ar. [m/yr]
@@ -200,7 +200,12 @@ class SharedStreamPower(ErosionDeposition):
         Instantiate the SharedStreamPower component:
 
         >>> ssp = SharedStreamPower(
-        ...     grid, K_d=0.00001, K_t=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0
+        ...     grid,
+        ...     k_bedrock=0.00001,
+        ...     k_transport=0.001,
+        ...     m_sp=0.5,
+        ...     n_sp=1.0,
+        ...     sp_crit=0,
         ... )
 
         Now run the E/D component for 2000 short timesteps:
@@ -223,18 +228,14 @@ class SharedStreamPower(ErosionDeposition):
                [ 3.059, -0.054, -0.053, -0.035,  7.053],
                [ 4.059,  5.041,  6.07 ,  7.004,  8.01 ]])
         """
-        self.discharge_field = discharge_field
-        self.runoff_rate = runoff_rate
-        self.K_d = K_d
-        self.K_t = K_t
-        self.m_sp = m_sp
-
-        kd_at_node = return_array_at_node(grid, self.K_d)
-        kt_at_node = return_array_at_node(grid, self.K_t)
+        self._discharge_field = discharge_field
+        self._runoff_rate = runoff_rate
+        self._k_bedrock = k_bedrock
+        self._k_transport = k_transport
 
         # convert shared stream power inputs to erosion deposition inputs
-        v_s = kd_at_node * self.runoff_rate / kt_at_node
-        K_s = kd_at_node / self.runoff_rate**self.m_sp
+        v_s = self.k_bedrock * self.runoff_rate / self.k_transport
+        K_s = self.k_bedrock / self.runoff_rate**m_sp
 
         # instantiate ErosionDeposition
         super().__init__(
@@ -245,22 +246,35 @@ class SharedStreamPower(ErosionDeposition):
             n_sp=n_sp,
             sp_crit=sp_crit,
             F_f=F_f,
-            discharge_field=self.discharge_field,
+            discharge_field=discharge_field,
             solver=solver,
             dt_min=DEFAULT_MINIMUM_TIME_STEP,
             **kwds,
         )
 
     @property
+    def k_bedrock(self):
+        """Erodibility for bedrock (units vary)."""
+        if isinstance(self._k_bedrock, str):
+            return self.grid.at_node[self._k_bedrock]
+        else:
+            return self._k_bedrock
+
+    @property
+    def k_transport(self):
+        """Ability to transport sediment (units vary)."""
+        if isinstance(self._k_transport, str):
+            return self.grid.at_node[self._k_transport]
+        else:
+            return self._k_transport
+
+    @property
     def runoff_rate(self):
+        """Runoff rate. Scales Q = Ar. [m/yr]"""
         if isinstance(self._runoff_rate, str):
             return self.grid.at_node[self._runoff_rate]
         else:
             return self._runoff_rate
-
-    @runoff_rate.setter
-    def runoff_rate(self, new_val):
-        self._runoff_rate = new_val
 
     def update_runoff(self, new_runoff=1.0):
         """Update runoff variables.
@@ -273,23 +287,20 @@ class SharedStreamPower(ErosionDeposition):
         new_runoff : str or array_like
             New runoff rate.
         """
-        if self.discharge_field != "water__unit_flux_in":
+        if self._discharge_field != "water__unit_flux_in":
             ValueError(
                 "The SharedStreamPower's update_runoff method can only be used"
                 "when discharge field is set to water__unit_flux_in (got"
-                f" {self.discharge_field})"
+                f" {self._discharge_field})"
             )
 
-        self.runoff_rate = new_runoff
+        self._runoff_rate = new_runoff
 
-        kd_at_node = return_array_at_node(self._grid, self.K_d)
-        kt_at_node = return_array_at_node(self._grid, self.K_t)
-
-        self.K = kd_at_node / self.runoff_rate**self.m_sp
-        self._v_s = kd_at_node * self.runoff_rate / kt_at_node
+        self._K = self.k_bedrock / self.runoff_rate**self.m_sp
+        self._v_s = self.k_bedrock * self.runoff_rate / self.k_transport
         np.multiply(
             self.runoff_rate,
             self._grid.at_node["drainage_area"],
             out=self._grid.at_node["water__unit_flux_in"],
         )
-        self._q = return_array_at_node(self._grid, self.discharge_field)
+        self._q = return_array_at_node(self._grid, self._discharge_field)

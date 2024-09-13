@@ -25,7 +25,9 @@ def test_route_to_multiple_error_raised():
     v_s = 0.001
 
     with pytest.raises(NotImplementedError):
-        SharedStreamPower(mg, K_d=K, K_t=K / v_s, m_sp=0.5, n_sp=1.0, sp_crit=0)
+        SharedStreamPower(
+            mg, k_bedrock=K, k_transport=K / v_s, m_sp=0.5, n_sp=1.0, sp_crit=0
+        )
 
 
 def test_phi_error_raised():
@@ -83,8 +85,8 @@ def test_bad_solver_name():
     with pytest.raises(ValueError):
         SharedStreamPower(
             mg,
-            K_d=K,
-            K_t=K / v_s,
+            k_bedrock=K,
+            k_transport=K / v_s,
             # v_s=v_s,
             m_sp=0.5,
             n_sp=1.0,
@@ -141,8 +143,8 @@ def test_steady_state_with_basic_solver_option():
     # Instantiate the SharedStreamPower component...
     ed = SharedStreamPower(
         mg,
-        K_d=K,
-        K_t=K / v_s,
+        k_bedrock=K,
+        k_transport=K / v_s,
         F_f=F_f,
         # v_s=v_s,
         m_sp=m_sp,
@@ -207,7 +209,9 @@ def test_can_run_with_hex():
     dt = 10.0
 
     # Create the SharedStreamPower component...
-    ed = SharedStreamPower(mg, K_d=K, K_t=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive")
+    ed = SharedStreamPower(
+        mg, k_bedrock=K, k_transport=K / vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for _ in range(2000):

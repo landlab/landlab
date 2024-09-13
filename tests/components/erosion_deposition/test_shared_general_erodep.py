@@ -42,9 +42,9 @@ def test_Ff_too_high_vals():
     with pytest.raises(ValueError):
         SharedStreamPower(
             mg,
-            K_d=0.01,
+            k_bedrock=0.01,
             F_f=2.0,
-            K_t=0.01 / 0.001,
+            k_transport=0.01 / 0.001,
             m_sp=0.5,
             n_sp=1.0,
             sp_crit=0.0,
@@ -87,9 +87,9 @@ def test_Ff_too_low_vals():
     with pytest.raises(ValueError):
         SharedStreamPower(
             mg,
-            K_d=0.01,
+            k_bedrock=0.01,
             F_f=-0.5,
-            K_t=0.01 / 0.001,
+            k_transport=0.01 / 0.001,
             m_sp=0.5,
             n_sp=1.0,
             sp_crit=0.0,
@@ -133,9 +133,9 @@ def test_q_as_field():
     # Instantiate the SharedStreamPower component...
     ed = SharedStreamPower(
         mg,
-        K_d=0.01,
+        k_bedrock=0.01,
         F_f=0.0,
-        K_t=0.01 / 0.001,
+        k_transport=0.01 / 0.001,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,
@@ -188,9 +188,9 @@ def test_q_as_array():
     # Instantiate the SharedStreamPower component...
     ed = SharedStreamPower(
         mg,
-        K_d=0.01,
+        k_bedrock=0.01,
         F_f=0.0,
-        K_t=0.01 / 0.001,
+        k_transport=0.01 / 0.001,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,
@@ -243,9 +243,9 @@ def test_sediment__outflux_already_created():
     # Instantiate the SharedStreamPower component...
     ed = SharedStreamPower(
         mg,
-        K_d=0.01,
+        k_bedrock=0.01,
         F_f=0.0,
-        K_t=0.01 / 0.001,
+        k_transport=0.01 / 0.001,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,
