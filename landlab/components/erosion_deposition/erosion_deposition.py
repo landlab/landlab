@@ -263,7 +263,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         discharge_field="surface_water__discharge",
         solver="basic",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
-        **kwds,
     ):
         """Initialize the ErosionDeposition model.
 
@@ -306,19 +305,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 " verified that ErosionDeposition is compatible with"
                 " route-to-multiple methods. Please open a GitHub Issue"
                 " to start this process."
-            )
-
-        if "phi" in kwds:
-            raise ValueError(
-                "As of Landlab v2 ErosionDeposition no longer takes the keyword"
-                " argument phi. The sediment flux is considered to represent bulk"
-                " deposit volume rather than mineral volume, and therefore porosity"
-                " does not impact the dynamics. The following pull request explains"
-                " the math behind this: https://github.com/landlab/landlab/pull/1186."
-            )
-        elif len(kwds) > 0:
-            raise ValueError(
-                f"Extra kwds passed to ErosionDeposition: {', '.join(kwds)}"
             )
 
         super().__init__(

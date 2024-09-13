@@ -190,7 +190,6 @@ class SharedStreamPower(ErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
-        **kwds,
     ):
         """Initialize the Shared Stream Power model.
 
@@ -249,7 +248,6 @@ class SharedStreamPower(ErosionDeposition):
             discharge_field=discharge_field,
             solver=solver,
             dt_min=DEFAULT_MINIMUM_TIME_STEP,
-            **kwds,
         )
 
     @property
