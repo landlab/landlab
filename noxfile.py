@@ -301,7 +301,7 @@ def clean(session):
         with session.chdir(folder):
             shutil.rmtree("build", ignore_errors=True)
             shutil.rmtree("build/wheelhouse", ignore_errors=True)
-            shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
+            shutil.rmtree(f"src/{PROJECT}.egg-info", ignore_errors=True)
             shutil.rmtree(".pytest_cache", ignore_errors=True)
             shutil.rmtree(".venv", ignore_errors=True)
 

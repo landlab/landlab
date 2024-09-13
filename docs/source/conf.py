@@ -24,7 +24,7 @@ import landlab
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
 #                                                 os.pardir)))
-sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath("../../src"))
 docs_dir = os.path.dirname(__file__)
 
 
