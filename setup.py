@@ -28,6 +28,7 @@ cython_files = (
     "src/landlab/components/space/ext/calc_sequential_ero_depo.pyx",
     "src/landlab/components/stream_power/cfuncs.pyx",
     "src/landlab/components/threshold_eroder/cfuncs.pyx",
+    "src/landlab/data_record/_aggregators.pyx",
     "src/landlab/graph/hex/ext/hex.pyx",
     "src/landlab/graph/hex/ext/perimeternodes.pyx",
     "src/landlab/graph/matrix/ext/at_patch.pyx",
