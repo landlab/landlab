@@ -82,6 +82,96 @@ class SharedStreamPower(ErosionDeposition):
     Davy, P., Lague, D. (2009). Fluvial erosion/transport equation of landscape
     evolution models revisited Journal of Geophysical Research  114(F3),
     F03007. https://dx.doi.org/10.1029/2008jf001146
+
+    Examples
+    ---------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import FlowAccumulator
+    >>> from landlab.components import DepressionFinderAndRouter
+    >>> from landlab.components import ErosionDeposition
+    >>> from landlab.components import FastscapeEroder
+    >>> np.random.seed(seed=5000)
+
+    Define grid and initial topography:
+
+    * 5x5 grid with baselevel in the lower left corner
+    * All other boundary nodes closed
+    * Initial topography is plane tilted up to the upper right + noise
+
+    >>> grid = RasterModelGrid((5, 5), xy_spacing=10.0)
+    >>> grid.at_node["topographic__elevation"] = (
+    ...     grid.y_of_node / 10
+    ...     + grid.x_of_node / 10
+    ...     + np.random.rand(grid.number_of_nodes) / 10
+    ... )
+    >>> grid.set_closed_boundaries_at_grid_edges(
+    ...     bottom_is_closed=True,
+    ...     left_is_closed=True,
+    ...     right_is_closed=True,
+    ...     top_is_closed=True,
+    ... )
+    >>> grid.set_watershed_boundary_condition_outlet_id(
+    ...     0, grid.at_node["topographic__elevation"], -9999.0
+    ... )
+    >>> fsc_dt = 100.0
+    >>> ed_dt = 1.0
+
+    Check initial topography
+
+    >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
+    array([[0.02290479, 1.03606698, 2.0727653 , 3.01126678, 4.06077707],
+           [1.08157495, 2.09812694, 3.00637448, 4.07999597, 5.00969486],
+           [2.04008677, 3.06621577, 4.09655859, 5.04809001, 6.02641123],
+           [3.05874171, 4.00585786, 5.0595697 , 6.04425233, 7.05334077],
+           [4.05922478, 5.0409473 , 6.07035008, 7.0038935 , 8.01034357]])
+
+    Instantiate Fastscape eroder, flow router, and depression finder
+
+    >>> fr = FlowAccumulator(grid, flow_director="D8")
+    >>> df = DepressionFinderAndRouter(grid)
+    >>> fsc = FastscapeEroder(grid, K_sp=0.001, m_sp=0.5, n_sp=1)
+
+    Burn in an initial drainage network using the Fastscape eroder:
+
+    >>> for _ in range(100):
+    ...     fr.run_one_step()
+    ...     df.map_depressions()
+    ...     flooded = np.where(df.flood_status == 3)[0]
+    ...     fsc.run_one_step(dt=fsc_dt)
+    ...     grid.at_node["topographic__elevation"][0] -= 0.001  # uplift
+    ...
+
+    Instantiate the SharedStreamPower component:
+
+    >>> ssp = SharedStreamPower(
+    ...     grid,
+    ...     k_bedrock=0.00001,
+    ...     k_transport=0.001,
+    ...     m_sp=0.5,
+    ...     n_sp=1.0,
+    ...     sp_crit=0,
+    ... )
+
+    Now run the E/D component for 2000 short timesteps:
+
+    >>> for _ in range(2000):  # E/D component loop
+    ...     fr.run_one_step()
+    ...     df.map_depressions()
+    ...     ssp.run_one_step(dt=ed_dt)
+    ...     grid.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
+    ...
+
+    Now we test to see if topography is right:
+
+    >>> np.around(grid.at_node["topographic__elevation"], decimals=3).reshape(
+    ...     grid.shape
+    ... )
+    array([[-0.477,  1.036,  2.073,  3.011,  4.061],
+           [ 1.082, -0.08 , -0.065, -0.054,  5.01 ],
+           [ 2.04 , -0.065, -0.065, -0.053,  6.026],
+           [ 3.059, -0.054, -0.053, -0.035,  7.053],
+           [ 4.059,  5.041,  6.07 ,  7.004,  8.01 ]])
     """
 
     _name = "SharedStreamPower"
@@ -137,96 +227,6 @@ class SharedStreamPower(ErosionDeposition):
             2. ``"adaptive"``: adaptive time-step solver that estimates a
                stable step size based on the shortest time to "flattening"
                among all upstream-downstream node pairs.
-
-        Examples
-        ---------
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import FlowAccumulator
-        >>> from landlab.components import DepressionFinderAndRouter
-        >>> from landlab.components import ErosionDeposition
-        >>> from landlab.components import FastscapeEroder
-        >>> np.random.seed(seed=5000)
-
-        Define grid and initial topography:
-
-        * 5x5 grid with baselevel in the lower left corner
-        * All other boundary nodes closed
-        * Initial topography is plane tilted up to the upper right + noise
-
-        >>> grid = RasterModelGrid((5, 5), xy_spacing=10.0)
-        >>> grid.at_node["topographic__elevation"] = (
-        ...     grid.y_of_node / 10
-        ...     + grid.x_of_node / 10
-        ...     + np.random.rand(grid.number_of_nodes) / 10
-        ... )
-        >>> grid.set_closed_boundaries_at_grid_edges(
-        ...     bottom_is_closed=True,
-        ...     left_is_closed=True,
-        ...     right_is_closed=True,
-        ...     top_is_closed=True,
-        ... )
-        >>> grid.set_watershed_boundary_condition_outlet_id(
-        ...     0, grid.at_node["topographic__elevation"], -9999.0
-        ... )
-        >>> fsc_dt = 100.0
-        >>> ed_dt = 1.0
-
-        Check initial topography
-
-        >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
-        array([[0.02290479, 1.03606698, 2.0727653 , 3.01126678, 4.06077707],
-               [1.08157495, 2.09812694, 3.00637448, 4.07999597, 5.00969486],
-               [2.04008677, 3.06621577, 4.09655859, 5.04809001, 6.02641123],
-               [3.05874171, 4.00585786, 5.0595697 , 6.04425233, 7.05334077],
-               [4.05922478, 5.0409473 , 6.07035008, 7.0038935 , 8.01034357]])
-
-        Instantiate Fastscape eroder, flow router, and depression finder
-
-        >>> fr = FlowAccumulator(grid, flow_director="D8")
-        >>> df = DepressionFinderAndRouter(grid)
-        >>> fsc = FastscapeEroder(grid, K_sp=0.001, m_sp=0.5, n_sp=1)
-
-        Burn in an initial drainage network using the Fastscape eroder:
-
-        >>> for _ in range(100):
-        ...     fr.run_one_step()
-        ...     df.map_depressions()
-        ...     flooded = np.where(df.flood_status == 3)[0]
-        ...     fsc.run_one_step(dt=fsc_dt)
-        ...     grid.at_node["topographic__elevation"][0] -= 0.001  # uplift
-        ...
-
-        Instantiate the SharedStreamPower component:
-
-        >>> ssp = SharedStreamPower(
-        ...     grid,
-        ...     k_bedrock=0.00001,
-        ...     k_transport=0.001,
-        ...     m_sp=0.5,
-        ...     n_sp=1.0,
-        ...     sp_crit=0,
-        ... )
-
-        Now run the E/D component for 2000 short timesteps:
-
-        >>> for _ in range(2000):  # E/D component loop
-        ...     fr.run_one_step()
-        ...     df.map_depressions()
-        ...     ssp.run_one_step(dt=ed_dt)
-        ...     grid.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
-        ...
-
-        Now we test to see if topography is right:
-
-        >>> np.around(grid.at_node["topographic__elevation"], decimals=3).reshape(
-        ...     grid.shape
-        ... )
-        array([[-0.477,  1.036,  2.073,  3.011,  4.061],
-               [ 1.082, -0.08 , -0.065, -0.054,  5.01 ],
-               [ 2.04 , -0.065, -0.065, -0.053,  6.026],
-               [ 3.059, -0.054, -0.053, -0.035,  7.053],
-               [ 4.059,  5.041,  6.07 ,  7.004,  8.01 ]])
         """
         self._discharge_field = discharge_field
         self._runoff_rate = runoff_rate
