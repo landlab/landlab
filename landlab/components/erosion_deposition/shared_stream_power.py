@@ -1,3 +1,5 @@
+import numpy as np
+
 from landlab.components.erosion_deposition.erosion_deposition import ErosionDeposition
 from landlab.components.erosion_deposition.generalized_erosion_deposition import (
     DEFAULT_MINIMUM_TIME_STEP,
@@ -19,7 +21,7 @@ class SharedStreamPower(ErosionDeposition):
     designed to work with varying runoff rates, and can update the discharge
     and other parameters effected by discharge with each timestep.
 
-    Here is the equation for erosion without a threshold:
+    Here is the equation for erosion without a threshold::
 
         E = K_d * A**m_sp * S**n_sp - K_d / K_t * Qs / A
 
@@ -32,7 +34,7 @@ class SharedStreamPower(ErosionDeposition):
     ``K_d / K_t`` determines the relative amount of incision and sediment transport.
     ``K_d`` modifies the incision term.
 
-    The equivalent equation used by ErosionDeposition from Davy & Lague (2009) is:
+    The equivalent equation used by ErosionDeposition from Davy & Lague (2009) is::
 
         E = K * q**m_sp * S**n_sp - v_s * Qs / q
 
@@ -50,12 +52,12 @@ class SharedStreamPower(ErosionDeposition):
     for calibrating the model, and do not necessarily correlate to landscape evolution
     in nature.
 
-    To write the final equation we define the incision term as omega:
+    To write the final equation we define the incision term as omega::
 
         omega = K_d * A**m_sp * S**n_sp
 
     and incorporate ``sp_crit``, the critical stream power needed to erode bedrock,
-    giving:
+    giving::
 
         E = omega * (1 - exp(omega / sp_crit) ) - K_d / K_t * Qs / A
 
@@ -91,7 +93,7 @@ class SharedStreamPower(ErosionDeposition):
         grid,
         K_d=0.001,
         K_t=0.001,
-        r=1.0,
+        runoff_rate=1.0,
         m_sp=0.5,
         n_sp=1.0,
         sp_crit=0.0,
@@ -106,35 +108,35 @@ class SharedStreamPower(ErosionDeposition):
         ----------
         grid : ModelGrid
             Landlab ModelGrid object
-        K_d : float, str, or array_like
+        K_d : str, or array_like, optional
             Erodibility for bedrock (units vary).
-        K_t : float, str, or array_like
+        K_t : str, or array_like, optional
             Ability to transport sediment (units vary).
-        r : float
-            Runoff rate. Scales Q = Ar. Default is 1.0 [m/yr]
-        m_sp : float
-            Discharge exponent (units vary). Default is 0.5.
-        n_sp : float
-            Slope exponent (units vary). Default is 1.0.
-        sp_crit : float, str, or array_like
+        runoff_rate : float, optional
+            Runoff rate. Scales Q = Ar. [m/yr]
+        m_sp : float, optional
+            Discharge exponent (units vary).
+        n_sp : float, optional
+            Slope exponent (units vary).
+        sp_crit : str or array_like
             Critical stream power to erode substrate [E/(TL^2)]
-        F_f : float
+        F_f : float, optional
             Fraction of eroded material that turns into "fines" that do not
-            contribute to (coarse) sediment load. Defaults to zero.
-        discharge_field : float, str, or array_like
+            contribute to (coarse) sediment load.
+        discharge_field : str or array_like, optional
             Discharge [L^2/T]. The default is to use the grid field
             ``"surface_water__discharge"``, which is simply drainage area
             multiplied by the default rainfall rate (1 m/yr). To use custom
             spatially/temporally varying rainfall, use 'water__unit_flux_in'
             to specify water input to the FlowAccumulator.
-        solver : {"basic", "adaptive"}
+        solver : {"basic", "adaptive"}, optional
             Solver to use. Options at present include:
 
             1. ``"basic"`` (default): explicit forward-time extrapolation.
-                Simple but will become unstable if time step is too large.
+               Simple but will become unstable if time step is too large.
             2. ``"adaptive"``: adaptive time-step solver that estimates a
-                stable step size based on the shortest time to "flattening"
-                among all upstream-downstream node pairs.
+               stable step size based on the shortest time to "flattening"
+               among all upstream-downstream node pairs.
 
         Examples
         ---------
@@ -152,29 +154,27 @@ class SharedStreamPower(ErosionDeposition):
         * All other boundary nodes closed
         * Initial topography is plane tilted up to the upper right + noise
 
-        >>> nr = 5
-        >>> nc = 5
-        >>> dx = 10
-        >>> mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
-        >>> _ = mg.add_zeros("node", "topographic__elevation")
-        >>> mg.at_node["topographic__elevation"] += (
-        ...     mg.node_y / 10 + mg.node_x / 10 + np.random.rand(len(mg.node_y)) / 10
+        >>> grid = RasterModelGrid((5, 5), xy_spacing=10.0)
+        >>> grid.at_node["topographic__elevation"] = (
+        ...     grid.y_of_node / 10
+        ...     + grid.x_of_node / 10
+        ...     + np.random.rand(grid.number_of_nodes) / 10
         ... )
-        >>> mg.set_closed_boundaries_at_grid_edges(
+        >>> grid.set_closed_boundaries_at_grid_edges(
         ...     bottom_is_closed=True,
         ...     left_is_closed=True,
         ...     right_is_closed=True,
         ...     top_is_closed=True,
         ... )
-        >>> mg.set_watershed_boundary_condition_outlet_id(
-        ...     0, mg.at_node["topographic__elevation"], -9999.0
+        >>> grid.set_watershed_boundary_condition_outlet_id(
+        ...     0, grid.at_node["topographic__elevation"], -9999.0
         ... )
         >>> fsc_dt = 100.0
         >>> ed_dt = 1.0
 
         Check initial topography
 
-        >>> mg.at_node["topographic__elevation"].reshape(mg.shape)
+        >>> grid.at_node["topographic__elevation"].reshape(grid.shape)
         array([[0.02290479, 1.03606698, 2.0727653 , 3.01126678, 4.06077707],
                [1.08157495, 2.09812694, 3.00637448, 4.07999597, 5.00969486],
                [2.04008677, 3.06621577, 4.09655859, 5.04809001, 6.02641123],
@@ -183,39 +183,39 @@ class SharedStreamPower(ErosionDeposition):
 
         Instantiate Fastscape eroder, flow router, and depression finder
 
-        >>> fr = FlowAccumulator(mg, flow_director="D8")
-        >>> df = DepressionFinderAndRouter(mg)
-        >>> fsc = FastscapeEroder(mg, K_sp=0.001, m_sp=0.5, n_sp=1)
+        >>> fr = FlowAccumulator(grid, flow_director="D8")
+        >>> df = DepressionFinderAndRouter(grid)
+        >>> fsc = FastscapeEroder(grid, K_sp=0.001, m_sp=0.5, n_sp=1)
 
         Burn in an initial drainage network using the Fastscape eroder:
 
-        >>> for x in range(100):
+        >>> for _ in range(100):
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     flooded = np.where(df.flood_status == 3)[0]
         ...     fsc.run_one_step(dt=fsc_dt)
-        ...     mg.at_node["topographic__elevation"][0] -= 0.001  # uplift
+        ...     grid.at_node["topographic__elevation"][0] -= 0.001  # uplift
         ...
 
         Instantiate the SharedStreamPower component:
 
         >>> ssp = SharedStreamPower(
-        ...     mg, K_d=0.00001, K_t=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0
+        ...     grid, K_d=0.00001, K_t=0.001, m_sp=0.5, n_sp=1.0, sp_crit=0
         ... )
 
         Now run the E/D component for 2000 short timesteps:
 
-        >>> for x in range(2000):  # E/D component loop
+        >>> for _ in range(2000):  # E/D component loop
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     ssp.run_one_step(dt=ed_dt)
-        ...     mg.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
+        ...     grid.at_node["topographic__elevation"][0] -= 2e-4 * ed_dt
         ...
 
         Now we test to see if topography is right:
 
-        >>> np.around(mg.at_node["topographic__elevation"], decimals=3).reshape(
-        ...     mg.shape
+        >>> np.around(grid.at_node["topographic__elevation"], decimals=3).reshape(
+        ...     grid.shape
         ... )
         array([[-0.477,  1.036,  2.073,  3.011,  4.061],
                [ 1.082, -0.08 , -0.065, -0.054,  5.01 ],
@@ -223,9 +223,8 @@ class SharedStreamPower(ErosionDeposition):
                [ 3.059, -0.054, -0.053, -0.035,  7.053],
                [ 4.059,  5.041,  6.07 ,  7.004,  8.01 ]])
         """
-
         self.discharge_field = discharge_field
-        self.r = r
+        self.runoff_rate = runoff_rate
         self.K_d = K_d
         self.K_t = K_t
         self.m_sp = m_sp
@@ -234,14 +233,14 @@ class SharedStreamPower(ErosionDeposition):
         kt_at_node = return_array_at_node(grid, self.K_t)
 
         # convert shared stream power inputs to erosion deposition inputs
-        vs_ = kd_at_node * self.r / kt_at_node
-        K_s = kd_at_node / self.r**self.m_sp
+        v_s = kd_at_node * self.runoff_rate / kt_at_node
+        K_s = kd_at_node / self.runoff_rate**self.m_sp
 
         # instantiate ErosionDeposition
         super().__init__(
             grid,
             K=K_s,
-            v_s=vs_,
+            v_s=v_s,
             m_sp=m_sp,
             n_sp=n_sp,
             sp_crit=sp_crit,
@@ -252,16 +251,27 @@ class SharedStreamPower(ErosionDeposition):
             **kwds,
         )
 
-    def update_runoff(self, new_r=1.0):
+    @property
+    def runoff_rate(self):
+        if isinstance(self._runoff_rate, str):
+            return self.grid.at_node[self._runoff_rate]
+        else:
+            return self._runoff_rate
+
+    @runoff_rate.setter
+    def runoff_rate(self, new_val):
+        self._runoff_rate = new_val
+
+    def update_runoff(self, new_runoff=1.0):
         """Update runoff variables.
 
-        Updates ``r``, ``K``, ``v_s``, and ``"water__unit_flux_in"`` for a new
+        Updates ``runoff_rate``, ``K``, ``v_s``, and ``"water__unit_flux_in"`` for a new
         runoff rate. Works only if discharge field is set to ``"water__unit_flux_in"``.
 
         Parameters
         ----------
-        new_r : float, field name, or array
-            Updated runoff rate. Default is 1.0.
+        new_runoff : str or array_like
+            New runoff rate.
         """
         if self.discharge_field != "water__unit_flux_in":
             ValueError(
@@ -270,13 +280,16 @@ class SharedStreamPower(ErosionDeposition):
                 f" {self.discharge_field})"
             )
 
+        self.runoff_rate = new_runoff
+
         kd_at_node = return_array_at_node(self._grid, self.K_d)
         kt_at_node = return_array_at_node(self._grid, self.K_t)
 
-        self.r = new_r
-        self.K = kd_at_node / self.r**self.m_sp
-        self._v_s = kd_at_node * self.r / kt_at_node
-        self._grid.at_node["water__unit_flux_in"] = (
-            self.r * self._grid.at_node["drainage_area"]
+        self.K = kd_at_node / self.runoff_rate**self.m_sp
+        self._v_s = kd_at_node * self.runoff_rate / kt_at_node
+        np.multiply(
+            self.runoff_rate,
+            self._grid.at_node["drainage_area"],
+            out=self._grid.at_node["water__unit_flux_in"],
         )
         self._q = return_array_at_node(self._grid, self.discharge_field)

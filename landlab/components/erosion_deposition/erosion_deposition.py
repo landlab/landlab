@@ -8,7 +8,6 @@ from landlab.components.erosion_deposition.generalized_erosion_deposition import
     _GeneralizedErosionDeposition,
 )
 
-
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
 
