@@ -335,7 +335,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         # K's and critical values can be floats, grid fields, or arrays
         # use setter for K defined below
-        self.K = K
+        self._K = K
         self._sp_crit = sp_crit
 
         # Handle option for solver
@@ -349,18 +349,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     @property
     def K(self):
-        """Erodibility (units depend on m_sp)."""
+        """Erodibility of substrate (units depend on m_sp)."""
         if isinstance(self._K, str):
             return self.grid.at_node[self._K]
         else:
             return self._K
 
-    @K.setter
-    def K(self, new_val):
-        self._K = new_val
-
     @property
     def sp_crit(self):
+        """Critical stream power to erode substrate [E/(TL^2)]"""
         if isinstance(self._sp_crit, str):
             return self.grid.at_node[self._sp_crit]
         else:
