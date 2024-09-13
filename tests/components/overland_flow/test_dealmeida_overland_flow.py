@@ -8,14 +8,15 @@ import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
-from landlab.components.overland_flow._links import horizontal_link_ids
+from landlab.graph.structured_quad.structured_quad import StructuredQuadGraphTopology
 
 (_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def _left_edge_horizontal_ids(shape):
-    return horizontal_link_ids(shape)[:, 0]
+    layout = StructuredQuadGraphTopology(shape)
+    return layout.horizontal_links.reshape((shape[0], shape[1] - 1))[:, 0]
 
 
 def test_deAlm_name(deAlm):
@@ -134,6 +135,9 @@ def test_deAlm_analytical_imposed_dt_long():
         h_boundary = ((7.0 / 3.0) * (0.01**2) * (0.4**3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
+
+        assert np.all(grid.at_node["surface_water__depth"] >= 0.0)
+        assert not np.any(np.isnan(grid.at_node["surface_water__depth"]))
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
     h_analytical = -(7.0 / 3.0) * (0.01**2) * (0.4**2) * (x - (0.4 * 500))

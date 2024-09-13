@@ -26,6 +26,7 @@ Base component class methods
     ~landlab.core.model_component.Component.grid
     ~landlab.core.model_component.Component.coords
 """
+from __future__ import annotations
 
 import os
 import textwrap
@@ -55,10 +56,10 @@ class classproperty(property):
 class Component:
     """Base component class from which Landlab components inherit."""
 
-    _info = {}
-    _name = None
-    _cite_as = ""
-    _unit_agnostic = None
+    _info: dict[str, dict[str, type | str | bool]] = {}
+    _name: str | None = None
+    _cite_as: str = ""
+    _unit_agnostic: str | bool = None
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
