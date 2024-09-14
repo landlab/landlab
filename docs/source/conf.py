@@ -409,7 +409,9 @@ napoleon_include_special_with_doc = True
 
 # -- Options for towncrier_draft extension --------------------------------------------
 
-towncrier_draft_autoversion_mode = "sphinx-release"  # or: 'sphinx-release', 'sphinx-version'
+towncrier_draft_autoversion_mode = (
+    "sphinx-release"  # or: 'sphinx-release', 'sphinx-version'
+)
 towncrier_draft_include_empty = True
 towncrier_draft_working_directory = pathlib.Path(docs_dir).parent.parent
 
