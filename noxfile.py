@@ -160,8 +160,8 @@ def build_docs(session: nox.Session) -> None:
     PATH["build"].mkdir(exist_ok=True)
     session.run(
         "sphinx-build",
-        "-b",
-        "html",
+        *("-j", "auto"),
+        *("-b", "html"),
         "-W",
         "--keep-going",
         PATH["docs"] / "source",
