@@ -5,7 +5,7 @@ import numpy as np
 from landlab.components.network_sediment_transporter.sediment_pulser_base import (
     SedimentPulserBase,
 )
-from landlab.data_record import DataRecord
+from landlab.data_record.data_record import DataRecord
 
 _OUT_OF_NETWORK = -2
 

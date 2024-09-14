@@ -109,7 +109,7 @@ class _GeneralizedErosionDeposition(Component):
         F_f : float
             Fraction of eroded material that turns into "fines" that do not
             contribute to (coarse) sediment load. Defaults to zero.
-        v_s : float
+        v_s : array_like of float
             Effective settling velocity for chosen grain size metric [L/T].
         discharge_field : float, field name, or array
             Discharge [L^2/T].
@@ -118,6 +118,9 @@ class _GeneralizedErosionDeposition(Component):
             adaptive solver will use when subdividing unstable timesteps.
             Default values is 0.001. [T].
         """
+        if F_f > 1.0 or F_f < 0.0:
+            raise ValueError(f"fraction of fines must be between 0.0 and 1.0 ({F_f})")
+
         super().__init__(grid)
 
         self._flow_receivers = grid.at_node["flow__receiver_node"]
@@ -147,20 +150,32 @@ class _GeneralizedErosionDeposition(Component):
         # store other constants
         self._m_sp = float(m_sp)
         self._n_sp = float(n_sp)
-        self._v_s = float(v_s)
+        self._v_s = v_s
         self._dt_min = dt_min
         self._F_f = float(F_f)
 
-        if F_f > 1.0:
-            raise ValueError("Fraction of fines must be <= 1.0")
-
-        if F_f < 0.0:
-            raise ValueError("Fraction of fines must be > 0.0")
+    @property
+    def v_s(self):
+        """Effective settling velocity for chosen grain size metric [L/T]."""
+        if isinstance(self._v_s, str):
+            return self.grid.at_node[self._v_s]
+        else:
+            return self._v_s
 
     @property
     def sediment_influx(self):
         """Volumetric sediment influx to each node."""
         return self.grid.at_node["sediment__influx"]
+
+    @property
+    def m_sp(self):
+        """Discharge exponent (units vary)."""
+        return self._m_sp
+
+    @property
+    def n_sp(self):
+        """Slope exponent (units vary)."""
+        return self._n_sp
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.

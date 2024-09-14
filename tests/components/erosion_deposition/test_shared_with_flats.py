@@ -20,46 +20,50 @@ def test_without_depression_handling():
     z[grid.x_of_node < 15.0] = 10.0
 
     fa = FlowAccumulator(grid)
-    ed = SharedStreamPower(grid, K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
 
     assert_array_equal(
-        ed._q,
+        ed._q.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            100.0,
-            200.0,
-            100.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 100.0, 200.0, 100.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_equal(
-        ed._erosion_term,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed._erosion_term.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.02, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
     assert_array_equal(
-        ed._depo_rate,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed._depo_rate.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.01, 0.01, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
     assert_array_equal(
-        ed._qs,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed._qs.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
     assert_array_equal(
-        ed.sediment_influx,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed.sediment_influx.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
 
 
@@ -72,93 +76,49 @@ def test_with_depression_handling():
     fa = FlowAccumulator(
         grid, routing="D4", depression_finder="DepressionFinderAndRouter"
     )
-    ed = SharedStreamPower(grid, K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
 
     assert_array_equal(
-        ed._q,
+        ed._q.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            100.0,
-            200.0,
-            300.0,
-            300.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 100.0, 200.0, 300.0, 300.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_equal(
-        ed._erosion_term,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    )
-    assert_array_almost_equal(
-        ed._depo_rate,
+        ed._erosion_term.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.01,
-            0.00333333,
-            0.00166667,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.02, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_almost_equal(
-        ed._qs,
+        ed._depo_rate.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.66666667,
-            0.5,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.01, 0.00333333, 0.00166667, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_almost_equal(
-        ed.sediment_influx,
+        ed._qs.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.66666667,
-            0.5,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.66666667, 0.5, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
+    )
+    assert_array_almost_equal(
+        ed.sediment_influx.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.66666667, 0.5],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
 
@@ -170,46 +130,50 @@ def test_adaptive_solver_without_depression_handling():
     z[grid.x_of_node < 15.0] = 10.0
 
     fa = FlowAccumulator(grid)
-    ed = SharedStreamPower(grid, solver="adaptive", K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, solver="adaptive", k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
 
     assert_array_equal(
-        ed._q,
+        ed._q.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            100.0,
-            200.0,
-            100.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 100.0, 200.0, 100.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_equal(
-        ed._erosion_term,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed._erosion_term.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.02, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
     assert_array_equal(
-        ed._depo_rate,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed._depo_rate.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.01, 0.01, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
     assert_array_equal(
-        ed._qs,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed._qs.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
     assert_array_equal(
-        ed.sediment_influx,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        ed.sediment_influx.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
     )
 
 
@@ -222,92 +186,48 @@ def test_adaptive_solver_with_depression_handling():
     fa = FlowAccumulator(
         grid, routing="D4", depression_finder="DepressionFinderAndRouter"
     )
-    ed = SharedStreamPower(grid, solver="adaptive", K_d=0.002, K_t=0.002)
+    ed = SharedStreamPower(grid, solver="adaptive", k_bedrock=0.002, k_transport=0.002)
 
     fa.run_one_step()
     ed.run_one_step(1.0)
 
     assert_array_equal(
-        ed._q,
+        ed._q.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            100.0,
-            200.0,
-            300.0,
-            300.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 100.0, 200.0, 300.0, 300.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_equal(
-        ed._erosion_term,
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    )
-    assert_array_almost_equal(
-        ed._depo_rate,
+        ed._erosion_term.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.01,
-            0.00333333,
-            0.00166667,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.02, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_almost_equal(
-        ed._qs,
+        ed._depo_rate.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.66666667,
-            0.5,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.01, 0.00333333, 0.00166667, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
     assert_array_almost_equal(
-        ed.sediment_influx,
+        ed._qs.reshape(grid.shape),
         [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.66666667,
-            0.5,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.66666667, 0.5, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ],
+    )
+    assert_array_almost_equal(
+        ed.sediment_influx.reshape(grid.shape),
+        [
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.66666667, 0.5],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
         ],
     )
