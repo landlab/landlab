@@ -153,9 +153,7 @@ def build_docs(session: nox.Session) -> None:
     """Build the docs."""
 
     session.install(
-        "numpy",
-        "-r",
-        PATH["requirements"] / "docs.txt",
+        "numpy", "-r", PATH["requirements"] / "docs.txt"
     )
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
