@@ -198,8 +198,12 @@ def plot_network_and_parcels(
 
     # set up figure, label and legend gridspecs.
     if fig is None:
+        fresh_fig = True
         fig = plt.figure(**kwargs)
-
+    else:
+        # we'll be adding this plot to existing axes
+        fresh_fig = False 
+        
     spec = gridspec.GridSpec(
         ncols=1,
         nrows=3,
@@ -210,7 +214,14 @@ def plot_network_and_parcels(
         figure=fig,
         height_ratios=[1, 0.1, 0.2],
     )
-    ax = fig.add_subplot(spec[0, 0])
+  
+    if fresh_fig == True:
+        ax = fig.add_subplot(spec[0, 0])
+    else: 
+        plt.figure(fig)
+        ax = plt.gca()
+        ax.set_subplotspec(spec[0, 0]) 
+
     if n_legends > 0:
         label_spec = spec[1, 0].subgridspec(
             ncols=2 * n_legends - 1,
