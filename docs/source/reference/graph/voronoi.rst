@@ -1,13 +1,6 @@
 landlab.graph.voronoi package
 =============================
 
-Subpackages
------------
-
-.. toctree::
-
-    voronoi_ext
-
 Submodules
 ----------
 
