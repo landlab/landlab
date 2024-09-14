@@ -1,3 +1,4 @@
+import difflib
 import json
 import os
 import pathlib
@@ -152,7 +153,7 @@ def build_index(session: nox.Session) -> None:
 def build_docs(session: nox.Session) -> None:
     """Build the docs."""
 
-    session.install("numpy", "-r", PATH["requirements"] / "docs.txt")
+    session.install("-r", PATH["requirements"] / "docs.txt")
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
 
@@ -242,6 +243,27 @@ with open("pyproject.toml", "rb") as fp:
 """,
             stdout=fp,
         )
+
+
+@nox.session(python=False, name="check-cython-files")
+def check_cython_files(session: nox.Session) -> None:
+    """Find cython files for extension modules."""
+    cython_files = {
+        str(p.relative_to(PATH["root"]))
+        for p in pathlib.Path(PATH["root"] / "src" / "landlab").rglob("**/*.pyx")
+    }
+    print(os.linesep.join(sorted(cython_files)))
+
+    with open("cython-files.txt") as fp:
+        actual = [line.rstrip() for line in fp.readlines()]
+
+    diff = list(
+        difflib.unified_diff(
+            actual, sorted(cython_files), fromfile="old", tofile="new", lineterm=""
+        )
+    )
+    if diff:
+        session.error("\n".join([""] + diff + ["cython-files.txt needs updating"]))
 
 
 @nox.session
