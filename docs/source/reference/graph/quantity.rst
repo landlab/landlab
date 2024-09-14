@@ -1,13 +1,6 @@
 landlab.graph.quantity package
 ==============================
 
-Subpackages
------------
-
-.. toctree::
-
-    quantity_ext
-
 Submodules
 ----------
 

@@ -1,13 +1,6 @@
 landlab.graph.sort package
 ==========================
 
-Subpackages
------------
-
-.. toctree::
-
-    sort_ext
-
 Submodules
 ----------
 

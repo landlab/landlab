@@ -169,8 +169,9 @@ platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 
 [tool.towncrier]
 directory = "news"
-package = "landlab"
+name = "landlab"
 filename = "CHANGES.rst"
+create_add_extension = false
 single_file = true
 underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"

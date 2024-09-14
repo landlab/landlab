@@ -1,13 +1,6 @@
 landlab.graph.object package
 ============================
 
-Subpackages
------------
-
-.. toctree::
-
-    object_ext
-
 Submodules
 ----------
 
