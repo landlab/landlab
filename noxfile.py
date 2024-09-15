@@ -149,8 +149,8 @@ def build_index(session: nox.Session) -> None:
     session.log(f"generated index at {index_file!s}")
 
 
-@nox.session(name="build-docs")
-def build_docs(session: nox.Session) -> None:
+@nox.session(name="docs-build")
+def docs_build(session: nox.Session) -> None:
     """Build the docs."""
 
     session.install("-r", PATH["requirements"] / "docs.txt")
@@ -168,6 +168,33 @@ def build_docs(session: nox.Session) -> None:
         PATH["build"] / "html",
     )
     session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+
+
+# @nox.session(name="build-api-docs", python=PYTHON_VERSION, venv_backend="mamba")
+@nox.session(name="docs-build-api")
+def docs_build_api(session: nox.Session) -> None:
+    docs_dir = PATH["docs"] / "source"
+    generated_dir = docs_dir / "generated" / "api"
+
+    # session.conda_install("pandoc", channel=["nodefaults", "conda-forge"])
+    session.install(
+        *("-r", PATH["requirements"] / "docs.txt"),
+    )
+
+    # with session.chdir(PATH["docs"] / "source"):
+    session.log(f"generating api docs in {generated_dir}")
+    session.run(
+        "sphinx-apidoc",
+        "-e",
+        "-force",
+        "--no-toc",
+        "--module-first",
+        "-o",
+        str(generated_dir),
+        "src/landlab",
+        "*.pyx",
+        "*.so",
+    )
 
 
 @nox.session(name="check-versions")
