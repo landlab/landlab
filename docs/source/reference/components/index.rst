@@ -14,14 +14,14 @@ Hillslope geomorphology
 .. toctree::
    :maxdepth: 2
 
-   diffusion
-   nonlinear_diffusion
-   depth_dependent_diffusion
-   transport_length_diffusion
-   taylor_nonlinear_hillslope_flux
-   depth_dependent_taylor_soil_creep
-   threshold_eroder
-   concentration_tracker
+   /generated/api/landlab.components.diffusion
+   /generated/api/landlab.components.nonlinear_diffusion
+   /generated/api/landlab.components.depth_dependent_diffusion
+   /generated/api/landlab.components.transport_length_diffusion
+   /generated/api/landlab.components.taylor_nonlinear_hillslope_flux
+   /generated/api/landlab.components.depth_dependent_taylor_soil_creep
+   /generated/api/landlab.components.threshold_eroder
+   /generated/api/landlab.components.concentration_tracker
 
 Fluvial geomorphology
 ---------------------
@@ -29,14 +29,14 @@ Fluvial geomorphology
 .. toctree::
    :maxdepth: 2
 
-   stream_power
-   detachment_ltd_erosion
-   erosion_deposition
-   space
-   network_sediment_transporter
-   gravel_river_transporter
-   area_slope_transporter
-   gravel_bedrock_eroder
+   /generated/api/landlab.components.stream_power
+   /generated/api/landlab.components.detachment_ltd_erosion
+   /generated/api/landlab.components.erosion_deposition
+   /generated/api/landlab.components.space
+   /generated/api/landlab.components.network_sediment_transporter
+   /generated/api/landlab.components.gravel_river_transporter
+   /generated/api/landlab.components.area_slope_transporter
+   /generated/api/landlab.components.gravel_bedrock_eroder
 
 Flow routing
 ------------
@@ -44,12 +44,12 @@ Flow routing
 .. toctree::
    :maxdepth: 2
 
-   flow_director
-   flow_accum
-   flow_routing
-   lake_fill
-   priority_flood_flow_router
-   sink_fill
+   /generated/api/landlab.components.flow_director
+   /generated/api/landlab.components.flow_accum
+   /generated/api/landlab.components.depression_finder
+   /generated/api/landlab.components.lake_fill
+   /generated/api/landlab.components.priority_flood_flow_router
+   /generated/api/landlab.components.sink_fill
 
 Shallow water hydrodynamics
 ---------------------------
@@ -57,8 +57,8 @@ Shallow water hydrodynamics
 .. toctree::
    :maxdepth: 2
 
-   overland_flow
-   tidal_flow
+   /generated/api/landlab.components.overland_flow
+   /generated/api/landlab.components.tidal_flow
 
 Land surface hydrology
 ----------------------
@@ -66,10 +66,9 @@ Land surface hydrology
 .. toctree::
   :maxdepth: 2
 
-  radiation
-  pet
-  soil_moisture
-  greenampt
+  /generated/api/landlab.components.radiation
+  /generated/api/landlab.components.pet
+  /generated/api/landlab.components.soil_moisture
 
 Groundwater hydrology
 ---------------------
@@ -77,7 +76,7 @@ Groundwater hydrology
 .. toctree::
   :maxdepth: 2
 
-  groundwater
+  /generated/api/landlab.components.groundwater
 
 Landslides
 ----------
@@ -85,9 +84,9 @@ Landslides
 .. toctree::
   :maxdepth: 2
 
-  bedrock_landslider
-  landslides
-  dimensionless_discharge
+  /generated/api/landlab.components.bedrock_landslider
+  /generated/api/landlab.components.landslides
+  /generated/api/landlab.components.dimensionless_discharge
 
 Vegetation
 ----------
@@ -95,8 +94,8 @@ Vegetation
 .. toctree::
   :maxdepth: 2
 
-  vegetation_dynamics
-  plant_competition_ca
+  /generated/api/landlab.components.vegetation_dynamics
+  /generated/api/landlab.components.plant_competition_ca
 
 Biota
 -----
@@ -104,7 +103,7 @@ Biota
 .. toctree::
   :maxdepth: 2
 
-  species_evolution
+  /generated/api/landlab.components.species_evolution
 
 Precipitation
 -------------
@@ -112,8 +111,8 @@ Precipitation
 .. toctree::
   :maxdepth: 2
 
-  uniform_precip
-  spatial_precip
+  /generated/api/landlab.components.uniform_precip
+  /generated/api/landlab.components.spatial_precip
 
 Weathering
 ----------
@@ -121,7 +120,7 @@ Weathering
 .. toctree::
   :maxdepth: 2
 
-  weathering
+  /generated/api/landlab.components.weathering
 
 Subaqueous / Submarine Processes
 --------------------------------
@@ -129,8 +128,8 @@ Subaqueous / Submarine Processes
 .. toctree::
   :maxdepth: 2
 
-  carbonate
-  marine_sediment_transport
+  /generated/api/landlab.components.carbonate
+  /generated/api/landlab.components.marine_sediment_transport
 
 Generic numerical components
 ----------------------------
@@ -138,7 +137,7 @@ Generic numerical components
 .. toctree::
   :maxdepth: 2
 
-  advection
+  /generated/api/landlab.components.advection
 
 Terrain Analysis
 ----------------
@@ -146,14 +145,13 @@ Terrain Analysis
 .. toctree::
   :maxdepth: 2
 
-  steepness_index
-  chi_index
-  drainage_density
-  profile
-  channel_profiler
-  trickle_down_profiler
-  hack_calculator
-  hand_calculator
+  /generated/api/landlab.components.steepness_index
+  /generated/api/landlab.components.chi_index
+  /generated/api/landlab.components.drainage_density
+  /generated/api/landlab.components.profiler.channel_profiler
+  /generated/api/landlab.components.profiler.trickle_down_profiler
+  /generated/api/landlab.components.hack_calculator
+  /generated/api/landlab.components.hand_calculator
 
 Tectonics
 ---------
@@ -161,10 +159,10 @@ Tectonics
 .. toctree::
   :maxdepth: 1
 
-  flexure
-  gflex
-  normal_fault
-  tectonics
+  /generated/api/landlab.components.flexure
+  /generated/api/landlab.components.gflex
+  /generated/api/landlab.components.normal_fault
+  /generated/api/landlab.components.tectonics
 
 Fire
 ----
@@ -172,7 +170,7 @@ Fire
 .. toctree::
   :maxdepth: 2
 
-  fire_generator
+  /generated/api/landlab.components.fire_generator
 
 
 Fracture Generation
@@ -181,7 +179,7 @@ Fracture Generation
 .. toctree::
   :maxdepth: 2
 
-  fracture_grid
+  /generated/api/landlab.components.fracture_grid
 
 
 Lithology
@@ -195,62 +193,62 @@ rock uplift the values of rock propeties at the topographic surface are updated.
 First is the Lithology component which is a generic object for variable
 lithology.
 
-  .. toctree::
-     :maxdepth: 2
+.. toctree::
+    :maxdepth: 2
 
-     lithology
+    /generated/api/landlab.components.lithology.lithology
 
 Second is LithoLayers which makes it easy to make layered rock.
 
-   .. toctree::
-      :maxdepth: 2
-
-      litholayers
-
-
-Alphabetical Listing of Modules
--------------------------------
 .. toctree::
+    :maxdepth: 2
 
-   channel_profiler
-   chi_index
-   depth_dependent_diffusion
-   depth_dependent_taylor_soil_creep
-   detachment_ltd_erosion
-   diffusion
-   dimensionless_discharge
-   drainage_density
-   erosion_deposition
-   fire_generator
-   flexure
-   flow_accum
-   flow_director
-   flow_routing
-   fracture_grid
-   gflex
-   groundwater
-   hack_calculator
-   hand_calculator
-   lake_fill
-   landslides
-   lateral_erosion
-   lithology
-   nonlinear_diffusion
-   normal_fault
-   overland_flow
-   pet
-   plant_competition_ca
-   potentiality_flowrouting
-   radiation
-   sink_fill
-   soil_moisture
-   space
-   spatial_precip
-   species_evolution
-   steepness_index
-   stream_power
-   taylor_nonlinear_hillslope_flux
-   transport_length_diffusion
-   uniform_precip
-   vegetation_dynamics
-   weathering
+    /generated/api/landlab.components.lithology.litholayers
+
+..
+    Alphabetical Listing of Modules
+    -------------------------------
+    .. toctree::
+
+       channel_profiler
+       chi_index
+       depth_dependent_diffusion
+       depth_dependent_taylor_soil_creep
+       detachment_ltd_erosion
+       diffusion
+       dimensionless_discharge
+       drainage_density
+       erosion_deposition
+       fire_generator
+       flexure
+       flow_accum
+       flow_director
+       flow_routing
+       fracture_grid
+       gflex
+       groundwater
+       hack_calculator
+       hand_calculator
+       lake_fill
+       landslides
+       lateral_erosion
+       lithology
+       nonlinear_diffusion
+       normal_fault
+       overland_flow
+       pet
+       plant_competition_ca
+       potentiality_flowrouting
+       radiation
+       sink_fill
+       soil_moisture
+       space
+       spatial_precip
+       species_evolution
+       steepness_index
+       stream_power
+       taylor_nonlinear_hillslope_flux
+       transport_length_diffusion
+       uniform_precip
+       vegetation_dynamics
+       weathering

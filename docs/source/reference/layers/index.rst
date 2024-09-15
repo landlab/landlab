@@ -12,8 +12,7 @@ Second is MaterialLayers, in which each layer must contain some material.
 If an entire layer is eroded in MaterialLayers, the layer is removed.
 MaterialLayers will likely use less memory than EventLayers.
 
-  .. toctree::
-     :maxdepth: 2
+.. toctree::
+    :maxdepth: 2
 
-     eventlayers
-     materiallayers
+    /generated/api/landlab.layers

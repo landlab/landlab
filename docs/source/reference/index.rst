@@ -8,23 +8,32 @@ This page gives an overview of all public Landlab objects, functions and
 methods.
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   bmi/index
-   ca/index
-   cmd/index
-   components/index
-   core/index
-   datarecord/index
-   field/index
-   framework/index
-   graph/index
-   grid/index
-   io/index
-   layers/index
-   plot/index
-   utils/index
-   values/index
+    grid/index
+    layers/index
+    values/index
+    components/index
+
+..
+    .. toctree::
+       :maxdepth: 2
+
+       /generated/api/landlab.bmi
+       /generated/api/landlab.ca
+       /generated/api/landlab.cmd
+       components/index
+       /generated/api/landlab.core
+       /generated/api/landlab.data_record
+       /generated/api/landlab.field
+       /generated/api/landlab.framework
+       /generated/api/landlab.graph
+       grid/index
+       /generated/api/landlab.io
+       layers/index
+       /generated/api/landlab.plot
+       /generated/api/landlab.utils
+       values/index
 
 Full Index
 ----------
