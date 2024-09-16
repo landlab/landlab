@@ -7,23 +7,16 @@ Landlab Grids
 Grid types
 ----------
 
-Landlab presently supports seven types of grids. The base class is ``ModelGrid``
-with subclasses ``RasterModelGrid``, ``VoronoiDelaunayGrid``, and ``IcosphereGlobalGrid``.
-``VoronoiDelaunayGrid`` has three further specialized subclasses: ``FramedVoronoiGrid``,
-``HexModelGrid`` and ``RadialModelGrid``. A final class is ``NetworkModelGrid``.
+Landlab presently supports multiple grid types. The base class for all of these
+grid types is :class:`~.ModelGrid`.
 
 The following is an introduction to their properties and methods:
 
-.. toctree::
-   :maxdepth: 1
+.. jinja:: llcats
 
-   /generated/api/landlab.grid.raster
-   /generated/api/landlab.grid.voronoi
-   /generated/api/landlab.grid.framed_voronoi
-   /generated/api/landlab.grid.hex
-   /generated/api/landlab.grid.radial
-   /generated/api/landlab.grid.network
-   /generated/api/landlab.grid.icosphere
+    {% for name in grids|sort %}
+    * :class:`~.{{name}}`
+    {% endfor %}
 
 
 Additional Methods and Properties
