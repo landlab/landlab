@@ -185,6 +185,8 @@ def docs_build_api(session: nox.Session) -> None:
         "-force",
         "--no-toc",
         "--module-first",
+        *("-d", "2"),
+        f"--templatedir={docs_dir / '_templates'}",
         "-o",
         str(generated_dir),
         "src/landlab",
