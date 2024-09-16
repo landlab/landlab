@@ -12,7 +12,7 @@ Hillslope geomorphology
 -----------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    /generated/api/landlab.components.diffusion
    /generated/api/landlab.components.nonlinear_diffusion
@@ -27,7 +27,7 @@ Fluvial geomorphology
 ---------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    /generated/api/landlab.components.stream_power
    /generated/api/landlab.components.detachment_ltd_erosion
@@ -42,7 +42,7 @@ Flow routing
 ------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    /generated/api/landlab.components.flow_director
    /generated/api/landlab.components.flow_accum
@@ -55,7 +55,7 @@ Shallow water hydrodynamics
 ---------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    /generated/api/landlab.components.overland_flow
    /generated/api/landlab.components.tidal_flow
@@ -64,25 +64,25 @@ Land surface hydrology
 ----------------------
 
 .. toctree::
-  :maxdepth: 2
+   :maxdepth: 1
 
-  /generated/api/landlab.components.radiation
-  /generated/api/landlab.components.pet
-  /generated/api/landlab.components.soil_moisture
+   /generated/api/landlab.components.radiation
+   /generated/api/landlab.components.pet
+   /generated/api/landlab.components.soil_moisture
 
 Groundwater hydrology
 ---------------------
 
 .. toctree::
-  :maxdepth: 2
+   :maxdepth: 1
 
-  /generated/api/landlab.components.groundwater
+   /generated/api/landlab.components.groundwater
 
 Landslides
 ----------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.bedrock_landslider
   /generated/api/landlab.components.landslides
@@ -92,7 +92,7 @@ Vegetation
 ----------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.vegetation_dynamics
   /generated/api/landlab.components.plant_competition_ca
@@ -101,7 +101,7 @@ Biota
 -----
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.species_evolution
 
@@ -109,7 +109,7 @@ Precipitation
 -------------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.uniform_precip
   /generated/api/landlab.components.spatial_precip
@@ -126,7 +126,7 @@ Subaqueous / Submarine Processes
 --------------------------------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.carbonate
   /generated/api/landlab.components.marine_sediment_transport
@@ -135,7 +135,7 @@ Generic numerical components
 ----------------------------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.advection
 
@@ -143,7 +143,7 @@ Terrain Analysis
 ----------------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.steepness_index
   /generated/api/landlab.components.chi_index
@@ -168,7 +168,7 @@ Fire
 ----
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.fire_generator
 
@@ -177,33 +177,9 @@ Fracture Generation
 -------------------
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   /generated/api/landlab.components.fracture_grid
-
-
-Lithology
----------
-Two objects based on the EventLayers object exist to make it easier to deal
-with spatially variable lithology and associated properties. The Lithology
-components contain information about spatially variable lithology and connect
-with the Landlab model grid so that when rock is eroded or advected upward by
-rock uplift the values of rock propeties at the topographic surface are updated.
-
-First is the Lithology component which is a generic object for variable
-lithology.
-
-.. toctree::
-    :maxdepth: 2
-
-    /generated/api/landlab.components.lithology.lithology
-
-Second is LithoLayers which makes it easy to make layered rock.
-
-.. toctree::
-    :maxdepth: 2
-
-    /generated/api/landlab.components.lithology.litholayers
 
 ..
     Alphabetical Listing of Modules
