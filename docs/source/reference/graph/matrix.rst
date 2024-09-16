@@ -1,13 +1,6 @@
 landlab.graph.matrix package
 ============================
 
-Subpackages
------------
-
-.. toctree::
-
-    matrix_ext
-
 Submodules
 ----------
 

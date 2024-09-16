@@ -25,14 +25,6 @@ landlab.ca.celllab\_cts module
    :undoc-members:
    :show-inheritance:
 
-landlab.ca.cfuncs module
-------------------------
-
-.. automodule:: landlab.ca.cfuncs
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 landlab.ca.hex\_cts module
 --------------------------
 
