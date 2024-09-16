@@ -27,8 +27,7 @@ Landlab: A modular Earth Surface Dynamics modeling library
 
  install/index
  development/index
- API Reference <reference/index>
- Landlab API <generated/api/landlab>
+ API Reference <generated/api/landlab>
 
 .. toctree::
   :caption: Useful Links

@@ -57,6 +57,12 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
 
     units
 
+.. toctree::
+    :caption: Landlab data structures
+    :maxdepth: 2
+    :hidden:
+
+    Data structures <reference/index>
 
 .. toctree::
     :caption: Landlab Tutorial Library
