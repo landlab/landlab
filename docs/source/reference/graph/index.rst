@@ -18,18 +18,3 @@ Landlab Graph
    voronoi
    framed_voronoi
    dual_icosphere
-
-
-Extensions
-----------
-
-.. toctree::
-   :maxdepth: 2
-
-   hex_ext
-   matrix_ext
-   object_ext
-   quantity_ext
-   sort_ext
-   structured_quad_ext
-   voronoi_ext

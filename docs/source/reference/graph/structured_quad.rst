@@ -1,13 +1,6 @@
 landlab.graph.structured_quad package
 =====================================
 
-Subpackages
------------
-
-.. toctree::
-
-    structured_quad_ext
-
 Submodules
 ----------
 

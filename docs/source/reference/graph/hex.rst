@@ -1,13 +1,6 @@
 landlab.graph.hex package
 =========================
 
-Subpackages
------------
-
-.. toctree::
-
-    hex_ext
-
 Submodules
 ----------
 
