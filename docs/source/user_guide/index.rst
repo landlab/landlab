@@ -93,11 +93,3 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     :hidden:
 
     cell_lab_user_guide
-
-
-.. toctree::
-    :caption: Major Version Transition Guides
-    :maxdepth: 2
-    :hidden:
-
-    standard_name_changes
