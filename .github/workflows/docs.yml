@@ -33,4 +33,4 @@ jobs:
             run: pip install nox
 
           - name: Build documentation
-            run: nox -s build-docs
+            run: nox -s docs-build

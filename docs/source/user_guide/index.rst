@@ -26,6 +26,17 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
 
 
 .. toctree::
+    :caption: Grids and Components
+    :maxdepth: 2
+    :hidden:
+
+    Grid & Component reference <reference/index>
+    component_list
+    field_definitions
+    grid_summary
+
+
+.. toctree::
     :caption: Introduction to Python
     :maxdepth: 2
     :hidden:
@@ -57,7 +68,6 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
 
     units
 
-
 .. toctree::
     :caption: Landlab Tutorial Library
     :maxdepth: 2
@@ -72,9 +82,6 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     :maxdepth: 2
     :hidden:
 
-    component_list
-    field_definitions
-    grid_summary
     time_steps
     examples
     faq
