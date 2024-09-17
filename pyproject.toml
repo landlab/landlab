@@ -1,5 +1,5 @@
 [build-system]
-requires = ["cython~=3.0.0b3", "numpy<2", "setuptools", "wheel"]
+requires = ["cython~=3.0.0b3", "numpy", "setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -40,7 +40,7 @@ dependencies = [
   "importlib-resources; python_version < '3.12'",
   "matplotlib",
   "netcdf4",
-  "numpy >=1.20,<2",
+  "numpy >=1.20",
   "pyyaml",
   "pyshp != 2.3.0",
   "rich-click",
@@ -76,6 +76,7 @@ landlab = "landlab.cmd.landlab:landlab"
 
 [tool.setuptools]
 include-package-data = true
+package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
 landlab = [
@@ -91,8 +92,7 @@ landlab = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["landlab*"]
+where = ["src"]
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.rst", "AUTHORS.rst"]}
@@ -169,8 +169,9 @@ platforms = ["osx-arm64", "linux-64", "osx-64", "win-64"]
 
 [tool.towncrier]
 directory = "news"
-package = "landlab"
+name = "landlab"
 filename = "CHANGES.rst"
+create_add_extension = false
 single_file = true
 underlines = "-`^"
 issue_format = "`#{issue} <https://github.com/landlab/landlab/issues/{issue}>`_"

@@ -1,3 +1,4 @@
+import difflib
 import json
 import os
 import pathlib
@@ -37,7 +38,7 @@ def test(session: nox.Session) -> None:
         PATH["requirements"] / "testing.txt",
     )
 
-    session.conda_install("richdem", "numpy<2", channel=["nodefaults", "conda-forge"])
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("-e", ".", "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
@@ -87,7 +88,7 @@ def test_notebooks(session: nox.Session) -> None:
         "-r",
         PATH["requirements"] / "notebooks.txt",
     )
-    session.conda_install("richdem", "numpy<2", channel=["nodefaults", "conda-forge"])
+    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
 
@@ -148,31 +149,50 @@ def build_index(session: nox.Session) -> None:
     session.log(f"generated index at {index_file!s}")
 
 
-@nox.session(name="build-docs")
-def build_docs(session: nox.Session) -> None:
+@nox.session(name="docs-build")
+def docs_build(session: nox.Session) -> None:
     """Build the docs."""
+    docs_build_api(session)
 
-    session.install(
-        "-r",
-        PATH["requirements"] / "docs.txt",
-        "-r",
-        PATH["requirements"] / "required.txt",
-    )
-    session.install("-e", ".", "--no-deps")
+    session.install("-r", PATH["requirements"] / "docs.txt")
 
     check_package_versions(session, files=["required.txt", "docs.txt"])
 
     PATH["build"].mkdir(exist_ok=True)
     session.run(
         "sphinx-build",
-        "-b",
-        "html",
+        *("-j", "auto"),
+        *("-b", "html"),
         "-W",
         "--keep-going",
         PATH["docs"] / "source",
         PATH["build"] / "html",
     )
     session.log(f"generated docs at {PATH['build'] / 'html'!s}")
+
+
+@nox.session(name="docs-build-api")
+def docs_build_api(session: nox.Session) -> None:
+    docs_dir = PATH["docs"] / "source"
+    generated_dir = docs_dir / "generated" / "api"
+
+    session.install("-r", PATH["requirements"] / "docs.txt")
+
+    session.log(f"generating api docs in {generated_dir}")
+    session.run(
+        "sphinx-apidoc",
+        "-e",
+        "-force",
+        "--no-toc",
+        "--module-first",
+        *("-d", "2"),
+        f"--templatedir={docs_dir / '_templates'}",
+        "-o",
+        str(generated_dir),
+        "src/landlab",
+        "*.pyx",
+        "*.so",
+    )
 
 
 @nox.session(name="check-versions")
@@ -250,6 +270,27 @@ with open("pyproject.toml", "rb") as fp:
         )
 
 
+@nox.session(python=False, name="check-cython-files")
+def check_cython_files(session: nox.Session) -> None:
+    """Find cython files for extension modules."""
+    cython_files = {
+        str(p.relative_to(PATH["root"]))
+        for p in pathlib.Path(PATH["root"] / "src" / "landlab").rglob("**/*.pyx")
+    }
+    print(os.linesep.join(sorted(cython_files)))
+
+    with open("cython-files.txt") as fp:
+        actual = [line.rstrip() for line in fp.readlines()]
+
+    diff = list(
+        difflib.unified_diff(
+            actual, sorted(cython_files), fromfile="old", tofile="new", lineterm=""
+        )
+    )
+    if diff:
+        session.error("\n".join([""] + diff + ["cython-files.txt needs updating"]))
+
+
 @nox.session
 def build(session: nox.Session) -> None:
     """Build sdist and wheel dists."""
@@ -301,7 +342,7 @@ def clean(session):
         with session.chdir(folder):
             shutil.rmtree("build", ignore_errors=True)
             shutil.rmtree("build/wheelhouse", ignore_errors=True)
-            shutil.rmtree(f"{PROJECT}.egg-info", ignore_errors=True)
+            shutil.rmtree(f"src/{PROJECT}.egg-info", ignore_errors=True)
             shutil.rmtree(".pytest_cache", ignore_errors=True)
             shutil.rmtree(".venv", ignore_errors=True)
 
