@@ -93,7 +93,16 @@ Citation information for each component can be found as follows:
 - Where relevant, software citation and general references, are listed in the
   Component API documentation under the References section.
 - Software citations are included in component metadata. We have created a
-  tool called the "Citation Registry" which creates a .bib file for software
-  citations used in an application. See example usage :ref:`here <cite_as>`.
+  tool called the "Citation Registry" that creates a .bib file for software
+  citations used in an application. See example usage below.
+
+
+Landlab Citation Registry
++++++++++++++++++++++++++
+
+.. automodule:: landlab._registry
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. end-citing-components
