@@ -203,7 +203,10 @@ class SpaceLargeScaleEroder(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "node",
-            "doc": "Sediment erosion flux from bed to water column (depth eroded per unit time)",
+            "doc": (
+                "Sediment erosion flux from bed to water column (depth eroded per"
+                " unit time)"
+            ),
         },
         "sediment__deposition_flux": {
             "dtype": float,
@@ -211,7 +214,10 @@ class SpaceLargeScaleEroder(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "node",
-            "doc": "Sediment deposition flux from water column to bed (depth deposited per unit time)",
+            "doc": (
+                "Sediment deposition flux from water column to bed (depth deposited"
+                " per unit time)"
+            ),
         },
         "bedrock__erosion_flux": {
             "dtype": float,
@@ -219,7 +225,10 @@ class SpaceLargeScaleEroder(Component):
             "optional": False,
             "units": "m/s",
             "mapping": "node",
-            "doc": "Bedrock erosion flux from bedrock to water column (depth eroded per unit time)",
+            "doc": (
+                "Bedrock erosion flux from bedrock to water column (depth eroded per"
+                " unit time)"
+            ),
         },
         "soil__depth": {
             "dtype": float,
