@@ -75,7 +75,6 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     :hidden:
 
     time_steps
-    examples
     faq
 
 
