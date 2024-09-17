@@ -1,16 +1,13 @@
-"""
-========================================================================================
-Wrap landlab component with the Basic Modeling Interface (:mod:`landlab.bmi.bmi_bridge`)
-========================================================================================
-
-.. sectionauthor:: Eric Hutton
-
-Function reference
-------------------
+"""Wrap landlab component with the Basic Modeling Interface
 
 The `wrap_as_bmi` function wraps a landlab component class so that it
-exposes a Basic Modelling Interface.
+exposes a Basic Modeling Interface.
 
+.. autosummary::
+
+    ~landlab.bmi.bmi_bridge.wrap_as_bmi
+
+.. sectionauthor:: Eric Hutton
 """
 
 import inspect
@@ -18,12 +15,12 @@ import inspect
 import numpy as np
 from bmipy import Bmi
 
-from ..core import load_params
-from ..core.model_component import Component
-from ..framework.decorators import snake_case
-from ..grid import HexModelGrid
-from ..grid import RasterModelGrid
-from ..grid.create import create_grid
+from landlab.core import load_params
+from landlab.core.model_component import Component
+from landlab.framework.decorators import snake_case
+from landlab.grid.create import create_grid
+from landlab.grid.hex import HexModelGrid
+from landlab.grid.raster import RasterModelGrid
 
 BMI_LOCATION = {
     "node": "node",
@@ -145,10 +142,10 @@ def wrap_as_bmi(cls):
     are a number of differences that may cause some confusion to
     landlab users.
 
-    1.  Because BMI doesn't have a concept of a dual grid, it only
-        defines *nodes* (points), *edges* (vectors), and *faces*
-        (areas). The dual-graph of landlab is considered as two
-        separate grids by BMI.
+    1. Because BMI doesn't have a concept of a dual grid, it only
+       defines *nodes* (points), *edges* (vectors), and *faces*
+       (areas). The dual-graph of landlab is considered as two
+       separate grids by BMI.
 
     2. It is important to note that BMI has only three grid elements
        (*node*, *edge*, and *face*) while landlab has 6. The names
@@ -161,28 +158,28 @@ def wrap_as_bmi(cls):
        refer to grid elements by different names. The mapping from
        landlab to BMI nomenclature is the following:
 
-        Grid 0:
-        *  *node*: *node*
-        *  *link*: *edge*
-        *  *patch*: *face*
+       ======= ======= ======= ======
+       Grid 0 (Primal)  Grid 1 (Dual)
+       --------------- --------------
+       Landlab   BMI   Landlab   BMI
+       ======= ======= ======= ======
+       node    node    corner  node
+       link    edge    face    edge
+       patch   face    cell    face
+       ======= ======= ======= ======
 
-        Grid 1:
-        *  *corner*: *node*
-        *  *face*: *edge*
-        *  *cell*: *face*
-
-    3.  In BMI, the *initialize* method requires an input file that is
-        used to create and setup the model for time-stepping. landlab
-        components generally do not have anything like this; instead
-        this task is usually done programmatically. Thus, the
-        input file that is used by the BMI *initialize* method is
-        a standard landlab input file as used by the landlab *create_grid*
-        function.
+    3. In BMI, the *initialize* method requires an input file that is
+       used to create and setup the model for time-stepping. landlab
+       components generally do not have anything like this; instead
+       this task is usually done programmatically. Thus, the
+       input file that is used by the BMI *initialize* method is
+       a standard landlab input file as used by the landlab :func:`~.create_grid`
+       function.
 
     Parameters
     ----------
     cls : class
-        A landlab class that inherits from `Component`.
+        A landlab class that inherits from :class:`Component`.
 
     Returns
     -------

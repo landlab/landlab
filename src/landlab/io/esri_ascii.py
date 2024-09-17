@@ -46,27 +46,27 @@ class BadHeaderError(EsriAsciiError):
 def dump(
     grid: RasterModelGrid,
     stream: TextIO | None = None,
-    at: str = "node",
+    at: Literal["node", "patch", "corner", "cell"] = "node",
     name: str | None = None,
 ) -> str | None:
     """Dump a grid field to ESRII ASCII format.
 
     Parameters
     ----------
-    grid : RasterModelGrid
+    grid :
         A Landlab grid.
-    stream : file_like or None, optional
+    stream :
         A ``file_like`` object to write to. If ``None``, return
         a string containing the serialized grid.
-    at : {"node", "patch", "corner", "cell"}, optional
+    at :
         Where the field to be written is located on the grid.
-    name : str or None, optional
+    name :
         The name of the field to be written. If ``None``, only the header
         information will be written.
 
     Returns
     -------
-    str or None
+    :
         The grid field in ESRI ASCII format or ``None`` if a ``file_like``
         object was provided.
 
@@ -152,7 +152,7 @@ def load(
 
     Returns
     -------
-    RasterModelGrid
+    :
         A newly-created ``RasterModelGrid`` with, optionaly, the data added
         as a field (if `name` was provided).
     """
