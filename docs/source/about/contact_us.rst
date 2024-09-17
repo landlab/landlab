@@ -3,6 +3,6 @@
 Contact
 =======
 
-.. include:: ../../README.rst
+.. include:: ../../../README.rst
     :start-after: .. start-contact
     :end-before: .. end-contact
