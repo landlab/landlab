@@ -10,7 +10,10 @@ methods tend to start with ``calc_``.
 
   .. currentmodule:: landlab
 
-  {% for grid in grids|sort %}
+  {% for grid in ['RasterModelGrid'] + grids
+    | reject('equalto', 'RasterModelGrid')
+    | sort
+  %}
   {% set label = grid.replace('ModelGrid', '').replace('Grid', '') %}
 
   .. tab:: {{ label }}

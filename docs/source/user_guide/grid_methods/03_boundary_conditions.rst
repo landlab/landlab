@@ -11,7 +11,10 @@ update the conditions defined at other grid elements.
 
   .. currentmodule:: landlab
 
-  {% for grid in grids|sort %}
+  {% for grid in ['RasterModelGrid'] + grids
+    | reject('equalto', 'RasterModelGrid')
+    | sort
+  %}
   {% set label = grid.replace('ModelGrid', '').replace('Grid', '') %}
 
   .. tab:: {{ label }}
