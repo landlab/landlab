@@ -37,14 +37,6 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
 
 
 .. toctree::
-    :caption: Introduction to Python
-    :maxdepth: 2
-    :hidden:
-
-    python_numpy_intro
-
-
-.. toctree::
     :caption: The Landlab Grid
     :maxdepth: 2
     :hidden:
@@ -108,6 +100,4 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     :maxdepth: 2
     :hidden:
 
-    landlab_zero_to_one
-    landlab_one_to_two
     standard_name_changes
