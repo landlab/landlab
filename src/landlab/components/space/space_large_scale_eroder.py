@@ -7,68 +7,68 @@ import numpy as np
 
 from landlab import Component
 from landlab import RasterModelGrid
+from landlab.components.depression_finder.lake_mapper import _FLOODED
+from landlab.components.space.ext.calc_sequential_ero_depo import _sequential_ero_depo
 from landlab.grid.nodestatus import NodeStatus
 from landlab.utils.return_array import return_array_at_node
 
-from ..depression_finder.lake_mapper import _FLOODED
-from .ext.calc_sequential_ero_depo import _sequential_ero_depo
-
-ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
+ROOT2 = np.sqrt(2.0)
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
 
 
 class SpaceLargeScaleEroder(Component):
-    """Stream Power with Alluvium Conservation and Entrainment (SPACE) large scale eroder
+    """Stream Power with Alluvium Conservation and Entrainment large scale eroder.
 
-    The SPACE_large_Scale_eroder is based on the SPACE component and is designed
-    to be more robust against large time steps and coded in such a way that mass
-    conservation is explicitly conserved during calculation.
+    The :class:`~.SpaceLargeScaleEroder` is based on the SPACE component
+    and is designed to be more robust against large time steps and coded in
+    such a way that mass conservation is explicitly conserved during calculation.
 
     See the publication:
-    Shobe, C. M., Tucker, G. E., and Barnhart, K. R.: The SPACE 1.0 model: a
-    Landlab component for 2-D calculation of sediment transport, bedrock
-    erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
-    `https://doi.org/10.5194/gmd-10-4577-2017 <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
+
+        Shobe, C. M., Tucker, G. E., and Barnhart, K. R.: The SPACE 1.0 model: a
+        Landlab component for 2-D calculation of sediment transport, bedrock
+        erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
+        `https://doi.org/10.5194/gmd-10-4577-2017
+        <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
 
     Unlike other some other fluvial erosion componets in Landlab, in this
-    component (and :py:class:`~landlab.components.ErosionDeposition`) no
+    component (and class:`~landlab.components.ErosionDeposition`) no
     erosion occurs in depressions or in areas with adverse slopes. There is no
     ability to pass a keyword argument ``erode_flooded_nodes``.
 
-    If a depressions are handled (as indicated by the presence of the field
-    "flood_status_code" at nodes), then deposition occurs throughout the
+    If depressions are handled (as indicated by the presence of the field
+    ``"flood_status_code"`` at nodes), then deposition occurs throughout the
     depression and sediment is passed out of the depression. Where pits are
     encountered, then all sediment is deposited at that node only.
 
-    Note: In the current version, we do not provide an adaptive time stepper.
-    This will be addded in future versions of this component.
+    .. note::
 
-    For more explanation and examples,
-    check out the correponding notebook of this component
+        In the current version, we do not provide an adaptive time stepper.
+        This will be addded in future versions of this component.
+
+    For more explanation and examples, check out the correponding notebook of
+    this component.
 
     Examples
     ---------
-    >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components import PriorityFloodFlowRouter, SpaceLargeScaleEroder
-    >>> import matplotlib.pyplot as plt  # For plotting results; optional
-    >>> from landlab import imshow_grid  # For plotting results; optional
+    >>> from landlab.components import PriorityFloodFlowRouter
+    >>> from landlab.components import SpaceLargeScaleEroder
 
-    >>> num_rows = 20
-    >>> num_columns = 20
-    >>> node_spacing = 100.0
-    >>> mg = RasterModelGrid((num_rows, num_columns), xy_spacing=node_spacing)
-    >>> node_next_to_outlet = num_columns + 1
-    >>> np.random.seed(seed=5000)
-    >>> _ = mg.add_zeros("topographic__elevation", at="node")
-    >>> _ = mg.add_zeros("soil__depth", at="node")
-    >>> mg.at_node["soil__depth"][mg.core_nodes] = 2.0
-    >>> _ = mg.add_zeros("bedrock__elevation", at="node")
-    >>> mg.at_node["bedrock__elevation"] += (
-    ...     mg.node_y / 10.0 + mg.node_x / 10.0 + np.random.rand(len(mg.node_y)) / 10.0
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=100.0)
+
+    >>> mg.at_node["soil__depth"] = [
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 2.0, 2.0, 0.0],
+    ...     [0.0, 2.0, 2.0, 0.0],
+    ...     [0.0, 2.0, 2.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> mg.at_node["bedrock__elevation"] = mg.y_of_node / 10.0 + mg.x_of_node / 10.0
+    >>> mg.at_node["topographic__elevation"] = (
+    ...     mg.at_node["bedrock__elevation"] + mg.at_node["soil__depth"]
     ... )
-    >>> mg.at_node["bedrock__elevation"][:] = mg.at_node["topographic__elevation"]
-    >>> mg.at_node["topographic__elevation"][:] += mg.at_node["soil__depth"]
+
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=True,
     ...     left_is_closed=True,
@@ -93,49 +93,29 @@ class SpaceLargeScaleEroder(Component):
     ...     sp_crit_sed=0,
     ...     sp_crit_br=0,
     ... )
-    >>> timestep = 10.0
-    >>> elapsed_time = 0.0
-    >>> count = 0
-    >>> run_time = 1e4
-    >>> sed_flux = np.zeros(int(run_time // timestep))
-    >>> while elapsed_time < run_time:
+
+    >>> node_next_to_outlet = mg.shape[1] + 1
+    >>> sed_flux = []
+    >>> for _ in range(500):
     ...     fr.run_one_step()
-    ...     _ = sp.run_one_step(dt=timestep)
-    ...     sed_flux[count] = mg.at_node["sediment__flux"][node_next_to_outlet]
-    ...     elapsed_time += timestep
-    ...     count += 1
+    ...     _ = sp.run_one_step(dt=10.0)
+    ...     sed_flux.append(mg.at_node["sediment__flux"][node_next_to_outlet])
     ...
 
-    Plot the results.
+    Look at the results.
 
-    >>> fig = plt.figure()
-    >>> plot = plt.subplot()
-    >>> _ = imshow_grid(
-    ...     mg,
-    ...     "topographic__elevation",
-    ...     plot_name="Sediment flux",
-    ...     var_name="Sediment flux",
-    ...     var_units=r"m$^3$/yr",
-    ...     grid_units=("m", "m"),
-    ...     cmap="terrain",
-    ... )
-    >>> _ = plt.figure()
-    >>> _ = imshow_grid(
-    ...     mg,
-    ...     "sediment__flux",
-    ...     plot_name="Sediment flux",
-    ...     var_name="Sediment flux",
-    ...     var_units=r"m$^3$/yr",
-    ...     grid_units=("m", "m"),
-    ...     cmap="terrain",
-    ... )
-    >>> fig = plt.figure()
-    >>> sedfluxplot = plt.subplot()
-    >>> _ = sedfluxplot.plot(
-    ...     np.arange(len(sed_flux)) * timestep, sed_flux, color="k", linewidth=1.0
-    ... )
-    >>> _ = sedfluxplot.set_xlabel("Time [yr]")
-    >>> _ = sedfluxplot.set_ylabel(r"Sediment flux [m$^3$/yr]")
+    >>> mg.at_node["sediment__flux"].reshape(mg.shape)  # doctest: +SKIP
+    array([[0.        , 0.        , 0.        , 0.        ],
+           [0.        , 0.26889843, 0.02719885, 0.        ],
+           [0.        , 0.09130624, 0.13962599, 0.        ],
+           [0.        , 0.06421368, 0.09527108, 0.        ],
+           [0.        , 0.        , 0.        , 0.        ]])
+    >>> sed_flux[::100]  # doctest: +SKIP
+    [2053.1526698811363,
+     601.0591808186842,
+     405.95978528106235,
+     272.8232194793999,
+     176.63159183013272]
 
     References
     ----------
@@ -150,7 +130,7 @@ class SpaceLargeScaleEroder(Component):
 
     None Listed
 
-    """  # noqa: B950
+    """
 
     _name = "SpaceLargeScaleEroder"
 
