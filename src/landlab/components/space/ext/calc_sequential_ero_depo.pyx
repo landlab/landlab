@@ -25,14 +25,15 @@ def _sequential_ero_depo(
     const cython.floating [:] sed_erosion_term,
     const cython.floating [:] bed_erosion_term,
     const cython.floating [:] K_sed,
-    double v,
-    double phi,
-    double F_f,
-    double H_star,
-    double dt,
-    double thickness_lim,
+    cython.floating [:] ero_sed_effective,
+    cython.floating [:] depo_effective,
+    const double v,
+    const double phi,
+    const double F_f,
+    const double H_star,
+    const double dt,
+    const double thickness_lim,
 ):
-
     """Calculate and qs and qs_in."""
     # define internal variables
     cdef unsigned int node_id
@@ -107,4 +108,10 @@ def _sequential_ero_depo(
         br[node_id] += -dt * ero_bed
         vol_SSY_riv += F_f*ero_bed* cell_area[node_id]
 
+        # Update deposition rate based on adjusted fluxes
+        Hd = H_loc - H_Before
+        depo_effective[node_id] = (v*qs_out_adj/q[node_id])/(1 - phi)
+        # Deposition should be larger or equal to increase in soil depth
+        depo_effective[node_id] = max(depo_effective[node_id], Hd/dt)
+        ero_sed_effective[node_id] = depo_effective[node_id] - Hd/dt
     return vol_SSY_riv
