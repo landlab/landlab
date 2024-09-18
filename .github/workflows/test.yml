@@ -7,7 +7,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      - name: Install compilers
+        run: |
+            conda install c-compiler cxx-compiler
+
+      - name: Show conda installation info
+        run: |
+          conda info
+          conda list
+
+      - name: Build
+        run: |
+          pip install nox
+          nox -s build --force-pythons="${{ matrix.python-version }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.python-version }}
+          path: build/wheelhouse/*
+
+  test:
+    needs: build
     name: Run the tests
     # We want to run on external PRs, but not on our own internal PRs as they'll be run
     # by the push to the branch. Without this if check, checks are duplicated since
@@ -39,10 +83,6 @@ jobs:
           miniforge-version: latest
           auto-update-conda: true
 
-      - name: Install compilers
-        run: |
-            conda install c-compiler cxx-compiler
-
       - name: Show conda installation info
         run: |
           conda info
@@ -53,12 +93,24 @@ jobs:
           conda install richdem "numpy<2" -c conda-forge
           python -c 'import _richdem'
 
+      - name: Download build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.python-version }}
+
+      - name: Install testing requirements
+        run: |
+          pip install -r requirements/testing.txt
+
+      - name: Install built package
+        run: |
+          pip install build/wheelhouse/*.whl
+
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
-          pip install nox
-          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
+          pytest -n auto --cov landlab -vvv -m "${{ matrix.pytest-marker }}"
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
