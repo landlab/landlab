@@ -3,6 +3,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_almost_equal
 
 from landlab.components.genveg.species import Species
+from landlab.components.genveg.photosynthesis import C3, C4, Cam
 
 
 def create_species_object(example_input_params):
@@ -230,3 +231,14 @@ def test_nsc_rate_change_per_season_and_part(example_input_params):
         ncs_rate_change["fall_nsc_rate"]["stem"],
         0.015625
     )
+
+
+def test_select_photosythesis_type(example_input_params):
+    species_object = create_species_object(example_input_params)
+    dummy_photosythesis = example_input_params
+    for photosynthesis_opt, cls in zip(["C3", "C4", "cam"], [C3, C4, Cam]):
+        dummy_photosythesis["BTS"]["plant_factors"]["p_type"] = photosynthesis_opt
+        assert isinstance(
+            species_object.select_photosythesis_type(dummy_photosythesis["BTS"], 0.9074),
+            cls
+        )
