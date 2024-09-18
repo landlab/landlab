@@ -80,14 +80,11 @@ def test_notebooks(session: nox.Session) -> None:
         session.conda_install("multidict")
 
     session.install(
-        "-r",
-        PATH["requirements"] / "required.txt",
-        "-r",
-        PATH["requirements"] / "testing.txt",
-        "-r",
-        PATH["requirements"] / "notebooks.txt",
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "testing.txt"),
+        *("-r", PATH["requirements"] / "notebooks.txt"),
     )
-    session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+    session.conda_install("richdem", "gmt", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
     session.install("-e", ".", "--no-deps")
 
