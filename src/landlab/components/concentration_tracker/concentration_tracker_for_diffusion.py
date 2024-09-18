@@ -30,10 +30,10 @@ class ConcentrationTrackerForDiffusion(Component):
     .. note::
 
         This component requires a soil flux field calculated by a hillslope diffusion
-        component. This component is implemented by applying a start_tracking() method
-        immediately before every diffusion step and a stop_tracking(dt) method
-        immediately after every diffusion step. These methods are applied instead of
-        the typical run_one_step(dt) method. See the docstring examples below.
+        component. This component is implemented by applying a :meth:`start_tracking`
+        method immediately before every diffusion step and a :meth:`stop_tracking`
+        method immediately after every diffusion step. These methods are applied instead
+        of the typical :meth:`run_one_step` method. See the docstring examples below.
 
         Currently, this component will only work if coupled with the
         :class:`~.DepthDependentDiffuser` or the :class:`~.DepthDependentTaylorDiffuser`
@@ -94,8 +94,11 @@ class ConcentrationTrackerForDiffusion(Component):
 
     >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
 
-    >>> c = mg.add_zeros("sediment_property__concentration", at="node")
-    >>> c[12] = 1.0
+    >>> mg.at_node["sediment_property__concentration"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.0, 1.0, 0.0, 0.0],
+    ... ]
     >>> h = mg.add_full("soil__depth", 2.0, at="node")
     >>> z_br = mg.add_field(
     ...     "bedrock__elevation",
@@ -135,19 +138,22 @@ class ConcentrationTrackerForDiffusion(Component):
            [0.44750673, 1.        , 0.44750673],
            [0.09648071, 0.44750673, 0.09648071]])
 
-    Finally, the same 2D hillslope now using the DepthDependentTaylorDiffuser.
-    Note that the timestep must be smaller than 1 to maintain stability in the
-    diffusion calculation. Typically, one could use the dynamic timestepping
-    option. However, here it will provide incorrect soil flux values to the
-    ConcentrationTrackerForDiffusion, which cannot do sub-timestep calculations.
-    Use the if_unstable="warn" flag when instantiating the Taylor diffuser and
-    pick a timestep that is stable.
+    Finally, the same 2D hillslope now using the
+    :class:`~.DepthDependentTaylorDiffuser`. Note that the timestep must be smaller
+    than 1 to maintain stability in the diffusion calculation. Typically, one could
+    use the dynamic timestepping option. However, here it will provide incorrect
+    soil flux values to the :class:`~.ConcentrationTrackerForDiffusion`, which
+    cannot do sub-timestep calculations. Use the ``if_unstable="warn"`` flag when
+    instantiating the Taylor diffuser and pick a timestep that is stable.
 
     >>> from landlab.components import DepthDependentTaylorDiffuser
     >>> mg = RasterModelGrid((5, 5), xy_spacing=2.0)
 
-    >>> c = mg.add_zeros("sediment_property__concentration", at="node")
-    >>> c[12] = 1.0
+    >>> mg.at_node["sediment_property__concentration"] = [
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.0, 0.0, 0.0, 0.0],
+    ...     [0.0, 0.0, 1.0, 0.0, 0.0],
+    ... ]
     >>> h = mg.add_full("soil__depth", 2.0, at="node")
     >>> z_br = mg.add_field(
     ...     "bedrock__elevation",
@@ -171,22 +177,13 @@ class ConcentrationTrackerForDiffusion(Component):
     array([[0.        , 0.26436925, 0.        ],
            [0.26436925, 1.        , 0.26436925],
            [0.        , 0.26436925, 0.        ]])
-
-    References
-    ----------
-    **Required Software Citation(s) Specific to this Component**
-
-    CITATION
-
     """
 
     _name = "ConcentrationTrackerForDiffusion"
 
     _unit_agnostic = True
 
-    _cite_as = """
-    CITATION
-    """
+    _cite_as = ""
 
     _info = {
         "soil__depth": {
@@ -260,7 +257,7 @@ class ConcentrationTrackerForDiffusion(Component):
         concentration_from_weathering: float or array, optional
             Concentration generated during the weathering process, -/m^3.
             Defaults to ``None``, which causes all weathered bedrock to retain its
-            original parent material concentration (``concentration_in_bedrock``)
+            original parent material concentration (`concentration_in_bedrock`)
             as it weathers to soil. Use this parameter to differentiate between
             the concentration in weathered material compared to its parent bedrock.
         """
@@ -334,14 +331,14 @@ class ConcentrationTrackerForDiffusion(Component):
             raise ValueError("Concentration cannot be negative")
         self._conc_w = new_val
 
-    def copy_old_soil_depth(self):
+    def _copy_old_soil_depth(self):
         """Store a copy of soil depth. This is used as the old soil depth when
         calculating changes in concentration.
         """
 
         self._soil__depth_old = self._soil__depth.copy()
 
-    def calc_concentration(self, dt):
+    def _calc_concentration(self, dt):
         """Calculate change in concentration for a time period 'dt'.
 
         Parameters
@@ -395,7 +392,7 @@ class ConcentrationTrackerForDiffusion(Component):
         that changes physical properties of bedrock, soil, and/or topography.
         """
 
-        self.copy_old_soil_depth()
+        self._copy_old_soil_depth()
 
     def stop_tracking(self, dt):
         """Calculate changes in concentration that have occurred in the timestep
@@ -409,8 +406,8 @@ class ConcentrationTrackerForDiffusion(Component):
             The imposed timestep.
         """
 
-        self.calc_concentration(dt)
+        self._calc_concentration(dt)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
-        raise NotImplementedError("run_one_step()")
+        raise NotImplementedError("run_one_step")
