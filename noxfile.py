@@ -21,6 +21,26 @@ PATH = {
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
+def build(session: nox.Session) -> None:
+    """Build sdist and wheel dists."""
+    os.environ["WITH_OPENMP"] = "1"
+
+    session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
+
+    if sys.platform.startswith("darwin") and session.python == "3.12":
+        session.log("installing multidict from conda-forge.")
+        session.conda_install("multidict")
+
+    session.install(
+        "pip",
+        "build",
+        *("-r", PATH["requirements"] / "required.txt"),
+    )
+
+    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
+
+
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
     os.environ["WITH_OPENMP"] = "1"
@@ -32,10 +52,8 @@ def test(session: nox.Session) -> None:
         session.conda_install("multidict")
 
     session.install(
-        "-r",
-        PATH["requirements"] / "required.txt",
-        "-r",
-        PATH["requirements"] / "testing.txt",
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "testing.txt"),
     )
 
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
@@ -289,16 +307,6 @@ def check_cython_files(session: nox.Session) -> None:
     )
     if diff:
         session.error("\n".join([""] + diff + ["cython-files.txt needs updating"]))
-
-
-@nox.session
-def build(session: nox.Session) -> None:
-    """Build sdist and wheel dists."""
-    session.install("pip")
-    session.install("build")
-    session.run("python", "--version")
-    session.run("pip", "--version")
-    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
 @nox.session
