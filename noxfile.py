@@ -1,4 +1,5 @@
 import difflib
+import glob
 import json
 import os
 import pathlib
@@ -38,6 +39,16 @@ def build(session: nox.Session) -> None:
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
+    pytest_args = []
+    files = []
+    for arg in session.posargs:
+        if arg.startswith("--path="):
+            _, path = arg.split("=", maxsplit=1)
+            files += glob.glob(path)
+        else:
+            pytest_args.append(arg)
+    file = files[0] if files else "."
+
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
@@ -47,7 +58,7 @@ def test(session: nox.Session) -> None:
     )
 
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.install("-e", ".", "--no-deps")
+    session.install(file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
@@ -56,7 +67,7 @@ def test(session: nox.Session) -> None:
         *("--cov", PROJECT),
         "-vvv",
         # "--dist", "worksteal",  # this is not available quite yet
-    ] + session.posargs
+    ] + pytest_args
 
     if "CI" in os.environ:
         args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
