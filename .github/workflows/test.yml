@@ -101,19 +101,12 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: Install testing requirements
-        run: |
-          pip install -r requirements/testing.txt
-
-      - name: Install built package
-        run: |
-          pip install *.whl
-
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
-          pytest -n auto --cov landlab -vvv -m "${{ matrix.pytest-marker }}" --cov-report=xml:$GITHUB_WORKSPACE/landlab/landlab/coverage.xml
+          pip install nox
+          nox --verbose -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.markers }}" --path=*whl
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
