@@ -24,11 +24,16 @@ jobs:
 
         steps:
           - uses: actions/checkout@v4
-          - uses: docker://pandoc/core:2.9
+          - uses: docker://pandoc/core:3.2
           - name: Set up Python 3.12
             uses: actions/setup-python@v4
             with:
               python-version: 3.12
+
+          - name: check pandoc
+            run: |
+              pandoc --help
+              pandoc --version
 
           - name: Install dependencies
             run: pip install nox
