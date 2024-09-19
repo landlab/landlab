@@ -90,7 +90,7 @@ jobs:
 
       - name: Install and test richdem engine
         run: |
-          conda install richdem "numpy<2" -c conda-forge
+          conda install richdem -c conda-forge
           python -c 'import _richdem'
 
       - uses: actions/download-artifact@v3
