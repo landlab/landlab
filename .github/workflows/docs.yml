@@ -24,6 +24,7 @@ jobs:
 
         steps:
           - uses: actions/checkout@v4
+          - uses: docker://pandoc/core:2.9
           - name: Set up Python 3.12
             uses: actions/setup-python@v4
             with:
