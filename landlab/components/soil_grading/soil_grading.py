@@ -241,7 +241,7 @@ class SoilGrading(Component):
 
 
         self.create_transition_mat()
-        self.set_grading_classes()
+        self.set_grading_limits()
         self.create_dist()
         self.update_median_grain_size()
 
@@ -259,6 +259,12 @@ class SoilGrading(Component):
     def grading_name(self):
         """The name of fragmentation pattern"""
         return self._grading_name
+
+    def calc_mean_sizes(self):
+        meansizes = [self._grain_max_size]
+        for _ in range(0, self._n_sizes - 1):
+            meansizes.append(meansizes[-1] * (1 / self._N) ** (self._power_of))
+        self._meansizes = np.asarray(meansizes[::-1])
 
     def create_transition_mat(self):
         """
@@ -291,7 +297,7 @@ class SoilGrading(Component):
                 self._A[i, i] = -(self._alpha - (self._alpha * alphas_fractios[0]))
             else:
                 self._A[i, i] = -(self._alpha - (self._alpha * alphas_fractios[0]))
-                cnti = i - 1  # rows,
+                cnti = i - 1  # rows
                 cnt = 1
                 while cnti >= 0 and cnt <= (len(alphas_fractios) - 1):
                     self._A[cnti, i] = self._alpha * alphas_fractios[cnt]
@@ -304,23 +310,16 @@ class SoilGrading(Component):
                     cnt += 1
                     cnti -= 1
 
-    def set_grading_classes(
+    def set_grading_limits(
         self,
     ):
 
+        if not self._input_sizes_flag:
+            self.calc_mean_sizes()
 
-        if self._input_sizes_flag:
-            self._limits = np.array(np.insert(self._meansizes, 0, 0.0))
-            self._limits = (self._meansizes[:-1] + self._meansizes[1:]) * 0.5
-            self._limits = np.insert(self._limits, 0, 0.0)
-            self._limits =  np.concatenate((self._limits,[np.inf]))
-
-        else:
-            limits = [self._grain_max_size]
-            for _ in range(0, self._n_sizes):
-                limits.append(limits[-1] * (1 / self._N) ** (self._power_of))
-            self._limits = np.asarray(limits[::-1])
-            self._meansizes = (self._limits[1:] + self._limits[:-1]) * 0.5
+        self._limits = (self._meansizes[:-1] + self._meansizes[1:]) * 0.5
+        self._limits = np.insert(self._limits, 0, 0.0)
+        self._limits = np.concatenate((self._limits, [np.inf]))
         self._grid.at_node["grains_classes__size"][self._grid.nodes] *= self._meansizes
 
     def create_dist(
