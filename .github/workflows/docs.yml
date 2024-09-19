@@ -17,8 +17,6 @@ jobs:
           github.repository
 
         runs-on: ubuntu-latest
-        container: 
-          image: pandoc/core:3.2
 
         defaults:
           run:
@@ -26,13 +24,16 @@ jobs:
 
         steps:
           - uses: actions/checkout@v4
-          - name: Set up Python 3.12
-            uses: actions/setup-python@v4
+          - uses: conda-incubator/setup-miniconda@v2
             with:
               python-version: 3.12
+              miniforge-variant: Miniforge3
+              miniforge-version: latest
+              auto-update-conda: true
 
-          - name: check pandoc
+          - name: install and check pandoc
             run: |
+              conda install pandoc -c conda-forge
               pandoc --help
               pandoc --version
 
