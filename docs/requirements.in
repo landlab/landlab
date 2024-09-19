@@ -1,4 +1,5 @@
 furo
+numpy
 sphinx-copybutton
 sphinx-inline-tabs
 sphinx-jinja
