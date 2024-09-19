@@ -97,8 +97,9 @@ jobs:
         name: Download build artifact
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
-        run: |
-          ls -R
+
+      - name: Display structure of downloaded files
+        run: ls -R
 
       - name: Install testing requirements
         run: |
