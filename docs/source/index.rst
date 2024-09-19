@@ -8,14 +8,34 @@ Landlab: A modular Earth Surface Dynamics modeling library
   :start-after: .. start-intro
   :end-before: .. end-intro
 
-.. toctree::
- :caption: Getting Started
- :maxdepth: 1
- :hidden:
+Projects that use Landlab
+-------------------------
 
- installation
- Tutorial notebooks <getting_started/index>
- user_guide/index
+For a list of people that are using *Landlab*, please have a look at our
+:ref:`Papers and Presentations <papers>` section.
+
+Citing Landlab
+--------------
+
+If you use any portion of Landlab, please cite our :ref:`Citing Landlab <citing>`
+page.
+
+Tutorials
+---------
+
+:ref:`Gallery of tutorial notebooks <tutorials>`.
+
+
+.. toctree::
+   :caption: Getting Started
+   :maxdepth: 1
+   :hidden:
+
+   installation
+   Tutorial notebooks <getting_started/index>
+   user_guide/index
+   Tutorials <tutorials/index>
+   Teaching with Landlab <teaching/index>
 
 .. toctree::
  :caption: Contributing
