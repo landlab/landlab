@@ -2,7 +2,7 @@
 """Flux limiter functions for advection solver.
 
 There are many flux-limiter functions. For second-order TVD
-schemes, there is an envelope of acceptable values of phi(r):
+schemes, there is an envelope of acceptable values of ``phi(r)``::
 
     r <= phi(r) <= 2r, (0 <= r <= 1)
     phi(1) = 1

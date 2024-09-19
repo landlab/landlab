@@ -1,4 +1,4 @@
-"""synthetic.py provides functions to add synthetic values to a model grid.
+"""Add synthetic values to a model grid.
 
 Values can be added to any valid grid element (e.g. link or node). If no field
 exists, a field of float zeros will be initialized.

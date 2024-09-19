@@ -96,20 +96,21 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
     Notes
     -----
     Calculation is only made for core nodes; boundary nodes receive zeros.
-        For a grid with orientation='horizontal', one of the 3 link orientations
+
+    For a grid with orientation='horizontal', one of the 3 link orientations
     is horizontal. The x component is therefore taken as the average value of
     the links to the east (right) and west (left). For a grid with
     orientation='vertical', the same principle applies for the y component:
     it is the average of the link values to the north/top and south/bottom.
-        In general, the theory behind the approach is that there exists a
+
+    In general, the theory behind the approach is that there exists a
     "true" vector field that has been projected onto the links.
     Let $V = (v_x, v_y)$ be the true vector. The projection of $V$ onto two links
     with unit vectors $l_1 = (l_{1x}, l_{1y})$ and $l_2 = (l_{2x}, l_{2y})$
     yields the following formula for the scalar magnitude, or component, of
-    the two link vectors:
+    the two link vectors::
 
         L_1 = V dot l_1
-
         L_2 = V dot l_2
 
     We know $L_1$ and $L_2$: they are the values associated with two adjacent
@@ -119,11 +120,13 @@ def map_link_vector_components_to_node_hex(grid, data_at_link):
     which derive from the link orientations (they involve sin 60 and
     cos 60). So we have two equations with two unknowns: the vector
     components $v_x$ and $v_y$.
-        In practice, we use this math to obtain the $y$ component for a
+
+    In practice, we use this math to obtain the $y$ component for a
     horizontal grid, and the $x$ component for a vertical grid. The opposite
     component is found directly from the horizontal or vertical links,
     respectively.
-        Note that in the above doc tests, we take advantage of the fact that
+
+    Note that in the above doc tests, we take advantage of the fact that
     sin 60 deg = half the square root of 3 (no need to import math or numpy).
     """
     cores = grid.core_nodes

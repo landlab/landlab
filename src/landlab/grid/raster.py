@@ -1,10 +1,6 @@
 #! /usr/env/python
 """A class used to create and manage regular raster grids for 2D numerical
 models in Landlab.
-
-Do NOT add new documentation here. Grid documentation is now built in a
-semi- automated fashion. To modify the text seen on the web, edit the
-files `docs/text_for_[gridfile].py.txt`.
 """
 import contextlib
 

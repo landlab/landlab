@@ -166,10 +166,6 @@ html_theme_options = {
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
 
-# The name of an image file (relative to this directory) to place at the top
-# of the sidebar.
-# html_logo = "images/landlab_logo.jpg"
-
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
@@ -265,6 +261,8 @@ jinja_contexts = {"llcats": cats}
 # selects what content will be inserted into the main body of an autoclass
 # directive: 'class'(default), 'both', or 'init'
 autoclass_content = "both"
+autodoc_typehints = "description"
+autodoc_class_signature = "separated"
 
 with open(os.path.join(src_dir, "../cython-files.txt")) as fp:
     cython_files = {fname.strip() for fname in fp.readlines()}
@@ -289,8 +287,10 @@ autodoc_mock_imports = [
 ] + [path[4:-4].replace("/", ".") for path in cython_files]
 
 autodoc_default_options = {
+    "maxdepth": 2,
     "members": True,
     "undoc-members": True,
     "show-inheritance": True,
+    "inherited-members": "int",
     "ignore-module-all": True,  # Ignore __all__ directives in modules
 }

@@ -101,7 +101,7 @@ From inside Landlab, you'll also need:
 * Any **components** you want to run
 * Any Landlab **utilities** you need, such as plotters (
   :py:func:`imshow_grid <landlab.plot.imshow>`) or
-  :ref:`io functions <api.io>`.
+  :py:mod:`io functions <landlab.io>`.
 
 A specific example might be:
 

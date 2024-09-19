@@ -1,11 +1,10 @@
-"""
-This code was designed to plot outputs of the NetworkSedimentTransporter
-landlab component.
+"""Plot outputs of the NetworkSedimentTransporter.
 
 This code plots:
-    - the network, with option to color each link according to a link attribute.
-    - the parcels, with option to color and size each parcel according to
-    parcel attributes.
+
+*  the network, with option to color each link according to a link attribute.
+*  the parcels, with option to color and size each parcel according to
+   parcel attributes.
 
 Authors: Katy Barnhart, Jon Czuba, Allison Pfeiffer
 """
@@ -47,8 +46,9 @@ def plot_network_and_parcels(
     fig=None,
     **kwargs,
 ):
-    """Plot a river network and parcels on the river network. Intended to
-    display the results of the NetworkSedimentTransporter component.
+    """Plot a river network and parcels on the river network.
+
+    Intended to display the results of the NetworkSedimentTransporter component.
 
     The river network (an instance of NetworkModelGrid) is plotted either as
     straight links between grid nodes, or (if the network was created using a
@@ -69,101 +69,74 @@ def plot_network_and_parcels(
     parcels : DataRecord
         Instance of Landlab DataRecord, with the same attribute requirements as
         NetworkSedimentTransporter.
-    parcel_time_index : int, time index of parcels DataRecord
+    parcel_time_index : int, optional
         Parcel time index to plot. Default is last timestep in parcels
         DataRecord.
-    map_buffer : 0.1
-        Increase the plot extent by at least this much (default 0.1). Note,
-        b/c of axis equal, may be more.
-    parcel_filter : boolean array of shape (number_of_parcels, )
+    map_buffer : float, optional
+        Increase the plot extent by at least this much. Note, because of axis
+        equal, may be more.
+    parcel_filter : array_like of boolean, shape (number_of_parcels, ), optional
         Filter to plot only a selection of the parcels.
 
-    ########################
-    ## Part 1: Network. To set the link colors provide either:
-
-    network_color="k"
+    Other Parameters
+    ----------------
+    network_color : str, optional
         Uniform color for network links.
-
-    # or
-
-    link_attribute : array or field name at link
-        Value used to set link color. Categorical options not supported. Must
-        be continuous.
-    link_attribute_title : str
+    link_attribute : array_like or str, optional
+        Value (as either an array or the name of an at-link field) used to set
+        ink color. Categorical options not supported. Must be continuous.
+    link_attribute_title : str, optional
         String to use as the title, if link_attribute is a string, it is
         used as the default.
-    network_cmap : "cividis"
+    network_cmap : str, optional
         Name of colormap for network.
-    network_norm : matplotlib color normalizer.
+    network_norm : matplotlib color normalizer
         https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
-        Default is linear between min and max of link_attribute.
-
-    # linewidth will be recognized by either link coloring option.
-
-    network_linewidth : float
-        Width of network lines (default 0.5).
-
-    ########################
-    ## Part 2: Parcels. To set the parcel color, provide either:
-
-    parcel_color : color str
-        Constant color used for parcel markers (default "k").
-
-    # or
-
-    parcel_color_attribute : parcel attribute name.
-        Categorical options not supported. Must be continuous.
-    parcel_color_attribute_title : str
+        Default is linear between min and max of `link_attribute`.
+    network_linewidth : float, optional
+        Width of network lines.
+    parcel_color : str, optional
+        Constant color used for parcel markers.
+    parcel_color_attribute : str, optional
+        Parcel attribute name, Categorical options not supported. Must be continuous.
+    parcel_color_attribute_title : str, optional
         String to use as the legend title. If parcel_color_attribute is a
         string, it is used as the default.
-    parcel_color_cmap : cmap str
-        Name of colormap for variable parcel color (default "plasma").
+    parcel_color_cmap : str, optional
+        Name of colormap for variable parcel color.
     parcel_color_norm : matplotlib color normalizer.
         https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
         Default is linear between min and max of parcel_color_attribute.
-
-    # for parcel size use either:
-
-    parcel_size : float
+    parcel_size : float, optional
         Marker size, in points.
-
-    # or
-
-    parcel_size_attribute: parcel atribute name.
-        Categorical options not supported. Must be continuous.
-    parcel_size_attribute_title : str
-        string to use as the title, if parcel_size_attribute is a string, it is
+    parcel_size_attribute: str, optional
+        Parcel attribute name, Categorical options not supported. Must be continuous.
+    parcel_size_attribute_title : str, optional
+        String to use as the title, if `parcel_size_attribute` is a string, it is
         used as the default.
     parcel_size_norm : par
         matplotlib color normalizer.
         https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
-        Default is linear between min and max of parcel_size_attribute.,
-    parcel_size_min : float
+        Default is linear between min and max of `parcel_size_attribute`.
+    parcel_size_min : float, optional
         Specify the smallest size of the dot markers plotted, in
         units of points (default 5). Use with parcel_size_max. They will be
         aligned with the limits of parcel_size_norm.
-    parcel_size_max : float
+    parcel_size_max : float, optional
         Specify the largest size of the dot markers plotted, in
-        units of points (default 40). Use with parcel_size_min. They will be
+        units of points (default 40). Use with `parcel_size_min`. They will be
         aligned with the limits of parcel_size_norm.
-
-    # with constant or attribute, can set parcel transparency
-
-    parcel_alpha : float, between 0 and 1
-        Specify parcel marker transparency (default 0.5).
-
-    ################### Miscellaneous
-
-    fig :  figure object
+    parcel_alpha : float, optional
+        Specify parcel marker transparency between 0.0 and 1.0.
+    fig :  figure, optional
         Default is to create a new figure object.
-
-    **kwargs Anything else to pass to figure creation.
+    **kwargs :
+        Anything else to pass to figure creation.
 
     Returns
     -------
-    fig :
+    fig
         Figure object.
-
     """
     # part 0 checking and default setting.
 
