@@ -113,7 +113,7 @@ jobs:
         env:
           HYPOTHESIS_PROFILE: "ci"
         run: |
-          pytest -n auto --cov landlab -vvv -m "${{ matrix.pytest-marker }}" --cov-report=xml:./coverage.xml
+          pytest -n auto --cov landlab -vvv -m "${{ matrix.pytest-marker }}" --cov-report=xml:/home/runner/work/landlab/landlab/coverage.xml
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
