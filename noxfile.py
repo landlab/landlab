@@ -26,11 +26,6 @@ def build(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-
-    if sys.platform.startswith("darwin") and session.python == "3.12":
-        session.log("installing multidict from conda-forge.")
-        session.conda_install("multidict")
-
     session.install(
         "pip",
         "build",
@@ -46,11 +41,6 @@ def test(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-
-    if sys.platform.startswith("darwin") and session.python == "3.12":
-        session.log("installing multidict from conda-forge.")
-        session.conda_install("multidict")
-
     session.install(
         *("-r", PATH["requirements"] / "required.txt"),
         *("-r", PATH["requirements"] / "testing.txt"),
@@ -62,10 +52,8 @@ def test(session: nox.Session) -> None:
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
     args = [
-        "-n",
-        "auto",
-        "--cov",
-        PROJECT,
+        *("-n", "auto"),
+        *("--cov", PROJECT),
         "-vvv",
         # "--dist", "worksteal",  # this is not available quite yet
     ] + session.posargs
@@ -87,8 +75,7 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake",
         "--nbmake-kernel=python3",
         "--nbmake-timeout=3000",
-        "-n",
-        "auto",
+        *("-n", "auto"),
         "-vvv",
     ] + session.posargs
 
@@ -99,12 +86,9 @@ def test_notebooks(session: nox.Session) -> None:
         session.conda_install("multidict")
 
     session.install(
-        "-r",
-        PATH["requirements"] / "required.txt",
-        "-r",
-        PATH["requirements"] / "testing.txt",
-        "-r",
-        PATH["requirements"] / "notebooks.txt",
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "testing.txt"),
+        *("-r", PATH["requirements"] / "notebooks.txt"),
     )
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
