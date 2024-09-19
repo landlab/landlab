@@ -61,15 +61,6 @@ A list of papers and presentations using Landlab can be found :ref:`here <papers
     units
 
 .. toctree::
-    :caption: Landlab Tutorial Library
-    :maxdepth: 2
-    :hidden:
-
-    tutorials
-    teaching_tutorials
-
-
-.. toctree::
     :caption: Additional resources
     :maxdepth: 2
     :hidden:

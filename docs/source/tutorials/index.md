@@ -25,7 +25,7 @@ The Landlab Reference Manual contains documentation for most functions in the La
 
 First, lets look at the [User Guide page on Landlab grids](https://landlab.readthedocs.io/en/latest/user_guide/grid.html).
 
-- [Notebook: Introduction to the model grid object](grid_object_demo/grid_object_demo.ipynb) Grid topology; how landlab represents data; connectivity of grid elements.
+- [Notebook: Introduction to the model grid object](grids/grid_object_demo.ipynb) Grid topology; how landlab represents data; connectivity of grid elements.
 - [Notebook: Introduction to Landlab data fields](fields/working_with_fields.ipynb) How Landlab stores spatial data on the grid; a little on naming conventions.
 
 Extra credit: Go back to the [Hobley et al. 2017 publication](https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.html) and identify the ordering conventions of nodes, links, and other grid elements.
