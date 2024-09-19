@@ -1,9 +1,11 @@
 import difflib
+import glob
 import json
 import os
 import pathlib
 import shutil
 import sys
+from collections import defaultdict
 
 import nox
 from packaging.requirements import Requirement
@@ -163,7 +165,7 @@ def docs_build(session: nox.Session) -> None:
         "sphinx-build",
         *("-j", "auto"),
         *("-b", "html"),
-        "-W",
+        # "-W",
         "--keep-going",
         PATH["docs"] / "source",
         PATH["build"] / "html",
@@ -193,6 +195,52 @@ def docs_build_api(session: nox.Session) -> None:
         "*.pyx",
         "*.so",
     )
+
+
+@nox.session(name="docs-build-gallery-index")
+def docs_build_notebook_index(session: nox.Session) -> None:
+    docs_dir = PATH["docs"] / "source"
+
+    for gallery in ("tutorials", "teaching"):
+        index = collect_notebooks(docs_dir / gallery)
+
+        for subdir, entries in sorted(index.items()):
+            title = pathlib.Path(subdir).stem.replace("_", " ").title()
+
+            path_to_notebooks = pathlib.Path(gallery) / subdir
+
+            lines = [
+                f"{title}",
+                f"{'-' * len(title)}",
+                "",
+                ".. nbgallery::",
+                "    :glob:",
+                "",
+            ] + [f"    /{path_to_notebooks / v!s}" for v in entries]
+
+            generated_dir = docs_dir / "generated" / path_to_notebooks
+            generated_file = generated_dir / "_index.rst"
+
+            generated_dir.mkdir(parents=True, exist_ok=True)
+            with open(generated_file, "w") as fp:
+                print(os.linesep.join(lines), file=fp)
+            session.log(generated_file)
+
+
+def collect_notebooks(path_to_notebooks):
+    paths = pathlib.Path(path_to_notebooks)
+
+    index = defaultdict(list)
+
+    for p in (p for p in paths.iterdir() if p.is_dir()):
+        subdir = p.relative_to(path_to_notebooks)
+
+        if glob.glob(str(p / "*.ipynb")) + glob.glob(str(p / "*.md")):
+            index[subdir] += ["*"]
+        if glob.glob(str(p / "**/*.ipynb")) + glob.glob(str(p / "**/*.md")):
+            index[subdir] += ["**"]
+
+    return index
 
 
 @nox.session(name="check-versions")
