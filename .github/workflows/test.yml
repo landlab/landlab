@@ -106,7 +106,7 @@ jobs:
           HYPOTHESIS_PROFILE: "ci"
         run: |
           pip install nox
-          nox --verbose -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.markers }}" --path=*whl
+          nox --verbose -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}" --path=*whl
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
