@@ -93,10 +93,12 @@ jobs:
           conda install richdem "numpy<2" -c conda-forge
           python -c 'import _richdem'
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v3
+        name: Download build artifact
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
+        run: |
+          ls -R
 
       - name: Install testing requirements
         run: |
@@ -104,7 +106,7 @@ jobs:
 
       - name: Install built package
         run: |
-          pip install build/wheelhouse/*.whl
+          pip install *.whl
 
       - name: Test
         env:
