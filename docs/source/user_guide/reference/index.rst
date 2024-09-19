@@ -13,7 +13,7 @@ Grids
 .. toctree::
     :maxdepth: 2
 
-    grid/index
+    grid
 
 Layers
 ------
@@ -21,7 +21,7 @@ Layers
 .. toctree::
     :maxdepth: 2
 
-    layers/index
+    layers
 
 Lithology
 ---------
@@ -53,7 +53,7 @@ Values
 .. toctree::
     :maxdepth: 2
 
-    values/index
+    values
 
 Components
 ----------
@@ -61,7 +61,7 @@ Components
 .. toctree::
     :maxdepth: 2
 
-    components/index
+    components
 
 Full Index
 ----------

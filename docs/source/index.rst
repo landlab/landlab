@@ -27,14 +27,23 @@ Landlab: A modular Earth Surface Dynamics modeling library
  API Reference <generated/api/landlab>
 
 .. toctree::
-  :caption: Useful Links
-  :maxdepth: 1
-  :hidden:
+   :caption: About
+   :maxdepth: 1
+   :hidden:
 
-  changes
-  contact_us
-  citing
-  funding
-  Contributors <authors>
-  License <license>
-  Used by <usedby>
+   about/changes
+   about/contact_us
+   about/citing
+   about/funding
+   Contributors <about/authors>
+   License <about/license>
+   Used by <about/usedby>
+
+.. toctree::
+   :caption: Project Links
+   :maxdepth: 1
+   :hidden:
+
+   GitHub <https://github.com/landlab/landlab>
+   PyPI <https://pypi.org/project/landlab>
+   Conda-Forge <https://github.com/conda-forge/landlab-feedstock>
