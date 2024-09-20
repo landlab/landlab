@@ -47,6 +47,8 @@ def test(session: nox.Session) -> None:
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
     session.install(
+        "pip",
+        "build",
         *("-r", PATH["requirements"] / "required.txt"),
         *("-r", PATH["requirements"] / "testing.txt"),
     )
@@ -94,6 +96,8 @@ def test_notebooks(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.install(
+        "pip",
+        "build",
         *("-r", PATH["requirements"] / "required.txt"),
         *("-r", PATH["requirements"] / "testing.txt"),
         *("-r", PATH["requirements"] / "notebooks.txt"),
