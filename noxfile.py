@@ -32,6 +32,9 @@ def build(session: nox.Session) -> None:
         *("-r", PATH["requirements"] / "required.txt"),
     )
 
+    session.run("python", "--version")
+    session.run("python", "-m", "pip", "debug", "--verbose")
+
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
