@@ -38,15 +38,10 @@ def build(session: nox.Session) -> None:
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
 def test(session: nox.Session) -> None:
     """Run the tests."""
-    pytest_args = []
-    files = []
-    for arg in session.posargs:
-        if arg.startswith("--path="):
-            _, path = arg.split("=", maxsplit=1)
-            files += glob.glob(path)
-        else:
-            pytest_args.append(arg)
-    file = files[0] if files else "."
+    path_args, pytest_args = pop_option(session.posargs, "--path")
+    file = path_args[0] if path_args else "."
+
+    session.log(file)
 
     os.environ["WITH_OPENMP"] = "1"
 
@@ -57,6 +52,10 @@ def test(session: nox.Session) -> None:
     )
 
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
+
+    session.run("python", "--version")
+    session.run("python", "-m", "pip", "debug", "--verbose")
+
     session.install(file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
@@ -79,15 +78,8 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
-    pytest_args = []
-    files = []
-    for arg in session.posargs:
-        if arg.startswith("--path="):
-            _, path = arg.split("=", maxsplit=1)
-            files += glob.glob(path)
-        else:
-            pytest_args.append(arg)
-    file = files[0] if files else "."
+    path_args, pytest_args = pop_option(session.posargs, "--path")
+    file = path_args[0] if path_args else "."
 
     args = [
         "pytest",
@@ -108,6 +100,10 @@ def test_notebooks(session: nox.Session) -> None:
     )
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
+
+    session.run("python", "--version")
+    session.run("python", "-m", "pip", "debug", "--verbose")
+
     session.install(file, "--no-deps")
 
     check_package_versions(
@@ -115,6 +111,18 @@ def test_notebooks(session: nox.Session) -> None:
     )
 
     session.run(*args)
+
+
+def pop_option(args: list[str], opt: str):
+    the_rest = []
+    opts = []
+    for arg in args:
+        if arg.startswith(f"{opt}="):
+            _, value = arg.split("=", maxsplit=1)
+            opts += glob.glob(value)
+        else:
+            the_rest.append(arg)
+    return opts, the_rest
 
 
 @nox.session(name="test-cli")
