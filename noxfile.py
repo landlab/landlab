@@ -32,9 +32,6 @@ def build(session: nox.Session) -> None:
         *("-r", PATH["requirements"] / "required.txt"),
     )
 
-    session.run("python", "--version")
-    session.run("python", "-m", "pip", "debug", "--verbose")
-
     session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
@@ -44,23 +41,15 @@ def test(session: nox.Session) -> None:
     path_args, pytest_args = pop_option(session.posargs, "--path")
     file = path_args[0] if path_args else "."
 
-    session.log(file)
-
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
     session.install(
-        "pip",
-        "build",
         *("-r", PATH["requirements"] / "required.txt"),
         *("-r", PATH["requirements"] / "testing.txt"),
     )
 
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-
-    session.run("python", "--version")
-    session.run("python", "-m", "pip", "debug", "--verbose")
-
     session.install(file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
@@ -99,8 +88,6 @@ def test_notebooks(session: nox.Session) -> None:
     os.environ["WITH_OPENMP"] = "1"
 
     session.install(
-        "pip",
-        "build",
         *("-r", PATH["requirements"] / "required.txt"),
         *("-r", PATH["requirements"] / "testing.txt"),
         *("-r", PATH["requirements"] / "notebooks.txt"),

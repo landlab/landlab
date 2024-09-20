@@ -8,7 +8,12 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run
+    # by the push to the branch. Without this if check, checks are duplicated since
+    # internal PRs match both the push and pull_request events.
+    if:
+      github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
+      github.repository
 
     defaults:
       run:
@@ -19,16 +24,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
-        include:
-          - os: macos-latest
-            python-version: "3.10"
-            architecture: x86_64
-          - os: macos-latest
-            python-version: "3.11"
-            architecture: x86_64
-          - os: macos-latest
-            python-version: "3.12"
-            architecture: x86_64
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -63,14 +59,6 @@ jobs:
   test:
     needs: build
     name: Run the tests
-    # We want to run on external PRs, but not on our own internal PRs as they'll be run
-    # by the push to the branch. Without this if check, checks are duplicated since
-    # internal PRs match both the push and pull_request events.
-    if:
-      github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
-      github.repository
-
-    runs-on: ${{ matrix.os }}
 
     defaults:
       run:
@@ -83,16 +71,7 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
         pytest-marker: ["slow", "not slow"]
         session-name: ["test", "test-notebooks"]
-        include:
-          - os: macos-latest
-            python-version: "3.10"
-            architecture: x86_64
-          - os: macos-latest
-            python-version: "3.11"
-            architecture: x86_64
-          - os: macos-latest
-            python-version: "3.12"
-            architecture: x86_64
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -119,12 +98,11 @@ jobs:
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
 
-      - name: Display structure of downloaded files
-        run: ls -R
-
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          MPLBACKEND: "Agg"
         run: |
           pip install nox
           nox --verbose -s ${{ matrix.session-name }} --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}" --path=*whl
