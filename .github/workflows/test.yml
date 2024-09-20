@@ -45,7 +45,7 @@ jobs:
           nox -s build --force-pythons="${{ matrix.python-version }}"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
           path: build/wheelhouse/*
@@ -72,6 +72,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
         pytest-marker: ["slow", "not slow"]
+        session-name: ["test", "test-notebooks"]
 
     steps:
       - uses: actions/checkout@v4
@@ -93,7 +94,7 @@ jobs:
           conda install richdem -c conda-forge
           python -c 'import _richdem'
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: Download build artifact
         with:
           name: build-${{ matrix.os }}-${{ matrix.python-version }}
@@ -106,7 +107,7 @@ jobs:
           HYPOTHESIS_PROFILE: "ci"
         run: |
           pip install nox
-          nox --verbose -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}" --path=*whl
+          nox --verbose -s ${{ matrix.session-name }} --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}" --path=*whl
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
