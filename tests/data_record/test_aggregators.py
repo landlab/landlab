@@ -27,6 +27,7 @@ def test_count_bench_cython(benchmark):
     assert_array_equal(out[1:], 0)
 
 
+@pytest.mark.slow
 def test_count_bench(benchmark):
     n_links = 1000
     n_parcels = 100000
