@@ -95,9 +95,6 @@ def test_notebooks(session: nox.Session) -> None:
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
 
-    session.run("python", "--version")
-    session.run("python", "-m", "pip", "debug", "--verbose")
-
     session.install(file, "--no-deps")
 
     check_package_versions(
