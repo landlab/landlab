@@ -115,7 +115,7 @@ jobs:
           nox --verbose -s ${{ matrix.session-name }} --force-pythons=${{ matrix.python-version }} -- -m ${{ matrix.pytest-marker }} --path=*whl
 
       - name: Coveralls
-        if: matrix.os == 'macos-latest'
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.session-name == 'test' }}
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
@@ -124,7 +124,7 @@ jobs:
 
   coveralls_finish:
     needs: test
-    runs-on: macos-latest
+    runs-on: ububtu-latest
     steps:
       - name: Coveralls Finished
         uses: AndreMiras/coveralls-python-action@develop
