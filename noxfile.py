@@ -4,7 +4,6 @@ import json
 import os
 import pathlib
 import shutil
-import sys
 
 import nox
 from packaging.requirements import Requirement
@@ -80,6 +79,16 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
+    pytest_args = []
+    files = []
+    for arg in session.posargs:
+        if arg.startswith("--path="):
+            _, path = arg.split("=", maxsplit=1)
+            files += glob.glob(path)
+        else:
+            pytest_args.append(arg)
+    file = files[0] if files else "."
+
     args = [
         "pytest",
         "notebooks",
@@ -88,13 +97,9 @@ def test_notebooks(session: nox.Session) -> None:
         "--nbmake-timeout=3000",
         *("-n", "auto"),
         "-vvv",
-    ] + session.posargs
+    ] + pytest_args
 
     os.environ["WITH_OPENMP"] = "1"
-
-    if sys.platform.startswith("darwin") and session.python == "3.12":
-        session.log("installing multidict from conda-forge")
-        session.conda_install("multidict")
 
     session.install(
         *("-r", PATH["requirements"] / "required.txt"),
@@ -103,7 +108,7 @@ def test_notebooks(session: nox.Session) -> None:
     )
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
-    session.install("-e", ".", "--no-deps")
+    session.install(file, "--no-deps")
 
     check_package_versions(
         session, files=["required.txt", "testing.txt", "notebooks.txt"]
