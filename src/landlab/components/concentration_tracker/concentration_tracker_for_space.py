@@ -405,7 +405,7 @@ class ConcentrationTrackerForSpace(Component):
         dt_over_depth[~is_soil] = 0.0
 
         # Calculate mass balance terms that don't need downstream iteration
-        WC_Es_term = (1 - self._phi) * Es * self._cell_area
+        WC_Es_term = Es * self._cell_area
         WC_Er_term = (1 - self._fraction_fines) * Er * self._cell_area
         WC_denominator_term = np.ones(np.shape(q))
         WC_denominator_term[q != 0] = (
@@ -444,10 +444,11 @@ class ConcentrationTrackerForSpace(Component):
             else:
                 self._C_sw[node_id] = 0.0
 
-            # Calculate BED erosion/deposition term (requires C_sw from above)
-            self._BED_ero_depo_term[node_id] = self._C_sw[node_id] * D_sw[node_id] / (
-                1 - self._phi
-            ) - self._concentration[node_id] * Es[node_id] / (1 - self._phi)
+            # Calculate BED erosion/deposition term (requires C_sw from above)            
+            self._BED_ero_depo_term[node_id] = ((self._C_sw[node_id] * D_sw[node_id]
+                                                 - self._concentration[node_id] * Es[node_id])
+                                                / (1 - self._phi)
+                                                )
 
             # Calculate BED concentration
             self._concentration[node_id] = (
