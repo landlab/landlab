@@ -71,11 +71,11 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
         pytest-marker: ["slow", "not slow"]
         session-name: ["test", "test-notebooks"]
-      exclude:
-        - session-name: "test-notebooks"
-          python-version: 3.10
-        - session-name: "test-notebooks"
-          python-version: 3.11
+        exclude:
+          - session-name: "test-notebooks"
+            python-version: 3.10
+          - session-name: "test-notebooks"
+            python-version: 3.11
     runs-on: ${{ matrix.os }}
 
     steps:
