@@ -112,14 +112,14 @@ jobs:
           MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox --verbose -s ${{ matrix.session-name }} --force-pythons=${{ matrix.python-version }} -- -m ${{ matrix.pytest-marker }} --path=*whl
+          nox --verbose -s ${{ matrix.session-name }} --force-pythons=${{ matrix.python-version }} -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
       - name: Coveralls
         if: ${{ matrix.os == 'ubuntu-latest' && matrix.session-name == 'test' }}
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
-          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-${{ matrix.pytest-marker }}
+          flag-name: py${{ matrix.python-version }}-${{ matrix.os }}-'${{ matrix.pytest-marker }}'
           debug: true
 
   coveralls_finish:
