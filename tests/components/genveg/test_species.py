@@ -4,6 +4,7 @@ from numpy.testing import assert_allclose, assert_almost_equal
 
 from landlab.components.genveg.species import Species
 from landlab.components.genveg.habit import Forbherb, Graminoid, Shrub, Tree, Vine
+from landlab.components.genveg.form import Bunch, Colonizing, Multiplestems, Rhizomatous, Singlecrown, Singlestem, Stoloniferous, Thicketforming
 
 
 def create_species_object(example_input_params):
@@ -244,5 +245,20 @@ def test_select_habit_class(example_input_params):
         print(dummy_species["BTS"]["plant_factors"]["growth_habit"])
         assert isinstance(
             species_object.select_habit_class(dummy_species["BTS"]),
+            cls
+        )
+
+
+
+def test_select_form_class(example_input_params):
+    species_object = create_species_object(example_input_params)
+    dummy_growth_form = example_input_params
+    for growth, cls in zip(
+        ['bunch', 'colonizing', 'multiple_stems', 'rhizomatous', 'single_crown', 'single_stem', 'stoloniferous', 'thicket_forming'],
+        [Bunch, Colonizing, Multiplestems, Rhizomatous, Singlecrown, Singlestem, Stoloniferous, Thicketforming]
+    ):
+        dummy_growth_form["BTS"]["plant_factors"]["growth_form"] = growth
+        assert isinstance(
+            species_object.select_form_class(dummy_growth_form["BTS"]),
             cls
         )
