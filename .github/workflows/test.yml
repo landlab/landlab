@@ -48,7 +48,7 @@ jobs:
       - name: Build
         run: |
           pip install nox
-          nox -s build --force-pythons="${{ matrix.python-version }}"
+          nox -s build --force-pythons=${{ matrix.python-version }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -76,6 +76,8 @@ jobs:
             python-version: 3.10
           - session-name: "test-notebooks"
             python-version: 3.11
+          - session-name: "test-notebooks"
+            os: ubuntu-latest
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -110,7 +112,7 @@ jobs:
           MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox --verbose -s ${{ matrix.session-name }} --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}" --path=*whl
+          nox --verbose -s ${{ matrix.session-name }} --force-pythons=${{ matrix.python-version }} -- -m ${{ matrix.pytest-marker }} --path=*whl
 
       - name: Coveralls
         if: matrix.os == 'ubuntu-latest'
