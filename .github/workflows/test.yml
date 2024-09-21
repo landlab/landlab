@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install compilers
-        run: conda install c-compiler cxx-compiler
+        run: conda install c-compiler cxx-compiler -c conda-forge
 
       - name: Build
         run: |
