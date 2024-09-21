@@ -1,20 +1,25 @@
 name: Test
 
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
-  build-and-test:
-    name: Run the tests
-    # We want to run on external PRs, but not on our own internal PRs as they'll be run
-    # by the push to the branch. Without this if check, checks are duplicated since
-    # internal PRs match both the push and pull_request events.
-    if:
-      github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
-      github.repository
+  build:
+    # Run on external PRs, but not on internal PRs, to avoid duplicate runs
+    if: |
+      github.event_name == 'push' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
 
     runs-on: ${{ matrix.os }}
 
@@ -22,46 +27,91 @@ jobs:
       run:
         shell: bash -l {0}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10", "3.11", "3.12"]
-        pytest-marker: ["slow", "not slow"]
-
     steps:
       - uses: actions/checkout@v4
-
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
           miniforge-variant: Miniforge3
           miniforge-version: latest
           auto-update-conda: true
 
-      - name: Install compilers
-        run: |
-            conda install c-compiler cxx-compiler
-
       - name: Show conda installation info
         run: |
           conda info
           conda list
 
-      - name: Install and test richdem engine
+      - name: Install compilers
+        run: conda install c-compiler cxx-compiler -c conda-forge
+
+      - name: Build
         run: |
-          conda install richdem "numpy<2" -c conda-forge
-          python -c 'import _richdem'
+          pip install nox
+          nox -s build --force-pythons=${{ matrix.python-version }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.python-version }}
+          path: build/wheelhouse/*
+
+  test:
+    needs: build
+    name: Run the tests
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        pytest-marker: ["slow", "not slow"]
+        session-name: ["test", "test-notebooks"]
+        exclude:
+          - session-name: "test-notebooks"
+            python-version: 3.10
+          - session-name: "test-notebooks"
+            python-version: 3.11
+          - session-name: "test-notebooks"
+            os: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          auto-update-conda: true
+
+      # - name: Install and test richdem engine
+      #   run: |
+      #     conda install richdem -c conda-forge
+      #     python -c 'import _richdem'
+
+      - uses: actions/download-artifact@v4
+        name: Download build artifact
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.python-version }}
 
       - name: Test
         env:
           HYPOTHESIS_PROFILE: "ci"
+          OPENTOPOGRAPHY_API_KEY: ${{ secrets.OPENTOPOGRAPHY_API_KEY }}
+          MPLBACKEND: "Agg"
         run: |
           pip install nox
-          nox -s test --force-pythons="${{ matrix.python-version }}" -- -m "${{ matrix.pytest-marker }}"
+          nox --verbose -s ${{ matrix.session-name }} \
+              --force-pythons=${{ matrix.python-version }} \
+              -- -m '${{ matrix.pytest-marker }}' --path=*whl
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-latest'
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.session-name == 'test' }}
         uses: AndreMiras/coveralls-python-action@develop
         with:
           parallel: true
@@ -69,8 +119,9 @@ jobs:
           debug: true
 
   coveralls_finish:
-    needs: build-and-test
+    needs: test
     runs-on: ubuntu-latest
+
     steps:
       - name: Coveralls Finished
         uses: AndreMiras/coveralls-python-action@develop

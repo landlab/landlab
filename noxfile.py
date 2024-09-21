@@ -4,7 +4,6 @@ import json
 import os
 import pathlib
 import shutil
-import sys
 from collections import defaultdict
 
 import nox
@@ -23,36 +22,45 @@ PATH = {
 
 
 @nox.session(python=PYTHON_VERSION, venv_backend="conda")
-def test(session: nox.Session) -> None:
-    """Run the tests."""
+def build(session: nox.Session) -> None:
+    """Build sdist and wheel dists."""
     os.environ["WITH_OPENMP"] = "1"
 
     session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
-
-    if sys.platform.startswith("darwin") and session.python == "3.12":
-        session.log("installing multidict from conda-forge.")
-        session.conda_install("multidict")
-
     session.install(
-        "-r",
-        PATH["requirements"] / "required.txt",
-        "-r",
-        PATH["requirements"] / "testing.txt",
+        "pip",
+        "build",
+        *("-r", PATH["requirements"] / "required.txt"),
+    )
+
+    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
+
+
+@nox.session(python=PYTHON_VERSION, venv_backend="conda")
+def test(session: nox.Session) -> None:
+    """Run the tests."""
+    path_args, pytest_args = pop_option(session.posargs, "--path")
+    file = path_args[0] if path_args else "."
+
+    os.environ["WITH_OPENMP"] = "1"
+
+    session.log(f"CC = {os.environ.get('CC', 'NOT FOUND')}")
+    session.install(
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "testing.txt"),
     )
 
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
-    session.install("-e", ".", "--no-deps")
+    session.install(file, "--no-deps")
 
     check_package_versions(session, files=["required.txt", "testing.txt"])
 
     args = [
-        "-n",
-        "auto",
-        "--cov",
-        PROJECT,
+        *("-n", "auto"),
+        *("--cov", PROJECT),
         "-vvv",
         # "--dist", "worksteal",  # this is not available quite yet
-    ] + session.posargs
+    ] + pytest_args
 
     if "CI" in os.environ:
         args.append(f"--cov-report=xml:{ROOT.absolute()!s}/coverage.xml")
@@ -65,40 +73,48 @@ def test(session: nox.Session) -> None:
 @nox.session(name="test-notebooks", python=PYTHON_VERSION, venv_backend="conda")
 def test_notebooks(session: nox.Session) -> None:
     """Run the notebooks."""
+    path_args, pytest_args = pop_option(session.posargs, "--path")
+    file = path_args[0] if path_args else "."
+
     args = [
         "pytest",
         "notebooks",
         "--nbmake",
         "--nbmake-kernel=python3",
         "--nbmake-timeout=3000",
-        "-n",
-        "auto",
+        *("-n", "auto"),
         "-vvv",
-    ] + session.posargs
+    ] + pytest_args
 
     os.environ["WITH_OPENMP"] = "1"
 
-    if sys.platform.startswith("darwin") and session.python == "3.12":
-        session.log("installing multidict from conda-forge")
-        session.conda_install("multidict")
-
     session.install(
-        "-r",
-        PATH["requirements"] / "required.txt",
-        "-r",
-        PATH["requirements"] / "testing.txt",
-        "-r",
-        PATH["requirements"] / "notebooks.txt",
+        *("-r", PATH["requirements"] / "required.txt"),
+        *("-r", PATH["requirements"] / "testing.txt"),
+        *("-r", PATH["requirements"] / "notebooks.txt"),
     )
     session.conda_install("richdem", channel=["nodefaults", "conda-forge"])
     session.install("git+https://github.com/mcflugen/nbmake.git@mcflugen/add-markers")
-    session.install("-e", ".", "--no-deps")
+
+    session.install(file, "--no-deps")
 
     check_package_versions(
         session, files=["required.txt", "testing.txt", "notebooks.txt"]
     )
 
     session.run(*args)
+
+
+def pop_option(args: list[str], opt: str):
+    the_rest = []
+    opts = []
+    for arg in args:
+        if arg.startswith(f"{opt}="):
+            _, value = arg.split("=", maxsplit=1)
+            opts += glob.glob(value)
+        else:
+            the_rest.append(arg)
+    return opts, the_rest
 
 
 @nox.session(name="test-cli")
@@ -337,16 +353,6 @@ def check_cython_files(session: nox.Session) -> None:
     )
     if diff:
         session.error("\n".join([""] + diff + ["cython-files.txt needs updating"]))
-
-
-@nox.session
-def build(session: nox.Session) -> None:
-    """Build sdist and wheel dists."""
-    session.install("pip")
-    session.install("build")
-    session.run("python", "--version")
-    session.run("pip", "--version")
-    session.run("python", "-m", "build", "--outdir", "./build/wheelhouse")
 
 
 @nox.session
